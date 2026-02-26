@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+  <title>Boutique Lead Management | CLOCHE</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+    rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,100..900;1,100..900&amp;family=Noto+Sans:ital,wght@0,100..900;1,100..900&amp;display=swap"
+    rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+    rel="stylesheet" />
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#c1a671",
+            "background-light": "#f7f6f2",
+            "background-dark": "#0d0d0d",
+            "accent-gold": "#c1a671",
+            "surface-dark": "#1a1a1a",
+          },
+          fontFamily: {
+            "display": ["Noto Serif", "serif"],
+            "sans": ["Noto Sans", "sans-serif"]
+          },
+          borderRadius: {
+            "DEFAULT": "0.5rem",
+            "lg": "1rem",
+            "xl": "1.5rem",
+            "full": "9999px"
+          },
+        },
+      },
+    }
+  </script>
+  <style>
+    .glass-panel {
+      background: rgba(26, 26, 26, 0.6);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(193, 166, 113, 0.15);
+    }
+
+    .luxury-row:hover {
+      background: rgba(193, 166, 113, 0.05);
+      box-shadow: inset 0 0 20px rgba(193, 166, 113, 0.03);
+    }
+
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+    }
+
+    .sidebar-item-active {
+      background: linear-gradient(90deg, rgba(193, 166, 113, 0.1) 0%, rgba(193, 166, 113, 0) 100%);
+      border-left: 3px solid #c1a671;
+    }
+
+    .gold-glow {
+      box-shadow: 0 0 20px rgba(193, 166, 113, 0.1);
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #0d0d0d;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #3e382d;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+
+<body class="bg-background-light dark:bg-background-dark font-sans text-slate-900 dark:text-slate-100 antialiased">
+  <div class="flex h-screen overflow-hidden">
+    <!-- SideNavBar -->
+    <!-- SideNavBar (FIXED – SAME AS DASHBOARD) -->
+    <aside class="w-72 bg-background-dark border-r border-primary/10 flex flex-col z-20 shrink-0 h-screen">
+
+      <!-- LOGO -->
+      <div class="p-8 flex items-center gap-4 shrink-0">
+        <div class="flex items-center gap-3 text-primary">
+          <div
+            class="size-10 rounded-full bg-primary flex items-center justify-center text-background-dark font-bold text-lg">
+            C
+          </div>
+          <div>
+            <h1 class="text-primary text-xl font-black tracking-widest uppercase leading-none">
+              CLOCHE
+            </h1>
+            <p class="text-primary/60 text-[10px] tracking-[0.2em] uppercase font-sans mt-1">
+              BOUTIQUE MANAGEMENT
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- NAV -->
+      <nav class="flex-1 px-4 py-6 space-y-2 font-sans overflow-y-auto custom-scrollbar">
+        <!-- Home -->
+        <a class="flex items-center gap-4 px-4 py-3 text-slate-400 hover:text-primary transition-colors group"
+          href="landingpage.html">
+          <span class="material-symbols-outlined">home</span>
+          <span class="text-sm font-medium tracking-wide">Home</span>
+        </a>
+
+        <!-- Dashboard -->
+        <a class="flex items-center gap-4 px-4 py-3 text-slate-400 hover:text-primary transition-colors group"
+          href="dashboard.html">
+          <span class="material-symbols-outlined">dashboard</span>
+          <span class="text-sm font-medium tracking-wide">Dashboard</span>
+        </a>
+
+        <!-- Leads (ACTIVE) -->
+        <a class="sidebar-item-active flex items-center gap-4 px-4 py-3 text-primary group" href="lead.html">
+          <span class="material-symbols-outlined">group</span>
+          <span class="text-sm font-medium tracking-wide">Leads</span>
+        </a>
+
+        <!-- Products -->
+        <a class="flex items-center gap-4 px-4 py-3 text-slate-400 hover:text-primary transition-colors group"
+          href="boutiqueproducts.html">
+          <span class="material-symbols-outlined">inventory_2</span>
+          <span class="text-sm font-medium tracking-wide">Products</span>
+        </a>
+
+        <!-- Messages -->
+        <a class="flex items-center gap-4 px-4 py-3 text-slate-400 hover:text-primary transition-colors group"
+          href="messages.html">
+          <span class="material-symbols-outlined">chat_bubble</span>
+          <span class="text-sm font-medium tracking-wide">Messages</span>
+        </a>
+
+        <!-- Subscription -->
+        <a class="flex items-center gap-4 px-4 py-3 text-slate-400 hover:text-primary transition-colors group"
+          href="subscription.html">
+          <span class="material-symbols-outlined">star</span>
+          <span class="text-sm font-medium tracking-wide">Subscription</span>
+        </a>
+
+        <!-- Settings -->
+        <a class="flex items-center gap-4 px-4 py-3 text-slate-400 hover:text-primary transition-colors group"
+          href="profile.html">
+          <span class="material-symbols-outlined">settings</span>
+          <span class="text-sm font-medium tracking-wide">Settings</span>
+        </a>
+
+      </nav>
+
+      <!-- Profile Card -->
+      <div class="shrink-0 p-4">
+        <div class="glass-panel rounded-xl p-4 flex items-center gap-4 border border-primary/20">
+          <!-- Avatar -->
+          <div id="avatarCircle" class="w-12 h-12 rounded-full bg-primary/90 text-background-dark flex items-center justify-center font-display font-bold text-xl shadow-md shrink-0">
+            S
+          </div>
+
+          <!-- Name + Boutique -->
+          <div class="flex-1 overflow-hidden">
+            <p id="ownerName" class="text-sm font-semibold text-white leading-tight truncate">
+              Owner Name
+            </p>
+            <p id="sidebarBoutiqueName" class="text-[11px] uppercase tracking-widest text-primary/80 truncate">
+              Boutique Name
+            </p>
+          </div>
+        </div>
+
+        <!-- Divider -->
+        <div class="my-4 h-px bg-primary/10"></div>
+
+        <!-- Logout -->
+        <button onclick="logout()" class="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold text-slate-400 hover:text-primary hover:bg-primary/10 transition-all duration-300">
+          <span class="material-symbols-outlined text-base">logout</span>
+          Logout
+        </button>
+      </div>
+
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col overflow-hidden">
+      <!-- TopNavBar -->
+      <header
+        class="h-20 border-b border-accent-gold/10 flex items-center justify-between px-8 bg-background-light/50 dark:bg-background-dark/50 backdrop-blur-md">
+        <div class="flex items-center gap-6">
+          <h2 class="font-display text-xl font-semibold tracking-tight">Lead Management</h2>
+          <div class="relative w-72">
+            <span
+              class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
+            <input id="searchInput"
+              class="w-full bg-slate-100 dark:bg-surface-dark border-none rounded-lg py-2 pl-10 text-sm focus:ring-1 focus:ring-primary/50 text-slate-300"
+              placeholder="Search by name or category..." type="text" />
+          </div>
+        </div>
+        <div class="flex items-center gap-4">
+          <div class="flex items-center gap-2 px-4 py-2 bg-primary/10 border border-primary/20 rounded-full">
+            <span class="material-symbols-outlined text-primary text-sm">wallet</span>
+          </div>
+          <button class="p-2 text-slate-500 hover:text-primary transition-colors relative">
+            <span class="material-symbols-outlined">notifications</span>
+            <span class="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full border-2 border-background-dark"></span>
+          </button>
+          <div class="h-8 w-[1px] bg-accent-gold/20 mx-2"></div>
+          <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border border-primary/30"
+            data-alt="Profile picture of a boutique owner"
+            style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuASvBK3lF9ciUtPxeWAw_7i3PiCWd2Qw7SwTzEIjAllYUB1InZSncyGcEWZq4dkclD2viRm_0qbNMDwB9HMNvs9dxxOvtbUahqkSmKfMygYN-9juUAk5qFVZxGdDkptT0xZ9COAa8c10xXaQbaY1HJSy03nIpP2j23UObQa0EHzR6ObUKqrdtTZOfSrHDb9fPX3pwIjhLAowS6CxF1ey-hiJff7u2Jc2Ooh1kb441k_O22kISGaVU345ZsgrU5hAx8LIojLX2fgVm4");'>
+          </div>
+        </div>
+      </header>
+      <div class="flex-1 overflow-y-auto p-8 custom-scrollbar">
+        <!-- PageHeading -->
+        <!-- Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div class="glass-panel p-6 rounded-xl flex flex-col gap-1 relative overflow-hidden group">
+            <div
+              class="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full -mr-8 -mt-8 group-hover:bg-primary/10 transition-all">
+            </div>
+            <span class="text-xs font-bold text-primary uppercase tracking-widest mb-2">Total Leads</span>
+            <div class="flex items-baseline gap-3">
+              <span id="statsTotalLeads" class="text-4xl font-display font-bold">0</span>
+              <span class="text-emerald-500 text-xs font-bold flex items-center"><span
+                  class="material-symbols-outlined text-xs">trending_up</span> +5%</span>
+            </div>
+          </div>
+          <div class="glass-panel p-6 rounded-xl flex flex-col gap-1 relative overflow-hidden group">
+            <div
+              class="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full -mr-8 -mt-8 group-hover:bg-primary/10 transition-all">
+            </div>
+            <span class="text-xs font-bold text-primary uppercase tracking-widest mb-2">New This Week</span>
+            <div class="flex items-baseline gap-3">
+              <span id="statsNewLeads" class="text-4xl font-display font-bold">0</span>
+              <span class="text-emerald-500 text-xs font-bold flex items-center"><span
+                  class="material-symbols-outlined text-xs">trending_up</span> +2%</span>
+            </div>
+          </div>
+          <div class="glass-panel p-6 rounded-xl flex flex-col gap-1 relative overflow-hidden group">
+            <div
+              class="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full -mr-8 -mt-8 group-hover:bg-primary/10 transition-all">
+            </div>
+            <span class="text-xs font-bold text-primary uppercase tracking-widest mb-2">Conversion Rate</span>
+            <div class="flex items-baseline gap-3">
+              <span id="statsConversionRate" class="text-4xl font-display font-bold">0%</span>
+              <span class="text-rose-500 text-xs font-bold flex items-center"><span
+                  class="material-symbols-outlined text-xs">trending_down</span> -1%</span>
+            </div>
+          </div>
+        </div>
+        <!-- Chips / Filters -->
+        <div class="flex items-center justify-between mb-6 relative">
+          <div class="flex gap-2 relative">
+            <button id="filterAll" onclick="setFilter('search', ''); setFilter('status', ''); setFilter('category', '')"
+              class="bg-primary text-background-dark px-4 py-1.5 rounded-full text-xs font-bold tracking-wide uppercase flex items-center gap-2">
+              All Leads
+            </button>
+
+            <!-- Status Filter -->
+            <div class="relative">
+              <button id="filterStatus"
+                class="bg-surface-dark border border-accent-gold/20 text-slate-300 px-4 py-1.5 rounded-full text-xs font-medium tracking-wide uppercase flex items-center gap-2 hover:border-primary/50 transition-all">
+                Status <span class="material-symbols-outlined text-sm">keyboard_arrow_down</span>
+              </button>
+              <div id="filterStatusList"
+                class="dropdown-menu hidden absolute top-full left-0 mt-2 w-40 bg-surface-dark border border-primary/20 rounded-lg shadow-xl z-50 overflow-hidden">
+                <div class="p-1">
+                  <button onclick="setFilter('status', 'NEW')"
+                    class="w-full text-left px-3 py-2 text-xs text-slate-300 hover:bg-primary/20 hover:text-primary transition-colors rounded">New</button>
+                  <button onclick="setFilter('status', 'CONTACTED')"
+                    class="w-full text-left px-3 py-2 text-xs text-slate-300 hover:bg-primary/20 hover:text-primary transition-colors rounded">Contacted</button>
+                  <button onclick="setFilter('status', 'CONVERTED')"
+                    class="w-full text-left px-3 py-2 text-xs text-slate-300 hover:bg-primary/20 hover:text-primary transition-colors rounded">Converted</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Category Filter -->
+            <div class="relative">
+              <button id="filterCategory"
+                class="bg-surface-dark border border-accent-gold/20 text-slate-300 px-4 py-1.5 rounded-full text-xs font-medium tracking-wide uppercase flex items-center gap-2 hover:border-primary/50 transition-all">
+                Category <span class="material-symbols-outlined text-sm">keyboard_arrow_down</span>
+              </button>
+              <div id="filterCategoryList"
+                class="dropdown-menu hidden absolute top-full left-0 mt-2 w-40 bg-surface-dark border border-primary/20 rounded-lg shadow-xl z-50 overflow-hidden">
+                <div class="p-1">
+                  <button onclick="setFilter('category', 'Wedding')"
+                    class="w-full text-left px-3 py-2 text-xs text-slate-300 hover:bg-primary/20 hover:text-primary transition-colors rounded">Wedding</button>
+                  <button onclick="setFilter('category', 'Party')"
+                    class="w-full text-left px-3 py-2 text-xs text-slate-300 hover:bg-primary/20 hover:text-primary transition-colors rounded">Party</button>
+                  <button onclick="setFilter('category', 'Casual')"
+                    class="w-full text-left px-3 py-2 text-xs text-slate-300 hover:bg-primary/20 hover:text-primary transition-colors rounded">Casual</button>
+                  <button onclick="setFilter('category', 'Formal')"
+                    class="w-full text-left px-3 py-2 text-xs text-slate-300 hover:bg-primary/20 hover:text-primary transition-colors rounded">Formal</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <button id="clearFilters"
+            class="text-xs text-slate-500 hover:text-primary flex items-center gap-1 font-bold uppercase tracking-widest">
+            <span class="material-symbols-outlined text-sm">filter_alt_off</span> Clear Filters
+          </button>
+        </div>
+
+        <!-- Leads Table -->
+        <div class="glass-panel rounded-xl overflow-hidden shadow-2xl">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr
+                class="border-b border-accent-gold/10 bg-white/5 uppercase tracking-[0.2em] text-[10px] font-bold text-slate-400">
+                <th class="px-8 py-5">Customer Details</th>
+                <th class="px-6 py-5">Event Date</th>
+                <th class="px-6 py-5">Category</th>
+                <th class="px-6 py-5">Status</th>
+                <th class="px-8 py-5 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="leadsTableBody" class="divide-y divide-accent-gold/5">
+              <!-- Dynamic Content -->
+            </tbody>
+          </table>
+          <div id="paginationControls"
+            class="p-6 border-t border-accent-gold/10 bg-white/5 flex items-center justify-between">
+            <!-- Pagination -->
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    let allLeads = [];
+    let currentPage = 1;
+    const itemsPerPage = 8;
+    let activeFilters = {
+      status: "",
+      category: "",
+      search: ""
+    };
+
+    function logout() {
+      localStorage.clear();
+      window.location.href = "boutiquelogin.html";
+    }
+
+    // 🔘 Dropdown Managers
+    const toggleDropdown = (id) => {
+      const el = document.getElementById(id);
+      const isHidden = el.classList.contains('hidden');
+
+      // Close all first
+      document.querySelectorAll('.dropdown-menu').forEach(d => d.classList.add('hidden'));
+
+      // Toggle current
+      if (isHidden) el.classList.remove('hidden');
+    };
+
+    const setFilter = (type, value) => {
+      activeFilters[type] = value;
+      // Close dropdowns
+      document.querySelectorAll('.dropdown-menu').forEach(d => d.classList.add('hidden'));
+      applyFilters();
+    };
+
+    // 🔍 Filter Logic
+    const applyFilters = () => {
+      let filtered = allLeads.filter(lead => {
+        // Search
+        const s = activeFilters.search.toLowerCase();
+        const matchesSearch = !s ||
+          (lead.name || "").toLowerCase().includes(s) ||
+          (lead.email || "").toLowerCase().includes(s) ||
+          (lead.category || "").toLowerCase().includes(s);
+
+        // Status
+        const matchesStatus = !activeFilters.status || (lead.status || "").toUpperCase() === activeFilters.status;
+
+        // Category
+        const matchesCategory = !activeFilters.category || (lead.category || "").toLowerCase() === activeFilters.category.toLowerCase();
+
+        return matchesSearch && matchesStatus && matchesCategory;
+      });
+
+      currentPage = 1; // Reset to page 1 on filter change
+      renderPagination(filtered);
+      renderTable(filtered);
+    };
+
+    // 🎨 Render Table
+    const renderTable = (filteredLeads) => {
+      const tableBody = document.getElementById("leadsTableBody");
+      tableBody.innerHTML = "";
+
+      if (filteredLeads.length === 0) {
+        tableBody.innerHTML = `<tr><td colspan="5" class="px-8 py-6 text-center text-slate-400">No leads match.</td></tr>`;
+        return;
+      }
+
+      // Pagination Slice
+      const start = (currentPage - 1) * itemsPerPage;
+      const end = start + itemsPerPage;
+      const pageItems = filteredLeads.slice(start, end);
+
+      pageItems.forEach(lead => {
+        const date = new Date(lead.created_at || lead.date).toLocaleDateString();
+        const initials = lead.name.split(" ").map(n => n[0]).join("").toUpperCase().substring(0, 2);
+
+        // Safe phone for WhatsApp
+        const phone = lead.phone || lead.phoneNumber || "";
+        const waLink = phone ? `https://wa.me/${phone.replace(/[^0-9]/g, '')}` : "#";
+
+        let statusClass = "bg-primary/10 border-primary/50 text-primary";
+        if (lead.status === "CONTACTED") statusClass = "bg-slate-700/50 border-slate-500 text-slate-300";
+        if (lead.status === "CONVERTED") statusClass = "bg-emerald-500/10 border-emerald-500 text-emerald-500";
+
+        const row = `
+              <tr class="luxury-row transition-all group">
+                  <td class="px-8 py-6">
+                      <div class="flex items-center gap-4">
+                          <div class="size-10 rounded-full bg-surface-dark border border-primary/20 flex items-center justify-center font-display font-bold text-primary group-hover:scale-110 transition-transform">
+                              ${initials}
+                          </div>
+                          <div>
+                              <p class="font-display font-bold text-lg leading-tight tracking-wide">${lead.name}</p>
+                              <p class="text-xs text-slate-500 font-medium">${lead.email}</p>
+                          </div>
+                      </div>
+                  </td>
+                  <td class="px-6 py-6 font-medium text-slate-300">${date}</td>
+                  <td class="px-6 py-6">
+                      <span class="px-3 py-1 bg-surface-dark border border-accent-gold/10 rounded-full text-[10px] font-bold uppercase tracking-widest text-slate-400">${lead.category}</span>
+                  </td>
+                  <td class="px-6 py-6">
+                      <span class="px-3 py-1 border rounded-full text-[10px] font-bold uppercase tracking-widest ${statusClass}">${lead.status}</span>
+                  </td>
+                  <td class="px-8 py-6 text-right">
+                      <a href="${waLink}" target="_blank" class="bg-[#25D366] hover:bg-[#128C7E] text-white px-5 py-2 rounded-lg text-xs font-bold uppercase tracking-wide flex items-center gap-2 inline-flex transition-colors cursor-pointer text-decoration-none">
+                          <span class="material-symbols-outlined text-sm">chat_bubble</span> WhatsApp
+                      </a>
+                  </td>
+              </tr>
+          `;
+        tableBody.insertAdjacentHTML("beforeend", row);
+      });
+    };
+
+    const renderPagination = (items) => {
+      const controls = document.getElementById("paginationControls");
+      const totalPages = Math.ceil(items.length / itemsPerPage);
+
+      if (totalPages <= 1) {
+        controls.innerHTML = "";
+        return;
+      }
+
+      controls.innerHTML = `
+          <p class="text-xs text-slate-400 uppercase tracking-widest">
+              Page <span class="text-white font-bold">${currentPage}</span> of ${totalPages}
+          </p>
+          <div class="flex gap-2">
+              <button onclick="changePage(-1)" ${currentPage === 1 ? 'disabled' : ''} class="px-4 py-2 bg-surface-dark border border-primary/20 text-slate-300 rounded-lg hover:bg-primary/10 disabled:opacity-50 text-xs font-bold uppercase transition-all">Prev</button>
+              <button onclick="changePage(1)" ${currentPage === totalPages ? 'disabled' : ''} class="px-4 py-2 bg-surface-dark border border-primary/20 text-slate-300 rounded-lg hover:bg-primary/10 disabled:opacity-50 text-xs font-bold uppercase transition-all">Next</button>
+          </div>
+      `;
+    };
+
+    // Expose pagination globally
+    window.changePage = (dir) => {
+      const filtered = allLeads.filter(lead => {
+        const s = activeFilters.search.toLowerCase();
+        const matchesSearch = !s || (lead.name || "").toLowerCase().includes(s);
+        const matchesStatus = !activeFilters.status || (lead.status || "").toUpperCase() === activeFilters.status;
+        const matchesCategory = !activeFilters.category || (lead.category || "").toLowerCase() === activeFilters.category.toLowerCase();
+        return matchesSearch && matchesStatus && matchesCategory;
+      });
+
+      const totalPages = Math.ceil(filtered.length / itemsPerPage);
+      const newPage = currentPage + dir;
+
+      if (newPage >= 1 && newPage <= totalPages) {
+        currentPage = newPage;
+        renderPagination(filtered);
+        renderTable(filtered);
+      }
+    };
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      const boutiqueId = localStorage.getItem("boutiqueId");
+      const ownerName = localStorage.getItem("ownerName") || "Guest";
+      const boutiqueName = localStorage.getItem("boutiqueName") || "My Boutique";
+      
+      if (!boutiqueId) {
+        window.location.href = "landingpage.html";
+        return;
+      }
+
+      // 👤 Populate Sidebar Profile
+      const avatarCircle = document.getElementById("avatarCircle");
+      const ownerNameEl = document.getElementById("ownerName");
+      const sidebarBoutiqueName = document.getElementById("sidebarBoutiqueName");
+      
+      if (avatarCircle) avatarCircle.textContent = ownerName.charAt(0).toUpperCase();
+      if (ownerNameEl) ownerNameEl.textContent = ownerName;
+      if (sidebarBoutiqueName) sidebarBoutiqueName.textContent = boutiqueName;
+
+      // Scroll active nav item into view
+      const activeNavItem = document.querySelector(".sidebar-item-active");
+      if (activeNavItem) {
+        activeNavItem.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      }
+
+      // 👂 Event Listeners
+      document.getElementById("searchInput").addEventListener("input", (e) => {
+        activeFilters.search = e.target.value;
+        applyFilters();
+      });
+
+      document.getElementById("filterStatus").addEventListener("click", (e) => {
+        e.stopPropagation();
+        toggleDropdown("filterStatusList");
+      });
+
+      document.getElementById("filterCategory").addEventListener("click", (e) => {
+        e.stopPropagation();
+        toggleDropdown("filterCategoryList");
+      });
+
+      document.addEventListener("click", () => {
+        document.querySelectorAll('.dropdown-menu').forEach(d => d.classList.add('hidden'));
+      });
+
+      document.getElementById("clearFilters").addEventListener("click", () => {
+        document.getElementById("searchInput").value = "";
+        activeFilters = { status: "", category: "", search: "" };
+        applyFilters();
+      });
+
+      // 🚀 Fetch Data
+      try {
+        const res = await fetch(`/api/leads/list/${boutiqueId}`);
+        if (!res.ok) throw new Error("Failed to fetch leads");
+
+        const leads = await res.json();
+        allLeads = leads;
+
+        // Calculate Stats
+        const totalLeads = leads.length;
+        const now = new Date();
+        const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+        const newLeads = leads.filter(l => {
+          const d = new Date(l.created_at || l.date);
+          return d >= oneWeekAgo;
+        }).length;
+
+        const convertedLeads = leads.filter(l => l.status === "CONVERTED").length;
+        const conversionRate = totalLeads > 0 ? Math.round((convertedLeads / totalLeads) * 100) : 0;
+
+        // Update Stats UI
+        const safeSetText = (id, text) => {
+          const el = document.getElementById(id);
+          if (el) el.textContent = text;
+        };
+
+        safeSetText("statsTotalLeads", totalLeads);
+        safeSetText("statsNewLeads", newLeads);
+        safeSetText("statsConversionRate", conversionRate + "%");
+
+        // Initial Render
+        renderPagination(allLeads);
+        renderTable(allLeads);
+
+      } catch (err) {
+        console.error(err);
+        document.getElementById("leadsTableBody").innerHTML = `<tr><td colspan="5" class="px-8 py-6 text-center text-red-400">Error loading leads.</td></tr>`;
+      }
+    });
+  </script>
+</body>

@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+  <title>Boutique Messaging Center | CLOCHE</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+    rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;700;900&amp;family=Noto+Sans:wght@400;500;700&amp;display=swap"
+    rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+    rel="stylesheet" />
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#c1a671",
+            "background-light": "#f7f6f2",
+            "background-dark": "#0d0d0d",
+            "surface-dark": "#1a1a1a",
+            "border-gold": "rgba(193, 166, 113, 0.2)",
+          },
+          fontFamily: {
+            "display": ["Noto Serif", "serif"],
+            "sans": ["Noto Sans", "sans-serif"]
+          },
+          borderRadius: {
+            "DEFAULT": "0.5rem",
+            "lg": "1rem",
+            "xl": "1.5rem",
+            "full": "9999px"
+          },
+        },
+      },
+    }
+  </script>
+  <style>
+    .glass-panel {
+      background: rgba(26, 26, 26, 0.6);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(193, 166, 113, 0.1);
+    }
+
+    .chat-gradient {
+      background: radial-gradient(circle at top right, rgba(193, 166, 113, 0.05), transparent);
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #3e382d;
+      border-radius: 10px;
+    }
+
+    .active-glow {
+      box-shadow: 0 0 15px rgba(193, 166, 113, 0.15);
+    }
+
+    .sidebar-item-active {
+      background: linear-gradient(90deg, rgba(193, 166, 113, 0.1) 0%, rgba(193, 166, 113, 0) 100%);
+      border-left: 3px solid #c1a671;
+    }
+
+    .gold-glow {
+      box-shadow: 0 0 20px rgba(193, 166, 113, 0.1);
+    }
+  </style>
+</head>
+
+<body class="bg-background-light dark:bg-background-dark text-white font-sans selection:bg-primary/30">
+  <div class="flex h-screen w-full overflow-hidden">
+    <!-- Side Navigation (Boutique Dashboard Level) -->
+    <!-- SideNavBar (FIXED – SAME AS DASHBOARD) -->
+    <aside class="w-72 bg-background-dark border-r border-primary/10 flex flex-col z-20 shrink-0 h-screen">
+
+      <!-- LOGO -->
+      <div class="p-8 flex items-center gap-4 shrink-0">
+        <div class="flex items-center gap-3 text-primary">
+          <div
+            class="size-10 rounded-full bg-primary flex items-center justify-center text-background-dark font-bold text-lg">
+            C
+          </div>
+          <div>
+            <h1 class="text-primary text-xl font-black tracking-widest uppercase leading-none">
+              CLOCHE
+            </h1>
+            <p class="text-primary/60 text-[10px] tracking-[0.2em] uppercase font-sans mt-1">
+              BOUTIQUE MANAGEMENT
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- NAV -->
+      <nav class="flex-1 px-4 py-6 space-y-2 font-sans overflow-y-auto custom-scrollbar">
+        <!-- Home -->
+        <a class="flex items-center gap-4 px-4 py-3 text-slate-400 hover:text-primary transition-colors group"
+          href="landingpage.html">
+          <span class="material-symbols-outlined">home</span>
+          <span class="text-sm font-medium tracking-wide">Home</span>
+        </a>
+
+        <!-- Dashboard -->
+        <a class="flex items-center gap-4 px-4 py-3 text-slate-400 hover:text-primary transition-colors group"
+          href="dashboard.html">
+          <span class="material-symbols-outlined">dashboard</span>
+          <span class="text-sm font-medium tracking-wide">Dashboard</span>
+        </a>
+
+        <!-- Leads -->
+        <a class="flex items-center gap-4 px-4 py-3 text-slate-400 hover:text-primary transition-colors group"
+          href="lead.html">
+          <span class="material-symbols-outlined">group</span>
+          <span class="text-sm font-medium tracking-wide">Leads</span>
+        </a>
+
+        <!-- Products -->
+        <a class="flex items-center gap-4 px-4 py-3 text-slate-400 hover:text-primary transition-colors group"
+          href="boutiqueproducts.html">
+          <span class="material-symbols-outlined">inventory_2</span>
+          <span class="text-sm font-medium tracking-wide">Products</span>
+        </a>
+
+        <!-- Messages (ACTIVE) -->
+        <a class="sidebar-item-active flex items-center gap-4 px-4 py-3 text-primary group" href="messages.html">
+          <span class="material-symbols-outlined">chat_bubble</span>
+          <span class="text-sm font-medium tracking-wide">Messages</span>
+        </a>
+
+        <!-- Subscription -->
+        <a class="flex items-center gap-4 px-4 py-3 text-slate-400 hover:text-primary transition-colors group"
+          href="subscription.html">
+          <span class="material-symbols-outlined">star</span>
+          <span class="text-sm font-medium tracking-wide">Subscription</span>
+        </a>
+
+        <!-- Settings -->
+        <a class="flex items-center gap-4 px-4 py-3 text-slate-400 hover:text-primary transition-colors group"
+          href="profile.html">
+          <span class="material-symbols-outlined">settings</span>
+          <span class="text-sm font-medium tracking-wide">Settings</span>
+        </a>
+
+      </nav>
+
+      <!-- Profile Card -->
+      <div class="shrink-0 p-4">
+        <div class="glass-panel rounded-xl p-4 flex items-center gap-4 border border-primary/20">
+          <!-- Avatar -->
+          <div id="avatarCircle"
+            class="w-12 h-12 rounded-full bg-primary/90 text-background-dark flex items-center justify-center font-display font-bold text-xl shadow-md shrink-0">
+            S
+          </div>
+
+          <!-- Name + Boutique -->
+          <div class="flex-1 overflow-hidden">
+            <p id="ownerName" class="text-sm font-semibold text-white leading-tight truncate">
+              Owner Name
+            </p>
+            <p id="sidebarBoutiqueName" class="text-[11px] uppercase tracking-widest text-primary/80 truncate">
+              Boutique Name
+            </p>
+          </div>
+        </div>
+
+        <!-- Divider -->
+        <div class="my-4 h-px bg-primary/10"></div>
+
+        <!-- Logout -->
+        <button onclick="logout()" class="w-full flex items-center gap-3 px-4 py-3 rounded-lg
+     text-sm font-semibold text-slate-400
+     hover:text-primary hover:bg-primary/10
+     transition-all duration-300">
+          <span class="material-symbols-outlined text-base">logout</span>
+          Logout
+        </button>
+      </div>
+
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 flex flex-col bg-background-dark relative overflow-hidden">
+      <!-- Background Decoration -->
+      <div class="absolute top-[-10%] right-[-5%] w-96 h-96 bg-primary/5 blur-[120px] rounded-full pointer-events-none">
+      </div>
+      <!-- Top Header -->
+      <header class="h-auto border-b border-white/5 flex items-center justify-between px-8 py-6 z-10 relative">
+        <h2 class="font-display text-4xl font-bold tracking-wide">Messaging Center</h2>
+        <div class="flex items-center gap-6">
+          <div class="flex items-center gap-2 bg-surface-dark border border-white/5 rounded-full px-4 py-2">
+            <span class="material-symbols-outlined text-white/40 text-lg">search</span>
+            <input id="searchInput" class="bg-transparent border-none focus:ring-0 text-sm w-48 placeholder:text-white/20"
+              placeholder="Find a conversation..." type="text" oninput="handleSearch()" />
+          </div>
+          <div class="flex items-center">
+            <button id="notifButton" onclick="toggleNotifications()" class="relative flex items-center justify-center">
+              <span class="material-symbols-outlined text-white/60">notifications</span>
+              <span id="notificationBadge" class="absolute -top-1 -right-1 size-2.5 bg-primary rounded-full border border-background-dark hidden"></span>
+            </button>
+          </div>
+        </div>
+      </header>
+      <!-- Messaging Layout -->
+      <div class="flex-1 flex overflow-hidden">
+        <!-- Left Pane: Conversations -->
+        <section class="w-80 lg:w-96 border-r border-white/5 flex flex-col">
+          <div class="p-6 flex gap-2 overflow-x-auto no-scrollbar border-b border-white/5">
+            <button onclick="filterConversations('active')"
+              class="filter-btn px-4 py-1.5 rounded-full bg-primary text-background-dark text-xs font-bold tracking-widest whitespace-nowrap uppercase"
+              data-filter="active">Active</button>
+            <button onclick="filterConversations('unread')"
+              class="filter-btn px-4 py-1.5 rounded-full bg-white/5 text-white/60 text-xs font-bold tracking-widest whitespace-nowrap uppercase"
+              data-filter="unread">Unread</button>
+            <button onclick="filterConversations('archived')"
+              class="filter-btn px-4 py-1.5 rounded-full bg-white/5 text-white/60 text-xs font-bold tracking-widest whitespace-nowrap uppercase"
+              data-filter="archived">Archived</button>
+          </div>
+          <div id="conversationsList" class="flex-1 overflow-y-auto custom-scrollbar">
+            <!-- Conversations will be loaded here dynamically -->
+            <div class="p-6 text-white/40 text-center">Loading conversations...</div>
+          </div>
+        </section>
+
+        <!-- Right Pane: Active Chat Window -->
+        <section class="flex-1 flex flex-col chat-gradient relative">
+          <!-- Chat Header -->
+          <div id="chatHeader"
+            class="p-6 border-b border-white/5 flex items-center justify-between glass-panel z-10 hidden">
+            <div class="flex items-center gap-4">
+              <div id="chatAvatar"
+                class="size-10 rounded-full border border-primary/30 bg-primary/20 flex items-center justify-center font-bold text-primary">
+                <!-- Letter fallback -->
+              </div>
+              <div>
+                <h4 id="chatName" class="font-display text-lg font-bold tracking-wide">Customer Name</h4>
+                <div id="chatStatus" class="flex items-center gap-1.5">
+                  <span class="size-1.5 bg-green-500 rounded-full"></span>
+                  <span id="chatEmail"
+                    class="text-[10px] text-white/40 uppercase tracking-widest font-bold">customer@example.com</span>
+                </div>
+              </div>
+            </div>
+            <div class="flex items-center gap-4">
+              <button id="toggleSidebarBtn" onclick="toggleSidebar()"
+                class="size-10 flex items-center justify-center rounded-full border border-white/5 hover:border-primary/50 text-white/60 hover:text-primary transition-all">
+                <span class="material-symbols-outlined">info</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Chat Messages Area -->
+          <div id="messagesArea" class="flex-1 overflow-y-auto p-8 space-y-6 custom-scrollbar flex flex-col">
+            <div class="flex-1 flex items-center justify-center flex-col text-white/20 gap-4">
+              <span class="material-symbols-outlined text-6xl">chat_bubble</span>
+              <p class="font-display italic">Select a conversation to start messaging</p>
+            </div>
+          </div>
+
+          <!-- Input Area Footer -->
+          <div id="inputArea"
+            class="p-6 bg-background-dark/80 backdrop-blur-md border-t border-white/5 space-y-4 hidden">
+            <div
+              class="relative flex items-end gap-4 bg-surface-dark/50 border border-white/10 rounded-2xl p-3 focus-within:border-primary/40 transition-all">
+              <textarea id="messageInput"
+                class="flex-1 bg-transparent border-none focus:ring-0 text-sm py-2.5 resize-none max-h-32 custom-scrollbar placeholder:text-white/20"
+                placeholder="Type your message..."></textarea>
+              <button onclick="sendMessage()"
+                class="size-10 bg-primary rounded-xl flex items-center justify-center text-background-dark hover:scale-105 active:scale-95 transition-transform shadow-lg shadow-primary/20">
+                <span class="material-symbols-outlined font-bold">send</span>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Right Sidebar: Customer Context -->
+        <aside id="customerSidebar"
+          class="hidden w-80 border-l border-white/5 flex flex-col bg-background-dark/40 overflow-y-auto custom-scrollbar">
+          <div class="p-8 space-y-10">
+            <div>
+              <h5
+                class="text-[10px] font-bold tracking-[0.3em] text-white/40 uppercase mb-6 border-b border-white/5 pb-2">
+                Customer Profile</h5>
+              <div class="text-center">
+                <div id="sidebarAvatar"
+                  class="size-24 rounded-full border-2 border-primary/20 p-1 mx-auto mb-4 flex items-center justify-center bg-primary/10 text-3xl font-bold text-primary">
+                  C
+                </div>
+                <h4 id="sidebarName" class="font-display text-lg">Customer Name</h4>
+                <p id="sidebarEmail" class="text-[10px] text-primary font-bold tracking-widest uppercase mt-1">
+                  customer@example.com</p>
+              </div>
+            </div>
+
+            <div>
+              <h5 class="text-[10px] font-bold tracking-[0.3em] text-white/40 uppercase mb-4">Contact Details</h5>
+              <div class="glass-panel p-4 rounded-xl border border-white/5 space-y-3">
+                <div class="flex items-center gap-3">
+                  <span class="material-symbols-outlined text-sm text-primary">mail</span>
+                  <span id="detailEmail" class="text-xs text-white/70 truncate">N/A</span>
+                </div>
+                <div class="flex items-center gap-3">
+                  <span class="material-symbols-outlined text-sm text-primary">call</span>
+                  <span id="detailPhone" class="text-xs text-white/70">N/A</span>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h5 class="text-[10px] font-bold tracking-[0.3em] text-white/40 uppercase mb-4">Product of Interest</h5>
+              <div class="glass-panel p-4 rounded-xl border border-white/5">
+                <p id="detailProduct" class="text-xs text-primary font-bold tracking-wide uppercase italic">N/A</p>
+              </div>
+            </div>
+
+            <button onclick="archiveConversation()"
+              class="w-full py-3 border border-red-500/40 text-red-400 text-[10px] font-bold tracking-[0.2em] uppercase rounded-lg hover:bg-red-500 hover:text-white transition-all">
+              Archive Conversation
+            </button>
+          </div>
+        </aside>
+      </div>
+    </main>
+  </div>
+
+  <!-- Notification Panel (Fixed Position) -->
+  <div id="notificationPanel" class="hidden fixed w-96 glass-panel border border-white/10 rounded-xl shadow-2xl z-[100] max-h-96 overflow-y-auto custom-scrollbar" style="top: 80px; right: 32px;">
+    <div class="p-4 border-b border-white/10 sticky top-0 bg-background-dark/50">
+      <h3 class="font-bold text-white tracking-wide">Notifications</h3>
+      <p class="text-xs text-white/40 mt-1">New messages and conversations</p>
+    </div>
+    <div id="notificationList" class="p-4 space-y-3">
+      <div class="text-white/40 text-center text-sm py-8">No new notifications</div>
+    </div>
+  </div>
+
+  <script>
+    let currentConversationId = null;
+    let allConversations = [];
+    let currentFilter = 'active';
+    let previousConversationCount = 0;
+    let notificationQueue = [];
+    let hasNewNotifications = false;
+
+    function logout() {
+      localStorage.clear();
+      window.location.href = "boutiquelogin.html";
+    }
+
+    // Toggle notification panel
+    function toggleNotifications() {
+      const panel = document.getElementById("notificationPanel");
+      const button = document.getElementById("notifButton");
+      
+      panel.classList.toggle("hidden");
+      
+      if (!panel.classList.contains("hidden")) {
+        // Position panel relative to button
+        const rect = button.getBoundingClientRect();
+        panel.style.top = (rect.bottom + 8) + "px";
+        panel.style.right = (window.innerWidth - rect.right) + "px";
+        
+        hasNewNotifications = false;
+        document.getElementById("notificationBadge").classList.add("hidden");
+      }
+    }
+
+    // Add notification
+    function addNotification(type, data) {
+      const notification = {
+        id: Date.now(),
+        type: type,
+        data: data,
+        timestamp: new Date()
+      };
+      
+      notificationQueue.unshift(notification);
+      if (notificationQueue.length > 20) notificationQueue.pop();
+      
+      hasNewNotifications = true;
+      document.getElementById("notificationBadge").classList.remove("hidden");
+      updateNotificationPanel();
+    }
+
+    // Update notification panel display
+    function updateNotificationPanel() {
+      const list = document.getElementById("notificationList");
+      
+      if (notificationQueue.length === 0) {
+        list.innerHTML = `<div class="text-white/40 text-center text-sm py-8">No notifications</div>`;
+        return;
+      }
+
+      list.innerHTML = notificationQueue.map(notif => {
+        if (notif.type === 'new_conversation') {
+          return `
+            <div class="p-3 bg-white/5 rounded-lg border border-white/10 hover:border-primary/30 cursor-pointer transition-all hover:bg-white/10" onclick="openConversation(${notif.data.id}, '${notif.data.customer_name}', '${notif.data.customer_email}'); document.getElementById('notificationPanel').classList.add('hidden');">
+              <div class="flex items-start gap-2">
+                <span class="material-symbols-outlined text-primary text-sm mt-1">mail_outline</span>
+                <div class="flex-1 min-w-0">
+                  <p class="text-xs font-bold text-primary">New Conversation</p>
+                  <p class="text-xs text-white/70 truncate mt-1">From <strong>${notif.data.customer_name}</strong></p>
+                  <p class="text-xs text-white/50 truncate">Re: ${notif.data.product_name || 'General inquiry'}</p>
+                  <p class="text-[10px] text-white/30 mt-2">${getTimeAgo(notif.timestamp)}</p>
+                </div>
+              </div>
+            </div>
+          `;
+        } else if (notif.type === 'new_message') {
+          return `
+            <div class="p-3 bg-white/5 rounded-lg border border-white/10 hover:border-primary/30 cursor-pointer transition-all hover:bg-white/10" onclick="openConversation(${notif.data.conversationId}, '${notif.data.customer_name}', '${notif.data.customer_email}'); document.getElementById('notificationPanel').classList.add('hidden');">
+              <div class="flex items-start gap-2">
+                <span class="material-symbols-outlined text-green-400 text-sm mt-1">chat_bubble</span>
+                <div class="flex-1 min-w-0">
+                  <p class="text-xs font-bold text-green-400">New Message</p>
+                  <p class="text-xs text-white/70 truncate mt-1">From <strong>${notif.data.customer_name}</strong></p>
+                  <p class="text-xs text-white/50 truncate line-clamp-2">"${notif.data.preview}"</p>
+                  <p class="text-[10px] text-white/30 mt-2">${getTimeAgo(notif.timestamp)}</p>
+                </div>
+              </div>
+            </div>
+          `;
+        }
+      }).join('');
+    }
+
+    // Handle search input
+    function handleSearch() {
+      const searchTerm = document.getElementById("searchInput").value.trim().toLowerCase();
+      
+      if (!searchTerm) {
+        renderConversations(allConversations);
+        return;
+      }
+
+      const filtered = allConversations.filter(conv => 
+        conv.customer_name.toLowerCase().includes(searchTerm) ||
+        conv.customer_email.toLowerCase().includes(searchTerm) ||
+        (conv.product_name && conv.product_name.toLowerCase().includes(searchTerm))
+      );
+
+      renderConversations(filtered);
+    }
+
+    // Format time ago
+    function getTimeAgo(date) {
+      const now = new Date();
+      const diff = now - new Date(date);
+      const minutes = Math.floor(diff / 60000);
+      const hours = Math.floor(diff / 3600000);
+      const days = Math.floor(diff / 86400000);
+
+      if (minutes < 1) return "just now";
+      if (minutes < 60) return `${minutes}m ago`;
+      if (hours < 24) return `${hours}h ago`;
+      if (days === 1) return "Yesterday";
+      if (days < 7) return `${days}d ago`;
+      return new Date(date).toLocaleDateString();
+    }
+
+    // Fetch and display conversations
+    async function loadConversations() {
+      const boutiqueId = localStorage.getItem("boutiqueId");
+      if (!boutiqueId) return;
+
+      try {
+        const res = await fetch(`/api/messages/conversations/${boutiqueId}`);
+        if (!res.ok) throw new Error("Failed to fetch conversations");
+
+        const newConversations = await res.json();
+        
+        // Check for new conversations
+        if (newConversations.length > previousConversationCount) {
+          const newConvs = newConversations.slice(0, newConversations.length - previousConversationCount);
+          newConvs.forEach(conv => {
+            addNotification('new_conversation', {
+              id: conv.id,
+              customer_name: conv.customer_name,
+              customer_email: conv.customer_email,
+              product_name: conv.product_name
+            });
+          });
+        }
+        
+        // Check for new messages in existing conversations
+        newConversations.forEach(newConv => {
+          const oldConv = allConversations.find(c => c.id === newConv.id);
+          if (oldConv && newConv.unread_count > oldConv.unread_count) {
+            const newMessageCount = newConv.unread_count - oldConv.unread_count;
+            if (newMessageCount > 0) {
+              addNotification('new_message', {
+                conversationId: newConv.id,
+                customer_name: newConv.customer_name,
+                customer_email: newConv.customer_email,
+                preview: (newConv.last_message || 'New message').substring(0, 50)
+              });
+            }
+          }
+        });
+
+        allConversations = newConversations;
+        previousConversationCount = newConversations.length;
+        
+        const searchTerm = document.getElementById("searchInput").value.trim();
+        if (searchTerm) {
+          handleSearch();
+        } else {
+          renderConversations(allConversations);
+        }
+      } catch (err) {
+        console.error("Error loading conversations:", err);
+        document.getElementById("conversationsList").innerHTML = `<div class="p-6 text-red-400">Error loading conversations</div>`;
+      }
+    }
+
+    // Render conversations list
+    function renderConversations(conversations) {
+      const listContainer = document.getElementById("conversationsList");
+
+      if (conversations.length === 0) {
+        listContainer.innerHTML = `<div class="p-6 text-white/40 text-center">No conversations yet</div>`;
+        return;
+      }
+
+      listContainer.innerHTML = conversations.map(conv => `
+      <div class="p-6 border-b border-white/5 hover:bg-white/5 transition-colors cursor-pointer group" onclick="openConversation(${conv.id}, '${conv.customer_name}', '${conv.customer_email}')">
+        <div class="flex items-start gap-4">
+          <div class="size-12 rounded-full bg-gradient-to-br from-primary/60 to-primary/20 flex items-center justify-center flex-shrink-0 border border-primary/30">
+            <span class="text-lg font-bold text-primary">${conv.customer_name.charAt(0).toUpperCase()}</span>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex justify-between items-start mb-1">
+              <h3 class="font-display font-bold text-white/90 tracking-wide truncate">${conv.customer_name.toUpperCase()}</h3>
+              <span class="text-[10px] text-white/40 uppercase whitespace-nowrap ml-2">${getTimeAgo(conv.last_message_time)}</span>
+            </div>
+            <p class="text-xs text-white/60 line-clamp-1 italic mb-2">${conv.product_name || 'General inquiry'}</p>
+            <p class="text-xs text-white/50 line-clamp-1">${conv.last_message || 'No messages yet'}</p>
+            ${conv.unread_count > 0 ? `<div class="mt-2 inline-block px-2 py-1 bg-primary text-background-dark text-[9px] font-bold rounded-full">${conv.unread_count} unread</div>` : ''}
+          </div>
+        </div>
+      </div>
+    `).join('');
+    }
+
+    // Open a conversation
+    async function openConversation(conversationId, customerName, customerEmail) {
+      currentConversationId = conversationId;
+
+      // Update header
+      document.getElementById("chatName").textContent = customerName.toUpperCase();
+      document.getElementById("chatStatus").innerHTML = `
+      <span class="size-1.5 bg-green-500 rounded-full"></span>
+      <span class="text-[10px] text-white/40 uppercase tracking-widest font-bold">${customerEmail}</span>
+    `;
+
+      // Show header
+      document.getElementById("chatHeader").classList.remove("hidden");
+
+      // Show input area
+      document.getElementById("inputArea").classList.remove("hidden");
+
+      // Load messages
+      await loadMessages(conversationId);
+
+      // Update Sidebar Info
+      updateSidebar(conversationId);
+    }
+
+    // Toggle customer context sidebar
+    function toggleSidebar() {
+      const sidebar = document.getElementById("customerSidebar");
+      sidebar.classList.toggle("hidden");
+    }
+
+    // Update the right sidebar with customer details
+    function updateSidebar(conversationId) {
+      const conv = allConversations.find(c => c.id === conversationId);
+      if (!conv) return;
+
+      document.getElementById("sidebarName").textContent = conv.customer_name;
+      document.getElementById("sidebarEmail").textContent = conv.customer_email || "No Email";
+      document.getElementById("sidebarAvatar").textContent = conv.customer_name.charAt(0).toUpperCase();
+
+      document.getElementById("detailEmail").textContent = conv.customer_email || "N/A";
+      document.getElementById("detailPhone").textContent = conv.customer_phone || "N/A";
+      document.getElementById("detailProduct").textContent = conv.product_name || "General Inquiry";
+    }
+
+    // Archive a conversation
+    async function archiveConversation() {
+      if (!currentConversationId) return;
+      if (!confirm("Are you sure you want to archive this conversation?")) return;
+
+      try {
+        const res = await fetch(`/api/messages/status`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            conversationId: currentConversationId,
+            status: "archived"
+          })
+        });
+
+        if (!res.ok) throw new Error("Failed to archive conversation");
+
+        // Hide chat window and reload
+        document.getElementById("chatHeader").classList.add("hidden");
+        document.getElementById("inputArea").classList.add("hidden");
+        document.getElementById("customerSidebar").classList.add("hidden");
+        document.getElementById("messagesArea").innerHTML = `
+          <div class="flex-1 flex items-center justify-center flex-col text-white/20 gap-4">
+            <span class="material-symbols-outlined text-6xl">inventory_2</span>
+            <p class="font-display italic">Conversation archived</p>
+          </div>`;
+
+        currentConversationId = null;
+        await loadConversations();
+      } catch (err) {
+        console.error("Error archiving conversation:", err);
+        alert("Failed to archive conversation");
+      }
+    }
+
+    // Load messages for a conversation
+    async function loadMessages(conversationId) {
+      try {
+        const res = await fetch(`/api/messages/conversation/${conversationId}`);
+        if (!res.ok) throw new Error("Failed to fetch messages");
+
+        const messages = await res.json();
+        renderMessages(messages);
+      } catch (err) {
+        console.error("Error loading messages:", err);
+        document.getElementById("messagesArea").innerHTML = `<div class="text-red-400">Error loading messages</div>`;
+      }
+    }
+
+    // Render messages
+    function renderMessages(messages) {
+      const messagesArea = document.getElementById("messagesArea");
+
+      if (messages.length === 0) {
+        messagesArea.innerHTML = `<div class="text-white/40 text-center">No messages yet. Start the conversation!</div>`;
+        return;
+      }
+
+      let html = '<div class="flex justify-center mb-6"><span class="px-4 py-1 bg-white/5 rounded-full text-[10px] tracking-[0.2em] text-white/30 uppercase font-bold">Messages</span></div>';
+
+      messages.forEach(msg => {
+        const isOwner = msg.sender_type === 'boutique';
+        const time = new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+        if (isOwner) {
+          html += `
+          <div class="flex items-end gap-3 justify-end ml-auto max-w-[70%]">
+            <div class="bg-primary/10 border border-primary/30 p-4 rounded-xl rounded-br-none shadow-xl shadow-primary/5">
+              <p class="text-sm leading-relaxed text-primary">${msg.message_text}</p>
+              <span class="block mt-2 text-[10px] text-primary/60 text-right font-display italic">${time}</span>
+            </div>
+          </div>
+        `;
+        } else {
+          html += `
+          <div class="flex items-end gap-3 max-w-[70%]">
+            <div class="size-8 rounded-full bg-gradient-to-br from-primary/60 to-primary/20 flex items-center justify-center flex-shrink-0">
+              <span class="text-sm font-bold text-primary/90">C</span>
+            </div>
+            <div class="glass-panel p-4 rounded-xl rounded-bl-none">
+              <p class="text-sm leading-relaxed text-white/90">${msg.message_text}</p>
+              <span class="block mt-2 text-[10px] text-white/30 text-right font-display italic">${time}</span>
+            </div>
+          </div>
+        `;
+        }
+      });
+
+      messagesArea.innerHTML = html;
+      // Scroll to bottom
+      messagesArea.scrollTop = messagesArea.scrollHeight;
+
+      // Mark as read (optional logic here if needed)
+    }
+
+    // Send message
+    async function sendMessage() {
+      const input = document.getElementById("messageInput");
+      const messageText = input.value.trim();
+
+      if (!messageText || !currentConversationId) return;
+
+      try {
+        const res = await fetch(`/api/messages/send`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            conversationId: currentConversationId,
+            message_text: messageText,
+            senderType: "boutique"
+          })
+        });
+
+        if (!res.ok) throw new Error("Failed to send message");
+
+        input.value = "";
+        await loadMessages(currentConversationId);
+      } catch (err) {
+        console.error("Error sending message:", err);
+        alert("Failed to send message");
+      }
+    }
+
+    // Filter conversations
+    function filterConversations(filter) {
+      currentFilter = filter;
+
+      // Update button styles
+      document.querySelectorAll(".filter-btn").forEach(btn => {
+        if (btn.dataset.filter === filter) {
+          btn.classList.remove("bg-white/5", "text-white/60");
+          btn.classList.add("bg-primary", "text-background-dark");
+        } else {
+          btn.classList.remove("bg-primary", "text-background-dark");
+          btn.classList.add("bg-white/5", "text-white/60");
+        }
+      });
+
+      // Filter and render
+      let filtered = allConversations;
+      if (filter === 'unread') {
+        filtered = allConversations.filter(c => c.unread_count > 0);
+      } else if (filter === 'archived') {
+        filtered = allConversations.filter(c => c.status === 'archived');
+      }
+
+      renderConversations(filtered);
+    }
+
+    // Initialize
+    document.addEventListener("DOMContentLoaded", () => {
+      const ownerName = localStorage.getItem("ownerName") || "Guest";
+      const boutiqueName = localStorage.getItem("boutiqueName") || "My Boutique";
+
+      // 👤 Populate Sidebar Profile
+      const avatarCircle = document.getElementById("avatarCircle");
+      const ownerNameEl = document.getElementById("ownerName");
+      const sidebarBoutiqueName = document.getElementById("sidebarBoutiqueName");
+
+      if (avatarCircle) avatarCircle.textContent = ownerName.charAt(0).toUpperCase();
+      if (ownerNameEl) ownerNameEl.textContent = ownerName;
+      if (sidebarBoutiqueName) sidebarBoutiqueName.textContent = boutiqueName;
+
+      // Scroll active nav item into view
+      const activeNavItem = document.querySelector(".sidebar-item-active");
+      if (activeNavItem) {
+        activeNavItem.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      }
+
+      // Load conversations
+      loadConversations();
+
+      // Refresh conversations and active thread every 3 seconds
+      setInterval(async () => {
+        await loadConversations();
+        if (currentConversationId) {
+          await loadMessages(currentConversationId);
+          updateSidebar(currentConversationId);
+        }
+      }, 3000);
+
+      // Allow Enter key to send message
+      document.getElementById("messageInput")?.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && !e.shiftKey) {
+          e.preventDefault();
+          sendMessage();
+        }
+      });
+    });
+  </script>
+</body>
+
+</html>
+

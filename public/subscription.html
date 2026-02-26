@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Boutique Subscription Plans | CLOCHE</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;700&amp;family=Noto+Sans:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#c1a671",
+                        "background-light": "#f7f6f2",
+                        "background-dark": "#0d0d0d",
+                    },
+                    fontFamily: {
+                        "display": ["Noto Serif", "serif"],
+                        "sans": ["Noto Sans", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+
+<style>
+        .glass-card {
+            background: rgba(26, 26, 26, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(193, 166, 113, 0.1);
+        }
+        .glass-card-highlight {
+            background: rgba(35, 32, 26, 0.7);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(193, 166, 113, 0.4);
+            box-shadow: 0 0 40px rgba(193, 166, 113, 0.05);
+        }
+        .gold-gradient-bg {
+            background: radial-gradient(circle at 50% -20%, rgba(193, 166, 113, 0.15) 0%, rgba(13, 13, 13, 0) 60%);
+        }
+        .text-gold-gradient {
+            background: linear-gradient(to right, #c1a671, #f7f6f2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .sidebar-item-active {
+            background: linear-gradient(90deg, rgba(193, 166, 113, 0.1) 0%, rgba(193, 166, 113, 0) 100%);
+            border-left: 3px solid #c1a671;
+        }
+        .gold-glow {
+            box-shadow: 0 0 20px rgba(193, 166, 113, 0.1);
+        }
+        .plan-card-hover {
+            transition: transform 260ms ease, box-shadow 260ms ease, border-color 260ms ease;
+            will-change: transform;
+        }
+        .plan-card-hover:hover {
+            transform: translateY(-8px) scale(1.012);
+            border-color: rgba(193, 166, 113, 0.5);
+            box-shadow: 0 22px 38px rgba(0, 0, 0, 0.45), 0 0 30px rgba(193, 166, 113, 0.18);
+        }
+        .plan-cta-hover {
+            transition: transform 220ms ease, box-shadow 220ms ease;
+        }
+        .plan-cta-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 24px rgba(193, 166, 113, 0.24);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #0d0d0d;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #3e382d;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-sans text-stone-800 dark:text-stone-200 h-screen overflow-hidden selection:bg-primary/30">
+
+<!-- Subtle Background Accents -->
+<div class="fixed inset-0 pointer-events-none overflow-hidden z-0">
+<div class="absolute top-[-10%] left-[20%] w-[600px] h-[600px] rounded-full bg-primary/5 blur-[120px]"></div>
+<div class="absolute bottom-[-10%] right-[10%] w-[400px] h-[400px] rounded-full bg-primary/5 blur-[100px]"></div>
+</div>
+<div class="flex h-screen overflow-hidden">
+<aside class="w-72 bg-background-dark border-r border-primary/10 flex flex-col z-20 shrink-0 h-screen">
+  <div class="p-8 flex items-center gap-4 shrink-0">
+    <div class="h-10 w-10 bg-primary rounded-full flex items-center justify-center text-background-dark font-bold text-xl">C</div>
+    <div>
+      <h1 class="text-primary text-xl font-black tracking-widest uppercase leading-none">CLOCHE</h1>
+      <p class="text-primary/60 text-[10px] tracking-[0.2em] uppercase font-sans mt-1">
+        Boutique Management
+      </p>
+    </div>
+  </div>
+
+  <nav class="flex-1 px-4 py-6 space-y-2 font-sans overflow-y-auto custom-scrollbar">
+    <!-- Home -->
+    <a class="flex items-center gap-4 px-4 py-3 text-slate-400 hover:text-primary transition-colors group"
+       href="landingpage.html">
+      <span class="material-symbols-outlined">home</span>
+      <span class="text-sm font-medium tracking-wide">Home</span>
+    </a>
+    <a class="flex items-center gap-4 px-4 py-3 text-slate-400 hover:text-primary transition-colors group"
+       href="dashboard.html">
+      <span class="material-symbols-outlined">dashboard</span>
+      <span class="text-sm font-medium tracking-wide">Dashboard</span>
+    </a>
+
+    <a class="flex items-center gap-4 px-4 py-3 text-slate-400 hover:text-primary transition-colors group"
+       href="lead.html">
+      <span class="material-symbols-outlined">group</span>
+      <span class="text-sm font-medium tracking-wide">Leads</span>
+    </a>
+
+    <a class="flex items-center gap-4 px-4 py-3 text-slate-400 hover:text-primary transition-colors group"
+       href="boutiqueproducts.html">
+      <span class="material-symbols-outlined">inventory_2</span>
+      <span class="text-sm font-medium tracking-wide">Products</span>
+    </a>
+
+    <a class="flex items-center gap-4 px-4 py-3 text-slate-400 hover:text-primary transition-colors group"
+       href="messages.html">
+      <span class="material-symbols-outlined">chat_bubble</span>
+      <span class="text-sm font-medium tracking-wide">Messages</span>
+    </a>
+
+    <!-- SUBSCRIPTION ACTIVE -->
+    <a class="sidebar-item-active flex items-center gap-4 px-4 py-3 text-primary group"
+       href="subscription.html">
+      <span class="material-symbols-outlined">star</span>
+      <span class="text-sm font-medium tracking-wide">Subscription</span>
+    </a>
+
+    <a class="flex items-center gap-4 px-4 py-3 text-slate-400 hover:text-primary transition-colors group"
+       href="profile.html">
+      <span class="material-symbols-outlined">settings</span>
+      <span class="text-sm font-medium tracking-wide">Settings</span>
+    </a>
+  </nav>
+
+  <!-- Profile Card -->
+  <div class="shrink-0 p-4">
+    <div class="glass-card rounded-xl p-4 flex items-center gap-4 border border-primary/20">
+      <!-- Avatar -->
+      <div id="avatarCircle" class="w-12 h-12 rounded-full bg-primary/90 text-background-dark flex items-center justify-center font-display font-bold text-xl shadow-md shrink-0">
+        S
+      </div>
+
+      <!-- Name + Boutique -->
+      <div class="flex-1 overflow-hidden">
+        <p id="ownerName" class="text-sm font-semibold text-white leading-tight truncate">
+          Owner Name
+        </p>
+        <p id="sidebarBoutiqueName" class="text-[11px] uppercase tracking-widest text-primary/80 truncate">
+          Boutique Name
+        </p>
+      </div>
+    </div>
+
+    <!-- Divider -->
+    <div class="my-4 h-px bg-primary/10"></div>
+
+    <!-- Logout -->
+    <button onclick="logout()" class="w-full flex items-center gap-3 px-4 py-3 rounded-lg
+     text-sm font-semibold text-slate-400
+     hover:text-primary hover:bg-primary/10
+     transition-all duration-300">
+      <span class="material-symbols-outlined text-base">logout</span>
+      Logout
+    </button>
+  </div>
+</aside>
+
+<!-- Top Navigation -->
+
+<main class="flex-1 overflow-y-auto px-10 py-16 gold-gradient-bg scrollbar-hide">
+
+
+
+<!-- Hero Content -->
+<div class="text-center mb-16">
+<h1 class="text-white font-display tracking-[0.3em] text-[32px] md:text-[48px] font-bold leading-tight pb-4 uppercase">Boutique Subscriptions</h1>
+<p class="text-primary/80 font-display text-lg md:text-xl font-normal max-w-2xl mx-auto italic">
+                    Elevate your boutique's presence with our tiered membership plans designed for modern luxury.
+                </p>
+</div>
+<!-- Billing Toggle -->
+<div class="flex justify-center mb-16">
+<div class="flex h-12 w-80 items-center justify-center rounded-full bg-white/5 border border-white/10 p-1">
+<label class="flex cursor-pointer h-full grow items-center justify-center overflow-hidden rounded-full px-2 has-[:checked]:bg-primary has-[:checked]:text-background-dark text-white/50 text-xs font-bold uppercase tracking-tighter transition-all">
+<span class="truncate">Monthly</span>
+<input class="hidden" name="billing-cycle" type="radio" value="monthly"/>
+</label>
+<label class="flex cursor-pointer h-full grow items-center justify-center overflow-hidden rounded-full px-2 has-[:checked]:bg-primary has-[:checked]:text-background-dark text-white/50 text-xs font-bold uppercase tracking-tighter transition-all">
+<span class="truncate" id="annualLabel">Annual (Save 20%)</span>
+<input checked="" class="hidden" name="billing-cycle" type="radio" value="annual"/>
+</label>
+</div>
+</div>
+<!-- Pricing Grid -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
+<!-- Free Plan -->
+<div class="glass-card plan-card-hover flex flex-col gap-8 rounded-xl p-8 transition-transform hover:translate-y-[-4px]">
+<div class="flex flex-col gap-2">
+<h3 class="text-primary text-xs font-bold uppercase tracking-[0.2em]">Entry</h3>
+<h4 class="text-white font-display text-2xl font-bold">Free</h4>
+<div class="flex items-baseline gap-1 mt-4">
+<span class="text-white text-5xl font-display font-bold" id="entryPrice">&#8377;0</span>
+<span class="text-white/40 text-sm font-medium tracking-widest uppercase" id="entryPeriod">/mo</span>
+</div>
+</div>
+<button id="freePlanBtn" class="plan-cta-hover w-full py-4 bg-white/5 hover:bg-white/10 text-white rounded-lg text-xs font-bold uppercase tracking-widest border border-white/10 transition-all">
+                        Start for free
+                    </button>
+<div class="flex flex-col gap-5 pt-4 border-t border-white/10 flex-1">
+<div class="flex items-center gap-3 text-sm text-white/70">
+<span class="material-symbols-outlined text-primary text-[18px]">check_circle</span>
+3 Product Listings
+</div>
+
+<div class="flex items-center gap-3 text-sm text-white/70">
+<span class="material-symbols-outlined text-primary text-[18px]">check_circle</span>
+5 Leads per Month
+</div>
+
+<div class="flex items-center gap-3 text-sm text-white/70">
+<span class="material-symbols-outlined text-primary text-[18px]">check_circle</span>
+5 Messages per Month
+</div>
+
+<div class="flex items-center gap-3 text-sm text-white/70">
+<span class="material-symbols-outlined text-primary text-[18px]">check_circle</span>
+Standard Marketplace Visibility
+</div>
+</div>
+</div>
+<!-- Professional Plan -->
+<div class="glass-card-highlight plan-card-hover relative flex flex-col gap-8 rounded-xl p-8 transition-transform hover:translate-y-[-4px] ring-1 ring-primary/30">
+<div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary px-6 py-1 rounded-full shadow-[0_0_20px_rgba(193,166,113,0.3)]">
+<span class="text-background-dark text-[10px] font-black uppercase tracking-[0.2em]">Most Popular</span>
+</div>
+<div class="flex flex-col gap-2">
+<h3 class="text-primary text-xs font-bold uppercase tracking-[0.2em]">Growth</h3>
+<h4 class="text-white font-display text-2xl font-bold">Professional</h4>
+<div class="flex items-baseline gap-1 mt-4">
+<span class="text-white text-5xl font-display font-bold" id="professionalPrice">&#8377;28,790</span>
+<span class="text-white/40 text-sm font-medium tracking-widest uppercase" id="professionalPeriod">/yr</span>
+</div>
+<p class="text-primary/70 text-xs uppercase tracking-wider mt-2" id="professionalSavings">20% off yearly billing</p>
+</div>
+<button id="professionalPlanBtn" type="button" class="plan-cta-hover w-full py-4 bg-primary hover:bg-white text-background-dark rounded-lg text-xs font-black uppercase tracking-widest shadow-lg shadow-primary/10 transition-all cursor-pointer">
+                        Elevate Now
+                    </button>
+
+<div class="flex flex-col gap-5 pt-4 border-t border-white/10 flex-1">
+<div class="flex items-center gap-3 text-sm text-white">
+<span class="material-symbols-outlined text-primary text-[20px]">stars</span>
+Everything in Atelier
+</div>
+
+<div class="flex items-center gap-3 text-sm text-white">
+<span class="material-symbols-outlined text-primary text-[20px]">check_circle</span>
+20 Product Listings
+</div>
+
+<div class="flex items-center gap-3 text-sm text-white">
+<span class="material-symbols-outlined text-primary text-[20px]">check_circle</span>
+50 Leads per Month
+</div>
+
+<div class="flex items-center gap-3 text-sm text-white">
+<span class="material-symbols-outlined text-primary text-[20px]">check_circle</span>
+Unlimited Messages
+</div>
+
+<div class="flex items-center gap-3 text-sm text-white">
+<span class="material-symbols-outlined text-primary text-[20px]">check_circle</span>
+Boutique Analytics Dashboard
+</div>
+
+<div class="flex items-center gap-3 text-sm text-white">
+<span class="material-symbols-outlined text-primary text-[20px]">check_circle</span>
+Priority Marketplace Visibility
+</div>
+
+</div>
+</div>
+<!-- Premium Plan -->
+<div class="glass-card plan-card-hover flex flex-col gap-8 rounded-xl p-8 transition-transform hover:translate-y-[-4px]">
+<div class="flex flex-col gap-2">
+<h3 class="text-primary text-xs font-bold uppercase tracking-[0.2em]">Elite</h3>
+<h4 class="text-white font-display text-2xl font-bold">Premium</h4>
+<div class="flex items-baseline gap-1 mt-4">
+<span class="text-white text-5xl font-display font-bold" id="premiumPrice">&#8377;76,790</span>
+<span class="text-white/40 text-sm font-medium tracking-widest uppercase" id="premiumPeriod">/yr</span>
+</div>
+<p class="text-primary/70 text-xs uppercase tracking-wider mt-2" id="premiumSavings">20% off yearly billing</p>
+</div>
+<button id="premiumPlanBtn" type="button" class="plan-cta-hover w-full py-4 bg-white/5 hover:bg-white/10 text-white rounded-lg text-xs font-bold uppercase tracking-widest border border-white/10 transition-all cursor-pointer">
+                        Choose Premium
+                    </button>
+
+<div class="flex flex-col gap-5 pt-4 border-t border-white/10 flex-1">
+<div class="flex items-center gap-3 text-sm text-white/70">
+<span class="material-symbols-outlined text-primary text-[18px]">check_circle</span>
+Everything in Couture
+</div>
+
+<div class="flex items-center gap-3 text-sm text-white/70">
+<span class="material-symbols-outlined text-primary text-[18px]">check_circle</span>
+Unlimited Product Listings
+</div>
+
+<div class="flex items-center gap-3 text-sm text-white/70">
+<span class="material-symbols-outlined text-primary text-[18px]">check_circle</span>
+Unlimited Leads
+</div>
+
+<div class="flex items-center gap-3 text-sm text-white/70">
+<span class="material-symbols-outlined text-primary text-[18px]">check_circle</span>
+Featured Homepage Placement
+</div>
+
+<div class="flex items-center gap-3 text-sm text-white/70">
+<span class="material-symbols-outlined text-primary text-[18px]">check_circle</span>
+Dedicated Account Manager
+</div>
+
+<div class="flex items-center gap-3 text-sm text-white/70">
+<span class="material-symbols-outlined text-primary text-[18px]">check_circle</span>
+AI Performance Insights
+</div>
+
+</div>
+</div>
+</div>
+<!-- Enterprise Footer -->
+<div class="mt-24 text-center">
+<p class="text-white/40 text-sm tracking-widest uppercase mb-4">Looking for something more bespoke?</p>
+<a class="text-primary font-display text-lg italic hover:text-white transition-colors underline underline-offset-8" href="#">Contact our concierge for Enterprise solutions</a>
+</div>
+<section id="paymentSection" class="hidden mt-12 max-w-2xl mx-auto w-full glass-card rounded-xl p-8 border border-primary/20">
+  <h3 class="text-primary text-xs font-bold uppercase tracking-[0.2em] mb-2">Payment</h3>
+  <h4 class="text-white font-display text-2xl font-bold mb-4">Complete Subscription</h4>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 text-sm">
+    <div class="bg-white/5 rounded-lg p-4 border border-white/10">
+      <p class="text-white/50 uppercase tracking-widest text-[10px]">Selected Plan</p>
+      <p id="paymentPlanName" class="text-white font-bold mt-1">Professional</p>
+    </div>
+    <div class="bg-white/5 rounded-lg p-4 border border-white/10">
+      <p class="text-white/50 uppercase tracking-widest text-[10px]">Amount</p>
+      <p id="paymentAmount" class="text-primary font-bold mt-1">&#8377;0</p>
+    </div>
+  </div>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+    <input id="payerName" class="bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm" placeholder="Card Holder Name" type="text"/>
+    <input id="cardNumber" class="bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm" maxlength="16" placeholder="Card Number" type="text"/>
+  </div>
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+    <input id="cardExpiry" class="bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm" maxlength="5" placeholder="MM/YY" type="text"/>
+    <input id="cardCvv" class="bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm" maxlength="4" placeholder="CVV" type="password"/>
+    <input id="billingEmail" class="bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm" placeholder="Billing Email" type="email"/>
+  </div>
+  <div class="flex gap-3">
+    <button id="payNowBtn" class="flex-1 py-3 bg-primary hover:bg-white text-background-dark rounded-lg text-xs font-black uppercase tracking-widest transition-all">Pay & Activate</button>
+    <button id="cancelPaymentBtn" class="py-3 px-6 bg-white/5 hover:bg-white/10 text-white rounded-lg text-xs font-bold uppercase tracking-widest border border-white/10 transition-all">Cancel</button>
+  </div>
+</section>
+<!-- Footer INSIDE main -->
+<footer class="w-full px-6 py-10 border-t border-white/5 mt-24">
+  <div class="flex flex-col md:flex-row justify-between items-center gap-6">
+    <span class="text-white/20 text-[10px] uppercase tracking-widest">
+      © 2024 CLOCHE DIGITAL LUXURY. ALL RIGHTS RESERVED.
+    </span>
+    <div class="flex gap-8">
+      <a class="text-white/20 hover:text-white transition-colors text-[10px] uppercase tracking-widest" href="#">
+        Privacy Policy
+      </a>
+      <a class="text-white/20 hover:text-white transition-colors text-[10px] uppercase tracking-widest" href="#">
+        Terms of Service
+      </a>
+    </div>
+  </div>
+</footer>
+
+</main>
+<!-- Minimal Footer -->
+
+</div>
+
+<script>
+  function logout() {
+    localStorage.clear();
+    window.location.href = "boutiquelogin.html";
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const ownerName = localStorage.getItem("ownerName") || "Guest";
+    const boutiqueName = localStorage.getItem("boutiqueName") || "My Boutique";
+    const boutiqueId = localStorage.getItem("boutiqueId");
+    const API_BASE = "/api";
+
+    const avatarCircle = document.getElementById("avatarCircle");
+    const ownerNameEl = document.getElementById("ownerName");
+    const sidebarBoutiqueName = document.getElementById("sidebarBoutiqueName");
+    if (avatarCircle) avatarCircle.textContent = ownerName.charAt(0).toUpperCase();
+    if (ownerNameEl) ownerNameEl.textContent = ownerName;
+    if (sidebarBoutiqueName) sidebarBoutiqueName.textContent = boutiqueName;
+
+    const activeNavItem = document.querySelector(".sidebar-item-active");
+    if (activeNavItem) {
+      activeNavItem.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    }
+
+    const billingInputs = document.querySelectorAll('input[name="billing-cycle"]');
+    const annualLabel = document.getElementById("annualLabel");
+    const freePlanBtn = document.getElementById("freePlanBtn");
+    const professionalPlanBtn = document.getElementById("professionalPlanBtn");
+    const premiumPlanBtn = document.getElementById("premiumPlanBtn");
+    const paymentSection = document.getElementById("paymentSection");
+    const paymentPlanName = document.getElementById("paymentPlanName");
+    const paymentAmount = document.getElementById("paymentAmount");
+    const payNowBtn = document.getElementById("payNowBtn");
+    const cancelPaymentBtn = document.getElementById("cancelPaymentBtn");
+
+    let selectedPlan = null;
+    let selectedBillingCycle = "annual";
+
+    const pricingData = {
+      monthly: {
+        entry: { price: "&#8377;0", period: "/mo", savings: "", amount: 0 },
+        professional: { price: "&#8377;2,999", period: "/mo", savings: "", amount: 2999 },
+        premium: { price: "&#8377;7,999", period: "/mo", savings: "", amount: 7999 }
+      },
+      annual: {
+        entry: { price: "&#8377;0", period: "/mo", savings: "", amount: 0 },
+        professional: { price: "&#8377;28,790", period: "/yr", savings: "20% off yearly billing", amount: 28790 },
+        premium: { price: "&#8377;76,790", period: "/yr", savings: "20% off yearly billing", amount: 76790 }
+      }
+    };
+
+    function setPlanPricing(planKey, values) {
+      const priceEl = document.getElementById(`${planKey}Price`);
+      const periodEl = document.getElementById(`${planKey}Period`);
+      const savingsEl = document.getElementById(`${planKey}Savings`);
+
+      if (priceEl) priceEl.innerHTML = values.price;
+      if (periodEl) periodEl.textContent = values.period;
+      if (savingsEl) savingsEl.textContent = values.savings;
+    }
+
+    function getSelectedCycle() {
+      const checked = document.querySelector('input[name="billing-cycle"]:checked');
+      return checked ? checked.value : "annual";
+    }
+
+    function applyBillingCycle(cycle) {
+      selectedBillingCycle = cycle;
+      const data = pricingData[cycle] || pricingData.annual;
+      setPlanPricing("entry", data.entry);
+      setPlanPricing("professional", data.professional);
+      setPlanPricing("premium", data.premium);
+      if (annualLabel) annualLabel.textContent = "Annual (Save 20%)";
+    }
+
+    function openPayment(planKey) {
+      if (!boutiqueId) {
+        alert("Please login first.");
+        window.location.href = "boutiquelogin.html";
+        return;
+      }
+
+      selectedPlan = planKey;
+      selectedBillingCycle = getSelectedCycle();
+      const data = pricingData[selectedBillingCycle][planKey];
+      const planLabel = planKey.charAt(0).toUpperCase() + planKey.slice(1);
+
+      if (paymentPlanName) paymentPlanName.textContent = `${planLabel} (${selectedBillingCycle})`;
+      if (paymentAmount) paymentAmount.innerHTML = data.price;
+      if (paymentSection) {
+        paymentSection.classList.remove("hidden");
+        paymentSection.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }
+
+    async function activatePlan(planKey) {
+      const paymentId = `PAY-${Date.now()}`;
+      const payload = {
+        boutiqueId,
+        plan: planKey,
+        billingCycle: selectedBillingCycle,
+        paymentId
+      };
+
+      const res = await fetch(`${API_BASE}/auth/upgrade-plan`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      const result = await res.json();
+      if (!res.ok) {
+        throw new Error(result.message || "Payment activation failed");
+      }
+
+      localStorage.setItem("plan", result.plan);
+      alert(`${result.plan} plan activated successfully.`);
+      window.location.href = "dashboard.html";
+    }
+
+    if (freePlanBtn) {
+      freePlanBtn.addEventListener("click", async () => {
+        try {
+          selectedBillingCycle = getSelectedCycle();
+          await activatePlan("basic");
+        } catch (err) {
+          alert(err.message);
+        }
+      });
+    }
+
+    if (professionalPlanBtn) {
+      professionalPlanBtn.addEventListener("click", () => openPayment("professional"));
+    }
+
+    if (premiumPlanBtn) {
+      premiumPlanBtn.addEventListener("click", () => openPayment("premium"));
+    }
+
+    if (cancelPaymentBtn && paymentSection) {
+      cancelPaymentBtn.addEventListener("click", () => paymentSection.classList.add("hidden"));
+    }
+
+    if (payNowBtn) {
+      payNowBtn.addEventListener("click", async () => {
+        const payerName = document.getElementById("payerName")?.value.trim();
+        const cardNumber = document.getElementById("cardNumber")?.value.trim();
+        const cardExpiry = document.getElementById("cardExpiry")?.value.trim();
+        const cardCvv = document.getElementById("cardCvv")?.value.trim();
+        const billingEmail = document.getElementById("billingEmail")?.value.trim();
+
+        if (!selectedPlan) {
+          alert("Select a plan first.");
+          return;
+        }
+
+        if (!payerName || !cardNumber || !cardExpiry || !cardCvv || !billingEmail) {
+          alert("Enter payment details.");
+          return;
+        }
+
+        if (cardNumber.length < 12 || cardCvv.length < 3) {
+          alert("Invalid card details.");
+          return;
+        }
+
+        try {
+          await activatePlan(selectedPlan);
+        } catch (err) {
+          alert(err.message);
+        }
+      });
+    }
+
+    // Hard fallback for any stale cached onclick="upgradePlan(...)"
+    // Ensures old handlers cannot redirect to Razorpay.
+    window.upgradePlan = function (_price, planName) {
+      const key = String(planName || "").toLowerCase().includes("premium")
+        ? "premium"
+        : "professional";
+      openPayment(key);
+    };
+
+    billingInputs.forEach((input) => {
+      input.addEventListener("change", () => applyBillingCycle(input.value));
+      if (input.checked) applyBillingCycle(input.value);
+    });
+  });
+</script>
+</body></html>
+

@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CLOCHE | User Profile</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@400,0&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            primary: "#c1a671",
+            champagne: "#f2e7cf",
+            surface: "rgba(26, 24, 21, 0.62)",
+            bordergold: "rgba(193, 166, 113, 0.28)"
+          },
+          fontFamily: {
+            display: ["Cormorant Garamond", "serif"],
+            sans: ["Inter", "sans-serif"]
+          },
+          boxShadow: {
+            soft: "0 20px 45px rgba(0, 0, 0, 0.45)"
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    body {
+      background:
+        radial-gradient(circle at 15% 20%, rgba(193, 166, 113, 0.18), rgba(9, 9, 9, 0) 34%),
+        radial-gradient(circle at 80% 0%, rgba(242, 231, 207, 0.08), rgba(9, 9, 9, 0) 28%),
+        linear-gradient(180deg, #0d0d0d 0%, #090909 100%);
+      min-height: 100vh;
+      color: #f3f1eb;
+      font-family: "Inter", sans-serif;
+    }
+
+    .glass {
+      background: rgba(24, 22, 19, 0.62);
+      border: 1px solid rgba(193, 166, 113, 0.26);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+      border-radius: 1rem;
+    }
+
+    .gold-line {
+      height: 1px;
+      background: linear-gradient(90deg, rgba(193, 166, 113, 0), rgba(193, 166, 113, 0.7), rgba(193, 166, 113, 0));
+    }
+  </style>
+</head>
+<body>
+  <nav class="sticky top-0 z-20 border-b border-[rgba(193,166,113,0.18)] bg-[rgba(14,13,12,0.72)] backdrop-blur-md">
+    <div class="max-w-7xl mx-auto h-20 px-6 flex items-center justify-between">
+      <a href="landingpage.html" class="inline-flex items-center gap-3 leading-none">
+        <span class="material-symbols-outlined text-primary text-3xl leading-none shrink-0">diamond</span>
+        <span class="font-display text-3xl tracking-[0.24em] text-white leading-none">CLOCHE</span>
+      </a>
+      <div class="flex items-center gap-3">
+        <a href="landingpage.html" class="text-xs uppercase tracking-[0.24em] text-white/70 hover:text-primary transition-colors">Home</a>
+        <button id="logoutBtn" class="h-10 px-5 rounded-full border border-primary/40 text-primary text-xs font-semibold uppercase tracking-[0.16em] hover:bg-primary hover:text-black transition-all">
+          Logout
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="max-w-6xl mx-auto px-6 py-12">
+    <section class="glass p-8 md:p-10 mb-8">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-8">
+        <div>
+          <p class="text-xs uppercase tracking-[0.26em] text-primary/80 mb-3">Royal Profile</p>
+          <h1 id="welcomeName" class="font-display text-5xl md:text-6xl leading-none mb-3">Welcome</h1>
+          <p class="text-champagne/80 text-sm uppercase tracking-[0.18em]">Luxury wedding platform account</p>
+        </div>
+        <div class="flex items-center gap-4">
+          <div id="avatarCircle" class="h-16 w-16 rounded-full border border-primary/55 bg-black/35 text-primary flex items-center justify-center font-display text-3xl">U</div>
+          <div>
+            <p id="profileName" class="font-display text-3xl leading-none">User</p>
+            <p id="profileEmail" class="text-xs uppercase tracking-[0.16em] text-champagne/70 mt-2">-</p>
+          </div>
+        </div>
+      </div>
+      <div class="gold-line mt-8"></div>
+      <p id="status" class="mt-6 text-sm text-primary">Loading your profile details...</p>
+    </section>
+
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <article class="glass p-6 lg:col-span-2">
+        <h2 class="font-display text-3xl mb-5">Account Details</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="rounded-xl bg-black/25 border border-white/5 p-4">
+            <p class="text-[11px] uppercase tracking-[0.24em] text-primary/75 mb-2">Full Name</p>
+            <p id="fieldName" class="text-lg">-</p>
+          </div>
+          <div class="rounded-xl bg-black/25 border border-white/5 p-4">
+            <p class="text-[11px] uppercase tracking-[0.24em] text-primary/75 mb-2">Email</p>
+            <p id="fieldEmail" class="text-lg break-all">-</p>
+          </div>
+          <div class="rounded-xl bg-black/25 border border-white/5 p-4">
+            <p class="text-[11px] uppercase tracking-[0.24em] text-primary/75 mb-2">Member Since</p>
+            <p id="fieldCreatedAt" class="text-lg">-</p>
+          </div>
+          <div class="rounded-xl bg-black/25 border border-white/5 p-4">
+            <p class="text-[11px] uppercase tracking-[0.24em] text-primary/75 mb-2">Account Type</p>
+            <p class="text-lg">Wedding User</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="glass p-6">
+        <h2 class="font-display text-3xl mb-5">Edit Profile</h2>
+        <form id="editProfileForm" class="space-y-4">
+          <div>
+            <label class="text-[11px] uppercase tracking-[0.24em] text-primary/75 mb-2 block">Full Name</label>
+            <input
+              id="editName"
+              type="text"
+              class="w-full rounded-xl bg-black/30 border border-white/10 text-white h-11 px-4 focus:border-primary focus:ring-0"
+              placeholder="Enter your full name"
+              required
+            />
+          </div>
+          <div>
+            <label class="text-[11px] uppercase tracking-[0.24em] text-primary/75 mb-2 block">Email</label>
+            <input
+              id="editEmail"
+              type="email"
+              class="w-full rounded-xl bg-black/30 border border-white/10 text-white h-11 px-4 focus:border-primary focus:ring-0"
+              placeholder="you@gmail.com"
+              required
+            />
+          </div>
+          <button
+            id="saveProfileBtn"
+            type="submit"
+            class="w-full h-11 rounded-xl border border-primary/40 bg-primary/90 text-black text-xs font-semibold uppercase tracking-[0.18em] hover:brightness-110 transition-all"
+          >
+            Save Changes
+          </button>
+          <p id="saveStatus" class="text-xs text-champagne/80 min-h-[1rem]"></p>
+        </form>
+      </article>
+    </section>
+
+  </main>
+
+  <script>
+    const statusEl = document.getElementById("status");
+    const saveStatusEl = document.getElementById("saveStatus");
+    const saveBtn = document.getElementById("saveProfileBtn");
+    const editForm = document.getElementById("editProfileForm");
+    const userId = localStorage.getItem("userId");
+    const localName = localStorage.getItem("userName") || "User";
+    const localEmail = localStorage.getItem("userEmail") || "-";
+    let currentCreatedAt = null;
+
+    function firstName(name) {
+      const safe = String(name || "").trim();
+      if (!safe) return "User";
+      return safe.split(/\s+/)[0];
+    }
+
+    function applyProfile(data) {
+      const name = data.name || localName;
+      const email = data.email || localEmail;
+      if (data.created_at) currentCreatedAt = data.created_at;
+      const createdAt = currentCreatedAt
+        ? new Date(currentCreatedAt).toLocaleDateString()
+        : "-";
+      const first = firstName(name);
+
+      document.getElementById("welcomeName").textContent = `Welcome, ${first}`;
+      document.getElementById("profileName").textContent = name;
+      document.getElementById("profileEmail").textContent = email;
+      document.getElementById("fieldName").textContent = name;
+      document.getElementById("fieldEmail").textContent = email;
+      document.getElementById("fieldCreatedAt").textContent = createdAt;
+      document.getElementById("avatarCircle").textContent = first.charAt(0).toUpperCase();
+      document.getElementById("editName").value = name;
+      document.getElementById("editEmail").value = email;
+      statusEl.textContent = "Your account is secured and ready for wedding planning.";
+    }
+
+    async function loadProfile() {
+      if (!localStorage.getItem("isUserLoggedIn")) {
+        statusEl.textContent = "No user session found. Please login again.";
+        return;
+      }
+
+      if (!userId) {
+        applyProfile({ name: localName, email: localEmail });
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/auth/user/${userId}`);
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || "Could not fetch profile");
+        applyProfile(data);
+      } catch (err) {
+        applyProfile({ name: localName, email: localEmail });
+        statusEl.textContent = err.message || "Profile loaded from local session.";
+      }
+    }
+
+    document.getElementById("logoutBtn").addEventListener("click", () => {
+      localStorage.removeItem("isUserLoggedIn");
+      localStorage.removeItem("userId");
+      localStorage.removeItem("userName");
+      localStorage.removeItem("userEmail");
+      window.location.href = "landingpage.html";
+    });
+
+    editForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      if (!userId) {
+        saveStatusEl.textContent = "Session missing user id. Please login again.";
+        return;
+      }
+
+      const name = document.getElementById("editName").value.trim();
+      const email = document.getElementById("editEmail").value.trim();
+
+      if (!name || !email) {
+        saveStatusEl.textContent = "Name and email are required.";
+        return;
+      }
+
+      saveStatusEl.textContent = "Saving profile...";
+      saveBtn.disabled = true;
+      saveBtn.classList.add("opacity-70");
+
+      try {
+        const res = await fetch(`/api/auth/user/${userId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, email })
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || "Failed to update profile");
+
+        localStorage.setItem("userName", data.name || name);
+        localStorage.setItem("userEmail", data.email || email);
+        applyProfile({
+          name: data.name || name,
+          email: data.email || email,
+          created_at: currentCreatedAt
+        });
+        saveStatusEl.textContent = "Profile updated successfully.";
+      } catch (err) {
+        saveStatusEl.textContent = err.message || "Failed to update profile.";
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.classList.remove("opacity-70");
+      }
+    });
+
+    loadProfile();
+  </script>
+</body>
+</html>
+
+
+

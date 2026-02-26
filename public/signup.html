@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+  <title>Signup | CLOCHE</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;700&amp;family=Noto+Sans:wght@300;400;500;600&amp;display=swap"
+    rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+    rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+    rel="stylesheet" />
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#c1a671",
+            "background-light": "#f7f6f2",
+            "background-dark": "#0d0d0d",
+            "cloche-gold": "#c1a671",
+            "cloche-dark": "#1e1b15",
+            "cloche-glass": "rgba(44, 40, 32, 0.6)",
+          },
+          fontFamily: {
+            "display": ["Noto Serif", "serif"],
+            "sans": ["Noto Sans", "sans-serif"]
+          },
+          borderRadius: {
+            "DEFAULT": "0.5rem",
+            "lg": "1rem",
+            "xl": "1.5rem",
+            "full": "9999px"
+          },
+        },
+      },
+    }
+  </script>
+  <style>
+    body {
+      font-family: "Noto Sans", sans-serif;
+    }
+
+    .font-display {
+      font-family: "Noto Serif", serif;
+    }
+
+    /* Main luxury background */
+    .luxury-bg {
+      background:
+        radial-gradient(circle at 70% 30%,
+          rgba(193, 166, 113, 0.18),
+          rgba(13, 13, 13, 0.95) 55%),
+        radial-gradient(circle at 25% 75%,
+          rgba(193, 166, 113, 0.12),
+          rgba(13, 13, 13, 0.9) 60%),
+        linear-gradient(180deg, #0d0d0d 0%, #0b0b0b 100%);
+    }
+
+    /* Soft spotlight */
+    .spotlight {
+      background: radial-gradient(circle at 50% 50%,
+          rgba(193, 166, 113, 0.08) 0%,
+          rgba(13, 13, 13, 0) 60%);
+    }
+
+    /* Glass card */
+    .glass-card {
+      background: rgba(30, 27, 21, 0.7);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(193, 166, 113, 0.2);
+    }
+  </style>
+</head>
+
+<body class="luxury-bg min-h-screen flex flex-col relative overflow-x-hidden text-white">
+
+  <!-- Atmospheric Background Layers -->
+
+
+
+
+  <!-- Decorative Gold Blurs -->
+
+
+
+
+  <nav class="fixed top-0 w-full z-50">
+    <div class="bg-[rgba(26,26,26,0.6)] backdrop-blur-md border-b border-[rgba(193,166,113,0.2)]">
+      <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+
+        <!-- Logo -->
+        <a href="landingpage.html" class="flex items-center gap-2 group">
+          <span class="material-symbols-outlined text-primary text-3xl group-hover:scale-105 transition-transform">
+            diamond
+          </span>
+          <span
+            class="text-2xl font-display font-bold tracking-[0.2em] text-white group-hover:text-primary transition-colors">
+            CLOCHE
+          </span>
+        </a>
+
+
+        <!-- Center Menu -->
+
+        <!-- Right Actions -->
+
+      </div>
+
+    </div>
+    </div>
+  </nav>
+  <!-- Ambient Light Effects -->
+
+  <!-- Navigation Header -->
+  <header class="w-full max-w-[1200px] flex items-center justify-between px-8 py-6 z-10">
+    <div class="flex items-center gap-3 text-white">
+  </header>
+  <!-- Main Content -->
+  <main class="flex-1 w-full flex flex-col items-center justify-center px-4 py-12 z-10">
+    <!-- Onboarding Progress -->
+    <div class="w-full max-w-[600px] mb-8">
+      <div class="flex flex-col gap-3">
+        <div class="flex gap-6 justify-between items-end">
+
+        </div>
+        
+    </div>
+    <!-- Signup Card -->
+    <div class="glass-card w-full max-w-[600px] p-8 md:p-12 rounded-xl shadow-2xl">
+      <div class="text-center mb-10">
+        <h1 class="text-white font-display tracking-[0.1em] text-[28px] md:text-[36px] font-bold leading-tight pb-3">
+          JOIN THE CIRCLE</h1>
+        <p id="signupSubtitle" class="text-white/60 text-sm md:text-base font-light italic">Begin your journey as an esteemed luxury
+          partner.</p>
+      </div>
+
+      <div class="mb-6">
+        <p class="text-primary/80 text-xs font-bold uppercase tracking-widest mb-3">I am signing up as</p>
+        <div class="grid grid-cols-2 gap-3">
+          <button id="userTypeBtn" type="button"
+            class="h-12 rounded-lg border border-white/10 bg-white/5 text-white/80 text-xs font-bold uppercase tracking-[0.12em]">
+            User
+          </button>
+          <button id="partnerTypeBtn" type="button"
+            class="h-12 rounded-lg border border-primary/40 bg-primary/10 text-primary text-xs font-bold uppercase tracking-[0.12em]">
+            Partner
+          </button>
+        </div>
+      </div>
+
+      <form id="signupForm" class="flex flex-col gap-6">
+        <!-- Row 1: Boutique Name -->
+        <div id="partnerBoutiqueWrap" class="flex flex-col gap-2">
+          <label class="text-primary/80 text-xs font-bold uppercase tracking-widest">Boutique Name</label>
+          <input id="boutique" type="text" placeholder="The Atelier London"
+            class="w-full rounded-lg text-white border border-white/10 bg-white/5 h-14 px-4" />
+
+        </div>
+        <!-- Row 2: Owner & Email -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="flex flex-col gap-2">
+            <label id="nameLabel" class="text-primary/80 text-xs font-bold uppercase tracking-widest">Owner Name</label>
+            <input id="owner" type="text" placeholder="Julianne Vaught"
+              class="w-full rounded-lg text-white border border-white/10 bg-white/5 h-14 px-4" />
+
+          </div>
+          <div class="flex flex-col gap-2">
+            <label class="text-primary/80 text-xs font-bold uppercase tracking-widest">Email Address</label>
+            <input id="email" type="email" placeholder="concierge@atelier.com"
+              class="w-full rounded-lg text-white border border-white/10 bg-white/5 h-14 px-4" />
+
+          </div>
+        </div>
+        <!-- Row 3: Mobile & City -->
+        <!-- Row: Mobile & OTP -->
+        <div id="partnerPhoneOtpWrap" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+          <!-- Mobile Number -->
+          <div class="flex flex-col gap-2 relative">
+            <label class="text-primary/80 text-xs font-bold uppercase tracking-widest">
+              Mobile Number
+            </label>
+
+            <input id="phone" type="tel" placeholder="8606924541" class="w-full rounded-lg text-white border border-white/10 bg-white/5
+             focus:border-primary focus:ring-0 h-14 px-4 font-light
+             placeholder:text-white/20 transition-all" />
+
+            <button type="button" onclick="sendOTP()" class="absolute right-4 top-[42px] text-[10px] text-primary
+             uppercase font-bold tracking-wider hover:underline">
+              SEND OTP
+            </button>
+          </div>
+
+          <!-- OTP -->
+          <div class="flex flex-col gap-2">
+            <label class="text-primary/80 text-xs font-bold uppercase tracking-widest">
+              OTP
+            </label>
+
+            <input id="otp" type="text" placeholder="Enter OTP" class="w-full rounded-lg text-white border border-white/10 bg-white/5
+             focus:border-primary focus:ring-0 h-14 px-4 font-light
+             placeholder:text-white/20 transition-all" />
+          </div>
+
+        </div>
+
+        <!-- City -->
+        <div id="partnerCityWrap" class="flex flex-col gap-2 mt-6">
+          <label class="text-primary/80 text-xs font-bold uppercase tracking-widest">
+            City
+          </label>
+          <input id="city" type="text" placeholder="Enter City" class="w-full rounded-lg text-white border border-white/10 bg-white/5
+           focus:border-primary focus:ring-0 h-14 px-4 font-light
+           placeholder:text-white/20 transition-all" />
+        </div>
+
+        <!-- Row 4: Password -->
+        <div class="flex flex-col gap-2 relative">
+          <label class="text-primary/80 text-xs font-bold uppercase tracking-widest">Secure Password</label>
+          <input id="password" type="password" placeholder="••••••••••••"
+            class="w-full rounded-lg text-white border border-white/10 bg-white/5 h-14 px-4" />
+          <button
+            type="button"
+            onclick="togglePassword('password', this)"
+            class="absolute right-2 bottom-2 p-2 rounded-full text-white/30 hover:text-primary hover:bg-white/5 transition"
+          >
+            <span class="material-symbols-outlined text-sm">visibility</span>
+          </button>
+        </div>
+        <!-- CTA Button -->
+        <div class="mt-4">
+          <button id="signupSubmitBtn"
+            class="w-full bg-primary hover:bg-[#d4b984] text-cloche-dark h-14 rounded-lg font-bold text-sm uppercase tracking-[0.2em] shadow-lg shadow-primary/20 transition-all active:scale-[0.98]">
+            Create Boutique Account
+          </button>
+        </div>
+      </form>
+      <!-- Trust Badges -->
+      <div class="mt-12 pt-8 border-t border-white/5 flex flex-wrap justify-center gap-8 md:gap-12">
+        <div class="flex items-center gap-3">
+          <span class="material-symbols-outlined text-primary text-xl">verified_user</span>
+          <div class="text-left">
+            <p class="text-white text-[10px] font-bold uppercase tracking-widest leading-none">Zero Commission</p>
+            <p class="text-white/40 text-[9px] uppercase tracking-tighter">Onboarding phase</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <span class="material-symbols-outlined text-primary text-xl">diamond</span>
+          <div class="text-left">
+            <p class="text-white text-[10px] font-bold uppercase tracking-widest leading-none">Global Access</p>
+            <p class="text-white/40 text-[9px] uppercase tracking-tighter">Premium Marketplace</p>
+          </div>
+        </div>
+      </div>
+      <p class="mt-8 text-center text-white/40 text-xs font-light">
+        Already a partner?
+        <a class="text-primary font-medium hover:underline ml-1" href="boutiquelogin.html">Sign In</a>
+      </p>
+    </div>
+  </main>
+  <!-- Footer -->
+  <footer
+    class="w-full max-w-[1200px] px-8 py-10 flex flex-col md:flex-row justify-between items-center gap-6 z-10 border-t border-white/5">
+    <p class="text-white/30 text-[10px] uppercase tracking-[0.3em]">© 2024 CLOCHE COLLECTIVE. ALL RIGHTS RESERVED.</p>
+    <div class="flex gap-8">
+      <a class="text-white/30 text-[10px] uppercase tracking-widest hover:text-white transition-colors"
+        href="#">Privacy</a>
+      <a class="text-white/30 text-[10px] uppercase tracking-widest hover:text-white transition-colors"
+        href="#">Terms</a>
+      <a class="text-white/30 text-[10px] uppercase tracking-widest hover:text-white transition-colors"
+        href="#">Help</a>
+    </div>
+  </footer>
+
+  <!-- Decorative Image / Texture -->
+<script>
+    let generatedOTP = null;
+    let selectedAccountType = "partner";
+
+    function setAccountType(type) {
+      selectedAccountType = type === "user" ? "user" : "partner";
+
+      const userTypeBtn = document.getElementById("userTypeBtn");
+      const partnerTypeBtn = document.getElementById("partnerTypeBtn");
+      const partnerBoutiqueWrap = document.getElementById("partnerBoutiqueWrap");
+      const partnerPhoneOtpWrap = document.getElementById("partnerPhoneOtpWrap");
+      const partnerCityWrap = document.getElementById("partnerCityWrap");
+      const nameLabel = document.getElementById("nameLabel");
+      const owner = document.getElementById("owner");
+      const subtitle = document.getElementById("signupSubtitle");
+      const submitBtn = document.getElementById("signupSubmitBtn");
+
+      const isUser = selectedAccountType === "user";
+
+      if (partnerBoutiqueWrap) partnerBoutiqueWrap.style.display = isUser ? "none" : "flex";
+      if (partnerPhoneOtpWrap) partnerPhoneOtpWrap.style.display = isUser ? "none" : "grid";
+      if (partnerCityWrap) partnerCityWrap.style.display = isUser ? "none" : "flex";
+
+      if (nameLabel) nameLabel.textContent = isUser ? "Name" : "Owner Name";
+      if (owner) owner.placeholder = isUser ? "Your Full Name" : "Julianne Vaught";
+      if (subtitle) subtitle.textContent = isUser
+        ? "Create your user account in a few steps."
+        : "Begin your journey as an esteemed luxury partner.";
+      if (submitBtn) submitBtn.textContent = isUser ? "Create User Account" : "Create Boutique Account";
+
+      if (userTypeBtn && partnerTypeBtn) {
+        if (isUser) {
+          userTypeBtn.className = "h-12 rounded-lg border border-primary/40 bg-primary/10 text-primary text-xs font-bold uppercase tracking-[0.12em]";
+          partnerTypeBtn.className = "h-12 rounded-lg border border-white/10 bg-white/5 text-white/80 text-xs font-bold uppercase tracking-[0.12em]";
+        } else {
+          partnerTypeBtn.className = "h-12 rounded-lg border border-primary/40 bg-primary/10 text-primary text-xs font-bold uppercase tracking-[0.12em]";
+          userTypeBtn.className = "h-12 rounded-lg border border-white/10 bg-white/5 text-white/80 text-xs font-bold uppercase tracking-[0.12em]";
+        }
+      }
+    }
+
+    function sendOTP() {
+      const phone = document.getElementById("phone").value.trim();
+      if (!/^\d{10}$/.test(phone)) {
+        alert("Enter valid 10-digit number");
+        return;
+      }
+      generatedOTP = Math.floor(100000 + Math.random() * 900000);
+      alert("OTP sent (demo): " + generatedOTP);
+    }
+
+    document.getElementById("signupForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      if (selectedAccountType === "partner") {
+        if (!generatedOTP) {
+          alert("Send OTP first");
+          return;
+        }
+
+        if (document.getElementById("otp").value !== String(generatedOTP)) {
+          alert("Invalid OTP");
+          return;
+        }
+      }
+
+      let data = null;
+      if (selectedAccountType === "user") {
+        data = {
+          account_type: "user",
+          name: document.getElementById("owner").value.trim(),
+          email: document.getElementById("email").value.trim(),
+          password: document.getElementById("password").value
+        };
+      } else {
+        data = {
+          account_type: "partner",
+          boutique_name: document.getElementById("boutique").value.trim(),
+          owner_name: document.getElementById("owner").value.trim(),
+          email: document.getElementById("email").value.trim(),
+          phone: document.getElementById("phone").value.trim(),
+          city: document.getElementById("city").value.trim(),
+          password: document.getElementById("password").value
+        };
+      }
+
+      // Luxury Validation
+      if (selectedAccountType === "user") {
+  if (!data.name || !data.email || !data.password) {
+    alert("Name, Gmail, and password are required.");
+    return;
+  }
+}
+
+if (selectedAccountType === "partner") {
+  if (
+    !data.boutique_name ||
+    !data.owner_name ||
+    !data.email ||
+    !data.phone ||
+    !data.city ||
+    !data.password
+  ) {
+    alert("All partner fields are required.");
+    return;
+  }
+}
+
+
+      if (!data.email.toLowerCase().endsWith("@gmail.com")) {
+        alert("Only Gmail addresses are accepted for authentication.");
+        return;
+      }
+
+      if (selectedAccountType === "partner" && !/^\d{10}$/.test(data.phone)) {
+        alert("Phone number must be exactly 10 digits.");
+        return;
+      }
+
+      console.log("FORM DATA:", data);
+
+      try {
+        const res = await fetch("/api/auth/signup", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data)
+        });
+
+        const result = await res.json();
+
+        if (res.ok) {
+          alert("Signup successful!");
+
+          if (result.role === "user") {
+            localStorage.setItem("isUserLoggedIn", "true");
+            localStorage.setItem("userId", String(result.userId || ""));
+            localStorage.setItem("userName", result.name || data.name);
+            localStorage.setItem("userEmail", result.email || data.email);
+            window.location.href = "userportal.html";
+          } else {
+            window.location.href = "boutiquelogin.html";
+          }
+        } else {
+          alert(result.message);
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Server error");
+      }
+    });
+
+    document.getElementById("userTypeBtn").addEventListener("click", () => setAccountType("user"));
+    document.getElementById("partnerTypeBtn").addEventListener("click", () => setAccountType("partner"));
+    setAccountType("partner");
+
+    function togglePassword(inputId, btn) {
+      const input = document.getElementById(inputId);
+      const icon = btn.querySelector("span");
+      if (!input || !icon) return;
+
+      if (input.type === "password") {
+        input.type = "text";
+        icon.textContent = "visibility_off";
+      } else {
+        input.type = "password";
+        icon.textContent = "visibility";
+      }
+    }
+  </script>
+
+
+</body>
+
+</html>
+
+
+

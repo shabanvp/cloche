@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>CLOCHE Product Marketplace Gallery</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;700;900&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#d7a833",
+                        "background-light": "#f4f3f1",
+                        "background-dark": "#121212",
+                        "cloche-black": "#121212",
+                        "cloche-charcoal": "#1c1c1c",
+                        "cloche-gold": "#d7a833",
+                        "cloche-emerald": "#2D4537",
+                    },
+                    fontFamily: {
+                        "display": ["Noto Serif", "serif"],
+                        "sans": ["Inter", "system-ui", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style type="text/tailwindcss">
+        .glitter-bg {
+            background-image: 
+                radial-gradient(circle at 20% 30%, rgba(215, 168, 51, 0.05) 0%, transparent 10%),
+                radial-gradient(circle at 80% 70%, rgba(215, 168, 51, 0.05) 0%, transparent 10%),
+                radial-gradient(circle at 50% 50%, rgba(215, 168, 51, 0.03) 0%, transparent 20%);
+        }
+        .glass-filter {
+            background: rgba(28, 28, 28, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(215, 168, 51, 0.15);
+        }
+        .product-card-hover:hover .hover-overlay {
+            opacity: 1;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #121212;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #d7a833;
+            border-radius: 10px;
+        }.cloche-logo-shape {
+            width: 32px;
+            height: 32px;
+            background-color: var(--primary-color, #d7a833);
+            clip-path: circle(50% at 50% 50%);
+            position: relative;
+        }
+        .cloche-logo-cutout {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 70%;
+            height: 50%;
+            background-color: #121212;
+            clip-path: polygon(50% 100%, 0 0, 100% 0);
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display selection:bg-primary/30 text-slate-900 dark:text-white glitter-bg min-h-screen custom-scrollbar">
+<!-- MASTER CLOCHE NAVBAR (Shared Across All Public Pages) -->
+<!-- MASTER CLOCHE NAVBAR -->
+<nav class="fixed top-0 w-full z-50">
+  <div class="bg-[rgba(26,26,26,0.6)] backdrop-blur-md border-b border-[rgba(193,166,113,0.2)]">
+    <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+
+      <!-- Logo -->
+      <div class="flex items-center gap-2">
+        <span class="material-symbols-outlined text-primary text-3xl">
+          diamond
+        </span>
+        <span class="text-2xl font-display font-bold tracking-[0.2em] text-white">
+          CLOCHE
+        </span>
+      </div>
+
+      <!-- Center Menu -->
+      <div class="hidden md:flex items-center gap-12">
+        <a href="landingpage.html"
+           class="text-sm uppercase tracking-widest text-white/80 hover:text-primary transition-colors">
+          Home
+        </a>
+        <a href="boutiques.html"
+           class="text-sm uppercase tracking-widest text-white/80 hover:text-primary transition-colors">
+          Boutiques
+        </a>
+        <a href="#"
+           class="text-sm uppercase tracking-widest text-white/80 hover:text-primary transition-colors">
+          How It Works
+        </a>
+        <a href="boutiquelogin.html"
+           class="text-sm uppercase tracking-widest text-white/80 hover:text-primary transition-colors">
+          List Your Boutique
+        </a>
+      </div>
+
+      <!-- Right Actions -->
+      <div class="flex items-center gap-6">
+        <button class="text-sm uppercase tracking-widest text-white/80 hover:text-primary transition-colors">
+          Login
+        </button>
+        <div class="h-10 w-10 rounded-full bg-primary/20 border border-primary/40 overflow-hidden">
+          <img
+            src="https://lh3.googleusercontent.com/aida-public/AB6AXuCtEczcc5qKnBS4H7PGa00wNzI8a1xQmczlJY8HUKH3JpFJN64lj3Yhzb5sHrH8gFj2PoW17tW3wiq5DkrBUGx0kOWvvREiaTgl78HX2GddgWVTutpMTWYRYIGiWNrKPdXAumqluYgVS0fwrXmHV6-kyuM_1eR5pekG6rzZC7YdC5h_bGK6628tsn_QIN8DXHzDdaVIQpV2e8F7hzzzg2RSQ11Gp74y7NGj68lkZTW8P7gLYcF0rhzs8O8KnjNY_n3vnh0_0fUKQeg"
+            class="w-full h-full object-cover"
+            alt="Profile"
+          />
+        </div>
+      </div>
+
+    </div>
+  </div>
+</nav>
+<main class="max-w-7xl mx-auto px-6 pt-32 pb-12">
+<div class="sticky top-24 z-40 mb-16">
+<div class="glass-filter rounded-2xl p-2 flex flex-wrap items-center justify-center gap-2">
+<button class="flex items-center gap-2 px-6 py-3 rounded-xl hover:bg-primary/10 transition-colors group">
+<span class="text-sm font-semibold tracking-wide uppercase">Category</span>
+<span class="material-symbols-outlined text-primary group-hover:rotate-180 transition-transform">expand_more</span>
+</button>
+<div class="h-6 w-px bg-primary/20"></div>
+<button class="flex items-center gap-2 px-6 py-3 rounded-xl hover:bg-primary/10 transition-colors group">
+<span class="text-sm font-semibold tracking-wide uppercase">Size</span>
+<span class="material-symbols-outlined text-primary group-hover:rotate-180 transition-transform">expand_more</span>
+</button>
+<div class="h-6 w-px bg-primary/20"></div>
+<button class="flex items-center gap-2 px-6 py-3 rounded-xl hover:bg-primary/10 transition-colors group">
+<span class="text-sm font-semibold tracking-wide uppercase">Color</span>
+<span class="material-symbols-outlined text-primary group-hover:rotate-180 transition-transform">expand_more</span>
+</button>
+<div class="h-6 w-px bg-primary/20"></div>
+<button class="flex items-center gap-2 px-6 py-3 rounded-xl hover:bg-primary/10 transition-colors group">
+<span class="text-sm font-semibold tracking-wide uppercase">Price Range</span>
+<span class="material-symbols-outlined text-primary group-hover:rotate-180 transition-transform">expand_more</span>
+</button>
+<div class="h-6 w-px bg-primary/20"></div>
+<button class="flex items-center gap-2 px-6 py-3 rounded-xl hover:bg-primary/10 transition-colors group">
+<span class="text-sm font-semibold tracking-wide uppercase">Rental Period</span>
+<span class="material-symbols-outlined text-primary group-hover:rotate-180 transition-transform">expand_more</span>
+</button>
+<button class="ml-4 bg-primary text-background-dark px-8 py-3 rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-white transition-all shadow-lg shadow-primary/20">
+                Apply Filters
+            </button>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
+<div class="group product-card-hover flex flex-col gap-6">
+<div class="relative aspect-[3/4] overflow-hidden rounded-xl bg-cloche-charcoal shadow-2xl">
+<img alt="Traditional red bridal lehenga with gold embroidery" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB__d8_afs9Le8pV95WgU7dGhiQdT-8LUqj3y2P1MAi9j1DTxmIlg4uiLiCValF7rZABu46JWr9NnB6RoszZ914PryxziDRAqO7kWC0m_iEPoAou9MEfu7ahgE3oSZeThRjrW-e8xBt6Nav_tEecKSNTMZc2kaMY8Rn5XA8Ls4stSmP3uP1ZHPKhtTNrPtD8jBtMoPz99cOiCIKS1zYNTd2ZJ9nfvqUfDjtJDGh8EyThQjkTE92ixQE2pF0M_xlaDXQnmmJx6au0PI"/>
+<div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-4">
+<button class="w-14 h-14 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center border border-white/20 text-white hover:bg-primary hover:text-black transition-all">
+<span class="material-symbols-outlined">visibility</span>
+</button>
+<button class="w-14 h-14 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center border border-white/20 text-white hover:bg-primary hover:text-black transition-all">
+<span class="material-symbols-outlined">favorite</span>
+</button>
+</div>
+<div class="absolute top-4 left-4">
+<span class="px-3 py-1 bg-cloche-emerald/90 backdrop-blur-md text-white text-[10px] font-bold uppercase tracking-widest rounded-full border border-primary/20 flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">verified</span> Verified
+                    </span>
+</div>
+</div>
+<div class="flex flex-col gap-3 px-2">
+<div class="flex justify-between items-start">
+<div>
+<h3 class="text-2xl font-bold text-white leading-tight">Royal Zardosi Lehenga</h3>
+<p class="text-primary/60 text-sm font-sans uppercase tracking-widest mt-1">The Heritage Trunk</p>
+</div>
+<p class="text-xl font-medium text-primary">$1,200 <span class="text-[10px] opacity-60 uppercase">/ rental</span></p>
+</div>
+<button class="w-full py-4 mt-2 border border-primary/30 rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-primary hover:text-background-dark transition-all duration-300">
+                    View Details
+                </button>
+</div>
+</div>
+<div class="group product-card-hover flex flex-col gap-6">
+<div class="relative aspect-[3/4] overflow-hidden rounded-xl bg-cloche-charcoal shadow-2xl">
+<img alt="Navy blue velvet sherwani for groom" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAwD9J6n5vX-u6uwqTK1uB92_y4ftOi-KUcWUkOvcCkQvhQhMiya8Q4pkMF7tZrlrVoVBlc-yc2gagaOQW-o30DSghyzX0pKQ9q6G6GWgnrFg9PMoibwC6fvG63x3mkE5Z74pDrAZNq2EqnTuNgP8fp2NNqI5zJkvC6b9pZLj-Nw0Uxc-RhlHjMi9K_Z9fBOWQRoDaLeLs75M9cIwIaVsfKPRRbVGqn6iozL5mb54j3h33A2937oBXJXdzL8VEHnk73oanNV-wtSVo"/>
+<div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-4">
+<button class="w-14 h-14 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center border border-white/20 text-white hover:bg-primary hover:text-black transition-all">
+<span class="material-symbols-outlined">visibility</span>
+</button>
+<button class="w-14 h-14 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center border border-white/20 text-white hover:bg-primary hover:text-black transition-all">
+<span class="material-symbols-outlined">favorite</span>
+</button>
+</div>
+<div class="absolute top-4 left-4">
+<span class="px-3 py-1 bg-cloche-emerald/90 backdrop-blur-md text-white text-[10px] font-bold uppercase tracking-widest rounded-full border border-primary/20 flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">verified</span> Verified
+                    </span>
+</div>
+</div>
+<div class="flex flex-col gap-3 px-2">
+<div class="flex justify-between items-start">
+<div>
+<h3 class="text-2xl font-bold text-white leading-tight">Velvet Sherwani</h3>
+<p class="text-primary/60 text-sm font-sans uppercase tracking-widest mt-1">Vogue Bridal</p>
+</div>
+<p class="text-xl font-medium text-primary">$850 <span class="text-[10px] opacity-60 uppercase">/ rental</span></p>
+</div>
+<button class="w-full py-4 mt-2 border border-primary/30 rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-primary hover:text-background-dark transition-all duration-300">
+                    View Details
+                </button>
+</div>
+</div>
+<div class="group product-card-hover flex flex-col gap-6">
+<div class="relative aspect-[3/4] overflow-hidden rounded-xl bg-cloche-charcoal shadow-2xl">
+<img alt="Emerald and gold jewelry set for wedding" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBCRvewOA4jjeFDZ3Kh6GiYbuYRi3AzIXsEUeJPuGOfmwWCKfTtXA-L9yueboc6mn83DGE5FsLnb9_rHfTz--eLz8xM-c_CCGL_k89IrA2YbrKLWjB_FsP3hyj3ktl0W97KXvRuuQPAvBagDkFe89XPElddhz_YlA13rtQnn6uvJbA0Abj5fVi8qRYoEPvFLKSoBJ5sKGkpWaBz1fk5q5isMP2Yi4X65p6t2Nh0yWiSoPJ7zhNVFZblQ_-UqlMDa2wKBf2rmk7nboI"/>
+<div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-4">
+<button class="w-14 h-14 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center border border-white/20 text-white hover:bg-primary hover:text-black transition-all">
+<span class="material-symbols-outlined">visibility</span>
+</button>
+<button class="w-14 h-14 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center border border-white/20 text-white hover:bg-primary hover:text-black transition-all">
+<span class="material-symbols-outlined">favorite</span>
+</button>
+</div>
+<div class="absolute top-4 left-4">
+<span class="px-3 py-1 bg-cloche-emerald/90 backdrop-blur-md text-white text-[10px] font-bold uppercase tracking-widest rounded-full border border-primary/20 flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">verified</span> Verified
+                    </span>
+</div>
+</div>
+<div class="flex flex-col gap-3 px-2">
+<div class="flex justify-between items-start">
+<div>
+<h3 class="text-2xl font-bold text-white leading-tight">Emerald Bridal Set</h3>
+<p class="text-primary/60 text-sm font-sans uppercase tracking-widest mt-1">Heritage Boutique</p>
+</div>
+<p class="text-xl font-medium text-primary">$500 <span class="text-[10px] opacity-60 uppercase">/ rental</span></p>
+</div>
+<button class="w-full py-4 mt-2 border border-primary/30 rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-primary hover:text-background-dark transition-all duration-300">
+                    View Details
+                </button>
+</div>
+</div>
+<div class="group product-card-hover flex flex-col gap-6">
+<div class="relative aspect-[3/4] overflow-hidden rounded-xl bg-cloche-charcoal shadow-2xl">
+<img alt="Ivory designer tuxedo with black lapels" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDP0DpcbPLmi5wMjuEp9XVWyqCkupheLDIjQvTZ8J2Pq1wF7b_jFl5gRZJIY93XolGE9H5z9m1I1FiP0oTr5-ZAppFG_fg4FoH51onOud0C2DI3CLOHDGzQLKnHMRFGjkS-OjNFZLzzUVkZpJFnJ0BMboDaV165nyy6QE0E14JawNICZDuZMVxYmJjbdOoFejT51kT7yXrfOWdbTelmP00H3X8JQIqN1ilfIXcNDunKju1FXrzXhphfBfjlc24VWEBCZu-oiwruh3E"/>
+<div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-4">
+<button class="w-14 h-14 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center border border-white/20 text-white hover:bg-primary hover:text-black transition-all">
+<span class="material-symbols-outlined">visibility</span>
+</button>
+<button class="w-14 h-14 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center border border-white/20 text-white hover:bg-primary hover:text-black transition-all">
+<span class="material-symbols-outlined">favorite</span>
+</button>
+</div>
+<div class="absolute top-4 left-4">
+<span class="px-3 py-1 bg-cloche-emerald/90 backdrop-blur-md text-white text-[10px] font-bold uppercase tracking-widest rounded-full border border-primary/20 flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">verified</span> Verified
+                    </span>
+</div>
+</div>
+<div class="flex flex-col gap-3 px-2">
+<div class="flex justify-between items-start">
+<div>
+<h3 class="text-2xl font-bold text-white leading-tight">Ivory Silk Tuxedo</h3>
+<p class="text-primary/60 text-sm font-sans uppercase tracking-widest mt-1">Groom's Choice</p>
+</div>
+<p class="text-xl font-medium text-primary">$700 <span class="text-[10px] opacity-60 uppercase">/ rental</span></p>
+</div>
+<button class="w-full py-4 mt-2 border border-primary/30 rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-primary hover:text-background-dark transition-all duration-300">
+                    View Details
+                </button>
+</div>
+</div>
+<div class="group product-card-hover flex flex-col gap-6">
+<div class="relative aspect-[3/4] overflow-hidden rounded-xl bg-cloche-charcoal shadow-2xl">
+<img alt="Golden Banarasi silk saree with intricate border" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBAvV-wUhiF9c9MeBrbC9NstcVvq7rjisk11xTMmaPDQT_j5rID_eZ1o6WYKMzvVGxBuLgNDXmrT-Dy2koi_8Y-cVcEum70mhaqhK92CZnBDgyhAMvK1IJHI_wCCuWdNLZdnbQRMGXHsfUd7xXy8arsi9kNGseR2tUO2KXChmgpsuLmyTQjUWCSFI_cnjcTf_9p9rnljevHxNp6nyiB4XkovVG2IpVNgAFUSr7TEZMXD-Ft_mVu_keGlFap4rxMHB0Vwdt3A3fETtA"/>
+<div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-4">
+<button class="w-14 h-14 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center border border-white/20 text-white hover:bg-primary hover:text-black transition-all">
+<span class="material-symbols-outlined">visibility</span>
+</button>
+<button class="w-14 h-14 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center border border-white/20 text-white hover:bg-primary hover:text-black transition-all">
+<span class="material-symbols-outlined">favorite</span>
+</button>
+</div>
+<div class="absolute top-4 left-4">
+<span class="px-3 py-1 bg-cloche-emerald/90 backdrop-blur-md text-white text-[10px] font-bold uppercase tracking-widest rounded-full border border-primary/20 flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">verified</span> Verified
+                    </span>
+</div>
+</div>
+<div class="flex flex-col gap-3 px-2">
+<div class="flex justify-between items-start">
+<div>
+<h3 class="text-2xl font-bold text-white leading-tight">Golden Banarasi</h3>
+<p class="text-primary/60 text-sm font-sans uppercase tracking-widest mt-1">Luxe Couture</p>
+</div>
+<p class="text-xl font-medium text-primary">$1,100 <span class="text-[10px] opacity-60 uppercase">/ rental</span></p>
+</div>
+<button class="w-full py-4 mt-2 border border-primary/30 rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-primary hover:text-background-dark transition-all duration-300">
+                    View Details
+                </button>
+</div>
+</div>
+<div class="group product-card-hover flex flex-col gap-6">
+<div class="relative aspect-[3/4] overflow-hidden rounded-xl bg-cloche-charcoal shadow-2xl">
+<img alt="Traditional white Anarkali suit with gold embroidery" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBajtFwegn-zq3v2OM84E4fAy0kc1MaUZFu8W19vkY95SbXChgPntNWhe7TSGZgW_7J78SPrDMq6Nk2yj4uLAuXC48DPyJOQg61liTm_KnQJaK3lBU7Y9YRHJZTP7q5OMXqsYA06G5zIZ2AQZuJC34xRyxwno0tbqRe_ehrUkRLKJfgsQM0PPg6zMQZD1_M0MM5I01OynVKnuVwsRDIEl3WmmJsPf6xGCP5Dx7YhcVsj3_CpQchrwCtfRHA-bG_nxSznM-vIVN4OFM"/>
+<div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-4">
+<button class="w-14 h-14 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center border border-white/20 text-white hover:bg-primary hover:text-black transition-all">
+<span class="material-symbols-outlined">visibility</span>
+</button>
+<button class="w-14 h-14 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center border border-white/20 text-white hover:bg-primary hover:text-black transition-all">
+<span class="material-symbols-outlined">favorite</span>
+</button>
+</div>
+<div class="absolute top-4 left-4">
+<span class="px-3 py-1 bg-cloche-emerald/90 backdrop-blur-md text-white text-[10px] font-bold uppercase tracking-widest rounded-full border border-primary/20 flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">verified</span> Verified
+                    </span>
+</div>
+</div>
+<div class="flex flex-col gap-3 px-2">
+<div class="flex justify-between items-start">
+<div>
+<h3 class="text-2xl font-bold text-white leading-tight">Silk Anarkali</h3>
+<p class="text-primary/60 text-sm font-sans uppercase tracking-widest mt-1">The Regal Closet</p>
+</div>
+<p class="text-xl font-medium text-primary">$950 <span class="text-[10px] opacity-60 uppercase">/ rental</span></p>
+</div>
+<button class="w-full py-4 mt-2 border border-primary/30 rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-primary hover:text-background-dark transition-all duration-300">
+                    View Details
+                </button>
+</div>
+</div>
+</div>
+<div class="mt-24 text-center">
+<button class="px-12 py-5 rounded-full border-2 border-primary text-primary font-black uppercase tracking-widest hover:bg-primary hover:text-background-dark transition-all duration-500 shadow-2xl shadow-primary/10">
+            Explore More Archive
+        </button>
+</div>
+</main>
+<footer class="mt-32 border-t border-primary/10 bg-cloche-charcoal/50 py-20">
+<div class="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-12">
+<div class="flex flex-col gap-6">
+<div class="flex items-center gap-3">
+<div class="relative w-6 h-6 flex items-center justify-center">
+<div class="absolute inset-0 bg-primary rounded-full"></div>
+<div class="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-1/2 bg-[#1c1c1c]" style="clip-path: polygon(50% 100%, 0 0, 100% 0);"></div>
+</div>
+<h1 class="text-xl font-black tracking-tighter text-primary">CLOCHE</h1>
+</div>
+<p class="text-sm text-primary/60 leading-relaxed">The premier destination for luxury bridal and groomswear rental. Preserving heritage, one wedding at a time.</p>
+</div>
+<div class="flex flex-col gap-4">
+<h4 class="text-xs font-black uppercase tracking-widest text-white">Boutiques</h4>
+<a class="text-sm text-primary/60 hover:text-primary transition-colors" href="#">Apply to Join</a>
+<a class="text-sm text-primary/60 hover:text-primary transition-colors" href="#">Boutique Login</a>
+<a class="text-sm text-primary/60 hover:text-primary transition-colors" href="#">Verification Process</a>
+</div>
+<div class="flex flex-col gap-4">
+<h4 class="text-xs font-black uppercase tracking-widest text-white">Support</h4>
+<a class="text-sm text-primary/60 hover:text-primary transition-colors" href="#">Concierge Services</a>
+<a class="text-sm text-primary/60 hover:text-primary transition-colors" href="#">Rental Policy</a>
+<a class="text-sm text-primary/60 hover:text-primary transition-colors" href="#">Shipping &amp; Returns</a>
+</div>
+<div class="flex flex-col gap-6">
+<h4 class="text-xs font-black uppercase tracking-widest text-white">Newsletter</h4>
+<div class="relative">
+<input class="bg-transparent border-b border-primary/30 w-full py-2 text-sm focus:ring-0 focus:border-primary transition-all text-primary" placeholder="Email address" type="email"/>
+<button class="absolute right-0 top-1/2 -translate-y-1/2">
+<span class="material-symbols-outlined text-primary">arrow_forward</span>
+</button>
+</div>
+<div class="flex gap-4">
+<a class="w-10 h-10 border border-primary/20 rounded-full flex items-center justify-center hover:bg-primary/10 transition-all" href="#">
+<span class="material-symbols-outlined text-sm">public</span>
+</a>
+<a class="w-10 h-10 border border-primary/20 rounded-full flex items-center justify-center hover:bg-primary/10 transition-all" href="#">
+<span class="material-symbols-outlined text-sm">alternate_email</span>
+</a>
+</div>
+</div>
+</div>
+<div class="max-w-7xl mx-auto px-6 mt-20 pt-8 border-t border-primary/5 text-center">
+<p class="text-[10px] text-primary/30 uppercase tracking-[0.2em]">© 2024 CLOCHE ARCHIVE. ALL RIGHTS RESERVED.</p>
+</div>
+</footer>
+
+</body></html>

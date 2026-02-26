@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CLOCHE | Product Detail</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;700&family=Inter:wght@300;400;500;600;700&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            primary: "#c1a671",
+            "background-dark": "#0d0d0d"
+          },
+          fontFamily: {
+            display: ["Noto Serif", "serif"],
+            sans: ["Inter", "sans-serif"]
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    body {
+      background-color: #0d0d0d;
+      color: #faf7f2;
+      font-family: "Inter", sans-serif;
+    }
+    .glass-card {
+      background: rgba(26, 26, 26, 0.6);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(193, 166, 113, 0.2);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.55);
+    }
+  </style>
+</head>
+<body class="bg-background-dark text-[#FAF7F2] min-h-screen">
+  <nav class="fixed top-0 w-full z-50 glass-card border-b border-primary/20">
+    <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+      <a class="flex items-center gap-2" href="landingpage.html">
+        <span class="material-symbols-outlined text-primary text-3xl">diamond</span>
+        <span class="text-2xl font-bold tracking-[0.2em] font-display text-white">CLOCHE</span>
+      </a>
+      <div class="hidden md:flex items-center gap-12">
+        <a class="text-sm uppercase tracking-widest text-primary" href="boutiques.html">Boutiques</a>
+        <a class="text-sm uppercase tracking-widest hover:text-primary transition-colors" href="landingpage.html#how-it-works">How it Works</a>
+        <a class="text-sm uppercase tracking-widest hover:text-primary transition-colors" href="boutiquelogin.html">List Your Boutique</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="pt-32 pb-16 px-6 md:px-12 lg:px-20 max-w-7xl mx-auto">
+    <div id="statusWrap" class="text-sm text-white/60 mb-6">Loading product...</div>
+
+    <section class="glass-card rounded-3xl p-6 md:p-10">
+      <a id="backBtn" href="boutiques.html" class="absolute right-10 mt-1 text-primary/70 hover:text-primary transition-colors">
+        <span class="material-symbols-outlined text-3xl">close</span>
+      </a>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div class="flex flex-col gap-4">
+          <div class="aspect-[3/4] rounded-2xl overflow-hidden bg-black/40">
+            <img id="mainImage" src="" alt="Product image" class="w-full h-full object-cover" />
+          </div>
+          <div id="galleryThumbs" class="flex gap-3 flex-wrap"></div>
+        </div>
+
+        <div class="flex flex-col">
+          <p id="productCategory" class="text-primary uppercase tracking-[0.2em] text-xs mb-3">Couture</p>
+          <h1 id="productName" class="font-display text-5xl leading-tight mb-4">Product Name</h1>
+          <p id="productDesc" class="text-primary/90 text-2xl mb-10">Description</p>
+
+          <div class="border-y border-primary/20 py-8 mb-8">
+            <p class="text-primary text-6xl font-semibold">
+              ₹<span id="productPrice">0</span>
+              <span class="text-primary/70 text-3xl align-middle"> / DAY</span>
+            </p>
+          </div>
+
+          <div class="mb-8">
+            <p class="text-primary/70 uppercase tracking-[0.2em] text-xs mb-2">Location</p>
+            <div class="flex items-center justify-between">
+              <p id="productLocation" class="text-4xl font-display">Not specified</p>
+              <p id="availabilityText" class="text-emerald-400 uppercase tracking-[0.2em] text-sm">Available</p>
+            </div>
+          </div>
+
+          <button class="mt-auto w-full py-5 rounded-full bg-primary text-background-dark font-bold text-2xl uppercase tracking-[0.2em] hover:brightness-110 transition-all">
+            Rent It Out
+          </button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const API_PRODUCTS = "/api/products";
+    const API_ORIGIN = "";
+    const fallbackImage = "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=1200&auto=format&fit=crop";
+
+    function resolveAssetUrl(url) {
+      const value = String(url || "").trim();
+      if (!value) return "";
+      if (/^https?:\/\//i.test(value)) return value;
+      return `${API_ORIGIN}${value.startsWith("/") ? "" : "/"}${value}`;
+    }
+
+    function getParams() {
+      const params = new URLSearchParams(window.location.search);
+      const boutiqueId = Number(params.get("boutiqueId") || localStorage.getItem("selectedBoutiqueId") || 0);
+      const productId = Number(params.get("productId") || 0);
+      return { boutiqueId, productId };
+    }
+
+    function getLocalProduct(productId) {
+      try {
+        const raw = localStorage.getItem("selectedProductData");
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        return Number(parsed.id) === Number(productId) ? parsed : null;
+      } catch {
+        return null;
+      }
+    }
+
+    async function getProductData(boutiqueId, productId) {
+      const localProduct = getLocalProduct(productId);
+      if (localProduct) return localProduct;
+      
+      // Try to fetch from API if we have either ID
+      if (boutiqueId && productId) {
+        try {
+          const res = await fetch(`${API_PRODUCTS}/boutique/${boutiqueId}`);
+          const data = await res.json();
+          if (res.ok) {
+            const list = Array.isArray(data) ? data : [];
+            const product = list.find((p) => Number(p.id) === Number(productId));
+            if (product) return product;
+          }
+        } catch (err) {
+          console.warn("Failed to fetch from boutique endpoint:", err);
+        }
+      }
+
+      // Fallback: try fetching product directly if we have productId
+      if (productId) {
+        try {
+          const res = await fetch(`${API_PRODUCTS}/${productId}`);
+          const product = await res.json();
+          if (res.ok) return product;
+        } catch (err) {
+          console.warn("Failed to fetch product directly:", err);
+        }
+      }
+
+      return null;
+    }
+
+    function renderThumbs(images) {
+      const wrap = document.getElementById("galleryThumbs");
+      const main = document.getElementById("mainImage");
+      
+      // Filter out empty or invalid images
+      const validImages = images.filter(img => img && img.trim().length > 0);
+      
+      if (validImages.length === 0) {
+        wrap.innerHTML = "";
+        return;
+      }
+      
+      wrap.innerHTML = validImages.map((img, idx) => `
+        <button type="button" data-img="${img}" class="thumb-btn h-24 w-24 rounded-xl overflow-hidden border ${idx === 0 ? "border-primary" : "border-primary/30 hover:border-primary/70"} transition-colors bg-black/40 flex items-center justify-center">
+          <img src="${img}" class="w-full h-full object-cover" alt="Product thumbnail ${idx + 1}" onerror="this.src='${fallbackImage}'" />
+        </button>
+      `).join("");
+
+      wrap.querySelectorAll(".thumb-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const img = btn.getAttribute("data-img");
+          if (img) {
+            main.src = img;
+            main.onerror = () => main.src = fallbackImage;
+          }
+          wrap.querySelectorAll(".thumb-btn").forEach((node) => {
+            node.classList.remove("border-primary");
+            node.classList.add("border-primary/30");
+          });
+          btn.classList.remove("border-primary/30");
+          btn.classList.add("border-primary");
+        });
+      });
+    }
+
+    function renderProduct(product, boutiqueId) {
+      const gallery = Array.isArray(product.gallery) ? product.gallery.map(resolveAssetUrl).filter(Boolean) : [];
+      const primary = resolveAssetUrl(product.image_url) || gallery[0] || fallbackImage;
+      const images = [primary, ...gallery.filter((img) => img !== primary)];
+      const stock = Number(product.stock || 0);
+
+      document.title = `CLOCHE | ${product.product_name || "Product"}`;
+      
+      // Set main image with error handling
+      const mainImg = document.getElementById("mainImage");
+      mainImg.src = primary;
+      mainImg.onerror = () => {
+        console.warn("Main image failed to load, using fallback:", primary);
+        mainImg.src = fallbackImage;
+      };
+
+      document.getElementById("productCategory").textContent = (product.category || "Collection").toUpperCase();
+      document.getElementById("productName").textContent = product.product_name || "Product";
+      document.getElementById("productDesc").textContent = product.description || "No description available";
+      document.getElementById("productPrice").textContent = Number(product.price || 0).toLocaleString("en-IN");
+      document.getElementById("productLocation").textContent = product.location || "Not specified";
+      document.getElementById("availabilityText").textContent = stock > 0 ? "Available" : "Out of stock";
+      document.getElementById("availabilityText").className = stock > 0
+        ? "text-emerald-400 uppercase tracking-[0.2em] text-sm"
+        : "text-red-400 uppercase tracking-[0.2em] text-sm";
+      document.getElementById("statusWrap").textContent = "Product loaded successfully.";
+      document.getElementById("backBtn").href = `viewboutique.html?boutiqueId=${boutiqueId || localStorage.getItem("selectedBoutiqueId") || ""}`;
+
+      renderThumbs(images);
+    }
+
+    async function init() {
+      try {
+        const { boutiqueId, productId } = getParams();
+        console.log("Loading product:", { boutiqueId, productId });
+        
+        if (!productId) {
+          document.getElementById("statusWrap").textContent = "No product ID provided. Please select from boutique.";
+          return;
+        }
+        
+        const product = await getProductData(boutiqueId, productId);
+        if (!product) {
+          document.getElementById("statusWrap").textContent = "Product not found. Please open from a boutique page.";
+          console.warn("Product not found with IDs:", { boutiqueId, productId });
+          return;
+        }
+        
+        console.log("Product loaded:", product);
+        renderProduct(product, boutiqueId);
+      } catch (err) {
+        console.error("Error loading product:", err);
+        document.getElementById("statusWrap").textContent = `Error: ${err.message || "Failed to load product"}`;
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", init);
+  </script>
+</body>
+</html>
+

@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>CLOCHE - Luxury Product Detail</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,100..900;1,100..900&amp;family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#c1a671",
+                        "background-light": "#f7f6f2",
+                        "background-dark": "#0d0d0d",
+                        "surface-dark": "#1a1a1a",
+                    },
+                    fontFamily: {
+                        "display": ["Noto Serif", "serif"],
+                        "sans": ["Inter", "sans-serif"],
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .glass-card {
+            background: rgba(26, 26, 26, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(193, 166, 113, 0.2);
+        }
+        .glass-effect {
+            background: rgba(29, 26, 21, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(193, 166, 113, 0.1);
+        }
+        .royal-border {
+            border-bottom: 1px solid rgba(193, 166, 113, 0.2);
+        }
+        .hover-lift {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .hover-lift:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.5);
+        }
+        .image-zoom-container {
+            overflow: hidden;
+        }
+        .image-zoom-container img {
+            transition: transform 0.5s ease;
+        }
+        .image-zoom-container:hover img {
+            transform: scale(1.05);
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        h1, h2, h3, .font-display {
+            font-family: 'Noto Serif', serif;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-gray-800 dark:text-gray-100 selection:bg-primary selection:text-white">
+<!-- Top Navigation -->
+<nav class="fixed top-0 w-full z-50 glass-card royal-border">
+<div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+<a class="flex items-center gap-2" href="landingpage.html">
+<span class="material-symbols-outlined text-primary text-3xl">diamond</span>
+<span class="text-2xl font-bold tracking-[0.2em] font-display text-white">CLOCHE</span>
+</a>
+<div class="hidden md:flex items-center gap-12">
+<a class="text-sm uppercase tracking-widest text-primary" href="boutiques.html">Boutiques</a>
+<a class="text-sm uppercase tracking-widest hover:text-primary transition-colors" href="landingpage.html#how-it-works">How it Works</a>
+<a id="listYourBoutiqueNav" class="text-sm uppercase tracking-widest hover:text-primary transition-colors" href="boutiquelogin.html">List Your Boutique</a>
+</div>
+<div class="relative flex items-center gap-6">
+<a id="authNav" href="boutiquelogin.html" class="text-sm uppercase tracking-widest font-medium hover:text-primary transition-colors">LOGIN</a>
+<a id="profileIconLink" href="boutiquelogin.html" class="h-10 w-10 rounded-full bg-primary/20 border border-primary/40 flex items-center justify-center overflow-hidden hover:border-primary transition-colors">
+<span id="navAvatar" class="text-primary font-bold">C</span>
+</a>
+<div id="userMenuDropdown" class="hidden absolute right-0 top-14 w-44 rounded-lg border border-primary/25 bg-[#141414]/95 backdrop-blur-md shadow-2xl p-2">
+  <a href="userprofile.html" class="block px-3 py-2 rounded text-xs uppercase tracking-widest text-white/80 hover:bg-primary/10 hover:text-primary">Profile</a>
+  <a href="messageboutique.html" class="block px-3 py-2 rounded text-xs uppercase tracking-widest text-white/80 hover:bg-primary/10 hover:text-primary">Inbox</a>
+</div>
+</div>
+</div>
+</nav>
+
+<div class="min-h-screen pt-20 flex items-center justify-center p-6">
+<div class="max-w-4xl w-full flex flex-col md:flex-row glass-effect rounded-xl overflow-hidden hover-lift shadow-2xl">
+<!-- Left Column: Product Image -->
+<div class="w-full md:w-5/12 aspect-[3/4] md:aspect-auto image-zoom-container relative">
+<img id="mainImage" alt="Luxury bridal lehenga" class="w-full h-full object-cover" data-alt="Intricate golden embroidery on a bridal lehenga" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCHrFN5ufPmYTjN4l2N5WW3LPEAID30HoWBOejS44ZKufKmeD30WdnF39eqdbRn-I0mn-a_Sln8L9ldRooV3XldySB7BZdq2cZrEI93L9Hqm3pxsOC4nrSoCBsIHEzoyhRD0qPf3Kikg4S4y8BRAWZYcY-KaB4nd2Biil1_LEdNCZo3J9s1wY-Hon-oWAvhmDmICZfwzY0rv6aNcLy6hGvgK8aTzS_V8mmJ5idZthUXDGxFcv6ymBPSrHkvvFUD5T4urXUiAcurmZI"/>
+<div
+  id="thumbnailContainer"
+  class="absolute bottom-4 left-4 right-4 flex gap-2 overflow-x-auto pb-1">
+</div>
+
+<div class="absolute top-4 left-4">
+<span class="bg-primary/90 text-background-dark px-3 py-1 text-[10px] uppercase tracking-widest font-bold rounded">New Collection</span>
+</div>
+</div>
+<!-- Right Column: Product Details -->
+<div class="w-full md:w-7/12 p-8 flex flex-col justify-center gap-6">
+<!-- Header Section -->
+<div class="space-y-1">
+<div class="flex items-center gap-2 text-primary/80 tracking-[0.2em] text-[11px] font-semibold">
+<span id="metaPrimary">Premium Couture</span>
+<span id="metaDot" class="w-1 h-1 rounded-full bg-primary/40"></span>
+<span id="metaSecondary">Handcrafted</span>
+</div>
+<h1 id="productTitle" class="text-white text-3xl md:text-4xl font-display leading-tight">
+                    Golden Zardozi <br/> Bridal Lehenga
+                </h1>
+</div>
+<!-- Rating & Status -->
+<!-- Rating & Status -->
+<div class="flex items-center justify-between border-y border-white/5 py-4">
+
+  <!-- LEFT: Rating -->
+  <div class="flex flex-col gap-1">
+    <div id="ratingStars" class="flex items-center gap-1"></div>
+
+    <span id="ratingValue" class="text-white/80 text-sm">
+      New
+    </span>
+
+    <p id="reviewCount"
+       class="text-white/40 text-[11px] uppercase tracking-wider">
+      No reviews yet
+    </p>
+  </div>
+
+  <!-- RIGHT: Availability -->
+  <div class="text-right">
+    <p class="text-primary text-xs font-bold uppercase tracking-widest
+              flex items-center justify-end gap-1">
+      <span class="relative flex h-2 w-2">
+        <span class="animate-ping absolute inline-flex h-full w-full
+                     rounded-full bg-primary opacity-75"></span>
+        <span class="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+      </span>
+      Limited Availability
+    </p>
+
+    <p class="text-white/40 text-[11px] mt-1 italic">
+      Only 2 items left in stock
+    </p>
+  </div>
+
+</div>
+
+<!-- Price & Location -->
+<div class="space-y-4">
+<div class="flex items-baseline gap-2">
+<span id="productPrice" class="text-white text-3xl font-display">₹12,500</span>
+<span class="text-white/50 text-sm font-sans">/ day rental</span>
+</div>
+<div class="flex items-center gap-2">
+  <span class="material-symbols-outlined text-primary text-lg">location_on</span>
+  <span 
+    id="productLocation"
+    class="text-sm font-medium tracking-wide text-white"></span>
+</div>
+
+</div>
+<!-- CTA Buttons -->
+<div class="flex flex-col sm:flex-row gap-3 pt-4">
+<button id="bookEnquiryBtn" class="flex-1 bg-primary text-background-dark font-bold py-4 rounded-lg flex items-center justify-center gap-2 hover:bg-primary/90 transition-colors uppercase tracking-widest text-xs">
+<span class="material-symbols-outlined text-lg">calendar_month</span>
+                    Book Enquiry
+                </button>
+<button id="messageBoutiqueBtn" class="flex-1 border border-primary text-primary font-bold py-4 rounded-lg flex items-center justify-center gap-2 hover:bg-primary/10 transition-colors uppercase tracking-widest text-xs">
+<span class="material-symbols-outlined text-lg">chat_bubble</span>
+                    Message Boutique
+                </button>
+</div>
+<!-- Footer Small Print -->
+<div class="flex items-center justify-center gap-4 pt-2">
+<div class="flex items-center gap-1 text-white/30 text-[10px] uppercase tracking-tighter">
+<span class="material-symbols-outlined text-sm">verified_user</span>
+                    Insured Shipping
+                </div>
+<div class="flex items-center gap-1 text-white/30 text-[10px] uppercase tracking-tighter">
+<span class="material-symbols-outlined text-sm">workspace_premium</span>
+                    Quality Guaranteed
+                </div>
+</div>
+</div>
+</div>
+<script>
+  const API_BASE = "/api/auth";
+
+  function updateAuthNav() {
+    const authNav = document.getElementById("authNav");
+    const profileIconLink = document.getElementById("profileIconLink");
+    const userMenuDropdown = document.getElementById("userMenuDropdown");
+    const listYourBoutiqueNav = document.getElementById("listYourBoutiqueNav");
+    const isPartnerLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+    const isUserLoggedIn = localStorage.getItem("isUserLoggedIn") === "true";
+    const ownerName = localStorage.getItem("ownerName") || "C";
+    const userName = localStorage.getItem("userName") || "User";
+    const firstName = String(userName).trim().split(/\s+/)[0] || "USER";
+
+    if (authNav) {
+      if (isUserLoggedIn) {
+        authNav.textContent = firstName.toUpperCase();
+        authNav.href = "#";
+        if (profileIconLink) profileIconLink.href = "#";
+        const toggleMenu = (e) => {
+          e.preventDefault();
+          if (userMenuDropdown) userMenuDropdown.classList.toggle("hidden");
+        };
+        authNav.onclick = toggleMenu;
+        if (profileIconLink) profileIconLink.onclick = toggleMenu;
+        // Keep "LIST YOUR BOUTIQUE" visible for user login
+        if (listYourBoutiqueNav) {
+          listYourBoutiqueNav.style.display = "block";
+        }
+      } else if (isPartnerLoggedIn) {
+        if (userMenuDropdown) userMenuDropdown.classList.add("hidden");
+        authNav.onclick = null;
+        if (profileIconLink) profileIconLink.onclick = null;
+        authNav.textContent = "DASHBOARD";
+        authNav.href = "dashboard.html";
+        if (profileIconLink) profileIconLink.href = "profile.html";
+        // Hide "LIST YOUR BOUTIQUE" when logged in
+        if (listYourBoutiqueNav) {
+          listYourBoutiqueNav.style.display = "none";
+        }
+      } else {
+        if (userMenuDropdown) userMenuDropdown.classList.add("hidden");
+        authNav.onclick = null;
+        if (profileIconLink) profileIconLink.onclick = null;
+        authNav.textContent = "LOGIN";
+        authNav.href = "boutiquelogin.html";
+        if (profileIconLink) profileIconLink.href = "boutiquelogin.html";
+        // Show "LIST YOUR BOUTIQUE" when not logged in
+        if (listYourBoutiqueNav) {
+          listYourBoutiqueNav.style.display = "block";
+        }
+      }
+    }
+
+    const avatar = document.getElementById("navAvatar");
+    if (avatar) {
+      avatar.textContent = isUserLoggedIn
+        ? firstName.charAt(0).toUpperCase()
+        : ownerName.charAt(0).toUpperCase();
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    updateAuthNav();
+    document.addEventListener("click", (e) => {
+      const menu = document.getElementById("userMenuDropdown");
+      const auth = document.getElementById("authNav");
+      const icon = document.getElementById("profileIconLink");
+      if (!menu || menu.classList.contains("hidden")) return;
+      if (menu.contains(e.target) || (auth && auth.contains(e.target)) || (icon && icon.contains(e.target))) return;
+      menu.classList.add("hidden");
+    });
+  });
+</script>
+<script>
+const PRODUCT_API = "/api/products";
+
+async function loadProductDetails() {
+  const params = new URLSearchParams(window.location.search);
+  const productId = params.get("productId");
+
+  if (!productId) {
+    console.warn("No productId in URL");
+    return;
+  }
+
+  try {
+    // 🔥 THIS IS WHERE IT COMES FROM
+    const res = await fetch(`${PRODUCT_API}/${productId}`);
+    const product = await res.json(); // <-- THIS LINE YOU ASKED ABOUT
+    renderGallery(product);
+
+    /* -------------------------------
+       BASIC PRODUCT DATA
+    -------------------------------- */
+        document.getElementById("productTitle").innerHTML = product.product_name;
+
+        const metaPrimary = String(product.category || "").trim();
+        const metaSecondary = String(product.showcase_tags || "")
+          .split(",")
+          .map((tag) => tag.trim())
+          .find(Boolean);
+
+        const metaPrimaryEl = document.getElementById("metaPrimary");
+        const metaSecondaryEl = document.getElementById("metaSecondary");
+        const metaDotEl = document.getElementById("metaDot");
+
+        if (metaPrimaryEl) metaPrimaryEl.textContent = metaPrimary || "Uncategorized";
+        if (metaSecondaryEl) metaSecondaryEl.textContent = metaSecondary || "";
+        if (metaDotEl) metaDotEl.style.display = (metaPrimary && metaSecondary) ? "inline-block" : "none";
+
+
+        document.getElementById("productPrice").textContent =
+        `₹${Number(product.price).toLocaleString("en-IN")}`;
+
+        const resolvedLocation = [
+          product.location,
+          product.store_location,
+          [product.area, product.district].filter(Boolean).join(", "),
+          product.boutique_city
+        ].map((v) => String(v || "").trim()).find(Boolean);
+
+        document.getElementById("productLocation").textContent =
+        resolvedLocation || "Location TBA";
+
+        
+
+        // Image (priority: product image -> showcase image)
+        const mainImageEl = document.getElementById("mainImage");
+        if (mainImageEl && product.image_url) {
+        mainImageEl.src = `${product.image_url}`;
+        } else if (mainImageEl && product.showcase_image) {
+        mainImageEl.src = `${product.showcase_image}`;
+        }
+
+
+    /* -------------------------------
+       ⭐ RATING LOGIC (REAL DATA)
+    -------------------------------- */
+        const starsContainer = document.getElementById("ratingStars");
+const ratingValue = document.getElementById("ratingValue");
+const reviewCount = document.getElementById("reviewCount");
+
+const rawRating = product.showcase_rating ?? product.rating ?? 0;
+const rating = Number(rawRating);
+const hasRating = Number.isFinite(rating) && rating > 0;
+const displayRating = hasRating ? Math.min(5, Math.max(0, rating)) : 5.0;
+
+starsContainer.innerHTML = "";
+
+// Draw stars
+for (let i = 1; i <= 5; i++) {
+  starsContainer.innerHTML += `
+    <span class="material-symbols-outlined ${
+      i <= displayRating ? "text-primary" : "text-primary/30"
+    }"
+    style="font-variation-settings:'FILL' 1">
+      star
+    </span>`;
+}
+
+// Text below stars
+ratingValue.textContent = hasRating ? rating.toFixed(1) : "5.0";
+reviewCount.textContent = Number(product.review_count) > 0
+  ? `${Number(product.review_count)} review${Number(product.review_count) === 1 ? "" : "s"}`
+  : "Boutique Rating";
+
+
+    /* -------------------------------
+       MESSAGE BOUTIQUE
+    -------------------------------- */
+    const params = new URLSearchParams(window.location.search);
+    const boutiqueId = params.get("boutiqueId") || "";
+    const productName = String(product.product_name || "").trim();
+    const boutiqueName = String((product.boutique && product.boutique.boutique_name) || "").trim();
+
+    const messageBtn = document.getElementById("messageBoutiqueBtn");
+    if (messageBtn) {
+      messageBtn.onclick = () => {
+        if (localStorage.getItem("isUserLoggedIn") !== "true") {
+          alert("Please login as user first to chat with the boutique.");
+          window.location.href = "boutiquelogin.html";
+          return;
+        }
+
+        if (!boutiqueId) {
+          alert("Boutique details missing for this product.");
+          return;
+        }
+
+        const q = new URLSearchParams({
+          boutiqueId: String(boutiqueId),
+          productName,
+          boutiqueName
+        });
+        window.location.href = `messageboutique.html?${q.toString()}`;
+      };
+    }
+
+  } catch (err) {
+    console.error("Failed to load product", err);
+  }
+}
+
+document.addEventListener("DOMContentLoaded", loadProductDetails);
+</script>
+<script>
+function renderGallery(product) {
+  const mainImage = document.getElementById("mainImage");
+  const thumbnails = document.getElementById("thumbnailContainer");
+
+  if (!mainImage || !thumbnails) return;
+
+  thumbnails.innerHTML = "";
+
+  // Priority: gallery → single product image → showcase image
+  let images = [];
+
+  if (Array.isArray(product.gallery) && product.gallery.length > 0) {
+    images = product.gallery;
+  } else if (product.image_url) {
+    images = [product.image_url];
+  } else if (product.showcase_image) {
+    images = [product.showcase_image];
+  }
+
+  if (!images.length) return;
+
+  // Set first image
+  mainImage.src = `${images[0]}`;
+
+  images.forEach((img, index) => {
+    const thumb = document.createElement("div");
+    thumb.className =
+      "w-12 h-12 rounded-sm border overflow-hidden cursor-pointer flex-shrink-0 " +
+      (index === 0 ? "border-primary" : "border-white/30 hover:border-primary");
+
+    thumb.innerHTML = `
+      <img src="${img}"
+           class="w-full h-full object-cover ${index === 0 ? "" : "brightness-75"}" />
+    `;
+
+    thumb.onclick = () => {
+      mainImage.src = `${img}`;
+
+      document
+        .querySelectorAll("#thumbnailContainer > div")
+        .forEach(el => el.classList.remove("border-primary"));
+
+      thumb.classList.add("border-primary");
+    };
+
+    thumbnails.appendChild(thumb);
+  });
+}
+</script>
+
+</body>
+</html>
+
+
+

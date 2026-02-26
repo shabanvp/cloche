@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+  <title>Boutique Product Management | CLOCHE</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;700;900&amp;family=Noto+Sans:wght@400;500;700&amp;display=swap"
+    rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+    rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+    rel="stylesheet" />
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#c1a671",
+            "background-light": "#f7f6f2",
+            "background-dark": "#0d0d0d",
+            "card-dark": "rgba(26, 26, 26, 0.6)",
+          },
+          fontFamily: {
+            "display": ["Noto Serif", "serif"],
+            "sans": ["Noto Sans", "sans-serif"]
+          },
+          borderRadius: {
+            "DEFAULT": "0.5rem",
+            "lg": "1rem",
+            "xl": "1.5rem",
+            "full": "9999px"
+          },
+        },
+      },
+    }
+  </script>
+  <style>
+    .glass-card {
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(193, 166, 113, 0.1);
+      transition: all 0.3s ease;
+    }
+
+    .glass-card:hover {
+      border-color: rgba(193, 166, 113, 0.4);
+      transform: translateY(-4px);
+      box-shadow: 0 10px 30px -10px rgba(193, 166, 113, 0.2);
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #0d0d0d;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #3e382d;
+      border-radius: 10px;
+    }
+
+    /* Glitter background effect */
+    .glitter-bg {
+      background-image: radial-gradient(circle at 50% 50%, rgba(193, 166, 113, 0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+
+    .sidebar-item-active {
+      background: linear-gradient(90deg, rgba(193, 166, 113, 0.1) 0%, rgba(193, 166, 113, 0) 100%);
+      border-left: 3px solid #c1a671;
+    }
+
+    .gold-glow {
+      box-shadow: 0 0 20px rgba(193, 166, 113, 0.1);
+    }
+  </style>
+</head>
+
+<body
+  class="bg-background-light dark:bg-background-dark font-sans text-slate-900 dark:text-white selection:bg-primary/30">
+  <div class="flex h-screen overflow-hidden glitter-bg">
+    <!-- Sidebar -->
+    <!-- SideNavBar (FIXED – SAME AS DASHBOARD) -->
+    <aside class="w-72 bg-background-dark border-r border-primary/10 flex flex-col z-20 shrink-0 h-screen">
+
+      <!-- LOGO -->
+      <div class="p-8 flex items-center gap-4 shrink-0">
+        <div class="flex items-center gap-3 text-primary">
+          <div
+            class="size-10 rounded-full bg-primary flex items-center justify-center text-background-dark font-bold text-lg">
+            C
+          </div>
+          <div>
+            <h1 class="text-primary text-xl font-black tracking-widest uppercase leading-none">
+              CLOCHE
+            </h1>
+            <p class="text-primary/60 text-[10px] tracking-[0.2em] uppercase font-sans mt-1">
+              BOUTIQUE MANAGEMENT
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- NAV -->
+      <nav class="flex-1 px-4 py-6 space-y-2 font-sans overflow-y-auto custom-scrollbar">
+        <!-- Home -->
+        <a class="flex items-center gap-4 px-4 py-3 text-slate-400 hover:text-primary transition-colors group"
+          href="landingpage.html">
+          <span class="material-symbols-outlined">home</span>
+          <span class="text-sm font-medium tracking-wide">Home</span>
+        </a>
+
+        <!-- Dashboard -->
+        <a class="flex items-center gap-4 px-4 py-3 text-slate-400 hover:text-primary transition-colors group"
+          href="dashboard.html">
+          <span class="material-symbols-outlined">dashboard</span>
+          <span class="text-sm font-medium tracking-wide">Dashboard</span>
+        </a>
+
+        <!-- Leads (ACTIVE) -->
+        <a class="flex items-center gap-4 px-4 py-3 text-slate-400 hover:text-primary transition-colors group"
+          href="lead.html">
+          <span class="material-symbols-outlined">group</span>
+          <span class="text-sm font-medium tracking-wide">Leads</span>
+        </a>
+
+        <!-- Products -->
+        <a class="sidebar-item-active flex items-center gap-4 px-4 py-3 text-primary group"
+          href="boutiqueproducts.html">
+          <span class="material-symbols-outlined">inventory_2</span>
+          <span class="text-sm font-medium tracking-wide">Products</span>
+        </a>
+
+        <!-- Messages -->
+        <a class="flex items-center gap-4 px-4 py-3 text-slate-400 hover:text-primary transition-colors group"
+          href="messages.html">
+          <span class="material-symbols-outlined">chat_bubble</span>
+          <span class="text-sm font-medium tracking-wide">Messages</span>
+        </a>
+
+        <!-- Subscription -->
+        <a class="flex items-center gap-4 px-4 py-3 text-slate-400 hover:text-primary transition-colors group"
+          href="subscription.html">
+          <span class="material-symbols-outlined">star</span>
+          <span class="text-sm font-medium tracking-wide">Subscription</span>
+        </a>
+
+        <!-- Settings -->
+        <a class="flex items-center gap-4 px-4 py-3 text-slate-400 hover:text-primary transition-colors group"
+          href="profile.html">
+          <span class="material-symbols-outlined">settings</span>
+          <span class="text-sm font-medium tracking-wide">Settings</span>
+        </a>
+
+      </nav>
+
+      <!-- Profile Card -->
+      <div class="shrink-0 p-4">
+        <div class="glass-card rounded-xl p-4 flex items-center gap-4 border border-primary/20">
+          <!-- Avatar -->
+          <div id="avatarCircle"
+            class="w-12 h-12 rounded-full bg-primary/90 text-background-dark flex items-center justify-center font-display font-bold text-xl shadow-md shrink-0">
+            S
+          </div>
+
+          <!-- Name + Boutique -->
+          <div class="flex-1 overflow-hidden">
+            <p id="ownerName" class="text-sm font-semibold text-white leading-tight truncate">
+              Owner Name
+            </p>
+            <p id="sidebarBoutiqueName" class="text-[11px] uppercase tracking-widest text-primary/80 truncate">
+              Boutique Name
+            </p>
+          </div>
+        </div>
+
+        <!-- Divider -->
+        <div class="my-4 h-px bg-primary/10"></div>
+
+        <!-- Logout -->
+        <button onclick="logout()"
+          class="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold text-slate-400 hover:text-primary hover:bg-primary/10 transition-all duration-300">
+          <span class="material-symbols-outlined text-base">logout</span>
+          Logout
+        </button>
+      </div>
+
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col overflow-hidden">
+      <!-- Header -->
+      <header
+        class="h-20 border-b border-primary/10 flex items-center justify-between px-10 bg-background-light/50 dark:bg-background-dark/50 backdrop-blur-md z-10">
+        <div class="flex items-center gap-4">
+          <h2 class="font-display text-2xl font-bold tracking-tight">Boutique Inventory</h2>
+          <div class="h-4 w-px bg-primary/20"></div>
+
+        </div>
+        <div class="flex items-center gap-6">
+          <div class="relative hidden lg:block">
+            <span
+              class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-primary/40">search</span>
+            <input id="searchInput"
+              class="bg-primary/5 border-primary/10 focus:border-primary focus:ring-0 rounded-xl pl-10 pr-4 py-2 w-64 text-sm transition-all placeholder:text-primary/30"
+              placeholder="Search collection..." type="text" onkeyup="searchProducts(this.value)" />
+          </div>
+          <button onclick="toggleModal()"
+            class="flex items-center gap-2 bg-primary text-background-dark px-6 py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-primary/10 hover:shadow-primary/20 transition-all uppercase tracking-wide">
+            <span class="material-symbols-outlined">add</span>
+            Add New Product
+          </button>
+          <div class="flex items-center gap-3 border-l border-primary/10 pl-6">
+            <div id="headerAvatarCircle"
+              class="size-10 rounded-full bg-primary flex items-center justify-center text-background-dark font-bold border border-primary/20">
+              U</div>
+          </div>
+        </div>
+      </header>
+      <!-- Scrollable Area -->
+      <div class="flex-1 overflow-y-auto custom-scrollbar p-10">
+        <!-- Page Title Area -->
+        <!-- Chips/Filters -->
+        <div class="flex gap-4 mb-8 overflow-x-auto pb-2 custom-scrollbar">
+          <button id="allFilter" onclick="filterProducts('All')"
+            class="px-6 py-2 rounded-full bg-primary text-background-dark font-bold text-xs uppercase tracking-widest whitespace-nowrap">All
+            Items (0)</button>
+          <button onclick="filterProducts('Couture')"
+            class="filter-chip px-6 py-2 rounded-full border border-primary/20 text-primary/60 font-bold text-xs uppercase tracking-widest whitespace-nowrap hover:border-primary/50 transition-all">Couture</button>
+          <button onclick="filterProducts('Traditional')"
+            class="filter-chip px-6 py-2 rounded-full border border-primary/20 text-primary/60 font-bold text-xs uppercase tracking-widest whitespace-nowrap hover:border-primary/50 transition-all">Traditional</button>
+          <button onclick="filterProducts('Jewelry')"
+            class="filter-chip px-6 py-2 rounded-full border border-primary/20 text-primary/60 font-bold text-xs uppercase tracking-widest whitespace-nowrap hover:border-primary/50 transition-all">Jewelry</button>
+          <button onclick="filterProducts('Bridal')"
+            class="filter-chip px-6 py-2 rounded-full border border-primary/20 text-primary/60 font-bold text-xs uppercase tracking-widest whitespace-nowrap hover:border-primary/50 transition-colors">Bridal</button>
+          <button onclick="filterProducts('Accessories')"
+            class="filter-chip px-6 py-2 rounded-full border border-primary/20 text-primary/60 font-bold text-xs uppercase tracking-widest whitespace-nowrap hover:border-primary/50 transition-colors">Accessories</button>
+          <button onclick="filterProducts('Menswear')"
+            class="filter-chip px-6 py-2 rounded-full border border-primary/20 text-primary/60 font-bold text-xs uppercase tracking-widest whitespace-nowrap hover:border-primary/50 transition-colors">Menswear</button>
+        </div>
+        <!-- Product Grid -->
+        <div id="productGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+          <!-- Add New Card Skeleton (Always first or last? Let's keep it last) -->
+          <button onclick="toggleModal()"
+            class="flex flex-col items-center justify-center border-2 border-dashed border-primary/20 rounded-xl aspect-[3/4] hover:bg-primary/5 transition-all group p-10 text-center">
+            <div
+              class="size-20 rounded-full bg-primary/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+              <span class="material-symbols-outlined text-4xl text-primary font-light">add_circle</span>
+            </div>
+            <p class="font-display font-bold text-xl uppercase mb-2">New Addition</p>
+            <p class="text-xs text-primary/40 uppercase tracking-[0.2em]">Add to your collection</p>
+          </button>
+        </div>
+      </div>
+    </main>
+
+    <!-- Add Product Modal -->
+    <div id="addProductModal"
+      class="fixed inset-0 bg-background-dark/90 backdrop-blur-md z-50 hidden overflow-y-auto py-10 px-4">
+      <div
+        class="bg-card-dark border border-primary/20 rounded-2xl w-full max-w-md p-8 glass-card mx-auto relative shadow-2xl transition-all duration-300 transform scale-95 opacity-0"
+        id="modalContent">
+        <div class="flex justify-between items-center mb-6">
+          <h3 class="font-display text-2xl font-bold text-primary">Add New Product</h3>
+          <button onclick="toggleModal()" class="text-primary/60 hover:text-primary">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+        <form id="addProductForm" class="space-y-4 font-sans" enctype="multipart/form-data">
+          <div>
+            <label class="block text-[10px] font-bold uppercase tracking-widest text-primary/60 mb-2">Category</label>
+            <select id="pCategory"
+              class="w-full bg-primary/5 border-primary/20 rounded-xl px-4 py-3 text-sm focus:border-primary focus:ring-0 text-white outline-none">
+              <option value="Couture" style="background-color: #1a1a1a; color: white;">Couture</option>
+              <option value="Traditional" style="background-color: #1a1a1a; color: white;">Traditional</option>
+              <option value="Bridal" style="background-color: #1a1a1a; color: white;">Bridal</option>
+              <option value="Jewelry" style="background-color: #1a1a1a; color: white;">Jewelry</option>
+              <option value="Accessories" style="background-color: #1a1a1a; color: white;">Accessories</option>
+              <option value="Menswear" style="background-color: #1a1a1a; color: white;">Menswear</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold uppercase tracking-widest text-primary/60 mb-2">Product
+              Name</label>
+            <input type="text" id="pName" required
+              class="w-full bg-primary/5 border-primary/20 rounded-xl px-4 py-3 text-sm focus:border-primary focus:ring-0 text-white"
+              placeholder="e.g. Velvet Evening Gown">
+          </div>
+          <div>
+            <label
+              class="block text-[10px] font-bold uppercase tracking-widest text-primary/60 mb-2">Description</label>
+            <textarea id="pDescription" rows="2"
+              class="w-full bg-primary/5 border-primary/20 rounded-xl px-4 py-3 text-sm focus:border-primary focus:ring-0 text-white"
+              placeholder="Luxury velvet with gold embroidery..."></textarea>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-[10px] font-bold uppercase tracking-widest text-primary/60 mb-2">Boutique
+                Location</label>
+              <input type="text" id="pLocation"
+                class="w-full bg-primary/5 border-primary/20 rounded-xl px-4 py-3 text-sm focus:border-primary focus:ring-0 text-white"
+                placeholder="e.g. Mumbai">
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold uppercase tracking-widest text-primary/60 mb-2">Rent Price
+                (₹)</label>
+              <input type="number" id="pPrice" required
+                class="w-full bg-primary/5 border-primary/20 rounded-xl px-4 py-3 text-sm focus:border-primary focus:ring-0 text-white"
+                placeholder="Per Day">
+            </div>
+          </div>
+
+          <!-- 📷 Image Upload Section (Moved to Last) -->
+          <div class="pt-2">
+            <!-- 📷 Multiple Image Upload Section -->
+            <div class="pt-2">
+              <label class="block text-[10px] font-bold uppercase tracking-widest text-primary/60 mb-2">Product Gallery
+                (Upload Multiple HD Images)</label>
+              <div id="imagePreview"
+                class="w-full min-h-[180px] rounded-xl border-2 border-dashed border-primary/30 bg-primary/5 p-6 flex flex-col items-center justify-center overflow-y-auto max-h-[300px] group cursor-pointer hover:border-primary/60 hover:bg-primary/10 transition-all"
+                onclick="document.getElementById('pImages').click()">
+                <!-- Default State -->
+                <div id="previewPlaceholder" class="flex flex-col items-center justify-center w-full">
+                  <span
+                    class="material-symbols-outlined text-5xl text-primary/40 group-hover:text-primary/60 group-hover:scale-110 transition-all mb-3">add_photo_alternate</span>
+                  <p class="text-sm text-primary/60 font-bold uppercase tracking-[0.15em] mb-1">Click to upload or drag
+                    & drop</p>
+                  <p class="text-[10px] text-primary/40 uppercase tracking-[0.1em]">You can upload up to 10 high-quality
+                    images</p>
+                </div>
+                <!-- Preview Grid (Hidden until images selected) -->
+                <div id="previewGrid" class="hidden w-full grid grid-cols-4 gap-3">
+                  <!-- Image thumbnails will be inserted here -->
+                </div>
+              </div>
+              <input type="file" id="pImages" name="images" accept="image/*" multiple class="hidden"
+                onchange="addMoreFiles()">
+              <div class="flex gap-2 mt-3">
+                <button type="button" id="addMoreBtn"
+                  class="hidden flex-1 text-[10px] font-bold uppercase tracking-widest bg-primary/10 border border-primary/30 text-primary px-4 py-2 rounded-lg hover:bg-primary/20 transition-all"
+                  onclick="document.getElementById('pImages').click()">
+                  + Add More Photos
+                </button>
+                <button type="button" id="clearBtn"
+                  class="hidden flex-1 text-[10px] font-bold uppercase tracking-widest bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-2 rounded-lg hover:bg-red-500/20 transition-all"
+                  onclick="clearAllImages()">
+                  Clear All
+                </button>
+              </div>
+              <p id="uploadCount" class="text-[9px] text-primary/40 mt-2 text-center uppercase tracking-widest"></p>
+            </div>
+          </div>
+          <button type="submit"
+            class="w-full bg-primary text-background-dark py-4 rounded-xl font-bold uppercase tracking-widest hover:bg-white transition-all mt-6 active:scale-[0.98]">
+            Upload Product
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Product Detail Modal -->
+    <div id="productDetailModal"
+      class="fixed inset-0 bg-background-dark/90 backdrop-blur-md z-50 hidden overflow-y-auto py-6 px-4">
+      <div
+        class="bg-card-dark border border-primary/20 rounded-[24px] w-full max-w-[1060px] lg:h-[820px] p-6 md:p-8 lg:p-10 glass-card mx-auto relative shadow-2xl overflow-hidden">
+        <button onclick="closeProductDetail()"
+          class="absolute top-4 right-4 text-primary/60 hover:text-primary transition-colors">
+          <span class="material-symbols-outlined text-2xl">close</span>
+        </button>
+
+        <div class="grid grid-cols-1 lg:grid-cols-[470px_minmax(0,1fr)] gap-8 lg:gap-10 items-start lg:h-full">
+          <!-- Image Gallery -->
+          <div class="flex flex-col gap-5 w-full max-w-[470px] lg:h-full">
+            <div class="aspect-[3/4] md:aspect-auto md:h-[540px] lg:h-[580px] rounded-[26px] overflow-hidden bg-primary/5">
+              <img id="detailMainImage" src="" class="w-full h-full object-cover" alt="Product">
+            </div>
+            <!-- Thumbnails -->
+            <div id="detailGallery" class="flex gap-3 flex-wrap max-w-[470px] min-h-[112px]">
+              <!-- Thumbnails will be inserted here -->
+            </div>
+          </div>
+
+          <!-- Product Details -->
+          <div class="flex flex-col gap-6 min-h-[580px] lg:h-full lg:pt-1">
+            <div>
+              <p class="text-[10px] text-primary/60 font-bold uppercase tracking-widest mb-2">
+                <span id="detailCategory">Category</span>
+              </p>
+              <h2 id="detailName" class="font-display text-5xl lg:text-7xl font-bold text-white mb-4 leading-tight">Product Name</h2>
+              <p id="detailDescription" class="text-primary/80 leading-relaxed text-sm mb-4">Description goes here</p>
+            </div>
+
+            <div class="border-t border-primary/20 pt-6">
+              <p class="text-primary font-bold text-4xl mb-2">
+                ₹<span id="detailPrice">0</span>
+                <span class="text-xs font-normal text-primary/50 uppercase ml-2">/ Day</span>
+              </p>
+            </div>
+
+            <div class="border-t border-primary/20 pt-6">
+              <div class="flex items-center justify-between gap-4 mb-4">
+                <div>
+                  <p class="text-[10px] text-primary/40 font-bold uppercase tracking-widest mb-1">Location</p>
+                  <p id="detailLocation" class="text-white font-semibold text-3xl lg:text-[52px] leading-tight">Location</p>
+                </div>
+                <div class="text-right">
+                  <p id="detailAvailability" class="text-[10px] text-emerald-400 font-bold uppercase tracking-widest">Available</p>
+                </div>
+              </div>
+            </div>
+
+            <button
+              class="w-full bg-primary text-background-dark py-5 rounded-full font-bold text-2xl uppercase tracking-[0.2em] hover:bg-white transition-all active:scale-[0.98] mt-auto">
+              Rent It Out
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // 🔧 API Configuration - MUST BE FIRST
+      const API_BASE = `/api`;
+
+      // Plan Configuration
+      const planConfig = {
+        "basic": {
+          name: "Couture Tier",
+          displayName: "Basic",
+          maxLeads: 5,
+          maxMessages: 5,
+          maxProducts: 3,
+          features: ["3 Products Upload", "5 Free Leads", "5 Messages"]
+        },
+        "professional": {
+          name: "Atelier Plus",
+          displayName: "Professional",
+          maxLeads: Infinity,
+          maxMessages: Infinity,
+          maxProducts: Infinity,
+          features: ["Unlimited Products", "Unlimited Normal Leads", "Unlimited Messages"]
+        },
+        "pro": {
+          name: "Couture Pro",
+          displayName: "Pro",
+          maxLeads: Infinity,
+          maxMessages: Infinity,
+          maxProducts: Infinity,
+          features: ["Unlimited Products", "AI Suggestion Feature", "Unlimited Assured Leads", "Automated Reply Messages", "Dashboard Analytics"]
+        }
+      };
+
+      // Store selected files in memory with unique IDs
+      let selectedFiles = [];
+      let fileIdCounter = 0;
+
+      function addMoreFiles() {
+        const fileInput = document.getElementById('pImages');
+        const newFiles = Array.from(fileInput.files);
+
+        // Add new files with unique IDs
+        newFiles.forEach(file => {
+          selectedFiles.push({
+            id: fileIdCounter++,
+            file: file
+          });
+        });
+
+        // Keep only up to 10 files
+        if (selectedFiles.length > 10) {
+          selectedFiles = selectedFiles.slice(0, 10);
+          alert('Maximum 10 images allowed. Extra images were removed.');
+        }
+
+        previewFiles();
+        fileInput.value = ''; // Reset file input
+      }
+
+      function previewFiles() {
+        const preview = document.getElementById('imagePreview');
+        const placeholder = document.getElementById('previewPlaceholder');
+        const grid = document.getElementById('previewGrid');
+        const uploadCount = document.getElementById('uploadCount');
+        const addMoreBtn = document.getElementById('addMoreBtn');
+        const clearBtn = document.getElementById('clearBtn');
+
+        if (selectedFiles.length > 0) {
+          placeholder.classList.add('hidden');
+          grid.classList.remove('hidden');
+          grid.innerHTML = '';
+          addMoreBtn.classList.remove('hidden');
+          clearBtn.classList.remove('hidden');
+
+          selectedFiles.forEach((fileObj) => {
+            const file = fileObj.file;
+            const fileId = fileObj.id;
+            const reader = new FileReader();
+            reader.onload = function (e) {
+              const imgContainer = document.createElement('div');
+              imgContainer.className = "relative group/img rounded-lg overflow-hidden border border-primary/20 hover:border-primary/50 transition-all";
+              imgContainer.setAttribute('data-file-id', fileId);
+              imgContainer.innerHTML = `
+                <img src="${e.target.result}" class="w-full h-20 object-cover" alt="${file.name}">
+                <div class="absolute inset-0 bg-black/0 group-hover/img:bg-black/30 transition-all flex items-center justify-center">
+                  <button type="button" class="remove-btn bg-red-500/80 hover:bg-red-600 text-white p-1.5 rounded opacity-0 group-hover/img:opacity-100 transition-opacity">
+                    <span class="material-symbols-outlined text-sm">close</span>
+                  </button>
+                </div>
+              `;
+              grid.appendChild(imgContainer);
+
+              imgContainer.querySelector('.remove-btn').addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                removeImageById(fileId);
+              });
+            }
+            reader.readAsDataURL(file);
+          });
+
+          uploadCount.textContent = `${selectedFiles.length} image${selectedFiles.length !== 1 ? 's' : ''} selected (Max 10)`;
+        } else {
+          placeholder.classList.remove('hidden');
+          grid.classList.add('hidden');
+          grid.innerHTML = '';
+          addMoreBtn.classList.add('hidden');
+          clearBtn.classList.add('hidden');
+          uploadCount.textContent = '';
+        }
+      }
+
+      function removeImageById(fileId) {
+        selectedFiles = selectedFiles.filter(fileObj => fileObj.id !== fileId);
+        previewFiles();
+      }
+
+      function clearAllImages() {
+        selectedFiles = [];
+        previewFiles();
+      }
+
+      function renderProducts(products) {
+        const grid = document.getElementById('productGrid');
+
+        // Clear all cards but keep structure for adding new items
+        const existingCards = grid.querySelectorAll('[data-product-id]');
+        existingCards.forEach(card => card.remove());
+
+        // Render each product
+        products.forEach(p => {
+          // Get primary image (first in gallery or image_url)
+          const gallery = p.gallery || [];
+          const primaryImg = gallery.length > 0 ? gallery[0] : (p.image_url || null);
+          const imgUrl = primaryImg ? `${primaryImg}` : null;
+
+          const imagePlaceholder = `
+            <div class="relative aspect-[3/4] overflow-hidden bg-primary/5 flex items-center justify-center">
+                <span class="material-symbols-outlined text-6xl text-primary/20">image</span>
+                <div class="absolute bottom-4 left-4">
+                    <span class="px-3 py-1 rounded-md bg-background-dark/80 backdrop-blur-md text-[10px] text-primary font-black uppercase tracking-[0.2em]">${p.category || 'Product'}</span>
+                </div>
+            </div>`;
+
+          const imageActual = `
+            <div class="relative aspect-[3/4] overflow-hidden group/img">
+                <img src="${imgUrl}" onerror="this.src='https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=400'" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" alt="${p.product_name || 'Product'}">
+                <div class="absolute inset-0 bg-gradient-to-t from-background-dark/80 via-transparent to-transparent opacity-60"></div>
+                <div class="absolute bottom-4 left-4">
+                    <span class="px-3 py-1 rounded-md bg-background-dark/80 backdrop-blur-md text-[10px] text-primary font-black uppercase tracking-[0.2em]">${p.category || 'Product'}</span>
+                </div>
+                ${gallery.length > 1 ? `<div class="absolute bottom-4 right-4 bg-background-dark/80 backdrop-blur-md text-[10px] text-primary font-black px-2 py-1 rounded-md">📷 ${gallery.length}</div>` : ''}
+            </div>`;
+
+          const card = `
+                <div class="glass-card bg-white dark:bg-card-dark rounded-xl overflow-hidden group shadow-2xl relative cursor-pointer transition-all hover:shadow-lg" data-product-id="${p.id}">
+                    ${imgUrl ? imageActual : imagePlaceholder}
+                    <div class="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                        <button class="bg-primary/80 hover:bg-primary text-background-dark p-2 rounded-lg" onclick="openEditModal(${p.id}); event.stopPropagation();">
+                            <span class="material-symbols-outlined text-sm">edit</span>
+                        </button>
+                        <button class="bg-red-500/80 hover:bg-red-600 text-white p-2 rounded-lg" onclick="deleteProduct(${p.id}, '${(p.product_name || 'Product').replace(/'/g, "\\'")}'); event.stopPropagation();">
+                            <span class="material-symbols-outlined text-sm">delete</span>
+                        </button>
+                    </div>
+                    <div class="p-6 cursor-pointer" onclick="openProductDetail(${p.id}); event.stopPropagation();">
+                        <h4 class="font-display font-bold text-lg mb-1 uppercase tracking-tight truncate">${p.product_name || 'Untitled Product'}</h4>
+                        <p class="text-primary font-bold text-xl mb-4 font-sans">₹${(p.price || 0).toLocaleString('en-IN')} <span class="text-xs font-normal text-primary/50 uppercase">/ Day</span></p>
+                        <div class="flex flex-col gap-3 pt-4 border-t border-primary/10">
+                             <div class="flex items-center justify-between">
+                                <span class="text-[10px] text-primary/40 font-bold uppercase tracking-widest">${p.location || 'Location TBA'}</span>
+                                <span class="text-[10px] text-emerald-400 font-bold uppercase tracking-widest">${p.stock > 0 ? 'Available' : 'Out of Stock'}</span>
+                             </div>
+                             <button class="w-full py-2 bg-primary/10 border border-primary/20 text-primary rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-primary hover:text-background-dark transition-all" onclick="event.stopPropagation();">
+                                Rent it out
+                             </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+          // Insert before the add button
+          const addButton = grid.querySelector('button[onclick*="toggleModal"]');
+          if (addButton) {
+            addButton.insertAdjacentHTML('beforebegin', card);
+          } else {
+            grid.insertAdjacentHTML('beforeend', card);
+          }
+        });
+      }
+
+      function changeMainImage(elementId, imgSrc) {
+        document.getElementById(elementId).src = imgSrc;
+      }
+
+      function openProductDetail(productId) {
+        // Find product in allProducts array
+        const product = allProducts.find(p => p.id === productId);
+        if (!product) {
+          console.error('Product not found:', productId);
+          return;
+        }
+
+        const modal = document.getElementById('productDetailModal');
+        const gallery = product.gallery || [];
+        const primaryImg = gallery.length > 0 ? gallery[0] : product.image_url;
+
+        // Set main image
+        document.getElementById('detailMainImage').src = `${primaryImg}`;
+
+        // Set product details
+        document.getElementById('detailName').textContent = product.product_name;
+        document.getElementById('detailCategory').textContent = product.category || 'Uncategorized';
+        document.getElementById('detailDescription').textContent = product.description || 'No description available';
+        document.getElementById('detailPrice').textContent = (product.price || 0).toLocaleString();
+        document.getElementById('detailLocation').textContent = product.location || 'Not specified';
+        const detailAvailability = document.getElementById('detailAvailability');
+        if (detailAvailability) {
+          const inStock = Number(product.stock || 0) > 0;
+          detailAvailability.textContent = inStock ? 'Available' : 'Out of Stock';
+          detailAvailability.className = inStock
+            ? 'text-[10px] text-emerald-400 font-bold uppercase tracking-widest'
+            : 'text-[10px] text-red-400 font-bold uppercase tracking-widest';
+        }
+
+        // Set gallery thumbnails
+        const galleryDiv = document.getElementById('detailGallery');
+        galleryDiv.innerHTML = '';
+        gallery.forEach((img, idx) => {
+          const thumb = document.createElement('img');
+          thumb.src = `${img}`;
+          thumb.className = 'h-28 w-32 rounded-3xl object-cover cursor-pointer border-2 border-primary/20 hover:border-primary transition-all';
+          thumb.onclick = () => {
+            document.getElementById('detailMainImage').src = `${img}`;
+            document.querySelectorAll('#detailGallery img').forEach(t => t.classList.remove('border-primary'));
+            thumb.classList.add('border-primary');
+          };
+          galleryDiv.appendChild(thumb);
+        });
+
+        // Show modal
+        modal.classList.remove('hidden');
+      }
+
+      function closeProductDetail() {
+        document.getElementById('productDetailModal').classList.add('hidden');
+      }
+
+      let isEditing = false;
+      let editProductId = null;
+
+      function openEditModal(productId) {
+        // Find product in allProducts array
+        const product = allProducts.find(p => p.id === productId);
+        if (!product) {
+          console.error('Product not found:', productId);
+          return;
+        }
+
+        isEditing = true;
+        editProductId = product.id;
+
+        document.querySelector('#addProductModal h3').textContent = "Edit Product";
+        document.querySelector('#addProductForm button[type="submit"]').textContent = "Save Changes";
+
+        document.getElementById('pCategory').value = product.category;
+        document.getElementById('pName').value = product.product_name;
+        document.getElementById('pDescription').value = product.description;
+        document.getElementById('pLocation').value = product.location;
+        document.getElementById('pPrice').value = product.price;
+
+        // Clear previous selections
+        selectedFiles = [];
+        const preview = document.getElementById('imagePreview');
+        const placeholder = document.getElementById('previewPlaceholder');
+        const grid = document.getElementById('previewGrid');
+
+        placeholder.classList.add('hidden');
+        grid.classList.remove('hidden');
+        grid.innerHTML = '';
+
+        // Show existing images
+        if (product.gallery && product.gallery.length > 0) {
+          product.gallery.forEach(imgUrl => {
+            const imgContainer = document.createElement('div');
+            imgContainer.className = "relative group/img rounded-lg overflow-hidden border border-primary/20 hover:border-primary/50 transition-all";
+            imgContainer.innerHTML = `
+              <img src="${imgUrl}" class="w-full h-20 object-cover">
+              <div class="absolute inset-0 bg-black/0 group-hover/img:bg-black/30 transition-all flex items-center justify-center">
+                <button type="button" class="remove-existing-btn bg-red-500/80 hover:bg-red-600 text-white p-1.5 rounded opacity-0 group-hover/img:opacity-100 transition-opacity">
+                  <span class="material-symbols-outlined text-sm">delete</span>
+                </button>
+              </div>
+            `;
+            grid.appendChild(imgContainer);
+
+            imgContainer.querySelector('.remove-existing-btn').onclick = (e) => {
+              e.stopPropagation();
+              deleteGalleryImage(imgUrl, product.id, imgContainer);
+            };
+          });
+        }
+
+        document.getElementById('addMoreBtn').classList.remove('hidden');
+        document.getElementById('clearBtn').classList.add('hidden'); // Clear only for new selections
+
+        toggleModal();
+      }
+
+      async function deleteGalleryImage(imageUrl, productId, element) {
+        if (!confirm("Are you sure you want to remove this image?")) return;
+
+        try {
+          const res = await fetch(`${API_BASE}/products/delete-image`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ productId, imageUrl })
+          });
+
+          if (res.ok) {
+            element.remove();
+            // Optional: refresh the products in background to keep data in sync
+            const bid = localStorage.getItem('boutiqueId');
+            if (bid) fetchProductsWithId(bid);
+          } else {
+            const err = await res.json();
+            alert(err.message || "Failed to delete image");
+          }
+        } catch (err) {
+          console.error("Delete image error:", err);
+        }
+      }
+
+      async function deleteProduct(productId, productName) {
+        if (!confirm(`Are you sure you want to delete "${productName}"? This action cannot be undone.`)) {
+          return;
+        }
+
+        try {
+          const res = await fetch(`${API_BASE}/products/${productId}`, {
+            method: "DELETE",
+          });
+
+          const result = await res.json();
+
+          if (res.ok) {
+            alert(result.message || "Product deleted successfully!");
+            const bid = localStorage.getItem('boutiqueId');
+            if (bid) fetchProductsWithId(bid);
+          } else {
+            alert(result.message || "Failed to delete product");
+          }
+        } catch (err) {
+          console.error("Delete error:", err);
+          alert("Error deleting product: " + err.message);
+        }
+      }
+
+      document.getElementById('addProductForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        // Get boutiqueId from localStorage
+        const boutiqueId = localStorage.getItem('boutiqueId');
+        if (!boutiqueId) {
+          alert("Error: No boutique ID found. Please log in again.");
+          return;
+        }
+
+        // Validate form fields
+        const name = document.getElementById('pName').value.trim();
+        const price = document.getElementById('pPrice').value.trim();
+        const category = document.getElementById('pCategory').value;
+        const description = document.getElementById('pDescription').value.trim();
+        const location = document.getElementById('pLocation').value.trim();
+
+        if (!name || !price || !category || !location) {
+          alert("Please fill in all required fields (Product Name, Price, Category, and Location).");
+          return;
+        }
+
+        if (selectedFiles.length === 0 && !isEditing) {
+          alert("Please select at least one image before uploading.");
+          return;
+        }
+
+        const formData = new FormData();
+        formData.append('name', name);
+        formData.append('price', price);
+        formData.append('category', category);
+        formData.append('description', description);
+        formData.append('location', location);
+        formData.append('boutiqueId', boutiqueId);
+
+        // Use the in-memory selected files
+        selectedFiles.forEach(fileObj => {
+          formData.append('images', fileObj.file);
+        });
+
+        const url = isEditing ? `${API_BASE}/products/${editProductId}` : `${API_BASE}/products/add`;
+        const method = isEditing ? "PUT" : "POST";
+
+        try {
+          const res = await fetch(url, {
+            method: method,
+            body: formData // No headers needed for FormData, fetch adds boundary
+          });
+
+          const result = await res.json();
+
+          if (res.ok) {
+            alert(result.message || (isEditing ? "Success: Product updated!" : "Success: Product added!"));
+            toggleModal();
+            const bid = localStorage.getItem('boutiqueId');
+            if (bid) fetchProductsWithId(bid);
+            document.getElementById('addProductForm').reset();
+            selectedFiles = [];
+            isEditing = false;
+            editProductId = null;
+
+            document.querySelector('#addProductModal h3').textContent = "Add New Product";
+            document.querySelector('#addProductForm button[type="submit"]').textContent = "Upload Product";
+
+            document.getElementById('imagePreview').innerHTML = `
+                <div id="previewPlaceholder" class="flex flex-col items-center justify-center">
+                  <span class="material-symbols-outlined text-5xl text-primary/40 group-hover:text-primary/60 group-hover:scale-110 transition-all mb-3">add_photo_alternate</span>
+                  <p class="text-sm text-primary/60 font-bold uppercase tracking-[0.15em] mb-1">Click to upload or drag & drop</p>
+                  <p class="text-[10px] text-primary/40 uppercase tracking-[0.1em]">You can upload up to 10 high-quality images</p>
+                </div>`;
+            document.getElementById('uploadCount').textContent = '';
+          } else {
+            alert(result.message || "Failed to save product");
+          }
+        } catch (err) {
+          console.error("Critical Upload Error:", err);
+          alert("Network error: " + err.message + ". Please check if your image is too large or the server is down.");
+        }
+      });
+
+      let allProducts = [];
+      // Note: boutiqueId and ownerName will be retrieved in window.onload
+      // This allows for them to be set by previous pages via localStorage
+
+      function toggleModal() {
+        const modal = document.getElementById('addProductModal');
+        const content = document.getElementById('modalContent');
+
+        if (modal.classList.contains('hidden')) {
+          modal.classList.remove('hidden');
+          setTimeout(() => {
+            content.classList.replace('scale-95', 'scale-100');
+            content.classList.replace('opacity-0', 'opacity-100');
+          }, 10);
+        } else {
+          content.classList.replace('scale-100', 'scale-95');
+          content.classList.replace('opacity-100', 'opacity-0');
+          setTimeout(() => {
+            modal.classList.add('hidden');
+            // Reset modal if it was editing
+            if (isEditing) {
+              isEditing = false;
+              editProductId = null;
+              document.querySelector('#addProductModal h3').textContent = "Add New Product";
+              document.querySelector('#addProductForm button[type="submit"]').textContent = "Upload Product";
+              document.getElementById('addProductForm').reset();
+            }
+          }, 300);
+        }
+      }
+
+      function logout() {
+        localStorage.clear();
+        window.location.href = "boutiquelogin.html";
+      }
+
+      function filterProducts(category) {
+        document.querySelectorAll('.filter-chip, #allFilter').forEach(btn => {
+          btn.classList.remove('bg-primary', 'text-background-dark');
+          btn.classList.add('border', 'border-primary/20', 'text-primary/60');
+        });
+
+        const activeBtn = [...document.querySelectorAll('.filter-chip, #allFilter')].find(b => b.textContent.trim().includes(category) || (category === 'All' && b.id === 'allFilter'));
+        if (activeBtn) {
+          activeBtn.classList.add('bg-primary', 'text-background-dark');
+          activeBtn.classList.remove('border', 'border-primary/20', 'text-primary/60');
+        }
+
+        if (category === 'All') {
+          renderProducts(allProducts);
+        } else {
+          const filtered = allProducts.filter(p => p.category === category);
+          renderProducts(filtered);
+        }
+      }
+
+      function searchProducts(query) {
+        const searchTerm = query.toLowerCase().trim();
+        console.log("Searching for:", searchTerm);
+
+        if (!searchTerm) {
+          // If search is empty, show all products
+          renderProducts(allProducts);
+          document.getElementById('allFilter').textContent = `All Items (${allProducts.length})`;
+          return;
+        }
+
+        // Filter products by name, category, description, or location
+        const filtered = allProducts.filter(p => {
+          const name = (p.product_name || '').toLowerCase();
+          const category = (p.category || '').toLowerCase();
+          const description = (p.description || '').toLowerCase();
+          const location = (p.location || '').toLowerCase();
+
+          return (
+            name.includes(searchTerm) ||
+            category.includes(searchTerm) ||
+            description.includes(searchTerm) ||
+            location.includes(searchTerm)
+          );
+        });
+
+        console.log(`Found ${filtered.length} products matching "${searchTerm}"`);
+        renderProducts(filtered);
+        document.getElementById('allFilter').textContent = `Search Results (${filtered.length})`;
+      }
+
+      // Profile Setup
+      window.onload = () => {
+        // Get boutiqueId from localStorage
+        let boutique_id = localStorage.getItem("boutiqueId");
+        let owner_name = localStorage.getItem("ownerName");
+        let boutique_name = localStorage.getItem("boutiqueName");
+
+        console.log("=== WINDOW ONLOAD ===");
+        console.log("boutiqueId from localStorage:", boutique_id);
+        console.log("ownerName from localStorage:", owner_name);
+
+        if (owner_name) {
+          const avatarEl = document.getElementById('avatarCircle');
+          const headerAvatarEl = document.getElementById('headerAvatarCircle');
+          const ownerInitial = owner_name.charAt(0).toUpperCase();
+          
+          if (avatarEl) {
+            avatarEl.textContent = ownerInitial;
+          }
+          if (headerAvatarEl) {
+            headerAvatarEl.textContent = ownerInitial;
+          }
+          
+          // Update sidebar profile name
+          const ownerNameEl = document.getElementById('ownerName');
+          if (ownerNameEl) {
+            ownerNameEl.textContent = owner_name;
+          }
+        }
+
+        // Update boutique name in sidebar
+        if (boutique_name) {
+          const boutiqNameEl = document.getElementById('sidebarBoutiqueName');
+          if (boutiqNameEl) {
+            boutiqNameEl.textContent = boutique_name;
+          }
+        }
+
+        // Scroll active nav item into view
+        const activeNavItem = document.querySelector(".sidebar-item-active");
+        if (activeNavItem) {
+          activeNavItem.scrollIntoView({ block: "nearest", behavior: "smooth" });
+        }
+
+        const headerEl = document.getElementById('headerLocation');
+        if (headerEl) {
+          headerEl.textContent = "BOUTIQUE INVENTORY";
+        }
+
+        if (boutique_id) {
+          console.log("BoutiqueId found, fetching products...");
+          fetchProductsWithId(boutique_id);
+        } else {
+          console.warn("No boutiqueId found in localStorage!");
+          console.warn("localStorage contents:", localStorage);
+          // Try waiting a bit more in case it's still being set
+          setTimeout(() => {
+            const delayed_id = localStorage.getItem("boutiqueId");
+            if (delayed_id) {
+              console.log("BoutiqueId found after delay:", delayed_id);
+              fetchProductsWithId(delayed_id);
+            } else {
+              console.error("Still no boutiqueId - redirecting to login");
+              window.location.href = "boutiquelogin.html";
+            }
+          }, 500);
+        }
+      };
+
+      function fetchProductsWithId(boutiqueId) {
+        console.log("=== FETCHING PRODUCTS ===");
+        console.log("BoutiqueId:", boutiqueId);
+        console.log("BoutiqueId type:", typeof boutiqueId);
+
+        if (!boutiqueId) {
+          console.error("❌ BoutiqueId is required!");
+          alert("Error: No boutique ID found. Please log in again.");
+          return;
+        }
+
+        const fetchUrl = `${API_BASE}/products/boutique/${boutiqueId}`;
+        console.log("Fetch URL:", fetchUrl);
+        console.log("API_BASE:", API_BASE);
+
+        // Show loading state
+        const filterEl = document.getElementById('allFilter');
+        if (filterEl) {
+          filterEl.textContent = 'Loading...';
+        }
+
+        fetch(fetchUrl)
+          .then(res => {
+            console.log("✓ Response received");
+            console.log("Response status:", res.status);
+            console.log("Response ok:", res.ok);
+            console.log("Response headers:", res.headers);
+
+            if (!res.ok) {
+              throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+            }
+            return res.json();
+          })
+          .then(data => {
+            console.log("✓ Data parsed successfully");
+            console.log("Raw data:", data);
+            console.log("Data type:", typeof data);
+            console.log("Is array:", Array.isArray(data));
+
+            allProducts = Array.isArray(data) ? data : [];
+            console.log("✓ Products stored in allProducts");
+            console.log("Products count:", allProducts.length);
+
+            if (allProducts.length > 0) {
+              console.log("First product:", allProducts[0]);
+            } else {
+              console.warn("⚠️ No products found for this boutique");
+            }
+
+            renderProducts(allProducts);
+
+            if (filterEl) {
+              filterEl.textContent = `All Items (${allProducts.length})`;
+              console.log("✓ Filter button updated to:", filterEl.textContent);
+            }
+
+            console.log("=== FETCH COMPLETE ===");
+          })
+          .catch(err => {
+            console.error("❌ FETCH ERROR:", err);
+            console.error("Error message:", err.message);
+            console.error("Error stack:", err.stack);
+
+            // Show user-friendly error
+            if (filterEl) {
+              filterEl.textContent = 'Error Loading';
+            }
+
+            alert(`Failed to load products: ${err.message}\n\nPlease check:\n1. Server is running on port 5001\n2. You are logged in\n3. Browser console for details`);
+          });
+      }
+    </script>
+</body>
+
+</html>
+

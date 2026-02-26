@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CLOCHE | Message Boutique</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;700;900&family=Inter:wght@400;500;600&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            primary: "#c1a671",
+            "background-dark": "#0d0d0d",
+            "surface-dark": "#1a1a1a"
+          },
+          fontFamily: {
+            display: ["Noto Serif", "serif"],
+            sans: ["Inter", "sans-serif"]
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    .glass-card {
+      background: rgba(26, 26, 26, 0.6);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(193, 166, 113, 0.2);
+    }
+    .custom-scrollbar::-webkit-scrollbar { width: 5px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #3e382d; border-radius: 10px; }
+  </style>
+</head>
+<body class="bg-background-dark text-white min-h-screen">
+  <nav class="fixed top-0 w-full z-50 glass-card border-b border-primary/20">
+    <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+      <a href="landingpage.html" class="flex items-center gap-2">
+        <span class="material-symbols-outlined text-primary text-3xl">diamond</span>
+        <span class="text-2xl font-bold tracking-[0.2em] font-display">CLOCHE</span>
+      </a>
+      <div class="flex items-center gap-4">
+        <a id="profileLink" href="userprofile.html" class="text-xs uppercase tracking-widest text-white/80 hover:text-primary transition-colors">Profile</a>
+        <button id="logoutBtn" class="h-10 px-4 rounded-full border border-primary/40 text-primary text-xs uppercase tracking-wider font-semibold hover:bg-primary hover:text-black transition-all">Logout</button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="pt-24 px-6 pb-8 max-w-7xl mx-auto h-[calc(100vh-96px)]">
+    <div class="grid grid-cols-1 lg:grid-cols-[360px_1fr] gap-6 h-full">
+      <section class="glass-card rounded-xl overflow-hidden flex flex-col">
+        <div class="px-5 py-4 border-b border-white/10">
+          <h2 class="font-display text-2xl">Your Conversations</h2>
+          <p class="text-xs text-white/50 tracking-[0.14em] uppercase mt-1">Live with boutique replies</p>
+        </div>
+        <div id="conversationList" class="flex-1 overflow-y-auto custom-scrollbar">
+          <div class="p-5 text-white/50 text-sm">Loading conversations...</div>
+        </div>
+      </section>
+
+      <section class="glass-card rounded-xl overflow-hidden flex flex-col">
+        <div id="chatHeader" class="px-6 py-5 border-b border-white/10 hidden">
+          <p id="chatBoutique" class="font-display text-2xl uppercase">Boutique</p>
+          <p id="chatContext" class="text-xs uppercase tracking-[0.16em] text-primary/80 mt-1">Product enquiry</p>
+          <p class="text-[11px] uppercase tracking-[0.12em] text-white/40 mt-2">Messages are synced in real time. End-to-end encryption requires dedicated key management and is not enabled in this demo.</p>
+        </div>
+
+        <div id="messagesArea" class="flex-1 overflow-y-auto p-6 custom-scrollbar">
+          <div class="h-full flex items-center justify-center text-white/30 text-sm">Select a conversation to start chatting.</div>
+        </div>
+
+        <div id="composer" class="p-4 border-t border-white/10 hidden">
+          <div class="flex items-end gap-3 bg-surface-dark/70 border border-white/10 rounded-xl p-3">
+            <textarea id="messageInput" class="flex-1 bg-transparent border-none focus:ring-0 text-sm resize-none max-h-28 placeholder:text-white/30" placeholder="Type your message..."></textarea>
+            <button id="sendBtn" class="h-10 w-10 rounded-lg bg-primary text-black flex items-center justify-center hover:brightness-110 transition-all">
+              <span class="material-symbols-outlined">send</span>
+            </button>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const API = "/api/messages";
+    const AUTH_API = "/api/auth";
+    const userId = localStorage.getItem("userId");
+    let userName = localStorage.getItem("userName") || "Customer";
+    let userEmail = localStorage.getItem("userEmail") || "";
+    let activeConversationId = null;
+    let conversations = [];
+
+    function requireUserSession() {
+      if (localStorage.getItem("isUserLoggedIn") !== "true" || !userEmail) {
+        window.location.href = "boutiquelogin.html";
+        return false;
+      }
+      return true;
+    }
+
+    function getQueryContext() {
+      const p = new URLSearchParams(window.location.search);
+      return {
+        conversationId: Number(p.get("conversationId") || 0),
+        boutiqueId: Number(p.get("boutiqueId") || 0),
+        productName: String(p.get("productName") || "").trim(),
+        boutiqueName: String(p.get("boutiqueName") || "").trim()
+      };
+    }
+
+    function escapeHtml(value) {
+      return String(value || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+    }
+
+    async function bootstrapConversationFromContext() {
+      const { conversationId, boutiqueId, productName } = getQueryContext();
+      if (conversationId) {
+        activeConversationId = conversationId;
+        return;
+      }
+      if (!boutiqueId) return;
+
+      const payload = {
+        boutiqueId,
+        customer_name: userName,
+        customer_email: userEmail,
+        product_name: productName || null
+      };
+
+      try {
+        const res = await fetch(`${API}/customer/conversation`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        if (res.ok && data.conversationId) {
+          activeConversationId = data.conversationId;
+        }
+      } catch (err) {
+        console.error("Failed to initialize conversation", err);
+      }
+    }
+
+    function timeLabel(value) {
+      if (!value) return "";
+      const d = new Date(value);
+      return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    }
+
+    async function loadConversations() {
+      try {
+        const res = await fetch(`${API}/customer/conversations?email=${encodeURIComponent(userEmail)}`);
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || "Failed to load conversations");
+
+        conversations = Array.isArray(data) ? data : [];
+        renderConversationList();
+
+        if (!activeConversationId && conversations.length) {
+          activeConversationId = conversations[0].id;
+        }
+
+        if (activeConversationId) {
+          const exists = conversations.some(c => Number(c.id) === Number(activeConversationId));
+          if (exists) {
+            openConversation(activeConversationId);
+          }
+        }
+      } catch (err) {
+        document.getElementById("conversationList").innerHTML = `<div class="p-5 text-red-300 text-sm">${escapeHtml(err.message)}</div>`;
+      }
+    }
+
+    function renderConversationList() {
+      const list = document.getElementById("conversationList");
+      if (!conversations.length) {
+        list.innerHTML = `<div class="p-5 text-white/50 text-sm">No conversations yet. Use MESSAGE BOUTIQUE on a product page.</div>`;
+        return;
+      }
+
+      list.innerHTML = conversations.map(c => {
+        const active = Number(c.id) === Number(activeConversationId);
+        const unread = Number(c.unread_count || 0);
+        return `
+          <button
+            class="w-full text-left px-5 py-4 border-b border-white/5 ${active ? "bg-primary/10" : "hover:bg-white/5"} transition-colors"
+            onclick="openConversation(${c.id})"
+          >
+            <div class="flex items-start justify-between gap-2">
+              <p class="font-display text-lg uppercase">${escapeHtml(c.boutique_name || "Boutique")}</p>
+              ${unread > 0 ? `<span class="text-[10px] bg-primary text-black px-2 py-0.5 rounded-full font-bold">${unread}</span>` : ""}
+            </div>
+            <p class="text-[11px] uppercase tracking-[0.15em] text-primary/80 mt-1">${escapeHtml(c.product_name || "General inquiry")}</p>
+            <p class="text-xs text-white/50 mt-2 line-clamp-1">${escapeHtml(c.last_message || "No messages yet")}</p>
+          </button>
+        `;
+      }).join("");
+    }
+
+    async function openConversation(conversationId) {
+      activeConversationId = Number(conversationId);
+      renderConversationList();
+
+      const convo = conversations.find(c => Number(c.id) === Number(conversationId));
+      if (convo) {
+        document.getElementById("chatHeader").classList.remove("hidden");
+        document.getElementById("composer").classList.remove("hidden");
+        document.getElementById("chatBoutique").textContent = String(convo.boutique_name || "BOUTIQUE").toUpperCase();
+        document.getElementById("chatContext").textContent = String(convo.product_name || "General enquiry").toUpperCase();
+      }
+
+      try {
+        const res = await fetch(`${API}/customer/conversation/${conversationId}`);
+        const msgs = await res.json();
+        if (!res.ok) throw new Error(msgs.message || "Failed to load messages");
+        renderMessages(Array.isArray(msgs) ? msgs : []);
+      } catch (err) {
+        document.getElementById("messagesArea").innerHTML = `<div class="text-red-300 text-sm">${escapeHtml(err.message)}</div>`;
+      }
+    }
+
+    function renderMessages(messages) {
+      const area = document.getElementById("messagesArea");
+      if (!messages.length) {
+        area.innerHTML = `<div class="h-full flex items-center justify-center text-white/30 text-sm">Start your conversation with the boutique.</div>`;
+        return;
+      }
+
+      area.innerHTML = messages.map(m => {
+        const isUser = m.sender_type === "customer";
+        return `
+          <div class="mb-4 flex ${isUser ? "justify-end" : "justify-start"}">
+            <div class="max-w-[78%] ${isUser ? "bg-primary/10 border-primary/35 text-primary" : "bg-white/5 border-white/10 text-white/90"} border rounded-xl px-4 py-3">
+              <p class="text-sm leading-relaxed">${escapeHtml(m.message_text)}</p>
+              <p class="text-[10px] mt-2 ${isUser ? "text-primary/60" : "text-white/40"} text-right">${timeLabel(m.created_at)}</p>
+            </div>
+          </div>
+        `;
+      }).join("");
+
+      area.scrollTop = area.scrollHeight;
+    }
+
+    async function sendMessage() {
+      const input = document.getElementById("messageInput");
+      const text = String(input.value || "").trim();
+      if (!text || !activeConversationId) return;
+
+      try {
+        const res = await fetch(`${API}/send`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            conversationId: activeConversationId,
+            message_text: text,
+            senderType: "customer"
+          })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || "Failed to send message");
+        input.value = "";
+        await openConversation(activeConversationId);
+        await loadConversations();
+      } catch (err) {
+        alert(err.message || "Failed to send message");
+      }
+    }
+
+    async function hydrateUserIfNeeded() {
+      if (!userId || userEmail) return;
+      try {
+        const res = await fetch(`${AUTH_API}/user/${userId}`);
+        const data = await res.json();
+        if (res.ok && data.email) {
+          localStorage.setItem("userEmail", data.email);
+          if (data.name) localStorage.setItem("userName", data.name);
+          userEmail = String(data.email || "").trim();
+          userName = String(data.name || userName).trim() || "Customer";
+        }
+      } catch (err) {
+        console.error("Failed to hydrate user session", err);
+      }
+    }
+
+    document.getElementById("sendBtn").addEventListener("click", sendMessage);
+    document.getElementById("messageInput").addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+
+    document.getElementById("logoutBtn").addEventListener("click", () => {
+      localStorage.removeItem("isUserLoggedIn");
+      localStorage.removeItem("userId");
+      localStorage.removeItem("userName");
+      localStorage.removeItem("userEmail");
+      window.location.href = "landingpage.html";
+    });
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      await hydrateUserIfNeeded();
+      userEmail = localStorage.getItem("userEmail") || userEmail;
+      userName = localStorage.getItem("userName") || userName;
+      if (!requireUserSession()) return;
+      await bootstrapConversationFromContext();
+      await loadConversations();
+      setInterval(async () => {
+        await loadConversations();
+      }, 3000);
+    });
+  </script>
+</body>
+</html>
+

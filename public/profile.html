@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>CLOCHE | Boutique Profile & Settings</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;700;900&family=Noto+Sans:wght@400;500;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          primary: "#c1a671",
+          "background-light": "#f7f6f2",
+          "background-dark": "#0d0d0d"
+        },
+        fontFamily: {
+          display: ["Noto Serif", "serif"],
+          sans: ["Noto Sans", "sans-serif"]
+        },
+        borderRadius: {
+          DEFAULT: "0.5rem",
+          lg: "1rem",
+          xl: "1.5rem",
+          full: "9999px"
+        }
+      }
+    }
+  };
+</script>
+<style>
+  .glass-card {
+    background: rgba(26, 26, 26, 0.6);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(193, 166, 113, 0.1);
+  }
+  .sidebar-item-active {
+    background: linear-gradient(90deg, rgba(193, 166, 113, 0.1) 0%, rgba(193, 166, 113, 0) 100%);
+    border-left: 3px solid #c1a671;
+  }
+  .gold-glow {
+    box-shadow: 0 0 20px rgba(193, 166, 113, 0.1);
+  }
+  .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+  .custom-scrollbar::-webkit-scrollbar-track { background: #0d0d0d; }
+  .custom-scrollbar::-webkit-scrollbar-thumb { background: #3e382d; border-radius: 10px; }
+</style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-white selection:bg-primary/30">
+<div class="flex min-h-screen">
+  <aside class="w-72 bg-background-dark border-r border-primary/10 flex flex-col z-20 shrink-0 h-screen">
+    <div class="p-8 flex items-center gap-4 shrink-0">
+      <div class="h-10 w-10 bg-primary rounded-full flex items-center justify-center text-background-dark font-bold text-xl">C</div>
+      <div>
+        <h1 class="text-primary text-xl font-black tracking-widest uppercase leading-none">CLOCHE</h1>
+        <p class="text-primary/60 text-[10px] tracking-[0.2em] uppercase font-sans mt-1">Boutique Management</p>
+      </div>
+    </div>
+
+    <nav class="flex-1 px-4 py-6 space-y-2 font-sans overflow-y-auto custom-scrollbar">
+      <a class="flex items-center gap-4 px-4 py-3 text-slate-400 hover:text-primary transition-colors group" href="landingpage.html"><span class="material-symbols-outlined">home</span><span class="text-sm font-medium tracking-wide">Home</span></a>
+      <a class="flex items-center gap-4 px-4 py-3 text-slate-400 hover:text-primary transition-colors group" href="dashboard.html"><span class="material-symbols-outlined">dashboard</span><span class="text-sm font-medium tracking-wide">Dashboard</span></a>
+      <a class="flex items-center gap-4 px-4 py-3 text-slate-400 hover:text-primary transition-colors group" href="lead.html"><span class="material-symbols-outlined">group</span><span class="text-sm font-medium tracking-wide">Leads</span></a>
+      <a class="flex items-center gap-4 px-4 py-3 text-slate-400 hover:text-primary transition-colors group" href="boutiqueproducts.html"><span class="material-symbols-outlined">inventory_2</span><span class="text-sm font-medium tracking-wide">Products</span></a>
+      <a class="flex items-center gap-4 px-4 py-3 text-slate-400 hover:text-primary transition-colors group" href="messages.html"><span class="material-symbols-outlined">chat_bubble</span><span class="text-sm font-medium tracking-wide">Messages</span></a>
+      <a class="flex items-center gap-4 px-4 py-3 text-slate-400 hover:text-primary transition-colors group" href="subscription.html"><span class="material-symbols-outlined">star</span><span class="text-sm font-medium tracking-wide">Subscription</span></a>
+      <a class="sidebar-item-active flex items-center gap-4 px-4 py-3 text-primary group" href="profile.html"><span class="material-symbols-outlined">settings</span><span class="text-sm font-medium tracking-wide">Settings</span></a>
+    </nav>
+
+    <div class="shrink-0 p-4">
+      <div class="glass-card rounded-xl p-4 flex items-center gap-4 border border-primary/20">
+        <div id="avatarCircle" class="w-12 h-12 rounded-full bg-primary/90 text-background-dark flex items-center justify-center font-display font-bold text-xl shadow-md shrink-0">S</div>
+        <div class="flex-1 overflow-hidden">
+          <p id="ownerName" class="text-sm font-semibold text-white leading-tight truncate">Owner Name</p>
+          <p id="sidebarBoutiqueName" class="text-[11px] uppercase tracking-widest text-primary/80 truncate">Boutique Name</p>
+        </div>
+      </div>
+      <div class="my-4 h-px bg-primary/10"></div>
+      <button onclick="logout()" class="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold text-slate-400 hover:text-primary hover:bg-primary/10 transition-all duration-300"><span class="material-symbols-outlined text-base">logout</span>Logout</button>
+    </div>
+  </aside>
+
+  <main class="flex-1 flex flex-col">
+    <header class="flex items-center justify-between px-12 py-6 border-b border-primary/10">
+      <div class="flex items-center gap-3"><span class="material-symbols-outlined text-primary">settings</span><h2 class="text-sm font-bold tracking-[0.2em] uppercase">Boutique Settings</h2></div>
+      <div class="flex items-center gap-3 border-l border-primary/20 pl-6">
+        <div class="text-right">
+          <p id="topBoutiqueName" class="text-xs font-bold uppercase tracking-tight">Boutique Name</p>
+          <p id="topOwnerName" class="text-[10px] text-primary uppercase">Owner</p>
+        </div>
+        <div id="topAvatarCircle" class="w-10 h-10 rounded-full border border-primary/30 bg-primary/90 text-background-dark flex items-center justify-center font-bold">S</div>
+      </div>
+    </header>
+
+    <div class="p-12 max-w-5xl mx-auto w-full">
+      <div class="mb-12">
+        <h1 class="text-5xl font-black mb-4 tracking-tight">Administrative Suite</h1>
+        <p class="text-neutral-500 max-w-2xl font-sans text-lg">Manage your boutique profile with live data from your account.</p>
+      </div>
+
+      <div class="grid grid-cols-1 gap-8">
+        <section class="glass-card rounded-xl overflow-hidden">
+          <div class="p-8 border-b border-primary/10 bg-primary/5">
+            <h3 class="text-xl font-bold uppercase tracking-widest flex items-center gap-3"><span class="material-symbols-outlined text-primary">info</span>Boutique Details</h3>
+          </div>
+          <div class="p-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div>
+              <label class="block mb-2 text-xs font-bold uppercase tracking-widest text-primary/80">Boutique Name</label>
+              <input id="boutiqueNameInput" class="w-full bg-background-dark/50 border border-primary/20 rounded-lg px-4 py-3 text-white focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all font-sans" type="text"/>
+            </div>
+            <div>
+              <label class="block mb-2 text-xs font-bold uppercase tracking-widest text-primary/80">Owner Name</label>
+              <input id="ownerNameInput" class="w-full bg-background-dark/50 border border-primary/20 rounded-lg px-4 py-3 text-white focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all font-sans" type="text"/>
+            </div>
+            <div>
+              <label class="block mb-2 text-xs font-bold uppercase tracking-widest text-primary/80">Contact Email</label>
+              <input id="emailInput" class="w-full bg-background-dark/50 border border-primary/20 rounded-lg px-4 py-3 text-white focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all font-sans" type="email"/>
+            </div>
+            <div>
+              <label class="block mb-2 text-xs font-bold uppercase tracking-widest text-primary/80">Phone</label>
+              <input id="phoneInput" class="w-full bg-background-dark/50 border border-primary/20 rounded-lg px-4 py-3 text-white focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all font-sans" maxlength="10" type="text"/>
+            </div>
+            <div class="md:col-span-2">
+              <label class="block mb-2 text-xs font-bold uppercase tracking-widest text-primary/80">City</label>
+              <div class="relative">
+                <span class="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-primary/50">location_on</span>
+                <input id="cityInput" class="w-full bg-background-dark/50 border border-primary/20 rounded-lg pl-12 pr-4 py-3 text-white focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all font-sans" type="text"/>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <section class="glass-card rounded-xl flex flex-col">
+            <div class="p-8 border-b border-primary/10 bg-primary/5">
+              <h3 class="text-xl font-bold uppercase tracking-widest flex items-center gap-3"><span class="material-symbols-outlined text-primary">security</span>Security</h3>
+            </div>
+            <div class="p-8 flex flex-col gap-6 flex-1">
+              <div>
+                <label class="block mb-2 text-xs font-bold uppercase tracking-widest text-primary/80">Current Password</label>
+                <input id="currentPasswordInput" class="w-full bg-background-dark/50 border border-primary/20 rounded-lg px-4 py-3 text-white focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all font-sans" type="password" placeholder="Enter current password"/>
+              </div>
+              <div>
+                <label class="block mb-2 text-xs font-bold uppercase tracking-widest text-primary/80">New Password</label>
+                <input id="newPasswordInput" class="w-full bg-background-dark/50 border border-primary/20 rounded-lg px-4 py-3 text-white focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all font-sans" type="password" placeholder="Enter new password"/>
+              </div>
+              <div class="pt-4 border-t border-primary/10">
+                <button id="changePasswordBtn" class="w-full py-3 border border-primary/30 text-primary hover:bg-primary/10 transition-colors rounded-lg text-xs font-bold uppercase tracking-widest">Update Password</button>
+              </div>
+            </div>
+          </section>
+
+          <section class="glass-card rounded-xl flex flex-col overflow-hidden relative">
+            <div class="p-8 border-b border-primary/10 bg-primary/10 relative z-10">
+              <h3 class="text-xl font-bold uppercase tracking-widest flex items-center gap-3"><span class="material-symbols-outlined text-primary">diamond</span>Subscription Plan</h3>
+            </div>
+            <div class="p-8 flex flex-col justify-center items-center gap-6 flex-1 relative z-10">
+              <div class="text-center">
+                <span id="planBadge" class="inline-block px-6 py-2 bg-gradient-to-r from-primary to-[#8e7b54] rounded-full text-background-dark text-xs font-black uppercase tracking-[0.3em] mb-4 gold-glow">Basic Tier</span>
+                <p id="planPriceText" class="text-4xl font-black text-white">--</p>
+              </div>
+              <div class="w-full bg-primary/5 rounded-lg p-4 border border-primary/10">
+                <div class="flex justify-between items-center mb-2">
+                  <span class="text-[10px] uppercase font-bold tracking-widest text-neutral-400">Status</span>
+                  <span id="nextBillingText" class="text-[10px] uppercase font-bold text-primary">Active</span>
+                </div>
+                <div class="w-full h-1 bg-neutral-800 rounded-full overflow-hidden"><div id="planProgressBar" class="w-3/4 h-full bg-primary"></div></div>
+              </div>
+              <button id="manageMembershipBtn" class="w-full py-3 border border-primary/30 text-primary hover:bg-primary/10 transition-colors rounded-lg text-xs font-bold uppercase tracking-widest">Manage Membership</button>
+            </div>
+          </section>
+        </div>
+        <section class="glass-card rounded-xl overflow-hidden">
+          <div class="p-8 border-b border-primary/10 bg-primary/5">
+            <h3 class="text-xl font-bold uppercase tracking-widest flex items-center gap-3"><span class="material-symbols-outlined text-primary">image</span>Boutique Showcase Setup</h3>
+          </div>
+          <div class="p-8 grid grid-cols-1 lg:grid-cols-2 gap-10">
+            <div class="space-y-5">
+              <div>
+                <label class="block mb-2 text-xs font-bold uppercase tracking-widest text-primary/80">District Badge</label>
+                <input id="showcaseDistrictInput" class="w-full bg-background-dark/50 border border-primary/20 rounded-lg px-4 py-3 text-white focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all font-sans" placeholder="e.g. Ernakulam" type="text"/>
+              </div>
+              <div>
+                <label class="block mb-2 text-xs font-bold uppercase tracking-widest text-primary/80">Area / Locality</label>
+                <input id="showcaseAreaInput" class="w-full bg-background-dark/50 border border-primary/20 rounded-lg px-4 py-3 text-white focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all font-sans" placeholder="e.g. Panampilly Nagar" type="text"/>
+              </div>
+              <div>
+                <label class="block mb-2 text-xs font-bold uppercase tracking-widest text-primary/80">Tags (comma-separated)</label>
+                <input id="showcaseTagsInput" class="w-full bg-background-dark/50 border border-primary/20 rounded-lg px-4 py-3 text-white focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all font-sans" placeholder="Bridal Wear, Handloom, Couture" type="text"/>
+              </div>
+              <div>
+                <label class="block mb-2 text-xs font-bold uppercase tracking-widest text-primary/80">Rating</label>
+                <input id="showcaseRatingInput" class="w-full bg-background-dark/50 border border-primary/20 rounded-lg px-4 py-3 text-white focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all font-sans" placeholder="5.0" step="0.1" min="0" max="5" type="number"/>
+              </div>
+              <div class="space-y-2">
+                <label class="block text-xs font-bold uppercase tracking-widest text-primary/80">Boutique Cover Image</label>
+                <input id="showcaseImageInput" accept="image/jpeg,image/jpg,image/png,image/webp" class="w-full bg-background-dark/50 border border-primary/20 rounded-lg px-4 py-2 text-sm text-white" type="file"/>
+                <button id="uploadShowcaseImageBtn" class="w-full py-3 border border-primary/30 text-primary hover:bg-primary/10 transition-colors rounded-lg text-xs font-bold uppercase tracking-widest">Upload Showcase Image</button>
+              </div>
+              <button id="saveShowcaseBtn" class="w-full py-3 bg-primary text-background-dark rounded-lg text-xs font-black uppercase tracking-[0.2em] transition-transform hover:scale-[1.01] gold-glow">Save Showcase Setup</button>
+            </div>
+
+            <div class="flex justify-center">
+              <div class="glass-card rounded-xl overflow-hidden w-full max-w-[320px] border border-primary/30">
+                <div class="relative h-[390px] overflow-hidden">
+                  <img id="showcasePreviewImage" class="w-full h-full object-cover" src="https://images.unsplash.com/photo-1583391733981-849840f3f1c2?q=80&w=1200&auto=format&fit=crop" alt="Boutique preview"/>
+                  <div class="absolute top-4 left-4 bg-primary text-background-dark px-3 py-1 rounded text-[10px] font-bold tracking-[0.2em] uppercase" id="showcasePreviewDistrict">District</div>
+                </div>
+                <div class="p-6 space-y-4">
+                  <div class="flex justify-between items-start gap-2">
+                    <h4 id="showcasePreviewName" class="text-3xl font-display font-bold uppercase leading-tight">Boutique Name</h4>
+                    <span class="text-primary text-sm font-bold whitespace-nowrap">★ <span id="showcasePreviewRating">5.0</span></span>
+                  </div>
+                  <p id="showcasePreviewArea" class="text-primary/80 text-sm tracking-[0.15em] uppercase">Area / Locality</p>
+                  <div id="showcasePreviewTags" class="flex flex-wrap gap-2"></div>
+                  <button class="w-full py-3 bg-primary text-background-dark rounded-lg text-xs font-black uppercase tracking-[0.2em]">View Boutique</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div class="mt-12 pt-8 border-t border-primary/20 flex justify-end gap-6">
+        <button id="discardChangesBtn" class="px-8 py-4 text-neutral-500 hover:text-white transition-colors text-xs font-bold uppercase tracking-widest">Discard Changes</button>
+        <button id="saveProfileBtn" class="px-12 py-4 bg-primary text-background-dark rounded-lg text-xs font-black uppercase tracking-[0.2em] transition-transform hover:scale-105 gold-glow">Save Changes</button>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+  const API_BASE = "/api/auth";
+  const API_ORIGIN = new URL(API_BASE).origin;
+  let snapshot = null;
+  let showcaseSnapshot = null;
+
+  function logout() {
+    localStorage.clear();
+    window.location.href = "boutiquelogin.html";
+  }
+
+  function setText(id, value) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value || "";
+  }
+
+  function resolveAssetUrl(url) {
+    const v = String(url || "").trim();
+    if (!v) return "";
+    if (/^https?:\/\//i.test(v)) return v;
+    return `${API_ORIGIN}${v.startsWith("/") ? "" : "/"}${v}`;
+  }
+
+  function setValue(id, value) {
+    const el = document.getElementById(id);
+    if (el) el.value = value || "";
+  }
+
+  function renderShowcaseTags(tagsRaw) {
+    const wrap = document.getElementById("showcasePreviewTags");
+    if (!wrap) return;
+    const tags = String(tagsRaw || "")
+      .split(",")
+      .map((t) => t.trim())
+      .filter(Boolean)
+      .slice(0, 4);
+
+    wrap.innerHTML = tags.length
+      ? tags.map((tag) => `<span class="text-[10px] uppercase tracking-widest px-3 py-1 bg-white/5 border border-white/10 rounded">${tag}</span>`).join("")
+      : `<span class="text-[10px] uppercase tracking-widest px-3 py-1 bg-white/5 border border-white/10 rounded">Boutique</span>`;
+  }
+
+  function syncShowcasePreview() {
+    const district = document.getElementById("showcaseDistrictInput")?.value.trim() || "District";
+    const area = document.getElementById("showcaseAreaInput")?.value.trim() || "Area / Locality";
+    const rating = document.getElementById("showcaseRatingInput")?.value.trim() || "5.0";
+    const tags = document.getElementById("showcaseTagsInput")?.value || "";
+    const boutiqueName = document.getElementById("boutiqueNameInput")?.value || "Boutique Name";
+
+    setText("showcasePreviewDistrict", district.toUpperCase());
+    setText("showcasePreviewArea", area.toUpperCase());
+    setText("showcasePreviewRating", rating);
+    setText("showcasePreviewName", boutiqueName.toUpperCase());
+    renderShowcaseTags(tags);
+  }
+
+  function fillShowcase(data) {
+    showcaseSnapshot = { ...data };
+    setValue("showcaseDistrictInput", data.district || "");
+    setValue("showcaseAreaInput", data.area || "");
+    setValue("showcaseTagsInput", data.tags || "");
+    setValue("showcaseRatingInput", data.rating || 5.0);
+
+    if (data.image_url) {
+      const img = document.getElementById("showcasePreviewImage");
+      if (img) img.src = resolveAssetUrl(data.image_url);
+    }
+    syncShowcasePreview();
+  }
+
+  function renderPlan(planRaw) {
+    const plan = String(planRaw || "Basic").toLowerCase();
+    const map = {
+      basic: { badge: "Basic Tier", price: "Free", progress: "w-1/4" },
+      professional: { badge: "Professional Tier", price: "Rs 2,999/mo", progress: "w-2/4" },
+      premium: { badge: "Premium Tier", price: "Rs 7,999/mo", progress: "w-4/4" }
+    };
+    const cfg = map[plan] || map.basic;
+    setText("planBadge", cfg.badge);
+    setText("planPriceText", cfg.price);
+    const bar = document.getElementById("planProgressBar");
+    if (bar) bar.className = `${cfg.progress} h-full bg-primary`;
+  }
+
+  function fillProfile(data) {
+    snapshot = { ...data };
+
+    setValue("boutiqueNameInput", data.boutique_name);
+    setValue("ownerNameInput", data.owner_name);
+    setValue("emailInput", data.email);
+    setValue("phoneInput", data.phone);
+    setValue("cityInput", data.city);
+
+    const owner = data.owner_name || "Guest";
+    const boutique = data.boutique_name || "My Boutique";
+    const initial = owner.charAt(0).toUpperCase() || "G";
+
+    setText("ownerName", owner);
+    setText("sidebarBoutiqueName", boutique);
+    setText("topOwnerName", owner);
+    setText("topBoutiqueName", boutique);
+    setText("avatarCircle", initial);
+    setText("topAvatarCircle", initial);
+
+    localStorage.setItem("ownerName", owner);
+    localStorage.setItem("boutiqueName", boutique);
+    localStorage.setItem("plan", data.plan || "Basic");
+
+    renderPlan(data.plan);
+  }
+
+  async function loadProfile() {
+    const boutiqueId = localStorage.getItem("boutiqueId");
+    const isLoggedIn = localStorage.getItem("isLoggedIn");
+
+    if (!boutiqueId || isLoggedIn !== "true") {
+      window.location.href = "boutiquelogin.html";
+      return;
+    }
+
+    const res = await fetch(`${API_BASE}/profile/${boutiqueId}`);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Failed to load profile");
+    fillProfile(data);
+
+    const showcaseRes = await fetch(`${API_BASE}/profile/${boutiqueId}/showcase`);
+    const showcaseData = await showcaseRes.json();
+    if (showcaseRes.ok) {
+      fillShowcase(showcaseData);
+    }
+  }
+
+  async function saveProfile() {
+    const boutiqueId = localStorage.getItem("boutiqueId");
+    const payload = {
+      boutique_name: document.getElementById("boutiqueNameInput").value.trim(),
+      owner_name: document.getElementById("ownerNameInput").value.trim(),
+      email: document.getElementById("emailInput").value.trim(),
+      phone: document.getElementById("phoneInput").value.trim(),
+      city: document.getElementById("cityInput").value.trim()
+    };
+
+    const res = await fetch(`${API_BASE}/profile/${boutiqueId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.message || "Failed to save profile");
+
+    alert("Profile updated successfully.");
+    await loadProfile();
+  }
+
+  async function changePassword() {
+    const boutiqueId = localStorage.getItem("boutiqueId");
+    const currentPassword = document.getElementById("currentPasswordInput").value;
+    const newPassword = document.getElementById("newPasswordInput").value;
+
+    if (!currentPassword || !newPassword) {
+      alert("Enter current and new password.");
+      return;
+    }
+
+    const res = await fetch(`${API_BASE}/profile/${boutiqueId}/password`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ currentPassword, newPassword })
+    });
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.message || "Failed to update password");
+
+    alert("Password updated successfully.");
+    document.getElementById("currentPasswordInput").value = "";
+    document.getElementById("newPasswordInput").value = "";
+  }
+
+  async function saveShowcase() {
+    const boutiqueId = localStorage.getItem("boutiqueId");
+    const payload = {
+      district: document.getElementById("showcaseDistrictInput").value.trim(),
+      area: document.getElementById("showcaseAreaInput").value.trim(),
+      tags: document.getElementById("showcaseTagsInput").value.trim(),
+      rating: document.getElementById("showcaseRatingInput").value || "5.0"
+    };
+
+    let res = await fetch(`${API_BASE}/profile/${boutiqueId}/showcase`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    if (res.status === 404) {
+      res = await fetch(`${API_BASE}/profile/${boutiqueId}/showcase`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+    }
+
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.message || "Failed to save showcase");
+    showcaseSnapshot = { ...(showcaseSnapshot || {}), ...payload };
+    alert("Showcase setup saved.");
+  }
+
+  async function uploadShowcaseImage() {
+    const boutiqueId = localStorage.getItem("boutiqueId");
+    const input = document.getElementById("showcaseImageInput");
+    if (!input?.files?.length) {
+      alert("Please select an image first.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("image", input.files[0]);
+
+    const res = await fetch(`${API_BASE}/profile/${boutiqueId}/showcase-image`, {
+      method: "POST",
+      body: formData
+    });
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.message || "Failed to upload image");
+
+    const img = document.getElementById("showcasePreviewImage");
+    if (img) img.src = resolveAssetUrl(result.image_url);
+    showcaseSnapshot = { ...(showcaseSnapshot || {}), image_url: result.image_url };
+    alert("Showcase image uploaded.");
+  }
+
+  function discardChanges() {
+    if (snapshot) fillProfile(snapshot);
+    if (showcaseSnapshot) fillShowcase(showcaseSnapshot);
+  }
+
+  document.addEventListener("DOMContentLoaded", async () => {
+    try {
+      await loadProfile();
+    } catch (err) {
+      console.error(err);
+      alert(err.message || "Failed to load profile");
+    }
+
+    const activeNavItem = document.querySelector(".sidebar-item-active");
+    if (activeNavItem) activeNavItem.scrollIntoView({ block: "nearest", behavior: "smooth" });
+
+    document.getElementById("saveProfileBtn")?.addEventListener("click", async () => {
+      try {
+        await saveProfile();
+      } catch (err) {
+        alert(err.message);
+      }
+    });
+
+    document.getElementById("discardChangesBtn")?.addEventListener("click", discardChanges);
+
+    document.getElementById("changePasswordBtn")?.addEventListener("click", async () => {
+      try {
+        await changePassword();
+      } catch (err) {
+        alert(err.message);
+      }
+    });
+
+    document.getElementById("manageMembershipBtn")?.addEventListener("click", () => {
+      window.location.href = "subscription.html";
+    });
+
+    document.getElementById("saveShowcaseBtn")?.addEventListener("click", async () => {
+      try {
+        await saveShowcase();
+      } catch (err) {
+        alert(err.message);
+      }
+    });
+
+    document.getElementById("uploadShowcaseImageBtn")?.addEventListener("click", async () => {
+      try {
+        await uploadShowcaseImage();
+      } catch (err) {
+        alert(err.message);
+      }
+    });
+
+    ["showcaseDistrictInput", "showcaseAreaInput", "showcaseTagsInput", "showcaseRatingInput", "boutiqueNameInput"]
+      .forEach((id) => {
+        document.getElementById(id)?.addEventListener("input", syncShowcasePreview);
+      });
+  });
+</script>
+</body>
+</html>
+
