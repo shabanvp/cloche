@@ -1,6 +1,6 @@
 const express = require("express");
-const db = require("./db");
 const router = express.Router();
+const supabase = require("./supabase");
 
 const messageLimitByPlan = {
   basic: 5,
@@ -8,46 +8,9 @@ const messageLimitByPlan = {
   premium: Infinity
 };
 
-const ensureMessageTables = (cb) => {
-  const createConversations = `
-    CREATE TABLE IF NOT EXISTS conversations (
-      id INT AUTO_INCREMENT PRIMARY KEY,
-      boutique_id INT NOT NULL,
-      customer_name VARCHAR(255) NOT NULL,
-      customer_email VARCHAR(255),
-      customer_phone VARCHAR(20),
-      product_name VARCHAR(255),
-      status ENUM('active', 'archived', 'closed') DEFAULT 'active',
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-      FOREIGN KEY (boutique_id) REFERENCES boutiques(id) ON DELETE CASCADE
-    )
-  `;
-
-  const createMessages = `
-    CREATE TABLE IF NOT EXISTS messages (
-      id INT AUTO_INCREMENT PRIMARY KEY,
-      conversation_id INT NOT NULL,
-      sender_type ENUM('customer', 'boutique') NOT NULL,
-      message_text LONGTEXT NOT NULL,
-      is_read BOOLEAN DEFAULT 0,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (conversation_id) REFERENCES conversations(id) ON DELETE CASCADE,
-      INDEX idx_conversation (conversation_id),
-      INDEX idx_created (created_at)
-    )
-  `;
-
-  db.query(createConversations, (err) => {
-    if (err) return cb(err);
-    db.query(createMessages, cb);
-  });
-};
-
 // Create or get customer conversation with a boutique
-router.post("/customer/conversation", (req, res) => {
+router.post("/customer/conversation", async (req, res) => {
   const { boutiqueId, customer_name, customer_email, customer_phone, product_name } = req.body;
-
   const safeBoutiqueId = Number(boutiqueId);
   const safeName = String(customer_name || "").trim();
   const safeEmail = String(customer_email || "").trim().toLowerCase();
@@ -58,194 +21,198 @@ router.post("/customer/conversation", (req, res) => {
     return res.status(400).json({ message: "boutiqueId, customer_name and customer_email are required" });
   }
 
-  ensureMessageTables((tableErr) => {
-    if (tableErr) {
-      return res.status(500).json({ message: "Failed to prepare message tables", error: tableErr.message });
+  try {
+    const { data: existing, error: findErr } = await supabase
+      .from("conversations")
+      .select("id, boutique_id, customer_name, customer_email, customer_phone, product_name, status")
+      .eq("boutique_id", safeBoutiqueId)
+      .eq("customer_email", safeEmail)
+      .eq("product_name", safeProduct || null)
+      .order("id", { ascending: false })
+      .limit(1);
+
+    if (findErr) return res.status(500).json({ message: "Error finding conversation", error: findErr.message });
+    if (Array.isArray(existing) && existing.length) {
+      return res.json({ success: true, conversationId: existing[0].id, conversation: existing[0] });
     }
 
-    const findQuery = `
-      SELECT id, boutique_id, customer_name, customer_email, customer_phone, product_name, status
-      FROM conversations
-      WHERE boutique_id = ? AND customer_email = ? AND COALESCE(product_name, '') = ?
-      ORDER BY id DESC
-      LIMIT 1
-    `;
-
-    db.query(findQuery, [safeBoutiqueId, safeEmail, safeProduct], (findErr, rows) => {
-      if (findErr) {
-        return res.status(500).json({ message: "Error finding conversation", error: findErr.message });
-      }
-
-      if (rows.length) {
-        return res.json({ success: true, conversationId: rows[0].id, conversation: rows[0] });
-      }
-
-      const insertQuery = `
-        INSERT INTO conversations (boutique_id, customer_name, customer_email, customer_phone, product_name, status)
-        VALUES (?, ?, ?, ?, ?, 'active')
-      `;
-
-      db.query(insertQuery, [safeBoutiqueId, safeName, safeEmail, safePhone || null, safeProduct || null], (insertErr, result) => {
-        if (insertErr) {
-          return res.status(500).json({ message: "Error creating conversation", error: insertErr.message });
+    const { data: inserted, error: insertErr } = await supabase
+      .from("conversations")
+      .insert([
+        {
+          boutique_id: safeBoutiqueId,
+          customer_name: safeName,
+          customer_email: safeEmail,
+          customer_phone: safePhone || null,
+          product_name: safeProduct || null,
+          status: "active"
         }
+      ])
+      .select("*")
+      .maybeSingle();
 
-        return res.status(201).json({
-          success: true,
-          conversationId: result.insertId,
-          conversation: {
-            id: result.insertId,
-            boutique_id: safeBoutiqueId,
-            customer_name: safeName,
-            customer_email: safeEmail,
-            customer_phone: safePhone || null,
-            product_name: safeProduct || null,
-            status: "active"
-          }
-        });
-      });
-    });
-  });
+    if (insertErr) return res.status(500).json({ message: "Error creating conversation", error: insertErr.message });
+    return res.status(201).json({ success: true, conversationId: inserted.id, conversation: inserted });
+  } catch (err) {
+    return res.status(500).json({ message: "Server error", error: err.message });
+  }
 });
 
 // Get all conversations for a customer (user side inbox)
-router.get("/customer/conversations", (req, res) => {
+router.get("/customer/conversations", async (req, res) => {
   const customerEmail = String(req.query.email || "").trim().toLowerCase();
-  if (!customerEmail) {
-    return res.status(400).json({ message: "email query param is required" });
-  }
+  if (!customerEmail) return res.status(400).json({ message: "email query param is required" });
 
-  ensureMessageTables((tableErr) => {
-    if (tableErr) {
-      return res.status(500).json({ message: "Failed to prepare message tables", error: tableErr.message });
+  try {
+    const { data: conversations, error } = await supabase
+      .from("conversations")
+      .select("*")
+      .eq("customer_email", customerEmail)
+      .order("updated_at", { ascending: false });
+
+    if (error) return res.status(500).json({ message: "Error fetching customer conversations", error: error.message });
+    if (!Array.isArray(conversations) || !conversations.length) return res.json([]);
+
+    const boutiqueIds = [...new Set(conversations.map((c) => c.boutique_id).filter(Boolean))];
+    const convIds = conversations.map((c) => c.id);
+
+    const [{ data: boutiques }, { data: messages }] = await Promise.all([
+      boutiqueIds.length
+        ? supabase.from("boutiques").select("id, boutique_name").in("id", boutiqueIds)
+        : { data: [] },
+      convIds.length
+        ? supabase
+            .from("messages")
+            .select("conversation_id, message_text, sender_type, is_read, created_at")
+            .in("conversation_id", convIds)
+            .order("created_at", { ascending: false })
+        : { data: [] }
+    ]);
+
+    const boutiqueMap = {};
+    for (const b of boutiques || []) boutiqueMap[b.id] = b.boutique_name;
+
+    const messageMap = {};
+    for (const m of messages || []) {
+      if (!messageMap[m.conversation_id]) messageMap[m.conversation_id] = [];
+      messageMap[m.conversation_id].push(m);
     }
 
-    const query = `
-      SELECT DISTINCT
-        c.id,
-        c.boutique_id,
-        b.boutique_name,
-        c.customer_name,
-        c.customer_email,
-        c.customer_phone,
-        c.product_name,
-        c.status,
-        MAX(m.created_at) as last_message_time,
-        (SELECT message_text FROM messages WHERE conversation_id = c.id ORDER BY created_at DESC LIMIT 1) as last_message,
-        COUNT(CASE WHEN m.is_read = 0 AND m.sender_type = 'boutique' THEN 1 END) as unread_count
-      FROM conversations c
-      LEFT JOIN messages m ON c.id = m.conversation_id
-      LEFT JOIN boutiques b ON b.id = c.boutique_id
-      WHERE c.customer_email = ?
-      GROUP BY c.id
-      ORDER BY COALESCE(last_message_time, c.created_at) DESC
-    `;
-
-    db.query(query, [customerEmail], (err, rows) => {
-      if (err) {
-        return res.status(500).json({ message: "Error fetching customer conversations", error: err.message });
-      }
-      return res.json(rows);
+    const rows = conversations.map((c) => {
+      const list = messageMap[c.id] || [];
+      const last = list[0] || null;
+      const unread = list.filter((m) => !m.is_read && m.sender_type === "boutique").length;
+      return {
+        ...c,
+        boutique_name: boutiqueMap[c.boutique_id] || null,
+        last_message_time: last?.created_at || c.created_at,
+        last_message: last?.message_text || null,
+        unread_count: unread
+      };
     });
-  });
+
+    return res.json(rows);
+  } catch (err) {
+    return res.status(500).json({ message: "Server error", error: err.message });
+  }
 });
 
 // Get messages for customer side and mark boutique messages as read
-router.get("/customer/conversation/:conversationId", (req, res) => {
+router.get("/customer/conversation/:conversationId", async (req, res) => {
   const { conversationId } = req.params;
+  try {
+    const { data: rows, error } = await supabase
+      .from("messages")
+      .select("id, conversation_id, sender_type, message_text, is_read, created_at")
+      .eq("conversation_id", conversationId)
+      .order("created_at", { ascending: true });
 
-  ensureMessageTables((tableErr) => {
-    if (tableErr) {
-      return res.status(500).json({ message: "Failed to prepare message tables", error: tableErr.message });
-    }
+    if (error) return res.status(500).json({ message: "Error fetching messages", error: error.message });
 
-    const query = `
-      SELECT id, conversation_id, sender_type, message_text, is_read, created_at
-      FROM messages
-      WHERE conversation_id = ?
-      ORDER BY created_at ASC
-    `;
+    await supabase
+      .from("messages")
+      .update({ is_read: true })
+      .eq("conversation_id", conversationId)
+      .eq("sender_type", "boutique");
 
-    db.query(query, [conversationId], (err, rows) => {
-      if (err) {
-        return res.status(500).json({ message: "Error fetching messages", error: err.message });
-      }
-
-      const markReadQuery = `
-        UPDATE messages
-        SET is_read = 1
-        WHERE conversation_id = ? AND sender_type = 'boutique'
-      `;
-
-      db.query(markReadQuery, [conversationId], () => {
-        return res.json(rows);
-      });
-    });
-  });
+    return res.json(rows || []);
+  } catch (err) {
+    return res.status(500).json({ message: "Server error", error: err.message });
+  }
 });
 
 // GET all conversations for a boutique
-router.get("/conversations/:boutiqueId", (req, res) => {
+router.get("/conversations/:boutiqueId", async (req, res) => {
   const { boutiqueId } = req.params;
+  try {
+    const { data: conversations, error } = await supabase
+      .from("conversations")
+      .select("*")
+      .eq("boutique_id", boutiqueId)
+      .order("updated_at", { ascending: false });
 
-  const query = `
-    SELECT DISTINCT
-      c.id,
-      c.customer_name,
-      c.customer_email,
-      c.customer_phone,
-      c.product_name,
-      c.status,
-      MAX(m.created_at) as last_message_time,
-      (SELECT message_text FROM messages WHERE conversation_id = c.id ORDER BY created_at DESC LIMIT 1) as last_message,
-      COUNT(CASE WHEN m.is_read = 0 AND m.sender_type = 'customer' THEN 1 END) as unread_count
-    FROM conversations c
-    LEFT JOIN messages m ON c.id = m.conversation_id
-    WHERE c.boutique_id = ?
-    GROUP BY c.id
-    ORDER BY last_message_time DESC
-  `;
+    if (error) return res.status(500).json({ message: "Error fetching conversations", error: error.message });
+    if (!Array.isArray(conversations) || !conversations.length) return res.json([]);
 
-  db.query(query, [boutiqueId], (err, results) => {
-    if (err) {
-      console.error("❌ Error fetching conversations:", err);
-      return res.status(500).json({ message: "Error fetching conversations", error: err.message });
+    const convIds = conversations.map((c) => c.id);
+    const { data: messages, error: msgErr } = await supabase
+      .from("messages")
+      .select("conversation_id, message_text, sender_type, is_read, created_at")
+      .in("conversation_id", convIds)
+      .order("created_at", { ascending: false });
+
+    if (msgErr) return res.status(500).json({ message: "Error fetching conversations", error: msgErr.message });
+
+    const messageMap = {};
+    for (const m of messages || []) {
+      if (!messageMap[m.conversation_id]) messageMap[m.conversation_id] = [];
+      messageMap[m.conversation_id].push(m);
     }
-    res.json(results);
-  });
+
+    const rows = conversations.map((c) => {
+      const list = messageMap[c.id] || [];
+      const last = list[0] || null;
+      const unread = list.filter((m) => !m.is_read && m.sender_type === "customer").length;
+      return {
+        ...c,
+        last_message_time: last?.created_at || c.created_at,
+        last_message: last?.message_text || null,
+        unread_count: unread
+      };
+    });
+
+    return res.json(rows);
+  } catch (err) {
+    return res.status(500).json({ message: "Server error", error: err.message });
+  }
 });
 
 // GET messages for a specific conversation
-router.get("/conversation/:conversationId", (req, res) => {
+router.get("/conversation/:conversationId", async (req, res) => {
   const { conversationId } = req.params;
+  try {
+    const { data: results, error } = await supabase
+      .from("messages")
+      .select("*")
+      .eq("conversation_id", conversationId)
+      .order("created_at", { ascending: true });
 
-  const query = `
-    SELECT * FROM messages
-    WHERE conversation_id = ?
-    ORDER BY created_at ASC
-  `;
+    if (error) return res.status(500).json({ message: "Error fetching messages", error: error.message });
 
-  db.query(query, [conversationId], (err, results) => {
-    if (err) {
-      console.error("❌ Error fetching messages:", err);
-      return res.status(500).json({ message: "Error fetching messages", error: err.message });
-    }
+    await supabase
+      .from("messages")
+      .update({ is_read: true })
+      .eq("conversation_id", conversationId)
+      .eq("sender_type", "customer");
 
-    // Mark messages as read
-    const updateQuery = `
-      UPDATE messages SET is_read = 1
-      WHERE conversation_id = ? AND sender_type = 'customer'
-    `;
-    db.query(updateQuery, [conversationId], (err) => {
-      if (err) console.error("Error marking messages as read:", err);
-    });
-
-    res.json(results);
-  });
+    return res.json(results || []);
+  } catch (err) {
+    return res.status(500).json({ message: "Server error", error: err.message });
+  }
 });
 
 // POST a new message
-router.post("/send", (req, res) => {
+router.post("/send", async (req, res) => {
   const { conversationId, message_text, senderType } = req.body;
   const normalizedSenderType = senderType || "boutique";
 
@@ -253,130 +220,120 @@ router.post("/send", (req, res) => {
     return res.status(400).json({ message: "Missing conversationId or message_text" });
   }
 
-  const insertMessage = () => {
-    const query = `
-      INSERT INTO messages (conversation_id, sender_type, message_text, created_at, is_read)
-      VALUES (?, ?, ?, NOW(), 0)
-    `;
-
-    db.query(query, [conversationId, normalizedSenderType, message_text], (err) => {
-      if (err) {
-        console.error("❌ Error sending message:", err);
-        return res.status(500).json({ message: "Error sending message", error: err.message });
+  const insertMessage = async () => {
+    const { error: insertErr } = await supabase.from("messages").insert([
+      {
+        conversation_id: conversationId,
+        sender_type: normalizedSenderType,
+        message_text,
+        is_read: false
       }
-
-      const updateConvQuery = `UPDATE conversations SET status = 'active' WHERE id = ?`;
-      db.query(updateConvQuery, [conversationId], (updateErr) => {
-        if (updateErr) console.error("Error updating conversation:", updateErr);
-      });
-
-      return res.json({ success: true, message: "Message sent successfully" });
-    });
+    ]);
+    if (insertErr) {
+      return res.status(500).json({ message: "Error sending message", error: insertErr.message });
+    }
+    await supabase.from("conversations").update({ status: "active" }).eq("id", conversationId);
+    return res.json({ success: true, message: "Message sent successfully" });
   };
 
-  // Enforce plan limits for boutique-sent messages only.
-  if (normalizedSenderType !== "boutique") {
-    return insertMessage();
-  }
-
-  const planQuery = `
-    SELECT c.boutique_id, COALESCE(NULLIF(b.plan, ''), 'Basic') AS plan
-    FROM conversations c
-    INNER JOIN boutiques b ON b.id = c.boutique_id
-    WHERE c.id = ?
-    LIMIT 1
-  `;
-
-  db.query(planQuery, [conversationId], (planErr, planRows) => {
-    if (planErr) {
-      console.error("❌ Error fetching plan:", planErr);
-      return res.status(500).json({ message: "Error validating subscription", error: planErr.message });
+  try {
+    if (normalizedSenderType !== "boutique") {
+      return insertMessage();
     }
 
-    if (!planRows.length) {
-      return res.status(404).json({ message: "Conversation not found" });
-    }
+    const { data: conv, error: convErr } = await supabase
+      .from("conversations")
+      .select("boutique_id")
+      .eq("id", conversationId)
+      .maybeSingle();
 
-    const planKey = String(planRows[0].plan || "Basic").toLowerCase();
+    if (convErr) return res.status(500).json({ message: "Error validating subscription", error: convErr.message });
+    if (!conv) return res.status(404).json({ message: "Conversation not found" });
+
+    const { data: boutique } = await supabase
+      .from("boutiques")
+      .select("plan")
+      .eq("id", conv.boutique_id)
+      .maybeSingle();
+
+    const planLabel = String(boutique?.plan || "Basic");
+    const planKey = planLabel.toLowerCase();
     const maxMessages = messageLimitByPlan[planKey] ?? messageLimitByPlan.basic;
     if (maxMessages === Infinity) {
       return insertMessage();
     }
 
-    const countQuery = `
-      SELECT COUNT(*) AS total
-      FROM messages m
-      INNER JOIN conversations c ON c.id = m.conversation_id
-      WHERE c.boutique_id = ? AND m.sender_type = 'boutique'
-    `;
+    const { data: convs } = await supabase
+      .from("conversations")
+      .select("id")
+      .eq("boutique_id", conv.boutique_id);
 
-    db.query(countQuery, [planRows[0].boutique_id], (countErr, countRows) => {
-      if (countErr) {
-        console.error("❌ Error counting messages:", countErr);
-        return res.status(500).json({ message: "Error validating message limits", error: countErr.message });
-      }
+    const convIds = (convs || []).map((c) => c.id);
+    if (!convIds.length) return insertMessage();
 
-      const totalMessages = Number(countRows[0]?.total || 0);
-      if (totalMessages >= maxMessages) {
-        return res.status(403).json({
-          message: `Your ${planRows[0].plan} plan allows only ${maxMessages} sent messages. Upgrade to continue.`
-        });
-      }
+    const { count, error: countErr } = await supabase
+      .from("messages")
+      .select("*", { count: "exact", head: true })
+      .in("conversation_id", convIds)
+      .eq("sender_type", "boutique");
 
-      return insertMessage();
-    });
-  });
+    if (countErr) {
+      return res.status(500).json({ message: "Error validating message limits", error: countErr.message });
+    }
+
+    const totalMessages = Number(count || 0);
+    if (totalMessages >= maxMessages) {
+      return res.status(403).json({
+        message: `Your ${planLabel} plan allows only ${maxMessages} sent messages. Upgrade to continue.`
+      });
+    }
+
+    return insertMessage();
+  } catch (err) {
+    return res.status(500).json({ message: "Server error", error: err.message });
+  }
 });
 
 // GET conversation details
-router.get("/details/:conversationId", (req, res) => {
+router.get("/details/:conversationId", async (req, res) => {
   const { conversationId } = req.params;
-
-  const query = `SELECT * FROM conversations WHERE id = ?`;
-
-  db.query(query, [conversationId], (err, results) => {
-    if (err) {
-      console.error("❌ Error fetching conversation details:", err);
-      return res.status(500).json({ message: "Error fetching conversation details", error: err.message });
-    }
-    res.json(results[0] || {});
-  });
+  try {
+    const { data, error } = await supabase.from("conversations").select("*").eq("id", conversationId).maybeSingle();
+    if (error) return res.status(500).json({ message: "Error fetching conversation details", error: error.message });
+    return res.json(data || {});
+  } catch (err) {
+    return res.status(500).json({ message: "Server error", error: err.message });
+  }
 });
 
 // UPDATE conversation status
-router.put("/status/:conversationId", (req, res) => {
+router.put("/status/:conversationId", async (req, res) => {
   const { conversationId } = req.params;
   const { status } = req.body;
+  if (!status) return res.status(400).json({ message: "Missing status" });
 
-  if (!status) {
-    return res.status(400).json({ message: "Missing status" });
+  try {
+    const { error } = await supabase.from("conversations").update({ status }).eq("id", conversationId);
+    if (error) return res.status(500).json({ message: "Error updating status", error: error.message });
+    return res.json({ success: true, message: "Status updated successfully" });
+  } catch (err) {
+    return res.status(500).json({ message: "Server error", error: err.message });
   }
-
-  const query = `UPDATE conversations SET status = ? WHERE id = ?`;
-
-  db.query(query, [status, conversationId], (err) => {
-    if (err) {
-      console.error("❌ Error updating status:", err);
-      return res.status(500).json({ message: "Error updating status", error: err.message });
-    }
-    res.json({ success: true, message: "Status updated successfully" });
-  });
 });
 
 // Backward compatible status update endpoint used by frontend/messages.html
-router.put("/status", (req, res) => {
+router.put("/status", async (req, res) => {
   const { conversationId, status } = req.body;
   if (!conversationId || !status) {
     return res.status(400).json({ message: "conversationId and status are required" });
   }
-
-  const query = `UPDATE conversations SET status = ? WHERE id = ?`;
-  db.query(query, [status, conversationId], (err) => {
-    if (err) {
-      return res.status(500).json({ message: "Error updating status", error: err.message });
-    }
+  try {
+    const { error } = await supabase.from("conversations").update({ status }).eq("id", conversationId);
+    if (error) return res.status(500).json({ message: "Error updating status", error: error.message });
     return res.json({ success: true, message: "Status updated successfully" });
-  });
+  } catch (err) {
+    return res.status(500).json({ message: "Server error", error: err.message });
+  }
 });
 
 module.exports = router;

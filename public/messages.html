@@ -348,6 +348,7 @@
   </div>
 
   <script>
+    const API_ORIGIN = "https://cloche-backend.onrender.com";
     let currentConversationId = null;
     let allConversations = [];
     let currentFilter = 'active';
@@ -477,7 +478,7 @@
       if (!boutiqueId) return;
 
       try {
-        const res = await fetch(`/api/messages/conversations/${boutiqueId}`);
+        const res = await fetch(`${API_ORIGIN}/api/messages/conversations/${boutiqueId}`);
         if (!res.ok) throw new Error("Failed to fetch conversations");
 
         const newConversations = await res.json();
@@ -605,7 +606,7 @@
       if (!confirm("Are you sure you want to archive this conversation?")) return;
 
       try {
-        const res = await fetch(`/api/messages/status`, {
+        const res = await fetch(`${API_ORIGIN}/api/messages/status`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -637,7 +638,7 @@
     // Load messages for a conversation
     async function loadMessages(conversationId) {
       try {
-        const res = await fetch(`/api/messages/conversation/${conversationId}`);
+        const res = await fetch(`${API_ORIGIN}/api/messages/conversation/${conversationId}`);
         if (!res.ok) throw new Error("Failed to fetch messages");
 
         const messages = await res.json();
@@ -702,7 +703,7 @@
       if (!messageText || !currentConversationId) return;
 
       try {
-        const res = await fetch(`/api/messages/send`, {
+        const res = await fetch(`${API_ORIGIN}/api/messages/send`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
