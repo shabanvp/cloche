@@ -4,6 +4,7 @@ const multer = require("multer");
 const path = require("path");
 const router = express.Router();
 const db = require("./db");
+const supabase = require("./supabase");
 
 const showcaseStorage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, "uploads/"),
@@ -62,44 +63,36 @@ router.post("/signup", async (req, res) => {
   }
 
   /* ================= USER SIGNUP ================= */
- // REMOVE: const db = require("./db");
-const supabase = require("./supabase");
+  if (account_type === "user") {
+    const { name, email, password } = req.body;
 
-router.post("/signup", async (req, res) => {
-  const { account_type, name, email, password } = req.body;
-
-  if (account_type !== "user") {
-    return res.status(400).json({ message: "Invalid account type" });
-  }
-
-  if (!name || !email || !password) {
-    return res.status(400).json({ message: "All fields required" });
-  }
-
-  try {
-    const passwordHash = await bcrypt.hash(password, 10);
-
-    const { error } = await supabase
-      .from("users")
-      .insert([{ name, email, password_hash: passwordHash }]);
-
-    if (error) {
-      if (error.code === "23505") {
-        return res.status(409).json({ message: "User already exists" });
-      }
-      return res.status(500).json({ message: error.message });
+    if (!name || !email || !password) {
+      return res.status(400).json({ message: "All fields required" });
     }
 
-    res.status(201).json({
-      success: true,
-      role: "user",
-      message: "User account created successfully"
-    });
+    try {
+      const passwordHash = await bcrypt.hash(password, 10);
 
-  } catch (err) {
-    res.status(500).json({ message: err.message });
+      const { error } = await supabase
+        .from("users")
+        .insert([{ name, email, password_hash: passwordHash }]);
+
+      if (error) {
+        if (error.code === "23505") {
+          return res.status(409).json({ message: "User already exists" });
+        }
+        return res.status(500).json({ message: error.message });
+      }
+
+      return res.status(201).json({
+        success: true,
+        role: "user",
+        message: "User account created successfully"
+      });
+    } catch (err) {
+      return res.status(500).json({ message: err.message });
+    }
   }
-});
 
 
   /* ================= PARTNER SIGNUP ================= */
@@ -703,5 +696,4 @@ router.put("/user/:userId", (req, res) => {
   });
 });
 module.exports = router;
-
 
