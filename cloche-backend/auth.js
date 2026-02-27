@@ -62,65 +62,44 @@ router.post("/signup", async (req, res) => {
   }
 
   /* ================= USER SIGNUP ================= */
-  if (account_type === "user") {
-  const { name, email, password } = req.body;
+ // REMOVE: const db = require("./db");
+const supabase = require("./supabase");
+
+router.post("/signup", async (req, res) => {
+  const { account_type, name, email, password } = req.body;
+
+  if (account_type !== "user") {
+    return res.status(400).json({ message: "Invalid account type" });
+  }
 
   if (!name || !email || !password) {
-    return res.status(400).json({
-      message: "Name, email and password are required"
-    });
+    return res.status(400).json({ message: "All fields required" });
   }
 
-  if (!email.toLowerCase().endsWith("@gmail.com")) {
-    return res.status(400).json({
-      message: "Only Gmail addresses are allowed"
+  try {
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    const { error } = await supabase
+      .from("users")
+      .insert([{ name, email, password_hash: passwordHash }]);
+
+    if (error) {
+      if (error.code === "23505") {
+        return res.status(409).json({ message: "User already exists" });
+      }
+      return res.status(500).json({ message: error.message });
+    }
+
+    res.status(201).json({
+      success: true,
+      role: "user",
+      message: "User account created successfully"
     });
+
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
-
-  ensureUsersTable(async (tableErr) => {
-    if (tableErr) {
-      console.error("USERS TABLE ERROR:", tableErr);
-      return res.status(500).json({ message: "Database setup error" });
-    }
-
-    try {
-      const passwordHash = await bcrypt.hash(password, 10);
-
-      const query = `
-      INSERT INTO users (name, email, password_hash)
-      VALUES (?, ?, ?)
-    `;
-
-      db.query(query, [name, email, passwordHash], (err, result) => {
-        if (err) {
-          console.error("USER SIGNUP ERROR:", err); // 🔥 IMPORTANT
-          if (err.code === "ER_DUP_ENTRY") {
-            return res.status(409).json({
-              message: "User already exists"
-            });
-          }
-          return res.status(500).json({
-            message: "Database error"
-          });
-        }
-
-        return res.status(201).json({
-          success: true,
-          role: "user",
-          userId: result.insertId,
-          name,
-          email,
-          message: "User account created successfully"
-        });
-      });
-    } catch (err) {
-      console.error("BCRYPT ERROR:", err);
-      return res.status(500).json({ message: "Server error" });
-    }
-  });
-
-  return; // ⛔ VERY IMPORTANT
-}
+});
 
 
   /* ================= PARTNER SIGNUP ================= */
