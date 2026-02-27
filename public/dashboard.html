@@ -346,6 +346,7 @@
     </main>
   </div>
   <script>
+    const API_ORIGIN = "https://cloche-backend.onrender.com";
     // Plan Configuration
     const planConfig = {
       "basic": {
@@ -478,7 +479,7 @@
       if (!grid) return;
 
       try {
-        const res = await fetch(`/api/products/boutique/${boutiqueId}`);
+        const res = await fetch(`${API_ORIGIN}/api/products/boutique/${boutiqueId}`);
         const data = await res.json();
         if (!res.ok) throw new Error(data.message || "Failed to load products");
         renderDashboardProducts(Array.isArray(data) ? data : []);
@@ -502,9 +503,7 @@
       }
 
       try {
-        const res = await fetch(
-          `/api/auth/dashboard/${boutiqueId}`
-        );
+        const res = await fetch(`${API_ORIGIN}/api/auth/dashboard/${boutiqueId}`);
 
         if (!res.ok) throw new Error("API error");
 
@@ -548,7 +547,7 @@
       }
 
       try {
-        const leadsRes = await fetch(`/api/leads/list/${boutiqueId}`);
+        const leadsRes = await fetch(`${API_ORIGIN}/api/leads/list/${boutiqueId}`);
         if (leadsRes.ok) {
           const leads = await leadsRes.json();
           const recentLeads = leads.slice(0, 3); // Top 3

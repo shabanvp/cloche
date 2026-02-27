@@ -618,50 +618,70 @@ router.get("/boutiques", async (req, res) => {
 
 
 /* ================= DASHBOARD ================= */
-router.get("/dashboard/:boutiqueId", (req, res) => {
+router.get("/dashboard/:boutiqueId", async (req, res) => {
   const { boutiqueId } = req.params;
   console.log(`[Dashboard] Request received for boutiqueId: ${boutiqueId}`);
 
-  const query = `
-    SELECT
-      b.boutique_name,
-      b.owner_name,
-      COALESCE(NULLIF(b.plan, ''), 'Basic') AS plan,
-      (SELECT COUNT(*) FROM leads l WHERE l.boutique_id = b.id) AS totalLeads,
-      (
-        SELECT COUNT(*)
-        FROM messages m
-        INNER JOIN conversations c ON c.id = m.conversation_id
-        WHERE c.boutique_id = b.id AND m.sender_type = 'boutique'
-      ) AS totalMessages,
-      (SELECT COUNT(*) FROM products p WHERE p.boutique_id = b.id) AS totalProducts
-    FROM boutiques b
-    WHERE b.id = ?
-    LIMIT 1
-  `;
+  try {
+    const { data: boutique, error: boutiqueError } = await supabase
+      .from("boutiques")
+      .select("id, boutique_name, owner_name, plan")
+      .eq("id", boutiqueId)
+      .maybeSingle();
 
-  db.query(query, [boutiqueId], (err, rows) => {
-    if (err) {
-      console.error("[Dashboard] Database error:", err);
-      return res.status(500).json({ message: "DB error", error: err.message });
+    if (boutiqueError) {
+      console.error("[Dashboard] Boutique query error:", boutiqueError);
+      return res.status(500).json({ message: "DB error", error: boutiqueError.message });
     }
 
-    if (!rows.length) {
+    if (!boutique) {
       console.warn(`[Dashboard] Boutique NOT found for ID: ${boutiqueId}`);
       return res.status(404).json({ message: "Boutique not found" });
     }
 
-    console.log("[Dashboard] Data found:", rows[0]);
-    res.json({
-      boutiqueName: rows[0].boutique_name,
-      ownerName: rows[0].owner_name,
-      totalLeads: rows[0].totalLeads,
-      leadsUsed: rows[0].totalLeads,
-      messagesUsed: rows[0].totalMessages,
-      productsUsed: rows[0].totalProducts,
-      plan: rows[0].plan
+    let totalLeads = 0;
+    let totalMessages = 0;
+    let totalProducts = 0;
+
+    const { count: leadsCount, error: leadsError } = await supabase
+      .from("leads")
+      .select("*", { count: "exact", head: true })
+      .eq("boutique_id", boutiqueId);
+    if (!leadsError) totalLeads = Number(leadsCount || 0);
+
+    const { count: productsCount, error: productsError } = await supabase
+      .from("products")
+      .select("*", { count: "exact", head: true })
+      .eq("boutique_id", boutiqueId);
+    if (!productsError) totalProducts = Number(productsCount || 0);
+
+    const { data: conversations, error: convError } = await supabase
+      .from("conversations")
+      .select("id")
+      .eq("boutique_id", boutiqueId);
+    if (!convError && Array.isArray(conversations) && conversations.length) {
+      const ids = conversations.map((c) => c.id);
+      const { count: msgCount, error: msgError } = await supabase
+        .from("messages")
+        .select("*", { count: "exact", head: true })
+        .in("conversation_id", ids)
+        .eq("sender_type", "boutique");
+      if (!msgError) totalMessages = Number(msgCount || 0);
+    }
+
+    return res.json({
+      boutiqueName: boutique.boutique_name,
+      ownerName: boutique.owner_name,
+      totalLeads,
+      leadsUsed: totalLeads,
+      messagesUsed: totalMessages,
+      productsUsed: totalProducts,
+      plan: boutique.plan || "Basic"
     });
-  });
+  } catch (err) {
+    console.error("[Dashboard] Unexpected error:", err);
+    return res.status(500).json({ message: "Server error", error: err.message });
+  }
 });
 
 router.get("/user/:userId", async (req, res) => {
