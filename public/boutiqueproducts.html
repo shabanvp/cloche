@@ -428,7 +428,8 @@
 
     <script>
       // 🔧 API Configuration - MUST BE FIRST
-      const API_BASE = `/api`;
+      const API_ORIGIN = "https://cloche-backend.onrender.com";
+      const API_BASE = `${API_ORIGIN}/api`;
 
       // Plan Configuration
       const planConfig = {
@@ -1023,10 +1024,17 @@
         console.log("=== FETCHING PRODUCTS ===");
         console.log("BoutiqueId:", boutiqueId);
         console.log("BoutiqueId type:", typeof boutiqueId);
+        const filterEl = document.getElementById('allFilter');
 
         if (!boutiqueId) {
-          console.error("❌ BoutiqueId is required!");
-          alert("Error: No boutique ID found. Please log in again.");
+          console.error("BoutiqueId is required");
+          if (filterEl) {
+            filterEl.textContent = "Session Missing";
+          }
+          const gridMissing = document.getElementById('productGrid');
+          if (gridMissing) {
+            gridMissing.innerHTML = `<div class="col-span-full glass-card rounded-xl p-8 text-center text-red-400 text-sm">Session expired. Please login again.</div>`;
+          }
           return;
         }
 
@@ -1035,7 +1043,6 @@
         console.log("API_BASE:", API_BASE);
 
         // Show loading state
-        const filterEl = document.getElementById('allFilter');
         if (filterEl) {
           filterEl.textContent = 'Loading...';
         }
@@ -1087,7 +1094,10 @@
               filterEl.textContent = 'Error Loading';
             }
 
-            alert(`Failed to load products: ${err.message}\n\nPlease check:\n1. Server is running on port 5001\n2. You are logged in\n3. Browser console for details`);
+            const grid = document.getElementById('productGrid');
+            if (grid) {
+              grid.innerHTML = `<div class="col-span-full glass-card rounded-xl p-8 text-center text-red-400 text-sm">Failed to load products. Please refresh or login again.<div class="mt-2 text-xs text-slate-400">${String(err.message || "Unknown error")}</div></div>`;
+            }
           });
       }
     </script>
