@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: auth
+    env: node
+    rootDir: cloche-backend
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    plan: free
