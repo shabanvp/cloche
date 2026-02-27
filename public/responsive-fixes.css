@@ -51,6 +51,11 @@ button {
     flex: 1 1 auto;
   }
 
+  .js-responsive.has-responsive-sidebar .responsive-main > header,
+  .js-responsive.has-responsive-sidebar .responsive-main > div > header {
+    padding-left: 68px !important;
+  }
+
   aside.w-72[data-responsive-sidebar="true"] {
     position: fixed !important;
     top: 0;
@@ -87,7 +92,7 @@ button {
   .responsive-sidebar-toggle {
     position: fixed;
     left: 12px;
-    top: 12px;
+    top: 14px;
     z-index: 80;
     width: 40px;
     height: 40px;
@@ -100,6 +105,182 @@ button {
     justify-content: center;
     font-size: 20px;
     line-height: 1;
+  }
+
+  header {
+    min-width: 0;
+  }
+
+  header .flex.items-center.gap-4,
+  header .flex.items-center.gap-6 {
+    flex-wrap: wrap;
+    min-width: 0;
+  }
+
+  .responsive-main h1,
+  .responsive-main h2 {
+    word-break: break-word;
+    overflow-wrap: anywhere;
+  }
+
+  section h1 {
+    font-size: clamp(2rem, 11vw, 3.2rem) !important;
+    line-height: 1.08 !important;
+  }
+
+  section h2 {
+    font-size: clamp(0.95rem, 4.8vw, 1.25rem) !important;
+    line-height: 1.25 !important;
+  }
+
+  #clearFilters {
+    margin-left: auto;
+  }
+
+  #filterAll,
+  #filterStatus,
+  #filterCategory {
+    min-height: 40px;
+  }
+
+  .custom-scrollbar {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Generic spacing tuned for sidebar-drawer pages */
+  .js-responsive.has-responsive-sidebar main > header,
+  .js-responsive.has-responsive-sidebar .responsive-main > header {
+    height: auto !important;
+    min-height: 72px;
+    padding-top: 12px !important;
+    padding-bottom: 12px !important;
+    row-gap: 10px;
+    align-items: flex-start !important;
+    flex-wrap: wrap !important;
+  }
+
+  .js-responsive.has-responsive-sidebar main > header > div,
+  .js-responsive.has-responsive-sidebar .responsive-main > header > div {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .js-responsive.has-responsive-sidebar main > header .w-72,
+  .js-responsive.has-responsive-sidebar main > header .w-64,
+  .js-responsive.has-responsive-sidebar .responsive-main > header .w-72,
+  .js-responsive.has-responsive-sidebar .responsive-main > header .w-64 {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .js-responsive.has-responsive-sidebar main > header button,
+  .js-responsive.has-responsive-sidebar .responsive-main > header button {
+    min-height: 40px;
+  }
+
+  .js-responsive.has-responsive-sidebar main > header .border-l,
+  .js-responsive.has-responsive-sidebar .responsive-main > header .border-l {
+    border-left-width: 0 !important;
+    padding-left: 0 !important;
+  }
+
+  /* Dashboard specific */
+  .js-responsive.has-responsive-sidebar .grid.grid-cols-1.md\:grid-cols-3 {
+    grid-template-columns: 1fr !important;
+  }
+
+  .js-responsive.has-responsive-sidebar .px-8,
+  .js-responsive.has-responsive-sidebar .px-10 {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+
+  .js-responsive.has-responsive-sidebar .lg\:w-80 {
+    width: 100% !important;
+  }
+
+  /* Lead specific */
+  #searchInput {
+    max-width: 100%;
+  }
+
+  #clearFilters {
+    width: auto;
+    white-space: nowrap;
+  }
+
+  #paginationControls {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  #paginationControls > * {
+    width: 100%;
+  }
+
+  #paginationControls > div {
+    display: flex;
+    justify-content: flex-start;
+  }
+
+  /* Products specific */
+  .js-responsive.has-responsive-sidebar #productGrid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+
+  .js-responsive.has-responsive-sidebar .filter-chip,
+  .js-responsive.has-responsive-sidebar #allFilter {
+    flex: 0 0 auto;
+  }
+
+  /* Landing/index navbar + hero */
+  body:not(.has-responsive-sidebar) nav.fixed .max-w-7xl {
+    height: auto !important;
+    min-height: 72px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    gap: 10px;
+  }
+
+  body:not(.has-responsive-sidebar) nav.fixed .max-w-7xl > div {
+    min-width: 0;
+  }
+
+  body:not(.has-responsive-sidebar) nav.fixed .max-w-7xl > div:first-child span:last-child {
+    font-size: 1.4rem !important;
+    letter-spacing: 0.12em !important;
+  }
+
+  body:not(.has-responsive-sidebar) #authNav {
+    font-size: 11px !important;
+    letter-spacing: 0.08em !important;
+    max-width: 84px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  body:not(.has-responsive-sidebar) #profileIconLink {
+    width: 38px !important;
+    height: 38px !important;
+  }
+
+  body:not(.has-responsive-sidebar) section h1.text-7xl {
+    font-size: clamp(2.2rem, 14vw, 3rem) !important;
+    letter-spacing: 0.18em !important;
+  }
+
+  body:not(.has-responsive-sidebar) section h2.text-xl {
+    font-size: clamp(0.9rem, 4.2vw, 1.05rem) !important;
+    letter-spacing: 0.24em !important;
+  }
+
+  body:not(.has-responsive-sidebar) #heroConsultBtn,
+  body:not(.has-responsive-sidebar) #heroListBoutiqueBtn {
+    width: min(92vw, 360px);
+    padding-left: 16px !important;
+    padding-right: 16px !important;
   }
 
   .responsive-topmenu {

@@ -7,6 +7,7 @@
     const sidebar = document.querySelector("aside.w-72");
     if (!sidebar) return;
 
+    document.body.classList.add("has-responsive-sidebar");
     sidebar.setAttribute("data-responsive-sidebar", "true");
 
     const main = document.querySelector("main");
