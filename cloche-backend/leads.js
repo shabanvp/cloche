@@ -1,28 +1,31 @@
 const express = require("express");
 const router = express.Router();
-const db = require("./db");
+const supabase = require("./supabase");
 
 /* ================= GET LEADS ================= */
-router.get("/list/:boutiqueId", (req, res) => {
+router.get("/list/:boutiqueId", async (req, res) => {
   const { boutiqueId } = req.params;
   console.log(`[Leads] List request for boutiqueId: ${boutiqueId}`);
 
-  const query = `
-    SELECT * 
-    FROM leads 
-    WHERE boutique_id = ? 
-    ORDER BY created_at DESC
-  `;
+  try {
+    const { data, error } = await supabase
+      .from("leads")
+      .select("*")
+      .eq("boutique_id", boutiqueId)
+      .order("created_at", { ascending: false });
 
-  db.query(query, [boutiqueId], (err, rows) => {
-    if (err) {
-      console.error("[Leads] Database error:", err);
-      // Wait, let's also check if 'leads' table exists or if 'created_at' column exists
-      return res.status(500).json({ message: "Database error", error: err.message });
+    if (error) {
+      console.error("[Leads] Supabase error:", error);
+      return res.status(500).json({ message: "Database error", error: error.message });
     }
+
+    const rows = Array.isArray(data) ? data : [];
     console.log(`[Leads] Found ${rows.length} leads`);
-    res.json(rows);
-  });
+    return res.json(rows);
+  } catch (err) {
+    console.error("[Leads] Unexpected error:", err);
+    return res.status(500).json({ message: "Server error", error: err.message });
+  }
 });
 
 module.exports = router;

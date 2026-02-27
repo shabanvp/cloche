@@ -213,9 +213,9 @@
             <span class="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full border-2 border-background-dark"></span>
           </button>
           <div class="h-8 w-[1px] bg-accent-gold/20 mx-2"></div>
-          <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border border-primary/30"
-            data-alt="Profile picture of a boutique owner"
-            style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuASvBK3lF9ciUtPxeWAw_7i3PiCWd2Qw7SwTzEIjAllYUB1InZSncyGcEWZq4dkclD2viRm_0qbNMDwB9HMNvs9dxxOvtbUahqkSmKfMygYN-9juUAk5qFVZxGdDkptT0xZ9COAa8c10xXaQbaY1HJSy03nIpP2j23UObQa0EHzR6ObUKqrdtTZOfSrHDb9fPX3pwIjhLAowS6CxF1ey-hiJff7u2Jc2Ooh1kb441k_O22kISGaVU345ZsgrU5hAx8LIojLX2fgVm4");'>
+          <div id="topAvatar"
+            class="rounded-full size-10 border border-primary/30 bg-primary/90 text-background-dark flex items-center justify-center font-display font-bold text-sm">
+            S
           </div>
         </div>
       </header>
@@ -339,6 +339,7 @@
   </div>
 
   <script>
+    const API_ORIGIN = "https://cloche-backend.onrender.com";
     let allLeads = [];
     let currentPage = 1;
     const itemsPerPage = 8;
@@ -498,18 +499,21 @@
       const boutiqueId = localStorage.getItem("boutiqueId");
       const ownerName = localStorage.getItem("ownerName") || "Guest";
       const boutiqueName = localStorage.getItem("boutiqueName") || "My Boutique";
+      const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
       
-      if (!boutiqueId) {
+      if (!boutiqueId || !isLoggedIn) {
         window.location.href = "index.html";
         return;
       }
 
       // 👤 Populate Sidebar Profile
       const avatarCircle = document.getElementById("avatarCircle");
+      const topAvatar = document.getElementById("topAvatar");
       const ownerNameEl = document.getElementById("ownerName");
       const sidebarBoutiqueName = document.getElementById("sidebarBoutiqueName");
       
       if (avatarCircle) avatarCircle.textContent = ownerName.charAt(0).toUpperCase();
+      if (topAvatar) topAvatar.textContent = ownerName.charAt(0).toUpperCase();
       if (ownerNameEl) ownerNameEl.textContent = ownerName;
       if (sidebarBoutiqueName) sidebarBoutiqueName.textContent = boutiqueName;
 
@@ -547,7 +551,7 @@
 
       // 🚀 Fetch Data
       try {
-        const res = await fetch(`/api/leads/list/${boutiqueId}`);
+        const res = await fetch(`${API_ORIGIN}/api/leads/list/${boutiqueId}`);
         if (!res.ok) throw new Error("Failed to fetch leads");
 
         const leads = await res.json();
