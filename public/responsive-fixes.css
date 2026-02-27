@@ -1,43 +1,22 @@
-/* Global responsive baseline */
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
+/* =========================================================
+   CLOCHE – Mobile Responsive Fixes
+   Applied globally via <link> in every dashboard page
+   ========================================================= */
 
-html,
-body {
-  max-width: 100%;
-  overflow-x: hidden;
-}
+/* ---------- Reset baseline ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+html, body { max-width: 100%; overflow-x: hidden; }
+img, video, canvas, svg { max-width: 100%; height: auto; }
 
-img,
-video,
-canvas,
-svg {
-  max-width: 100%;
-  height: auto;
-}
-
-textarea,
-input,
-select,
-button {
-  max-width: 100%;
-}
-
-/* Mobile/tablet app layout fixes */
+/* =========================================================
+   SIDEBAR DRAWER  (mobile + tablet ≤ 1024 px)
+   ========================================================= */
 @media (max-width: 1024px) {
-  body {
-    min-height: 100dvh;
-  }
 
-  input,
-  select,
-  textarea {
-    font-size: 16px;
-  }
+  /* Prevent inputs from zooming on iOS */
+  input, select, textarea { font-size: 16px !important; }
 
+  /* Make scrollable tables usable */
   table {
     display: block;
     width: 100%;
@@ -45,237 +24,400 @@ button {
     -webkit-overflow-scrolling: touch;
   }
 
-  .responsive-main {
-    width: 100% !important;
-    min-width: 0;
-    flex: 1 1 auto;
-  }
-
-  .js-responsive.has-responsive-sidebar .responsive-main > header,
-  .js-responsive.has-responsive-sidebar .responsive-main > div > header {
-    padding-left: 68px !important;
-  }
-
+  /* ---- Sidebar becomes a hidden off-canvas drawer ---- */
   aside.w-72[data-responsive-sidebar="true"] {
     position: fixed !important;
     top: 0;
     left: 0;
     height: 100dvh !important;
-    width: min(82vw, 320px) !important;
-    max-width: 320px;
+    width: min(82vw, 300px) !important;
+    max-width: 300px;
     z-index: 70;
-    transform: translateX(-105%);
-    transition: transform 0.25s ease;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.45);
+    transform: translateX(-110%);
+    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 6px 0 40px rgba(0, 0, 0, 0.55);
   }
 
   .responsive-sidebar-open aside.w-72[data-responsive-sidebar="true"] {
     transform: translateX(0);
   }
 
+  /* ---- Backdrop ---- */
   .responsive-backdrop {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(1px);
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(2px);
     z-index: 65;
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.2s ease;
+    transition: opacity 0.22s ease;
   }
-
   .responsive-sidebar-open .responsive-backdrop {
     opacity: 1;
     pointer-events: auto;
   }
 
+  /* ---- Hamburger toggle button ---- */
   .responsive-sidebar-toggle {
     position: fixed;
     left: 12px;
     top: 14px;
     z-index: 80;
-    width: 40px;
-    height: 40px;
+    width: 38px;
+    height: 38px;
     border-radius: 10px;
-    border: 1px solid rgba(193, 166, 113, 0.4);
-    background: rgba(13, 13, 13, 0.88);
+    border: 1px solid rgba(193, 166, 113, 0.45);
+    background: rgba(13, 13, 13, 0.92);
     color: #c1a671;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 20px;
+    font-size: 18px;
     line-height: 1;
+    cursor: pointer;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.4);
   }
 
-  header {
+  /* ---- Main content area fills the full screen ---- */
+  .responsive-main {
+    width: 100% !important;
+    min-width: 0 !important;
+    flex: 1 1 auto;
+    overflow-x: hidden;
+  }
+
+  /* =========================================================
+     DASHBOARD PAGE – header + grid + chart
+     ========================================================= */
+
+  /* Header: stack title + buttons vertically */
+  .responsive-main > header,
+  .js-responsive main > header {
+    height: auto !important;
+    min-height: 60px;
+    padding: 52px 16px 14px !important;   /* top room for hamburger */
+    flex-wrap: wrap !important;
+    row-gap: 10px;
+    align-items: flex-start !important;
+  }
+
+  .responsive-main > header > div,
+  .js-responsive main > header > div {
     min-width: 0;
+    flex-shrink: 1;
   }
 
-  header .flex.items-center.gap-4,
-  header .flex.items-center.gap-6 {
-    flex-wrap: wrap;
-    min-width: 0;
-  }
-
-  .responsive-main h1,
-  .responsive-main h2 {
+  /* Dashboard heading font size */
+  .responsive-main h2.text-4xl,
+  .js-responsive main h2.text-4xl {
+    font-size: clamp(1.5rem, 7vw, 2.25rem) !important;
+    line-height: 1.15 !important;
     word-break: break-word;
-    overflow-wrap: anywhere;
   }
 
+  /* Dashboard action buttons – stack to full row */
+  .responsive-main > header .flex.gap-4,
+  .js-responsive main > header .flex.gap-4 {
+    flex-wrap: wrap;
+    width: 100%;
+    gap: 8px !important;
+  }
+  .responsive-main > header .flex.gap-4 button,
+  .js-responsive main > header .flex.gap-4 button {
+    flex: 1 1 auto;
+    min-width: 0;
+    justify-content: center;
+    font-size: 12px !important;
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+
+  /* KPI grid – always single column on mobile */
+  .grid.grid-cols-1.md\:grid-cols-3 {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Reduce padding in main scrollable area */
+  .responsive-main .px-8, main .px-8 {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+  .responsive-main .px-10, main .px-10 {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+  .responsive-main .p-8, main .p-8 {
+    padding: 16px !important;
+  }
+  .responsive-main .p-10, main .p-10 {
+    padding: 16px !important;
+  }
+
+  /* Chart side widget – full width on mobile */
+  .lg\:w-80 { width: 100% !important; }
+
+  /* =========================================================
+     LEAD PAGE – header + filter bar + table
+     ========================================================= */
+
+  /* Lead header: compact it */
+  header.h-20 {
+    height: auto !important;
+    min-height: 60px;
+    padding: 52px 16px 12px !important;
+    flex-wrap: wrap !important;
+    gap: 8px;
+    align-items: flex-start !important;
+  }
+
+  /* Lead title + search – stack vertically */
+  header.h-20 .flex.items-center.gap-6 {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    width: 100% !important;
+    gap: 8px !important;
+  }
+  header.h-20 .flex.items-center.gap-6 .relative.w-72 {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* Avatar in lead header – hide on very small screens to save space */
+  header.h-20 .flex.items-center.gap-4 {
+    position: absolute;
+    top: 14px;
+    right: 62px;  /* don't overlap hamburger */
+    margin: 0;
+  }
+
+  /* Lead page inner padding */
+  .flex-1.overflow-y-auto.p-8 {
+    padding: 16px !important;
+  }
+
+  /* Filter bar: horizontal scroll instead of wrap */
+  .flex.items-center.justify-between.mb-6 {
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+  }
+  .flex.items-center.justify-between.mb-6 > .flex.gap-2 {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    max-width: calc(100vw - 120px);
+    padding-bottom: 4px;
+  }
+  #clearFilters {
+    flex-shrink: 0;
+  }
+
+  /* Lead table – clearly visible but scrollable */
+  .glass-panel.rounded-xl.overflow-hidden {
+    overflow-x: auto !important;
+  }
+
+  /* Pagination */
+  #paginationControls {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 12px 16px;
+  }
+  #paginationControls > * {
+    width: auto;
+  }
+
+  /* =========================================================
+     BOUTIQUE PRODUCTS PAGE – header + filter chips + grid
+     ========================================================= */
+
+  /* Products header */
+  header.h-20.border-b.border-primary\/10 {
+    height: auto !important;
+    padding: 52px 16px 12px !important;
+    flex-wrap: wrap !important;
+    gap: 8px;
+    align-items: flex-start !important;
+  }
+
+  /* Left side of products header */
+  header.h-20.border-b.border-primary\/10 > div:first-child {
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* Right side of products header – wrap buttons */
+  header.h-20.border-b.border-primary\/10 > div:last-child,
+  header.h-20.border-b.border-primary\/10 .flex.items-center.gap-6 {
+    width: 100% !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+    border-left: none !important;
+    padding-left: 0 !important;
+  }
+
+  /* Hide search bar in products header on mobile (it's already in filters) */
+  header .hidden.lg\:block { display: none !important; }
+
+  /* Add product button – full width on mobile */
+  header button[onclick*="toggleModal"] {
+    flex: 1;
+    justify-content: center;
+    font-size: 12px !important;
+  }
+
+  /* Avatar circle in products header */
+  #headerAvatarCircle {
+    display: none;  /* hide avatar in header, user can open sidebar for profile */
+  }
+
+  /* Product grid – 2 columns (not 1) looks better on mobile */
+  #productGrid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px !important;
+  }
+
+  /* Product card font shrink */
+  #productGrid .p-6 {
+    padding: 12px !important;
+  }
+  #productGrid h4 {
+    font-size: 0.85rem !important;
+  }
+
+  /* Category filter chips – horizontal scroll */
+  .flex.gap-4.mb-8.overflow-x-auto {
+    flex-wrap: nowrap !important;
+    gap: 8px !important;
+    padding-bottom: 6px;
+  }
+
+  /* =========================================================
+     MESSAGES PAGE – single pane on mobile
+     ========================================================= */
+
+  /* Messages header */
+  header.h-auto.border-b {
+    padding: 52px 16px 14px !important;
+    flex-wrap: wrap !important;
+    gap: 8px;
+    align-items: flex-start !important;
+  }
+  header.h-auto.border-b h2 {
+    font-size: clamp(1.3rem, 6vw, 2rem) !important;
+    word-break: break-word;
+  }
+  header.h-auto.border-b .flex.items-center.gap-6 {
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  header.h-auto.border-b .flex.items-center.gap-6 > div:first-child {
+    flex: 1;
+  }
+  header.h-auto.border-b input {
+    width: 100% !important;
+    min-width: 0;
+  }
+
+  /* Messages layout: show only ONE pane at a time */
+  .flex-1.flex.overflow-hidden {
+    position: relative;
+  }
+
+  /* Conversation list pane – full width by default */
+  .flex-1.flex.overflow-hidden > section:first-child {
+    width: 100% !important;
+    min-width: 0 !important;
+    flex-shrink: 0;
+    z-index: 2;
+  }
+
+  /* Chat pane – slides in from right when a conversation is open */
+  .flex-1.flex.overflow-hidden > section:last-child {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    z-index: 3;
+    transform: translateX(100%);
+    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+    background: #0d0d0d;
+  }
+  .flex-1.flex.overflow-hidden.chat-active > section:last-child {
+    transform: translateX(0);
+  }
+
+  /* Back button in messages chat header */
+  #mobileChatBack {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid rgba(193,166,113,0.3);
+    color: #c1a671;
+    background: transparent;
+    cursor: pointer;
+    flex-shrink: 0;
+    font-size: 20px;
+    margin-right: 8px;
+  }
+
+  /* Customer context sidebar in messages – full-screen overlay on mobile */
+  #customerSidebar {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100% !important;
+    z-index: 100;
+    transform: translateX(100%);
+    transition: transform 0.28s ease;
+  }
+  #customerSidebar:not(.hidden) {
+    transform: translateX(0) !important;
+    display: flex !important;
+  }
+
+  /* =========================================================
+     GENERAL UTILITY
+     ========================================================= */
+
+  /* Section hero fonts */
   section h1 {
     font-size: clamp(2rem, 11vw, 3.2rem) !important;
     line-height: 1.08 !important;
   }
-
   section h2 {
     font-size: clamp(0.95rem, 4.8vw, 1.25rem) !important;
     line-height: 1.25 !important;
   }
 
-  #clearFilters {
-    margin-left: auto;
-  }
-
-  #filterAll,
-  #filterStatus,
-  #filterCategory {
-    min-height: 40px;
-  }
-
-  .custom-scrollbar {
-    -webkit-overflow-scrolling: touch;
-  }
-
-  /* Generic spacing tuned for sidebar-drawer pages */
-  .js-responsive.has-responsive-sidebar main > header,
-  .js-responsive.has-responsive-sidebar .responsive-main > header {
-    height: auto !important;
-    min-height: 72px;
-    padding-top: 12px !important;
-    padding-bottom: 12px !important;
-    row-gap: 10px;
-    align-items: flex-start !important;
-    flex-wrap: wrap !important;
-  }
-
-  .js-responsive.has-responsive-sidebar main > header > div,
-  .js-responsive.has-responsive-sidebar .responsive-main > header > div {
-    min-width: 0;
-    width: 100%;
-  }
-
-  .js-responsive.has-responsive-sidebar main > header .w-72,
-  .js-responsive.has-responsive-sidebar main > header .w-64,
-  .js-responsive.has-responsive-sidebar .responsive-main > header .w-72,
-  .js-responsive.has-responsive-sidebar .responsive-main > header .w-64 {
-    width: 100% !important;
-    max-width: 100% !important;
-  }
-
-  .js-responsive.has-responsive-sidebar main > header button,
-  .js-responsive.has-responsive-sidebar .responsive-main > header button {
-    min-height: 40px;
-  }
-
-  .js-responsive.has-responsive-sidebar main > header .border-l,
-  .js-responsive.has-responsive-sidebar .responsive-main > header .border-l {
-    border-left-width: 0 !important;
-    padding-left: 0 !important;
-  }
-
-  /* Dashboard specific */
-  .js-responsive.has-responsive-sidebar .grid.grid-cols-1.md\:grid-cols-3 {
-    grid-template-columns: 1fr !important;
-  }
-
-  .js-responsive.has-responsive-sidebar .px-8,
-  .js-responsive.has-responsive-sidebar .px-10 {
-    padding-left: 16px !important;
-    padding-right: 16px !important;
-  }
-
-  .js-responsive.has-responsive-sidebar .lg\:w-80 {
-    width: 100% !important;
-  }
-
-  /* Lead specific */
-  #searchInput {
-    max-width: 100%;
-  }
-
-  #clearFilters {
-    width: auto;
-    white-space: nowrap;
-  }
-
-  #paginationControls {
-    flex-wrap: wrap;
-    gap: 10px;
-  }
-
-  #paginationControls > * {
-    width: 100%;
-  }
-
-  #paginationControls > div {
-    display: flex;
-    justify-content: flex-start;
-  }
-
-  /* Products specific */
-  .js-responsive.has-responsive-sidebar #productGrid {
-    grid-template-columns: 1fr !important;
-    gap: 16px !important;
-  }
-
-  .js-responsive.has-responsive-sidebar .filter-chip,
-  .js-responsive.has-responsive-sidebar #allFilter {
-    flex: 0 0 auto;
-  }
-
-  /* Landing/index navbar + hero */
+  /* Landing page navbar */
   body:not(.has-responsive-sidebar) nav.fixed .max-w-7xl {
     height: auto !important;
-    min-height: 72px;
-    padding-top: 10px;
-    padding-bottom: 10px;
+    min-height: 60px;
+    padding-top: 8px;
+    padding-bottom: 8px;
     gap: 10px;
+    flex-wrap: nowrap;
   }
-
-  body:not(.has-responsive-sidebar) nav.fixed .max-w-7xl > div {
-    min-width: 0;
-  }
-
-  body:not(.has-responsive-sidebar) nav.fixed .max-w-7xl > div:first-child span:last-child {
-    font-size: 1.4rem !important;
-    letter-spacing: 0.12em !important;
-  }
-
   body:not(.has-responsive-sidebar) #authNav {
     font-size: 11px !important;
     letter-spacing: 0.08em !important;
-    max-width: 84px;
+    max-width: 80px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-
   body:not(.has-responsive-sidebar) #profileIconLink {
-    width: 38px !important;
-    height: 38px !important;
+    width: 36px !important;
+    height: 36px !important;
   }
-
   body:not(.has-responsive-sidebar) section h1.text-7xl {
     font-size: clamp(2.2rem, 14vw, 3rem) !important;
     letter-spacing: 0.18em !important;
   }
-
-  body:not(.has-responsive-sidebar) section h2.text-xl {
-    font-size: clamp(0.9rem, 4.2vw, 1.05rem) !important;
-    letter-spacing: 0.24em !important;
-  }
-
   body:not(.has-responsive-sidebar) #heroConsultBtn,
   body:not(.has-responsive-sidebar) #heroListBoutiqueBtn {
     width: min(92vw, 360px);
@@ -283,11 +425,11 @@ button {
     padding-right: 16px !important;
   }
 
-  .responsive-topmenu {
-    position: relative;
-    display: inline-block;
-  }
+  /* Custom scrollbar touch support */
+  .custom-scrollbar { -webkit-overflow-scrolling: touch; }
 
+  /* Responsive topmenu (landing page) */
+  .responsive-topmenu { position: relative; display: inline-block; }
   .responsive-topmenu > summary {
     list-style: none;
     cursor: pointer;
@@ -299,11 +441,7 @@ button {
     letter-spacing: 0.08em;
     text-transform: uppercase;
   }
-
-  .responsive-topmenu > summary::-webkit-details-marker {
-    display: none;
-  }
-
+  .responsive-topmenu > summary::-webkit-details-marker { display: none; }
   .responsive-topmenu .responsive-topmenu-list {
     position: absolute;
     right: 0;
@@ -317,7 +455,6 @@ button {
     gap: 6px;
     z-index: 90;
   }
-
   .responsive-topmenu .responsive-topmenu-list a {
     display: block;
     padding: 7px 9px;
@@ -328,9 +465,18 @@ button {
     text-transform: uppercase;
     letter-spacing: 0.06em;
   }
-
   .responsive-topmenu .responsive-topmenu-list a:hover {
     background: rgba(193, 166, 113, 0.14);
     color: #c1a671;
+  }
+}
+
+/* =========================================================
+   Extra small (phones ≤ 480 px) tuning
+   ========================================================= */
+@media (max-width: 480px) {
+  /* Product grid → 1 column when very small */
+  #productGrid {
+    grid-template-columns: 1fr !important;
   }
 }
