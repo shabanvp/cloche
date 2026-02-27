@@ -345,35 +345,32 @@ router.post("/update-plan", (req, res) => {
 });
 
 /* ================= PROFILE ================= */
-router.get("/profile/:boutiqueId", (req, res) => {
+router.get("/profile/:boutiqueId", async (req, res) => {
   const { boutiqueId } = req.params;
 
-  const query = `
-    SELECT
-      id,
-      boutique_name,
-      owner_name,
-      email,
-      phone,
-      city,
-      COALESCE(NULLIF(plan, ''), 'Basic') AS plan
-    FROM boutiques
-    WHERE id = ?
-    LIMIT 1
-  `;
+  try {
+    const { data: boutique, error } = await supabase
+      .from("boutiques")
+      .select("id, boutique_name, owner_name, email, phone, city, plan")
+      .eq("id", boutiqueId)
+      .maybeSingle();
 
-  db.query(query, [boutiqueId], (err, rows) => {
-    if (err) {
-      return res.status(500).json({ message: "Database error", error: err.message });
+    if (error) {
+      return res.status(500).json({ message: "Database error", error: error.message });
     }
-    if (!rows.length) {
+    if (!boutique) {
       return res.status(404).json({ message: "Boutique not found" });
     }
-    return res.json(rows[0]);
-  });
+    return res.json({
+      ...boutique,
+      plan: boutique.plan || "Basic"
+    });
+  } catch (err) {
+    return res.status(500).json({ message: "Server error", error: err.message });
+  }
 });
 
-router.put("/profile/:boutiqueId", (req, res) => {
+router.put("/profile/:boutiqueId", async (req, res) => {
   const { boutiqueId } = req.params;
   const { boutique_name, owner_name, email, phone, city } = req.body;
 
@@ -389,24 +386,36 @@ router.put("/profile/:boutiqueId", (req, res) => {
     return res.status(400).json({ message: "Phone number must be exactly 10 digits" });
   }
 
-  const query = `
-    UPDATE boutiques
-    SET boutique_name = ?, owner_name = ?, email = ?, phone = ?, city = ?
-    WHERE id = ?
-  `;
+  try {
+    const { data, error } = await supabase
+      .from("boutiques")
+      .update({
+        boutique_name,
+        owner_name,
+        email: String(email).trim().toLowerCase(),
+        phone: String(phone).trim(),
+        city
+      })
+      .eq("id", boutiqueId)
+      .select("id")
+      .maybeSingle();
 
-  db.query(query, [boutique_name, owner_name, email, phone, city, boutiqueId], (err, result) => {
-    if (err) {
-      return res.status(500).json({ message: "Failed to update profile", error: err.message });
+    if (error) {
+      if (error.code === "23505") {
+        return res.status(409).json({ message: "Email or phone already in use" });
+      }
+      return res.status(500).json({ message: "Failed to update profile", error: error.message });
     }
-    if (!result.affectedRows) {
+    if (!data) {
       return res.status(404).json({ message: "Boutique not found" });
     }
     return res.json({ success: true, message: "Profile updated successfully" });
-  });
+  } catch (err) {
+    return res.status(500).json({ message: "Server error", error: err.message });
+  }
 });
 
-router.put("/profile/:boutiqueId/password", (req, res) => {
+router.put("/profile/:boutiqueId/password", async (req, res) => {
   const { boutiqueId } = req.params;
   const { currentPassword, newPassword } = req.body;
 
@@ -418,146 +427,208 @@ router.put("/profile/:boutiqueId/password", (req, res) => {
     return res.status(400).json({ message: "New password must be at least 6 characters" });
   }
 
-  const getQuery = `SELECT password_hash FROM boutiques WHERE id = ? LIMIT 1`;
-  db.query(getQuery, [boutiqueId], async (err, rows) => {
-    if (err) {
-      return res.status(500).json({ message: "Database error", error: err.message });
+  try {
+    const { data: boutique, error: getErr } = await supabase
+      .from("boutiques")
+      .select("id, password_hash, password")
+      .eq("id", boutiqueId)
+      .maybeSingle();
+
+    if (getErr) {
+      return res.status(500).json({ message: "Database error", error: getErr.message });
     }
-    if (!rows.length) {
+    if (!boutique) {
       return res.status(404).json({ message: "Boutique not found" });
     }
 
-    const matches = await bcrypt.compare(currentPassword, rows[0].password_hash);
+    let matches = false;
+    if (boutique.password_hash) {
+      matches = await bcrypt.compare(currentPassword, boutique.password_hash);
+    } else if (boutique.password) {
+      matches = String(currentPassword) === String(boutique.password);
+    }
     if (!matches) {
       return res.status(401).json({ message: "Current password is incorrect" });
     }
 
     const newHash = await bcrypt.hash(newPassword, 10);
-    const updateQuery = `UPDATE boutiques SET password_hash = ? WHERE id = ?`;
-    db.query(updateQuery, [newHash, boutiqueId], (updateErr) => {
-      if (updateErr) {
-        return res.status(500).json({ message: "Failed to update password", error: updateErr.message });
-      }
-      return res.json({ success: true, message: "Password updated successfully" });
-    });
-  });
-});
+    const { error: updateErr } = await supabase
+      .from("boutiques")
+      .update({ password_hash: newHash })
+      .eq("id", boutiqueId);
 
-router.get("/profile/:boutiqueId/showcase", (req, res) => {
-  const { boutiqueId } = req.params;
-  ensureShowcaseTable((tableErr) => {
-    if (tableErr) {
-      return res.status(500).json({ message: "Failed to prepare showcase table", error: tableErr.message });
+    if (updateErr) {
+      return res.status(500).json({ message: "Failed to update password", error: updateErr.message });
     }
 
-    const query = `
-      SELECT
-        s.boutique_id,
-        s.district,
-        s.area,
-        s.tags,
-        s.image_url,
-        s.rating,
-        b.boutique_name
-      FROM boutiques b
-      LEFT JOIN boutique_showcase s ON s.boutique_id = b.id
-      WHERE b.id = ?
-      LIMIT 1
-    `;
-
-    db.query(query, [boutiqueId], (err, rows) => {
-      if (err) return res.status(500).json({ message: "Database error", error: err.message });
-      if (!rows.length) return res.status(404).json({ message: "Boutique not found" });
-
-      const row = rows[0];
-      return res.json({
-        boutique_id: Number(boutiqueId),
-        district: row.district || "",
-        area: row.area || "",
-        tags: row.tags || "",
-        image_url: row.image_url || "",
-        rating: Number(row.rating || 5.0),
-        boutique_name: row.boutique_name || ""
-      });
-    });
-  });
+    return res.json({ success: true, message: "Password updated successfully" });
+  } catch (err) {
+    return res.status(500).json({ message: "Server error", error: err.message });
+  }
 });
 
-router.put("/profile/:boutiqueId/showcase", (req, res) => {
+router.get("/profile/:boutiqueId/showcase", async (req, res) => {
+  const { boutiqueId } = req.params;
+  try {
+    const [{ data: boutique, error: bErr }, { data: showcase, error: sErr }] = await Promise.all([
+      supabase.from("boutiques").select("id, boutique_name").eq("id", boutiqueId).maybeSingle(),
+      supabase
+        .from("boutique_showcase")
+        .select("boutique_id, district, area, tags, image_url, rating")
+        .eq("boutique_id", boutiqueId)
+        .maybeSingle()
+    ]);
+
+    if (bErr) return res.status(500).json({ message: "Database error", error: bErr.message });
+    if (sErr && sErr.code !== "PGRST116") {
+      return res.status(500).json({ message: "Database error", error: sErr.message });
+    }
+    if (!boutique) return res.status(404).json({ message: "Boutique not found" });
+
+    return res.json({
+      boutique_id: Number(boutiqueId),
+      district: showcase?.district || "",
+      area: showcase?.area || "",
+      tags: showcase?.tags || "",
+      image_url: showcase?.image_url || "",
+      rating: Number(showcase?.rating || 5.0),
+      boutique_name: boutique.boutique_name || ""
+    });
+  } catch (err) {
+    return res.status(500).json({ message: "Server error", error: err.message });
+  }
+});
+
+router.put("/profile/:boutiqueId/showcase", async (req, res) => {
   const { boutiqueId } = req.params;
   const { district, area, tags, rating } = req.body;
-
-  ensureShowcaseTable((tableErr) => {
-    if (tableErr) {
-      return res.status(500).json({ message: "Failed to prepare showcase table", error: tableErr.message });
+  try {
+    const safeRating = Number(rating) > 0 ? Number(rating) : 5.0;
+    const { data: existing, error: eErr } = await supabase
+      .from("boutique_showcase")
+      .select("boutique_id")
+      .eq("boutique_id", boutiqueId)
+      .maybeSingle();
+    if (eErr && eErr.code !== "PGRST116") {
+      return res.status(500).json({ message: "Failed to save showcase", error: eErr.message });
     }
 
-    const upsert = `
-      INSERT INTO boutique_showcase (boutique_id, district, area, tags, rating)
-      VALUES (?, ?, ?, ?, ?)
-      ON DUPLICATE KEY UPDATE
-        district = VALUES(district),
-        area = VALUES(area),
-        tags = VALUES(tags),
-        rating = VALUES(rating)
-    `;
+    let saveErr = null;
+    if (existing) {
+      const { error } = await supabase
+        .from("boutique_showcase")
+        .update({
+          district: district || null,
+          area: area || null,
+          tags: tags || null,
+          rating: safeRating
+        })
+        .eq("boutique_id", boutiqueId);
+      saveErr = error;
+    } else {
+      const { error } = await supabase.from("boutique_showcase").insert([
+        {
+          boutique_id: Number(boutiqueId),
+          district: district || null,
+          area: area || null,
+          tags: tags || null,
+          rating: safeRating
+        }
+      ]);
+      saveErr = error;
+    }
 
-    const safeRating = Number(rating) > 0 ? Number(rating) : 5.0;
-    db.query(upsert, [boutiqueId, district || null, area || null, tags || null, safeRating], (err) => {
-      if (err) return res.status(500).json({ message: "Failed to save showcase", error: err.message });
-      return res.json({ success: true, message: "Showcase updated successfully" });
-    });
-  });
+    if (saveErr) {
+      return res.status(500).json({ message: "Failed to save showcase", error: saveErr.message });
+    }
+    return res.json({ success: true, message: "Showcase updated successfully" });
+  } catch (err) {
+    return res.status(500).json({ message: "Server error", error: err.message });
+  }
 });
 
-router.post("/profile/:boutiqueId/showcase", (req, res) => {
+router.post("/profile/:boutiqueId/showcase", async (req, res) => {
   const { boutiqueId } = req.params;
   const { district, area, tags, rating } = req.body;
-
-  ensureShowcaseTable((tableErr) => {
-    if (tableErr) {
-      return res.status(500).json({ message: "Failed to prepare showcase table", error: tableErr.message });
+  try {
+    const safeRating = Number(rating) > 0 ? Number(rating) : 5.0;
+    const { data: existing, error: eErr } = await supabase
+      .from("boutique_showcase")
+      .select("boutique_id")
+      .eq("boutique_id", boutiqueId)
+      .maybeSingle();
+    if (eErr && eErr.code !== "PGRST116") {
+      return res.status(500).json({ message: "Failed to save showcase", error: eErr.message });
     }
 
-    const upsert = `
-      INSERT INTO boutique_showcase (boutique_id, district, area, tags, rating)
-      VALUES (?, ?, ?, ?, ?)
-      ON DUPLICATE KEY UPDATE
-        district = VALUES(district),
-        area = VALUES(area),
-        tags = VALUES(tags),
-        rating = VALUES(rating)
-    `;
+    let saveErr = null;
+    if (existing) {
+      const { error } = await supabase
+        .from("boutique_showcase")
+        .update({
+          district: district || null,
+          area: area || null,
+          tags: tags || null,
+          rating: safeRating
+        })
+        .eq("boutique_id", boutiqueId);
+      saveErr = error;
+    } else {
+      const { error } = await supabase.from("boutique_showcase").insert([
+        {
+          boutique_id: Number(boutiqueId),
+          district: district || null,
+          area: area || null,
+          tags: tags || null,
+          rating: safeRating
+        }
+      ]);
+      saveErr = error;
+    }
 
-    const safeRating = Number(rating) > 0 ? Number(rating) : 5.0;
-    db.query(upsert, [boutiqueId, district || null, area || null, tags || null, safeRating], (err) => {
-      if (err) return res.status(500).json({ message: "Failed to save showcase", error: err.message });
-      return res.json({ success: true, message: "Showcase updated successfully" });
-    });
-  });
+    if (saveErr) {
+      return res.status(500).json({ message: "Failed to save showcase", error: saveErr.message });
+    }
+    return res.json({ success: true, message: "Showcase updated successfully" });
+  } catch (err) {
+    return res.status(500).json({ message: "Server error", error: err.message });
+  }
 });
 
-router.post("/profile/:boutiqueId/showcase-image", showcaseUpload.single("image"), (req, res) => {
+router.post("/profile/:boutiqueId/showcase-image", showcaseUpload.single("image"), async (req, res) => {
   const { boutiqueId } = req.params;
   if (!req.file) return res.status(400).json({ message: "Image file is required" });
-
-  ensureShowcaseTable((tableErr) => {
-    if (tableErr) {
-      return res.status(500).json({ message: "Failed to prepare showcase table", error: tableErr.message });
+  try {
+    const imageUrl = `/uploads/${req.file.filename}`;
+    const { data: existing, error: eErr } = await supabase
+      .from("boutique_showcase")
+      .select("boutique_id")
+      .eq("boutique_id", boutiqueId)
+      .maybeSingle();
+    if (eErr && eErr.code !== "PGRST116") {
+      return res.status(500).json({ message: "Failed to save image", error: eErr.message });
     }
 
-    const imageUrl = `/uploads/${req.file.filename}`;
-    const query = `
-      INSERT INTO boutique_showcase (boutique_id, image_url)
-      VALUES (?, ?)
-      ON DUPLICATE KEY UPDATE image_url = VALUES(image_url)
-    `;
-
-    db.query(query, [boutiqueId, imageUrl], (err) => {
-      if (err) return res.status(500).json({ message: "Failed to save image", error: err.message });
-      return res.json({ success: true, image_url: imageUrl, message: "Showcase image uploaded" });
-    });
-  });
+    let saveErr = null;
+    if (existing) {
+      const { error } = await supabase
+        .from("boutique_showcase")
+        .update({ image_url: imageUrl })
+        .eq("boutique_id", boutiqueId);
+      saveErr = error;
+    } else {
+      const { error } = await supabase
+        .from("boutique_showcase")
+        .insert([{ boutique_id: Number(boutiqueId), image_url: imageUrl }]);
+      saveErr = error;
+    }
+    if (saveErr) {
+      return res.status(500).json({ message: "Failed to save image", error: saveErr.message });
+    }
+    return res.json({ success: true, image_url: imageUrl, message: "Showcase image uploaded" });
+  } catch (err) {
+    return res.status(500).json({ message: "Server error", error: err.message });
+  }
 });
 
 /* ================= BOUTIQUES LIST ================= */
