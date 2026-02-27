@@ -212,46 +212,46 @@ router.post("/login", (req, res) => {
   });
 });
 
-router.post("/login-user", (req, res) => {
+router.post("/login-user", async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
     return res.status(400).json({ message: "Email and password required" });
   }
 
-  ensureUsersTable((tableErr) => {
-    if (tableErr) {
-      console.error("USERS TABLE ERROR:", tableErr);
-      return res.status(500).json({ message: "Database setup error" });
+  try {
+    const normalizedEmail = String(email).trim().toLowerCase();
+    const { data: user, error } = await supabase
+      .from("users")
+      .select("id, name, email, password_hash, created_at")
+      .eq("email", normalizedEmail)
+      .maybeSingle();
+
+    if (error) {
+      console.error("[USER LOGIN] Supabase error:", error);
+      return res.status(500).json({ message: "Database error" });
     }
 
-    const query = "SELECT id, name, email, password_hash, created_at FROM users WHERE email = ? LIMIT 1";
+    if (!user) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
 
-    db.query(query, [email.trim()], async (err, rows) => {
-      if (err) {
-        console.error(err);
-        return res.status(500).json({ message: "Database error" });
-      }
+    const match = await bcrypt.compare(password, user.password_hash);
+    if (!match) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
 
-      if (!rows.length) {
-        return res.status(401).json({ message: "Invalid credentials" });
-      }
-
-      const user = rows[0];
-      const match = await bcrypt.compare(password, user.password_hash);
-      if (!match) {
-        return res.status(401).json({ message: "Invalid credentials" });
-      }
-
-      return res.json({
-        success: true,
-        userId: user.id,
-        name: user.name,
-        email: user.email,
-        created_at: user.created_at
-      });
+    return res.json({
+      success: true,
+      userId: user.id,
+      name: user.name,
+      email: user.email,
+      created_at: user.created_at
     });
-  });
+  } catch (err) {
+    console.error("[USER LOGIN] Unexpected error:", err);
+    return res.status(500).json({ message: "Server error" });
+  }
 });
 /* ================= UPGRADE PLAN (POST PAYMENT) ================= */
 router.post("/upgrade-plan", (req, res) => {
@@ -616,38 +616,29 @@ router.get("/dashboard/:boutiqueId", (req, res) => {
   });
 });
 
-router.get("/user/:userId", (req, res) => {
+router.get("/user/:userId", async (req, res) => {
   const { userId } = req.params;
 
-  ensureUsersTable((tableErr) => {
-    if (tableErr) {
-      return res.status(500).json({ message: "Failed to prepare users table", error: tableErr.message });
+  try {
+    const { data: user, error } = await supabase
+      .from("users")
+      .select("id, name, email, created_at")
+      .eq("id", userId)
+      .maybeSingle();
+
+    if (error) {
+      return res.status(500).json({ message: "Database error", error: error.message });
     }
-
-    const query = `
-      SELECT
-        id,
-        name,
-        email,
-        created_at
-      FROM users
-      WHERE id = ?
-      LIMIT 1
-    `;
-
-    db.query(query, [userId], (err, rows) => {
-      if (err) {
-        return res.status(500).json({ message: "Database error", error: err.message });
-      }
-      if (!rows.length) {
-        return res.status(404).json({ message: "User not found" });
-      }
-      return res.json(rows[0]);
-    });
-  });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    return res.json(user);
+  } catch (err) {
+    return res.status(500).json({ message: "Server error", error: err.message });
+  }
 });
 
-router.put("/user/:userId", (req, res) => {
+router.put("/user/:userId", async (req, res) => {
   const { userId } = req.params;
   const { name, email } = req.body;
 
@@ -662,38 +653,34 @@ router.put("/user/:userId", (req, res) => {
     return res.status(400).json({ message: "Only Gmail addresses are allowed" });
   }
 
-  ensureUsersTable((tableErr) => {
-    if (tableErr) {
-      return res.status(500).json({ message: "Failed to prepare users table", error: tableErr.message });
+  try {
+    const { data, error } = await supabase
+      .from("users")
+      .update({ name: safeName, email: safeEmail })
+      .eq("id", userId)
+      .select("id, name, email")
+      .maybeSingle();
+
+    if (error) {
+      if (error.code === "23505") {
+        return res.status(409).json({ message: "Email already in use" });
+      }
+      return res.status(500).json({ message: "Database error", error: error.message });
     }
 
-    const query = `
-      UPDATE users
-      SET name = ?, email = ?
-      WHERE id = ?
-    `;
+    if (!data) {
+      return res.status(404).json({ message: "User not found" });
+    }
 
-    db.query(query, [safeName, safeEmail, userId], (err, result) => {
-      if (err) {
-        if (err.code === "ER_DUP_ENTRY") {
-          return res.status(409).json({ message: "Email already in use" });
-        }
-        return res.status(500).json({ message: "Database error", error: err.message });
-      }
-
-      if (!result.affectedRows) {
-        return res.status(404).json({ message: "User not found" });
-      }
-
-      return res.json({
-        success: true,
-        userId: Number(userId),
-        name: safeName,
-        email: safeEmail,
-        message: "Profile updated successfully"
-      });
+    return res.json({
+      success: true,
+      userId: data.id,
+      name: data.name,
+      email: data.email,
+      message: "Profile updated successfully"
     });
-  });
+  } catch (err) {
+    return res.status(500).json({ message: "Server error", error: err.message });
+  }
 });
 module.exports = router;
-
