@@ -1,499 +1,552 @@
 <!DOCTYPE html>
 
-<html class="dark" lang="en"><head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>CLOCHE | Luxury Wedding Rental Marketplace</title>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,100..900;1,100..900&amp;family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<script id="tailwind-config">
-        tailwind.config = {
-            darkMode: "class",
-            theme: {
-                extend: {
-                    colors: {
-                        "primary": "#c1a671",
-                        "background-light": "#f7f6f2",
-                        "background-dark": "#0d0d0d",
-                        "surface-dark": "#1a1a1a",
-                    },
-                    fontFamily: {
-                        "display": ["Noto Serif", "serif"],
-                        "sans": ["Inter", "sans-serif"],
-                    },
-                    borderRadius: {
-                        "DEFAULT": "0.5rem",
-                        "lg": "1rem",
-                        "xl": "1.5rem",
-                        "full": "9999px"
-                    },
-                },
-            },
-        }
-    </script>
-<style>
-        .glass-card {
-            background: rgba(26, 26, 26, 0.6);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(193, 166, 113, 0.2);
-        }
-        .gold-glow {
-            box-shadow: 0 0 20px rgba(193, 166, 113, 0.3);
-        }
-        .plan-card-hover {
-            transition: transform 260ms ease, box-shadow 260ms ease, border-color 260ms ease;
-            will-change: transform;
-        }
-        .plan-card-hover:hover {
-            transform: translateY(-8px) scale(1.012);
-            border-color: rgba(193, 166, 113, 0.5);
-            box-shadow: 0 22px 38px rgba(0, 0, 0, 0.45), 0 0 28px rgba(193, 166, 113, 0.18);
-        }
-        .plan-cta-hover {
-            transition: transform 220ms ease, box-shadow 220ms ease;
-        }
-        .plan-cta-hover:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 0 22px rgba(193, 166, 113, 0.26);
-        }
-        .shimmer-effect:hover {
-            background: linear-gradient(45deg, transparent 25%, rgba(193, 166, 113, 0.1) 50%, transparent 75%);
-            background-size: 200% 200%;
-        }
-        .royal-border {
-            border-bottom: 1px solid rgba(193, 166, 113, 0.2);
-        }
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-        h1, h2, h3, .font-display {
-            font-family: 'Noto Serif', serif;
-        }
-    </style>
+<html class="dark" lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+  <title>CLOCHE | Luxury Wedding Rental Marketplace</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,100..900;1,100..900&amp;family=Inter:wght@300;400;500;600;700&amp;display=swap"
+    rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+    rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+    rel="stylesheet" />
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#c1a671",
+            "background-light": "#f7f6f2",
+            "background-dark": "#0d0d0d",
+            "surface-dark": "#1a1a1a",
+          },
+          fontFamily: {
+            "display": ["Noto Serif", "serif"],
+            "sans": ["Inter", "sans-serif"],
+          },
+          borderRadius: {
+            "DEFAULT": "0.5rem",
+            "lg": "1rem",
+            "xl": "1.5rem",
+            "full": "9999px"
+          },
+        },
+      },
+    }
+  </script>
+  <style>
+    .glass-card {
+      background: rgba(26, 26, 26, 0.6);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(193, 166, 113, 0.2);
+    }
+
+    .gold-glow {
+      box-shadow: 0 0 20px rgba(193, 166, 113, 0.3);
+    }
+
+    .plan-card-hover {
+      transition: transform 260ms ease, box-shadow 260ms ease, border-color 260ms ease;
+      will-change: transform;
+    }
+
+    .plan-card-hover:hover {
+      transform: translateY(-8px) scale(1.012);
+      border-color: rgba(193, 166, 113, 0.5);
+      box-shadow: 0 22px 38px rgba(0, 0, 0, 0.45), 0 0 28px rgba(193, 166, 113, 0.18);
+    }
+
+    .plan-cta-hover {
+      transition: transform 220ms ease, box-shadow 220ms ease;
+    }
+
+    .plan-cta-hover:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 22px rgba(193, 166, 113, 0.26);
+    }
+
+    .shimmer-effect:hover {
+      background: linear-gradient(45deg, transparent 25%, rgba(193, 166, 113, 0.1) 50%, transparent 75%);
+      background-size: 200% 200%;
+    }
+
+    .royal-border {
+      border-bottom: 1px solid rgba(193, 166, 113, 0.2);
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+
+    h1,
+    h2,
+    h3,
+    .font-display {
+      font-family: 'Noto Serif', serif;
+    }
+  </style>
   <link rel='stylesheet' href='responsive-fixes.css' />
 </head>
-<body class="bg-background-light dark:bg-background-dark text-gray-800 dark:text-gray-100 selection:bg-primary selection:text-white">
-<!-- Top Navigation -->
-<nav class="fixed top-0 w-full z-50 glass-card royal-border">
-<div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-<div class="flex items-center gap-2">
-<span class="material-symbols-outlined text-primary text-3xl">diamond</span>
-<span class="text-2xl font-bold tracking-[0.2em] font-display text-white">CLOCHE</span>
-</div>
-<div class="hidden md:flex items-center gap-12">
-<a class="text-sm uppercase tracking-widest hover:text-primary transition-colors" href="boutiques.html">Boutiques</a>
-<a class="text-sm uppercase tracking-widest hover:text-primary transition-colors" href="#">How it Works</a>
-<a id="listYourBoutiqueNav" class="text-sm uppercase tracking-widest hover:text-primary transition-colors" href="boutiquelogin.html">List Your Boutique</a>
-</div>
-<div class="relative flex items-center gap-6">
-<a 
-  id="authNav"
-  href="boutiquelogin.html"
-  class="text-sm uppercase tracking-widest font-medium hover:text-primary transition-colors"
->
-  LOGIN
-</a>
 
-<a id="profileIconLink" href="boutiquelogin.html" class="h-10 w-10 rounded-full bg-primary/20 border border-primary/40 flex items-center justify-center overflow-hidden hover:border-primary transition-colors">
-<span id="navAvatar" class="text-primary font-bold">C</span>
-</a>
-<div id="userMenuDropdown" class="hidden absolute right-0 top-14 w-44 rounded-lg border border-primary/25 bg-[#141414]/95 backdrop-blur-md shadow-2xl p-2">
-  <a href="userprofile.html" class="block px-3 py-2 rounded text-xs uppercase tracking-widest text-white/80 hover:bg-primary/10 hover:text-primary">Profile</a>
-  <a href="messageboutique.html" class="block px-3 py-2 rounded text-xs uppercase tracking-widest text-white/80 hover:bg-primary/10 hover:text-primary">Inbox</a>
-</div>
-</div>
-</div>
-</nav>
-<!-- Hero Section -->
-<section class="relative min-h-screen flex items-center justify-center pt-20 overflow-hidden">
-<div class="absolute inset-0 z-0">
-<div class="absolute inset-0 bg-gradient-to-b from-transparent via-background-dark/80 to-background-dark z-10"></div>
-<div class="absolute inset-0 bg-radial-gradient from-transparent to-background-dark/90 z-10"></div>
-<div class="w-full h-full bg-cover bg-center scale-105" data-alt="Royal Indian bride in a majestic gold lehenga with dramatic lighting" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuA0wfsJA6L2AZn8ts_o01Itg8tyJMHwQvs-OVIkVJsp3Veg0AN83-jebgYChIDTUgKs1AltoiZdriG42HhR8XgLXEAD38DsYgQ8_PZ08WEZZXJzWL4TNf8pgawKzyPSNXkx-Lc-AWmfhesyOIouI_RXvat44ZAs5ser7su1EdtdjVQc6d88qJThiCqatqsxrYscWB2juxyBoYBwyB0L_BmIFd9M09rN0rRfeSba-NLIP9TbihI2dNvrAmRSRGznmOH9JzWFNqYl0Yw");'>
-</div>
-</div>
-<div class="relative z-20 text-center px-4 max-w-4xl mx-auto">
-<h1 class="text-white text-7xl md:text-9xl font-display font-light tracking-[0.3em] mb-6">CLOCHE</h1>
-<h2 class="text-primary text-xl md:text-2xl font-light tracking-[0.5em] uppercase mb-12">Rent Luxury. Feel Royal.</h2>
-<div class="flex flex-col md:flex-row gap-6 justify-center items-center">
-<button id="heroConsultBtn" class="bg-primary text-background-dark px-10 py-5 rounded-full font-bold uppercase tracking-widest text-sm gold-glow hover:scale-105 transition-all duration-300">
-                    Get Wedding Looks (Free Consultation)
-                </button>
-<a
-  id="heroListBoutiqueBtn"
-  href="boutiquelogin.html"
-  class="inline-block border border-primary/50 text-white px-10 py-5 rounded-full font-bold uppercase tracking-widest text-sm hover:bg-primary/10 transition-all duration-300"
->
-  List Your Boutique
-</a>
+<body
+  class="bg-background-light dark:bg-background-dark text-gray-800 dark:text-gray-100 selection:bg-primary selection:text-white">
+  <!-- Top Navigation -->
+  <nav class="fixed top-0 w-full z-50 glass-card royal-border">
+    <div class="max-w-7xl mx-auto px-4 md:px-6 h-16 md:h-20 flex items-center justify-between gap-2">
+      <!-- Logo -->
+      <div class="flex items-center gap-1.5 shrink-0">
+        <span class="material-symbols-outlined text-primary text-2xl md:text-3xl">diamond</span>
+        <span class="text-lg md:text-2xl font-bold tracking-[0.2em] font-display text-white">CLOCHE</span>
+      </div>
+      <!-- Desktop nav links -->
+      <div class="hidden md:flex items-center gap-12">
+        <a class="text-sm uppercase tracking-widest hover:text-primary transition-colors"
+          href="boutiques.html">Boutiques</a>
+        <a class="text-sm uppercase tracking-widest hover:text-primary transition-colors" href="#">How it Works</a>
+        <a id="listYourBoutiqueNav" class="text-sm uppercase tracking-widest hover:text-primary transition-colors"
+          href="boutiquelogin.html">List Your Boutique</a>
+      </div>
+      <!-- Right side: auth + avatar -->
+      <div class="relative flex items-center gap-3">
+        <a id="authNav" href="boutiquelogin.html"
+          class="text-xs md:text-sm uppercase tracking-widest font-medium hover:text-primary transition-colors whitespace-nowrap">LOGIN</a>
+        <a id="profileIconLink" href="boutiquelogin.html"
+          class="h-9 w-9 md:h-10 md:w-10 rounded-full bg-primary/20 border border-primary/40 flex items-center justify-center overflow-hidden hover:border-primary transition-colors shrink-0">
+          <span id="navAvatar" class="text-primary font-bold text-sm">C</span>
+        </a>
+        <div id="userMenuDropdown"
+          class="hidden absolute right-0 top-12 md:top-14 w-44 rounded-lg border border-primary/25 bg-[#141414]/95 backdrop-blur-md shadow-2xl p-2 z-50">
+          <a href="userprofile.html"
+            class="block px-3 py-2 rounded text-xs uppercase tracking-widest text-white/80 hover:bg-primary/10 hover:text-primary">Profile</a>
+          <a href="messageboutique.html"
+            class="block px-3 py-2 rounded text-xs uppercase tracking-widest text-white/80 hover:bg-primary/10 hover:text-primary">Inbox</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+  <!-- Hero Section -->
+  <section class="relative min-h-screen flex items-center justify-center pt-16 md:pt-20 overflow-hidden">
+    <div class="absolute inset-0 z-0">
+      <div
+        class="absolute inset-0 bg-gradient-to-b from-background-dark/30 via-background-dark/60 to-background-dark z-10">
+      </div>
+      <div class="w-full h-full bg-cover scale-105"
+        style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuA0wfsJA6L2AZn8ts_o01Itg8tyJMHwQvs-OVIkVJsp3Veg0AN83-jebgYChIDTUgKs1AltoiZdriG42HhR8XgLXEAD38DsYgQ8_PZ08WEZZXJzWL4TNf8pgawKzyPSNXkx-Lc-AWmfhesyOIouI_RXvat44ZAs5ser7su1EdtdjVQc6d88qJThiCqatqsxrYscWB2juxyBoYBwyB0L_BmIFd9M09rN0rRfeSba-NLIP9TbihI2dNvrAmRSRGznmOH9JzWFNqYl0Yw"); background-position: center 35%;'>
+      </div>
+    </div>
+    <div class="relative z-20 text-center px-4 max-w-4xl mx-auto">
+      <h1 class="text-white text-7xl md:text-9xl font-display font-light tracking-[0.3em] mb-6">CLOCHE</h1>
+      <h2 class="text-primary text-xl md:text-2xl font-light tracking-[0.5em] uppercase mb-12">Rent Luxury. Feel Royal.
+      </h2>
+      <div class="flex flex-col md:flex-row gap-6 justify-center items-center">
+        <button id="heroConsultBtn"
+          class="bg-primary text-background-dark px-10 py-5 rounded-full font-bold uppercase tracking-widest text-sm gold-glow hover:scale-105 transition-all duration-300">
+          Get Wedding Looks (Free Consultation)
+        </button>
+        <a id="heroListBoutiqueBtn" href="boutiquelogin.html"
+          class="inline-block border border-primary/50 text-white px-10 py-5 rounded-full font-bold uppercase tracking-widest text-sm hover:bg-primary/10 transition-all duration-300">
+          List Your Boutique
+        </a>
 
-</div>
-</div>
-<!-- Floating Scroll Indicator -->
-<div class="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 opacity-50">
-<div class="w-[1px] h-12 bg-gradient-to-b from-primary to-transparent"></div>
-</div>
-</section>
-<!-- Boutiques Section -->
-<section class="py-24 px-6 max-w-7xl mx-auto">
-<div class="flex items-end justify-between mb-16 px-4">
-<div>
-<span class="text-primary tracking-[0.4em] uppercase text-xs mb-4 block">Curation</span>
-<h2 class="text-4xl md:text-5xl font-display text-white">Featured Boutiques</h2>
-</div>
-<a class="text-sm uppercase tracking-widest border-b border-primary text-primary pb-1" href="boutiques.html">View All</a>
-</div>
-<div id="featuredBoutiquesStatus" class="text-sm text-gray-400 px-4 mb-6">Loading boutiques...</div>
-<div id="featuredBoutiquesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"></div>
-</section>
-<!-- How it Works: The Royal Journey -->
-<section class="py-24 bg-surface-dark/50">
-<div class="max-w-7xl mx-auto px-6">
-<div class="text-center mb-20">
-<span class="text-primary tracking-[0.4em] uppercase text-xs mb-4 block">The Process</span>
-<h2 class="text-4xl md:text-6xl font-display text-white italic">The Royal Journey</h2>
-</div>
-<div class="relative grid grid-cols-1 md:grid-cols-4 gap-12">
-<!-- Connector Line (Desktop) -->
-<div class="hidden md:block absolute top-1/4 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-primary/30 to-transparent -z-10"></div>
-<div class="flex flex-col items-center text-center">
-<div class="w-16 h-16 rounded-full glass-card border-primary flex items-center justify-center mb-8 bg-background-dark text-primary">
-<span class="material-symbols-outlined text-3xl">pageview</span>
-</div>
-<h4 class="font-display text-xl text-white mb-4">Browse</h4>
-<p class="text-gray-400 text-sm leading-relaxed">Discover an exclusive collection of high-fashion couture curated for royalty.</p>
-</div>
-<div class="flex flex-col items-center text-center">
-<div class="w-16 h-16 rounded-full glass-card border-primary flex items-center justify-center mb-8 bg-background-dark text-primary">
-<span class="material-symbols-outlined text-3xl">calendar_month</span>
-</div>
-<h4 class="font-display text-xl text-white mb-4">Reserve</h4>
-<p class="text-gray-400 text-sm leading-relaxed">Book your fitting or secure your rental date with our seamless booking engine.</p>
-</div>
-<div class="flex flex-col items-center text-center">
-<div class="w-16 h-16 rounded-full glass-card border-primary flex items-center justify-center mb-8 bg-background-dark text-primary">
-<span class="material-symbols-outlined text-3xl">auto_awesome</span>
-</div>
-<h4 class="font-display text-xl text-white mb-4">Adorn</h4>
-<p class="text-gray-400 text-sm leading-relaxed">Experience your dream look. Feel the weight of luxury on your special day.</p>
-</div>
-<div class="flex flex-col items-center text-center">
-<div class="w-16 h-16 rounded-full glass-card border-primary flex items-center justify-center mb-8 bg-background-dark text-primary">
-<span class="material-symbols-outlined text-3xl">package_2</span>
-</div>
-<h4 class="font-display text-xl text-white mb-4">Return</h4>
-<p class="text-gray-400 text-sm leading-relaxed">Effortless concierge pickup. We handle all cleaning and maintenance.</p>
-</div>
-</div>
-</div>
-</section>
-<!-- Boutique Partnership -->
-<section class="py-24 px-6 max-w-7xl mx-auto">
-<div class="text-center mb-16">
-<h2 class="text-4xl md:text-5xl font-display text-white mb-6">Partner with CLOCHE</h2>
-<p class="text-gray-400 max-w-2xl mx-auto">Join an elite circle of boutique owners. Monetize your inventory and reach a global audience of high-net-worth brides.</p>
-</div>
-<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-<!-- Starter Plan -->
-<div class="glass-card plan-card-hover rounded-xl p-10 flex flex-col h-full border-white/5">
-<h3 class="text-xl font-display text-white mb-2">Entry</h3>
-<div class="flex items-baseline gap-1 mb-8">
-<span class="text-3xl font-bold text-white">&#8377;0</span>
-<span class="text-gray-500 text-sm">/mo</span>
-</div>
-<ul class="space-y-4 mb-10 flex-grow">
-<li class="flex items-center gap-3 text-sm text-gray-300">
-<span class="material-symbols-outlined text-primary text-sm">check_circle</span>
-                        3 Product Listings
-                    </li>
-<li class="flex items-center gap-3 text-sm text-gray-300">
-<span class="material-symbols-outlined text-primary text-sm">check_circle</span>
-                        5 Leads per Month
-                    </li>
-<li class="flex items-center gap-3 text-sm text-gray-300">
-<span class="material-symbols-outlined text-primary text-sm">check_circle</span>
-                        5 Messages per Month
-                    </li>
-<li class="flex items-center gap-3 text-sm text-gray-300">
-<span class="material-symbols-outlined text-primary text-sm">check_circle</span>
-                        Standard Marketplace Visibility
-                    </li>
-</ul>
-<a href="subscription.html" class="plan-cta-hover w-full py-4 border border-primary/40 text-primary font-bold text-xs uppercase tracking-widest rounded-lg hover:bg-primary hover:text-background-dark transition-all text-center">Start for free</a>
-</div>
-<!-- Professional Plan -->
-<div class="glass-card plan-card-hover rounded-xl p-10 flex flex-col h-full relative border-primary scale-105 shadow-2xl">
-<div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-background-dark px-4 py-1 text-[10px] font-bold uppercase tracking-widest rounded-full">Most Popular</div>
-<h3 class="text-xl font-display text-white mb-2">Professional</h3>
-<div class="flex items-baseline gap-1 mb-8">
-<span class="text-3xl font-bold text-white">&#8377;2,999</span>
-<span class="text-gray-500 text-sm">/mo</span>
-</div>
-<p class="text-primary/70 text-xs uppercase tracking-wider mb-4">Base monthly pricing</p>
-<ul class="space-y-4 mb-10 flex-grow">
-<li class="flex items-center gap-3 text-sm text-gray-300">
-<span class="material-symbols-outlined text-primary text-sm">check_circle</span>
-                        Everything in Atelier
-                    </li>
-<li class="flex items-center gap-3 text-sm text-gray-300">
-<span class="material-symbols-outlined text-primary text-sm">check_circle</span>
-                        20 Product Listings
-                    </li>
-<li class="flex items-center gap-3 text-sm text-gray-300">
-<span class="material-symbols-outlined text-primary text-sm">check_circle</span>
-                        50 Leads per Month
-                    </li>
-<li class="flex items-center gap-3 text-sm text-gray-300">
-<span class="material-symbols-outlined text-primary text-sm">check_circle</span>
-                        Unlimited Messages
-                    </li>
-<li class="flex items-center gap-3 text-sm text-gray-300">
-<span class="material-symbols-outlined text-primary text-sm">check_circle</span>
-                        Boutique Analytics Dashboard
-                    </li>
-<li class="flex items-center gap-3 text-sm text-gray-300">
-<span class="material-symbols-outlined text-primary text-sm">check_circle</span>
-                        Priority Marketplace Visibility
-                    </li>
-<li class="flex items-center gap-3 text-sm text-gray-300">
-<span class="material-symbols-outlined text-primary text-sm">check_circle</span>
-                        Dedicated Account Manager
-                    </li>
-</ul>
-<a href="subscription.html" class="plan-cta-hover w-full py-4 bg-primary text-background-dark font-bold text-xs uppercase tracking-widest rounded-lg gold-glow hover:brightness-110 transition-all text-center">Elevate Now</a>
-</div>
-<!-- Premium Plan -->
-<div class="glass-card plan-card-hover rounded-xl p-10 flex flex-col h-full border-white/5">
-<h3 class="text-xl font-display text-white mb-2">Premium</h3>
-<div class="flex items-baseline gap-1 mb-8">
-<span class="text-3xl font-bold text-white">&#8377;7,999</span>
-<span class="text-gray-500 text-sm">/mo</span>
-</div>
-<p class="text-primary/70 text-xs uppercase tracking-wider mb-4">Base monthly pricing</p>
-<ul class="space-y-4 mb-10 flex-grow">
-<li class="flex items-center gap-3 text-sm text-gray-300">
-<span class="material-symbols-outlined text-primary text-sm">check_circle</span>
-                        Everything in Couture
-                    </li>
-<li class="flex items-center gap-3 text-sm text-gray-300">
-<span class="material-symbols-outlined text-primary text-sm">check_circle</span>
-                        Unlimited Product Listings
-                    </li>
-<li class="flex items-center gap-3 text-sm text-gray-300">
-<span class="material-symbols-outlined text-primary text-sm">check_circle</span>
-                        Unlimited Leads
-                    </li>
-<li class="flex items-center gap-3 text-sm text-gray-300">
-<span class="material-symbols-outlined text-primary text-sm">check_circle</span>
-                        Featured Homepage Placement
-                    </li>
-<li class="flex items-center gap-3 text-sm text-gray-300">
-<span class="material-symbols-outlined text-primary text-sm">check_circle</span>
-                        Dedicated Account Manager
-                    </li>
-<li class="flex items-center gap-3 text-sm text-gray-300">
-<span class="material-symbols-outlined text-primary text-sm">check_circle</span>
-                        AI Performance Insights
-                    </li>
-</ul>
-<a href="subscription.html" class="plan-cta-hover w-full py-4 border border-primary/40 text-primary font-bold text-xs uppercase tracking-widest rounded-lg hover:bg-primary hover:text-background-dark transition-all text-center">Choose Premium</a>
-</div>
-</div>
-</section>
-<!-- Footer -->
-<footer class="pt-24 pb-12 px-6 bg-[#080808] border-t border-white/5">
-<div class="max-w-7xl mx-auto">
-<div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-20">
-<div class="col-span-1 md:col-span-1">
-<div class="flex items-center gap-2 mb-8">
-<span class="material-symbols-outlined text-primary">diamond</span>
-<span class="text-xl font-bold tracking-[0.2em] font-display text-white">CLOCHE</span>
-</div>
-<p class="text-sm text-gray-500 leading-relaxed mb-8">
-                        Redefining bridal elegance through a shared luxury ecosystem.
-                    </p>
-<div class="flex gap-4">
-<a class="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center hover:border-primary text-gray-400 hover:text-primary transition-all" href="#">
-<span class="material-symbols-outlined text-lg">public</span>
-</a>
-<a class="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center hover:border-primary text-gray-400 hover:text-primary transition-all" href="#">
-<span class="material-symbols-outlined text-lg">share</span>
-</a>
-<a class="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center hover:border-primary text-gray-400 hover:text-primary transition-all" href="#">
-<span class="material-symbols-outlined text-lg">mail</span>
-</a>
-</div>
-</div>
-<div>
-<h4 class="text-white uppercase tracking-widest text-xs font-bold mb-8">The Brand</h4>
-<ul class="space-y-4 text-sm text-gray-500">
-<li><a class="hover:text-primary transition-colors" href="#">Our Story</a></li>
-<li><a class="hover:text-primary transition-colors" href="#">Curation Process</a></li>
-<li><a class="hover:text-primary transition-colors" href="#">Quality Guarantee</a></li>
-<li><a class="hover:text-primary transition-colors" href="#">Sustainability</a></li>
-</ul>
-</div>
-<div>
-<h4 class="text-white uppercase tracking-widest text-xs font-bold mb-8">Help &amp; Support</h4>
-<ul class="space-y-4 text-sm text-gray-500">
-<li><a class="hover:text-primary transition-colors" href="#">Rental Terms</a></li>
-<li><a class="hover:text-primary transition-colors" href="#">Sizing Guide</a></li>
-<li><a class="hover:text-primary transition-colors" href="#">Return Policy</a></li>
-<li><a class="hover:text-primary transition-colors" href="#">Shipping</a></li>
-</ul>
-</div>
-<div>
-<h4 class="text-white uppercase tracking-widest text-xs font-bold mb-8">Bespoke Updates</h4>
-<p class="text-xs text-gray-500 mb-6">Receive curated collections and royal insights in your inbox.</p>
-<div class="flex">
-<input class="bg-surface-dark border-white/10 text-white px-4 py-3 rounded-l-lg focus:ring-primary focus:border-primary flex-grow text-xs outline-none" placeholder="Email Address" type="email"/>
-<button class="bg-primary text-background-dark px-4 py-3 rounded-r-lg font-bold text-[10px] uppercase tracking-widest">Join</button>
-</div>
-</div>
-</div>
-<div class="pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4">
-<p class="text-[10px] uppercase tracking-[0.2em] text-gray-600">© 2024 CLOCHE LUXURY. ALL RIGHTS RESERVED.</p>
-<div class="flex gap-8 text-[10px] uppercase tracking-[0.2em] text-gray-600">
-<a class="hover:text-primary" href="#">Privacy Policy</a>
-<a class="hover:text-primary" href="#">Terms of Service</a>
-<a class="hover:text-primary" href="#">Cookie Settings</a>
-</div>
-</div>
-</div>
-</footer>
-<script>
-  const API_BASE = "https://cloche-backend.onrender.com/api/auth";
-  const API_ORIGIN = "https://cloche-backend.onrender.com";
-  const previewFallbackImages = [
-    "https://images.unsplash.com/photo-1583391733981-849840f3f1c2?q=80&w=1200&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=1200&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1542060748-10c28b62716f?q=80&w=1200&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?q=80&w=1200&auto=format&fit=crop"
-  ];
+      </div>
+    </div>
+    <!-- Floating Scroll Indicator -->
+    <div class="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 opacity-50">
+      <div class="w-[1px] h-12 bg-gradient-to-b from-primary to-transparent"></div>
+    </div>
+  </section>
+  <!-- Boutiques Section -->
+  <section class="py-24 px-6 max-w-7xl mx-auto">
+    <div class="flex items-end justify-between mb-16 px-4">
+      <div>
+        <span class="text-primary tracking-[0.4em] uppercase text-xs mb-4 block">Curation</span>
+        <h2 class="text-4xl md:text-5xl font-display text-white">Featured Boutiques</h2>
+      </div>
+      <a class="text-sm uppercase tracking-widest border-b border-primary text-primary pb-1" href="boutiques.html">View
+        All</a>
+    </div>
+    <div id="featuredBoutiquesStatus" class="text-sm text-gray-400 px-4 mb-6">Loading boutiques...</div>
+    <div id="featuredBoutiquesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"></div>
+  </section>
+  <!-- How it Works: The Royal Journey -->
+  <section class="py-24 bg-surface-dark/50">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="text-center mb-20">
+        <span class="text-primary tracking-[0.4em] uppercase text-xs mb-4 block">The Process</span>
+        <h2 class="text-4xl md:text-6xl font-display text-white italic">The Royal Journey</h2>
+      </div>
+      <div class="relative grid grid-cols-1 md:grid-cols-4 gap-12">
+        <!-- Connector Line (Desktop) -->
+        <div
+          class="hidden md:block absolute top-1/4 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-primary/30 to-transparent -z-10">
+        </div>
+        <div class="flex flex-col items-center text-center">
+          <div
+            class="w-16 h-16 rounded-full glass-card border-primary flex items-center justify-center mb-8 bg-background-dark text-primary">
+            <span class="material-symbols-outlined text-3xl">pageview</span>
+          </div>
+          <h4 class="font-display text-xl text-white mb-4">Browse</h4>
+          <p class="text-gray-400 text-sm leading-relaxed">Discover an exclusive collection of high-fashion couture
+            curated for royalty.</p>
+        </div>
+        <div class="flex flex-col items-center text-center">
+          <div
+            class="w-16 h-16 rounded-full glass-card border-primary flex items-center justify-center mb-8 bg-background-dark text-primary">
+            <span class="material-symbols-outlined text-3xl">calendar_month</span>
+          </div>
+          <h4 class="font-display text-xl text-white mb-4">Reserve</h4>
+          <p class="text-gray-400 text-sm leading-relaxed">Book your fitting or secure your rental date with our
+            seamless booking engine.</p>
+        </div>
+        <div class="flex flex-col items-center text-center">
+          <div
+            class="w-16 h-16 rounded-full glass-card border-primary flex items-center justify-center mb-8 bg-background-dark text-primary">
+            <span class="material-symbols-outlined text-3xl">auto_awesome</span>
+          </div>
+          <h4 class="font-display text-xl text-white mb-4">Adorn</h4>
+          <p class="text-gray-400 text-sm leading-relaxed">Experience your dream look. Feel the weight of luxury on your
+            special day.</p>
+        </div>
+        <div class="flex flex-col items-center text-center">
+          <div
+            class="w-16 h-16 rounded-full glass-card border-primary flex items-center justify-center mb-8 bg-background-dark text-primary">
+            <span class="material-symbols-outlined text-3xl">package_2</span>
+          </div>
+          <h4 class="font-display text-xl text-white mb-4">Return</h4>
+          <p class="text-gray-400 text-sm leading-relaxed">Effortless concierge pickup. We handle all cleaning and
+            maintenance.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- Boutique Partnership -->
+  <section class="py-24 px-6 max-w-7xl mx-auto">
+    <div class="text-center mb-16">
+      <h2 class="text-4xl md:text-5xl font-display text-white mb-6">Partner with CLOCHE</h2>
+      <p class="text-gray-400 max-w-2xl mx-auto">Join an elite circle of boutique owners. Monetize your inventory and
+        reach a global audience of high-net-worth brides.</p>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <!-- Starter Plan -->
+      <div class="glass-card plan-card-hover rounded-xl p-10 flex flex-col h-full border-white/5">
+        <h3 class="text-xl font-display text-white mb-2">Entry</h3>
+        <div class="flex items-baseline gap-1 mb-8">
+          <span class="text-3xl font-bold text-white">&#8377;0</span>
+          <span class="text-gray-500 text-sm">/mo</span>
+        </div>
+        <ul class="space-y-4 mb-10 flex-grow">
+          <li class="flex items-center gap-3 text-sm text-gray-300">
+            <span class="material-symbols-outlined text-primary text-sm">check_circle</span>
+            3 Product Listings
+          </li>
+          <li class="flex items-center gap-3 text-sm text-gray-300">
+            <span class="material-symbols-outlined text-primary text-sm">check_circle</span>
+            5 Leads per Month
+          </li>
+          <li class="flex items-center gap-3 text-sm text-gray-300">
+            <span class="material-symbols-outlined text-primary text-sm">check_circle</span>
+            5 Messages per Month
+          </li>
+          <li class="flex items-center gap-3 text-sm text-gray-300">
+            <span class="material-symbols-outlined text-primary text-sm">check_circle</span>
+            Standard Marketplace Visibility
+          </li>
+        </ul>
+        <a href="subscription.html"
+          class="plan-cta-hover w-full py-4 border border-primary/40 text-primary font-bold text-xs uppercase tracking-widest rounded-lg hover:bg-primary hover:text-background-dark transition-all text-center">Start
+          for free</a>
+      </div>
+      <!-- Professional Plan -->
+      <div
+        class="glass-card plan-card-hover rounded-xl p-10 flex flex-col h-full relative border-primary scale-105 shadow-2xl">
+        <div
+          class="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-background-dark px-4 py-1 text-[10px] font-bold uppercase tracking-widest rounded-full">
+          Most Popular</div>
+        <h3 class="text-xl font-display text-white mb-2">Professional</h3>
+        <div class="flex items-baseline gap-1 mb-8">
+          <span class="text-3xl font-bold text-white">&#8377;2,999</span>
+          <span class="text-gray-500 text-sm">/mo</span>
+        </div>
+        <p class="text-primary/70 text-xs uppercase tracking-wider mb-4">Base monthly pricing</p>
+        <ul class="space-y-4 mb-10 flex-grow">
+          <li class="flex items-center gap-3 text-sm text-gray-300">
+            <span class="material-symbols-outlined text-primary text-sm">check_circle</span>
+            Everything in Atelier
+          </li>
+          <li class="flex items-center gap-3 text-sm text-gray-300">
+            <span class="material-symbols-outlined text-primary text-sm">check_circle</span>
+            20 Product Listings
+          </li>
+          <li class="flex items-center gap-3 text-sm text-gray-300">
+            <span class="material-symbols-outlined text-primary text-sm">check_circle</span>
+            50 Leads per Month
+          </li>
+          <li class="flex items-center gap-3 text-sm text-gray-300">
+            <span class="material-symbols-outlined text-primary text-sm">check_circle</span>
+            Unlimited Messages
+          </li>
+          <li class="flex items-center gap-3 text-sm text-gray-300">
+            <span class="material-symbols-outlined text-primary text-sm">check_circle</span>
+            Boutique Analytics Dashboard
+          </li>
+          <li class="flex items-center gap-3 text-sm text-gray-300">
+            <span class="material-symbols-outlined text-primary text-sm">check_circle</span>
+            Priority Marketplace Visibility
+          </li>
+          <li class="flex items-center gap-3 text-sm text-gray-300">
+            <span class="material-symbols-outlined text-primary text-sm">check_circle</span>
+            Dedicated Account Manager
+          </li>
+        </ul>
+        <a href="subscription.html"
+          class="plan-cta-hover w-full py-4 bg-primary text-background-dark font-bold text-xs uppercase tracking-widest rounded-lg gold-glow hover:brightness-110 transition-all text-center">Elevate
+          Now</a>
+      </div>
+      <!-- Premium Plan -->
+      <div class="glass-card plan-card-hover rounded-xl p-10 flex flex-col h-full border-white/5">
+        <h3 class="text-xl font-display text-white mb-2">Premium</h3>
+        <div class="flex items-baseline gap-1 mb-8">
+          <span class="text-3xl font-bold text-white">&#8377;7,999</span>
+          <span class="text-gray-500 text-sm">/mo</span>
+        </div>
+        <p class="text-primary/70 text-xs uppercase tracking-wider mb-4">Base monthly pricing</p>
+        <ul class="space-y-4 mb-10 flex-grow">
+          <li class="flex items-center gap-3 text-sm text-gray-300">
+            <span class="material-symbols-outlined text-primary text-sm">check_circle</span>
+            Everything in Couture
+          </li>
+          <li class="flex items-center gap-3 text-sm text-gray-300">
+            <span class="material-symbols-outlined text-primary text-sm">check_circle</span>
+            Unlimited Product Listings
+          </li>
+          <li class="flex items-center gap-3 text-sm text-gray-300">
+            <span class="material-symbols-outlined text-primary text-sm">check_circle</span>
+            Unlimited Leads
+          </li>
+          <li class="flex items-center gap-3 text-sm text-gray-300">
+            <span class="material-symbols-outlined text-primary text-sm">check_circle</span>
+            Featured Homepage Placement
+          </li>
+          <li class="flex items-center gap-3 text-sm text-gray-300">
+            <span class="material-symbols-outlined text-primary text-sm">check_circle</span>
+            Dedicated Account Manager
+          </li>
+          <li class="flex items-center gap-3 text-sm text-gray-300">
+            <span class="material-symbols-outlined text-primary text-sm">check_circle</span>
+            AI Performance Insights
+          </li>
+        </ul>
+        <a href="subscription.html"
+          class="plan-cta-hover w-full py-4 border border-primary/40 text-primary font-bold text-xs uppercase tracking-widest rounded-lg hover:bg-primary hover:text-background-dark transition-all text-center">Choose
+          Premium</a>
+      </div>
+    </div>
+  </section>
+  <!-- Footer -->
+  <footer class="pt-24 pb-12 px-6 bg-[#080808] border-t border-white/5">
+    <div class="max-w-7xl mx-auto">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-20">
+        <div class="col-span-1 md:col-span-1">
+          <div class="flex items-center gap-2 mb-8">
+            <span class="material-symbols-outlined text-primary">diamond</span>
+            <span class="text-xl font-bold tracking-[0.2em] font-display text-white">CLOCHE</span>
+          </div>
+          <p class="text-sm text-gray-500 leading-relaxed mb-8">
+            Redefining bridal elegance through a shared luxury ecosystem.
+          </p>
+          <div class="flex gap-4">
+            <a class="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center hover:border-primary text-gray-400 hover:text-primary transition-all"
+              href="#">
+              <span class="material-symbols-outlined text-lg">public</span>
+            </a>
+            <a class="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center hover:border-primary text-gray-400 hover:text-primary transition-all"
+              href="#">
+              <span class="material-symbols-outlined text-lg">share</span>
+            </a>
+            <a class="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center hover:border-primary text-gray-400 hover:text-primary transition-all"
+              href="#">
+              <span class="material-symbols-outlined text-lg">mail</span>
+            </a>
+          </div>
+        </div>
+        <div>
+          <h4 class="text-white uppercase tracking-widest text-xs font-bold mb-8">The Brand</h4>
+          <ul class="space-y-4 text-sm text-gray-500">
+            <li><a class="hover:text-primary transition-colors" href="#">Our Story</a></li>
+            <li><a class="hover:text-primary transition-colors" href="#">Curation Process</a></li>
+            <li><a class="hover:text-primary transition-colors" href="#">Quality Guarantee</a></li>
+            <li><a class="hover:text-primary transition-colors" href="#">Sustainability</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="text-white uppercase tracking-widest text-xs font-bold mb-8">Help &amp; Support</h4>
+          <ul class="space-y-4 text-sm text-gray-500">
+            <li><a class="hover:text-primary transition-colors" href="#">Rental Terms</a></li>
+            <li><a class="hover:text-primary transition-colors" href="#">Sizing Guide</a></li>
+            <li><a class="hover:text-primary transition-colors" href="#">Return Policy</a></li>
+            <li><a class="hover:text-primary transition-colors" href="#">Shipping</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="text-white uppercase tracking-widest text-xs font-bold mb-8">Bespoke Updates</h4>
+          <p class="text-xs text-gray-500 mb-6">Receive curated collections and royal insights in your inbox.</p>
+          <div class="flex">
+            <input
+              class="bg-surface-dark border-white/10 text-white px-4 py-3 rounded-l-lg focus:ring-primary focus:border-primary flex-grow text-xs outline-none"
+              placeholder="Email Address" type="email" />
+            <button
+              class="bg-primary text-background-dark px-4 py-3 rounded-r-lg font-bold text-[10px] uppercase tracking-widest">Join</button>
+          </div>
+        </div>
+      </div>
+      <div class="pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4">
+        <p class="text-[10px] uppercase tracking-[0.2em] text-gray-600">© 2024 CLOCHE LUXURY. ALL RIGHTS RESERVED.</p>
+        <div class="flex gap-8 text-[10px] uppercase tracking-[0.2em] text-gray-600">
+          <a class="hover:text-primary" href="#">Privacy Policy</a>
+          <a class="hover:text-primary" href="#">Terms of Service</a>
+          <a class="hover:text-primary" href="#">Cookie Settings</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+  <script>
+    const API_BASE = "https://cloche-backend.onrender.com/api/auth";
+    const API_ORIGIN = "https://cloche-backend.onrender.com";
+    const previewFallbackImages = [
+      "https://images.unsplash.com/photo-1583391733981-849840f3f1c2?q=80&w=1200&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=1200&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1542060748-10c28b62716f?q=80&w=1200&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?q=80&w=1200&auto=format&fit=crop"
+    ];
 
-  function resolveAssetUrl(url) {
-    const value = String(url || "").trim();
-    if (!value) return "";
-    if (/^https?:\/\//i.test(value)) return value;
-    return `${API_ORIGIN}${value.startsWith("/") ? "" : "/"}${value}`;
-  }
-
-  function pickImage(seed) {
-    let sum = 0;
-    for (const ch of (seed || "")) sum += ch.charCodeAt(0);
-    return previewFallbackImages[sum % previewFallbackImages.length];
-  }
-
-  function updateAuthNav() {
-    const authNav = document.getElementById("authNav");
-    const profileIconLink = document.getElementById("profileIconLink");
-    const listYourBoutiqueNav = document.getElementById("listYourBoutiqueNav");
-    const heroConsultBtn = document.getElementById("heroConsultBtn");
-    const heroListBoutiqueBtn = document.getElementById("heroListBoutiqueBtn");
-    const isPartnerLoggedIn = localStorage.getItem("isLoggedIn") === "true";
-    const isUserLoggedIn = localStorage.getItem("isUserLoggedIn") === "true";
-    const ownerName = localStorage.getItem("ownerName") || "C";
-    const userName = localStorage.getItem("userName") || "User";
-    const avatar = document.getElementById("navAvatar");
-    const userMenuDropdown = document.getElementById("userMenuDropdown");
-    if (avatar) avatar.textContent = "C";
-    if (!authNav) return;
-
-    if (isUserLoggedIn) {
-      const firstName = userName.trim().split(/\s+/)[0] || "User";
-      authNav.textContent = firstName.toUpperCase();
-      authNav.href = "#";
-      authNav.classList.add("uppercase", "tracking-widest");
-      if (profileIconLink) {
-        profileIconLink.href = "#";
-        profileIconLink.title = "Profile";
-      }
-      const toggleMenu = (e) => {
-        e.preventDefault();
-        if (userMenuDropdown) userMenuDropdown.classList.toggle("hidden");
-      };
-      authNav.onclick = toggleMenu;
-      if (profileIconLink) profileIconLink.onclick = toggleMenu;
-      if (avatar) avatar.textContent = firstName.charAt(0).toUpperCase();
-      if (listYourBoutiqueNav) {
-        listYourBoutiqueNav.style.display = "block";
-      }
-      if (heroConsultBtn) {
-        heroConsultBtn.style.display = "inline-block";
-      }
-      if (heroListBoutiqueBtn) {
-        heroListBoutiqueBtn.style.display = "inline-block";
-      }
-      return;
+    function resolveAssetUrl(url) {
+      const value = String(url || "").trim();
+      if (!value) return "";
+      if (/^https?:\/\//i.test(value)) return value;
+      return `${API_ORIGIN}${value.startsWith("/") ? "" : "/"}${value}`;
     }
 
-    if (userMenuDropdown) userMenuDropdown.classList.add("hidden");
-    authNav.onclick = null;
-    if (profileIconLink) profileIconLink.onclick = null;
+    function pickImage(seed) {
+      let sum = 0;
+      for (const ch of (seed || "")) sum += ch.charCodeAt(0);
+      return previewFallbackImages[sum % previewFallbackImages.length];
+    }
 
-    if (isPartnerLoggedIn) {
-      authNav.textContent = "DASHBOARD";
-      authNav.href = "dashboard.html";
-      authNav.classList.add("uppercase", "tracking-widest");
-      if (profileIconLink) {
-        profileIconLink.href = "profile.html";
-        profileIconLink.title = "Boutique Profile";
-      }
-      if (avatar) avatar.textContent = ownerName.charAt(0).toUpperCase();
-      // Hide "LIST YOUR BOUTIQUE" when logged in
-      if (listYourBoutiqueNav) {
-        listYourBoutiqueNav.style.display = "none";
-      }
-      if (heroConsultBtn) {
-        heroConsultBtn.style.display = "none";
-      }
-      if (heroListBoutiqueBtn) {
-        heroListBoutiqueBtn.style.display = "none";
-      }
-    } else {
-      authNav.textContent = "LOGIN";
-      authNav.href = "boutiquelogin.html";
-      authNav.classList.add("uppercase", "tracking-widest");
-      if (profileIconLink) {
-        profileIconLink.href = "boutiquelogin.html";
-        profileIconLink.title = "Login";
-      }
+    function updateAuthNav() {
+      const authNav = document.getElementById("authNav");
+      const profileIconLink = document.getElementById("profileIconLink");
+      const listYourBoutiqueNav = document.getElementById("listYourBoutiqueNav");
+      const heroConsultBtn = document.getElementById("heroConsultBtn");
+      const heroListBoutiqueBtn = document.getElementById("heroListBoutiqueBtn");
+      const isPartnerLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+      const isUserLoggedIn = localStorage.getItem("isUserLoggedIn") === "true";
+      const ownerName = localStorage.getItem("ownerName") || "C";
+      const userName = localStorage.getItem("userName") || "User";
+      const avatar = document.getElementById("navAvatar");
+      const userMenuDropdown = document.getElementById("userMenuDropdown");
       if (avatar) avatar.textContent = "C";
-      // Show "LIST YOUR BOUTIQUE" when not logged in
-      if (listYourBoutiqueNav) {
-        listYourBoutiqueNav.style.display = "block";
+      if (!authNav) return;
+
+      if (isUserLoggedIn) {
+        const firstName = userName.trim().split(/\s+/)[0] || "User";
+        authNav.textContent = firstName.toUpperCase();
+        authNav.href = "#";
+        authNav.classList.add("uppercase", "tracking-widest");
+        if (profileIconLink) {
+          profileIconLink.href = "#";
+          profileIconLink.title = "Profile";
+        }
+        const toggleMenu = (e) => {
+          e.preventDefault();
+          if (userMenuDropdown) userMenuDropdown.classList.toggle("hidden");
+        };
+        authNav.onclick = toggleMenu;
+        if (profileIconLink) profileIconLink.onclick = toggleMenu;
+        if (avatar) avatar.textContent = firstName.charAt(0).toUpperCase();
+        if (listYourBoutiqueNav) {
+          listYourBoutiqueNav.style.display = "block";
+        }
+        if (heroConsultBtn) {
+          heroConsultBtn.style.display = "inline-block";
+        }
+        if (heroListBoutiqueBtn) {
+          heroListBoutiqueBtn.style.display = "inline-block";
+        }
+        return;
       }
-      if (heroConsultBtn) {
-        heroConsultBtn.style.display = "inline-block";
-      }
-      if (heroListBoutiqueBtn) {
-        heroListBoutiqueBtn.style.display = "inline-block";
+
+      if (userMenuDropdown) userMenuDropdown.classList.add("hidden");
+      authNav.onclick = null;
+      if (profileIconLink) profileIconLink.onclick = null;
+
+      if (isPartnerLoggedIn) {
+        authNav.textContent = "DASHBOARD";
+        authNav.href = "dashboard.html";
+        authNav.classList.add("uppercase", "tracking-widest");
+        if (profileIconLink) {
+          profileIconLink.href = "profile.html";
+          profileIconLink.title = "Boutique Profile";
+        }
+        if (avatar) avatar.textContent = ownerName.charAt(0).toUpperCase();
+        // Hide "LIST YOUR BOUTIQUE" when logged in
+        if (listYourBoutiqueNav) {
+          listYourBoutiqueNav.style.display = "none";
+        }
+        if (heroConsultBtn) {
+          heroConsultBtn.style.display = "none";
+        }
+        if (heroListBoutiqueBtn) {
+          heroListBoutiqueBtn.style.display = "none";
+        }
+      } else {
+        authNav.textContent = "LOGIN";
+        authNav.href = "boutiquelogin.html";
+        authNav.classList.add("uppercase", "tracking-widest");
+        if (profileIconLink) {
+          profileIconLink.href = "boutiquelogin.html";
+          profileIconLink.title = "Login";
+        }
+        if (avatar) avatar.textContent = "C";
+        // Show "LIST YOUR BOUTIQUE" when not logged in
+        if (listYourBoutiqueNav) {
+          listYourBoutiqueNav.style.display = "block";
+        }
+        if (heroConsultBtn) {
+          heroConsultBtn.style.display = "inline-block";
+        }
+        if (heroListBoutiqueBtn) {
+          heroListBoutiqueBtn.style.display = "inline-block";
+        }
       }
     }
-  }
 
-  function renderFeaturedBoutiques(list) {
-    const grid = document.getElementById("featuredBoutiquesGrid");
-    const status = document.getElementById("featuredBoutiquesStatus");
-    if (!grid || !status) return;
+    function renderFeaturedBoutiques(list) {
+      const grid = document.getElementById("featuredBoutiquesGrid");
+      const status = document.getElementById("featuredBoutiquesStatus");
+      if (!grid || !status) return;
 
-    if (!Array.isArray(list) || !list.length) {
-      status.textContent = "No boutiques available yet.";
-      grid.innerHTML = "";
-      return;
-    }
+      if (!Array.isArray(list) || !list.length) {
+        status.textContent = "No boutiques available yet.";
+        grid.innerHTML = "";
+        return;
+      }
 
-    status.textContent = `Showing ${list.length} boutique${list.length === 1 ? "" : "s"} from live data.`;
-    grid.innerHTML = list.map((b, idx) => {
-      const image = b.image_url ? resolveAssetUrl(b.image_url) : pickImage(`${b.id}-${b.boutique_name}-${idx}`);
-      const district = (b.district || b.city || "Kerala").toUpperCase();
-      const area = (b.area || b.city || "Location").toUpperCase();
-      const name = (b.boutique_name || "Boutique").toUpperCase();
-      const rating = Number(b.rating || 5).toFixed(1);
+      status.textContent = `Showing ${list.length} boutique${list.length === 1 ? "" : "s"} from live data.`;
+      grid.innerHTML = list.map((b, idx) => {
+        const image = b.image_url ? resolveAssetUrl(b.image_url) : pickImage(`${b.id}-${b.boutique_name}-${idx}`);
+        const district = (b.district || b.city || "Kerala").toUpperCase();
+        const area = (b.area || b.city || "Location").toUpperCase();
+        const name = (b.boutique_name || "Boutique").toUpperCase();
+        const rating = Number(b.rating || 5).toFixed(1);
 
-      return `
+        return `
         <a href="viewboutique.html?boutiqueId=${b.id}" onclick="localStorage.setItem('selectedBoutiqueId','${b.id}')" class="group relative aspect-[3/4] rounded-xl overflow-hidden glass-card shimmer-effect cursor-pointer block">
           <div class="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-110" style="background-image: linear-gradient(to top, rgba(0,0,0,0.86), rgba(0,0,0,0.18)), url('${image}')"></div>
           <div class="absolute inset-0 p-6 flex flex-col justify-end">
@@ -505,42 +558,42 @@
           </div>
         </a>
       `;
-    }).join("");
-  }
-
-  async function loadFeaturedBoutiques() {
-    const status = document.getElementById("featuredBoutiquesStatus");
-    if (status) status.textContent = "Loading boutiques...";
-
-    try {
-      const res = await fetch(`${API_BASE}/boutiques`);
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Failed to load boutiques");
-
-      const boutiques = (Array.isArray(data) ? data : []).slice(0, 4);
-      renderFeaturedBoutiques(boutiques);
-    } catch (err) {
-      if (status) status.textContent = err.message || "Failed to load boutiques.";
-      const grid = document.getElementById("featuredBoutiquesGrid");
-      if (grid) grid.innerHTML = "";
+      }).join("");
     }
-  }
 
-  document.addEventListener("DOMContentLoaded", () => {
-    updateAuthNav();
-    loadFeaturedBoutiques();
-    document.addEventListener("click", (e) => {
-      const menu = document.getElementById("userMenuDropdown");
-      const auth = document.getElementById("authNav");
-      const icon = document.getElementById("profileIconLink");
-      if (!menu || menu.classList.contains("hidden")) return;
-      if (menu.contains(e.target) || (auth && auth.contains(e.target)) || (icon && icon.contains(e.target))) return;
-      menu.classList.add("hidden");
+    async function loadFeaturedBoutiques() {
+      const status = document.getElementById("featuredBoutiquesStatus");
+      if (status) status.textContent = "Loading boutiques...";
+
+      try {
+        const res = await fetch(`${API_BASE}/boutiques`);
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || "Failed to load boutiques");
+
+        const boutiques = (Array.isArray(data) ? data : []).slice(0, 4);
+        renderFeaturedBoutiques(boutiques);
+      } catch (err) {
+        if (status) status.textContent = err.message || "Failed to load boutiques.";
+        const grid = document.getElementById("featuredBoutiquesGrid");
+        if (grid) grid.innerHTML = "";
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      updateAuthNav();
+      loadFeaturedBoutiques();
+      document.addEventListener("click", (e) => {
+        const menu = document.getElementById("userMenuDropdown");
+        const auth = document.getElementById("authNav");
+        const icon = document.getElementById("profileIconLink");
+        if (!menu || menu.classList.contains("hidden")) return;
+        if (menu.contains(e.target) || (auth && auth.contains(e.target)) || (icon && icon.contains(e.target))) return;
+        menu.classList.add("hidden");
+      });
     });
-  });
-</script>
+  </script>
 
   <script src='responsive-layout.js'></script>
-</body></html>
+</body>
 
-
+</html>

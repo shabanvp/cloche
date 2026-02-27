@@ -1,226 +1,271 @@
 <!DOCTYPE html>
 <html class="dark" lang="en">
+
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>CLOCHE | Discover Luxury Boutiques</title>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,100..900;1,100..900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-<script id="tailwind-config">
-  tailwind.config = {
-    darkMode: "class",
-    theme: {
-      extend: {
-        colors: {
-          primary: "#c1a671",
-          "background-dark": "#0d0d0d",
-          "surface-dark": "#1a1a1a"
-        },
-        fontFamily: {
-          display: ["Noto Serif", "serif"],
-          sans: ["Inter", "sans-serif"]
+  <meta charset="utf-8" />
+  <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+  <title>CLOCHE | Discover Luxury Boutiques</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,100..900;1,100..900&family=Inter:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+    rel="stylesheet" />
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            primary: "#c1a671",
+            "background-dark": "#0d0d0d",
+            "surface-dark": "#1a1a1a"
+          },
+          fontFamily: {
+            display: ["Noto Serif", "serif"],
+            sans: ["Inter", "sans-serif"]
+          }
         }
       }
+    };
+  </script>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0d0d0d;
+      color: #faf7f2;
     }
-  };
-</script>
-<style>
-  body { font-family: 'Inter', sans-serif; background: #0d0d0d; color: #faf7f2; }
-  .glass-card { background: rgba(26, 26, 26, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(193,166,113,.2); }
-  .glass-card:hover { border-color: rgba(193,166,113,.55); box-shadow: 0 0 18px rgba(193,166,113,.15); transform: translateY(-3px); }
-  .gold-glow { box-shadow: 0 0 18px rgba(193,166,113,.22); }
-  .royal-border { border-bottom: 1px solid rgba(193,166,113,.2); }
-  .hero-glow { background: radial-gradient(circle at center, rgba(193,166,113,.1) 0%, transparent 70%); }
-  .no-scrollbar::-webkit-scrollbar { display: none; }
-  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-</style>
+
+    .glass-card {
+      background: rgba(26, 26, 26, 0.6);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(193, 166, 113, .2);
+    }
+
+    .glass-card:hover {
+      border-color: rgba(193, 166, 113, .55);
+      box-shadow: 0 0 18px rgba(193, 166, 113, .15);
+      transform: translateY(-3px);
+    }
+
+    .gold-glow {
+      box-shadow: 0 0 18px rgba(193, 166, 113, .22);
+    }
+
+    .royal-border {
+      border-bottom: 1px solid rgba(193, 166, 113, .2);
+    }
+
+    .hero-glow {
+      background: radial-gradient(circle at center, rgba(193, 166, 113, .1) 0%, transparent 70%);
+    }
+
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
   <link rel='stylesheet' href='responsive-fixes.css' />
 </head>
+
 <body class="selection:bg-primary/30">
-<nav class="fixed top-0 w-full z-50 glass-card royal-border">
-  <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-    <a class="flex items-center gap-2" href="index.html">
-      <span class="material-symbols-outlined text-primary text-3xl">diamond</span>
-      <span class="text-2xl font-bold tracking-[0.2em] font-display text-white">CLOCHE</span>
-    </a>
-    <div class="hidden md:flex items-center gap-12">
-      <a class="text-sm uppercase tracking-widest text-primary" href="boutiques.html">Boutiques</a>
-      <a class="text-sm uppercase tracking-widest hover:text-primary transition-colors" href="index.html#how-it-works">How it Works</a>
-      <a id="listYourBoutiqueNav" class="text-sm uppercase tracking-widest hover:text-primary transition-colors" href="boutiquelogin.html">List Your Boutique</a>
-    </div>
-    <div class="relative flex items-center gap-6">
-      <a id="authNav" href="boutiquelogin.html" class="text-sm uppercase tracking-widest font-medium hover:text-primary transition-colors">LOGIN</a>
-      <a id="profileIconLink" href="boutiquelogin.html" class="h-10 w-10 rounded-full bg-primary/20 border border-primary/40 flex items-center justify-center overflow-hidden hover:border-primary transition-colors">
-        <span id="navAvatar" class="text-primary font-bold">C</span>
+  <nav class="fixed top-0 w-full z-50 glass-card royal-border">
+    <div class="max-w-7xl mx-auto px-4 md:px-6 h-16 md:h-20 flex items-center justify-between gap-2">
+      <a class="flex items-center gap-1.5 shrink-0" href="index.html">
+        <span class="material-symbols-outlined text-primary text-2xl md:text-3xl">diamond</span>
+        <span class="text-lg md:text-2xl font-bold tracking-[0.2em] font-display text-white">CLOCHE</span>
       </a>
-      <div id="userMenuDropdown" class="hidden absolute right-0 top-14 w-44 rounded-lg border border-primary/25 bg-[#141414]/95 backdrop-blur-md shadow-2xl p-2">
-        <a href="userprofile.html" class="block px-3 py-2 rounded text-xs uppercase tracking-widest text-white/80 hover:bg-primary/10 hover:text-primary">Profile</a>
-        <a href="messageboutique.html" class="block px-3 py-2 rounded text-xs uppercase tracking-widest text-white/80 hover:bg-primary/10 hover:text-primary">Inbox</a>
+      <div class="hidden md:flex items-center gap-12">
+        <a class="text-sm uppercase tracking-widest text-primary" href="boutiques.html">Boutiques</a>
+        <a class="text-sm uppercase tracking-widest hover:text-primary transition-colors"
+          href="index.html#how-it-works">How it Works</a>
+        <a id="listYourBoutiqueNav" class="text-sm uppercase tracking-widest hover:text-primary transition-colors"
+          href="boutiquelogin.html">List Your Boutique</a>
+      </div>
+      <div class="relative flex items-center gap-3">
+        <a id="authNav" href="boutiquelogin.html"
+          class="text-xs md:text-sm uppercase tracking-widest font-medium hover:text-primary transition-colors whitespace-nowrap">LOGIN</a>
+        <a id="profileIconLink" href="boutiquelogin.html"
+          class="h-9 w-9 md:h-10 md:w-10 rounded-full bg-primary/20 border border-primary/40 flex items-center justify-center overflow-hidden hover:border-primary transition-colors shrink-0">
+          <span id="navAvatar" class="text-primary font-bold text-sm">C</span>
+        </a>
+        <div id="userMenuDropdown"
+          class="hidden absolute right-0 top-12 md:top-14 w-44 rounded-lg border border-primary/25 bg-[#141414]/95 backdrop-blur-md shadow-2xl p-2 z-50">
+          <a href="userprofile.html"
+            class="block px-3 py-2 rounded text-xs uppercase tracking-widest text-white/80 hover:bg-primary/10 hover:text-primary">Profile</a>
+          <a href="messageboutique.html"
+            class="block px-3 py-2 rounded text-xs uppercase tracking-widest text-white/80 hover:bg-primary/10 hover:text-primary">Inbox</a>
+        </div>
       </div>
     </div>
-  </div>
-</nav>
+  </nav>
 
-<main class="pt-24 pb-20">
-  <section class="relative h-[50vh] flex flex-col items-center justify-center text-center px-4 overflow-hidden">
-    <div class="absolute inset-0 hero-glow -z-10"></div>
-    <div class="max-w-4xl space-y-6">
-      <span class="text-primary tracking-[0.5em] text-xs uppercase font-semibold">Rent Luxury. Feel Royal.</span>
-      <h1 class="font-display font-bold leading-[0.98] tracking-tight text-[#FAF7F2] text-[clamp(2rem,4.8vw,4.6rem)] max-w-[20ch] mx-auto">DISCOVER BOUTIQUES IN KERALA</h1>
+  <main class="pt-24 pb-20">
+    <section class="relative h-[50vh] flex flex-col items-center justify-center text-center px-4 overflow-hidden">
+      <div class="absolute inset-0 hero-glow -z-10"></div>
+      <div class="max-w-4xl space-y-6">
+        <span class="text-primary tracking-[0.5em] text-xs uppercase font-semibold">Rent Luxury. Feel Royal.</span>
+        <h1
+          class="font-display font-bold leading-[0.98] tracking-tight text-[#FAF7F2] text-[clamp(2rem,4.8vw,4.6rem)] max-w-[20ch] mx-auto">
+          DISCOVER BOUTIQUES IN KERALA</h1>
+      </div>
+    </section>
+
+    <section class="max-w-[1440px] mx-auto px-6 mb-10">
+      <div id="districtFilters" class="flex items-center gap-4 overflow-x-auto no-scrollbar py-4 px-2"></div>
+    </section>
+
+    <section class="max-w-[1440px] mx-auto px-6 lg:px-12">
+      <div id="statusText" class="text-sm text-[#FAF7F2]/60 mb-6"></div>
+      <div id="boutiquesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10"></div>
+    </section>
+  </main>
+
+  <footer class="bg-background-dark border-t border-primary/10 py-16 px-6 lg:px-24">
+    <div class="max-w-[1440px] mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+      <span class="text-[10px] uppercase tracking-[0.2em] text-[#FAF7F2]/40">� 2024 CLOCHE LUXURY. ALL RIGHTS
+        RESERVED.</span>
+      <div class="flex gap-8 text-sm text-[#FAF7F2]/60">
+        <a class="hover:text-primary transition-colors" href="#">Privacy Policy</a>
+        <a class="hover:text-primary transition-colors" href="#">Terms of Service</a>
+      </div>
     </div>
-  </section>
+  </footer>
 
-  <section class="max-w-[1440px] mx-auto px-6 mb-10">
-    <div id="districtFilters" class="flex items-center gap-4 overflow-x-auto no-scrollbar py-4 px-2"></div>
-  </section>
+  <script>
+    const API_BASE = "https://cloche-backend.onrender.com/api/auth";
+    const API_ORIGIN = "https://cloche-backend.onrender.com";
+    const imgPool = [
+      "https://images.unsplash.com/photo-1583391733981-849840f3f1c2?q=80&w=1200&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=1200&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1542060748-10c28b62716f?q=80&w=1200&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?q=80&w=1200&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=1200&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?q=80&w=1200&auto=format&fit=crop"
+    ];
 
-  <section class="max-w-[1440px] mx-auto px-6 lg:px-12">
-    <div id="statusText" class="text-sm text-[#FAF7F2]/60 mb-6"></div>
-    <div id="boutiquesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10"></div>
-  </section>
-</main>
+    let boutiques = [];
+    let selectedCity = "All";
 
-<footer class="bg-background-dark border-t border-primary/10 py-16 px-6 lg:px-24">
-  <div class="max-w-[1440px] mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
-    <span class="text-[10px] uppercase tracking-[0.2em] text-[#FAF7F2]/40">� 2024 CLOCHE LUXURY. ALL RIGHTS RESERVED.</span>
-    <div class="flex gap-8 text-sm text-[#FAF7F2]/60">
-      <a class="hover:text-primary transition-colors" href="#">Privacy Policy</a>
-      <a class="hover:text-primary transition-colors" href="#">Terms of Service</a>
-    </div>
-  </div>
-</footer>
+    function pickImage(seed) {
+      let sum = 0;
+      for (const ch of (seed || "")) sum += ch.charCodeAt(0);
+      return imgPool[sum % imgPool.length];
+    }
 
-<script>
-  const API_BASE = "https://cloche-backend.onrender.com/api/auth";
-  const API_ORIGIN = "https://cloche-backend.onrender.com";
-  const imgPool = [
-    "https://images.unsplash.com/photo-1583391733981-849840f3f1c2?q=80&w=1200&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=1200&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1542060748-10c28b62716f?q=80&w=1200&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?q=80&w=1200&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=1200&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?q=80&w=1200&auto=format&fit=crop"
-  ];
+    function resolveAssetUrl(url) {
+      const v = String(url || "").trim();
+      if (!v) return "";
+      if (/^https?:\/\//i.test(v)) return v;
+      return `${API_ORIGIN}${v.startsWith("/") ? "" : "/"}${v}`;
+    }
 
-  let boutiques = [];
-  let selectedCity = "All";
+    function updateAuthNav() {
+      const authNav = document.getElementById("authNav");
+      const profileIconLink = document.getElementById("profileIconLink");
+      const userMenuDropdown = document.getElementById("userMenuDropdown");
+      const listYourBoutiqueNav = document.getElementById("listYourBoutiqueNav");
+      const isPartnerLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+      const isUserLoggedIn = localStorage.getItem("isUserLoggedIn") === "true";
+      const ownerName = localStorage.getItem("ownerName") || "C";
+      const userName = localStorage.getItem("userName") || "User";
+      const firstName = String(userName).trim().split(/\s+/)[0] || "USER";
 
-  function pickImage(seed) {
-    let sum = 0;
-    for (const ch of (seed || "")) sum += ch.charCodeAt(0);
-    return imgPool[sum % imgPool.length];
-  }
-
-  function resolveAssetUrl(url) {
-    const v = String(url || "").trim();
-    if (!v) return "";
-    if (/^https?:\/\//i.test(v)) return v;
-    return `${API_ORIGIN}${v.startsWith("/") ? "" : "/"}${v}`;
-  }
-
-  function updateAuthNav() {
-    const authNav = document.getElementById("authNav");
-    const profileIconLink = document.getElementById("profileIconLink");
-    const userMenuDropdown = document.getElementById("userMenuDropdown");
-    const listYourBoutiqueNav = document.getElementById("listYourBoutiqueNav");
-    const isPartnerLoggedIn = localStorage.getItem("isLoggedIn") === "true";
-    const isUserLoggedIn = localStorage.getItem("isUserLoggedIn") === "true";
-    const ownerName = localStorage.getItem("ownerName") || "C";
-    const userName = localStorage.getItem("userName") || "User";
-    const firstName = String(userName).trim().split(/\s+/)[0] || "USER";
-
-    if (authNav) {
-      if (isUserLoggedIn) {
-        authNav.textContent = firstName.toUpperCase();
-        authNav.href = "#";
-        if (profileIconLink) profileIconLink.href = "#";
-        const toggleMenu = (e) => {
-          e.preventDefault();
-          if (userMenuDropdown) userMenuDropdown.classList.toggle("hidden");
-        };
-        authNav.onclick = toggleMenu;
-        if (profileIconLink) profileIconLink.onclick = toggleMenu;
-        if (listYourBoutiqueNav) {
-          listYourBoutiqueNav.style.display = "block";
+      if (authNav) {
+        if (isUserLoggedIn) {
+          authNav.textContent = firstName.toUpperCase();
+          authNav.href = "#";
+          if (profileIconLink) profileIconLink.href = "#";
+          const toggleMenu = (e) => {
+            e.preventDefault();
+            if (userMenuDropdown) userMenuDropdown.classList.toggle("hidden");
+          };
+          authNav.onclick = toggleMenu;
+          if (profileIconLink) profileIconLink.onclick = toggleMenu;
+          if (listYourBoutiqueNav) {
+            listYourBoutiqueNav.style.display = "block";
+          }
+        } else if (isPartnerLoggedIn) {
+          if (userMenuDropdown) userMenuDropdown.classList.add("hidden");
+          authNav.onclick = null;
+          if (profileIconLink) profileIconLink.onclick = null;
+          authNav.textContent = "DASHBOARD";
+          authNav.href = "dashboard.html";
+          if (profileIconLink) profileIconLink.href = "profile.html";
+          // Hide "LIST YOUR BOUTIQUE" when logged in
+          if (listYourBoutiqueNav) {
+            listYourBoutiqueNav.style.display = "none";
+          }
+        } else {
+          if (userMenuDropdown) userMenuDropdown.classList.add("hidden");
+          authNav.onclick = null;
+          if (profileIconLink) profileIconLink.onclick = null;
+          authNav.textContent = "LOGIN";
+          authNav.href = "boutiquelogin.html";
+          if (profileIconLink) profileIconLink.href = "boutiquelogin.html";
+          // Show "LIST YOUR BOUTIQUE" when not logged in
+          if (listYourBoutiqueNav) {
+            listYourBoutiqueNav.style.display = "block";
+          }
         }
-      } else if (isPartnerLoggedIn) {
-        if (userMenuDropdown) userMenuDropdown.classList.add("hidden");
-        authNav.onclick = null;
-        if (profileIconLink) profileIconLink.onclick = null;
-        authNav.textContent = "DASHBOARD";
-        authNav.href = "dashboard.html";
-        if (profileIconLink) profileIconLink.href = "profile.html";
-        // Hide "LIST YOUR BOUTIQUE" when logged in
-        if (listYourBoutiqueNav) {
-          listYourBoutiqueNav.style.display = "none";
-        }
-      } else {
-        if (userMenuDropdown) userMenuDropdown.classList.add("hidden");
-        authNav.onclick = null;
-        if (profileIconLink) profileIconLink.onclick = null;
-        authNav.textContent = "LOGIN";
-        authNav.href = "boutiquelogin.html";
-        if (profileIconLink) profileIconLink.href = "boutiquelogin.html";
-        // Show "LIST YOUR BOUTIQUE" when not logged in
-        if (listYourBoutiqueNav) {
-          listYourBoutiqueNav.style.display = "block";
-        }
+      }
+
+      const avatar = document.getElementById("navAvatar");
+      if (avatar) {
+        avatar.textContent = isUserLoggedIn
+          ? firstName.charAt(0).toUpperCase()
+          : ownerName.charAt(0).toUpperCase();
       }
     }
 
-    const avatar = document.getElementById("navAvatar");
-    if (avatar) {
-      avatar.textContent = isUserLoggedIn
-        ? firstName.charAt(0).toUpperCase()
-        : ownerName.charAt(0).toUpperCase();
-    }
-  }
+    function renderFilters() {
+      const wrap = document.getElementById("districtFilters");
+      const cities = ["All", ...new Set(boutiques.map(b => (b.district || b.city || "").trim()).filter(Boolean))];
 
-  function renderFilters() {
-    const wrap = document.getElementById("districtFilters");
-    const cities = ["All", ...new Set(boutiques.map(b => (b.district || b.city || "").trim()).filter(Boolean))];
+      wrap.innerHTML = cities.map(city => {
+        const active = city === selectedCity;
+        return `<button data-city="${city}" class="shrink-0 px-8 py-3 rounded-full border font-bold text-sm tracking-widest uppercase transition-all ${active ? "bg-primary text-background-dark border-primary gold-glow" : "border-primary/30 text-primary/80 hover:bg-primary/10"}">${city}</button>`;
+      }).join("");
 
-    wrap.innerHTML = cities.map(city => {
-      const active = city === selectedCity;
-      return `<button data-city="${city}" class="shrink-0 px-8 py-3 rounded-full border font-bold text-sm tracking-widest uppercase transition-all ${active ? "bg-primary text-background-dark border-primary gold-glow" : "border-primary/30 text-primary/80 hover:bg-primary/10"}">${city}</button>`;
-    }).join("");
-
-    wrap.querySelectorAll("button[data-city]").forEach(btn => {
-      btn.addEventListener("click", () => {
-        selectedCity = btn.dataset.city;
-        renderFilters();
-        renderGrid();
+      wrap.querySelectorAll("button[data-city]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          selectedCity = btn.dataset.city;
+          renderFilters();
+          renderGrid();
+        });
       });
-    });
-  }
-
-  function renderGrid() {
-    const grid = document.getElementById("boutiquesGrid");
-    const status = document.getElementById("statusText");
-
-    const list = selectedCity === "All"
-      ? boutiques
-      : boutiques.filter(b => ((b.district || b.city || "").toLowerCase() === selectedCity.toLowerCase()));
-
-    status.textContent = `${list.length} boutique${list.length === 1 ? "" : "s"} found${selectedCity === "All" ? "" : ` in ${selectedCity}`}.`;
-
-    if (!list.length) {
-      grid.innerHTML = `<div class="col-span-full glass-card rounded-lg p-10 text-center text-[#FAF7F2]/60">No boutiques found for this district.</div>`;
-      return;
     }
 
-    grid.innerHTML = list.map(b => {
-      const image = b.image_url ? resolveAssetUrl(b.image_url) : pickImage(`${b.id}-${b.boutique_name}`);
-      const district = (b.district || b.city || "Unknown").toUpperCase();
-      const area = (b.area || b.city || "Location").toUpperCase();
-      const rating = Number(b.rating || 5).toFixed(1);
-      const tags = String(b.tags || "").split(",").map(t => t.trim()).filter(Boolean).slice(0, 3);
-      const renderedTags = tags.length
-        ? tags
-        : ["BRIDAL WEAR", "HANDLOOM", "COUTURE"];
+    function renderGrid() {
+      const grid = document.getElementById("boutiquesGrid");
+      const status = document.getElementById("statusText");
 
-      return `
+      const list = selectedCity === "All"
+        ? boutiques
+        : boutiques.filter(b => ((b.district || b.city || "").toLowerCase() === selectedCity.toLowerCase()));
+
+      status.textContent = `${list.length} boutique${list.length === 1 ? "" : "s"} found${selectedCity === "All" ? "" : ` in ${selectedCity}`}.`;
+
+      if (!list.length) {
+        grid.innerHTML = `<div class="col-span-full glass-card rounded-lg p-10 text-center text-[#FAF7F2]/60">No boutiques found for this district.</div>`;
+        return;
+      }
+
+      grid.innerHTML = list.map(b => {
+        const image = b.image_url ? resolveAssetUrl(b.image_url) : pickImage(`${b.id}-${b.boutique_name}`);
+        const district = (b.district || b.city || "Unknown").toUpperCase();
+        const area = (b.area || b.city || "Location").toUpperCase();
+        const rating = Number(b.rating || 5).toFixed(1);
+        const tags = String(b.tags || "").split(",").map(t => t.trim()).filter(Boolean).slice(0, 3);
+        const renderedTags = tags.length
+          ? tags
+          : ["BRIDAL WEAR", "HANDLOOM", "COUTURE"];
+
+        return `
         <div class="glass-card rounded-lg overflow-hidden flex flex-col transition-all duration-300">
           <div class="relative h-[420px] overflow-hidden">
             <img class="w-full h-full object-cover transition-transform duration-700 hover:scale-105" src="${image}" alt="${b.boutique_name || "Boutique"}" />
@@ -239,41 +284,41 @@
           </div>
         </div>
       `;
-    }).join("");
-  }
-
-  async function loadBoutiques() {
-    const status = document.getElementById("statusText");
-    status.textContent = "Loading boutiques...";
-
-    try {
-      const res = await fetch(`${API_BASE}/boutiques`);
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Failed to load boutiques");
-
-      boutiques = Array.isArray(data) ? data : [];
-      renderFilters();
-      renderGrid();
-    } catch (err) {
-      status.textContent = "Failed to load boutiques.";
-      document.getElementById("boutiquesGrid").innerHTML = `<div class="col-span-full glass-card rounded-lg p-10 text-center text-red-400">${err.message}</div>`;
+      }).join("");
     }
-  }
 
-document.addEventListener("DOMContentLoaded", () => {
-  updateAuthNav();
-  document.addEventListener("click", (e) => {
-    const menu = document.getElementById("userMenuDropdown");
-    const auth = document.getElementById("authNav");
-    const icon = document.getElementById("profileIconLink");
-    if (!menu || menu.classList.contains("hidden")) return;
-    if (menu.contains(e.target) || (auth && auth.contains(e.target)) || (icon && icon.contains(e.target))) return;
-    menu.classList.add("hidden");
-  });
-  loadBoutiques();
-});
-</script>
+    async function loadBoutiques() {
+      const status = document.getElementById("statusText");
+      status.textContent = "Loading boutiques...";
+
+      try {
+        const res = await fetch(`${API_BASE}/boutiques`);
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || "Failed to load boutiques");
+
+        boutiques = Array.isArray(data) ? data : [];
+        renderFilters();
+        renderGrid();
+      } catch (err) {
+        status.textContent = "Failed to load boutiques.";
+        document.getElementById("boutiquesGrid").innerHTML = `<div class="col-span-full glass-card rounded-lg p-10 text-center text-red-400">${err.message}</div>`;
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      updateAuthNav();
+      document.addEventListener("click", (e) => {
+        const menu = document.getElementById("userMenuDropdown");
+        const auth = document.getElementById("authNav");
+        const icon = document.getElementById("profileIconLink");
+        if (!menu || menu.classList.contains("hidden")) return;
+        if (menu.contains(e.target) || (auth && auth.contains(e.target)) || (icon && icon.contains(e.target))) return;
+        menu.classList.add("hidden");
+      });
+      loadBoutiques();
+    });
+  </script>
   <script src='responsive-layout.js'></script>
 </body>
-</html>
 
+</html>

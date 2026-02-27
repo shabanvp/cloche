@@ -4,9 +4,25 @@
    ========================================================= */
 
 /* ---------- Reset baseline ---------- */
-*, *::before, *::after { box-sizing: border-box; }
-html, body { max-width: 100%; overflow-x: hidden; }
-img, video, canvas, svg { max-width: 100%; height: auto; }
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+img,
+video,
+canvas,
+svg {
+  max-width: 100%;
+  height: auto;
+}
 
 /* =========================================================
    SIDEBAR DRAWER  (mobile + tablet ≤ 1024 px)
@@ -14,7 +30,11 @@ img, video, canvas, svg { max-width: 100%; height: auto; }
 @media (max-width: 1024px) {
 
   /* Prevent inputs from zooming on iOS */
-  input, select, textarea { font-size: 16px !important; }
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
 
   /* Make scrollable tables usable */
   table {
@@ -53,6 +73,7 @@ img, video, canvas, svg { max-width: 100%; height: auto; }
     pointer-events: none;
     transition: opacity 0.22s ease;
   }
+
   .responsive-sidebar-open .responsive-backdrop {
     opacity: 1;
     pointer-events: auto;
@@ -76,7 +97,7 @@ img, video, canvas, svg { max-width: 100%; height: auto; }
     font-size: 18px;
     line-height: 1;
     cursor: pointer;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.4);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
   }
 
   /* ---- Main content area fills the full screen ---- */
@@ -92,18 +113,19 @@ img, video, canvas, svg { max-width: 100%; height: auto; }
      ========================================================= */
 
   /* Header: stack title + buttons vertically */
-  .responsive-main > header,
-  .js-responsive main > header {
+  .responsive-main>header,
+  .js-responsive main>header {
     height: auto !important;
     min-height: 60px;
-    padding: 52px 16px 14px !important;   /* top room for hamburger */
+    padding: 52px 16px 14px !important;
+    /* top room for hamburger */
     flex-wrap: wrap !important;
     row-gap: 10px;
     align-items: flex-start !important;
   }
 
-  .responsive-main > header > div,
-  .js-responsive main > header > div {
+  .responsive-main>header>div,
+  .js-responsive main>header>div {
     min-width: 0;
     flex-shrink: 1;
   }
@@ -117,14 +139,15 @@ img, video, canvas, svg { max-width: 100%; height: auto; }
   }
 
   /* Dashboard action buttons – stack to full row */
-  .responsive-main > header .flex.gap-4,
-  .js-responsive main > header .flex.gap-4 {
+  .responsive-main>header .flex.gap-4,
+  .js-responsive main>header .flex.gap-4 {
     flex-wrap: wrap;
     width: 100%;
     gap: 8px !important;
   }
-  .responsive-main > header .flex.gap-4 button,
-  .js-responsive main > header .flex.gap-4 button {
+
+  .responsive-main>header .flex.gap-4 button,
+  .js-responsive main>header .flex.gap-4 button {
     flex: 1 1 auto;
     min-width: 0;
     justify-content: center;
@@ -139,23 +162,32 @@ img, video, canvas, svg { max-width: 100%; height: auto; }
   }
 
   /* Reduce padding in main scrollable area */
-  .responsive-main .px-8, main .px-8 {
+  .responsive-main .px-8,
+  main .px-8 {
     padding-left: 16px !important;
     padding-right: 16px !important;
   }
-  .responsive-main .px-10, main .px-10 {
+
+  .responsive-main .px-10,
+  main .px-10 {
     padding-left: 16px !important;
     padding-right: 16px !important;
   }
-  .responsive-main .p-8, main .p-8 {
+
+  .responsive-main .p-8,
+  main .p-8 {
     padding: 16px !important;
   }
-  .responsive-main .p-10, main .p-10 {
+
+  .responsive-main .p-10,
+  main .p-10 {
     padding: 16px !important;
   }
 
   /* Chart side widget – full width on mobile */
-  .lg\:w-80 { width: 100% !important; }
+  .lg\:w-80 {
+    width: 100% !important;
+  }
 
   /* =========================================================
      LEAD PAGE – header + filter bar + table
@@ -178,6 +210,7 @@ img, video, canvas, svg { max-width: 100%; height: auto; }
     width: 100% !important;
     gap: 8px !important;
   }
+
   header.h-20 .flex.items-center.gap-6 .relative.w-72 {
     width: 100% !important;
     max-width: 100% !important;
@@ -187,7 +220,8 @@ img, video, canvas, svg { max-width: 100%; height: auto; }
   header.h-20 .flex.items-center.gap-4 {
     position: absolute;
     top: 14px;
-    right: 62px;  /* don't overlap hamburger */
+    right: 62px;
+    /* don't overlap hamburger */
     margin: 0;
   }
 
@@ -202,13 +236,15 @@ img, video, canvas, svg { max-width: 100%; height: auto; }
     gap: 8px;
     align-items: center;
   }
-  .flex.items-center.justify-between.mb-6 > .flex.gap-2 {
+
+  .flex.items-center.justify-between.mb-6>.flex.gap-2 {
     flex-wrap: nowrap;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     max-width: calc(100vw - 120px);
     padding-bottom: 4px;
   }
+
   #clearFilters {
     flex-shrink: 0;
   }
@@ -224,7 +260,8 @@ img, video, canvas, svg { max-width: 100%; height: auto; }
     gap: 8px;
     padding: 12px 16px;
   }
-  #paginationControls > * {
+
+  #paginationControls>* {
     width: auto;
   }
 
@@ -242,13 +279,13 @@ img, video, canvas, svg { max-width: 100%; height: auto; }
   }
 
   /* Left side of products header */
-  header.h-20.border-b.border-primary\/10 > div:first-child {
+  header.h-20.border-b.border-primary\/10>div:first-child {
     flex: 1;
     min-width: 0;
   }
 
   /* Right side of products header – wrap buttons */
-  header.h-20.border-b.border-primary\/10 > div:last-child,
+  header.h-20.border-b.border-primary\/10>div:last-child,
   header.h-20.border-b.border-primary\/10 .flex.items-center.gap-6 {
     width: 100% !important;
     flex-wrap: wrap !important;
@@ -258,7 +295,9 @@ img, video, canvas, svg { max-width: 100%; height: auto; }
   }
 
   /* Hide search bar in products header on mobile (it's already in filters) */
-  header .hidden.lg\:block { display: none !important; }
+  header .hidden.lg\:block {
+    display: none !important;
+  }
 
   /* Add product button – full width on mobile */
   header button[onclick*="toggleModal"] {
@@ -269,7 +308,8 @@ img, video, canvas, svg { max-width: 100%; height: auto; }
 
   /* Avatar circle in products header */
   #headerAvatarCircle {
-    display: none;  /* hide avatar in header, user can open sidebar for profile */
+    display: none;
+    /* hide avatar in header, user can open sidebar for profile */
   }
 
   /* Product grid – 2 columns (not 1) looks better on mobile */
@@ -282,6 +322,7 @@ img, video, canvas, svg { max-width: 100%; height: auto; }
   #productGrid .p-6 {
     padding: 12px !important;
   }
+
   #productGrid h4 {
     font-size: 0.85rem !important;
   }
@@ -304,18 +345,22 @@ img, video, canvas, svg { max-width: 100%; height: auto; }
     gap: 8px;
     align-items: flex-start !important;
   }
+
   header.h-auto.border-b h2 {
     font-size: clamp(1.3rem, 6vw, 2rem) !important;
     word-break: break-word;
   }
+
   header.h-auto.border-b .flex.items-center.gap-6 {
     width: 100%;
     flex-wrap: wrap;
     gap: 8px;
   }
-  header.h-auto.border-b .flex.items-center.gap-6 > div:first-child {
+
+  header.h-auto.border-b .flex.items-center.gap-6>div:first-child {
     flex: 1;
   }
+
   header.h-auto.border-b input {
     width: 100% !important;
     min-width: 0;
@@ -327,7 +372,7 @@ img, video, canvas, svg { max-width: 100%; height: auto; }
   }
 
   /* Conversation list pane – full width by default */
-  .flex-1.flex.overflow-hidden > section:first-child {
+  .flex-1.flex.overflow-hidden>section:first-child {
     width: 100% !important;
     min-width: 0 !important;
     flex-shrink: 0;
@@ -335,7 +380,7 @@ img, video, canvas, svg { max-width: 100%; height: auto; }
   }
 
   /* Chat pane – slides in from right when a conversation is open */
-  .flex-1.flex.overflow-hidden > section:last-child {
+  .flex-1.flex.overflow-hidden>section:last-child {
     position: absolute !important;
     inset: 0 !important;
     width: 100% !important;
@@ -344,7 +389,8 @@ img, video, canvas, svg { max-width: 100%; height: auto; }
     transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
     background: #0d0d0d;
   }
-  .flex-1.flex.overflow-hidden.chat-active > section:last-child {
+
+  .flex-1.flex.overflow-hidden.chat-active>section:last-child {
     transform: translateX(0);
   }
 
@@ -356,7 +402,7 @@ img, video, canvas, svg { max-width: 100%; height: auto; }
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    border: 1px solid rgba(193,166,113,0.3);
+    border: 1px solid rgba(193, 166, 113, 0.3);
     color: #c1a671;
     background: transparent;
     cursor: pointer;
@@ -374,6 +420,7 @@ img, video, canvas, svg { max-width: 100%; height: auto; }
     transform: translateX(100%);
     transition: transform 0.28s ease;
   }
+
   #customerSidebar:not(.hidden) {
     transform: translateX(0) !important;
     display: flex !important;
@@ -388,6 +435,7 @@ img, video, canvas, svg { max-width: 100%; height: auto; }
     font-size: clamp(2rem, 11vw, 3.2rem) !important;
     line-height: 1.08 !important;
   }
+
   section h2 {
     font-size: clamp(0.95rem, 4.8vw, 1.25rem) !important;
     line-height: 1.25 !important;
@@ -402,6 +450,7 @@ img, video, canvas, svg { max-width: 100%; height: auto; }
     gap: 10px;
     flex-wrap: nowrap;
   }
+
   body:not(.has-responsive-sidebar) #authNav {
     font-size: 11px !important;
     letter-spacing: 0.08em !important;
@@ -410,14 +459,17 @@ img, video, canvas, svg { max-width: 100%; height: auto; }
     text-overflow: ellipsis;
     white-space: nowrap;
   }
+
   body:not(.has-responsive-sidebar) #profileIconLink {
     width: 36px !important;
     height: 36px !important;
   }
+
   body:not(.has-responsive-sidebar) section h1.text-7xl {
     font-size: clamp(2.2rem, 14vw, 3rem) !important;
     letter-spacing: 0.18em !important;
   }
+
   body:not(.has-responsive-sidebar) #heroConsultBtn,
   body:not(.has-responsive-sidebar) #heroListBoutiqueBtn {
     width: min(92vw, 360px);
@@ -426,11 +478,17 @@ img, video, canvas, svg { max-width: 100%; height: auto; }
   }
 
   /* Custom scrollbar touch support */
-  .custom-scrollbar { -webkit-overflow-scrolling: touch; }
+  .custom-scrollbar {
+    -webkit-overflow-scrolling: touch;
+  }
 
   /* Responsive topmenu (landing page) */
-  .responsive-topmenu { position: relative; display: inline-block; }
-  .responsive-topmenu > summary {
+  .responsive-topmenu {
+    position: relative;
+    display: inline-block;
+  }
+
+  .responsive-topmenu>summary {
     list-style: none;
     cursor: pointer;
     border: 1px solid rgba(193, 166, 113, 0.4);
@@ -441,7 +499,11 @@ img, video, canvas, svg { max-width: 100%; height: auto; }
     letter-spacing: 0.08em;
     text-transform: uppercase;
   }
-  .responsive-topmenu > summary::-webkit-details-marker { display: none; }
+
+  .responsive-topmenu>summary::-webkit-details-marker {
+    display: none;
+  }
+
   .responsive-topmenu .responsive-topmenu-list {
     position: absolute;
     right: 0;
@@ -455,6 +517,7 @@ img, video, canvas, svg { max-width: 100%; height: auto; }
     gap: 6px;
     z-index: 90;
   }
+
   .responsive-topmenu .responsive-topmenu-list a {
     display: block;
     padding: 7px 9px;
@@ -465,6 +528,7 @@ img, video, canvas, svg { max-width: 100%; height: auto; }
     text-transform: uppercase;
     letter-spacing: 0.06em;
   }
+
   .responsive-topmenu .responsive-topmenu-list a:hover {
     background: rgba(193, 166, 113, 0.14);
     color: #c1a671;
@@ -475,8 +539,24 @@ img, video, canvas, svg { max-width: 100%; height: auto; }
    Extra small (phones ≤ 480 px) tuning
    ========================================================= */
 @media (max-width: 480px) {
+
   /* Product grid → 1 column when very small */
   #productGrid {
     grid-template-columns: 1fr !important;
   }
+}
+
+/* =========================================================
+   Landing / boutiques pages – suppress the auto‐generated
+   responsive MENU dropdown (landing nav links are intentionally
+   hidden on mobile and not needed as a dropdown)
+   ========================================================= */
+body:not(.has-responsive-sidebar) .responsive-topmenu {
+  display: none !important;
+}
+
+/* Prevent navbar overflow on all pages */
+nav.fixed .max-w-7xl {
+  flex-wrap: nowrap !important;
+  overflow: visible;
 }
