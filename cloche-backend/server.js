@@ -15,12 +15,12 @@ try {
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
-  app.use(express.static(path.join(__dirname, "frontend")));
+  app.use(express.static(path.join(__dirname, "..", "public")));
   app.use("/uploads", express.static("uploads"));
 
   // Root route -> serve landing page at domain root
   app.get("/", (req, res) => {
-    res.sendFile(path.join(__dirname, "frontend", "landingpage.html"));
+  res.sendFile(path.join(__dirname, "..", "public", "index.html"));
   });
 
   // Health endpoint for uptime checks
