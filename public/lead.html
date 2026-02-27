@@ -205,14 +205,6 @@
           </div>
         </div>
         <div class="flex items-center gap-4">
-          <div class="flex items-center gap-2 px-4 py-2 bg-primary/10 border border-primary/20 rounded-full">
-            <span class="material-symbols-outlined text-primary text-sm">wallet</span>
-          </div>
-          <button class="p-2 text-slate-500 hover:text-primary transition-colors relative">
-            <span class="material-symbols-outlined">notifications</span>
-            <span class="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full border-2 border-background-dark"></span>
-          </button>
-          <div class="h-8 w-[1px] bg-accent-gold/20 mx-2"></div>
           <div id="topAvatar"
             class="rounded-full size-10 border border-primary/30 bg-primary/90 text-background-dark flex items-center justify-center font-display font-bold text-sm">
             S
@@ -230,8 +222,10 @@
             <span class="text-xs font-bold text-primary uppercase tracking-widest mb-2">Total Leads</span>
             <div class="flex items-baseline gap-3">
               <span id="statsTotalLeads" class="text-4xl font-display font-bold">0</span>
-              <span class="text-emerald-500 text-xs font-bold flex items-center"><span
-                  class="material-symbols-outlined text-xs">trending_up</span> +5%</span>
+              <span id="statsTotalTrend" class="text-slate-400 text-xs font-bold flex items-center gap-1">
+                <span id="statsTotalTrendIcon" class="material-symbols-outlined text-xs">trending_flat</span>
+                <span id="statsTotalTrendText">0%</span>
+              </span>
             </div>
           </div>
           <div class="glass-panel p-6 rounded-xl flex flex-col gap-1 relative overflow-hidden group">
@@ -241,8 +235,10 @@
             <span class="text-xs font-bold text-primary uppercase tracking-widest mb-2">New This Week</span>
             <div class="flex items-baseline gap-3">
               <span id="statsNewLeads" class="text-4xl font-display font-bold">0</span>
-              <span class="text-emerald-500 text-xs font-bold flex items-center"><span
-                  class="material-symbols-outlined text-xs">trending_up</span> +2%</span>
+              <span id="statsNewTrend" class="text-slate-400 text-xs font-bold flex items-center gap-1">
+                <span id="statsNewTrendIcon" class="material-symbols-outlined text-xs">trending_flat</span>
+                <span id="statsNewTrendText">0%</span>
+              </span>
             </div>
           </div>
           <div class="glass-panel p-6 rounded-xl flex flex-col gap-1 relative overflow-hidden group">
@@ -252,8 +248,10 @@
             <span class="text-xs font-bold text-primary uppercase tracking-widest mb-2">Conversion Rate</span>
             <div class="flex items-baseline gap-3">
               <span id="statsConversionRate" class="text-4xl font-display font-bold">0%</span>
-              <span class="text-rose-500 text-xs font-bold flex items-center"><span
-                  class="material-symbols-outlined text-xs">trending_down</span> -1%</span>
+              <span id="statsConversionTrend" class="text-slate-400 text-xs font-bold flex items-center gap-1">
+                <span id="statsConversionTrendIcon" class="material-symbols-outlined text-xs">trending_flat</span>
+                <span id="statsConversionTrendText">0%</span>
+              </span>
             </div>
           </div>
         </div>
@@ -371,6 +369,37 @@
       // Close dropdowns
       document.querySelectorAll('.dropdown-menu').forEach(d => d.classList.add('hidden'));
       applyFilters();
+    };
+
+    const pctChange = (current, previous) => {
+      const cur = Number(current || 0);
+      const prev = Number(previous || 0);
+      if (prev === 0) return cur === 0 ? 0 : 100;
+      return ((cur - prev) / prev) * 100;
+    };
+
+    const setTrend = (rootId, value) => {
+      const root = document.getElementById(rootId);
+      const icon = document.getElementById(`${rootId}Icon`);
+      const text = document.getElementById(`${rootId}Text`);
+      if (!root || !icon || !text) return;
+
+      const v = Number.isFinite(value) ? value : 0;
+      const rounded = Math.round(Math.abs(v));
+
+      if (v > 0) {
+        root.className = "text-emerald-500 text-xs font-bold flex items-center gap-1";
+        icon.textContent = "trending_up";
+        text.textContent = `+${rounded}%`;
+      } else if (v < 0) {
+        root.className = "text-rose-500 text-xs font-bold flex items-center gap-1";
+        icon.textContent = "trending_down";
+        text.textContent = `-${rounded}%`;
+      } else {
+        root.className = "text-slate-400 text-xs font-bold flex items-center gap-1";
+        icon.textContent = "trending_flat";
+        text.textContent = "0%";
+      }
     };
 
     // 🔍 Filter Logic
@@ -561,14 +590,43 @@
         const totalLeads = leads.length;
         const now = new Date();
         const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        const twoWeeksAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+
+        const isValidDate = (d) => d instanceof Date && !Number.isNaN(d.getTime());
 
         const newLeads = leads.filter(l => {
           const d = new Date(l.created_at || l.date);
+          if (!isValidDate(d)) return false;
           return d >= oneWeekAgo;
+        }).length;
+
+        const previousWeekLeads = leads.filter(l => {
+          const d = new Date(l.created_at || l.date);
+          if (!isValidDate(d)) return false;
+          return d >= twoWeeksAgo && d < oneWeekAgo;
         }).length;
 
         const convertedLeads = leads.filter(l => l.status === "CONVERTED").length;
         const conversionRate = totalLeads > 0 ? Math.round((convertedLeads / totalLeads) * 100) : 0;
+
+        const currentWeekConverted = leads.filter(l => {
+          const d = new Date(l.created_at || l.date);
+          if (!isValidDate(d)) return false;
+          return d >= oneWeekAgo && l.status === "CONVERTED";
+        }).length;
+
+        const previousWeekConverted = leads.filter(l => {
+          const d = new Date(l.created_at || l.date);
+          if (!isValidDate(d)) return false;
+          return d >= twoWeeksAgo && d < oneWeekAgo && l.status === "CONVERTED";
+        }).length;
+
+        const previousTotalLeads = Math.max(totalLeads - newLeads, 0);
+        const totalLeadsTrend = pctChange(totalLeads, previousTotalLeads);
+        const newLeadsTrend = pctChange(newLeads, previousWeekLeads);
+        const currentWeekConversionRate = newLeads > 0 ? (currentWeekConverted / newLeads) * 100 : 0;
+        const previousWeekConversionRate = previousWeekLeads > 0 ? (previousWeekConverted / previousWeekLeads) * 100 : 0;
+        const conversionTrend = pctChange(currentWeekConversionRate, previousWeekConversionRate);
 
         // Update Stats UI
         const safeSetText = (id, text) => {
@@ -579,6 +637,9 @@
         safeSetText("statsTotalLeads", totalLeads);
         safeSetText("statsNewLeads", newLeads);
         safeSetText("statsConversionRate", conversionRate + "%");
+        setTrend("statsTotalTrend", totalLeadsTrend);
+        setTrend("statsNewTrend", newLeadsTrend);
+        setTrend("statsConversionTrend", conversionTrend);
 
         // Initial Render
         renderPagination(allLeads);
