@@ -412,17 +412,8 @@ if (selectedAccountType === "partner") {
         const result = await res.json();
 
         if (res.ok) {
-          alert("Signup successful!");
-
-          if (result.role === "user") {
-            localStorage.setItem("isUserLoggedIn", "true");
-            localStorage.setItem("userId", String(result.userId || ""));
-            localStorage.setItem("userName", result.name || data.name);
-            localStorage.setItem("userEmail", result.email || data.email);
-            window.location.href = "userportal.html";
-          } else {
-            window.location.href = "boutiquelogin.html";
-          }
+          alert("Signup successful! Please login to continue.");
+          window.location.href = "boutiquelogin.html";
         } else {
           alert(result.message);
         }
