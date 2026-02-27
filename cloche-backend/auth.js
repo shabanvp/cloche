@@ -528,44 +528,59 @@ router.post("/profile/:boutiqueId/showcase-image", showcaseUpload.single("image"
 });
 
 /* ================= BOUTIQUES LIST ================= */
-router.get("/boutiques", (req, res) => {
-  const city = (req.query.city || "").toString().trim();
+router.get("/boutiques", async (req, res) => {
+  const city = String(req.query.city || "").trim().toLowerCase();
 
-  ensureShowcaseTable((tableErr) => {
-    if (tableErr) {
-      return res.status(500).json({ message: "Failed to prepare showcase table", error: tableErr.message });
+  try {
+    const { data: boutiques, error: boutiqueError } = await supabase
+      .from("boutiques")
+      .select("id, boutique_name, owner_name, email, phone, city, plan")
+      .order("boutique_name", { ascending: true });
+
+    if (boutiqueError) {
+      return res.status(500).json({ message: "Database error", error: boutiqueError.message });
     }
 
-    const baseQuery = `
-      SELECT
-        b.id,
-        b.boutique_name,
-        b.owner_name,
-        b.email,
-        b.phone,
-        b.city,
-        COALESCE(NULLIF(b.plan, ''), 'Basic') AS plan,
-        s.district,
-        s.area,
-        s.tags,
-        s.image_url,
-        COALESCE(s.rating, 5.0) AS rating
-      FROM boutiques b
-      LEFT JOIN boutique_showcase s ON s.boutique_id = b.id
-    `;
+    let showcaseByBoutiqueId = {};
+    const { data: showcases, error: showcaseError } = await supabase
+      .from("boutique_showcase")
+      .select("boutique_id, district, area, tags, image_url, rating");
 
-    const query = city
-      ? `${baseQuery} WHERE LOWER(COALESCE(s.district, b.city)) = LOWER(?) ORDER BY b.boutique_name ASC`
-      : `${baseQuery} ORDER BY b.boutique_name ASC`;
+    if (!showcaseError && Array.isArray(showcases)) {
+      showcaseByBoutiqueId = showcases.reduce((acc, row) => {
+        acc[row.boutique_id] = row;
+        return acc;
+      }, {});
+    } else if (showcaseError) {
+      console.warn("[BOUTIQUES] showcase read skipped:", showcaseError.message);
+    }
 
-    const params = city ? [city] : [];
-    db.query(query, params, (err, rows) => {
-      if (err) {
-        return res.status(500).json({ message: "Database error", error: err.message });
-      }
-      return res.json(rows);
+    const merged = (boutiques || []).map((b) => {
+      const s = showcaseByBoutiqueId[b.id] || {};
+      return {
+        id: b.id,
+        boutique_name: b.boutique_name,
+        owner_name: b.owner_name,
+        email: b.email,
+        phone: b.phone,
+        city: b.city,
+        plan: b.plan || "Basic",
+        district: s.district || null,
+        area: s.area || null,
+        tags: s.tags || null,
+        image_url: s.image_url || null,
+        rating: Number(s.rating || 5.0)
+      };
     });
-  });
+
+    const filtered = city
+      ? merged.filter((row) => String(row.district || row.city || "").trim().toLowerCase() === city)
+      : merged;
+
+    return res.json(filtered);
+  } catch (err) {
+    return res.status(500).json({ message: "Server error", error: err.message });
+  }
 });
 
 
