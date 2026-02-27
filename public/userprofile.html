@@ -60,12 +60,12 @@
 <body>
   <nav class="sticky top-0 z-20 border-b border-[rgba(193,166,113,0.18)] bg-[rgba(14,13,12,0.72)] backdrop-blur-md">
     <div class="max-w-7xl mx-auto h-20 px-6 flex items-center justify-between">
-      <a href="landingpage.html" class="inline-flex items-center gap-3 leading-none">
+      <a href="index.html" class="inline-flex items-center gap-3 leading-none">
         <span class="material-symbols-outlined text-primary text-3xl leading-none shrink-0">diamond</span>
         <span class="font-display text-3xl tracking-[0.24em] text-white leading-none">CLOCHE</span>
       </a>
       <div class="flex items-center gap-3">
-        <a href="landingpage.html" class="text-xs uppercase tracking-[0.24em] text-white/70 hover:text-primary transition-colors">Home</a>
+        <a href="index.html" class="text-xs uppercase tracking-[0.24em] text-white/70 hover:text-primary transition-colors">Home</a>
         <button id="logoutBtn" class="h-10 px-5 rounded-full border border-primary/40 text-primary text-xs font-semibold uppercase tracking-[0.16em] hover:bg-primary hover:text-black transition-all">
           Logout
         </button>
@@ -217,7 +217,7 @@
       localStorage.removeItem("userId");
       localStorage.removeItem("userName");
       localStorage.removeItem("userEmail");
-      window.location.href = "landingpage.html";
+      window.location.href = "index.html";
     });
 
     editForm.addEventListener("submit", async (e) => {
