@@ -118,32 +118,62 @@ router.post("/signup", async (req, res) => {
         .status(400)
         .json({ message: "All partner fields are required" });
     }
+    try {
+      const normalizedEmail = String(email).trim().toLowerCase();
+      const normalizedPhone = String(phone).trim();
+      const passwordHash = await bcrypt.hash(password, 10);
 
-    const query = `
-      INSERT INTO boutiques
-      (boutique_name, owner_name, email, phone, city, password)
-      VALUES (?, ?, ?, ?, ?, ?)
-    `;
+      const basePayload = {
+        boutique_name: String(boutique_name).trim(),
+        owner_name: String(owner_name).trim(),
+        email: normalizedEmail,
+        phone: normalizedPhone,
+        city: String(city).trim(),
+        plan: "Basic"
+      };
 
-    db.query(
-      query,
-      [boutique_name, owner_name, email, phone, city, password],
-      (err) => {
-        if (err) {
-          if (err.code === "ER_DUP_ENTRY") {
-            return res.status(409).json({ message: "Boutique already exists" });
-          }
-          console.error(err);
-          return res.status(500).json({ message: "Database error" });
+      // Support both schema variants during migration:
+      // newer tables may use password_hash, older ones may still have password.
+      const payloadCandidates = [
+        { ...basePayload, password_hash: passwordHash },
+        { ...basePayload, password: password }
+      ];
+
+      let insertedBoutique = null;
+      let insertError = null;
+
+      for (const payload of payloadCandidates) {
+        const { data, error } = await supabase
+          .from("boutiques")
+          .insert([payload])
+          .select("id")
+          .maybeSingle();
+
+        if (!error) {
+          insertedBoutique = data;
+          insertError = null;
+          break;
         }
 
-        return res.json({
-          success: true,
-          role: "partner",
-          message: "Boutique account created successfully"
-        });
+        insertError = error;
+        if (error.code === "23505") {
+          return res.status(409).json({ message: "Boutique already exists" });
+        }
       }
-    );
+
+      if (insertError) {
+        return res.status(500).json({ message: insertError.message || "Database error" });
+      }
+
+      return res.status(201).json({
+        success: true,
+        role: "partner",
+        boutiqueId: insertedBoutique?.id || null,
+        message: "Boutique account created successfully"
+      });
+    } catch (err) {
+      return res.status(500).json({ message: err.message || "Server error" });
+    }
   }
 
   return res.status(400).json({ message: "Invalid account type" });
@@ -151,7 +181,7 @@ router.post("/signup", async (req, res) => {
 
 
 /* ================= LOGIN ================= */
-router.post("/login", (req, res) => {
+router.post("/login", async (req, res) => {
   const { account_type, identifier, email, password } = req.body;
 
   if (!password) {
@@ -167,22 +197,22 @@ router.post("/login", (req, res) => {
     return res.status(400).json({ message: "Email/phone and password required" });
   }
 
-  const isEmail = lookupValue.includes("@");
-  const query = isEmail
-    ? "SELECT * FROM boutiques WHERE email = ? LIMIT 1"
-    : "SELECT * FROM boutiques WHERE phone = ? LIMIT 1";
+  try {
+    const isEmail = lookupValue.includes("@");
+    const { data: boutique, error } = await supabase
+      .from("boutiques")
+      .select("*")
+      .eq(isEmail ? "email" : "phone", isEmail ? lookupValue.toLowerCase() : lookupValue)
+      .maybeSingle();
 
-  db.query(query, [lookupValue], async (err, rows) => {
-    if (err) {
-      console.error(err);
+    if (error) {
+      console.error("[PARTNER LOGIN] Supabase error:", error);
       return res.status(500).json({ message: "Database error" });
     }
 
-    if (rows.length === 0) {
+    if (!boutique) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
-
-    const boutique = rows[0];
 
     let match = false;
 
@@ -202,14 +232,17 @@ router.post("/login", (req, res) => {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    res.json({
+    return res.json({
       success: true,
       boutiqueId: boutique.id,
       boutiqueName: boutique.boutique_name,
       ownerName: boutique.owner_name,
       plan: boutique.plan || "Basic"
     });
-  });
+  } catch (err) {
+    console.error("[PARTNER LOGIN] Unexpected error:", err);
+    return res.status(500).json({ message: "Server error" });
+  }
 });
 
 router.post("/login-user", async (req, res) => {
