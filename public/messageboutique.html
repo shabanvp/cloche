@@ -84,8 +84,9 @@
   </main>
 
   <script>
-    const API = "/api/messages";
-    const AUTH_API = "/api/auth";
+    const API_ORIGIN = "https://cloche-backend.onrender.com";
+    const API = `${API_ORIGIN}/api/messages`;
+    const AUTH_API = `${API_ORIGIN}/api/auth`;
     const userId = localStorage.getItem("userId");
     let userName = localStorage.getItem("userName") || "Customer";
     let userEmail = localStorage.getItem("userEmail") || "";
@@ -117,6 +118,15 @@
         .replace(/>/g, "&gt;");
     }
 
+    async function readJsonSafe(res) {
+      const text = await res.text();
+      try {
+        return text ? JSON.parse(text) : {};
+      } catch {
+        return { message: "Unexpected server response format." };
+      }
+    }
+
     async function bootstrapConversationFromContext() {
       const { conversationId, boutiqueId, productName } = getQueryContext();
       if (conversationId) {
@@ -139,7 +149,7 @@
           body: JSON.stringify(payload)
         });
 
-        const data = await res.json();
+        const data = await readJsonSafe(res);
         if (res.ok && data.conversationId) {
           activeConversationId = data.conversationId;
         }
@@ -157,7 +167,7 @@
     async function loadConversations() {
       try {
         const res = await fetch(`${API}/customer/conversations?email=${encodeURIComponent(userEmail)}`);
-        const data = await res.json();
+        const data = await readJsonSafe(res);
         if (!res.ok) throw new Error(data.message || "Failed to load conversations");
 
         conversations = Array.isArray(data) ? data : [];
@@ -218,7 +228,7 @@
 
       try {
         const res = await fetch(`${API}/customer/conversation/${conversationId}`);
-        const msgs = await res.json();
+        const msgs = await readJsonSafe(res);
         if (!res.ok) throw new Error(msgs.message || "Failed to load messages");
         renderMessages(Array.isArray(msgs) ? msgs : []);
       } catch (err) {
@@ -263,7 +273,7 @@
             senderType: "customer"
           })
         });
-        const data = await res.json();
+        const data = await readJsonSafe(res);
         if (!res.ok) throw new Error(data.message || "Failed to send message");
         input.value = "";
         await openConversation(activeConversationId);
@@ -277,7 +287,7 @@
       if (!userId || userEmail) return;
       try {
         const res = await fetch(`${AUTH_API}/user/${userId}`);
-        const data = await res.json();
+        const data = await readJsonSafe(res);
         if (res.ok && data.email) {
           localStorage.setItem("userEmail", data.email);
           if (data.name) localStorage.setItem("userName", data.name);
