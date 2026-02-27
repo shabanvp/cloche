@@ -96,7 +96,25 @@
 </head>
 
 <body
-  class="bg-background-light dark:bg-background-dark text-gray-800 dark:text-gray-100 selection:bg-primary selection:text-white">
+  class="page-index bg-background-light dark:bg-background-dark text-gray-800 dark:text-gray-100 selection:bg-primary selection:text-white">
+  <div class="mobile-topbar md:hidden">
+    <details class="mobile-menu-details">
+      <summary class="mobile-icon-btn" aria-label="Open menu">
+        <span class="material-symbols-outlined">menu</span>
+      </summary>
+      <div class="mobile-menu-panel">
+        <a href="index.html">Home</a>
+        <a href="boutiques.html">Explore</a>
+        <a href="messageboutique.html">Saved</a>
+        <a href="userprofile.html">Profile</a>
+        <a href="boutiquelogin.html">Login</a>
+      </div>
+    </details>
+    <div class="mobile-logo">CLOCHE</div>
+    <a href="messageboutique.html" class="mobile-icon-btn" aria-label="Saved">
+      <span class="material-symbols-outlined">shopping_bag</span>
+    </a>
+  </div>
   <!-- Top Navigation -->
   <nav class="fixed top-0 w-full z-50 glass-card royal-border">
     <div class="max-w-7xl mx-auto px-4 md:px-6 h-16 md:h-20 flex items-center justify-between gap-2">
@@ -416,6 +434,24 @@
       </div>
     </div>
   </footer>
+  <nav class="mobile-bottom-nav md:hidden" aria-label="Mobile bottom navigation">
+    <a href="index.html" class="mobile-bottom-item mobile-bottom-active">
+      <span class="material-symbols-outlined">home</span>
+      <span>Home</span>
+    </a>
+    <a href="boutiques.html" class="mobile-bottom-item">
+      <span class="material-symbols-outlined">search</span>
+      <span>Explore</span>
+    </a>
+    <a href="messageboutique.html" class="mobile-bottom-item">
+      <span class="material-symbols-outlined">favorite</span>
+      <span>Saved</span>
+    </a>
+    <a href="userprofile.html" class="mobile-bottom-item">
+      <span class="material-symbols-outlined">person</span>
+      <span>Profile</span>
+    </a>
+  </nav>
   <script>
     const API_BASE = "https://cloche-backend.onrender.com/api/auth";
     const API_ORIGIN = "https://cloche-backend.onrender.com";
