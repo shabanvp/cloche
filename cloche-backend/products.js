@@ -33,8 +33,9 @@ const safeUnlink = (imageUrl) => {
 };
 
 /* ================= GET PRODUCT DETAILS ================= */
-router.get("/:productId", async (req, res) => {
+router.get("/:productId", async (req, res, next) => {
   const { productId } = req.params;
+  if (productId === "boutique") return next();
 
   try {
     const { data: product, error: productErr } = await supabase
@@ -164,11 +165,21 @@ router.get("/boutique/:boutiqueId", async (req, res) => {
   const { boutiqueId } = req.params;
 
   try {
-    const { data: products, error: productErr } = await supabase
+    let { data: products, error: productErr } = await supabase
       .from("products")
       .select("*")
       .eq("boutique_id", boutiqueId)
       .order("created_at", { ascending: false });
+
+    if (productErr && String(productErr.message || "").toLowerCase().includes("created_at")) {
+      const fallback = await supabase
+        .from("products")
+        .select("*")
+        .eq("boutique_id", boutiqueId)
+        .order("id", { ascending: false });
+      products = fallback.data;
+      productErr = fallback.error;
+    }
 
     if (productErr) return res.status(500).json({ message: "Database error", error: productErr.message });
     if (!Array.isArray(products) || !products.length) return res.json([]);
