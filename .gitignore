@@ -1,0 +1,4 @@
+node_modules/
+cloche-backend/node_modules/
+cloche-backend/uploads/
+.env
