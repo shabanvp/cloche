@@ -1,0 +1,155 @@
+/* Global responsive baseline */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+img,
+video,
+canvas,
+svg {
+  max-width: 100%;
+  height: auto;
+}
+
+textarea,
+input,
+select,
+button {
+  max-width: 100%;
+}
+
+/* Mobile/tablet app layout fixes */
+@media (max-width: 1024px) {
+  body {
+    min-height: 100dvh;
+  }
+
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+
+  table {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .responsive-main {
+    width: 100% !important;
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  aside.w-72[data-responsive-sidebar="true"] {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    height: 100dvh !important;
+    width: min(82vw, 320px) !important;
+    max-width: 320px;
+    z-index: 70;
+    transform: translateX(-105%);
+    transition: transform 0.25s ease;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.45);
+  }
+
+  .responsive-sidebar-open aside.w-72[data-responsive-sidebar="true"] {
+    transform: translateX(0);
+  }
+
+  .responsive-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(1px);
+    z-index: 65;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+  }
+
+  .responsive-sidebar-open .responsive-backdrop {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .responsive-sidebar-toggle {
+    position: fixed;
+    left: 12px;
+    top: 12px;
+    z-index: 80;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    border: 1px solid rgba(193, 166, 113, 0.4);
+    background: rgba(13, 13, 13, 0.88);
+    color: #c1a671;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    line-height: 1;
+  }
+
+  .responsive-topmenu {
+    position: relative;
+    display: inline-block;
+  }
+
+  .responsive-topmenu > summary {
+    list-style: none;
+    cursor: pointer;
+    border: 1px solid rgba(193, 166, 113, 0.4);
+    border-radius: 999px;
+    padding: 6px 12px;
+    color: #c1a671;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .responsive-topmenu > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .responsive-topmenu .responsive-topmenu-list {
+    position: absolute;
+    right: 0;
+    top: 110%;
+    min-width: 180px;
+    background: rgba(20, 20, 20, 0.96);
+    border: 1px solid rgba(193, 166, 113, 0.25);
+    border-radius: 10px;
+    padding: 8px;
+    display: grid;
+    gap: 6px;
+    z-index: 90;
+  }
+
+  .responsive-topmenu .responsive-topmenu-list a {
+    display: block;
+    padding: 7px 9px;
+    border-radius: 8px;
+    color: rgba(255, 255, 255, 0.9);
+    text-decoration: none;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .responsive-topmenu .responsive-topmenu-list a:hover {
+    background: rgba(193, 166, 113, 0.14);
+    color: #c1a671;
+  }
+}
