@@ -181,6 +181,7 @@
 <div class="fixed top-20 -left-20 w-96 h-96 bg-primary/5 rounded-full blur-[100px] pointer-events-none"></div>
 <div class="fixed bottom-10 -right-20 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[120px] pointer-events-none"></div>
 <script>
+const API_BASE = "https://cloche-backend.onrender.com";
 let selectedAccountType = "user";
 
 function setAccountType(type) {
@@ -240,8 +241,8 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
 
   const isUser = selectedAccountType === "user";
   const endpoint = isUser
-    ? "/api/auth/login-user"
-    : "/api/auth/login";
+    ? `${API_BASE}/api/auth/login-user`
+    : `${API_BASE}/api/auth/login`;
 
   const payload = isUser
     ? { email: identifier, password }

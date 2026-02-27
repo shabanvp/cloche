@@ -282,6 +282,7 @@
 
   <!-- Decorative Image / Texture -->
 <script>
+    const API_BASE = "https://cloche-backend.onrender.com";
     let generatedOTP = null;
     let selectedAccountType = "partner";
 
@@ -403,7 +404,7 @@ if (selectedAccountType === "partner") {
       console.log("FORM DATA:", data);
 
       try {
-        const res = await fetch("/api/auth/signup", {
+        const res = await fetch(`${API_BASE}/api/auth/signup`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(data)
