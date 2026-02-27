@@ -2,12 +2,21 @@ const express = require("express");
 const bcrypt = require("bcrypt");
 const multer = require("multer");
 const path = require("path");
+const fs = require("fs");
 const router = express.Router();
 const db = require("./db");
 const supabase = require("./supabase");
 
+const ensureUploadsDir = () => {
+  const uploadDir = path.join(process.cwd(), "uploads");
+  if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+  }
+  return uploadDir;
+};
+
 const showcaseStorage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, "uploads/"),
+  destination: (req, file, cb) => cb(null, ensureUploadsDir()),
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
     cb(null, `showcase-${uniqueSuffix}${path.extname(file.originalname)}`);
