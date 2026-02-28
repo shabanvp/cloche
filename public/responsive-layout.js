@@ -21,6 +21,14 @@
     return file;
   }
 
+  function isRoute(current, names) {
+    const c = String(current || "").toLowerCase().replace(/^\//, "");
+    return names.some((name) => {
+      const n = String(name).toLowerCase().replace(/^\//, "");
+      return c === n || c === n.replace(".html", "");
+    });
+  }
+
   function setupGlobalMobileBars() {
     if (!isMobile()) return;
 
@@ -132,15 +140,15 @@
     const current = resolveCurrentFile();
     if (partnerLoggedIn) {
       let activePartnerTab = null;
-      if (current === "index.html") {
+      if (isRoute(current, ["index.html", ""])) {
         activePartnerTab = bottom.querySelector('[data-mobile-tab="home"]');
-      } else if (current === "dashboard.html") {
+      } else if (isRoute(current, ["dashboard.html"])) {
         activePartnerTab = bottom.querySelector('[data-mobile-tab="dashboard"]');
-      } else if (current === "lead.html") {
+      } else if (isRoute(current, ["lead.html"])) {
         activePartnerTab = bottom.querySelector('[data-mobile-tab="leads"]');
-      } else if (current === "boutiqueproducts.html" || current === "boutiqueproduct.html") {
+      } else if (isRoute(current, ["boutiqueproducts.html", "boutiqueproduct.html"])) {
         activePartnerTab = bottom.querySelector('[data-mobile-tab="products"]');
-      } else if (current === "messages.html" || current === "messageboutique.html") {
+      } else if (isRoute(current, ["messages.html", "messageboutique.html"])) {
         activePartnerTab = bottom.querySelector('[data-mobile-tab="messages"]');
       }
 
@@ -153,13 +161,13 @@
         bottom.style.gridTemplateColumns = "repeat(5, 1fr)";
       }
     } else {
-      if (current === "index.html") {
+      if (isRoute(current, ["index.html", ""])) {
         bottom.querySelector('[data-mobile-tab="home"]')?.classList.add("mobile-bottom-active");
-      } else if (current === "boutiques.html" || current === "viewboutique.html") {
+      } else if (isRoute(current, ["boutiques.html", "viewboutique.html"])) {
         bottom.querySelector('[data-mobile-tab="boutiques"]')?.classList.add("mobile-bottom-active");
-      } else if (current === "messageboutique.html" || current === "messages.html") {
+      } else if (isRoute(current, ["messageboutique.html", "messages.html"])) {
         bottom.querySelector('[data-mobile-tab="enquire"]')?.classList.add("mobile-bottom-active");
-      } else if (current === "userprofile.html" || current === "profile.html" || current === "boutiquelogin.html" || current === "signup.html") {
+      } else if (isRoute(current, ["userprofile.html", "profile.html", "boutiquelogin.html", "signup.html"])) {
         bottom.querySelector('[data-mobile-tab="profile"]')?.classList.add("mobile-bottom-active");
       }
     }
