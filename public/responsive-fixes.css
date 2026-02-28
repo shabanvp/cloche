@@ -527,7 +527,7 @@ svg {
     border-radius: 12px;
     background: linear-gradient(180deg, rgba(10, 10, 10, 0.96) 0%, rgba(10, 10, 10, 0.9) 100%);
     display: grid;
-    grid-template-columns: 42px 1fr 42px;
+    grid-template-columns: 42px 1fr;
     align-items: center;
     padding: 0 10px;
   }

@@ -57,12 +57,13 @@
           </div>
         </details>
         <div class="mobile-logo">CLOCHE</div>
-        <a href="messageboutique.html" class="mobile-icon-btn" aria-label="Enquire">
-          <span class="material-symbols-outlined">chat</span>
-        </a>
       `;
       body.insertBefore(topbar, body.firstChild);
     }
+
+    // Remove legacy right-side icon action from mobile topbar (all pages).
+    const legacyTopAction = topbar.querySelector(":scope > a.mobile-icon-btn");
+    if (legacyTopAction) legacyTopAction.remove();
 
     const loginProfileLink = document.querySelector("[data-mobile-login-profile]");
     if (loginProfileLink) {
