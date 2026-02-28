@@ -131,16 +131,26 @@
     bottom.querySelectorAll(".mobile-bottom-item").forEach((el) => el.classList.remove("mobile-bottom-active"));
     const current = resolveCurrentFile();
     if (partnerLoggedIn) {
+      let activePartnerTab = null;
       if (current === "index.html") {
-        bottom.querySelector('[data-mobile-tab="home"]')?.classList.add("mobile-bottom-active");
+        activePartnerTab = bottom.querySelector('[data-mobile-tab="home"]');
       } else if (current === "dashboard.html") {
-        bottom.querySelector('[data-mobile-tab="dashboard"]')?.classList.add("mobile-bottom-active");
+        activePartnerTab = bottom.querySelector('[data-mobile-tab="dashboard"]');
       } else if (current === "lead.html") {
-        bottom.querySelector('[data-mobile-tab="leads"]')?.classList.add("mobile-bottom-active");
+        activePartnerTab = bottom.querySelector('[data-mobile-tab="leads"]');
       } else if (current === "boutiqueproducts.html" || current === "boutiqueproduct.html") {
-        bottom.querySelector('[data-mobile-tab="products"]')?.classList.add("mobile-bottom-active");
+        activePartnerTab = bottom.querySelector('[data-mobile-tab="products"]');
       } else if (current === "messages.html" || current === "messageboutique.html") {
-        bottom.querySelector('[data-mobile-tab="messages"]')?.classList.add("mobile-bottom-active");
+        activePartnerTab = bottom.querySelector('[data-mobile-tab="messages"]');
+      }
+
+      if (activePartnerTab) {
+        activePartnerTab.classList.add("mobile-bottom-active");
+        // Partner mode request: hide the current page icon and show the remaining icons.
+        activePartnerTab.style.display = "none";
+        bottom.style.gridTemplateColumns = "repeat(4, 1fr)";
+      } else {
+        bottom.style.gridTemplateColumns = "repeat(5, 1fr)";
       }
     } else {
       if (current === "index.html") {
