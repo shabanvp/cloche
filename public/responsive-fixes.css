@@ -477,18 +477,27 @@ svg {
     padding-right: 16px !important;
   }
 
-  /* Home page mobile top bar + bottom tab bar */
-  body.page-index {
+  /* Global mobile top bar + bottom tab bar */
+  body.has-mobile-bars {
     padding-top: 76px;
     padding-bottom: 84px;
   }
 
-  body.page-index > nav.fixed {
+  body.has-mobile-bars > nav.fixed {
     display: none !important;
   }
 
-  body.page-index section:first-of-type {
+  body.has-mobile-bars section:first-of-type {
     padding-top: 14px !important;
+  }
+
+  .has-mobile-bars .responsive-sidebar-toggle {
+    display: none !important;
+  }
+
+  .has-mobile-bars.has-responsive-sidebar .responsive-main > header,
+  .has-mobile-bars.has-responsive-sidebar .responsive-main > div > header {
+    padding-left: 16px !important;
   }
 
   .mobile-topbar {

@@ -3,6 +3,119 @@
     return window.matchMedia("(max-width: 1024px)").matches;
   }
 
+  function resolveProfileLink() {
+    const isUserLoggedIn = localStorage.getItem("isUserLoggedIn") === "true";
+    const isPartnerLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+    if (isUserLoggedIn) return "userprofile.html";
+    if (isPartnerLoggedIn) return "profile.html";
+    return "boutiquelogin.html";
+  }
+
+  function resolveCurrentFile() {
+    const path = (window.location.pathname || "").toLowerCase();
+    const file = path.split("/").filter(Boolean).pop() || "index.html";
+    return file;
+  }
+
+  function setupGlobalMobileBars() {
+    if (!isMobile()) return;
+
+    const body = document.body;
+    if (!body) return;
+
+    const profileHref = resolveProfileLink();
+
+    let topbar = document.querySelector(".mobile-topbar");
+    if (!topbar) {
+      topbar = document.createElement("div");
+      topbar.className = "mobile-topbar";
+      topbar.innerHTML = `
+        <details class="mobile-menu-details">
+          <summary class="mobile-icon-btn" aria-label="Open menu">
+            <span class="material-symbols-outlined">menu</span>
+          </summary>
+          <div class="mobile-menu-panel">
+            <a href="index.html">Home</a>
+            <a href="boutiques.html">Boutiques</a>
+            <a href="viewproducts.html">Collections</a>
+            <a href="messageboutique.html">Messages</a>
+            <a href="boutiquelogin.html">Partner With Us</a>
+            <a data-mobile-login-profile href="${profileHref}">Login / Profile</a>
+          </div>
+        </details>
+        <div class="mobile-logo">CLOCHE</div>
+        <a href="messageboutique.html" class="mobile-icon-btn" aria-label="Enquire">
+          <span class="material-symbols-outlined">chat</span>
+        </a>
+      `;
+      body.insertBefore(topbar, body.firstChild);
+    }
+
+    const loginProfileLink = document.querySelector("[data-mobile-login-profile]");
+    if (loginProfileLink) loginProfileLink.setAttribute("href", profileHref);
+
+    let bottom = document.querySelector(".mobile-bottom-nav");
+    if (!bottom) {
+      bottom = document.createElement("nav");
+      bottom.className = "mobile-bottom-nav";
+      bottom.setAttribute("aria-label", "Mobile bottom navigation");
+      bottom.innerHTML = `
+        <a href="index.html" class="mobile-bottom-item" data-mobile-tab="home">
+          <span class="material-symbols-outlined">home</span>
+          <span>Home</span>
+        </a>
+        <a href="boutiques.html" class="mobile-bottom-item" data-mobile-tab="boutiques">
+          <span class="material-symbols-outlined">storefront</span>
+          <span>Boutiques</span>
+        </a>
+        <a href="messageboutique.html" class="mobile-bottom-item" data-mobile-tab="enquire">
+          <span class="material-symbols-outlined">chat</span>
+          <span>Enquire</span>
+        </a>
+        <a href="${profileHref}" class="mobile-bottom-item" data-mobile-tab="profile">
+          <span class="material-symbols-outlined">person</span>
+          <span>Profile</span>
+        </a>
+      `;
+      body.appendChild(bottom);
+    }
+
+    const profileTab = bottom.querySelector('[data-mobile-tab="profile"]');
+    if (profileTab) profileTab.setAttribute("href", profileHref);
+
+    // Ensure expected labels/icons even if nav already exists in page markup
+    const tabMap = {
+      home: { href: "index.html", label: "Home", icon: "home" },
+      boutiques: { href: "boutiques.html", label: "Boutiques", icon: "storefront" },
+      enquire: { href: "messageboutique.html", label: "Enquire", icon: "chat" },
+      profile: { href: profileHref, label: "Profile", icon: "person" }
+    };
+
+    Object.keys(tabMap).forEach((key) => {
+      const item = bottom.querySelector(`[data-mobile-tab="${key}"]`);
+      if (!item) return;
+      item.setAttribute("href", tabMap[key].href);
+      const icon = item.querySelector(".material-symbols-outlined");
+      const text = item.querySelector("span:last-child");
+      if (icon) icon.textContent = tabMap[key].icon;
+      if (text) text.textContent = tabMap[key].label;
+    });
+
+    bottom.querySelectorAll(".mobile-bottom-item").forEach((el) => el.classList.remove("mobile-bottom-active"));
+    const current = resolveCurrentFile();
+    if (current === "index.html") {
+      bottom.querySelector('[data-mobile-tab="home"]')?.classList.add("mobile-bottom-active");
+    } else if (current === "boutiques.html" || current === "viewboutique.html") {
+      bottom.querySelector('[data-mobile-tab="boutiques"]')?.classList.add("mobile-bottom-active");
+    } else if (current === "messageboutique.html" || current === "messages.html") {
+      bottom.querySelector('[data-mobile-tab="enquire"]')?.classList.add("mobile-bottom-active");
+    } else if (current === "userprofile.html" || current === "profile.html" || current === "boutiquelogin.html" || current === "signup.html") {
+      bottom.querySelector('[data-mobile-tab="profile"]')?.classList.add("mobile-bottom-active");
+    }
+
+    body.classList.add("has-mobile-bars");
+  }
+
   /* -------------------------------------------------------
      Sidebar drawer setup
   ------------------------------------------------------- */
@@ -164,6 +277,7 @@
   ------------------------------------------------------- */
   function init() {
     document.documentElement.classList.add("js-responsive");
+    setupGlobalMobileBars();
     setupSidebarDrawer();
     setupMessagesPage();
     setupTopMenuFallback();
