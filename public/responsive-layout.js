@@ -11,6 +11,10 @@
     return "boutiquelogin.html";
   }
 
+  function isAnyLoggedIn() {
+    return localStorage.getItem("isUserLoggedIn") === "true" || localStorage.getItem("isLoggedIn") === "true";
+  }
+
   function resolveCurrentFile() {
     const path = (window.location.pathname || "").toLowerCase();
     const file = path.split("/").filter(Boolean).pop() || "index.html";
@@ -52,7 +56,22 @@
     }
 
     const loginProfileLink = document.querySelector("[data-mobile-login-profile]");
-    if (loginProfileLink) loginProfileLink.setAttribute("href", profileHref);
+    if (loginProfileLink) {
+      loginProfileLink.onclick = null;
+
+      if (isAnyLoggedIn()) {
+        loginProfileLink.textContent = "Logout";
+        loginProfileLink.setAttribute("href", "#");
+        loginProfileLink.onclick = (e) => {
+          e.preventDefault();
+          localStorage.clear();
+          window.location.href = "index.html";
+        };
+      } else {
+        loginProfileLink.textContent = "Login / Profile";
+        loginProfileLink.setAttribute("href", profileHref);
+      }
+    }
 
     let bottom = document.querySelector(".mobile-bottom-nav");
     if (!bottom) {
