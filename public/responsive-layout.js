@@ -21,6 +21,11 @@
     return file;
   }
 
+  function resolveCurrentRouteClass() {
+    const file = resolveCurrentFile();
+    return `route-${String(file).toLowerCase().replace(".html", "").replace(/[^a-z0-9_-]/g, "")}`;
+  }
+
   function isRoute(current, names) {
     const c = String(current || "").toLowerCase().replace(/^\//, "");
     return names.some((name) => {
@@ -34,6 +39,7 @@
 
     const body = document.body;
     if (!body) return;
+    body.classList.add(resolveCurrentRouteClass());
 
     const profileHref = resolveProfileLink();
     const partnerLoggedIn = localStorage.getItem("isLoggedIn") === "true";

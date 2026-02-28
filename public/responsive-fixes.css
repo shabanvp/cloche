@@ -507,6 +507,19 @@ svg {
     padding-top: 14px !important;
   }
 
+  /* Boutiques page: remove extra legacy top spacing under mobile navbar */
+  body.has-mobile-bars.route-boutiques main.pt-24 {
+    padding-top: 0 !important;
+  }
+
+  body.has-mobile-bars.route-boutiques main > section:first-of-type {
+    min-height: 36vh !important;
+    height: auto !important;
+    padding-top: 8px !important;
+    padding-bottom: 12px !important;
+    justify-content: flex-start !important;
+  }
+
   .has-mobile-bars .responsive-sidebar-toggle {
     display: none !important;
   }
