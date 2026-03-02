@@ -9,11 +9,7 @@ db.query(countMessagesQuery, [boutiqueId], (err, result) => {
 
   const totalMessages = result[0].total;
 
-  if (plan === "Basic" && totalMessages >= 5) {
-    return res.status(403).json({
-      message: "Basic plan allows only 5 messages. Upgrade to continue."
-    });
-  }
+  // Early Partner Plan: unlimited messages during launch phase.
 
   // ✅ Allow sending message
 });

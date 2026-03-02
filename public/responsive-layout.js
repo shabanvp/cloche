@@ -174,6 +174,8 @@
         bottom.querySelector('[data-mobile-tab="boutiques"]')?.classList.add("mobile-bottom-active");
       } else if (isRoute(current, ["messageboutique.html", "messages.html"])) {
         bottom.querySelector('[data-mobile-tab="enquire"]')?.classList.add("mobile-bottom-active");
+      } else if (isRoute(current, ["enquiry.html"])) {
+        bottom.querySelector('[data-mobile-tab="enquire"]')?.classList.add("mobile-bottom-active");
       } else if (isRoute(current, ["userprofile.html", "profile.html", "boutiquelogin.html", "signup.html"])) {
         bottom.querySelector('[data-mobile-tab="profile"]')?.classList.add("mobile-bottom-active");
       }

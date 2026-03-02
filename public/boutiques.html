@@ -158,10 +158,19 @@
     }
 
     function resolveAssetUrl(url) {
-      const v = String(url || "").trim();
-      if (!v) return "";
-      if (/^https?:\/\//i.test(v)) return v;
-      return `${API_ORIGIN}${v.startsWith("/") ? "" : "/"}${v}`;
+      const raw = String(url || "").trim();
+      if (!raw) return "";
+      if (/^data:image\//i.test(raw)) return raw;
+      if (/^https?:\/\//i.test(raw)) return raw;
+
+      const normalized = raw.replace(/\\/g, "/");
+      const lower = normalized.toLowerCase();
+      const uploadsWithSlash = lower.indexOf("/uploads/");
+      if (uploadsWithSlash >= 0) return `${API_ORIGIN}${normalized.slice(uploadsWithSlash)}`;
+      const uploadsNoSlash = lower.indexOf("uploads/");
+      if (uploadsNoSlash >= 0) return `${API_ORIGIN}/${normalized.slice(uploadsNoSlash)}`;
+
+      return `${API_ORIGIN}${normalized.startsWith("/") ? "" : "/"}${normalized}`;
     }
 
     function updateAuthNav() {
@@ -259,7 +268,6 @@
         const image = b.image_url ? resolveAssetUrl(b.image_url) : pickImage(`${b.id}-${b.boutique_name}`);
         const district = (b.district || b.city || "Unknown").toUpperCase();
         const area = (b.area || b.city || "Location").toUpperCase();
-        const rating = Number(b.rating || 5).toFixed(1);
         const tags = String(b.tags || "").split(",").map(t => t.trim()).filter(Boolean).slice(0, 3);
         const renderedTags = tags.length
           ? tags
@@ -268,13 +276,12 @@
         return `
         <div class="glass-card rounded-lg overflow-hidden flex flex-col transition-all duration-300">
           <div class="relative h-[420px] overflow-hidden">
-            <img class="w-full h-full object-cover transition-transform duration-700 hover:scale-105" src="${image}" alt="${b.boutique_name || "Boutique"}" />
+            <img class="w-full h-full object-cover transition-transform duration-700 hover:scale-105" src="${image}" alt="${b.boutique_name || "Boutique"}" onerror="this.onerror=null;this.src='${pickImage(`${b.id}-${b.boutique_name}`)}'" />
             <div class="absolute top-4 left-4 bg-primary px-3 py-1 rounded text-[10px] font-bold tracking-[0.2em] text-background-dark uppercase">${district}</div>
           </div>
           <div class="p-8 flex-1 flex flex-col">
             <div class="flex justify-between items-start mb-2 gap-2">
               <h3 class="font-display text-2xl font-semibold tracking-wide uppercase">${b.boutique_name || "Boutique"}</h3>
-              <span class="text-primary text-sm">? ${rating}</span>
             </div>
             <p class="text-primary/70 text-sm tracking-widest uppercase mb-4 font-medium">${area}</p>
             <div class="flex flex-wrap gap-2 mb-8">

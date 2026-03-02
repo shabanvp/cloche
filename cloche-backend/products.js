@@ -117,7 +117,7 @@ router.post("/add", upload.array("images", 10), async (req, res) => {
     if (planErr) return res.status(500).json({ message: "DB error", error: planErr.message });
 
     const normalizedPlan = String(planRow?.plan || "Basic").toLowerCase();
-    const productLimitByPlan = { basic: 3, professional: 20, premium: Infinity };
+    const productLimitByPlan = { basic: 20, professional: 20, premium: Infinity };
     const maxProducts = productLimitByPlan[normalizedPlan] ?? productLimitByPlan.basic;
 
     const { count, error: countErr } = await supabase

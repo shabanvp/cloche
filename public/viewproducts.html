@@ -125,22 +125,13 @@
                     Golden Zardozi <br/> Bridal Lehenga
                 </h1>
 </div>
-<!-- Rating & Status -->
-<!-- Rating & Status -->
+<!-- Info & Status -->
 <div class="flex items-center justify-between border-y border-white/5 py-4">
 
-  <!-- LEFT: Rating -->
+  <!-- LEFT: Listing info -->
   <div class="flex flex-col gap-1">
-    <div id="ratingStars" class="flex items-center gap-1"></div>
-
-    <span id="ratingValue" class="text-white/80 text-sm">
-      New
-    </span>
-
-    <p id="reviewCount"
-       class="text-white/40 text-[11px] uppercase tracking-wider">
-      No reviews yet
-    </p>
+    <span class="text-white/80 text-sm uppercase tracking-wider">Cloche Listed Boutique</span>
+    <p class="text-white/40 text-[11px] uppercase tracking-wider">Verified profile and catalog details</p>
   </div>
 
   <!-- RIGHT: Availability -->
@@ -334,38 +325,6 @@ async function loadProductDetails() {
         } else if (mainImageEl && product.showcase_image) {
         mainImageEl.src = `${product.showcase_image}`;
         }
-
-
-    /* -------------------------------
-       ⭐ RATING LOGIC (REAL DATA)
-    -------------------------------- */
-        const starsContainer = document.getElementById("ratingStars");
-const ratingValue = document.getElementById("ratingValue");
-const reviewCount = document.getElementById("reviewCount");
-
-const rawRating = product.showcase_rating ?? product.rating ?? 0;
-const rating = Number(rawRating);
-const hasRating = Number.isFinite(rating) && rating > 0;
-const displayRating = hasRating ? Math.min(5, Math.max(0, rating)) : 5.0;
-
-starsContainer.innerHTML = "";
-
-// Draw stars
-for (let i = 1; i <= 5; i++) {
-  starsContainer.innerHTML += `
-    <span class="material-symbols-outlined ${
-      i <= displayRating ? "text-primary" : "text-primary/30"
-    }"
-    style="font-variation-settings:'FILL' 1">
-      star
-    </span>`;
-}
-
-// Text below stars
-ratingValue.textContent = hasRating ? rating.toFixed(1) : "5.0";
-reviewCount.textContent = Number(product.review_count) > 0
-  ? `${Number(product.review_count)} review${Number(product.review_count) === 1 ? "" : "s"}`
-  : "Boutique Rating";
 
 
     /* -------------------------------

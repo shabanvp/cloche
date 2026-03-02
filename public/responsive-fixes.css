@@ -732,3 +732,70 @@ nav.fixed .max-w-7xl {
   flex-wrap: nowrap !important;
   overflow: visible;
 }
+
+/* =========================================================
+   New page mobile harmonization (desktop unchanged)
+   ========================================================= */
+@media (max-width: 1024px) {
+  /* Pages with fixed desktop nav hidden by mobile bars */
+  body.has-mobile-bars.route-userprofile main,
+  body.has-mobile-bars.route-enquiry main,
+  body.has-mobile-bars.route-viewboutique main {
+    padding-top: 8px !important;
+  }
+
+  /* User profile */
+  body.has-mobile-bars.route-userprofile main {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+    padding-bottom: 96px !important;
+  }
+  body.has-mobile-bars.route-userprofile .grid.grid-cols-1.lg\:grid-cols-3 {
+    gap: 12px !important;
+  }
+  body.has-mobile-bars.route-userprofile h1#welcomeName {
+    font-size: clamp(2rem, 10vw, 2.8rem) !important;
+  }
+
+  /* Enquiry page */
+  body.has-mobile-bars.route-enquiry main {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+    padding-bottom: 96px !important;
+  }
+  body.has-mobile-bars.route-enquiry .hero-glow {
+    padding: 18px 14px !important;
+    margin-bottom: 14px !important;
+  }
+  body.has-mobile-bars.route-enquiry .glass {
+    padding: 14px !important;
+  }
+  body.has-mobile-bars.route-enquiry #enquiryForm .grid {
+    gap: 10px !important;
+  }
+
+  /* View boutique */
+  body.has-mobile-bars.route-viewboutique main {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+    padding-bottom: 96px !important;
+  }
+  body.has-mobile-bars.route-viewboutique .md\:p-12 {
+    padding: 16px !important;
+  }
+  body.has-mobile-bars.route-viewboutique #productsGrid {
+    gap: 14px !important;
+  }
+  body.has-mobile-bars.route-viewboutique #enquiryBtn,
+  body.has-mobile-bars.route-viewboutique #messageBtn {
+    width: 100% !important;
+  }
+
+  /* Dashboard + Profile + Subscription spacing consistency */
+  body.has-mobile-bars.route-dashboard main,
+  body.has-mobile-bars.route-profile main,
+  body.has-mobile-bars.route-subscription main,
+  body.has-mobile-bars.route-boutiqueproducts main {
+    padding-bottom: 96px !important;
+  }
+}

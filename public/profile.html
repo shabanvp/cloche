@@ -160,7 +160,7 @@
             </div>
             <div class="p-8 flex flex-col justify-center items-center gap-6 flex-1 relative z-10">
               <div class="text-center">
-                <span id="planBadge" class="inline-block px-6 py-2 bg-gradient-to-r from-primary to-[#8e7b54] rounded-full text-background-dark text-xs font-black uppercase tracking-[0.3em] mb-4 gold-glow">Basic Tier</span>
+                <span id="planBadge" class="inline-block px-6 py-2 bg-gradient-to-r from-primary to-[#8e7b54] rounded-full text-background-dark text-xs font-black uppercase tracking-[0.3em] mb-4 gold-glow">Early Partner Plan</span>
                 <p id="planPriceText" class="text-4xl font-black text-white">--</p>
               </div>
               <div class="w-full bg-primary/5 rounded-lg p-4 border border-primary/10">
@@ -192,13 +192,10 @@
                 <label class="block mb-2 text-xs font-bold uppercase tracking-widest text-primary/80">Tags (comma-separated)</label>
                 <input id="showcaseTagsInput" class="w-full bg-background-dark/50 border border-primary/20 rounded-lg px-4 py-3 text-white focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all font-sans" placeholder="Bridal Wear, Handloom, Couture" type="text"/>
               </div>
-              <div>
-                <label class="block mb-2 text-xs font-bold uppercase tracking-widest text-primary/80">Rating</label>
-                <input id="showcaseRatingInput" class="w-full bg-background-dark/50 border border-primary/20 rounded-lg px-4 py-3 text-white focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all font-sans" placeholder="5.0" step="0.1" min="0" max="5" type="number"/>
-              </div>
               <div class="space-y-2">
                 <label class="block text-xs font-bold uppercase tracking-widest text-primary/80">Boutique Cover Image</label>
                 <input id="showcaseImageInput" accept="image/jpeg,image/jpg,image/png,image/webp" class="w-full bg-background-dark/50 border border-primary/20 rounded-lg px-4 py-2 text-sm text-white" type="file"/>
+                <p id="showcaseImageStatus" class="text-[11px] text-primary/70 tracking-wide">No new file selected. Current saved image will be used.</p>
                 <button id="uploadShowcaseImageBtn" class="w-full py-3 border border-primary/30 text-primary hover:bg-primary/10 transition-colors rounded-lg text-xs font-bold uppercase tracking-widest">Upload Showcase Image</button>
               </div>
               <button id="saveShowcaseBtn" class="w-full py-3 bg-primary text-background-dark rounded-lg text-xs font-black uppercase tracking-[0.2em] transition-transform hover:scale-[1.01] gold-glow">Save Showcase Setup</button>
@@ -213,7 +210,6 @@
                 <div class="p-6 space-y-4">
                   <div class="flex justify-between items-start gap-2">
                     <h4 id="showcasePreviewName" class="text-3xl font-display font-bold uppercase leading-tight">Boutique Name</h4>
-                    <span class="text-primary text-sm font-bold whitespace-nowrap">★ <span id="showcasePreviewRating">5.0</span></span>
                   </div>
                   <p id="showcasePreviewArea" class="text-primary/80 text-sm tracking-[0.15em] uppercase">Area / Locality</p>
                   <div id="showcasePreviewTags" class="flex flex-wrap gap-2"></div>
@@ -261,6 +257,13 @@
     if (el) el.value = value || "";
   }
 
+  function fileNameFromPath(value) {
+    const safe = String(value || "").trim().replace(/\\/g, "/");
+    if (!safe) return "";
+    const parts = safe.split("/");
+    return parts[parts.length - 1] || "";
+  }
+
   function renderShowcaseTags(tagsRaw) {
     const wrap = document.getElementById("showcasePreviewTags");
     if (!wrap) return;
@@ -278,13 +281,11 @@
   function syncShowcasePreview() {
     const district = document.getElementById("showcaseDistrictInput")?.value.trim() || "District";
     const area = document.getElementById("showcaseAreaInput")?.value.trim() || "Area / Locality";
-    const rating = document.getElementById("showcaseRatingInput")?.value.trim() || "5.0";
     const tags = document.getElementById("showcaseTagsInput")?.value || "";
     const boutiqueName = document.getElementById("boutiqueNameInput")?.value || "Boutique Name";
 
     setText("showcasePreviewDistrict", district.toUpperCase());
     setText("showcasePreviewArea", area.toUpperCase());
-    setText("showcasePreviewRating", rating);
     setText("showcasePreviewName", boutiqueName.toUpperCase());
     renderShowcaseTags(tags);
   }
@@ -294,11 +295,12 @@
     setValue("showcaseDistrictInput", data.district || "");
     setValue("showcaseAreaInput", data.area || "");
     setValue("showcaseTagsInput", data.tags || "");
-    setValue("showcaseRatingInput", data.rating || 5.0);
 
     if (data.image_url) {
       const img = document.getElementById("showcasePreviewImage");
       if (img) img.src = resolveAssetUrl(data.image_url);
+      const status = document.getElementById("showcaseImageStatus");
+      if (status) status.textContent = `Current saved image: ${fileNameFromPath(data.image_url) || "Uploaded image"}`;
     }
     syncShowcasePreview();
   }
@@ -306,7 +308,7 @@
   function renderPlan(planRaw) {
     const plan = String(planRaw || "Basic").toLowerCase();
     const map = {
-      basic: { badge: "Basic Tier", price: "Free", progress: "w-1/4" },
+      basic: { badge: "Early Partner Plan", price: "Free / Invite-only", progress: "w-2/4" },
       professional: { badge: "Professional Tier", price: "Rs 2,999/mo", progress: "w-2/4" },
       premium: { badge: "Premium Tier", price: "Rs 7,999/mo", progress: "w-4/4" }
     };
@@ -415,8 +417,7 @@
     const payload = {
       district: document.getElementById("showcaseDistrictInput").value.trim(),
       area: document.getElementById("showcaseAreaInput").value.trim(),
-      tags: document.getElementById("showcaseTagsInput").value.trim(),
-      rating: document.getElementById("showcaseRatingInput").value || "5.0"
+      tags: document.getElementById("showcaseTagsInput").value.trim()
     };
 
     let res = await fetch(`${API_BASE}/profile/${boutiqueId}/showcase`, {
@@ -460,6 +461,8 @@
     const img = document.getElementById("showcasePreviewImage");
     if (img) img.src = resolveAssetUrl(result.image_url);
     showcaseSnapshot = { ...(showcaseSnapshot || {}), image_url: result.image_url };
+    const status = document.getElementById("showcaseImageStatus");
+    if (status) status.textContent = `Current saved image: ${fileNameFromPath(result.image_url) || "Uploaded image"}`;
     alert("Showcase image uploaded.");
   }
 
@@ -517,7 +520,16 @@
       }
     });
 
-    ["showcaseDistrictInput", "showcaseAreaInput", "showcaseTagsInput", "showcaseRatingInput", "boutiqueNameInput"]
+    document.getElementById("showcaseImageInput")?.addEventListener("change", (e) => {
+      const status = document.getElementById("showcaseImageStatus");
+      if (!status) return;
+      const file = e.target?.files?.[0];
+      status.textContent = file
+        ? `Selected file: ${file.name} (click "Upload Showcase Image" to save)`
+        : "No new file selected. Current saved image will be used.";
+    });
+
+    ["showcaseDistrictInput", "showcaseAreaInput", "showcaseTagsInput", "boutiqueNameInput"]
       .forEach((id) => {
         document.getElementById(id)?.addEventListener("input", syncShowcasePreview);
       });

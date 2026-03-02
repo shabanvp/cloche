@@ -10,11 +10,8 @@ db.query(countLeadsQuery, [boutiqueId], (err, result) => {
 
   const totalLeads = result[0].total;
 
-  if (plan === "Basic" && totalLeads >= 5) {
-    return res.status(403).json({
-      message: "Basic plan allows only 5 leads. Upgrade to receive more."
-    });
-  }
+  // Early Partner Phase: no hard lead cut for basic plan.
+  // Soft limits are handled operationally, not by API rejection.
 
   // ✅ Allow lead insert
 });

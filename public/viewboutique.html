@@ -84,10 +84,6 @@
 
     <section class="glass-card rounded-lg p-8 md:p-12 mb-14 flex flex-col md:flex-row justify-between items-end md:items-center gap-8 border-l-4 border-l-primary">
       <div class="space-y-4">
-        <div class="flex items-center gap-2 text-primary">
-          <span class="material-symbols-outlined fill-1 text-sm">star</span>
-          <span id="headerRatingText" class="text-sm font-semibold tracking-wider">5.0 Boutique Rating</span>
-        </div>
         <h2 id="boutiqueName" class="font-display text-4xl md:text-5xl font-bold text-white uppercase">Boutique</h2>
         <div class="flex flex-wrap items-center gap-4 text-white/60 text-sm uppercase tracking-widest">
           <span id="boutiqueCity">City</span>
@@ -119,8 +115,10 @@
     <section class="mb-20">
       <div class="glass-card rounded-lg p-8 md:p-12 flex flex-col lg:flex-row items-center gap-12">
         <div class="text-center lg:text-left lg:border-r lg:border-white/10 lg:pr-12">
-          <div id="ratingBig" class="text-primary font-display text-7xl font-bold mb-2">5.0</div>
-          <div id="ratingStars" class="flex justify-center lg:justify-start gap-1 text-primary mb-4"></div>
+          <div class="w-14 h-14 mx-auto lg:mx-0 mb-4 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center">
+            <span class="material-symbols-outlined text-primary text-2xl">verified</span>
+          </div>
+          <div class="text-primary font-display text-2xl font-bold mb-2 uppercase tracking-[0.16em]">Cloche Listed</div>
           <p class="text-white/40 uppercase tracking-[0.2em] text-[10px] font-semibold">Live boutique profile summary</p>
         </div>
         <div class="flex-grow grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -175,12 +173,11 @@
       <div class="h-[380px] rounded-lg overflow-hidden glass-card relative group">
         <img id="coverImage" class="w-full h-full object-cover" alt="Boutique cover" src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=1400&auto=format&fit=crop" />
         <div class="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent"></div>
-        <div class="absolute bottom-6 left-6 right-6 flex items-end justify-between">
+        <div class="absolute bottom-6 left-6 right-6 flex items-end">
           <div>
             <p id="coverDistrict" class="text-primary text-xs tracking-[0.2em] uppercase mb-1">District</p>
             <p id="coverName" class="font-display text-2xl uppercase">Boutique</p>
           </div>
-          <span id="coverRating" class="text-primary text-sm font-semibold">★ 5.0</span>
         </div>
       </div>
     </section>
@@ -207,10 +204,19 @@
     ];
 
     function resolveAssetUrl(url) {
-      const value = String(url || "").trim();
-      if (!value) return "";
-      if (/^https?:\/\//i.test(value)) return value;
-      return `${API_ORIGIN}${value.startsWith("/") ? "" : "/"}${value}`;
+      const raw = String(url || "").trim();
+      if (!raw) return "";
+      if (/^data:image\//i.test(raw)) return raw;
+      if (/^https?:\/\//i.test(raw)) return raw;
+
+      const normalized = raw.replace(/\\/g, "/");
+      const lower = normalized.toLowerCase();
+      const uploadsWithSlash = lower.indexOf("/uploads/");
+      if (uploadsWithSlash >= 0) return `${API_ORIGIN}${normalized.slice(uploadsWithSlash)}`;
+      const uploadsNoSlash = lower.indexOf("uploads/");
+      if (uploadsNoSlash >= 0) return `${API_ORIGIN}/${normalized.slice(uploadsNoSlash)}`;
+
+      return `${API_ORIGIN}${normalized.startsWith("/") ? "" : "/"}${normalized}`;
     }
 
     function getBoutiqueId() {
@@ -236,15 +242,6 @@
       wrap.innerHTML = finalTags.map((tag) =>
         `<span class="text-[10px] uppercase tracking-widest px-3 py-1 bg-white/5 border border-white/10 rounded">${tag}</span>`
       ).join("");
-    }
-
-    function renderStars(rating) {
-      const wrap = document.getElementById("ratingStars");
-      const full = Math.round(Number(rating || 5));
-      wrap.innerHTML = Array.from({ length: 5 }, (_, idx) => {
-        const icon = idx < full ? "star" : "star_outline";
-        return `<span class="material-symbols-outlined fill-1">${icon}</span>`;
-      }).join("");
     }
 
     function renderProducts(products) {
@@ -366,7 +363,6 @@
     }
 
     function fillBoutique(boutique, productsCount) {
-      const rating = Number(boutique.rating || 5).toFixed(1);
       const tags = boutique.tags || "";
       const district = (boutique.district || boutique.city || "District").toUpperCase();
       const area = (boutique.area || boutique.city || "Area").toUpperCase();
@@ -375,12 +371,10 @@
       const mapsQuery = encodeURIComponent(`${boutique.area || ""} ${boutique.city || ""}`.trim() || boutique.city || "Kerala");
 
       document.title = `CLOCHE | ${boutique.boutique_name || "Boutique"}`;
-      setText("headerRatingText", `${rating} Boutique Rating`);
       setText("boutiqueName", (boutique.boutique_name || "Boutique").toUpperCase());
       setText("boutiqueCity", district);
       setText("boutiqueArea", area);
       setText("boutiquePlan", `${plan} PLAN`);
-      setText("ratingBig", rating);
       setText("metricProducts", `${productsCount} product${productsCount === 1 ? "" : "s"} listed`);
       setText("metricPlan", `${plan} subscription`);
       setText("metricDistrict", district);
@@ -389,16 +383,19 @@
       setText("visitEmail", boutique.email || "Email not available");
       setText("coverDistrict", district);
       setText("coverName", (boutique.boutique_name || "Boutique").toUpperCase());
-      setText("coverRating", `★ ${rating}`);
 
       const coverImage = document.getElementById("coverImage");
       if (coverImage) coverImage.src = cover;
 
       const enquiryBtn = document.getElementById("enquiryBtn");
       if (enquiryBtn) {
-        const subject = encodeURIComponent(`Enquiry for ${boutique.boutique_name || "Boutique"}`);
-        const body = encodeURIComponent("Hi, I would like to know more about your collections and rental availability.");
-        enquiryBtn.href = boutique.email ? `mailto:${boutique.email}?subject=${subject}&body=${body}` : "#";
+        const requirement = `Enquiry for ${boutique.boutique_name || "Boutique"}`;
+        const q = new URLSearchParams({
+          boutiqueId: String(boutique.id || ""),
+          boutique: String(boutique.boutique_name || ""),
+          requirement
+        });
+        enquiryBtn.href = `enquiry.html?${q.toString()}`;
       }
 
       const messageBtn = document.getElementById("messageBtn");
@@ -424,7 +421,6 @@
       if (directionsBtn) directionsBtn.href = `https://www.google.com/maps/search/?api=1&query=${mapsQuery}`;
 
       renderTags(tags);
-      renderStars(rating);
     }
 
     async function init() {

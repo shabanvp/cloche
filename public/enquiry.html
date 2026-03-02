@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CLOCHE | Wedding Enquiry</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@400,0&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            primary: "#c1a671",
+            goldsoft: "#f2e7cf",
+            cardbg: "rgba(24, 21, 18, 0.64)"
+          },
+          fontFamily: {
+            display: ["Cinzel", "serif"],
+            sans: ["Inter", "sans-serif"]
+          },
+          boxShadow: {
+            luxe: "0 24px 60px rgba(0, 0, 0, 0.6), 0 0 36px rgba(193, 166, 113, 0.16)"
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    :root {
+      --gold: #c1a671;
+      --gold-soft: #f2e7cf;
+      --black-1: #090909;
+      --black-2: #111111;
+    }
+
+    body {
+      background:
+        radial-gradient(circle at 14% 12%, rgba(193, 166, 113, 0.2), transparent 32%),
+        radial-gradient(circle at 84% 2%, rgba(242, 231, 207, 0.1), transparent 25%),
+        radial-gradient(circle at 50% 100%, rgba(193, 166, 113, 0.09), transparent 28%),
+        linear-gradient(180deg, var(--black-2) 0%, var(--black-1) 100%);
+      color: #f6f2ea;
+      min-height: 100vh;
+      font-family: "Inter", sans-serif;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        radial-gradient(circle at 18% 28%, rgba(255, 255, 255, 0.13) 1px, transparent 1px),
+        radial-gradient(circle at 64% 76%, rgba(255, 255, 255, 0.12) 1px, transparent 1px),
+        radial-gradient(circle at 80% 20%, rgba(193, 166, 113, 0.2) 1px, transparent 1px);
+      background-size: 260px 260px, 360px 360px, 300px 300px;
+      opacity: 0.28;
+      animation: drift 18s linear infinite;
+    }
+
+    @keyframes drift {
+      from { transform: translateY(0); }
+      to { transform: translateY(-30px); }
+    }
+
+    .glass {
+      background: rgba(24, 21, 18, 0.62);
+      border: 1px solid rgba(193, 166, 113, 0.34);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-radius: 1.25rem;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    }
+
+    .hero-glow {
+      background:
+        radial-gradient(circle at center, rgba(193, 166, 113, 0.28), transparent 62%);
+    }
+
+    .gold-input {
+      border: 1px solid rgba(193, 166, 113, 0.22) !important;
+      background-color: rgba(8, 8, 8, 0.72) !important;
+      color: #f8f4ec !important;
+      -webkit-text-fill-color: #f8f4ec;
+      color-scheme: dark;
+    }
+
+    .gold-input::placeholder {
+      color: rgba(242, 231, 207, 0.48) !important;
+    }
+
+    select.gold-input option {
+      background: #121212;
+      color: #f8f4ec;
+    }
+
+    .gold-input:focus {
+      border-color: rgba(193, 166, 113, 0.72);
+      box-shadow: 0 0 0 2px rgba(193, 166, 113, 0.2);
+    }
+
+    input[type="date"].gold-input::-webkit-calendar-picker-indicator {
+      filter: invert(84%) sepia(22%) saturate(287%) hue-rotate(352deg) brightness(102%) contrast(92%);
+      opacity: 0.9;
+      cursor: pointer;
+    }
+
+    .cta-gold {
+      background: linear-gradient(96deg, #f2e7cf 0%, #d6bf8f 44%, #c1a671 100%);
+      color: #0d0d0d;
+      box-shadow: 0 10px 26px rgba(193, 166, 113, 0.25);
+      transition: transform 0.25s ease, box-shadow 0.25s ease, filter 0.25s ease;
+    }
+
+    .cta-gold:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 32px rgba(193, 166, 113, 0.4);
+      filter: brightness(1.04);
+    }
+
+    .trust-chip {
+      border: 1px solid rgba(193, 166, 113, 0.28);
+      background: rgba(16, 14, 12, 0.74);
+    }
+
+    .progress-bar {
+      width: 0%;
+      animation: fill 2.3s ease-in-out forwards;
+      background: linear-gradient(90deg, #c1a671, #f2e7cf, #c1a671);
+      background-size: 200% 100%;
+      animation-name: fill, shimmer;
+      animation-duration: 2.3s, 1.2s;
+      animation-timing-function: ease-in-out, linear;
+      animation-iteration-count: 1, infinite;
+    }
+
+    @keyframes fill {
+      from { width: 0%; }
+      to { width: 100%; }
+    }
+
+    @keyframes shimmer {
+      from { background-position: 0% 50%; }
+      to { background-position: 200% 50%; }
+    }
+
+    .fade-up {
+      animation: fadeUp 0.65s ease forwards;
+      opacity: 0;
+      transform: translateY(16px);
+    }
+
+    @keyframes fadeUp {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+  <link rel="stylesheet" href="responsive-fixes.css" />
+</head>
+<body>
+  <nav class="fixed top-0 w-full z-50 border-b border-[rgba(193,166,113,0.18)] bg-[rgba(12,12,12,0.72)] backdrop-blur-md">
+    <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+      <a href="index.html" class="inline-flex items-center gap-3 leading-none">
+        <span class="material-symbols-outlined text-primary text-3xl leading-none shrink-0">diamond</span>
+        <span class="font-display text-3xl tracking-[0.24em] text-white leading-none">CLOCHE</span>
+      </a>
+      <div class="hidden md:flex items-center gap-12">
+        <a class="text-sm uppercase tracking-widest text-[#FAF7F2]" href="boutiques.html">Boutiques</a>
+        <a class="text-sm uppercase tracking-widest text-[#FAF7F2]" href="index.html#how-it-works">How it Works</a>
+        <a id="listYourBoutiqueNav" class="text-sm uppercase tracking-widest text-[#FAF7F2]" href="boutiquelogin.html">List Your Boutique</a>
+      </div>
+      <div class="relative flex items-center gap-6">
+        <a id="authNav" href="boutiquelogin.html" class="text-sm uppercase tracking-widest font-medium text-[#FAF7F2]">LOGIN</a>
+        <a id="profileIconLink" href="boutiquelogin.html" class="h-10 w-10 rounded-full bg-primary/20 border border-primary/40 flex items-center justify-center overflow-hidden hover:border-primary transition-colors">
+          <span id="navAvatar" class="text-primary font-bold">C</span>
+        </a>
+        <div id="userMenuDropdown" class="hidden absolute right-0 top-14 w-44 rounded-lg border border-primary/25 bg-[#141414]/95 backdrop-blur-md shadow-2xl p-2">
+          <a href="userprofile.html" class="block px-3 py-2 rounded text-xs uppercase tracking-widest text-white/80 hover:bg-primary/10 hover:text-primary">Profile</a>
+          <a href="messageboutique.html" class="block px-3 py-2 rounded text-xs uppercase tracking-widest text-white/80 hover:bg-primary/10 hover:text-primary">Inbox</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <main class="max-w-5xl mx-auto px-5 sm:px-6 pt-28 sm:pt-32 pb-10 sm:pb-12 relative">
+    <section class="hero-glow rounded-3xl px-6 py-8 sm:px-8 sm:py-10 mb-8 fade-up">
+      <p class="text-[11px] uppercase tracking-[0.28em] text-primary/75 mb-3">CLOCHE Concierge</p>
+      <h1 class="font-display text-4xl sm:text-5xl leading-tight mb-3">Wedding Enquiry</h1>
+      <p class="text-sm sm:text-base text-goldsoft/85 tracking-[0.02em]">Share your details. Cloche will take care of the rest.</p>
+    </section>
+
+    <section class="glass p-5 sm:p-8 shadow-luxe fade-up [animation-delay:120ms]">
+      <div id="enquiryView">
+        <form id="enquiryForm" class="space-y-5">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label for="fullName" class="text-[11px] uppercase tracking-[0.24em] text-primary/75 block mb-2">Full Name</label>
+              <input id="fullName" name="fullName" type="text" required class="gold-input w-full rounded-xl h-12 px-4 focus:ring-0" placeholder="Enter your full name" />
+            </div>
+            <div>
+              <label for="mobileNumber" class="text-[11px] uppercase tracking-[0.24em] text-primary block mb-2">Mobile Number</label>
+              <input id="mobileNumber" name="mobileNumber" type="tel" required class="gold-input w-full rounded-xl h-12 px-4 focus:ring-0 border-primary/55" placeholder="+91 98765 43210" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label for="weddingDate" class="text-[11px] uppercase tracking-[0.24em] text-primary/75 block mb-2">Wedding Date</label>
+              <input id="weddingDate" name="weddingDate" type="date" required class="gold-input w-full rounded-xl h-12 px-4 focus:ring-0" />
+            </div>
+            <div>
+              <label for="cityLocation" class="text-[11px] uppercase tracking-[0.24em] text-primary/75 block mb-2">City / Location</label>
+              <select id="cityLocation" name="cityLocation" required class="gold-input w-full rounded-xl h-12 px-4 focus:ring-0">
+                <option value="" disabled selected>Select preferred location</option>
+                <option value="Manjeri, Malappuram">Manjeri, Malappuram</option>
+                <option value="Perinthalmanna, Malappuram">Perinthalmanna, Malappuram</option>
+                <option value="Tirur, Malappuram">Tirur, Malappuram</option>
+                <option value="Kottakkal, Malappuram">Kottakkal, Malappuram</option>
+                <option value="Nilambur, Malappuram">Nilambur, Malappuram</option>
+                <option value="Malappuram Town, Malappuram">Malappuram Town, Malappuram</option>
+                <option value="Kozhikode City, Kozhikode">Kozhikode City, Kozhikode</option>
+                <option value="Ramanattukara, Kozhikode">Ramanattukara, Kozhikode</option>
+                <option value="Koyilandy, Kozhikode">Koyilandy, Kozhikode</option>
+                <option value="Vadakara, Kozhikode">Vadakara, Kozhikode</option>
+                <option value="Balussery, Kozhikode">Balussery, Kozhikode</option>
+                <option value="Feroke, Kozhikode">Feroke, Kozhikode</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label for="requirement" class="text-[11px] uppercase tracking-[0.24em] text-primary/75 block mb-2">Requirement</label>
+            <input id="requirement" name="requirement" type="text" class="gold-input w-full rounded-xl h-12 px-4 focus:ring-0" placeholder="Bridal Lehenga, Boutique Appointment, etc." />
+          </div>
+
+          <div>
+            <label for="specialRequirement" class="text-[11px] uppercase tracking-[0.24em] text-primary/75 block mb-2">Any special requirement? (Optional)</label>
+            <textarea id="specialRequirement" name="specialRequirement" rows="4" class="gold-input w-full rounded-xl px-4 py-3 resize-none focus:ring-0" placeholder="Share custom sizing, timelines, styling needs, or delivery preferences."></textarea>
+          </div>
+
+          <button id="submitBtn" type="submit" class="cta-gold w-full h-12 rounded-xl text-xs sm:text-sm font-semibold uppercase tracking-[0.19em]">
+            Submit Enquiry
+          </button>
+          <div class="mt-4 flex flex-wrap items-center justify-center gap-3">
+            <div class="trust-chip rounded-xl px-4 py-2 flex items-center gap-2">
+              <span class="material-symbols-outlined text-primary text-base">verified_user</span>
+              <p class="text-xs text-goldsoft/90">Verified Boutiques</p>
+            </div>
+            <div class="trust-chip rounded-xl px-4 py-2 flex items-center gap-2">
+              <span class="material-symbols-outlined text-primary text-base">support_agent</span>
+              <p class="text-xs text-goldsoft/90">Handled by Cloche</p>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <div id="successView" class="hidden py-5 sm:py-8">
+        <div class="max-w-xl mx-auto text-center">
+          <div class="h-16 w-16 rounded-full border border-primary/45 bg-black/45 flex items-center justify-center mx-auto mb-5">
+            <span class="material-symbols-outlined text-primary text-4xl">check_circle</span>
+          </div>
+          <h2 class="font-display text-3xl sm:text-4xl mb-3">Thank you! Your enquiry has been received.</h2>
+          <p class="text-goldsoft/85 mb-6">Our Cloche team is connecting you now.</p>
+          <div class="h-2 bg-black/45 border border-primary/20 rounded-full overflow-hidden mb-7">
+            <div class="progress-bar h-full rounded-full"></div>
+          </div>
+          <a
+            id="whatsappBtn"
+            href="https://wa.me/"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="cta-gold inline-flex items-center justify-center min-w-[230px] h-11 px-5 rounded-xl text-xs font-semibold uppercase tracking-[0.17em]"
+          >
+            Talk to Cloche on WhatsApp
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const enquiryForm = document.getElementById("enquiryForm");
+    const enquiryView = document.getElementById("enquiryView");
+    const successView = document.getElementById("successView");
+    const submitBtn = document.getElementById("submitBtn");
+    const requirementInput = document.getElementById("requirement");
+    const fullNameInput = document.getElementById("fullName");
+    const mobileInput = document.getElementById("mobileNumber");
+    const whatsappBtn = document.getElementById("whatsappBtn");
+
+    function updateAuthNav() {
+      const authNav = document.getElementById("authNav");
+      const profileIconLink = document.getElementById("profileIconLink");
+      const userMenuDropdown = document.getElementById("userMenuDropdown");
+      const listYourBoutiqueNav = document.getElementById("listYourBoutiqueNav");
+      const isPartnerLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+      const isUserLoggedIn = localStorage.getItem("isUserLoggedIn") === "true";
+      const ownerName = localStorage.getItem("ownerName") || "C";
+      const userName = localStorage.getItem("userName") || "User";
+      const firstName = String(userName).trim().split(/\s+/)[0] || "USER";
+
+      if (authNav) {
+        if (isUserLoggedIn) {
+          authNav.textContent = firstName.toUpperCase();
+          authNav.href = "#";
+          if (profileIconLink) profileIconLink.href = "#";
+          const toggleMenu = (e) => {
+            e.preventDefault();
+            if (userMenuDropdown) userMenuDropdown.classList.toggle("hidden");
+          };
+          authNav.onclick = toggleMenu;
+          if (profileIconLink) profileIconLink.onclick = toggleMenu;
+          if (listYourBoutiqueNav) listYourBoutiqueNav.style.display = "block";
+        } else if (isPartnerLoggedIn) {
+          if (userMenuDropdown) userMenuDropdown.classList.add("hidden");
+          authNav.onclick = null;
+          if (profileIconLink) profileIconLink.onclick = null;
+          authNav.textContent = "DASHBOARD";
+          authNav.href = "dashboard.html";
+          if (profileIconLink) profileIconLink.href = "profile.html";
+          if (listYourBoutiqueNav) listYourBoutiqueNav.style.display = "none";
+        } else {
+          if (userMenuDropdown) userMenuDropdown.classList.add("hidden");
+          authNav.onclick = null;
+          if (profileIconLink) profileIconLink.onclick = null;
+          authNav.textContent = "LOGIN";
+          authNav.href = "boutiquelogin.html";
+          if (profileIconLink) profileIconLink.href = "boutiquelogin.html";
+          if (listYourBoutiqueNav) listYourBoutiqueNav.style.display = "block";
+        }
+      }
+
+      const avatar = document.getElementById("navAvatar");
+      if (avatar) {
+        avatar.textContent = isUserLoggedIn
+          ? firstName.charAt(0).toUpperCase()
+          : ownerName.charAt(0).toUpperCase();
+      }
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    const prefilledRequirement = params.get("requirement") || params.get("product") || params.get("boutique");
+    if (prefilledRequirement) requirementInput.value = prefilledRequirement;
+
+    const storedName = localStorage.getItem("userName");
+    if (storedName) fullNameInput.value = storedName;
+    updateAuthNav();
+
+    enquiryForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      submitBtn.disabled = true;
+      submitBtn.classList.add("opacity-75", "cursor-not-allowed");
+
+      const rawMobile = mobileInput.value.replace(/[^\d+]/g, "");
+      if (rawMobile) {
+        whatsappBtn.href = `https://wa.me/${encodeURIComponent(rawMobile)}`;
+      }
+
+      setTimeout(() => {
+        enquiryView.classList.add("hidden");
+        successView.classList.remove("hidden");
+      }, 450);
+    });
+
+    document.addEventListener("click", (e) => {
+      const menu = document.getElementById("userMenuDropdown");
+      const auth = document.getElementById("authNav");
+      const icon = document.getElementById("profileIconLink");
+      if (!menu || menu.classList.contains("hidden")) return;
+      if (menu.contains(e.target) || (auth && auth.contains(e.target)) || (icon && icon.contains(e.target))) return;
+      menu.classList.add("hidden");
+    });
+  </script>
+  <script src="responsive-layout.js"></script>
+</body>
+</html>

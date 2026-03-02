@@ -195,6 +195,13 @@
 <p class="text-primary/80 font-display text-lg md:text-xl font-normal max-w-2xl mx-auto italic">
                     Elevate your boutique's presence with our tiered membership plans designed for modern luxury.
                 </p>
+<div class="mt-6 max-w-3xl mx-auto rounded-xl border border-primary/35 bg-primary/10 px-6 py-4">
+  <p class="text-primary text-xs uppercase tracking-[0.2em] font-bold mb-1">Launch Access Notice</p>
+  <p class="text-white/80 text-sm leading-relaxed">
+    During our launch phase, all approved boutiques receive free access for a fixed promotional period.
+    Paid upgrades are temporarily disabled while plans remain visible for comparison.
+  </p>
+</div>
 </div>
 <!-- Billing Toggle -->
 <div class="flex justify-center mb-16">
@@ -214,36 +221,37 @@
 <!-- Free Plan -->
 <div class="glass-card plan-card-hover flex flex-col gap-8 rounded-xl p-8 transition-transform hover:translate-y-[-4px]">
 <div class="flex flex-col gap-2">
-<h3 class="text-primary text-xs font-bold uppercase tracking-[0.2em]">Entry</h3>
-<h4 class="text-white font-display text-2xl font-bold">Free</h4>
+<h3 class="text-primary text-xs font-bold uppercase tracking-[0.2em]">Early Partner Plan</h3>
+<h4 class="text-white font-display text-2xl font-bold">Free / Invite-only</h4>
 <div class="flex items-baseline gap-1 mt-4">
 <span class="text-white text-5xl font-display font-bold" id="entryPrice">&#8377;0</span>
 <span class="text-white/40 text-sm font-medium tracking-widest uppercase" id="entryPeriod">/mo</span>
 </div>
 </div>
 <button id="freePlanBtn" class="plan-cta-hover w-full py-4 bg-white/5 hover:bg-white/10 text-white rounded-lg text-xs font-bold uppercase tracking-widest border border-white/10 transition-all">
-                        Start for free
+                        Request Invite
                     </button>
 <div class="flex flex-col gap-5 pt-4 border-t border-white/10 flex-1">
 <div class="flex items-center gap-3 text-sm text-white/70">
 <span class="material-symbols-outlined text-primary text-[18px]">check_circle</span>
-3 Product Listings
+20 Product Listings
 </div>
 
 <div class="flex items-center gap-3 text-sm text-white/70">
 <span class="material-symbols-outlined text-primary text-[18px]">check_circle</span>
-5 Leads per Month
+Soft Lead Limit (20 during launch)
 </div>
 
 <div class="flex items-center gap-3 text-sm text-white/70">
 <span class="material-symbols-outlined text-primary text-[18px]">check_circle</span>
-5 Messages per Month
+Unlimited Messages
 </div>
 
 <div class="flex items-center gap-3 text-sm text-white/70">
 <span class="material-symbols-outlined text-primary text-[18px]">check_circle</span>
 Standard Marketplace Visibility
 </div>
+<p class="text-primary/70 text-[11px] uppercase tracking-wider">Limits may apply after launch phase</p>
 </div>
 </div>
 <!-- Professional Plan -->
@@ -260,9 +268,12 @@ Standard Marketplace Visibility
 </div>
 <p class="text-primary/70 text-xs uppercase tracking-wider mt-2" id="professionalSavings">20% off yearly billing</p>
 </div>
-<button id="professionalPlanBtn" type="button" class="plan-cta-hover w-full py-4 bg-primary hover:bg-white text-background-dark rounded-lg text-xs font-black uppercase tracking-widest shadow-lg shadow-primary/10 transition-all cursor-pointer">
+<button id="professionalPlanBtn" type="button" class="hidden plan-cta-hover w-full py-4 bg-primary hover:bg-white text-background-dark rounded-lg text-xs font-black uppercase tracking-widest shadow-lg shadow-primary/10 transition-all cursor-pointer">
                         Elevate Now
                     </button>
+<div class="w-full py-4 bg-white/5 text-white/55 rounded-lg text-xs font-bold uppercase tracking-widest border border-white/10 text-center cursor-not-allowed">
+                        Upgrade Opens After Launch
+                    </div>
 
 <div class="flex flex-col gap-5 pt-4 border-t border-white/10 flex-1">
 <div class="flex items-center gap-3 text-sm text-white">
@@ -308,9 +319,12 @@ Priority Marketplace Visibility
 </div>
 <p class="text-primary/70 text-xs uppercase tracking-wider mt-2" id="premiumSavings">20% off yearly billing</p>
 </div>
-<button id="premiumPlanBtn" type="button" class="plan-cta-hover w-full py-4 bg-white/5 hover:bg-white/10 text-white rounded-lg text-xs font-bold uppercase tracking-widest border border-white/10 transition-all cursor-pointer">
+<button id="premiumPlanBtn" type="button" class="hidden plan-cta-hover w-full py-4 bg-white/5 hover:bg-white/10 text-white rounded-lg text-xs font-bold uppercase tracking-widest border border-white/10 transition-all cursor-pointer">
                         Choose Premium
                     </button>
+<div class="w-full py-4 bg-white/5 text-white/55 rounded-lg text-xs font-bold uppercase tracking-widest border border-white/10 text-center cursor-not-allowed">
+                        Upgrade Opens After Launch
+                    </div>
 
 <div class="flex flex-col gap-5 pt-4 border-t border-white/10 flex-1">
 <div class="flex items-center gap-3 text-sm text-white/70">
@@ -374,7 +388,7 @@ AI Performance Insights
     <input id="billingEmail" class="bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-sm" placeholder="Billing Email" type="email"/>
   </div>
   <div class="flex gap-3">
-    <button id="payNowBtn" class="flex-1 py-3 bg-primary hover:bg-white text-background-dark rounded-lg text-xs font-black uppercase tracking-widest transition-all">Pay & Activate</button>
+    <button id="payNowBtn" class="hidden flex-1 py-3 bg-primary hover:bg-white text-background-dark rounded-lg text-xs font-black uppercase tracking-widest transition-all">Pay & Activate</button>
     <button id="cancelPaymentBtn" class="py-3 px-6 bg-white/5 hover:bg-white/10 text-white rounded-lg text-xs font-bold uppercase tracking-widest border border-white/10 transition-all">Cancel</button>
   </div>
 </section>
@@ -407,6 +421,7 @@ AI Performance Insights
   }
 
   document.addEventListener("DOMContentLoaded", () => {
+    const IS_LAUNCH_OFFER_ACTIVE = true;
     const ownerName = localStorage.getItem("ownerName") || "Guest";
     const boutiqueName = localStorage.getItem("boutiqueName") || "My Boutique";
     const boutiqueId = localStorage.getItem("boutiqueId");
@@ -476,6 +491,11 @@ AI Performance Insights
     }
 
     function openPayment(planKey) {
+      if (IS_LAUNCH_OFFER_ACTIVE) {
+        alert("Paid upgrades are temporarily disabled during the launch access period.");
+        return;
+      }
+
       if (!boutiqueId) {
         alert("Please login first.");
         window.location.href = "boutiquelogin.html";
@@ -532,10 +552,12 @@ AI Performance Insights
     }
 
     if (professionalPlanBtn) {
+      if (IS_LAUNCH_OFFER_ACTIVE) professionalPlanBtn.classList.add("hidden");
       professionalPlanBtn.addEventListener("click", () => openPayment("professional"));
     }
 
     if (premiumPlanBtn) {
+      if (IS_LAUNCH_OFFER_ACTIVE) premiumPlanBtn.classList.add("hidden");
       premiumPlanBtn.addEventListener("click", () => openPayment("premium"));
     }
 
@@ -544,7 +566,13 @@ AI Performance Insights
     }
 
     if (payNowBtn) {
+      if (IS_LAUNCH_OFFER_ACTIVE) payNowBtn.classList.add("hidden");
       payNowBtn.addEventListener("click", async () => {
+        if (IS_LAUNCH_OFFER_ACTIVE) {
+          alert("Payments are paused during the launch access period.");
+          return;
+        }
+
         const payerName = document.getElementById("payerName")?.value.trim();
         const cardNumber = document.getElementById("cardNumber")?.value.trim();
         const cardExpiry = document.getElementById("cardExpiry")?.value.trim();
@@ -577,6 +605,11 @@ AI Performance Insights
     // Hard fallback for any stale cached onclick="upgradePlan(...)"
     // Ensures old handlers cannot redirect to Razorpay.
     window.upgradePlan = function (_price, planName) {
+      if (IS_LAUNCH_OFFER_ACTIVE) {
+        alert("Paid upgrades are temporarily disabled during the launch access period.");
+        return;
+      }
+
       const key = String(planName || "").toLowerCase().includes("premium")
         ? "premium"
         : "professional";
@@ -587,6 +620,10 @@ AI Performance Insights
       input.addEventListener("change", () => applyBillingCycle(input.value));
       if (input.checked) applyBillingCycle(input.value);
     });
+
+    if (IS_LAUNCH_OFFER_ACTIVE && paymentSection) {
+      paymentSection.classList.add("hidden");
+    }
   });
 </script>
   <script src='responsive-layout.js'></script>

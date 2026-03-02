@@ -3,7 +3,7 @@ const router = express.Router();
 const supabase = require("./supabase");
 
 const messageLimitByPlan = {
-  basic: 5,
+  basic: Infinity,
   professional: Infinity,
   premium: Infinity
 };
