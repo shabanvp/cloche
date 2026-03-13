@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CLOCHE | Collection</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;700;900&family=Noto+Sans:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            primary: "#c1a671",
+            "background-dark": "#0d0d0d",
+            "surface-dark": "#141414"
+          },
+          fontFamily: {
+            display: ["Noto Serif", "serif"],
+            sans: ["Noto Sans", "sans-serif"]
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    .glass-card {
+      background: rgba(20, 20, 20, 0.72);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(193, 166, 113, 0.14);
+    }
+  </style>
+  <link rel="stylesheet" href="responsive-fixes.css" />
+</head>
+<body class="bg-background-dark text-white font-sans min-h-screen">
+  <nav class="fixed top-0 left-0 right-0 z-50 border-b border-primary/20 bg-background-dark/95 backdrop-blur-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between gap-4">
+      <a href="index.html" class="font-display text-xl tracking-[0.25em] text-white">CLOCHE</a>
+      <div class="hidden md:flex items-center gap-10 uppercase tracking-[0.14em] text-xs text-white/85">
+        <a href="boutiques.html" class="hover:text-primary transition-colors">Boutiques</a>
+        <a href="index.html#howItWorks" class="hover:text-primary transition-colors">How It Works</a>
+        <a href="boutiquelogin.html" class="hover:text-primary transition-colors">List Your Boutique</a>
+      </div>
+      <a href="userprofile.html" class="h-10 w-10 rounded-full border border-primary/50 bg-primary/20 text-primary flex items-center justify-center font-display">U</a>
+    </div>
+  </nav>
+
+  <main class="pt-28 pb-16 px-4 sm:px-6">
+    <section class="max-w-7xl mx-auto">
+      <div class="text-center mb-8 sm:mb-10">
+        <p class="text-primary text-xs uppercase tracking-[0.3em] mb-2">Curated by Cloche</p>
+        <h1 class="font-display text-3xl sm:text-5xl tracking-tight">The Regal Collection</h1>
+        <p class="text-white/70 mt-3 max-w-2xl mx-auto text-sm sm:text-base">
+          Explore premium wedding looks from trusted boutiques connected through CLOCHE.
+        </p>
+      </div>
+
+      <div class="max-w-xl mx-auto mb-4">
+        <div class="relative">
+          <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-primary/50">search</span>
+          <input id="collectionSearchInput" type="text" placeholder="Search collection"
+            class="w-full bg-surface-dark border border-primary/25 rounded-xl py-3 pl-10 pr-4 text-sm placeholder:text-primary/40 focus:border-primary focus:ring-0" />
+        </div>
+      </div>
+
+      <p id="collectionStatusText" class="text-center text-white/60 text-sm mb-6">Loading live collections...</p>
+
+      <div id="collectionGrid" class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const API_ORIGIN = "https://cloche-backend.onrender.com";
+    const API_AUTH = `${API_ORIGIN}/api/auth`;
+    const API_PRODUCTS = `${API_ORIGIN}/api/products`;
+
+    let allItems = [];
+
+    function escapeHtml(v) {
+      return String(v || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    function resolveAssetUrl(url) {
+      const raw = String(url || "").trim();
+      if (!raw) return "";
+      if (/^data:image\//i.test(raw)) return raw;
+      if (/^https?:\/\//i.test(raw)) return raw;
+
+      const normalized = raw.replace(/\\/g, "/");
+      const lower = normalized.toLowerCase();
+      const uploadsWithSlash = lower.indexOf("/uploads/");
+      if (uploadsWithSlash >= 0) return `${API_ORIGIN}${normalized.slice(uploadsWithSlash)}`;
+      const uploadsNoSlash = lower.indexOf("uploads/");
+      if (uploadsNoSlash >= 0) return `${API_ORIGIN}/${normalized.slice(uploadsNoSlash)}`;
+      return `${API_ORIGIN}${normalized.startsWith("/") ? "" : "/"}${normalized}`;
+    }
+
+    function pickProductImage(item) {
+      const gallery = Array.isArray(item.gallery) ? item.gallery : [];
+      const firstValid = [item.image_url, ...gallery].find(Boolean);
+      return resolveAssetUrl(firstValid || "");
+    }
+
+    function renderItems(items) {
+      const grid = document.getElementById("collectionGrid");
+      const status = document.getElementById("collectionStatusText");
+
+      status.textContent = `Showing ${items.length} collection item${items.length === 1 ? "" : "s"} from live data.`;
+
+      if (!items.length) {
+        grid.innerHTML = `
+          <div class="col-span-full glass-card rounded-xl p-8 text-center text-white/60">
+            No live collection items found.
+          </div>
+        `;
+        return;
+      }
+
+      grid.innerHTML = items.map((item) => {
+        const image = pickProductImage(item);
+        const category = escapeHtml(item.category || "Collection");
+        const name = escapeHtml(item.product_name || "Untitled Product");
+        const boutiqueName = escapeHtml(item.boutique_name || "Boutique");
+        const location = escapeHtml(item.location || item.city || "Location");
+        const productId = encodeURIComponent(item.id || "");
+        const boutiqueId = encodeURIComponent(item.boutique_id || "");
+        const safeImage = escapeHtml(image);
+
+        return `
+          <a href="viewproducts.html?productId=${productId}" onclick="localStorage.setItem('selectedBoutiqueId','${boutiqueId}')"
+             class="glass-card rounded-xl overflow-hidden block hover:border-primary/40 transition-all">
+            <div class="aspect-[2/3] bg-surface-dark overflow-hidden relative">
+              ${image
+                ? `<img src="${safeImage}" alt="${name}" class="w-full h-full object-cover" loading="lazy" onerror="this.remove();" />`
+                : `<div class="w-full h-full flex items-center justify-center text-white/40 text-xs tracking-[0.2em] uppercase">No Image</div>`
+              }
+              <span class="absolute top-2 left-2 bg-primary/90 text-black text-[9px] px-2 py-1 rounded tracking-[0.2em] uppercase font-bold">${category}</span>
+            </div>
+            <div class="p-3 sm:p-4">
+              <p class="font-display text-lg leading-tight mb-2">${name}</p>
+              <p class="text-[10px] sm:text-xs uppercase tracking-[0.22em] text-primary">${boutiqueName}</p>
+              <p class="text-[10px] text-white/50 mt-1 uppercase tracking-[0.18em]">${location}</p>
+            </div>
+          </a>
+        `;
+      }).join("");
+    }
+
+    function applySearch() {
+      const input = document.getElementById("collectionSearchInput");
+      const q = String(input?.value || "").trim().toLowerCase();
+      if (!q) {
+        renderItems(allItems);
+        return;
+      }
+      const filtered = allItems.filter((item) => {
+        return [
+          item.product_name,
+          item.category,
+          item.boutique_name,
+          item.location,
+          item.city
+        ].some((field) => String(field || "").toLowerCase().includes(q));
+      });
+      renderItems(filtered);
+    }
+
+    async function loadCollectionData() {
+      const status = document.getElementById("collectionStatusText");
+      try {
+        status.textContent = "Loading live collections...";
+        const bRes = await fetch(`${API_AUTH}/boutiques`);
+        const boutiques = await bRes.json();
+        if (!bRes.ok) throw new Error("Failed to load boutiques");
+
+        const boutiqueList = Array.isArray(boutiques) ? boutiques : [];
+        const productResponses = await Promise.all(
+          boutiqueList.map(async (b) => {
+            try {
+              const pRes = await fetch(`${API_PRODUCTS}/boutique/${encodeURIComponent(b.id)}`);
+              if (!pRes.ok) return [];
+              const products = await pRes.json();
+              if (!Array.isArray(products)) return [];
+              return products.map((p) => ({
+                ...p,
+                boutique_name: b.boutique_name || "Boutique",
+                city: b.city || "",
+                district: b.district || "",
+                location: p.location || b.city || ""
+              }));
+            } catch (_) {
+              return [];
+            }
+          })
+        );
+
+        allItems = productResponses.flat().sort((a, b) => {
+          const aT = new Date(a.created_at || 0).getTime();
+          const bT = new Date(b.created_at || 0).getTime();
+          return bT - aT;
+        });
+
+        renderItems(allItems);
+      } catch (err) {
+        status.textContent = "Failed to load live collections.";
+        const grid = document.getElementById("collectionGrid");
+        grid.innerHTML = `<div class="col-span-full glass-card rounded-xl p-8 text-center text-red-400">${escapeHtml(err.message || "Unknown error")}</div>`;
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      document.getElementById("collectionSearchInput")?.addEventListener("input", applySearch);
+      loadCollectionData();
+    });
+  </script>
+  <script src="responsive-layout.js"></script>
+</body>
+</html>

@@ -800,6 +800,17 @@ nav.fixed .max-w-7xl {
     width: 100% !important;
   }
 
+  /* Collection page */
+  body.has-mobile-bars.route-collection main {
+    padding-top: 8px !important;
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+    padding-bottom: 96px !important;
+  }
+  body.has-mobile-bars.route-collection section .grid.grid-cols-2 {
+    gap: 10px !important;
+  }
+
   /* Dashboard + Profile + Subscription spacing consistency */
   body.has-mobile-bars.route-dashboard main,
   body.has-mobile-bars.route-profile main,
@@ -1020,6 +1031,22 @@ nav.fixed .max-w-7xl {
     letter-spacing: 0.12em !important;
   }
 
+  /* Lead mobile: remove grey underline-like scrollbar tracks */
+  body.has-mobile-bars.route-lead .grid.grid-cols-1.md\:grid-cols-3.gap-6.mb-8,
+  body.has-mobile-bars.route-lead .flex.items-center.justify-between.mb-6 > .flex.gap-2,
+  body.has-mobile-bars.route-lead .flex-1.overflow-y-auto.p-8 {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+  }
+
+  body.has-mobile-bars.route-lead .grid.grid-cols-1.md\:grid-cols-3.gap-6.mb-8::-webkit-scrollbar,
+  body.has-mobile-bars.route-lead .flex.items-center.justify-between.mb-6 > .flex.gap-2::-webkit-scrollbar,
+  body.has-mobile-bars.route-lead .flex-1.overflow-y-auto.p-8::-webkit-scrollbar {
+    width: 0 !important;
+    height: 0 !important;
+    display: none !important;
+    background: transparent !important;
+  }
   /* Table density */
   body.has-mobile-bars.route-lead .glass-panel.rounded-xl.overflow-hidden table th,
   body.has-mobile-bars.route-lead .glass-panel.rounded-xl.overflow-hidden table td {
@@ -1049,5 +1076,110 @@ nav.fixed .max-w-7xl {
 
   body.has-mobile-bars.route-lead #paginationControls {
     padding: 10px 12px !important;
+  }
+  /* Lead mobile final override: remove grey underline bars */
+  body.has-mobile-bars.route-lead .flex.items-center.justify-between.mb-6 > .flex.gap-2 {
+    max-width: 100% !important;
+    overflow-x: visible !important;
+    flex-wrap: wrap !important;
+    padding-bottom: 0 !important;
+  }
+
+  body.has-mobile-bars.route-lead .grid.grid-cols-1.md\:grid-cols-3.gap-6.mb-8,
+  body.has-mobile-bars.route-lead .flex-1.overflow-y-auto.p-8,
+  body.has-mobile-bars.route-lead .glass-panel.rounded-xl.overflow-hidden {
+    overflow-x: hidden !important;
+  }
+
+  body.has-mobile-bars.route-lead .custom-scrollbar::-webkit-scrollbar:horizontal,
+  body.has-mobile-bars.route-lead .flex-1.overflow-y-auto.p-8::-webkit-scrollbar:horizontal,
+  body.has-mobile-bars.route-lead .flex.items-center.justify-between.mb-6 > .flex.gap-2::-webkit-scrollbar:horizontal {
+    height: 0 !important;
+    display: none !important;
+    background: transparent !important;
+  }
+  /* Dashboard mobile: compact layout + two sections per row */
+  body.has-mobile-bars.route-dashboard main {
+    padding-bottom: 88px !important;
+  }
+
+  body.has-mobile-bars.route-dashboard main > header {
+    padding: 10px 12px !important;
+    gap: 8px !important;
+    align-items: flex-start !important;
+  }
+
+  body.has-mobile-bars.route-dashboard main > header h2.text-4xl {
+    font-size: clamp(1.4rem, 7vw, 1.8rem) !important;
+    line-height: 1.1 !important;
+    margin-bottom: 4px !important;
+  }
+
+  body.has-mobile-bars.route-dashboard main > header p#boutiqueName {
+    font-size: 12px !important;
+    line-height: 1.35 !important;
+  }
+
+  body.has-mobile-bars.route-dashboard main > header .flex.gap-4.items-center {
+    width: 100% !important;
+    gap: 8px !important;
+  }
+
+  body.has-mobile-bars.route-dashboard main > header .flex.gap-4.items-center button {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    font-size: 11px !important;
+    padding: 10px 12px !important;
+    justify-content: center !important;
+  }
+
+  body.has-mobile-bars.route-dashboard .grid.grid-cols-1.md\:grid-cols-3.gap-6.px-8.mb-8 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+    margin-bottom: 12px !important;
+  }
+
+  body.has-mobile-bars.route-dashboard .grid.grid-cols-1.md\:grid-cols-3.gap-6.px-8.mb-8 > :nth-child(3) {
+    grid-column: 1 / -1 !important;
+  }
+
+  body.has-mobile-bars.route-dashboard .grid.grid-cols-1.md\:grid-cols-3.gap-6.px-8.mb-8 .glass-card {
+    padding: 12px !important;
+  }
+
+  body.has-mobile-bars.route-dashboard #totalLeads,
+  body.has-mobile-bars.route-dashboard #planName,
+  body.has-mobile-bars.route-dashboard #leadsRemainingCount {
+    font-size: 1.8rem !important;
+    line-height: 1.05 !important;
+  }
+
+  body.has-mobile-bars.route-dashboard #totalLeadsBar {
+    min-height: 3px !important;
+  }
+
+  body.has-mobile-bars.route-dashboard .px-8.pb-12.flex.flex-col.lg\:flex-row.gap-6 {
+    padding: 0 12px 96px !important;
+    gap: 10px !important;
+  }
+
+  body.has-mobile-bars.route-dashboard .glass-card.flex-grow.rounded-xl.p-8,
+  body.has-mobile-bars.route-dashboard .glass-card.w-full.lg\:w-80.rounded-xl.p-8.flex.flex-col {
+    padding: 12px !important;
+  }
+
+  body.has-mobile-bars.route-dashboard .glass-card.flex-grow.rounded-xl.p-8 .relative.h-\[300px\].w-full.mt-4.overflow-hidden {
+    height: 180px !important;
+    margin-top: 8px !important;
+  }
+
+  body.has-mobile-bars.route-dashboard #recentActivityList {
+    gap: 10px !important;
+  }
+
+  body.has-mobile-bars.route-dashboard .glass-card.w-full.lg\:w-80.rounded-xl.p-8.flex.flex-col button {
+    margin-top: 12px !important;
   }
 }

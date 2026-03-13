@@ -65,7 +65,7 @@
           <div class="mobile-menu-panel">
             <a href="index.html">Home</a>
             <a href="boutiques.html">Boutiques</a>
-            <a href="viewproducts.html">Collections</a>
+            <a href="collection.html">Collections</a>
             <a href="messageboutique.html">Messages</a>
             ${partnerProfileLink}
             ${partnerCtaLink}
