@@ -1,5 +1,5 @@
-/* =========================================================
-   CLOCHE – Mobile Responsive Fixes
+﻿/* =========================================================
+   CLOCHE â€“ Mobile Responsive Fixes
    Applied globally via <link> in every dashboard page
    ========================================================= */
 
@@ -41,7 +41,7 @@ svg {
 }
 
 /* =========================================================
-   SIDEBAR DRAWER  (mobile + tablet ≤ 1024 px)
+   SIDEBAR DRAWER  (mobile + tablet â‰¤ 1024 px)
    ========================================================= */
 @media (max-width: 1024px) {
 
@@ -125,7 +125,7 @@ svg {
   }
 
   /* =========================================================
-     DASHBOARD PAGE – header + grid + chart
+     DASHBOARD PAGE â€“ header + grid + chart
      ========================================================= */
 
   /* Header: stack title + buttons vertically */
@@ -154,7 +154,7 @@ svg {
     word-break: break-word;
   }
 
-  /* Dashboard action buttons – stack to full row */
+  /* Dashboard action buttons â€“ stack to full row */
   .responsive-main>header .flex.gap-4,
   .js-responsive main>header .flex.gap-4 {
     flex-wrap: wrap;
@@ -172,7 +172,7 @@ svg {
     padding-right: 12px !important;
   }
 
-  /* KPI grid – always single column on mobile */
+  /* KPI grid â€“ always single column on mobile */
   .grid.grid-cols-1.md\:grid-cols-3 {
     grid-template-columns: 1fr !important;
   }
@@ -200,13 +200,13 @@ svg {
     padding: 16px !important;
   }
 
-  /* Chart side widget – full width on mobile */
+  /* Chart side widget â€“ full width on mobile */
   .lg\:w-80 {
     width: 100% !important;
   }
 
   /* =========================================================
-     LEAD PAGE – header + filter bar + table
+     LEAD PAGE â€“ header + filter bar + table
      ========================================================= */
 
   /* Lead header: compact it */
@@ -219,7 +219,7 @@ svg {
     align-items: flex-start !important;
   }
 
-  /* Lead title + search – stack vertically */
+  /* Lead title + search â€“ stack vertically */
   header.h-20 .flex.items-center.gap-6 {
     flex-direction: column !important;
     align-items: flex-start !important;
@@ -232,8 +232,8 @@ svg {
     max-width: 100% !important;
   }
 
-  /* Avatar in lead header – hide on very small screens to save space */
-  header.h-20 .flex.items-center.gap-4 {
+  /* Avatar in lead header â€“ hide on very small screens to save space */
+  body.has-mobile-bars.route-lead header.h-20 .flex.items-center.gap-4 {
     position: absolute;
     top: 14px;
     right: 62px;
@@ -265,7 +265,7 @@ svg {
     flex-shrink: 0;
   }
 
-  /* Lead table – clearly visible but scrollable */
+  /* Lead table â€“ clearly visible but scrollable */
   .glass-panel.rounded-xl.overflow-hidden {
     overflow-x: auto !important;
   }
@@ -282,7 +282,7 @@ svg {
   }
 
   /* =========================================================
-     BOUTIQUE PRODUCTS PAGE – header + filter chips + grid
+     BOUTIQUE PRODUCTS PAGE â€“ header + filter chips + grid
      ========================================================= */
 
   /* Products header */
@@ -300,7 +300,7 @@ svg {
     min-width: 0;
   }
 
-  /* Right side of products header – wrap buttons */
+  /* Right side of products header â€“ wrap buttons */
   header.h-20.border-b.border-primary\/10>div:last-child,
   header.h-20.border-b.border-primary\/10 .flex.items-center.gap-6 {
     width: 100% !important;
@@ -315,7 +315,7 @@ svg {
     display: none !important;
   }
 
-  /* Add product button – full width on mobile */
+  /* Add product button â€“ full width on mobile */
   header button[onclick*="toggleModal"] {
     flex: 1;
     justify-content: center;
@@ -328,7 +328,7 @@ svg {
     /* hide avatar in header, user can open sidebar for profile */
   }
 
-  /* Product grid – 2 columns (not 1) looks better on mobile */
+  /* Product grid â€“ 2 columns (not 1) looks better on mobile */
   #productGrid {
     grid-template-columns: repeat(2, 1fr) !important;
     gap: 12px !important;
@@ -343,7 +343,7 @@ svg {
     font-size: 0.85rem !important;
   }
 
-  /* Category filter chips – horizontal scroll */
+  /* Category filter chips â€“ horizontal scroll */
   .flex.gap-4.mb-8.overflow-x-auto {
     flex-wrap: nowrap !important;
     gap: 8px !important;
@@ -351,7 +351,7 @@ svg {
   }
 
   /* =========================================================
-     MESSAGES PAGE – single pane on mobile
+     MESSAGES PAGE â€“ single pane on mobile
      ========================================================= */
 
   /* Messages header */
@@ -387,7 +387,7 @@ svg {
     position: relative;
   }
 
-  /* Conversation list pane – full width by default */
+  /* Conversation list pane â€“ full width by default */
   .flex-1.flex.overflow-hidden>section:first-child {
     width: 100% !important;
     min-width: 0 !important;
@@ -395,7 +395,7 @@ svg {
     z-index: 2;
   }
 
-  /* Chat pane – slides in from right when a conversation is open */
+  /* Chat pane â€“ slides in from right when a conversation is open */
   .flex-1.flex.overflow-hidden>section:last-child {
     position: absolute !important;
     inset: 0 !important;
@@ -427,7 +427,7 @@ svg {
     margin-right: 8px;
   }
 
-  /* Customer context sidebar in messages – full-screen overlay on mobile */
+  /* Customer context sidebar in messages â€“ full-screen overlay on mobile */
   #customerSidebar {
     position: fixed !important;
     inset: 0 !important;
@@ -711,18 +711,18 @@ svg {
 }
 
 /* =========================================================
-   Extra small (phones ≤ 480 px) tuning
+   Extra small (phones â‰¤ 480 px) tuning
    ========================================================= */
 @media (max-width: 480px) {
 
-  /* Product grid → 1 column when very small */
+  /* Product grid â†’ 1 column when very small */
   #productGrid {
     grid-template-columns: 1fr !important;
   }
 }
 
 /* =========================================================
-   Landing / boutiques pages – suppress the auto‐generated
+   Landing / boutiques pages â€“ suppress the autoâ€generated
    responsive MENU dropdown (landing nav links are intentionally
    hidden on mobile and not needed as a dropdown)
    ========================================================= */
@@ -740,6 +740,12 @@ nav.fixed .max-w-7xl {
    New page mobile harmonization (desktop unchanged)
    ========================================================= */
 @media (max-width: 1024px) {
+  /* Landing hero background crop */
+  body.has-mobile-bars.route-index section.min-h-screen .bg-cover {
+    background-position: center 18% !important;
+    transform: scale(1.08) !important;
+  }
+
   /* Pages with fixed desktop nav hidden by mobile bars */
   body.has-mobile-bars.route-userprofile main,
   body.has-mobile-bars.route-enquiry main,
@@ -798,9 +804,45 @@ nav.fixed .max-w-7xl {
   body.has-mobile-bars.route-dashboard main,
   body.has-mobile-bars.route-profile main,
   body.has-mobile-bars.route-subscription main,
-  body.has-mobile-bars.route-boutiqueproducts main {
+  body.has-mobile-bars.route-boutiqueproducts main,
+  body.has-mobile-bars.route-lead main {
     padding-bottom: 96px !important;
   }
+
+  /* Boutique products: fix clipped "Boutique Inventory" title on mobile */
+  body.has-mobile-bars.route-boutiqueproducts main > header.h-20.border-b.border-primary\/10 > div:first-child {
+    min-width: 0 !important;
+    flex: 1 1 auto !important;
+  }
+
+  body.has-mobile-bars.route-boutiqueproducts main > header.h-20.border-b.border-primary\/10 > div:first-child h2 {
+    font-size: 1.12rem !important;
+    line-height: 1.15 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  body.has-mobile-bars.route-boutiqueproducts main > header.h-20.border-b.border-primary\/10 > div:first-child .h-4.w-px {
+    display: none !important;
+  }
+
+  /* Reset generic lead-header absolute positioning from affecting products page */
+  body.has-mobile-bars.route-boutiqueproducts header.h-20 .flex.items-center.gap-4 {
+    position: static !important;
+    top: auto !important;
+    right: auto !important;
+    margin: 0 !important;
+    width: 100% !important;
+  }
+
+  body.has-mobile-bars.route-boutiqueproducts main > header.h-20.border-b.border-primary\/10 {
+    padding-top: 10px !important;
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+    justify-content: flex-start !important;
+  }
+
 
   /* Profile page compact alignment */
   body.has-mobile-bars.route-profile main > header {
@@ -917,5 +959,95 @@ nav.fixed .max-w-7xl {
   body.has-mobile-bars.route-profile #saveProfileBtn {
     width: 100% !important;
     padding: 12px 14px !important;
+  }
+
+  /* Lead page mobile compaction + alignment */
+  body.has-mobile-bars.route-lead main > header {
+    padding: 10px 12px !important;
+    gap: 8px !important;
+    height: auto !important;
+    min-height: 56px !important;
+  }
+
+  body.has-mobile-bars.route-lead main > header h2 {
+    font-size: 18px !important;
+    line-height: 1.15 !important;
+  }
+
+  body.has-mobile-bars.route-lead main > header .relative.w-72 {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  body.has-mobile-bars.route-lead main .flex-1.overflow-y-auto.p-8 {
+    padding: 10px 12px 96px !important;
+  }
+
+  /* Stats: two cards in one row */
+  body.has-mobile-bars.route-lead .grid.grid-cols-1.md\:grid-cols-3.gap-6.mb-8 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+    margin-bottom: 12px !important;
+  }
+
+  body.has-mobile-bars.route-lead .grid.grid-cols-1.md\:grid-cols-3.gap-6.mb-8 > :nth-child(3) {
+    grid-column: 1 / -1 !important;
+  }
+
+  body.has-mobile-bars.route-lead .grid.grid-cols-1.md\:grid-cols-3.gap-6.mb-8 .p-6 {
+    padding: 12px !important;
+  }
+
+  body.has-mobile-bars.route-lead #statsTotalLeads,
+  body.has-mobile-bars.route-lead #statsNewLeads,
+  body.has-mobile-bars.route-lead #statsConversionRate {
+    font-size: 28px !important;
+    line-height: 1 !important;
+  }
+
+  /* Filter row: balanced layout */
+  body.has-mobile-bars.route-lead .flex.items-center.justify-between.mb-6 {
+    margin-bottom: 10px !important;
+    gap: 8px !important;
+  }
+
+  body.has-mobile-bars.route-lead .flex.items-center.justify-between.mb-6 > .flex.gap-2 {
+    max-width: calc(100vw - 150px) !important;
+  }
+
+  body.has-mobile-bars.route-lead #clearFilters {
+    font-size: 10px !important;
+    letter-spacing: 0.12em !important;
+  }
+
+  /* Table density */
+  body.has-mobile-bars.route-lead .glass-panel.rounded-xl.overflow-hidden table th,
+  body.has-mobile-bars.route-lead .glass-panel.rounded-xl.overflow-hidden table td {
+    padding: 10px 8px !important;
+  }
+
+  body.has-mobile-bars.route-lead .glass-panel.rounded-xl.overflow-hidden table td .size-10 {
+    width: 34px !important;
+    height: 34px !important;
+    font-size: 12px !important;
+  }
+
+  body.has-mobile-bars.route-lead .glass-panel.rounded-xl.overflow-hidden table td .text-lg {
+    font-size: 13px !important;
+    line-height: 1.2 !important;
+  }
+
+  body.has-mobile-bars.route-lead .glass-panel.rounded-xl.overflow-hidden table td .text-xs {
+    font-size: 10px !important;
+  }
+
+  body.has-mobile-bars.route-lead .glass-panel.rounded-xl.overflow-hidden table td a.inline-flex {
+    padding: 6px 10px !important;
+    font-size: 10px !important;
+    gap: 4px !important;
+  }
+
+  body.has-mobile-bars.route-lead #paginationControls {
+    padding: 10px 12px !important;
   }
 }

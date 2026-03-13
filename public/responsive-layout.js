@@ -54,6 +54,9 @@
              <span>Profile</span>
            </a>`
         : "";
+      const partnerCtaLink = partnerLoggedIn
+        ? ""
+        : `<a href="boutiquelogin.html" data-mobile-partner-cta>Partner With Us</a>`;
       topbar.innerHTML = `
         <details class="mobile-menu-details">
           <summary class="mobile-icon-btn" aria-label="Open menu">
@@ -65,7 +68,7 @@
             <a href="viewproducts.html">Collections</a>
             <a href="messageboutique.html">Messages</a>
             ${partnerProfileLink}
-            <a href="boutiquelogin.html">Partner With Us</a>
+            ${partnerCtaLink}
             <a data-mobile-login-profile href="${profileHref}">Login / Profile</a>
           </div>
         </details>
@@ -81,6 +84,7 @@
     const loginProfileLink = document.querySelector("[data-mobile-login-profile]");
     const menuPanel = topbar.querySelector(".mobile-menu-panel");
     let partnerProfileItem = topbar.querySelector("[data-mobile-partner-profile]");
+    let partnerCtaItem = topbar.querySelector("[data-mobile-partner-cta]");
 
     if (menuPanel) {
       if (partnerLoggedIn && !partnerProfileItem) {
@@ -94,6 +98,19 @@
         partnerProfileItem = el;
       } else if (!partnerLoggedIn && partnerProfileItem) {
         partnerProfileItem.remove();
+      }
+
+      if (partnerLoggedIn && partnerCtaItem) {
+        partnerCtaItem.remove();
+      } else if (!partnerLoggedIn && !partnerCtaItem) {
+        const el = document.createElement("a");
+        el.href = "boutiquelogin.html";
+        el.setAttribute("data-mobile-partner-cta", "");
+        el.textContent = "Partner With Us";
+        const anchorBefore = menuPanel.querySelector("[data-mobile-login-profile]");
+        if (anchorBefore) menuPanel.insertBefore(el, anchorBefore);
+        else menuPanel.appendChild(el);
+        partnerCtaItem = el;
       }
     }
 
