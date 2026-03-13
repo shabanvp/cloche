@@ -177,7 +177,12 @@
           <p id="boutiqueName" class="text-slate-400 font-sans text-sm tracking-wide">Welcome back to your atelier,
             Madam Vance.</p>
         </div>
-        <div class="flex gap-4">
+        <div class="flex gap-4 items-center">
+          <a href="profile.html"
+            class="h-11 w-11 rounded-full bg-primary/20 border border-primary/40 flex items-center justify-center overflow-hidden hover:border-primary transition-colors"
+            title="Profile">
+            <span id="topProfileIconText" class="text-primary font-bold">P</span>
+          </a>
           <button
             class="bg-primary text-background-dark px-6 py-2.5 rounded-lg text-sm font-bold hover:opacity-90 transition-all flex items-center gap-2">
             <span class="material-symbols-outlined text-sm">add</span>
@@ -593,7 +598,9 @@
         safeSetText("sidebarBoutiqueName", data.boutiqueName);
 
         // 🎭 Auto avatar (first letter)
-        safeSetText("avatarCircle", data.ownerName ? data.ownerName.charAt(0).toUpperCase() : "U");
+        const ownerInitial = data.ownerName ? data.ownerName.charAt(0).toUpperCase() : "U";
+        safeSetText("avatarCircle", ownerInitial);
+        safeSetText("topProfileIconText", ownerInitial);
 
         // 📊 Update dashboard based on plan
         const userPlan = data.plan || "basic";
@@ -664,6 +671,8 @@
       const sidebarBoutiqueName = document.getElementById("sidebarBoutiqueName");
       
       if (avatarCircle) avatarCircle.textContent = ownerName.charAt(0).toUpperCase();
+      const topProfileIconText = document.getElementById("topProfileIconText");
+      if (topProfileIconText) topProfileIconText.textContent = ownerName.charAt(0).toUpperCase();
       if (ownerNameEl) ownerNameEl.textContent = ownerName;
       if (sidebarBoutiqueName) sidebarBoutiqueName.textContent = boutiqueName;
 

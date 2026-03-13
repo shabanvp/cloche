@@ -604,7 +604,13 @@
 
         return `
         <a href="viewboutique.html?boutiqueId=${b.id}" onclick="localStorage.setItem('selectedBoutiqueId','${b.id}')" class="group relative aspect-[3/4] rounded-xl overflow-hidden glass-card shimmer-effect cursor-pointer block">
-          <div class="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-110" style="background-image: linear-gradient(to top, rgba(0,0,0,0.86), rgba(0,0,0,0.18)), url('${image}')"></div>
+          <img
+            class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+            src="${image}"
+            alt="${name}"
+            onerror="this.onerror=null;this.src='${pickImage(`${b.id}-${b.boutique_name}-${idx}`)}'"
+          />
+          <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-black/15"></div>
           <div class="absolute inset-0 p-6 flex flex-col justify-end">
             <p class="text-xs uppercase tracking-[0.25em] text-primary mb-2">${district}</p>
             <h3 class="text-xl font-display text-white mb-2">${name}</h3>

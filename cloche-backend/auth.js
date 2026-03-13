@@ -657,11 +657,29 @@ router.get("/boutiques", async (req, res) => {
     let showcaseByBoutiqueId = {};
     const { data: showcases, error: showcaseError } = await supabase
       .from("boutique_showcase")
-      .select("boutique_id, district, area, tags, image_url, rating");
+      .select("id, boutique_id, district, area, tags, image_url, rating, created_at, updated_at");
 
     if (!showcaseError && Array.isArray(showcases)) {
+      // Pick the latest showcase row per boutique, and prefer rows with uploaded image_url.
       showcaseByBoutiqueId = showcases.reduce((acc, row) => {
-        acc[row.boutique_id] = row;
+        const key = row.boutique_id;
+        const existing = acc[key];
+        if (!existing) {
+          acc[key] = row;
+          return acc;
+        }
+
+        const existingTime = new Date(existing.updated_at || existing.created_at || 0).getTime();
+        const rowTime = new Date(row.updated_at || row.created_at || 0).getTime();
+        const existingHasImage = Boolean(existing.image_url);
+        const rowHasImage = Boolean(row.image_url);
+
+        if (rowHasImage && !existingHasImage) {
+          acc[key] = row;
+        } else if (rowHasImage === existingHasImage) {
+          if (rowTime > existingTime) acc[key] = row;
+          else if (rowTime === existingTime && Number(row.id || 0) > Number(existing.id || 0)) acc[key] = row;
+        }
         return acc;
       }, {});
     } else if (showcaseError) {

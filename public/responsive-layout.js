@@ -48,6 +48,12 @@
     if (!topbar) {
       topbar = document.createElement("div");
       topbar.className = "mobile-topbar";
+      const partnerProfileLink = partnerLoggedIn
+        ? `<a href="profile.html" data-mobile-partner-profile>
+             <span class="material-symbols-outlined">person</span>
+             <span>Profile</span>
+           </a>`
+        : "";
       topbar.innerHTML = `
         <details class="mobile-menu-details">
           <summary class="mobile-icon-btn" aria-label="Open menu">
@@ -58,6 +64,7 @@
             <a href="boutiques.html">Boutiques</a>
             <a href="viewproducts.html">Collections</a>
             <a href="messageboutique.html">Messages</a>
+            ${partnerProfileLink}
             <a href="boutiquelogin.html">Partner With Us</a>
             <a data-mobile-login-profile href="${profileHref}">Login / Profile</a>
           </div>
@@ -72,6 +79,24 @@
     if (legacyTopAction) legacyTopAction.remove();
 
     const loginProfileLink = document.querySelector("[data-mobile-login-profile]");
+    const menuPanel = topbar.querySelector(".mobile-menu-panel");
+    let partnerProfileItem = topbar.querySelector("[data-mobile-partner-profile]");
+
+    if (menuPanel) {
+      if (partnerLoggedIn && !partnerProfileItem) {
+        const el = document.createElement("a");
+        el.href = "profile.html";
+        el.setAttribute("data-mobile-partner-profile", "");
+        el.innerHTML = `<span class="material-symbols-outlined">person</span><span>Profile</span>`;
+        const anchorBefore = menuPanel.querySelector("a[href='boutiquelogin.html']");
+        if (anchorBefore) menuPanel.insertBefore(el, anchorBefore);
+        else menuPanel.appendChild(el);
+        partnerProfileItem = el;
+      } else if (!partnerLoggedIn && partnerProfileItem) {
+        partnerProfileItem.remove();
+      }
+    }
+
     if (loginProfileLink) {
       loginProfileLink.onclick = null;
 
