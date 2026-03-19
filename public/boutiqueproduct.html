@@ -35,6 +35,25 @@
       border: 1px solid rgba(193, 166, 113, 0.2);
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.55);
     }
+    @media (max-width: 767px) {
+      #productName {
+        font-size: 3rem;
+        line-height: 1;
+      }
+      #productDesc {
+        font-size: 1.125rem;
+      }
+      #productLocation {
+        font-size: 2.25rem;
+        line-height: 1.05;
+      }
+      #editProductBtn,
+      #deleteProductBtn {
+        padding-top: 0.8rem;
+        padding-bottom: 0.8rem;
+        font-size: 0.7rem;
+      }
+    }
   </style>
   <link rel='stylesheet' href='responsive-fixes.css' />
 </head>
@@ -71,7 +90,16 @@
         <div class="flex flex-col">
           <p id="productCategory" class="text-primary uppercase tracking-[0.2em] text-xs mb-3">Couture</p>
           <h1 id="productName" class="font-display text-5xl leading-tight mb-4">Product Name</h1>
-          <p id="productDesc" class="text-primary/90 text-2xl mb-10">Description</p>
+          <p id="productDesc" class="text-primary/90 text-2xl mb-6">Description</p>
+
+          <div class="mb-8 grid grid-cols-2 gap-3">
+            <button id="editProductBtn" type="button" class="w-full py-4 rounded-full border border-primary/30 text-primary font-bold text-sm uppercase tracking-[0.2em] hover:bg-primary/10 transition-all">
+              Update Product
+            </button>
+            <button id="deleteProductBtn" type="button" class="w-full py-4 rounded-full border border-red-500/40 text-red-300 font-bold text-sm uppercase tracking-[0.2em] hover:bg-red-500/10 transition-all">
+              Delete Product
+            </button>
+          </div>
 
           <div class="border-y border-primary/20 py-8 mb-8">
             <p class="text-primary text-6xl font-semibold">
@@ -88,11 +116,65 @@
             </div>
           </div>
 
-          <button class="mt-auto w-full py-5 rounded-full bg-primary text-background-dark font-bold text-2xl uppercase tracking-[0.2em] hover:brightness-110 transition-all">
+          <button class="mt-4 w-full py-5 rounded-full bg-primary text-background-dark font-bold text-2xl uppercase tracking-[0.2em] hover:brightness-110 transition-all">
             Rent It Out
           </button>
         </div>
       </div>
+    </section>
+
+    <section id="editPanel" class="glass-card rounded-3xl p-6 md:p-10 mt-8 hidden">
+      <div class="flex items-center justify-between gap-4 mb-8">
+        <div>
+          <p class="text-primary uppercase tracking-[0.2em] text-xs mb-2">Product Controls</p>
+          <h2 class="font-display text-3xl">Edit Product Details</h2>
+        </div>
+        <button id="cancelEditBtn" type="button" class="text-primary/70 hover:text-primary transition-colors">
+          <span class="material-symbols-outlined text-3xl">close</span>
+        </button>
+      </div>
+
+      <form id="editProductForm" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label class="block text-primary/70 uppercase tracking-[0.2em] text-xs mb-2">Category</label>
+          <input id="editCategory" type="text" class="w-full rounded-2xl border border-primary/20 bg-black/20 px-5 py-4 text-white outline-none focus:border-primary" />
+        </div>
+        <div>
+          <label class="block text-primary/70 uppercase tracking-[0.2em] text-xs mb-2">Product Name</label>
+          <input id="editName" type="text" class="w-full rounded-2xl border border-primary/20 bg-black/20 px-5 py-4 text-white outline-none focus:border-primary" />
+        </div>
+        <div class="md:col-span-2">
+          <label class="block text-primary/70 uppercase tracking-[0.2em] text-xs mb-2">Description</label>
+          <textarea id="editDescription" rows="4" class="w-full rounded-2xl border border-primary/20 bg-black/20 px-5 py-4 text-white outline-none focus:border-primary"></textarea>
+        </div>
+        <div>
+          <label class="block text-primary/70 uppercase tracking-[0.2em] text-xs mb-2">Price Per Day</label>
+          <input id="editPrice" type="number" min="0" class="w-full rounded-2xl border border-primary/20 bg-black/20 px-5 py-4 text-white outline-none focus:border-primary" />
+        </div>
+        <div>
+          <label class="block text-primary/70 uppercase tracking-[0.2em] text-xs mb-2">Stock</label>
+          <input id="editStock" type="number" min="0" class="w-full rounded-2xl border border-primary/20 bg-black/20 px-5 py-4 text-white outline-none focus:border-primary" />
+        </div>
+        <div>
+          <label class="block text-primary/70 uppercase tracking-[0.2em] text-xs mb-2">Availability</label>
+          <select id="editAvailability" class="w-full rounded-2xl border border-primary/20 bg-black/20 px-5 py-4 text-white outline-none focus:border-primary">
+            <option value="in_stock">In Stock</option>
+            <option value="out_of_stock">Out of Stock</option>
+          </select>
+        </div>
+        <div class="md:col-span-2">
+          <label class="block text-primary/70 uppercase tracking-[0.2em] text-xs mb-2">Location</label>
+          <input id="editLocation" type="text" class="w-full rounded-2xl border border-primary/20 bg-black/20 px-5 py-4 text-white outline-none focus:border-primary" />
+        </div>
+        <div class="md:col-span-2 flex justify-end gap-4 pt-2">
+          <button id="discardEditBtn" type="button" class="px-6 py-3 rounded-full border border-primary/20 text-primary/80 font-bold uppercase tracking-[0.2em] text-xs hover:bg-primary/10 transition-all">
+            Cancel
+          </button>
+          <button type="submit" class="px-8 py-3 rounded-full bg-primary text-background-dark font-bold uppercase tracking-[0.2em] text-xs hover:brightness-110 transition-all">
+            Save Changes
+          </button>
+        </div>
+      </form>
     </section>
   </main>
 
@@ -100,6 +182,7 @@
     const API_PRODUCTS = "https://cloche-backend.onrender.com/api/products";
     const API_ORIGIN = "https://cloche-backend.onrender.com";
     const fallbackImage = "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=1200&auto=format&fit=crop";
+    let currentProduct = null;
 
     function resolveAssetUrl(url) {
       const value = String(url || "").trim();
@@ -195,6 +278,7 @@
     }
 
     function renderProduct(product, boutiqueId) {
+      currentProduct = product;
       const gallery = Array.isArray(product.gallery) ? product.gallery.map(resolveAssetUrl).filter(Boolean) : [];
       const primary = resolveAssetUrl(product.image_url) || gallery[0] || fallbackImage;
       const images = [primary, ...gallery.filter((img) => img !== primary)];
@@ -215,7 +299,7 @@
       document.getElementById("productDesc").textContent = product.description || "No description available";
       document.getElementById("productPrice").textContent = Number(product.price || 0).toLocaleString("en-IN");
       document.getElementById("productLocation").textContent = product.location || "Not specified";
-      document.getElementById("availabilityText").textContent = stock > 0 ? "Available" : "Out of stock";
+      document.getElementById("availabilityText").textContent = stock > 0 ? "In Stock" : "Out of Stock";
       document.getElementById("availabilityText").className = stock > 0
         ? "text-emerald-400 uppercase tracking-[0.2em] text-sm"
         : "text-red-400 uppercase tracking-[0.2em] text-sm";
@@ -223,6 +307,76 @@
       document.getElementById("backBtn").href = `viewboutique.html?boutiqueId=${boutiqueId || localStorage.getItem("selectedBoutiqueId") || ""}`;
 
       renderThumbs(images);
+    }
+
+    function fillEditForm(product) {
+      document.getElementById("editCategory").value = product.category || "";
+      document.getElementById("editName").value = product.product_name || "";
+      document.getElementById("editDescription").value = product.description || "";
+      document.getElementById("editPrice").value = product.price || 0;
+      document.getElementById("editStock").value = product.stock || 0;
+      document.getElementById("editAvailability").value = Number(product.stock || 0) > 0 ? "in_stock" : "out_of_stock";
+      document.getElementById("editLocation").value = product.location || "";
+    }
+
+    function toggleEditPanel(show) {
+      const panel = document.getElementById("editPanel");
+      if (!panel) return;
+      panel.classList.toggle("hidden", !show);
+      if (show) {
+        panel.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }
+
+    async function saveProductChanges() {
+      if (!currentProduct?.id) throw new Error("Product not loaded");
+
+      const formData = new FormData();
+      formData.append("category", document.getElementById("editCategory").value.trim());
+      formData.append("name", document.getElementById("editName").value.trim());
+      formData.append("description", document.getElementById("editDescription").value.trim());
+      formData.append("price", document.getElementById("editPrice").value.trim());
+      const availability = document.getElementById("editAvailability").value;
+      const stockValue = availability === "in_stock"
+        ? String(Math.max(1, Number(document.getElementById("editStock").value || 0)))
+        : "0";
+      formData.append("stock", stockValue);
+      formData.append("location", document.getElementById("editLocation").value.trim());
+
+      const res = await fetch(`${API_PRODUCTS}/${currentProduct.id}`, {
+        method: "PUT",
+        body: formData
+      });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.message || "Failed to update product");
+
+      const { boutiqueId } = getParams();
+      localStorage.removeItem("selectedProductData");
+      const updatedRes = await fetch(`${API_PRODUCTS}/${currentProduct.id}`);
+      const updated = await updatedRes.json();
+      if (!updatedRes.ok || !updated) throw new Error("Product updated but reload failed");
+
+      localStorage.setItem("selectedProductData", JSON.stringify(updated));
+      renderProduct(updated, boutiqueId);
+      fillEditForm(updated);
+      toggleEditPanel(false);
+      document.getElementById("statusWrap").textContent = "Product updated successfully.";
+    }
+
+    async function deleteCurrentProduct() {
+      if (!currentProduct?.id) throw new Error("Product not loaded");
+      const name = currentProduct.product_name || "this product";
+      if (!confirm(`Delete "${name}"? This action cannot be undone.`)) return;
+
+      const res = await fetch(`${API_PRODUCTS}/${currentProduct.id}`, {
+        method: "DELETE"
+      });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.message || "Failed to delete product");
+
+      localStorage.removeItem("selectedProductData");
+      localStorage.removeItem("selectedBoutiqueId");
+      window.location.href = "boutiqueproducts.html";
     }
 
     async function init() {
@@ -244,13 +398,41 @@
         
         console.log("Product loaded:", product);
         renderProduct(product, boutiqueId);
+        fillEditForm(product);
       } catch (err) {
         console.error("Error loading product:", err);
         document.getElementById("statusWrap").textContent = `Error: ${err.message || "Failed to load product"}`;
       }
     }
 
-    document.addEventListener("DOMContentLoaded", init);
+    document.addEventListener("DOMContentLoaded", () => {
+      init();
+
+      document.getElementById("editProductBtn")?.addEventListener("click", () => {
+        if (currentProduct) fillEditForm(currentProduct);
+        toggleEditPanel(true);
+      });
+
+      document.getElementById("cancelEditBtn")?.addEventListener("click", () => toggleEditPanel(false));
+      document.getElementById("discardEditBtn")?.addEventListener("click", () => toggleEditPanel(false));
+
+      document.getElementById("editProductForm")?.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        try {
+          await saveProductChanges();
+        } catch (err) {
+          alert(err.message || "Failed to update product");
+        }
+      });
+
+      document.getElementById("deleteProductBtn")?.addEventListener("click", async () => {
+        try {
+          await deleteCurrentProduct();
+        } catch (err) {
+          alert(err.message || "Failed to delete product");
+        }
+      });
+    });
   </script>
   <script src='responsive-layout.js'></script>
 </body>

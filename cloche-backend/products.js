@@ -4,23 +4,10 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 const supabase = require("./supabase");
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadDir = path.join(process.cwd(), "uploads");
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(null, `${uniqueSuffix}${path.extname(file.originalname)}`);
-  }
-});
+const { deleteStorageObjectByUrl, uploadBufferToStorage } = require("./storage");
 
 const upload = multer({
-  storage,
+  storage: multer.memoryStorage(),
   limits: { fileSize: 10 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     const filetypes = /jpeg|jpg|png|webp/;
@@ -33,9 +20,21 @@ const upload = multer({
 
 const safeUnlink = (imageUrl) => {
   if (!imageUrl) return;
+  if (/^https?:\/\//i.test(imageUrl)) return;
   const cleanUrl = imageUrl.startsWith("/") ? imageUrl.slice(1) : imageUrl;
   const filePath = path.join(process.cwd(), cleanUrl);
   fs.unlink(filePath, () => {});
+};
+
+const uploadProductImages = async (boutiqueId, files) => {
+  return Promise.all(
+    (files || []).map((file) =>
+      uploadBufferToStorage({
+        folder: `products/${boutiqueId}`,
+        file
+      }).then(({ publicUrl }) => publicUrl)
+    )
+  );
 };
 
 /* ================= GET PRODUCT DETAILS ================= */
@@ -89,7 +88,6 @@ router.get("/:productId", async (req, res, next) => {
 router.post("/add", upload.array("images", 10), async (req, res) => {
   const { name, price, stock, boutiqueId, category, description, location } = req.body;
   const files = req.files || [];
-  const primaryImageUrl = files.length > 0 ? `/uploads/${files[0].filename}` : null;
 
   if (!name || !price || !boutiqueId) {
     return res.status(400).json({ message: "Missing required fields (name, price, or boutiqueId)" });
@@ -134,6 +132,9 @@ router.post("/add", upload.array("images", 10), async (req, res) => {
       });
     }
 
+    const uploadedImageUrls = await uploadProductImages(boutiqueId, files);
+    const primaryImageUrl = uploadedImageUrls[0] || null;
+
     const { data: inserted, error: insertErr } = await supabase
       .from("products")
       .insert([
@@ -151,11 +152,14 @@ router.post("/add", upload.array("images", 10), async (req, res) => {
       .select("id")
       .maybeSingle();
 
-    if (insertErr) return res.status(500).json({ message: "Insert failed", error: insertErr.message });
+    if (insertErr) {
+      await Promise.all(uploadedImageUrls.map((imageUrl) => deleteStorageObjectByUrl(imageUrl)));
+      return res.status(500).json({ message: "Insert failed", error: insertErr.message });
+    }
 
     const productId = inserted?.id;
-    if (productId && files.length > 0) {
-      const galleryRows = files.map((file) => ({ product_id: productId, image_url: `/uploads/${file.filename}` }));
+    if (productId && uploadedImageUrls.length > 0) {
+      const galleryRows = uploadedImageUrls.map((imageUrl) => ({ product_id: productId, image_url: imageUrl }));
       const { error: galleryErr } = await supabase.from("product_images").insert(galleryRows);
       if (galleryErr) console.error("[Products] Gallery insert error:", galleryErr.message);
     }
@@ -236,7 +240,11 @@ router.delete("/:productId", async (req, res) => {
     const { error: delProdErr } = await supabase.from("products").delete().eq("id", productId);
     if (delProdErr) return res.status(500).json({ message: "Error deleting product", error: delProdErr.message });
 
-    for (const row of images || []) safeUnlink(row.image_url);
+    for (const row of images || []) {
+      await deleteStorageObjectByUrl(row.image_url);
+      safeUnlink(row.image_url);
+    }
+    await deleteStorageObjectByUrl(existingProduct?.image_url);
     safeUnlink(existingProduct?.image_url);
 
     return res.json({ success: true, message: "Product deleted successfully!" });
@@ -269,13 +277,14 @@ router.put("/:productId", upload.array("images", 10), async (req, res) => {
     if (updateErr) return res.status(500).json({ message: "Update failed", error: updateErr.message });
 
     if (files.length > 0) {
-      const galleryRows = files.map((file) => ({ product_id: productId, image_url: `/uploads/${file.filename}` }));
+      const uploadedImageUrls = await uploadProductImages(productId, files);
+      const galleryRows = uploadedImageUrls.map((imageUrl) => ({ product_id: productId, image_url: imageUrl }));
       const { error: galleryErr } = await supabase.from("product_images").insert(galleryRows);
       if (galleryErr) console.error("[Products] Gallery append error:", galleryErr.message);
 
       const { data: current } = await supabase.from("products").select("image_url").eq("id", productId).maybeSingle();
       if (!current?.image_url) {
-        await supabase.from("products").update({ image_url: `/uploads/${files[0].filename}` }).eq("id", productId);
+        await supabase.from("products").update({ image_url: uploadedImageUrls[0] || null }).eq("id", productId);
       }
       return res.json({ success: true, message: "Product updated and new images added!" });
     }
@@ -302,6 +311,7 @@ router.post("/delete-image", async (req, res) => {
       return res.status(500).json({ message: "Database error during image deletion", error: delGalleryErr.message });
     }
 
+    await deleteStorageObjectByUrl(imageUrl);
     safeUnlink(imageUrl);
 
     const { data: currentProduct } = await supabase

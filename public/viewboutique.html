@@ -109,7 +109,7 @@
         <h3 class="font-display text-2xl text-white">The Collections</h3>
         <div class="h-[1px] flex-grow mx-8 bg-gradient-to-r from-primary/40 to-transparent mb-3"></div>
       </div>
-      <div id="productsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10"></div>
+      <div id="productsGrid" class="flex gap-6 overflow-x-auto pb-4 snap-x snap-mandatory md:grid md:grid-cols-2 lg:grid-cols-3 md:overflow-visible md:pb-0"></div>
     </section>
 
     <section class="mb-20">
@@ -247,7 +247,7 @@
     function renderProducts(products) {
       const grid = document.getElementById("productsGrid");
       if (!Array.isArray(products) || !products.length) {
-        grid.innerHTML = `<div class="col-span-full glass-card rounded-lg p-10 text-center text-[#FAF7F2]/60">No products listed yet for this boutique.</div>`;
+        grid.innerHTML = `<div class="min-w-full md:col-span-full glass-card rounded-lg p-10 text-center text-[#FAF7F2]/60">No products listed yet for this boutique.</div>`;
         return;
       }
 
@@ -261,7 +261,7 @@
         const encodedProduct = encodeURIComponent(JSON.stringify(product));
 
         return `
-          <a href="viewproducts.html?boutiqueId=${boutiqueId}&productId=${product.id}" onclick="localStorage.setItem('selectedProductData', decodeURIComponent('${encodedProduct}')); localStorage.setItem('selectedBoutiqueId', '${boutiqueId}')" class="group block">
+          <a href="viewproducts.html?boutiqueId=${boutiqueId}&productId=${product.id}" onclick="localStorage.setItem('selectedProductData', decodeURIComponent('${encodedProduct}')); localStorage.setItem('selectedBoutiqueId', '${boutiqueId}')" class="group block min-w-[260px] max-w-[260px] snap-start md:min-w-0 md:max-w-none">
             <div class="aspect-[3/4] overflow-hidden rounded-lg mb-4 relative glass-card">
               <img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" src="${image}" alt="${product.product_name || "Product"}" />
               <div class="absolute inset-0 bg-black/20 group-hover:bg-black/0 transition-colors"></div>

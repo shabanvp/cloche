@@ -318,6 +318,14 @@
                 placeholder="Per Day">
             </div>
           </div>
+          <div>
+            <label class="block text-[10px] font-bold uppercase tracking-widest text-primary/60 mb-2">Availability</label>
+            <select id="pAvailability"
+              class="w-full bg-primary/5 border-primary/20 rounded-xl px-4 py-3 text-sm focus:border-primary focus:ring-0 text-white outline-none">
+              <option value="in_stock" style="background-color: #1a1a1a; color: white;">In Stock</option>
+              <option value="out_of_stock" style="background-color: #1a1a1a; color: white;">Out of Stock</option>
+            </select>
+          </div>
 
           <!-- 📷 Image Upload Section (Moved to Last) -->
           <div class="pt-2">
@@ -463,6 +471,15 @@
       // Store selected files in memory with unique IDs
       let selectedFiles = [];
       let fileIdCounter = 0;
+      const PRODUCT_PLACEHOLDER = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 800'><rect width='600' height='800' fill='%23161512'/><text x='50%25' y='48%25' dominant-baseline='middle' text-anchor='middle' fill='%23c1a671' font-family='Arial, sans-serif' font-size='34' letter-spacing='6'>NO IMAGE</text></svg>";
+
+      function resolveAssetUrl(url) {
+        const raw = String(url || '').trim();
+        if (!raw) return "";
+        if (/^https?:\/\//i.test(raw) || /^data:image\//i.test(raw)) return raw;
+        const normalized = raw.replace(/\\/g, '/');
+        return `${API_ORIGIN}${normalized.startsWith('/') ? '' : '/'}${normalized}`;
+      }
 
       function addMoreFiles() {
         const fileInput = document.getElementById('pImages');
@@ -559,9 +576,9 @@
         // Render each product
         products.forEach(p => {
           // Get primary image (first in gallery or image_url)
-          const gallery = p.gallery || [];
-          const primaryImg = gallery.length > 0 ? gallery[0] : (p.image_url || null);
-          const imgUrl = primaryImg ? `${primaryImg}` : null;
+          const gallery = Array.isArray(p.gallery) ? p.gallery.map(resolveAssetUrl).filter(Boolean) : [];
+          const primaryImg = gallery.length > 0 ? gallery[0] : resolveAssetUrl(p.image_url || '');
+          const imgUrl = primaryImg || null;
 
           const imagePlaceholder = `
             <div class="relative aspect-[3/4] overflow-hidden bg-primary/5 flex items-center justify-center">
@@ -573,7 +590,7 @@
 
           const imageActual = `
             <div class="relative aspect-[3/4] overflow-hidden group/img">
-                <img src="${imgUrl}" onerror="this.src='https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=400'" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" alt="${p.product_name || 'Product'}">
+                <img src="${imgUrl}" onerror="this.src='${PRODUCT_PLACEHOLDER}'" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" alt="${p.product_name || 'Product'}">
                 <div class="absolute inset-0 bg-gradient-to-t from-background-dark/80 via-transparent to-transparent opacity-60"></div>
                 <div class="absolute bottom-4 left-4">
                     <span class="px-3 py-1 rounded-md bg-background-dark/80 backdrop-blur-md text-[10px] text-primary font-black uppercase tracking-[0.2em]">${p.category || 'Product'}</span>
@@ -582,9 +599,9 @@
             </div>`;
 
           const card = `
-                <div class="glass-card bg-white dark:bg-card-dark rounded-xl overflow-hidden group shadow-2xl relative cursor-pointer transition-all hover:shadow-lg" data-product-id="${p.id}">
+                <div class="glass-card bg-white dark:bg-card-dark rounded-xl overflow-hidden group shadow-2xl relative cursor-pointer transition-all hover:shadow-lg" data-product-id="${p.id}" onclick="openProductDetail(${p.id})">
                     ${imgUrl ? imageActual : imagePlaceholder}
-                    <div class="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                    <div class="absolute top-3 right-3 flex gap-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity z-10">
                         <button class="bg-primary/80 hover:bg-primary text-background-dark p-2 rounded-lg" onclick="openEditModal(${p.id}); event.stopPropagation();">
                             <span class="material-symbols-outlined text-sm">edit</span>
                         </button>
@@ -592,13 +609,13 @@
                             <span class="material-symbols-outlined text-sm">delete</span>
                         </button>
                     </div>
-                    <div class="p-6 cursor-pointer" onclick="openProductDetail(${p.id}); event.stopPropagation();">
+                    <div class="p-6">
                         <h4 class="font-display font-bold text-lg mb-1 uppercase tracking-tight truncate">${p.product_name || 'Untitled Product'}</h4>
                         <p class="text-primary font-bold text-xl mb-4 font-sans">₹${(p.price || 0).toLocaleString('en-IN')} <span class="text-xs font-normal text-primary/50 uppercase">/ Day</span></p>
                         <div class="flex flex-col gap-3 pt-4 border-t border-primary/10">
                              <div class="flex items-center justify-between">
                                 <span class="text-[10px] text-primary/40 font-bold uppercase tracking-widest">${p.location || 'Location TBA'}</span>
-                                <span class="text-[10px] text-emerald-400 font-bold uppercase tracking-widest">${p.stock > 0 ? 'Available' : 'Out of Stock'}</span>
+                                <span class="text-[10px] ${p.stock > 0 ? 'text-emerald-400' : 'text-red-400'} font-bold uppercase tracking-widest">${p.stock > 0 ? 'In Stock' : 'Out of Stock'}</span>
                              </div>
                              <button class="w-full py-2 bg-primary/10 border border-primary/20 text-primary rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-primary hover:text-background-dark transition-all" onclick="event.stopPropagation();">
                                 Rent it out
@@ -631,11 +648,11 @@
         }
 
         const modal = document.getElementById('productDetailModal');
-        const gallery = product.gallery || [];
-        const primaryImg = gallery.length > 0 ? gallery[0] : product.image_url;
+        const gallery = Array.isArray(product.gallery) ? product.gallery.map(resolveAssetUrl).filter(Boolean) : [];
+        const primaryImg = gallery.length > 0 ? gallery[0] : resolveAssetUrl(product.image_url || '');
 
         // Set main image
-        document.getElementById('detailMainImage').src = `${primaryImg}`;
+        document.getElementById('detailMainImage').src = primaryImg || PRODUCT_PLACEHOLDER;
 
         // Set product details
         document.getElementById('detailName').textContent = product.product_name;
@@ -646,7 +663,7 @@
         const detailAvailability = document.getElementById('detailAvailability');
         if (detailAvailability) {
           const inStock = Number(product.stock || 0) > 0;
-          detailAvailability.textContent = inStock ? 'Available' : 'Out of Stock';
+          detailAvailability.textContent = inStock ? 'In Stock' : 'Out of Stock';
           detailAvailability.className = inStock
             ? 'text-[10px] text-emerald-400 font-bold uppercase tracking-widest'
             : 'text-[10px] text-red-400 font-bold uppercase tracking-widest';
@@ -655,17 +672,21 @@
         // Set gallery thumbnails
         const galleryDiv = document.getElementById('detailGallery');
         galleryDiv.innerHTML = '';
-        gallery.forEach((img, idx) => {
+        const images = gallery.length ? gallery : (primaryImg ? [primaryImg] : [PRODUCT_PLACEHOLDER]);
+        images.forEach((img, idx) => {
           const thumb = document.createElement('img');
-          thumb.src = `${img}`;
+          thumb.src = img;
           thumb.className = 'h-28 w-32 rounded-3xl object-cover cursor-pointer border-2 border-primary/20 hover:border-primary transition-all';
           thumb.onclick = () => {
-            document.getElementById('detailMainImage').src = `${img}`;
+            document.getElementById('detailMainImage').src = img;
             document.querySelectorAll('#detailGallery img').forEach(t => t.classList.remove('border-primary'));
             thumb.classList.add('border-primary');
           };
           galleryDiv.appendChild(thumb);
         });
+        if (galleryDiv.firstElementChild) {
+          galleryDiv.firstElementChild.classList.add('border-primary');
+        }
 
         // Show modal
         modal.classList.remove('hidden');
@@ -697,6 +718,7 @@
         document.getElementById('pDescription').value = product.description;
         document.getElementById('pLocation').value = product.location;
         document.getElementById('pPrice').value = product.price;
+        document.getElementById('pAvailability').value = Number(product.stock || 0) > 0 ? 'in_stock' : 'out_of_stock';
 
         // Clear previous selections
         selectedFiles = [];
@@ -714,7 +736,7 @@
             const imgContainer = document.createElement('div');
             imgContainer.className = "relative group/img rounded-lg overflow-hidden border border-primary/20 hover:border-primary/50 transition-all";
             imgContainer.innerHTML = `
-              <img src="${imgUrl}" class="w-full h-20 object-cover">
+              <img src="${resolveAssetUrl(imgUrl)}" class="w-full h-20 object-cover">
               <div class="absolute inset-0 bg-black/0 group-hover/img:bg-black/30 transition-all flex items-center justify-center">
                 <button type="button" class="remove-existing-btn bg-red-500/80 hover:bg-red-600 text-white p-1.5 rounded opacity-0 group-hover/img:opacity-100 transition-opacity">
                   <span class="material-symbols-outlined text-sm">delete</span>
@@ -801,6 +823,7 @@
         const category = document.getElementById('pCategory').value;
         const description = document.getElementById('pDescription').value.trim();
         const location = document.getElementById('pLocation').value.trim();
+        const availability = document.getElementById('pAvailability').value;
 
         if (!name || !price || !category || !location) {
           alert("Please fill in all required fields (Product Name, Price, Category, and Location).");
@@ -818,6 +841,7 @@
         formData.append('category', category);
         formData.append('description', description);
         formData.append('location', location);
+        formData.append('stock', availability === 'in_stock' ? '1' : '0');
         formData.append('boutiqueId', boutiqueId);
 
         // Use the in-memory selected files

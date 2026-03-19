@@ -136,7 +136,7 @@
 
   <!-- RIGHT: Availability -->
   <div class="text-right">
-    <p class="text-primary text-xs font-bold uppercase tracking-widest
+    <p id="availabilityLabel" class="text-primary text-xs font-bold uppercase tracking-widest
               flex items-center justify-end gap-1">
       <span class="relative flex h-2 w-2">
         <span class="animate-ping absolute inline-flex h-full w-full
@@ -146,8 +146,8 @@
       Limited Availability
     </p>
 
-    <p class="text-white/40 text-[11px] mt-1 italic">
-      Only 2 items left in stock
+    <p id="availabilitySubtext" class="text-white/40 text-[11px] mt-1 italic">
+      Availability updates from the boutique
     </p>
   </div>
 
@@ -193,6 +193,15 @@
 </div>
 <script>
   const API_BASE = "https://cloche-backend.onrender.com/api/auth";
+  const API_ORIGIN = "https://cloche-backend.onrender.com";
+
+  function resolveAssetUrl(url) {
+    const raw = String(url || "").trim();
+    if (!raw) return "";
+    if (/^https?:\/\//i.test(raw) || /^data:image\//i.test(raw)) return raw;
+    const normalized = raw.replace(/\\/g, "/");
+    return `${API_ORIGIN}${normalized.startsWith("/") ? "" : "/"}${normalized}`;
+  }
 
   function updateAuthNav() {
     const authNav = document.getElementById("authNav");
@@ -316,14 +325,33 @@ async function loadProductDetails() {
         document.getElementById("productLocation").textContent =
         resolvedLocation || "Location TBA";
 
+        const inStock = Number(product.stock || 0) > 0;
+        const availabilityLabel = document.getElementById("availabilityLabel");
+        const availabilitySubtext = document.getElementById("availabilitySubtext");
+        if (availabilityLabel) {
+          availabilityLabel.innerHTML = `
+            <span class="relative flex h-2 w-2">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full ${inStock ? "bg-primary" : "bg-red-400"} opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-2 w-2 ${inStock ? "bg-primary" : "bg-red-400"}"></span>
+            </span>
+            ${inStock ? "In Stock" : "Out of Stock"}
+          `;
+          availabilityLabel.className = `${inStock ? "text-primary" : "text-red-400"} text-xs font-bold uppercase tracking-widest flex items-center justify-end gap-1`;
+        }
+        if (availabilitySubtext) {
+          availabilitySubtext.textContent = inStock
+            ? "Available for booking now"
+            : "Currently unavailable for booking";
+        }
+
         
 
         // Image (priority: product image -> showcase image)
         const mainImageEl = document.getElementById("mainImage");
         if (mainImageEl && product.image_url) {
-        mainImageEl.src = `${product.image_url}`;
+        mainImageEl.src = resolveAssetUrl(product.image_url);
         } else if (mainImageEl && product.showcase_image) {
-        mainImageEl.src = `${product.showcase_image}`;
+        mainImageEl.src = resolveAssetUrl(product.showcase_image);
         }
 
 
@@ -378,11 +406,11 @@ function renderGallery(product) {
   let images = [];
 
   if (Array.isArray(product.gallery) && product.gallery.length > 0) {
-    images = product.gallery;
+    images = product.gallery.map(resolveAssetUrl).filter(Boolean);
   } else if (product.image_url) {
-    images = [product.image_url];
+    images = [resolveAssetUrl(product.image_url)];
   } else if (product.showcase_image) {
-    images = [product.showcase_image];
+    images = [resolveAssetUrl(product.showcase_image)];
   }
 
   if (!images.length) return;

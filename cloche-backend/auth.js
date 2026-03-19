@@ -2,29 +2,13 @@ const express = require("express");
 const bcrypt = require("bcrypt");
 const multer = require("multer");
 const path = require("path");
-const fs = require("fs");
 const router = express.Router();
 const db = require("./db");
 const supabase = require("./supabase");
-
-const ensureUploadsDir = () => {
-  const uploadDir = path.join(process.cwd(), "uploads");
-  if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
-  }
-  return uploadDir;
-};
-
-const showcaseStorage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, ensureUploadsDir()),
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(null, `showcase-${uniqueSuffix}${path.extname(file.originalname)}`);
-  }
-});
+const { deleteStorageObjectByUrl, uploadBufferToStorage } = require("./storage");
 
 const showcaseUpload = multer({
-  storage: showcaseStorage,
+  storage: multer.memoryStorage(),
   limits: { fileSize: 10 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     const ok = /jpeg|jpg|png|webp/.test(path.extname(file.originalname).toLowerCase()) &&
@@ -607,11 +591,17 @@ router.post("/profile/:boutiqueId/showcase", async (req, res) => {
 router.post("/profile/:boutiqueId/showcase-image", showcaseUpload.single("image"), async (req, res) => {
   const { boutiqueId } = req.params;
   if (!req.file) return res.status(400).json({ message: "Image file is required" });
+  let imageUrl = "";
   try {
-    const imageUrl = `/uploads/${req.file.filename}`;
+    const uploaded = await uploadBufferToStorage({
+      folder: `showcase/${boutiqueId}`,
+      file: req.file
+    });
+    imageUrl = uploaded.publicUrl;
+
     const { data: existing, error: eErr } = await supabase
       .from("boutique_showcase")
-      .select("boutique_id")
+      .select("boutique_id, image_url")
       .eq("boutique_id", boutiqueId)
       .maybeSingle();
     if (eErr && eErr.code !== "PGRST116") {
@@ -634,8 +624,14 @@ router.post("/profile/:boutiqueId/showcase-image", showcaseUpload.single("image"
     if (saveErr) {
       return res.status(500).json({ message: "Failed to save image", error: saveErr.message });
     }
+    if (existing?.image_url && existing.image_url !== imageUrl) {
+      await deleteStorageObjectByUrl(existing.image_url);
+    }
     return res.json({ success: true, image_url: imageUrl, message: "Showcase image uploaded" });
   } catch (err) {
+    if (imageUrl) {
+      await deleteStorageObjectByUrl(imageUrl);
+    }
     return res.status(500).json({ message: "Server error", error: err.message });
   }
 });
