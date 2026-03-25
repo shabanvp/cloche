@@ -590,14 +590,18 @@ router.post("/profile/:boutiqueId/showcase", async (req, res) => {
 
 router.post("/profile/:boutiqueId/showcase-image", showcaseUpload.single("image"), async (req, res) => {
   const { boutiqueId } = req.params;
-  if (!req.file) return res.status(400).json({ message: "Image file is required" });
-  let imageUrl = "";
+  let imageUrl = req.body.imageUrl || "";
+
+  if (!req.file && !imageUrl) return res.status(400).json({ message: "Image file or imageUrl is required" });
+  
   try {
-    const uploaded = await uploadBufferToStorage({
-      folder: `showcase/${boutiqueId}`,
-      file: req.file
-    });
-    imageUrl = uploaded.publicUrl;
+    if (req.file) {
+      const uploaded = await uploadBufferToStorage({
+        folder: `showcase/${boutiqueId}`,
+        file: req.file
+      });
+      imageUrl = uploaded.publicUrl;
+    }
 
     const { data: existing, error: eErr } = await supabase
       .from("boutique_showcase")

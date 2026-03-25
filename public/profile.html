@@ -419,23 +419,43 @@
       return;
     }
 
-    if (status) status.textContent = `Uploading ${input.files[0].name}...`;
+    if (status) status.textContent = `Uploading ${input.files[0].name} to Cloudinary...`;
 
-    const formData = new FormData();
-    formData.append("image", input.files[0]);
+    try {
+      // 1. Upload to Cloudinary Unsigned
+      const cloudData = new FormData();
+      cloudData.append("file", input.files[0]);
+      cloudData.append("upload_preset", "cloche_upload");
+      
+      const cloudRes = await fetch(`https://api.cloudinary.com/v1_1/dycwsnzyd/image/upload`, {
+        method: "POST",
+        body: cloudData
+      });
+      const cloudResult = await cloudRes.json();
+      if (!cloudResult.secure_url) throw new Error("Cloudinary upload failed: " + (cloudResult.error?.message || "Unknown Error"));
+      
+      const imageUrl = cloudResult.secure_url;
 
-    const res = await fetch(`${API_BASE}/profile/${boutiqueId}/showcase-image`, {
-      method: "POST",
-      body: formData
-    });
-    const result = await res.json();
-    if (!res.ok) throw new Error(result.message || "Failed to upload image");
+      if (status) status.textContent = `Saving to Database...`;
 
-    clearShowcasePreviewObjectUrl();
-    updateShowcasePreviewImage(resolveAssetUrl(result.image_url));
-    showcaseSnapshot = { ...(showcaseSnapshot || {}), image_url: result.image_url };
-    if (status) status.textContent = `Current saved image: ${fileNameFromPath(result.image_url) || "Uploaded image"}`;
-    input.value = "";
+      // 2. Send the URL to backend
+      const res = await fetch(`${API_BASE}/profile/${boutiqueId}/showcase-image`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ imageUrl: imageUrl })
+      });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.message || "Failed to save image URL to backend");
+
+      clearShowcasePreviewObjectUrl();
+      updateShowcasePreviewImage(imageUrl);
+      showcaseSnapshot = { ...(showcaseSnapshot || {}), image_url: imageUrl };
+      if (status) status.textContent = `Current saved image: ${fileNameFromPath(imageUrl) || "Uploaded image"}`;
+      input.value = "";
+    } catch (err) {
+      if (status) status.textContent = err.message || "Failed to upload image.";
+      throw err;
+    }
   }
 
   function discardChanges() {
