@@ -23,7 +23,7 @@ const safeUnlink = (imageUrl) => {
   if (/^https?:\/\//i.test(imageUrl)) return;
   const cleanUrl = imageUrl.startsWith("/") ? imageUrl.slice(1) : imageUrl;
   const filePath = path.join(process.cwd(), cleanUrl);
-  fs.unlink(filePath, () => {});
+  fs.unlink(filePath, () => { });
 };
 
 const uploadProductImages = async (boutiqueId, files) => {
@@ -132,7 +132,18 @@ router.post("/add", upload.array("images", 10), async (req, res) => {
       });
     }
 
-    const uploadedImageUrls = await uploadProductImages(boutiqueId, files);
+    let uploadedImageUrls = await uploadProductImages(boutiqueId, files);
+    if (req.body.imageUrls) {
+      try {
+        const parsedBodyUrls = JSON.parse(req.body.imageUrls);
+        if (Array.isArray(parsedBodyUrls)) {
+          uploadedImageUrls = [...uploadedImageUrls, ...parsedBodyUrls];
+        }
+      } catch (parseErr) {
+        console.error("Failed to parse imageUrls:", parseErr);
+      }
+    }
+
     const primaryImageUrl = uploadedImageUrls[0] || null;
 
     const { data: inserted, error: insertErr } = await supabase
@@ -276,8 +287,22 @@ router.put("/:productId", upload.array("images", 10), async (req, res) => {
 
     if (updateErr) return res.status(500).json({ message: "Update failed", error: updateErr.message });
 
+    let uploadedImageUrls = [];
     if (files.length > 0) {
-      const uploadedImageUrls = await uploadProductImages(productId, files);
+      uploadedImageUrls = await uploadProductImages(productId, files);
+    }
+    if (req.body.imageUrls) {
+      try {
+        const parsedBodyUrls = JSON.parse(req.body.imageUrls);
+        if (Array.isArray(parsedBodyUrls)) {
+          uploadedImageUrls = [...uploadedImageUrls, ...parsedBodyUrls];
+        }
+      } catch (parseErr) {
+        console.error("Failed to parse imageUrls:", parseErr);
+      }
+    }
+
+    if (uploadedImageUrls.length > 0) {
       const galleryRows = uploadedImageUrls.map((imageUrl) => ({ product_id: productId, image_url: imageUrl }));
       const { error: galleryErr } = await supabase.from("product_images").insert(galleryRows);
       if (galleryErr) console.error("[Products] Gallery append error:", galleryErr.message);

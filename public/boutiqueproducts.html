@@ -844,10 +844,54 @@
         formData.append('stock', availability === 'in_stock' ? '1' : '0');
         formData.append('boutiqueId', boutiqueId);
 
-        // Use the in-memory selected files
-        selectedFiles.forEach(fileObj => {
-          formData.append('images', fileObj.file);
-        });
+        // ----------------------------------------------------
+        // CLOUDINARY UPLOAD LOGIC
+        // ----------------------------------------------------
+        const cloudinaryUrls = [];
+        const CLOUDINARY_CLOUD_NAME = 'dycwsnzyd';
+        // IMPORTANT: Replace this with your actual unsigned upload preset
+        const CLOUDINARY_UPLOAD_PRESET = 'unsigned_preset';
+
+        const submitBtn = document.querySelector('#addProductForm button[type="submit"]');
+        const originalBtnText = submitBtn.textContent;
+
+        if (selectedFiles.length > 0) {
+          submitBtn.textContent = 'Uploading Images (Cloudinary)...';
+          submitBtn.disabled = true;
+
+          try {
+            // Upload selected images to Cloudinary concurrently
+            await Promise.all(selectedFiles.map(async (fileObj) => {
+              const uploadData = new FormData();
+              uploadData.append("file", fileObj.file);
+              uploadData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+
+              const cloudRes = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
+                method: "POST",
+                body: uploadData,
+              });
+              
+              const cloudResult = await cloudRes.json();
+              if (cloudResult.secure_url) {
+                cloudinaryUrls.push(cloudResult.secure_url);
+              } else {
+                console.error("Cloudinary error:", cloudResult);
+                throw new Error(cloudResult.error?.message || "Failed to upload to Cloudinary");
+              }
+            }));
+          } catch (cloudErr) {
+            console.error(cloudErr);
+            alert("Image upload failed: " + cloudErr.message + ". Check your Cloudinary Cloud Name and Upload Preset in the code.");
+            submitBtn.textContent = originalBtnText;
+            submitBtn.disabled = false;
+            return;
+          }
+          submitBtn.textContent = 'Saving Product...';
+        }
+
+        if (cloudinaryUrls.length > 0) {
+          formData.append('imageUrls', JSON.stringify(cloudinaryUrls));
+        }
 
         const url = isEditing ? `${API_BASE}/products/${editProductId}` : `${API_BASE}/products/add`;
         const method = isEditing ? "PUT" : "POST";
@@ -871,7 +915,8 @@
             editProductId = null;
 
             document.querySelector('#addProductModal h3').textContent = "Add New Product";
-            document.querySelector('#addProductForm button[type="submit"]').textContent = "Upload Product";
+            submitBtn.textContent = "Upload Product";
+            submitBtn.disabled = false;
 
             document.getElementById('imagePreview').innerHTML = `
                 <div id="previewPlaceholder" class="flex flex-col items-center justify-center">
@@ -882,10 +927,14 @@
             document.getElementById('uploadCount').textContent = '';
           } else {
             alert(result.message || "Failed to save product");
+            submitBtn.textContent = originalBtnText;
+            submitBtn.disabled = false;
           }
         } catch (err) {
           console.error("Critical Upload Error:", err);
           alert("Network error: " + err.message + ". Please check if your image is too large or the server is down.");
+          submitBtn.textContent = originalBtnText;
+          submitBtn.disabled = false;
         }
       });
 
