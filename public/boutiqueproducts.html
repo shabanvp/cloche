@@ -319,7 +319,8 @@
             </div>
           </div>
           <div>
-            <label class="block text-[10px] font-bold uppercase tracking-widest text-primary/60 mb-2">Availability</label>
+            <label
+              class="block text-[10px] font-bold uppercase tracking-widest text-primary/60 mb-2">Availability</label>
             <select id="pAvailability"
               class="w-full bg-primary/5 border-primary/20 rounded-xl px-4 py-3 text-sm focus:border-primary focus:ring-0 text-white outline-none">
               <option value="in_stock" style="background-color: #1a1a1a; color: white;">In Stock</option>
@@ -388,7 +389,8 @@
         <div class="grid grid-cols-1 lg:grid-cols-[470px_minmax(0,1fr)] gap-8 lg:gap-10 items-start lg:h-full">
           <!-- Image Gallery -->
           <div class="flex flex-col gap-5 w-full max-w-[470px] lg:h-full">
-            <div class="aspect-[3/4] md:aspect-auto md:h-[540px] lg:h-[580px] rounded-[26px] overflow-hidden bg-primary/5">
+            <div
+              class="aspect-[3/4] md:aspect-auto md:h-[540px] lg:h-[580px] rounded-[26px] overflow-hidden bg-primary/5">
               <img id="detailMainImage" src="" class="w-full h-full object-cover" alt="Product">
             </div>
             <!-- Thumbnails -->
@@ -403,7 +405,8 @@
               <p class="text-[10px] text-primary/60 font-bold uppercase tracking-widest mb-2">
                 <span id="detailCategory">Category</span>
               </p>
-              <h2 id="detailName" class="font-display text-5xl lg:text-7xl font-bold text-white mb-4 leading-tight">Product Name</h2>
+              <h2 id="detailName" class="font-display text-5xl lg:text-7xl font-bold text-white mb-4 leading-tight">
+                Product Name</h2>
               <p id="detailDescription" class="text-primary/80 leading-relaxed text-sm mb-4">Description goes here</p>
             </div>
 
@@ -418,10 +421,12 @@
               <div class="flex items-center justify-between gap-4 mb-4">
                 <div>
                   <p class="text-[10px] text-primary/40 font-bold uppercase tracking-widest mb-1">Location</p>
-                  <p id="detailLocation" class="text-white font-semibold text-3xl lg:text-[52px] leading-tight">Location</p>
+                  <p id="detailLocation" class="text-white font-semibold text-3xl lg:text-[52px] leading-tight">Location
+                  </p>
                 </div>
                 <div class="text-right">
-                  <p id="detailAvailability" class="text-[10px] text-emerald-400 font-bold uppercase tracking-widest">Available</p>
+                  <p id="detailAvailability" class="text-[10px] text-emerald-400 font-bold uppercase tracking-widest">
+                    Available</p>
                 </div>
               </div>
             </div>
@@ -849,8 +854,7 @@
         // ----------------------------------------------------
         const cloudinaryUrls = [];
         const CLOUDINARY_CLOUD_NAME = 'dycwsnzyd';
-        // IMPORTANT: Replace this with your actual unsigned upload preset
-        const CLOUDINARY_UPLOAD_PRESET = 'unsigned_preset';
+        const CLOUDINARY_UPLOAD_PRESET = 'cloche_upload';
 
         const submitBtn = document.querySelector('#addProductForm button[type="submit"]');
         const originalBtnText = submitBtn.textContent;
@@ -870,7 +874,7 @@
                 method: "POST",
                 body: uploadData,
               });
-              
+
               const cloudResult = await cloudRes.json();
               if (cloudResult.secure_url) {
                 cloudinaryUrls.push(cloudResult.secure_url);
@@ -1040,14 +1044,14 @@
           const avatarEl = document.getElementById('avatarCircle');
           const headerAvatarEl = document.getElementById('headerAvatarCircle');
           const ownerInitial = owner_name.charAt(0).toUpperCase();
-          
+
           if (avatarEl) {
             avatarEl.textContent = ownerInitial;
           }
           if (headerAvatarEl) {
             headerAvatarEl.textContent = ownerInitial;
           }
-          
+
           // Update sidebar profile name
           const ownerNameEl = document.getElementById('ownerName');
           if (ownerNameEl) {
@@ -1175,8 +1179,7 @@
           });
       }
     </script>
-  <script src='responsive-layout.js'></script>
+    <script src='responsive-layout.js'></script>
 </body>
 
 </html>
-
