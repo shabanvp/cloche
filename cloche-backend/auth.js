@@ -609,47 +609,69 @@ router.post("/profile/:boutiqueId/showcase-image", showcaseUpload.single("image"
   const { boutiqueId } = req.params;
   let imageUrl = req.body.imageUrl || "";
 
+  console.log("\n[SHOWCASE-IMAGE POST] Request received");
+  console.log("[SHOWCASE-IMAGE POST] boutiqueId:", boutiqueId);
+  console.log("[SHOWCASE-IMAGE POST] File present:", !!req.file);
+  if (req.file) console.log("[SHOWCASE-IMAGE POST] File info:", { name: req.file.originalname, size: req.file.size, mimetype: req.file.mimetype });
+
   if (!req.file && !imageUrl) return res.status(400).json({ message: "Image file or imageUrl is required" });
   
   try {
     if (req.file) {
+      console.log("[SHOWCASE-IMAGE POST] Uploading file to storage...");
       const uploaded = await uploadBufferToStorage({
         folder: `showcase/${boutiqueId}`,
         file: req.file
       });
       imageUrl = uploaded.publicUrl;
+      console.log("[SHOWCASE-IMAGE POST] Upload successful. imageUrl:", imageUrl);
     }
 
+    console.log("[SHOWCASE-IMAGE POST] Checking for existing showcase record...");
     const { data: existing, error: eErr } = await supabase
       .from("boutique_showcase")
       .select("boutique_id, image_url")
       .eq("boutique_id", boutiqueId)
       .maybeSingle();
+    
     if (eErr && eErr.code !== "PGRST116") {
+      console.log("[SHOWCASE-IMAGE POST] Query error:", eErr);
       return res.status(500).json({ message: "Failed to save image", error: eErr.message });
     }
+    
+    console.log("[SHOWCASE-IMAGE POST] Existing record found:", !!existing);
+    if (existing) console.log("[SHOWCASE-IMAGE POST] Existing image_url:", existing.image_url);
 
     let saveErr = null;
     if (existing) {
+      console.log("[SHOWCASE-IMAGE POST] Updating existing record...");
       const { error } = await supabase
         .from("boutique_showcase")
         .update({ image_url: imageUrl })
         .eq("boutique_id", boutiqueId);
       saveErr = error;
     } else {
+      console.log("[SHOWCASE-IMAGE POST] Inserting new record. boutique_id:", Number(boutiqueId), "image_url:", imageUrl);
       const { error } = await supabase
         .from("boutique_showcase")
         .insert([{ boutique_id: Number(boutiqueId), image_url: imageUrl }]);
       saveErr = error;
     }
+    
     if (saveErr) {
+      console.log("[SHOWCASE-IMAGE POST] Save error:", saveErr);
       return res.status(500).json({ message: "Failed to save image", error: saveErr.message });
     }
+    
+    console.log("[SHOWCASE-IMAGE POST] Database save successful!");
+    
     if (existing?.image_url && existing.image_url !== imageUrl) {
       await deleteStorageObjectByUrl(existing.image_url);
     }
+    console.log("[SHOWCASE-IMAGE POST] Returning response. image_url:", imageUrl);
     return res.json({ success: true, image_url: imageUrl, message: "Showcase image uploaded" });
   } catch (err) {
+    console.log("[SHOWCASE-IMAGE POST] Catch error:", err.message);
     if (imageUrl) {
       await deleteStorageObjectByUrl(imageUrl);
     }
@@ -668,13 +690,28 @@ router.get("/boutiques", async (req, res) => {
       .order("boutique_name", { ascending: true });
 
     if (boutiqueError) {
+      console.error("[BOUTIQUES] Error fetching boutiques:", boutiqueError.message);
       return res.status(500).json({ message: "Database error", error: boutiqueError.message });
     }
+
+    console.log(`[BOUTIQUES] Found ${Array.isArray(boutiques) ? boutiques.length : 0} boutiques`);
 
     let showcaseByBoutiqueId = {};
     const { data: showcases, error: showcaseError } = await supabase
       .from("boutique_showcase")
       .select("id, boutique_id, district, area, tags, image_url, rating, created_at, updated_at");
+
+    console.log(`[BOUTIQUES] Found ${Array.isArray(showcases) ? showcases.length : 0} showcase records`);
+    if (Array.isArray(showcases)) {
+      showcases.forEach(s => {
+        console.log(`[BOUTIQUES] Showcase for boutique ${s.boutique_id}:`, {
+          id: s.id,
+          image_url: s.image_url,
+          district: s.district,
+          area: s.area
+        });
+      });
+    }
 
     if (!showcaseError && Array.isArray(showcases)) {
       // Pick the latest showcase row per boutique, and prefer rows with uploaded image_url.
