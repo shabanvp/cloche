@@ -6,6 +6,24 @@ const fs = require("fs");
 const supabase = require("./supabase");
 const { deleteStorageObjectByUrl, uploadBufferToStorage } = require("./storage");
 
+const CLOUDINARY_CLOUD_NAME = String(process.env.CLOUDINARY_CLOUD_NAME || "").trim();
+
+const normalizeImageUrl = (value) => {
+  const raw = String(value || "").trim();
+  if (!raw) return null;
+  if (/^https?:\/\//i.test(raw) || /^data:image\//i.test(raw)) return raw;
+  
+  // Determine cloud name - use env var first, fallback to known value
+  const cloudName = CLOUDINARY_CLOUD_NAME || 'dycwsnzyd';
+  
+  // If it looks like a Cloudinary public ID or path, construct full URL
+  if (!raw.includes("image/upload")) {
+    return `https://res.cloudinary.com/${cloudName}/image/upload/${raw.replace(/^\/+/, "")}`;
+  }
+  
+  return raw; // Already looks like a full URL
+};
+
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 10 * 1024 * 1024 },
@@ -219,10 +237,14 @@ router.get("/boutique/:boutiqueId", async (req, res) => {
     const galleryMap = {};
     for (const row of galleryRows || []) {
       if (!galleryMap[row.product_id]) galleryMap[row.product_id] = [];
-      galleryMap[row.product_id].push(row.image_url);
+      galleryMap[row.product_id].push(normalizeImageUrl(row.image_url));
     }
 
-    return res.json(products.map((p) => ({ ...p, gallery: galleryMap[p.id] || [] })));
+    return res.json(products.map((p) => ({ 
+      ...p, 
+      image_url: normalizeImageUrl(p.image_url),
+      gallery: galleryMap[p.id] || [] 
+    })));
   } catch (err) {
     return res.status(500).json({ message: "Server error", error: err.message });
   }

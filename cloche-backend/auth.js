@@ -13,16 +13,15 @@ const normalizeImageUrl = (value) => {
   if (!raw) return null;
   if (/^https?:\/\//i.test(raw) || /^data:image\//i.test(raw)) return raw;
   
+  // Determine cloud name - use env var first, fallback to known value
+  const cloudName = CLOUDINARY_CLOUD_NAME || 'dycwsnzyd';
+  
   // If it looks like a Cloudinary public ID or path, construct full URL
-  if (CLOUDINARY_CLOUD_NAME) {
-    // Handle both cases: with or without /image/upload/ prefix
-    if (!raw.includes("image/upload")) {
-      return `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/image/upload/${raw.replace(/^\/+/, "")}`;
-    }
-    return raw; // Already a full Cloudinary URL
+  if (!raw.includes("image/upload")) {
+    return `https://res.cloudinary.com/${cloudName}/image/upload/${raw.replace(/^\/+/, "")}`;
   }
   
-  return raw;
+  return raw; // Already looks like a full URL
 };
 
 const showcaseUpload = multer({

@@ -123,7 +123,11 @@
     function pickProductImage(item) {
       const gallery = Array.isArray(item.gallery) ? item.gallery : [];
       const firstValid = [item.image_url, ...gallery].find(Boolean);
-      return addCacheBuster(resolveAssetUrl(firstValid || \"\"));
+      const rawUrl = firstValid || "";
+      const resolved = resolveAssetUrl(rawUrl);
+      const busted = addCacheBuster(resolved);
+      if (item.product_name) console.log(`[Image] Product: ${item.product_name}, Raw: ${rawUrl}, Resolved: ${resolved}, Final: ${busted}`);
+      return busted;
     }
 
     function renderItems(items) {
@@ -156,7 +160,7 @@
              class="glass-card rounded-xl overflow-hidden block hover:border-primary/40 transition-all">
             <div class="aspect-[2/3] bg-surface-dark overflow-hidden relative">
               ${image
-                ? `<img src="${safeImage}" alt="${name}" class="w-full h-full object-cover" loading="lazy" onerror="this.remove();" />`
+                ? `<img src="${safeImage}" alt="${name}" class="w-full h-full object-cover" loading="lazy" onerror="console.warn('Image failed to load:', this.src); this.style.display='none';" />`
                 : `<div class="w-full h-full flex items-center justify-center text-white/40 text-xs tracking-[0.2em] uppercase">No Image</div>`
               }
               <span class="absolute top-2 left-2 bg-primary/90 text-black text-[9px] px-2 py-1 rounded tracking-[0.2em] uppercase font-bold">${category}</span>
@@ -198,6 +202,8 @@
         const boutiques = await bRes.json();
         if (!bRes.ok) throw new Error("Failed to load boutiques");
 
+        console.log("[Collection] Boutiques loaded:", boutiques);
+
         const boutiqueList = Array.isArray(boutiques) ? boutiques : [];
         const productResponses = await Promise.all(
           boutiqueList.map(async (b) => {
@@ -205,6 +211,7 @@
               const pRes = await fetch(`${API_PRODUCTS}/boutique/${encodeURIComponent(b.id)}`);
               if (!pRes.ok) return [];
               const products = await pRes.json();
+              console.log(`[Collection] Products for boutique ${b.id} (${b.boutique_name}):`, products);
               if (!Array.isArray(products)) return [];
               return products.map((p) => ({
                 ...p,
@@ -214,6 +221,7 @@
                 location: p.location || b.city || ""
               }));
             } catch (_) {
+              console.error(`[Collection] Error loading products for boutique ${b.id}:`, _);
               return [];
             }
           })
@@ -225,9 +233,11 @@
           return bT - aT;
         });
 
+        console.log("[Collection] All items:", allItems);
         renderItems(allItems);
       } catch (err) {
         status.textContent = "Failed to load live collections.";
+        console.error("[Collection] Error:", err);
         const grid = document.getElementById("collectionGrid");
         grid.innerHTML = `<div class="col-span-full glass-card rounded-xl p-8 text-center text-red-400">${escapeHtml(err.message || "Unknown error")}</div>`;
       }
