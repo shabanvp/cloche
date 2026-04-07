@@ -219,6 +219,12 @@
     if (el) el.textContent = value || "";
   }
 
+  function addCacheBuster(url) {
+    if (!url) return url;
+    const separator = url.includes('?') ? '&' : '?';
+    return `${url}${separator}v=${Math.floor(Date.now() / 60000)}`;
+  }
+
   function resolveAssetUrl(url) {
     let raw = String(url || "").trim();
     if (!raw) return "";
@@ -230,16 +236,21 @@
            raw = u.pathname;
        } catch(e) {}
     }
-    if (/^https?:\/\//i.test(raw)) return raw;
+    if (/^https?:\/\//i.test(raw)) return addCacheBuster(raw);
 
     const normalized = raw.replace(/\\/g, "/");
     const lower = normalized.toLowerCase();
     const uploadsWithSlash = lower.indexOf("/uploads/");
-    if (uploadsWithSlash >= 0) return `${API_ORIGIN}${normalized.slice(uploadsWithSlash)}`;
+    if (uploadsWithSlash >= 0) return addCacheBuster(`https://cloche-backend.onrender.com${normalized.slice(uploadsWithSlash)}`);
     const uploadsNoSlash = lower.indexOf("uploads/");
-    if (uploadsNoSlash >= 0) return `${API_ORIGIN}/${normalized.slice(uploadsNoSlash)}`;
+    if (uploadsNoSlash >= 0) return addCacheBuster(`https://cloche-backend.onrender.com/${normalized.slice(uploadsNoSlash)}`);
 
-    return `${API_ORIGIN}${normalized.startsWith("/") ? "" : "/"}${normalized}`;
+    // Try to detect Cloudinary public ID (has .png .jpg .jpeg .webp) without being a full path
+    if (/\.(png|jpg|jpeg|webp)$/i.test(normalized) && !normalized.includes("/")) {
+      return addCacheBuster(`https://res.cloudinary.com/dycwsnzyd/image/upload/${normalized}`);
+    }
+
+    return addCacheBuster(`https://cloche-backend.onrender.com${normalized.startsWith("/") ? "" : "/"}${normalized}`);
   }
 
   function setValue(id, value) {

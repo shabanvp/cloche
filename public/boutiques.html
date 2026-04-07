@@ -184,6 +184,12 @@
       const uploadsNoSlash = lower.indexOf("uploads/");
       if (uploadsNoSlash >= 0) return addCacheBuster(`${API_ORIGIN}/${normalized.slice(uploadsNoSlash)}`);
 
+      // Try to detect Cloudinary public ID (has .png .jpg .jpeg .webp) without being a full path
+      if (/\.(png|jpg|jpeg|webp)$/i.test(normalized) && !normalized.includes("/")) {
+        const cloudName = cloudinaryCloudName || 'dycwsnzyd'; // Fallback to known cloud name
+        return addCacheBuster(`https://res.cloudinary.com/${cloudName}/image/upload/${normalized}`);
+      }
+
       if (cloudinaryCloudName) {
         return addCacheBuster(`https://res.cloudinary.com/${cloudinaryCloudName}/image/upload/${normalized.replace(/^\/+/, "")}`);
       }

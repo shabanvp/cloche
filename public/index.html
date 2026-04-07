@@ -486,20 +486,26 @@
           raw = u.pathname;
         } catch (e) {}
       }
-      if (/^https?:\/\//i.test(raw)) return raw;
+      if (/^https?:\/\//i.test(raw)) return addCacheBuster(raw);
 
       const normalized = raw.replace(/\\/g, "/");
       const lower = normalized.toLowerCase();
       const uploadsWithSlash = lower.indexOf("/uploads/");
-      if (uploadsWithSlash >= 0) return `${API_ORIGIN}${normalized.slice(uploadsWithSlash)}`;
+      if (uploadsWithSlash >= 0) return addCacheBuster(`${API_ORIGIN}${normalized.slice(uploadsWithSlash)}`);
       const uploadsNoSlash = lower.indexOf("uploads/");
-      if (uploadsNoSlash >= 0) return `${API_ORIGIN}/${normalized.slice(uploadsNoSlash)}`;
+      if (uploadsNoSlash >= 0) return addCacheBuster(`${API_ORIGIN}/${normalized.slice(uploadsNoSlash)}`);
 
-      if (cloudinaryCloudName) {
-        return `https://res.cloudinary.com/${cloudinaryCloudName}/image/upload/${normalized.replace(/^\/+/, "")}`;
+      // Try to detect Cloudinary public ID (has .png .jpg .jpeg .webp) without being a full path
+      if (/\.(png|jpg|jpeg|webp)$/i.test(normalized) && !normalized.includes("/")) {
+        const cloudName = cloudinaryCloudName || 'dycwsnzyd'; // Fallback to known cloud name
+        return addCacheBuster(`https://res.cloudinary.com/${cloudName}/image/upload/${normalized}`);
       }
 
-      return `${API_ORIGIN}${normalized.startsWith("/") ? "" : "/"}${normalized}`;
+      if (cloudinaryCloudName) {
+        return addCacheBuster(`https://res.cloudinary.com/${cloudinaryCloudName}/image/upload/${normalized.replace(/^\/+/, "")}`);
+      }
+
+      return addCacheBuster(`${API_ORIGIN}${normalized.startsWith("/") ? "" : "/"}${normalized}`);
     }
     function addCacheBuster(url) {
       if (!url) return url;

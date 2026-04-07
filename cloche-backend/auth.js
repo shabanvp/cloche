@@ -12,9 +12,16 @@ const normalizeImageUrl = (value) => {
   const raw = String(value || "").trim();
   if (!raw) return null;
   if (/^https?:\/\//i.test(raw) || /^data:image\//i.test(raw)) return raw;
+  
+  // If it looks like a Cloudinary public ID or path, construct full URL
   if (CLOUDINARY_CLOUD_NAME) {
-    return `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/image/upload/${raw.replace(/^\/+/, "")}`;
+    // Handle both cases: with or without /image/upload/ prefix
+    if (!raw.includes("image/upload")) {
+      return `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/image/upload/${raw.replace(/^\/+/, "")}`;
+    }
+    return raw; // Already a full Cloudinary URL
   }
+  
   return raw;
 };
 
@@ -699,6 +706,9 @@ router.get("/boutiques", async (req, res) => {
 
     const merged = (boutiques || []).map((b) => {
       const s = showcaseByBoutiqueId[b.id] || {};
+      const rawImageUrl = s.image_url || null;
+      const normalizedImageUrl = normalizeImageUrl(rawImageUrl);
+      
       return {
         id: b.id,
         boutique_name: b.boutique_name,
@@ -710,7 +720,7 @@ router.get("/boutiques", async (req, res) => {
         district: s.district || null,
         area: s.area || null,
         tags: s.tags || null,
-        image_url: normalizeImageUrl(s.image_url),
+        image_url: normalizedImageUrl,
         rating: Number(s.rating || 5.0)
       };
     });
