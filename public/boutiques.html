@@ -158,20 +158,27 @@
     }
 
     function resolveAssetUrl(url) {
-      const raw = String(url || "").trim();
-      if (!raw) return "";
-      if (/^data:image\//i.test(raw)) return raw;
-      if (/^https?:\/\//i.test(raw)) return raw;
-
-      const normalized = raw.replace(/\\/g, "/");
-      const lower = normalized.toLowerCase();
-      const uploadsWithSlash = lower.indexOf("/uploads/");
-      if (uploadsWithSlash >= 0) return `${API_ORIGIN}${normalized.slice(uploadsWithSlash)}`;
-      const uploadsNoSlash = lower.indexOf("uploads/");
-      if (uploadsNoSlash >= 0) return `${API_ORIGIN}/${normalized.slice(uploadsNoSlash)}`;
-
-      return `${API_ORIGIN}${normalized.startsWith("/") ? "" : "/"}${normalized}`;
+    let raw = String(url || "").trim();
+    if (!raw) return "";
+    if (/^data:image\//i.test(raw)) return raw;
+    
+    if (raw.includes("localhost") || raw.includes("127.0.0.1")) {
+       try {
+           const u = new URL(raw);
+           raw = u.pathname;
+       } catch(e) {}
     }
+    if (/^https?:\/\//i.test(raw)) return raw;
+
+    const normalized = raw.replace(/\\/g, "/");
+    const lower = normalized.toLowerCase();
+    const uploadsWithSlash = lower.indexOf("/uploads/");
+    if (uploadsWithSlash >= 0) return `${API_ORIGIN}${normalized.slice(uploadsWithSlash)}`;
+    const uploadsNoSlash = lower.indexOf("uploads/");
+    if (uploadsNoSlash >= 0) return `${API_ORIGIN}/${normalized.slice(uploadsNoSlash)}`;
+
+    return `${API_ORIGIN}${normalized.startsWith("/") ? "" : "/"}${normalized}`;
+  }
 
     function updateAuthNav() {
       const authNav = document.getElementById("authNav");

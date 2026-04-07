@@ -479,12 +479,27 @@
       const PRODUCT_PLACEHOLDER = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 800'><rect width='600' height='800' fill='%23161512'/><text x='50%25' y='48%25' dominant-baseline='middle' text-anchor='middle' fill='%23c1a671' font-family='Arial, sans-serif' font-size='34' letter-spacing='6'>NO IMAGE</text></svg>";
 
       function resolveAssetUrl(url) {
-        const raw = String(url || '').trim();
-        if (!raw) return "";
-        if (/^https?:\/\//i.test(raw) || /^data:image\//i.test(raw)) return raw;
-        const normalized = raw.replace(/\\/g, '/');
-        return `${API_ORIGIN}${normalized.startsWith('/') ? '' : '/'}${normalized}`;
-      }
+    let raw = String(url || "").trim();
+    if (!raw) return "";
+    if (/^data:image\//i.test(raw)) return raw;
+    
+    if (raw.includes("localhost") || raw.includes("127.0.0.1")) {
+       try {
+           const u = new URL(raw);
+           raw = u.pathname;
+       } catch(e) {}
+    }
+    if (/^https?:\/\//i.test(raw)) return raw;
+
+    const normalized = raw.replace(/\\/g, "/");
+    const lower = normalized.toLowerCase();
+    const uploadsWithSlash = lower.indexOf("/uploads/");
+    if (uploadsWithSlash >= 0) return `${API_ORIGIN}${normalized.slice(uploadsWithSlash)}`;
+    const uploadsNoSlash = lower.indexOf("uploads/");
+    if (uploadsNoSlash >= 0) return `${API_ORIGIN}/${normalized.slice(uploadsNoSlash)}`;
+
+    return `${API_ORIGIN}${normalized.startsWith("/") ? "" : "/"}${normalized}`;
+  }
 
       function addMoreFiles() {
         const fileInput = document.getElementById('pImages');

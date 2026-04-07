@@ -2,9 +2,6 @@ const path = require("path");
 const crypto = require("crypto");
 const axios = require("axios");
 const FormData = require("form-data");
-const supabase = require("./supabase");
-
-const STORAGE_BUCKET = process.env.SUPABASE_STORAGE_BUCKET || "cloche-assets";
 const CLOUDINARY_CLOUD_NAME = String(process.env.CLOUDINARY_CLOUD_NAME || "").trim();
 const CLOUDINARY_UPLOAD_PRESET = String(process.env.CLOUDINARY_UPLOAD_PRESET || "").trim();
 const CLOUDINARY_API_KEY = String(process.env.CLOUDINARY_API_KEY || "").trim();
@@ -121,33 +118,11 @@ const destroyCloudinaryAsset = async (publicUrl) => {
 const uploadBufferToStorage = async ({ folder, file }) => {
   if (!file?.buffer) throw new Error("File buffer missing");
 
-  if (hasCloudinaryUpload()) {
-    return uploadBufferToCloudinary({ folder, file });
+  if (!hasCloudinaryUpload()) {
+    throw new Error("Cloudinary upload is not configured");
   }
 
-  const objectPath = buildStoragePath({
-    folder,
-    originalName: file.originalname
-  });
-
-  const { error: uploadError } = await supabase.storage
-    .from(STORAGE_BUCKET)
-    .upload(objectPath, file.buffer, {
-      contentType: file.mimetype || "application/octet-stream",
-      cacheControl: "3600",
-      upsert: false
-    });
-
-  if (uploadError) {
-    throw new Error(uploadError.message || "Storage upload failed");
-  }
-
-  const { data } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(objectPath);
-  return {
-    bucket: STORAGE_BUCKET,
-    objectPath,
-    publicUrl: data?.publicUrl || ""
-  };
+  return uploadBufferToCloudinary({ folder, file });
 };
 
 const deleteStorageObjectByUrl = async (publicUrl) => {
@@ -156,26 +131,10 @@ const deleteStorageObjectByUrl = async (publicUrl) => {
 
   if (/cloudinary\.com/i.test(raw)) {
     await destroyCloudinaryAsset(raw);
-    return;
-  }
-
-  try {
-    const parsed = new URL(raw);
-    const marker = `/storage/v1/object/public/${STORAGE_BUCKET}/`;
-    const idx = parsed.pathname.indexOf(marker);
-    if (idx === -1) return;
-
-    const objectPath = decodeURIComponent(parsed.pathname.slice(idx + marker.length));
-    if (!objectPath) return;
-
-    await supabase.storage.from(STORAGE_BUCKET).remove([objectPath]);
-  } catch (_) {
-    // Ignore malformed or legacy URLs.
   }
 };
 
 module.exports = {
-  STORAGE_BUCKET,
   deleteStorageObjectByUrl,
   uploadBufferToStorage
 };
