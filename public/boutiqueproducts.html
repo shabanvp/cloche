@@ -866,10 +866,21 @@
 
         // ----------------------------------------------------
         // CLOUDINARY UPLOAD LOGIC
+        // Fetch Cloudinary config from backend
+        let CLOUDINARY_CLOUD_NAME = 'dycwsnzyd';
+        let CLOUDINARY_UPLOAD_PRESET = 'cloche_upload';
+        try {
+          const configRes = await fetch(`${API_BASE}/cloudinary-config`);
+          if (configRes.ok) {
+            const config = await configRes.json();
+            CLOUDINARY_CLOUD_NAME = String(config.cloudName || 'dycwsnzyd').trim();
+            CLOUDINARY_UPLOAD_PRESET = String(config.uploadPreset || 'cloche_upload').trim();
+          }
+        } catch (e) {
+          console.warn('Failed to fetch Cloudinary config, using defaults');
+        }
         // ----------------------------------------------------
         const cloudinaryUrls = [];
-        const CLOUDINARY_CLOUD_NAME = 'dycwsnzyd';
-        const CLOUDINARY_UPLOAD_PRESET = 'cloche_upload';
 
         const submitBtn = document.querySelector('#addProductForm button[type="submit"]');
         const originalBtnText = submitBtn.textContent;

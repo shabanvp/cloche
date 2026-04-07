@@ -110,11 +110,15 @@
 
     return `${API_ORIGIN}${normalized.startsWith("/") ? "" : "/"}${normalized}`;
   }
-
+  function addCacheBuster(url) {
+    if (!url) return url;
+    const separator = url.includes('?') ? '&' : '?';
+    return `${url}${separator}v=${Math.floor(Date.now() / 60000)}`;
+  }
     function pickProductImage(item) {
       const gallery = Array.isArray(item.gallery) ? item.gallery : [];
       const firstValid = [item.image_url, ...gallery].find(Boolean);
-      return resolveAssetUrl(firstValid || "");
+      return addCacheBuster(resolveAssetUrl(firstValid || \"\"));
     }
 
     function renderItems(items) {

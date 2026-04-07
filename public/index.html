@@ -501,7 +501,11 @@
 
       return `${API_ORIGIN}${normalized.startsWith("/") ? "" : "/"}${normalized}`;
     }
-
+    function addCacheBuster(url) {
+      if (!url) return url;
+      const separator = url.includes('?') ? '&' : '?';
+      return `${url}${separator}v=${Math.floor(Date.now() / 60000)}`;
+    }
     async function loadCloudinaryConfig() {
       try {
         const res = await fetch(`${API_BASE}/cloudinary-config`);
@@ -617,7 +621,7 @@
 
       status.textContent = `Showing ${list.length} boutique${list.length === 1 ? "" : "s"} from live data.`;
       grid.innerHTML = list.map((b, idx) => {
-        const image = b.image_url ? resolveAssetUrl(b.image_url) : pickImage(`${b.id}-${b.boutique_name}-${idx}`);
+        const image = addCacheBuster(b.image_url ? resolveAssetUrl(b.image_url) : pickImage(`${b.id}-${b.boutique_name}-${idx}`));
         const district = (b.district || b.city || "Kerala").toUpperCase();
         const area = (b.area || b.city || "Location").toUpperCase();
         const name = (b.boutique_name || "Boutique").toUpperCase();

@@ -226,6 +226,12 @@
     return `${API_ORIGIN}${normalized.startsWith("/") ? "" : "/"}${normalized}`;
   }
 
+  function addCacheBuster(url) {
+    if (!url) return url;
+    const separator = url.includes('?') ? '&' : '?';
+    return `${url}${separator}v=${Math.floor(Date.now() / 60000)}`;
+  }
+
     function getBoutiqueId() {
       const params = new URLSearchParams(window.location.search);
       const fromParam = params.get("boutiqueId") || params.get("id");
@@ -261,7 +267,7 @@
       const boutiqueId = getBoutiqueId();
       grid.innerHTML = products.map((product, idx) => {
         const galleryFirst = Array.isArray(product.gallery) && product.gallery.length ? product.gallery[0] : "";
-        const image = resolveAssetUrl(product.image_url || galleryFirst) || fallbackImages[idx % fallbackImages.length];
+        const image = addCacheBuster(resolveAssetUrl(product.image_url || galleryFirst) || fallbackImages[idx % fallbackImages.length]);
         const price = Number(product.price || 0);
         const category = String(product.category || "Collection").trim();
         const stock = Number(product.stock || 0);
@@ -374,7 +380,7 @@
       const district = (boutique.district || boutique.city || "District").toUpperCase();
       const area = (boutique.area || boutique.city || "Area").toUpperCase();
       const plan = (boutique.plan || "Basic").toUpperCase();
-      const cover = resolveAssetUrl(boutique.image_url) || fallbackImages[0];
+      const cover = addCacheBuster(resolveAssetUrl(boutique.image_url) || fallbackImages[0]);
       const mapsQuery = encodeURIComponent(`${boutique.area || ""} ${boutique.city || ""}`.trim() || boutique.city || "Kerala");
 
       document.title = `CLOCHE | ${boutique.boutique_name || "Boutique"}`;

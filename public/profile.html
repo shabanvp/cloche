@@ -438,12 +438,27 @@
     if (status) status.textContent = `Uploading ${input.files[0].name} to Cloudinary...`;
 
     try {
+      // Fetch Cloudinary config from backend
+      let cloudName = "";
+      let uploadPreset = "cloche_upload";
+      try {
+        const configRes = await fetch(`${API_BASE}/cloudinary-config`);
+        if (configRes.ok) {
+          const config = await configRes.json();
+          cloudName = String(config.cloudName || "dycwsnzyd").trim();
+          uploadPreset = String(config.uploadPreset || "cloche_upload").trim();
+        }
+      } catch (e) {
+        console.warn("Failed to fetch Cloudinary config, using defaults");
+        cloudName = "dycwsnzyd";
+      }
+
       // 1. Upload to Cloudinary Unsigned
       const cloudData = new FormData();
       cloudData.append("file", input.files[0]);
-      cloudData.append("upload_preset", "cloche_upload");
+      cloudData.append("upload_preset", uploadPreset);
       
-      const cloudRes = await fetch(`https://api.cloudinary.com/v1_1/dycwsnzyd/image/upload`, {
+      const cloudRes = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
         method: "POST",
         body: cloudData
       });

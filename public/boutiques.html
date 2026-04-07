@@ -158,6 +158,12 @@
       return imgPool[sum % imgPool.length];
     }
 
+    function addCacheBuster(url) {
+      if (!url) return url;
+      const separator = url.includes('?') ? '&' : '?';
+      return `${url}${separator}v=${Math.floor(Date.now() / 60000)}`; // Cache for 1 minute
+    }
+
     function resolveAssetUrl(url) {
       let raw = String(url || "").trim();
       if (!raw) return "";
@@ -169,20 +175,20 @@
           raw = u.pathname;
         } catch (e) {}
       }
-      if (/^https?:\/\//i.test(raw)) return raw;
+      if (/^https?:\/\//i.test(raw)) return addCacheBuster(raw);
 
       const normalized = raw.replace(/\\/g, "/");
       const lower = normalized.toLowerCase();
       const uploadsWithSlash = lower.indexOf("/uploads/");
-      if (uploadsWithSlash >= 0) return `${API_ORIGIN}${normalized.slice(uploadsWithSlash)}`;
+      if (uploadsWithSlash >= 0) return addCacheBuster(`${API_ORIGIN}${normalized.slice(uploadsWithSlash)}`);
       const uploadsNoSlash = lower.indexOf("uploads/");
-      if (uploadsNoSlash >= 0) return `${API_ORIGIN}/${normalized.slice(uploadsNoSlash)}`;
+      if (uploadsNoSlash >= 0) return addCacheBuster(`${API_ORIGIN}/${normalized.slice(uploadsNoSlash)}`);
 
       if (cloudinaryCloudName) {
-        return `https://res.cloudinary.com/${cloudinaryCloudName}/image/upload/${normalized.replace(/^\/+/, "")}`;
+        return addCacheBuster(`https://res.cloudinary.com/${cloudinaryCloudName}/image/upload/${normalized.replace(/^\/+/, "")}`);
       }
 
-      return `${API_ORIGIN}${normalized.startsWith("/") ? "" : "/"}${normalized}`;
+      return addCacheBuster(`${API_ORIGIN}${normalized.startsWith("/") ? "" : "/"}${normalized}`);
     }
 
     async function loadCloudinaryConfig() {
@@ -285,7 +291,7 @@
       }
 
       grid.innerHTML = list.map(b => {
-        const image = b.image_url ? resolveAssetUrl(b.image_url) : pickImage(`${b.id}-${b.boutique_name}`);
+        const image = addCacheBuster(b.image_url ? resolveAssetUrl(b.image_url) : pickImage(`${b.id}-${b.boutique_name}`));
         const district = (b.district || b.city || "Unknown").toUpperCase();
         const area = (b.area || b.city || "Location").toUpperCase();
         const tags = String(b.tags || "").split(",").map(t => t.trim()).filter(Boolean).slice(0, 3);
