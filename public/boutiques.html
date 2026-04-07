@@ -297,7 +297,15 @@
       }
 
       grid.innerHTML = list.map(b => {
-        const image = addCacheBuster(b.image_url ? resolveAssetUrl(b.image_url) : pickImage(`${b.id}-${b.boutique_name}`));
+        const resolved = b.image_url ? resolveAssetUrl(b.image_url) : null;
+        const fallback = resolved ? resolved : pickImage(`${b.id}-${b.boutique_name}`);
+        const image = addCacheBuster(fallback);
+        console.log(`[Boutiques] Image for ${b.boutique_name}:`, {
+          raw: b.image_url,
+          resolved: resolved,
+          final: image,
+          using: b.image_url ? "uploaded" : "fallback"
+        });
         const district = (b.district || b.city || "Unknown").toUpperCase();
         const area = (b.area || b.city || "Location").toUpperCase();
         const tags = String(b.tags || "").split(",").map(t => t.trim()).filter(Boolean).slice(0, 3);
@@ -333,12 +341,24 @@
       try {
         const res = await fetch(`${API_BASE}/boutiques`);
         const data = await res.json();
+        console.log("[Boutiques] API Response:", data);
         if (!res.ok) throw new Error(data.message || "Failed to load boutiques");
 
         boutiques = Array.isArray(data) ? data : [];
+        console.log("[Boutiques] Loaded boutiques:", boutiques);
+        boutiques.forEach((b, i) => {
+          console.log(`[Boutiques] Boutique ${i}:`, {
+            id: b.id,
+            name: b.boutique_name,
+            image_url: b.image_url,
+            district: b.district,
+            area: b.area
+          });
+        });
         renderFilters();
         renderGrid();
       } catch (err) {
+        console.error("[Boutiques] Error:", err);
         status.textContent = "Failed to load boutiques.";
         document.getElementById("boutiquesGrid").innerHTML = `<div class="col-span-full glass-card rounded-lg p-10 text-center text-red-400">${err.message}</div>`;
       }

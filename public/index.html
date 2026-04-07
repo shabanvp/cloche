@@ -627,7 +627,15 @@
 
       status.textContent = `Showing ${list.length} boutique${list.length === 1 ? "" : "s"} from live data.`;
       grid.innerHTML = list.map((b, idx) => {
-        const image = addCacheBuster(b.image_url ? resolveAssetUrl(b.image_url) : pickImage(`${b.id}-${b.boutique_name}-${idx}`));
+        const resolved = b.image_url ? resolveAssetUrl(b.image_url) : null;
+        const fallback = resolved ? resolved : pickImage(`${b.id}-${b.boutique_name}-${idx}`);
+        const image = addCacheBuster(fallback);
+        console.log(`[Index] Image for ${b.boutique_name}:`, {
+          raw: b.image_url,
+          resolved: resolved,
+          final: image,
+          using: b.image_url ? "uploaded" : "fallback"
+        });
         const district = (b.district || b.city || "Kerala").toUpperCase();
         const area = (b.area || b.city || "Location").toUpperCase();
         const name = (b.boutique_name || "Boutique").toUpperCase();
@@ -638,7 +646,7 @@
             class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
             src="${image}"
             alt="${name}"
-            onerror="this.onerror=null;this.src='${pickImage(`${b.id}-${b.boutique_name}-${idx}`)}'"
+            onerror="console.warn('Image failed to load:', this.src); this.onerror=null;this.src='${pickImage(`${b.id}-${b.boutique_name}-${idx}`)}'"
           />
           <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-black/15"></div>
           <div class="absolute inset-0 p-6 flex flex-col justify-end">
@@ -659,11 +667,23 @@
       try {
         const res = await fetch(`${API_BASE}/boutiques`);
         const data = await res.json();
+        console.log("[Index] Boutiques API Response:", data);
         if (!res.ok) throw new Error(data.message || "Failed to load boutiques");
 
         const boutiques = (Array.isArray(data) ? data : []).slice(0, 4);
+        console.log("[Index] Featured boutiques to render:", boutiques);
+        boutiques.forEach((b, i) => {
+          console.log(`[Index] Boutique ${i}:`, {
+            id: b.id,
+            name: b.boutique_name,
+            image_url: b.image_url,
+            district: b.district,
+            area: b.area
+          });
+        });
         renderFeaturedBoutiques(boutiques);
       } catch (err) {
+        console.error("[Index] Error loading boutiques:", err);
         if (status) status.textContent = err.message || "Failed to load boutiques.";
         const grid = document.getElementById("featuredBoutiquesGrid");
         if (grid) grid.innerHTML = "";
