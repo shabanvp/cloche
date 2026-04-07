@@ -150,6 +150,7 @@
 
     let boutiques = [];
     let selectedCity = "All";
+    let cloudinaryCloudName = "";
 
     function pickImage(seed) {
       let sum = 0;
@@ -158,27 +159,39 @@
     }
 
     function resolveAssetUrl(url) {
-    let raw = String(url || "").trim();
-    if (!raw) return "";
-    if (/^data:image\//i.test(raw)) return raw;
-    
-    if (raw.includes("localhost") || raw.includes("127.0.0.1")) {
-       try {
-           const u = new URL(raw);
-           raw = u.pathname;
-       } catch(e) {}
+      let raw = String(url || "").trim();
+      if (!raw) return "";
+      if (/^data:image\//i.test(raw)) return raw;
+
+      if (raw.includes("localhost") || raw.includes("127.0.0.1")) {
+        try {
+          const u = new URL(raw);
+          raw = u.pathname;
+        } catch (e) {}
+      }
+      if (/^https?:\/\//i.test(raw)) return raw;
+
+      const normalized = raw.replace(/\\/g, "/");
+      const lower = normalized.toLowerCase();
+      const uploadsWithSlash = lower.indexOf("/uploads/");
+      if (uploadsWithSlash >= 0) return `${API_ORIGIN}${normalized.slice(uploadsWithSlash)}`;
+      const uploadsNoSlash = lower.indexOf("uploads/");
+      if (uploadsNoSlash >= 0) return `${API_ORIGIN}/${normalized.slice(uploadsNoSlash)}`;
+
+      if (cloudinaryCloudName) {
+        return `https://res.cloudinary.com/${cloudinaryCloudName}/image/upload/${normalized.replace(/^\/+/, "")}`;
+      }
+
+      return `${API_ORIGIN}${normalized.startsWith("/") ? "" : "/"}${normalized}`;
     }
-    if (/^https?:\/\//i.test(raw)) return raw;
 
-    const normalized = raw.replace(/\\/g, "/");
-    const lower = normalized.toLowerCase();
-    const uploadsWithSlash = lower.indexOf("/uploads/");
-    if (uploadsWithSlash >= 0) return `${API_ORIGIN}${normalized.slice(uploadsWithSlash)}`;
-    const uploadsNoSlash = lower.indexOf("uploads/");
-    if (uploadsNoSlash >= 0) return `${API_ORIGIN}/${normalized.slice(uploadsNoSlash)}`;
-
-    return `${API_ORIGIN}${normalized.startsWith("/") ? "" : "/"}${normalized}`;
-  }
+    async function loadCloudinaryConfig() {
+      try {
+        const res = await fetch(`${API_BASE}/cloudinary-config`);
+        const data = await res.json();
+        if (res.ok) cloudinaryCloudName = String(data.cloudName || "").trim();
+      } catch (_) {}
+    }
 
     function updateAuthNav() {
       const authNav = document.getElementById("authNav");
@@ -319,7 +332,7 @@
       }
     }
 
-    document.addEventListener("DOMContentLoaded", () => {
+    document.addEventListener("DOMContentLoaded", async () => {
       updateAuthNav();
       document.addEventListener("click", (e) => {
         const menu = document.getElementById("userMenuDropdown");
@@ -329,6 +342,7 @@
         if (menu.contains(e.target) || (auth && auth.contains(e.target)) || (icon && icon.contains(e.target))) return;
         menu.classList.add("hidden");
       });
+      await loadCloudinaryConfig();
       loadBoutiques();
     });
   </script>

@@ -725,6 +725,10 @@ router.get("/boutiques", async (req, res) => {
   }
 });
 
+router.get("/cloudinary-config", (req, res) => {
+  return res.json({ cloudName: CLOUDINARY_CLOUD_NAME || "" });
+});
+
 
 /* ================= DASHBOARD ================= */
 router.get("/dashboard/:boutiqueId", async (req, res) => {
