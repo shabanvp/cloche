@@ -6,6 +6,17 @@ const router = express.Router();
 const db = require("./db");
 const supabase = require("./supabase");
 const { deleteStorageObjectByUrl, uploadBufferToStorage } = require("./storage");
+const CLOUDINARY_CLOUD_NAME = String(process.env.CLOUDINARY_CLOUD_NAME || "").trim();
+
+const normalizeImageUrl = (value) => {
+  const raw = String(value || "").trim();
+  if (!raw) return null;
+  if (/^https?:\/\//i.test(raw) || /^data:image\//i.test(raw)) return raw;
+  if (CLOUDINARY_CLOUD_NAME) {
+    return `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/image/upload/${raw.replace(/^\/+/, "")}`;
+  }
+  return raw;
+};
 
 const showcaseUpload = multer({
   storage: multer.memoryStorage(),
@@ -699,7 +710,7 @@ router.get("/boutiques", async (req, res) => {
         district: s.district || null,
         area: s.area || null,
         tags: s.tags || null,
-        image_url: s.image_url || null,
+        image_url: normalizeImageUrl(s.image_url),
         rating: Number(s.rating || 5.0)
       };
     });
