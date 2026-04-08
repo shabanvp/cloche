@@ -614,10 +614,10 @@
       }
     }
 
-    function showSkeletons() {
+    function showSkeletons(count = 4) {
       const grid = document.getElementById("featuredBoutiquesGrid");
       if (!grid) return;
-      grid.innerHTML = Array(4).fill(0).map(() => `
+      grid.innerHTML = Array(count).fill(0).map(() => `
         <div class="relative aspect-[3/4] rounded-xl overflow-hidden glass-card animate-pulse">
           <div class="absolute inset-0 bg-gray-700/30"></div>
           <div class="absolute bottom-6 left-6 right-6 space-y-3">
@@ -733,19 +733,32 @@
       if (featuredLoadInProgress) return;
       featuredLoadInProgress = true;
       const status = document.getElementById("featuredBoutiquesStatus");
-      
-      // Show skeletons immediately for better perceived performance
-      showSkeletons();
-      if (status) status.textContent = "Loading boutiques...";
+      const grid = document.getElementById("featuredBoutiquesGrid");
 
       try {
-        // Try cache first for instant display
+        // Try cache first for instant display (no skeleton needed if we have cache)
         const hasCache = loadFeaturedBoutiquesFromCache();
-        if (hasCache) {
+        
+        if (!hasCache && status) {
+          // Only show skeletons if no cache available
+          const cachedData = localStorage.getItem(FEATURED_CACHE_KEY);
+          let cachedBoutiques = [];
+          try {
+            if (cachedData) {
+              const parsed = JSON.parse(cachedData);
+              cachedBoutiques = Array.isArray(parsed?.items) ? parsed.items : [];
+            }
+          } catch (_) {}
+          
+          // Show skeletons for actual count or smarter default
+          const skeletonCount = cachedBoutiques.length > 0 ? cachedBoutiques.length : 1;
+          showSkeletons(skeletonCount);
+          if (status) status.textContent = "Loading boutiques...";
+        } else if (hasCache && status) {
           if (status) status.textContent = "Fetching latest...";
         }
 
-        // Fetch fresh data
+        // Fetch fresh data in background
         const data = await fetchFeaturedBoutiquesWithRetry(status);
         const boutiques = data.slice(0, 4);
         try {
@@ -756,30 +769,32 @@
       } catch (err) {
         console.log("[Featured] Load failed, trying cache:", err.message);
         const hasCache = loadFeaturedBoutiquesFromCache();
-        if (status) {
-          if (hasCache) {
-            status.textContent = "Showing cached boutiques.";
-          } else {
-            status.textContent = "Unable to load boutiques. Retrying...";
-            showSkeletons();
-          }
+        if (!hasCache) {
+          // Only show skeletons if we have nothing at all
+          showSkeletons(1);
+          if (status) status.textContent = "Unable to load boutiques. Retrying...";
         }
         if (!featuredRetryTimer) {
           featuredRetryTimer = setTimeout(() => {
             featuredRetryTimer = null;
             console.log("[Featured] Retrying load...");
             loadFeaturedBoutiques();
-          }, 5000); // Retry after 5 seconds
+          }, 5000);
         }
       } finally {
         featuredLoadInProgress = false;
       }
     }
 
-    document.addEventListener("DOMContentLoaded", async () => {
+    document.addEventListener("DOMContentLoaded", () => {
+      // Update UI instantly (synchronous)
       updateAuthNav();
-      loadCloudinaryConfig();
-      loadFeaturedBoutiques();
+      
+      // Start background loading (non-blocking)
+      loadCloudinaryConfig().catch(() => {});
+      loadFeaturedBoutiques().catch(() => {});
+      
+      // Setup menu click handler
       document.addEventListener("click", (e) => {
         const menu = document.getElementById("userMenuDropdown");
         const auth = document.getElementById("authNav");
