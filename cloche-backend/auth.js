@@ -623,8 +623,14 @@ router.post("/profile/:boutiqueId/showcase-image", showcaseUpload.single("image"
         folder: `showcase/${boutiqueId}`,
         file: req.file
       });
-      imageUrl = uploaded.publicUrl;
+      imageUrl = uploaded.publicUrl || uploaded.objectPath || uploaded.publicId || "";
       console.log("[SHOWCASE-IMAGE POST] Upload successful. imageUrl:", imageUrl);
+    }
+
+    imageUrl = normalizeImageUrl(imageUrl);
+    if (!imageUrl) {
+      console.log("[SHOWCASE-IMAGE POST] Image URL normalization failed.");
+      return res.status(500).json({ message: "Failed to resolve image URL" });
     }
 
     console.log("[SHOWCASE-IMAGE POST] Checking for existing showcase record...");
