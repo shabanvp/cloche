@@ -703,50 +703,31 @@ router.get("/boutiques", async (req, res) => {
     const boutiqueList = Array.isArray(boutiques) ? boutiques : [];
     console.log(`[BOUTIQUES] Found ${boutiqueList.length} boutiques`);
 
-    // Fetch ALL showcase data in one query (same table as profile/:id/showcase)
-    const { data: showcases, error: showcaseError } = await supabase
-      .from("boutique_showcase")
-      .select("boutique_id, district, area, tags, image_url, rating, updated_at, created_at, id");
+    // Fetch showcase data for each boutique individually (same query as /profile/:id/showcase)
+    // This avoids Supabase RLS issues with wildcard SELECT on boutique_showcase
+    const merged = await Promise.all(boutiqueList.map(async (b) => {
+      let showcase = {};
+      try {
+        const { data: rows, error: sErr } = await supabase
+          .from("boutique_showcase")
+          .select("boutique_id, district, area, tags, image_url, rating")
+          .eq("boutique_id", b.id)
+          .order("id", { ascending: false })
+          .limit(1);
 
-    if (showcaseError) {
-      console.warn("[BOUTIQUES] showcase read error:", showcaseError.message, showcaseError.code);
-    }
-
-    console.log(`[BOUTIQUES] Showcase rows fetched: ${Array.isArray(showcases) ? showcases.length : 0}`);
-    if (Array.isArray(showcases)) {
-      showcases.forEach(s => {
-        console.log(`  -> boutique_id=${s.boutique_id} image_url=${s.image_url} district=${s.district}`);
-      });
-    }
-
-    // Build a map of boutique_id -> best showcase row
-    const showcaseMap = {};
-    if (!showcaseError && Array.isArray(showcases)) {
-      for (const row of showcases) {
-        const key = String(row.boutique_id);
-        const existing = showcaseMap[key];
-        if (!existing) {
-          showcaseMap[key] = row;
-          continue;
+        if (sErr) {
+          console.warn(`[BOUTIQUES] showcase error for boutique ${b.id}:`, sErr.message);
+        } else if (Array.isArray(rows) && rows.length > 0) {
+          // prefer the row with an image if multiple exist
+          showcase = rows.find(r => r.image_url) || rows[0];
         }
-        // Prefer rows that have an image
-        const existingHasImage = Boolean(existing.image_url);
-        const rowHasImage = Boolean(row.image_url);
-        if (rowHasImage && !existingHasImage) {
-          showcaseMap[key] = row;
-        } else if (rowHasImage === existingHasImage) {
-          const existingTime = new Date(existing.updated_at || existing.created_at || 0).getTime();
-          const rowTime = new Date(row.updated_at || row.created_at || 0).getTime();
-          if (rowTime > existingTime) showcaseMap[key] = row;
-        }
+      } catch (e) {
+        console.warn(`[BOUTIQUES] showcase fetch exception for boutique ${b.id}:`, e.message);
       }
-    }
 
-    const merged = boutiqueList.map((b) => {
-      const s = showcaseMap[String(b.id)] || {};
-      const rawImageUrl = s.image_url || null;
+      const rawImageUrl = showcase.image_url || null;
       const normalizedImageUrl = normalizeImageUrl(rawImageUrl);
-      console.log(`[BOUTIQUES] Boutique ${b.id} (${b.boutique_name}): raw_image=${rawImageUrl} normalized=${normalizedImageUrl}`);
+      console.log(`[BOUTIQUES] Boutique ${b.id} (${b.boutique_name}): image=${normalizedImageUrl || "null"} district=${showcase.district || "null"}`);
 
       return {
         id: b.id,
@@ -756,13 +737,13 @@ router.get("/boutiques", async (req, res) => {
         phone: b.phone,
         city: b.city,
         plan: b.plan || "Basic",
-        district: s.district || null,
-        area: s.area || null,
-        tags: s.tags || null,
+        district: showcase.district || null,
+        area: showcase.area || null,
+        tags: showcase.tags || null,
         image_url: normalizedImageUrl,
-        rating: Number(s.rating || 5.0)
+        rating: Number(showcase.rating || 5.0)
       };
-    });
+    }));
 
     const filtered = city
       ? merged.filter((row) => String(row.district || row.city || "").trim().toLowerCase() === city)
@@ -774,6 +755,7 @@ router.get("/boutiques", async (req, res) => {
     return res.status(500).json({ message: "Server error", error: err.message });
   }
 });
+
 
 
 router.get("/cloudinary-config", (req, res) => {
