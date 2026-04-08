@@ -688,12 +688,22 @@ router.post("/profile/:boutiqueId/showcase-image", showcaseUpload.single("image"
 /* ================= BOUTIQUES LIST ================= */
 router.get("/boutiques", async (req, res) => {
   const city = String(req.query.city || "").trim().toLowerCase();
+  const requestedLimit = Number.parseInt(String(req.query.limit || ""), 10);
+  const limit = Number.isFinite(requestedLimit) && requestedLimit > 0
+    ? Math.min(requestedLimit, 100)
+    : null;
 
   try {
-    const { data: boutiques, error: boutiqueError } = await supabase
+    let boutiqueQuery = supabase
       .from("boutiques")
       .select("id, boutique_name, owner_name, email, phone, city, plan")
       .order("boutique_name", { ascending: true });
+
+    if (!city && limit) {
+      boutiqueQuery = boutiqueQuery.limit(limit);
+    }
+
+    const { data: boutiques, error: boutiqueError } = await boutiqueQuery;
 
     if (boutiqueError) {
       console.error("[BOUTIQUES] Error fetching boutiques:", boutiqueError.message);
@@ -703,31 +713,39 @@ router.get("/boutiques", async (req, res) => {
     const boutiqueList = Array.isArray(boutiques) ? boutiques : [];
     console.log(`[BOUTIQUES] Found ${boutiqueList.length} boutiques`);
 
-    // Fetch showcase data for each boutique individually (same query as /profile/:id/showcase)
-    // This avoids Supabase RLS issues with wildcard SELECT on boutique_showcase
-    const merged = await Promise.all(boutiqueList.map(async (b) => {
-      let showcase = {};
-      try {
-        const { data: rows, error: sErr } = await supabase
-          .from("boutique_showcase")
-          .select("boutique_id, district, area, tags, image_url, rating")
-          .eq("boutique_id", b.id)
-          .order("id", { ascending: false })
-          .limit(1);
+    const boutiqueIds = boutiqueList.map((b) => b.id).filter(Boolean);
+    let showcaseByBoutiqueId = new Map();
+    if (boutiqueIds.length) {
+      const { data: showcaseRows, error: showcaseError } = await supabase
+        .from("boutique_showcase")
+        .select("id, boutique_id, district, area, tags, image_url, rating")
+        .in("boutique_id", boutiqueIds)
+        .order("id", { ascending: false });
 
-        if (sErr) {
-          console.warn(`[BOUTIQUES] showcase error for boutique ${b.id}:`, sErr.message);
-        } else if (Array.isArray(rows) && rows.length > 0) {
-          // prefer the row with an image if multiple exist
-          showcase = rows.find(r => r.image_url) || rows[0];
-        }
-      } catch (e) {
-        console.warn(`[BOUTIQUES] showcase fetch exception for boutique ${b.id}:`, e.message);
+      if (showcaseError) {
+        console.warn("[BOUTIQUES] Showcase batch query error:", showcaseError.message);
+      } else if (Array.isArray(showcaseRows)) {
+        showcaseByBoutiqueId = showcaseRows.reduce((acc, row) => {
+          if (!row || !row.boutique_id) return acc;
+          const key = row.boutique_id;
+          const existing = acc.get(key);
+          if (!existing) {
+            acc.set(key, row);
+            return acc;
+          }
+          if (!existing.image_url && row.image_url) {
+            acc.set(key, row);
+          }
+          return acc;
+        }, new Map());
       }
+    }
+
+    const merged = boutiqueList.map((b) => {
+      const showcase = showcaseByBoutiqueId.get(b.id) || {};
 
       const rawImageUrl = showcase.image_url || null;
       const normalizedImageUrl = normalizeImageUrl(rawImageUrl);
-      console.log(`[BOUTIQUES] Boutique ${b.id} (${b.boutique_name}): image=${normalizedImageUrl || "null"} district=${showcase.district || "null"}`);
 
       return {
         id: b.id,
@@ -743,11 +761,15 @@ router.get("/boutiques", async (req, res) => {
         image_url: normalizedImageUrl,
         rating: Number(showcase.rating || 5.0)
       };
-    }));
+    });
 
-    const filtered = city
+    let filtered = city
       ? merged.filter((row) => String(row.district || row.city || "").trim().toLowerCase() === city)
       : merged;
+
+    if (city && limit) {
+      filtered = filtered.slice(0, limit);
+    }
 
     return res.json(filtered);
   } catch (err) {

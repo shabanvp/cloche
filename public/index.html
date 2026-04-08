@@ -677,8 +677,8 @@
         }
 
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 6000);
-        const res = await fetch(`${API_BASE}/boutiques`, { signal: controller.signal, cache: "no-store" });
+        const timeoutId = setTimeout(() => controller.abort(), 15000);
+        const res = await fetch(`${API_BASE}/boutiques?limit=4`, { signal: controller.signal });
         clearTimeout(timeoutId);
         const data = await res.json();
         if (!res.ok) throw new Error(data.message || "Failed to load boutiques");
