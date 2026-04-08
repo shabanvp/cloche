@@ -339,27 +339,18 @@
       status.textContent = "Loading boutiques...";
 
       try {
-        const res = await fetch(`${API_BASE}/boutiques`);
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+        const res = await fetch(`${API_BASE}/boutiques`, { signal: controller.signal });
+        clearTimeout(timeoutId);
         const data = await res.json();
-        console.log("[Boutiques] API Response:", data);
         if (!res.ok) throw new Error(data.message || "Failed to load boutiques");
 
         boutiques = Array.isArray(data) ? data : [];
-        console.log("[Boutiques] Loaded boutiques:", boutiques);
-        boutiques.forEach((b, i) => {
-          console.log(`[Boutiques] Boutique ${i}:`, {
-            id: b.id,
-            name: b.boutique_name,
-            image_url: b.image_url,
-            district: b.district,
-            area: b.area
-          });
-        });
         renderFilters();
         renderGrid();
       } catch (err) {
-        console.error("[Boutiques] Error:", err);
-        status.textContent = "Failed to load boutiques.";
+        status.textContent = err.name === "AbortError" ? "Loading is taking too long. Please refresh." : "Failed to load boutiques.";
         document.getElementById("boutiquesGrid").innerHTML = `<div class="col-span-full glass-card rounded-lg p-10 text-center text-red-400">${err.message}</div>`;
       }
     }
@@ -374,7 +365,7 @@
         if (menu.contains(e.target) || (auth && auth.contains(e.target)) || (icon && icon.contains(e.target))) return;
         menu.classList.add("hidden");
       });
-      await loadCloudinaryConfig();
+      loadCloudinaryConfig();
       loadBoutiques();
     });
   </script>

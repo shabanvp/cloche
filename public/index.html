@@ -486,31 +486,26 @@
           raw = u.pathname;
         } catch (e) {}
       }
-      if (/^https?:\/\//i.test(raw)) return addCacheBuster(raw);
+      if (/^https?:\/\//i.test(raw)) return raw;
 
       const normalized = raw.replace(/\\/g, "/");
       const lower = normalized.toLowerCase();
       const uploadsWithSlash = lower.indexOf("/uploads/");
-      if (uploadsWithSlash >= 0) return addCacheBuster(`${API_ORIGIN}${normalized.slice(uploadsWithSlash)}`);
+      if (uploadsWithSlash >= 0) return `${API_ORIGIN}${normalized.slice(uploadsWithSlash)}`;
       const uploadsNoSlash = lower.indexOf("uploads/");
-      if (uploadsNoSlash >= 0) return addCacheBuster(`${API_ORIGIN}/${normalized.slice(uploadsNoSlash)}`);
+      if (uploadsNoSlash >= 0) return `${API_ORIGIN}/${normalized.slice(uploadsNoSlash)}`;
 
       // Try to detect Cloudinary public ID (has .png .jpg .jpeg .webp) without being a full path
       if (/\.(png|jpg|jpeg|webp)$/i.test(normalized) && !normalized.includes("/")) {
         const cloudName = cloudinaryCloudName || 'dycwsnzyd'; // Fallback to known cloud name
-        return addCacheBuster(`https://res.cloudinary.com/${cloudName}/image/upload/${normalized}`);
+        return `https://res.cloudinary.com/${cloudName}/image/upload/${normalized}`;
       }
 
       if (cloudinaryCloudName) {
-        return addCacheBuster(`https://res.cloudinary.com/${cloudinaryCloudName}/image/upload/${normalized.replace(/^\/+/, "")}`);
+        return `https://res.cloudinary.com/${cloudinaryCloudName}/image/upload/${normalized.replace(/^\/+/, "")}`;
       }
 
-      return addCacheBuster(`${API_ORIGIN}${normalized.startsWith("/") ? "" : "/"}${normalized}`);
-    }
-    function addCacheBuster(url) {
-      if (!url) return url;
-      const separator = url.includes('?') ? '&' : '?';
-      return `${url}${separator}v=${Math.floor(Date.now() / 60000)}`;
+      return `${API_ORIGIN}${normalized.startsWith("/") ? "" : "/"}${normalized}`;
     }
     async function loadCloudinaryConfig() {
       try {
@@ -629,13 +624,7 @@
       grid.innerHTML = list.map((b, idx) => {
         const resolved = b.image_url ? resolveAssetUrl(b.image_url) : null;
         const fallback = resolved ? resolved : pickImage(`${b.id}-${b.boutique_name}-${idx}`);
-        const image = addCacheBuster(fallback);
-        console.log(`[Index] Image for ${b.boutique_name}:`, {
-          raw: b.image_url,
-          resolved: resolved,
-          final: image,
-          using: b.image_url ? "uploaded" : "fallback"
-        });
+        const image = fallback;
         const district = (b.district || b.city || "Kerala").toUpperCase();
         const area = (b.area || b.city || "Location").toUpperCase();
         const name = (b.boutique_name || "Boutique").toUpperCase();
@@ -665,26 +654,17 @@
       if (status) status.textContent = "Loading boutiques...";
 
       try {
-        const res = await fetch(`${API_BASE}/boutiques`);
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+        const res = await fetch(`${API_BASE}/boutiques`, { signal: controller.signal });
+        clearTimeout(timeoutId);
         const data = await res.json();
-        console.log("[Index] Boutiques API Response:", data);
         if (!res.ok) throw new Error(data.message || "Failed to load boutiques");
 
         const boutiques = (Array.isArray(data) ? data : []).slice(0, 4);
-        console.log("[Index] Featured boutiques to render:", boutiques);
-        boutiques.forEach((b, i) => {
-          console.log(`[Index] Boutique ${i}:`, {
-            id: b.id,
-            name: b.boutique_name,
-            image_url: b.image_url,
-            district: b.district,
-            area: b.area
-          });
-        });
         renderFeaturedBoutiques(boutiques);
       } catch (err) {
-        console.error("[Index] Error loading boutiques:", err);
-        if (status) status.textContent = err.message || "Failed to load boutiques.";
+        if (status) status.textContent = err.name === "AbortError" ? "Loading is taking too long. Please refresh." : (err.message || "Failed to load boutiques.");
         const grid = document.getElementById("featuredBoutiquesGrid");
         if (grid) grid.innerHTML = "";
       }
@@ -692,7 +672,7 @@
 
     document.addEventListener("DOMContentLoaded", async () => {
       updateAuthNav();
-      await loadCloudinaryConfig();
+      loadCloudinaryConfig();
       loadFeaturedBoutiques();
       document.addEventListener("click", (e) => {
         const menu = document.getElementById("userMenuDropdown");
