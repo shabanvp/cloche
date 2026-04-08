@@ -1,11 +1,14 @@
 <!DOCTYPE html>
 <html class="dark" lang="en">
+
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>CLOCHE | View Boutique</title>
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;700&family=Inter:wght@300;400;500;600;700&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;700&family=Inter:wght@300;400;500;600;700&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+    rel="stylesheet" />
   <script id="tailwind-config">
     tailwind.config = {
       darkMode: "class",
@@ -30,30 +33,36 @@
       font-family: "Inter", sans-serif;
       -webkit-font-smoothing: antialiased;
     }
+
     .nav-glass {
       background: rgba(26, 26, 26, 0.6);
       backdrop-filter: blur(12px);
       border: 1px solid rgba(193, 166, 113, 0.2);
     }
+
     .glass-card {
       background: rgba(26, 26, 26, 0.6);
       backdrop-filter: blur(12px);
       border: 1px solid rgba(193, 166, 113, 0.15);
       box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
     }
+
     .gold-glow:hover {
       box-shadow: 0 0 20px rgba(193, 166, 113, 0.3);
       transition: all 0.3s ease;
     }
-     .royal-border {
+
+    .royal-border {
       border-bottom: 1px solid rgba(193, 166, 113, 0.2);
     }
+
     .hero-glow {
       background: radial-gradient(circle at center, rgba(193, 166, 113, 0.08) 0%, transparent 70%);
     }
   </style>
   <link rel='stylesheet' href='responsive-fixes.css' />
 </head>
+
 <body class="bg-background-dark text-[#FAF7F2] min-h-screen">
   <nav class="fixed top-0 w-full z-50 nav-glass royal-border">
     <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
@@ -64,16 +73,22 @@
       <div class="hidden md:flex items-center gap-12">
         <a class="text-sm uppercase tracking-widest text-[#FAF7F2]" href="boutiques.html">Boutiques</a>
         <a class="text-sm uppercase tracking-widest text-[#FAF7F2]" href="index.html#how-it-works">How it Works</a>
-        <a id="listYourBoutiqueNav" class="text-sm uppercase tracking-widest text-[#FAF7F2]" href="boutiquelogin.html">List Your Boutique</a>
+        <a id="listYourBoutiqueNav" class="text-sm uppercase tracking-widest text-[#FAF7F2]"
+          href="boutiquelogin.html">List Your Boutique</a>
       </div>
       <div class="relative flex items-center gap-6">
-        <a id="authNav" href="boutiquelogin.html" class="text-sm uppercase tracking-widest font-medium text-[#FAF7F2]">LOGIN</a>
-        <a id="profileIconLink" href="boutiquelogin.html" class="h-10 w-10 rounded-full bg-primary/20 border border-primary/40 flex items-center justify-center overflow-hidden hover:border-primary transition-colors">
+        <a id="authNav" href="boutiquelogin.html"
+          class="text-sm uppercase tracking-widest font-medium text-[#FAF7F2]">LOGIN</a>
+        <a id="profileIconLink" href="boutiquelogin.html"
+          class="h-10 w-10 rounded-full bg-primary/20 border border-primary/40 flex items-center justify-center overflow-hidden hover:border-primary transition-colors">
           <span id="navAvatar" class="text-primary font-bold">C</span>
         </a>
-        <div id="userMenuDropdown" class="hidden absolute right-0 top-14 w-44 rounded-lg border border-primary/25 bg-[#141414]/95 backdrop-blur-md shadow-2xl p-2">
-          <a href="userprofile.html" class="block px-3 py-2 rounded text-xs uppercase tracking-widest text-white/80 hover:bg-primary/10 hover:text-primary">Profile</a>
-          <a href="messageboutique.html" class="block px-3 py-2 rounded text-xs uppercase tracking-widest text-white/80 hover:bg-primary/10 hover:text-primary">Inbox</a>
+        <div id="userMenuDropdown"
+          class="hidden absolute right-0 top-14 w-44 rounded-lg border border-primary/25 bg-[#141414]/95 backdrop-blur-md shadow-2xl p-2">
+          <a href="userprofile.html"
+            class="block px-3 py-2 rounded text-xs uppercase tracking-widest text-white/80 hover:bg-primary/10 hover:text-primary">Profile</a>
+          <a href="messageboutique.html"
+            class="block px-3 py-2 rounded text-xs uppercase tracking-widest text-white/80 hover:bg-primary/10 hover:text-primary">Inbox</a>
         </div>
       </div>
     </div>
@@ -82,7 +97,8 @@
   <main class="pt-32 pb-20 px-6 md:px-20 max-w-7xl mx-auto hero-glow">
     <section id="statusWrap" class="mb-8 text-sm text-[#FAF7F2]/70"></section>
 
-    <section class="glass-card rounded-lg p-8 md:p-12 mb-14 flex flex-col md:flex-row justify-between items-end md:items-center gap-8 border-l-4 border-l-primary">
+    <section
+      class="glass-card rounded-lg p-8 md:p-12 mb-14 flex flex-col md:flex-row justify-between items-end md:items-center gap-8 border-l-4 border-l-primary">
       <div class="space-y-4">
         <h2 id="boutiqueName" class="font-display text-4xl md:text-5xl font-bold text-white uppercase">Boutique</h2>
         <div class="flex flex-wrap items-center gap-4 text-white/60 text-sm uppercase tracking-widest">
@@ -95,10 +111,12 @@
         <div id="boutiqueTags" class="flex flex-wrap gap-2"></div>
       </div>
       <div class="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
-        <a id="enquiryBtn" href="#" class="bg-primary text-background-dark px-10 py-4 rounded-lg font-bold text-xs uppercase tracking-widest gold-glow transition-all text-center">
+        <a id="enquiryBtn" href="#"
+          class="bg-primary text-background-dark px-10 py-4 rounded-lg font-bold text-xs uppercase tracking-widest gold-glow transition-all text-center">
           Send Enquiry
         </a>
-        <a id="messageBtn" href="#" class="border border-primary/30 text-primary px-10 py-4 rounded-lg font-bold text-xs uppercase tracking-widest hover:bg-primary/10 transition-all text-center">
+        <a id="messageBtn" href="#"
+          class="border border-primary/30 text-primary px-10 py-4 rounded-lg font-bold text-xs uppercase tracking-widest hover:bg-primary/10 transition-all text-center">
           Message
         </a>
       </div>
@@ -109,17 +127,21 @@
         <h3 class="font-display text-2xl text-white">The Collections</h3>
         <div class="h-[1px] flex-grow mx-8 bg-gradient-to-r from-primary/40 to-transparent mb-3"></div>
       </div>
-      <div id="productsGrid" class="flex gap-6 overflow-x-auto pb-4 snap-x snap-mandatory md:grid md:grid-cols-2 lg:grid-cols-3 md:overflow-visible md:pb-0"></div>
+      <div id="productsGrid"
+        class="flex gap-6 overflow-x-auto pb-4 snap-x snap-mandatory md:grid md:grid-cols-2 lg:grid-cols-3 md:overflow-visible md:pb-0">
+      </div>
     </section>
 
     <section class="mb-20">
       <div class="glass-card rounded-lg p-8 md:p-12 flex flex-col lg:flex-row items-center gap-12">
         <div class="text-center lg:text-left lg:border-r lg:border-white/10 lg:pr-12">
-          <div class="w-14 h-14 mx-auto lg:mx-0 mb-4 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center">
+          <div
+            class="w-14 h-14 mx-auto lg:mx-0 mb-4 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center">
             <span class="material-symbols-outlined text-primary text-2xl">verified</span>
           </div>
           <div class="text-primary font-display text-2xl font-bold mb-2 uppercase tracking-[0.16em]">Cloche Listed</div>
-          <p class="text-white/40 uppercase tracking-[0.2em] text-[10px] font-semibold">Live boutique profile summary</p>
+          <p class="text-white/40 uppercase tracking-[0.2em] text-[10px] font-semibold">Live boutique profile summary
+          </p>
         </div>
         <div class="flex-grow grid grid-cols-1 md:grid-cols-3 gap-8">
           <div class="flex items-center gap-4">
@@ -164,14 +186,17 @@
           </div>
         </div>
         <div class="pt-6 border-t border-white/5">
-          <a id="directionsBtn" href="#" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-3 text-primary text-xs uppercase tracking-[0.2em] font-bold group">
+          <a id="directionsBtn" href="#" target="_blank" rel="noopener noreferrer"
+            class="inline-flex items-center gap-3 text-primary text-xs uppercase tracking-[0.2em] font-bold group">
             Get Directions
-            <span class="material-symbols-outlined text-sm group-hover:translate-x-2 transition-transform">arrow_forward</span>
+            <span
+              class="material-symbols-outlined text-sm group-hover:translate-x-2 transition-transform">arrow_forward</span>
           </a>
         </div>
       </div>
       <div class="h-[380px] rounded-lg overflow-hidden glass-card relative group">
-        <img id="coverImage" class="w-full h-full object-cover" alt="Boutique cover" src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=1400&auto=format&fit=crop" />
+        <img id="coverImage" class="w-full h-full object-cover" alt="Boutique cover"
+          src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=1400&auto=format&fit=crop" />
         <div class="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent"></div>
         <div class="absolute bottom-6 left-6 right-6 flex items-end">
           <div>
@@ -185,9 +210,12 @@
 
   <footer class="mt-16 py-12 border-t border-white/5 text-center">
     <div class="flex justify-center gap-8 mb-8">
-      <a class="text-white/40 hover:text-primary transition-colors uppercase text-[10px] tracking-[0.3em] font-semibold" href="#">Instagram</a>
-      <a class="text-white/40 hover:text-primary transition-colors uppercase text-[10px] tracking-[0.3em] font-semibold" href="#">Facebook</a>
-      <a class="text-white/40 hover:text-primary transition-colors uppercase text-[10px] tracking-[0.3em] font-semibold" href="#">Pinterest</a>
+      <a class="text-white/40 hover:text-primary transition-colors uppercase text-[10px] tracking-[0.3em] font-semibold"
+        href="#">Instagram</a>
+      <a class="text-white/40 hover:text-primary transition-colors uppercase text-[10px] tracking-[0.3em] font-semibold"
+        href="#">Facebook</a>
+      <a class="text-white/40 hover:text-primary transition-colors uppercase text-[10px] tracking-[0.3em] font-semibold"
+        href="#">Pinterest</a>
     </div>
     <p class="text-[9px] uppercase tracking-[0.4em] text-white/20">© 2024 Cloche Luxury Group. All rights reserved.</p>
   </footer>
@@ -204,38 +232,38 @@
     ];
 
     function resolveAssetUrl(url) {
-    let raw = String(url || "").trim();
-    if (!raw) return "";
-    if (/^data:image\//i.test(raw)) return raw;
-    
-    if (raw.includes("localhost") || raw.includes("127.0.0.1")) {
-       try {
-           const u = new URL(raw);
-           raw = u.pathname;
-       } catch(e) {}
+      let raw = String(url || "").trim();
+      if (!raw) return "";
+      if (/^data:image\//i.test(raw)) return raw;
+
+      if (raw.includes("localhost") || raw.includes("127.0.0.1")) {
+        try {
+          const u = new URL(raw);
+          raw = u.pathname;
+        } catch (e) { }
+      }
+      if (/^https?:\/\//i.test(raw)) return addCacheBuster(raw);
+
+      const normalized = raw.replace(/\\/g, "/");
+      const lower = normalized.toLowerCase();
+      const uploadsWithSlash = lower.indexOf("/uploads/");
+      if (uploadsWithSlash >= 0) return addCacheBuster(`${API_ORIGIN}${normalized.slice(uploadsWithSlash)}`);
+      const uploadsNoSlash = lower.indexOf("uploads/");
+      if (uploadsNoSlash >= 0) return addCacheBuster(`${API_ORIGIN}/${normalized.slice(uploadsNoSlash)}`);
+
+      // Try to detect Cloudinary public ID (has .png .jpg .jpeg .webp) without being a full path
+      if (/\.(png|jpg|jpeg|webp)$/i.test(normalized) && !normalized.includes("/")) {
+        return addCacheBuster(`https://res.cloudinary.com/dycwsnzyd/image/upload/${normalized}`);
+      }
+
+      return addCacheBuster(`${API_ORIGIN}${normalized.startsWith("/") ? "" : "/"}${normalized}`);
     }
-    if (/^https?:\/\//i.test(raw)) return addCacheBuster(raw);
 
-    const normalized = raw.replace(/\\/g, "/");
-    const lower = normalized.toLowerCase();
-    const uploadsWithSlash = lower.indexOf("/uploads/");
-    if (uploadsWithSlash >= 0) return addCacheBuster(`${API_ORIGIN}${normalized.slice(uploadsWithSlash)}`);
-    const uploadsNoSlash = lower.indexOf("uploads/");
-    if (uploadsNoSlash >= 0) return addCacheBuster(`${API_ORIGIN}/${normalized.slice(uploadsNoSlash)}`);
-
-    // Try to detect Cloudinary public ID (has .png .jpg .jpeg .webp) without being a full path
-    if (/\.(png|jpg|jpeg|webp)$/i.test(normalized) && !normalized.includes("/")) {
-      return addCacheBuster(`https://res.cloudinary.com/dycwsnzyd/image/upload/${normalized}`);
+    function addCacheBuster(url) {
+      if (!url) return url;
+      const separator = url.includes('?') ? '&' : '?';
+      return `${url}${separator}v=${Math.floor(Date.now() / 60000)}`;
     }
-
-    return addCacheBuster(`${API_ORIGIN}${normalized.startsWith("/") ? "" : "/"}${normalized}`);
-  }
-
-  function addCacheBuster(url) {
-    if (!url) return url;
-    const separator = url.includes('?') ? '&' : '?';
-    return `${url}${separator}v=${Math.floor(Date.now() / 60000)}`;
-  }
 
     function getBoutiqueId() {
       const params = new URLSearchParams(window.location.search);
@@ -396,7 +424,7 @@
       setText("metricProducts", `${productsCount} product${productsCount === 1 ? "" : "s"} listed`);
       setText("metricPlan", `${plan} subscription`);
       setText("metricDistrict", district);
-      setText("visitAddress", `${boutique.area || "Area not set"}, ${boutique.city || "City not set"}`);
+      setText("visitAddress", `${boutique.area || "Area not set"}, ${boutique.district || boutique.city || "City not set"}`);
       setText("visitPhone", boutique.phone || "Phone not available");
       setText("visitEmail", boutique.email || "Email not available");
       setText("coverDistrict", district);
@@ -468,10 +496,5 @@
   </script>
   <script src='responsive-layout.js'></script>
 </body>
+
 </html>
-
-
-
-
-
-
