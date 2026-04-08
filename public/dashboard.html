@@ -548,16 +548,32 @@
       if (growthText) growthText.textContent = `${sign}${trendPercent}% Growth`;
     }
 
+    async function fetchWithTimeout(url, timeoutMs = 10000, options = {}) {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+      try {
+        const res = await fetch(url, { ...options, signal: controller.signal });
+        clearTimeout(timeoutId);
+        return res;
+      } catch (error) {
+        clearTimeout(timeoutId);
+        throw error;
+      }
+    }
+
     async function loadDashboardProducts(boutiqueId) {
       const grid = document.getElementById("dashboardProductGrid");
       if (!grid) return;
 
       try {
-        const res = await fetch(`${API_ORIGIN}/api/products/boutique/${boutiqueId}`);
+        console.log(`[Dashboard] Loading products for boutique ${boutiqueId}...`);
+        const res = await fetchWithTimeout(`${API_ORIGIN}/api/products/boutique/${boutiqueId}`, 10000);
         const data = await res.json();
         if (!res.ok) throw new Error(data.message || "Failed to load products");
+        console.log("[Dashboard] Products loaded successfully");
         renderDashboardProducts(Array.isArray(data) ? data : []);
       } catch (err) {
+        console.error("[Dashboard] Products load error:", err);
         grid.innerHTML = `
           <div class="col-span-full glass-card rounded-xl p-8 text-center text-red-400 text-sm">
             ${err.message || "Failed to load products"}
@@ -577,11 +593,13 @@
       }
 
       try {
-        const res = await fetch(`${API_ORIGIN}/api/auth/dashboard/${boutiqueId}`);
+        console.log(`[Dashboard] Fetching dashboard data for boutique ${boutiqueId}...`);
+        const res = await fetchWithTimeout(`${API_ORIGIN}/api/auth/dashboard/${boutiqueId}`, 10000);
 
         if (!res.ok) throw new Error("API error");
 
         const data = await res.json();
+        console.log("[Dashboard] Dashboard data loaded successfully");
 
         // 🔢 Dashboard data
         const safeSetText = (id, text) => {
@@ -623,9 +641,11 @@
       }
 
       try {
-        const leadsRes = await fetch(`${API_ORIGIN}/api/leads/list/${boutiqueId}`);
+        console.log(`[Dashboard] Fetching leads for boutique ${boutiqueId}...`);
+        const leadsRes = await fetchWithTimeout(`${API_ORIGIN}/api/leads/list/${boutiqueId}`, 10000);
         if (leadsRes.ok) {
           const leads = await leadsRes.json();
+          console.log(`[Dashboard] ${leads?.length || 0} leads loaded`);
           updateLeadKpiFromLeads(leads);
           updatePerformanceChart(leads);
           const recentLeads = leads.slice(0, 3); // Top 3

@@ -436,6 +436,19 @@
       localStorage.setItem("plan", data.plan || "Basic");
     }
 
+    async function fetchWithTimeout(url, timeoutMs = 10000, options = {}) {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+      try {
+        const res = await fetch(url, { ...options, signal: controller.signal });
+        clearTimeout(timeoutId);
+        return res;
+      } catch (error) {
+        clearTimeout(timeoutId);
+        throw error;
+      }
+    }
+
     async function loadProfile() {
       const boutiqueId = localStorage.getItem("boutiqueId");
       const isLoggedIn = localStorage.getItem("isLoggedIn");
@@ -445,15 +458,23 @@
         return;
       }
 
-      const res = await fetch(`${API_BASE}/profile/${boutiqueId}`);
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Failed to load profile");
-      fillProfile(data);
+      try {
+        console.log(`[Profile] Loading profile for boutique ${boutiqueId}...`);
+        const res = await fetchWithTimeout(`${API_BASE}/profile/${boutiqueId}`, 10000);
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || "Failed to load profile");
+        console.log("[Profile] Profile loaded successfully");
+        fillProfile(data);
 
-      const showcaseRes = await fetch(`${API_BASE}/profile/${boutiqueId}/showcase`);
-      const showcaseData = await showcaseRes.json();
-      if (showcaseRes.ok) {
-        fillShowcase(showcaseData);
+        const showcaseRes = await fetchWithTimeout(`${API_BASE}/profile/${boutiqueId}/showcase`, 10000);
+        const showcaseData = await showcaseRes.json();
+        if (showcaseRes.ok) {
+          console.log("[Profile] Showcase data loaded");
+          fillShowcase(showcaseData);
+        }
+      } catch (err) {
+        console.error("[Profile] Load error:", err);
+        throw err;
       }
     }
 
@@ -467,16 +488,21 @@
         city: document.getElementById("cityInput").value.trim()
       };
 
-      const res = await fetch(`${API_BASE}/profile/${boutiqueId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-      const result = await res.json();
-      if (!res.ok) throw new Error(result.message || "Failed to save profile");
-
-      alert("Profile updated successfully.");
-      await loadProfile();
+      try {
+        const res = await fetchWithTimeout(`${API_BASE}/profile/${boutiqueId}`, 10000, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const result = await res.json();
+        if (!res.ok) throw new Error(result.message || "Failed to save profile");
+        console.log("[Profile] Profile saved successfully");
+        alert("Profile updated successfully.");
+        await loadProfile();
+      } catch (err) {
+        console.error("[Profile] Save error:", err);
+        throw err;
+      }
     }
 
     async function changePassword() {
@@ -489,17 +515,23 @@
         return;
       }
 
-      const res = await fetch(`${API_BASE}/profile/${boutiqueId}/password`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ currentPassword, newPassword })
-      });
-      const result = await res.json();
-      if (!res.ok) throw new Error(result.message || "Failed to update password");
+      try {
+        const res = await fetchWithTimeout(`${API_BASE}/profile/${boutiqueId}/password`, 10000, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ currentPassword, newPassword })
+        });
+        const result = await res.json();
+        if (!res.ok) throw new Error(result.message || "Failed to update password");
 
-      alert("Password updated successfully.");
-      document.getElementById("currentPasswordInput").value = "";
-      document.getElementById("newPasswordInput").value = "";
+        console.log("[Profile] Password changed successfully");
+        alert("Password updated successfully.");
+        document.getElementById("currentPasswordInput").value = "";
+        document.getElementById("newPasswordInput").value = "";
+      } catch (err) {
+        console.error("[Profile] Password change error:", err);
+        throw err;
+      }
     }
 
     async function saveShowcase() {
@@ -543,7 +575,7 @@
           if (btn) btn.textContent = "Saving Image URL...";
 
           // Save image URL to backend
-          const imgRes = await fetch(`${API_BASE}/profile/${boutiqueId}/showcase-image`, {
+          const imgRes = await fetchWithTimeout(`${API_BASE}/profile/${boutiqueId}/showcase-image`, 10000, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ imageUrl })
@@ -567,14 +599,14 @@
 
       // Step 2: Save text fields (district, area, tags)
       if (btn) btn.textContent = "Saving Details...";
-      let res = await fetch(`${API_BASE}/profile/${boutiqueId}/showcase`, {
+      let res = await fetchWithTimeout(`${API_BASE}/profile/${boutiqueId}/showcase`, 10000, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
       });
 
       if (res.status === 404) {
-        res = await fetch(`${API_BASE}/profile/${boutiqueId}/showcase`, {
+        res = await fetchWithTimeout(`${API_BASE}/profile/${boutiqueId}/showcase`, 10000, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload)
