@@ -316,7 +316,7 @@
         return `
         <div class="glass-card rounded-lg overflow-hidden flex flex-col transition-all duration-300">
           <div class="relative h-[420px] overflow-hidden">
-            <img class="w-full h-full object-cover transition-transform duration-700 hover:scale-105" src="${image}" alt="${b.boutique_name || "Boutique"}" onerror="this.onerror=null;this.src='${pickImage(`${b.id}-${b.boutique_name}`)}'" />
+            <img class="w-full h-full object-cover transition-transform duration-700 hover:scale-105" src="${image}" alt="${b.boutique_name || "Boutique"}" loading="lazy" onerror="this.onerror=null;this.src='${pickImage(`${b.id}-${b.boutique_name}`)}'" />
             <div class="absolute top-4 left-4 bg-primary px-3 py-1 rounded text-[10px] font-bold tracking-[0.2em] text-background-dark uppercase">${district}</div>
           </div>
           <div class="p-8 flex-1 flex flex-col">
@@ -340,17 +340,19 @@
 
       try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000);
+        const timeoutId = setTimeout(() => controller.abort(), 5000); // Reduced to 5s for faster feedback
         const res = await fetch(`${API_BASE}/boutiques`, { signal: controller.signal });
         clearTimeout(timeoutId);
         const data = await res.json();
         if (!res.ok) throw new Error(data.message || "Failed to load boutiques");
 
         boutiques = Array.isArray(data) ? data : [];
+        console.log(`[Boutiques] Loaded ${boutiques.length} boutiques`);
         renderFilters();
         renderGrid();
       } catch (err) {
-        status.textContent = err.name === "AbortError" ? "Loading is taking too long. Please refresh." : "Failed to load boutiques.";
+        console.log("[Boutiques] Load error:", err.message);
+        status.textContent = err.name === "AbortError" ? "Server is slow. Please refresh or try again." : "Failed to load boutiques.";
         document.getElementById("boutiquesGrid").innerHTML = `<div class="col-span-full glass-card rounded-lg p-10 text-center text-red-400">${err.message}</div>`;
       }
     }
