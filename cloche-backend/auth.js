@@ -12,15 +12,15 @@ const normalizeImageUrl = (value) => {
   const raw = String(value || "").trim();
   if (!raw) return null;
   if (/^https?:\/\//i.test(raw) || /^data:image\//i.test(raw)) return raw;
-  
+
   // Determine cloud name - use env var first, fallback to known value
   const cloudName = CLOUDINARY_CLOUD_NAME || 'dycwsnzyd';
-  
+
   // If it looks like a Cloudinary public ID or path, construct full URL
   if (!raw.includes("image/upload")) {
     return `https://res.cloudinary.com/${cloudName}/image/upload/${raw.replace(/^\/+/, "")}`;
   }
-  
+
   return raw; // Already looks like a full URL
 };
 
@@ -615,7 +615,7 @@ router.post("/profile/:boutiqueId/showcase-image", showcaseUpload.single("image"
   if (req.file) console.log("[SHOWCASE-IMAGE POST] File info:", { name: req.file.originalname, size: req.file.size, mimetype: req.file.mimetype });
 
   if (!req.file && !imageUrl) return res.status(400).json({ message: "Image file or imageUrl is required" });
-  
+
   try {
     if (req.file) {
       console.log("[SHOWCASE-IMAGE POST] Uploading file to storage...");
@@ -639,12 +639,12 @@ router.post("/profile/:boutiqueId/showcase-image", showcaseUpload.single("image"
       .select("boutique_id, image_url")
       .eq("boutique_id", boutiqueId)
       .maybeSingle();
-    
+
     if (eErr && eErr.code !== "PGRST116") {
       console.log("[SHOWCASE-IMAGE POST] Query error:", eErr);
       return res.status(500).json({ message: "Failed to save image", error: eErr.message });
     }
-    
+
     console.log("[SHOWCASE-IMAGE POST] Existing record found:", !!existing);
     if (existing) console.log("[SHOWCASE-IMAGE POST] Existing image_url:", existing.image_url);
 
@@ -663,14 +663,14 @@ router.post("/profile/:boutiqueId/showcase-image", showcaseUpload.single("image"
         .insert([{ boutique_id: Number(boutiqueId), image_url: imageUrl }]);
       saveErr = error;
     }
-    
+
     if (saveErr) {
       console.log("[SHOWCASE-IMAGE POST] Save error:", saveErr);
       return res.status(500).json({ message: "Failed to save image", error: saveErr.message });
     }
-    
+
     console.log("[SHOWCASE-IMAGE POST] Database save successful!");
-    
+
     if (existing?.image_url && existing.image_url !== imageUrl) {
       await deleteStorageObjectByUrl(existing.image_url);
     }
@@ -700,57 +700,54 @@ router.get("/boutiques", async (req, res) => {
       return res.status(500).json({ message: "Database error", error: boutiqueError.message });
     }
 
-    console.log(`[BOUTIQUES] Found ${Array.isArray(boutiques) ? boutiques.length : 0} boutiques`);
+    const boutiqueList = Array.isArray(boutiques) ? boutiques : [];
+    console.log(`[BOUTIQUES] Found ${boutiqueList.length} boutiques`);
 
-    let showcaseByBoutiqueId = {};
+    // Fetch ALL showcase data in one query (same table as profile/:id/showcase)
     const { data: showcases, error: showcaseError } = await supabase
       .from("boutique_showcase")
-      .select("id, boutique_id, district, area, tags, image_url, rating, created_at, updated_at");
+      .select("boutique_id, district, area, tags, image_url, rating, updated_at, created_at, id");
 
-    console.log(`[BOUTIQUES] Found ${Array.isArray(showcases) ? showcases.length : 0} showcase records`);
+    if (showcaseError) {
+      console.warn("[BOUTIQUES] showcase read error:", showcaseError.message, showcaseError.code);
+    }
+
+    console.log(`[BOUTIQUES] Showcase rows fetched: ${Array.isArray(showcases) ? showcases.length : 0}`);
     if (Array.isArray(showcases)) {
       showcases.forEach(s => {
-        console.log(`[BOUTIQUES] Showcase for boutique ${s.boutique_id}:`, {
-          id: s.id,
-          image_url: s.image_url,
-          district: s.district,
-          area: s.area
-        });
+        console.log(`  -> boutique_id=${s.boutique_id} image_url=${s.image_url} district=${s.district}`);
       });
     }
 
+    // Build a map of boutique_id -> best showcase row
+    const showcaseMap = {};
     if (!showcaseError && Array.isArray(showcases)) {
-      // Pick the latest showcase row per boutique, and prefer rows with uploaded image_url.
-      showcaseByBoutiqueId = showcases.reduce((acc, row) => {
-        const key = row.boutique_id;
-        const existing = acc[key];
+      for (const row of showcases) {
+        const key = String(row.boutique_id);
+        const existing = showcaseMap[key];
         if (!existing) {
-          acc[key] = row;
-          return acc;
+          showcaseMap[key] = row;
+          continue;
         }
-
-        const existingTime = new Date(existing.updated_at || existing.created_at || 0).getTime();
-        const rowTime = new Date(row.updated_at || row.created_at || 0).getTime();
+        // Prefer rows that have an image
         const existingHasImage = Boolean(existing.image_url);
         const rowHasImage = Boolean(row.image_url);
-
         if (rowHasImage && !existingHasImage) {
-          acc[key] = row;
+          showcaseMap[key] = row;
         } else if (rowHasImage === existingHasImage) {
-          if (rowTime > existingTime) acc[key] = row;
-          else if (rowTime === existingTime && Number(row.id || 0) > Number(existing.id || 0)) acc[key] = row;
+          const existingTime = new Date(existing.updated_at || existing.created_at || 0).getTime();
+          const rowTime = new Date(row.updated_at || row.created_at || 0).getTime();
+          if (rowTime > existingTime) showcaseMap[key] = row;
         }
-        return acc;
-      }, {});
-    } else if (showcaseError) {
-      console.warn("[BOUTIQUES] showcase read skipped:", showcaseError.message);
+      }
     }
 
-    const merged = (boutiques || []).map((b) => {
-      const s = showcaseByBoutiqueId[b.id] || {};
+    const merged = boutiqueList.map((b) => {
+      const s = showcaseMap[String(b.id)] || {};
       const rawImageUrl = s.image_url || null;
       const normalizedImageUrl = normalizeImageUrl(rawImageUrl);
-      
+      console.log(`[BOUTIQUES] Boutique ${b.id} (${b.boutique_name}): raw_image=${rawImageUrl} normalized=${normalizedImageUrl}`);
+
       return {
         id: b.id,
         boutique_name: b.boutique_name,
@@ -773,9 +770,11 @@ router.get("/boutiques", async (req, res) => {
 
     return res.json(filtered);
   } catch (err) {
+    console.error("[BOUTIQUES] Unexpected error:", err);
     return res.status(500).json({ message: "Server error", error: err.message });
   }
 });
+
 
 router.get("/cloudinary-config", (req, res) => {
   return res.json({ cloudName: CLOUDINARY_CLOUD_NAME || "" });
