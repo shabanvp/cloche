@@ -469,6 +469,9 @@
     const API_ORIGIN = "https://cloche-backend.onrender.com";
     let cloudinaryCloudName = "";
     const FEATURED_CACHE_KEY = "featuredBoutiquesCacheV1";
+    const FEATURED_RETRY_DELAYS_MS = [0, 2500, 6000, 12000];
+    let featuredLoadInProgress = false;
+    let featuredRetryTimer = null;
     const previewFallbackImages = [
       "https://images.unsplash.com/photo-1583391733981-849840f3f1c2?q=80&w=1200&auto=format&fit=crop",
       "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=1200&auto=format&fit=crop",
@@ -666,7 +669,36 @@
       }
     }
 
+    function wait(ms) {
+      return new Promise((resolve) => setTimeout(resolve, ms));
+    }
+
+    async function fetchFeaturedBoutiquesWithRetry(statusEl) {
+      let lastError = null;
+      for (let attempt = 0; attempt < FEATURED_RETRY_DELAYS_MS.length; attempt += 1) {
+        const delay = FEATURED_RETRY_DELAYS_MS[attempt];
+        if (delay > 0) {
+          if (statusEl) {
+            statusEl.textContent = `Connecting to boutique server... retry ${attempt + 1}/${FEATURED_RETRY_DELAYS_MS.length}`;
+          }
+          await wait(delay);
+        }
+
+        try {
+          const res = await fetch(`${API_BASE}/boutiques?limit=4`);
+          const data = await res.json().catch(() => []);
+          if (!res.ok) throw new Error(data.message || "Failed to load boutiques");
+          return Array.isArray(data) ? data : [];
+        } catch (err) {
+          lastError = err;
+        }
+      }
+      throw lastError || new Error("Failed to load boutiques");
+    }
+
     async function loadFeaturedBoutiques() {
+      if (featuredLoadInProgress) return;
+      featuredLoadInProgress = true;
       const status = document.getElementById("featuredBoutiquesStatus");
       if (status) status.textContent = "Loading boutiques...";
 
@@ -674,31 +706,35 @@
         const hasCache = loadFeaturedBoutiquesFromCache();
         if (hasCache && status) {
           status.textContent = "Loading latest boutiques...";
+        } else if (status) {
+          status.textContent = "Loading boutiques from server...";
         }
 
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 15000);
-        const res = await fetch(`${API_BASE}/boutiques?limit=4`, { signal: controller.signal });
-        clearTimeout(timeoutId);
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.message || "Failed to load boutiques");
-
-        const boutiques = (Array.isArray(data) ? data : []).slice(0, 4);
+        const data = await fetchFeaturedBoutiquesWithRetry(status);
+        const boutiques = data.slice(0, 4);
         try {
-          localStorage.setItem(FEATURED_CACHE_KEY, JSON.stringify({ items: Array.isArray(data) ? data : [], ts: Date.now() }));
+          localStorage.setItem(FEATURED_CACHE_KEY, JSON.stringify({ items: data, ts: Date.now() }));
         } catch (_) {}
         renderFeaturedBoutiques(boutiques);
       } catch (err) {
         const hasCache = loadFeaturedBoutiquesFromCache();
         if (status) {
           if (hasCache) {
-            status.textContent = "Showing recent boutiques. Live update is slow.";
+            status.textContent = "Showing recent boutiques. Live server is slow.";
           } else {
-            status.textContent = err.name === "AbortError" ? "Loading is taking too long. Please refresh." : (err.message || "Failed to load boutiques.");
+            status.textContent = "Server is waking up. Retrying automatically...";
           }
         }
         const grid = document.getElementById("featuredBoutiquesGrid");
         if (grid && !hasCache) grid.innerHTML = "";
+        if (!featuredRetryTimer) {
+          featuredRetryTimer = setTimeout(() => {
+            featuredRetryTimer = null;
+            loadFeaturedBoutiques();
+          }, 8000);
+        }
+      } finally {
+        featuredLoadInProgress = false;
       }
     }
 
