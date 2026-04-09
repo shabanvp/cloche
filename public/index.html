@@ -640,7 +640,7 @@
         return;
       }
 
-      status.textContent = `Showing ${list.length} boutique${list.length === 1 ? "" : "s"}...`;
+      status.textContent = "";
       grid.innerHTML = list.map((b, idx) => {
         const resolved = b.image_url ? resolveAssetUrl(b.image_url) : null;
         const fallback = resolved ? resolved : pickImage(`${b.id}-${b.boutique_name}-${idx}`);
@@ -679,7 +679,7 @@
         if (!list.length) return false;
         renderFeaturedBoutiques(list.slice(0, 4));
         const status = document.getElementById("featuredBoutiquesStatus");
-        if (status) status.textContent = `Showing ${Math.min(4, list.length)} boutique${Math.min(4, list.length) === 1 ? "" : "s"} from recent data.`;
+        if (status) status.textContent = "";
         return true;
       } catch (_) {
         return false;
@@ -755,7 +755,7 @@
           showSkeletons(skeletonCount);
           if (status) status.textContent = "Loading boutiques...";
         } else if (hasCache && status) {
-          if (status) status.textContent = "Fetching latest...";
+          if (status) status.textContent = "";
         }
 
         // Fetch fresh data in background
