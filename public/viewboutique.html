@@ -424,7 +424,7 @@
       setText("metricProducts", `${productsCount} product${productsCount === 1 ? "" : "s"} listed`);
       setText("metricPlan", `${plan} subscription`);
       setText("metricDistrict", district);
-      setText("visitAddress", `${boutique.area || "Area not set"}, ${boutique.city || "City not set"}`);
+      setText("visitAddress", `${boutique.area || "Area not set"}, ${boutique.district || boutique.city || "District not set"}`);
       setText("visitPhone", boutique.phone || "Phone not available");
       setText("visitEmail", boutique.email || "Email not available");
       setText("coverDistrict", district);
