@@ -315,10 +315,10 @@
 
         return `
         <div class="glass-card rounded-lg overflow-hidden flex flex-col transition-all duration-300">
-          <div class="relative h-[420px] overflow-hidden">
-            <img class="w-full h-full object-cover transition-transform duration-700 hover:scale-105" src="${image}" alt="${b.boutique_name || "Boutique"}" loading="lazy" onerror="this.onerror=null;this.src='${pickImage(`${b.id}-${b.boutique_name}`)}'" />
+          <a href="viewboutique.html?boutiqueId=${b.id}" onclick="localStorage.setItem('selectedBoutiqueId','${b.id}')" class="relative block h-[420px] overflow-hidden group">
+            <img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" src="${image}" alt="${b.boutique_name || "Boutique"}" loading="lazy" onerror="this.onerror=null;this.src='${pickImage(`${b.id}-${b.boutique_name}`)}'" />
             <div class="absolute top-4 left-4 bg-primary px-3 py-1 rounded text-[10px] font-bold tracking-[0.2em] text-background-dark uppercase">${district}</div>
-          </div>
+          </a>
           <div class="p-8 flex-1 flex flex-col">
             <div class="flex justify-between items-start mb-2 gap-2">
               <h3 class="font-display text-2xl font-semibold tracking-wide uppercase">${b.boutique_name || "Boutique"}</h3>
