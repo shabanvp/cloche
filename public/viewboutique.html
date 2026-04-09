@@ -192,7 +192,7 @@
           </a>
         </div>
       </div>
-      <div class="h-[380px] rounded-lg overflow-hidden glass-card relative group">
+      <div class="h-[380px] rounded-lg overflow-hidden glass-card relative group hidden lg:block">
         <img id="coverImage" class="w-full h-full object-cover" alt="Boutique cover"
           src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=1400&auto=format&fit=crop" />
         <div class="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent"></div>
@@ -202,6 +202,15 @@
             <p id="coverName" class="font-display text-2xl uppercase">Boutique</p>
           </div>
         </div>
+      </div>
+    </section>
+
+    <!-- Other Boutiques Section for Mobile -->
+    <section class="mt-8 block lg:hidden pb-12">
+      <div class="flex justify-between items-end mb-6">
+        <h3 class="font-display text-2xl text-primary">Other Boutiques</h3>
+      </div>
+      <div id="otherBoutiquesGrid" class="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory">
       </div>
     </section>
   </main>
@@ -228,6 +237,12 @@
       "https://images.unsplash.com/photo-1542060748-10c28b62716f?q=80&w=1200&auto=format&fit=crop",
       "https://images.unsplash.com/photo-1583391733981-849840f3f1c2?q=80&w=1200&auto=format&fit=crop"
     ];
+
+    function pickImage(seed) {
+      let sum = 0;
+      for (const ch of (seed || "")) sum += ch.charCodeAt(0);
+      return fallbackImages[sum % fallbackImages.length];
+    }
 
     function resolveAssetUrl(url) {
       let raw = String(url || "").trim();
@@ -392,11 +407,12 @@
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Failed to load boutique list");
 
-      const boutique = (Array.isArray(data) ? data : []).find((item) => Number(item.id) === Number(boutiqueId));
+      const boutiquesArray = Array.isArray(data) ? data : [];
+      const boutique = boutiquesArray.find((item) => Number(item.id) === Number(boutiqueId));
       if (!boutique) throw new Error("Boutique not found");
 
       localStorage.setItem("selectedBoutiqueId", String(boutiqueId));
-      return boutique;
+      return { boutique, allBoutiques: boutiquesArray };
     }
 
     async function loadProducts(boutiqueId) {
@@ -467,14 +483,39 @@
       renderTags(tags);
     }
 
+    function renderOtherBoutiques(allBoutiques, currentId) {
+      const grid = document.getElementById("otherBoutiquesGrid");
+      if (!grid) return;
+      const filtered = allBoutiques.filter(b => Number(b.id) !== Number(currentId)).slice(0, 6);
+      if (!filtered.length) {
+        grid.innerHTML = `<p class="text-white/50 text-xs">No other boutiques found.</p>`;
+        return;
+      }
+      grid.innerHTML = filtered.map(b => {
+        const raw = b.image_url ? resolveAssetUrl(b.image_url) : null;
+        const image = addCacheBuster(raw || pickImage(`${b.id}-${b.boutique_name}`));
+        return `
+          <a href="viewboutique.html?boutiqueId=${b.id}" onclick="localStorage.setItem('selectedBoutiqueId','${b.id}')" class="group block min-w-[220px] max-w-[220px] snap-start relative rounded-lg overflow-hidden glass-card h-[300px]">
+            <img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" src="${image}" alt="${b.boutique_name || 'Boutique'}" loading="lazy" onerror="this.onerror=null;this.src='${pickImage(`${b.id}-${b.boutique_name}`)}'" />
+            <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent"></div>
+            <div class="absolute bottom-4 left-4 right-4">
+              <h4 class="font-display text-sm text-white tracking-widest uppercase truncate mb-1">${b.boutique_name || "Boutique"}</h4>
+              <p class="text-primary text-[10px] uppercase tracking-[0.2em] truncate">${(b.district || b.city || "Kerala").toUpperCase()}</p>
+            </div>
+          </a>
+        `;
+      }).join("");
+    }
+
     async function init() {
       updateAuthNav();
       try {
-        const boutique = await loadBoutique();
-        if (!boutique) return;
-        const products = await loadProducts(boutique.id);
-        fillBoutique(boutique, products.length);
+        const payload = await loadBoutique();
+        if (!payload || !payload.boutique) return;
+        const products = await loadProducts(payload.boutique.id);
+        fillBoutique(payload.boutique, products.length);
         renderProducts(products);
+        renderOtherBoutiques(payload.allBoutiques, payload.boutique.id);
         setText("statusWrap", "");
       } catch (err) {
         setText("statusWrap", err.message || "Failed to load boutique profile.");
