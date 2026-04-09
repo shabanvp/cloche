@@ -469,8 +469,8 @@
     const API_ORIGIN = "https://cloche-backend.onrender.com";
     let cloudinaryCloudName = "";
     const FEATURED_CACHE_KEY = "featuredBoutiquesCacheV1";
-    const FEATURED_RETRY_DELAYS_MS = [0, 500, 2000]; // Faster retries: max ~2.5s instead of 20s
-    const FEATURED_FETCH_TIMEOUT_MS = 5000; // 5 second timeout per fetch
+    const FEATURED_RETRY_DELAYS_MS = [0, 2000, 5000]; // Give Render backends some time between attempts
+    const FEATURED_FETCH_TIMEOUT_MS = 60000; // 60 second timeout per fetch to allow free-tier spin up
     let featuredLoadInProgress = false;
     let featuredRetryTimer = null;
     const previewFallbackImages = [

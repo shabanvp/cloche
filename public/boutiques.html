@@ -340,7 +340,7 @@
 
       try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 5000); // Reduced to 5s for faster feedback
+        const timeoutId = setTimeout(() => controller.abort(), 60000); // 60s to allow free-tier spin up
         const res = await fetch(`${API_BASE}/boutiques`, { signal: controller.signal });
         clearTimeout(timeoutId);
         const data = await res.json();
