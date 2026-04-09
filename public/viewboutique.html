@@ -475,7 +475,7 @@
         const products = await loadProducts(boutique.id);
         fillBoutique(boutique, products.length);
         renderProducts(products);
-        setText("statusWrap", `${boutique.boutique_name || "Boutique"} profile loaded successfully.`);
+        setText("statusWrap", "");
       } catch (err) {
         setText("statusWrap", err.message || "Failed to load boutique profile.");
         renderProducts([]);
