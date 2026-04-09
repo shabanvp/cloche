@@ -198,7 +198,7 @@
       document.getElementById("avatarCircle").textContent = first.charAt(0).toUpperCase();
       document.getElementById("editName").value = name;
       document.getElementById("editEmail").value = email;
-      statusEl.textContent = "Your account is secured and ready for wedding planning.";
+      statusEl.textContent = "";
     }
 
     function updateAuthNav() {
@@ -269,7 +269,7 @@
         applyProfile(data);
       } catch (err) {
         applyProfile({ name: localName, email: localEmail });
-        statusEl.textContent = err.message || "Profile loaded from local session.";
+        statusEl.textContent = "";
       }
     }
 
