@@ -289,7 +289,7 @@
         ? boutiques
         : boutiques.filter(b => ((b.district || b.city || "").toLowerCase() === selectedCity.toLowerCase()));
 
-      status.textContent = `${list.length} boutique${list.length === 1 ? "" : "s"} found${selectedCity === "All" ? "" : ` in ${selectedCity}`}.`;
+      status.textContent = "";
 
       if (!list.length) {
         grid.innerHTML = `<div class="col-span-full glass-card rounded-lg p-10 text-center text-[#FAF7F2]/60">No boutiques found for this district.</div>`;
