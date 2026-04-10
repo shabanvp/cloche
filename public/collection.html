@@ -65,7 +65,7 @@
         </div>
       </div>
 
-      <p id="collectionStatusText" class="text-center text-white/60 text-sm mb-6">Loading live collections...</p>
+      <p id="collectionStatusText" class="text-center text-white/60 text-sm mb-6"></p>
 
       <div id="collectionGrid" class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
       </div>
@@ -134,7 +134,7 @@
       const grid = document.getElementById("collectionGrid");
       const status = document.getElementById("collectionStatusText");
 
-      status.textContent = `Showing ${items.length} collection item${items.length === 1 ? "" : "s"} from live data.`;
+      status.textContent = "";
 
       if (!items.length) {
         grid.innerHTML = `
@@ -197,7 +197,7 @@
     async function loadCollectionData() {
       const status = document.getElementById("collectionStatusText");
       try {
-        status.textContent = "Loading live collections...";
+        status.textContent = "";
         const bRes = await fetch(`${API_AUTH}/boutiques`);
         const boutiques = await bRes.json();
         if (!bRes.ok) throw new Error("Failed to load boutiques");
