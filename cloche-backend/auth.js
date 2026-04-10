@@ -3,8 +3,10 @@ const bcrypt = require("bcrypt");
 const multer = require("multer");
 const path = require("path");
 const router = express.Router();
+const { v4: uuidv4 } = require("uuid");
 const db = require("./db");
 const supabase = require("./supabase");
+const { sendVerificationEmail } = require("./emailService");
 const { deleteStorageObjectByUrl, uploadBufferToStorage } = require("./storage");
 const CLOUDINARY_CLOUD_NAME = String(process.env.CLOUDINARY_CLOUD_NAME || "").trim();
 
@@ -82,10 +84,17 @@ router.post("/signup", async (req, res) => {
 
     try {
       const passwordHash = await bcrypt.hash(password, 10);
+      const verificationToken = uuidv4();
 
       const { error } = await supabase
         .from("users")
-        .insert([{ name, email, password_hash: passwordHash }]);
+        .insert([{ 
+          name, 
+          email, 
+          password_hash: passwordHash,
+          is_verified: false,
+          verification_token: verificationToken
+        }]);
 
       if (error) {
         if (error.code === "23505") {
@@ -94,10 +103,13 @@ router.post("/signup", async (req, res) => {
         return res.status(500).json({ message: error.message });
       }
 
+      // Send verification email
+      await sendVerificationEmail(email, name, verificationToken, "user");
+
       return res.status(201).json({
         success: true,
         role: "user",
-        message: "User account created successfully"
+        message: "User account created. Please check your email for verification."
       });
     } catch (err) {
       return res.status(500).json({ message: err.message });
@@ -132,6 +144,7 @@ router.post("/signup", async (req, res) => {
       const normalizedEmail = String(email).trim().toLowerCase();
       const normalizedPhone = String(phone).trim();
       const passwordHash = await bcrypt.hash(password, 10);
+      const verificationToken = uuidv4();
 
       const basePayload = {
         boutique_name: String(boutique_name).trim(),
@@ -139,7 +152,9 @@ router.post("/signup", async (req, res) => {
         email: normalizedEmail,
         phone: normalizedPhone,
         city: String(city).trim(),
-        plan: "Basic"
+        plan: "Basic",
+        is_verified: false,
+        verification_token: verificationToken
       };
 
       // Support both schema variants during migration:
@@ -175,11 +190,14 @@ router.post("/signup", async (req, res) => {
         return res.status(500).json({ message: insertError.message || "Database error" });
       }
 
+      // Send verification email
+      await sendVerificationEmail(normalizedEmail, owner_name, verificationToken, "partner");
+
       return res.status(201).json({
         success: true,
         role: "partner",
         boutiqueId: insertedBoutique?.id || null,
-        message: "Boutique account created successfully"
+        message: "Boutique account created. Please check your email for verification."
       });
     } catch (err) {
       return res.status(500).json({ message: err.message || "Server error" });
@@ -190,7 +208,42 @@ router.post("/signup", async (req, res) => {
 });
 
 
-/* ================= LOGIN ================= */
+/* ================= EMAIL VERIFICATION ================= */
+router.get("/verify-email", async (req, res) => {
+  const { token, type } = req.query;
+
+  if (!token || !type) {
+    return res.status(400).send("Verification details missing");
+  }
+
+  const table = type === "partner" ? "boutiques" : "users";
+
+  try {
+    const { data: record, error: findError } = await supabase
+      .from(table)
+      .select("id")
+      .eq("verification_token", token)
+      .maybeSingle();
+
+    if (findError || !record) {
+      return res.status(400).send("Invalid or expired verification token");
+    }
+
+    const { error: updateError } = await supabase
+      .from(table)
+      .update({ is_verified: true, verification_token: null })
+      .eq("id", record.id);
+
+    if (updateError) {
+      return res.status(500).send("Verification failed. Please try again later.");
+    }
+
+    // Redirect to login page
+    return res.redirect("https://cloche.luxury/boutiquelogin.html?verified=true");
+  } catch (err) {
+    return res.status(500).send("Server error occurred during verification.");
+  }
+});
 router.post("/login", async (req, res) => {
   const { account_type, identifier, email, password } = req.body;
 
@@ -222,6 +275,10 @@ router.post("/login", async (req, res) => {
 
     if (!boutique) {
       return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    if (boutique.is_verified === false) {
+      return res.status(401).json({ message: "Please verify your email address first" });
     }
 
     let match = false;
@@ -277,6 +334,10 @@ router.post("/login-user", async (req, res) => {
 
     if (!user) {
       return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    if (user.is_verified === false) {
+      return res.status(401).json({ message: "Please verify your email address first" });
     }
 
     const match = await bcrypt.compare(password, user.password_hash);

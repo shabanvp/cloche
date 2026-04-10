@@ -84,12 +84,95 @@
 <div class="fixed inset-0 pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-10"></div>
 <!-- Top Navigation -->
 <header class="relative z-10 flex items-center justify-between px-8 lg:px-40 py-8">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,100..900;1,100..900&amp;family=Inter:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#c1a671",
+                        "background-light": "#f7f6f2",
+                        "background-dark": "#0d0d0d",
+                        "glass-dark": "rgba(20, 18, 15, 0.7)",
+                    },
+                    fontFamily: {
+                        "display": ["Noto Serif", "serif"],
+                        "sans": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .font-display {
+            font-family: 'Noto Serif', serif;
+        }
+        .spotlight {
+            background: radial-gradient(circle at 50% 50%, rgba(193, 166, 113, 0.08) 0%, rgba(13, 13, 13, 0) 60%);
+        }
+        .glass-card {
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(193, 166, 113, 0.15);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+        input:focus {
+            box-shadow: 0 0 0 1px rgba(193, 166, 113, 0.5);
+        }
+    </style>
+  <link rel='stylesheet' href='responsive-fixes.css' />
+</head>
+<body class="bg-background-light dark:bg-background-dark min-h-screen flex flex-col relative overflow-x-hidden">
+<nav class="fixed top-0 w-full z-50">
+  <div class="bg-[rgba(26,26,26,0.6)] backdrop-blur-md border-b border-[rgba(193,166,113,0.2)]">
+    <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+
+      <!-- Logo -->
+      <a href="index.html" class="flex items-center gap-2 group">
+  <span class="material-symbols-outlined text-primary text-3xl group-hover:scale-105 transition-transform">
+    diamond
+  </span>
+  <span class="text-2xl font-display font-bold tracking-[0.2em] text-white group-hover:text-primary transition-colors">
+    CLOCHE
+  </span>
+</a>
+
+      <!-- Center Menu -->
+
+      <!-- Right Actions -->
+   
+
+    </div>
+  </div>
+</nav>
+
+<!-- Atmospheric Background Layers -->
+<div class="fixed inset-0 spotlight pointer-events-none"></div>
+<div class="fixed inset-0 pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-10"></div>
+<!-- Top Navigation -->
+<header class="relative z-10 flex items-center justify-between px-8 lg:px-40 py-8">
 <div class="flex items-center gap-3 text-white">
 
 </header>
 <!-- Main Content: Login Portal -->
 <main class="flex-1 flex items-center justify-center p-6 relative z-10">
 <div class="glass-card bg-glass-dark w-full max-w-[520px] rounded-xl p-10 lg:p-16 flex flex-col items-center">
+<div id="verificationBanner" class="hidden w-full mb-6 p-4 rounded-lg bg-primary/10 border border-primary/30 text-center">
+  <p id="bannerText" class="text-xs font-bold uppercase tracking-widest text-primary"></p>
+</div>
 <!-- Headline Section -->
 <div class="text-center mb-12">
 <h1 id="loginTitle" class="font-display text-white tracking-[0.2em] text-3xl font-light mb-4">USER PORTAL</h1>
@@ -293,9 +376,26 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
   }
 });
 
-document.getElementById("userTypeBtn").addEventListener("click", () => setAccountType("user"));
-document.getElementById("partnerTypeBtn").addEventListener("click", () => setAccountType("partner"));
-setAccountType("user");
+function checkVerificationStatus() {
+  const params = new URLSearchParams(window.location.search);
+  const banner = document.getElementById("verificationBanner");
+  const bannerText = document.getElementById("bannerText");
+  
+  if (params.get("verified") === "true") {
+    banner.classList.remove("hidden");
+    bannerText.textContent = "Email Verified Successfully. You can now login.";
+  } else if (params.get("status") === "verification_sent") {
+    banner.classList.remove("hidden");
+    bannerText.textContent = "Verification link sent to your email. Please check your inbox.";
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("userTypeBtn").addEventListener("click", () => setAccountType("user"));
+  document.getElementById("partnerTypeBtn").addEventListener("click", () => setAccountType("partner"));
+  setAccountType("user");
+  checkVerificationStatus();
+});
 </script>
   <script src='responsive-layout.js'></script>
 </body></html>

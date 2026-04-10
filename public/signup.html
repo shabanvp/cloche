@@ -414,8 +414,8 @@ if (selectedAccountType === "partner") {
         const result = await res.json();
 
         if (res.ok) {
-          alert("Signup successful! Please login to continue.");
-          window.location.href = "boutiquelogin.html";
+          alert("Signup successful! A verification email has been sent to your Gmail. Please verify to activate your account.");
+          window.location.href = "boutiquelogin.html?status=verification_sent";
         } else {
           alert(result.message);
         }
