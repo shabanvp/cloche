@@ -84,7 +84,19 @@
     const loginProfileLink = document.querySelector("[data-mobile-login-profile]");
     const menuPanel = topbar.querySelector(".mobile-menu-panel");
     let partnerProfileItem = topbar.querySelector("[data-mobile-partner-profile]");
-    let partnerCtaItem = topbar.querySelector("[data-mobile-partner-cta]");
+    let partnerCtaItem = topbar.querySelector("[data-mobile-partner-cta]") || Array.from(topbar.querySelectorAll("a")).find(a => a.textContent.trim() === "Partner With Us");
+    if (partnerCtaItem && !partnerCtaItem.hasAttribute("data-mobile-partner-cta")) {
+      partnerCtaItem.setAttribute("data-mobile-partner-cta", "");
+    }
+    
+    const mobileMenuDetails = topbar.querySelector(".mobile-menu-details");
+    if (mobileMenuDetails) {
+      window.addEventListener("scroll", () => {
+        if (mobileMenuDetails.hasAttribute("open")) {
+          mobileMenuDetails.removeAttribute("open");
+        }
+      });
+    }
 
     if (menuPanel) {
       if (partnerLoggedIn && !partnerProfileItem) {
