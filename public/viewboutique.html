@@ -84,11 +84,12 @@
           <span id="navAvatar" class="text-primary font-bold">C</span>
         </a>
         <div id="userMenuDropdown"
-          class="hidden absolute right-0 top-14 w-44 rounded-lg border border-primary/25 bg-[#141414]/95 backdrop-blur-md shadow-2xl p-2">
+          class="hidden absolute right-0 top-14 w-44 rounded-lg border border-primary/25 bg-[#141414]/95 backdrop-blur-md shadow-2xl p-2 z-50">
           <a href="userprofile.html"
             class="block px-3 py-2 rounded text-xs uppercase tracking-widest text-white/80 hover:bg-primary/10 hover:text-primary">Profile</a>
           <a href="messageboutique.html"
             class="block px-3 py-2 rounded text-xs uppercase tracking-widest text-white/80 hover:bg-primary/10 hover:text-primary">Inbox</a>
+          <button id="logoutBtn" class="w-full text-left px-3 py-2 rounded text-xs uppercase tracking-widest text-white/80 hover:bg-primary/10 hover:text-primary">Logout</button>
         </div>
       </div>
     </div>
@@ -523,14 +524,38 @@
       }
     }
 
-    document.addEventListener("DOMContentLoaded", init);
-    document.addEventListener("click", (e) => {
-      const menu = document.getElementById("userMenuDropdown");
-      const auth = document.getElementById("authNav");
-      const icon = document.getElementById("profileIconLink");
-      if (!menu || menu.classList.contains("hidden")) return;
-      if (menu.contains(e.target) || (auth && auth.contains(e.target)) || (icon && icon.contains(e.target))) return;
-      menu.classList.add("hidden");
+    document.addEventListener("DOMContentLoaded", () => {
+      init();
+      
+      // Setup menu click handler
+      document.addEventListener("click", (e) => {
+        const menu = document.getElementById("userMenuDropdown");
+        const auth = document.getElementById("authNav");
+        const icon = document.getElementById("profileIconLink");
+        if (!menu || menu.classList.contains("hidden")) return;
+        if (menu.contains(e.target) || (auth && auth.contains(e.target)) || (icon && icon.contains(e.target))) return;
+        menu.classList.add("hidden");
+      });
+      
+      // Setup menu scroll handler
+      window.addEventListener("scroll", () => {
+        const menu = document.getElementById("userMenuDropdown");
+        if (menu && !menu.classList.contains("hidden")) {
+          menu.classList.add("hidden");
+        }
+      });
+      
+      // Setup logout handler
+      const logoutBtn = document.getElementById("logoutBtn");
+      if (logoutBtn) {
+        logoutBtn.addEventListener("click", () => {
+          localStorage.removeItem("isUserLoggedIn");
+          localStorage.removeItem("userId");
+          localStorage.removeItem("userName");
+          localStorage.removeItem("userEmail");
+          window.location.href = "index.html";
+        });
+      }
     });
   </script>
   <script src='responsive-layout.js'></script>
