@@ -143,6 +143,18 @@ router.post("/signup", async (req, res) => {
     try {
       const normalizedEmail = String(email).trim().toLowerCase();
       const normalizedPhone = String(phone).trim();
+
+      // Check if mobile number exists
+      const { data: existingPhone } = await supabase
+        .from("boutiques")
+        .select("id")
+        .eq("phone", normalizedPhone)
+        .maybeSingle();
+
+      if (existingPhone) {
+        return res.status(409).json({ message: "mobile number exists" });
+      }
+
       const passwordHash = await bcrypt.hash(password, 10);
       const verificationToken = uuidv4();
 
