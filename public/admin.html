@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cloche | Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #c1a671;
+            --bg-dark: #0d0d0d;
+            --surface: #1a1a1a;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            color: #faf7f2;
+        }
+        .font-display { font-family: 'Noto Serif', serif; }
+        .glass-card {
+            background: rgba(26, 26, 26, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(193, 166, 113, 0.1);
+        }
+        .stat-card {
+            background: linear-gradient(145deg, #1a1a1a 0%, #111111 100%);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .table-row:hover {
+            background: rgba(193, 166, 113, 0.05);
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <!-- Auth Guard Script -->
+    <script>
+        if (!localStorage.getItem('adminToken')) {
+            window.location.href = 'adminlogin.html';
+        }
+    </script>
+
+    <!-- Navigation -->
+    <nav class="border-b border-white/5 py-4 px-8 flex justify-between items-center glass-card sticky top-0 z-50">
+        <div class="flex items-center gap-4">
+            <span class="text-2xl font-display tracking-widest">CLOCHE</span>
+            <span class="h-4 w-[1px] bg-white/10"></span>
+            <span class="text-primary text-[10px] uppercase tracking-[0.4em] mt-1">Admin Dashboard</span>
+        </div>
+        <div class="flex items-center gap-6">
+            <button onclick="logout()" class="text-[10px] uppercase tracking-widest text-gray-400 hover:text-white transition-colors">Logout</button>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto p-8">
+        <!-- KPI Metrics -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+            <div class="stat-card p-8 rounded-2xl">
+                <p class="text-[10px] uppercase tracking-[0.4em] text-gray-400 mb-4">Total Users</p>
+                <h3 id="totalUsers" class="text-5xl font-display text-primary">--</h3>
+            </div>
+            <div class="stat-card p-8 rounded-2xl">
+                <p class="text-[10px] uppercase tracking-[0.4em] text-gray-400 mb-4">Partner Boutiques</p>
+                <h3 id="totalBoutiques" class="text-5xl font-display text-primary">--</h3>
+            </div>
+            <div class="stat-card p-8 rounded-2xl">
+                <p class="text-[10px] uppercase tracking-[0.4em] text-gray-400 mb-4">Total Products</p>
+                <h3 id="totalProducts" class="text-5xl font-display text-primary">--</h3>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+            <!-- Recent Users -->
+            <section>
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-xl font-display italic">Recent Registrations</h2>
+                    <span class="text-[10px] uppercase tracking-widest text-gray-500">Last 10 Users</span>
+                </div>
+                <div class="glass-card rounded-xl overflow-hidden">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-white/5 border-b border-white/5 text-[10px] uppercase tracking-widest text-gray-400">
+                            <tr>
+                                <th class="px-6 py-4 font-medium">Name</th>
+                                <th class="px-6 py-4 font-medium">Email</th>
+                                <th class="px-6 py-4 font-medium">Joined</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody">
+                            <!-- Rows loaded via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Recent Boutiques -->
+            <section>
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-xl font-display italic">New Boutique Partnerships</h2>
+                    <span class="text-[10px] uppercase tracking-widest text-gray-500">Last 10 Partners</span>
+                </div>
+                <div class="glass-card rounded-xl overflow-hidden">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-white/5 border-b border-white/5 text-[10px] uppercase tracking-widest text-gray-400">
+                            <tr>
+                                <th class="px-6 py-4 font-medium">Boutique</th>
+                                <th class="px-6 py-4 font-medium">Location</th>
+                                <th class="px-6 py-4 font-medium">Contact</th>
+                            </tr>
+                        </thead>
+                        <tbody id="boutiquesTableBody">
+                            <!-- Rows loaded via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script>
+        async function loadAnalytics() {
+            try {
+                const response = await fetch('https://cloche-backend.onrender.com/api/admin/analytics');
+                const data = await response.json();
+
+                if (data.success) {
+                    // Update Metrics
+                    document.getElementById('totalUsers').textContent = data.metrics.totalUsers;
+                    document.getElementById('totalBoutiques').textContent = data.metrics.totalBoutiques;
+                    document.getElementById('totalProducts').textContent = data.metrics.totalProducts;
+
+                    // Render Users
+                    const userTable = document.getElementById('usersTableBody');
+                    userTable.innerHTML = data.recentUsers.map(u => `
+                        <tr class="table-row border-b border-white/5 transition-colors">
+                            <td class="px-6 py-4 font-medium text-white">${u.name}</td>
+                            <td class="px-6 py-4 text-gray-400">${u.email}</td>
+                            <td class="px-6 py-4 text-[10px] text-gray-500 uppercase">${new Date(u.created_at).toLocaleDateString()}</td>
+                        </tr>
+                    `).join('');
+
+                    // Render Boutiques
+                    const boutiqueTable = document.getElementById('boutiquesTableBody');
+                    boutiqueTable.innerHTML = data.recentBoutiques.map(b => `
+                        <tr class="table-row border-b border-white/5 transition-colors">
+                            <td class="px-6 py-4">
+                                <p class="font-medium text-white">${b.boutique_name}</p>
+                                <p class="text-[10px] text-primary uppercase tracking-widest">${b.owner_name}</p>
+                            </td>
+                            <td class="px-6 py-4 text-gray-400">${b.city}</td>
+                            <td class="px-6 py-4 text-xs text-gray-500">${b.phone}</td>
+                        </tr>
+                    `).join('');
+
+                }
+            } catch (err) {
+                console.error('Failed to load analytics:', err);
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('adminToken');
+            window.location.href = 'adminlogin.html';
+        }
+
+        document.addEventListener('DOMContentLoaded', loadAnalytics);
+    </script>
+</body>
+</html>

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cloche | Admin Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #c1a671;
+            --bg-dark: #0d0d0d;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            color: #faf7f2;
+        }
+        .font-display { font-family: 'Noto Serif', serif; }
+        .glass-card {
+            background: rgba(26, 26, 26, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(193, 166, 113, 0.1);
+        }
+        .btn-primary {
+            background-color: var(--primary);
+            color: var(--bg-dark);
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 20px rgba(193, 166, 113, 0.3);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-6">
+    <div class="max-w-md w-full glass-card p-10 rounded-2xl">
+        <div class="text-center mb-10">
+            <h1 class="text-3xl font-display font-light tracking-widest text-[#FAF7F2] mb-2">CLOCHE</h1>
+            <p class="text-primary text-xs uppercase tracking-[0.3em]">Administrative Portal</p>
+        </div>
+
+        <form id="adminLoginForm" class="space-y-6">
+            <div>
+                <label class="block text-xs uppercase tracking-widest text-gray-400 mb-2">Admin Email</label>
+                <input type="email" id="email" required 
+                       class="w-full bg-[#1a1a1a] border border-white/5 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-primary transition-colors">
+            </div>
+            <div>
+                <label class="block text-xs uppercase tracking-widest text-gray-400 mb-2">Password</label>
+                <input type="password" id="password" required 
+                       class="w-full bg-[#1a1a1a] border border-white/5 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-primary transition-colors">
+            </div>
+            
+            <div id="errorMessage" class="text-red-400 text-xs text-center hidden"></div>
+
+            <button type="submit" 
+                    class="w-full btn-primary py-4 rounded-lg font-bold uppercase tracking-widest text-xs mt-4">
+                Verify Identity
+            </button>
+        </form>
+    </div>
+
+    <script>
+        const loginForm = document.getElementById('adminLoginForm');
+        const errorMessage = document.getElementById('errorMessage');
+
+        loginForm.onsubmit = async (e) => {
+            e.preventDefault();
+            errorMessage.classList.add('hidden');
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const response = await fetch('https://cloche-backend.onrender.com/api/admin/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    localStorage.setItem('adminToken', data.token);
+                    window.location.href = 'admin.html';
+                } else {
+                    errorMessage.textContent = data.message || 'Access Denied';
+                    errorMessage.classList.remove('hidden');
+                }
+            } catch (err) {
+                errorMessage.textContent = 'Server connection error';
+                errorMessage.classList.remove('hidden');
+            }
+        };
+    </script>
+</body>
+</html>

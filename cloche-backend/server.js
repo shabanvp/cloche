@@ -11,6 +11,7 @@ const authRoutes = require("./auth");
 const productRoutes = require("./products");
 const leadRoutes = require("./leads");
 const messageRoutes = require("./messages");
+const adminRoutes = require("./admin");
 
 const app = express();
 
@@ -65,6 +66,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/leads", leadRoutes);
 app.use("/api/messages", messageRoutes);
+app.use("/api/admin", adminRoutes);
 
 // 🔹 Global error handler
 app.use((err, req, res, next) => {
