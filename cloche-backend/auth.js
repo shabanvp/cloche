@@ -104,7 +104,14 @@ router.post("/signup", async (req, res) => {
       }
 
       // Send verification email
-      await sendVerificationEmail(email, name, verificationToken, "user");
+      const emailResult = await sendVerificationEmail(email, name, verificationToken, "user");
+
+      if (!emailResult.success) {
+        return res.status(500).json({
+          success: false,
+          message: "User account created but email failed: " + emailResult.error
+        });
+      }
 
       return res.status(201).json({
         success: true,
@@ -203,7 +210,14 @@ router.post("/signup", async (req, res) => {
       }
 
       // Send verification email
-      await sendVerificationEmail(normalizedEmail, owner_name, verificationToken, "partner");
+      const emailResult = await sendVerificationEmail(normalizedEmail, owner_name, verificationToken, "partner");
+
+      if (!emailResult.success) {
+        return res.status(500).json({
+          success: false,
+          message: "Partner account created but email failed: " + emailResult.error
+        });
+      }
 
       return res.status(201).json({
         success: true,

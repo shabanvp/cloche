@@ -11,6 +11,19 @@ const transporter = nodemailer.createTransport({
   }
 });
 
+// Verify connection on startup
+if (!process.env.GMAIL_APP_PASSWORD) {
+  console.warn("[EmailService] WARNING: GMAIL_APP_PASSWORD is not set. Emails will fail.");
+} else {
+  transporter.verify((error, success) => {
+    if (error) {
+      console.error("[EmailService] Transporter configuration error:", error);
+    } else {
+      console.log("[EmailService] Server is ready to take our messages");
+    }
+  });
+}
+
 const sendVerificationEmail = async (email, name, token, type) => {
   const verificationUrl = `https://cloche-backend.onrender.com/api/auth/verify-email?token=${token}&type=${type}`;
   
@@ -44,12 +57,17 @@ const sendVerificationEmail = async (email, name, token, type) => {
   };
 
   try {
-    await transporter.sendMail(mailOptions);
-    console.log(`[EmailService] Verification email sent to ${email}`);
+    const info = await transporter.sendMail(mailOptions);
+    console.log(`[EmailService] Verification email sent to ${email}. MessageId: ${info.messageId}`);
     return { success: true };
   } catch (error) {
-    console.error(`[EmailService] Error sending email to ${email}:`, error);
-    return { success: false, error: error.message };
+    console.error(`[EmailService] SMTP Error for ${email}:`, error);
+    // Return specific error message to help debugging
+    let friendlyMessage = "Failed to send email.";
+    if (error.code === 'EAUTH') friendlyMessage = "Authentication failed. Check GMAIL_APP_PASSWORD.";
+    if (error.code === 'ESOCKET') friendlyMessage = "Network timeout. Check server connectivity.";
+    
+    return { success: false, error: friendlyMessage, raw: error.message };
   }
 };
 
