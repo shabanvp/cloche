@@ -314,6 +314,45 @@
     let showcaseSnapshot = null;
     let showcasePreviewObjectUrl = "";
 
+    function getShowcaseDraftKey() {
+      const boutiqueId = String(localStorage.getItem("boutiqueId") || "").trim();
+      return `cloche_showcase_draft_${boutiqueId || "unknown"}`;
+    }
+
+    function readShowcaseDraft() {
+      try {
+        const raw = localStorage.getItem(getShowcaseDraftKey());
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        return {
+          district: String(parsed?.district || "").trim(),
+          area: String(parsed?.area || "").trim(),
+          tags: String(parsed?.tags || "").trim()
+        };
+      } catch (_) {
+        return null;
+      }
+    }
+
+    function writeShowcaseDraft(payload) {
+      try {
+        localStorage.setItem(getShowcaseDraftKey(), JSON.stringify({
+          district: String(payload?.district || "").trim(),
+          area: String(payload?.area || "").trim(),
+          tags: String(payload?.tags || "").trim(),
+          ts: Date.now()
+        }));
+      } catch (_) {}
+    }
+
+    function getShowcaseTextPayload() {
+      return {
+        district: document.getElementById("showcaseDistrictInput")?.value.trim() || "",
+        area: document.getElementById("showcaseAreaInput")?.value.trim() || "",
+        tags: document.getElementById("showcaseTagsInput")?.value.trim() || ""
+      };
+    }
+
     function logout() {
       localStorage.clear();
       window.location.href = "boutiquelogin.html";
@@ -385,29 +424,41 @@
     }
 
     function syncShowcasePreview() {
-      const district = document.getElementById("showcaseDistrictInput")?.value.trim() || "District";
-      const area = document.getElementById("showcaseAreaInput")?.value.trim() || "Area / Locality";
+      const rawDistrict = document.getElementById("showcaseDistrictInput")?.value.trim() || "";
+      const rawArea = document.getElementById("showcaseAreaInput")?.value.trim() || "";
       const tags = document.getElementById("showcaseTagsInput")?.value || "";
+      const district = rawDistrict || "District";
+      const area = rawArea || "Area / Locality";
       const boutiqueName = document.getElementById("boutiqueNameInput")?.value || "Boutique Name";
 
       setText("showcasePreviewDistrict", district.toUpperCase());
       setText("showcasePreviewArea", area.toUpperCase());
       setText("showcasePreviewName", boutiqueName.toUpperCase());
       renderShowcaseTags(tags);
+      writeShowcaseDraft({ district: rawDistrict, area: rawArea, tags });
     }
 
     function fillShowcase(data) {
-      showcaseSnapshot = { ...data };
-      setValue("showcaseDistrictInput", data.district || "");
-      setValue("showcaseAreaInput", data.area || "");
-      setValue("showcaseTagsInput", data.tags || "");
+      const draft = readShowcaseDraft() || {};
+      const merged = {
+        ...(data || {}),
+        district: (data?.district || draft.district || ""),
+        area: (data?.area || draft.area || ""),
+        tags: (data?.tags || draft.tags || "")
+      };
 
-      if (data.image_url) {
+      showcaseSnapshot = { ...merged };
+      setValue("showcaseDistrictInput", merged.district || "");
+      setValue("showcaseAreaInput", merged.area || "");
+      setValue("showcaseTagsInput", merged.tags || "");
+
+      if (merged.image_url) {
         const img = document.getElementById("showcasePreviewImage");
-        if (img) img.src = resolveAssetUrl(data.image_url);
+        if (img) img.src = resolveAssetUrl(merged.image_url);
         const status = document.getElementById("showcaseImageStatus");
-        if (status) status.textContent = `Current saved image: ${fileNameFromPath(data.image_url) || "Uploaded image"}`;
+        if (status) status.textContent = `Current saved image: ${fileNameFromPath(merged.image_url) || "Uploaded image"}`;
       }
+      writeShowcaseDraft(merged);
       syncShowcasePreview();
     }
 
@@ -484,10 +535,39 @@
         if (showcaseRes.ok) {
           console.log("[Profile] Showcase data loaded");
           fillShowcase(showcaseData);
+        } else {
+          fillShowcase(readShowcaseDraft() || {});
         }
       } catch (err) {
         console.error("[Profile] Load error:", err);
         throw err;
+      }
+    }
+
+    async function saveShowcaseTextOnly(silent = true) {
+      const boutiqueId = localStorage.getItem("boutiqueId");
+      const payload = getShowcaseTextPayload();
+      writeShowcaseDraft(payload);
+
+      let res = await fetchWithTimeout(`${API_BASE}/profile/${boutiqueId}/showcase`, 10000, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      if (res.status === 404) {
+        res = await fetchWithTimeout(`${API_BASE}/profile/${boutiqueId}/showcase`, 10000, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+      }
+
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.message || "Failed to save showcase");
+      showcaseSnapshot = { ...(showcaseSnapshot || {}), ...payload };
+      if (!silent) {
+        alert("Showcase saved successfully! Your boutique card will now show the updated image and details.");
       }
     }
 
@@ -510,6 +590,8 @@
         });
         const result = await res.json();
         if (!res.ok) throw new Error(result.message || "Failed to save profile");
+
+        await saveShowcaseTextOnly(true);
         console.log("[Profile] Profile saved successfully");
         alert("Profile updated successfully.");
         await loadProfile();
@@ -554,12 +636,6 @@
       const status = document.getElementById("showcaseImageStatus");
       const btn = document.getElementById("saveShowcaseBtn");
       const originalBtnText = btn ? btn.textContent : "Save Showcase Setup";
-
-      const payload = {
-        district: document.getElementById("showcaseDistrictInput").value.trim(),
-        area: document.getElementById("showcaseAreaInput").value.trim(),
-        tags: document.getElementById("showcaseTagsInput").value.trim()
-      };
 
       // Step 1: Upload image to Cloudinary if a new file was selected
       if (input && input.files && input.files.length > 0) {
@@ -613,25 +689,8 @@
 
       // Step 2: Save text fields (district, area, tags)
       if (btn) btn.textContent = "Saving Details...";
-      let res = await fetchWithTimeout(`${API_BASE}/profile/${boutiqueId}/showcase`, 10000, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-
-      if (res.status === 404) {
-        res = await fetchWithTimeout(`${API_BASE}/profile/${boutiqueId}/showcase`, 10000, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        });
-      }
-
-      const result = await res.json();
-      if (!res.ok) throw new Error(result.message || "Failed to save showcase");
-      showcaseSnapshot = { ...(showcaseSnapshot || {}), ...payload };
+      await saveShowcaseTextOnly(false);
       if (btn) { btn.textContent = originalBtnText; btn.disabled = false; }
-      alert("Showcase saved successfully! Your boutique card will now show the updated image and details.");
     }
 
     function discardChanges() {
