@@ -113,6 +113,27 @@
         max-width: 86%;
         scroll-snap-align: start;
       }
+
+      #featuredCollectionsGrid {
+        display: flex !important;
+        overflow-x: auto;
+        gap: 14px;
+        padding: 0 16px 6px;
+        scroll-snap-type: x mandatory;
+        scroll-behavior: smooth;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+      }
+
+      #featuredCollectionsGrid::-webkit-scrollbar {
+        display: none;
+      }
+
+      #featuredCollectionsGrid .featured-collection-card {
+        flex: 0 0 86%;
+        max-width: 86%;
+        scroll-snap-align: start;
+      }
     }
   </style>
   <link rel='stylesheet' href='responsive-fixes.css' />
@@ -265,6 +286,18 @@
         </div>
       </div>
     </div>
+  </section>
+  <!-- Featured Collections -->
+  <section class="py-20 px-6 max-w-7xl mx-auto">
+    <div class="flex items-end justify-between mb-12 px-4">
+      <div>
+        <span class="text-primary tracking-[0.4em] uppercase text-xs mb-4 block">Collections</span>
+        <h2 class="text-4xl md:text-5xl font-display text-white">Featured Collections</h2>
+      </div>
+      <a class="text-sm uppercase tracking-widest border-b border-primary text-primary pb-1" href="collection.html">View
+        All</a>
+    </div>
+    <div id="featuredCollectionsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"></div>
   </section>
   <!-- Boutique Partnership -->
   <section class="py-24 px-6 max-w-7xl mx-auto">
@@ -495,6 +528,36 @@
     const FEATURED_CACHE_KEY = "featuredBoutiquesCacheV1";
     const FEATURED_RETRY_DELAYS_MS = [0, 2000, 5000]; // Give Render backends some time between attempts
     const FEATURED_FETCH_TIMEOUT_MS = 60000; // 60 second timeout per fetch to allow free-tier spin up
+    const FEATURED_COLLECTIONS = [
+      {
+        title: "Bridal Edit",
+        subtitle: "Handpicked couture looks for weddings",
+        district: "Malappuram",
+        image: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=1200&auto=format&fit=crop",
+        href: "collection.html"
+      },
+      {
+        title: "Reception Luxe",
+        subtitle: "Statement pieces for evening celebrations",
+        district: "Kozhikode",
+        image: "https://images.unsplash.com/photo-1542060748-10c28b62716f?q=80&w=1200&auto=format&fit=crop",
+        href: "collection.html"
+      },
+      {
+        title: "Haldi & Mehndi",
+        subtitle: "Vibrant sets for pre-wedding rituals",
+        district: "Thrissur",
+        image: "https://images.unsplash.com/photo-1583391733981-849840f3f1c2?q=80&w=1200&auto=format&fit=crop",
+        href: "collection.html"
+      },
+      {
+        title: "Heritage Handloom",
+        subtitle: "Traditional craftsmanship in modern cuts",
+        district: "Ernakulam",
+        image: "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?q=80&w=1200&auto=format&fit=crop",
+        href: "collection.html"
+      }
+    ];
     let featuredLoadInProgress = false;
     let featuredRetryTimer = null;
     const previewFallbackImages = [
@@ -719,6 +782,38 @@
       }).join("");
     }
 
+    function renderFeaturedCollections() {
+      const grid = document.getElementById("featuredCollectionsGrid");
+      if (!grid) return;
+
+      grid.innerHTML = FEATURED_COLLECTIONS.map((item, idx) => {
+        const image = item.image || pickImage(`collection-${idx}-${item.title}`);
+        const title = String(item.title || "Collection").toUpperCase();
+        const subtitle = String(item.subtitle || "").trim();
+        const district = String(item.district || "Kerala").toUpperCase();
+        const href = item.href || "collection.html";
+
+        return `
+          <a href="${href}" class="featured-collection-card group relative aspect-[3/4] rounded-xl overflow-hidden glass-card shimmer-effect cursor-pointer block">
+            <img
+              class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+              src="${image}"
+              alt="${title}"
+              loading="lazy"
+              onerror="this.onerror=null;this.src='${pickImage(`collection-${idx}-${title}`)}'"
+            />
+            <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-black/15"></div>
+            <div class="absolute inset-0 p-6 flex flex-col justify-end">
+              <p class="text-xs uppercase tracking-[0.25em] text-primary mb-2">${district}</p>
+              <h3 class="text-xl font-display text-white mb-2">${title}</h3>
+              <p class="text-[11px] uppercase tracking-[0.2em] text-white/70 mb-1">${subtitle}</p>
+              <div class="h-[1px] w-0 group-hover:w-full bg-primary transition-all duration-500 mt-4"></div>
+            </div>
+          </a>
+        `;
+      }).join("");
+    }
+
     function loadFeaturedBoutiquesFromCache() {
       try {
         const raw = localStorage.getItem(FEATURED_CACHE_KEY);
@@ -857,6 +952,7 @@
 
       // Update UI instantly (synchronous)
       updateAuthNav();
+      renderFeaturedCollections();
       
       // Start background loading (non-blocking)
       loadCloudinaryConfig().catch(() => {});
