@@ -8,17 +8,16 @@ const GMAIL_PASS = process.env.GMAIL_APP_PASSWORD;
 
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
-  port: 587,
-  secure: false, // Use STARTTLS
+  port: 465,
+  secure: true, // Use SSL/TLS directly
   auth: {
     user: GMAIL_USER,
     pass: GMAIL_PASS
   },
-  connectionTimeout: 10000, // 10 seconds
-  greetingTimeout: 10000,
-  socketTimeout: 15000,
-  dnsTimeout: 5000,
-  // Force IPv4 to avoid ENETUNREACH errors on cloud platforms
+  connectionTimeout: 15000, 
+  greetingTimeout: 15000,
+  socketTimeout: 20000,
+  // Force IPv4 as we saw ENETUNREACH errors with IPv6 earlier
   connectionOptions: {
     family: 4
   }
