@@ -25,8 +25,13 @@ if (!GMAIL_APP_PASSWORD) {
       user: GMAIL_USER,
       pass: GMAIL_APP_PASSWORD
     },
-    connectionTimeout: 25000,
-    socketTimeout: 30000,
+    connectionTimeout: 60000,  // 60 seconds (Render cold start)
+    socketTimeout: 60000,       // 60 seconds
+    maxConnections: 1,          // Single connection
+    maxMessages: Infinity,       // Reuse connection
+    rateDelta: 1000,            // Rate limiting
+    rateLimit: 5,               // Max 5 emails per second
+    pool: true,                 // Use connection pool
     tls: {
       rejectUnauthorized: false // For Render compatibility
     },
@@ -42,6 +47,17 @@ if (!GMAIL_APP_PASSWORD) {
       console.log(`[EmailService] ✅ Gmail SMTP verified and ready`);
     }
   });
+
+  // Keep connection alive to prevent cold starts (Render free tier spins down after 15 min inactivity)
+  setInterval(() => {
+    transporter.verify((error) => {
+      if (error) {
+        console.warn("[EmailService] Connection check failed:", error.message);
+      } else {
+        console.log("[EmailService] ✅ Connection alive");
+      }
+    });
+  }, 5 * 60 * 1000); // Every 5 minutes
 }
 
 const sendVerificationEmail = async (email, name, token, type) => {
