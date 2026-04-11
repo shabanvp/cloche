@@ -601,20 +601,38 @@ router.get("/profile/:boutiqueId", async (req, res) => {
   const { boutiqueId } = req.params;
 
   try {
-    const { data: boutique, error } = await supabase
+    const [{ data: boutique, error }, { data: showcase, error: showcaseError }] = await Promise.all([
+      supabase
       .from("boutiques")
       .select("id, boutique_name, owner_name, email, phone, city, plan")
       .eq("id", boutiqueId)
-      .maybeSingle();
+      .maybeSingle(),
+      supabase
+        .from("boutique_showcase")
+        .select("district")
+        .eq("boutique_id", boutiqueId)
+        .maybeSingle()
+    ]);
 
     if (error) {
       return res.status(500).json({ message: "Database error", error: error.message });
     }
+    if (showcaseError && showcaseError.code !== "PGRST116") {
+      return res.status(500).json({ message: "Database error", error: showcaseError.message });
+    }
     if (!boutique) {
       return res.status(404).json({ message: "Boutique not found" });
     }
+
+    const safeCityRaw = cleanText(boutique.city);
+    const cityParts = splitCityParts(safeCityRaw);
+    const safeCity = cityParts.length ? cityParts[0] : safeCityRaw;
+    const safeDistrict = cleanText(showcase?.district) || (cityParts.length > 1 ? cityParts.slice(1).join(", ") : "");
+
     return res.json({
       ...boutique,
+      city: safeCity,
+      district: safeDistrict,
       plan: boutique.plan || "Basic"
     });
   } catch (err) {
@@ -624,7 +642,7 @@ router.get("/profile/:boutiqueId", async (req, res) => {
 
 router.put("/profile/:boutiqueId", async (req, res) => {
   const { boutiqueId } = req.params;
-  const { boutique_name, owner_name, email, phone, city } = req.body;
+  const { boutique_name, owner_name, email, phone, city, district } = req.body;
 
   if (!boutique_name || !owner_name || !email || !phone || !city) {
     return res.status(400).json({ message: "All profile fields are required" });
@@ -638,6 +656,10 @@ router.put("/profile/:boutiqueId", async (req, res) => {
     return res.status(400).json({ message: "Phone number must be exactly 10 digits" });
   }
 
+  const safeCity = cleanText(city);
+  const safeDistrict = cleanText(district);
+  const composedCity = safeDistrict ? `${safeCity}, ${safeDistrict}` : safeCity;
+
   try {
     const { data, error } = await supabase
       .from("boutiques")
@@ -646,7 +668,7 @@ router.put("/profile/:boutiqueId", async (req, res) => {
         owner_name,
         email: String(email).trim().toLowerCase(),
         phone: String(phone).trim(),
-        city
+        city: composedCity
       })
       .eq("id", boutiqueId)
       .select("id")
@@ -661,6 +683,18 @@ router.put("/profile/:boutiqueId", async (req, res) => {
     if (!data) {
       return res.status(404).json({ message: "Boutique not found" });
     }
+
+    const { error: showcaseUpsertError } = await supabase
+      .from("boutique_showcase")
+      .upsert([{
+        boutique_id: Number(boutiqueId),
+        district: safeDistrict || null
+      }], { onConflict: "boutique_id" });
+
+    if (showcaseUpsertError) {
+      console.warn("[PROFILE] Failed to sync district to showcase:", showcaseUpsertError.message);
+    }
+
     return res.json({ success: true, message: "Profile updated successfully" });
   } catch (err) {
     return res.status(500).json({ message: "Server error", error: err.message });

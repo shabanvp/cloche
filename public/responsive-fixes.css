@@ -862,8 +862,8 @@ nav.fixed .max-w-7xl {
   }
 
   body.has-mobile-bars.route-profile main > header h2 {
-    font-size: 11px !important;
-    letter-spacing: 0.14em !important;
+    font-size: 12px !important;
+    letter-spacing: 0.12em !important;
   }
 
   body.has-mobile-bars.route-profile main > header .border-l {
@@ -899,35 +899,35 @@ nav.fixed .max-w-7xl {
   }
 
   body.has-mobile-bars.route-profile .glass-card .p-8 {
-    padding: 12px !important;
+    padding: 16px !important;
   }
 
-  /* Boutique details form: two fields per row on mobile */
+  /* Boutique details form: single column on mobile for better readability */
   body.has-mobile-bars.route-profile .p-8.grid.grid-cols-1.md\:grid-cols-2.gap-8 {
     display: grid !important;
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    gap: 10px !important;
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
   }
 
   body.has-mobile-bars.route-profile .p-8.grid.grid-cols-1.md\:grid-cols-2.gap-8 .md\:col-span-2 {
-    grid-column: 1 / -1 !important;
+    grid-column: auto !important;
   }
 
   body.has-mobile-bars.route-profile .p-8.grid.grid-cols-1.md\:grid-cols-2.gap-8 label {
-    font-size: 10px !important;
-    margin-bottom: 6px !important;
+    font-size: 11px !important;
+    margin-bottom: 7px !important;
   }
 
-  /* Security + Subscription in one row */
+  /* Keep profile sections stacked on mobile */
   body.has-mobile-bars.route-profile .grid.grid-cols-1.lg\:grid-cols-2.gap-8 {
     display: grid !important;
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    gap: 10px !important;
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
     align-items: stretch !important;
   }
 
   body.has-mobile-bars.route-profile .grid.grid-cols-1.lg\:grid-cols-2.gap-8 .text-xl {
-    font-size: 13px !important;
+    font-size: 17px !important;
     letter-spacing: 0.08em !important;
   }
 

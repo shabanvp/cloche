@@ -172,13 +172,25 @@
                   class="w-full bg-background-dark/50 border border-primary/20 rounded-lg px-4 py-3 text-white focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all font-sans"
                   maxlength="10" type="text" />
               </div>
-              <div class="md:col-span-2">
+              <div>
                 <label class="block mb-2 text-xs font-bold uppercase tracking-widest text-primary/80">City</label>
                 <div class="relative">
                   <span
                     class="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-primary/50">location_on</span>
                   <input id="cityInput"
                     class="w-full bg-background-dark/50 border border-primary/20 rounded-lg pl-12 pr-4 py-3 text-white focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all font-sans"
+                    placeholder="e.g. Perinthalmanna"
+                    type="text" />
+                </div>
+              </div>
+              <div>
+                <label class="block mb-2 text-xs font-bold uppercase tracking-widest text-primary/80">District</label>
+                <div class="relative">
+                  <span
+                    class="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-primary/50">map</span>
+                  <input id="districtInput"
+                    class="w-full bg-background-dark/50 border border-primary/20 rounded-lg pl-12 pr-4 py-3 text-white focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all font-sans"
+                    placeholder="e.g. Malappuram"
                     type="text" />
                 </div>
               </div>
@@ -419,6 +431,7 @@
       setValue("emailInput", data.email);
       setValue("phoneInput", data.phone);
       setValue("cityInput", data.city);
+      setValue("districtInput", data.district || "");
 
       const owner = data.owner_name || "Guest";
       const boutique = data.boutique_name || "My Boutique";
@@ -485,7 +498,8 @@
         owner_name: document.getElementById("ownerNameInput").value.trim(),
         email: document.getElementById("emailInput").value.trim(),
         phone: document.getElementById("phoneInput").value.trim(),
-        city: document.getElementById("cityInput").value.trim()
+        city: document.getElementById("cityInput").value.trim(),
+        district: document.getElementById("districtInput").value.trim()
       };
 
       try {
