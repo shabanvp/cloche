@@ -293,6 +293,7 @@ router.get("/verify-email", async (req, res) => {
   }
 
   const table = type === "partner" ? "boutiques" : "users";
+  const redirectPage = type === "partner" ? "/boutiquelogin.html" : "/index.html";
 
   try {
     const { data: record, error: findError } = await supabase
@@ -315,8 +316,8 @@ router.get("/verify-email", async (req, res) => {
       return res.status(500).send("Activation failed: " + updateError.message);
     }
 
-    // Redirect to login page with success status
-    return res.redirect("/boutiquelogin.html?status=verified");
+    // Redirect to appropriate login page with success status
+    return res.redirect(`${redirectPage}?status=verified`);
   } catch (err) {
     return res.status(500).send("Server error during verification");
   }
@@ -394,7 +395,7 @@ router.post("/login", async (req, res) => {
     }
 
     if (boutique.is_verified === false) {
-      return res.status(401).json({ message: "Please verify your email address first" });
+      return res.status(403).json({ message: "📧 Please verify your email address first. Check your inbox for the verification link." });
     }
 
     let match = false;
@@ -439,7 +440,7 @@ router.post("/login-user", async (req, res) => {
     const normalizedEmail = String(email).trim().toLowerCase();
     const { data: user, error } = await supabase
       .from("users")
-      .select("id, name, email, password_hash, created_at")
+      .select("id, name, email, password_hash, is_verified, created_at")
       .eq("email", normalizedEmail)
       .maybeSingle();
 
@@ -453,7 +454,7 @@ router.post("/login-user", async (req, res) => {
     }
 
     if (user.is_verified === false) {
-      return res.status(401).json({ message: "Please verify your email address first" });
+      return res.status(403).json({ message: "📧 Please verify your email address first. Check your inbox for the verification link." });
     }
 
     const match = await bcrypt.compare(password, user.password_hash);
