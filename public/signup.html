@@ -176,6 +176,14 @@
 
     document.getElementById("signupForm").addEventListener("submit", async (e) => {
       e.preventDefault();
+      const submitBtn = document.getElementById("signupSubmitBtn");
+      const originalText = submitBtn.textContent;
+      
+      // Show loading state
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Processing...";
+      submitBtn.classList.add("opacity-70", "cursor-not-allowed");
+
       let data = null;
       if (selectedAccountType === "user") {
         data = {
@@ -197,7 +205,12 @@
       }
 
       if (!data.email.toLowerCase().endsWith("@gmail.com")) {
-        alert("Only Gmail addresses are accepted for authentication."); return;
+        alert("Only Gmail addresses are accepted for authentication.");
+        // Reset button
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+        submitBtn.classList.remove("opacity-70", "cursor-not-allowed");
+        return;
       }
 
       try {
@@ -206,12 +219,20 @@
           body: JSON.stringify(data)
         });
         const result = await res.json();
+        
         if (res.ok) {
           showSuccessModal();
         } else {
           alert(result.message);
         }
-      } catch (err) { alert("Server error"); }
+      } catch (err) { 
+        alert("Server error"); 
+      } finally {
+        // Always reset button
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+        submitBtn.classList.remove("opacity-70", "cursor-not-allowed");
+      }
     });
 
     function showSuccessModal() {

@@ -112,7 +112,7 @@ router.post("/signup", async (req, res) => {
             return res.status(500).json({ message: updateError.message });
           }
 
-          await sendVerificationEmail(email, name, verificationToken, "user");
+          sendVerificationEmail(email, name, verificationToken, "user"); // Removed 'await' to speed up response
           return res.status(200).json({
             success: true,
             message: "Verification email resent. Please check your inbox."
@@ -134,15 +134,8 @@ router.post("/signup", async (req, res) => {
         return res.status(500).json({ message: error.message });
       }
 
-      // Send verification email
-      const emailResult = await sendVerificationEmail(email, name, verificationToken, "user");
-
-      if (!emailResult.success) {
-        return res.status(500).json({
-          success: false,
-          message: "User account created but email failed: " + emailResult.error
-        });
-      }
+      // Send verification email asynchronously
+      sendVerificationEmail(email, name, verificationToken, "user");
 
       return res.status(201).json({
         success: true,
@@ -242,7 +235,7 @@ router.post("/signup", async (req, res) => {
             return res.status(500).json({ message: updateError.message });
           }
 
-          await sendVerificationEmail(normalizedEmail, owner_name, verificationToken, "partner");
+          sendVerificationEmail(normalizedEmail, owner_name, verificationToken, "partner"); // Non-blocking
           return res.status(200).json({
             success: true,
             message: "Verification email resent. Please check your inbox."
@@ -273,15 +266,8 @@ router.post("/signup", async (req, res) => {
         return res.status(500).json({ message: insertError.message || "Database error" });
       }
 
-      // Send verification email
-      const emailResult = await sendVerificationEmail(normalizedEmail, owner_name, verificationToken, "partner");
-
-      if (!emailResult.success) {
-        return res.status(500).json({
-          success: false,
-          message: "Partner account created but email failed: " + emailResult.error
-        });
-      }
+      // Send verification email asynchronously
+      sendVerificationEmail(normalizedEmail, owner_name, verificationToken, "partner");
 
       return res.status(201).json({
         success: true,
