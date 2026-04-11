@@ -302,24 +302,63 @@ router.get("/verify-email", async (req, res) => {
       .maybeSingle();
 
     if (findError || !record) {
-      return res.status(400).send("Invalid or expired verification token");
+      return res.status(400).send("Invalid or expired verification link");
     }
 
+    // Activate account
     const { error: updateError } = await supabase
       .from(table)
       .update({ is_verified: true, verification_token: null })
       .eq("id", record.id);
 
     if (updateError) {
-      return res.status(500).send("Verification failed. Please try again later.");
+      return res.status(500).send("Activation failed: " + updateError.message);
     }
 
-    // Redirect to login page
-    return res.redirect("https://cloche.luxury/boutiquelogin.html?verified=true");
+    // Redirect to login page with success status
+    return res.redirect("/boutiquelogin.html?status=verified");
   } catch (err) {
-    return res.status(500).send("Server error occurred during verification.");
+    return res.status(500).send("Server error during verification");
   }
 });
+
+/* ================= DEBUG EMAIL ENDPOINT ================= */
+router.get("/debug-email", async (req, res) => {
+  const testEmail = req.query.email || "shabanvp@gmail.com";
+  console.log(`[Debug] Testing email to: ${testEmail}`);
+  
+  const results = {
+    env_password_exists: !!process.env.GMAIL_APP_PASSWORD,
+    target_email: testEmail,
+    timestamp: new Date().toISOString(),
+  };
+
+  try {
+    const emailResult = await sendVerificationEmail(testEmail, "Debug User", "test-token", "debug");
+    results.success = emailResult.success;
+    results.error = emailResult.error || null;
+    results.raw_error = emailResult.raw || null;
+    
+    if (emailResult.success) {
+      return res.json({
+        message: "SMTP connection successful! Email should be arriving.",
+        details: results
+      });
+    } else {
+      return res.status(500).json({
+        message: "SMTP connection failed. See details.",
+        details: results
+      });
+    }
+  } catch (err) {
+    return res.status(500).json({
+      message: "Crash during debug",
+      error: err.message,
+      details: results
+    });
+  }
+});
+
 router.post("/login", async (req, res) => {
   const { account_type, identifier, email, password } = req.body;
 
