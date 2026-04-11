@@ -3,11 +3,24 @@ const nodemailer = require("nodemailer");
 /**
  * Centeralized email service for Cloche
  */
+const GMAIL_USER = process.env.GMAIL_USER || "cloche.luxury@gmail.com";
+const GMAIL_PASS = process.env.GMAIL_APP_PASSWORD;
+
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+  host: "smtp.gmail.com",
+  port: 587,
+  secure: false, // Use STARTTLS
   auth: {
-    user: "cloche.luxury@gmail.com",
-    pass: process.env.GMAIL_APP_PASSWORD
+    user: GMAIL_USER,
+    pass: GMAIL_PASS
+  },
+  connectionTimeout: 10000, // 10 seconds
+  greetingTimeout: 10000,
+  socketTimeout: 15000,
+  dnsTimeout: 5000,
+  // Force IPv4 to avoid ENETUNREACH errors on cloud platforms
+  connectionOptions: {
+    family: 4
   }
 });
 
@@ -19,7 +32,7 @@ if (!process.env.GMAIL_APP_PASSWORD) {
     if (error) {
       console.error("[EmailService] Transporter configuration error:", error);
     } else {
-      console.log("[EmailService] Server is ready to take our messages");
+      console.log(`[EmailService] Server is ready to take our messages as ${GMAIL_USER}`);
     }
   });
 }
@@ -28,7 +41,7 @@ const sendVerificationEmail = async (email, name, token, type) => {
   const verificationUrl = `https://cloche-backend.onrender.com/api/auth/verify-email?token=${token}&type=${type}`;
   
   const mailOptions = {
-    from: '"CLOCHE LUXURY" <cloche.luxury@gmail.com>',
+    from: `"CLOCHE LUXURY" <${GMAIL_USER}>`,
     to: email,
     subject: "Verify Your Cloche Account",
     html: `

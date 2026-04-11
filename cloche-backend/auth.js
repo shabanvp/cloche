@@ -328,6 +328,7 @@ router.get("/debug-email", async (req, res) => {
   console.log(`[Debug] Testing email to: ${testEmail}`);
   
   const results = {
+    env_user: process.env.GMAIL_USER || "cloche.luxury@gmail.com (default)",
     env_password_exists: !!process.env.GMAIL_APP_PASSWORD,
     target_email: testEmail,
     timestamp: new Date().toISOString(),
