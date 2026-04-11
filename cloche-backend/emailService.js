@@ -1,54 +1,44 @@
 const nodemailer = require("nodemailer");
-const sgTransport = require("nodemailer-sendgrid-transport");
 
 /**
  * Centralized email service for Cloche
- * Uses SendGrid for reliability (works on Render free tier)
+ * Uses Gmail SMTP directly (no third-party services)
  */
 const GMAIL_USER = process.env.GMAIL_USER || "cloche.luxury@gmail.com";
-const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
+const GMAIL_APP_PASSWORD = process.env.GMAIL_APP_PASSWORD;
 
 let transporter;
 
-// Use SendGrid if API key is available (preferred), fallback to Gmail
-if (SENDGRID_API_KEY) {
-  console.log("[EmailService] Using SendGrid for email delivery");
-  transporter = nodemailer.createTransport(
-    sgTransport({
-      auth: {
-        api_key: SENDGRID_API_KEY
-      }
-    })
-  );
+if (!GMAIL_APP_PASSWORD) {
+  console.error("[EmailService] ❌ ERROR: GMAIL_APP_PASSWORD environment variable is NOT set!");
+  console.error("[EmailService] Please add GMAIL_APP_PASSWORD to Render environment variables");
+  console.error("[EmailService] Generate it at: https://myaccount.google.com/apppasswords");
 } else {
-  console.warn("[EmailService] WARNING: SENDGRID_API_KEY not set. Trying Gmail SMTP (may fail on Render)");
-  const GMAIL_PASS = process.env.GMAIL_APP_PASSWORD;
+  console.log(`[EmailService] Configuring Gmail SMTP for ${GMAIL_USER}`);
+  
   transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
-    port: 587, // Try TLS instead of SSL for better compatibility
-    secure: false, // Use TLS (not SSL)
-    family: 4,    // Force IPv4
+    port: 587,  // TLS port (more reliable on Render than 465)
+    secure: false, // Use STARTTLS
     auth: {
       user: GMAIL_USER,
-      pass: GMAIL_PASS
+      pass: GMAIL_APP_PASSWORD
     },
-    connectionTimeout: 20000, 
-    socketTimeout: 25000,
+    connectionTimeout: 25000,
+    socketTimeout: 30000,
     tls: {
-      rejectUnauthorized: false // Sometimes needed on Render
-    }
+      rejectUnauthorized: false // For Render compatibility
+    },
+    logger: true, // Enable logging for debugging
+    debug: process.env.DEBUG_EMAIL === "true" // Set DEBUG_EMAIL=true for verbose logs
   });
-}
 
-// Verify connection on startup
-if (!SENDGRID_API_KEY && !process.env.GMAIL_APP_PASSWORD) {
-  console.error("[EmailService] ERROR: Neither SENDGRID_API_KEY nor GMAIL_APP_PASSWORD is set!");
-} else {
+  // Verify connection on startup
   transporter.verify((error, success) => {
     if (error) {
-      console.error("[EmailService] Transporter configuration error:", error);
+      console.error("[EmailService] ❌ SMTP Verification failed:", error.message);
     } else {
-      console.log(`[EmailService] ✅ Email service ready. Sending from ${GMAIL_USER}`);
+      console.log(`[EmailService] ✅ Gmail SMTP verified and ready`);
     }
   });
 }
