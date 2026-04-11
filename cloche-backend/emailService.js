@@ -20,6 +20,7 @@ if (!GMAIL_APP_PASSWORD) {
     host: "smtp.gmail.com",
     port: 587,  // TLS port (more reliable on Render than 465)
     secure: false, // Use STARTTLS
+    family: 4, // Force IPv4 only (Render has better IPv4 support)
     auth: {
       user: GMAIL_USER,
       pass: GMAIL_APP_PASSWORD
