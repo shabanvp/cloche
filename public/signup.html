@@ -48,6 +48,10 @@
       backdrop-filter: blur(20px);
       border: 1px solid rgba(193, 166, 113, 0.2);
     }
+    .modal-overlay {
+      background: rgba(13, 13, 13, 0.85);
+      backdrop-filter: blur(10px);
+    }
   </style>
   <link rel='stylesheet' href='responsive-fixes.css' />
 </head>
@@ -203,13 +207,24 @@
         });
         const result = await res.json();
         if (res.ok) {
-          alert("Signup successful! A verification email has been sent to your Gmail.");
-          window.location.href = "boutiquelogin.html?status=verification_sent";
+          showSuccessModal();
         } else {
           alert(result.message);
         }
       } catch (err) { alert("Server error"); }
     });
+
+    function showSuccessModal() {
+      const modal = document.getElementById("successModal");
+      if (modal) {
+        modal.classList.remove("hidden");
+        modal.classList.add("flex");
+      }
+    }
+
+    function closeSuccessModal() {
+      window.location.href = "boutiquelogin.html?status=verification_sent";
+    }
 
     document.getElementById("userTypeBtn").addEventListener("click", () => setAccountType("user"));
     document.getElementById("partnerTypeBtn").addEventListener("click", () => setAccountType("partner"));
@@ -222,6 +237,25 @@
       else { input.type = "password"; icon.textContent = "visibility"; }
     }
   </script>
+  <!-- Success Modal -->
+  <div id="successModal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4">
+    <div class="modal-overlay absolute inset-0"></div>
+    <div class="glass-card relative w-full max-w-md p-8 rounded-xl shadow-2xl text-center flex flex-col items-center gap-6 animate-in fade-in zoom-in duration-300">
+      <div class="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mb-2">
+        <span class="material-symbols-outlined text-primary text-4xl">mail</span>
+      </div>
+      <div>
+        <h2 class="font-display text-white text-2xl font-bold tracking-widest mb-3 uppercase">Check Your Inbox</h2>
+        <p class="text-white/60 text-sm font-light leading-relaxed">
+          A luxury-themed verification email has been sent to your Gmail. Please verify your account to join the circle.
+        </p>
+      </div>
+      <button onclick="closeSuccessModal()" class="w-full bg-primary hover:bg-[#d4b984] text-cloche-dark h-12 rounded-lg font-bold text-xs uppercase tracking-[0.2em] transition-all">
+        Go to Login
+      </button>
+    </div>
+  </div>
+
   <script src='responsive-layout.js'></script>
 </body>
 </html>
