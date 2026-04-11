@@ -550,6 +550,30 @@
       return previewFallbackImages[sum % previewFallbackImages.length];
     }
 
+    function normalizeLocationParts(boutique) {
+      const city = String(boutique?.city || "").trim();
+      let district = String(boutique?.district || "").trim();
+      let area = String(boutique?.area || "").trim();
+
+      if (!area && city.includes(",")) {
+        area = city.split(",")[0].trim();
+      }
+
+      if (!district) {
+        if (city.includes(",")) {
+          district = city.split(",").slice(1).join(",").trim();
+        } else {
+          district = city;
+        }
+      }
+
+      if (area && district && area.toLowerCase() === district.toLowerCase()) {
+        area = "";
+      }
+
+      return { area, district };
+    }
+
     function updateAuthNav() {
       const authNav = document.getElementById("authNav");
       const profileIconLink = document.getElementById("profileIconLink");
@@ -669,8 +693,9 @@
         const resolved = b.image_url ? resolveAssetUrl(b.image_url) : null;
         const fallback = resolved ? resolved : pickImage(`${b.id}-${b.boutique_name}-${idx}`);
         const image = fallback;
-        const district = (b.district || b.city || "Kerala").toUpperCase();
-        const area = (b.area || b.city || "Location").toUpperCase();
+        const location = normalizeLocationParts(b);
+        const district = (location.district || "Kerala").toUpperCase();
+        const area = (location.area || location.district || "Location").toUpperCase();
         const name = (b.boutique_name || "Boutique").toUpperCase();
 
         return `

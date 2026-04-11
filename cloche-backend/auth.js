@@ -27,6 +27,40 @@ const normalizeImageUrl = (value) => {
   return raw; // Already looks like a full URL
 };
 
+const cleanText = (value) => String(value || "").trim().replace(/\s+/g, " ");
+
+const sameText = (a, b) => cleanText(a).toLowerCase() === cleanText(b).toLowerCase();
+
+const splitCityParts = (cityValue) => {
+  const city = cleanText(cityValue);
+  if (!city.includes(",")) return [];
+  return city.split(",").map((part) => cleanText(part)).filter(Boolean);
+};
+
+const normalizeLocationFields = ({ area, district, city }) => {
+  const safeCity = cleanText(city);
+  const cityParts = splitCityParts(safeCity);
+  const cityArea = cityParts[0] || "";
+  const cityDistrict = cityParts.slice(1).join(", ");
+
+  let safeArea = cleanText(area);
+  let safeDistrict = cleanText(district);
+
+  if (!safeArea && cityParts.length > 1) safeArea = cityArea;
+  if (!safeDistrict && cityDistrict) safeDistrict = cityDistrict;
+  if (!safeDistrict && safeCity) safeDistrict = safeCity;
+
+  if (safeArea && safeDistrict && sameText(safeArea, safeDistrict)) {
+    safeArea = "";
+  }
+
+  return {
+    area: safeArea || null,
+    district: safeDistrict || null,
+    city: safeCity || null
+  };
+};
+
 const showcaseUpload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 10 * 1024 * 1024 },
@@ -190,12 +224,13 @@ router.post("/signup", async (req, res) => {
       const passwordHash = await bcrypt.hash(password, 10);
       const verificationToken = uuidv4();
 
+      const normalizedLocation = normalizeLocationFields({ city });
       const basePayload = {
         boutique_name: String(boutique_name).trim(),
         owner_name: String(owner_name).trim(),
         email: normalizedEmail,
         phone: normalizedPhone,
-        city: String(city).trim(),
+        city: normalizedLocation.city || String(city).trim(),
         plan: "Basic",
         is_verified: false,
         verification_token: verificationToken
@@ -236,6 +271,20 @@ router.post("/signup", async (req, res) => {
             return res.status(500).json({ message: updateError.message });
           }
 
+          if (normalizedLocation.area || normalizedLocation.district) {
+            const { error: showcaseUpsertError } = await supabase
+              .from("boutique_showcase")
+              .upsert([{
+                boutique_id: existingBoutique.id,
+                area: normalizedLocation.area,
+                district: normalizedLocation.district
+              }], { onConflict: "boutique_id" });
+
+            if (showcaseUpsertError) {
+              console.warn("[SIGNUP] Failed to normalize showcase location (existing boutique):", showcaseUpsertError.message);
+            }
+          }
+
           sendVerificationEmail(normalizedEmail, owner_name, verificationToken, "partner"); // Non-blocking
           return res.status(200).json({
             success: true,
@@ -265,6 +314,20 @@ router.post("/signup", async (req, res) => {
 
       if (insertError) {
         return res.status(500).json({ message: insertError.message || "Database error" });
+      }
+
+      if (insertedBoutique?.id && (normalizedLocation.area || normalizedLocation.district)) {
+        const { error: showcaseUpsertError } = await supabase
+          .from("boutique_showcase")
+          .upsert([{
+            boutique_id: insertedBoutique.id,
+            area: normalizedLocation.area,
+            district: normalizedLocation.district
+          }], { onConflict: "boutique_id" });
+
+        if (showcaseUpsertError) {
+          console.warn("[SIGNUP] Failed to normalize showcase location (new boutique):", showcaseUpsertError.message);
+        }
       }
 
       // Send verification email asynchronously
@@ -922,6 +985,11 @@ router.get("/boutiques", async (req, res) => {
 
     const merged = boutiqueList.map((b) => {
       const showcase = showcaseByBoutiqueId.get(b.id) || {};
+      const normalizedLocation = normalizeLocationFields({
+        city: b.city,
+        district: showcase.district,
+        area: showcase.area
+      });
 
       const rawImageUrl = showcase.image_url || null;
       const normalizedImageUrl = normalizeImageUrl(rawImageUrl);
@@ -932,10 +1000,10 @@ router.get("/boutiques", async (req, res) => {
         owner_name: b.owner_name,
         email: b.email,
         phone: b.phone,
-        city: b.city,
+        city: normalizedLocation.city,
         plan: b.plan || "Basic",
-        district: showcase.district || null,
-        area: showcase.area || null,
+        district: normalizedLocation.district,
+        area: normalizedLocation.area,
         tags: showcase.tags || null,
         image_url: normalizedImageUrl,
         rating: Number(showcase.rating || 5.0)

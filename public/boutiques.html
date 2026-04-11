@@ -206,6 +206,31 @@
       } catch (_) {}
     }
 
+    function normalizeLocationParts(boutique) {
+      const city = String(boutique?.city || "").trim();
+      let district = String(boutique?.district || "").trim();
+      let area = String(boutique?.area || "").trim();
+
+      if (!area && city.includes(",")) {
+        area = city.split(",")[0].trim();
+      }
+
+      if (!district) {
+        if (city.includes(",")) {
+          district = city.split(",").slice(1).join(",").trim();
+        } else {
+          district = city;
+        }
+      }
+
+      if (area && district && area.toLowerCase() === district.toLowerCase()) {
+        area = "";
+      }
+
+      const locationLabel = [area, district].filter(Boolean).join(", ");
+      return { area, district, locationLabel };
+    }
+
     function updateAuthNav() {
       const authNav = document.getElementById("authNav");
       const profileIconLink = document.getElementById("profileIconLink");
@@ -266,7 +291,11 @@
 
     function renderFilters() {
       const wrap = document.getElementById("districtFilters");
-      const cities = ["All", ...new Set(boutiques.map(b => (b.district || b.city || "").trim()).filter(Boolean))];
+      const cities = ["All", ...new Set(
+        boutiques
+          .map((b) => normalizeLocationParts(b).district)
+          .filter(Boolean)
+      )];
 
       wrap.innerHTML = cities.map(city => {
         const active = city === selectedCity;
@@ -288,7 +317,7 @@
 
       const list = selectedCity === "All"
         ? boutiques
-        : boutiques.filter(b => ((b.district || b.city || "").toLowerCase() === selectedCity.toLowerCase()));
+        : boutiques.filter((b) => normalizeLocationParts(b).district.toLowerCase() === selectedCity.toLowerCase());
 
       status.textContent = "";
 
@@ -301,8 +330,9 @@
         const resolved = b.image_url ? resolveAssetUrl(b.image_url) : null;
         const fallback = resolved ? resolved : pickImage(`${b.id}-${b.boutique_name}`);
         const image = addCacheBuster(fallback);
-        const district = (b.district || b.city || "Unknown").toUpperCase();
-        const area = (b.area || b.city || "Location").toUpperCase();
+        const location = normalizeLocationParts(b);
+        const district = (location.district || "Unknown").toUpperCase();
+        const locationLabel = (location.locationLabel || district).toUpperCase();
         const tags = String(b.tags || "").split(",").map(t => t.trim()).filter(Boolean).slice(0, 3);
         const renderedTags = tags.length
           ? tags
@@ -318,7 +348,7 @@
             <div class="flex justify-between items-start mb-2 gap-2">
               <h3 class="font-display text-2xl font-semibold tracking-wide uppercase">${b.boutique_name || "Boutique"}</h3>
             </div>
-            <p class="text-primary/70 text-sm tracking-widest uppercase mb-4 font-medium">${area}</p>
+            <p class="text-primary/70 text-sm tracking-widest uppercase mb-4 font-medium">${locationLabel}</p>
             <div class="flex flex-wrap gap-2 mb-8">
               ${renderedTags.map(tag => `<span class="text-[10px] uppercase tracking-widest px-3 py-1 bg-white/5 border border-white/10 rounded">${tag}</span>`).join("")}
             </div>

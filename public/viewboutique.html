@@ -291,6 +291,31 @@
       if (el) el.textContent = value;
     }
 
+    function normalizeLocationParts(boutique) {
+      const city = String(boutique?.city || "").trim();
+      let district = String(boutique?.district || "").trim();
+      let area = String(boutique?.area || "").trim();
+
+      if (!area && city.includes(",")) {
+        area = city.split(",")[0].trim();
+      }
+
+      if (!district) {
+        if (city.includes(",")) {
+          district = city.split(",").slice(1).join(",").trim();
+        } else {
+          district = city;
+        }
+      }
+
+      if (area && district && area.toLowerCase() === district.toLowerCase()) {
+        area = "";
+      }
+
+      const locationLabel = [area, district].filter(Boolean).join(", ");
+      return { area, district, locationLabel };
+    }
+
     function renderTags(tagsRaw) {
       const wrap = document.getElementById("boutiqueTags");
       const tags = String(tagsRaw || "")
@@ -425,11 +450,13 @@
 
     function fillBoutique(boutique, productsCount) {
       const tags = boutique.tags || "";
-      const district = (boutique.district || boutique.city || "District").toUpperCase();
-      const area = (boutique.area || boutique.city || "Area").toUpperCase();
+      const location = normalizeLocationParts(boutique);
+      const district = (location.district || "District").toUpperCase();
+      const area = (location.area || location.district || "Area").toUpperCase();
+      const locationLabel = (location.locationLabel || location.district || "Location not set").toUpperCase();
       const plan = (boutique.plan || "Basic").toUpperCase();
       const cover = addCacheBuster(resolveAssetUrl(boutique.image_url) || fallbackImages[0]);
-      const mapsQuery = encodeURIComponent(`${boutique.area || ""} ${boutique.city || ""}`.trim() || boutique.city || "Kerala");
+      const mapsQuery = encodeURIComponent(location.locationLabel || boutique.city || "Kerala");
 
       document.title = `CLOCHE | ${boutique.boutique_name || "Boutique"}`;
       setText("boutiqueName", (boutique.boutique_name || "Boutique").toUpperCase());
@@ -439,7 +466,7 @@
       setText("metricProducts", `${productsCount} product${productsCount === 1 ? "" : "s"} listed`);
       setText("metricPlan", `${plan} subscription`);
       setText("metricDistrict", district);
-      setText("visitAddress", `${boutique.area || "Area not set"}, ${boutique.district || boutique.city || "District not set"}`);
+      setText("visitAddress", locationLabel);
       setText("visitPhone", boutique.phone || "Phone not available");
       setText("visitEmail", boutique.email || "Email not available");
       setText("coverDistrict", district);
@@ -495,13 +522,15 @@
       grid.innerHTML = filtered.map(b => {
         const raw = b.image_url ? resolveAssetUrl(b.image_url) : null;
         const image = addCacheBuster(raw || pickImage(`${b.id}-${b.boutique_name}`));
+        const location = normalizeLocationParts(b);
+        const district = (location.district || "Kerala").toUpperCase();
         return `
           <a href="viewboutique.html?boutiqueId=${b.id}" onclick="localStorage.setItem('selectedBoutiqueId','${b.id}')" class="group block min-w-[220px] max-w-[220px] snap-start relative rounded-lg overflow-hidden glass-card h-[300px]">
             <img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" src="${image}" alt="${b.boutique_name || 'Boutique'}" loading="lazy" onerror="this.onerror=null;this.src='${pickImage(`${b.id}-${b.boutique_name}`)}'" />
             <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent"></div>
             <div class="absolute bottom-4 left-4 right-4">
               <h4 class="font-display text-sm text-white tracking-widest uppercase truncate mb-1">${b.boutique_name || "Boutique"}</h4>
-              <p class="text-primary text-[10px] uppercase tracking-[0.2em] truncate">${(b.district || b.city || "Kerala").toUpperCase()}</p>
+              <p class="text-primary text-[10px] uppercase tracking-[0.2em] truncate">${district}</p>
             </div>
           </a>
         `;
