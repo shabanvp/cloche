@@ -529,6 +529,8 @@
     const FEATURED_CACHE_KEY = "featuredBoutiquesCacheV1";
     const FEATURED_RETRY_DELAYS_MS = [0, 2000, 5000]; // Give Render backends some time between attempts
     const FEATURED_FETCH_TIMEOUT_MS = 60000; // 60 second timeout per fetch to allow free-tier spin up
+    const FEATURED_BOUTIQUES_LIMIT = 5;
+    const FEATURED_COLLECTIONS_LIMIT = 5;
     let featuredLoadInProgress = false;
     let featuredRetryTimer = null;
     const previewFallbackImages = [
@@ -696,7 +698,7 @@
       }
     }
 
-    function showSkeletons(count = 4) {
+    function showSkeletons(count = FEATURED_BOUTIQUES_LIMIT) {
       const grid = document.getElementById("featuredBoutiquesGrid");
       if (!grid) return;
       grid.innerHTML = Array(count).fill(0).map(() => `
@@ -836,7 +838,7 @@
             const bTime = new Date(b.created_at || 0).getTime();
             return (bTime || 0) - (aTime || 0);
           })
-          .slice(0, 8);
+          .slice(0, FEATURED_COLLECTIONS_LIMIT);
 
         renderFeaturedCollections(items);
       } catch (err) {
@@ -852,7 +854,7 @@
         const parsed = JSON.parse(raw);
         const list = Array.isArray(parsed?.items) ? parsed.items : [];
         if (!list.length) return false;
-        renderFeaturedBoutiques(list.slice(0, 4));
+        renderFeaturedBoutiques(list.slice(0, FEATURED_BOUTIQUES_LIMIT));
         const status = document.getElementById("featuredBoutiquesStatus");
         if (status) status.textContent = "";
         return true;
@@ -891,7 +893,7 @@
 
         try {
           console.log(`[Featured] Fetch attempt ${attempt + 1} with ${FEATURED_FETCH_TIMEOUT_MS}ms timeout...`);
-          const res = await fetchWithTimeout(`${API_BASE}/boutiques?limit=4`, FEATURED_FETCH_TIMEOUT_MS);
+          const res = await fetchWithTimeout(`${API_BASE}/boutiques?limit=${FEATURED_BOUTIQUES_LIMIT}`, FEATURED_FETCH_TIMEOUT_MS);
           const data = await res.json().catch(() => []);
           if (!res.ok) throw new Error(data.message || "Failed to load boutiques");
           console.log(`[Featured] Fetch successful on attempt ${attempt + 1}`);
@@ -935,7 +937,7 @@
 
         // Fetch fresh data in background
         const data = await fetchFeaturedBoutiquesWithRetry(status);
-        const boutiques = data.slice(0, 4);
+        const boutiques = data.slice(0, FEATURED_BOUTIQUES_LIMIT);
         try {
           localStorage.setItem(FEATURED_CACHE_KEY, JSON.stringify({ items: data, ts: Date.now() }));
         } catch (_) {}
