@@ -91,6 +91,29 @@
     .font-display {
       font-family: 'Noto Serif', serif;
     }
+
+    @media (max-width: 767px) {
+      #featuredBoutiquesGrid {
+        display: flex !important;
+        overflow-x: auto;
+        gap: 14px;
+        padding: 0 16px 6px;
+        scroll-snap-type: x mandatory;
+        scroll-behavior: smooth;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+      }
+
+      #featuredBoutiquesGrid::-webkit-scrollbar {
+        display: none;
+      }
+
+      #featuredBoutiquesGrid .featured-boutique-card {
+        flex: 0 0 86%;
+        max-width: 86%;
+        scroll-snap-align: start;
+      }
+    }
   </style>
   <link rel='stylesheet' href='responsive-fixes.css' />
 </head>
@@ -619,7 +642,7 @@
       const grid = document.getElementById("featuredBoutiquesGrid");
       if (!grid) return;
       grid.innerHTML = Array(count).fill(0).map(() => `
-        <div class="relative aspect-[3/4] rounded-xl overflow-hidden glass-card animate-pulse">
+        <div class="featured-boutique-card relative aspect-[3/4] rounded-xl overflow-hidden glass-card animate-pulse">
           <div class="absolute inset-0 bg-gray-700/30"></div>
           <div class="absolute bottom-6 left-6 right-6 space-y-3">
             <div class="h-3 bg-gray-600/50 rounded w-20"></div>
@@ -651,7 +674,7 @@
         const name = (b.boutique_name || "Boutique").toUpperCase();
 
         return `
-        <a href="viewboutique.html?boutiqueId=${b.id}" onclick="localStorage.setItem('selectedBoutiqueId','${b.id}')" class="group relative aspect-[3/4] rounded-xl overflow-hidden glass-card shimmer-effect cursor-pointer block">
+        <a href="viewboutique.html?boutiqueId=${b.id}" onclick="localStorage.setItem('selectedBoutiqueId','${b.id}')" class="featured-boutique-card group relative aspect-[3/4] rounded-xl overflow-hidden glass-card shimmer-effect cursor-pointer block">
           <img
             class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
             src="${image}"
