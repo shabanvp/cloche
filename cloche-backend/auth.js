@@ -713,12 +713,28 @@ router.put("/profile/:boutiqueId/password", async (req, res) => {
     return res.status(400).json({ message: "New password must be at least 6 characters" });
   }
 
+  if (String(currentPassword) === String(newPassword)) {
+    return res.status(400).json({ message: "New password must be different from current password" });
+  }
+
   try {
-    const { data: boutique, error: getErr } = await supabase
+    let hasLegacyPasswordColumn = true;
+    let { data: boutique, error: getErr } = await supabase
       .from("boutiques")
       .select("id, password_hash, password")
       .eq("id", boutiqueId)
       .maybeSingle();
+
+    if (getErr && /column .*password.* does not exist/i.test(String(getErr.message || ""))) {
+      hasLegacyPasswordColumn = false;
+      const fallback = await supabase
+        .from("boutiques")
+        .select("id, password_hash")
+        .eq("id", boutiqueId)
+        .maybeSingle();
+      boutique = fallback.data;
+      getErr = fallback.error;
+    }
 
     if (getErr) {
       return res.status(500).json({ message: "Database error", error: getErr.message });
@@ -729,19 +745,36 @@ router.put("/profile/:boutiqueId/password", async (req, res) => {
 
     let matches = false;
     if (boutique.password_hash) {
-      matches = await bcrypt.compare(currentPassword, boutique.password_hash);
+      try {
+        matches = await bcrypt.compare(currentPassword, boutique.password_hash);
+      } catch (compareErr) {
+        console.warn("[PROFILE PASSWORD] bcrypt compare failed:", compareErr.message);
+      }
     } else if (boutique.password) {
       matches = String(currentPassword) === String(boutique.password);
     }
+
+    if (!matches && hasLegacyPasswordColumn && boutique.password) {
+      matches = String(currentPassword) === String(boutique.password);
+    }
+
     if (!matches) {
-      return res.status(401).json({ message: "Current password is incorrect" });
+      return res.status(401).json({ message: "Incorrect current password" });
     }
 
     const newHash = await bcrypt.hash(newPassword, 10);
-    const { error: updateErr } = await supabase
+    let { error: updateErr } = await supabase
       .from("boutiques")
       .update({ password_hash: newHash })
       .eq("id", boutiqueId);
+
+    if (updateErr && /column .*password_hash.* does not exist/i.test(String(updateErr.message || ""))) {
+      const legacy = await supabase
+        .from("boutiques")
+        .update({ password: String(newPassword) })
+        .eq("id", boutiqueId);
+      updateErr = legacy.error;
+    }
 
     if (updateErr) {
       return res.status(500).json({ message: "Failed to update password", error: updateErr.message });

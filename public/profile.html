@@ -217,6 +217,7 @@
                   class="w-full bg-background-dark/50 border border-primary/20 rounded-lg px-4 py-3 text-white focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all font-sans"
                   type="password" placeholder="Enter new password" />
               </div>
+              <p id="passwordStatusMessage" class="hidden text-xs font-sans tracking-wide"></p>
               <div class="pt-4 border-t border-primary/10">
                 <button id="changePasswordBtn"
                   class="w-full py-3 border border-primary/30 text-primary hover:bg-primary/10 transition-colors rounded-lg text-xs font-bold uppercase tracking-widest">Update
@@ -474,6 +475,19 @@
       }
     }
 
+    function setPasswordStatus(message, type = "error") {
+      const el = document.getElementById("passwordStatusMessage");
+      if (!el) return;
+      if (!message) {
+        el.textContent = "";
+        el.className = "hidden text-xs font-sans tracking-wide";
+        return;
+      }
+      const tone = type === "success" ? "text-green-300" : "text-red-300";
+      el.textContent = message;
+      el.className = `${tone} text-xs font-sans tracking-wide`;
+    }
+
     function fillProfile(data) {
       snapshot = { ...data };
 
@@ -605,9 +619,15 @@
       const boutiqueId = localStorage.getItem("boutiqueId");
       const currentPassword = document.getElementById("currentPasswordInput").value;
       const newPassword = document.getElementById("newPasswordInput").value;
+      setPasswordStatus("");
 
       if (!currentPassword || !newPassword) {
-        alert("Enter current and new password.");
+        setPasswordStatus("Enter current and new password.");
+        return;
+      }
+
+      if (String(currentPassword) === String(newPassword)) {
+        setPasswordStatus("New password must be different from current password.");
         return;
       }
 
@@ -621,7 +641,7 @@
         if (!res.ok) throw new Error(result.message || "Failed to update password");
 
         console.log("[Profile] Password changed successfully");
-        alert("Password updated successfully.");
+        setPasswordStatus("Password updated successfully.", "success");
         document.getElementById("currentPasswordInput").value = "";
         document.getElementById("newPasswordInput").value = "";
       } catch (err) {
@@ -723,7 +743,7 @@
         try {
           await changePassword();
         } catch (err) {
-          alert(err.message);
+          setPasswordStatus(err.message || "Failed to update password.");
         }
       });
 
