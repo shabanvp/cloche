@@ -9,6 +9,7 @@ const supabase = require("./supabase");
 const { sendVerificationEmail } = require("./emailService");
 const { deleteStorageObjectByUrl, uploadBufferToStorage } = require("./storage");
 const CLOUDINARY_CLOUD_NAME = String(process.env.CLOUDINARY_CLOUD_NAME || "").trim();
+const FRONTEND_BASE_URL = String(process.env.FRONTEND_BASE_URL || "https://cloche-backend.onrender.com").trim().replace(/\/+$/, "");
 
 const normalizeImageUrl = (value) => {
   const raw = String(value || "").trim();
@@ -293,7 +294,6 @@ router.get("/verify-email", async (req, res) => {
   }
 
   const table = type === "partner" ? "boutiques" : "users";
-  const redirectPage = type === "partner" ? "/boutiquelogin.html" : "/index.html";
 
   try {
     const { data: record, error: findError } = await supabase
@@ -316,8 +316,9 @@ router.get("/verify-email", async (req, res) => {
       return res.status(500).send("Activation failed: " + updateError.message);
     }
 
-    // Redirect to appropriate login page with success status
-    return res.redirect(`${redirectPage}?status=verified`);
+    // Redirect to login page with success status (same page for both user and partner)
+    const redirectUrl = `${FRONTEND_BASE_URL}/boutiquelogin.html?status=verified&verified=true&type=${encodeURIComponent(type)}`;
+    return res.redirect(redirectUrl);
   } catch (err) {
     return res.status(500).send("Server error during verification");
   }

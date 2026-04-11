@@ -248,7 +248,13 @@
             const params = new URLSearchParams(window.location.search);
             const banner = document.getElementById("verificationBanner");
             const bannerText = document.getElementById("bannerText");
-            if (params.get("verified") === "true") {
+
+            const type = params.get("type");
+            if (type === "partner" || type === "user") {
+                setAccountType(type);
+            }
+
+            if (params.get("verified") === "true" || params.get("status") === "verified") {
                 banner.classList.remove("hidden");
                 bannerText.textContent = "Email Verified Successfully. You can now login.";
             } else if (params.get("status") === "verification_sent") {

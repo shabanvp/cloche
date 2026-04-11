@@ -787,7 +787,26 @@
       }
     }
 
+    function redirectVerificationToLogin() {
+      const params = new URLSearchParams(window.location.search);
+      const isVerifiedFlow = params.get("verified") === "true" || params.get("status") === "verified";
+      if (!isVerifiedFlow) return false;
+
+      const redirectParams = new URLSearchParams();
+      redirectParams.set("status", "verified");
+      redirectParams.set("verified", "true");
+      const type = params.get("type");
+      if (type === "user" || type === "partner") {
+        redirectParams.set("type", type);
+      }
+
+      window.location.replace(`boutiquelogin.html?${redirectParams.toString()}`);
+      return true;
+    }
+
     document.addEventListener("DOMContentLoaded", () => {
+      if (redirectVerificationToLogin()) return;
+
       // Update UI instantly (synchronous)
       updateAuthNav();
       
