@@ -10,17 +10,14 @@ const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
   port: 465,
   secure: true, // Use SSL/TLS directly
+  family: 4,    // Force IPv4 at top level
   auth: {
     user: GMAIL_USER,
     pass: GMAIL_PASS
   },
   connectionTimeout: 15000, 
   greetingTimeout: 15000,
-  socketTimeout: 20000,
-  // Force IPv4 as we saw ENETUNREACH errors with IPv6 earlier
-  connectionOptions: {
-    family: 4
-  }
+  socketTimeout: 20000
 });
 
 // Verify connection on startup
