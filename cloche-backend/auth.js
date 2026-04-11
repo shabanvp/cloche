@@ -86,6 +86,40 @@ router.post("/signup", async (req, res) => {
       const passwordHash = await bcrypt.hash(password, 10);
       const verificationToken = uuidv4();
 
+      // Check if user already exists
+      const { data: existingUser, error: findError } = await supabase
+        .from("users")
+        .select("id, is_verified")
+        .eq("email", email)
+        .maybeSingle();
+
+      if (existingUser) {
+        if (existingUser.is_verified) {
+          return res.status(409).json({ message: "User already exists" });
+        } else {
+          // Update unverified user and resend email
+          const { error: updateError } = await supabase
+            .from("users")
+            .update({
+              name,
+              password_hash: passwordHash,
+              verification_token: verificationToken,
+              created_at: new Date().toISOString()
+            })
+            .eq("id", existingUser.id);
+
+          if (updateError) {
+            return res.status(500).json({ message: updateError.message });
+          }
+
+          await sendVerificationEmail(email, name, verificationToken, "user");
+          return res.status(200).json({
+            success: true,
+            message: "Verification email resent. Please check your inbox."
+          });
+        }
+      }
+
       const { error } = await supabase
         .from("users")
         .insert([{ 
@@ -97,9 +131,6 @@ router.post("/signup", async (req, res) => {
         }]);
 
       if (error) {
-        if (error.code === "23505") {
-          return res.status(409).json({ message: "User already exists" });
-        }
         return res.status(500).json({ message: error.message });
       }
 
@@ -185,6 +216,39 @@ router.post("/signup", async (req, res) => {
 
       let insertedBoutique = null;
       let insertError = null;
+
+      // Check if boutique already exists by email
+      const { data: existingBoutique, error: findError } = await supabase
+        .from("boutiques")
+        .select("id, is_verified")
+        .eq("email", normalizedEmail)
+        .maybeSingle();
+
+      if (existingBoutique) {
+        if (existingBoutique.is_verified) {
+          return res.status(409).json({ message: "Boutique already exists" });
+        } else {
+          // Update unverified boutique and resend email
+          const { error: updateError } = await supabase
+            .from("boutiques")
+            .update({
+              ...basePayload,
+              password_hash: passwordHash,
+              verification_token: verificationToken
+            })
+            .eq("id", existingBoutique.id);
+
+          if (updateError) {
+            return res.status(500).json({ message: updateError.message });
+          }
+
+          await sendVerificationEmail(normalizedEmail, owner_name, verificationToken, "partner");
+          return res.status(200).json({
+            success: true,
+            message: "Verification email resent. Please check your inbox."
+          });
+        }
+      }
 
       for (const payload of payloadCandidates) {
         const { data, error } = await supabase
