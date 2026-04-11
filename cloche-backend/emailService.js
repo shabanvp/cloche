@@ -1,34 +1,54 @@
 const nodemailer = require("nodemailer");
+const sgTransport = require("nodemailer-sendgrid-transport");
 
 /**
- * Centeralized email service for Cloche
+ * Centralized email service for Cloche
+ * Uses SendGrid for reliability (works on Render free tier)
  */
 const GMAIL_USER = process.env.GMAIL_USER || "cloche.luxury@gmail.com";
-const GMAIL_PASS = process.env.GMAIL_APP_PASSWORD;
+const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
 
-const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 465,
-  secure: true, // Use SSL/TLS directly
-  family: 4,    // Force IPv4 at top level
-  auth: {
-    user: GMAIL_USER,
-    pass: GMAIL_PASS
-  },
-  connectionTimeout: 15000, 
-  greetingTimeout: 15000,
-  socketTimeout: 20000
-});
+let transporter;
+
+// Use SendGrid if API key is available (preferred), fallback to Gmail
+if (SENDGRID_API_KEY) {
+  console.log("[EmailService] Using SendGrid for email delivery");
+  transporter = nodemailer.createTransport(
+    sgTransport({
+      auth: {
+        api_key: SENDGRID_API_KEY
+      }
+    })
+  );
+} else {
+  console.warn("[EmailService] WARNING: SENDGRID_API_KEY not set. Trying Gmail SMTP (may fail on Render)");
+  const GMAIL_PASS = process.env.GMAIL_APP_PASSWORD;
+  transporter = nodemailer.createTransport({
+    host: "smtp.gmail.com",
+    port: 587, // Try TLS instead of SSL for better compatibility
+    secure: false, // Use TLS (not SSL)
+    family: 4,    // Force IPv4
+    auth: {
+      user: GMAIL_USER,
+      pass: GMAIL_PASS
+    },
+    connectionTimeout: 20000, 
+    socketTimeout: 25000,
+    tls: {
+      rejectUnauthorized: false // Sometimes needed on Render
+    }
+  });
+}
 
 // Verify connection on startup
-if (!process.env.GMAIL_APP_PASSWORD) {
-  console.warn("[EmailService] WARNING: GMAIL_APP_PASSWORD is not set. Emails will fail.");
+if (!SENDGRID_API_KEY && !process.env.GMAIL_APP_PASSWORD) {
+  console.error("[EmailService] ERROR: Neither SENDGRID_API_KEY nor GMAIL_APP_PASSWORD is set!");
 } else {
   transporter.verify((error, success) => {
     if (error) {
       console.error("[EmailService] Transporter configuration error:", error);
     } else {
-      console.log(`[EmailService] Server is ready to take our messages as ${GMAIL_USER}`);
+      console.log(`[EmailService] ✅ Email service ready. Sending from ${GMAIL_USER}`);
     }
   });
 }
