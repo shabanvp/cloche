@@ -3,5 +3,8 @@
   "private": true,
   "scripts": {
     "start": "node cloche-backend/server.js"
+  },
+  "dependencies": {
+    "googleapis": "^171.4.0"
   }
 }
