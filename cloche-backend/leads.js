@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const supabase = require("./supabase");
+const { sendEnquiryNotificationEmail } = require("./emailService");
 
 const LEADS_TABLE = "leads";
 const ENQUIRIES_TABLE = "enquiries";
@@ -65,7 +66,7 @@ function leadPayloadCandidates({ boutiqueId, enquiry }) {
     email: clean(enquiry.email),
     phone: clean(enquiry.phone),
     status: clean(enquiry.status || "NEW"),
-    date: clean(enquiry.wedding_date),
+    date: clean(enquiry.wedding_date) || null,
     category: safeLeadCategory(enquiry.requirement),
     requirement: clean(enquiry.requirement),
     special_requirement: clean(enquiry.special_requirement),
@@ -213,7 +214,7 @@ function normalizeAdminEnquiryRow(row) {
 async function fetchAllBoutiquesWithLocation() {
   const { data: boutiques, error: boutiqueErr } = await supabase
     .from("boutiques")
-    .select("id, boutique_name, city")
+    .select("id, boutique_name, city, email")
     .order("boutique_name", { ascending: true });
 
   if (boutiqueErr) {
@@ -246,6 +247,7 @@ async function fetchAllBoutiquesWithLocation() {
     return {
       id: b.id,
       boutique_name: b.boutique_name,
+      email: clean(b.email),
       city: clean(b.city),
       area: clean(s.area),
       district: clean(s.district)
@@ -531,6 +533,13 @@ router.post("/admin/enquiries/:id/send", async (req, res) => {
         }
       }));
       insertedCount += 1;
+
+      // Notify boutique via email (Non-blocking)
+      if (b.email) {
+        sendEnquiryNotificationEmail(b.email, b.boutique_name, enquiry).catch((mailErr) => {
+          console.warn(`[FORWARD] Email failed for ${b.email}:`, mailErr.message);
+        });
+      }
     }
 
     if (enquiryPayload.source === ENQUIRIES_TABLE) {

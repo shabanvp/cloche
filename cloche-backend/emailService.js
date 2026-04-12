@@ -115,6 +115,63 @@ const sendVerificationEmail = async (email, name, token, type) => {
   }
 };
 
+const sendEnquiryNotificationEmail = async (boutiqueEmail, boutiqueName, enquiry) => {
+  if (!isSetup) {
+    console.error("[EmailService] Gmail API not configured");
+    return { success: false, error: "Email service not configured." };
+  }
+
+  const htmlBody = `
+    <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px; border: 1px solid #c1a671; color: #0d0d0d; background-color: #faf7f2;">
+      <div style="text-align: center; margin-bottom: 30px;">
+        <h1 style="color: #c1a671; font-weight: 300; letter-spacing: 5px; margin: 0;">CLOCHE</h1>
+        <p style="font-size: 10px; text-transform: uppercase; letter-spacing: 3px; color: #888; margin-top: 10px;">New Exclusive Opportunity</p>
+      </div>
+      
+      <div style="line-height: 1.6; color: #333;">
+        <p style="font-size: 18px; margin-bottom: 20px;">Greetings, <strong>${boutiqueName}</strong>.</p>
+        <p>An exclusive enquiry has been matched to your boutique. Here are the details of the royal requirement:</p>
+        
+        <div style="background-color: #fff; padding: 25px; border-left: 3px solid #c1a671; margin: 30px 0;">
+          <p style="margin: 5px 0;"><strong>Customer:</strong> ${enquiry.name || "Valued Client"}</p>
+          <p style="margin: 5px 0;"><strong>Date:</strong> ${enquiry.wedding_date || "To be decided"}</p>
+          <p style="margin: 5px 0;"><strong>Requirement:</strong> ${enquiry.requirement || "General Luxury Services"}</p>
+          ${enquiry.special_requirement ? `<p style="margin: 5px 0;"><strong>Special Notes:</strong> ${enquiry.special_requirement}</p>` : ""}
+        </div>
+        
+        <p>Please log in to your Cloche Partner Dashboard to view the full contact details and claim this lead.</p>
+        
+        <div style="text-align: center; margin: 40px 0;">
+          <a href="https://cloche-backend.onrender.com/boutiquelogin.html" style="background-color: #c1a671; color: #fff; padding: 15px 30px; text-decoration: none; font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; border-radius: 4px;">Open Dashboard</a>
+        </div>
+      </div>
+      
+      <div style="margin-top: 50px; border-top: 1px solid #eee; pt-20; text-align: center;">
+        <p style="font-size: 10px; color: #aaa; text-transform: uppercase; letter-spacing: 2px;">© 2024 CLOCHE LUXURY. CONFIDENTIAL PARTNER COMMUNICATION.</p>
+      </div>
+    </div>
+  `;
+
+  try {
+    const rawMessage = createEmailMessage(boutiqueEmail, "New Luxury Enquiry Matched", htmlBody);
+    const encodedMessage = encodeMessage(rawMessage);
+
+    const response = await gmail.users.messages.send({
+      userId: "me",
+      resource: {
+        raw: encodedMessage
+      }
+    });
+
+    console.log(`[EmailService] ✅ Lead notification sent to ${boutiqueEmail}.`);
+    return { success: true, messageId: response.data.id };
+  } catch (error) {
+    console.error(`[EmailService] Lead notification failed for ${boutiqueEmail}:`, error.message);
+    return { success: false, error: error.message };
+  }
+};
+
 module.exports = {
-  sendVerificationEmail
+  sendVerificationEmail,
+  sendEnquiryNotificationEmail
 };
