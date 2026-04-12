@@ -409,10 +409,17 @@
           throw lastError || new Error("Failed to submit enquiry");
         }
 
-        const rawMobile = mobileInput.value.replace(/[^\d+]/g, "");
-        if (rawMobile) {
-          whatsappBtn.href = `https://wa.me/${encodeURIComponent(rawMobile)}`;
-        }
+        // 🔹 WhatsApp Redirection with Pre-filled Message (Cloche Official Number)
+        const clocheWhatsAppNumber = "918606924541"; 
+        const waMessage = `Hello Cloche! I just submitted a wedding enquiry:
+• Name: ${payload.fullName}
+• Requirement: ${payload.requirement || 'Not specified'}
+• Date: ${payload.weddingDate}
+• Location: ${payload.cityLocation}
+
+I'd like to discuss this further.`;
+
+        whatsappBtn.href = `https://wa.me/${clocheWhatsAppNumber}?text=${encodeURIComponent(waMessage)}`;
 
         if (finalResult?.message) {
           console.log("[Enquiry]", finalResult.message);
