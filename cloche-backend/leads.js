@@ -11,7 +11,9 @@ const clean = (value) => String(value || "").trim();
 const cleanLower = (value) => clean(value).toLowerCase();
 
 const isMissingRelation = (error) => /relation .* does not exist/i.test(String(error?.message || ""));
-const isMissingColumn = (error) => /column .* does not exist/i.test(String(error?.message || ""));
+const isMissingColumn = (error) => 
+  /column .* does not exist/i.test(String(error?.message || "")) || 
+  /Could not find the .* column .* in the schema cache/i.test(String(error?.message || ""));
 const isForeignKeyViolation = (error) => /foreign key constraint/i.test(String(error?.message || ""));
 const isNotNullViolation = (error) => /null value in column/i.test(String(error?.message || ""));
 const isCheckViolation = (error) => /check constraint/i.test(String(error?.message || ""));
