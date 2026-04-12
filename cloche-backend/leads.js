@@ -13,7 +13,9 @@ const cleanLower = (value) => clean(value).toLowerCase();
 const isMissingRelation = (error) => /relation .* does not exist/i.test(String(error?.message || ""));
 const isMissingColumn = (error) => 
   /column .* does not exist/i.test(String(error?.message || "")) || 
-  /Could not find the .* column .* in the schema cache/i.test(String(error?.message || ""));
+  /column .* in the schema cache/i.test(String(error?.message || "")) ||
+  /Could not find the .* column/i.test(String(error?.message || ""));
+
 const isForeignKeyViolation = (error) => /foreign key constraint/i.test(String(error?.message || ""));
 const isNotNullViolation = (error) => /null value in column/i.test(String(error?.message || ""));
 const isCheckViolation = (error) => /check constraint/i.test(String(error?.message || ""));
@@ -51,14 +53,21 @@ const safeLeadCategory = (requirement) => {
 
 async function tryInsertWithFallback(table, payloadCandidates) {
   let lastError = null;
-  for (const payload of payloadCandidates) {
+  console.log(`[DB] Attempting insert into ${table} with ${payloadCandidates.length} potential variants`);
+  for (let i = 0; i < payloadCandidates.length; i++) {
+    const payload = payloadCandidates[i];
     const { data, error } = await supabase.from(table).insert([payload]).select("*").maybeSingle();
     if (!error) return data || payload;
+    
+    console.warn(`[DB] Variant ${i} failed for ${table}:`, error.message);
     lastError = error;
-    if (isRetryableInsertError(error)) continue;
+    if (isRetryableInsertError(error)) {
+      console.log(`[DB] Error is retryable, attempting next variant...`);
+      continue;
+    }
     break;
   }
-  throw new Error(lastError?.message || "Insert failed");
+  throw new Error(lastError?.message || "Insert failed after all attempts");
 }
 
 function leadPayloadCandidates({ boutiqueId, enquiry }) {
@@ -91,7 +100,6 @@ function leadPayloadCandidates({ boutiqueId, enquiry }) {
     {
       boutique_id: base.boutique_id,
       name: base.name,
-      email: base.email,
       phone: base.phone,
       status: base.status,
       category: base.category
@@ -101,6 +109,12 @@ function leadPayloadCandidates({ boutiqueId, enquiry }) {
       name: base.name,
       phone: base.phone,
       status: base.status
+    },
+    // ULTIMATE BARE MINIMUM (No status, no category, no location)
+    {
+      boutique_id: base.boutique_id,
+      name: base.name,
+      phone: base.phone
     }
   ];
 }
