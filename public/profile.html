@@ -160,11 +160,16 @@
                   type="text" />
               </div>
               <div>
-                <label class="block mb-2 text-xs font-bold uppercase tracking-widest text-primary/80">Contact
-                  Email</label>
+                <label class="block mb-2 text-xs font-bold uppercase tracking-widest text-primary/80">Contact Email (Login)</label>
                 <input id="emailInput"
                   class="w-full bg-background-dark/50 border border-primary/20 rounded-lg px-4 py-3 text-white focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all font-sans"
-                  type="email" />
+                  type="email" placeholder="you@gmail.com" />
+              </div>
+              <div>
+                <label class="block mb-2 text-xs font-bold uppercase tracking-widest text-primary/80">Member Since</label>
+                <input id="memberSinceDisplay"
+                  class="w-full bg-background-dark/30 border border-primary/10 rounded-lg px-4 py-3 text-primary/60 outline-none font-sans cursor-default"
+                  type="text" readonly placeholder="Loading..." />
               </div>
               <div>
                 <label class="block mb-2 text-xs font-bold uppercase tracking-widest text-primary/80">Phone</label>
@@ -497,6 +502,15 @@
       setValue("phoneInput", data.phone);
       setValue("cityInput", data.city);
       setValue("districtInput", data.district || "");
+
+      if (data.created_at) {
+        const date = new Date(data.created_at).toLocaleDateString(undefined, {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        });
+        setValue("memberSinceDisplay", date);
+      }
 
       const owner = data.owner_name || "Guest";
       const boutique = data.boutique_name || "My Boutique";

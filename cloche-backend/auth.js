@@ -604,7 +604,7 @@ router.get("/profile/:boutiqueId", async (req, res) => {
     const [{ data: boutique, error }, { data: showcase, error: showcaseError }] = await Promise.all([
       supabase
       .from("boutiques")
-      .select("id, boutique_name, owner_name, email, phone, city, plan")
+      .select("id, boutique_name, owner_name, email, phone, city, plan, created_at")
       .eq("id", boutiqueId)
       .maybeSingle(),
       supabase
@@ -634,6 +634,75 @@ router.get("/profile/:boutiqueId", async (req, res) => {
       city: safeCity,
       district: safeDistrict,
       plan: boutique.plan || "Basic"
+    });
+  } catch (err) {
+    console.error("[Dashboard] Unexpected error:", err);
+    return res.status(500).json({ message: "Server error", error: err.message });
+  }
+});
+
+router.get("/user/:userId", async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    const { data: user, error } = await supabase
+      .from("users")
+      .select("id, name, email, created_at")
+      .eq("id", userId)
+      .maybeSingle();
+
+    if (error) {
+      return res.status(500).json({ message: "Database error", error: error.message });
+    }
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    return res.json(user);
+  } catch (err) {
+    return res.status(500).json({ message: "Server error", error: err.message });
+  }
+});
+
+router.put("/user/:userId", async (req, res) => {
+  const { userId } = req.params;
+  const { name, email } = req.body;
+
+  const safeName = String(name || "").trim();
+  const safeEmail = String(email || "").trim().toLowerCase();
+
+  if (!safeName || !safeEmail) {
+    return res.status(400).json({ message: "Name and email are required" });
+  }
+
+  if (!safeEmail.endsWith("@gmail.com")) {
+    return res.status(400).json({ message: "Only Gmail addresses are allowed" });
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from("users")
+      .update({ name: safeName, email: safeEmail })
+      .eq("id", userId)
+      .select("id, name, email")
+      .maybeSingle();
+
+    if (error) {
+      if (error.code === "23505") {
+        return res.status(409).json({ message: "Email already in use" });
+      }
+      return res.status(500).json({ message: "Database error", error: error.message });
+    }
+
+    if (!data) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    return res.json({
+      success: true,
+      userId: data.id,
+      name: data.name,
+      email: data.email,
+      message: "Profile updated successfully"
     });
   } catch (err) {
     return res.status(500).json({ message: "Server error", error: err.message });
@@ -1159,40 +1228,6 @@ router.get("/dashboard/:boutiqueId", async (req, res) => {
       messagesUsed: totalMessages,
       productsUsed: totalProducts,
       plan: boutique.plan || "Basic"
-    });
-  } catch (err) {
-    console.error("[Dashboard] Unexpected error:", err);
-    return res.status(500).json({ message: "Server error", error: err.message });
-  }
-});
-
-router.get("/user/:userId", async (req, res) => {
-  const { userId } = req.params;
-
-  try {
-    const { data: user, error } = await supabase
-      .from("users")
-      .select("id, name, email, created_at")
-      .eq("id", userId)
-      .maybeSingle();
-
-    if (error) {
-      return res.status(500).json({ message: "Database error", error: error.message });
-    }
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-    return res.json(user);
-  } catch (err) {
-    return res.status(500).json({ message: "Server error", error: err.message });
-  }
-});
-
-router.put("/user/:userId", async (req, res) => {
-  const { userId } = req.params;
-  const { name, email } = req.body;
-
-  const safeName = String(name || "").trim();
   const safeEmail = String(email || "").trim().toLowerCase();
 
   if (!safeName || !safeEmail) {
