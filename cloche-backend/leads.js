@@ -30,9 +30,20 @@ const parsePreferredLocation = (value) => {
 };
 
 const safeLeadCategory = (requirement) => {
-  const text = clean(requirement);
+  const text = cleanLower(requirement);
   if (!text) return "Wedding";
-  return text.length > 60 ? `${text.slice(0, 57)}...` : text;
+
+  if (text.includes("party") || text.includes("reception") || text.includes("cocktail")) {
+    return "Party";
+  }
+  if (text.includes("casual") || text.includes("daily") || text.includes("simple")) {
+    return "Casual";
+  }
+  if (text.includes("formal") || text.includes("office") || text.includes("event")) {
+    return "Formal";
+  }
+
+  return "Wedding";
 };
 
 async function tryInsertWithFallback(table, payloadCandidates) {
