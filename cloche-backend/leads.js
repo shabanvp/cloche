@@ -543,22 +543,34 @@ router.post("/admin/enquiries/:id/send", async (req, res) => {
     }
 
     if (enquiryPayload.source === ENQUIRIES_TABLE) {
-      await supabase
+      const updatePayload = {
+        status: "SENT",
+        sent_to_count: insertedCount,
+        sent_at: new Date().toISOString()
+      };
+
+      const { error: updateErr } = await supabase
         .from(ENQUIRIES_TABLE)
-        .update({
-          status: "SENT",
-          sent_to_count: insertedCount,
-          sent_at: new Date().toISOString()
-        })
+        .update(updatePayload)
         .eq("id", enquiryId);
+
+      if (updateErr && isMissingColumn(updateErr)) {
+        console.warn("[FORWARD] enquiries table missing stats columns, falling back to status only");
+        await supabase
+          .from(ENQUIRIES_TABLE)
+          .update({ status: "SENT" })
+          .eq("id", enquiryId);
+      } else if (updateErr) {
+        console.error("[FORWARD] Failed to update enquiry status:", updateErr.message);
+      }
     } else {
-      const updateBySource = await supabase
+      const { error: updateBySourceErr } = await supabase
         .from(LEADS_TABLE)
         .update({ status: "SENT" })
         .eq("id", enquiryId)
         .eq("source", "web_enquiry");
 
-      if (updateBySource.error && isMissingColumn(updateBySource.error)) {
+      if (updateBySourceErr && isMissingColumn(updateBySourceErr)) {
         await supabase
           .from(LEADS_TABLE)
           .update({ status: "SENT" })
