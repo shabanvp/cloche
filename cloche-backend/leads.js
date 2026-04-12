@@ -11,6 +11,11 @@ const cleanLower = (value) => clean(value).toLowerCase();
 
 const isMissingRelation = (error) => /relation .* does not exist/i.test(String(error?.message || ""));
 const isMissingColumn = (error) => /column .* does not exist/i.test(String(error?.message || ""));
+const isForeignKeyViolation = (error) => /foreign key constraint/i.test(String(error?.message || ""));
+const isNotNullViolation = (error) => /null value in column/i.test(String(error?.message || ""));
+const isCheckViolation = (error) => /check constraint/i.test(String(error?.message || ""));
+const isRetryableInsertError = (error) =>
+  isMissingColumn(error) || isForeignKeyViolation(error) || isNotNullViolation(error) || isCheckViolation(error);
 
 const parsePreferredLocation = (value) => {
   const raw = clean(value);
@@ -36,7 +41,7 @@ async function tryInsertWithFallback(table, payloadCandidates) {
     const { data, error } = await supabase.from(table).insert([payload]).select("*").maybeSingle();
     if (!error) return data || payload;
     lastError = error;
-    if (isMissingColumn(error)) continue;
+    if (isRetryableInsertError(error)) continue;
     break;
   }
   throw new Error(lastError?.message || "Insert failed");
@@ -82,6 +87,63 @@ function leadPayloadCandidates({ boutiqueId, enquiry }) {
       name: base.name,
       phone: base.phone,
       status: base.status
+    }
+  ];
+}
+
+function queueLeadPayloadCandidates(enquiry) {
+  const base = {
+    name: clean(enquiry.name),
+    email: clean(enquiry.email),
+    phone: clean(enquiry.phone),
+    status: clean(enquiry.status || "PENDING"),
+    date: clean(enquiry.wedding_date),
+    category: safeLeadCategory(enquiry.requirement),
+    requirement: clean(enquiry.requirement),
+    special_requirement: clean(enquiry.special_requirement),
+    preferred_location: clean(enquiry.preferred_location),
+    source: "web_enquiry",
+    created_at: enquiry.created_at || new Date().toISOString()
+  };
+
+  return [
+    { ...base },
+    {
+      name: base.name,
+      email: base.email,
+      phone: base.phone,
+      status: base.status,
+      date: base.date,
+      category: base.category,
+      requirement: base.requirement,
+      preferred_location: base.preferred_location,
+      source: base.source,
+      created_at: base.created_at
+    },
+    {
+      name: base.name,
+      email: base.email,
+      phone: base.phone,
+      status: base.status,
+      date: base.date,
+      category: base.category,
+      created_at: base.created_at
+    },
+    {
+      name: base.name,
+      phone: base.phone,
+      status: base.status,
+      category: base.category
+    },
+    {
+      boutique_id: ADMIN_QUEUE_BOUTIQUE_ID,
+      name: base.name,
+      email: base.email,
+      phone: base.phone,
+      status: base.status,
+      date: base.date,
+      category: base.category,
+      created_at: base.created_at
     }
   ];
 }
@@ -230,12 +292,22 @@ async function getEnquiryForAdmin(id) {
   }
 
   // Fallback queue in leads table
-  const { data: leadRow, error: leadErr } = await supabase
+  let { data: leadRow, error: leadErr } = await supabase
     .from(LEADS_TABLE)
     .select("*")
     .eq("id", id)
-    .eq("boutique_id", ADMIN_QUEUE_BOUTIQUE_ID)
+    .eq("source", "web_enquiry")
     .maybeSingle();
+
+  if (leadErr && isMissingColumn(leadErr)) {
+    const legacy = await supabase
+      .from(LEADS_TABLE)
+      .select("*")
+      .eq("id", id)
+      .maybeSingle();
+    leadRow = legacy.data;
+    leadErr = legacy.error;
+  }
 
   if (leadErr) {
     throw new Error(leadErr.message || "Failed to fetch enquiry");
@@ -245,6 +317,32 @@ async function getEnquiryForAdmin(id) {
   }
 
   return { source: LEADS_TABLE, row: normalizeAdminEnquiryRow(leadRow) };
+}
+
+async function listFallbackQueueFromLeads() {
+  let { data: queueRows, error: queueErr } = await supabase
+    .from(LEADS_TABLE)
+    .select("*")
+    .eq("source", "web_enquiry")
+    .order("created_at", { ascending: false })
+    .limit(200);
+
+  if (queueErr && isMissingColumn(queueErr)) {
+    const legacy = await supabase
+      .from(LEADS_TABLE)
+      .select("*")
+      .or("boutique_id.is.null,boutique_id.eq.0")
+      .order("created_at", { ascending: false })
+      .limit(200);
+    queueRows = legacy.data;
+    queueErr = legacy.error;
+  }
+
+  if (queueErr) {
+    throw new Error(queueErr.message || "Failed to fetch enquiries");
+  }
+
+  return (queueRows || []).map(normalizeAdminEnquiryRow);
 }
 
 /* ================= SUBMIT ENQUIRY (USER) ================= */
@@ -272,10 +370,7 @@ router.post("/enquiry", async (req, res) => {
         return data?.id || null;
       } catch (e) {
         // Fallback queue row in leads table for environments without enquiries table
-        const data = await tryInsertWithFallback(LEADS_TABLE, leadPayloadCandidates({
-          boutiqueId: ADMIN_QUEUE_BOUTIQUE_ID,
-          enquiry
-        }));
+        const data = await tryInsertWithFallback(LEADS_TABLE, queueLeadPayloadCandidates(enquiry));
         return data?.id || null;
       }
     })();
@@ -309,18 +404,8 @@ router.get("/admin/enquiries", async (_req, res) => {
     }
 
     // Fallback queue mode
-    const { data: queueRows, error: queueErr } = await supabase
-      .from(LEADS_TABLE)
-      .select("*")
-      .eq("boutique_id", ADMIN_QUEUE_BOUTIQUE_ID)
-      .order("created_at", { ascending: false })
-      .limit(200);
-
-    if (queueErr) {
-      return res.status(500).json({ message: "Failed to fetch enquiries", error: queueErr.message });
-    }
-
-    return res.json((queueRows || []).map(normalizeAdminEnquiryRow));
+    const queueRows = await listFallbackQueueFromLeads();
+    return res.json(queueRows);
   } catch (err) {
     return res.status(500).json({ message: "Server error", error: err.message });
   }
@@ -374,11 +459,18 @@ router.post("/admin/enquiries/:id/send", async (req, res) => {
         })
         .eq("id", enquiryId);
     } else {
-      await supabase
+      const updateBySource = await supabase
         .from(LEADS_TABLE)
         .update({ status: "SENT" })
         .eq("id", enquiryId)
-        .eq("boutique_id", ADMIN_QUEUE_BOUTIQUE_ID);
+        .eq("source", "web_enquiry");
+
+      if (updateBySource.error && isMissingColumn(updateBySource.error)) {
+        await supabase
+          .from(LEADS_TABLE)
+          .update({ status: "SENT" })
+          .eq("id", enquiryId);
+      }
     }
 
     return res.json({
