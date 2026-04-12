@@ -288,6 +288,7 @@
   </main>
 
   <script>
+    const API_ORIGIN = "https://cloche-backend.onrender.com";
     const enquiryForm = document.getElementById("enquiryForm");
     const enquiryView = document.getElementById("enquiryView");
     const successView = document.getElementById("successView");
@@ -355,20 +356,46 @@
     if (storedName) fullNameInput.value = storedName;
     updateAuthNav();
 
-    enquiryForm.addEventListener("submit", (e) => {
+    enquiryForm.addEventListener("submit", async (e) => {
       e.preventDefault();
       submitBtn.disabled = true;
       submitBtn.classList.add("opacity-75", "cursor-not-allowed");
 
-      const rawMobile = mobileInput.value.replace(/[^\d+]/g, "");
-      if (rawMobile) {
-        whatsappBtn.href = `https://wa.me/${encodeURIComponent(rawMobile)}`;
-      }
+      const payload = {
+        fullName: document.getElementById("fullName")?.value.trim() || "",
+        mobileNumber: document.getElementById("mobileNumber")?.value.trim() || "",
+        weddingDate: document.getElementById("weddingDate")?.value || "",
+        cityLocation: document.getElementById("cityLocation")?.value || "",
+        requirement: document.getElementById("requirement")?.value.trim() || "",
+        specialRequirement: document.getElementById("specialRequirement")?.value.trim() || "",
+        email: String(localStorage.getItem("userEmail") || "").trim()
+      };
 
-      setTimeout(() => {
-        enquiryView.classList.add("hidden");
-        successView.classList.remove("hidden");
-      }, 450);
+      try {
+        const res = await fetch(`${API_ORIGIN}/api/leads/enquiry`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const result = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          throw new Error(result.message || "Failed to submit enquiry");
+        }
+
+        const rawMobile = mobileInput.value.replace(/[^\d+]/g, "");
+        if (rawMobile) {
+          whatsappBtn.href = `https://wa.me/${encodeURIComponent(rawMobile)}`;
+        }
+
+        setTimeout(() => {
+          enquiryView.classList.add("hidden");
+          successView.classList.remove("hidden");
+        }, 300);
+      } catch (err) {
+        alert(err.message || "Could not submit enquiry. Please try again.");
+        submitBtn.disabled = false;
+        submitBtn.classList.remove("opacity-75", "cursor-not-allowed");
+      }
     });
 
       // Setup menu click handler

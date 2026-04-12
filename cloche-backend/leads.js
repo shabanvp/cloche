@@ -2,14 +2,404 @@ const express = require("express");
 const router = express.Router();
 const supabase = require("./supabase");
 
-/* ================= GET LEADS ================= */
+const LEADS_TABLE = "leads";
+const ENQUIRIES_TABLE = "enquiries";
+const ADMIN_QUEUE_BOUTIQUE_ID = 0;
+
+const clean = (value) => String(value || "").trim();
+const cleanLower = (value) => clean(value).toLowerCase();
+
+const isMissingRelation = (error) => /relation .* does not exist/i.test(String(error?.message || ""));
+const isMissingColumn = (error) => /column .* does not exist/i.test(String(error?.message || ""));
+
+const parsePreferredLocation = (value) => {
+  const raw = clean(value);
+  if (!raw) return { area: "", district: "", raw: "" };
+  const parts = raw.split(",").map((part) => clean(part)).filter(Boolean);
+  if (parts.length === 0) return { area: "", district: "", raw: raw };
+  return {
+    area: parts[0] || "",
+    district: parts.slice(1).join(", ") || "",
+    raw
+  };
+};
+
+const safeLeadCategory = (requirement) => {
+  const text = clean(requirement);
+  if (!text) return "Wedding";
+  return text.length > 60 ? `${text.slice(0, 57)}...` : text;
+};
+
+async function tryInsertWithFallback(table, payloadCandidates) {
+  let lastError = null;
+  for (const payload of payloadCandidates) {
+    const { data, error } = await supabase.from(table).insert([payload]).select("*").maybeSingle();
+    if (!error) return data || payload;
+    lastError = error;
+    if (isMissingColumn(error)) continue;
+    break;
+  }
+  throw new Error(lastError?.message || "Insert failed");
+}
+
+function leadPayloadCandidates({ boutiqueId, enquiry }) {
+  const base = {
+    boutique_id: Number(boutiqueId),
+    name: clean(enquiry.name),
+    email: clean(enquiry.email),
+    phone: clean(enquiry.phone),
+    status: clean(enquiry.status || "NEW"),
+    date: clean(enquiry.wedding_date),
+    category: safeLeadCategory(enquiry.requirement),
+    requirement: clean(enquiry.requirement),
+    special_requirement: clean(enquiry.special_requirement),
+    preferred_location: clean(enquiry.preferred_location),
+    created_at: enquiry.created_at || new Date().toISOString()
+  };
+
+  return [
+    { ...base },
+    {
+      boutique_id: base.boutique_id,
+      name: base.name,
+      email: base.email,
+      phone: base.phone,
+      status: base.status,
+      date: base.date,
+      category: base.category,
+      created_at: base.created_at
+    },
+    {
+      boutique_id: base.boutique_id,
+      name: base.name,
+      email: base.email,
+      phone: base.phone,
+      status: base.status,
+      category: base.category
+    },
+    {
+      boutique_id: base.boutique_id,
+      name: base.name,
+      phone: base.phone,
+      status: base.status
+    }
+  ];
+}
+
+function enquiryPayloadCandidates(enquiry) {
+  const base = {
+    name: clean(enquiry.name),
+    email: clean(enquiry.email),
+    phone: clean(enquiry.phone),
+    wedding_date: clean(enquiry.wedding_date),
+    preferred_location: clean(enquiry.preferred_location),
+    requirement: clean(enquiry.requirement),
+    special_requirement: clean(enquiry.special_requirement),
+    status: clean(enquiry.status || "PENDING"),
+    source: "web_enquiry",
+    created_at: enquiry.created_at || new Date().toISOString()
+  };
+
+  return [
+    { ...base },
+    {
+      name: base.name,
+      email: base.email,
+      phone: base.phone,
+      wedding_date: base.wedding_date,
+      preferred_location: base.preferred_location,
+      requirement: base.requirement,
+      status: base.status
+    },
+    {
+      name: base.name,
+      email: base.email,
+      phone: base.phone,
+      preferred_location: base.preferred_location,
+      requirement: base.requirement,
+      status: base.status
+    }
+  ];
+}
+
+function normalizeAdminEnquiryRow(row) {
+  return {
+    id: row.id,
+    name: clean(row.name),
+    email: clean(row.email),
+    phone: clean(row.phone),
+    wedding_date: clean(row.wedding_date || row.date),
+    preferred_location: clean(row.preferred_location || row.location || ""),
+    requirement: clean(row.requirement || row.category),
+    special_requirement: clean(row.special_requirement || row.notes),
+    status: clean(row.status || "PENDING"),
+    created_at: row.created_at || null
+  };
+}
+
+async function fetchAllBoutiquesWithLocation() {
+  const { data: boutiques, error: boutiqueErr } = await supabase
+    .from("boutiques")
+    .select("id, boutique_name, city")
+    .order("boutique_name", { ascending: true });
+
+  if (boutiqueErr) {
+    throw new Error(boutiqueErr.message || "Failed to load boutiques");
+  }
+
+  const ids = (boutiques || []).map((b) => b.id).filter(Boolean);
+  let showcaseById = new Map();
+
+  if (ids.length) {
+    const { data: showcaseRows, error: showcaseErr } = await supabase
+      .from("boutique_showcase")
+      .select("boutique_id, area, district")
+      .in("boutique_id", ids);
+
+    if (showcaseErr && !isMissingRelation(showcaseErr)) {
+      throw new Error(showcaseErr.message || "Failed to load boutique showcase");
+    }
+
+    if (Array.isArray(showcaseRows)) {
+      showcaseById = showcaseRows.reduce((acc, row) => {
+        acc.set(row.boutique_id, row);
+        return acc;
+      }, new Map());
+    }
+  }
+
+  return (boutiques || []).map((b) => {
+    const s = showcaseById.get(b.id) || {};
+    return {
+      id: b.id,
+      boutique_name: b.boutique_name,
+      city: clean(b.city),
+      area: clean(s.area),
+      district: clean(s.district)
+    };
+  });
+}
+
+function matchBoutiquesByLocation(boutiques, preferredLocation) {
+  const parsed = parsePreferredLocation(preferredLocation);
+  const wantedArea = cleanLower(parsed.area);
+  const wantedDistrict = cleanLower(parsed.district);
+  const wantedRaw = cleanLower(parsed.raw);
+
+  return boutiques.filter((b) => {
+    const area = cleanLower(b.area);
+    const district = cleanLower(b.district);
+    const city = cleanLower(b.city);
+    const joined = `${area} ${district} ${city}`.trim();
+
+    if (wantedArea && wantedDistrict) {
+      const districtMatch = district === wantedDistrict || city.includes(wantedDistrict);
+      const areaMatch = area === wantedArea || city.includes(wantedArea);
+      return districtMatch || areaMatch;
+    }
+
+    if (wantedDistrict) {
+      return district === wantedDistrict || city.includes(wantedDistrict);
+    }
+
+    if (wantedArea) {
+      return area === wantedArea || city.includes(wantedArea);
+    }
+
+    if (wantedRaw) {
+      return joined.includes(wantedRaw);
+    }
+
+    return false;
+  });
+}
+
+async function getEnquiryForAdmin(id) {
+  const { data: enquiryRow, error: enquiryErr } = await supabase
+    .from(ENQUIRIES_TABLE)
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (!enquiryErr && enquiryRow) {
+    return { source: ENQUIRIES_TABLE, row: normalizeAdminEnquiryRow(enquiryRow) };
+  }
+
+  if (enquiryErr && !isMissingRelation(enquiryErr)) {
+    throw new Error(enquiryErr.message || "Failed to fetch enquiry");
+  }
+
+  // Fallback queue in leads table
+  const { data: leadRow, error: leadErr } = await supabase
+    .from(LEADS_TABLE)
+    .select("*")
+    .eq("id", id)
+    .eq("boutique_id", ADMIN_QUEUE_BOUTIQUE_ID)
+    .maybeSingle();
+
+  if (leadErr) {
+    throw new Error(leadErr.message || "Failed to fetch enquiry");
+  }
+  if (!leadRow) {
+    throw new Error("Enquiry not found");
+  }
+
+  return { source: LEADS_TABLE, row: normalizeAdminEnquiryRow(leadRow) };
+}
+
+/* ================= SUBMIT ENQUIRY (USER) ================= */
+router.post("/enquiry", async (req, res) => {
+  const enquiry = {
+    name: clean(req.body.fullName || req.body.name),
+    email: clean(req.body.email),
+    phone: clean(req.body.mobileNumber || req.body.phone),
+    wedding_date: clean(req.body.weddingDate || req.body.wedding_date),
+    preferred_location: clean(req.body.cityLocation || req.body.preferred_location),
+    requirement: clean(req.body.requirement),
+    special_requirement: clean(req.body.specialRequirement || req.body.special_requirement),
+    status: "PENDING",
+    created_at: new Date().toISOString()
+  };
+
+  if (!enquiry.name || !enquiry.phone || !enquiry.wedding_date || !enquiry.preferred_location) {
+    return res.status(400).json({ message: "Name, phone, wedding date and preferred location are required" });
+  }
+
+  try {
+    const enquiryId = await (async () => {
+      try {
+        const data = await tryInsertWithFallback(ENQUIRIES_TABLE, enquiryPayloadCandidates(enquiry));
+        return data?.id || null;
+      } catch (e) {
+        // Fallback queue row in leads table for environments without enquiries table
+        const data = await tryInsertWithFallback(LEADS_TABLE, leadPayloadCandidates({
+          boutiqueId: ADMIN_QUEUE_BOUTIQUE_ID,
+          enquiry
+        }));
+        return data?.id || null;
+      }
+    })();
+
+    return res.status(201).json({
+      success: true,
+      enquiryId,
+      message: "Enquiry submitted successfully. Admin will forward it to matching boutiques."
+    });
+  } catch (err) {
+    console.error("[ENQUIRY] Submit error:", err.message);
+    return res.status(500).json({ message: "Failed to submit enquiry", error: err.message });
+  }
+});
+
+/* ================= ADMIN: LIST ENQUIRIES ================= */
+router.get("/admin/enquiries", async (_req, res) => {
+  try {
+    const { data: enquiries, error } = await supabase
+      .from(ENQUIRIES_TABLE)
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(200);
+
+    if (!error) {
+      return res.json((enquiries || []).map(normalizeAdminEnquiryRow));
+    }
+
+    if (!isMissingRelation(error)) {
+      return res.status(500).json({ message: "Failed to fetch enquiries", error: error.message });
+    }
+
+    // Fallback queue mode
+    const { data: queueRows, error: queueErr } = await supabase
+      .from(LEADS_TABLE)
+      .select("*")
+      .eq("boutique_id", ADMIN_QUEUE_BOUTIQUE_ID)
+      .order("created_at", { ascending: false })
+      .limit(200);
+
+    if (queueErr) {
+      return res.status(500).json({ message: "Failed to fetch enquiries", error: queueErr.message });
+    }
+
+    return res.json((queueRows || []).map(normalizeAdminEnquiryRow));
+  } catch (err) {
+    return res.status(500).json({ message: "Server error", error: err.message });
+  }
+});
+
+/* ================= ADMIN: FORWARD ENQUIRY TO MATCHING BOUTIQUES ================= */
+router.post("/admin/enquiries/:id/send", async (req, res) => {
+  const enquiryId = Number(req.params.id);
+  if (!Number.isFinite(enquiryId) || enquiryId <= 0) {
+    return res.status(400).json({ message: "Invalid enquiry id" });
+  }
+
+  try {
+    const enquiryPayload = await getEnquiryForAdmin(enquiryId);
+    const enquiry = enquiryPayload.row;
+
+    if (cleanLower(enquiry.status) === "sent") {
+      return res.status(409).json({ message: "This enquiry has already been forwarded" });
+    }
+
+    if (!enquiry.preferred_location) {
+      return res.status(400).json({ message: "Preferred location missing for this enquiry" });
+    }
+
+    const boutiques = await fetchAllBoutiquesWithLocation();
+    const matchedBoutiques = matchBoutiquesByLocation(boutiques, enquiry.preferred_location);
+
+    if (!matchedBoutiques.length) {
+      return res.status(404).json({ message: "No boutiques found for the preferred location" });
+    }
+
+    let insertedCount = 0;
+    for (const b of matchedBoutiques) {
+      await tryInsertWithFallback(LEADS_TABLE, leadPayloadCandidates({
+        boutiqueId: b.id,
+        enquiry: {
+          ...enquiry,
+          status: "NEW"
+        }
+      }));
+      insertedCount += 1;
+    }
+
+    if (enquiryPayload.source === ENQUIRIES_TABLE) {
+      await supabase
+        .from(ENQUIRIES_TABLE)
+        .update({
+          status: "SENT",
+          sent_to_count: insertedCount,
+          sent_at: new Date().toISOString()
+        })
+        .eq("id", enquiryId);
+    } else {
+      await supabase
+        .from(LEADS_TABLE)
+        .update({ status: "SENT" })
+        .eq("id", enquiryId)
+        .eq("boutique_id", ADMIN_QUEUE_BOUTIQUE_ID);
+    }
+
+    return res.json({
+      success: true,
+      sentTo: insertedCount,
+      message: `Enquiry forwarded to ${insertedCount} boutique(s).`
+    });
+  } catch (err) {
+    console.error("[ENQUIRY] Dispatch error:", err.message);
+    return res.status(500).json({ message: "Failed to forward enquiry", error: err.message });
+  }
+});
+
+/* ================= GET LEADS (PARTNER) ================= */
 router.get("/list/:boutiqueId", async (req, res) => {
   const { boutiqueId } = req.params;
   console.log(`[Leads] List request for boutiqueId: ${boutiqueId}`);
 
   try {
     const { data, error } = await supabase
-      .from("leads")
+      .from(LEADS_TABLE)
       .select("*")
       .eq("boutique_id", boutiqueId)
       .order("created_at", { ascending: false });

@@ -114,12 +114,37 @@
                 </div>
             </section>
         </div>
+
+        <section class="mt-12">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-xl font-display italic">User Enquiries</h2>
+                <button id="refreshEnquiriesBtn" class="text-[10px] uppercase tracking-widest text-primary hover:text-white transition-colors">Refresh</button>
+            </div>
+            <div class="glass-card rounded-xl overflow-hidden">
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-white/5 border-b border-white/5 text-[10px] uppercase tracking-widest text-gray-400">
+                        <tr>
+                            <th class="px-6 py-4 font-medium">Customer</th>
+                            <th class="px-6 py-4 font-medium">Preferred Location</th>
+                            <th class="px-6 py-4 font-medium">Requirement</th>
+                            <th class="px-6 py-4 font-medium">Status</th>
+                            <th class="px-6 py-4 font-medium text-right">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="enquiriesTableBody">
+                        <!-- Rows loaded via JS -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
     </main>
 
     <script>
+        const API_ORIGIN = "https://cloche-backend.onrender.com";
+
         async function loadAnalytics() {
             try {
-                const response = await fetch('https://cloche-backend.onrender.com/api/admin/analytics');
+                const response = await fetch(`${API_ORIGIN}/api/admin/analytics`);
                 const data = await response.json();
 
                 if (data.success) {
@@ -157,12 +182,98 @@
             }
         }
 
+        function renderEnquiries(rows) {
+            const table = document.getElementById("enquiriesTableBody");
+            if (!table) return;
+
+            const list = Array.isArray(rows) ? rows : [];
+            if (!list.length) {
+                table.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="px-6 py-6 text-center text-gray-500">No enquiries found.</td>
+                    </tr>
+                `;
+                return;
+            }
+
+            table.innerHTML = list.map((e) => {
+                const status = String(e.status || "PENDING").toUpperCase();
+                const badgeClass = status === "SENT"
+                    ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400"
+                    : "bg-primary/10 border-primary/30 text-primary";
+                const disabled = status === "SENT";
+                const name = e.name || "User";
+                const phone = e.phone || "-";
+                const location = e.preferred_location || "-";
+                const requirement = e.requirement || "General enquiry";
+
+                return `
+                    <tr class="table-row border-b border-white/5 transition-colors">
+                        <td class="px-6 py-4">
+                            <p class="font-medium text-white">${name}</p>
+                            <p class="text-xs text-gray-500">${phone}</p>
+                        </td>
+                        <td class="px-6 py-4 text-gray-300">${location}</td>
+                        <td class="px-6 py-4 text-gray-400">${requirement}</td>
+                        <td class="px-6 py-4">
+                            <span class="px-2.5 py-1 border rounded-full text-[10px] uppercase tracking-widest ${badgeClass}">${status}</span>
+                        </td>
+                        <td class="px-6 py-4 text-right">
+                            <button ${disabled ? "disabled" : ""} data-send-enquiry-id="${e.id}" class="px-3 py-2 rounded-lg text-[10px] uppercase tracking-widest border ${disabled ? "border-white/10 text-gray-600 cursor-not-allowed" : "border-primary/30 text-primary hover:bg-primary/10"} transition-colors">
+                                ${disabled ? "Already Sent" : "Send to Boutiques"}
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join("");
+        }
+
+        async function loadEnquiries() {
+            try {
+                const res = await fetch(`${API_ORIGIN}/api/leads/admin/enquiries`);
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.message || "Failed to load enquiries");
+                renderEnquiries(data);
+            } catch (err) {
+                console.error("Failed to load enquiries:", err);
+                renderEnquiries([]);
+            }
+        }
+
+        async function sendEnquiryToBoutiques(enquiryId) {
+            if (!enquiryId) return;
+            try {
+                const res = await fetch(`${API_ORIGIN}/api/leads/admin/enquiries/${encodeURIComponent(enquiryId)}/send`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" }
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.message || "Failed to send enquiry");
+                alert(data.message || "Enquiry sent.");
+                await loadEnquiries();
+            } catch (err) {
+                alert(err.message || "Could not send enquiry");
+            }
+        }
+
         function logout() {
             localStorage.removeItem('adminToken');
             window.location.href = 'index.html';
         }
 
-        document.addEventListener('DOMContentLoaded', loadAnalytics);
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadAnalytics();
+            await loadEnquiries();
+
+            document.getElementById("refreshEnquiriesBtn")?.addEventListener("click", loadEnquiries);
+
+            document.addEventListener("click", (event) => {
+                const target = event.target?.closest?.("[data-send-enquiry-id]");
+                if (!target) return;
+                const enquiryId = target.getAttribute("data-send-enquiry-id");
+                sendEnquiryToBoutiques(enquiryId);
+            });
+        });
     </script>
 </body>
 </html>
