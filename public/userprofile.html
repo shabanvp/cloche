@@ -140,16 +140,7 @@
               required
             />
           </div>
-          <div>
-            <label class="text-[11px] uppercase tracking-[0.24em] text-primary/75 mb-2 block">Email</label>
-            <input
-              id="editEmail"
-              type="email"
-              class="w-full rounded-xl bg-black/30 border border-white/10 text-white h-11 px-4 focus:border-primary focus:ring-0"
-              placeholder="you@gmail.com"
-              required
-            />
-          </div>
+          <!-- Email is now read-only and removed from the edit form -->
           <button
             id="saveProfileBtn"
             type="submit"
@@ -185,12 +176,8 @@
       const email = data.email || localEmail;
       if (data.created_at) currentCreatedAt = data.created_at;
       const createdAt = currentCreatedAt
-        ? new Date(currentCreatedAt).toLocaleDateString(undefined, {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-          })
-        : "Member since 2024";
+        ? new Date(currentCreatedAt).getFullYear()
+        : "2024";
       const first = firstName(name);
 
       document.getElementById("welcomeName").textContent = `Welcome, ${first}`;
@@ -309,7 +296,7 @@
         const res = await fetch(`/api/auth/user/${userId}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name, email })
+          body: JSON.stringify({ name })
         });
 
         const data = await res.json();

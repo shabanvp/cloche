@@ -668,20 +668,23 @@ router.put("/user/:userId", async (req, res) => {
   const { name, email } = req.body;
 
   const safeName = String(name || "").trim();
-  const safeEmail = String(email || "").trim().toLowerCase();
+  const safeEmail = email ? String(email).trim().toLowerCase() : null;
 
-  if (!safeName || !safeEmail) {
-    return res.status(400).json({ message: "Name and email are required" });
+  if (!safeName) {
+    return res.status(400).json({ message: "Name is required" });
   }
 
-  if (!safeEmail.endsWith("@gmail.com")) {
+  if (safeEmail && !safeEmail.endsWith("@gmail.com")) {
     return res.status(400).json({ message: "Only Gmail addresses are allowed" });
   }
 
   try {
+    const updatePayload = { name: safeName };
+    if (safeEmail) updatePayload.email = safeEmail;
+
     const { data, error } = await supabase
       .from("users")
-      .update({ name: safeName, email: safeEmail })
+      .update(updatePayload)
       .eq("id", userId)
       .select("id, name, email")
       .maybeSingle();
