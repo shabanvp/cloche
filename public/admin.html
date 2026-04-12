@@ -128,7 +128,7 @@
                             <th class="px-3 md:px-6 py-3 md:py-4 font-medium">Location</th>
                             <th class="px-3 md:px-6 py-3 md:py-4 font-medium">Requirement</th>
                             <th class="px-3 md:px-6 py-3 md:py-4 font-medium">Status</th>
-                            <th class="px-3 md:px-6 py-3 md:py-4 font-medium text-center">Action</th>
+                            <th class="px-3 md:px-6 py-3 md:py-4 text-center">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="enquiriesTableBody">
@@ -222,7 +222,10 @@
                         <td class="px-3 md:px-6 py-3 md:py-4">
                             <span class="px-2 md:px-2.5 py-1 border rounded-full text-[8px] md:text-[10px] uppercase tracking-widest whitespace-nowrap ${badgeClass}">${status}</span>
                         </td>
-                        <td class="px-2 md:px-6 py-3 md:py-4 text-center">
+                        <td class="px-2 md:px-6 py-3 md:py-4 text-center flex items-center justify-center gap-2">
+                            <button data-copy-enquiry-id="${e.id}" class="px-2 md:px-3 py-1 md:py-2 rounded-lg text-[7px] md:text-[10px] uppercase tracking-widest border border-white/10 text-gray-400 hover:text-white hover:bg-white/5 transition-colors">
+                                Copy
+                            </button>
                             <button ${disabled ? "disabled" : ""} data-send-enquiry-id="${e.id}" class="px-2 md:px-3 py-1 md:py-2 rounded-lg text-[7px] md:text-[10px] uppercase tracking-widest border whitespace-nowrap ${disabled ? "border-white/10 text-gray-600 cursor-not-allowed" : "border-primary/30 text-primary hover:bg-primary/10"} transition-colors">
                                 ${disabled ? "Sent" : "Send"}
                             </button>
@@ -260,6 +263,41 @@
             }
         }
 
+        async function copyEnquiryToClipboard(enquiryId) {
+            try {
+                const res = await fetch(`${API_ORIGIN}/api/leads/admin/enquiries`);
+                const all = await res.json();
+                const e = all.find(item => String(item.id) === String(enquiryId));
+                if (!e) return;
+
+                const text = `--- CLOCHE LUXURY ENQUIRY ---
+Customer: ${e.name || "N/A"}
+Phone: ${e.phone || "N/A"}
+Wedding Date: ${e.wedding_date || "N/A"}
+Location: ${e.preferred_location || "N/A"}
+Requirement: ${e.requirement || "N/A"}
+Special Notes: ${e.special_requirement || "None"}
+-----------------------------`;
+
+                await navigator.clipboard.writeText(text);
+                
+                // Visual feedback on button
+                const btn = document.querySelector(`[data-copy-enquiry-id="${enquiryId}"]`);
+                if (btn) {
+                    const original = btn.textContent;
+                    btn.textContent = "COPIED!";
+                    btn.classList.add("text-emerald-400", "border-emerald-400/30");
+                    setTimeout(() => {
+                        btn.textContent = original;
+                        btn.classList.remove("text-emerald-400", "border-emerald-400/30");
+                    }, 2000);
+                }
+            } catch (err) {
+                console.error("Copy failed:", err);
+                alert("Failed to copy details.");
+            }
+        }
+
         function logout() {
             localStorage.removeItem('adminToken');
             window.location.href = 'index.html';
@@ -272,10 +310,16 @@
             document.getElementById("refreshEnquiriesBtn")?.addEventListener("click", loadEnquiries);
 
             document.addEventListener("click", (event) => {
-                const target = event.target?.closest?.("[data-send-enquiry-id]");
-                if (!target) return;
-                const enquiryId = target.getAttribute("data-send-enquiry-id");
-                sendEnquiryToBoutiques(enquiryId);
+                const sendBtn = event.target?.closest?.("[data-send-enquiry-id]");
+                if (sendBtn) {
+                    sendEnquiryToBoutiques(sendBtn.getAttribute("data-send-enquiry-id"));
+                    return;
+                }
+
+                const copyBtn = event.target?.closest?.("[data-copy-enquiry-id]");
+                if (copyBtn) {
+                    copyEnquiryToClipboard(copyBtn.getAttribute("data-copy-enquiry-id"));
+                }
             });
         });
     </script>
