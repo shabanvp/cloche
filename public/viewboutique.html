@@ -481,6 +481,7 @@
         const q = new URLSearchParams({
           boutiqueId: String(boutique.id || ""),
           boutique: String(boutique.boutique_name || ""),
+          location: String(boutique.city || ""),
           requirement
         });
         enquiryBtn.href = `enquiry.html?${q.toString()}`;

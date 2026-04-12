@@ -349,8 +349,33 @@
     }
 
     const params = new URLSearchParams(window.location.search);
+    const boutiqueId = params.get("boutiqueId");
+    const prefilledLocation = params.get("location");
     const prefilledRequirement = params.get("requirement") || params.get("product") || params.get("boutique");
+
     if (prefilledRequirement) requirementInput.value = prefilledRequirement;
+
+    if (prefilledLocation) {
+        // Try to match value or add as new option if missing
+        const citySelect = document.getElementById("cityLocation");
+        let matched = false;
+        for (let i = 0; i < citySelect.options.length; i++) {
+            if (citySelect.options[i].value.toLowerCase().includes(prefilledLocation.toLowerCase())) {
+                citySelect.selectedIndex = i;
+                matched = true;
+                break;
+            }
+        }
+        if (!matched) {
+            const opt = document.createElement("option");
+            opt.value = prefilledLocation;
+            opt.textContent = prefilledLocation;
+            opt.selected = true;
+            citySelect.appendChild(opt);
+        }
+        citySelect.disabled = true; // Lock the location
+        citySelect.classList.add("opacity-75", "cursor-not-allowed");
+    }
 
     const storedName = localStorage.getItem("userName");
     if (storedName) fullNameInput.value = storedName;
@@ -362,6 +387,7 @@
       submitBtn.classList.add("opacity-75", "cursor-not-allowed");
 
       const payload = {
+        boutiqueId: boutiqueId || "", // Added tracking
         fullName: document.getElementById("fullName")?.value.trim() || "",
         mobileNumber: document.getElementById("mobileNumber")?.value.trim() || "",
         weddingDate: document.getElementById("weddingDate")?.value || "",

@@ -412,6 +412,33 @@ router.post("/enquiry", async (req, res) => {
   }
 
   try {
+    const directBoutiqueId = Number(req.body.boutiqueId);
+    if (directBoutiqueId > 0) {
+      console.log(`[ENQUIRY] Direct routing detected for boutiqueId: ${directBoutiqueId}`);
+      
+      // Bypass admin queue and insert straight into leads table for this boutique
+      const leadData = await tryInsertWithFallback(LEADS_TABLE, leadPayloadCandidates({
+        boutiqueId: directBoutiqueId,
+        enquiry: {
+          ...enquiry,
+          status: "NEW" // Direct leads start as NEW for the boutique
+        }
+      }));
+
+      // Try to insert into enquiries table as a backup/admin record (non-blocking)
+      tryInsertWithFallback(ENQUIRIES_TABLE, enquiryPayloadCandidates({
+        ...enquiry,
+        status: "DIRECT" // Mark as reached boutique directly
+      })).catch(e => console.warn("[ENQUIRY] Failed to save backup enquiry row:", e.message));
+
+      console.log("[ENQUIRY] Direct lead created successfully:", leadData?.id);
+      return res.status(201).json({
+        success: true,
+        enquiryId: leadData?.id || null,
+        message: "Your enquiry has been sent directly to the boutique owner."
+      });
+    }
+
     let enqueueError = null;
     const enquiryId = await (async () => {
       try {
