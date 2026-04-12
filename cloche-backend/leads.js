@@ -276,6 +276,25 @@ function matchBoutiquesByLocation(boutiques, preferredLocation) {
   });
 }
 
+async function forwardEnquiryToMatchedBoutiques(enquiry) {
+  const boutiques = await fetchAllBoutiquesWithLocation();
+  const matchedBoutiques = matchBoutiquesByLocation(boutiques, enquiry.preferred_location);
+  if (!matchedBoutiques.length) return 0;
+
+  let insertedCount = 0;
+  for (const b of matchedBoutiques) {
+    await tryInsertWithFallback(LEADS_TABLE, leadPayloadCandidates({
+      boutiqueId: b.id,
+      enquiry: {
+        ...enquiry,
+        status: "NEW"
+      }
+    }));
+    insertedCount += 1;
+  }
+  return insertedCount;
+}
+
 async function getEnquiryForAdmin(id) {
   const { data: enquiryRow, error: enquiryErr } = await supabase
     .from(ENQUIRIES_TABLE)
@@ -364,16 +383,36 @@ router.post("/enquiry", async (req, res) => {
   }
 
   try {
+    let enqueueError = null;
     const enquiryId = await (async () => {
       try {
         const data = await tryInsertWithFallback(ENQUIRIES_TABLE, enquiryPayloadCandidates(enquiry));
         return data?.id || null;
       } catch (e) {
-        // Fallback queue row in leads table for environments without enquiries table
-        const data = await tryInsertWithFallback(LEADS_TABLE, queueLeadPayloadCandidates(enquiry));
-        return data?.id || null;
+        try {
+          // Fallback queue row in leads table for environments without enquiries table
+          const data = await tryInsertWithFallback(LEADS_TABLE, queueLeadPayloadCandidates(enquiry));
+          return data?.id || null;
+        } catch (queueErr) {
+          enqueueError = queueErr;
+          return null;
+        }
       }
     })();
+
+    if (enqueueError) {
+      const autoSentCount = await forwardEnquiryToMatchedBoutiques(enquiry);
+      if (autoSentCount > 0) {
+        return res.status(201).json({
+          success: true,
+          enquiryId: null,
+          autoForwarded: true,
+          sentTo: autoSentCount,
+          message: `Enquiry submitted and forwarded to ${autoSentCount} matching boutique(s).`
+        });
+      }
+      throw enqueueError;
+    }
 
     return res.status(201).json({
       success: true,

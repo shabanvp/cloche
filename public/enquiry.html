@@ -372,19 +372,46 @@
       };
 
       try {
-        const res = await fetch(`${API_ORIGIN}/api/leads/enquiry`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        });
-        const result = await res.json().catch(() => ({}));
-        if (!res.ok) {
-          throw new Error(result.message || "Failed to submit enquiry");
+        const endpoints = [
+          `${API_ORIGIN}/api/leads/enquiry`,
+          `/api/leads/enquiry`
+        ];
+
+        let lastError = null;
+        let finalResult = {};
+        let submitted = false;
+
+        for (const endpoint of endpoints) {
+          try {
+            const res = await fetch(endpoint, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload)
+            });
+            const result = await res.json().catch(() => ({}));
+            if (!res.ok) {
+              lastError = new Error(result.message || "Failed to submit enquiry");
+              continue;
+            }
+            finalResult = result || {};
+            submitted = true;
+            break;
+          } catch (networkErr) {
+            lastError = networkErr;
+          }
+        }
+
+        if (!submitted) {
+          throw lastError || new Error("Failed to submit enquiry");
         }
 
         const rawMobile = mobileInput.value.replace(/[^\d+]/g, "");
         if (rawMobile) {
           whatsappBtn.href = `https://wa.me/${encodeURIComponent(rawMobile)}`;
+        }
+
+        if (finalResult?.message) {
+          console.log("[Enquiry]", finalResult.message);
         }
 
         setTimeout(() => {
