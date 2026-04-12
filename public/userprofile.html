@@ -185,8 +185,12 @@
       const email = data.email || localEmail;
       if (data.created_at) currentCreatedAt = data.created_at;
       const createdAt = currentCreatedAt
-        ? new Date(currentCreatedAt).toLocaleDateString()
-        : "-";
+        ? new Date(currentCreatedAt).toLocaleDateString(undefined, {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+          })
+        : "Member since 2024";
       const first = firstName(name);
 
       document.getElementById("welcomeName").textContent = `Welcome, ${first}`;
