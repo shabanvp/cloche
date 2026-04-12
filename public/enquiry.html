@@ -201,6 +201,8 @@
     <section class="glass p-5 sm:p-8 shadow-luxe fade-up [animation-delay:120ms]">
       <div id="enquiryView">
         <form id="enquiryForm" class="space-y-5">
+          <!-- Hidden field to ensure boutique tracking -->
+          <input type="hidden" id="formBoutiqueId" name="boutiqueId" value="" />
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label for="fullName" class="text-[11px] uppercase tracking-[0.24em] text-primary/75 block mb-2">Full Name</label>
@@ -349,7 +351,15 @@
     }
 
     const params = new URLSearchParams(window.location.search);
-    const boutiqueId = params.get("boutiqueId");
+    // Be robust: check URL param then localStorage
+    const boutiqueIdFromUrl = params.get("boutiqueId") || params.get("id");
+    const boutiqueId = boutiqueIdFromUrl || localStorage.getItem("selectedBoutiqueId");
+    
+    if (boutiqueId) {
+      document.getElementById("formBoutiqueId").value = boutiqueId;
+      console.log("[Enquiry] Boutique ID identified:", boutiqueId);
+    }
+
     const prefilledLocation = params.get("location");
     const prefilledRequirement = params.get("requirement") || params.get("product") || params.get("boutique");
 
@@ -387,7 +397,7 @@
       submitBtn.classList.add("opacity-75", "cursor-not-allowed");
 
       const payload = {
-        boutiqueId: boutiqueId || "", // Added tracking
+        boutiqueId: document.getElementById("formBoutiqueId").value || boutiqueId || "",
         fullName: document.getElementById("fullName")?.value.trim() || "",
         mobileNumber: document.getElementById("mobileNumber")?.value.trim() || "",
         weddingDate: document.getElementById("weddingDate")?.value || "",
@@ -396,6 +406,8 @@
         specialRequirement: document.getElementById("specialRequirement")?.value.trim() || "",
         email: String(localStorage.getItem("userEmail") || "").trim()
       };
+
+      console.log("[Enquiry] SUBMITTING PAYLOAD:", JSON.stringify(payload, null, 2));
 
       console.log("[Enquiry] Submitting payload:", payload);
 

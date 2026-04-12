@@ -411,10 +411,14 @@ router.post("/enquiry", async (req, res) => {
     return res.status(400).json({ message: `Missing required fields: ${missing.join(", ")}` });
   }
 
+  console.log("[ENQUIRY] POST /enquiry body:", JSON.stringify(req.body, null, 2));
+
   try {
     const directBoutiqueId = Number(req.body.boutiqueId);
-    if (directBoutiqueId > 0) {
-      console.log(`[ENQUIRY] Direct routing detected for boutiqueId: ${directBoutiqueId}`);
+    console.log("[ENQUIRY] Parsed directBoutiqueId:", directBoutiqueId);
+
+    if (directBoutiqueId > 0 && !isNaN(directBoutiqueId)) {
+      console.log(`[ENQUIRY] EXECUTING DIRECT ROUTE for boutiqueId: ${directBoutiqueId}`);
       
       // Bypass admin queue and insert straight into leads table for this boutique
       const leadData = await tryInsertWithFallback(LEADS_TABLE, leadPayloadCandidates({
