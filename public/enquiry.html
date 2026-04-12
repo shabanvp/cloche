@@ -371,6 +371,8 @@
         email: String(localStorage.getItem("userEmail") || "").trim()
       };
 
+      console.log("[Enquiry] Submitting payload:", payload);
+
       try {
         const endpoints = [
           `${API_ORIGIN}/api/leads/enquiry`,
@@ -389,14 +391,16 @@
               body: JSON.stringify(payload)
             });
             const result = await res.json().catch(() => ({}));
+            console.log(`[Enquiry] Endpoint ${endpoint} response:`, res.status, result);
             if (!res.ok) {
-              lastError = new Error(result.message || "Failed to submit enquiry");
+              lastError = new Error(result.message || `HTTP ${res.status}: Failed to submit enquiry`);
               continue;
             }
             finalResult = result || {};
             submitted = true;
             break;
           } catch (networkErr) {
+            console.error(`[Enquiry] Network error at ${endpoint}:`, networkErr);
             lastError = networkErr;
           }
         }
@@ -419,7 +423,9 @@
           successView.classList.remove("hidden");
         }, 300);
       } catch (err) {
-        alert(err.message || "Could not submit enquiry. Please try again.");
+        console.error("[Enquiry Error]", err);
+        const errorMsg = err.message || "Could not submit enquiry. Please try again.";
+        alert(errorMsg);
         submitBtn.disabled = false;
         submitBtn.classList.remove("opacity-75", "cursor-not-allowed");
       }

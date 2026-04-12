@@ -277,22 +277,31 @@ function matchBoutiquesByLocation(boutiques, preferredLocation) {
 }
 
 async function forwardEnquiryToMatchedBoutiques(enquiry) {
-  const boutiques = await fetchAllBoutiquesWithLocation();
-  const matchedBoutiques = matchBoutiquesByLocation(boutiques, enquiry.preferred_location);
-  if (!matchedBoutiques.length) return 0;
+  try {
+    const boutiques = await fetchAllBoutiquesWithLocation();
+    console.log("[FORWARD] Found", boutiques.length, "boutiques");
+    const matchedBoutiques = matchBoutiquesByLocation(boutiques, enquiry.preferred_location);
+    console.log("[FORWARD] Matched", matchedBoutiques.length, "boutiques for location:", enquiry.preferred_location);
+    
+    if (!matchedBoutiques.length) return 0;
 
-  let insertedCount = 0;
-  for (const b of matchedBoutiques) {
-    await tryInsertWithFallback(LEADS_TABLE, leadPayloadCandidates({
-      boutiqueId: b.id,
-      enquiry: {
-        ...enquiry,
-        status: "NEW"
-      }
-    }));
-    insertedCount += 1;
+    let insertedCount = 0;
+    for (const b of matchedBoutiques) {
+      await tryInsertWithFallback(LEADS_TABLE, leadPayloadCandidates({
+        boutiqueId: b.id,
+        enquiry: {
+          ...enquiry,
+          status: "NEW"
+        }
+      }));
+      insertedCount += 1;
+    }
+    console.log("[FORWARD] Successfully forwarded to", insertedCount, "boutiques");
+    return insertedCount;
+  } catch (err) {
+    console.error("[FORWARD] Error:", err.message);
+    throw err;
   }
-  return insertedCount;
 }
 
 async function getEnquiryForAdmin(id) {
@@ -378,8 +387,15 @@ router.post("/enquiry", async (req, res) => {
     created_at: new Date().toISOString()
   };
 
+  console.log("[ENQUIRY] Received enquiry:", enquiry);
+
   if (!enquiry.name || !enquiry.phone || !enquiry.wedding_date || !enquiry.preferred_location) {
-    return res.status(400).json({ message: "Name, phone, wedding date and preferred location are required" });
+    const missing = [];
+    if (!enquiry.name) missing.push("name");
+    if (!enquiry.phone) missing.push("phone");
+    if (!enquiry.wedding_date) missing.push("wedding_date");
+    if (!enquiry.preferred_location) missing.push("preferred_location");
+    return res.status(400).json({ message: `Missing required fields: ${missing.join(", ")}` });
   }
 
   try {
@@ -387,13 +403,17 @@ router.post("/enquiry", async (req, res) => {
     const enquiryId = await (async () => {
       try {
         const data = await tryInsertWithFallback(ENQUIRIES_TABLE, enquiryPayloadCandidates(enquiry));
+        console.log("[ENQUIRY] Successfully inserted into enquiries table:", data?.id);
         return data?.id || null;
       } catch (e) {
+        console.log("[ENQUIRY] Enquiries table insert failed:", e.message);
         try {
           // Fallback queue row in leads table for environments without enquiries table
           const data = await tryInsertWithFallback(LEADS_TABLE, queueLeadPayloadCandidates(enquiry));
+          console.log("[ENQUIRY] Successfully inserted into leads table:", data?.id);
           return data?.id || null;
         } catch (queueErr) {
+          console.error("[ENQUIRY] Leads table insert also failed:", queueErr.message);
           enqueueError = queueErr;
           return null;
         }
@@ -401,17 +421,31 @@ router.post("/enquiry", async (req, res) => {
     })();
 
     if (enqueueError) {
-      const autoSentCount = await forwardEnquiryToMatchedBoutiques(enquiry);
-      if (autoSentCount > 0) {
+      console.log("[ENQUIRY] Attempting to forward to matched boutiques...");
+      try {
+        const autoSentCount = await forwardEnquiryToMatchedBoutiques(enquiry);
+        console.log("[ENQUIRY] Forwarded to", autoSentCount, "boutiques");
+        if (autoSentCount > 0) {
+          return res.status(201).json({
+            success: true,
+            enquiryId: null,
+            autoForwarded: true,
+            sentTo: autoSentCount,
+            message: `Enquiry submitted and forwarded to ${autoSentCount} matching boutique(s).`
+          });
+        }
+        // If no boutiques matched but we tried, still return success
         return res.status(201).json({
           success: true,
           enquiryId: null,
-          autoForwarded: true,
-          sentTo: autoSentCount,
-          message: `Enquiry submitted and forwarded to ${autoSentCount} matching boutique(s).`
+          autoForwarded: false,
+          sentTo: 0,
+          message: "Enquiry submitted. Admin will review and forward to matching boutiques."
         });
+      } catch (forwardErr) {
+        console.error("[ENQUIRY] Forward to boutiques failed:", forwardErr.message);
+        throw new Error(`Database error: ${forwardErr.message}`);
       }
-      throw enqueueError;
     }
 
     return res.status(201).json({
