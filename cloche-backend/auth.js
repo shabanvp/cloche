@@ -157,9 +157,9 @@ router.post("/signup", async (req, res) => {
 
       const { error } = await supabase
         .from("users")
-        .insert([{ 
-          name, 
-          email, 
+        .insert([{
+          name,
+          email,
           password_hash: passwordHash,
           is_verified: false,
           verification_token: verificationToken
@@ -391,7 +391,7 @@ router.get("/verify-email", async (req, res) => {
 router.get("/debug-email", async (req, res) => {
   const testEmail = req.query.email || "shabanvp@gmail.com";
   console.log(`[Debug] Testing email to: ${testEmail}`);
-  
+
   const results = {
     env_user: process.env.GMAIL_USER || "cloche.luxury@gmail.com (default)",
     env_password_exists: !!process.env.GMAIL_APP_PASSWORD,
@@ -404,7 +404,7 @@ router.get("/debug-email", async (req, res) => {
     results.success = emailResult.success;
     results.error = emailResult.error || null;
     results.raw_error = emailResult.raw || null;
-    
+
     if (emailResult.success) {
       return res.json({
         message: "SMTP connection successful! Email should be arriving.",
@@ -603,10 +603,10 @@ router.get("/profile/:boutiqueId", async (req, res) => {
   try {
     const [{ data: boutique, error }, { data: showcase, error: showcaseError }] = await Promise.all([
       supabase
-      .from("boutiques")
-      .select("id, boutique_name, owner_name, email, phone, city, plan, created_at")
-      .eq("id", boutiqueId)
-      .maybeSingle(),
+        .from("boutiques")
+        .select("id, boutique_name, owner_name, email, phone, city, plan, created_at")
+        .eq("id", boutiqueId)
+        .maybeSingle(),
       supabase
         .from("boutique_showcase")
         .select("district")
@@ -1164,12 +1164,9 @@ router.get("/boutiques", async (req, res) => {
   }
 });
 
-
-
 router.get("/cloudinary-config", (req, res) => {
   return res.json({ cloudName: CLOUDINARY_CLOUD_NAME || "" });
 });
-
 
 /* ================= DASHBOARD ================= */
 router.get("/dashboard/:boutiqueId", async (req, res) => {
@@ -1231,44 +1228,11 @@ router.get("/dashboard/:boutiqueId", async (req, res) => {
       messagesUsed: totalMessages,
       productsUsed: totalProducts,
       plan: boutique.plan || "Basic"
-  const safeEmail = String(email || "").trim().toLowerCase();
-
-  if (!safeName || !safeEmail) {
-    return res.status(400).json({ message: "Name and email are required" });
-  }
-
-  if (!safeEmail.endsWith("@gmail.com")) {
-    return res.status(400).json({ message: "Only Gmail addresses are allowed" });
-  }
-
-  try {
-    const { data, error } = await supabase
-      .from("users")
-      .update({ name: safeName, email: safeEmail })
-      .eq("id", userId)
-      .select("id, name, email")
-      .maybeSingle();
-
-    if (error) {
-      if (error.code === "23505") {
-        return res.status(409).json({ message: "Email already in use" });
-      }
-      return res.status(500).json({ message: "Database error", error: error.message });
-    }
-
-    if (!data) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    return res.json({
-      success: true,
-      userId: data.id,
-      name: data.name,
-      email: data.email,
-      message: "Profile updated successfully"
     });
   } catch (err) {
+    console.error("[Dashboard] Unexpected error:", err);
     return res.status(500).json({ message: "Server error", error: err.message });
   }
 });
+
 module.exports = router;
