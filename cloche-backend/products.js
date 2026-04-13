@@ -105,31 +105,48 @@ router.get("/:productId", async (req, res, next) => {
 /* ================= GET ALL PRODUCTS ================= */
 router.get("/all", async (req, res) => {
   try {
-    console.log("[Products] Fetching all products for global collection...");
-    const { data: products, error } = await supabase
+    console.log("[Products] Fetching all products...");
+    
+    // 1. Fetch products
+    const { data: products, error: productErr } = await supabase
       .from("products")
-      .select(`
-        *,
-        boutiques (
-          boutique_name,
-          city,
-          district
-        )
-      `)
+      .select("*")
       .order("created_at", { ascending: false });
 
-    if (error) {
-      console.error("[Products] All-fetch error:", error.message);
-      return res.status(500).json({ message: "DB error", error: error.message });
+    if (productErr) {
+      console.error("[Products] Fetch error:", productErr.message);
+      return res.status(500).json({ message: "DB error", error: productErr.message });
     }
 
-    const flattened = (products || []).map(p => ({
-      ...p,
-      boutique_name: p.boutiques?.boutique_name || "Boutique",
-      city: p.boutiques?.city || "",
-      district: p.boutiques?.district || "",
-      location: p.location || p.boutiques?.city || ""
-    }));
+    if (!products || products.length === 0) return res.json([]);
+
+    // 2. Fetch unique boutiques mentioned in products
+    const uniqueBoutiqueIds = [...new Set(products.map(p => p.boutique_id).filter(Boolean))];
+    const { data: boutiques, error: boutiqueErr } = await supabase
+      .from("boutiques")
+      .select("id, boutique_name, city, district")
+      .in("id", uniqueBoutiqueIds);
+
+    if (boutiqueErr) {
+      console.error("[Products] Boutique fetch error:", boutiqueErr.message);
+      // Fallback: return products without boutique names
+      return res.json(products.map(p => ({ ...p, boutique_name: "Boutique" })));
+    }
+
+    // 3. Map together
+    const boutiqueMap = {};
+    (boutiques || []).forEach(b => { boutiqueMap[b.id] = b; });
+
+    const flattened = products.map(p => {
+      const b = boutiqueMap[p.boutique_id] || {};
+      return {
+        ...p,
+        boutique_name: b.boutique_name || "Boutique",
+        city: b.city || "",
+        district: b.district || "",
+        location: p.location || b.city || ""
+      };
+    });
 
     return res.json(flattened);
   } catch (err) {
