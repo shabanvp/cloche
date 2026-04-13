@@ -317,9 +317,9 @@
             <thead>
               <tr
                 class="border-b border-accent-gold/10 bg-white/5 uppercase tracking-[0.2em] text-[10px] font-bold text-slate-400">
-                <th class="px-8 py-5">Customer Details</th>
-                <th class="px-6 py-5">Event Date</th>
-                <th class="px-6 py-5">Category</th>
+                <th class="px-8 py-5">Customer & Contact</th>
+                <th class="px-6 py-5">Wedding Date</th>
+                <th class="px-6 py-5">Category & Requirement</th>
                 <th class="px-6 py-5">Status</th>
                 <th class="px-8 py-5 text-right">Actions</th>
               </tr>
@@ -411,6 +411,8 @@
         const matchesSearch = !s ||
           (lead.name || "").toLowerCase().includes(s) ||
           (lead.email || "").toLowerCase().includes(s) ||
+          (lead.phone || "").toLowerCase().includes(s) ||
+          (lead.requirement || "").toLowerCase().includes(s) ||
           (lead.category || "").toLowerCase().includes(s);
 
         // Status
@@ -433,7 +435,7 @@
       tableBody.innerHTML = "";
 
       if (filteredLeads.length === 0) {
-        tableBody.innerHTML = `<tr><td colspan="5" class="px-8 py-6 text-center text-slate-400">No leads match.</td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan="5" class="px-8 py-6 text-center text-slate-400">No leads match your current search/filters.</td></tr>`;
         return;
       }
 
@@ -443,41 +445,72 @@
       const pageItems = filteredLeads.slice(start, end);
 
       pageItems.forEach(lead => {
-        const date = new Date(lead.created_at || lead.date).toLocaleDateString();
-        const initials = lead.name.split(" ").map(n => n[0]).join("").toUpperCase().substring(0, 2);
+        // Fix: Use wedding_date with fallback to date or created_at
+        const rawDate = lead.wedding_date || lead.date || lead.created_at;
+        const dateStr = rawDate ? new Date(rawDate).toLocaleDateString('en-GB', { day:'2-digit', month:'2-digit', year:'numeric' }) : "Not Set";
+        
+        const initials = (lead.name || "Guest").split(" ").map(n => n[0]).join("").toUpperCase().substring(0, 2);
 
         // Safe phone for WhatsApp
         const phone = lead.phone || lead.phoneNumber || "";
         const waLink = phone ? `https://wa.me/${phone.replace(/[^0-9]/g, '')}` : "#";
+        
+        // Clean values to avoid "undefined" display
+        const email = lead.email && lead.email !== "undefined" ? lead.email : "No Email Provided";
+        const category = lead.category && lead.category !== "undefined" ? lead.category : "Wedding";
+        const status = lead.status && lead.status !== "undefined" ? lead.status : "NEW";
+        const requirement = lead.requirement && lead.requirement !== "undefined" ? lead.requirement : "Inquiry";
+        const location = lead.preferred_location && lead.preferred_location !== "undefined" ? lead.preferred_location : "";
 
         let statusClass = "bg-primary/10 border-primary/50 text-primary";
-        if (lead.status === "CONTACTED") statusClass = "bg-slate-700/50 border-slate-500 text-slate-300";
-        if (lead.status === "CONVERTED") statusClass = "bg-emerald-500/10 border-emerald-500 text-emerald-500";
+        if (status === "CONTACTED") statusClass = "bg-slate-700/50 border-slate-500 text-slate-300";
+        if (status === "CONVERTED") statusClass = "bg-emerald-500/10 border-emerald-500 text-emerald-500";
 
         const row = `
-              <tr class="luxury-row transition-all group">
+              <tr class="luxury-row transition-all group border-b border-accent-gold/5 last:border-0">
                   <td class="px-8 py-6">
                       <div class="flex items-center gap-4">
-                          <div class="size-10 rounded-full bg-surface-dark border border-primary/20 flex items-center justify-center font-display font-bold text-primary group-hover:scale-110 transition-transform">
+                          <div class="size-10 rounded-full bg-surface-dark border border-primary/20 flex items-center justify-center font-display font-bold text-primary group-hover:scale-110 transition-transform shrink-0">
                               ${initials}
                           </div>
-                          <div>
-                              <p class="font-display font-bold text-lg leading-tight tracking-wide">${lead.name}</p>
-                              <p class="text-xs text-slate-500 font-medium">${lead.email}</p>
+                          <div class="min-w-0">
+                              <p class="font-display font-bold text-lg leading-tight tracking-wide truncate">${lead.name}</p>
+                              <p class="text-xs text-slate-500 font-medium truncate">${email}</p>
+                              <p class="text-[11px] text-primary/80 font-bold mt-1 flex items-center gap-1">
+                                <span class="material-symbols-outlined text-[14px]">smartphone</span> ${phone || 'No Phone'}
+                              </p>
                           </div>
                       </div>
                   </td>
-                  <td class="px-6 py-6 font-medium text-slate-300">${date}</td>
-                  <td class="px-6 py-6">
-                      <span class="px-3 py-1 bg-surface-dark border border-accent-gold/10 rounded-full text-[10px] font-bold uppercase tracking-widest text-slate-400">${lead.category}</span>
+                  <td class="px-6 py-6 border-r border-accent-gold/5">
+                    <div class="flex flex-col">
+                      <span class="font-medium text-slate-300">${dateStr}</span>
+                      <span class="text-[10px] text-slate-500 uppercase tracking-widest mt-1">Scheduled Date</span>
+                    </div>
                   </td>
                   <td class="px-6 py-6">
-                      <span class="px-3 py-1 border rounded-full text-[10px] font-bold uppercase tracking-widest ${statusClass}">${lead.status}</span>
+                    <div class="flex flex-col gap-2">
+                      <div class="flex items-center gap-2">
+                        <span class="px-2 py-0.5 bg-primary/10 border border-primary/20 rounded text-[10px] font-bold uppercase tracking-widest text-primary">${category}</span>
+                        ${location ? `<span class="text-[10px] text-slate-400 flex items-center gap-1"><span class="material-symbols-outlined text-xs">location_on</span> ${location}</span>` : ''}
+                      </div>
+                      <p class="text-sm text-slate-300 line-clamp-2 italic">"${requirement}"</p>
+                      ${lead.special_requirement && lead.special_requirement !== 'undefined' ? 
+                        `<div class="text-[11px] text-slate-500 bg-white/5 p-2 rounded border border-white/5 mt-1 border-l-2 border-l-primary/40">
+                          <span class="font-bold text-primary/70 uppercase text-[9px] block mb-0.5">Note:</span>
+                          ${lead.special_requirement}
+                        </div>` : ''}
+                    </div>
+                  </td>
+                  <td class="px-6 py-6">
+                      <span class="px-3 py-1 border rounded-full text-[10px] font-bold uppercase tracking-widest ${statusClass}">${status}</span>
                   </td>
                   <td class="px-8 py-6 text-right">
-                      <a href="${waLink}" target="_blank" class="bg-[#25D366] hover:bg-[#128C7E] text-white px-5 py-2 rounded-lg text-xs font-bold uppercase tracking-wide flex items-center gap-2 inline-flex transition-colors cursor-pointer text-decoration-none">
-                          <span class="material-symbols-outlined text-sm">chat_bubble</span> WhatsApp
-                      </a>
+                      <div class="flex flex-col items-end gap-2">
+                        <a href="${waLink}" target="_blank" class="bg-[#25D366] hover:bg-[#128C7E] text-white px-4 py-2 rounded-lg text-[11px] font-bold uppercase tracking-wide flex items-center gap-2 transition-all hover:scale-105 active:scale-95">
+                            <span class="material-symbols-outlined text-sm">chat_bubble</span> WhatsApp
+                        </a>
+                      </div>
                   </td>
               </tr>
           `;
@@ -596,13 +629,13 @@
         const isValidDate = (d) => d instanceof Date && !Number.isNaN(d.getTime());
 
         const newLeads = leads.filter(l => {
-          const d = new Date(l.created_at || l.date);
+          const d = new Date(l.wedding_date || l.created_at || l.date);
           if (!isValidDate(d)) return false;
           return d >= oneWeekAgo;
         }).length;
 
         const previousWeekLeads = leads.filter(l => {
-          const d = new Date(l.created_at || l.date);
+          const d = new Date(l.wedding_date || l.created_at || l.date);
           if (!isValidDate(d)) return false;
           return d >= twoWeeksAgo && d < oneWeekAgo;
         }).length;
@@ -611,13 +644,13 @@
         const conversionRate = totalLeads > 0 ? Math.round((convertedLeads / totalLeads) * 100) : 0;
 
         const currentWeekConverted = leads.filter(l => {
-          const d = new Date(l.created_at || l.date);
+          const d = new Date(l.wedding_date || l.created_at || l.date);
           if (!isValidDate(d)) return false;
           return d >= oneWeekAgo && l.status === "CONVERTED";
         }).length;
 
         const previousWeekConverted = leads.filter(l => {
-          const d = new Date(l.created_at || l.date);
+          const d = new Date(l.wedding_date || l.created_at || l.date);
           if (!isValidDate(d)) return false;
           return d >= twoWeeksAgo && d < oneWeekAgo && l.status === "CONVERTED";
         }).length;
@@ -654,3 +687,4 @@
   </script>
   <script src='responsive-layout.js'></script>
 </body>
+</html>

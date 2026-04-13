@@ -77,7 +77,7 @@ function leadPayloadCandidates({ boutiqueId, enquiry }) {
     email: clean(enquiry.email),
     phone: clean(enquiry.phone),
     status: clean(enquiry.status || "NEW"),
-    date: clean(enquiry.wedding_date) || null,
+    wedding_date: clean(enquiry.wedding_date) || null,
     category: safeLeadCategory(enquiry.requirement),
     requirement: clean(enquiry.requirement),
     special_requirement: clean(enquiry.special_requirement),
@@ -93,8 +93,10 @@ function leadPayloadCandidates({ boutiqueId, enquiry }) {
       email: base.email,
       phone: base.phone,
       status: base.status,
-      date: base.date,
+      wedding_date: base.wedding_date,
       category: base.category,
+      requirement: base.requirement,
+      preferred_location: base.preferred_location,
       created_at: base.created_at
     },
     {
@@ -102,7 +104,8 @@ function leadPayloadCandidates({ boutiqueId, enquiry }) {
       name: base.name,
       phone: base.phone,
       status: base.status,
-      category: base.category
+      category: base.category,
+      requirement: base.requirement
     },
     {
       boutique_id: base.boutique_id,
@@ -125,7 +128,7 @@ function queueLeadPayloadCandidates(enquiry) {
     email: clean(enquiry.email),
     phone: clean(enquiry.phone),
     status: clean(enquiry.status || "PENDING"),
-    date: clean(enquiry.wedding_date),
+    wedding_date: clean(enquiry.wedding_date),
     category: safeLeadCategory(enquiry.requirement),
     requirement: clean(enquiry.requirement),
     special_requirement: clean(enquiry.special_requirement),
@@ -141,7 +144,7 @@ function queueLeadPayloadCandidates(enquiry) {
       email: base.email,
       phone: base.phone,
       status: base.status,
-      date: base.date,
+      wedding_date: base.wedding_date,
       category: base.category,
       requirement: base.requirement,
       preferred_location: base.preferred_location,
@@ -153,7 +156,7 @@ function queueLeadPayloadCandidates(enquiry) {
       email: base.email,
       phone: base.phone,
       status: base.status,
-      date: base.date,
+      wedding_date: base.wedding_date,
       category: base.category,
       created_at: base.created_at
     },
@@ -169,7 +172,7 @@ function queueLeadPayloadCandidates(enquiry) {
       email: base.email,
       phone: base.phone,
       status: base.status,
-      date: base.date,
+      wedding_date: base.wedding_date,
       category: base.category,
       created_at: base.created_at
     }
