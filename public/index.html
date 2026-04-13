@@ -527,12 +527,15 @@
     const API_ORIGIN = "https://cloche-backend.onrender.com";
     let cloudinaryCloudName = "";
     const FEATURED_CACHE_KEY = "featuredBoutiquesCacheV1";
+    const COLLECTIONS_CACHE_KEY = "featuredCollectionsCacheV1";
     const FEATURED_RETRY_DELAYS_MS = [0, 2000, 5000]; // Give Render backends some time between attempts
     const FEATURED_FETCH_TIMEOUT_MS = 60000; // 60 second timeout per fetch to allow free-tier spin up
     const FEATURED_BOUTIQUES_LIMIT = 4;
     const FEATURED_COLLECTIONS_LIMIT = 4;
     let featuredLoadInProgress = false;
+    let collectionsLoadInProgress = false;
     let featuredRetryTimer = null;
+    let collectionsRetryTimer = null;
     const previewFallbackImages = [
       "https://images.unsplash.com/photo-1583391733981-849840f3f1c2?q=80&w=1200&auto=format&fit=crop",
       "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=1200&auto=format&fit=crop",
@@ -797,54 +800,75 @@
       }).join("");
     }
 
-    async function loadFeaturedCollections() {
+    function loadFeaturedCollectionsFromCache() {
+      try {
+        const cached = localStorage.getItem(COLLECTIONS_CACHE_KEY);
+        if (cached) {
+          const { data, timestamp } = JSON.parse(cached);
+          const ageHours = (Date.now() - timestamp) / (1000 * 60 * 60);
+          if (ageHours < 24) {
+            console.log("[Collections] Serving from cache, age:", ageHours.toFixed(2), "hours");
+            renderFeaturedCollections(data.slice(0, FEATURED_COLLECTIONS_LIMIT));
+            return true;
+          }
+        }
+      } catch (e) {
+        console.warn("[Collections] Cache read error:", e);
+      }
+      return false;
+    }
+
+    async function fetchFeaturedCollectionsWithRetry(attempt = 0) {
+      if (collectionsLoadInProgress && attempt === 0) return;
+      collectionsLoadInProgress = true;
+      
       const status = document.getElementById("featuredCollectionsStatus");
-      if (status) status.textContent = "Loading collections...";
+      if (status && attempt > 0) status.textContent = `Retrying collections (${attempt})...`;
 
       try {
-        const boutiquesRes = await fetchWithTimeout(`${API_BASE}/boutiques`, FEATURED_FETCH_TIMEOUT_MS);
-        const boutiquesData = await boutiquesRes.json().catch(() => []);
-        if (!boutiquesRes.ok) throw new Error("Failed to load boutiques");
+        console.log(`[Collections] Fetch attempt ${attempt + 1}...`);
+        const res = await fetchWithTimeout(`${API_ORIGIN}/api/products/all`, FEATURED_FETCH_TIMEOUT_MS);
+        const data = await res.json();
+        
+        if (!res.ok) throw new Error(data.message || "Failed to load collections");
+        
+        console.log("[Collections] Fetch successful");
+        const items = (Array.isArray(data) ? data : []).sort((a, b) => {
+          const aTime = new Date(a.created_at || 0).getTime();
+          const bTime = new Date(b.created_at || 0).getTime();
+          return bTime - aTime;
+        });
 
-        const boutiques = Array.isArray(boutiquesData) ? boutiquesData : [];
-        if (!boutiques.length) {
-          renderFeaturedCollections([]);
-          return;
-        }
+        localStorage.setItem(COLLECTIONS_CACHE_KEY, JSON.stringify({
+          data: items,
+          timestamp: Date.now()
+        }));
 
-        const productBuckets = await Promise.all(
-          boutiques.map(async (b) => {
-            try {
-              const res = await fetchWithTimeout(`${API_ORIGIN}/api/products/boutique/${encodeURIComponent(b.id)}`, FEATURED_FETCH_TIMEOUT_MS);
-              if (!res.ok) return [];
-              const products = await res.json().catch(() => []);
-              if (!Array.isArray(products)) return [];
-              return products.map((p) => ({
-                ...p,
-                boutique_name: b.boutique_name || "Boutique",
-                city: b.city || "",
-                district: b.district || ""
-              }));
-            } catch (_) {
-              return [];
-            }
-          })
-        );
-
-        const items = productBuckets
-          .flat()
-          .sort((a, b) => {
-            const aTime = new Date(a.created_at || 0).getTime();
-            const bTime = new Date(b.created_at || 0).getTime();
-            return (bTime || 0) - (aTime || 0);
-          })
-          .slice(0, FEATURED_COLLECTIONS_LIMIT);
-
-        renderFeaturedCollections(items);
+        renderFeaturedCollections(items.slice(0, FEATURED_COLLECTIONS_LIMIT));
+        if (status) status.textContent = "";
+        collectionsLoadInProgress = false;
       } catch (err) {
-        if (status) status.textContent = "Failed to load collections.";
-        renderFeaturedCollections([]);
+        console.error(`[Collections] Attempt ${attempt} failed:`, err.message);
+        if (attempt < FEATURED_RETRY_DELAYS_MS.length - 1) {
+          const delay = FEATURED_RETRY_DELAYS_MS[attempt + 1];
+          collectionsRetryTimer = setTimeout(() => {
+            collectionsLoadInProgress = false;
+            fetchFeaturedCollectionsWithRetry(attempt + 1);
+          }, delay);
+        } else {
+          collectionsLoadInProgress = false;
+          if (status) status.textContent = "Updates unavailable. Showing cached results.";
+        }
       }
+    }
+
+    async function loadFeaturedCollections() {
+      const hasCache = loadFeaturedCollectionsFromCache();
+      if (!hasCache) {
+        const status = document.getElementById("featuredCollectionsStatus");
+        if (status) status.textContent = "Loading collections...";
+      }
+      fetchFeaturedCollectionsWithRetry();
     }
 
     function loadFeaturedBoutiquesFromCache() {

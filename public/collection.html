@@ -76,6 +76,11 @@
     const API_ORIGIN = "https://cloche-backend.onrender.com";
     const API_AUTH = `${API_ORIGIN}/api/auth`;
     const API_PRODUCTS = `${API_ORIGIN}/api/products`;
+    const COLLECTIONS_CACHE_KEY = "allCollectionsCacheV1";
+    const COLLECTIONS_RETRY_DELAYS_MS = [0, 2000, 5000];
+    const COLLECTIONS_FETCH_TIMEOUT_MS = 60000;
+    let collectionsLoadInProgress = false;
+    let collectionsRetryTimer = null;
 
     let allItems = [];
 
@@ -120,13 +125,25 @@
     const separator = url.includes('?') ? '&' : '?';
     return `${url}${separator}v=${Math.floor(Date.now() / 60000)}`;
   }
+    async function fetchWithTimeout(url, timeoutMs = 10000, options = {}) {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+      try {
+        const res = await fetch(url, { ...options, signal: controller.signal });
+        clearTimeout(timeoutId);
+        return res;
+      } catch (error) {
+        clearTimeout(timeoutId);
+        throw error;
+      }
+    }
+
     function pickProductImage(item) {
       const gallery = Array.isArray(item.gallery) ? item.gallery : [];
       const firstValid = [item.image_url, ...gallery].find(Boolean);
       const rawUrl = firstValid || "";
       const resolved = resolveAssetUrl(rawUrl);
       const busted = addCacheBuster(resolved);
-      if (item.product_name) console.log(`[Image] Product: ${item.product_name}, Raw: ${rawUrl}, Resolved: ${resolved}, Final: ${busted}`);
       return busted;
     }
 
@@ -194,53 +211,85 @@
       renderItems(filtered);
     }
 
-    async function loadCollectionData() {
-      const status = document.getElementById("collectionStatusText");
+    function loadCollectionsFromCache() {
       try {
-        status.textContent = "";
-        const bRes = await fetch(`${API_AUTH}/boutiques`);
-        const boutiques = await bRes.json();
-        if (!bRes.ok) throw new Error("Failed to load boutiques");
+        const cached = localStorage.getItem(COLLECTIONS_CACHE_KEY);
+        if (cached) {
+          const { data, timestamp } = JSON.parse(cached);
+          const ageHours = (Date.now() - timestamp) / (1000 * 60 * 60);
+          if (ageHours < 24) {
+            console.log("[Collection] Serving from cache, age:", ageHours.toFixed(2), "hours");
+            allItems = data;
+            renderItems(allItems);
+            return true;
+          }
+        }
+      } catch (e) {
+        console.warn("[Collection] Cache read error:", e);
+      }
+      return false;
+    }
 
-        console.log("[Collection] Boutiques loaded:", boutiques);
+    async function fetchCollectionsWithRetry(attempt = 0) {
+      if (collectionsLoadInProgress && attempt === 0) return;
+      collectionsLoadInProgress = true;
+      
+      const status = document.getElementById("collectionStatusText");
+      if (status && attempt > 0) status.textContent = `Retrying connection (${attempt})...`;
 
-        const boutiqueList = Array.isArray(boutiques) ? boutiques : [];
-        const productResponses = await Promise.all(
-          boutiqueList.map(async (b) => {
-            try {
-              const pRes = await fetch(`${API_PRODUCTS}/boutique/${encodeURIComponent(b.id)}`);
-              if (!pRes.ok) return [];
-              const products = await pRes.json();
-              console.log(`[Collection] Products for boutique ${b.id} (${b.boutique_name}):`, products);
-              if (!Array.isArray(products)) return [];
-              return products.map((p) => ({
-                ...p,
-                boutique_name: b.boutique_name || "Boutique",
-                city: b.city || "",
-                district: b.district || "",
-                location: p.location || b.city || ""
-              }));
-            } catch (_) {
-              console.error(`[Collection] Error loading products for boutique ${b.id}:`, _);
-              return [];
-            }
-          })
-        );
-
-        allItems = productResponses.flat().sort((a, b) => {
+      try {
+        console.log(`[Collection] Fetch attempt ${attempt + 1}...`);
+        const res = await fetchWithTimeout(`${API_PRODUCTS}/all`, COLLECTIONS_FETCH_TIMEOUT_MS);
+        const data = await res.json();
+        
+        if (!res.ok) throw new Error(data.message || "Failed to load collections");
+        
+        console.log("[Collection] Fetch successful");
+        allItems = (Array.isArray(data) ? data : []).sort((a, b) => {
           const aT = new Date(a.created_at || 0).getTime();
           const bT = new Date(b.created_at || 0).getTime();
           return bT - aT;
         });
 
-        console.log("[Collection] All items:", allItems);
+        localStorage.setItem(COLLECTIONS_CACHE_KEY, JSON.stringify({
+          data: allItems,
+          timestamp: Date.now()
+        }));
+
         renderItems(allItems);
+        if (status) status.textContent = "";
+        collectionsLoadInProgress = false;
       } catch (err) {
-        status.textContent = "Failed to load live collections.";
-        console.error("[Collection] Error:", err);
-        const grid = document.getElementById("collectionGrid");
-        grid.innerHTML = `<div class="col-span-full glass-card rounded-xl p-8 text-center text-red-400">${escapeHtml(err.message || "Unknown error")}</div>`;
+        console.error(`[Collection] Attempt ${attempt} failed:`, err.message);
+        if (attempt < COLLECTIONS_RETRY_DELAYS_MS.length - 1) {
+          const delay = COLLECTIONS_RETRY_DELAYS_MS[attempt + 1];
+          collectionsRetryTimer = setTimeout(() => {
+            collectionsLoadInProgress = false;
+            fetchCollectionsWithRetry(attempt + 1);
+          }, delay);
+        } else {
+          collectionsLoadInProgress = false;
+          if (status) status.textContent = "Showing cached collection. Background updates unavailable.";
+          if (!allItems.length) {
+             const grid = document.getElementById("collectionGrid");
+             grid.innerHTML = `<div class="col-span-full glass-card rounded-xl p-8 text-center text-red-400">Failed to load live collections. Please check your connection.</div>`;
+          }
+        }
       }
+    }
+
+    async function loadCollectionData() {
+      const hasCache = loadCollectionsFromCache();
+      if (!hasCache) {
+        const grid = document.getElementById("collectionGrid");
+        grid.innerHTML = `
+          <div class="col-span-full py-20 text-center">
+            <div class="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"></div>
+            <p class="mt-4 text-white/60 tracking-[0.2em] uppercase text-xs">Curating Collection...</p>
+          </div>
+        `;
+      }
+      fetchCollectionsWithRetry();
     }
 
     document.addEventListener("DOMContentLoaded", () => {

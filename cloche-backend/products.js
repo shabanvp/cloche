@@ -102,6 +102,42 @@ router.get("/:productId", async (req, res, next) => {
   }
 });
 
+/* ================= GET ALL PRODUCTS ================= */
+router.get("/all", async (req, res) => {
+  try {
+    console.log("[Products] Fetching all products for global collection...");
+    const { data: products, error } = await supabase
+      .from("products")
+      .select(`
+        *,
+        boutiques (
+          boutique_name,
+          city,
+          district
+        )
+      `)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("[Products] All-fetch error:", error.message);
+      return res.status(500).json({ message: "DB error", error: error.message });
+    }
+
+    const flattened = (products || []).map(p => ({
+      ...p,
+      boutique_name: p.boutiques?.boutique_name || "Boutique",
+      city: p.boutiques?.city || "",
+      district: p.boutiques?.district || "",
+      location: p.location || p.boutiques?.city || ""
+    }));
+
+    return res.json(flattened);
+  } catch (err) {
+    console.error("[Products] Server error in /all:", err.message);
+    return res.status(500).json({ message: "Server error", error: err.message });
+  }
+});
+
 /* ================= ADD PRODUCT ================= */
 router.post("/add", upload.array("images", 10), async (req, res) => {
   const { name, price, stock, boutiqueId, category, description, location } = req.body;
