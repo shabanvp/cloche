@@ -91,9 +91,30 @@
     
     const mobileMenuDetails = topbar.querySelector(".mobile-menu-details");
     if (mobileMenuDetails) {
+      // Close on scroll
       window.addEventListener("scroll", () => {
         if (mobileMenuDetails.hasAttribute("open")) {
           mobileMenuDetails.removeAttribute("open");
+        }
+      });
+
+      // Close on click
+      mobileMenuDetails.addEventListener("click", (e) => {
+        const link = e.target.closest("a");
+        if (link) {
+          // Close menu
+          mobileMenuDetails.removeAttribute("open");
+
+          // Handle 'Home' link specially if already on index.html
+          const href = link.getAttribute("href");
+          const currentFile = resolveCurrentFile();
+          if ((href === "index.html" || href === "/" || href === "") && (currentFile === "index.html" || currentFile === "")) {
+            e.preventDefault();
+            window.scrollTo({ top: 0, behavior: "smooth" });
+            // Close dropdown if it's the desktop one too (for safety)
+            const desktopMenu = document.getElementById("userMenuDropdown");
+            if (desktopMenu) desktopMenu.classList.add("hidden");
+          }
         }
       });
     }
