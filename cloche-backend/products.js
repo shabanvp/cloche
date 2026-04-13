@@ -130,22 +130,30 @@ router.get("/all", async (req, res) => {
 
     if (!products || products.length === 0) return res.json([]);
 
-    // 2. Fetch unique boutiques mentioned in products
+    // 2. Fetch metadata from boutiques and boutique_showcase
     const uniqueBoutiqueIds = [...new Set(products.map(p => p.boutique_id).filter(Boolean))];
-    const { data: boutiques, error: boutiqueErr } = await supabase
-      .from("boutiques")
-      .select("id, boutique_name, city, district")
-      .in("id", uniqueBoutiqueIds);
+    const [{ data: boutiques, error: boutiqueErr }, { data: showcases, error: showcaseErr }] = await Promise.all([
+      supabase.from("boutiques").select("id, boutique_name, city").in("id", uniqueBoutiqueIds),
+      supabase.from("boutique_showcase").select("boutique_id, area, district").in("boutique_id", uniqueBoutiqueIds)
+    ]);
 
     if (boutiqueErr) {
-      console.error("[Products] Boutique fetch error:", boutiqueErr.message);
-      // Fallback: return products without boutique names
-      return res.json(products.map(p => ({ ...p, boutique_name: "Boutique" })));
+      console.error("[Products] Boutique metadata fetch error:", boutiqueErr.message);
+    }
+    if (showcaseErr) {
+      console.error("[Products] Showcase metadata fetch error:", showcaseErr.message);
     }
 
     // 3. Map together
     const boutiqueMap = {};
-    (boutiques || []).forEach(b => { boutiqueMap[b.id] = b; });
+    (boutiques || []).forEach(b => { 
+      boutiqueMap[b.id] = { ...boutiqueMap[b.id], ...b }; 
+    });
+    (showcases || []).forEach(s => {
+      if (s.boutique_id) {
+        boutiqueMap[s.boutique_id] = { ...boutiqueMap[s.boutique_id], ...s };
+      }
+    });
 
     const flattened = products.map(p => {
       const b = boutiqueMap[p.boutique_id] || {};
@@ -154,7 +162,8 @@ router.get("/all", async (req, res) => {
         boutique_name: b.boutique_name || "Boutique",
         city: b.city || "",
         district: b.district || "",
-        location: p.location || b.city || ""
+        area: b.area || "",
+        location: p.location || b.area || b.city || ""
       };
     });
 
