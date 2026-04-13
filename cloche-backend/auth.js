@@ -102,7 +102,7 @@ const ensureUsersTable = (cb) => {
 };
 
 /* ================= SIGNUP ================= */
-router.post("/signup", async (req, res) => {
+router.post("/signup", showcaseUpload.single("image"), async (req, res) => {
   const { account_type } = req.body;
 
   if (!account_type) {
@@ -206,6 +206,10 @@ router.post("/signup", async (req, res) => {
         .status(400)
         .json({ message: "All partner fields are required" });
     }
+
+    if (!req.file) {
+      return res.status(400).json({ message: "Boutique showcase image is mandatory" });
+    }
     try {
       const normalizedEmail = String(email).trim().toLowerCase();
       const normalizedPhone = String(phone).trim();
@@ -271,13 +275,27 @@ router.post("/signup", async (req, res) => {
             return res.status(500).json({ message: updateError.message });
           }
 
-          if (normalizedLocation.area || normalizedLocation.district) {
+          if (normalizedLocation.area || normalizedLocation.district || req.file) {
+            let imageUrl = null;
+            if (req.file) {
+              try {
+                const uploadResult = await uploadBufferToStorage({
+                  folder: `boutiques/showcase/${existingBoutique.id}`,
+                  file: req.file
+                });
+                imageUrl = uploadResult.publicUrl;
+              } catch (ulErr) {
+                console.warn("[SIGNUP] Failed to re-upload image:", ulErr.message);
+              }
+            }
+
             const { error: showcaseUpsertError } = await supabase
               .from("boutique_showcase")
               .upsert([{
                 boutique_id: existingBoutique.id,
                 area: normalizedLocation.area,
-                district: normalizedLocation.district
+                district: normalizedLocation.district,
+                image_url: imageUrl
               }], { onConflict: "boutique_id" });
 
             if (showcaseUpsertError) {
@@ -316,13 +334,27 @@ router.post("/signup", async (req, res) => {
         return res.status(500).json({ message: insertError.message || "Database error" });
       }
 
-      if (insertedBoutique?.id && (normalizedLocation.area || normalizedLocation.district)) {
+      if (insertedBoutique?.id) {
+        let imageUrl = null;
+        if (req.file) {
+          try {
+            const uploadResult = await uploadBufferToStorage({
+              folder: `boutiques/showcase/${insertedBoutique.id}`,
+              file: req.file
+            });
+            imageUrl = uploadResult.publicUrl;
+          } catch (ulErr) {
+            console.error("[SIGNUP] Image upload failed:", ulErr.message);
+          }
+        }
+
         const { error: showcaseUpsertError } = await supabase
           .from("boutique_showcase")
           .upsert([{
             boutique_id: insertedBoutique.id,
             area: normalizedLocation.area,
-            district: normalizedLocation.district
+            district: normalizedLocation.district,
+            image_url: imageUrl
           }], { onConflict: "boutique_id" });
 
         if (showcaseUpsertError) {
