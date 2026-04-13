@@ -716,6 +716,21 @@
       `).join("");
     }
 
+    function showCollectionSkeletons(count = FEATURED_COLLECTIONS_LIMIT) {
+      const grid = document.getElementById("featuredCollectionsGrid");
+      if (!grid) return;
+      grid.innerHTML = Array(count).fill(0).map(() => `
+        <div class="featured-collection-card relative aspect-[3/4] rounded-xl overflow-hidden glass-card animate-pulse">
+          <div class="absolute inset-0 bg-gray-700/30"></div>
+          <div class="absolute bottom-6 left-6 right-6 space-y-3">
+            <div class="h-3 bg-gray-600/50 rounded w-20"></div>
+            <div class="h-5 bg-gray-600/50 rounded w-3/4"></div>
+            <div class="h-2 bg-gray-600/50 rounded w-1/2"></div>
+          </div>
+        </div>
+      `).join("");
+    }
+
     function renderFeaturedBoutiques(list) {
       const grid = document.getElementById("featuredBoutiquesGrid");
       const status = document.getElementById("featuredBoutiquesStatus");
@@ -818,57 +833,93 @@
       return false;
     }
 
-    async function fetchFeaturedCollectionsWithRetry(attempt = 0) {
-      if (collectionsLoadInProgress && attempt === 0) return;
+    async function fetchFeaturedCollectionsWithRetry(statusEl) {
+      let lastError = null;
+      for (let attempt = 0; attempt < FEATURED_RETRY_DELAYS_MS.length; attempt += 1) {
+        const delay = FEATURED_RETRY_DELAYS_MS[attempt];
+        if (delay > 0) {
+          if (statusEl) {
+            statusEl.textContent = `Loading collections... (attempt ${attempt + 1}/${FEATURED_RETRY_DELAYS_MS.length})`;
+          }
+          await wait(delay);
+        }
+
+        try {
+          console.log(`[Collections] Fetch attempt ${attempt + 1} with ${FEATURED_FETCH_TIMEOUT_MS}ms timeout...`);
+          const res = await fetchWithTimeout(`${API_ORIGIN}/api/products/all`, FEATURED_FETCH_TIMEOUT_MS);
+          const data = await res.json().catch(() => []);
+          if (!res.ok) throw new Error(data.message || "Failed to load collections");
+          console.log(`[Collections] Fetch successful on attempt ${attempt + 1}`);
+          return Array.isArray(data) ? data : [];
+        } catch (err) {
+          console.log(`[Collections] Attempt ${attempt + 1} failed:`, err.message);
+          lastError = err;
+        }
+      }
+      throw lastError || new Error("Failed to load collections");
+    }
+
+    async function loadFeaturedCollections() {
+      if (collectionsLoadInProgress) return;
       collectionsLoadInProgress = true;
-      
       const status = document.getElementById("featuredCollectionsStatus");
-      if (status && attempt > 0) status.textContent = `Retrying collections (${attempt})...`;
+      const grid = document.getElementById("featuredCollectionsGrid");
 
       try {
-        console.log(`[Collections] Fetch attempt ${attempt + 1}...`);
-        const res = await fetchWithTimeout(`${API_ORIGIN}/api/products/all`, FEATURED_FETCH_TIMEOUT_MS);
-        const data = await res.json();
+        // Try cache first for instant display
+        const hasCache = loadFeaturedCollectionsFromCache();
         
-        if (!res.ok) throw new Error(data.message || "Failed to load collections");
-        
-        console.log("[Collections] Fetch successful");
-        const items = (Array.isArray(data) ? data : []).sort((a, b) => {
+        if (!hasCache && status) {
+          // Only show skeletons if no cache available
+          const cachedData = localStorage.getItem(COLLECTIONS_CACHE_KEY);
+          let cachedItems = [];
+          try {
+            if (cachedData) {
+              const parsed = JSON.parse(cachedData);
+              cachedItems = Array.isArray(parsed?.data) ? parsed.data : [];
+            }
+          } catch (_) {}
+          
+          const skeletonCount = cachedItems.length > 0 ? Math.min(cachedItems.length, FEATURED_COLLECTIONS_LIMIT) : 1;
+          showCollectionSkeletons(skeletonCount);
+          if (status) status.textContent = "Loading collections...";
+        } else if (hasCache && status) {
+          if (status) status.textContent = "";
+        }
+
+        // Fetch fresh data in background
+        const data = await fetchFeaturedCollectionsWithRetry(status);
+        const sortedItems = data.sort((a, b) => {
           const aTime = new Date(a.created_at || 0).getTime();
           const bTime = new Date(b.created_at || 0).getTime();
           return bTime - aTime;
         });
 
         localStorage.setItem(COLLECTIONS_CACHE_KEY, JSON.stringify({
-          data: items,
+          data: sortedItems,
           timestamp: Date.now()
         }));
 
-        renderFeaturedCollections(items.slice(0, FEATURED_COLLECTIONS_LIMIT));
+        renderFeaturedCollections(sortedItems.slice(0, FEATURED_COLLECTIONS_LIMIT));
         if (status) status.textContent = "";
-        collectionsLoadInProgress = false;
+        console.log(`[Collections] Successfully loaded ${sortedItems.length} items`);
       } catch (err) {
-        console.error(`[Collections] Attempt ${attempt} failed:`, err.message);
-        if (attempt < FEATURED_RETRY_DELAYS_MS.length - 1) {
-          const delay = FEATURED_RETRY_DELAYS_MS[attempt + 1];
-          collectionsRetryTimer = setTimeout(() => {
-            collectionsLoadInProgress = false;
-            fetchFeaturedCollectionsWithRetry(attempt + 1);
-          }, delay);
-        } else {
-          collectionsLoadInProgress = false;
-          if (status) status.textContent = "Updates unavailable. Showing cached results.";
+        console.log("[Collections] Load failed, trying cache:", err.message);
+        const hasCache = loadFeaturedCollectionsFromCache();
+        if (!hasCache) {
+          showCollectionSkeletons(1);
+          if (status) status.textContent = "Unable to load collections. Retrying...";
         }
+        if (!collectionsRetryTimer) {
+          collectionsRetryTimer = setTimeout(() => {
+            collectionsRetryTimer = null;
+            console.log("[Collections] Retrying load...");
+            loadFeaturedCollections();
+          }, 5000);
+        }
+      } finally {
+        collectionsLoadInProgress = false;
       }
-    }
-
-    async function loadFeaturedCollections() {
-      const hasCache = loadFeaturedCollectionsFromCache();
-      if (!hasCache) {
-        const status = document.getElementById("featuredCollectionsStatus");
-        if (status) status.textContent = "Loading collections...";
-      }
-      fetchFeaturedCollectionsWithRetry();
     }
 
     function loadFeaturedBoutiquesFromCache() {
