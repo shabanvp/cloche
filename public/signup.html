@@ -105,9 +105,19 @@
             <label class="text-primary/80 text-xs font-bold uppercase tracking-widest">Mobile Number</label>
             <input id="phone" type="tel" placeholder="8606924541" class="w-full rounded-lg text-white border border-white/10 bg-white/5 h-14 px-4 focus:border-primary focus:ring-0" />
           </div>
-          <div id="partnerCityWrap" class="flex flex-col gap-2">
-            <label class="text-primary/80 text-xs font-bold uppercase tracking-widest">Area, District</label>
-            <input id="city" type="text" placeholder="Perinthalmanna, Malappuram" class="w-full rounded-lg text-white border border-white/10 bg-white/5 h-14 px-4 focus:border-primary focus:ring-0" />
+          <div id="partnerAreaWrap" class="flex flex-col gap-2">
+            <label class="text-primary/80 text-xs font-bold uppercase tracking-widest">Area / Town</label>
+            <input id="area" type="text" placeholder="Perinthalmanna" class="w-full rounded-lg text-white border border-white/10 bg-white/5 h-14 px-4 focus:border-primary focus:ring-0" />
+          </div>
+        </div>
+
+        <div id="partnerDistrictWrap" class="flex flex-col gap-2 relative">
+          <label class="text-primary/80 text-xs font-bold uppercase tracking-widest">District</label>
+          <div class="relative">
+            <input id="district" type="text" placeholder="Malappuram" autocomplete="off" class="w-full rounded-lg text-white border border-white/10 bg-white/5 h-14 px-4 focus:border-primary focus:ring-0" />
+            <div id="districtSuggestions" class="hidden absolute z-[60] left-0 right-0 top-full mt-1 bg-[#1a1a1a] border border-primary/20 rounded-lg shadow-2xl overflow-hidden max-h-48 overflow-y-auto">
+              <!-- Suggestions will appear here -->
+            </div>
           </div>
         </div>
 
@@ -183,6 +193,7 @@
       
       document.getElementById("partnerBoutiqueWrap").style.display = isUser ? "none" : "flex";
       document.getElementById("partnerPhoneCityWrap").style.display = isUser ? "none" : "grid";
+      document.getElementById("partnerDistrictWrap").style.display = isUser ? "none" : "flex";
       document.getElementById("partnerShowcaseWrap").style.display = isUser ? "none" : "flex";
       document.getElementById("nameLabel").textContent = isUser ? "Name" : "Owner Name";
       document.getElementById("owner").placeholder = isUser ? "Your Full Name" : "Julianne Vaught";
@@ -223,11 +234,12 @@
         const boutiqueName = document.getElementById("boutique").value.trim();
         const ownerName = document.getElementById("owner").value.trim();
         const phone = document.getElementById("phone").value.trim();
-        const city = document.getElementById("city").value.trim();
+        const area = document.getElementById("area").value.trim();
+        const district = document.getElementById("district").value.trim();
         const password = document.getElementById("password").value;
         const imageFile = document.getElementById("showcaseImage").files[0];
 
-        if (!boutiqueName || !ownerName || !phone || !city || !password) {
+        if (!boutiqueName || !ownerName || !phone || !area || !district || !password) {
           alert("All fields are required for boutique signup.");
           submitBtn.disabled = false;
           submitBtn.textContent = originalText;
@@ -247,7 +259,8 @@
         formData.append("owner_name", ownerName);
         formData.append("email", email);
         formData.append("phone", phone);
-        formData.append("city", city);
+        formData.append("area", area);
+        formData.append("district", district);
         formData.append("password", password);
         formData.append("image", imageFile);
       }
@@ -286,24 +299,47 @@
       window.location.href = "boutiquelogin.html?status=verification_sent";
     }
 
-    document.getElementById("userTypeBtn").addEventListener("click", () => setAccountType("user"));
-    document.getElementById("partnerTypeBtn").addEventListener("click", () => setAccountType("partner"));
-    
-    // Image Preview Logic
-    document.getElementById("showcaseImage").addEventListener("change", function(e) {
-      const file = e.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = function(event) {
-          const preview = document.getElementById("imagePreview");
-          const previewContainer = document.getElementById("previewContainer");
-          const placeholder = document.getElementById("uploadPlaceholder");
-          
-          preview.src = event.target.result;
-          previewContainer.classList.remove("hidden");
-          placeholder.classList.add("hidden");
-        };
-        reader.readAsDataURL(file);
+    // District Autosuggest Logic
+    const districts = [
+      "Alappuzha", "Ernakulam", "Idukki", "Kannur", "Kasaragod", "Kollam", 
+      "Kottayam", "Kozhikode", "Malappuram", "Palakkad", "Pathanamthitta", 
+      "Thiruvananthapuram", "Thrissur", "Wayanad"
+    ];
+
+    const districtInput = document.getElementById("district");
+    const suggestionBox = document.getElementById("districtSuggestions");
+
+    districtInput.addEventListener("input", function() {
+      const val = this.value.trim().toLowerCase();
+      suggestionBox.innerHTML = "";
+      
+      if (val.length < 2) {
+        suggestionBox.classList.add("hidden");
+        return;
+      }
+
+      const matches = districts.filter(d => d.toLowerCase().includes(val));
+      if (matches.length > 0) {
+        matches.forEach(match => {
+          const div = document.createElement("div");
+          div.className = "px-4 py-3 hover:bg-primary/20 cursor-pointer text-sm text-white/80 transition-colors";
+          div.textContent = match;
+          div.onclick = function() {
+            districtInput.value = match;
+            suggestionBox.classList.add("hidden");
+          };
+          suggestionBox.appendChild(div);
+        });
+        suggestionBox.classList.remove("hidden");
+      } else {
+        suggestionBox.classList.add("hidden");
+      }
+    });
+
+    // Close suggestions when clicking outside
+    document.addEventListener("click", function(e) {
+      if (!districtInput.contains(e.target) && !suggestionBox.contains(e.target)) {
+        suggestionBox.classList.add("hidden");
       }
     });
 

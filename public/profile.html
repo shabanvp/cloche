@@ -178,7 +178,7 @@
                   maxlength="10" type="text" />
               </div>
               <div>
-                <label class="block mb-2 text-xs font-bold uppercase tracking-widest text-primary/80">City</label>
+                <label class="block mb-2 text-xs font-bold uppercase tracking-widest text-primary/80">Area / Town</label>
                 <div class="relative">
                   <span
                     class="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-primary/50">location_on</span>
@@ -196,7 +196,11 @@
                   <input id="districtInput"
                     class="w-full bg-background-dark/50 border border-primary/20 rounded-lg pl-12 pr-4 py-3 text-white focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all font-sans"
                     placeholder="e.g. Malappuram"
+                    autocomplete="off"
                     type="text" />
+                  <div id="districtSuggestions" class="hidden absolute z-[60] left-0 right-0 top-full mt-1 bg-[#1a1a1a] border border-primary/20 rounded-lg shadow-2xl overflow-hidden max-h-48 overflow-y-auto font-sans">
+                    <!-- Suggestions appear here -->
+                  </div>
                 </div>
               </div>
             </div>
@@ -241,9 +245,14 @@
               <div>
                 <label class="block mb-2 text-xs font-bold uppercase tracking-widest text-primary/80">District
                   Badge</label>
-                <input id="showcaseDistrictInput"
-                  class="w-full bg-background-dark/50 border border-primary/20 rounded-lg px-4 py-3 text-white focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all font-sans"
-                  placeholder="e.g. Ernakulam" type="text" />
+                <div class="relative">
+                  <input id="showcaseDistrictInput"
+                    class="w-full bg-background-dark/50 border border-primary/20 rounded-lg px-4 py-3 text-white focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all font-sans"
+                    placeholder="e.g. Ernakulam" autocomplete="off" type="text" />
+                  <div id="showcaseDistrictSuggestions" class="hidden absolute z-[60] left-0 right-0 top-full mt-1 bg-[#1a1a1a] border border-primary/20 rounded-lg shadow-2xl overflow-hidden max-h-48 overflow-y-auto font-sans">
+                    <!-- Suggestions appear here -->
+                  </div>
+                </div>
               </div>
               <div>
                 <label class="block mb-2 text-xs font-bold uppercase tracking-widest text-primary/80">Area /
@@ -789,6 +798,64 @@
         .forEach((id) => {
           document.getElementById(id)?.addEventListener("input", syncShowcasePreview);
         });
+
+      // District Autosuggest Logic
+      const districts = [
+        "Alappuzha", "Ernakulam", "Idukki", "Kannur", "Kasaragod", "Kollam", 
+        "Kottayam", "Kozhikode", "Malappuram", "Palakkad", "Pathanamthitta", 
+        "Thiruvananthapuram", "Thrissur", "Wayanad"
+      ];
+
+      function setupAutosuggest(inputId, suggestionBoxId) {
+        const input = document.getElementById(inputId);
+        const box = document.getElementById(suggestionBoxId);
+        if (!input || !box) return;
+
+        input.addEventListener("input", function() {
+          const val = this.value.trim().toLowerCase();
+          box.innerHTML = "";
+          
+          if (val.length < 2) {
+            box.classList.add("hidden");
+            return;
+          }
+
+          const matches = districts.filter(d => d.toLowerCase().includes(val));
+          if (matches.length > 0) {
+            matches.forEach(match => {
+              const div = document.createElement("div");
+              div.className = "px-4 py-3 hover:bg-primary/20 cursor-pointer text-sm text-white/80 transition-colors";
+              div.textContent = match;
+              div.onclick = function() {
+                input.value = match;
+                box.classList.add("hidden");
+                if (inputId === "showcaseDistrictInput") syncShowcasePreview();
+                // If editing one district, maybe sync the other one too? Usually good practice.
+                if (inputId === "districtInput") {
+                   const showcaseDist = document.getElementById("showcaseDistrictInput");
+                   if (showcaseDist) {
+                     showcaseDist.value = match;
+                     syncShowcasePreview();
+                   }
+                }
+              };
+              box.appendChild(div);
+            });
+            box.classList.remove("hidden");
+          } else {
+            box.classList.add("hidden");
+          }
+        });
+
+        document.addEventListener("click", function(e) {
+          if (!input.contains(e.target) && !box.contains(e.target)) {
+            box.classList.add("hidden");
+          }
+        });
+      }
+
+      setupAutosuggest("districtInput", "districtSuggestions");
+      setupAutosuggest("showcaseDistrictInput", "showcaseDistrictSuggestions");
     });
   </script>
   <script src='responsive-layout.js'></script>

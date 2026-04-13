@@ -220,22 +220,17 @@
               <input id="weddingDate" name="weddingDate" type="date" required class="gold-input w-full rounded-xl h-12 px-4 focus:ring-0" />
             </div>
             <div>
-              <label for="cityLocation" class="text-[11px] uppercase tracking-[0.24em] text-primary/75 block mb-2">City / Location</label>
-              <select id="cityLocation" name="cityLocation" required class="gold-input w-full rounded-xl h-12 px-4 focus:ring-0">
-                <option value="" disabled selected>Select preferred location</option>
-                <option value="Manjeri, Malappuram">Manjeri, Malappuram</option>
-                <option value="Perinthalmanna, Malappuram">Perinthalmanna, Malappuram</option>
-                <option value="Tirur, Malappuram">Tirur, Malappuram</option>
-                <option value="Kottakkal, Malappuram">Kottakkal, Malappuram</option>
-                <option value="Nilambur, Malappuram">Nilambur, Malappuram</option>
-                <option value="Malappuram Town, Malappuram">Malappuram Town, Malappuram</option>
-                <option value="Kozhikode City, Kozhikode">Kozhikode City, Kozhikode</option>
-                <option value="Ramanattukara, Kozhikode">Ramanattukara, Kozhikode</option>
-                <option value="Koyilandy, Kozhikode">Koyilandy, Kozhikode</option>
-                <option value="Vadakara, Kozhikode">Vadakara, Kozhikode</option>
-                <option value="Balussery, Kozhikode">Balussery, Kozhikode</option>
-                <option value="Feroke, Kozhikode">Feroke, Kozhikode</option>
-              </select>
+              <label for="areaLocation" class="text-[11px] uppercase tracking-[0.24em] text-primary/75 block mb-2">Area / Town</label>
+              <input id="areaLocation" name="areaLocation" type="text" required class="gold-input w-full rounded-xl h-12 px-4 focus:ring-0" placeholder="e.g. Perinthalmanna" />
+            </div>
+            <div class="relative">
+              <label for="districtLocation" class="text-[11px] uppercase tracking-[0.24em] text-primary/75 block mb-2">District</label>
+              <div class="relative">
+                <input id="districtLocation" name="districtLocation" type="text" required autocomplete="off" class="gold-input w-full rounded-xl h-12 px-4 focus:ring-0" placeholder="e.g. Malappuram" />
+                <div id="districtSuggestions" class="hidden absolute z-[60] left-0 right-0 top-full mt-1 bg-[#1a1a1a] border border-primary/20 rounded-lg shadow-2xl overflow-hidden max-h-48 overflow-y-auto font-sans">
+                  <!-- Suggestions appear here -->
+                </div>
+              </div>
             </div>
           </div>
 
@@ -366,26 +361,66 @@
     if (prefilledRequirement) requirementInput.value = prefilledRequirement;
 
     if (prefilledLocation) {
-        // Try to match value or add as new option if missing
-        const citySelect = document.getElementById("cityLocation");
-        let matched = false;
-        for (let i = 0; i < citySelect.options.length; i++) {
-            if (citySelect.options[i].value.toLowerCase().includes(prefilledLocation.toLowerCase())) {
-                citySelect.selectedIndex = i;
-                matched = true;
-                break;
-            }
+        // Try to parse "Area, District" or just use as Area
+        const parts = prefilledLocation.split(",").map(s => s.trim());
+        const areaInput = document.getElementById("areaLocation");
+        const distInput = document.getElementById("districtLocation");
+        
+        if (parts.length >= 2) {
+          areaInput.value = parts[0];
+          distInput.value = parts[1];
+        } else {
+          areaInput.value = prefilledLocation;
         }
-        if (!matched) {
-            const opt = document.createElement("option");
-            opt.value = prefilledLocation;
-            opt.textContent = prefilledLocation;
-            opt.selected = true;
-            citySelect.appendChild(opt);
-        }
-        citySelect.disabled = true; // Lock the location
-        citySelect.classList.add("opacity-75", "cursor-not-allowed");
+
+        areaInput.disabled = true;
+        distInput.disabled = true;
+        areaInput.classList.add("opacity-75", "cursor-not-allowed");
+        distInput.classList.add("opacity-75", "cursor-not-allowed");
     }
+
+    // District Autosuggest Logic
+    const districts = [
+      "Alappuzha", "Ernakulam", "Idukki", "Kannur", "Kasaragod", "Kollam", 
+      "Kottayam", "Kozhikode", "Malappuram", "Palakkad", "Pathanamthitta", 
+      "Thiruvananthapuram", "Thrissur", "Wayanad"
+    ];
+
+    const districtInput = document.getElementById("districtLocation");
+    const suggestionBox = document.getElementById("districtSuggestions");
+
+    districtInput.addEventListener("input", function() {
+      const val = this.value.trim().toLowerCase();
+      suggestionBox.innerHTML = "";
+      
+      if (val.length < 2) {
+        suggestionBox.classList.add("hidden");
+        return;
+      }
+
+      const matches = districts.filter(d => d.toLowerCase().includes(val));
+      if (matches.length > 0) {
+        matches.forEach(match => {
+          const div = document.createElement("div");
+          div.className = "px-4 py-3 hover:bg-primary/20 cursor-pointer text-sm text-white/80 transition-colors";
+          div.textContent = match;
+          div.onclick = function() {
+            districtInput.value = match;
+            suggestionBox.classList.add("hidden");
+          };
+          suggestionBox.appendChild(div);
+        });
+        suggestionBox.classList.remove("hidden");
+      } else {
+        suggestionBox.classList.add("hidden");
+      }
+    });
+
+    document.addEventListener("click", function(e) {
+      if (!districtInput.contains(e.target) && !suggestionBox.contains(e.target)) {
+        suggestionBox.classList.add("hidden");
+      }
+    });
 
     const storedName = localStorage.getItem("userName");
     if (storedName) fullNameInput.value = storedName;
@@ -401,7 +436,7 @@
         fullName: document.getElementById("fullName")?.value.trim() || "",
         mobileNumber: document.getElementById("mobileNumber")?.value.trim() || "",
         weddingDate: document.getElementById("weddingDate")?.value || "",
-        cityLocation: document.getElementById("cityLocation")?.value || "",
+        cityLocation: `${document.getElementById("areaLocation")?.value.trim() || ""}, ${document.getElementById("districtLocation")?.value.trim() || ""}`,
         requirement: document.getElementById("requirement")?.value.trim() || "",
         specialRequirement: document.getElementById("specialRequirement")?.value.trim() || "",
         email: String(localStorage.getItem("userEmail") || "").trim()

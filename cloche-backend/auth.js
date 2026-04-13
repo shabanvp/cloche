@@ -191,6 +191,8 @@ router.post("/signup", showcaseUpload.single("image"), async (req, res) => {
       email,
       phone,
       city,
+      area,
+      district,
       password
     } = req.body;
 
@@ -199,7 +201,7 @@ router.post("/signup", showcaseUpload.single("image"), async (req, res) => {
       !owner_name ||
       !email ||
       !phone ||
-      !city ||
+      (!city && (!area || !district)) ||
       !password
     ) {
       return res
@@ -228,7 +230,11 @@ router.post("/signup", showcaseUpload.single("image"), async (req, res) => {
       const passwordHash = await bcrypt.hash(password, 10);
       const verificationToken = uuidv4();
 
-      const normalizedLocation = normalizeLocationFields({ city });
+      const normalizedLocation = normalizeLocationFields({ 
+        area: area || null, 
+        district: district || null, 
+        city: city || (area && district ? `${area}, ${district}` : null)
+      });
       const basePayload = {
         boutique_name: String(boutique_name).trim(),
         owner_name: String(owner_name).trim(),
