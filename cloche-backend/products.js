@@ -105,13 +105,23 @@ router.get("/:productId", async (req, res, next) => {
 /* ================= GET ALL PRODUCTS ================= */
 router.get("/all", async (req, res) => {
   try {
-    console.log("[Products] Fetching all products...");
+    console.log("[Products] Fetching all products with resilient sorting...");
     
-    // 1. Fetch products
-    const { data: products, error: productErr } = await supabase
+    // 1. Fetch products (with fallback for missing created_at column)
+    let { data: products, error: productErr } = await supabase
       .from("products")
       .select("*")
       .order("created_at", { ascending: false });
+
+    if (productErr && String(productErr.message || "").toLowerCase().includes("created_at")) {
+      console.log("[Products] 'created_at' not found, falling back to 'id' sort...");
+      const fallback = await supabase
+        .from("products")
+        .select("*")
+        .order("id", { ascending: false });
+      products = fallback.data;
+      productErr = fallback.error;
+    }
 
     if (productErr) {
       console.error("[Products] Fetch error:", productErr.message);
