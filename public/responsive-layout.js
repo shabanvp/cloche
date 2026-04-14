@@ -43,38 +43,120 @@
 
     const profileHref = resolveProfileLink();
     const partnerLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+    const userLoggedIn = localStorage.getItem("isUserLoggedIn") === "true";
 
     let topbar = document.querySelector(".mobile-topbar");
     if (!topbar) {
       topbar = document.createElement("div");
       topbar.className = "mobile-topbar";
-      const partnerProfileLink = partnerLoggedIn
-        ? `<a href="profile.html" data-mobile-partner-profile>
-             <span class="material-symbols-outlined">person</span>
-             <span>Profile</span>
-           </a>`
-        : "";
-      const partnerCtaLink = partnerLoggedIn
-        ? ""
-        : `<a href="boutiquelogin.html" data-mobile-partner-cta>Partner With Us</a>`;
+      
+      const loginProfileText = (partnerLoggedIn || userLoggedIn) ? "Logout" : "Login / Profile";
+      const loginProfileLink = (partnerLoggedIn || userLoggedIn) ? "#" : profileHref;
+      const loginOnClick = (partnerLoggedIn || userLoggedIn) ? "localStorage.clear(); window.location.href='index.html';" : "";
+
       topbar.innerHTML = `
-        <details class="mobile-menu-details">
-          <summary class="mobile-icon-btn" aria-label="Open menu">
-            <span class="material-symbols-outlined">menu</span>
-          </summary>
-          <div class="mobile-menu-panel">
-            <a href="index.html">Home</a>
-            <a href="boutiques.html">Boutiques</a>
-            <a href="collection.html">Collections</a>
-            <a href="messageboutique.html">Messages</a>
-            ${partnerProfileLink}
-            ${partnerCtaLink}
-            <a data-mobile-login-profile href="${profileHref}">Login / Profile</a>
-          </div>
-        </details>
+        <button id="menuBtn" class="mobile-icon-btn" aria-label="Open menu">
+          <span class="material-symbols-outlined">menu</span>
+        </button>
         <div class="mobile-logo">CLOCHE</div>
       `;
       body.insertBefore(topbar, body.firstChild);
+
+      // Side Menu Drawer HTML
+      if (!document.getElementById("sideMenu")) {
+        const sideMenu = document.createElement("div");
+        sideMenu.id = "sideMenu";
+        sideMenu.className = "hidden"; // controlled via CSS classes now
+        
+        const partnerLinks = partnerLoggedIn ? `
+          <a href="profile.html" class="side-menu-link">
+            <span class="material-symbols-outlined">person</span>
+            <span>Partner Profile</span>
+          </a>
+          <a href="dashboard.html" class="side-menu-link">
+            <span class="material-symbols-outlined">dashboard</span>
+            <span>Dashboard</span>
+          </a>
+        ` : `
+          <a href="boutiquelogin.html" class="side-menu-link">
+            <span class="material-symbols-outlined">handshake</span>
+            <span>Partner With Us</span>
+          </a>
+        `;
+
+        sideMenu.innerHTML = `
+          <div class="side-menu-header">
+            <h2>MENU</h2>
+            <button id="closeMenu" class="mobile-icon-btn">
+              <span class="material-symbols-outlined">close</span>
+            </button>
+          </div>
+          <div class="side-menu-content">
+            <div class="side-menu-section-title">Navigation</div>
+            <a href="index.html" class="side-menu-link">
+              <span class="material-symbols-outlined">home</span>
+              <span>Home</span>
+            </a>
+            <a href="boutiques.html" class="side-menu-link">
+              <span class="material-symbols-outlined">storefront</span>
+              <span>Boutiques</span>
+            </a>
+            <a href="collection.html" class="side-menu-link">
+              <span class="material-symbols-outlined">inventory_2</span>
+              <span>Collections</span>
+            </a>
+            <a href="messageboutique.html" class="side-menu-link">
+              <span class="material-symbols-outlined">chat</span>
+              <span>Enquire</span>
+            </a>
+            
+            <div class="side-menu-section-title">Account</div>
+            ${partnerLinks}
+            <a href="${loginProfileLink}" class="side-menu-link" onclick="${loginOnClick}">
+              <span class="material-symbols-outlined">${(partnerLoggedIn || userLoggedIn) ? 'logout' : 'login'}</span>
+              <span>${loginProfileText}</span>
+            </a>
+
+            <div class="side-menu-section-title">Wedding Categories</div>
+            <div class="side-menu-category">Venues</div>
+            <div class="side-menu-category">Photographers</div>
+            <div class="side-menu-category">Makeup</div>
+            <div class="side-menu-category">Planning & Decor</div>
+            <div class="side-menu-category">Mehndi</div>
+            <div class="side-menu-category">Music & Dance</div>
+            <div class="side-menu-category">Invites & Gifts</div>
+            <div class="side-menu-category">Food</div>
+            <div class="side-menu-category">Bridal Wear</div>
+            <div class="side-menu-category">Groom Wear</div>
+            <div class="side-menu-category">Jewellery & Accessories</div>
+          </div>
+        `;
+        body.appendChild(sideMenu);
+
+        const overlay = document.createElement("div");
+        overlay.id = "menuOverlay";
+        overlay.className = "hidden";
+        body.appendChild(overlay);
+
+        // Sidebar logic
+        const openMenu = () => {
+          sideMenu.classList.add("active");
+          overlay.classList.add("visible");
+        };
+        const closeMenuFunc = () => {
+          sideMenu.classList.remove("active");
+          overlay.classList.remove("visible");
+        };
+
+        document.getElementById("menuBtn").addEventListener("click", openMenu);
+        document.getElementById("closeMenu").addEventListener("click", closeMenuFunc);
+        overlay.addEventListener("click", closeMenuFunc);
+        
+        // Close menu on link click
+        sideMenu.querySelectorAll("a").forEach(a => {
+          a.addEventListener("click", closeMenuFunc);
+        });
+      }
     }
 
     // Remove legacy right-side icon action from mobile topbar (all pages).
