@@ -142,10 +142,12 @@
         const openMenu = () => {
           sideMenu.classList.add("active");
           overlay.classList.add("visible");
+          document.body.classList.add("menu-open");
         };
         const closeMenuFunc = () => {
           sideMenu.classList.remove("active");
           overlay.classList.remove("visible");
+          document.body.classList.remove("menu-open");
         };
 
         document.getElementById("menuBtn").addEventListener("click", openMenu);
