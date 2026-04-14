@@ -118,17 +118,16 @@
             </a>
 
             <div class="side-menu-section-title">Wedding Categories</div>
-            <div class="side-menu-category">Venues</div>
-            <div class="side-menu-category">Photographers</div>
-            <div class="side-menu-category">Makeup</div>
-            <div class="side-menu-category">Planning & Decor</div>
-            <div class="side-menu-category">Mehndi</div>
-            <div class="side-menu-category">Music & Dance</div>
-            <div class="side-menu-category">Invites & Gifts</div>
-            <div class="side-menu-category">Food</div>
-            <div class="side-menu-category">Bridal Wear</div>
-            <div class="side-menu-category">Groom Wear</div>
-            <div class="side-menu-category">Jewellery & Accessories</div>
+            <div class="side-menu-category">Venues (Coming Soon)</div>
+            <div class="side-menu-category">Photographers (Coming Soon)</div>
+            <div class="side-menu-category">Makeup (Coming Soon)</div>
+            <div class="side-menu-category">Planning & Decor (Coming Soon)</div>
+            <div class="side-menu-category">Mehndi (Coming Soon)</div>
+            <div class="side-menu-category">Music & Dance (Coming Soon)</div>
+            <div class="side-menu-category">Invites & Gifts (Coming Soon)</div>
+            <div class="side-menu-category">Food (Coming Soon)</div>
+            <div class="side-menu-category">Groom Wear (Coming Soon)</div>
+            <div class="side-menu-category">Jewellery & Accessories (Coming Soon)</div>
           </div>
         `;
         body.appendChild(sideMenu);
