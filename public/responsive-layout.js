@@ -153,12 +153,23 @@
         document.getElementById("closeMenu").addEventListener("click", closeMenuFunc);
         overlay.addEventListener("click", closeMenuFunc);
         
-        // Close menu on link click
-        sideMenu.querySelectorAll("a").forEach(a => {
-          a.addEventListener("click", closeMenuFunc);
+        // Close menu on link or category click
+        sideMenu.querySelectorAll("a, .side-menu-category").forEach(el => {
+          el.addEventListener("click", closeMenuFunc);
         });
       }
     }
+
+    // --- Global Click-Outside Handler for <details> Dropdowns ---
+    window.addEventListener("click", (e) => {
+      // Find all open <details> elements
+      document.querySelectorAll("details[open]").forEach((details) => {
+        // If the click is NOT inside this <details>, close it
+        if (!details.contains(e.target)) {
+          details.removeAttribute("open");
+        }
+      });
+    });
 
     // Remove legacy right-side icon action from mobile topbar (all pages).
     const legacyTopAction = topbar.querySelector(":scope > a.mobile-icon-btn");
