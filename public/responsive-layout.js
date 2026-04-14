@@ -49,11 +49,6 @@
     if (!topbar) {
       topbar = document.createElement("div");
       topbar.className = "mobile-topbar";
-      
-      const loginProfileText = (partnerLoggedIn || userLoggedIn) ? "Logout" : "Login / Profile";
-      const loginProfileLink = (partnerLoggedIn || userLoggedIn) ? "#" : profileHref;
-      const loginOnClick = (partnerLoggedIn || userLoggedIn) ? "localStorage.clear(); window.location.href='index.html';" : "";
-
       topbar.innerHTML = `
         <button id="menuBtn" class="mobile-icon-btn" aria-label="Open menu">
           <span class="material-symbols-outlined">menu</span>
@@ -61,104 +56,115 @@
         <div class="mobile-logo">CLOCHE</div>
       `;
       body.insertBefore(topbar, body.firstChild);
-
-      // Side Menu Drawer HTML
-      if (!document.getElementById("sideMenu")) {
-        const sideMenu = document.createElement("div");
-        sideMenu.id = "sideMenu";
-        sideMenu.className = "hidden"; // controlled via CSS classes now
-        
-        const partnerLinks = partnerLoggedIn ? `
-          <a href="profile.html" class="side-menu-link">
-            <span class="material-symbols-outlined">person</span>
-            <span>Partner Profile</span>
-          </a>
-          <a href="dashboard.html" class="side-menu-link">
-            <span class="material-symbols-outlined">dashboard</span>
-            <span>Dashboard</span>
-          </a>
-        ` : `
-          <a href="boutiquelogin.html" class="side-menu-link">
-            <span class="material-symbols-outlined">handshake</span>
-            <span>Partner With Us</span>
-          </a>
-        `;
-
-        sideMenu.innerHTML = `
-          <div class="side-menu-header">
-            <h2>MENU</h2>
-            <button id="closeMenu" class="mobile-icon-btn">
-              <span class="material-symbols-outlined">close</span>
-            </button>
-          </div>
-          <div class="side-menu-content">
-            <div class="side-menu-section-title">Navigation</div>
-            <a href="index.html" class="side-menu-link">
-              <span class="material-symbols-outlined">home</span>
-              <span>Home</span>
-            </a>
-            <a href="boutiques.html" class="side-menu-link">
-              <span class="material-symbols-outlined">storefront</span>
-              <span>Boutiques</span>
-            </a>
-            <a href="collection.html" class="side-menu-link">
-              <span class="material-symbols-outlined">inventory_2</span>
-              <span>Collections</span>
-            </a>
-            <a href="messageboutique.html" class="side-menu-link">
-              <span class="material-symbols-outlined">chat</span>
-              <span>Enquire</span>
-            </a>
-            
-            <div class="side-menu-section-title">Account</div>
-            ${partnerLinks}
-            <a href="${loginProfileLink}" class="side-menu-link" onclick="${loginOnClick}">
-              <span class="material-symbols-outlined">${(partnerLoggedIn || userLoggedIn) ? 'logout' : 'login'}</span>
-              <span>${loginProfileText}</span>
-            </a>
-
-            <div class="side-menu-section-title">Wedding Categories</div>
-            <div class="side-menu-category">Venues (Coming Soon)</div>
-            <div class="side-menu-category">Photographers (Coming Soon)</div>
-            <div class="side-menu-category">Makeup (Coming Soon)</div>
-            <div class="side-menu-category">Planning & Decor (Coming Soon)</div>
-            <div class="side-menu-category">Mehndi (Coming Soon)</div>
-            <div class="side-menu-category">Music & Dance (Coming Soon)</div>
-            <div class="side-menu-category">Invites & Gifts (Coming Soon)</div>
-            <div class="side-menu-category">Food (Coming Soon)</div>
-            <div class="side-menu-category">Groom Wear (Coming Soon)</div>
-            <div class="side-menu-category">Jewellery & Accessories (Coming Soon)</div>
-          </div>
-        `;
-        body.appendChild(sideMenu);
-
-        const overlay = document.createElement("div");
-        overlay.id = "menuOverlay";
-        overlay.className = "hidden";
-        body.appendChild(overlay);
-
-        // Sidebar logic
-        const openMenu = () => {
-          sideMenu.classList.add("active");
-          overlay.classList.add("visible");
-          document.body.classList.add("menu-open");
-        };
-        const closeMenuFunc = () => {
-          sideMenu.classList.remove("active");
-          overlay.classList.remove("visible");
-          document.body.classList.remove("menu-open");
-        };
-
-        document.getElementById("menuBtn").addEventListener("click", openMenu);
-        document.getElementById("closeMenu").addEventListener("click", closeMenuFunc);
-        overlay.addEventListener("click", closeMenuFunc);
-        
-        // Close menu on link or category click
-        sideMenu.querySelectorAll("a, .side-menu-category").forEach(el => {
-          el.addEventListener("click", closeMenuFunc);
-        });
-      }
     }
+
+    // Side Menu Drawer HTML (Always ensure it exists and has listeners)
+    let sideMenu = document.getElementById("sideMenu");
+    let overlay = document.getElementById("menuOverlay");
+
+    if (!sideMenu) {
+      sideMenu = document.createElement("div");
+      sideMenu.id = "sideMenu";
+      sideMenu.className = "hidden";
+      
+      const partnerLinks = partnerLoggedIn ? `
+        <a href="profile.html" class="side-menu-link">
+          <span class="material-symbols-outlined">person</span>
+          <span>Partner Profile</span>
+        </a>
+        <a href="dashboard.html" class="side-menu-link">
+          <span class="material-symbols-outlined">dashboard</span>
+          <span>Dashboard</span>
+        </a>
+      ` : `
+        <a href="boutiquelogin.html" class="side-menu-link">
+          <span class="material-symbols-outlined">handshake</span>
+          <span>Partner With Us</span>
+        </a>
+      `;
+
+      const loginProfileText = (partnerLoggedIn || userLoggedIn) ? "Logout" : "Login / Profile";
+      const loginProfileLink = (partnerLoggedIn || userLoggedIn) ? "#" : profileHref;
+      const loginOnClick = (partnerLoggedIn || userLoggedIn) ? "localStorage.clear(); window.location.href='index.html';" : "";
+
+      sideMenu.innerHTML = `
+        <div class="side-menu-header">
+          <h2>MENU</h2>
+          <button id="closeMenu" class="mobile-icon-btn">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+        <div class="side-menu-content">
+          <div class="side-menu-section-title">Navigation</div>
+          <a href="index.html" class="side-menu-link">
+            <span class="material-symbols-outlined">home</span>
+            <span>Home</span>
+          </a>
+          <a href="boutiques.html" class="side-menu-link">
+            <span class="material-symbols-outlined">storefront</span>
+            <span>Boutiques</span>
+          </a>
+          <a href="collection.html" class="side-menu-link">
+            <span class="material-symbols-outlined">inventory_2</span>
+            <span>Collections</span>
+          </a>
+          <a href="messageboutique.html" class="side-menu-link">
+            <span class="material-symbols-outlined">chat</span>
+            <span>Enquire</span>
+          </a>
+          
+          <div class="side-menu-section-title">Account</div>
+          ${partnerLinks}
+          <a href="${loginProfileLink}" class="side-menu-link" onclick="${loginOnClick}">
+            <span class="material-symbols-outlined">${(partnerLoggedIn || userLoggedIn) ? 'logout' : 'login'}</span>
+            <span>${loginProfileText}</span>
+          </a>
+
+          <div class="side-menu-section-title">Wedding Categories</div>
+          <div class="side-menu-category">Venues (Coming Soon)</div>
+          <div class="side-menu-category">Photographers (Coming Soon)</div>
+          <div class="side-menu-category">Makeup (Coming Soon)</div>
+          <div class="side-menu-category">Planning & Decor (Coming Soon)</div>
+          <div class="side-menu-category">Mehndi (Coming Soon)</div>
+          <div class="side-menu-category">Music & Dance (Coming Soon)</div>
+          <div class="side-menu-category">Invites & Gifts (Coming Soon)</div>
+          <div class="side-menu-category">Food (Coming Soon)</div>
+          <div class="side-menu-category">Groom Wear (Coming Soon)</div>
+          <div class="side-menu-category">Jewellery & Accessories (Coming Soon)</div>
+        </div>
+      `;
+      body.appendChild(sideMenu);
+    }
+
+    if (!overlay) {
+      overlay = document.createElement("div");
+      overlay.id = "menuOverlay";
+      overlay.className = "hidden";
+      body.appendChild(overlay);
+    }
+
+    // Sidebar logic elements and listeners
+    const openMenu = () => {
+      sideMenu.classList.add("active");
+      overlay.classList.add("visible");
+      document.body.classList.add("menu-open");
+    };
+    const closeMenuFunc = () => {
+      sideMenu.classList.remove("active");
+      overlay.classList.remove("visible");
+      document.body.classList.remove("menu-open");
+    };
+
+    const mBtn = document.getElementById("menuBtn");
+    const cBtn = document.getElementById("closeMenu");
+    if (mBtn) mBtn.onclick = openMenu;
+    if (cBtn) cBtn.onclick = closeMenuFunc;
+    if (overlay) overlay.onclick = closeMenuFunc;
+    
+    // Close menu on link or category click
+    sideMenu.querySelectorAll("a, .side-menu-category").forEach(el => {
+      el.onclick = closeMenuFunc;
+    });
 
     // --- Global Click-Outside Handler for <details> Dropdowns ---
     window.addEventListener("click", (e) => {
