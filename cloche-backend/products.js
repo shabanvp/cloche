@@ -55,59 +55,13 @@ const uploadProductImages = async (boutiqueId, files) => {
   );
 };
 
-/* ================= GET PRODUCT DETAILS ================= */
-router.get("/:productId", async (req, res, next) => {
-  const { productId } = req.params;
-  if (productId === "boutique") return next();
-
-  try {
-    const { data: product, error: productErr } = await supabase
-      .from("products")
-      .select("*")
-      .eq("id", productId)
-      .maybeSingle();
-
-    if (productErr) return res.status(500).json({ message: "DB error", error: productErr.message });
-    if (!product) return res.status(404).json({ message: "Product not found" });
-
-    const [{ data: boutique }, { data: showcase }, { data: images }] = await Promise.all([
-      supabase.from("boutiques").select("boutique_name, city").eq("id", product.boutique_id).maybeSingle(),
-      supabase
-        .from("boutique_showcase")
-        .select("area, district, rating, tags, image_url")
-        .eq("boutique_id", product.boutique_id)
-        .maybeSingle(),
-      supabase.from("product_images").select("image_url").eq("product_id", productId).order("id", { ascending: true })
-    ]);
-
-    const gallery = Array.isArray(images) ? images.map((i) => i.image_url) : [];
-    const productLocation = String(product.location || "").trim();
-    const showcaseLocation = [showcase?.area, showcase?.district].filter(Boolean).join(", ");
-
-    return res.json({
-      ...product,
-      boutique_name: boutique?.boutique_name || null,
-      boutique_city: boutique?.city || null,
-      area: showcase?.area || null,
-      district: showcase?.district || null,
-      showcase_rating: showcase?.rating || 5.0,
-      showcase_tags: showcase?.tags || null,
-      showcase_image: showcase?.image_url || null,
-      review_count: showcase?.rating ? 1 : 0,
-      store_location: productLocation || showcaseLocation || boutique?.city || "",
-      gallery
-    });
-  } catch (err) {
-    return res.status(500).json({ message: "Server error", error: err.message });
-  }
-});
+// KEEP EVERYTHING SAME ABOVE 👆 (NO CHANGE)
 
 /* ================= GET ALL PRODUCTS ================= */
 router.get("/all", async (req, res) => {
   try {
     console.log("[Products] Fetching all products with resilient sorting...");
     
-    // 1. Fetch products (with fallback for missing created_at column)
     let { data: products, error: productErr } = await supabase
       .from("products")
       .select("*")
@@ -130,25 +84,18 @@ router.get("/all", async (req, res) => {
 
     if (!products || products.length === 0) return res.json([]);
 
-    // 2. Fetch metadata from boutiques and boutique_showcase
     const uniqueBoutiqueIds = [...new Set(products.map(p => p.boutique_id).filter(Boolean))];
+
     const [{ data: boutiques, error: boutiqueErr }, { data: showcases, error: showcaseErr }] = await Promise.all([
       supabase.from("boutiques").select("id, boutique_name, city").in("id", uniqueBoutiqueIds),
       supabase.from("boutique_showcase").select("boutique_id, area, district").in("boutique_id", uniqueBoutiqueIds)
     ]);
 
-    if (boutiqueErr) {
-      console.error("[Products] Boutique metadata fetch error:", boutiqueErr.message);
-    }
-    if (showcaseErr) {
-      console.error("[Products] Showcase metadata fetch error:", showcaseErr.message);
-    }
+    if (boutiqueErr) console.error("[Products] Boutique metadata fetch error:", boutiqueErr.message);
+    if (showcaseErr) console.error("[Products] Showcase metadata fetch error:", showcaseErr.message);
 
-    // 3. Map together
     const boutiqueMap = {};
-    (boutiques || []).forEach(b => { 
-      boutiqueMap[b.id] = { ...boutiqueMap[b.id], ...b }; 
-    });
+    (boutiques || []).forEach(b => { boutiqueMap[b.id] = { ...boutiqueMap[b.id], ...b }; });
     (showcases || []).forEach(s => {
       if (s.boutique_id) {
         boutiqueMap[s.boutique_id] = { ...boutiqueMap[s.boutique_id], ...s };
@@ -168,8 +115,52 @@ router.get("/all", async (req, res) => {
     });
 
     return res.json(flattened);
+
   } catch (err) {
     console.error("[Products] Server error in /all:", err.message);
+    return res.status(500).json({ message: "Server error", error: err.message });
+  }
+});
+
+
+/* ================= GET PRODUCT DETAILS ================= */
+router.get("/:productId", async (req, res, next) => {
+  const { productId } = req.params;
+  if (productId === "boutique") return next();
+
+  try {
+    const { data: product, error: productErr } = await supabase
+      .from("products")
+      .select("*")
+      .eq("id", productId)
+      .maybeSingle();
+
+    if (productErr) return res.status(500).json({ message: "DB error", error: productErr.message });
+    if (!product) return res.status(404).json({ message: "Product not found" });
+
+    const [{ data: boutique }, { data: showcase }, { data: images }] = await Promise.all([
+      supabase.from("boutiques").select("boutique_name, city").eq("id", product.boutique_id).maybeSingle(),
+      supabase.from("boutique_showcase").select("area, district, rating, tags, image_url").eq("boutique_id", product.boutique_id).maybeSingle(),
+      supabase.from("product_images").select("image_url").eq("product_id", productId).order("id", { ascending: true })
+    ]);
+
+    const gallery = Array.isArray(images) ? images.map((i) => i.image_url) : [];
+
+    return res.json({
+      ...product,
+      boutique_name: boutique?.boutique_name || null,
+      boutique_city: boutique?.city || null,
+      area: showcase?.area || null,
+      district: showcase?.district || null,
+      showcase_rating: showcase?.rating || 5.0,
+      showcase_tags: showcase?.tags || null,
+      showcase_image: showcase?.image_url || null,
+      review_count: showcase?.rating ? 1 : 0,
+      store_location: product.location || boutique?.city || "",
+      gallery
+    });
+
+  } catch (err) {
     return res.status(500).json({ message: "Server error", error: err.message });
   }
 });
