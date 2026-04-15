@@ -46,17 +46,7 @@
     const userLoggedIn = localStorage.getItem("isUserLoggedIn") === "true";
 
     let topbar = document.querySelector(".mobile-topbar");
-    if (!topbar) {
-      topbar = document.createElement("div");
-      topbar.className = "mobile-topbar";
-      topbar.innerHTML = `
-        <button id="menuBtn" class="mobile-icon-btn" aria-label="Open menu">
-          <span class="material-symbols-outlined">menu</span>
-        </button>
-        <div class="mobile-logo">CLOCHE</div>
-      `;
-      body.insertBefore(topbar, body.firstChild);
-    }
+    if (!topbar) return;
 
     // Side Menu Drawer HTML (Always ensure it exists and has listeners)
     let sideMenu = document.getElementById("sideMenu");

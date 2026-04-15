@@ -635,6 +635,10 @@ svg {
     padding: 0 8px;
   }
 
+  .mobile-topbar+.mobile-topbar {
+    display: none !important;
+  }
+
   .mobile-bottom-item {
     text-decoration: none;
     color: rgba(255, 255, 255, 0.8);
