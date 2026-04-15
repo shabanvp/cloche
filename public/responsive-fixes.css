@@ -633,57 +633,40 @@ svg {
   /*  */
   .mobile-bottom-nav {
     position: fixed;
-    bottom: 12px;
-    /* 🔥 floating */
-    left: 50%;
-    transform: translateX(-50%);
-
-    width: min(calc(100% - 24px), 500px);
-    /* 🔥 centered bar */
-    height: 70px;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: 72px;
 
     display: flex;
     justify-content: space-around;
     align-items: center;
 
-    background: rgba(13, 13, 13, 0.9);
-    /* 🔥 glass effect */
-    backdrop-filter: blur(10px);
+    background: #0d0d0d;
+    box-shadow: 0 -4px 25px rgba(0, 0, 0, 0.7);
 
-    border: 1px solid rgba(193, 166, 113, 0.25);
-    border-radius: 20px;
-    /* 🔥 rounded like your image */
-
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+    border-top: 1px solid rgba(193, 166, 113, 0.15);
+    border-radius: 20px 20px 0 0;
 
     z-index: 9999;
+    padding-bottom: env(safe-area-inset-bottom);
   }
 
   .mobile-bottom-item {
     text-decoration: none;
-    color: rgba(255, 255, 255, 0.85);
-
+    color: rgba(255, 255, 255, 0.65);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-
     flex: 1;
-    /* 🔥 ADD THIS LINE */
-
-    gap: 3px;
-    min-width: 0;
-
+    gap: 4px;
     font-size: 10px;
-    line-height: 1;
-
+    font-weight: 500;
     text-transform: uppercase;
-    letter-spacing: 0.12em;
-
-    text-align: center;
-    white-space: nowrap;
-
-    transition: 0.2s ease;
+    letter-spacing: 0.1em;
+    transition: all 0.2s ease;
   }
 
   .mobile-bottom-item .material-symbols-outlined {
@@ -1345,13 +1328,13 @@ body.menu-open {
 body.menu-open .mobile-bottom-nav {
   opacity: 0 !important;
   pointer-events: none !important;
-  transform: translateX(-50%) translateY(120%) !important;
-  transition: opacity 0.25s ease, transform 0.25s ease;
+  transform: translateY(100%) !important;
+  transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Smooth transition for bottom nav reappearing */
 .mobile-bottom-nav {
-  transition: opacity 0.25s ease, transform 0.25s ease;
+  transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Hide page-level footers on mobile when bottom nav is present (prevents overlap) */

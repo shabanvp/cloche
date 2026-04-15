@@ -324,7 +324,7 @@
           <span>Boutiques</span>
         </a>
         <a href="messageboutique.html" class="mobile-bottom-item" data-mobile-tab="enquire">
-          <span class="material-symbols-outlined">chat</span>
+          <span class="material-symbols-outlined">message</span>
           <span>Enquire</span>
         </a>
         <a href="${profileHref}" class="mobile-bottom-item" data-mobile-tab="profile">
