@@ -1315,3 +1315,8 @@ body.menu-open {
 body.menu-open .mobile-bottom-nav {
   display: none !important;
 }
+@media (max-width: 768px) {
+  nav.fixed.top-0 {
+    display: none !important;
+  }
+}
