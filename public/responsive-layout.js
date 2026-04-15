@@ -303,7 +303,7 @@
           <span>Messages</span>
         </a>
       `;
-      bottom.style.gridTemplateColumns = "repeat(5, 1fr)";
+      
     } else {
       bottom.innerHTML = `
         <a href="index.html" class="mobile-bottom-item" data-mobile-tab="home">
@@ -323,7 +323,7 @@
           <span>Profile</span>
         </a>
       `;
-      bottom.style.gridTemplateColumns = "repeat(4, 1fr)";
+      
     }
 
     bottom.querySelectorAll(".mobile-bottom-item").forEach((el) => el.classList.remove("mobile-bottom-active"));
@@ -346,7 +346,7 @@
         activePartnerTab.classList.add("mobile-bottom-active");
       }
 
-      bottom.style.gridTemplateColumns = "repeat(5, 1fr)";
+      
     } else {
       if (isRoute(current, ["index.html", ""])) {
         bottom.querySelector('[data-mobile-tab="home"]')?.classList.add("mobile-bottom-active");
