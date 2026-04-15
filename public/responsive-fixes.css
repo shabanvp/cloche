@@ -642,14 +642,10 @@ svg {
   height: 64px;
   padding: 6px 10px;
 
-  display: grid;
-
-  /* 🔥 FINAL FIX */
-  grid-auto-flow: column;
-  grid-auto-columns: 1fr;
-
-  align-items: center;
-  align-content: center;
+  display: flex;                 /* 🔥 FIXED */
+  flex-direction: row;           /* 🔥 FIXED */
+  justify-content: space-around; /* 🔥 FIXED */
+  align-items: center;           /* 🔥 FIXED */
 
   transition: opacity 0.25s ease, transform 0.25s ease;
 }
