@@ -139,20 +139,24 @@
     if (!overlay) {
       overlay = document.createElement("div");
       overlay.id = "menuOverlay";
-      overlay.className = "hidden";
       body.appendChild(overlay);
     }
 
+    sideMenu.classList.remove("hidden");
+    overlay.classList.remove("hidden");
+
     // Sidebar logic elements and listeners
+    const syncMenuState = (isOpen) => {
+      sideMenu.classList.toggle("active", isOpen);
+      overlay.classList.toggle("visible", isOpen);
+      document.body.classList.toggle("menu-open", isOpen);
+    };
+
     const openMenu = () => {
-      sideMenu.classList.add("active");
-      overlay.classList.add("visible");
-      document.body.classList.add("menu-open");
+      syncMenuState(true);
     };
     const closeMenuFunc = () => {
-      sideMenu.classList.remove("active");
-      overlay.classList.remove("visible");
-      document.body.classList.remove("menu-open");
+      syncMenuState(false);
     };
 
     const mBtn = document.getElementById("menuBtn");
