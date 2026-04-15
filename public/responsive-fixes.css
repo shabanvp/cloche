@@ -1230,7 +1230,35 @@ body.menu-open {
   position: fixed !important;
   width: 100% !important;
 }
+
 /* Hide bottom nav when side menu is open */
 body.menu-open .mobile-bottom-nav {
-  display: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transform: translateY(100%) !important;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+/* Smooth transition for bottom nav reappearing */
+.mobile-bottom-nav {
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+/* Hide page-level footers on mobile when bottom nav is present (prevents overlap) */
+@media (max-width: 1024px) {
+  body.has-mobile-bars > footer,
+  body.has-mobile-bars main ~ footer,
+  body.has-mobile-bars .w-full.max-w-\[1200px\].px-8.py-10 {
+    display: none !important;
+  }
+
+  /* Signup page bottom spacing */
+  body.has-mobile-bars.route-signup main {
+    padding-bottom: 96px !important;
+  }
+
+  /* Boutiquelogin page bottom spacing */
+  body.has-mobile-bars.route-boutiquelogin main {
+    padding-bottom: 96px !important;
+  }
 }
