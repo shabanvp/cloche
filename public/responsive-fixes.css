@@ -639,14 +639,17 @@ svg {
   background: linear-gradient(180deg, rgba(13, 13, 13, 0.96) 0%, rgba(10, 10, 10, 0.96) 100%);
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
 
-  height: 64px; /* 🔥 FIXED */
+  height: 64px;
   padding: 6px 10px;
 
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+
+  /* 🔥 FINAL FIX */
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
 
   align-items: center;
-  align-content: center; /* 🔥 IMPORTANT */
+  align-content: center;
 
   transition: opacity 0.25s ease, transform 0.25s ease;
 }
