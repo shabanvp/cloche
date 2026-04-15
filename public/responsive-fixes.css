@@ -642,15 +642,15 @@ svg {
   height: 64px;
   padding: 6px 10px;
 
-  display: flex;                 /* 🔥 FIXED */
-  flex-direction: row;           /* 🔥 FIXED */
+  display: flex !important;
+  flex-direction: row !important;          /* 🔥 FIXED */
   justify-content: space-around; /* 🔥 FIXED */
   align-items: center;           /* 🔥 FIXED */
 
   transition: opacity 0.25s ease, transform 0.25s ease;
 }
 
-  .mobile-bottom-item {
+ .mobile-bottom-item {
   text-decoration: none;
   color: rgba(255, 255, 255, 0.85);
 
@@ -659,15 +659,16 @@ svg {
   align-items: center;
   justify-content: center;
 
-  gap: 3px; /* 🔥 reduced */
+  flex: 1;               /* 🔥 ADD THIS LINE */
 
+  gap: 3px;
   min-width: 0;
 
-  font-size: 10px; /* 🔥 increased */
+  font-size: 10px;
   line-height: 1;
 
   text-transform: uppercase;
-  letter-spacing: 0.12em; /* 🔥 reduced */
+  letter-spacing: 0.12em;
 
   text-align: center;
   white-space: nowrap;
