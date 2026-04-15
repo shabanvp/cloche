@@ -146,13 +146,17 @@
     overlay.classList.remove("hidden");
 
     // Sidebar logic elements and listeners
-    const syncMenuState = (isOpen) => {
+        const syncMenuState = (isOpen) => {
       sideMenu.classList.toggle("active", isOpen);
       overlay.classList.toggle("visible", isOpen);
-      document.body.classList.toggle("menu-open", isOpen);
-    };
 
-    const openMenu = () => {
+      if (isOpen) {
+        document.body.classList.add("menu-open");
+      } else {
+        document.body.classList.remove("menu-open");
+      }
+    };
+        const openMenu = () => {
       syncMenuState(true);
     };
     const closeMenuFunc = () => {
@@ -340,12 +344,9 @@
 
       if (activePartnerTab) {
         activePartnerTab.classList.add("mobile-bottom-active");
-        // Partner mode request: hide the current page icon and show the remaining icons.
-        activePartnerTab.style.display = "none";
-        bottom.style.gridTemplateColumns = "repeat(4, 1fr)";
-      } else {
-        bottom.style.gridTemplateColumns = "repeat(5, 1fr)";
       }
+
+      bottom.style.gridTemplateColumns = "repeat(5, 1fr)";
     } else {
       if (isRoute(current, ["index.html", ""])) {
         bottom.querySelector('[data-mobile-tab="home"]')?.classList.add("mobile-bottom-active");
