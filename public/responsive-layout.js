@@ -272,13 +272,22 @@
       }
     }
 
-    let bottom = document.querySelector(".mobile-bottom-nav");
-    if (!bottom) {
-      bottom = document.createElement("nav");
-      bottom.className = "mobile-bottom-nav";
-      bottom.setAttribute("aria-label", "Mobile bottom navigation");
-      body.appendChild(bottom);
-    }
+   let bottom = document.querySelector(".mobile-bottom-nav");
+
+  if (!bottom) {
+    bottom = document.createElement("nav");
+    bottom.className = "mobile-bottom-nav";
+    bottom.setAttribute("aria-label", "Mobile bottom navigation");
+    document.body.appendChild(bottom);
+  }
+
+/* 🔥 FORCE LAYOUT */
+  bottom.style.display = "flex";
+  bottom.style.flexDirection = "row";
+  bottom.style.justifyContent = "space-around";
+  bottom.style.alignItems = "center";
+
+
 
     if (partnerLoggedIn) {
       bottom.innerHTML = `
