@@ -66,7 +66,7 @@
       sideMenu = document.createElement("div");
       sideMenu.id = "sideMenu";
       sideMenu.className = "hidden";
-      
+
       const partnerLinks = partnerLoggedIn ? `
         <a href="profile.html" class="side-menu-link">
           <span class="material-symbols-outlined">person</span>
@@ -139,28 +139,20 @@
     if (!overlay) {
       overlay = document.createElement("div");
       overlay.id = "menuOverlay";
+      overlay.className = "hidden";
       body.appendChild(overlay);
     }
 
-    sideMenu.classList.remove("hidden");
-    overlay.classList.remove("hidden");
-
     // Sidebar logic elements and listeners
-        const syncMenuState = (isOpen) => {
-      sideMenu.classList.toggle("active", isOpen);
-      overlay.classList.toggle("visible", isOpen);
-
-      if (isOpen) {
-        document.body.classList.add("menu-open");
-      } else {
-        document.body.classList.remove("menu-open");
-      }
-    };
-        const openMenu = () => {
-      syncMenuState(true);
+    const openMenu = () => {
+      sideMenu.classList.add("active");
+      overlay.classList.add("visible");
+      document.body.classList.add("menu-open");
     };
     const closeMenuFunc = () => {
-      syncMenuState(false);
+      sideMenu.classList.remove("active");
+      overlay.classList.remove("visible");
+      document.body.classList.remove("menu-open");
     };
 
     const mBtn = document.getElementById("menuBtn");
@@ -168,7 +160,7 @@
     if (mBtn) mBtn.onclick = openMenu;
     if (cBtn) cBtn.onclick = closeMenuFunc;
     if (overlay) overlay.onclick = closeMenuFunc;
-    
+
     // Close menu on link or category click
     sideMenu.querySelectorAll("a, .side-menu-category").forEach(el => {
       el.onclick = closeMenuFunc;
@@ -196,7 +188,7 @@
     if (partnerCtaItem && !partnerCtaItem.hasAttribute("data-mobile-partner-cta")) {
       partnerCtaItem.setAttribute("data-mobile-partner-cta", "");
     }
-    
+
     const mobileMenuDetails = topbar.querySelector(".mobile-menu-details");
     if (mobileMenuDetails) {
       // Close on scroll
@@ -272,7 +264,99 @@
       }
     }
 
+    let bottom = document.querySelector(".mobile-bottom-nav");
+    if (!bottom) {
+      bottom = document.createElement("nav");
+      bottom.className = "mobile-bottom-nav";
+      bottom.setAttribute("aria-label", "Mobile bottom navigation");
+      body.appendChild(bottom);
+    }
 
+    if (partnerLoggedIn) {
+      bottom.innerHTML = `
+        <a href="index.html" class="mobile-bottom-item" data-mobile-tab="home">
+          <span class="material-symbols-outlined">home</span>
+          <span>Home</span>
+        </a>
+        <a href="dashboard.html" class="mobile-bottom-item" data-mobile-tab="dashboard">
+          <span class="material-symbols-outlined">dashboard</span>
+          <span>Dashboard</span>
+        </a>
+        <a href="lead.html" class="mobile-bottom-item" data-mobile-tab="leads">
+          <span class="material-symbols-outlined">group</span>
+          <span>Leads</span>
+        </a>
+        <a href="boutiqueproducts.html" class="mobile-bottom-item" data-mobile-tab="products">
+          <span class="material-symbols-outlined">inventory_2</span>
+          <span>Products</span>
+        </a>
+        <a href="messages.html" class="mobile-bottom-item" data-mobile-tab="messages">
+          <span class="material-symbols-outlined">chat_bubble</span>
+          <span>Messages</span>
+        </a>
+      `;
+      bottom.style.gridTemplateColumns = "repeat(5, 1fr)";
+    } else {
+      bottom.innerHTML = `
+        <a href="index.html" class="mobile-bottom-item" data-mobile-tab="home">
+          <span class="material-symbols-outlined">home</span>
+          <span>Home</span>
+        </a>
+        <a href="boutiques.html" class="mobile-bottom-item" data-mobile-tab="boutiques">
+          <span class="material-symbols-outlined">storefront</span>
+          <span>Boutiques</span>
+        </a>
+        <a href="messageboutique.html" class="mobile-bottom-item" data-mobile-tab="enquire">
+          <span class="material-symbols-outlined">chat</span>
+          <span>Enquire</span>
+        </a>
+        <a href="${profileHref}" class="mobile-bottom-item" data-mobile-tab="profile">
+          <span class="material-symbols-outlined">person</span>
+          <span>Profile</span>
+        </a>
+      `;
+      bottom.style.gridTemplateColumns = "repeat(4, 1fr)";
+    }
+
+    bottom.querySelectorAll(".mobile-bottom-item").forEach((el) => el.classList.remove("mobile-bottom-active"));
+    const current = resolveCurrentFile();
+    if (partnerLoggedIn) {
+      let activePartnerTab = null;
+      if (isRoute(current, ["index.html", ""])) {
+        activePartnerTab = bottom.querySelector('[data-mobile-tab="home"]');
+      } else if (isRoute(current, ["dashboard.html"])) {
+        activePartnerTab = bottom.querySelector('[data-mobile-tab="dashboard"]');
+      } else if (isRoute(current, ["lead.html"])) {
+        activePartnerTab = bottom.querySelector('[data-mobile-tab="leads"]');
+      } else if (isRoute(current, ["boutiqueproducts.html", "boutiqueproduct.html"])) {
+        activePartnerTab = bottom.querySelector('[data-mobile-tab="products"]');
+      } else if (isRoute(current, ["messages.html", "messageboutique.html"])) {
+        activePartnerTab = bottom.querySelector('[data-mobile-tab="messages"]');
+      }
+
+      if (activePartnerTab) {
+        activePartnerTab.classList.add("mobile-bottom-active");
+        // Partner mode request: hide the current page icon and show the remaining icons.
+        activePartnerTab.style.display = "none";
+        bottom.style.gridTemplateColumns = "repeat(4, 1fr)";
+      } else {
+        bottom.style.gridTemplateColumns = "repeat(5, 1fr)";
+      }
+    } else {
+      if (isRoute(current, ["index.html", ""])) {
+        bottom.querySelector('[data-mobile-tab="home"]')?.classList.add("mobile-bottom-active");
+      } else if (isRoute(current, ["boutiques.html", "viewboutique.html"])) {
+        bottom.querySelector('[data-mobile-tab="boutiques"]')?.classList.add("mobile-bottom-active");
+      } else if (isRoute(current, ["messageboutique.html", "messages.html"])) {
+        bottom.querySelector('[data-mobile-tab="enquire"]')?.classList.add("mobile-bottom-active");
+      } else if (isRoute(current, ["enquiry.html"])) {
+        bottom.querySelector('[data-mobile-tab="enquire"]')?.classList.add("mobile-bottom-active");
+      } else if (isRoute(current, ["userprofile.html", "profile.html", "boutiquelogin.html", "signup.html"])) {
+        bottom.querySelector('[data-mobile-tab="profile"]')?.classList.add("mobile-bottom-active");
+      }
+    }
+
+    body.classList.add("has-mobile-bars");
   }
 
   /* -------------------------------------------------------

@@ -493,7 +493,83 @@ svg {
     padding-right: 16px !important;
   }
 
+  /* Global mobile top bar + bottom tab bar */
+  body.has-mobile-bars {
+    padding-top: 76px;
+    padding-bottom: 84px;
+  }
 
+  body.has-mobile-bars>nav.fixed {
+    display: none !important;
+  }
+
+  body.has-mobile-bars section:first-of-type {
+    padding-top: 14px !important;
+  }
+
+  /* Boutiques page: remove extra legacy top spacing under mobile navbar */
+  body.has-mobile-bars.route-boutiques main.pt-24 {
+    padding-top: 0 !important;
+  }
+
+  body.has-mobile-bars.route-boutiques main>section:first-of-type {
+    min-height: 36vh !important;
+    height: auto !important;
+    padding-top: 8px !important;
+    padding-bottom: 12px !important;
+    justify-content: flex-start !important;
+  }
+
+  .has-mobile-bars .responsive-sidebar-toggle {
+    display: none !important;
+  }
+
+  .has-mobile-bars.has-responsive-sidebar .responsive-main>header,
+  .has-mobile-bars.has-responsive-sidebar .responsive-main>div>header {
+    padding-left: 16px !important;
+  }
+
+  .mobile-topbar {
+    position: fixed;
+    top: 10px;
+    left: 12px;
+    right: 12px;
+    height: 58px;
+    z-index: 95;
+    border: 1px solid rgba(193, 166, 113, 0.28);
+    border-radius: 12px;
+    background: linear-gradient(180deg, rgba(10, 10, 10, 0.96) 0%, rgba(10, 10, 10, 0.9) 100%);
+    display: grid;
+    grid-template-columns: 42px 1fr;
+    align-items: center;
+    padding: 0 10px;
+  }
+
+  .mobile-logo {
+    font-family: "Noto Serif", serif;
+    font-size: 1.1rem;
+    letter-spacing: 0.25em;
+    color: #f7f7f7;
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  .mobile-icon-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    color: #c1a671;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 1px solid transparent;
+    text-decoration: none;
+  }
+
+  .mobile-icon-btn .material-symbols-outlined {
+    font-size: 20px;
+  }
 
   /*   /* SIDE MENU DRAWER STYLES */
   */
@@ -543,7 +619,43 @@ svg {
   /*     color: #c1a671; */
   /*   } */
   /*  */
+  .mobile-bottom-nav {
+    position: fixed;
+    left: 12px;
+    right: 12px;
+    bottom: 10px;
+    z-index: 95;
+    border: 1px solid rgba(193, 166, 113, 0.22);
+    border-radius: 12px;
+    background: linear-gradient(180deg, rgba(13, 13, 13, 0.96) 0%, rgba(10, 10, 10, 0.96) 100%);
+    height: 66px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    align-items: center;
+    padding: 0 8px;
+  }
 
+  .mobile-bottom-item {
+    text-decoration: none;
+    color: rgba(255, 255, 255, 0.8);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    font-size: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+  }
+
+  .mobile-bottom-item .material-symbols-outlined {
+    font-size: 18px;
+    line-height: 1;
+  }
+
+  .mobile-bottom-item.mobile-bottom-active {
+    color: #c1a671;
+  }
 
   /* Custom scrollbar touch support */
   .custom-scrollbar {
@@ -635,9 +747,459 @@ nav.fixed .max-w-7xl {
 @media (max-width: 1024px) {
 
   /* Landing hero background crop */
+  body.has-mobile-bars.route-index section.min-h-screen .bg-cover {
+    background-position: center 18% !important;
+    transform: scale(1.08) !important;
+  }
+
+  /* Pages with fixed desktop nav hidden by mobile bars */
+  body.has-mobile-bars.route-userprofile main,
+  body.has-mobile-bars.route-enquiry main,
+  body.has-mobile-bars.route-viewboutique main {
+    padding-top: 8px !important;
+  }
+
+  /* User profile */
+  body.has-mobile-bars.route-userprofile main {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+    padding-bottom: 96px !important;
+  }
+
+  body.has-mobile-bars.route-userprofile .grid.grid-cols-1.lg\:grid-cols-3 {
+    gap: 12px !important;
+  }
+
+  body.has-mobile-bars.route-userprofile h1#welcomeName {
+    font-size: clamp(2rem, 10vw, 2.8rem) !important;
+  }
+
+  /* Enquiry page */
+  body.has-mobile-bars.route-enquiry main {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+    padding-bottom: 96px !important;
+  }
+
+  body.has-mobile-bars.route-enquiry .hero-glow {
+    padding: 18px 14px !important;
+    margin-bottom: 14px !important;
+  }
+
+  body.has-mobile-bars.route-enquiry .glass {
+    padding: 14px !important;
+  }
+
+  body.has-mobile-bars.route-enquiry #enquiryForm .grid {
+    gap: 10px !important;
+  }
+
+  /* View boutique */
+  body.has-mobile-bars.route-viewboutique main {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+    padding-bottom: 96px !important;
+  }
+
+  body.has-mobile-bars.route-viewboutique .md\:p-12 {
+    padding: 16px !important;
+  }
+
+  body.has-mobile-bars.route-viewboutique #productsGrid {
+    gap: 14px !important;
+  }
+
+  body.has-mobile-bars.route-viewboutique #enquiryBtn,
+  body.has-mobile-bars.route-viewboutique #messageBtn {
+    width: 100% !important;
+  }
+
+  /* Collection page */
+  body.has-mobile-bars.route-collection main {
+    padding-top: 8px !important;
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+    padding-bottom: 96px !important;
+  }
+
+  body.has-mobile-bars.route-collection section .grid.grid-cols-2 {
+    gap: 10px !important;
+  }
+
+  /* Dashboard + Profile + Subscription spacing consistency */
+  body.has-mobile-bars.route-dashboard main,
+  body.has-mobile-bars.route-profile main,
+  body.has-mobile-bars.route-subscription main,
+  body.has-mobile-bars.route-boutiqueproducts main,
+  body.has-mobile-bars.route-lead main {
+    padding-bottom: 96px !important;
+  }
+
+  /* Boutique products: fix clipped "Boutique Inventory" title on mobile */
+  body.has-mobile-bars.route-boutiqueproducts main>header.h-20.border-b.border-primary\/10>div:first-child {
+    min-width: 0 !important;
+    flex: 1 1 auto !important;
+  }
+
+  body.has-mobile-bars.route-boutiqueproducts main>header.h-20.border-b.border-primary\/10>div:first-child h2 {
+    font-size: 1.12rem !important;
+    line-height: 1.15 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  body.has-mobile-bars.route-boutiqueproducts main>header.h-20.border-b.border-primary\/10>div:first-child .h-4.w-px {
+    display: none !important;
+  }
+
+  /* Reset generic lead-header absolute positioning from affecting products page */
+  body.has-mobile-bars.route-boutiqueproducts header.h-20 .flex.items-center.gap-4 {
+    position: static !important;
+    top: auto !important;
+    right: auto !important;
+    margin: 0 !important;
+    width: 100% !important;
+  }
+
+  body.has-mobile-bars.route-boutiqueproducts main>header.h-20.border-b.border-primary\/10 {
+    padding-top: 10px !important;
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+    justify-content: flex-start !important;
+  }
 
 
+  /* Profile page compact alignment */
+  body.has-mobile-bars.route-profile main>header {
+    padding: 10px 12px !important;
+    gap: 8px !important;
+  }
 
+  body.has-mobile-bars.route-profile main>header h2 {
+    font-size: 12px !important;
+    letter-spacing: 0.12em !important;
+  }
+
+  body.has-mobile-bars.route-profile main>header .border-l {
+    padding-left: 8px !important;
+  }
+
+  body.has-mobile-bars.route-profile .max-w-5xl.w-full {
+    max-width: 100% !important;
+    padding: 10px 12px 96px !important;
+  }
+
+  body.has-mobile-bars.route-profile .max-w-5xl.w-full .mb-12 {
+    margin-bottom: 10px !important;
+  }
+
+  body.has-mobile-bars.route-profile .max-w-5xl.w-full h1.text-5xl {
+    font-size: clamp(1.9rem, 9vw, 2.4rem) !important;
+    line-height: 1.05 !important;
+    margin-bottom: 8px !important;
+  }
+
+  body.has-mobile-bars.route-profile .max-w-5xl.w-full p.text-lg {
+    font-size: 14px !important;
+    line-height: 1.45 !important;
+  }
+
+  body.has-mobile-bars.route-profile .grid.grid-cols-1.gap-8 {
+    gap: 12px !important;
+  }
+
+  body.has-mobile-bars.route-profile .glass-card {
+    border-radius: 14px !important;
+  }
+
+  body.has-mobile-bars.route-profile .glass-card .p-8 {
+    padding: 16px !important;
+  }
+
+  /* Boutique details form: single column on mobile for better readability */
+  body.has-mobile-bars.route-profile .p-8.grid.grid-cols-1.md\:grid-cols-2.gap-8 {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  body.has-mobile-bars.route-profile .p-8.grid.grid-cols-1.md\:grid-cols-2.gap-8 .md\:col-span-2 {
+    grid-column: auto !important;
+  }
+
+  body.has-mobile-bars.route-profile .p-8.grid.grid-cols-1.md\:grid-cols-2.gap-8 label {
+    font-size: 11px !important;
+    margin-bottom: 7px !important;
+  }
+
+  /* Keep profile sections stacked on mobile */
+  body.has-mobile-bars.route-profile .grid.grid-cols-1.lg\:grid-cols-2.gap-8 {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+    align-items: stretch !important;
+  }
+
+  body.has-mobile-bars.route-profile .grid.grid-cols-1.lg\:grid-cols-2.gap-8 .text-xl {
+    font-size: 17px !important;
+    letter-spacing: 0.08em !important;
+  }
+
+  body.has-mobile-bars.route-profile #planBadge {
+    padding: 6px 10px !important;
+    font-size: 9px !important;
+    letter-spacing: 0.16em !important;
+    margin-bottom: 10px !important;
+  }
+
+  body.has-mobile-bars.route-profile #planPriceText {
+    font-size: 30px !important;
+    line-height: 1.05 !important;
+  }
+
+  /* Showcase section compact */
+  body.has-mobile-bars.route-profile .p-8.grid.grid-cols-1.lg\:grid-cols-2.gap-10 {
+    gap: 10px !important;
+  }
+
+  body.has-mobile-bars.route-profile #showcasePreviewImage {
+    min-height: 220px !important;
+    height: 220px !important;
+  }
+
+  body.has-mobile-bars.route-profile #showcasePreviewName {
+    font-size: 22px !important;
+    line-height: 1.05 !important;
+  }
+
+  /* Bottom action row */
+  body.has-mobile-bars.route-profile .mt-12.pt-8.border-t {
+    margin-top: 12px !important;
+    padding-top: 12px !important;
+    gap: 8px !important;
+    flex-direction: column !important;
+  }
+
+  body.has-mobile-bars.route-profile #discardChangesBtn,
+  body.has-mobile-bars.route-profile #saveProfileBtn {
+    width: 100% !important;
+    padding: 12px 14px !important;
+  }
+
+  /* Lead page mobile compaction + alignment */
+  body.has-mobile-bars.route-lead main>header {
+    padding: 10px 12px !important;
+    gap: 8px !important;
+    height: auto !important;
+    min-height: 56px !important;
+  }
+
+  body.has-mobile-bars.route-lead main>header h2 {
+    font-size: 18px !important;
+    line-height: 1.15 !important;
+  }
+
+  body.has-mobile-bars.route-lead main>header .relative.w-72 {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  body.has-mobile-bars.route-lead main .flex-1.overflow-y-auto.p-8 {
+    padding: 10px 12px 96px !important;
+  }
+
+  /* Stats: two cards in one row */
+  body.has-mobile-bars.route-lead .grid.grid-cols-1.md\:grid-cols-3.gap-6.mb-8 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+    margin-bottom: 12px !important;
+  }
+
+  body.has-mobile-bars.route-lead .grid.grid-cols-1.md\:grid-cols-3.gap-6.mb-8> :nth-child(3) {
+    grid-column: 1 / -1 !important;
+  }
+
+  body.has-mobile-bars.route-lead .grid.grid-cols-1.md\:grid-cols-3.gap-6.mb-8 .p-6 {
+    padding: 12px !important;
+  }
+
+  body.has-mobile-bars.route-lead #statsTotalLeads,
+  body.has-mobile-bars.route-lead #statsNewLeads,
+  body.has-mobile-bars.route-lead #statsConversionRate {
+    font-size: 28px !important;
+    line-height: 1 !important;
+  }
+
+  /* Filter row: balanced layout */
+  body.has-mobile-bars.route-lead .flex.items-center.justify-between.mb-6 {
+    margin-bottom: 10px !important;
+    gap: 8px !important;
+  }
+
+  body.has-mobile-bars.route-lead .flex.items-center.justify-between.mb-6>.flex.gap-2 {
+    max-width: calc(100vw - 150px) !important;
+  }
+
+  body.has-mobile-bars.route-lead #clearFilters {
+    font-size: 10px !important;
+    letter-spacing: 0.12em !important;
+  }
+
+  /* Lead mobile: remove grey underline-like scrollbar tracks */
+  body.has-mobile-bars.route-lead .grid.grid-cols-1.md\:grid-cols-3.gap-6.mb-8,
+  body.has-mobile-bars.route-lead .flex.items-center.justify-between.mb-6>.flex.gap-2,
+  body.has-mobile-bars.route-lead .flex-1.overflow-y-auto.p-8 {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+  }
+
+  body.has-mobile-bars.route-lead .grid.grid-cols-1.md\:grid-cols-3.gap-6.mb-8::-webkit-scrollbar,
+  body.has-mobile-bars.route-lead .flex.items-center.justify-between.mb-6>.flex.gap-2::-webkit-scrollbar,
+  body.has-mobile-bars.route-lead .flex-1.overflow-y-auto.p-8::-webkit-scrollbar {
+    width: 0 !important;
+    height: 0 !important;
+    display: none !important;
+    background: transparent !important;
+  }
+
+  /* Table density */
+  body.has-mobile-bars.route-lead .glass-panel.rounded-xl.overflow-hidden table th,
+  body.has-mobile-bars.route-lead .glass-panel.rounded-xl.overflow-hidden table td {
+    padding: 10px 8px !important;
+  }
+
+  body.has-mobile-bars.route-lead .glass-panel.rounded-xl.overflow-hidden table td .size-10 {
+    width: 34px !important;
+    height: 34px !important;
+    font-size: 12px !important;
+  }
+
+  body.has-mobile-bars.route-lead .glass-panel.rounded-xl.overflow-hidden table td .text-lg {
+    font-size: 13px !important;
+    line-height: 1.2 !important;
+  }
+
+  body.has-mobile-bars.route-lead .glass-panel.rounded-xl.overflow-hidden table td .text-xs {
+    font-size: 10px !important;
+  }
+
+  body.has-mobile-bars.route-lead .glass-panel.rounded-xl.overflow-hidden table td a.inline-flex {
+    padding: 6px 10px !important;
+    font-size: 10px !important;
+    gap: 4px !important;
+  }
+
+  body.has-mobile-bars.route-lead #paginationControls {
+    padding: 10px 12px !important;
+  }
+
+  /* Lead mobile final override: remove grey underline bars */
+  body.has-mobile-bars.route-lead .flex.items-center.justify-between.mb-6>.flex.gap-2 {
+    max-width: 100% !important;
+    overflow-x: visible !important;
+    flex-wrap: wrap !important;
+    padding-bottom: 0 !important;
+  }
+
+  body.has-mobile-bars.route-lead .grid.grid-cols-1.md\:grid-cols-3.gap-6.mb-8,
+  body.has-mobile-bars.route-lead .flex-1.overflow-y-auto.p-8,
+  body.has-mobile-bars.route-lead .glass-panel.rounded-xl.overflow-hidden {
+    overflow-x: hidden !important;
+  }
+
+  body.has-mobile-bars.route-lead .custom-scrollbar::-webkit-scrollbar:horizontal,
+  body.has-mobile-bars.route-lead .flex-1.overflow-y-auto.p-8::-webkit-scrollbar:horizontal,
+  body.has-mobile-bars.route-lead .flex.items-center.justify-between.mb-6>.flex.gap-2::-webkit-scrollbar:horizontal {
+    height: 0 !important;
+    display: none !important;
+    background: transparent !important;
+  }
+
+  /* Dashboard mobile: compact layout + two sections per row */
+  body.has-mobile-bars.route-dashboard main {
+    padding-bottom: 88px !important;
+  }
+
+  body.has-mobile-bars.route-dashboard main>header {
+    padding: 10px 12px !important;
+    gap: 8px !important;
+    align-items: flex-start !important;
+  }
+
+  body.has-mobile-bars.route-dashboard main>header h2.text-4xl {
+    font-size: clamp(1.4rem, 7vw, 1.8rem) !important;
+    line-height: 1.1 !important;
+    margin-bottom: 4px !important;
+  }
+
+  body.has-mobile-bars.route-dashboard main>header p#boutiqueName {
+    font-size: 12px !important;
+    line-height: 1.35 !important;
+  }
+
+  body.has-mobile-bars.route-dashboard main>header .flex.gap-4.items-center {
+    width: 100% !important;
+    gap: 8px !important;
+  }
+
+  body.has-mobile-bars.route-dashboard main>header .flex.gap-4.items-center button {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    font-size: 11px !important;
+    padding: 10px 12px !important;
+    justify-content: center !important;
+  }
+
+  body.has-mobile-bars.route-dashboard .grid.grid-cols-1.md\:grid-cols-3.gap-6.px-8.mb-8 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+    margin-bottom: 12px !important;
+  }
+
+  body.has-mobile-bars.route-dashboard .grid.grid-cols-1.md\:grid-cols-3.gap-6.px-8.mb-8> :nth-child(3) {
+    grid-column: 1 / -1 !important;
+  }
+
+  body.has-mobile-bars.route-dashboard .grid.grid-cols-1.md\:grid-cols-3.gap-6.px-8.mb-8 .glass-card {
+    padding: 12px !important;
+  }
+
+  body.has-mobile-bars.route-dashboard #totalLeads,
+  body.has-mobile-bars.route-dashboard #planName,
+  body.has-mobile-bars.route-dashboard #leadsRemainingCount {
+    font-size: 1.8rem !important;
+    line-height: 1.05 !important;
+  }
+
+  body.has-mobile-bars.route-dashboard #totalLeadsBar {
+    min-height: 3px !important;
+  }
+
+  body.has-mobile-bars.route-dashboard .px-8.pb-12.flex.flex-col.lg\:flex-row.gap-6 {
+    padding: 0 12px 96px !important;
+    gap: 10px !important;
+  }
+
+  body.has-mobile-bars.route-dashboard .glass-card.flex-grow.rounded-xl.p-8,
+  body.has-mobile-bars.route-dashboard .glass-card.w-full.lg\:w-80.rounded-xl.p-8.flex.flex-col {
+    padding: 12px !important;
+  }
+
+  body.has-mobile-bars.route-dashboard .glass-card.flex-grow.rounded-xl.p-8 .relative.h-\[300px\].w-full.mt-4.overflow-hidden {
+    height: 180px !important;
+    margin-top: 8px !important;
+  }
+
+  body.has-mobile-bars.route-dashboard #recentActivityList {
+    gap: 10px !important;
+  }
+
+  body.has-mobile-bars.route-dashboard .glass-card.w-full.lg\:w-80.rounded-xl.p-8.flex.flex-col button {
+    margin-top: 12px !important;
+  }
 }
 
 /* SIDE MENU DRAWER (Premium Off-Canvas) */
@@ -740,9 +1302,12 @@ nav.fixed .max-w-7xl {
 /* Scroll Lock for Menu */
 body.menu-open {
   overflow: hidden !important;
+  height: 100dvh !important;
+  position: fixed !important;
+  width: 100% !important;
 }
 
-
-
-
-
+/* Hide bottom nav when side menu is open */
+body.menu-open .mobile-bottom-nav {
+  display: none !important;
+}
