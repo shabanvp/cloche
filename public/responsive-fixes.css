@@ -633,21 +633,28 @@ svg {
   /*  */
   .mobile-bottom-nav {
     position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    /* 🔥 FULL WIDTH */
+    bottom: 12px;
+    /* 🔥 floating */
+    left: 50%;
+    transform: translateX(-50%);
 
-    display: flex !important;
-    flex-direction: row !important;
+    width: min(calc(100% - 24px), 500px);
+    /* 🔥 centered bar */
+    height: 70px;
+
+    display: flex;
     justify-content: space-around;
     align-items: center;
 
-    height: 65px;
-    padding: 6px 10px;
+    background: rgba(13, 13, 13, 0.9);
+    /* 🔥 glass effect */
+    backdrop-filter: blur(10px);
 
-    background: #0d0d0d;
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(193, 166, 113, 0.25);
+    border-radius: 20px;
+    /* 🔥 rounded like your image */
+
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
 
     z-index: 9999;
   }
