@@ -133,7 +133,8 @@ svg {
   .js-responsive main>header {
     height: auto !important;
     min-height: 60px;
-    padding: 16px !important; /* Standardized */
+    padding: 52px 16px 14px !important;
+    /* top room for hamburger */
     flex-wrap: wrap !important;
     row-gap: 10px;
     align-items: flex-start !important;
@@ -212,7 +213,7 @@ svg {
   header.h-20 {
     height: auto !important;
     min-height: 60px;
-    padding: 16px !important; /* Standardized */
+    padding: 52px 16px 12px !important;
     flex-wrap: wrap !important;
     gap: 8px;
     align-items: flex-start !important;
@@ -287,7 +288,7 @@ svg {
   /* Products header */
   header.h-20.border-b.border-primary\/10 {
     height: auto !important;
-    padding: 16px !important; /* Standardized */
+    padding: 52px 16px 12px !important;
     flex-wrap: wrap !important;
     gap: 8px;
     align-items: flex-start !important;
@@ -355,7 +356,7 @@ svg {
 
   /* Messages header */
   header.h-auto.border-b {
-    padding: 16px !important; /* Standardized */
+    padding: 52px 16px 14px !important;
     flex-wrap: wrap !important;
     gap: 8px;
     align-items: flex-start !important;
@@ -494,9 +495,11 @@ svg {
 
   /* Global mobile top bar + bottom tab bar */
   body.has-mobile-bars {
-    padding-top: 80px !important; /* Standardized offset */
+    padding-top: 80px !important;
+    /* Standardized offset */
     padding-bottom: 84px;
-    height: auto !important; /* Allow body to grow with content if needed */
+    height: auto !important;
+    /* Allow body to grow with content if needed */
     overflow-y: auto !important;
   }
 
@@ -512,7 +515,8 @@ svg {
   /* Reset the inner h-screen for content that needs internal scrolling */
   body.has-mobile-bars .responsive-main,
   body.has-mobile-bars main {
-    height: calc(100dvh - 164px) !important; /* Subtract top and bottom bars */
+    height: calc(100dvh - 164px) !important;
+    /* Subtract top and bottom bars */
     padding-top: 0 !important;
   }
 
@@ -565,12 +569,15 @@ svg {
 
   .mobile-topbar {
     position: fixed;
-    top: 0 !important; /* Locked at absolute top */
+    top: 0 !important;
+    /* Locked at absolute top */
     left: 0 !important;
     right: 0 !important;
-    height: 70px; /* Consistent height */
+    height: 70px;
+    /* Consistent height */
     z-index: 100 !important;
-    border-radius: 0 !important; /* Full width looks cleaner globally */
+    border-radius: 0 !important;
+    /* Full width looks cleaner globally */
     background: #0d0d0d;
     border-bottom: 1px solid rgba(193, 166, 113, 0.2);
     display: flex;
@@ -1349,6 +1356,7 @@ body.menu-open {
 body.menu-open .mobile-bottom-nav {
   display: none !important;
 }
+
 @media (max-width: 768px) {
   nav.fixed.top-0 {
     display: none !important;
