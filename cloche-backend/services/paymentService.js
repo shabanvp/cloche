@@ -1,10 +1,20 @@
 const Razorpay = require("razorpay");
 const crypto = require("crypto");
 
-const razorpay = new Razorpay({
-    key_id: process.env.RAZORPAY_KEY_ID,
-    key_secret: process.env.RAZORPAY_KEY_SECRET,
-});
+let razorpay;
+try {
+  if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
+    razorpay = new Razorpay({
+      key_id: process.env.RAZORPAY_KEY_ID,
+      key_secret: process.env.RAZORPAY_KEY_SECRET,
+    });
+    console.log("[PaymentService] Razorpay initialized successfully.");
+  } else {
+    console.warn("[PaymentService] RAZORPAY_KEY_ID or RAZORPAY_KEY_SECRET is missing. Payment features will be disabled.");
+  }
+} catch (error) {
+  console.error("[PaymentService] Failed to initialize Razorpay:", error.message);
+}
 
 /**
  * Create a new order for subscription upgrade
@@ -17,6 +27,9 @@ const createOrder = async (amount, currency = "INR") => {
     };
 
     try {
+        if (!razorpay) {
+            throw new Error("Razorpay is not configured on the server. Please check environment variables.");
+        }
         const order = await razorpay.orders.create(options);
         return order;
     } catch (error) {
@@ -29,6 +42,10 @@ const createOrder = async (amount, currency = "INR") => {
  * Verify Razorpay payment signature
  */
 const verifyPayment = (orderId, paymentId, signature) => {
+    if (!process.env.RAZORPAY_KEY_SECRET) {
+        console.error("[PaymentService] Cannot verify payment: RAZORPAY_KEY_SECRET is not configured.");
+        return false;
+    }
     const text = orderId + "|" + paymentId;
     const generated_signature = crypto
         .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
