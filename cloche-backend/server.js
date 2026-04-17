@@ -8,11 +8,14 @@ const path = require("path");
 const supabase = require("./supabase");
 
 // 🔹 Load routes
-const authRoutes = require("./auth");
-const productRoutes = require("./products");
+const authRoutes = require("./routes/authRoutes");
+const boutiqueRoutes = require("./routes/boutiqueRoutes");
+const paymentRoutes = require("./routes/paymentRoutes");
+const productRoutes = require("./products"); // Still using legacy products.js for now, but will refactor later
 const leadRoutes = require("./leads");
 const messageRoutes = require("./messages");
 const adminRoutes = require("./admin");
+const { checkExpiredSubscriptions } = require("./services/expiryJob");
 
 const app = express();
 
@@ -64,6 +67,8 @@ app.get("/api/test-db", async (req, res) => {
 
 // 🔹 API routes
 app.use("/api/auth", authRoutes);
+app.use("/api/boutiques", boutiqueRoutes);
+app.use("/api/payment", paymentRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/leads", leadRoutes);
 app.use("/api/messages", messageRoutes);
@@ -91,4 +96,9 @@ const HOST = process.env.HOST || "0.0.0.0";
 
 app.listen(PORT, HOST, () => {
   console.log(`CLOCHE Server running on port ${PORT}`);
+  
+  // Start the daily expiry check job
+  // Runs immediately on startup, then every 24 hours
+  checkExpiredSubscriptions();
+  setInterval(checkExpiredSubscriptions, 24 * 60 * 60 * 1000); 
 });

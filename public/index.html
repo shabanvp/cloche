@@ -523,7 +523,8 @@
 
 
   <script>
-    const API_BASE = "https://cloche-backend.onrender.com/api/auth";
+    const API_AUTH = "https://cloche-backend.onrender.com/api/auth";
+    const API_BASE = "https://cloche-backend.onrender.com/api";
     const API_ORIGIN = "https://cloche-backend.onrender.com";
     let cloudinaryCloudName = "";
     const FEATURED_CACHE_KEY = "featuredBoutiquesCacheV1";
@@ -577,7 +578,7 @@
     }
     async function loadCloudinaryConfig() {
       try {
-        const res = await fetch(`${API_BASE}/cloudinary-config`);
+        const res = await fetch(`${API_AUTH}/cloudinary-config`);
         const data = await res.json();
         if (res.ok) cloudinaryCloudName = String(data.cloudName || "").trim();
       } catch (_) {}

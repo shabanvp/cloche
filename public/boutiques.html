@@ -138,7 +138,8 @@
   </footer>
 
   <script>
-    const API_BASE = "https://cloche-backend.onrender.com/api/auth";
+    const API_AUTH = "https://cloche-backend.onrender.com/api/auth";
+    const API_BASE = "https://cloche-backend.onrender.com/api";
     const API_ORIGIN = "https://cloche-backend.onrender.com";
     const imgPool = [
       "https://images.unsplash.com/photo-1583391733981-849840f3f1c2?q=80&w=1200&auto=format&fit=crop",
@@ -200,7 +201,7 @@
 
     async function loadCloudinaryConfig() {
       try {
-        const res = await fetch(`${API_BASE}/cloudinary-config`);
+        const res = await fetch(`${API_AUTH}/cloudinary-config`);
         const data = await res.json();
         if (res.ok) cloudinaryCloudName = String(data.cloudName || "").trim();
       } catch (_) {}

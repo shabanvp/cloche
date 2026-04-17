@@ -229,7 +229,8 @@
   </footer>
 
   <script>
-    const API_AUTH = "https://cloche-backend.onrender.com/api/auth";
+    const API_ADMIN = "https://cloche-backend.onrender.com/api/auth";
+    const API_BASE = "https://cloche-backend.onrender.com/api";
     const API_PRODUCTS = "https://cloche-backend.onrender.com/api/products";
     const API_ORIGIN = "https://cloche-backend.onrender.com";
 
@@ -428,8 +429,7 @@
       }
 
       statusWrap.textContent = "Loading boutique profile...";
-
-      const res = await fetch(`${API_AUTH}/boutiques`);
+      const res = await fetch(`${API_BASE}/boutiques`);
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Failed to load boutique list");
 

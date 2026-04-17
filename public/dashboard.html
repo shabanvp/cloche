@@ -257,16 +257,18 @@
       <!-- Chart and Details Section -->
       <div class="px-8 pb-12 flex flex-col lg:flex-row gap-6">
         <!-- Performance Chart -->
-        <div class="glass-card flex-grow rounded-xl p-8">
-          <div class="flex justify-between items-center mb-10">
-            <div>
-              <h4 class="text-xl font-bold text-white mb-1">Monthly Performance</h4>
-              <p class="text-slate-400 text-xs font-sans tracking-wide">Lead acquisition trends over the last 6 months
-              </p>
-            </div>
-            <div class="flex items-center gap-2 text-primary font-bold">
-              <span class="material-symbols-outlined">trending_up</span>
-              <span id="monthlyGrowthText">0% Growth</span>
+        <div class="glass-card flex-grow rounded-xl p-8 relative">
+          <div id="performanceChartContainer">
+            <div class="flex justify-between items-center mb-10">
+              <div>
+                <h4 class="text-xl font-bold text-white mb-1">Monthly Performance</h4>
+                <p class="text-slate-400 text-xs font-sans tracking-wide">Lead acquisition trends over the last 6 months
+                </p>
+              </div>
+              <div class="flex items-center gap-2 text-primary font-bold">
+                <span class="material-symbols-outlined">trending_up</span>
+                <span id="monthlyGrowthText">0% Growth</span>
+              </div>
             </div>
           </div>
           <div class="relative h-[300px] w-full mt-4 overflow-hidden">
@@ -310,49 +312,53 @@
   </div>
   <script>
     const API_ORIGIN = "https://cloche-backend.onrender.com";
-    // Plan Configuration
+    // Plan Configuration (Matches backend planService.js)
     const planConfig = {
-      "basic": {
-        name: "Early Partner Plan",
-        displayName: "Free / Invite-only",
+      "early": {
+        name: "Early Plan",
+        displayName: "Early Plan",
         maxLeads: 20,
         maxMessages: Infinity,
         maxProducts: 20,
-        features: ["20 Products Upload", "Soft Lead Limit (20)", "Unlimited Messages"]
+        features: {
+          analytics: false,
+          featured: false,
+          aiInsights: false
+        }
       },
       "professional": {
-        name: "Atelier Plus",
+        name: "Professional",
         displayName: "Professional",
         maxLeads: 50,
         maxMessages: Infinity,
         maxProducts: 20,
-        features: ["20 Products Upload", "50 Leads", "Unlimited Messages"]
+        features: {
+          analytics: true,
+          featured: false,
+          aiInsights: false
+        }
       },
       "premium": {
-        name: "Couture Elite",
+        name: "Premium",
         displayName: "Premium",
         maxLeads: Infinity,
         maxMessages: Infinity,
         maxProducts: Infinity,
-        features: ["Unlimited Products", "Unlimited Leads", "Unlimited Messages", "Dashboard Analytics"]
-      },
-      "pro": {
-        name: "Couture Elite",
-        displayName: "Premium",
-        maxLeads: Infinity,
-        maxMessages: Infinity,
-        maxProducts: Infinity,
-        features: ["Unlimited Products", "Unlimited Leads", "Unlimited Messages", "Dashboard Analytics"]
+        features: {
+          analytics: true,
+          featured: true,
+          aiInsights: true
+        }
       }
     };
 
     function updateDashboardForPlan(plan, data) {
-      const config = planConfig[plan.toLowerCase()] || planConfig.basic;
+      const normalizedPlan = (plan || "early").toLowerCase();
+      const config = planConfig[normalizedPlan] || planConfig.early;
 
       const safeSetText = (id, text) => {
         const el = document.getElementById(id);
         if (el) el.textContent = text;
-        else console.warn(`[Dashboard] Missing element: #${id}`);
       };
 
       // Update plan display
@@ -361,11 +367,9 @@
 
       // Update limits
       const leadsLimit = config.maxLeads === Infinity ? "∞" : config.maxLeads;
-      const messagesLimit = config.maxMessages === Infinity ? "∞" : config.maxMessages;
       const productsLimit = config.maxProducts === Infinity ? "∞" : config.maxProducts;
 
       safeSetText("leadsLimit", leadsLimit);
-      safeSetText("messagesLimit", messagesLimit);
       safeSetText("productsLimit", productsLimit);
 
       // Update leads remaining display
@@ -374,22 +378,47 @@
         safeSetText("leadsRemainingCount", "∞");
         safeSetText("leadsTotal", "");
         safeSetText("quotaMessage", "Unlimited leads available");
-        safeSetText("progressPercent", "∞");
+        safeSetText("progressPercent", "100%");
         const pc = document.getElementById("progressCircle");
-        if (pc) pc.style.strokeDashoffset = "0";
+        if (pc) pc.setAttribute("stroke-dashoffset", 0);
       } else {
         const leadsUsed = data.leadsUsed || 0;
         const leadsRemaining = Math.max(0, config.maxLeads - leadsUsed);
-        const usagePercent = Math.round((leadsUsed / config.maxLeads) * 100);
+        const usagePercent = Math.min(100, Math.round((leadsUsed / config.maxLeads) * 100));
 
         safeSetText("leadsRemainingCount", leadsRemaining);
         safeSetText("leadsTotal", `/ ${config.maxLeads}`);
         safeSetText("progressPercent", `${usagePercent}%`);
 
-        // Calculate stroke offset for circular progress
+        // Calculate stroke offset for circular progress (radius 40, circum 251.2)
         const strokeDashoffset = 251.2 * (1 - usagePercent / 100);
         const pc = document.getElementById("progressCircle");
         if (pc) pc.setAttribute("stroke-dashoffset", strokeDashoffset);
+      }
+
+      // Feature Locking Logic
+      const analyticsChart = document.getElementById("performanceChartContainer");
+      if (analyticsChart) {
+          if (!config.features.analytics) {
+              analyticsChart.classList.add("opacity-20", "pointer-events-none");
+              analyticsChart.parentElement.classList.add("relative");
+              if (!document.getElementById("analyticsLock")) {
+                  const lock = document.createElement("div");
+                  lock.id = "analyticsLock";
+                  lock.className = "absolute inset-0 flex flex-col items-center justify-center z-10 p-6 text-center";
+                  lock.innerHTML = `
+                      <span class="material-symbols-outlined text-4xl text-primary mb-2">lock</span>
+                      <h5 class="text-white font-bold">Analytics Locked</h5>
+                      <p class="text-xs text-slate-400 mb-4">Upgrade to Professional to see trends</p>
+                      <a href="subscription.html" class="bg-primary text-background-dark px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest">Upgrade Now</a>
+                  `;
+                  analyticsChart.parentElement.appendChild(lock);
+              }
+          } else {
+              analyticsChart.classList.remove("opacity-20", "pointer-events-none");
+              const lock = document.getElementById("analyticsLock");
+              if (lock) lock.remove();
+          }
       }
     }
 
