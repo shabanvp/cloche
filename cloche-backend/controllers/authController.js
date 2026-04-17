@@ -166,6 +166,31 @@ exports.login = async (req, res) => {
     }
 };
 
+/* ================= LOGIN USER ================= */
+exports.loginUser = async (req, res) => {
+    const { email, password } = req.body;
+    if (!email || !password) return res.status(400).json({ message: "Email and password required" });
+
+    try {
+        const { data: user, error } = await supabase.from("users").select("*").eq("email", email.toLowerCase()).maybeSingle();
+
+        if (!user || error) return res.status(401).json({ message: "Invalid credentials" });
+        if (!user.is_verified) return res.status(403).json({ message: "Please verify email first." });
+
+        const match = await bcrypt.compare(password, user.password_hash);
+        if (!match) return res.status(401).json({ message: "Invalid credentials" });
+
+        return res.json({
+            success: true,
+            userId: user.id,
+            name: user.name,
+            email: user.email
+        });
+    } catch (err) {
+        return res.status(500).json({ message: "Server error" });
+    }
+};
+
 /* ================= VERIFY EMAIL ================= */
 exports.verifyEmail = async (req, res) => {
     const { token, type } = req.query;
