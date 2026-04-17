@@ -365,10 +365,22 @@ svg {
 
   main>header.p-8 .flex.gap-4.items-center,
   header.h-20 .flex.items-center.gap-6,
-  header.h-auto.border-b .flex.items-center.gap-6 {
+  header.h-auto.border-b .flex.items-center.gap-6,
+  header.h-auto.border-b .flex.items-center.gap-4 {
     flex-wrap: wrap !important;
     gap: 8px !important;
     width: 100% !important;
+    flex-direction: column !important;
+    justify-content: flex-start !important;
+    align-items: flex-start !important;
+  }
+
+  main>header.p-8 .flex.gap-4.items-center>*,
+  header.h-20 .flex.items-center.gap-6>*,
+  header.h-auto.border-b .flex.items-center.gap-6>*,
+  header.h-auto.border-b .flex.items-center.gap-4>* {
+    width: 100% !important;
+    max-width: 100% !important;
   }
 
   /* Product grid â€“ 2 columns (not 1) looks better on mobile */
