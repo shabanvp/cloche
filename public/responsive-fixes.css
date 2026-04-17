@@ -335,10 +335,11 @@ svg {
     flex-direction: column !important;
     align-items: flex-start !important;
     justify-content: flex-start !important;
+    text-align: left !important;
     gap: 10px !important;
   }
 
-  main>header.p-8>div:first-child,
+  main>header.p-8>div,
   header.h-20>div,
   header.h-auto.border-b>div {
     min-width: 0;
@@ -356,6 +357,8 @@ svg {
   header.h-auto.border-b h2 {
     width: 100% !important;
     max-width: 100%;
+    text-align: left !important;
+    margin: 0 !important;
     line-height: 1.15 !important;
     word-break: break-word;
   }
