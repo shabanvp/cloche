@@ -163,7 +163,8 @@
       <div class="shrink-0 p-4">
         <div class="glass-panel rounded-xl p-4 flex items-center gap-4 border border-primary/20">
           <!-- Avatar -->
-          <div id="avatarCircle" class="w-12 h-12 rounded-full bg-primary/90 text-background-dark flex items-center justify-center font-display font-bold text-xl shadow-md shrink-0">
+          <div id="avatarCircle"
+            class="w-12 h-12 rounded-full bg-primary/90 text-background-dark flex items-center justify-center font-display font-bold text-xl shadow-md shrink-0">
             S
           </div>
 
@@ -182,7 +183,8 @@
         <div class="my-4 h-px bg-primary/10"></div>
 
         <!-- Logout -->
-        <button onclick="logout()" class="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold text-slate-400 hover:text-primary hover:bg-primary/10 transition-all duration-300">
+        <button onclick="logout()"
+          class="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold text-slate-400 hover:text-primary hover:bg-primary/10 transition-all duration-300">
           <span class="material-symbols-outlined text-base">logout</span>
           Logout
         </button>
@@ -194,21 +196,15 @@
     <main class="flex-1 flex flex-col overflow-hidden">
       <!-- TopNavBar -->
       <header
-        class="h-20 border-b border-accent-gold/10 flex items-center justify-between px-8 bg-background-light/50 dark:bg-background-dark/50 backdrop-blur-md">
-        <div class="flex items-center gap-6">
-          <h2 class="font-display text-xl font-semibold tracking-tight">Lead Management</h2>
-          <div class="relative w-72">
+        class="h-20 border-b border-accent-gold/10 flex items-center justify-between px-6 md:px-8 bg-background-light/50 dark:bg-background-dark/50 backdrop-blur-md">
+        <div class="flex items-center gap-4 md:gap-6">
+          <h2 class="font-display text-lg md:text-xl font-semibold tracking-tight">Lead Management</h2>
+          <div class="relative w-full max-w-[200px] md:w-72">
             <span
               class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
             <input id="searchInput"
-              class="w-full bg-slate-100 dark:bg-surface-dark border-none rounded-lg py-2 pl-10 text-sm focus:ring-1 focus:ring-primary/50 text-slate-300"
-              placeholder="Search by name or category..." type="text" />
-          </div>
-        </div>
-        <div class="flex items-center gap-4">
-          <div id="topAvatar"
-            class="rounded-full size-10 border border-primary/30 bg-primary/90 text-background-dark flex items-center justify-center font-display font-bold text-sm">
-            S
+              class="w-full bg-slate-100 dark:bg-surface-dark border-none rounded-lg py-2 pl-10 text-xs md:text-sm focus:ring-1 focus:ring-primary/50 text-slate-300"
+              placeholder="Search leads..." type="text" />
           </div>
         </div>
       </header>
@@ -348,7 +344,10 @@
       search: ""
     };
 
-    // Global logout is now handled by responsive-layout.js
+    function logout() {
+      localStorage.clear();
+      window.location.href = "boutiquelogin.html";
+    }
 
     // 🔘 Dropdown Managers
     const toggleDropdown = (id) => {
@@ -400,13 +399,35 @@
       }
     };
 
+    // 🔍 Filter Logic
+    const applyFilters = () => {
+      let filtered = allLeads.filter(lead => {
+        // Search
+        const s = activeFilters.search.toLowerCase();
+        const matchesSearch = !s ||
+          (lead.name || "").toLowerCase().includes(s) ||
+          (lead.email || "").toLowerCase().includes(s) ||
+          (lead.phone || "").toLowerCase().includes(s) ||
+          (lead.requirement || "").toLowerCase().includes(s) ||
+          (lead.category || "").toLowerCase().includes(s);
+
+        // Status
+        const matchesStatus = !activeFilters.status || (lead.status || "").toUpperCase() === activeFilters.status;
+
+        // Category
+        const matchesCategory = !activeFilters.category || (lead.category || "").toLowerCase() === activeFilters.category.toLowerCase();
+
+        return matchesSearch && matchesStatus && matchesCategory;
+      });
+
+      currentPage = 1; // Reset to page 1 on filter change
+      renderPagination(filtered);
+      renderTable(filtered);
+    };
+
     // 🎨 Render Table
     const renderTable = (filteredLeads) => {
       const tableBody = document.getElementById("leadsTableBody");
-      const userPlan = (localStorage.getItem("plan") || "early").toLowerCase();
-      const leadsUsed = parseInt(localStorage.getItem("leadsUsed") || "0");
-      const leadLimit = userPlan === "early" ? 20 : (userPlan === "professional" ? 50 : Infinity);
-
       tableBody.innerHTML = "";
 
       if (filteredLeads.length === 0) {
@@ -419,24 +440,22 @@
       const end = start + itemsPerPage;
       const pageItems = filteredLeads.slice(start, end);
 
-      pageItems.forEach((lead, idx) => {
-        const absoluteIndex = start + idx;
-        const isLocked = userPlan === "early" && absoluteIndex >= leadLimit;
-
-        // Masking logic
-        const rawName = isLocked ? lead.name.split(' ')[0] + " ***" : lead.name;
-        const rawEmail = isLocked ? "l****@cloche.luxury" : (lead.email && lead.email !== "undefined" ? lead.email : "No Email Provided");
-        const rawPhone = isLocked ? "**********" : (lead.phone || lead.phoneNumber || "No Phone");
-        
+      pageItems.forEach(lead => {
+        // Fix: Use wedding_date with fallback to date or created_at
         const rawDate = lead.wedding_date || lead.date || lead.created_at;
-        const dateStr = rawDate ? new Date(rawDate).toLocaleDateString('en-GB', { day:'2-digit', month:'2-digit', year:'numeric' }) : "Not Set";
-        
-        const initials = isLocked ? "?" : (lead.name || "Guest").split(" ").map(n => n[0]).join("").toUpperCase().substring(0, 2);
-        const waLink = isLocked ? "#" : (rawPhone !== "**********" ? `https://wa.me/${rawPhone.replace(/[^0-9]/g, '')}` : "#");
-        
+        const dateStr = rawDate ? new Date(rawDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }) : "Not Set";
+
+        const initials = (lead.name || "Guest").split(" ").map(n => n[0]).join("").toUpperCase().substring(0, 2);
+
+        // Safe phone for WhatsApp
+        const phone = lead.phone || lead.phoneNumber || "";
+        const waLink = phone ? `https://wa.me/${phone.replace(/[^0-9]/g, '')}` : "#";
+
+        // Clean values to avoid "undefined" display
+        const email = lead.email && lead.email !== "undefined" ? lead.email : "No Email Provided";
         const category = lead.category && lead.category !== "undefined" ? lead.category : "Wedding";
         const status = lead.status && lead.status !== "undefined" ? lead.status : "NEW";
-        const requirement = isLocked ? "Requirement details hidden. Upgrade to unlock." : (lead.requirement && lead.requirement !== "undefined" ? lead.requirement : "Inquiry");
+        const requirement = lead.requirement && lead.requirement !== "undefined" ? lead.requirement : "Inquiry";
         const location = lead.preferred_location && lead.preferred_location !== "undefined" ? lead.preferred_location : "";
 
         let statusClass = "bg-primary/10 border-primary/50 text-primary";
@@ -444,24 +463,24 @@
         if (status === "CONVERTED") statusClass = "bg-emerald-500/10 border-emerald-500 text-emerald-500";
 
         const row = `
-              <tr class="luxury-row transition-all group border-b border-accent-gold/5 last:border-0 ${isLocked ? 'grayscale opacity-60' : ''}">
+              <tr class="luxury-row transition-all group border-b border-accent-gold/5 last:border-0">
                   <td class="px-8 py-6">
                       <div class="flex items-center gap-4">
-                          <div class="size-10 rounded-full bg-surface-dark border ${isLocked ? 'border-red-500/30' : 'border-primary/20'} flex items-center justify-center font-display font-bold ${isLocked ? 'text-red-400' : 'text-primary'} group-hover:scale-110 transition-transform shrink-0">
-                              ${isLocked ? '<span class="material-symbols-outlined text-sm">lock</span>' : initials}
+                          <div class="size-10 rounded-full bg-surface-dark border border-primary/20 flex items-center justify-center font-display font-bold text-primary group-hover:scale-110 transition-transform shrink-0">
+                              ${initials}
                           </div>
                           <div class="min-w-0">
-                              <p class="font-display font-bold text-lg leading-tight tracking-wide truncate">${rawName}</p>
-                              <p class="text-xs text-slate-500 font-medium truncate">${rawEmail}</p>
+                              <p class="font-display font-bold text-lg leading-tight tracking-wide truncate">${lead.name}</p>
+                              <p class="text-xs text-slate-500 font-medium truncate">${email}</p>
                               <p class="text-[11px] text-primary/80 font-bold mt-1 flex items-center gap-1">
-                                <span class="material-symbols-outlined text-[14px]">smartphone</span> ${rawPhone}
+                                <span class="material-symbols-outlined text-[14px]">smartphone</span> ${phone || 'No Phone'}
                               </p>
                           </div>
                       </div>
                   </td>
                   <td class="px-6 py-6 border-r border-accent-gold/5">
                     <div class="flex flex-col">
-                      <span class="font-medium text-slate-300">${isLocked ? 'XX/XX/XXXX' : dateStr}</span>
+                      <span class="font-medium text-slate-300">${dateStr}</span>
                       <span class="text-[10px] text-slate-500 uppercase tracking-widest mt-1">Scheduled Date</span>
                     </div>
                   </td>
@@ -472,6 +491,11 @@
                         ${location ? `<span class="text-[10px] text-slate-400 flex items-center gap-1"><span class="material-symbols-outlined text-xs">location_on</span> ${location}</span>` : ''}
                       </div>
                       <p class="text-sm text-slate-300 line-clamp-2 italic">"${requirement}"</p>
+                      ${lead.special_requirement && lead.special_requirement !== 'undefined' ?
+            `<div class="text-[11px] text-slate-500 bg-white/5 p-2 rounded border border-white/5 mt-1 border-l-2 border-l-primary/40">
+                          <span class="font-bold text-primary/70 uppercase text-[9px] block mb-0.5">Note:</span>
+                          ${lead.special_requirement}
+                        </div>` : ''}
                     </div>
                   </td>
                   <td class="px-6 py-6">
@@ -479,14 +503,9 @@
                   </td>
                   <td class="px-8 py-6 text-right">
                       <div class="flex flex-col items-end gap-2">
-                        ${isLocked ? 
-                          `<a href="subscription.html" class="bg-primary hover:bg-white text-background-dark px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-wide flex items-center gap-2 transition-all">
-                              Unlock Lead
-                          </a>` : 
-                          `<a href="${waLink}" target="_blank" class="bg-[#25D366] hover:bg-[#128C7E] text-white px-4 py-2 rounded-lg text-[11px] font-bold uppercase tracking-wide flex items-center gap-2 transition-all hover:scale-105 active:scale-95">
-                              <span class="material-symbols-outlined text-sm">chat_bubble</span> WhatsApp
-                          </a>`
-                        }
+                        <a href="${waLink}" target="_blank" class="bg-[#25D366] hover:bg-[#128C7E] text-white px-4 py-2 rounded-lg text-[11px] font-bold uppercase tracking-wide flex items-center gap-2 transition-all hover:scale-105 active:scale-95">
+                            <span class="material-symbols-outlined text-sm">chat_bubble</span> WhatsApp
+                        </a>
                       </div>
                   </td>
               </tr>
@@ -540,7 +559,7 @@
       const ownerName = localStorage.getItem("ownerName") || "Guest";
       const boutiqueName = localStorage.getItem("boutiqueName") || "My Boutique";
       const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
-      
+
       if (!boutiqueId || !isLoggedIn) {
         window.location.href = "index.html";
         return;
@@ -551,7 +570,7 @@
       const topAvatar = document.getElementById("topAvatar");
       const ownerNameEl = document.getElementById("ownerName");
       const sidebarBoutiqueName = document.getElementById("sidebarBoutiqueName");
-      
+
       if (avatarCircle) avatarCircle.textContent = ownerName.charAt(0).toUpperCase();
       if (topAvatar) topAvatar.textContent = ownerName.charAt(0).toUpperCase();
       if (ownerNameEl) ownerNameEl.textContent = ownerName;
@@ -664,4 +683,5 @@
   </script>
   <script src='responsive-layout.js?v=1776237132140'></script>
 </body>
+
 </html>
