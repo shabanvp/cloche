@@ -68,13 +68,25 @@
       sideMenu.className = "hidden";
 
       const partnerLinks = partnerLoggedIn ? `
-        <a href="profile.html" class="side-menu-link">
-          <span class="material-symbols-outlined">person</span>
-          <span>Partner Profile</span>
-        </a>
         <a href="dashboard.html" class="side-menu-link">
           <span class="material-symbols-outlined">dashboard</span>
           <span>Dashboard</span>
+        </a>
+        <a href="lead.html" class="side-menu-link">
+          <span class="material-symbols-outlined">group</span>
+          <span>Leads</span>
+        </a>
+        <a href="boutiqueproducts.html" class="side-menu-link">
+          <span class="material-symbols-outlined">inventory_2</span>
+          <span>Products</span>
+        </a>
+        <a href="messages.html" class="side-menu-link">
+          <span class="material-symbols-outlined">chat_bubble</span>
+          <span>Messages</span>
+        </a>
+        <a href="profile.html" class="side-menu-link">
+          <span class="material-symbols-outlined">person</span>
+          <span>Partner Profile</span>
         </a>
       ` : `
         <a href="boutiquelogin.html" class="side-menu-link">
@@ -108,10 +120,12 @@
             <span class="material-symbols-outlined">inventory_2</span>
             <span>Collections</span>
           </a>
+          ${!partnerLoggedIn ? `
           <a href="messageboutique.html" class="side-menu-link">
             <span class="material-symbols-outlined">chat</span>
             <span>Enquire</span>
           </a>
+          ` : ""}
           
           <div class="side-menu-section-title">Account</div>
           ${partnerLinks}
@@ -433,6 +447,62 @@
   };
 
   /* -------------------------------------------------------
+     Desktop Header Patching
+     Centralizes desktop dropdown logic to avoid hardcoding in every HTML file.
+  ------------------------------------------------------- */
+  function setupDesktopHeaderPatching() {
+    const authNav = document.getElementById("authNav");
+    const profileIconLink = document.getElementById("profileIconLink");
+    const userMenuDropdown = document.getElementById("userMenuDropdown");
+    const avatar = document.getElementById("navAvatar");
+
+    const partnerLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+    const userLoggedIn = localStorage.getItem("isUserLoggedIn") === "true";
+    const ownerName = localStorage.getItem("ownerName") || "B";
+    const userName = localStorage.getItem("userName") || "User";
+
+    if (!authNav || !userMenuDropdown) return;
+
+    // Helper to toggle desktop dropdown
+    const toggleMenu = (e) => {
+      if (window.innerWidth < 768) return; // Allow mobile logic to take over if needed
+      e.preventDefault();
+      e.stopPropagation();
+      userMenuDropdown.classList.toggle("hidden");
+    };
+
+    if (partnerLoggedIn) {
+      authNav.textContent = "DASHBOARD";
+      authNav.href = "dashboard.html";
+      authNav.onclick = toggleMenu;
+      if (profileIconLink) profileIconLink.onclick = toggleMenu;
+      if (avatar) avatar.textContent = ownerName.charAt(0).toUpperCase();
+
+      userMenuDropdown.innerHTML = `
+        <a href="dashboard.html" class="block px-3 py-2 rounded text-xs uppercase tracking-widest text-white/80 hover:bg-primary/10 hover:text-primary">Dashboard</a>
+        <a href="lead.html" class="block px-3 py-2 rounded text-xs uppercase tracking-widest text-white/80 hover:bg-primary/10 hover:text-primary">Leads</a>
+        <a href="boutiqueproducts.html" class="block px-3 py-2 rounded text-xs uppercase tracking-widest text-white/80 hover:bg-primary/10 hover:text-primary">Products</a>
+        <a href="messages.html" class="block px-3 py-2 rounded text-xs uppercase tracking-widest text-white/80 hover:bg-primary/10 hover:text-primary">Messages</a>
+        <a href="profile.html" class="block px-3 py-2 rounded text-xs uppercase tracking-widest text-white/80 hover:bg-primary/10 hover:text-primary">Profile</a>
+        <button onclick="window.logout()" class="w-full text-left px-3 py-2 rounded text-xs uppercase tracking-widest text-white/80 hover:bg-primary/10 hover:text-primary">Logout</button>
+      `;
+    } else if (userLoggedIn) {
+      const firstName = userName.trim().split(/\s+/)[0] || "User";
+      authNav.textContent = firstName.toUpperCase();
+      authNav.href = "#";
+      authNav.onclick = toggleMenu;
+      if (profileIconLink) profileIconLink.onclick = toggleMenu;
+      if (avatar) avatar.textContent = firstName.charAt(0).toUpperCase();
+
+      userMenuDropdown.innerHTML = `
+        <a href="userprofile.html" class="block px-3 py-2 rounded text-xs uppercase tracking-widest text-white/80 hover:bg-primary/10 hover:text-primary">Profile</a>
+        <a href="messageboutique.html" class="block px-3 py-2 rounded text-xs uppercase tracking-widest text-white/80 hover:bg-primary/10 hover:text-primary">Inbox</a>
+        <button onclick="window.logout()" class="w-full text-left px-3 py-2 rounded text-xs uppercase tracking-widest text-white/80 hover:bg-primary/10 hover:text-primary">Logout</button>
+      `;
+    }
+  }
+
+  /* -------------------------------------------------------
      Init
   ------------------------------------------------------- */
   function init() {
@@ -441,6 +511,7 @@
     setupSidebarDrawer();
     setupMessagesPage();
     setupTopMenuFallback();
+    setupDesktopHeaderPatching();
   }
 
   if (document.readyState === "loading") {
