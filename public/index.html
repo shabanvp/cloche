@@ -187,7 +187,7 @@
             class="block px-3 py-2 rounded text-xs uppercase tracking-widest text-white/80 hover:bg-primary/10 hover:text-primary">Profile</a>
           <a href="messageboutique.html"
             class="block px-3 py-2 rounded text-xs uppercase tracking-widest text-white/80 hover:bg-primary/10 hover:text-primary">Inbox</a>
-          <button id="logoutBtn" class="w-full text-left px-3 py-2 rounded text-xs uppercase tracking-widest text-white/80 hover:bg-primary/10 hover:text-primary">Logout</button>
+          <button onclick="logout()" class="w-full text-left px-3 py-2 rounded text-xs uppercase tracking-widest text-white/80 hover:bg-primary/10 hover:text-primary">Logout</button>
         </div>
       </div>
     </div>
@@ -1085,17 +1085,7 @@
         }
       });
       
-      // Setup logout handler
-      const logoutBtn = document.getElementById("logoutBtn");
-      if (logoutBtn) {
-        logoutBtn.addEventListener("click", () => {
-          localStorage.removeItem("isUserLoggedIn");
-          localStorage.removeItem("userId");
-          localStorage.removeItem("userName");
-          localStorage.removeItem("userEmail");
-          window.location.href = "index.html";
-        });
-      }
+      // Logout is now handled globally via window.logout()
     });
   </script>
 

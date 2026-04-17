@@ -428,7 +428,15 @@ async function loadProductDetails() {
   }
 }
 
-document.addEventListener("DOMContentLoaded", loadProductDetails);
+document.addEventListener("DOMContentLoaded", () => {
+  loadProductDetails();
+  const logoutBtn = document.getElementById("logoutBtn");
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", () => {
+      window.logout();
+    });
+  }
+});
 </script>
 <script>
 function renderGallery(product) {

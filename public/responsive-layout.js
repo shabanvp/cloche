@@ -422,6 +422,17 @@
   }
 
   /* -------------------------------------------------------
+     Global Logout
+  ------------------------------------------------------- */
+  window.logout = function () {
+    console.log("[Auth] Logging out...");
+    localStorage.clear();
+    // Use session storage if used anywhere, but cloche primarily uses local
+    sessionStorage.clear();
+    window.location.href = "index.html";
+  };
+
+  /* -------------------------------------------------------
      Init
   ------------------------------------------------------- */
   function init() {

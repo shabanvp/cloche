@@ -121,7 +121,7 @@
     const userPlan = (localStorage.getItem("plan") || "early").toLowerCase();
     const maxProducts = userPlan === "premium" ? Infinity : 20;
 
-    function logout() { localStorage.clear(); window.location.href = "boutiquelogin.html"; }
+    // Global logout is now handled by responsive-layout.js
 
     function toggleModal() {
       if (!isEditing && allProducts.length >= maxProducts) {

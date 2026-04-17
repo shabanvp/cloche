@@ -576,14 +576,9 @@
       });
       
       // Setup logout handler
-      const logoutBtn = document.getElementById("logoutBtn");
       if (logoutBtn) {
         logoutBtn.addEventListener("click", () => {
-          localStorage.removeItem("isUserLoggedIn");
-          localStorage.removeItem("userId");
-          localStorage.removeItem("userName");
-          localStorage.removeItem("userEmail");
-          window.location.href = "index.html";
+          window.logout();
         });
       }
     });
