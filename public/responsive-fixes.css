@@ -329,52 +329,43 @@ svg {
   }
 
   /* Dashboard header: ensure title and actions align cleanly on mobile */
-  main>header.p-8 {
+  main>header.p-8,
+  header.h-20,
+  header.h-auto.border-b {
+    flex-direction: column !important;
     align-items: flex-start !important;
+    justify-content: flex-start !important;
     gap: 10px !important;
   }
 
-  main>header.p-8>div:first-child {
-    min-width: 0;
-    flex: 1 1 100%;
-  }
-
-  main>header.p-8>div:last-child {
-    width: 100%;
-  }
-
-  main>header.p-8 h2 {
-    font-size: clamp(1.5rem, 7vw, 2.25rem) !important;
-    line-height: 1.15 !important;
-    word-break: break-word;
-  }
-
-  /* Generic mobile page heading alignment */
-  main>header,
-  header.h-20,
-  header.h-auto.border-b {
-    align-items: flex-start !important;
-  }
-
-  main>header>div,
+  main>header.p-8>div:first-child,
   header.h-20>div,
   header.h-auto.border-b>div {
     min-width: 0;
+    width: 100% !important;
   }
 
-  main>header h2,
+  main>header.p-8>div:last-child,
+  header.h-20>div:last-child,
+  header.h-auto.border-b>div:last-child {
+    width: 100% !important;
+  }
+
+  main>header.p-8 h2,
   header.h-20 h2,
   header.h-auto.border-b h2 {
     width: 100% !important;
     max-width: 100%;
+    line-height: 1.15 !important;
+    word-break: break-word;
   }
 
-  main>header .flex.items-center.gap-6,
+  main>header.p-8 .flex.gap-4.items-center,
   header.h-20 .flex.items-center.gap-6,
   header.h-auto.border-b .flex.items-center.gap-6 {
-    flex-wrap: wrap;
-    gap: 8px;
-    width: 100%;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+    width: 100% !important;
   }
 
   /* Product grid â€“ 2 columns (not 1) looks better on mobile */
