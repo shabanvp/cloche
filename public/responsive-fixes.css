@@ -328,6 +328,29 @@ svg {
     /* hide avatar in header, user can open sidebar for profile */
   }
 
+  @media (max-width: 768px) {
+    /* Dashboard header: ensure title and actions align cleanly on mobile */
+    main>header.p-8 {
+      align-items: flex-start !important;
+      gap: 10px !important;
+    }
+
+    main>header.p-8>div:first-child {
+      min-width: 0;
+      flex: 1 1 100%;
+    }
+
+    main>header.p-8>div:last-child {
+      width: 100%;
+    }
+
+    main>header.p-8 h2 {
+      font-size: clamp(1.5rem, 7vw, 2.25rem) !important;
+      line-height: 1.15 !important;
+      word-break: break-word;
+    }
+  }
+
   /* Product grid â€“ 2 columns (not 1) looks better on mobile */
   #productGrid {
     grid-template-columns: repeat(2, 1fr) !important;
