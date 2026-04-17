@@ -52,6 +52,12 @@ exports.getAllBoutiques = async (req, res) => {
         // This ensures the site feels premium even if the database columns are missing.
         const planWeight = { premium: 3, professional: 2, early: 1 };
         
+        // 🔹 Merge boutique data with showcase data
+        const result = boutiques.map(b => ({
+            ...b,
+            ...(showcaseMap[b.id] || {})
+        }));
+
         const sortedResult = result.sort((a, b) => {
             // 1. Featured first (if column exists)
             if (a.is_featured !== b.is_featured) return b.is_featured ? 1 : -1;
@@ -73,7 +79,10 @@ exports.getAllBoutiques = async (req, res) => {
 
         // Filter by city if provided
         let filtered = city 
-            ? sortedResult.filter(b => b.city.toLowerCase().includes(city) || b.district.toLowerCase().includes(city))
+            ? sortedResult.filter(b => 
+                (b.city && b.city.toLowerCase().includes(city)) || 
+                (b.district && b.district.toLowerCase().includes(city))
+              )
             : sortedResult;
 
         return res.json(filtered.slice(0, limit));
