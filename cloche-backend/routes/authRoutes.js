@@ -11,5 +11,6 @@ router.get("/verify-email", authController.verifyEmail);
 router.get("/profile/:boutiqueId", authController.getProfile);
 router.post("/profile/:boutiqueId", authController.updateProfile);
 router.get("/dashboard/:boutiqueId", authController.getDashboard);
+router.get("/cloudinary-config", authController.getCloudinaryConfig);
 
 module.exports = router;

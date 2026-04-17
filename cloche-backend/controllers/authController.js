@@ -256,3 +256,13 @@ exports.getDashboard = async (req, res) => {
         return res.status(500).json({ message: "Server error" });
     }
 };
+
+/**
+ * Get Cloudinary config for the frontend
+ */
+exports.getCloudinaryConfig = (req, res) => {
+    res.json({
+        success: true,
+        cloudName: CLOUDINARY_CLOUD_NAME || 'dycwsnzyd'
+    });
+};
