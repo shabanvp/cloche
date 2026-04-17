@@ -36,8 +36,9 @@
     .sidebar-item-active { background: linear-gradient(90deg, rgba(193, 166, 113, 0.1) 0%, rgba(193, 166, 113, 0) 100%); border-left: 3px solid #c1a671; }
   </style>
 </head>
-<body class="bg-background-light dark:bg-background-dark font-sans text-slate-900 dark:text-white selection:bg-primary/30 h-screen overflow-hidden">
-  <div class="flex h-screen overflow-hidden">
+<body class="bg-background-light dark:bg-background-dark font-sans text-slate-900 dark:text-white selection:bg-primary/30 min-h-screen overflow-x-hidden">
+  <div class="flex min-h-screen w-full overflow-hidden">
+    <!-- Sidebar Navigation (Compatible with responsive-layout.js) -->
     <aside class="w-72 bg-background-dark border-r border-primary/10 flex flex-col z-20 shrink-0 h-screen">
       <div class="p-8 flex items-center gap-4 shrink-0">
           <div class="h-10 w-10 bg-primary rounded-full flex items-center justify-center text-background-dark font-bold text-xl">C</div>
@@ -59,61 +60,48 @@
               <span class="material-symbols-outlined">inventory_2</span>
               <span class="text-sm font-medium tracking-wide">Products</span>
           </a>
+          <a class="flex items-center gap-4 px-4 py-3 text-slate-400 hover:text-primary transition-colors group" href="messages.html">
+              <span class="material-symbols-outlined">chat_bubble</span>
+              <span class="text-sm font-medium tracking-wide">Messages</span>
+          </a>
           <a class="flex items-center gap-4 px-4 py-3 text-slate-400 hover:text-primary transition-colors group" href="subscription.html">
               <span class="material-symbols-outlined">star</span>
               <span class="text-sm font-medium tracking-wide">Subscription</span>
           </a>
+          <a class="flex items-center gap-4 px-4 py-3 text-slate-400 hover:text-primary transition-colors group" href="profile.html">
+              <span class="material-symbols-outlined">settings</span>
+              <span class="text-sm font-medium tracking-wide">Settings</span>
+          </a>
       </nav>
       <div class="p-4 border-t border-white/5">
-          <button onclick="logout()" class="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold text-slate-400 hover:text-primary hover:bg-primary/10 transition-all duration-300">
+          <button onclick="window.logout()" class="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-semibold text-slate-400 hover:text-primary hover:bg-primary/10 transition-all duration-300">
               <span class="material-symbols-outlined text-base">logout</span> Logout
           </button>
       </div>
     </aside>
 
     <main class="flex-1 flex flex-col overflow-hidden">
-      <header class="h-20 border-b border-primary/10 flex items-center justify-between px-10 bg-background-light/50 dark:bg-background-dark/50 backdrop-blur-md z-10">
-          <h2 class="font-display text-2xl font-bold tracking-tight text-white">Boutique Inventory</h2>
-          <div class="flex items-center gap-6">
-              <button onclick="toggleModal()" class="flex items-center gap-2 bg-primary text-background-dark px-6 py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-primary/10 hover:shadow-primary/20 transition-all uppercase tracking-wide">
-                  <span class="material-symbols-outlined">add</span> Add New Product
+      <header class="h-20 border-b border-primary/10 flex items-center justify-between px-6 md:px-10 bg-background-light/50 dark:bg-background-dark/50 backdrop-blur-md z-10">
+          <div class="flex items-center gap-4">
+              <button id="menuBtn" class="lg:hidden p-2 text-primary">
+                  <span class="material-symbols-outlined">menu</span>
               </button>
+              <h2 class="font-display text-xl md:text-2xl font-bold tracking-tight text-white uppercase whitespace-nowrap">Inventory</h2>
+          </div>
+          <div class="flex items-center gap-6">
+              <a href="boutiqueaddproduct.html" class="flex items-center gap-2 bg-primary text-background-dark px-4 md:px-6 py-2.5 rounded-xl font-bold text-xs md:text-sm shadow-lg shadow-primary/10 hover:shadow-primary/20 transition-all uppercase tracking-wide">
+                  <span class="material-symbols-outlined">add</span> <span class="hidden sm:inline">Add Product</span><span class="sm:hidden text-[10px]">Add</span>
+              </a>
           </div>
       </header>
-      <div class="flex-1 overflow-y-auto custom-scrollbar p-10 bg-background-dark">
-          <div id="productGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+      <div class="flex-1 overflow-y-auto custom-scrollbar p-6 md:p-10 bg-background-dark">
+          <div id="productGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
               <!-- Products injected here -->
           </div>
       </div>
     </main>
   </div>
 
-  <!-- Add Product Modal -->
-  <div id="addProductModal" class="fixed inset-0 bg-background-dark/90 backdrop-blur-md z-50 hidden overflow-y-auto py-10 px-4">
-    <div class="bg-card-dark border border-primary/20 rounded-2xl w-full max-w-md p-8 glass-card mx-auto relative shadow-2xl transition-all duration-300 transform scale-100 opacity-100" id="modalContent">
-      <div class="flex justify-between items-center mb-6">
-        <h3 class="font-display text-2xl font-bold text-primary">Add New Product</h3>
-        <button onclick="toggleModal()" class="text-primary/60 hover:text-primary">
-          <span class="material-symbols-outlined">close</span>
-        </button>
-      </div>
-      <form id="addProductForm" class="space-y-4 font-sans">
-        <input type="text" id="pName" placeholder="Product Name" required class="w-full bg-primary/5 border border-primary/20 rounded-xl px-4 py-3 text-white text-sm" />
-        <input type="number" id="pPrice" placeholder="Rent Price (₹)" required class="w-full bg-primary/5 border border-primary/20 rounded-xl px-4 py-3 text-white text-sm" />
-        <select id="pCategory" class="w-full bg-primary/5 border border-primary/20 rounded-xl px-4 py-3 text-white text-sm outline-none">
-          <option value="Couture" style="background:#1a1a1a">Couture</option>
-          <option value="Traditional" style="background:#1a1a1a">Traditional</option>
-          <option value="Bridal" style="background:#1a1a1a">Bridal</option>
-          <option value="Jewelry" style="background:#1a1a1a">Jewelry</option>
-        </select>
-        <textarea id="pDescription" placeholder="Description" rows="3" class="w-full bg-primary/5 border border-primary/20 rounded-xl px-4 py-3 text-white text-sm"></textarea>
-        <input type="text" id="pLocation" placeholder="Location" class="w-full bg-primary/5 border border-primary/20 rounded-xl px-4 py-3 text-white text-sm" />
-        <button type="submit" class="w-full bg-primary text-background-dark py-4 rounded-xl font-bold uppercase tracking-widest hover:bg-white transition-all mt-4">Upload Product</button>
-      </form>
-    </div>
-  </div>
-
-  <script src="https://upload-widget.cloudinary.com/global/all.js" type="text/javascript"></script>
   <script>
     const API_BASE = "/api";
     let allProducts = [];
@@ -121,98 +109,75 @@
     const userPlan = (localStorage.getItem("plan") || "early").toLowerCase();
     const maxProducts = userPlan === "premium" ? Infinity : 20;
 
-    // Global logout is now handled by responsive-layout.js
-
-    function toggleModal() {
-      if (!isEditing && allProducts.length >= maxProducts) {
-          alert(`Product limit reached (${maxProducts}). Please upgrade to Premium.`);
-          return;
-      }
-      const modal = document.getElementById('addProductModal');
-      modal.classList.toggle('hidden');
-    }
-
-    let isEditing = false;
-    let editProductId = null;
-
     async function fetchProducts() {
       if (!boutiqueId) return;
       try {
         const res = await fetch(`${API_BASE}/products/boutique/${boutiqueId}`);
+        if (!res.ok) throw new Error("Failed to fetch products");
         allProducts = await res.json();
         renderProducts();
-      } catch (e) { console.error(e); }
+      } catch (e) { 
+        console.error(e);
+        document.getElementById('productGrid').innerHTML = `<div class="col-span-full py-20 text-center text-white/40">Error loading products.</div>`;
+      }
     }
 
     function renderProducts() {
       const grid = document.getElementById('productGrid');
       grid.innerHTML = "";
       
+      if (allProducts.length === 0) {
+        grid.innerHTML = `
+          <div class="col-span-full py-20 text-center">
+            <div class="mb-4 opacity-20"><span class="material-symbols-outlined text-6xl">inventory_2</span></div>
+            <p class="text-white/40 uppercase tracking-widest text-sm">No products in your catalog yet.</p>
+            <a href="boutiqueaddproduct.html" class="mt-6 inline-block text-primary font-bold hover:underline">Click here to add your first product</a>
+          </div>
+        `;
+        return;
+      }
+
       allProducts.forEach(p => {
+        const primaryImg = p.image_url || 'https://via.placeholder.com/300?text=No+Image';
         const card = `
-          <div class="glass-card bg-card-dark rounded-xl overflow-hidden group shadow-2xl p-6">
-            <h4 class="font-display font-bold text-lg text-white mb-1 uppercase truncate">${p.product_name}</h4>
-            <p class="text-primary font-bold text-xl mb-4">₹${p.price}</p>
-            <div class="flex gap-2">
-                <button onclick="deleteProduct(${p.id})" class="text-red-400 text-xs uppercase font-bold hover:text-red-300">Delete</button>
+          <div class="glass-card bg-card-dark rounded-xl overflow-hidden group shadow-2xl flex flex-col">
+            <div class="aspect-[3/4] overflow-hidden relative bg-black/40">
+                <img src="${primaryImg}" class="w-full h-full object-cover transition-transform group-hover:scale-105 duration-500" alt="${p.product_name}">
+                <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            </div>
+            <div class="p-5 flex-1 flex flex-col">
+                <p class="text-[10px] text-primary uppercase tracking-[0.2em] mb-1 font-bold">${p.category || 'Collection'}</p>
+                <h4 class="font-display font-bold text-lg text-white mb-1 uppercase truncate">${p.product_name}</h4>
+                <p class="text-primary font-bold text-xl mb-4">₹${Number(p.price).toLocaleString('en-IN')}</p>
+                <div class="mt-auto flex items-center justify-between pt-4 border-t border-white/5">
+                    <a href="boutiqueproduct.html?boutiqueId=${boutiqueId}&productId=${p.id}" class="text-[10px] uppercase font-bold text-white/60 hover:text-primary transition-colors">Details/Edit</a>
+                    <button onclick="deleteProduct(${p.id}, '${p.product_name.replace(/'/g, "\\'")}')" class="text-red-400 text-[10px] uppercase font-bold hover:text-red-300">Delete</button>
+                </div>
             </div>
           </div>
         `;
         grid.insertAdjacentHTML('beforeend', card);
       });
-
-      if (allProducts.length < maxProducts) {
-        const addCard = `
-           <button onclick="toggleModal()" class="flex flex-col items-center justify-center border-2 border-dashed border-primary/20 rounded-xl aspect-[3/4] hover:bg-primary/5 transition-all group p-10 text-center">
-              <span class="material-symbols-outlined text-4xl text-primary mb-4">add_circle</span>
-              <p class="text-xs text-primary/60 uppercase font-bold">Add Product</p>
-           </button>
-        `;
-        grid.insertAdjacentHTML('beforeend', addCard);
-      } else {
-        const lockCard = `
-           <div class="flex flex-col items-center justify-center border-2 border-dashed border-red-500/20 rounded-xl aspect-[3/4] bg-red-500/5 p-10 text-center">
-              <span class="material-symbols-outlined text-4xl text-red-400 mb-4">lock</span>
-              <p class="text-xs text-red-400/60 uppercase font-bold">Limit Reached</p>
-              <a href="subscription.html" class="mt-4 px-4 py-2 bg-primary text-background-dark rounded font-bold text-[10px] uppercase">Upgrade</a>
-           </div>
-        `;
-        grid.insertAdjacentHTML('beforeend', lockCard);
-      }
     }
 
-    async function deleteProduct(id) {
-        if (!confirm("Delete?")) return;
-        await fetch(`${API_BASE}/products/${id}`, { method: "DELETE" });
-        fetchProducts();
+    async function deleteProduct(id, name) {
+        if (!confirm(`Are you sure you want to delete ${name}?`)) return;
+        try {
+          const res = await fetch(`${API_BASE}/products/${id}`, { method: "DELETE" });
+          if (res.ok) {
+            fetchProducts();
+          } else {
+            const err = await res.json();
+            alert(err.message || "Failed to delete product");
+          }
+        } catch (e) {
+          alert("Network error. Please try again.");
+        }
     }
-
-    document.getElementById('addProductForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const payload = {
-          product_name: document.getElementById('pName').value,
-          price: document.getElementById('pPrice').value,
-          category: document.getElementById('pCategory').value,
-          description: document.getElementById('pDescription').value,
-          location: document.getElementById('pLocation').value,
-          boutiqueId: boutiqueId
-      };
-      
-      const res = await fetch(`${API_BASE}/products/add`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-      });
-      if (res.ok) {
-          toggleModal();
-          fetchProducts();
-      } else {
-          const err = await res.json();
-          alert(err.message);
-      }
-    });
 
     window.onload = fetchProducts;
   </script>
+  <script src='responsive-layout.js?v=1776237132140'></script>
 </body>
+</html>
 </html>
