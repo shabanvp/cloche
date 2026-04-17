@@ -196,15 +196,21 @@
     <main class="flex-1 flex flex-col overflow-hidden">
       <!-- TopNavBar -->
       <header
-        class="h-20 border-b border-accent-gold/10 flex items-center justify-between px-6 md:px-8 bg-background-light/50 dark:bg-background-dark/50 backdrop-blur-md">
-        <div class="flex items-center gap-4 md:gap-6">
-          <h2 class="font-display text-lg md:text-xl font-semibold tracking-tight">Lead Management</h2>
-          <div class="relative w-full max-w-[200px] md:w-72">
+        class="h-20 border-b border-accent-gold/10 flex items-center justify-between px-8 bg-background-light/50 dark:bg-background-dark/50 backdrop-blur-md">
+        <div class="flex items-center gap-6">
+          <h2 class="font-display text-xl font-semibold tracking-tight">Lead Management</h2>
+          <div class="relative w-72">
             <span
               class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
             <input id="searchInput"
-              class="w-full bg-slate-100 dark:bg-surface-dark border-none rounded-lg py-2 pl-10 text-xs md:text-sm focus:ring-1 focus:ring-primary/50 text-slate-300"
+              class="w-full bg-slate-100 dark:bg-surface-dark border-none rounded-lg py-2 pl-10 text-sm focus:ring-1 focus:ring-primary/50 text-slate-300"
               placeholder="Search leads..." type="text" />
+          </div>
+        </div>
+        <div class="flex items-center gap-4">
+          <div id="topAvatar"
+            class="rounded-full size-10 border border-primary/30 bg-primary/90 text-background-dark flex items-center justify-center font-display font-bold text-sm">
+            S
           </div>
         </div>
       </header>

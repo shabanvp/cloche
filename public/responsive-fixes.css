@@ -495,50 +495,12 @@ svg {
 
   /* Global mobile top bar + bottom tab bar */
   body.has-mobile-bars {
-    padding-top: 80px !important;
-    /* Standardized offset */
+    padding-top: 76px;
     padding-bottom: 84px;
-    height: auto !important;
-    /* Allow body to grow with content if needed */
-    overflow-y: auto !important;
-  }
-
-  /* Handle pages that use flex h-screen wrappers - push them down */
-  body.has-mobile-bars div.flex.h-screen,
-  body.has-mobile-bars div.flex.min-h-screen {
-    height: calc(100vh - 80px) !important;
-    min-height: calc(100vh - 80px) !important;
-    margin-top: 80px !important;
-    position: static !important;
-  }
-
-  /* Reset the inner h-screen for content that needs internal scrolling */
-  body.has-mobile-bars .responsive-main,
-  body.has-mobile-bars main {
-    height: calc(100dvh - 164px) !important;
-    /* Subtract top and bottom bars */
-    padding-top: 0 !important;
   }
 
   body.has-mobile-bars>nav.fixed {
     display: none !important;
-  }
-
-  /* Ensure headers are NOT fixed on mobile to prevent double-overlap, 
-     or if they are, they must stay within the main container */
-  .has-mobile-bars header.z-10,
-  .has-mobile-bars header.fixed,
-  .has-mobile-bars header.sticky {
-    position: relative !important;
-    top: 0 !important;
-    z-index: 5 !important;
-  }
-
-  /* Standard padding for all mobile headers */
-  .has-mobile-bars header {
-    padding: 16px !important;
-    height: auto !important;
-    min-height: 0 !important;
   }
 
   body.has-mobile-bars section:first-of-type {
@@ -569,21 +531,18 @@ svg {
 
   .mobile-topbar {
     position: fixed;
-    top: 0 !important;
-    /* Locked at absolute top */
-    left: 0 !important;
-    right: 0 !important;
-    height: 70px;
-    /* Consistent height */
-    z-index: 100 !important;
-    border-radius: 0 !important;
-    /* Full width looks cleaner globally */
-    background: #0d0d0d;
-    border-bottom: 1px solid rgba(193, 166, 113, 0.2);
-    display: flex;
+    top: 10px;
+    left: 12px;
+    right: 12px;
+    height: 58px;
+    z-index: 95;
+    border: 1px solid rgba(193, 166, 113, 0.28);
+    border-radius: 12px;
+    background: linear-gradient(180deg, rgba(10, 10, 10, 0.96) 0%, rgba(10, 10, 10, 0.9) 100%);
+    display: grid;
+    grid-template-columns: 42px 1fr;
     align-items: center;
-    justify-content: center;
-    padding: 0 16px;
+    padding: 0 10px;
   }
 
   .mobile-logo {

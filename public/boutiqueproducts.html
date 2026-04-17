@@ -200,9 +200,9 @@
     <main class="flex-1 flex flex-col overflow-hidden">
       <!-- Header -->
       <header
-        class="h-20 border-b border-primary/10 flex items-center justify-between px-6 md:px-10 bg-background-light/50 dark:bg-background-dark/50 backdrop-blur-md z-10">
+        class="h-20 border-b border-primary/10 flex items-center justify-between px-10 bg-background-light/50 dark:bg-background-dark/50 backdrop-blur-md z-10">
         <div class="flex items-center gap-4">
-          <h2 class="font-display text-xl md:text-2xl font-bold tracking-tight">Boutique Inventory</h2>
+          <h2 class="font-display text-2xl font-bold tracking-tight">Boutique Inventory</h2>
         </div>
         <div class="flex items-center gap-6">
           <div class="relative hidden lg:block">
@@ -213,10 +213,15 @@
               placeholder="Search collection..." type="text" onkeyup="searchProducts(this.value)" />
           </div>
           <button onclick="toggleModal()"
-            class="flex items-center gap-2 bg-primary text-background-dark px-4 md:px-6 py-2.5 rounded-xl font-bold text-xs md:text-sm shadow-lg shadow-primary/10 hover:shadow-primary/20 transition-all uppercase tracking-wide">
+            class="flex items-center gap-2 bg-primary text-background-dark px-6 py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-primary/10 hover:shadow-primary/20 transition-all uppercase tracking-wide">
             <span class="material-symbols-outlined">add</span>
-            <span class="hidden sm:inline">Add Product</span><span class="sm:hidden">Add</span>
+            Add New Product
           </button>
+          <div class="flex items-center gap-3 border-l border-primary/10 pl-6">
+            <div id="headerAvatarCircle"
+              class="size-10 rounded-full bg-primary flex items-center justify-center text-background-dark font-bold border border-primary/20">
+              U</div>
+          </div>
         </div>
       </header>
       <!-- Scrollable Area -->
