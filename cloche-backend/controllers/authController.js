@@ -25,6 +25,8 @@ const normalizeImageUrl = (value) => {
 
 const cleanText = (value) => String(value || "").trim().replace(/\s+/g, " ");
 
+const isVerifiedTrue = (value) => value === true || value === "true" || value === 1 || value === "1";
+
 const normalizeLocationFields = ({ area, district, city }) => {
     const safeCity = cleanText(city);
     const splitCityParts = (val) => val.includes(",") ? val.split(",").map(p => cleanText(p)).filter(Boolean) : [];
@@ -67,7 +69,7 @@ exports.signup = async (req, res) => {
             const { data: existingUser } = await supabase.from("users").select("id, is_verified").eq("email", email).maybeSingle();
 
             if (existingUser) {
-                if (existingUser.is_verified) return res.status(409).json({ message: "User already exists" });
+                if (isVerifiedTrue(existingUser.is_verified)) return res.status(409).json({ message: "User already exists" });
                 await supabase.from("users").update({ name, password_hash: passwordHash, verification_token: verificationToken }).eq("id", existingUser.id);
                 const emailResult = await sendVerificationEmail(email, name, verificationToken, "user");
                 if (!emailResult?.success) {
@@ -116,7 +118,7 @@ exports.signup = async (req, res) => {
             const { data: existingBoutique } = await supabase.from("boutiques").select("id, is_verified").eq("email", normalizedEmail).maybeSingle();
             
             if (existingBoutique) {
-                if (existingBoutique.is_verified) return res.status(409).json({ message: "Boutique already exists" });
+                if (isVerifiedTrue(existingBoutique.is_verified)) return res.status(409).json({ message: "Boutique already exists" });
                 
                 await supabase.from("boutiques").update({ ...basePayload, password_hash: passwordHash }).eq("id", existingBoutique.id);
                 
@@ -163,7 +165,7 @@ exports.login = async (req, res) => {
         const { data: boutique, error } = await supabase.from("boutiques").select("*").eq(isEmail ? "email" : "phone", isEmail ? identifier.toLowerCase() : identifier).maybeSingle();
 
         if (!boutique || error) return res.status(401).json({ message: "Invalid credentials" });
-        if (!boutique.is_verified) return res.status(403).json({ message: "Please verify email first." });
+        if (!isVerifiedTrue(boutique.is_verified)) return res.status(403).json({ message: "Please verify email first." });
 
         const match = await bcrypt.compare(password, boutique.password_hash);
         if (!match && boutique.password) match = String(password) === String(boutique.password); // Fallback for old passwords
@@ -191,7 +193,7 @@ exports.loginUser = async (req, res) => {
         const { data: user, error } = await supabase.from("users").select("*").eq("email", email.toLowerCase()).maybeSingle();
 
         if (!user || error) return res.status(401).json({ message: "Invalid credentials" });
-        if (!user.is_verified) return res.status(403).json({ message: "Please verify email first." });
+        if (!isVerifiedTrue(user.is_verified)) return res.status(403).json({ message: "Please verify email first." });
 
         const match = await bcrypt.compare(password, user.password_hash);
         if (!match) return res.status(401).json({ message: "Invalid credentials" });
