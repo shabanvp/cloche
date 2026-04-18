@@ -4,6 +4,23 @@ const { google } = require("googleapis");
  * Centralized email service for Cloche
  * Uses Gmail API directly (free, no SMTP timeouts, no cold start issues)
  */
+const DEFAULT_BASE_URL = "https://cloche-backend.onrender.com";
+const BACKEND_BASE_URL = String(
+  process.env.BACKEND_BASE_URL ||
+    process.env.RENDER_EXTERNAL_URL ||
+    DEFAULT_BASE_URL
+)
+  .trim()
+  .replace(/\/+$/, "");
+const FRONTEND_BASE_URL = String(
+  process.env.FRONTEND_BASE_URL ||
+    process.env.PUBLIC_BASE_URL ||
+    BACKEND_BASE_URL ||
+    DEFAULT_BASE_URL
+)
+  .trim()
+  .replace(/\/+$/, "");
+
 const GMAIL_USER = process.env.GMAIL_USER || "cloche.luxury@gmail.com";
 const GMAIL_CLIENT_ID = process.env.GMAIL_CLIENT_ID;
 const GMAIL_CLIENT_SECRET = process.env.GMAIL_CLIENT_SECRET;
@@ -64,7 +81,7 @@ const sendVerificationEmail = async (email, name, token, type) => {
     return { success: false, error: "Email service not configured. Missing Gmail OAuth credentials." };
   }
 
-  const verificationUrl = `https://cloche-backend.onrender.com/api/auth/verify-email?token=${token}&type=${type}`;
+  const verificationUrl = `${BACKEND_BASE_URL}/api/auth/verify-email?token=${encodeURIComponent(String(token))}&type=${encodeURIComponent(String(type))}`;
   
   const htmlBody = `
     <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px; border: 1px solid #c1a671; color: #0d0d0d; background-color: #faf7f2;">
@@ -102,16 +119,18 @@ const sendVerificationEmail = async (email, name, token, type) => {
     });
 
     console.log(`[EmailService] ✅ Verification email sent to ${email}. MessageId: ${response.data.id}`);
-    return { success: true };
+    return { success: true, messageId: response?.data?.id };
   } catch (error) {
     console.error(`[EmailService] Gmail API Error for ${email}:`, error.message);
     
     let friendlyMessage = "Failed to send email.";
-    if (error.message.includes("401")) friendlyMessage = "Authentication failed. Check Gmail OAuth credentials.";
-    if (error.message.includes("403")) friendlyMessage = "Permission denied. Check GMAIL_CLIENT_ID and GMAIL_REFRESH_TOKEN.";
-    if (error.message.includes("timeout")) friendlyMessage = "Request timeout. Try again.";
+    const status = error?.code || error?.response?.status;
+    const rawMsg = String(error?.message || "");
+    if (status === 401 || rawMsg.includes("401")) friendlyMessage = "Authentication failed. Check Gmail OAuth credentials.";
+    if (status === 403 || rawMsg.includes("403")) friendlyMessage = "Permission denied. Check Gmail API scope/permissions and the refresh token.";
+    if (rawMsg.toLowerCase().includes("timeout")) friendlyMessage = "Request timeout. Try again.";
     
-    return { success: false, error: friendlyMessage, raw: error.message };
+    return { success: false, error: friendlyMessage, raw: rawMsg, status };
   }
 };
 
@@ -142,7 +161,7 @@ const sendEnquiryNotificationEmail = async (boutiqueEmail, boutiqueName, enquiry
         <p>Please log in to your Cloche Partner Dashboard to view the full contact details and claim this lead.</p>
         
         <div style="text-align: center; margin: 40px 0;">
-          <a href="https://cloche-backend.onrender.com/boutiquelogin.html" style="background-color: #c1a671; color: #fff; padding: 15px 30px; text-decoration: none; font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; border-radius: 4px;">Open Dashboard</a>
+          <a href="${FRONTEND_BASE_URL}/boutiquelogin.html" style="background-color: #c1a671; color: #fff; padding: 15px 30px; text-decoration: none; font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; border-radius: 4px;">Open Dashboard</a>
         </div>
       </div>
       
@@ -173,5 +192,11 @@ const sendEnquiryNotificationEmail = async (boutiqueEmail, boutiqueName, enquiry
 
 module.exports = {
   sendVerificationEmail,
-  sendEnquiryNotificationEmail
+  sendEnquiryNotificationEmail,
+  getEmailServiceStatus: () => ({
+    configured: Boolean(isSetup),
+    gmailUser: GMAIL_USER,
+    backendBaseUrl: BACKEND_BASE_URL,
+    frontendBaseUrl: FRONTEND_BASE_URL
+  })
 };

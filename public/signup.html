@@ -217,9 +217,18 @@
       const formData = new FormData();
       formData.append("account_type", selectedAccountType);
 
-      const email = document.getElementById("email").value.trim();
-      if (!email.toLowerCase().endsWith("@gmail.com")) {
-        alert("Only Gmail addresses are accepted for authentication.");
+      const normalizeEmail = (value) => {
+        const raw = String(value || "")
+          .normalize("NFKC")
+          .replace(/[\u200B-\u200D\uFEFF]/g, "")
+          .trim();
+        return raw;
+      };
+      const isValidEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || ""));
+
+      const email = normalizeEmail(document.getElementById("email").value);
+      if (!isValidEmail(email)) {
+        alert("Please enter a valid email address.");
         submitBtn.disabled = false;
         submitBtn.textContent = originalText;
         submitBtn.classList.remove("opacity-70", "cursor-not-allowed");
@@ -362,7 +371,7 @@
       <div>
         <h2 class="font-display text-white text-2xl font-bold tracking-widest mb-3 uppercase">Check Your Inbox</h2>
         <p class="text-white/60 text-sm font-light leading-relaxed mb-2">
-          A luxury-themed verification email has been sent to your Gmail. Please verify your account to join the circle.
+          A luxury-themed verification email has been sent to your email address. Please verify your account to join the circle.
         </p>
         <p class="text-white/50 text-xs font-light">
           After you verify, you'll be automatically redirected to login. ✨
