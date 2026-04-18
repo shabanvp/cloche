@@ -105,6 +105,7 @@
                                 <th class="px-3 md:px-6 py-3 md:py-4 font-medium">Boutique</th>
                                 <th class="px-3 md:px-6 py-3 md:py-4 font-medium hidden sm:table-cell">Location</th>
                                 <th class="px-3 md:px-6 py-3 md:py-4 font-medium">Contact</th>
+                                <th class="px-3 md:px-6 py-3 md:py-4 font-medium text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody id="boutiquesTableBody">
@@ -142,6 +143,36 @@
     <script>
         const API_ORIGIN = "https://cloche-backend.onrender.com";
 
+        function getAdminToken() {
+            return localStorage.getItem("adminToken") || "";
+        }
+
+        async function deleteBoutique(boutiqueId, boutiqueName) {
+            if (!boutiqueId) return;
+            const name = boutiqueName || "this boutique";
+            if (!confirm(`Remove ${name}? This will permanently delete the boutique and revoke access.`)) return;
+
+            try {
+                const token = getAdminToken();
+                const res = await fetch(`${API_ORIGIN}/api/admin/boutiques/${encodeURIComponent(boutiqueId)}`, {
+                    method: "DELETE",
+                    headers: {
+                        "Authorization": `Bearer ${token}`
+                    }
+                });
+                const data = await res.json();
+                if (!res.ok) {
+                    alert(data.message || "Failed to remove boutique");
+                    return;
+                }
+                alert("Boutique removed successfully.");
+                await loadAnalytics();
+            } catch (err) {
+                console.error("Delete boutique failed:", err);
+                alert("Server error while removing boutique");
+            }
+        }
+
         async function loadAnalytics() {
             try {
                 const response = await fetch(`${API_ORIGIN}/api/admin/analytics`);
@@ -177,8 +208,21 @@
                             </td>
                             <td class="px-3 md:px-6 py-3 md:py-4 text-gray-400 hidden sm:table-cell text-xs md:text-sm">${b.city}</td>
                             <td class="px-3 md:px-6 py-3 md:py-4 text-xs text-gray-500 break-all">${b.phone}</td>
+                            <td class="px-3 md:px-6 py-3 md:py-4 text-right">
+                                <button data-remove-boutique-id="${b.id}" data-remove-boutique-name="${encodeURIComponent(String(b.boutique_name || ''))}" class="px-3 py-2 rounded-lg text-[8px] md:text-[10px] uppercase tracking-widest border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-colors">
+                                    Remove
+                                </button>
+                            </td>
                         </tr>
                     `).join('');
+
+                    boutiqueTable.onclick = (e) => {
+                        const btn = e.target.closest("[data-remove-boutique-id]");
+                        if (!btn) return;
+                        const id = btn.getAttribute("data-remove-boutique-id");
+                        const name = decodeURIComponent(btn.getAttribute("data-remove-boutique-name") || "");
+                        deleteBoutique(id, name);
+                    };
 
                 }
             } catch (err) {
