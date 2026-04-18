@@ -141,7 +141,9 @@
     </main>
 
     <script>
-        const API_ORIGIN = "https://cloche-backend.onrender.com";
+        const API_ORIGIN = (window.location.origin && window.location.origin.startsWith("http"))
+            ? window.location.origin
+            : "https://cloche-backend.onrender.com";
 
         function getAdminToken() {
             return localStorage.getItem("adminToken") || "";
@@ -162,6 +164,10 @@
                 });
                 const data = await res.json();
                 if (!res.ok) {
+                    if (res.status === 404 && String(data.message || "").includes("Route not found")) {
+                        alert("Delete feature is not available on the backend you are calling. Push the latest backend code and redeploy Render, then try again.");
+                        return;
+                    }
                     alert(data.message || "Failed to remove boutique");
                     return;
                 }
