@@ -84,12 +84,13 @@ exports.signup = async (req, res) => {
             if (error) return res.status(500).json({ message: error.message });
 
             const emailResult = await sendVerificationEmail(email, name, verificationToken, "user");
+
             const verificationUrl = `${FRONTEND_BASE_URL}/api/auth/verify-email?token=${encodeURIComponent(String(verificationToken))}&type=user`;
             if (!emailResult?.success) {
                 console.error("[Auth] Verification email failed (user signup):", email, emailResult?.error || emailResult);
                 return res.status(201).json({ success: true, message: "Account created but verification email failed.", email_failed: true, email_error: emailResult?.error, verification_url: verificationUrl });
             }
-            return res.status(201).json({ success: true, message: "User account created. Check your email.", email: { sent: true, messageId: emailResult?.messageId || null } });
+            return res.status(201).json({ success: true, message: "User account created. Check your email.", email: { sent: true, messageId: emailResult?.messageId || null, is_test: emailResult.isTest, test_url: emailResult.testUrl } });
         } catch (err) {
             return res.status(500).json({ message: err.message });
         }
@@ -147,12 +148,13 @@ exports.signup = async (req, res) => {
             }
 
             const emailResult = await sendVerificationEmail(normalizedEmail, owner_name, verificationToken, "partner");
+
             const verificationUrl = `${FRONTEND_BASE_URL}/api/auth/verify-email?token=${encodeURIComponent(String(verificationToken))}&type=partner`;
             if (!emailResult?.success) {
                 console.error("[Auth] Verification email failed (partner signup):", normalizedEmail, emailResult?.error || emailResult);
                 return res.status(201).json({ success: true, boutiqueId: inserted?.id, message: "Account created but verification email failed.", email_failed: true, email_error: emailResult?.error, verification_url: verificationUrl });
             }
-            return res.status(201).json({ success: true, boutiqueId: inserted?.id, message: "Boutique account created.", email: { sent: true, messageId: emailResult?.messageId || null } });
+            return res.status(201).json({ success: true, boutiqueId: inserted?.id, message: "Boutique account created.", email: { sent: true, messageId: emailResult?.messageId || null, is_test: emailResult.isTest, test_url: emailResult.testUrl } });
         } catch (err) {
             return res.status(500).json({ message: err.message });
         }

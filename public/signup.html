@@ -103,41 +103,47 @@
 
       <form id="signupForm" class="flex flex-col gap-6">
         <div id="partnerBoutiqueWrap" class="flex flex-col gap-2">
-          <label class="text-primary/80 text-xs font-bold uppercase tracking-widest">Boutique Name</label>
-          <input id="boutique" type="text" placeholder="The Atelier London"
+          <label class="text-primary/80 text-xs font-bold uppercase tracking-widest">Boutique Name <span
+              class="text-rose-500">*</span></label>
+          <input id="boutique" type="text" placeholder="The Atelier London" required
             class="w-full rounded-lg text-white border border-white/10 bg-white/5 h-14 px-4" />
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div class="flex flex-col gap-2">
-            <label id="nameLabel" class="text-primary/80 text-xs font-bold uppercase tracking-widest">Owner Name</label>
-            <input id="owner" type="text" placeholder="Julianne Vaught"
+            <label id="nameLabel" class="text-primary/80 text-xs font-bold uppercase tracking-widest">Owner Name <span
+                class="text-rose-500">*</span></label>
+            <input id="owner" type="text" placeholder="Julianne Vaught" required
               class="w-full rounded-lg text-white border border-white/10 bg-white/5 h-14 px-4" />
           </div>
           <div class="flex flex-col gap-2">
-            <label class="text-primary/80 text-xs font-bold uppercase tracking-widest">Email Address</label>
-            <input id="email" type="email" placeholder="concierge@atelier.com"
+            <label class="text-primary/80 text-xs font-bold uppercase tracking-widest">Email Address <span
+                class="text-rose-500">*</span></label>
+            <input id="email" type="email" placeholder="concierge@atelier.com" required
               class="w-full rounded-lg text-white border border-white/10 bg-white/5 h-14 px-4" />
           </div>
         </div>
 
         <div id="partnerPhoneCityWrap" class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div class="flex flex-col gap-2">
-            <label class="text-primary/80 text-xs font-bold uppercase tracking-widest">Mobile Number</label>
-            <input id="phone" type="tel" placeholder="8606924541"
+            <label class="text-primary/80 text-xs font-bold uppercase tracking-widest">Mobile Number <span
+                class="text-rose-500">*</span></label>
+            <input id="phone" type="tel" placeholder="8606924541" required
               class="w-full rounded-lg text-white border border-white/10 bg-white/5 h-14 px-4 focus:border-primary focus:ring-0" />
           </div>
           <div id="partnerAreaWrap" class="flex flex-col gap-2">
-            <label class="text-primary/80 text-xs font-bold uppercase tracking-widest">Area / Town</label>
-            <input id="area" type="text" placeholder="Perinthalmanna"
+            <label class="text-primary/80 text-xs font-bold uppercase tracking-widest">Area / Town <span
+                class="text-rose-500">*</span></label>
+            <input id="area" type="text" placeholder="Perinthalmanna" required
               class="w-full rounded-lg text-white border border-white/10 bg-white/5 h-14 px-4 focus:border-primary focus:ring-0" />
           </div>
         </div>
 
         <div id="partnerDistrictWrap" class="flex flex-col gap-2 relative">
-          <label class="text-primary/80 text-xs font-bold uppercase tracking-widest">District</label>
+          <label class="text-primary/80 text-xs font-bold uppercase tracking-widest">District <span
+              class="text-rose-500">*</span></label>
           <div class="relative">
-            <input id="district" type="text" placeholder="Malappuram" autocomplete="off"
+            <input id="district" type="text" placeholder="Malappuram" autocomplete="off" required
               class="w-full rounded-lg text-white border border-white/10 bg-white/5 h-14 px-4 focus:border-primary focus:ring-0" />
             <div id="districtSuggestions"
               class="hidden absolute z-[60] left-0 right-0 top-full mt-1 bg-[#1a1a1a] border border-primary/20 rounded-lg shadow-2xl overflow-hidden max-h-48 overflow-y-auto">
@@ -169,8 +175,9 @@
         </div>
 
         <div class="flex flex-col gap-2 relative">
-          <label class="text-primary/80 text-xs font-bold uppercase tracking-widest">Secure Password</label>
-          <input id="password" type="password" placeholder="••••••••••••"
+          <label class="text-primary/80 text-xs font-bold uppercase tracking-widest">Secure Password <span
+              class="text-rose-500">*</span></label>
+          <input id="password" type="password" placeholder="••••••••••••" required
             class="w-full rounded-lg text-white border border-white/10 bg-white/5 h-14 px-4" />
           <button type="button" onclick="togglePassword('password', this)"
             class="absolute right-2 bottom-2 p-2 rounded-full text-white/30 hover:text-primary hover:bg-white/5 transition">
@@ -221,7 +228,11 @@
   </footer>
 
   <script>
-    const API_BASE = "https://cloche-backend.onrender.com";
+    // Use localhost if viewing locally, otherwise use Render production API
+    const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:')
+      ? "http://localhost:5001"
+      : "https://cloche-backend.onrender.com";
+
     let selectedAccountType = "partner";
 
     function setAccountType(type) {
@@ -258,13 +269,15 @@
         const raw = String(value || "")
           .normalize("NFKC")
           .replace(/[\u200B-\u200D\uFEFF]/g, "")
-          .trim();
+          .trim()
+          .toLowerCase();
         return raw;
       };
-      const isValidEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || ""));
 
-      const email = normalizeEmail(document.getElementById("email").value);
-      if (!isValidEmail(email)) {
+      const emailInput = document.getElementById("email").value;
+      const email = normalizeEmail(emailInput);
+
+      if (!email || !email.includes("@")) {
         alert("Please enter a valid email address.");
         submitBtn.disabled = false;
         submitBtn.textContent = originalText;
@@ -320,14 +333,14 @@
 
         if (res.ok && result.success) {
           // Account created successfully
-          const userEmail = formData.get("email");
+          const userEmail = email;
           if (result.email_failed) {
             // Account created but email failed
             alert(result.email_error || result.message || "Account created, but email failed to send.");
             showSuccessModal(true, userEmail, result.verification_url);
           } else {
-            // Full success
-            showSuccessModal(false, userEmail);
+            // Full success (could be test email)
+            showSuccessModal(false, userEmail, "", false, result.email?.is_test ? result.email.test_url : "");
           }
         } else {
           alert(result.message || "Signup failed. Please try again.");
@@ -335,7 +348,6 @@
       } catch (err) {
         alert("Server error. Please check your connection and try again.");
       } finally {
-        // Always reset button
         submitBtn.disabled = false;
         submitBtn.textContent = originalText;
         submitBtn.classList.remove("opacity-70", "cursor-not-allowed");
@@ -344,7 +356,7 @@
 
     let lastSignupEmail = "";
 
-    function showSuccessModal(emailFailed = false, email = "", verificationUrl = "") {
+    function showSuccessModal(emailFailed = false, email = "", verificationUrl = "", autoVerified = false, testEmailUrl = "") {
       lastSignupEmail = email;
       const modal = document.getElementById("successModal");
       const modalTitle = document.getElementById("modalTitle");
@@ -356,32 +368,39 @@
       const goLoginBtn = document.getElementById("goLoginBtn");
       const manualVerifyBtn = document.getElementById("manualVerifyBtn");
 
+      // Reset
+      manualVerifyBtn.classList.add("hidden");
+      resendBtn.classList.add("hidden");
+      goLoginBtn.classList.remove("hidden");
+      goLoginBtn.textContent = "Go to Login";
+
       if (emailFailed) {
         modalIcon.textContent = "warning";
         modalIcon.classList.remove("text-primary");
         modalIcon.classList.add("text-amber-400");
         modalTitle.textContent = "ACCOUNT CREATED";
-        modalDesc.innerHTML = `Your account was created successfully, but we couldn't send the verification email to <strong class="text-white">${email}</strong>.`;
-        modalSubDesc.textContent = "Please use the manual link below to verify your account immediately.";
+        modalDesc.innerHTML = `Your account was created, but we couldn't send the verification email to <strong class="text-white">${email}</strong>.`;
+        modalSubDesc.textContent = "Please check your server configuration.";
         modalSpinner.classList.add("hidden");
         resendBtn.classList.remove("hidden");
         goLoginBtn.classList.add("hidden");
-
-        if (manualVerifyBtn && verificationUrl) {
-          manualVerifyBtn.classList.remove("hidden");
-          manualVerifyBtn.onclick = () => window.location.href = verificationUrl;
-        }
       } else {
         modalIcon.textContent = "mail";
         modalIcon.classList.remove("text-amber-400");
         modalIcon.classList.add("text-primary");
-        modalTitle.textContent = "CHECK YOUR INBOX";
-        modalDesc.innerHTML = `A verification email has been sent to <strong class="text-white">${email}</strong>. Please verify your account to join the circle.`;
-        modalSubDesc.textContent = "After you verify, you'll be automatically redirected to login. ✨";
-        modalSpinner.classList.remove("hidden");
-        resendBtn.classList.add("hidden");
-        goLoginBtn.classList.remove("hidden");
-        if (manualVerifyBtn) manualVerifyBtn.classList.add("hidden");
+        modalTitle.textContent = testEmailUrl ? "TEST EMAIL SENT" : "CHECK YOUR INBOX";
+        modalDesc.innerHTML = testEmailUrl
+          ? `A test verification email has been sent for <strong class="text-white">${email}</strong>. You can view the message below.`
+          : `A verification email has been sent to <strong class="text-white">${email}</strong>. Please verify your account to join the circle.`;
+        modalSubDesc.textContent = testEmailUrl ? "Click below to see the luxury email message." : "After you verify, you'll be automatically redirected to login. ✨";
+        modalSpinner.classList.toggle("hidden", !!testEmailUrl);
+
+        if (testEmailUrl) {
+          manualVerifyBtn.classList.remove("hidden");
+          manualVerifyBtn.className = "w-full bg-primary hover:bg-[#d4b984] text-cloche-dark h-12 rounded-lg font-bold text-xs uppercase tracking-[0.15em] shadow-lg shadow-primary/20 transition-all active:scale-[0.98] flex items-center justify-center gap-2 mt-4";
+          manualVerifyBtn.innerHTML = `<span class="material-symbols-outlined text-base">outgoing_mail</span> <span>VIEW SENT EMAIL</span>`;
+          manualVerifyBtn.onclick = () => window.open(testEmailUrl, "_blank");
+        }
       }
 
       if (modal) {

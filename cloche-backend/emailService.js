@@ -30,11 +30,9 @@ let gmail;
 let isSetup = false;
 
 if (!GMAIL_CLIENT_ID || !GMAIL_CLIENT_SECRET || !GMAIL_REFRESH_TOKEN) {
-  console.error("[EmailService] ❌ ERROR: Gmail OAuth credentials not set!");
-  console.error("[EmailService] Required env variables:");
-  console.error("  - GMAIL_CLIENT_ID");
-  console.error("  - GMAIL_CLIENT_SECRET");
-  console.error("  - GMAIL_REFRESH_TOKEN");
+  console.warn("[EmailService] ⚠️ WARNING: Gmail OAuth credentials not set!");
+  console.warn("[EmailService] Entering DEVELOPMENT MODE: Emails will be logged to console only.");
+  isSetup = true; // Still allow service to "run" in mock mode
 } else {
   console.log(`[EmailService] Configuring Gmail API for ${GMAIL_USER}`);
 
@@ -114,6 +112,11 @@ const sendVerificationEmail = async (email, name, token, type) => {
   `;
 
   try {
+    // If no gmail client (Development Mode), user Ethereal Test Service
+    if (!gmail) {
+      return await sendTestEmail(email, name, verificationToken, type);
+    }
+
     // Explicitly refresh/get access token before sending
     const auth = gmail.context._options.auth;
     if (auth && typeof auth.getAccessToken === 'function') {
@@ -143,6 +146,53 @@ const sendVerificationEmail = async (email, name, token, type) => {
     if (rawMsg.toLowerCase().includes("timeout")) friendlyMessage = "Request timeout. Try again.";
 
     return { success: false, error: friendlyMessage, raw: rawMsg, status };
+  }
+};
+
+// Professional SMTP Fallback (for testing when Gmail is not configured)
+const sendTestEmail = async (email, name, verificationToken, type) => {
+  try {
+    const nodemailer = require("nodemailer");
+    const testAccount = await nodemailer.createTestAccount();
+    const transporter = nodemailer.createTransport({
+      host: "smtp.ethereal.email",
+      port: 587,
+      secure: false,
+      auth: { user: testAccount.user, pass: testAccount.pass },
+    });
+
+    const verificationUrl = `${FRONTEND_BASE_URL}/api/auth/verify-email?token=${encodeURIComponent(String(verificationToken))}&type=${type}`;
+    const info = await transporter.sendMail({
+      from: '"Cloche Luxury" <cloche.luxury@gmail.com>',
+      to: email,
+      subject: "Verify Your Cloche Account",
+      html: `
+        <div style="font-family: 'Noto Sans', sans-serif; max-width: 600px; margin: 0 auto; background-color: #0d0d0d; color: #ffffff; padding: 40px; border: 1px solid #c1a671;">
+          <h1 style="color: #c1a671; font-family: 'Noto Serif', serif; text-align: center;">CLOCHE</h1>
+          <p>Dear ${name},</p>
+          <p>To ensure the credibility of our luxury circle, please verify your account at ${email}.</p>
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${verificationUrl}" style="background-color: #c1a671; color: #0d0d0d; padding: 15px 30px; text-decoration: none; font-weight: bold; border-radius: 5px;">VERIFY ACCOUNT</a>
+          </div>
+          <p style="font-size: 12px; color: #666; text-align: center;">If you didn't request this, please ignore this email.</p>
+        </div>
+      `,
+    });
+
+    console.log("=========================================================");
+    console.log(`[EmailService] ✉️  TEST EMAIL SENT via Ethereal`);
+    console.log(`[EmailService] 👉 View Inbox: ${nodemailer.getTestMessageUrl(info)}`);
+    console.log("=========================================================");
+
+    return {
+      success: true,
+      messageId: info.messageId,
+      isTest: true,
+      testUrl: nodemailer.getTestMessageUrl(info)
+    };
+  } catch (err) {
+    console.error("[EmailService] Ethereal Fallback Failed:", err.message);
+    return { success: false, error: "Test email service failed." };
   }
 };
 
