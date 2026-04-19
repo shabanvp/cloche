@@ -324,7 +324,7 @@
           if (result.email_failed) {
             // Account created but email failed
             alert(result.email_error || result.message || "Account created, but email failed to send.");
-            showSuccessModal(true, userEmail);
+            showSuccessModal(true, userEmail, result.verification_url);
           } else {
             // Full success
             showSuccessModal(false, userEmail);
@@ -344,7 +344,7 @@
 
     let lastSignupEmail = "";
 
-    function showSuccessModal(emailFailed = false, email = "") {
+    function showSuccessModal(emailFailed = false, email = "", verificationUrl = "") {
       lastSignupEmail = email;
       const modal = document.getElementById("successModal");
       const modalTitle = document.getElementById("modalTitle");
@@ -354,17 +354,23 @@
       const modalSpinner = document.getElementById("modalSpinner");
       const resendBtn = document.getElementById("resendBtn");
       const goLoginBtn = document.getElementById("goLoginBtn");
+      const manualVerifyBtn = document.getElementById("manualVerifyBtn");
 
       if (emailFailed) {
         modalIcon.textContent = "warning";
         modalIcon.classList.remove("text-primary");
         modalIcon.classList.add("text-amber-400");
         modalTitle.textContent = "ACCOUNT CREATED";
-        modalDesc.innerHTML = `Your account was created successfully, but we couldn't send the verification email to <strong class="text-white">${email}</strong>. Please click below to resend.`;
-        modalSubDesc.textContent = "You must verify your email before you can log in.";
+        modalDesc.innerHTML = `Your account was created successfully, but we couldn't send the verification email to <strong class="text-white">${email}</strong>.`;
+        modalSubDesc.textContent = "Please use the manual link below to verify your account immediately.";
         modalSpinner.classList.add("hidden");
         resendBtn.classList.remove("hidden");
         goLoginBtn.classList.add("hidden");
+
+        if (manualVerifyBtn && verificationUrl) {
+          manualVerifyBtn.classList.remove("hidden");
+          manualVerifyBtn.onclick = () => window.location.href = verificationUrl;
+        }
       } else {
         modalIcon.textContent = "mail";
         modalIcon.classList.remove("text-amber-400");
@@ -375,6 +381,7 @@
         modalSpinner.classList.remove("hidden");
         resendBtn.classList.add("hidden");
         goLoginBtn.classList.remove("hidden");
+        if (manualVerifyBtn) manualVerifyBtn.classList.add("hidden");
       }
 
       if (modal) {
@@ -423,8 +430,8 @@
           // Email sent successfully this time
           showSuccessModal(false, lastSignupEmail);
         } else if (result.email_failed) {
-          const errMsg = result.email_error || result.message || "Email sending still failed.";
-          alert(errMsg);
+          alert(result.email_error || result.message || "Email sending still failed.");
+          showSuccessModal(true, lastSignupEmail, result.verification_url);
         } else {
           alert(result.message || "Failed to resend. Please try again.");
         }
@@ -574,11 +581,18 @@
         <p class="text-white/60 text-xs">Waiting for verification...</p>
       </div>
 
+      <!-- Manual Verification Button (shown when email failed) -->
+      <button id="manualVerifyBtn"
+        class="hidden w-full bg-green-600 hover:bg-green-500 text-white h-12 rounded-lg font-bold text-xs uppercase tracking-[0.15em] shadow-lg shadow-green-900/20 transition-all active:scale-[0.98] flex items-center justify-center gap-2 mt-2">
+        <span class="material-symbols-outlined text-base">verified</span>
+        <span>Verify Manually Now</span>
+      </button>
+
       <!-- Resend Button (shown when email failed) -->
       <button id="resendBtn" onclick="resendVerification()"
-        class="hidden w-full bg-primary hover:bg-[#d4b984] text-cloche-dark h-12 rounded-lg font-bold text-xs uppercase tracking-[0.15em] shadow-lg shadow-primary/20 transition-all active:scale-[0.98] flex items-center justify-center gap-2 mt-2">
-        <span class="material-symbols-outlined text-base">send</span>
-        <span>Resend Verification Email</span>
+        class="hidden w-full bg-white/5 border border-white/10 hover:bg-white/10 text-white/70 h-10 rounded-lg font-bold text-[10px] uppercase tracking-widest transition-all active:scale-[0.98] flex items-center justify-center gap-2 mt-1">
+        <span class="material-symbols-outlined text-sm">send</span>
+        <span>Resend Email</span>
       </button>
 
       <!-- Go to Login Button -->
