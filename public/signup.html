@@ -1,12 +1,16 @@
 <!DOCTYPE html>
 <html class="dark" lang="en">
+
 <head>
   <meta charset="utf-8" />
   <meta content="width=device-width, initial-scale=1.0" name="viewport" />
   <title>Signup | CLOCHE</title>
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;700&family=Noto+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;700&family=Noto+Sans:wght@300;400;500;600&display=swap"
+    rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+    rel="stylesheet" />
   <script id="tailwind-config">
     tailwind.config = {
       darkMode: "class",
@@ -35,19 +39,27 @@
     }
   </script>
   <style>
-    body { font-family: "Noto Sans", sans-serif; }
-    .font-display { font-family: "Noto Serif", serif; }
+    body {
+      font-family: "Noto Sans", sans-serif;
+    }
+
+    .font-display {
+      font-family: "Noto Serif", serif;
+    }
+
     .luxury-bg {
       background:
         radial-gradient(circle at 70% 30%, rgba(193, 166, 113, 0.18), rgba(13, 13, 13, 0.95) 55%),
         radial-gradient(circle at 25% 75%, rgba(193, 166, 113, 0.12), rgba(13, 13, 13, 0.9) 60%),
         linear-gradient(180deg, #0d0d0d 0%, #0b0b0b 100%);
     }
+
     .glass-card {
       background: rgba(30, 27, 21, 0.7);
       backdrop-filter: blur(20px);
       border: 1px solid rgba(193, 166, 113, 0.2);
     }
+
     .modal-overlay {
       background: rgba(13, 13, 13, 0.85);
       backdrop-filter: blur(10px);
@@ -61,8 +73,10 @@
     <div class="bg-[rgba(26,26,26,0.6)] backdrop-blur-md border-b border-[rgba(193,166,113,0.2)]">
       <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
         <a href="index.html" class="flex items-center gap-2 group">
-          <span class="material-symbols-outlined text-primary text-3xl group-hover:scale-105 transition-transform">diamond</span>
-          <span class="text-2xl font-display font-bold tracking-[0.2em] text-white group-hover:text-primary transition-colors">CLOCHE</span>
+          <span
+            class="material-symbols-outlined text-primary text-3xl group-hover:scale-105 transition-transform">diamond</span>
+          <span
+            class="text-2xl font-display font-bold tracking-[0.2em] text-white group-hover:text-primary transition-colors">CLOCHE</span>
         </a>
       </div>
     </div>
@@ -71,63 +85,78 @@
   <main class="flex-1 w-full flex flex-col items-center justify-center px-4 py-12 z-10">
     <div class="glass-card w-full max-w-[600px] p-8 md:p-12 rounded-xl shadow-2xl">
       <div class="text-center mb-10">
-        <h1 class="text-white font-display tracking-[0.1em] text-[28px] md:text-[36px] font-bold leading-tight pb-3">JOIN THE CIRCLE</h1>
-        <p id="signupSubtitle" class="text-white/60 text-sm md:text-base font-light italic">Begin your journey as an esteemed luxury partner.</p>
+        <h1 class="text-white font-display tracking-[0.1em] text-[28px] md:text-[36px] font-bold leading-tight pb-3">
+          JOIN THE CIRCLE</h1>
+        <p id="signupSubtitle" class="text-white/60 text-sm md:text-base font-light italic">Begin your journey as an
+          esteemed luxury partner.</p>
       </div>
 
       <div class="mb-6">
         <p class="text-primary/80 text-xs font-bold uppercase tracking-widest mb-3">I am signing up as</p>
         <div class="grid grid-cols-2 gap-3">
-          <button id="userTypeBtn" type="button" class="h-12 rounded-lg border border-white/10 bg-white/5 text-white/80 text-xs font-bold uppercase tracking-[0.12em]">User</button>
-          <button id="partnerTypeBtn" type="button" class="h-12 rounded-lg border border-primary/40 bg-primary/10 text-primary text-xs font-bold uppercase tracking-[0.12em]">Partner</button>
+          <button id="userTypeBtn" type="button" onclick="setAccountType('user')"
+            class="h-12 rounded-lg border border-white/10 bg-white/5 text-white/80 text-xs font-bold uppercase tracking-[0.12em]">User</button>
+          <button id="partnerTypeBtn" type="button" onclick="setAccountType('partner')"
+            class="h-12 rounded-lg border border-primary/40 bg-primary/10 text-primary text-xs font-bold uppercase tracking-[0.12em]">Partner</button>
         </div>
       </div>
 
       <form id="signupForm" class="flex flex-col gap-6">
         <div id="partnerBoutiqueWrap" class="flex flex-col gap-2">
           <label class="text-primary/80 text-xs font-bold uppercase tracking-widest">Boutique Name</label>
-          <input id="boutique" type="text" placeholder="The Atelier London" class="w-full rounded-lg text-white border border-white/10 bg-white/5 h-14 px-4" />
+          <input id="boutique" type="text" placeholder="The Atelier London"
+            class="w-full rounded-lg text-white border border-white/10 bg-white/5 h-14 px-4" />
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div class="flex flex-col gap-2">
             <label id="nameLabel" class="text-primary/80 text-xs font-bold uppercase tracking-widest">Owner Name</label>
-            <input id="owner" type="text" placeholder="Julianne Vaught" class="w-full rounded-lg text-white border border-white/10 bg-white/5 h-14 px-4" />
+            <input id="owner" type="text" placeholder="Julianne Vaught"
+              class="w-full rounded-lg text-white border border-white/10 bg-white/5 h-14 px-4" />
           </div>
           <div class="flex flex-col gap-2">
             <label class="text-primary/80 text-xs font-bold uppercase tracking-widest">Email Address</label>
-            <input id="email" type="email" placeholder="concierge@atelier.com" class="w-full rounded-lg text-white border border-white/10 bg-white/5 h-14 px-4" />
+            <input id="email" type="email" placeholder="concierge@atelier.com"
+              class="w-full rounded-lg text-white border border-white/10 bg-white/5 h-14 px-4" />
           </div>
         </div>
-        
+
         <div id="partnerPhoneCityWrap" class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div class="flex flex-col gap-2">
             <label class="text-primary/80 text-xs font-bold uppercase tracking-widest">Mobile Number</label>
-            <input id="phone" type="tel" placeholder="8606924541" class="w-full rounded-lg text-white border border-white/10 bg-white/5 h-14 px-4 focus:border-primary focus:ring-0" />
+            <input id="phone" type="tel" placeholder="8606924541"
+              class="w-full rounded-lg text-white border border-white/10 bg-white/5 h-14 px-4 focus:border-primary focus:ring-0" />
           </div>
           <div id="partnerAreaWrap" class="flex flex-col gap-2">
             <label class="text-primary/80 text-xs font-bold uppercase tracking-widest">Area / Town</label>
-            <input id="area" type="text" placeholder="Perinthalmanna" class="w-full rounded-lg text-white border border-white/10 bg-white/5 h-14 px-4 focus:border-primary focus:ring-0" />
+            <input id="area" type="text" placeholder="Perinthalmanna"
+              class="w-full rounded-lg text-white border border-white/10 bg-white/5 h-14 px-4 focus:border-primary focus:ring-0" />
           </div>
         </div>
 
         <div id="partnerDistrictWrap" class="flex flex-col gap-2 relative">
           <label class="text-primary/80 text-xs font-bold uppercase tracking-widest">District</label>
           <div class="relative">
-            <input id="district" type="text" placeholder="Malappuram" autocomplete="off" class="w-full rounded-lg text-white border border-white/10 bg-white/5 h-14 px-4 focus:border-primary focus:ring-0" />
-            <div id="districtSuggestions" class="hidden absolute z-[60] left-0 right-0 top-full mt-1 bg-[#1a1a1a] border border-primary/20 rounded-lg shadow-2xl overflow-hidden max-h-48 overflow-y-auto">
+            <input id="district" type="text" placeholder="Malappuram" autocomplete="off"
+              class="w-full rounded-lg text-white border border-white/10 bg-white/5 h-14 px-4 focus:border-primary focus:ring-0" />
+            <div id="districtSuggestions"
+              class="hidden absolute z-[60] left-0 right-0 top-full mt-1 bg-[#1a1a1a] border border-primary/20 rounded-lg shadow-2xl overflow-hidden max-h-48 overflow-y-auto">
               <!-- Suggestions will appear here -->
             </div>
           </div>
         </div>
 
         <div id="partnerShowcaseWrap" class="flex flex-col gap-3">
-          <label class="text-primary/80 text-xs font-bold uppercase tracking-widest">Boutique Showcase Image <span class="text-rose-500">*</span></label>
-          <div class="relative group cursor-pointer border-2 border-dashed border-white/10 rounded-xl p-4 hover:border-primary/50 transition-all bg-white/5">
-            <input id="showcaseImage" type="file" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
+          <label class="text-primary/80 text-xs font-bold uppercase tracking-widest">Boutique Showcase Image <span
+              class="text-rose-500">*</span></label>
+          <div
+            class="relative group cursor-pointer border-2 border-dashed border-white/10 rounded-xl p-4 hover:border-primary/50 transition-all bg-white/5">
+            <input id="showcaseImage" type="file" accept="image/*"
+              class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
             <div id="previewContainer" class="hidden w-full h-48 rounded-lg overflow-hidden mb-3 relative">
               <img id="imagePreview" src="#" class="w-full h-full object-cover" />
-              <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+              <div
+                class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                 <span class="text-xs font-bold uppercase tracking-widest text-white">Change Image</span>
               </div>
             </div>
@@ -141,14 +170,17 @@
 
         <div class="flex flex-col gap-2 relative">
           <label class="text-primary/80 text-xs font-bold uppercase tracking-widest">Secure Password</label>
-          <input id="password" type="password" placeholder="••••••••••••" class="w-full rounded-lg text-white border border-white/10 bg-white/5 h-14 px-4" />
-          <button type="button" onclick="togglePassword('password', this)" class="absolute right-2 bottom-2 p-2 rounded-full text-white/30 hover:text-primary hover:bg-white/5 transition">
+          <input id="password" type="password" placeholder="••••••••••••"
+            class="w-full rounded-lg text-white border border-white/10 bg-white/5 h-14 px-4" />
+          <button type="button" onclick="togglePassword('password', this)"
+            class="absolute right-2 bottom-2 p-2 rounded-full text-white/30 hover:text-primary hover:bg-white/5 transition">
             <span class="material-symbols-outlined text-sm">visibility</span>
           </button>
         </div>
 
         <div class="mt-4">
-          <button id="signupSubmitBtn" class="w-full bg-primary hover:bg-[#d4b984] text-cloche-dark h-14 rounded-lg font-bold text-sm uppercase tracking-[0.2em] shadow-lg shadow-primary/20 transition-all active:scale-[0.98]">
+          <button id="signupSubmitBtn"
+            class="w-full bg-primary hover:bg-[#d4b984] text-cloche-dark h-14 rounded-lg font-bold text-sm uppercase tracking-[0.2em] shadow-lg shadow-primary/20 transition-all active:scale-[0.98]">
             Create Boutique Account
           </button>
         </div>
@@ -170,16 +202,21 @@
           </div>
         </div>
       </div>
-      <p class="mt-8 text-center text-white/40 text-xs font-light">Already a partner? <a class="text-primary font-medium hover:underline ml-1" href="boutiquelogin.html">Sign In</a></p>
+      <p class="mt-8 text-center text-white/40 text-xs font-light">Already a partner? <a
+          class="text-primary font-medium hover:underline ml-1" href="boutiquelogin.html">Sign In</a></p>
     </div>
   </main>
 
-  <footer class="w-full max-w-[1200px] px-8 py-10 flex flex-col md:flex-row justify-between items-center gap-6 z-10 border-t border-white/5 mx-auto">
+  <footer
+    class="w-full max-w-[1200px] px-8 py-10 flex flex-col md:flex-row justify-between items-center gap-6 z-10 border-t border-white/5 mx-auto">
     <p class="text-white/30 text-[10px] uppercase tracking-[0.3em]">© 2024 CLOCHE COLLECTIVE. ALL RIGHTS RESERVED.</p>
     <div class="flex gap-8">
-      <a class="text-white/30 text-[10px] uppercase tracking-widest hover:text-white transition-colors" href="privacy.html">Privacy</a>
-      <a class="text-white/30 text-[10px] uppercase tracking-widest hover:text-white transition-colors" href="terms.html">Terms</a>
-      <a class="text-white/30 text-[10px] uppercase tracking-widest hover:text-white transition-colors" href="vendor-agreement.html">Help</a>
+      <a class="text-white/30 text-[10px] uppercase tracking-widest hover:text-white transition-colors"
+        href="privacy.html">Privacy</a>
+      <a class="text-white/30 text-[10px] uppercase tracking-widest hover:text-white transition-colors"
+        href="terms.html">Terms</a>
+      <a class="text-white/30 text-[10px] uppercase tracking-widest hover:text-white transition-colors"
+        href="vendor-agreement.html">Help</a>
     </div>
   </footer>
 
@@ -190,7 +227,7 @@
     function setAccountType(type) {
       selectedAccountType = type === "user" ? "user" : "partner";
       const isUser = selectedAccountType === "user";
-      
+
       document.getElementById("partnerBoutiqueWrap").style.display = isUser ? "none" : "flex";
       document.getElementById("partnerPhoneCityWrap").style.display = isUser ? "none" : "grid";
       document.getElementById("partnerDistrictWrap").style.display = isUser ? "none" : "flex";
@@ -199,7 +236,7 @@
       document.getElementById("owner").placeholder = isUser ? "Your Full Name" : "Julianne Vaught";
       document.getElementById("signupSubtitle").textContent = isUser ? "Create your user account in a few steps." : "Begin your journey as an esteemed luxury partner.";
       document.getElementById("signupSubmitBtn").textContent = isUser ? "Create User Account" : "Create Boutique Account";
-      
+
       document.getElementById("userTypeBtn").className = isUser ? "h-12 rounded-lg border border-primary/40 bg-primary/10 text-primary text-xs font-bold uppercase tracking-[0.12em]" : "h-12 rounded-lg border border-white/10 bg-white/5 text-white/80 text-xs font-bold uppercase tracking-[0.12em]";
       document.getElementById("partnerTypeBtn").className = isUser ? "h-12 rounded-lg border border-white/10 bg-white/5 text-white/80 text-xs font-bold uppercase tracking-[0.12em]" : "h-12 rounded-lg border border-primary/40 bg-primary/10 text-primary text-xs font-bold uppercase tracking-[0.12em]";
     }
@@ -208,7 +245,7 @@
       e.preventDefault();
       const submitBtn = document.getElementById("signupSubmitBtn");
       const originalText = submitBtn.textContent;
-      
+
       // Show loading state
       submitBtn.disabled = true;
       submitBtn.textContent = "Processing...";
@@ -280,14 +317,14 @@
           body: formData
         });
         const result = await res.json();
-        
+
         if (res.ok) {
           showSuccessModal();
         } else {
           alert(result.message);
         }
-      } catch (err) { 
-        alert("Server error"); 
+      } catch (err) {
+        alert("Server error");
       } finally {
         // Always reset button
         submitBtn.disabled = false;
@@ -310,18 +347,18 @@
 
     // District Autosuggest Logic
     const districts = [
-      "Alappuzha", "Ernakulam", "Idukki", "Kannur", "Kasaragod", "Kollam", 
-      "Kottayam", "Kozhikode", "Malappuram", "Palakkad", "Pathanamthitta", 
+      "Alappuzha", "Ernakulam", "Idukki", "Kannur", "Kasaragod", "Kollam",
+      "Kottayam", "Kozhikode", "Malappuram", "Palakkad", "Pathanamthitta",
       "Thiruvananthapuram", "Thrissur", "Wayanad"
     ];
 
     const districtInput = document.getElementById("district");
     const suggestionBox = document.getElementById("districtSuggestions");
 
-    districtInput.addEventListener("input", function() {
+    districtInput.addEventListener("input", function () {
       const val = this.value.trim().toLowerCase();
       suggestionBox.innerHTML = "";
-      
+
       if (val.length < 2) {
         suggestionBox.classList.add("hidden");
         return;
@@ -333,7 +370,7 @@
           const div = document.createElement("div");
           div.className = "px-4 py-3 hover:bg-primary/20 cursor-pointer text-sm text-white/80 transition-colors";
           div.textContent = match;
-          div.onclick = function() {
+          div.onclick = function () {
             districtInput.value = match;
             suggestionBox.classList.add("hidden");
           };
@@ -346,7 +383,7 @@
     });
 
     // Close suggestions when clicking outside
-    document.addEventListener("click", function(e) {
+    document.addEventListener("click", function (e) {
       if (!districtInput.contains(e.target) && !suggestionBox.contains(e.target)) {
         suggestionBox.classList.add("hidden");
       }
@@ -364,14 +401,16 @@
   <!-- Success Modal -->
   <div id="successModal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4">
     <div class="modal-overlay absolute inset-0"></div>
-    <div class="glass-card relative w-full max-w-md p-8 rounded-xl shadow-2xl text-center flex flex-col items-center gap-6 animate-in fade-in zoom-in duration-300">
+    <div
+      class="glass-card relative w-full max-w-md p-8 rounded-xl shadow-2xl text-center flex flex-col items-center gap-6 animate-in fade-in zoom-in duration-300">
       <div class="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mb-2">
         <span class="material-symbols-outlined text-primary text-4xl">mail</span>
       </div>
       <div>
         <h2 class="font-display text-white text-2xl font-bold tracking-widest mb-3 uppercase">Check Your Inbox</h2>
         <p class="text-white/60 text-sm font-light leading-relaxed mb-2">
-          A luxury-themed verification email has been sent to your email address. Please verify your account to join the circle.
+          A luxury-themed verification email has been sent to your email address. Please verify your account to join the
+          circle.
         </p>
         <p class="text-white/50 text-xs font-light">
           After you verify, you'll be automatically redirected to login. ✨
@@ -386,4 +425,5 @@
 
   <script src='responsive-layout.js?v=1776237132140'></script>
 </body>
+
 </html>
