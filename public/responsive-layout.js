@@ -95,9 +95,10 @@
         </a>
       `;
 
-      const loginProfileText = (partnerLoggedIn || userLoggedIn) ? "Logout" : "Login / Profile";
-      const loginProfileLink = (partnerLoggedIn || userLoggedIn) ? "#" : profileHref;
-      const loginOnClick = (partnerLoggedIn || userLoggedIn) ? "localStorage.clear(); window.location.href='index.html';" : "";
+	      const isLoggedInNow = partnerLoggedIn || userLoggedIn;
+	      const loginProfileText = isLoggedInNow ? "Logout" : "Login / Profile";
+	      const loginProfileLink = isLoggedInNow ? "#" : profileHref;
+	      const loginOnClick = isLoggedInNow ? "window.logout(); return false;" : "";
 
       sideMenu.innerHTML = `
         <div class="side-menu-header">
@@ -175,10 +176,14 @@
     if (cBtn) cBtn.onclick = closeMenuFunc;
     if (overlay) overlay.onclick = closeMenuFunc;
 
-    // Close menu on link or category click
-    sideMenu.querySelectorAll("a, .side-menu-category").forEach(el => {
-      el.onclick = closeMenuFunc;
-    });
+	    // Close menu on link or category click (without overriding existing onclick handlers like Logout)
+	    sideMenu.querySelectorAll("a, .side-menu-category").forEach((el) => {
+	      if (el.dataset.mobileCloseMenuBound === "true") return;
+	      el.dataset.mobileCloseMenuBound = "true";
+	      el.addEventListener("click", () => {
+	        closeMenuFunc();
+	      });
+	    });
 
     // --- Global Click-Outside Handler for <details> Dropdowns ---
     window.addEventListener("click", (e) => {
