@@ -37,9 +37,10 @@
   function setupGlobalMobileBars() {
     if (!isMobile()) return;
 
-    const body = document.body;
-    if (!body) return;
-    body.classList.add(resolveCurrentRouteClass());
+	    const body = document.body;
+	    if (!body) return;
+	    body.classList.add(resolveCurrentRouteClass());
+	    body.classList.add("has-mobile-bars");
 
     const profileHref = resolveProfileLink();
     const partnerLoggedIn = localStorage.getItem("isLoggedIn") === "true";
