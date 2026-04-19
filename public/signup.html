@@ -323,6 +323,7 @@
           const userEmail = formData.get("email");
           if (result.email_failed) {
             // Account created but email failed
+            alert(result.email_error || result.message || "Account created, but email failed to send.");
             showSuccessModal(true, userEmail);
           } else {
             // Full success
@@ -422,7 +423,8 @@
           // Email sent successfully this time
           showSuccessModal(false, lastSignupEmail);
         } else if (result.email_failed) {
-          alert("Email sending still failed. This may be a temporary server issue. Please try again in a few minutes.");
+          const errMsg = result.email_error || result.message || "Email sending still failed.";
+          alert(errMsg);
         } else {
           alert(result.message || "Failed to resend. Please try again.");
         }

@@ -7,16 +7,16 @@ const { google } = require("googleapis");
 const DEFAULT_BASE_URL = "https://cloche-backend.onrender.com";
 const BACKEND_BASE_URL = String(
   process.env.BACKEND_BASE_URL ||
-    process.env.RENDER_EXTERNAL_URL ||
-    DEFAULT_BASE_URL
+  process.env.RENDER_EXTERNAL_URL ||
+  DEFAULT_BASE_URL
 )
   .trim()
   .replace(/\/+$/, "");
 const FRONTEND_BASE_URL = String(
   process.env.FRONTEND_BASE_URL ||
-    process.env.PUBLIC_BASE_URL ||
-    BACKEND_BASE_URL ||
-    DEFAULT_BASE_URL
+  process.env.PUBLIC_BASE_URL ||
+  BACKEND_BASE_URL ||
+  DEFAULT_BASE_URL
 )
   .trim()
   .replace(/\/+$/, "");
@@ -37,7 +37,7 @@ if (!GMAIL_CLIENT_ID || !GMAIL_CLIENT_SECRET || !GMAIL_REFRESH_TOKEN) {
   console.error("  - GMAIL_REFRESH_TOKEN");
 } else {
   console.log(`[EmailService] Configuring Gmail API for ${GMAIL_USER}`);
-  
+
   const oauth2Client = new google.auth.OAuth2(
     GMAIL_CLIENT_ID,
     GMAIL_CLIENT_SECRET,
@@ -48,10 +48,16 @@ if (!GMAIL_CLIENT_ID || !GMAIL_CLIENT_SECRET || !GMAIL_REFRESH_TOKEN) {
     refresh_token: GMAIL_REFRESH_TOKEN
   });
 
-  gmail = google.gmail({ version: "v1", auth: oauth2Client });
-  isSetup = true;
+  // Force token check on startup to catch errors early
+  oauth2Client.getAccessToken().then(() => {
+    console.log(`[EmailService] ✅ Gmail API authenticated for ${GMAIL_USER}`);
+    isSetup = true;
+  }).catch(err => {
+    console.error(`[EmailService] ❌ Gmail API Authentication failed: ${err.message}`);
+    isSetup = false;
+  });
 
-  console.log(`[EmailService] ✅ Gmail API ready`);
+  gmail = google.gmail({ version: "v1", auth: oauth2Client });
 }
 
 const encodeMessage = (message) => {
@@ -64,7 +70,7 @@ const encodeMessage = (message) => {
 
 const createEmailMessage = (to, subject, htmlBody) => {
   const emailLines = [
-    `From: "${GMAIL_USER.split("@")[0]}" <${GMAIL_USER}>`,
+    `From: Cloche Luxury <${GMAIL_USER}>`,
     `To: ${to}`,
     "Content-Type: text/html; charset=UTF-8",
     "MIME-Version: 1.0",
@@ -72,7 +78,7 @@ const createEmailMessage = (to, subject, htmlBody) => {
     "",
     htmlBody
   ];
-  return emailLines.join("\n");
+  return emailLines.join("\r\n");
 };
 
 const sendVerificationEmail = async (email, name, token, type) => {
@@ -82,7 +88,7 @@ const sendVerificationEmail = async (email, name, token, type) => {
   }
 
   const verificationUrl = `${BACKEND_BASE_URL}/api/auth/verify-email?token=${encodeURIComponent(String(token))}&type=${encodeURIComponent(String(type))}`;
-  
+
   const htmlBody = `
     <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px; border: 1px solid #c1a671; color: #0d0d0d; background-color: #faf7f2;">
       <div style="text-align: center; margin-bottom: 30px;">
@@ -108,12 +114,18 @@ const sendVerificationEmail = async (email, name, token, type) => {
   `;
 
   try {
+    // Explicitly refresh/get access token before sending
+    const auth = gmail.context._options.auth;
+    if (auth && typeof auth.getAccessToken === 'function') {
+      await auth.getAccessToken();
+    }
+
     const rawMessage = createEmailMessage(email, "Verify Your Cloche Account", htmlBody);
     const encodedMessage = encodeMessage(rawMessage);
 
     const response = await gmail.users.messages.send({
       userId: "me",
-      resource: {
+      requestBody: {
         raw: encodedMessage
       }
     });
@@ -122,14 +134,14 @@ const sendVerificationEmail = async (email, name, token, type) => {
     return { success: true, messageId: response?.data?.id };
   } catch (error) {
     console.error(`[EmailService] Gmail API Error for ${email}:`, error.message);
-    
-    let friendlyMessage = "Failed to send email.";
+
+    let friendlyMessage = `Email service error: ${error.message}`;
     const status = error?.code || error?.response?.status;
     const rawMsg = String(error?.message || "");
     if (status === 401 || rawMsg.includes("401")) friendlyMessage = "Authentication failed. Check Gmail OAuth credentials.";
     if (status === 403 || rawMsg.includes("403")) friendlyMessage = "Permission denied. Check Gmail API scope/permissions and the refresh token.";
     if (rawMsg.toLowerCase().includes("timeout")) friendlyMessage = "Request timeout. Try again.";
-    
+
     return { success: false, error: friendlyMessage, raw: rawMsg, status };
   }
 };
@@ -177,7 +189,7 @@ const sendEnquiryNotificationEmail = async (boutiqueEmail, boutiqueName, enquiry
 
     const response = await gmail.users.messages.send({
       userId: "me",
-      resource: {
+      requestBody: {
         raw: encodedMessage
       }
     });
