@@ -149,11 +149,11 @@
         <div id="partnerShowcaseWrap" class="flex flex-col gap-3">
           <label class="text-primary/80 text-xs font-bold uppercase tracking-widest">Boutique Showcase Image <span
               class="text-rose-500">*</span></label>
-          <div
+          <div id="uploadWrapper"
             class="relative group cursor-pointer border-2 border-dashed border-white/10 rounded-xl p-4 hover:border-primary/50 transition-all bg-white/5">
             <input id="showcaseImage" type="file" accept="image/*"
               class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
-            <div id="previewContainer" class="hidden w-full h-48 rounded-lg overflow-hidden mb-3 relative">
+            <div id="previewContainer" class="hidden w-full h-56 rounded-lg overflow-hidden mb-3 relative">
               <img id="imagePreview" src="#" class="w-full h-full object-cover" />
               <div
                 class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
@@ -318,13 +318,21 @@
         });
         const result = await res.json();
 
-        if (res.ok) {
-          showSuccessModal();
+        if (res.ok && result.success) {
+          // Account created successfully
+          const userEmail = formData.get("email");
+          if (result.email_failed) {
+            // Account created but email failed
+            showSuccessModal(true, userEmail);
+          } else {
+            // Full success
+            showSuccessModal(false, userEmail);
+          }
         } else {
-          alert(result.message);
+          alert(result.message || "Signup failed. Please try again.");
         }
       } catch (err) {
-        alert("Server error");
+        alert("Server error. Please check your connection and try again.");
       } finally {
         // Always reset button
         submitBtn.disabled = false;
@@ -333,11 +341,97 @@
       }
     });
 
-    function showSuccessModal() {
+    let lastSignupEmail = "";
+
+    function showSuccessModal(emailFailed = false, email = "") {
+      lastSignupEmail = email;
       const modal = document.getElementById("successModal");
+      const modalTitle = document.getElementById("modalTitle");
+      const modalDesc = document.getElementById("modalDesc");
+      const modalSubDesc = document.getElementById("modalSubDesc");
+      const modalIcon = document.getElementById("modalIcon");
+      const modalSpinner = document.getElementById("modalSpinner");
+      const resendBtn = document.getElementById("resendBtn");
+      const goLoginBtn = document.getElementById("goLoginBtn");
+
+      if (emailFailed) {
+        modalIcon.textContent = "warning";
+        modalIcon.classList.remove("text-primary");
+        modalIcon.classList.add("text-amber-400");
+        modalTitle.textContent = "ACCOUNT CREATED";
+        modalDesc.innerHTML = `Your account was created successfully, but we couldn't send the verification email to <strong class="text-white">${email}</strong>. Please click below to resend.`;
+        modalSubDesc.textContent = "You must verify your email before you can log in.";
+        modalSpinner.classList.add("hidden");
+        resendBtn.classList.remove("hidden");
+        goLoginBtn.classList.add("hidden");
+      } else {
+        modalIcon.textContent = "mail";
+        modalIcon.classList.remove("text-amber-400");
+        modalIcon.classList.add("text-primary");
+        modalTitle.textContent = "CHECK YOUR INBOX";
+        modalDesc.innerHTML = `A verification email has been sent to <strong class="text-white">${email}</strong>. Please verify your account to join the circle.`;
+        modalSubDesc.textContent = "After you verify, you'll be automatically redirected to login. ✨";
+        modalSpinner.classList.remove("hidden");
+        resendBtn.classList.add("hidden");
+        goLoginBtn.classList.remove("hidden");
+      }
+
       if (modal) {
         modal.classList.remove("hidden");
         modal.classList.add("flex");
+      }
+    }
+
+    async function resendVerification() {
+      const resendBtn = document.getElementById("resendBtn");
+      const resendText = resendBtn.querySelector("span:last-child");
+      const originalText = resendText.textContent;
+
+      resendBtn.disabled = true;
+      resendText.textContent = "Sending...";
+      resendBtn.classList.add("opacity-70");
+
+      try {
+        // Re-submit the signup form to trigger a resend
+        const formData = new FormData();
+        formData.append("account_type", selectedAccountType);
+
+        if (selectedAccountType === "user") {
+          formData.append("name", document.getElementById("owner").value.trim());
+          formData.append("email", lastSignupEmail);
+          formData.append("password", document.getElementById("password").value);
+        } else {
+          formData.append("boutique_name", document.getElementById("boutique").value.trim());
+          formData.append("owner_name", document.getElementById("owner").value.trim());
+          formData.append("email", lastSignupEmail);
+          formData.append("phone", document.getElementById("phone").value.trim());
+          formData.append("area", document.getElementById("area").value.trim());
+          formData.append("district", document.getElementById("district").value.trim());
+          formData.append("password", document.getElementById("password").value);
+          const imageFile = document.getElementById("showcaseImage").files[0];
+          if (imageFile) formData.append("image", imageFile);
+        }
+
+        const res = await fetch(`${API_BASE}/api/auth/signup`, {
+          method: "POST",
+          body: formData
+        });
+        const result = await res.json();
+
+        if (result.success && !result.email_failed) {
+          // Email sent successfully this time
+          showSuccessModal(false, lastSignupEmail);
+        } else if (result.email_failed) {
+          alert("Email sending still failed. This may be a temporary server issue. Please try again in a few minutes.");
+        } else {
+          alert(result.message || "Failed to resend. Please try again.");
+        }
+      } catch (err) {
+        alert("Connection error. Please try again.");
+      } finally {
+        resendBtn.disabled = false;
+        resendText.textContent = originalText;
+        resendBtn.classList.remove("opacity-70");
       }
     }
 
@@ -389,6 +483,61 @@
       }
     });
 
+    // ========== IMAGE PREVIEW LOGIC ==========
+    const showcaseInput = document.getElementById("showcaseImage");
+    const previewContainer = document.getElementById("previewContainer");
+    const imagePreview = document.getElementById("imagePreview");
+    const uploadPlaceholder = document.getElementById("uploadPlaceholder");
+
+    showcaseInput.addEventListener("change", function () {
+      const file = this.files[0];
+      if (!file) return;
+
+      // Validate file type
+      const validTypes = ["image/jpeg", "image/png", "image/webp", "image/jpg"];
+      if (!validTypes.includes(file.type)) {
+        alert("Please select a valid image file (JPG, PNG, or WebP).");
+        this.value = "";
+        return;
+      }
+
+      // Validate file size (10MB max)
+      if (file.size > 10 * 1024 * 1024) {
+        alert("Image size must be under 10MB.");
+        this.value = "";
+        return;
+      }
+
+      // Read and display the image preview
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        imagePreview.src = e.target.result;
+        previewContainer.classList.remove("hidden");
+        uploadPlaceholder.classList.add("hidden");
+
+        // Change upload wrapper border to indicate success
+        const wrapper = document.getElementById("uploadWrapper");
+        wrapper.classList.remove("border-white/10");
+        wrapper.classList.add("border-green-500/40", "bg-green-900/5");
+
+        // Remove old file name indicator if exists
+        const oldIndicator = document.getElementById("fileNameIndicator");
+        if (oldIndicator) oldIndicator.remove();
+
+        // Add file name + green check indicator below the preview
+        const indicator = document.createElement("div");
+        indicator.id = "fileNameIndicator";
+        indicator.className = "flex items-center gap-2 mt-2 px-2";
+        indicator.innerHTML = `
+          <span class="material-symbols-outlined text-green-400 text-lg" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+          <span class="text-white/70 text-xs truncate">${file.name}</span>
+          <span class="text-green-400/70 text-[10px] uppercase tracking-widest ml-auto whitespace-nowrap">Image Ready</span>
+        `;
+        previewContainer.parentElement.appendChild(indicator);
+      };
+      reader.readAsDataURL(file);
+    });
+
     setAccountType("partner");
 
     function togglePassword(inputId, btn) {
@@ -404,22 +553,37 @@
     <div
       class="glass-card relative w-full max-w-md p-8 rounded-xl shadow-2xl text-center flex flex-col items-center gap-6 animate-in fade-in zoom-in duration-300">
       <div class="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mb-2">
-        <span class="material-symbols-outlined text-primary text-4xl">mail</span>
+        <span id="modalIcon" class="material-symbols-outlined text-primary text-4xl">mail</span>
       </div>
       <div>
-        <h2 class="font-display text-white text-2xl font-bold tracking-widest mb-3 uppercase">Check Your Inbox</h2>
-        <p class="text-white/60 text-sm font-light leading-relaxed mb-2">
-          A luxury-themed verification email has been sent to your email address. Please verify your account to join the
-          circle.
+        <h2 id="modalTitle" class="font-display text-white text-2xl font-bold tracking-widest mb-3 uppercase">Check Your
+          Inbox</h2>
+        <p id="modalDesc" class="text-white/60 text-sm font-light leading-relaxed mb-2">
+          A verification email has been sent to your email address. Please verify your account to join the circle.
         </p>
-        <p class="text-white/50 text-xs font-light">
+        <p id="modalSubDesc" class="text-white/50 text-xs font-light">
           After you verify, you'll be automatically redirected to login. ✨
         </p>
       </div>
-      <div class="w-full flex items-center justify-center gap-2 mt-4">
+
+      <!-- Spinner (shown when email was sent OK) -->
+      <div id="modalSpinner" class="w-full flex items-center justify-center gap-2 mt-2">
         <div class="animate-spin w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full"></div>
         <p class="text-white/60 text-xs">Waiting for verification...</p>
       </div>
+
+      <!-- Resend Button (shown when email failed) -->
+      <button id="resendBtn" onclick="resendVerification()"
+        class="hidden w-full bg-primary hover:bg-[#d4b984] text-cloche-dark h-12 rounded-lg font-bold text-xs uppercase tracking-[0.15em] shadow-lg shadow-primary/20 transition-all active:scale-[0.98] flex items-center justify-center gap-2 mt-2">
+        <span class="material-symbols-outlined text-base">send</span>
+        <span>Resend Verification Email</span>
+      </button>
+
+      <!-- Go to Login Button -->
+      <button id="goLoginBtn" onclick="closeSuccessModal()"
+        class="w-full border border-white/10 bg-white/5 hover:bg-white/10 text-white/80 h-10 rounded-lg text-xs uppercase tracking-widest transition-all mt-1">
+        Go to Login
+      </button>
     </div>
   </div>
 

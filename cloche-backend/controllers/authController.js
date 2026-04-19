@@ -74,7 +74,7 @@ exports.signup = async (req, res) => {
                 const emailResult = await sendVerificationEmail(email, name, verificationToken, "user");
                 if (!emailResult?.success) {
                     console.error("[Auth] Verification email failed (user resend):", email, emailResult?.error || emailResult);
-                    return res.status(503).json({ message: emailResult?.error || "Failed to send verification email. Please try again." });
+                    return res.json({ success: true, message: "Account updated but verification email failed. Please try resending.", email_failed: true, email_error: emailResult?.error });
                 }
                 return res.json({ success: true, message: "Verification email resent.", email: { sent: true, messageId: emailResult?.messageId || null } });
             }
@@ -85,7 +85,7 @@ exports.signup = async (req, res) => {
             const emailResult = await sendVerificationEmail(email, name, verificationToken, "user");
             if (!emailResult?.success) {
                 console.error("[Auth] Verification email failed (user signup):", email, emailResult?.error || emailResult);
-                return res.status(503).json({ message: emailResult?.error || "Failed to send verification email. Please try again." });
+                return res.status(201).json({ success: true, message: "Account created but verification email failed. Please try resending.", email_failed: true, email_error: emailResult?.error });
             }
             return res.status(201).json({ success: true, message: "User account created. Check your email.", email: { sent: true, messageId: emailResult?.messageId || null } });
         } catch (err) {
@@ -116,12 +116,12 @@ exports.signup = async (req, res) => {
             };
 
             const { data: existingBoutique } = await supabase.from("boutiques").select("id, is_verified").eq("email", normalizedEmail).maybeSingle();
-            
+
             if (existingBoutique) {
                 if (isVerifiedTrue(existingBoutique.is_verified)) return res.status(409).json({ message: "Boutique already exists" });
-                
+
                 await supabase.from("boutiques").update({ ...basePayload, password_hash: passwordHash }).eq("id", existingBoutique.id);
-                
+
                 if (req.file) {
                     const { publicUrl } = await uploadBufferToStorage({ folder: `boutiques/showcase/${existingBoutique.id}`, file: req.file });
                     await supabase.from("boutique_showcase").upsert([{ boutique_id: existingBoutique.id, area: loc.area, district: loc.district, image_url: publicUrl }], { onConflict: "boutique_id" });
@@ -130,7 +130,7 @@ exports.signup = async (req, res) => {
                 const emailResult = await sendVerificationEmail(normalizedEmail, owner_name, verificationToken, "partner");
                 if (!emailResult?.success) {
                     console.error("[Auth] Verification email failed (partner resend):", normalizedEmail, emailResult?.error || emailResult);
-                    return res.status(503).json({ message: emailResult?.error || "Failed to send verification email. Please try again." });
+                    return res.json({ success: true, message: "Account updated but verification email failed. Please try resending.", email_failed: true, email_error: emailResult?.error });
                 }
                 return res.json({ success: true, message: "Verification email resent.", email: { sent: true, messageId: emailResult?.messageId || null } });
             }
@@ -146,7 +146,7 @@ exports.signup = async (req, res) => {
             const emailResult = await sendVerificationEmail(normalizedEmail, owner_name, verificationToken, "partner");
             if (!emailResult?.success) {
                 console.error("[Auth] Verification email failed (partner signup):", normalizedEmail, emailResult?.error || emailResult);
-                return res.status(503).json({ message: emailResult?.error || "Failed to send verification email. Please try again." });
+                return res.status(201).json({ success: true, boutiqueId: inserted?.id, message: "Account created but verification email failed. Please try resending.", email_failed: true, email_error: emailResult?.error });
             }
             return res.status(201).json({ success: true, boutiqueId: inserted?.id, message: "Boutique account created.", email: { sent: true, messageId: emailResult?.messageId || null } });
         } catch (err) {
@@ -246,7 +246,7 @@ exports.getProfile = async (req, res) => {
         ]);
 
         if (!boutique) return res.status(404).json({ message: "Not found" });
-        
+
         return res.json({
             ...boutique,
             district: showcase?.district || "",
@@ -261,7 +261,7 @@ exports.getProfile = async (req, res) => {
 exports.updateProfile = async (req, res) => {
     const { boutiqueId } = req.params;
     const { boutique_name, owner_name, email, phone, city, district, area } = req.body;
-    
+
     try {
         const { error } = await supabase.from("boutiques").update({
             boutique_name,
