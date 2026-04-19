@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html class="dark" lang="en">
+
 <head>
   <meta charset="utf-8" />
   <meta content="width=device-width, initial-scale=1.0" name="viewport" />
@@ -167,7 +168,8 @@
       <div class="hidden md:flex items-center gap-12">
         <a class="text-sm uppercase tracking-widest hover:text-primary transition-colors"
           href="boutiques.html">Boutiques</a>
-        <a class="text-sm uppercase tracking-widest hover:text-primary transition-colors" href="#how-it-works">How it Works</a>
+        <a class="text-sm uppercase tracking-widest hover:text-primary transition-colors" href="#how-it-works">How it
+          Works</a>
         <a id="listYourBoutiqueNav" class="text-sm uppercase tracking-widest hover:text-primary transition-colors"
           href="boutiquelogin.html">List Your Boutique</a>
       </div>
@@ -185,7 +187,8 @@
             class="block px-3 py-2 rounded text-xs uppercase tracking-widest text-white/80 hover:bg-primary/10 hover:text-primary">Profile</a>
           <a href="messageboutique.html"
             class="block px-3 py-2 rounded text-xs uppercase tracking-widest text-white/80 hover:bg-primary/10 hover:text-primary">Inbox</a>
-          <button onclick="logout()" class="w-full text-left px-3 py-2 rounded text-xs uppercase tracking-widest text-white/80 hover:bg-primary/10 hover:text-primary">Logout</button>
+          <button onclick="logout()"
+            class="w-full text-left px-3 py-2 rounded text-xs uppercase tracking-widest text-white/80 hover:bg-primary/10 hover:text-primary">Logout</button>
         </div>
       </div>
     </div>
@@ -321,7 +324,7 @@
           <span class="text-gray-500 text-sm">/mo</span>
         </div>
         <p class="text-primary/70 text-xs uppercase tracking-wider mb-4">Free / Invite-only</p>
-        <ul class="space-y-4 mb-10 flex-grow">
+        <ul class="space-y-4 mb-2 flex-grow">
           <li class="flex items-center gap-3 text-sm text-gray-300">
             <span class="material-symbols-outlined text-primary text-sm">check_circle</span>
             20 Product Listings
@@ -343,9 +346,6 @@
             Limits may apply after launch phase
           </li>
         </ul>
-        <a href="subscription.html"
-          class="plan-cta-hover w-full py-4 border border-primary/40 text-primary font-bold text-xs uppercase tracking-widest rounded-lg hover:bg-primary hover:text-background-dark transition-all text-center">Request
-          Invite</a>
       </div>
       <!-- Professional Plan -->
       <div
@@ -493,7 +493,8 @@
         </div>
       </div>
       <div class="pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4">
-        <p class="text-[10px] uppercase tracking-[0.2em] text-gray-600">© 2024 CLOCHE LUXURY. ALL RIGHTS RESERVED<a href="adminlogin.html">.</a></p>
+        <p class="text-[10px] uppercase tracking-[0.2em] text-gray-600">© 2024 CLOCHE LUXURY. ALL RIGHTS RESERVED<a
+            href="adminlogin.html">.</a></p>
         <div class="flex gap-8 text-[10px] uppercase tracking-[0.2em] text-gray-600">
           <a class="hover:text-primary" href="privacy.html">Privacy Policy</a>
           <a class="hover:text-primary" href="terms.html">Terms of Service</a>
@@ -551,7 +552,7 @@
         try {
           const u = new URL(raw);
           raw = u.pathname;
-        } catch (e) {}
+        } catch (e) { }
       }
       if (/^https?:\/\//i.test(raw)) return raw;
 
@@ -579,7 +580,7 @@
         const res = await fetch(`${API_AUTH}/cloudinary-config`);
         const data = await res.json();
         if (res.ok) cloudinaryCloudName = String(data.cloudName || "").trim();
-      } catch (_) {}
+      } catch (_) { }
     }
 
     function pickImage(seed) {
@@ -867,7 +868,7 @@
       try {
         // Try cache first for instant display
         const hasCache = loadFeaturedCollectionsFromCache();
-        
+
         if (!hasCache && status) {
           // Only show skeletons if no cache available
           const cachedData = localStorage.getItem(COLLECTIONS_CACHE_KEY);
@@ -877,8 +878,8 @@
               const parsed = JSON.parse(cachedData);
               cachedItems = Array.isArray(parsed?.data) ? parsed.data : [];
             }
-          } catch (_) {}
-          
+          } catch (_) { }
+
           const skeletonCount = cachedItems.length > 0 ? Math.min(cachedItems.length, FEATURED_COLLECTIONS_LIMIT) : 1;
           showCollectionSkeletons(skeletonCount);
           if (status) status.textContent = "Loading collections...";
@@ -989,7 +990,7 @@
       try {
         // Try cache first for instant display (no skeleton needed if we have cache)
         const hasCache = loadFeaturedBoutiquesFromCache();
-        
+
         if (!hasCache && status) {
           // Only show skeletons if no cache available
           const cachedData = localStorage.getItem(FEATURED_CACHE_KEY);
@@ -999,8 +1000,8 @@
               const parsed = JSON.parse(cachedData);
               cachedBoutiques = Array.isArray(parsed?.items) ? parsed.items : [];
             }
-          } catch (_) {}
-          
+          } catch (_) { }
+
           // Show skeletons for actual count or smarter default
           const skeletonCount = cachedBoutiques.length > 0 ? cachedBoutiques.length : 1;
           showSkeletons(skeletonCount);
@@ -1014,7 +1015,7 @@
         const boutiques = data.slice(0, FEATURED_BOUTIQUES_LIMIT);
         try {
           localStorage.setItem(FEATURED_CACHE_KEY, JSON.stringify({ items: data, ts: Date.now() }));
-        } catch (_) {}
+        } catch (_) { }
         renderFeaturedBoutiques(boutiques);
         console.log(`[Featured] Successfully loaded ${boutiques.length} boutiques`);
       } catch (err) {
@@ -1059,12 +1060,12 @@
 
       // Update UI instantly (synchronous)
       updateAuthNav();
-      
+
       // Start background loading (non-blocking)
-      loadCloudinaryConfig().catch(() => {});
-      loadFeaturedBoutiques().catch(() => {});
-      loadFeaturedCollections().catch(() => {});
-      
+      loadCloudinaryConfig().catch(() => { });
+      loadFeaturedBoutiques().catch(() => { });
+      loadFeaturedCollections().catch(() => { });
+
       // Setup menu click handler
       document.addEventListener("click", (e) => {
         const menu = document.getElementById("userMenuDropdown");
@@ -1074,7 +1075,7 @@
         if (menu.contains(e.target) || (auth && auth.contains(e.target)) || (icon && icon.contains(e.target))) return;
         menu.classList.add("hidden");
       });
-      
+
       // Setup menu scroll handler
       window.addEventListener("scroll", () => {
         const menu = document.getElementById("userMenuDropdown");
@@ -1082,7 +1083,7 @@
           menu.classList.add("hidden");
         }
       });
-      
+
       // Logout is now handled globally via window.logout()
     });
   </script>
