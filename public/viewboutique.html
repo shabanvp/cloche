@@ -89,7 +89,8 @@
             class="block px-3 py-2 rounded text-xs uppercase tracking-widest text-white/80 hover:bg-primary/10 hover:text-primary">Profile</a>
           <a href="messageboutique.html"
             class="block px-3 py-2 rounded text-xs uppercase tracking-widest text-white/80 hover:bg-primary/10 hover:text-primary">Inbox</a>
-          <button id="logoutBtn" class="w-full text-left px-3 py-2 rounded text-xs uppercase tracking-widest text-white/80 hover:bg-primary/10 hover:text-primary">Logout</button>
+          <button id="logoutBtn"
+            class="w-full text-left px-3 py-2 rounded text-xs uppercase tracking-widest text-white/80 hover:bg-primary/10 hover:text-primary">Logout</button>
         </div>
       </div>
     </div>
@@ -110,13 +111,9 @@
         <div id="boutiqueTags" class="flex flex-wrap gap-2"></div>
       </div>
       <div class="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
-        <a id="enquiryBtn" href="#"
-          class="bg-primary text-background-dark px-10 py-4 rounded-lg font-bold text-xs uppercase tracking-widest gold-glow transition-all text-center">
-          Send Enquiry
-        </a>
         <a id="messageBtn" href="#"
-          class="border border-primary/30 text-primary px-10 py-4 rounded-lg font-bold text-xs uppercase tracking-widest hover:bg-primary/10 transition-all text-center">
-          Message
+          class="bg-primary text-background-dark px-10 py-4 rounded-lg font-bold text-xs uppercase tracking-widest gold-glow transition-all text-center">
+          Message Boutique
         </a>
       </div>
     </section>
@@ -475,17 +472,6 @@
       const coverImage = document.getElementById("coverImage");
       if (coverImage) coverImage.src = cover;
 
-      const enquiryBtn = document.getElementById("enquiryBtn");
-      if (enquiryBtn) {
-        const requirement = `Enquiry for ${boutique.boutique_name || "Boutique"}`;
-        const q = new URLSearchParams({
-          boutiqueId: String(boutique.id || ""),
-          boutique: String(boutique.boutique_name || ""),
-          location: String(boutique.city || ""),
-          requirement
-        });
-        enquiryBtn.href = `enquiry.html?${q.toString()}`;
-      }
 
       const messageBtn = document.getElementById("messageBtn");
       if (messageBtn) {
@@ -556,7 +542,7 @@
 
     document.addEventListener("DOMContentLoaded", () => {
       init();
-      
+
       // Setup menu click handler
       document.addEventListener("click", (e) => {
         const menu = document.getElementById("userMenuDropdown");
@@ -566,7 +552,7 @@
         if (menu.contains(e.target) || (auth && auth.contains(e.target)) || (icon && icon.contains(e.target))) return;
         menu.classList.add("hidden");
       });
-      
+
       // Setup menu scroll handler
       window.addEventListener("scroll", () => {
         const menu = document.getElementById("userMenuDropdown");
@@ -574,7 +560,7 @@
           menu.classList.add("hidden");
         }
       });
-      
+
       // Setup logout handler
       if (logoutBtn) {
         logoutBtn.addEventListener("click", () => {
