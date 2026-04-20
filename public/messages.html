@@ -601,7 +601,8 @@
         if (searchTerm) {
           handleSearch();
         } else {
-          renderConversations(allConversations);
+          // Re-apply filter on every load to ensure accuracy
+          filterConversations(currentFilter);
         }
       } catch (err) {
         console.error("Critical: Error loading conversations:", err);
