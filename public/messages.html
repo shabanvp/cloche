@@ -238,7 +238,7 @@
             <span class="material-symbols-outlined text-primary/60 text-xl">search</span>
             <input id="searchInput"
               class="bg-transparent border-none focus:ring-0 text-sm w-full placeholder:text-white/30 font-premium-sans"
-              placeholder="Search conversations..." type="text" oninput="handleSearch()" />
+              placeholder="Search" type="text" oninput="handleSearch()" />
           </div>
         </div>
       </header>
@@ -551,7 +551,12 @@
         }
       } catch (err) {
         console.error("Error loading conversations:", err);
-        document.getElementById("conversationsList").innerHTML = `<div class="p-6 text-red-400">Error loading conversations</div>`;
+        document.getElementById("conversationsList").innerHTML = `
+          <div class="p-10 text-white/20 text-center uppercase tracking-widest text-[9px] flex flex-col items-center gap-2">
+            <span class="material-symbols-outlined text-2xl">sync_problem</span>
+            <p>Sync interrupted</p>
+          </div>
+        `;
       }
     }
 
@@ -570,9 +575,13 @@
         const name = (conv.customer_name || 'Customer').toUpperCase();
         const initial = name.charAt(0);
 
+        // Escape quotes to prevent breaking the onclick handler
+        const safeName = name.replace(/'/g, "\\'");
+        const safeEmail = (conv.customer_email || '').replace(/'/g, "\\'");
+
         return `
         <div class="chat-item p-5 cursor-pointer flex items-center gap-4 ${isActive ? 'active' : ''}" 
-             onclick="openConversation(${conv.id}, '${conv.customer_name}', '${conv.customer_email}')">
+             onclick="openConversation(${conv.id}, '${safeName}', '${safeEmail}')">
           <!-- Premium Avatar -->
           <div class="avatar-gold size-14 flex-shrink-0">
              <div class="w-full h-full rounded-full bg-surface-dark flex items-center justify-center text-primary font-bold text-lg">
