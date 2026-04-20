@@ -216,29 +216,52 @@
 
     <!-- Main Content Area -->
     <main class="flex-1 flex flex-col bg-background-dark relative overflow-hidden">
-      <!-- Top Header (Inspired by Right Image) -->
+      <!-- Top Header (Responsive: Mobile vs Desktop) -->
       <header class="border-b border-white/5 z-10 relative bg-background-dark">
-        <!-- Brand Header -->
-        <div class="flex items-center justify-between px-6 py-4">
-          <div class="flex-1"></div>
-          <div class="flex items-center gap-2">
-            <span class="material-symbols-outlined text-primary text-2xl">diamond</span>
-            <h1 class="font-display text-2xl font-bold tracking-[0.3em] text-primary">CLOCHE</h1>
-          </div>
-          <div class="flex-1 flex justify-end">
-            <button class="text-primary">
-              <span class="material-symbols-outlined text-3xl">menu</span>
-            </button>
+        <!-- Desktop Header (Visible on Desktop/Laptop) -->
+        <div class="hidden lg:flex items-center justify-between px-8 py-6">
+          <h2 class="font-display text-4xl font-bold tracking-wide text-white">Messaging Center</h2>
+          <div class="flex items-center gap-6">
+            <div class="search-bar-gold flex items-center gap-3 px-4 py-2">
+              <span class="material-symbols-outlined text-primary/60 text-lg">search</span>
+              <input id="searchInputDesktop"
+                class="bg-transparent border-none focus:ring-0 text-sm w-64 placeholder:text-white/20 font-premium-sans"
+                placeholder="Search" type="text" oninput="handleSearch('desktop')" />
+            </div>
+            <div class="flex items-center">
+              <button id="notifButton" onclick="toggleNotifications()"
+                class="relative flex items-center justify-center text-white/60 hover:text-primary transition-colors">
+                <span class="material-symbols-outlined">notifications</span>
+                <span id="notificationBadge"
+                  class="absolute -top-1 -right-1 size-2.5 bg-primary rounded-full border border-background-dark hidden"></span>
+              </button>
+            </div>
           </div>
         </div>
 
-        <!-- Search Bar Header -->
-        <div class="px-6 pb-6">
-          <div class="search-bar-gold flex items-center gap-3 px-5 py-3.5">
-            <span class="material-symbols-outlined text-primary/60 text-xl">search</span>
-            <input id="searchInput"
-              class="bg-transparent border-none focus:ring-0 text-sm w-full placeholder:text-white/30 font-premium-sans"
-              placeholder="Search" type="text" oninput="handleSearch()" />
+        <!-- Mobile Header (Visible on Phones) -->
+        <div class="lg:hidden">
+          <!-- Brand Bar -->
+          <div class="flex items-center justify-between px-6 py-4">
+            <div class="flex-1"></div>
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined text-primary text-2xl">diamond</span>
+              <h1 class="font-display text-2xl font-bold tracking-[0.3em] text-primary">CLOCHE</h1>
+            </div>
+            <div class="flex-1 flex justify-end">
+              <button class="text-primary">
+                <span class="material-symbols-outlined text-3xl">menu</span>
+              </button>
+            </div>
+          </div>
+          <!-- Search Bar -->
+          <div class="px-6 pb-6">
+            <div class="search-bar-gold flex items-center gap-3 px-5 py-3.5">
+              <span class="material-symbols-outlined text-primary/60 text-xl">search</span>
+              <input id="searchInputMobile"
+                class="bg-transparent border-none focus:ring-0 text-sm w-full placeholder:text-white/30 font-premium-sans"
+                placeholder="Search" type="text" oninput="handleSearch('mobile')" />
+            </div>
           </div>
         </div>
       </header>
@@ -467,8 +490,14 @@
     }
 
     // Handle search input
-    function handleSearch() {
-      const searchTerm = document.getElementById("searchInput").value.trim().toLowerCase();
+    function handleSearch(source) {
+      const inputId = source === 'desktop' ? 'searchInputDesktop' : 'searchInputMobile';
+      const searchTerm = document.getElementById(inputId).value.trim().toLowerCase();
+
+      // Keep search terms in sync
+      const otherId = source === 'desktop' ? 'searchInputMobile' : 'searchInputDesktop';
+      const otherInput = document.getElementById(otherId);
+      if (otherInput) otherInput.value = document.getElementById(inputId).value;
 
       if (!searchTerm) {
         renderConversations(allConversations);
@@ -550,9 +579,12 @@
         allConversations = newConversations;
         previousConversationCount = newConversations.length;
 
-        const searchTerm = document.getElementById("searchInput").value.trim();
+        const isDesktop = window.innerWidth >= 1024;
+        const currentSearchInput = document.getElementById(isDesktop ? "searchInputDesktop" : "searchInputMobile");
+        const searchTerm = currentSearchInput ? currentSearchInput.value.trim() : "";
+
         if (searchTerm) {
-          handleSearch();
+          handleSearch(isDesktop ? 'desktop' : 'mobile');
         } else {
           renderConversations(allConversations);
         }
