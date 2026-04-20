@@ -263,7 +263,7 @@
         <section id="inboxPanel" class="flex-1 flex flex-col bg-background-dark h-full relative z-10">
           <!-- Premium Brand Header -->
           <div class="px-8 pt-12 pb-6 bg-background-dark/80 backdrop-blur-xl">
-            <h2 class="text-[#D4AF37] text-3xl font-bold tracking-[0.5em] uppercase mb-12 text-center w-full">CLOCHE
+            <h2 class="text-[#D4AF37] text-2xl font-bold tracking-[0.4em] uppercase mb-12 text-center w-full">CLOCHE
             </h2>
 
             <!-- Full Width Search Hub -->
@@ -271,19 +271,19 @@
               class="search-bar-gold flex items-center gap-4 px-6 py-4 mb-8 shadow-2xl transition-all hover:border-[#D4AF37]/50">
               <span class="material-symbols-outlined text-[#D4AF37]/60 text-2xl font-bold">search</span>
               <input id="searchInput"
-                class="bg-transparent border-none focus:ring-0 text-sm w-full placeholder:text-white/20 font-premium-sans"
+                class="bg-transparent border-none focus:ring-0 text-[13px] w-full placeholder:text-white/20 font-premium-sans"
                 placeholder="Search your luxury consultations..." type="text" oninput="handleSearch()" />
             </div>
 
             <div class="flex gap-4 overflow-x-auto no-scrollbar border-b border-white/5 pb-4">
               <button onclick="filterConversations('active')"
-                class="filter-btn px-8 py-2.5 rounded-full bg-[#D4AF37] text-black border border-[#D4AF37] text-[11px] font-bold tracking-[0.2em] whitespace-nowrap uppercase transition-all shadow-lg"
+                class="filter-btn px-8 py-2.5 rounded-full bg-[#D4AF37] text-black border border-[#D4AF37] text-[12px] font-bold tracking-[0.2em] whitespace-nowrap uppercase transition-all shadow-lg"
                 data-filter="active">All</button>
               <button onclick="filterConversations('unread')"
-                class="filter-btn px-8 py-2.5 rounded-full bg-[#D4AF37]/20 text-[#D4AF37] border border-[#D4AF37]/30 text-[11px] font-bold tracking-[0.2em] whitespace-nowrap uppercase hover:bg-[#D4AF37]/40 transition-all"
+                class="filter-btn px-8 py-2.5 rounded-full bg-[#D4AF37]/20 text-[#D4AF37] border border-[#D4AF37]/30 text-[12px] font-bold tracking-[0.2em] whitespace-nowrap uppercase hover:bg-[#D4AF37]/40 transition-all"
                 data-filter="unread">Unread</button>
               <button onclick="filterConversations('archived')"
-                class="filter-btn px-8 py-2.5 rounded-full bg-[#D4AF37]/20 text-[#D4AF37] border border-[#D4AF37]/30 text-[11px] font-bold tracking-[0.2em] whitespace-nowrap uppercase hover:bg-[#D4AF37]/40 transition-all"
+                class="filter-btn px-8 py-2.5 rounded-full bg-[#D4AF37]/20 text-[#D4AF37] border border-[#D4AF37]/30 text-[12px] font-bold tracking-[0.2em] whitespace-nowrap uppercase hover:bg-[#D4AF37]/40 transition-all"
                 data-filter="archived">Archived</button>
             </div>
           </div>
@@ -658,14 +658,14 @@
           <!-- Inbox Info -->
           <div class="flex-1 min-w-0 py-2">
             <div class="flex justify-between items-center mb-3">
-              <h3 class="font-premium-display text-[17px] font-bold text-white tracking-[0.2em] truncate leading-none">${name}</h3>
-              <span class="text-[11px] text-white/30 font-medium tracking-widest">${time}</span>
+              <h3 class="font-premium-display text-[13px] font-bold text-white tracking-[0.2em] truncate leading-none">${name}</h3>
+              <span class="text-[12px] text-white/30 font-medium tracking-widest">${time}</span>
             </div>
             <div class="flex items-center justify-between gap-10">
-              <p class="text-[13px] text-white/40 line-clamp-1 font-premium-sans flex-1">${conv.last_message || 'New inquiry received — Open to respond'}</p>
+              <p class="text-[11px] text-white/40 line-clamp-1 font-premium-sans flex-1">${conv.last_message || 'New inquiry received — Open to respond'}</p>
               ${Number(conv.unread_count) > 0 ? `
                 <div class="px-2.5 py-1 bg-primary rounded-full flex items-center justify-center shadow-lg shadow-primary/20">
-                   <span class="text-[9px] font-black text-black">NEW</span>
+                   <span class="text-[10px] font-black text-black">NEW</span>
                 </div>
               ` : ''}
             </div>
