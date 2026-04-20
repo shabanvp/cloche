@@ -131,7 +131,8 @@
   <div class="flex h-screen w-full overflow-hidden">
     <!-- Side Navigation (Boutique Dashboard Level) -->
     <!-- SideNavBar (FIXED – SAME AS DASHBOARD) -->
-    <aside class="w-[240px] bg-background-dark border-r border-primary/10 flex flex-col z-20 shrink-0 h-screen">
+    <aside
+      class="hidden lg:flex w-[240px] bg-background-dark border-r border-primary/10 flex-col z-20 shrink-0 h-screen">
 
       <!-- LOGO -->
       <div class="p-8 flex items-center gap-4 shrink-0">
@@ -653,16 +654,16 @@
           </div>
           
           <!-- Inbox Info -->
-          <div class="flex-1 min-w-0 py-1">
-            <div class="flex justify-between items-center mb-1.5">
-              <h3 class="font-premium-display text-[13px] font-bold text-white tracking-[0.2em] truncate leading-none">${name}</h3>
-              <span class="text-[11px] text-white/30 font-medium tracking-widest">${time}</span>
+          <div class="flex-1 min-w-0 py-1 overflow-hidden">
+            <div class="flex flex-row justify-between items-center mb-1.5 w-full">
+              <h3 class="font-premium-display text-[13px] font-bold text-white tracking-[0.2em] truncate leading-none uppercase pr-2">${name}</h3>
+              <span class="text-[10px] sm:text-[11px] text-white/30 font-medium tracking-widest whitespace-nowrap shrink-0">${time}</span>
             </div>
-            <div class="flex items-center justify-between gap-10">
-              <p class="text-[11px] text-white/40 line-clamp-1 font-premium-sans flex-1">${conv.last_message || 'New inquiry received — Open to respond'}</p>
+            <div class="flex items-center justify-between gap-4">
+              <p class="text-[11px] text-white/40 line-clamp-1 font-premium-sans flex-1 truncate">${conv.last_message || 'New inquiry received — Open to respond'}</p>
               ${Number(conv.unread_count) > 0 ? `
-                <div class="px-2.5 py-1 bg-primary rounded-full flex items-center justify-center shadow-lg shadow-primary/20">
-                   <span class="text-[10px] font-black text-black">NEW</span>
+                <div class="px-2.5 py-1 bg-primary rounded-full flex items-center justify-center shadow-lg shadow-primary/20 shrink-0">
+                   <span class="text-[9px] font-black text-black">NEW</span>
                 </div>
               ` : ''}
             </div>
