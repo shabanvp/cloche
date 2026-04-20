@@ -311,18 +311,14 @@
                 class="p-2 hover:bg-white/5 rounded-full text-white/50 hover:text-primary transition-all">
                 <span class="material-symbols-outlined">arrow_back</span>
               </button>
-              <div class="flex items-center gap-4">
-                <div id="chatAvatar"
-                  class="size-10 rounded-full border border-primary/30 bg-primary/20 flex items-center justify-center font-bold text-primary">
-                  <!-- Letter fallback -->
-                </div>
-                <div>
-                  <h4 id="chatName" class="font-display text-lg font-bold tracking-wide">Customer Name</h4>
-                  <div id="chatStatus" class="flex items-center gap-1.5">
-                    <span class="size-1.5 bg-green-500 rounded-full"></span>
-                    <span id="chatEmail"
-                      class="text-[10px] text-white/40 uppercase tracking-widest font-bold">customer@example.com</span>
-                  </div>
+              <div class="flex flex-col items-center flex-1">
+                <h4 id="chatBoutiqueName"
+                  class="font-display text-[15px] font-bold tracking-[0.3em] text-[#D4AF37] uppercase">HALO & HUE</h4>
+                <div id="chatStatus" class="flex items-center gap-1.5 mt-1">
+                  <span class="size-1 bg-green-500 rounded-full animate-pulse"></span>
+                  <p id="chatEmail"
+                    class="text-[9px] text-white/30 uppercase tracking-widest font-bold font-premium-sans">Consulting
+                    with Customer</p>
                 </div>
               </div>
               <div class="flex items-center gap-4">
@@ -679,20 +675,46 @@
     // Open a conversation (Slide In Focus Mode)
     async function openConversation(conversationId, customerName, customerEmail) {
       currentConversationId = conversationId;
+      const bName = localStorage.getItem("boutiqueName") || "Our Boutique";
 
       const chatPane = document.getElementById("chatPane");
       chatPane.classList.remove("invisible");
       chatPane.classList.remove("translate-x-full");
 
-      // Update header
-      document.getElementById("chatName").textContent = customerName.toUpperCase();
-      document.getElementById("chatEmail").textContent = customerEmail;
+      // Update header with Boutique Identity
+      document.getElementById("chatBoutiqueName").textContent = bName.toUpperCase();
+      document.getElementById("chatEmail").textContent = `Consulting with ${customerName}`;
 
       // Show input area
       document.getElementById("inputArea").classList.remove("hidden");
 
       // Load messages
       await loadMessages(conversationId);
+
+      // AUTOMATED WELCOME LOGIC:
+      // Check if we need to send a welcome message (only if chat is empty or no boutique response yet)
+      const messagesArea = document.getElementById("messagesArea");
+      const hasBoutiqueMessage = Array.from(messagesArea.querySelectorAll('.text-black')).length > 0;
+
+      if (!hasBoutiqueMessage) {
+        const welcomeText = `Hello and welcome to ${bName}!\nHow can I assist you today?`;
+        // Send this as a real message through the API
+        try {
+          await fetch(`${API_ORIGIN}/api/messages/send`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              conversationId: conversationId,
+              message_text: welcomeText,
+              senderType: "boutique"
+            })
+          });
+          // Reload to show the sent message
+          await loadMessages(conversationId);
+        } catch (err) {
+          console.error("Auto-welcome failed:", err);
+        }
+      }
 
       // Update Sidebar Info
       updateSidebar(conversationId);
