@@ -120,7 +120,7 @@
           <span class="text-sm font-medium tracking-wide">Messages</span>
         </a>
         <a class="flex items-center gap-4 px-4 py-3 text-slate-400 hover:text-primary transition-colors group"
-          href="subscription.html">
+          href="index.html#partnership">
           <span class="material-symbols-outlined">star</span>
           <span class="text-sm font-medium tracking-wide">Subscription</span>
         </a>
@@ -188,7 +188,8 @@
           <p class="text-slate-400 text-xs font-sans uppercase tracking-[0.2em] mb-4">Total Leads Received</p>
           <div class="flex items-baseline gap-3">
             <h3 id="totalLeads" class="text-5xl font-bold text-white tracking-tighter">0</h3>
-            <span id="totalLeadsTrend" class="text-slate-400 text-sm font-bold bg-slate-700/20 px-2 py-0.5 rounded">0%</span>
+            <span id="totalLeadsTrend"
+              class="text-slate-400 text-sm font-bold bg-slate-700/20 px-2 py-0.5 rounded">0%</span>
           </div>
           <div class="mt-6 h-1 w-full bg-slate-800 rounded-full overflow-hidden">
             <div id="totalLeadsBar" class="h-full bg-primary rounded-full w-0 shadow-[0_0_10px_#c1a671]"></div>
@@ -281,8 +282,8 @@
               </defs>
               <path id="performanceAreaPath" d="M0,180 L100,180 L200,180 L300,180 L400,180 L500,180 L500,200 L0,200 Z"
                 fill="url(#chartGradient)"></path>
-              <path id="performanceLinePath" d="M0,180 L100,180 L200,180 L300,180 L400,180 L500,180" fill="none" stroke="#c1a671"
-                stroke-width="3"></path>
+              <path id="performanceLinePath" d="M0,180 L100,180 L200,180 L300,180 L400,180 L500,180" fill="none"
+                stroke="#c1a671" stroke-width="3"></path>
             </svg>
             <div class="flex justify-between mt-6 px-2 text-[10px] font-sans uppercase tracking-[0.2em] text-slate-500">
               <span id="monthLabel0">-</span>
@@ -307,7 +308,7 @@
         </div>
       </div>
 
-      
+
     </main>
   </div>
   <script>
@@ -399,51 +400,51 @@
       // Feature Locking Logic
       const analyticsChart = document.getElementById("performanceChartContainer");
       if (analyticsChart) {
-          if (!config.features.analytics) {
-              analyticsChart.classList.add("opacity-20", "pointer-events-none");
-              analyticsChart.parentElement.classList.add("relative");
-              if (!document.getElementById("analyticsLock")) {
-                  const lock = document.createElement("div");
-                  lock.id = "analyticsLock";
-                  lock.className = "absolute inset-0 flex flex-col items-center justify-center z-10 p-6 text-center";
-                  lock.innerHTML = `
+        if (!config.features.analytics) {
+          analyticsChart.classList.add("opacity-20", "pointer-events-none");
+          analyticsChart.parentElement.classList.add("relative");
+          if (!document.getElementById("analyticsLock")) {
+            const lock = document.createElement("div");
+            lock.id = "analyticsLock";
+            lock.className = "absolute inset-0 flex flex-col items-center justify-center z-10 p-6 text-center";
+            lock.innerHTML = `
                       <span class="material-symbols-outlined text-4xl text-primary mb-2">lock</span>
                       <h5 class="text-white font-bold">Analytics Locked</h5>
                       <p class="text-xs text-slate-400 mb-4">Upgrade to Professional to see trends</p>
-                      <a href="subscription.html" class="bg-primary text-background-dark px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest">Upgrade Now</a>
+                      <a href="index.html#partnership" class="bg-primary text-background-dark px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest">Upgrade Now</a>
                   `;
-                  analyticsChart.parentElement.appendChild(lock);
-              }
-          } else {
-              analyticsChart.classList.remove("opacity-20", "pointer-events-none");
-              const lock = document.getElementById("analyticsLock");
-              if (lock) lock.remove();
+            analyticsChart.parentElement.appendChild(lock);
           }
+        } else {
+          analyticsChart.classList.remove("opacity-20", "pointer-events-none");
+          const lock = document.getElementById("analyticsLock");
+          if (lock) lock.remove();
+        }
       }
     }
 
     function resolveAssetUrl(url) {
-    let raw = String(url || "").trim();
-    if (!raw) return "";
-    if (/^data:image\//i.test(raw)) return raw;
-    
-    if (raw.includes("localhost") || raw.includes("127.0.0.1")) {
-       try {
-           const u = new URL(raw);
-           raw = u.pathname;
-       } catch(e) {}
+      let raw = String(url || "").trim();
+      if (!raw) return "";
+      if (/^data:image\//i.test(raw)) return raw;
+
+      if (raw.includes("localhost") || raw.includes("127.0.0.1")) {
+        try {
+          const u = new URL(raw);
+          raw = u.pathname;
+        } catch (e) { }
+      }
+      if (/^https?:\/\//i.test(raw)) return raw;
+
+      const normalized = raw.replace(/\\/g, "/");
+      const lower = normalized.toLowerCase();
+      const uploadsWithSlash = lower.indexOf("/uploads/");
+      if (uploadsWithSlash >= 0) return `${API_ORIGIN}${normalized.slice(uploadsWithSlash)}`;
+      const uploadsNoSlash = lower.indexOf("uploads/");
+      if (uploadsNoSlash >= 0) return `${API_ORIGIN}/${normalized.slice(uploadsNoSlash)}`;
+
+      return `${API_ORIGIN}${normalized.startsWith("/") ? "" : "/"}${normalized}`;
     }
-    if (/^https?:\/\//i.test(raw)) return raw;
-
-    const normalized = raw.replace(/\\/g, "/");
-    const lower = normalized.toLowerCase();
-    const uploadsWithSlash = lower.indexOf("/uploads/");
-    if (uploadsWithSlash >= 0) return `${API_ORIGIN}${normalized.slice(uploadsWithSlash)}`;
-    const uploadsNoSlash = lower.indexOf("uploads/");
-    if (uploadsNoSlash >= 0) return `${API_ORIGIN}/${normalized.slice(uploadsNoSlash)}`;
-
-    return `${API_ORIGIN}${normalized.startsWith("/") ? "" : "/"}${normalized}`;
-  }
 
     function renderDashboardProducts(products) {
       const grid = document.getElementById("dashboardProductGrid");
@@ -531,9 +532,8 @@
       if (totalEl) totalEl.textContent = String(total);
       if (trendEl) {
         trendEl.textContent = trendText;
-        trendEl.className = `text-sm font-bold px-2 py-0.5 rounded ${
-          trendPercent >= 0 ? "text-emerald-400 bg-emerald-400/10" : "text-red-400 bg-red-400/10"
-        }`;
+        trendEl.className = `text-sm font-bold px-2 py-0.5 rounded ${trendPercent >= 0 ? "text-emerald-400 bg-emerald-400/10" : "text-red-400 bg-red-400/10"
+          }`;
       }
       if (barEl) barEl.style.width = `${barPercent}%`;
     }
@@ -719,7 +719,7 @@
       const avatarCircle = document.getElementById("avatarCircle");
       const ownerNameEl = document.getElementById("ownerName");
       const sidebarBoutiqueName = document.getElementById("sidebarBoutiqueName");
-      
+
       if (avatarCircle) avatarCircle.textContent = ownerName.charAt(0).toUpperCase();
       const topProfileIconText = document.getElementById("topProfileIconText");
       if (topProfileIconText) topProfileIconText.textContent = ownerName.charAt(0).toUpperCase();
@@ -734,7 +734,7 @@
     });
   </script>
   <script>
-      // Global logout is now used from responsive-layout.js
+    // Global logout is now used from responsive-layout.js
   </script>
 
 
@@ -744,5 +744,3 @@
 </body>
 
 </html>
-
-
