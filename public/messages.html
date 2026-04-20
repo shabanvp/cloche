@@ -42,12 +42,14 @@
       },
     }
   </script>
+  <link rel='stylesheet' href='responsive-fixes.css?v=1776237132140' />
   <style>
     @media (max-width: 768px) {
 
       /* [OVERRIDE] Global Responsive Conflicts */
       .mobile-topbar,
-      .mobile-bottom-nav {
+      .mobile-bottom-nav,
+      .responsive-sidebar-toggle {
         display: none !important;
       }
 
@@ -64,6 +66,8 @@
 
       #inboxPanel {
         padding: 0 !important;
+        height: auto !important;
+        flex: 0 0 auto !important;
       }
 
       /* Essential Mobile Header Styling */
@@ -72,12 +76,15 @@
         position: sticky !important;
         top: 0 !important;
         z-index: 50 !important;
+        display: block !important;
+        width: 100% !important;
       }
 
-      /* Restore & Calibrate Search */
+      /* Restore & Calibrate Search Hub */
       .search-bar-gold {
-        margin: 0.75rem 1rem !important;
-        padding: 0.6rem 1rem !important;
+        margin: 0.5rem 1rem !important;
+        /* Move even higher on mobile */
+        padding: 0.55rem 1rem !important;
         border-radius: 10px !important;
         background: rgba(212, 175, 55, 0.05) !important;
         display: flex !important;
@@ -86,7 +93,7 @@
       }
 
       .search-bar-gold span {
-        font-size: 1.15rem !important;
+        font-size: 1.1rem !important;
       }
 
       .search-bar-gold input {
@@ -95,7 +102,7 @@
 
       /* Filter tabs row */
       .flex.gap-4.overflow-x-auto {
-        padding: 0 1rem 0.5rem 1rem !important;
+        padding: 0 1rem 0.65rem 1rem !important;
         display: flex !important;
         visibility: visible !important;
         margin-bottom: 0 !important;
@@ -103,15 +110,21 @@
       }
 
       .filter-btn {
-        padding: 0.4rem 0.85rem !important;
+        padding: 0.35rem 0.8rem !important;
         font-size: 9px !important;
         border-radius: 6px !important;
       }
 
-      /* Compact Chat List */
+      /* WhatsApp-Style Chat List */
+      #conversationsList {
+        padding: 0 !important;
+        margin-top: 0 !important;
+        display: block !important;
+      }
+
       .chat-item {
-        padding: 0.75rem 1rem !important;
-        gap: 0.85rem !important;
+        padding: 0.65rem 1rem !important;
+        gap: 0.75rem !important;
       }
 
       .avatar-gold {
@@ -119,15 +132,11 @@
         height: 3.25rem !important;
       }
 
-      #conversationsList {
-        padding: 0 !important;
-        margin-top: 0 !important;
-        display: block !important;
-      }
-
+      /* Navigation Drawer */
       #mainSidebar.mobile-active {
         display: flex !important;
         transform: translateX(0) !important;
+        z-index: 100 !important;
       }
     }
 
@@ -212,7 +221,7 @@
       height: 100%;
     }
   </style>
-  <link rel='stylesheet' href='responsive-fixes.css?v=1776237132140' />
+</head>
 </head>
 
 <body class="bg-background-light dark:bg-background-dark text-white font-sans selection:bg-primary/30">
