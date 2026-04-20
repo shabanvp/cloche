@@ -689,13 +689,12 @@
       // Show input area
       document.getElementById("inputArea").classList.remove("hidden");
 
-      // Load messages
-      await loadMessages(conversationId);
+      // Load messages and check for existing boutique replies
+      const messages = await loadMessages(conversationId);
 
       // AUTOMATED WELCOME LOGIC:
-      // Check if we need to send a welcome message (only if chat is empty or no boutique response yet)
-      const messagesArea = document.getElementById("messagesArea");
-      const hasBoutiqueMessage = Array.from(messagesArea.querySelectorAll('.text-black')).length > 0;
+      // Check if we need to send a welcome message (only if no boutique response exists yet)
+      const hasBoutiqueMessage = messages.some(m => m.sender_type === 'boutique');
 
       if (!hasBoutiqueMessage) {
         const welcomeText = `Hello and welcome to ${bName}!\nHow can I assist you today?`;
@@ -794,9 +793,11 @@
 
         const messages = await res.json();
         renderMessages(messages);
+        return messages; // Return messages array for logic checks
       } catch (err) {
         console.error("Error loading messages:", err);
         document.getElementById("messagesArea").innerHTML = `<div class="text-red-400">Error loading messages</div>`;
+        return [];
       }
     }
 
@@ -809,7 +810,7 @@
         return;
       }
 
-      let html = '<div class="flex justify-center mb-6"><span class="px-4 py-1 bg-white/5 rounded-full text-[10px] tracking-[0.2em] text-white/30 uppercase font-bold">Messages</span></div>';
+      let html = '<div class="flex justify-center mb-6"><span class="px-4 py-1 bg-white/5 rounded-full text-[10px] tracking-[0.2em] text-white/30 uppercase font-bold">Today</span></div>';
 
       messages.forEach(msg => {
         const isOwner = msg.sender_type === 'boutique';
