@@ -107,7 +107,7 @@
   <div class="flex h-screen w-full overflow-hidden">
     <!-- Side Navigation (Boutique Dashboard Level) -->
     <!-- SideNavBar (FIXED – SAME AS DASHBOARD) -->
-    <aside class="w-72 bg-background-dark border-r border-primary/10 flex flex-col z-20 shrink-0 h-screen">
+    <aside class="w-[250px] bg-background-dark border-r border-primary/10 flex flex-col z-20 shrink-0 h-screen">
 
       <!-- LOGO -->
       <div class="p-8 flex items-center gap-4 shrink-0">
@@ -600,25 +600,27 @@
         const safeEmail = (conv.customer_email || '').replace(/'/g, "\\'");
 
         return `
-        <div class="chat-item p-5 cursor-pointer flex items-center gap-4 ${isActive ? 'active' : ''}" 
+        <div class="chat-item p-6 cursor-pointer flex items-center gap-5 ${isActive ? 'active' : ''}" 
              onclick="openConversation(${id}, '${safeName}', '${safeEmail}')">
-          <!-- Premium Avatar -->
-          <div class="avatar-gold size-14 flex-shrink-0">
-             <div class="w-full h-full rounded-full bg-surface-dark flex items-center justify-center text-primary font-bold text-lg">
+          <!-- Premium Avatar with Gold Border -->
+          <div class="avatar-gold size-16 flex-shrink-0">
+             <div class="w-full h-full rounded-full bg-surface-dark flex items-center justify-center text-primary font-bold text-xl border border-white/5 shadow-inner">
                 ${initial}
              </div>
           </div>
           
-          <!-- Info -->
-          <div class="flex-1 min-w-0">
-            <div class="flex justify-between items-baseline mb-1">
-              <h3 class="font-premium-display text-sm font-bold text-white tracking-wider truncate">${name}</h3>
-              <span class="text-[10px] text-white/40 font-medium">${time}</span>
+          <!-- Conversation Info -->
+          <div class="flex-1 min-w-0 py-1">
+            <div class="flex justify-between items-start mb-2">
+              <h3 class="font-premium-display text-[15px] font-bold text-white tracking-widest truncate uppercase leading-none">${name}</h3>
+              <span class="text-[11px] text-white/40 font-medium whitespace-nowrap">${time}</span>
             </div>
             <div class="flex items-center justify-between">
-              <p class="text-xs text-white/50 line-clamp-1 font-premium-sans">${conv.last_message || 'Start a conversation'}</p>
-              ${conv.unread_count > 0 ? `
-                <span class="size-2 bg-primary rounded-full shadow-[0_0_10px_rgba(193,166,113,0.5)]"></span>
+              <p class="text-[13px] text-white/50 line-clamp-1 font-premium-sans leading-snug">${conv.last_message || 'Start a conversation'}</p>
+              ${Number(conv.unread_count) > 0 ? `
+                <div class="ml-3 px-1.5 py-0.5 min-w-[18px] h-[18px] bg-primary rounded-full flex items-center justify-center">
+                   <span class="text-[9px] font-bold text-black">${conv.unread_count}</span>
+                </div>
               ` : ''}
             </div>
           </div>
