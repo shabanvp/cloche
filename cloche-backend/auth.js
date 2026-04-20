@@ -1275,5 +1275,45 @@ router.get("/dashboard/:boutiqueId", async (req, res) => {
     return res.status(500).json({ message: "Server error", error: err.message });
   }
 });
+router.post("/resend-verification", async (req, res) => {
+  const { email, account_type } = req.body;
+
+  if (!email || !account_type) {
+    return res.status(400).json({ message: "Email and account type required" });
+  }
+
+  const table = account_type === "partner" ? "boutiques" : "users";
+
+  try {
+    const { data: user, error } = await supabase
+      .from(table)
+      .select("*")
+      .eq("email", email.toLowerCase())
+      .maybeSingle();
+
+    if (error || !user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (user.is_verified) {
+      return res.status(400).json({ message: "Already verified" });
+    }
+
+    // generate new token
+    const newToken = require("uuid").v4();
+
+    await supabase
+      .from(table)
+      .update({ verification_token: newToken })
+      .eq("id", user.id);
+
+    await sendVerificationEmail(email, user.name || user.owner_name, newToken, account_type);
+
+    return res.json({ success: true, message: "Verification email resent" });
+
+  } catch (err) {
+    return res.status(500).json({ message: "Server error" });
+  }
+});
 
 module.exports = router;

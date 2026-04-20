@@ -1,12 +1,16 @@
 <!DOCTYPE html>
 <html class="dark" lang="en">
+
 <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>CLOCHE | Login Portal</title>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,100..900;1,100..900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,100..900;1,100..900&family=Inter:wght@300;400;500;600&display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet" />
     <script id="tailwind-config">
         tailwind.config = {
             darkMode: "class",
@@ -36,81 +40,108 @@
         body {
             font-family: 'Inter', sans-serif;
         }
+
         .font-display {
             font-family: 'Noto Serif', serif;
         }
+
         .spotlight {
             background: radial-gradient(circle at 50% 50%, rgba(193, 166, 113, 0.08) 0%, rgba(13, 13, 13, 0) 60%);
         }
+
         .glass-card {
             backdrop-filter: blur(24px);
             -webkit-backdrop-filter: blur(24px);
             border: 1px solid rgba(193, 166, 113, 0.15);
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         }
+
         input:focus {
             box-shadow: 0 0 0 1px rgba(193, 166, 113, 0.5);
         }
     </style>
     <link rel="stylesheet" href="responsive-fixes.css?v=1776237132140" />
 </head>
+
 <body class="bg-background-light dark:bg-background-dark min-h-screen flex flex-col relative overflow-x-hidden">
-    
+
 
     <div class="fixed inset-0 spotlight pointer-events-none"></div>
-    <div class="fixed inset-0 pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-10"></div>
+    <div
+        class="fixed inset-0 pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-10">
+    </div>
 
     <main class="flex-1 flex items-center justify-center p-6 relative z-10 pt-32">
         <div class="glass-card bg-glass-dark w-full max-w-[520px] rounded-xl p-10 lg:p-16 flex flex-col items-center">
-            
-            <div id="verificationBanner" class="hidden w-full mb-6 p-4 rounded-lg bg-primary/10 border border-primary/30 text-center">
+
+            <div id="verificationBanner"
+                class="hidden w-full mb-6 p-4 rounded-lg bg-primary/10 border border-primary/30 text-center">
                 <p id="bannerText" class="text-xs font-bold uppercase tracking-widest text-primary"></p>
             </div>
 
             <div class="text-center mb-12">
-                <h1 id="loginTitle" class="font-display text-white tracking-[0.2em] text-3xl font-light mb-4">USER PORTAL</h1>
-                <p id="loginSubtitle" class="text-[#bab2a0] font-sans text-sm tracking-wide uppercase opacity-80">Enter your credentials to access your account</p>
+                <h1 id="loginTitle" class="font-display text-white tracking-[0.2em] text-3xl font-light mb-4">USER
+                    PORTAL</h1>
+                <p id="loginSubtitle" class="text-[#bab2a0] font-sans text-sm tracking-wide uppercase opacity-80">Enter
+                    your credentials to access your account</p>
             </div>
 
             <div class="w-full mb-6">
                 <p class="text-primary/80 text-xs font-bold uppercase tracking-widest mb-3">I am logging in as</p>
                 <div class="grid grid-cols-2 gap-3">
-                    <button id="userTypeBtn" type="button" class="h-12 rounded-lg border border-primary/40 bg-primary/10 text-primary text-xs font-bold uppercase tracking-[0.12em]">User</button>
-                    <button id="partnerTypeBtn" type="button" class="h-12 rounded-lg border border-white/10 bg-white/5 text-white/80 text-xs font-bold uppercase tracking-[0.12em]">Partner</button>
+                    <button id="userTypeBtn" type="button"
+                        class="h-12 rounded-lg border border-primary/40 bg-primary/10 text-primary text-xs font-bold uppercase tracking-[0.12em]">User</button>
+                    <button id="partnerTypeBtn" type="button"
+                        class="h-12 rounded-lg border border-white/10 bg-white/5 text-white/80 text-xs font-bold uppercase tracking-[0.12em]">Partner</button>
                 </div>
             </div>
 
             <form id="loginForm" class="w-full space-y-6">
                 <div class="flex flex-col gap-2">
-                    <label id="identifierLabel" class="text-[#f7f6f2] text-xs font-semibold tracking-[0.1em] uppercase ml-1">Email Address</label>
+                    <label id="identifierLabel"
+                        class="text-[#f7f6f2] text-xs font-semibold tracking-[0.1em] uppercase ml-1">Email
+                        Address</label>
                     <div class="relative">
-                        <input id="email" type="text" placeholder="Email Address" class="w-full h-14 px-5 bg-[#1e1b15]/50 border border-[#595140] rounded-lg text-white" />
+                        <input id="email" type="text" placeholder="Email Address"
+                            class="w-full h-14 px-5 bg-[#1e1b15]/50 border border-[#595140] rounded-lg text-white" />
                     </div>
                 </div>
 
                 <div class="flex flex-col gap-2">
                     <div class="flex justify-between items-center mb-1">
-                        <label class="text-[#f7f6f2] text-xs font-semibold tracking-[0.1em] uppercase ml-1">Password</label>
-                        <a class="text-primary/70 hover:text-primary text-[10px] font-bold tracking-[0.05em] uppercase transition-colors" href="#">Recover Access</a>
+                        <label
+                            class="text-[#f7f6f2] text-xs font-semibold tracking-[0.1em] uppercase ml-1">Password</label>
+                        <a class="text-primary/70 hover:text-primary text-[10px] font-bold tracking-[0.05em] uppercase transition-colors"
+                            href="#">Recover Access</a>
                     </div>
                     <div class="relative flex items-center">
-                        <input id="password" type="password" placeholder="••••••••••••" class="w-full rounded-lg text-white border border-white/10 bg-white/5 h-14 px-4" />
-                        <button type="button" onclick="togglePassword('password', this)" class="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full text-white/40 hover:text-primary hover:bg-white/5 transition">
+                        <input id="password" type="password" placeholder="••••••••••••"
+                            class="w-full rounded-lg text-white border border-white/10 bg-white/5 h-14 px-4" />
+                        <button type="button" onclick="togglePassword('password', this)"
+                            class="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full text-white/40 hover:text-primary hover:bg-white/5 transition">
                             <span class="material-symbols-outlined">visibility</span>
                         </button>
                     </div>
                 </div>
 
                 <div class="pt-6">
-                    <button id="loginSubmitBtn" class="w-full h-14 bg-primary text-background-dark font-display font-bold text-sm tracking-[0.2em] uppercase rounded-lg hover:bg-white hover:shadow-[0_0_20px_rgba(255,255,255,0.2)] transition-all duration-500 transform active:scale-[0.98]">
+                    <button id="loginSubmitBtn"
+                        class="w-full h-14 bg-primary text-background-dark font-display font-bold text-sm tracking-[0.2em] uppercase rounded-lg hover:bg-white hover:shadow-[0_0_20px_rgba(255,255,255,0.2)] transition-all duration-500 transform active:scale-[0.98]">
                         Secure Login
+                    </button>
+                </div>
+                <div id="resendWrap" class="hidden text-center mt-4">
+                    <button type="button" onclick="resendFromLogin()"
+                        class="text-xs text-primary hover:underline tracking-wide">
+                        Resend Verification Email
                     </button>
                 </div>
             </form>
 
             <div class="mt-12 text-center">
                 <p class="text-[#bab2a0] text-sm mb-2">New to CLOCHE?</p>
-                <a class="inline-block text-white font-display italic text-base border-b border-white/20 hover:border-primary transition-all duration-300" href="signup.html">
+                <a class="inline-block text-white font-display italic text-base border-b border-white/20 hover:border-primary transition-all duration-300"
+                    href="signup.html">
                     Create your account
                 </a>
             </div>
@@ -123,11 +154,14 @@
                 © 2024 CLOCHE ATELIER. ALL RIGHTS RESERVED.
             </div>
             <nav class="flex items-center gap-8">
-                <a class="text-[#595140] hover:text-primary text-[10px] tracking-[0.1em] uppercase font-bold transition-colors" href="privacy.html">Privacy Policy</a>
+                <a class="text-[#595140] hover:text-primary text-[10px] tracking-[0.1em] uppercase font-bold transition-colors"
+                    href="privacy.html">Privacy Policy</a>
                 <span class="w-1 h-1 bg-[#595140] rounded-full"></span>
-                <a class="text-[#595140] hover:text-primary text-[10px] tracking-[0.1em] uppercase font-bold transition-colors" href="terms.html">Terms of Service</a>
+                <a class="text-[#595140] hover:text-primary text-[10px] tracking-[0.1em] uppercase font-bold transition-colors"
+                    href="terms.html">Terms of Service</a>
                 <span class="w-1 h-1 bg-[#595140] rounded-full"></span>
-                <a class="text-[#595140] hover:text-primary text-[10px] tracking-[0.1em] uppercase font-bold transition-colors" href="vendor-agreement.html">Support</a>
+                <a class="text-[#595140] hover:text-primary text-[10px] tracking-[0.1em] uppercase font-bold transition-colors"
+                    href="vendor-agreement.html">Support</a>
             </nav>
             <div class="flex gap-4">
                 <a class="text-[#595140] hover:text-white transition-colors" href="#">
@@ -138,7 +172,9 @@
     </footer>
 
     <div class="fixed top-20 -left-20 w-96 h-96 bg-primary/5 rounded-full blur-[100px] pointer-events-none"></div>
-    <div class="fixed bottom-10 -right-20 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[120px] pointer-events-none"></div>
+    <div
+        class="fixed bottom-10 -right-20 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[120px] pointer-events-none">
+    </div>
 
     <script>
         const API_BASE = "https://cloche-backend.onrender.com";
@@ -206,9 +242,16 @@
                 const result = await res.json();
                 if (!res.ok) {
                     alert(result.message || "Login failed");
+
+                    // 👉 show resend button ONLY if not verified
+                    if (res.status === 403) {
+                        document.getElementById("resendWrap").classList.remove("hidden");
+                    }
+
                     return;
                 }
                 if (isUser) {
+                    document.getElementById("resendWrap").classList.add("hidden");
                     localStorage.removeItem("isLoggedIn");
                     localStorage.removeItem("boutiqueId");
                     localStorage.removeItem("ownerName");
@@ -220,6 +263,7 @@
                     window.location.href = "index.html";
                     return;
                 }
+                document.getElementById("resendWrap").classList.add("hidden");
                 localStorage.removeItem("isUserLoggedIn");
                 localStorage.removeItem("userId");
                 localStorage.removeItem("userName");
@@ -260,7 +304,40 @@
             setAccountType("user");
             checkVerificationStatus();
         });
+        async function resendFromLogin() {
+            const email = document.getElementById("email").value.trim().toLowerCase();
+
+            if (!email) {
+                alert("Enter your email first");
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_BASE}/api/auth/resend-verification`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        account_type: selectedAccountType
+                    })
+                });
+
+                const data = await res.json();
+
+                if (res.ok) {
+                    alert("✅ Verification email sent. Check your inbox.");
+                } else {
+                    alert(data.message || "Failed to resend email");
+                }
+
+            } catch (err) {
+                alert("Server error");
+            }
+        }
     </script>
     <script src="responsive-layout.js?v=1776237132140"></script>
 </body>
+
 </html>
