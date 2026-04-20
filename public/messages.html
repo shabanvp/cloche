@@ -484,10 +484,14 @@
       renderConversations(filtered);
     }
 
-    // Format time ago
+    // Format time ago (Safe Version)
     function getTimeAgo(date) {
+      if (!date) return "Long ago";
+      const dt = new Date(date);
+      if (isNaN(dt.getTime())) return "Recently";
+
       const now = new Date();
-      const diff = now - new Date(date);
+      const diff = now - dt;
       const minutes = Math.floor(diff / 60000);
       const hours = Math.floor(diff / 3600000);
       const days = Math.floor(diff / 86400000);
@@ -497,7 +501,7 @@
       if (hours < 24) return `${hours}h ago`;
       if (days === 1) return "Yesterday";
       if (days < 7) return `${days}d ago`;
-      return new Date(date).toLocaleDateString();
+      return dt.toLocaleDateString();
     }
 
     // Fetch and display conversations
@@ -512,31 +516,34 @@
         const newConversations = await res.json();
 
         // Check for new conversations
-        if (newConversations.length > previousConversationCount) {
+        if (newConversations.length > previousConversationCount && previousConversationCount > 0) {
           const newConvs = newConversations.slice(0, newConversations.length - previousConversationCount);
           newConvs.forEach(conv => {
-            addNotification('new_conversation', {
-              id: conv.id,
-              customer_name: conv.customer_name,
-              customer_email: conv.customer_email,
-              product_name: conv.product_name
-            });
+            if (conv && conv.id) {
+              addNotification('new_conversation', {
+                id: conv.id,
+                customer_name: conv.customer_name || 'New Customer',
+                customer_email: conv.customer_email || '',
+                product_name: conv.product_name || 'General inquiry'
+              });
+            }
           });
         }
 
         // Check for new messages in existing conversations
         newConversations.forEach(newConv => {
+          if (!newConv || !newConv.id) return;
           const oldConv = allConversations.find(c => c.id === newConv.id);
-          if (oldConv && newConv.unread_count > oldConv.unread_count) {
-            const newMessageCount = newConv.unread_count - oldConv.unread_count;
-            if (newMessageCount > 0) {
-              addNotification('new_message', {
-                conversationId: newConv.id,
-                customer_name: newConv.customer_name,
-                customer_email: newConv.customer_email,
-                preview: (newConv.last_message || 'New message').substring(0, 50)
-              });
-            }
+          const newUnread = Number(newConv.unread_count || 0);
+          const oldUnread = oldConv ? Number(oldConv.unread_count || 0) : 0;
+
+          if (oldConv && newUnread > oldUnread) {
+            addNotification('new_message', {
+              conversationId: newConv.id,
+              customer_name: newConv.customer_name || 'Customer',
+              customer_email: newConv.customer_email || '',
+              preview: (newConv.last_message || 'New message').substring(0, 50)
+            });
           }
         });
 
@@ -550,11 +557,17 @@
           renderConversations(allConversations);
         }
       } catch (err) {
-        console.error("Error loading conversations:", err);
+        console.error("Critical: Error loading conversations:", err);
+        // Error state UI
         document.getElementById("conversationsList").innerHTML = `
-          <div class="p-10 text-white/20 text-center uppercase tracking-widest text-[9px] flex flex-col items-center gap-2">
-            <span class="material-symbols-outlined text-2xl">sync_problem</span>
-            <p>Sync interrupted</p>
+          <div class="p-10 text-white/20 text-center uppercase tracking-widest text-[9px] flex flex-col items-center gap-4">
+            <div class="size-10 rounded-full border border-white/5 flex items-center justify-center">
+              <span class="material-symbols-outlined text-xl animate-spin text-primary">sync</span>
+            </div>
+            <div class="space-y-1">
+              <p>Network latency detected</p>
+              <p class="text-[7px] opacity-50">Checking for new messages...</p>
+            </div>
           </div>
         `;
       }
@@ -570,10 +583,12 @@
       }
 
       listContainer.innerHTML = conversations.map(conv => {
-        const isActive = conv.id === currentConversationId;
+        if (!conv) return '';
+        const id = conv.id || 0;
+        const isActive = id === currentConversationId;
         const time = getTimeAgo(conv.last_message_time);
-        const name = (conv.customer_name || 'Customer').toUpperCase();
-        const initial = name.charAt(0);
+        const name = (conv.customer_name || 'Valued Customer').toUpperCase();
+        const initial = name.charAt(0) || '?';
 
         // Escape quotes to prevent breaking the onclick handler
         const safeName = name.replace(/'/g, "\\'");
@@ -581,7 +596,7 @@
 
         return `
         <div class="chat-item p-5 cursor-pointer flex items-center gap-4 ${isActive ? 'active' : ''}" 
-             onclick="openConversation(${conv.id}, '${safeName}', '${safeEmail}')">
+             onclick="openConversation(${id}, '${safeName}', '${safeEmail}')">
           <!-- Premium Avatar -->
           <div class="avatar-gold size-14 flex-shrink-0">
              <div class="w-full h-full rounded-full bg-surface-dark flex items-center justify-center text-primary font-bold text-lg">
