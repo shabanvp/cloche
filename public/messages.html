@@ -43,6 +43,44 @@
     }
   </script>
   <style>
+    @media (max-width: 768px) {
+      .search-bar-gold {
+        padding: 0.75rem 1rem !important;
+        margin-bottom: 1rem !important;
+        margin-top: 1rem !important;
+        background: rgba(212, 175, 55, 0.05) !important;
+      }
+
+      .search-bar-gold span {
+        font-size: 1.25rem !important;
+      }
+
+      .search-bar-gold input {
+        font-size: 13px !important;
+      }
+
+      .filter-btn {
+        padding: 0.5rem 1rem !important;
+        font-size: 10px !important;
+      }
+
+      .chat-item {
+        padding-top: 0.85rem !important;
+        padding-bottom: 0.85rem !important;
+        gap: 1rem !important;
+      }
+
+      .avatar-gold {
+        width: 3.5rem !important;
+        height: 3.5rem !important;
+      }
+
+      #mainSidebar.mobile-active {
+        display: flex !important;
+        transform: translateX(0) !important;
+      }
+    }
+
     .glass-panel {
       background: rgba(10, 10, 10, 0.8);
       backdrop-filter: blur(20px);
@@ -131,8 +169,8 @@
   <div class="flex h-screen w-full overflow-hidden">
     <!-- Side Navigation (Boutique Dashboard Level) -->
     <!-- SideNavBar (FIXED – SAME AS DASHBOARD) -->
-    <aside
-      class="hidden lg:flex w-[240px] bg-background-dark border-r border-primary/10 flex-col z-20 shrink-0 h-screen">
+    <aside id="mainSidebar"
+      class="hidden lg:flex w-[280px] lg:w-[240px] bg-background-dark border-r border-primary/10 flex-col z-[100] shrink-0 h-screen fixed lg:relative transition-transform duration-300 -translate-x-full lg:translate-x-0">
 
       <!-- LOGO -->
       <div class="p-8 flex items-center gap-4 shrink-0">
@@ -241,20 +279,20 @@
 
     <!-- Main Content Area -->
     <main class="flex-1 flex flex-col bg-background-dark relative overflow-hidden">
-      <!-- Top Header (Responsive: Mobile vs Desktop) -->
-      <!-- Cleaner Mobile Header (Hidden on Desktop) -->
-      <header class="lg:hidden border-b border-white/5 z-10 relative bg-background-dark">
-        <div class="flex items-center justify-between px-6 py-4">
-          <div class="flex-2"></div>
-          <div class="flex items-center gap-2">
-            <span class="material-symbols-outlined text-primary text-2xl">diamond</span>
-            <h1 class="font-display text-2xl font-bold tracking-[0.3em] text-primary">CLOCHE</h1>
+      <!-- Native Mobile Navigation Header (Hidden on Desktop) -->
+      <header class="lg:hidden border-b border-white/5 z-40 bg-background-dark sticky top-0">
+        <div class="flex items-center px-4 py-3 h-16 relative">
+          <!-- Hamburger on the LEFT -->
+          <button class="text-primary p-2 hover:bg-white/5 rounded-full" onclick="toggleMainSidebar()">
+            <span class="material-symbols-outlined text-2xl">menu</span>
+          </button>
+
+          <!-- Centered Title -->
+          <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-2">
+            <h1 class="font-display text-xl font-bold tracking-[0.4em] text-primary">CLOCHE</h1>
           </div>
-          <div class="flex-1 flex justify-end">
-            <button class="text-primary" onclick="toggleSidebar()">
-              <span class="material-symbols-outlined text-3xl">menu</span>
-            </button>
-          </div>
+
+          <div class="flex-1"></div>
         </div>
       </header>
 
@@ -262,147 +300,147 @@
       <div class="flex-1 flex overflow-hidden">
         <!-- Main Inbox Panel (Full Width next to Sidebar) -->
         <section id="inboxPanel" class="flex-1 flex flex-col bg-background-dark h-full relative z-10">
-          <!-- Premium Brand Header -->
-          <div class="px-8 pt-12 pb-6 bg-background-dark/80 backdrop-blur-xl">
+          <!-- Premium Brand Header (HIDDEN ON MOBILE) -->
+          <div class="hidden lg:block px-8 pt-12 pb-6 bg-background-dark/80 backdrop-blur-xl">
             <h2 class="text-[#D4AF37] text-2xl font-bold tracking-[0.4em] uppercase mb-12 text-center w-full">CLOCHE
             </h2>
-
-            <!-- Full Width Search Hub -->
-            <div
-              class="search-bar-gold flex items-center gap-4 px-6 py-4 mb-8 shadow-2xl transition-all hover:border-[#D4AF37]/50">
-              <span class="material-symbols-outlined text-[#D4AF37]/60 text-2xl font-bold">search</span>
-              <input id="searchInput"
-                class="bg-transparent border-none focus:ring-0 text-[13px] w-full placeholder:text-white/20 font-premium-sans"
-                placeholder="Search your luxury consultations..." type="text" oninput="handleSearch()" />
-            </div>
-
-            <div class="flex gap-4 overflow-x-auto no-scrollbar border-b border-white/5 pb-4">
-              <button onclick="filterConversations('active')"
-                class="filter-btn px-8 py-2.5 rounded-full bg-[#D4AF37] text-black border border-[#D4AF37] text-[12px] font-bold tracking-[0.2em] whitespace-nowrap uppercase transition-all shadow-lg"
-                data-filter="active">All</button>
-              <button onclick="filterConversations('unread')"
-                class="filter-btn px-8 py-2.5 rounded-full bg-[#D4AF37]/20 text-[#D4AF37] border border-[#D4AF37]/30 text-[12px] font-bold tracking-[0.2em] whitespace-nowrap uppercase hover:bg-[#D4AF37]/40 transition-all"
-                data-filter="unread">Unread</button>
-              <button onclick="filterConversations('archived')"
-                class="filter-btn px-8 py-2.5 rounded-full bg-[#D4AF37]/20 text-[#D4AF37] border border-[#D4AF37]/30 text-[12px] font-bold tracking-[0.2em] whitespace-nowrap uppercase hover:bg-[#D4AF37]/40 transition-all"
-                data-filter="archived">Archived</button>
-            </div>
           </div>
 
-          <!-- Chats List (Inbox Style) -->
-          <div id="conversationsList"
-            class="flex-1 overflow-y-auto custom-scrollbar divide-y divide-white/5 px-4 lg:px-8">
-            <div
-              class="p-20 text-white/10 text-center uppercase tracking-widest text-[11px] flex flex-col items-center gap-6">
-              <div class="size-16 rounded-full border border-white/5 flex items-center justify-center animate-pulse">
-                <span class="material-symbols-outlined text-4xl">sync</span>
-              </div>
-              <p class="font-display italic">Securing luxury communication network...</p>
-            </div>
+          <!-- Full Width Search Hub -->
+          <div
+            class="search-bar-gold flex items-center gap-4 px-6 py-4 mb-8 shadow-2xl transition-all hover:border-[#D4AF37]/50">
+            <span class="material-symbols-outlined text-[#D4AF37]/60 text-2xl font-bold">search</span>
+            <input id="searchInput"
+              class="bg-transparent border-none focus:ring-0 text-[13px] w-full placeholder:text-white/20 font-premium-sans"
+              placeholder="Search your luxury consultations..." type="text" oninput="handleSearch()" />
           </div>
-        </section>
 
-        <!-- Right Pane: Active Chat Window (Overlay Style) -->
-        <section id="chatPane"
-          class="fixed inset-0 lg:left-[240px] z-50 transform translate-x-full transition-transform duration-500 ease-out flex flex-col bg-background-dark invisible">
-          <!-- Improved Chat Header -->
-          <div id="chatHeader"
-            class="p-6 border-b border-white/5 flex items-center justify-between glass-panel z-20 sticky top-0">
-            <div class="flex items-center gap-6 flex-1">
-              <button onclick="closeChat()"
-                class="p-2 hover:bg-white/5 rounded-full text-white/50 hover:text-primary transition-all">
-                <span class="material-symbols-outlined">arrow_back</span>
-              </button>
-              <div class="flex flex-col items-center flex-1">
-                <h4 id="chatBoutiqueName"
-                  class="font-display text-[15px] font-bold tracking-[0.3em] text-[#D4AF37] uppercase">HALO & HUE</h4>
-                <div id="chatStatus" class="flex items-center gap-1.5 mt-1">
-                  <span class="size-1 bg-green-500 rounded-full animate-pulse"></span>
-                  <p id="chatEmail"
-                    class="text-[9px] text-white/30 uppercase tracking-widest font-bold font-premium-sans">Consulting
-                    with Customer</p>
-                </div>
-              </div>
-              <div class="flex items-center gap-4 px-4 border-l border-white/5">
-                <button id="toggleSidebarBtn" onclick="toggleSidebar()"
-                  class="size-10 flex items-center justify-center rounded-full border border-white/5 hover:border-primary/50 text-white/60 hover:text-primary transition-all">
-                  <span class="material-symbols-outlined">info</span>
-                </button>
+          <div class="flex gap-4 overflow-x-auto no-scrollbar border-b border-white/5 pb-4">
+            <button onclick="filterConversations('active')"
+              class="filter-btn px-8 py-2.5 rounded-full bg-[#D4AF37] text-black border border-[#D4AF37] text-[12px] font-bold tracking-[0.2em] whitespace-nowrap uppercase transition-all shadow-lg"
+              data-filter="active">All</button>
+            <button onclick="filterConversations('unread')"
+              class="filter-btn px-8 py-2.5 rounded-full bg-[#D4AF37]/20 text-[#D4AF37] border border-[#D4AF37]/30 text-[12px] font-bold tracking-[0.2em] whitespace-nowrap uppercase hover:bg-[#D4AF37]/40 transition-all"
+              data-filter="unread">Unread</button>
+            <button onclick="filterConversations('archived')"
+              class="filter-btn px-8 py-2.5 rounded-full bg-[#D4AF37]/20 text-[#D4AF37] border border-[#D4AF37]/30 text-[12px] font-bold tracking-[0.2em] whitespace-nowrap uppercase hover:bg-[#D4AF37]/40 transition-all"
+              data-filter="archived">Archived</button>
+          </div>
+      </div>
+
+      <!-- Chats List (Inbox Style) -->
+      <div id="conversationsList" class="flex-1 overflow-y-auto custom-scrollbar divide-y divide-white/5 px-4 lg:px-8">
+        <div
+          class="p-20 text-white/10 text-center uppercase tracking-widest text-[11px] flex flex-col items-center gap-6">
+          <div class="size-16 rounded-full border border-white/5 flex items-center justify-center animate-pulse">
+            <span class="material-symbols-outlined text-4xl">sync</span>
+          </div>
+          <p class="font-display italic">Securing luxury communication network...</p>
+        </div>
+      </div>
+      </section>
+
+      <!-- Right Pane: Active Chat Window (Overlay Style) -->
+      <section id="chatPane"
+        class="fixed inset-0 lg:left-[240px] z-50 transform translate-x-full transition-transform duration-500 ease-out flex flex-col bg-background-dark invisible">
+        <!-- Improved Chat Header -->
+        <div id="chatHeader"
+          class="p-6 border-b border-white/5 flex items-center justify-between glass-panel z-20 sticky top-0">
+          <div class="flex items-center gap-6 flex-1">
+            <button onclick="closeChat()"
+              class="p-2 hover:bg-white/5 rounded-full text-white/50 hover:text-primary transition-all">
+              <span class="material-symbols-outlined">arrow_back</span>
+            </button>
+            <div class="flex flex-col items-center flex-1">
+              <h4 id="chatBoutiqueName"
+                class="font-display text-[15px] font-bold tracking-[0.3em] text-[#D4AF37] uppercase">HALO & HUE</h4>
+              <div id="chatStatus" class="flex items-center gap-1.5 mt-1">
+                <span class="size-1 bg-green-500 rounded-full animate-pulse"></span>
+                <p id="chatEmail"
+                  class="text-[9px] text-white/30 uppercase tracking-widest font-bold font-premium-sans">Consulting
+                  with Customer</p>
               </div>
             </div>
-          </div>
-
-          <!-- Chat Messages Area (Full Vertical Space) -->
-          <div id="messagesArea" class="flex-1 overflow-y-auto p-8 space-y-6 custom-scrollbar flex flex-col">
-            <div class="flex-1 flex items-center justify-center flex-col text-white/20 gap-4">
-              <span class="material-symbols-outlined text-6xl">chat_bubble</span>
-              <p class="font-display italic">Selective a consultation to start messaging</p>
-            </div>
-          </div>
-
-          <!-- Input Area Footer (Fixed Bottom) -->
-          <div id="inputArea" class="p-6 bg-background-dark/80 backdrop-blur-md border-t border-white/5 hidden">
-            <div
-              class="max-w-5xl mx-auto relative flex items-end gap-4 bg-surface-dark/50 border border-white/10 rounded-2xl p-4 focus-within:border-primary/40 transition-all shadow-2xl">
-              <textarea id="messageInput"
-                class="flex-1 bg-transparent border-none focus:ring-0 text-sm py-1 resize-none max-h-32 custom-scrollbar placeholder:text-white/20"
-                placeholder="Type your message..."></textarea>
-              <button onclick="sendMessage()"
-                class="size-10 bg-primary rounded-xl flex items-center justify-center text-background-dark hover:scale-105 active:scale-95 transition-transform shadow-lg shadow-primary/20">
-                <span class="material-symbols-outlined font-bold">send</span>
+            <div class="flex items-center gap-4 px-4 border-l border-white/5">
+              <button id="toggleSidebarBtn" onclick="toggleSidebar()"
+                class="size-10 flex items-center justify-center rounded-full border border-white/5 hover:border-primary/50 text-white/60 hover:text-primary transition-all">
+                <span class="material-symbols-outlined">info</span>
               </button>
             </div>
           </div>
-        </section>
+        </div>
 
-        <!-- Right Sidebar: Customer Context -->
-        <aside id="customerSidebar"
-          class="hidden w-80 border-l border-white/5 flex flex-col bg-background-dark/40 overflow-y-auto custom-scrollbar">
-          <div class="p-8 space-y-10">
-            <div>
-              <h5
-                class="text-[10px] font-bold tracking-[0.3em] text-white/40 uppercase mb-6 border-b border-white/5 pb-2">
-                Customer Profile</h5>
-              <div class="text-center">
-                <div id="sidebarAvatar"
-                  class="size-24 rounded-full border-2 border-primary/20 p-1 mx-auto mb-4 flex items-center justify-center bg-primary/10 text-3xl font-bold text-primary">
-                  C
-                </div>
-                <h4 id="sidebarName" class="font-display text-lg">Customer Name</h4>
-                <p id="sidebarEmail" class="text-[10px] text-primary font-bold tracking-widest uppercase mt-1">
-                  customer@example.com</p>
-              </div>
-            </div>
+        <!-- Chat Messages Area (Full Vertical Space) -->
+        <div id="messagesArea" class="flex-1 overflow-y-auto p-8 space-y-6 custom-scrollbar flex flex-col">
+          <div class="flex-1 flex items-center justify-center flex-col text-white/20 gap-4">
+            <span class="material-symbols-outlined text-6xl">chat_bubble</span>
+            <p class="font-display italic">Selective a consultation to start messaging</p>
+          </div>
+        </div>
 
-            <div>
-              <h5 class="text-[10px] font-bold tracking-[0.3em] text-white/40 uppercase mb-4">Contact Details</h5>
-              <div class="glass-panel p-4 rounded-xl border border-white/5 space-y-3">
-                <div class="flex items-center gap-3">
-                  <span class="material-symbols-outlined text-sm text-primary">mail</span>
-                  <span id="detailEmail" class="text-xs text-white/70 truncate">N/A</span>
-                </div>
-                <div class="flex items-center gap-3">
-                  <span class="material-symbols-outlined text-sm text-primary">call</span>
-                  <span id="detailPhone" class="text-xs text-white/70">N/A</span>
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <h5 class="text-[10px] font-bold tracking-[0.3em] text-white/40 uppercase mb-4">Product of Interest</h5>
-              <div class="glass-panel p-4 rounded-xl border border-white/5">
-                <p id="detailProduct" class="text-xs text-primary font-bold tracking-wide uppercase italic">N/A</p>
-              </div>
-            </div>
-
-            <button onclick="archiveConversation()"
-              class="w-full py-3 border border-red-500/40 text-red-400 text-[10px] font-bold tracking-[0.2em] uppercase rounded-lg hover:bg-red-500 hover:text-white transition-all">
-              Archive Conversation
+        <!-- Input Area Footer (Fixed Bottom) -->
+        <div id="inputArea" class="p-6 bg-background-dark/80 backdrop-blur-md border-t border-white/5 hidden">
+          <div
+            class="max-w-5xl mx-auto relative flex items-end gap-4 bg-surface-dark/50 border border-white/10 rounded-2xl p-4 focus-within:border-primary/40 transition-all shadow-2xl">
+            <textarea id="messageInput"
+              class="flex-1 bg-transparent border-none focus:ring-0 text-sm py-1 resize-none max-h-32 custom-scrollbar placeholder:text-white/20"
+              placeholder="Type your message..."></textarea>
+            <button onclick="sendMessage()"
+              class="size-10 bg-primary rounded-xl flex items-center justify-center text-background-dark hover:scale-105 active:scale-95 transition-transform shadow-lg shadow-primary/20">
+              <span class="material-symbols-outlined font-bold">send</span>
             </button>
           </div>
-        </aside>
-      </div>
-    </main>
+        </div>
+      </section>
+
+      <!-- Right Sidebar: Customer Context -->
+      <aside id="customerSidebar"
+        class="hidden w-80 border-l border-white/5 flex flex-col bg-background-dark/40 overflow-y-auto custom-scrollbar">
+        <div class="p-8 space-y-10">
+          <div>
+            <h5
+              class="text-[10px] font-bold tracking-[0.3em] text-white/40 uppercase mb-6 border-b border-white/5 pb-2">
+              Customer Profile</h5>
+            <div class="text-center">
+              <div id="sidebarAvatar"
+                class="size-24 rounded-full border-2 border-primary/20 p-1 mx-auto mb-4 flex items-center justify-center bg-primary/10 text-3xl font-bold text-primary">
+                C
+              </div>
+              <h4 id="sidebarName" class="font-display text-lg">Customer Name</h4>
+              <p id="sidebarEmail" class="text-[10px] text-primary font-bold tracking-widest uppercase mt-1">
+                customer@example.com</p>
+            </div>
+          </div>
+
+          <div>
+            <h5 class="text-[10px] font-bold tracking-[0.3em] text-white/40 uppercase mb-4">Contact Details</h5>
+            <div class="glass-panel p-4 rounded-xl border border-white/5 space-y-3">
+              <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-sm text-primary">mail</span>
+                <span id="detailEmail" class="text-xs text-white/70 truncate">N/A</span>
+              </div>
+              <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-sm text-primary">call</span>
+                <span id="detailPhone" class="text-xs text-white/70">N/A</span>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <h5 class="text-[10px] font-bold tracking-[0.3em] text-white/40 uppercase mb-4">Product of Interest</h5>
+            <div class="glass-panel p-4 rounded-xl border border-white/5">
+              <p id="detailProduct" class="text-xs text-primary font-bold tracking-wide uppercase italic">N/A</p>
+            </div>
+          </div>
+
+          <button onclick="archiveConversation()"
+            class="w-full py-3 border border-red-500/40 text-red-400 text-[10px] font-bold tracking-[0.2em] uppercase rounded-lg hover:bg-red-500 hover:text-white transition-all">
+            Archive Conversation
+          </button>
+        </div>
+      </aside>
+  </div>
+  </main>
   </div>
 
   <!-- Notification Panel (Fixed Position) -->
@@ -729,6 +767,27 @@
         chatPane.classList.add("invisible");
       }, 500);
       currentConversationId = null;
+    }
+
+    // Toggle Main Navigation Sidebar (Mobile)
+    function toggleMainSidebar() {
+      const sidebar = document.getElementById("mainSidebar");
+      sidebar.classList.toggle("mobile-active");
+
+      // Close sidebar if user clicks outside on mobile
+      if (sidebar.classList.contains("mobile-active")) {
+        const overlay = document.createElement("div");
+        overlay.id = "sidebar-overlay";
+        overlay.className = "fixed inset-0 bg-black/60 z-[90] lg:hidden";
+        overlay.onclick = () => {
+          sidebar.classList.remove("mobile-active");
+          overlay.remove();
+        };
+        document.body.appendChild(overlay);
+      } else {
+        const overlay = document.getElementById("sidebar-overlay");
+        if (overlay) overlay.remove();
+      }
     }
 
     // Toggle customer context sidebar
