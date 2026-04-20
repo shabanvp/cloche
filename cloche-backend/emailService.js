@@ -1,265 +1,153 @@
-const { google } = require("googleapis");
+const nodemailer = require("nodemailer");
 
 /**
- * Centralized email service for Cloche
- * Uses Gmail API directly (free, no SMTP timeouts, no cold start issues)
+ * CLOCHE Email Service (FINAL - SMTP VERSION)
+ * ✔ Real Gmail emails
+ * ✔ Stable (no OAuth issues)
  */
+
 const DEFAULT_BASE_URL = "https://cloche-backend.onrender.com";
+
 const BACKEND_BASE_URL = String(
   process.env.BACKEND_BASE_URL ||
   process.env.RENDER_EXTERNAL_URL ||
   DEFAULT_BASE_URL
-)
-  .trim()
-  .replace(/\/+$/, "");
+).trim().replace(/\/+$/, "");
+
 const FRONTEND_BASE_URL = String(
   process.env.FRONTEND_BASE_URL ||
   process.env.PUBLIC_BASE_URL ||
   BACKEND_BASE_URL ||
   DEFAULT_BASE_URL
-)
-  .trim()
-  .replace(/\/+$/, "");
+).trim().replace(/\/+$/, "");
 
+// ✅ Gmail SMTP credentials
 const GMAIL_USER = process.env.GMAIL_USER || "cloche.luxury@gmail.com";
-const GMAIL_CLIENT_ID = process.env.GMAIL_CLIENT_ID;
-const GMAIL_CLIENT_SECRET = process.env.GMAIL_CLIENT_SECRET;
-const GMAIL_REFRESH_TOKEN = process.env.GMAIL_REFRESH_TOKEN;
+const GMAIL_APP_PASSWORD = process.env.GMAIL_APP_PASSWORD;
 
-let gmail;
-let isSetup = false;
+// ✅ Create transporter
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: GMAIL_USER,
+    pass: GMAIL_APP_PASSWORD,
+  },
+});
 
-if (!GMAIL_CLIENT_ID || !GMAIL_CLIENT_SECRET || !GMAIL_REFRESH_TOKEN) {
-  console.warn("[EmailService] ⚠️ WARNING: Gmail OAuth credentials not set!");
-  console.warn("[EmailService] Entering DEVELOPMENT MODE: Emails will be logged to console only.");
-  isSetup = false; // Still allow service to "run" in mock mode
-} else {
-  console.log(`[EmailService] Configuring Gmail API for ${GMAIL_USER}`);
-
-  const oauth2Client = new google.auth.OAuth2(
-    GMAIL_CLIENT_ID,
-    GMAIL_CLIENT_SECRET,
-    "http://localhost:3000/oauth2callback" // Redirect URL (not used in refresh flow)
-  );
-
-  oauth2Client.setCredentials({
-    refresh_token: GMAIL_REFRESH_TOKEN
-  });
-
-  // Force token check on startup to catch errors early
-  oauth2Client.getAccessToken().then(() => {
-    console.log(`[EmailService] ✅ Gmail API authenticated for ${GMAIL_USER}`);
-    isSetup = true; // ✅ CORRECT
-  }).catch(err => {
-    console.error(`[EmailService] ❌ Gmail API Authentication failed: ${err.message}`);
-    isSetup = false;
-  });
-
-
-  gmail = google.gmail({ version: "v1", auth: oauth2Client });
-}
-
-const encodeMessage = (message) => {
-  return Buffer.from(message)
-    .toString("base64")
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=+$/, "");
-};
-
-const createEmailMessage = (to, subject, htmlBody) => {
-  const emailLines = [
-    `From: Cloche Luxury <${GMAIL_USER}>`,
-    `To: ${to}`,
-    "Content-Type: text/html; charset=UTF-8",
-    "MIME-Version: 1.0",
-    `Subject: ${subject}`,
-    "",
-    htmlBody
-  ];
-  return emailLines.join("\r\n");
-};
-
+// ===============================
+// ✅ SEND VERIFICATION EMAIL
+// ===============================
 const sendVerificationEmail = async (email, name, token, type) => {
-  if (!gmail || !isSetup) {
-  console.warn("[EmailService] Using fallback email service (Ethereal)");
-  return await sendTestEmail(email, name, token, type);
-}
-
-  const verificationUrl = `${BACKEND_BASE_URL}/api/auth/verify-email?token=${encodeURIComponent(String(token))}&type=${encodeURIComponent(String(type))}`;
+  const verificationUrl = `${BACKEND_BASE_URL}/api/auth/verify-email?token=${encodeURIComponent(
+    token
+  )}&type=${encodeURIComponent(type)}`;
 
   const htmlBody = `
-    <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px; border: 1px solid #c1a671; color: #0d0d0d; background-color: #faf7f2;">
-      <div style="text-align: center; margin-bottom: 30px;">
-        <h1 style="color: #c1a671; font-weight: 300; letter-spacing: 5px; margin: 0;">CLOCHE</h1>
-        <p style="font-size: 10px; text-transform: uppercase; letter-spacing: 3px; color: #888; margin-top: 10px;">Atelier of Elegance</p>
+    <div style="font-family: Arial; max-width: 600px; margin: auto; padding: 20px;">
+      <h2 style="color:#c1a671;">CLOCHE</h2>
+      <p>Hi <strong>${name}</strong>,</p>
+      <p>Welcome to Cloche Luxury.</p>
+      <p>Please verify your email to continue:</p>
+
+      <div style="margin:20px 0;">
+        <a href="${verificationUrl}" 
+           style="background:#c1a671;color:#fff;padding:12px 25px;text-decoration:none;border-radius:5px;">
+          Verify Account
+        </a>
       </div>
-      
-      <div style="line-height: 1.6; color: #333;">
-        <p style="font-size: 18px; margin-bottom: 20px;">Welcome to the ecosystem, <strong>${name}</strong>.</p>
-        <p>We are delighted to have you join Cloche Luxury. To complete your registration and begin your royal journey, please verify your email address by clicking the link below:</p>
-        
-        <div style="text-align: center; margin: 40px 0;">
-          <a href="${verificationUrl}" style="background-color: #c1a671; color: #fff; padding: 15px 30px; text-decoration: none; font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; border-radius: 4px;">Verify Account</a>
-        </div>
-        
-        <p style="font-size: 13px; color: #666;">If you did not request this account, you can safely ignore this email.</p>
-      </div>
-      
-      <div style="margin-top: 50px; border-top: 1px solid #eee; pt-20; text-align: center;">
-        <p style="font-size: 10px; color: #aaa; text-transform: uppercase; letter-spacing: 2px;">© 2024 CLOCHE LUXURY. ALL RIGHTS RESERVED.</p>
-      </div>
+
+      <p style="font-size:12px;color:#888;">
+        If you didn’t create this account, ignore this email.
+      </p>
     </div>
   `;
 
   try {
-    // If no gmail client (Development Mode), user Ethereal Test Service
-    if (!gmail) {
-      return await sendTestEmail(email, name, token, type);
-    }
-
-    // Explicitly refresh/get access token before sending
-    const auth = gmail.context._options.auth;
-    if (auth && typeof auth.getAccessToken === 'function') {
-      await auth.getAccessToken();
-    }
-
-    const rawMessage = createEmailMessage(email, "Verify Your Cloche Account", htmlBody);
-    const encodedMessage = encodeMessage(rawMessage);
-
-    const response = await gmail.users.messages.send({
-      userId: "me",
-      requestBody: {
-        raw: encodedMessage
-      }
-    });
-
-    console.log(`[EmailService] ✅ Verification email sent to ${email}. MessageId: ${response.data.id}`);
-    return { success: true, messageId: response?.data?.id };
-  } catch (error) {
-    console.error(`[EmailService] Gmail API Error for ${email}:`, error.message);
-
-    let friendlyMessage = `Email service error: ${error.message}`;
-    const status = error?.code || error?.response?.status;
-    const rawMsg = String(error?.message || "");
-    if (status === 401 || rawMsg.includes("401")) friendlyMessage = "Authentication failed. Check Gmail OAuth credentials.";
-    if (status === 403 || rawMsg.includes("403")) friendlyMessage = "Permission denied. Check Gmail API scope/permissions and the refresh token.";
-    if (rawMsg.toLowerCase().includes("timeout")) friendlyMessage = "Request timeout. Try again.";
-
-    return { success: false, error: friendlyMessage, raw: rawMsg, status };
-  }
-};
-
-// Professional SMTP Fallback (for testing when Gmail is not configured)
-const sendTestEmail = async (email, name, verificationToken, type) => {
-  try {
-    const nodemailer = require("nodemailer");
-    const testAccount = await nodemailer.createTestAccount();
-    const transporter = nodemailer.createTransport({
-      host: "smtp.ethereal.email",
-      port: 587,
-      secure: false,
-      auth: { user: testAccount.user, pass: testAccount.pass },
-    });
-
-    const verificationUrl = `${FRONTEND_BASE_URL}/api/auth/verify-email?token=${encodeURIComponent(String(verificationToken))}&type=${type}`;
-    const info = await transporter.sendMail({
-      from: '"Cloche Luxury" <cloche.luxury@gmail.com>',
+    await transporter.sendMail({
+      from: `"Cloche Luxury" <${GMAIL_USER}>`,
       to: email,
       subject: "Verify Your Cloche Account",
-      html: `
-        <div style="font-family: 'Noto Sans', sans-serif; max-width: 600px; margin: 0 auto; background-color: #0d0d0d; color: #ffffff; padding: 40px; border: 1px solid #c1a671;">
-          <h1 style="color: #c1a671; font-family: 'Noto Serif', serif; text-align: center;">CLOCHE</h1>
-          <p>Dear ${name},</p>
-          <p>To ensure the credibility of our luxury circle, please verify your account at ${email}.</p>
-          <div style="text-align: center; margin: 30px 0;">
-            <a href="${verificationUrl}" style="background-color: #c1a671; color: #0d0d0d; padding: 15px 30px; text-decoration: none; font-weight: bold; border-radius: 5px;">VERIFY ACCOUNT</a>
-          </div>
-          <p style="font-size: 12px; color: #666; text-align: center;">If you didn't request this, please ignore this email.</p>
-        </div>
-      `,
+      html: htmlBody,
     });
 
-    console.log("=========================================================");
-    console.log(`[EmailService] ✉️  TEST EMAIL SENT via Ethereal`);
-    console.log(`[EmailService] 👉 View Inbox: ${nodemailer.getTestMessageUrl(info)}`);
-    console.log("=========================================================");
-
-    return {
-      success: true,
-      messageId: info.messageId,
-      isTest: true,
-      testUrl: nodemailer.getTestMessageUrl(info)
-    };
-  } catch (err) {
-    console.error("[EmailService] Ethereal Fallback Failed:", err.message);
-    return { success: false, error: "Test email service failed." };
-  }
-};
-
-const sendEnquiryNotificationEmail = async (boutiqueEmail, boutiqueName, enquiry) => {
-  if (!gmail || !isSetup) {
-  console.warn("[EmailService] Using fallback email service (Ethereal)");
-  return { success: true, message: "Fallback mode (no real email sent)" };
-}
-
-  const htmlBody = `
-    <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px; border: 1px solid #c1a671; color: #0d0d0d; background-color: #faf7f2;">
-      <div style="text-align: center; margin-bottom: 30px;">
-        <h1 style="color: #c1a671; font-weight: 300; letter-spacing: 5px; margin: 0;">CLOCHE</h1>
-        <p style="font-size: 10px; text-transform: uppercase; letter-spacing: 3px; color: #888; margin-top: 10px;">New Exclusive Opportunity</p>
-      </div>
-      
-      <div style="line-height: 1.6; color: #333;">
-        <p style="font-size: 18px; margin-bottom: 20px;">Greetings, <strong>${boutiqueName}</strong>.</p>
-        <p>An exclusive enquiry has been matched to your boutique. Here are the details of the royal requirement:</p>
-        
-        <div style="background-color: #fff; padding: 25px; border-left: 3px solid #c1a671; margin: 30px 0;">
-          <p style="margin: 5px 0;"><strong>Customer:</strong> ${enquiry.name || "Valued Client"}</p>
-          <p style="margin: 5px 0;"><strong>Date:</strong> ${enquiry.wedding_date || "To be decided"}</p>
-          <p style="margin: 5px 0;"><strong>Requirement:</strong> ${enquiry.requirement || "General Luxury Services"}</p>
-          ${enquiry.special_requirement ? `<p style="margin: 5px 0;"><strong>Special Notes:</strong> ${enquiry.special_requirement}</p>` : ""}
-        </div>
-        
-        <p>Please log in to your Cloche Partner Dashboard to view the full contact details and claim this lead.</p>
-        
-        <div style="text-align: center; margin: 40px 0;">
-          <a href="${FRONTEND_BASE_URL}/boutiquelogin.html" style="background-color: #c1a671; color: #fff; padding: 15px 30px; text-decoration: none; font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; border-radius: 4px;">Open Dashboard</a>
-        </div>
-      </div>
-      
-      <div style="margin-top: 50px; border-top: 1px solid #eee; pt-20; text-align: center;">
-        <p style="font-size: 10px; color: #aaa; text-transform: uppercase; letter-spacing: 2px;">© 2024 CLOCHE LUXURY. CONFIDENTIAL PARTNER COMMUNICATION.</p>
-      </div>
-    </div>
-  `;
-
-  try {
-    const rawMessage = createEmailMessage(boutiqueEmail, "New Luxury Enquiry Matched", htmlBody);
-    const encodedMessage = encodeMessage(rawMessage);
-
-    const response = await gmail.users.messages.send({
-      userId: "me",
-      requestBody: {
-        raw: encodedMessage
-      }
-    });
-
-    console.log(`[EmailService] ✅ Lead notification sent to ${boutiqueEmail}.`);
-    return { success: true, messageId: response.data.id };
+    console.log(`✅ Verification email sent to ${email}`);
+    return { success: true };
   } catch (error) {
-    console.error(`[EmailService] Lead notification failed for ${boutiqueEmail}:`, error.message);
+    console.error("❌ SMTP Error:", error.message);
     return { success: false, error: error.message };
   }
 };
 
+// ===============================
+// ✅ RESEND VERIFICATION EMAIL
+// ===============================
+const resendVerificationEmail = async (user) => {
+  try {
+    const token = user.verification_token;
+
+    return await sendVerificationEmail(
+      user.email,
+      user.name,
+      token,
+      "user"
+    );
+  } catch (error) {
+    console.error("❌ Resend Email Error:", error.message);
+    return { success: false, error: error.message };
+  }
+};
+
+// ===============================
+// ✅ SEND LEAD / ENQUIRY EMAIL
+// ===============================
+const sendEnquiryNotificationEmail = async (
+  boutiqueEmail,
+  boutiqueName,
+  enquiry
+) => {
+  const htmlBody = `
+    <div style="font-family: Arial; max-width: 600px; margin: auto; padding: 20px;">
+      <h2 style="color:#c1a671;">New Lead Received</h2>
+
+      <p>Hello <strong>${boutiqueName}</strong>,</p>
+      <p>You received a new enquiry:</p>
+
+      <ul>
+        <li><strong>Name:</strong> ${enquiry.name || "Client"}</li>
+        <li><strong>Date:</strong> ${enquiry.wedding_date || "N/A"}</li>
+        <li><strong>Requirement:</strong> ${enquiry.requirement || "N/A"}</li>
+      </ul>
+
+      <div style="margin-top:20px;">
+        <a href="${FRONTEND_BASE_URL}/boutiquelogin.html"
+           style="background:#c1a671;color:#fff;padding:10px 20px;text-decoration:none;border-radius:5px;">
+          Open Dashboard
+        </a>
+      </div>
+    </div>
+  `;
+
+  try {
+    await transporter.sendMail({
+      from: `"Cloche Luxury" <${GMAIL_USER}>`,
+      to: boutiqueEmail,
+      subject: "New Lead Received",
+      html: htmlBody,
+    });
+
+    console.log(`✅ Lead email sent to ${boutiqueEmail}`);
+    return { success: true };
+  } catch (error) {
+    console.error("❌ SMTP Error:", error.message);
+    return { success: false, error: error.message };
+  }
+};
+
+// ===============================
+// ✅ EXPORTS
+// ===============================
 module.exports = {
   sendVerificationEmail,
+  resendVerificationEmail,
   sendEnquiryNotificationEmail,
-  getEmailServiceStatus: () => ({
-    configured: Boolean(isSetup),
-    gmailUser: GMAIL_USER,
-    backendBaseUrl: BACKEND_BASE_URL,
-    frontendBaseUrl: FRONTEND_BASE_URL
-  })
 };

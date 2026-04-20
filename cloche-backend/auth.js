@@ -230,9 +230,9 @@ router.post("/signup", showcaseUpload.single("image"), async (req, res) => {
       const passwordHash = await bcrypt.hash(password, 10);
       const verificationToken = uuidv4();
 
-      const normalizedLocation = normalizeLocationFields({ 
-        area: area || null, 
-        district: district || null, 
+      const normalizedLocation = normalizeLocationFields({
+        area: area || null,
+        district: district || null,
         city: city || (area && district ? `${area}, ${district}` : null)
       });
       const basePayload = {
@@ -418,8 +418,11 @@ router.get("/verify-email", async (req, res) => {
     }
 
     // Redirect to login page with success status (same page for both user and partner)
-    const redirectUrl = `${FRONTEND_BASE_URL}/boutiquelogin.html?status=verified&verified=true&type=${encodeURIComponent(type)}`;
-    return res.redirect(redirectUrl);
+    if (type === "partner") {
+      return res.redirect(`${FRONTEND_BASE_URL}/boutiquelogin.html?verified=true`);
+    } else {
+      return res.redirect(`${FRONTEND_BASE_URL}/login.html?verified=true`);
+    }
   } catch (err) {
     return res.status(500).send("Server error during verification");
   }
