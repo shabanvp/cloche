@@ -45,6 +45,17 @@
   <style>
     @media (max-width: 768px) {
 
+      /* [OVERRIDE] Global Responsive Conflicts */
+      .mobile-topbar,
+      .mobile-bottom-nav {
+        display: none !important;
+      }
+
+      body.has-mobile-bars {
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+      }
+
       /* Hide redundant heading on mobile */
       .lg\:block.hidden,
       .hidden.lg\:block {
@@ -55,18 +66,27 @@
         padding: 0 !important;
       }
 
+      /* Essential Mobile Header Styling */
+      header.lg\:hidden {
+        background: #0d0d0d !important;
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 50 !important;
+      }
+
+      /* Restore & Calibrate Search */
       .search-bar-gold {
-        margin: 1rem !important;
-        /* Bring to top and side space */
-        padding: 0.65rem 1rem !important;
-        border-radius: 12px !important;
+        margin: 0.75rem 1rem !important;
+        padding: 0.6rem 1rem !important;
+        border-radius: 10px !important;
         background: rgba(212, 175, 55, 0.05) !important;
         display: flex !important;
-        /* Force visibility */
+        visibility: visible !important;
+        opacity: 1 !important;
       }
 
       .search-bar-gold span {
-        font-size: 1.25rem !important;
+        font-size: 1.15rem !important;
       }
 
       .search-bar-gold input {
@@ -75,16 +95,17 @@
 
       /* Filter tabs row */
       .flex.gap-4.overflow-x-auto {
-        padding: 0 1rem 0.75rem 1rem !important;
+        padding: 0 1rem 0.5rem 1rem !important;
         display: flex !important;
-        /* Force visibility */
+        visibility: visible !important;
         margin-bottom: 0 !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
       }
 
       .filter-btn {
-        padding: 0.4rem 1rem !important;
-        font-size: 10px !important;
-        border-radius: 8px !important;
+        padding: 0.4rem 0.85rem !important;
+        font-size: 9px !important;
+        border-radius: 6px !important;
       }
 
       /* Compact Chat List */
@@ -101,6 +122,7 @@
       #conversationsList {
         padding: 0 !important;
         margin-top: 0 !important;
+        display: block !important;
       }
 
       #mainSidebar.mobile-active {
