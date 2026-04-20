@@ -93,72 +93,144 @@
       -ms-overflow-style: none;
       scrollbar-width: none;
     }
+
+    @media (max-width: 768px) {
+
+      /* Mobile chat focus slide-in focus mode */
+      #chatPane {
+        position: fixed !important;
+        inset: 0 !important;
+        z-index: 60 !important;
+        transform: translateX(100%);
+        transition: transform 0.3s ease-out;
+        background: #0d0d0d !important;
+        display: flex !important;
+        visibility: hidden;
+      }
+
+      #chatPane.active {
+        transform: translateX(0);
+        visibility: visible;
+      }
+
+      /* Compact Header for mobile */
+      nav.fixed {
+        height: 64px !important;
+      }
+
+      main {
+        padding-top: 64px !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        height: calc(100vh - 64px) !important;
+      }
+
+      .grid-cols-[480px_1fr] {
+        grid-template-columns: 1fr !important;
+      }
+
+      .search-bar-gold {
+        margin-bottom: 0.75rem !important;
+      }
+
+      .chat-item {
+        padding: 0.75rem 1rem !important;
+      }
+
+      .avatar-gold {
+        width: 3.25rem !important;
+        height: 3.25rem !important;
+      }
+    }
   </style>
   <link rel='stylesheet' href='responsive-fixes.css?v=1776237132140' />
 </head>
 
-<body class="bg-background-dark text-white min-h-screen">
-  <nav class="fixed top-0 w-full z-50 glass-card border-b border-primary/20">
-    <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+<body class="bg-background-dark text-white min-h-screen overflow-hidden">
+  <nav class="fixed top-0 w-full z-50 glass-card border-b border-primary/20 bg-background-dark/95">
+    <div class="max-w-7xl mx-auto px-4 md:px-6 h-16 md:h-20 flex items-center justify-between">
       <a href="index.html" class="flex items-center gap-2">
-        <span class="material-symbols-outlined text-primary text-3xl">diamond</span>
-        <span class="text-2xl font-bold tracking-[0.2em] font-display">CLOCHE</span>
+        <span class="material-symbols-outlined text-primary text-2xl md:text-3xl">diamond</span>
+        <span class="text-xl md:text-2xl font-bold md:tracking-[0.2em] font-display">CLOCHE</span>
       </a>
-      <div class="flex items-center gap-4">
+      <div class="flex items-center gap-3">
         <a id="profileLink" href="userprofile.html"
-          class="text-xs uppercase tracking-widest text-white/80 hover:text-primary transition-colors">Profile</a>
+          class="text-[10px] md:text-xs uppercase tracking-widest text-white/60 hover:text-primary transition-colors">Profile</a>
         <button id="logoutBtn"
-          class="h-10 px-4 rounded-full border border-primary/40 text-primary text-xs uppercase tracking-wider font-semibold hover:bg-primary hover:text-black transition-all">Logout</button>
+          class="h-8 md:h-10 px-3 md:px-5 rounded-full border border-primary/30 text-primary text-[10px] md:text-xs uppercase tracking-wider font-bold hover:bg-primary hover:text-black transition-all">Logout</button>
       </div>
     </div>
   </nav>
 
-  <main class="pt-24 px-6 pb-8 max-w-7xl mx-auto h-[calc(100vh-96px)]">
-    <div class="grid grid-cols-1 lg:grid-cols-[480px_1fr] gap-6 h-full">
-      <section class="glass-card rounded-xl overflow-hidden flex flex-col">
-        <!-- New Search Header (Inspired by Right Image) -->
+  <main class="pt-20 md:pt-24 md:px-6 pb-4 md:pb-8 max-w-7xl mx-auto h-[calc(100vh-80px)] md:h-[calc(100vh-96px)]">
+    <div class="grid grid-cols-1 lg:grid-cols-[400px_1fr] gap-6 h-full">
+      <section id="inboxPane"
+        class="glass-card rounded-xl md:rounded-2xl overflow-hidden flex flex-col bg-background-dark/40">
+        <!-- New Search Header -->
         <div class="px-5 pt-6 pb-4 border-b border-white/5 bg-black/20">
           <div class="search-bar-gold flex items-center gap-2 px-4 py-2.5 mb-4">
             <span class="material-symbols-outlined text-primary/60 text-lg">search</span>
             <input id="searchInput"
               class="bg-transparent border-none focus:ring-0 text-sm w-full placeholder:text-white/20 font-premium-sans"
-              placeholder="Search" type="text" oninput="renderConversationList()" />
+              placeholder="Search conversations..." type="text" oninput="renderConversationList()" />
           </div>
           <div class="flex items-center justify-between">
-            <h2 class="text-[10px] uppercase tracking-[0.25em] text-primary font-bold">Your Consultations</h2>
-            <span class="text-[10px] text-white/30 uppercase tracking-widest">Live</span>
+            <h2 class="text-[10px] uppercase tracking-[0.25em] text-primary font-bold">Your Enquiries</h2>
+            <div class="flex items-center gap-1.5">
+              <span class="size-1.5 bg-primary rounded-full animate-pulse"></span>
+              <span class="text-[10px] text-white/30 uppercase tracking-widest">Connected</span>
+            </div>
           </div>
         </div>
         <div id="conversationList" class="flex-1 overflow-y-auto custom-scrollbar">
-          <div class="p-10 text-white/20 text-center uppercase tracking-widest text-[10px] space-y-4">
-            <span class="material-symbols-outlined text-3xl animate-pulse">forum</span>
-            <p>Syncing messages...</p>
+          <div class="p-10 text-white/10 text-center uppercase tracking-widest text-[10px] space-y-4">
+            <span class="material-symbols-outlined text-4xl animate-pulse">sync</span>
+            <p class="font-display italic">Syncing luxury consultations...</p>
           </div>
         </div>
       </section>
 
-      <section class="glass-card rounded-xl overflow-hidden flex flex-col">
-        <div id="chatHeader" class="px-6 py-5 border-b border-white/10 hidden">
-          <p id="chatBoutique" class="font-display text-2xl uppercase">Boutique</p>
-          <p id="chatContext" class="text-xs uppercase tracking-[0.16em] text-primary/80 mt-1">Product enquiry</p>
-          <p class="text-[11px] uppercase tracking-[0.12em] text-white/40 mt-2">Messages are synced in real time.
-            End-to-end encryption requires dedicated key management and is not enabled in this demo.</p>
+      <section id="chatPane" class="glass-card md:rounded-2xl overflow-hidden flex flex-col bg-background-dark">
+        <div id="chatDefault"
+          class="h-full flex flex-col items-center justify-center text-white/20 text-center p-10 space-y-4">
+          <span class="material-symbols-outlined text-6xl opacity-10">chat_bubble</span>
+          <p class="font-premium-display text-sm tracking-widest uppercase">Select an enquiry to start chatting</p>
         </div>
 
-        <div id="messagesArea" class="flex-1 overflow-y-auto p-6 custom-scrollbar">
-          <div class="h-full flex items-center justify-center text-white/30 text-sm">Select a conversation to start
-            chatting.</div>
-        </div>
-
-        <div id="composer" class="p-4 border-t border-white/10 hidden">
-          <div class="flex items-end gap-3 bg-surface-dark/70 border border-white/10 rounded-xl p-3">
-            <textarea id="messageInput"
-              class="flex-1 bg-transparent border-none focus:ring-0 text-sm resize-none max-h-28 placeholder:text-white/30"
-              placeholder="Type your message..."></textarea>
-            <button id="sendBtn"
-              class="h-10 w-10 rounded-lg bg-primary text-black flex items-center justify-center hover:brightness-110 transition-all">
-              <span class="material-symbols-outlined">send</span>
+        <div id="activeChat" class="hidden flex-1 flex flex-col min-h-0">
+          <div id="chatHeader"
+            class="px-4 md:px-6 py-4 md:py-5 border-b border-white/10 bg-black/30 flex items-center gap-4">
+            <button onclick="closeChat()"
+              class="lg:hidden p-2 -ml-2 text-white/50 hover:text-primary transition-colors">
+              <span class="material-symbols-outlined">arrow_back</span>
             </button>
+            <div class="flex-1 overflow-hidden">
+              <p id="chatBoutique"
+                class="font-display text-lg md:text-2xl uppercase tracking-wider text-primary truncate">Boutique</p>
+              <p id="chatContext"
+                class="text-[9px] md:text-xs uppercase tracking-[0.16em] text-white/40 mt-0.5 truncate">Product enquiry
+              </p>
+            </div>
+            <div class="size-2 bg-green-500 rounded-full shadow-[0_0_8px_rgba(34,197,94,0.4)]"></div>
+          </div>
+
+          <div id="messagesArea" class="flex-1 overflow-y-auto p-4 md:p-6 custom-scrollbar bg-black/5">
+            <!-- Messages render here -->
+          </div>
+
+          <div id="composer" class="p-4 border-t border-white/10 bg-black/20">
+            <div
+              class="flex items-end gap-3 bg-white/5 border border-white/10 rounded-2xl p-3 focus-within:border-primary/50 transition-all">
+              <textarea id="messageInput"
+                class="flex-1 bg-transparent border-none focus:ring-0 text-sm resize-none max-h-32 placeholder:text-white/20 custom-scrollbar py-1"
+                placeholder="Type your message..." rows="1"></textarea>
+              <button id="sendBtn"
+                class="h-10 w-10 text-xl font-bold rounded-xl bg-primary text-black flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-lg">
+                <span class="material-symbols-outlined">send</span>
+              </button>
+            </div>
+            <p class="text-[9px] text-white/20 uppercase tracking-widest mt-3 text-center">Your boutiques will be
+              notified instantly</p>
           </div>
         </div>
       </section>
@@ -255,25 +327,21 @@
         conversations = Array.isArray(data) ? data : [];
         renderConversationList();
 
-        if (!activeConversationId && conversations.length) {
-          activeConversationId = conversations[0].id;
-        }
-
         if (activeConversationId) {
           const exists = conversations.some(c => Number(c.id) === Number(activeConversationId));
           if (exists) {
-            openConversation(activeConversationId);
+            openConversation(activeConversationId, true);
           }
         }
       } catch (err) {
-        document.getElementById("conversationList").innerHTML = `<div class="p-5 text-red-300 text-sm">${escapeHtml(err.message)}</div>`;
+        document.getElementById("conversationList").innerHTML = `<div class="p-5 text-red-300/60 text-[10px] tracking-wider uppercase text-center">${escapeHtml(err.message)}</div>`;
       }
     }
 
     function renderConversationList() {
       const list = document.getElementById("conversationList");
       if (!conversations.length) {
-        list.innerHTML = `<div class="p-10 text-white/20 text-center uppercase tracking-widest text-[10px]">No active chats</div>`;
+        list.innerHTML = `<div class="p-10 text-white/20 text-center uppercase tracking-widest text-[10px]">No enquiries yet</div>`;
         return;
       }
 
@@ -288,11 +356,11 @@
 
           return `
             <div 
-              class="chat-item p-5 cursor-pointer flex items-center gap-4 ${active ? "active" : ""}"
+              class="chat-item p-4 md:p-5 cursor-pointer flex items-center gap-4 ${active ? "active" : ""}"
               onclick="openConversation(${c.id})"
             >
               <!-- Avatar Area -->
-              <div class="avatar-gold size-14 flex-shrink-0">
+              <div class="avatar-gold size-12 md:size-14 flex-shrink-0">
                 <div class="w-full h-full rounded-full bg-surface-dark flex items-center justify-center text-primary font-bold text-lg">
                   ${initial}
                 </div>
@@ -301,11 +369,11 @@
               <!-- Message Details -->
               <div class="flex-1 min-w-0">
                 <div class="flex justify-between items-baseline mb-1">
-                  <h3 class="font-premium-display text-sm font-bold text-white tracking-wider truncate">${name}</h3>
-                  <span class="text-[10px] text-white/40 font-medium">${timeLabel(c.last_message_time)}</span>
+                  <h3 class="font-premium-display text-[13px] md:text-sm font-bold text-white tracking-wider truncate">${name}</h3>
+                  <span class="text-[9px] md:text-[10px] text-white/30 font-medium ml-2">${timeLabel(c.last_message_time)}</span>
                 </div>
                 <div class="flex items-center justify-between">
-                  <p class="text-xs text-white/50 line-clamp-1 font-premium-sans">${escapeHtml(c.last_message || "No messages yet")}</p>
+                  <p class="text-[11px] md:text-xs text-white/50 line-clamp-1 font-premium-sans">${escapeHtml(c.last_message || "Product Enquiry Started")}</p>
                   ${Number(c.unread_count) > 0 ? `
                     <span class="size-2 bg-primary rounded-full shadow-[0_0_10px_rgba(193,166,113,0.5)]"></span>
                   ` : ""}
@@ -316,16 +384,26 @@
         }).join("");
     }
 
-    async function openConversation(conversationId) {
+    function closeChat() {
+      document.getElementById("chatPane").classList.remove("active");
+      activeConversationId = null;
+      renderConversationList();
+    }
+
+    async function openConversation(conversationId, quiet = false) {
       activeConversationId = Number(conversationId);
+      if (!quiet) {
+        document.getElementById("chatPane").classList.add("active");
+      }
+
       renderConversationList();
 
       const convo = conversations.find(c => Number(c.id) === Number(conversationId));
       if (convo) {
-        document.getElementById("chatHeader").classList.remove("hidden");
-        document.getElementById("composer").classList.remove("hidden");
+        document.getElementById("chatDefault").classList.add("hidden");
+        document.getElementById("activeChat").classList.remove("hidden");
         document.getElementById("chatBoutique").textContent = String(convo.boutique_name || "BOUTIQUE").toUpperCase();
-        document.getElementById("chatContext").textContent = String(convo.product_name || "General enquiry").toUpperCase();
+        document.getElementById("chatContext").textContent = String(convo.product_name || "General Enquiry").toUpperCase();
       }
 
       try {
@@ -334,24 +412,24 @@
         if (!res.ok) throw new Error(msgs.message || "Failed to load messages");
         renderMessages(Array.isArray(msgs) ? msgs : []);
       } catch (err) {
-        document.getElementById("messagesArea").innerHTML = `<div class="text-red-300 text-sm">${escapeHtml(err.message)}</div>`;
+        document.getElementById("messagesArea").innerHTML = `<div class="p-10 text-red-300 text-xs text-center uppercase tracking-widest">${escapeHtml(err.message)}</div>`;
       }
     }
 
     function renderMessages(messages) {
       const area = document.getElementById("messagesArea");
       if (!messages.length) {
-        area.innerHTML = `<div class="h-full flex items-center justify-center text-white/30 text-sm">Start your conversation with the boutique.</div>`;
+        area.innerHTML = `<div class="h-full flex items-center justify-center text-white/20 text-[10px] uppercase tracking-[0.2em] italic">No messages in this enquiry yet</div>`;
         return;
       }
 
       area.innerHTML = messages.map(m => {
         const isUser = m.sender_type === "customer";
         return `
-          <div class="mb-4 flex ${isUser ? "justify-end" : "justify-start"}">
-            <div class="max-w-[78%] ${isUser ? "bg-primary/10 border-primary/35 text-primary" : "bg-white/5 border-white/10 text-white/90"} border rounded-xl px-4 py-3">
-              <p class="text-sm leading-relaxed">${escapeHtml(m.message_text)}</p>
-              <p class="text-[10px] mt-2 ${isUser ? "text-primary/60" : "text-white/40"} text-right">${timeLabel(m.created_at)}</p>
+          <div class="mb-5 flex ${isUser ? "justify-end" : "justify-start"}">
+            <div class="max-w-[85%] md:max-w-[78%] ${isUser ? "bg-primary/10 border-primary/25 text-primary" : "bg-white/5 border-white/10 text-white/90"} border rounded-2xl px-4 py-3 shadow-sm">
+              <p class="text-[13px] md:text-sm leading-relaxed">${escapeHtml(m.message_text)}</p>
+              <p class="text-[9px] mt-2 ${isUser ? "text-primary/60" : "text-white/30"} text-right font-medium">${timeLabel(m.created_at)}</p>
             </div>
           </div>
         `;
@@ -378,7 +456,7 @@
         const data = await readJsonSafe(res);
         if (!res.ok) throw new Error(data.message || "Failed to send message");
         input.value = "";
-        await openConversation(activeConversationId);
+        await openConversation(activeConversationId, true);
         await loadConversations();
       } catch (err) {
         alert(err.message || "Failed to send message");
@@ -409,14 +487,6 @@
       }
     });
 
-    document.getElementById("logoutBtn").addEventListener("click", () => {
-      localStorage.removeItem("isUserLoggedIn");
-      localStorage.removeItem("userId");
-      localStorage.removeItem("userName");
-      localStorage.removeItem("userEmail");
-      window.location.href = "index.html";
-    });
-
     document.addEventListener("DOMContentLoaded", async () => {
       await hydrateUserIfNeeded();
       userEmail = localStorage.getItem("userEmail") || userEmail;
@@ -431,5 +501,7 @@
   </script>
   <script src='responsive-layout.js?v=1776237132140'></script>
 </body>
+
+</html>
 
 </html>
