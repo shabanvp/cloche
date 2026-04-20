@@ -37,10 +37,10 @@
   function setupGlobalMobileBars() {
     if (!isMobile()) return;
 
-	    const body = document.body;
-	    if (!body) return;
-	    body.classList.add(resolveCurrentRouteClass());
-	    body.classList.add("has-mobile-bars");
+    const body = document.body;
+    if (!body) return;
+    body.classList.add(resolveCurrentRouteClass());
+    body.classList.add("has-mobile-bars");
 
     const profileHref = resolveProfileLink();
     const partnerLoggedIn = localStorage.getItem("isLoggedIn") === "true";
@@ -96,10 +96,10 @@
         </a>
       `;
 
-	      const isLoggedInNow = partnerLoggedIn || userLoggedIn;
-	      const loginProfileText = isLoggedInNow ? "Logout" : "Login / Profile";
-	      const loginProfileLink = isLoggedInNow ? "#" : profileHref;
-	      const loginOnClick = isLoggedInNow ? "window.logout(); return false;" : "";
+      const isLoggedInNow = partnerLoggedIn || userLoggedIn;
+      const loginProfileText = isLoggedInNow ? "Logout" : "Login / Profile";
+      const loginProfileLink = isLoggedInNow ? "#" : profileHref;
+      const loginOnClick = isLoggedInNow ? "window.logout(); return false;" : "";
 
       sideMenu.innerHTML = `
         <div class="side-menu-header">
@@ -126,6 +126,20 @@
           <a href="messageboutique.html" class="side-menu-link">
             <span class="material-symbols-outlined">chat</span>
             <span>Enquire</span>
+          </a>
+          ` : ""}
+
+          ${userLoggedIn ? `
+          <a href="userprofile.html" class="side-menu-link">
+            <span class="material-symbols-outlined">person</span>
+            <span>User Profile</span>
+          </a>
+          ` : ""}
+
+          ${partnerLoggedIn ? `
+          <a href="profile.html" class="side-menu-link">
+            <span class="material-symbols-outlined">person</span>
+            <span>Boutique Profile</span>
           </a>
           ` : ""}
           
@@ -177,14 +191,14 @@
     if (cBtn) cBtn.onclick = closeMenuFunc;
     if (overlay) overlay.onclick = closeMenuFunc;
 
-	    // Close menu on link or category click (without overriding existing onclick handlers like Logout)
-	    sideMenu.querySelectorAll("a, .side-menu-category").forEach((el) => {
-	      if (el.dataset.mobileCloseMenuBound === "true") return;
-	      el.dataset.mobileCloseMenuBound = "true";
-	      el.addEventListener("click", () => {
-	        closeMenuFunc();
-	      });
-	    });
+    // Close menu on link or category click (without overriding existing onclick handlers like Logout)
+    sideMenu.querySelectorAll("a, .side-menu-category").forEach((el) => {
+      if (el.dataset.mobileCloseMenuBound === "true") return;
+      el.dataset.mobileCloseMenuBound = "true";
+      el.addEventListener("click", () => {
+        closeMenuFunc();
+      });
+    });
 
     // --- Global Click-Outside Handler for <details> Dropdowns ---
     window.addEventListener("click", (e) => {

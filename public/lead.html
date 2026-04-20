@@ -150,34 +150,36 @@
           <span class="text-sm font-medium tracking-wide">Subscription</span>
         </a>
 
-        <!-- Settings -->
+        <!-- Profile -->
         <a class="flex items-center gap-4 px-4 py-3 text-slate-400 hover:text-primary transition-colors group"
           href="profile.html">
-          <span class="material-symbols-outlined">settings</span>
-          <span class="text-sm font-medium tracking-wide">Settings</span>
+          <span class="material-symbols-outlined">person</span>
+          <span class="text-sm font-medium tracking-wide">Profile</span>
         </a>
-
       </nav>
 
       <!-- Profile Card -->
       <div class="shrink-0 p-4">
-        <div class="glass-panel rounded-xl p-4 flex items-center gap-4 border border-primary/20">
+        <a href="profile.html"
+          class="glass-card rounded-xl p-4 flex items-center gap-4 border border-primary/20 hover:border-primary/50 transition-all group block">
           <!-- Avatar -->
           <div id="avatarCircle"
-            class="w-12 h-12 rounded-full bg-primary/90 text-background-dark flex items-center justify-center font-display font-bold text-xl shadow-md shrink-0">
+            class="w-12 h-12 rounded-full bg-primary/90 text-background-dark
+           flex items-center justify-center font-display font-bold text-xl shadow-md shrink-0 group-hover:scale-105 transition-transform">
             S
           </div>
 
           <!-- Name + Boutique -->
           <div class="flex-1 overflow-hidden">
-            <p id="ownerName" class="text-sm font-semibold text-white leading-tight truncate">
+            <p id="ownerName"
+              class="text-sm font-semibold text-white leading-tight truncate group-hover:text-primary transition-colors">
               Owner Name
             </p>
             <p id="sidebarBoutiqueName" class="text-[11px] uppercase tracking-widest text-primary/80 truncate">
               Boutique Name
             </p>
           </div>
-        </div>
+        </a>
 
         <!-- Divider -->
         <div class="my-4 h-px bg-primary/10"></div>
