@@ -262,9 +262,9 @@
         <!-- Main Inbox Panel (Full Width next to Sidebar) -->
         <section id="inboxPanel" class="flex-1 flex flex-col bg-background-dark h-full relative z-10">
           <!-- Premium Brand Header -->
-          <div class="px-8 pt-10 pb-6 bg-background-dark/80 backdrop-blur-xl">
-            <h2 class="text-[#D4AF37] text-3xl font-bold tracking-[0.3em] uppercase mb-8 text-center lg:text-left">
-              CLOCHE</h2>
+          <div class="px-8 pt-12 pb-6 bg-background-dark/80 backdrop-blur-xl">
+            <h2 class="text-[#D4AF37] text-4xl font-bold tracking-[0.5em] uppercase mb-12 text-center w-full">CLOCHE
+            </h2>
 
             <!-- Full Width Search Hub -->
             <div
@@ -277,11 +277,14 @@
 
             <div class="flex gap-4 overflow-x-auto no-scrollbar border-b border-white/5 pb-4">
               <button onclick="filterConversations('active')"
-                class="filter-btn px-6 py-2.5 rounded-full bg-[#D4AF37]/10 text-[#D4AF37] border border-[#D4AF37]/30 text-[12px] font-bold tracking-[0.2em] whitespace-nowrap uppercase transition-all shadow-lg shadow-[#D4AF37]/5"
-                data-filter="active">All Consultations</button>
+                class="filter-btn px-8 py-2.5 rounded-full bg-[#D4AF37] text-black border border-[#D4AF37] text-[12px] font-bold tracking-[0.2em] whitespace-nowrap uppercase transition-all shadow-lg"
+                data-filter="active">All</button>
               <button onclick="filterConversations('unread')"
-                class="filter-btn px-6 py-2.5 rounded-full bg-transparent text-white/30 border border-transparent text-[12px] font-bold tracking-[0.2em] whitespace-nowrap uppercase hover:text-white transition-all"
+                class="filter-btn px-8 py-2.5 rounded-full bg-[#D4AF37]/20 text-[#D4AF37] border border-[#D4AF37]/30 text-[12px] font-bold tracking-[0.2em] whitespace-nowrap uppercase hover:bg-[#D4AF37]/40 transition-all"
                 data-filter="unread">Unread</button>
+              <button onclick="filterConversations('archived')"
+                class="filter-btn px-8 py-2.5 rounded-full bg-[#D4AF37]/20 text-[#D4AF37] border border-[#D4AF37]/30 text-[12px] font-bold tracking-[0.2em] whitespace-nowrap uppercase hover:bg-[#D4AF37]/40 transition-all"
+                data-filter="archived">Archived</button>
             </div>
           </div>
 
@@ -851,23 +854,27 @@
     function filterConversations(filter) {
       currentFilter = filter;
 
-      // Update button styles
+      // Update button styles (Light Yellow to Dark Yellow logic)
       document.querySelectorAll(".filter-btn").forEach(btn => {
         if (btn.dataset.filter === filter) {
-          btn.classList.remove("bg-white/5", "text-white/60");
-          btn.classList.add("bg-primary", "text-background-dark");
+          // Active: Darker/Solid Yellow
+          btn.classList.remove("bg-[#D4AF37]/20", "text-[#D4AF37]", "bg-white/5", "text-white/60");
+          btn.classList.add("bg-[#D4AF37]", "text-black");
         } else {
-          btn.classList.remove("bg-primary", "text-background-dark");
-          btn.classList.add("bg-white/5", "text-white/60");
+          // Inactive: Lighter Yellow
+          btn.classList.remove("bg-[#D4AF37]", "text-black");
+          btn.classList.add("bg-[#D4AF37]/20", "text-[#D4AF37]");
         }
       });
 
       // Filter and render
       let filtered = allConversations;
       if (filter === 'unread') {
-        filtered = allConversations.filter(c => c.unread_count > 0);
+        filtered = allConversations.filter(c => Number(c.unread_count || 0) > 0 && c.status !== 'archived');
       } else if (filter === 'archived') {
         filtered = allConversations.filter(c => c.status === 'archived');
+      } else {
+        filtered = allConversations.filter(c => c.status !== 'archived');
       }
 
       renderConversations(filtered);
