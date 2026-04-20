@@ -44,11 +44,25 @@
   </script>
   <style>
     @media (max-width: 768px) {
+
+      /* Hide redundant heading on mobile */
+      .lg\:block.hidden,
+      .hidden.lg\:block {
+        display: none !important;
+      }
+
+      #inboxPanel {
+        padding: 0 !important;
+      }
+
       .search-bar-gold {
-        padding: 0.75rem 1rem !important;
-        margin-bottom: 1rem !important;
-        margin-top: 1rem !important;
+        margin: 1rem !important;
+        /* Bring to top and side space */
+        padding: 0.65rem 1rem !important;
+        border-radius: 12px !important;
         background: rgba(212, 175, 55, 0.05) !important;
+        display: flex !important;
+        /* Force visibility */
       }
 
       .search-bar-gold span {
@@ -59,20 +73,34 @@
         font-size: 13px !important;
       }
 
-      .filter-btn {
-        padding: 0.5rem 1rem !important;
-        font-size: 10px !important;
+      /* Filter tabs row */
+      .flex.gap-4.overflow-x-auto {
+        padding: 0 1rem 0.75rem 1rem !important;
+        display: flex !important;
+        /* Force visibility */
+        margin-bottom: 0 !important;
       }
 
+      .filter-btn {
+        padding: 0.4rem 1rem !important;
+        font-size: 10px !important;
+        border-radius: 8px !important;
+      }
+
+      /* Compact Chat List */
       .chat-item {
-        padding-top: 0.85rem !important;
-        padding-bottom: 0.85rem !important;
-        gap: 1rem !important;
+        padding: 0.75rem 1rem !important;
+        gap: 0.85rem !important;
       }
 
       .avatar-gold {
-        width: 3.5rem !important;
-        height: 3.5rem !important;
+        width: 3.25rem !important;
+        height: 3.25rem !important;
+      }
+
+      #conversationsList {
+        padding: 0 !important;
+        margin-top: 0 !important;
       }
 
       #mainSidebar.mobile-active {
