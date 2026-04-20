@@ -79,38 +79,6 @@ const sendVerificationEmail = async (email, name, token, type) => {
 };
 
 // ===============================
-// ✅ RESEND VERIFICATION EMAIL
-// ===============================
-async function resendVerification() {
-  const resendBtn = document.getElementById("resendBtn");
-
-  resendBtn.disabled = true;
-  resendBtn.innerText = "Sending...";
-
-  try {
-    const res = await fetch(`${API_BASE}/api/auth/resend-verification`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        email: lastSignupEmail,
-        account_type: selectedAccountType
-      })
-    });
-
-    const data = await res.json();
-
-    alert(data.message || "Check your email");
-  } catch (err) {
-    alert("Failed to resend email");
-  } finally {
-    resendBtn.disabled = false;
-    resendBtn.innerText = "Resend Email";
-  }
-}
-
-// ===============================
 // ✅ SEND LEAD / ENQUIRY EMAIL
 // ===============================
 const sendEnquiryNotificationEmail = async (
@@ -161,6 +129,5 @@ const sendEnquiryNotificationEmail = async (
 // ===============================
 module.exports = {
   sendVerificationEmail,
-  resendVerificationEmail,
   sendEnquiryNotificationEmail,
 };
