@@ -185,18 +185,28 @@
       }
 
       main {
-        padding-top: 64px !important;
+        padding-top: 8px !important;
         padding-left: 0 !important;
         padding-right: 0 !important;
         height: calc(100vh - 64px) !important;
+        margin-top: 64px !important;
       }
 
       .grid-cols-\[400px_1fr\] {
         grid-template-columns: 1fr !important;
       }
 
+      #inboxPane > .flex-col.px-5 {
+        padding-top: 0.9rem !important;
+        padding-bottom: 0.8rem !important;
+      }
+
+      #inboxPane .order-1 {
+        display: none !important;
+      }
+
       .search-bar-gold {
-        margin-bottom: 0.75rem !important;
+        margin-bottom: 0 !important;
       }
 
       .chat-item {
