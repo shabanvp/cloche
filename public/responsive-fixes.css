@@ -1393,6 +1393,8 @@ body.menu-open {
   height: 100dvh !important;
   position: fixed !important;
   width: 100% !important;
+  inset: 0 !important;
+  background: #090909 !important;
 }
 
 /* Hide bottom nav when side menu is open */
