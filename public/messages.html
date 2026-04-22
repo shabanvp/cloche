@@ -229,6 +229,16 @@
 </head>
 
 <body class="bg-background-light dark:bg-background-dark text-white font-sans selection:bg-primary/30">
+  <!-- Floating Mobile Global Navigation (Matches Reference) -->
+  <div class="mobile-topbar lg:hidden">
+    <div class="mobile-left">
+      <button onclick="document.body.classList.toggle('responsive-sidebar-open')" class="mobile-icon-btn" aria-label="Open menu">
+        <span class="material-symbols-outlined">menu</span>
+      </button>
+    </div>
+    <div class="mobile-logo-text">CLOCHE</div>
+  </div>
+
   <div class="flex h-screen w-full overflow-hidden">
     <!-- Side Navigation (Boutique Dashboard Level) -->
     <!-- SideNavBar (FIXED – SAME AS DASHBOARD) -->

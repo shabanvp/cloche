@@ -554,10 +554,6 @@ svg {
     padding-bottom: 84px;
   }
 
-  body.has-mobile-bars>nav.fixed {
-    display: none !important;
-  }
-
   body.has-mobile-bars section:first-of-type {
     padding-top: 14px !important;
   }
