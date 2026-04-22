@@ -206,12 +206,12 @@
         min-height: 0 !important;
       }
 
-      #inboxPane > .flex-col.px-5 {
-        padding-top: 0.45rem !important;
-        padding-bottom: 0.7rem !important;
-        position: sticky !important;
-        top: 0 !important;
-        z-index: 5 !important;
+      #inboxPane > div:first-child {
+        padding-top: 0.35rem !important;
+        padding-bottom: 0.45rem !important;
+        margin: 0 !important;
+        border-bottom: 0 !important;
+        background: transparent !important;
         flex-shrink: 0 !important;
       }
 
@@ -228,6 +228,7 @@
         flex: 1 1 auto !important;
         min-height: 0 !important;
         overflow-y: auto !important;
+        margin-top: 0 !important;
       }
 
       .chat-item {
