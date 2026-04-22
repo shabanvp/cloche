@@ -156,6 +156,7 @@
   </main>
 
   <script>
+    const API_BASE = "https://cloche-backend.onrender.com";
     const statusEl = document.getElementById("status");
     const saveStatusEl = document.getElementById("saveStatus");
     const saveBtn = document.getElementById("saveProfileBtn");
@@ -188,7 +189,6 @@
       document.getElementById("fieldCreatedAt").textContent = createdAt;
       document.getElementById("avatarCircle").textContent = first.charAt(0).toUpperCase();
       document.getElementById("editName").value = name;
-      document.getElementById("editEmail").value = email;
       statusEl.textContent = "";
     }
 
@@ -254,7 +254,7 @@
       }
 
       try {
-        const res = await fetch(`/api/auth/user/${userId}`);
+        const res = await fetch(`${API_BASE}/api/auth/user/${userId}`);
         const data = await res.json();
         if (!res.ok) throw new Error(data.message || "Could not fetch profile");
         applyProfile(data);
@@ -281,10 +281,9 @@
       }
 
       const name = document.getElementById("editName").value.trim();
-      const email = document.getElementById("editEmail").value.trim();
 
-      if (!name || !email) {
-        saveStatusEl.textContent = "Name and email are required.";
+      if (!name) {
+        saveStatusEl.textContent = "Name is required.";
         return;
       }
 
@@ -293,7 +292,7 @@
       saveBtn.classList.add("opacity-70");
 
       try {
-        const res = await fetch(`/api/auth/user/${userId}`, {
+        const res = await fetch(`${API_BASE}/api/auth/user/${userId}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ name })
@@ -303,10 +302,10 @@
         if (!res.ok) throw new Error(data.message || "Failed to update profile");
 
         localStorage.setItem("userName", data.name || name);
-        localStorage.setItem("userEmail", data.email || email);
+        localStorage.setItem("userEmail", data.email || localEmail);
         applyProfile({
           name: data.name || name,
-          email: data.email || email,
+          email: data.email || localEmail,
           created_at: currentCreatedAt
         });
         saveStatusEl.textContent = "Profile updated successfully.";
