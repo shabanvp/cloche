@@ -192,17 +192,27 @@
         padding-top: 0 !important;
         padding-left: 0 !important;
         padding-right: 0 !important;
-        height: calc(100vh - 64px) !important;
+        height: calc(100dvh - 64px) !important;
         margin-top: 64px !important;
+        overflow: hidden !important;
       }
 
       .grid-cols-\[400px_1fr\] {
         grid-template-columns: 1fr !important;
       }
 
+      #inboxPane {
+        height: 100% !important;
+        min-height: 0 !important;
+      }
+
       #inboxPane > .flex-col.px-5 {
         padding-top: 0.45rem !important;
         padding-bottom: 0.7rem !important;
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 5 !important;
+        flex-shrink: 0 !important;
       }
 
       #inboxPane .order-1 {
@@ -212,6 +222,12 @@
       .search-bar-gold {
         margin-top: 0 !important;
         margin-bottom: 0 !important;
+      }
+
+      #conversationList {
+        flex: 1 1 auto !important;
+        min-height: 0 !important;
+        overflow-y: auto !important;
       }
 
       .chat-item {
