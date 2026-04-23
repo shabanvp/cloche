@@ -652,6 +652,8 @@
         const status = cleanStr(lead.status) || "NEW";
         const requirement = cleanStr(lead.requirement) || "Inquiry";
         const location = cleanStr(lead.preferred_location) || "";
+        const locParts = parsePreferredLocation(location);
+        const submittedAt = formatDate(lead.created_at) || "";
 
         let statusClass = "bg-primary/10 border-primary/50 text-primary";
         if (status === "CONTACTED") statusClass = "bg-slate-700/50 border-slate-500 text-slate-300";
@@ -677,6 +679,7 @@
                     <div class="flex flex-col">
                       <span class="font-medium text-slate-300">${dateStr}</span>
                       <span class="text-[10px] text-slate-500 uppercase tracking-widest mt-1">Scheduled Date</span>
+                      ${submittedAt ? `<span class="text-[10px] text-slate-500 mt-2">Submitted: <span class="text-slate-300 font-semibold">${escapeHtml(submittedAt)}</span></span>` : ''}
                     </div>
                   </td>
                   <td class="px-6 py-6">
@@ -685,6 +688,12 @@
                         <span class="px-2 py-0.5 bg-primary/10 border border-primary/20 rounded text-[10px] font-bold uppercase tracking-widest text-primary">${escapeHtml(category)}</span>
                         ${location ? `<span class="text-[10px] text-slate-400 flex items-center gap-1"><span class="material-symbols-outlined text-xs">location_on</span> ${escapeHtml(location)}</span>` : ''}
                       </div>
+                      ${(locParts.area || locParts.district) ? `
+                        <div class="flex flex-wrap gap-2 text-[10px] text-slate-400">
+                          ${locParts.area ? `<span class="px-2 py-0.5 bg-white/5 border border-white/10 rounded-lg"><span class="text-slate-500">Area:</span> ${escapeHtml(locParts.area)}</span>` : ''}
+                          ${locParts.district ? `<span class="px-2 py-0.5 bg-white/5 border border-white/10 rounded-lg"><span class="text-slate-500">District:</span> ${escapeHtml(locParts.district)}</span>` : ''}
+                        </div>
+                      ` : ''}
                       <p class="text-sm text-slate-300 line-clamp-2 italic">"${escapeHtml(requirement)}"</p>
                       ${cleanStr(lead.special_requirement) ?
             `<div class="text-[11px] text-slate-500 bg-white/5 p-2 rounded border border-white/5 mt-1 border-l-2 border-l-primary/40">
