@@ -618,6 +618,17 @@ svg {
     text-decoration: none;
   }
 
+  /* Boxed hamburger look (matches dashboard reference) */
+  .mobile-topbar .mobile-icon-btn {
+    border-color: rgba(193, 166, 113, 0.28);
+    background: rgba(193, 166, 113, 0.06);
+  }
+
+  .mobile-topbar .mobile-icon-btn:hover {
+    border-color: rgba(193, 166, 113, 0.5);
+    background: rgba(193, 166, 113, 0.1);
+  }
+
   .mobile-icon-btn .material-symbols-outlined {
     font-size: 20px;
   }
