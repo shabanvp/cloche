@@ -298,17 +298,34 @@ exports.getDashboard = async (req, res) => {
         const { data: boutique, error } = await supabase.from("boutiques").select("*").eq("id", boutiqueId).maybeSingle();
         if (error || !boutique) return res.status(404).json({ message: "Boutique not found" });
 
-        const [leads, products] = await Promise.all([
+        const [leads, products, conversations] = await Promise.all([
             supabase.from("leads").select("*", { count: "exact", head: true }).eq("boutique_id", boutiqueId),
-            supabase.from("products").select("*", { count: "exact", head: true }).eq("boutique_id", boutiqueId)
+            supabase.from("products").select("*", { count: "exact", head: true }).eq("boutique_id", boutiqueId),
+            supabase.from("conversations").select("id", { count: "exact" }).eq("boutique_id", boutiqueId)
         ]);
+
+        const convRows = Array.isArray(conversations?.data) ? conversations.data : [];
+        const convIds = convRows.map((c) => c.id).filter(Boolean);
+
+        let messagesUsed = 0;
+        if (convIds.length) {
+            const { count: msgCount, error: msgErr } = await supabase
+                .from("messages")
+                .select("*", { count: "exact", head: true })
+                .in("conversation_id", convIds)
+                .eq("sender_type", "boutique");
+
+            if (!msgErr) messagesUsed = Number(msgCount || 0);
+        }
 
         return res.json({
             boutiqueName: boutique.boutique_name,
             ownerName: boutique.owner_name,
             totalLeads: leads.count || 0,
-            leadsUsed: boutique.leads_used || 0,
-            productsUsed: boutique.product_count || products.count || 0,
+            leadsUsed: leads.count || 0,
+            messagesUsed,
+            totalConversations: conversations.count || 0,
+            productsUsed: products.count || 0,
             plan: boutique.plan || "early"
         });
     } catch (err) {

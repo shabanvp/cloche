@@ -624,6 +624,32 @@
         return;
       }
 
+      const safeSetTextGlobal = (id, text) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = text;
+      };
+
+      async function refreshDashboardCounts() {
+        const res = await fetchWithTimeout(`${API_ORIGIN}/api/auth/dashboard/${boutiqueId}`, 10000);
+        if (!res.ok) throw new Error("API error");
+        const data = await res.json();
+
+        safeSetTextGlobal("totalLeads", data.totalLeads || 0);
+        safeSetTextGlobal("boutiqueName", `Welcome back to your atelier, ${data.boutiqueName}`);
+        safeSetTextGlobal("leadsUsed", data.leadsUsed || 0);
+        safeSetTextGlobal("messagesUsed", data.messagesUsed || 0);
+        safeSetTextGlobal("productsUsed", data.productsUsed || 0);
+
+        safeSetTextGlobal("ownerName", data.ownerName);
+        safeSetTextGlobal("sidebarBoutiqueName", data.boutiqueName);
+
+        const ownerInitial = data.ownerName ? data.ownerName.charAt(0).toUpperCase() : "U";
+        safeSetTextGlobal("avatarCircle", ownerInitial);
+        safeSetTextGlobal("topProfileIconText", ownerInitial);
+
+        updateDashboardForPlan(data.plan || "basic", data);
+      }
+
       try {
         console.log(`[Dashboard] Fetching dashboard data for boutique ${boutiqueId}...`);
         const res = await fetchWithTimeout(`${API_ORIGIN}/api/auth/dashboard/${boutiqueId}`, 10000);
@@ -671,6 +697,15 @@
       if (boutiqueId) {
         loadDashboardProducts(boutiqueId);
       }
+
+      // Keep dashboard usage counters in sync (real-time-ish)
+      setInterval(async () => {
+        try {
+          await refreshDashboardCounts();
+        } catch (err) {
+          console.warn("[Dashboard] Count refresh failed:", err?.message || err);
+        }
+      }, 8000);
 
       try {
         console.log(`[Dashboard] Fetching leads for boutique ${boutiqueId}...`);
