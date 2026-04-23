@@ -28,6 +28,15 @@ const isMissingTableError = (error) => {
   return /relation .* does not exist/i.test(msg) || /table .* does not exist/i.test(msg);
 };
 
+const addSixMonthsUtc = (value) => {
+  if (!value) return null;
+  const start = new Date(value);
+  if (Number.isNaN(start.getTime())) return null;
+  const end = new Date(start);
+  end.setUTCMonth(end.getUTCMonth() + 6);
+  return end;
+};
+
 /**
  * @route   POST /api/admin/login
  * @desc    Admin login
@@ -79,9 +88,22 @@ router.get("/analytics", async (req, res) => {
     // 3. Fetch recent boutiques
     const { data: recentBoutiques, error: recBoutErr } = await supabase
       .from("boutiques")
-      .select("id, boutique_name, owner_name, email, phone, city, created_at")
+      .select("id, boutique_name, owner_name, email, phone, city, created_at, plan, start_date")
       .order("created_at", { ascending: false })
       .limit(10);
+
+    const nowTs = Date.now();
+    const hydratedBoutiques = (recentBoutiques || []).map((b) => {
+      const subscriptionStartDate = b.start_date || b.created_at || null;
+      const introEnd = addSixMonthsUtc(subscriptionStartDate);
+      const introUnlimited = Boolean(introEnd && nowTs < introEnd.getTime());
+      return {
+        ...b,
+        subscriptionStartDate,
+        introUnlimited,
+        introEndsAt: introEnd ? introEnd.toISOString() : null
+      };
+    });
 
     res.json({
       success: true,
@@ -91,7 +113,7 @@ router.get("/analytics", async (req, res) => {
         totalProducts: productCount || 0
       },
       recentUsers: recentUsers || [],
-      recentBoutiques: recentBoutiques || []
+      recentBoutiques: hydratedBoutiques
     });
   } catch (err) {
     console.error("Admin Analytics Error:", err);

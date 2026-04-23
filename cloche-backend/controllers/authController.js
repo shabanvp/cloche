@@ -298,6 +298,19 @@ exports.getDashboard = async (req, res) => {
         const { data: boutique, error } = await supabase.from("boutiques").select("*").eq("id", boutiqueId).maybeSingle();
         if (error || !boutique) return res.status(404).json({ message: "Boutique not found" });
 
+        const subscriptionStart = boutique.start_date || boutique.created_at || null;
+        let introUnlimited = false;
+        let introEndsAt = null;
+        if (subscriptionStart) {
+            const start = new Date(subscriptionStart);
+            if (!Number.isNaN(start.getTime())) {
+                const end = new Date(start);
+                end.setUTCMonth(end.getUTCMonth() + 6);
+                introEndsAt = end.toISOString();
+                introUnlimited = Date.now() < end.getTime();
+            }
+        }
+
         const [leads, products, conversations] = await Promise.all([
             supabase.from("leads").select("*", { count: "exact", head: true }).eq("boutique_id", boutiqueId),
             supabase.from("products").select("*", { count: "exact", head: true }).eq("boutique_id", boutiqueId),
@@ -326,6 +339,9 @@ exports.getDashboard = async (req, res) => {
             messagesUsed,
             totalConversations: conversations.count || 0,
             productsUsed: products.count || 0,
+            subscriptionStartDate: subscriptionStart,
+            introUnlimited,
+            introEndsAt,
             plan: boutique.plan || "early"
         });
     } catch (err) {

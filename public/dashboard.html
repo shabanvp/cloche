@@ -322,7 +322,7 @@
         name: "Early Plan",
         displayName: "Early Plan",
         maxLeads: 20,
-        maxMessages: Infinity,
+        maxMessages: 5,
         maxProducts: 20,
         features: {
           analytics: false,
@@ -358,7 +358,13 @@
 
     function updateDashboardForPlan(plan, data) {
       const normalizedPlan = (plan || "early").toLowerCase();
-      const config = planConfig[normalizedPlan] || planConfig.early;
+      const baseConfig = planConfig[normalizedPlan] || planConfig.early;
+
+      // Intro period: first 6 months should show unlimited usage (∞)
+      const introUnlimited = Boolean(data && data.introUnlimited);
+      const config = introUnlimited
+        ? { ...baseConfig, maxLeads: Infinity, maxMessages: Infinity, maxProducts: Infinity }
+        : baseConfig;
 
       const safeSetText = (id, text) => {
         const el = document.getElementById(id);
@@ -371,9 +377,11 @@
 
       // Update limits
       const leadsLimit = config.maxLeads === Infinity ? "∞" : config.maxLeads;
+      const messagesLimit = config.maxMessages === Infinity ? "∞" : config.maxMessages;
       const productsLimit = config.maxProducts === Infinity ? "∞" : config.maxProducts;
 
       safeSetText("leadsLimit", leadsLimit);
+      safeSetText("messagesLimit", messagesLimit);
       safeSetText("productsLimit", productsLimit);
 
       // Update leads remaining display
@@ -381,7 +389,7 @@
         safeSetText("leadsRemaining", "Leads Available");
         safeSetText("leadsRemainingCount", "∞");
         safeSetText("leadsTotal", "");
-        safeSetText("quotaMessage", "Unlimited leads available");
+        safeSetText("quotaMessage", introUnlimited ? "Intro period — unlimited usage" : "Unlimited leads available");
         safeSetText("progressPercent", "100%");
         const pc = document.getElementById("progressCircle");
         if (pc) pc.setAttribute("stroke-dashoffset", 0);
