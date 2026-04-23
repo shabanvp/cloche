@@ -88,6 +88,15 @@
         margin-top: 76px !important;
         height: calc(100vh - 76px) !important;
       }
+
+      /* Ensure fixed chat overlay starts below the mobile navbar too */
+      body.has-mobile-bars #chatPane {
+        top: 76px !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        height: calc(100dvh - 76px) !important;
+      }
     }
 
     @media (max-width: 768px) {
