@@ -45,31 +45,35 @@
   <link rel='stylesheet' href='responsive-fixes.css?v=1776237132140' />
   <style>
     @media (min-width: 1024px) {
-      .inbox-controls {
-        padding-left: 40px;
-        padding-right: 40px;
-      }
-
       .inbox-controls .search-bar-gold {
         width: 100% !important;
-        max-width: 780px !important;
-        margin: 12px auto 18px !important;
-        padding: 12px 18px !important;
+        max-width: 720px !important;
+        margin: 12px 0 14px !important;
+        padding: 0 16px !important;
+        height: 44px !important;
         border-radius: 16px !important;
+      }
+
+      .inbox-controls .search-bar-gold span {
+        font-size: 18px !important;
+      }
+
+      .inbox-controls .search-bar-gold input {
+        font-size: 13px !important;
       }
 
       .inbox-controls .filter-row {
         width: 100%;
-        max-width: 780px;
-        margin: 0 auto;
+        max-width: 720px;
+        margin: 0;
         gap: 12px !important;
         padding-bottom: 18px !important;
       }
 
       .inbox-controls .filter-btn {
-        padding: 8px 18px !important;
+        padding: 7px 16px !important;
         font-size: 10px !important;
-        letter-spacing: 0.18em !important;
+        letter-spacing: 0.16em !important;
       }
     }
 
@@ -385,7 +389,7 @@
             </h2>
           </div>
 
-          <div class="inbox-controls w-full">
+          <div class="inbox-controls w-full px-4 lg:px-8">
             <!-- Search Hub -->
             <div
               class="search-bar-gold flex items-center gap-4 px-6 py-4 lg:mb-8 shadow-2xl transition-all hover:border-[#D4AF37]/50">
