@@ -669,7 +669,31 @@ router.get("/list/:boutiqueId", async (req, res) => {
 
     const rows = Array.isArray(data) ? data : [];
     console.log(`[Leads] Found ${rows.length} leads`);
-    return res.json(rows);
+
+    // Normalize so the frontend can reliably show all enquiry details
+    const normalized = rows.map((row) => {
+      const preferred = clean(row.preferred_location || row.location || "");
+      const parsed = parsePreferredLocation(preferred);
+      return {
+        ...row,
+        id: row.id,
+        boutique_id: row.boutique_id,
+        name: clean(row.name),
+        email: clean(row.email),
+        phone: clean(row.phone),
+        wedding_date: clean(row.wedding_date || row.date) || null,
+        requirement: clean(row.requirement || row.category || ""),
+        special_requirement: clean(row.special_requirement || row.notes || ""),
+        preferred_location: preferred,
+        area: parsed.area,
+        district: parsed.district,
+        status: clean(row.status || "NEW"),
+        category: clean(row.category || safeLeadCategory(row.requirement)),
+        created_at: row.created_at || null
+      };
+    });
+
+    return res.json(normalized);
   } catch (err) {
     console.error("[Leads] Unexpected error:", err);
     return res.status(500).json({ message: "Server error", error: err.message });

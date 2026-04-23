@@ -479,6 +479,20 @@
       return d.toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric" });
     };
 
+    const formatDateTime = (rawDate) => {
+      const raw = cleanStr(rawDate);
+      if (!raw) return "";
+      const d = new Date(raw);
+      if (Number.isNaN(d.getTime())) return raw;
+      return d.toLocaleString("en-GB", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+    };
+
     const openLeadDetails = (lead) => {
       const modal = document.getElementById("leadDetailModal");
       if (!modal) return;
@@ -493,8 +507,11 @@
       const weddingDate = formatDate(lead?.wedding_date || lead?.date) || "Not Set";
 
       const rawLocation = cleanStr(lead?.preferred_location);
-      const parsedLoc = parsePreferredLocation(rawLocation);
-      const createdAt = formatDate(lead?.created_at) || cleanStr(lead?.created_at) || "—";
+      const parsedLoc = {
+        area: cleanStr(lead?.area) || parsePreferredLocation(rawLocation).area,
+        district: cleanStr(lead?.district) || parsePreferredLocation(rawLocation).district
+      };
+      const createdAt = formatDateTime(lead?.created_at) || cleanStr(lead?.created_at) || "—";
 
       const setText = (id, value) => {
         const el = document.getElementById(id);
@@ -652,8 +669,11 @@
         const status = cleanStr(lead.status) || "NEW";
         const requirement = cleanStr(lead.requirement) || "Inquiry";
         const location = cleanStr(lead.preferred_location) || "";
-        const locParts = parsePreferredLocation(location);
-        const submittedAt = formatDate(lead.created_at) || "";
+        const locParts = {
+          area: cleanStr(lead.area) || parsePreferredLocation(location).area,
+          district: cleanStr(lead.district) || parsePreferredLocation(location).district
+        };
+        const submittedAt = formatDateTime(lead.created_at) || "";
 
         let statusClass = "bg-primary/10 border-primary/50 text-primary";
         if (status === "CONTACTED") statusClass = "bg-slate-700/50 border-slate-500 text-slate-300";
