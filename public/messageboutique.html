@@ -127,6 +127,14 @@
       height: calc(100dvh - 76px) !important;
     }
 
+    @media (max-width: 1024px) {
+      /* Global mobile navbar height is 76px (see responsive-fixes.css). Keep chat header visible. */
+      body.has-mobile-bars #chatPane {
+        top: 76px !important;
+        height: calc(100dvh - 76px) !important;
+      }
+    }
+
     #inboxPane {
       min-height: 0 !important;
     }
