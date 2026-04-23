@@ -331,6 +331,7 @@
     let userName = localStorage.getItem("userName") || "Customer";
     let userEmail = localStorage.getItem("userEmail") || "";
     let activeConversationId = null;
+    let conversationsRaw = [];
     let conversations = [];
 
     function requireUserSession() {
@@ -404,17 +405,86 @@
       return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
     }
 
+    function timeValue(value) {
+      const d = new Date(value);
+      const t = d.getTime();
+      return Number.isFinite(t) ? t : 0;
+    }
+
+    function getBoutiqueGroupKey(conv) {
+      const rawId = conv?.boutique_id ?? conv?.boutiqueId ?? conv?.boutiqueID ?? conv?.boutiqueid;
+      const numericId = rawId === 0 || rawId ? Number(rawId) : NaN;
+      if (Number.isFinite(numericId) && numericId > 0) return `boutique:${numericId}`;
+
+      const name = String(conv?.boutique_name || "").trim().toLowerCase();
+      if (name) return `boutique_name:${name}`;
+
+      return `conversation:${String(conv?.id || "")}`;
+    }
+
+    // WhatsApp-style inbox grouping: one boutique = one chat row
+    function groupConversationsByBoutique(rawConversations) {
+      const groups = new Map();
+      const list = Array.isArray(rawConversations) ? rawConversations : [];
+
+      list.forEach((conv) => {
+        if (!conv) return;
+        const key = getBoutiqueGroupKey(conv);
+        let g = groups.get(key);
+        if (!g) {
+          g = {
+            group_key: key,
+            ids: [],
+            unread_count: 0,
+            _bestTime: 0,
+            id: null,
+            boutique_name: "",
+            product_name: "",
+            last_message: "",
+            last_message_time: null,
+          };
+          groups.set(key, g);
+        }
+
+        if (conv.id != null) g.ids.push(conv.id);
+        g.unread_count += Number(conv.unread_count || 0);
+
+        const candidateTime = Math.max(
+          timeValue(conv.last_message_time),
+          timeValue(conv.updated_at),
+          timeValue(conv.created_at)
+        );
+
+        if (!g.id || candidateTime >= g._bestTime) {
+          g._bestTime = candidateTime;
+          g.id = conv.id;
+          g.last_message_time = conv.last_message_time || conv.updated_at || conv.created_at || g.last_message_time;
+          g.last_message = conv.last_message || g.last_message;
+          g.product_name = conv.product_name || g.product_name;
+          g.boutique_name = conv.boutique_name || g.boutique_name;
+        } else {
+          if (!g.boutique_name && conv.boutique_name) g.boutique_name = conv.boutique_name;
+          if (!g.product_name && conv.product_name) g.product_name = conv.product_name;
+        }
+      });
+
+      const grouped = Array.from(groups.values());
+      grouped.sort((a, b) => timeValue(b.last_message_time) - timeValue(a.last_message_time));
+      return grouped;
+    }
+
     async function loadConversations() {
       try {
         const res = await fetch(`${API}/customer/conversations?email=${encodeURIComponent(userEmail)}`);
         const data = await readJsonSafe(res);
         if (!res.ok) throw new Error(data.message || "Failed to load conversations");
 
-        conversations = Array.isArray(data) ? data : [];
+        conversationsRaw = Array.isArray(data) ? data : [];
+        conversations = groupConversationsByBoutique(conversationsRaw);
         renderConversationList();
 
         if (activeConversationId) {
-          const exists = conversations.some(c => Number(c.id) === Number(activeConversationId));
+          const exists = conversationsRaw.some(c => Number(c.id) === Number(activeConversationId));
           if (exists) {
             openConversation(activeConversationId, true);
           }
@@ -436,7 +506,7 @@
       list.innerHTML = conversations
         .filter(c => (c.boutique_name || "").toLowerCase().includes(searchTerm))
         .map(c => {
-          const active = Number(c.id) === Number(activeConversationId);
+          const active = Array.isArray(c.ids) && c.ids.some(id => Number(id) === Number(activeConversationId));
           const name = (c.boutique_name || "Boutique").toUpperCase();
           const initial = name.charAt(0);
 
@@ -461,7 +531,7 @@
                 <div class="flex items-center justify-between">
                   <p class="text-[11px] md:text-xs text-white/50 line-clamp-1 font-premium-sans">${escapeHtml(c.last_message || "Product Enquiry Started")}</p>
                   ${Number(c.unread_count) > 0 ? `
-                    <span class="size-2 bg-primary rounded-full shadow-[0_0_10px_rgba(193,166,113,0.5)]"></span>
+                    <span class="min-w-5 h-5 px-1.5 bg-primary rounded-full text-[10px] font-black text-black flex items-center justify-center shadow-[0_0_12px_rgba(193,166,113,0.35)]">${Number(c.unread_count)}</span>
                   ` : ""}
                 </div>
               </div>
@@ -484,7 +554,9 @@
 
       renderConversationList();
 
-      const convo = conversations.find(c => Number(c.id) === Number(conversationId));
+      const convo =
+        conversationsRaw.find(c => Number(c.id) === Number(conversationId)) ||
+        conversations.find(g => Array.isArray(g.ids) && g.ids.some(id => Number(id) === Number(conversationId)));
       if (convo) {
         document.getElementById("chatDefault").classList.add("hidden");
         document.getElementById("activeChat").classList.remove("hidden");

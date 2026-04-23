@@ -608,12 +608,98 @@
       }
 
       const filtered = allConversations.filter(conv =>
-        conv.customer_name.toLowerCase().includes(searchTerm) ||
-        conv.customer_email.toLowerCase().includes(searchTerm) ||
-        (conv.product_name && conv.product_name.toLowerCase().includes(searchTerm))
+        String(conv.customer_name || "").toLowerCase().includes(searchTerm) ||
+        String(conv.customer_email || "").toLowerCase().includes(searchTerm) ||
+        String(conv.product_name || "").toLowerCase().includes(searchTerm)
       );
 
       renderConversations(filtered);
+    }
+
+    function timeValue(value) {
+      const dt = new Date(value);
+      const t = dt.getTime();
+      return Number.isFinite(t) ? t : 0;
+    }
+
+    function getCustomerGroupKey(conv) {
+      const rawId = conv?.customer_id ?? conv?.customerId ?? conv?.customerID ?? conv?.customerid;
+      const numericId = rawId === 0 || rawId ? Number(rawId) : NaN;
+      if (Number.isFinite(numericId) && numericId > 0) return `customer:${numericId}`;
+
+      const email = String(conv?.customer_email || "").trim().toLowerCase();
+      if (email) return `customer_email:${email}`;
+
+      const name = String(conv?.customer_name || "").trim().toLowerCase();
+      if (name) return `customer_name:${name}`;
+
+      return `conversation:${String(conv?.id || "")}`;
+    }
+
+    // WhatsApp-style inbox grouping: one customer = one chat row
+    function groupConversationsByCustomer(rawConversations) {
+      const groups = new Map();
+      const list = Array.isArray(rawConversations) ? rawConversations : [];
+
+      list.forEach((conv) => {
+        if (!conv) return;
+
+        const key = getCustomerGroupKey(conv);
+        let g = groups.get(key);
+        if (!g) {
+          g = {
+            group_key: key,
+            ids: [],
+            unread_count: 0,
+            _allArchived: true,
+            _bestTime: 0,
+            id: null,
+            customer_name: "",
+            customer_email: "",
+            customer_phone: "",
+            product_name: "",
+            last_message: "",
+            last_message_time: null,
+            status: "active",
+          };
+          groups.set(key, g);
+        }
+
+        if (conv.id != null) g.ids.push(conv.id);
+        g.unread_count += Number(conv.unread_count || 0);
+        if (String(conv.status || "") !== "archived") g._allArchived = false;
+
+        const candidateTime = Math.max(
+          timeValue(conv.last_message_time),
+          timeValue(conv.updated_at),
+          timeValue(conv.created_at)
+        );
+
+        if (!g.id || candidateTime >= g._bestTime) {
+          g._bestTime = candidateTime;
+          g.id = conv.id;
+          g.last_message_time = conv.last_message_time || conv.updated_at || conv.created_at || g.last_message_time;
+          g.last_message = conv.last_message || g.last_message;
+          g.product_name = conv.product_name || g.product_name;
+          g.customer_name = conv.customer_name || g.customer_name;
+          g.customer_email = conv.customer_email || g.customer_email;
+          g.customer_phone = conv.customer_phone || g.customer_phone;
+          g.status = conv.status || g.status;
+        } else {
+          if (!g.customer_name && conv.customer_name) g.customer_name = conv.customer_name;
+          if (!g.customer_email && conv.customer_email) g.customer_email = conv.customer_email;
+          if (!g.customer_phone && conv.customer_phone) g.customer_phone = conv.customer_phone;
+          if (!g.product_name && conv.product_name) g.product_name = conv.product_name;
+        }
+      });
+
+      const grouped = Array.from(groups.values()).map((g) => ({
+        ...g,
+        status: g._allArchived ? "archived" : ((g.status && g.status !== "archived") ? g.status : "active"),
+      }));
+
+      grouped.sort((a, b) => timeValue(b.last_message_time) - timeValue(a.last_message_time));
+      return grouped;
     }
 
     // Format time ago (Safe Version)
@@ -645,39 +731,41 @@
         const res = await fetch(`${API_ORIGIN}/api/messages/conversations/${boutiqueId}`);
         if (!res.ok) throw new Error("Failed to fetch conversations");
 
-        const newConversations = await res.json();
+        const rawConversations = await res.json();
+        const newConversations = groupConversationsByCustomer(rawConversations);
 
-        // Check for new conversations
-        if (newConversations.length > previousConversationCount && previousConversationCount > 0) {
-          const newConvs = newConversations.slice(0, newConversations.length - previousConversationCount);
-          newConvs.forEach(conv => {
-            if (conv && conv.id) {
-              addNotification('new_conversation', {
-                id: conv.id,
-                customer_name: conv.customer_name || 'New Customer',
-                customer_email: conv.customer_email || '',
-                product_name: conv.product_name || 'General inquiry'
+        const oldByKey = new Map(
+          (Array.isArray(allConversations) ? allConversations : []).map((c) => [c.group_key || String(c.id), c])
+        );
+
+        // Notifications (grouped by customer)
+        if (oldByKey.size > 0) {
+          newConversations.forEach((newConv) => {
+            if (!newConv || !newConv.id) return;
+
+            const oldConv = oldByKey.get(newConv.group_key || String(newConv.id));
+            if (!oldConv) {
+              addNotification("new_conversation", {
+                id: newConv.id,
+                customer_name: newConv.customer_name || "New Customer",
+                customer_email: newConv.customer_email || "",
+                product_name: newConv.product_name || "General inquiry",
+              });
+              return;
+            }
+
+            const newUnread = Number(newConv.unread_count || 0);
+            const oldUnread = Number(oldConv.unread_count || 0);
+            if (newUnread > oldUnread) {
+              addNotification("new_message", {
+                conversationId: newConv.id,
+                customer_name: newConv.customer_name || "Customer",
+                customer_email: newConv.customer_email || "",
+                preview: String(newConv.last_message || "New message").substring(0, 50),
               });
             }
           });
         }
-
-        // Check for new messages in existing conversations
-        newConversations.forEach(newConv => {
-          if (!newConv || !newConv.id) return;
-          const oldConv = allConversations.find(c => c.id === newConv.id);
-          const newUnread = Number(newConv.unread_count || 0);
-          const oldUnread = oldConv ? Number(oldConv.unread_count || 0) : 0;
-
-          if (oldConv && newUnread > oldUnread) {
-            addNotification('new_message', {
-              conversationId: newConv.id,
-              customer_name: newConv.customer_name || 'Customer',
-              customer_email: newConv.customer_email || '',
-              preview: (newConv.last_message || 'New message').substring(0, 50)
-            });
-          }
-        });
 
         allConversations = newConversations;
         previousConversationCount = newConversations.length;
@@ -751,8 +839,8 @@
             <div class="flex items-center justify-between gap-4">
               <p class="text-[11px] text-white/40 line-clamp-1 font-premium-sans flex-1 truncate">${conv.last_message || 'New inquiry received — Open to respond'}</p>
               ${Number(conv.unread_count) > 0 ? `
-                <div class="px-2.5 py-1 bg-primary rounded-full flex items-center justify-center shadow-lg shadow-primary/20 shrink-0">
-                   <span class="text-[9px] font-black text-black">NEW</span>
+                <div class="min-w-6 h-6 px-2 bg-primary rounded-full flex items-center justify-center shadow-lg shadow-primary/20 shrink-0">
+                   <span class="text-[10px] font-black text-black">${Number(conv.unread_count)}</span>
                 </div>
               ` : ''}
             </div>
