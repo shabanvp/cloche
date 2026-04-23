@@ -6,6 +6,7 @@ const { sendEnquiryNotificationEmail } = require("./emailService");
 const LEADS_TABLE = "leads";
 const ENQUIRIES_TABLE = "enquiries";
 const ADMIN_QUEUE_BOUTIQUE_ID = 0;
+const ENQUIRY_BLOB_PREFIX = "[[CLOCHE_ENQUIRY_JSON]]";
 
 const clean = (value) => String(value || "").trim();
 const cleanLower = (value) => clean(value).toLowerCase();
@@ -45,6 +46,42 @@ const parsePreferredLocation = (value) => {
   };
 };
 
+const encodeEnquiryBlob = (payload) => {
+  try {
+    return `${ENQUIRY_BLOB_PREFIX}${JSON.stringify(payload || {})}`;
+  } catch (_e) {
+    return `${ENQUIRY_BLOB_PREFIX}{}`;
+  }
+};
+
+const extractEnquiryBlob = (text) => {
+  const raw = String(text ?? "");
+  const idx = raw.indexOf(ENQUIRY_BLOB_PREFIX);
+  if (idx < 0) return { data: null, stripped: clean(raw) };
+
+  const before = raw.slice(0, idx);
+  const jsonPart = raw.slice(idx + ENQUIRY_BLOB_PREFIX.length).trim();
+  let data = null;
+  try {
+    data = jsonPart ? JSON.parse(jsonPart) : null;
+  } catch (_e) {
+    data = null;
+  }
+
+  return { data, stripped: clean(before) };
+};
+
+const missingColumnName = (error) => {
+  const message = String(error?.message || "");
+  const m1 = message.match(/column\\s+[\"']?([a-zA-Z0-9_]+)[\"']?\\s+does not exist/i);
+  if (m1?.[1]) return m1[1];
+  const m2 = message.match(/Could not find the ['"]([^'"]+)['"] column/i);
+  if (m2?.[1]) return m2[1];
+  const m3 = message.match(/column\\s+([a-zA-Z0-9_]+)\\s+in the schema cache/i);
+  if (m3?.[1]) return m3[1];
+  return "";
+};
+
 const safeLeadCategory = (requirement) => {
   const text = cleanLower(requirement);
   if (!text) return "Wedding";
@@ -66,22 +103,47 @@ async function tryInsertWithFallback(table, payloadCandidates) {
   let lastError = null;
   console.log(`[DB] Attempting insert into ${table} with ${payloadCandidates.length} potential variants`);
   for (let i = 0; i < payloadCandidates.length; i++) {
-    const payload = payloadCandidates[i];
-    const { data, error } = await supabase.from(table).insert([payload]).select("*").maybeSingle();
-    if (!error) return data || payload;
-    
-    console.warn(`[DB] Variant ${i} failed for ${table}:`, error.message);
-    lastError = error;
-    if (isRetryableInsertError(error)) {
-      console.log(`[DB] Error is retryable, attempting next variant...`);
-      continue;
+    let payload = { ...(payloadCandidates[i] || {}) };
+    let removedColumns = 0;
+
+    while (true) {
+      const { data, error } = await supabase.from(table).insert([payload]).select("*").maybeSingle();
+      if (!error) return data || payload;
+
+      console.warn(`[DB] Variant ${i} failed for ${table}:`, error.message);
+      lastError = error;
+
+      if (isMissingColumn(error)) {
+        const col = missingColumnName(error);
+        if (col && Object.prototype.hasOwnProperty.call(payload, col)) {
+          delete payload[col];
+          removedColumns += 1;
+          if (removedColumns > 12) break;
+          console.log(`[DB] Dropped missing column "${col}" and retrying...`);
+          continue;
+        }
+      }
+
+      if (isRetryableInsertError(error)) {
+        console.log(`[DB] Error is retryable, attempting next variant...`);
+        break;
+      }
+
+      break;
     }
-    break;
   }
   throw new Error(lastError?.message || "Insert failed after all attempts");
 }
 
 function leadPayloadCandidates({ boutiqueId, enquiry }) {
+  const blob = encodeEnquiryBlob(enquiry);
+  const requirementStored = clean(enquiry.requirement)
+    ? `${clean(enquiry.requirement)}\n\n${blob}`
+    : blob;
+  const specialStored = clean(enquiry.special_requirement)
+    ? `${clean(enquiry.special_requirement)}\n\n${blob}`
+    : blob;
+
   const base = {
     boutique_id: Number(boutiqueId),
     name: clean(enquiry.name),
@@ -90,9 +152,11 @@ function leadPayloadCandidates({ boutiqueId, enquiry }) {
     status: clean(enquiry.status || "NEW"),
     wedding_date: clean(enquiry.wedding_date) || null,
     category: safeLeadCategory(enquiry.requirement),
-    requirement: clean(enquiry.requirement),
-    special_requirement: clean(enquiry.special_requirement),
+    requirement: requirementStored,
+    special_requirement: specialStored,
     preferred_location: clean(enquiry.preferred_location),
+    area: clean(enquiry.area),
+    district: clean(enquiry.district),
     created_at: enquiry.created_at || new Date().toISOString()
   };
 
@@ -107,6 +171,7 @@ function leadPayloadCandidates({ boutiqueId, enquiry }) {
       wedding_date: base.wedding_date,
       category: base.category,
       requirement: base.requirement,
+      special_requirement: base.special_requirement,
       preferred_location: base.preferred_location,
       created_at: base.created_at
     },
@@ -134,6 +199,14 @@ function leadPayloadCandidates({ boutiqueId, enquiry }) {
 }
 
 function queueLeadPayloadCandidates(enquiry) {
+  const blob = encodeEnquiryBlob(enquiry);
+  const requirementStored = clean(enquiry.requirement)
+    ? `${clean(enquiry.requirement)}\n\n${blob}`
+    : blob;
+  const specialStored = clean(enquiry.special_requirement)
+    ? `${clean(enquiry.special_requirement)}\n\n${blob}`
+    : blob;
+
   const base = {
     name: clean(enquiry.name),
     email: clean(enquiry.email),
@@ -141,9 +214,11 @@ function queueLeadPayloadCandidates(enquiry) {
     status: clean(enquiry.status || "PENDING"),
     wedding_date: clean(enquiry.wedding_date),
     category: safeLeadCategory(enquiry.requirement),
-    requirement: clean(enquiry.requirement),
-    special_requirement: clean(enquiry.special_requirement),
+    requirement: requirementStored,
+    special_requirement: specialStored,
     preferred_location: clean(enquiry.preferred_location),
+    area: clean(enquiry.area),
+    district: clean(enquiry.district),
     source: "web_enquiry",
     created_at: enquiry.created_at || new Date().toISOString()
   };
@@ -191,14 +266,24 @@ function queueLeadPayloadCandidates(enquiry) {
 }
 
 function enquiryPayloadCandidates(enquiry) {
+  const blob = encodeEnquiryBlob(enquiry);
+  const requirementStored = clean(enquiry.requirement)
+    ? `${clean(enquiry.requirement)}\n\n${blob}`
+    : blob;
+  const specialStored = clean(enquiry.special_requirement)
+    ? `${clean(enquiry.special_requirement)}\n\n${blob}`
+    : blob;
+
   const base = {
     name: clean(enquiry.name),
     email: clean(enquiry.email),
     phone: clean(enquiry.phone),
     wedding_date: clean(enquiry.wedding_date),
     preferred_location: clean(enquiry.preferred_location),
-    requirement: clean(enquiry.requirement),
-    special_requirement: clean(enquiry.special_requirement),
+    requirement: requirementStored,
+    special_requirement: specialStored,
+    area: clean(enquiry.area),
+    district: clean(enquiry.district),
     status: clean(enquiry.status || "PENDING"),
     source: "web_enquiry",
     created_at: enquiry.created_at || new Date().toISOString()
@@ -227,15 +312,24 @@ function enquiryPayloadCandidates(enquiry) {
 }
 
 function normalizeAdminEnquiryRow(row) {
+  const req = extractEnquiryBlob(row.requirement || row.category);
+  const spec = extractEnquiryBlob(row.special_requirement || row.notes);
+  const blob = req.data || spec.data || null;
+
+  const preferred = clean(row.preferred_location || row.location || "") || clean(blob?.preferred_location || "");
+  const parsedLoc = parsePreferredLocation(preferred);
+
   return {
     id: row.id,
-    name: clean(row.name),
-    email: clean(row.email),
-    phone: clean(row.phone),
-    wedding_date: clean(row.wedding_date || row.date),
-    preferred_location: clean(row.preferred_location || row.location || ""),
-    requirement: clean(row.requirement || row.category),
-    special_requirement: clean(row.special_requirement || row.notes),
+    name: clean(row.name) || clean(blob?.name),
+    email: clean(row.email) || clean(blob?.email),
+    phone: clean(row.phone) || clean(blob?.phone),
+    wedding_date: clean(row.wedding_date || row.date) || clean(blob?.wedding_date),
+    preferred_location: preferred,
+    requirement: clean(req.stripped) || clean(blob?.requirement || row.category),
+    special_requirement: clean(spec.stripped) || clean(blob?.special_requirement),
+    area: clean(row.area) || clean(blob?.area) || parsedLoc.area,
+    district: clean(row.district) || clean(blob?.district) || parsedLoc.district,
     status: clean(row.status || "PENDING"),
     created_at: row.created_at || null
   };
@@ -418,16 +512,19 @@ async function listFallbackQueueFromLeads() {
 
 /* ================= SUBMIT ENQUIRY (USER) ================= */
 router.post("/enquiry", async (req, res) => {
+  const createdAt = new Date().toISOString();
   const enquiry = {
     name: clean(req.body.fullName || req.body.name),
     email: clean(req.body.email),
     phone: clean(req.body.mobileNumber || req.body.phone),
     wedding_date: clean(req.body.weddingDate || req.body.wedding_date),
     preferred_location: buildPreferredLocationFromBody(req.body),
+    area: clean(req.body.areaLocation || req.body.area || ""),
+    district: clean(req.body.districtLocation || req.body.district || ""),
     requirement: clean(req.body.requirement),
     special_requirement: clean(req.body.specialRequirement || req.body.special_requirement),
     status: "PENDING",
-    created_at: new Date().toISOString()
+    created_at: createdAt
   };
 
   console.log("[ENQUIRY] Received enquiry:", enquiry);
@@ -672,23 +769,27 @@ router.get("/list/:boutiqueId", async (req, res) => {
 
     // Normalize so the frontend can reliably show all enquiry details
     const normalized = rows.map((row) => {
-      const preferred = clean(row.preferred_location || row.location || "");
+      const req = extractEnquiryBlob(row.requirement || row.category || "");
+      const spec = extractEnquiryBlob(row.special_requirement || row.notes || "");
+      const blob = req.data || spec.data || null;
+
+      const preferred = clean(row.preferred_location || row.location || "") || clean(blob?.preferred_location || "");
       const parsed = parsePreferredLocation(preferred);
       return {
         ...row,
         id: row.id,
         boutique_id: row.boutique_id,
-        name: clean(row.name),
-        email: clean(row.email),
-        phone: clean(row.phone),
-        wedding_date: clean(row.wedding_date || row.date) || null,
-        requirement: clean(row.requirement || row.category || ""),
-        special_requirement: clean(row.special_requirement || row.notes || ""),
+        name: clean(row.name) || clean(blob?.name),
+        email: clean(row.email) || clean(blob?.email),
+        phone: clean(row.phone) || clean(blob?.phone),
+        wedding_date: clean(row.wedding_date || row.date) || clean(blob?.wedding_date) || null,
+        requirement: clean(req.stripped) || clean(blob?.requirement || row.category || ""),
+        special_requirement: clean(spec.stripped) || clean(blob?.special_requirement || ""),
         preferred_location: preferred,
-        area: parsed.area,
-        district: parsed.district,
+        area: clean(row.area) || clean(blob?.area) || parsed.area,
+        district: clean(row.district) || clean(blob?.district) || parsed.district,
         status: clean(row.status || "NEW"),
-        category: clean(row.category || safeLeadCategory(row.requirement)),
+        category: clean(row.category || blob?.category || safeLeadCategory(req.stripped || row.requirement)),
         created_at: row.created_at || null
       };
     });

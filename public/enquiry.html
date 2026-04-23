@@ -212,6 +212,10 @@
               <label for="mobileNumber" class="text-[11px] uppercase tracking-[0.24em] text-primary block mb-2">Mobile Number</label>
               <input id="mobileNumber" name="mobileNumber" type="tel" required class="gold-input w-full rounded-xl h-12 px-4 focus:ring-0 border-primary/55" placeholder="+91 98765 43210" />
             </div>
+            <div class="md:col-span-2">
+              <label for="email" class="text-[11px] uppercase tracking-[0.24em] text-primary/75 block mb-2">Email (Optional)</label>
+              <input id="email" name="email" type="email" class="gold-input w-full rounded-xl h-12 px-4 focus:ring-0" placeholder="e.g. you@gmail.com" />
+            </div>
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -441,7 +445,9 @@
         cityLocation: `${document.getElementById("areaLocation")?.value.trim() || ""}, ${document.getElementById("districtLocation")?.value.trim() || ""}`,
         requirement: document.getElementById("requirement")?.value.trim() || "",
         specialRequirement: document.getElementById("specialRequirement")?.value.trim() || "",
-        email: String(localStorage.getItem("userEmail") || "").trim()
+        email:
+          document.getElementById("email")?.value.trim() ||
+          String(localStorage.getItem("userEmail") || "").trim()
       };
 
       console.log("[Enquiry] SUBMITTING PAYLOAD:", JSON.stringify(payload, null, 2));

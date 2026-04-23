@@ -498,13 +498,13 @@
       if (!modal) return;
 
       const name = cleanStr(lead?.name) || "Guest";
-      const email = cleanStr(lead?.email) || "No Email Provided";
-      const phone = cleanStr(lead?.phone || lead?.phoneNumber) || "No Phone";
+      const email = cleanStr(lead?.email) || "";
+      const phone = cleanStr(lead?.phone || lead?.phoneNumber) || "";
       const category = cleanStr(lead?.category) || "Wedding";
       const status = cleanStr(lead?.status) || "NEW";
-      const requirement = cleanStr(lead?.requirement) || "Inquiry";
+      const requirement = cleanStr(lead?.requirement) || "";
       const special = cleanStr(lead?.special_requirement);
-      const weddingDate = formatDate(lead?.wedding_date || lead?.date) || "Not Set";
+      const weddingDate = formatDate(lead?.wedding_date || lead?.date) || "";
 
       const rawLocation = cleanStr(lead?.preferred_location);
       const parsedLoc = {
@@ -664,10 +664,10 @@
         const waLink = phone ? `https://wa.me/${phone.replace(/[^0-9]/g, '')}` : "#";
 
         // Clean values to avoid "undefined" display
-        const email = cleanStr(lead.email) || "No Email Provided";
+        const email = cleanStr(lead.email) || "—";
         const category = cleanStr(lead.category) || "Wedding";
         const status = cleanStr(lead.status) || "NEW";
-        const requirement = cleanStr(lead.requirement) || "Inquiry";
+        const requirement = cleanStr(lead.requirement) || "—";
         const location = cleanStr(lead.preferred_location) || "";
         const locParts = {
           area: cleanStr(lead.area) || parsePreferredLocation(location).area,
