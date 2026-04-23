@@ -94,6 +94,11 @@
       scrollbar-width: none;
     }
 
+    /* Direct chat route: open selected boutique chat (no inbox list) */
+    body.direct-chat #inboxPane {
+      display: none !important;
+    }
+
     @media (min-width: 1024px) {
       /* Single column layout for desktop - Full width feel */
       .grid.lg\:grid-cols-\[400px_1fr\] {
@@ -333,6 +338,8 @@
     let activeConversationId = null;
     let conversationsRaw = [];
     let conversations = [];
+    const routeCtx = getQueryContext();
+    const isDirectChatRoute = Boolean(routeCtx.conversationId || routeCtx.boutiqueId);
 
     function requireUserSession() {
       if (localStorage.getItem("isUserLoggedIn") !== "true" || !userEmail) {
@@ -479,7 +486,18 @@
         const data = await readJsonSafe(res);
         if (!res.ok) throw new Error(data.message || "Failed to load conversations");
 
-        conversationsRaw = Array.isArray(data) ? data : [];
+        let raw = Array.isArray(data) ? data : [];
+
+        // Direct-chat route: only show the selected boutique's thread(s) behind the chat screen.
+        if (isDirectChatRoute && routeCtx.boutiqueId) {
+          const targetBoutiqueId = Number(routeCtx.boutiqueId);
+          raw = raw.filter((c) => {
+            const id = Number(c?.boutique_id ?? c?.boutiqueId ?? 0);
+            return id && id === targetBoutiqueId;
+          });
+        }
+
+        conversationsRaw = raw;
         conversations = groupConversationsByBoutique(conversationsRaw);
         renderConversationList();
 
@@ -562,6 +580,12 @@
         document.getElementById("activeChat").classList.remove("hidden");
         document.getElementById("chatBoutique").textContent = String(convo.boutique_name || "BOUTIQUE").toUpperCase();
         document.getElementById("chatContext").textContent = String(convo.product_name || "General Enquiry").toUpperCase();
+      } else if (isDirectChatRoute) {
+        // If we landed here from "Message Boutique" we may not have the list hydrated yet.
+        document.getElementById("chatDefault").classList.add("hidden");
+        document.getElementById("activeChat").classList.remove("hidden");
+        document.getElementById("chatBoutique").textContent = String(routeCtx.boutiqueName || "BOUTIQUE").toUpperCase();
+        document.getElementById("chatContext").textContent = String(routeCtx.productName || "General Enquiry").toUpperCase();
       }
 
       try {
@@ -646,11 +670,18 @@
     });
 
     document.addEventListener("DOMContentLoaded", async () => {
+      if (isDirectChatRoute) document.body.classList.add("direct-chat");
       await hydrateUserIfNeeded();
       userEmail = localStorage.getItem("userEmail") || userEmail;
       userName = localStorage.getItem("userName") || userName;
       if (!requireUserSession()) return;
       await bootstrapConversationFromContext();
+
+      // WhatsApp-like behavior: clicking "Message Boutique" opens that boutique's chat directly.
+      if (isDirectChatRoute && activeConversationId) {
+        await openConversation(activeConversationId, false);
+      }
+
       await loadConversations();
       setInterval(async () => {
         await loadConversations();
