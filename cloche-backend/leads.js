@@ -22,6 +22,17 @@ const isCheckViolation = (error) => /check constraint/i.test(String(error?.messa
 const isRetryableInsertError = (error) =>
   isMissingColumn(error) || isForeignKeyViolation(error) || isNotNullViolation(error) || isCheckViolation(error);
 
+const buildPreferredLocationFromBody = (body) => {
+  const direct = clean(body?.cityLocation || body?.preferred_location);
+  if (direct) return direct;
+
+  const area = clean(body?.areaLocation || body?.area || "");
+  const district = clean(body?.districtLocation || body?.district || "");
+  if (!area && !district) return "";
+  if (area && district) return `${area}, ${district}`;
+  return area || district;
+};
+
 const parsePreferredLocation = (value) => {
   const raw = clean(value);
   if (!raw) return { area: "", district: "", raw: "" };
@@ -412,7 +423,7 @@ router.post("/enquiry", async (req, res) => {
     email: clean(req.body.email),
     phone: clean(req.body.mobileNumber || req.body.phone),
     wedding_date: clean(req.body.weddingDate || req.body.wedding_date),
-    preferred_location: clean(req.body.cityLocation || req.body.preferred_location),
+    preferred_location: buildPreferredLocationFromBody(req.body),
     requirement: clean(req.body.requirement),
     special_requirement: clean(req.body.specialRequirement || req.body.special_requirement),
     status: "PENDING",

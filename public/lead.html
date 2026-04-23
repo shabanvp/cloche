@@ -341,15 +341,199 @@
     </main>
   </div>
 
+  <!-- Lead Details Modal -->
+  <div id="leadDetailModal" class="fixed inset-0 z-[60] hidden">
+    <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" data-lead-modal-close></div>
+    <div class="relative mx-auto w-[92vw] max-w-3xl mt-10 mb-10">
+      <div class="glass-panel rounded-2xl border border-accent-gold/15 shadow-2xl overflow-hidden">
+        <div class="px-6 py-5 border-b border-accent-gold/10 bg-white/5 flex items-center justify-between gap-4">
+          <div class="min-w-0">
+            <p class="text-[10px] text-slate-500 uppercase tracking-[0.28em] font-bold">Lead Details</p>
+            <h2 id="leadDetailTitle" class="font-display text-2xl sm:text-3xl text-white truncate">Lead</h2>
+          </div>
+          <button id="leadDetailCloseBtn"
+            class="shrink-0 size-10 rounded-xl bg-surface-dark border border-primary/20 text-slate-300 hover:text-primary hover:bg-primary/10 transition-colors flex items-center justify-center"
+            aria-label="Close lead details">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+
+        <div class="p-6 max-h-[70vh] overflow-auto">
+          <div class="grid sm:grid-cols-2 gap-4">
+            <div class="bg-white/5 border border-white/5 rounded-xl p-4">
+              <p class="text-[10px] text-slate-500 uppercase tracking-[0.24em] font-bold">Full Name</p>
+              <p id="leadDetailName" class="mt-2 text-slate-200 font-semibold">—</p>
+            </div>
+            <div class="bg-white/5 border border-white/5 rounded-xl p-4">
+              <p class="text-[10px] text-slate-500 uppercase tracking-[0.24em] font-bold">Mobile Number</p>
+              <p id="leadDetailPhone" class="mt-2 text-slate-200 font-semibold">—</p>
+            </div>
+            <div class="bg-white/5 border border-white/5 rounded-xl p-4">
+              <p class="text-[10px] text-slate-500 uppercase tracking-[0.24em] font-bold">Email</p>
+              <p id="leadDetailEmail" class="mt-2 text-slate-200 font-semibold break-all">—</p>
+            </div>
+            <div class="bg-white/5 border border-white/5 rounded-xl p-4">
+              <p class="text-[10px] text-slate-500 uppercase tracking-[0.24em] font-bold">Wedding Date</p>
+              <p id="leadDetailWeddingDate" class="mt-2 text-slate-200 font-semibold">—</p>
+            </div>
+            <div class="bg-white/5 border border-white/5 rounded-xl p-4">
+              <p class="text-[10px] text-slate-500 uppercase tracking-[0.24em] font-bold">Area / Town</p>
+              <p id="leadDetailArea" class="mt-2 text-slate-200 font-semibold">—</p>
+            </div>
+            <div class="bg-white/5 border border-white/5 rounded-xl p-4">
+              <p class="text-[10px] text-slate-500 uppercase tracking-[0.24em] font-bold">District</p>
+              <p id="leadDetailDistrict" class="mt-2 text-slate-200 font-semibold">—</p>
+            </div>
+          </div>
+
+          <div class="grid sm:grid-cols-2 gap-4 mt-4">
+            <div class="bg-white/5 border border-white/5 rounded-xl p-4">
+              <p class="text-[10px] text-slate-500 uppercase tracking-[0.24em] font-bold">Category</p>
+              <p id="leadDetailCategory" class="mt-2 text-slate-200 font-semibold">—</p>
+            </div>
+            <div class="bg-white/5 border border-white/5 rounded-xl p-4">
+              <p class="text-[10px] text-slate-500 uppercase tracking-[0.24em] font-bold">Status</p>
+              <p id="leadDetailStatus" class="mt-2 text-slate-200 font-semibold">—</p>
+            </div>
+          </div>
+
+          <div class="bg-white/5 border border-white/5 rounded-xl p-4 mt-4">
+            <p class="text-[10px] text-slate-500 uppercase tracking-[0.24em] font-bold">Requirement</p>
+            <p id="leadDetailRequirement" class="mt-2 text-slate-200 font-semibold whitespace-pre-wrap">—</p>
+          </div>
+
+          <div class="bg-white/5 border border-white/5 rounded-xl p-4 mt-4">
+            <p class="text-[10px] text-slate-500 uppercase tracking-[0.24em] font-bold">Special Requirement (Optional)</p>
+            <p id="leadDetailSpecial" class="mt-2 text-slate-200 font-semibold whitespace-pre-wrap">—</p>
+          </div>
+
+          <div class="grid sm:grid-cols-2 gap-4 mt-4">
+            <div class="bg-white/5 border border-white/5 rounded-xl p-4">
+              <p class="text-[10px] text-slate-500 uppercase tracking-[0.24em] font-bold">Location (Raw)</p>
+              <p id="leadDetailLocationRaw" class="mt-2 text-slate-200 font-semibold whitespace-pre-wrap">—</p>
+            </div>
+            <div class="bg-white/5 border border-white/5 rounded-xl p-4">
+              <p class="text-[10px] text-slate-500 uppercase tracking-[0.24em] font-bold">Submitted At</p>
+              <p id="leadDetailCreatedAt" class="mt-2 text-slate-200 font-semibold">—</p>
+            </div>
+          </div>
+
+          <div class="flex flex-col sm:flex-row gap-3 mt-6">
+            <a id="leadDetailWhatsApp" href="#" target="_blank"
+              class="w-full sm:w-auto bg-[#25D366] hover:bg-[#128C7E] text-white px-5 py-3 rounded-xl text-xs font-bold uppercase tracking-wide flex items-center justify-center gap-2 transition-all hover:scale-[1.01] active:scale-[0.99]">
+              <span class="material-symbols-outlined text-base">chat_bubble</span> WhatsApp
+            </a>
+            <button type="button" data-lead-modal-close
+              class="w-full sm:w-auto px-5 py-3 rounded-xl bg-surface-dark border border-primary/20 text-slate-300 hover:bg-primary/10 hover:text-primary text-xs font-bold uppercase tracking-wide transition-colors">
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
     const API_ORIGIN = "https://cloche-backend.onrender.com";
     let allLeads = [];
+    let renderedLeads = [];
     let currentPage = 1;
     const itemsPerPage = 8;
     let activeFilters = {
       status: "",
       category: "",
       search: ""
+    };
+
+    const cleanStr = (value) => {
+      const v = String(value ?? "").trim();
+      if (!v || v === "undefined" || v === "null") return "";
+      return v;
+    };
+
+    const escapeHtml = (unsafe) => {
+      return String(unsafe ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    };
+
+    const parsePreferredLocation = (value) => {
+      const raw = cleanStr(value);
+      if (!raw) return { area: "", district: "", raw: "" };
+      const parts = raw.split(",").map((p) => cleanStr(p)).filter(Boolean);
+      return {
+        area: parts[0] || "",
+        district: parts.slice(1).join(", ") || "",
+        raw
+      };
+    };
+
+    const formatDate = (rawDate) => {
+      const raw = cleanStr(rawDate);
+      if (!raw) return "";
+      const d = new Date(raw);
+      if (Number.isNaN(d.getTime())) return raw;
+      return d.toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric" });
+    };
+
+    const openLeadDetails = (lead) => {
+      const modal = document.getElementById("leadDetailModal");
+      if (!modal) return;
+
+      const name = cleanStr(lead?.name) || "Guest";
+      const email = cleanStr(lead?.email) || "No Email Provided";
+      const phone = cleanStr(lead?.phone || lead?.phoneNumber) || "No Phone";
+      const category = cleanStr(lead?.category) || "Wedding";
+      const status = cleanStr(lead?.status) || "NEW";
+      const requirement = cleanStr(lead?.requirement) || "Inquiry";
+      const special = cleanStr(lead?.special_requirement);
+      const weddingDate = formatDate(lead?.wedding_date || lead?.date) || "Not Set";
+
+      const rawLocation = cleanStr(lead?.preferred_location);
+      const parsedLoc = parsePreferredLocation(rawLocation);
+      const createdAt = formatDate(lead?.created_at) || cleanStr(lead?.created_at) || "—";
+
+      const setText = (id, value) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = value || "—";
+      };
+
+      const titleEl = document.getElementById("leadDetailTitle");
+      if (titleEl) titleEl.textContent = name;
+
+      setText("leadDetailName", name);
+      setText("leadDetailEmail", email);
+      setText("leadDetailPhone", phone);
+      setText("leadDetailWeddingDate", weddingDate);
+      setText("leadDetailArea", parsedLoc.area || "—");
+      setText("leadDetailDistrict", parsedLoc.district || "—");
+      setText("leadDetailCategory", category);
+      setText("leadDetailStatus", status);
+      setText("leadDetailRequirement", requirement);
+      setText("leadDetailSpecial", special || "—");
+      setText("leadDetailLocationRaw", rawLocation || "—");
+      setText("leadDetailCreatedAt", createdAt);
+
+      const waBtn = document.getElementById("leadDetailWhatsApp");
+      if (waBtn) {
+        const digits = phone.replace(/[^0-9]/g, "");
+        waBtn.href = digits ? `https://wa.me/${digits}` : "#";
+        waBtn.classList.toggle("opacity-60", !digits);
+        waBtn.classList.toggle("pointer-events-none", !digits);
+      }
+
+      modal.classList.remove("hidden");
+      document.body.classList.add("overflow-hidden");
+    };
+
+    const closeLeadDetails = () => {
+      const modal = document.getElementById("leadDetailModal");
+      if (!modal) return;
+      modal.classList.add("hidden");
+      document.body.classList.remove("overflow-hidden");
     };
 
     function logout() {
@@ -437,6 +621,7 @@
     const renderTable = (filteredLeads) => {
       const tableBody = document.getElementById("leadsTableBody");
       tableBody.innerHTML = "";
+      renderedLeads = [];
 
       if (filteredLeads.length === 0) {
         tableBody.innerHTML = `<tr><td colspan="5" class="px-8 py-6 text-center text-slate-400">No leads match your current search/filters.</td></tr>`;
@@ -447,24 +632,26 @@
       const start = (currentPage - 1) * itemsPerPage;
       const end = start + itemsPerPage;
       const pageItems = filteredLeads.slice(start, end);
+      renderedLeads = pageItems;
 
-      pageItems.forEach(lead => {
+      pageItems.forEach((lead, idx) => {
         // Fix: Use wedding_date with fallback to date or created_at
         const rawDate = lead.wedding_date || lead.date || lead.created_at;
-        const dateStr = rawDate ? new Date(rawDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }) : "Not Set";
+        const dateStr = formatDate(rawDate) || "Not Set";
 
-        const initials = (lead.name || "Guest").split(" ").map(n => n[0]).join("").toUpperCase().substring(0, 2);
+        const safeName = cleanStr(lead.name) || "Guest";
+        const initials = safeName.split(" ").map(n => n[0]).join("").toUpperCase().substring(0, 2);
 
         // Safe phone for WhatsApp
-        const phone = lead.phone || lead.phoneNumber || "";
+        const phone = cleanStr(lead.phone || lead.phoneNumber) || "";
         const waLink = phone ? `https://wa.me/${phone.replace(/[^0-9]/g, '')}` : "#";
 
         // Clean values to avoid "undefined" display
-        const email = lead.email && lead.email !== "undefined" ? lead.email : "No Email Provided";
-        const category = lead.category && lead.category !== "undefined" ? lead.category : "Wedding";
-        const status = lead.status && lead.status !== "undefined" ? lead.status : "NEW";
-        const requirement = lead.requirement && lead.requirement !== "undefined" ? lead.requirement : "Inquiry";
-        const location = lead.preferred_location && lead.preferred_location !== "undefined" ? lead.preferred_location : "";
+        const email = cleanStr(lead.email) || "No Email Provided";
+        const category = cleanStr(lead.category) || "Wedding";
+        const status = cleanStr(lead.status) || "NEW";
+        const requirement = cleanStr(lead.requirement) || "Inquiry";
+        const location = cleanStr(lead.preferred_location) || "";
 
         let statusClass = "bg-primary/10 border-primary/50 text-primary";
         if (status === "CONTACTED") statusClass = "bg-slate-700/50 border-slate-500 text-slate-300";
@@ -478,10 +665,10 @@
                               ${initials}
                           </div>
                           <div class="min-w-0">
-                              <p class="font-display font-bold text-lg leading-tight tracking-wide truncate">${lead.name}</p>
-                              <p class="text-xs text-slate-500 font-medium truncate">${email}</p>
+                              <p class="font-display font-bold text-lg leading-tight tracking-wide truncate">${escapeHtml(safeName)}</p>
+                              <p class="text-xs text-slate-500 font-medium truncate">${escapeHtml(email)}</p>
                               <p class="text-[11px] text-primary/80 font-bold mt-1 flex items-center gap-1">
-                                <span class="material-symbols-outlined text-[14px]">smartphone</span> ${phone || 'No Phone'}
+                                <span class="material-symbols-outlined text-[14px]">smartphone</span> ${escapeHtml(phone || 'No Phone')}
                               </p>
                           </div>
                       </div>
@@ -495,14 +682,14 @@
                   <td class="px-6 py-6">
                     <div class="flex flex-col gap-2">
                       <div class="flex items-center gap-2">
-                        <span class="px-2 py-0.5 bg-primary/10 border border-primary/20 rounded text-[10px] font-bold uppercase tracking-widest text-primary">${category}</span>
-                        ${location ? `<span class="text-[10px] text-slate-400 flex items-center gap-1"><span class="material-symbols-outlined text-xs">location_on</span> ${location}</span>` : ''}
+                        <span class="px-2 py-0.5 bg-primary/10 border border-primary/20 rounded text-[10px] font-bold uppercase tracking-widest text-primary">${escapeHtml(category)}</span>
+                        ${location ? `<span class="text-[10px] text-slate-400 flex items-center gap-1"><span class="material-symbols-outlined text-xs">location_on</span> ${escapeHtml(location)}</span>` : ''}
                       </div>
-                      <p class="text-sm text-slate-300 line-clamp-2 italic">"${requirement}"</p>
-                      ${lead.special_requirement && lead.special_requirement !== 'undefined' ?
+                      <p class="text-sm text-slate-300 line-clamp-2 italic">"${escapeHtml(requirement)}"</p>
+                      ${cleanStr(lead.special_requirement) ?
             `<div class="text-[11px] text-slate-500 bg-white/5 p-2 rounded border border-white/5 mt-1 border-l-2 border-l-primary/40">
                           <span class="font-bold text-primary/70 uppercase text-[9px] block mb-0.5">Note:</span>
-                          ${lead.special_requirement}
+                          ${escapeHtml(cleanStr(lead.special_requirement))}
                         </div>` : ''}
                     </div>
                   </td>
@@ -511,6 +698,10 @@
                   </td>
                   <td class="px-8 py-6 text-right">
                       <div class="flex flex-col items-end gap-2">
+                        <button type="button" data-lead-action="view" data-lead-idx="${idx}"
+                          class="bg-surface-dark border border-primary/20 text-slate-200 hover:bg-primary/10 hover:text-primary px-4 py-2 rounded-lg text-[11px] font-bold uppercase tracking-wide flex items-center gap-2 transition-colors">
+                          <span class="material-symbols-outlined text-sm">visibility</span> View
+                        </button>
                         <a href="${waLink}" target="_blank" class="bg-[#25D366] hover:bg-[#128C7E] text-white px-4 py-2 rounded-lg text-[11px] font-bold uppercase tracking-wide flex items-center gap-2 transition-all hover:scale-105 active:scale-95">
                             <span class="material-symbols-outlined text-sm">chat_bubble</span> WhatsApp
                         </a>
@@ -615,6 +806,30 @@
         activeFilters = { status: "", category: "", search: "" };
         applyFilters();
       });
+
+      // Lead details modal handlers
+      const closeBtn = document.getElementById("leadDetailCloseBtn");
+      if (closeBtn) closeBtn.addEventListener("click", closeLeadDetails);
+
+      document.querySelectorAll("[data-lead-modal-close]").forEach((el) => {
+        el.addEventListener("click", closeLeadDetails);
+      });
+
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") closeLeadDetails();
+      });
+
+      const tableBody = document.getElementById("leadsTableBody");
+      if (tableBody) {
+        tableBody.addEventListener("click", (e) => {
+          const btn = e.target.closest("[data-lead-action='view']");
+          if (!btn) return;
+          const idx = Number(btn.getAttribute("data-lead-idx"));
+          const lead = renderedLeads[idx];
+          if (!lead) return;
+          openLeadDetails(lead);
+        });
+      }
 
       // 🚀 Fetch Data
       try {
