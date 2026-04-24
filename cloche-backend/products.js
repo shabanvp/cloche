@@ -448,4 +448,50 @@ router.post("/delete-image", async (req, res) => {
   }
 });
 
+
+/* ================= PRODUCT REVIEWS ================= */
+
+/**
+ * @route   GET /api/products/reviews/:productId
+ */
+router.get("/reviews/:productId", async (req, res) => {
+  const { productId } = req.params;
+  try {
+    const { data: reviews, error } = await supabase
+      .from("product_reviews")
+      .select("*")
+      .eq("product_id", productId)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+        if (error.message.includes("relation") && error.message.includes("does not exist")) return res.json([]);
+        return res.status(500).json({ message: "DB error: " + error.message });
+    }
+    res.json(reviews || []);
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: err.message });
+  }
+});
+
+/**
+ * @route   POST /api/products/reviews/:productId
+ */
+router.post("/reviews/:productId", async (req, res) => {
+  const { productId } = req.params;
+  const { userName, rating, comment } = req.body;
+  if (!userName || !rating || !comment) return res.status(400).json({ message: "Missing fields" });
+
+  try {
+    const { data, error } = await supabase
+      .from("product_reviews")
+      .insert([{ product_id: productId, user_name: userName, rating: Number(rating), comment }])
+      .select();
+
+    if (error) return res.status(500).json({ message: "DB error: " + error.message });
+    res.status(201).json({ success: true, review: data[0] });
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: err.message });
+  }
+});
+
 module.exports = router;

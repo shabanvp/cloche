@@ -351,117 +351,146 @@
         }
 
         try {
-          // 🔥 THIS IS WHERE IT COMES FROM
           const res = await fetch(`${PRODUCT_API}/${productId}`);
-          const product = await res.json(); // <-- THIS LINE YOU ASKED ABOUT
-          renderGallery(product);
+          if (!res.ok) throw new Error("Product not found");
+          const product = await res.json();
 
-          /* -------------------------------
-             BASIC PRODUCT DATA
-          -------------------------------- */
-          document.getElementById("productTitle").innerHTML = product.product_name;
-
-          const metaPrimary = String(product.category || "").trim();
-          const metaSecondary = String(product.showcase_tags || "")
-            .split(",")
-            .map((tag) => tag.trim())
-            .find(Boolean);
-
-          const metaPrimaryEl = document.getElementById("metaPrimary");
-          const metaSecondaryEl = document.getElementById("metaSecondary");
-          const metaDotEl = document.getElementById("metaDot");
-
-          if (metaPrimaryEl) metaPrimaryEl.textContent = metaPrimary || "Uncategorized";
-          if (metaSecondaryEl) metaSecondaryEl.textContent = metaSecondary || "";
-          if (metaDotEl) metaDotEl.style.display = (metaPrimary && metaSecondary) ? "inline-block" : "none";
-
-
-          document.getElementById("productPrice").textContent =
-            `₹${Number(product.price).toLocaleString("en-IN")}`;
-
-          const resolvedLocation = [
-            product.location,
-            product.store_location,
-            [product.area, product.district].filter(Boolean).join(", "),
-            product.boutique_city
-          ].map((v) => String(v || "").trim()).find(Boolean);
-
-          document.getElementById("productLocation").textContent =
-            resolvedLocation || "Location TBA";
-
-          const inStock = Number(product.stock || 0) > 0;
-          const availabilityLabel = document.getElementById("availabilityLabel");
-          const availabilitySubtext = document.getElementById("availabilitySubtext");
-          if (availabilityLabel) {
-            availabilityLabel.innerHTML = `
-            <span class="relative flex h-2 w-2">
-              <span class="animate-ping absolute inline-flex h-full w-full rounded-full ${inStock ? "bg-primary" : "bg-red-400"} opacity-75"></span>
-              <span class="relative inline-flex rounded-full h-2 w-2 ${inStock ? "bg-primary" : "bg-red-400"}"></span>
-            </span>
-            ${inStock ? "In Stock" : "Out of Stock"}
-          `;
-            availabilityLabel.className = `${inStock ? "text-primary" : "text-red-400"} text-xs font-bold uppercase tracking-widest flex items-center justify-end gap-1`;
-          }
-          if (availabilitySubtext) {
-            availabilitySubtext.textContent = inStock
-              ? "Available for booking now"
-              : "Currently unavailable for booking";
+          gallery = [product.image_url];
+          if (Array.isArray(product.gallery)) {
+            gallery = [...new Set([product.image_url, ...product.gallery])].filter(Boolean);
           }
 
+          const dotContainer = document.getElementById("imageDots");
+          dotContainer.innerHTML = gallery.map((_, i) => `<div class="img-dot size-1.5 rounded-full" style="background: ${i === 0 ? '#c1a671' : 'rgba(255,255,255,0.2)'};"></div>`).join("");
 
+          if (gallery.length <= 1) document.getElementById("sliderControls").classList.add("hidden");
 
-          // Image (priority: product image -> showcase image)
-          const mainImageEl = document.getElementById("mainImage");
-          if (mainImageEl && product.image_url) {
-            mainImageEl.src = resolveAssetUrl(product.image_url);
-          } else if (mainImageEl && product.showcase_image) {
-            mainImageEl.src = resolveAssetUrl(product.showcase_image);
+          const title = (product.product_name || product.title || "Exquisite Piece").toUpperCase();
+          document.getElementById("productTitle").textContent = title;
+          document.getElementById("breadcrumbProduct").textContent = title;
+          document.getElementById("productCategory").textContent = (product.category || "Couture Collection").toUpperCase();
+
+          const formattedPrice = `₹ ${Number(product.price || 0).toLocaleString("en-IN")}`;
+          document.getElementById("cardProductPrice").textContent = formattedPrice;
+
+          const bName = product.boutique_name || "Cloche Elite Partner";
+          document.getElementById("subBoutiqueName").textContent = bName;
+          document.getElementById("boutiqueName").textContent = bName;
+
+          const loc = [product.area, product.district].filter(Boolean).join(", ") || product.boutique_city || product.location || "Luxury Hub";
+          document.getElementById("productLocation").textContent = loc.toUpperCase();
+
+          if (product.description) {
+            document.getElementById("productDescription").innerHTML = product.description.split('\n').filter(l => l.trim()).map(p => `<span>${p}</span><br/>`).join('');
           }
 
+          updateMainImage(0);
 
-          /* -------------------------------
-             MESSAGE BOUTIQUE
-          -------------------------------- */
-          const params = new URLSearchParams(window.location.search);
-          const boutiqueId = params.get("boutiqueId") || params.get("boutique_id") || "";
-          const productName = String(product.product_name || "").trim();
-          const boutiqueName = String((product.boutique && product.boutique.boutique_name) || "").trim();
+          document.getElementById("boutiqueArea").textContent = (product.area || product.district || "Official Boutique").toUpperCase();
+          document.getElementById("boutiqueInitial").textContent = bName.charAt(0).toUpperCase();
+          document.getElementById("viewBoutiqueBtn").href = `viewboutique.html?id=${product.boutique_id}`;
 
-          const messageBtn = document.getElementById("messageBoutiqueBtn");
-          if (messageBtn) {
-            messageBtn.onclick = () => {
-              if (localStorage.getItem("isUserLoggedIn") !== "true") {
-                alert("Please login as user first to chat with the boutique.");
-                window.location.href = "boutiquelogin.html";
-                return;
-              }
+          if (product.boutique_id) loadRelatedProducts(product.boutique_id, productId);
 
-              const targetBoutiqueId = Number(
-                boutiqueId ||
-                product.boutique_id ||
-                (product.boutique && product.boutique.id) ||
-                0
-              );
-              if (!targetBoutiqueId) {
-                alert("Boutique details missing for this product.");
-                return;
-              }
+          loadReviews(productId);
 
-              const q = new URLSearchParams({
-                boutiqueId: String(targetBoutiqueId),
-                productName,
-                boutiqueName
-              });
-              try {
-                localStorage.setItem("messageTargetBoutiqueId", String(targetBoutiqueId));
-                localStorage.setItem("messageTargetBoutiqueName", String(boutiqueName || ""));
-                localStorage.setItem("selectedBoutiqueId", String(targetBoutiqueId));
-                if (boutiqueName) localStorage.setItem("selectedBoutiqueName", String(boutiqueName));
-              } catch (e) { }
-              window.location.href = `messageboutique.html?${q.toString()}`;
-            };
+          document.title = `${title} | CLOCHE`;
+
+        } catch (err) {
+          console.error("Load failed", err);
+        }
+      }
+
+      async function loadReviews(productId) {
+        const list = document.getElementById("reviewsList");
+        try {
+          const res = await fetch(`${API_ORIGIN}/api/reviews/${productId}`);
+          const reviews = await res.json();
+
+          if (!reviews.length) {
+            list.innerHTML = '<div class="text-center py-10 text-[10px] uppercase tracking-widest text-white/20 italic">No impressions yet. Be the first to share.</div>';
+            return;
           }
 
+          list.innerHTML = reviews.map(r => `
+                <div class="border-b border-white/5 pb-8">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-[11px] font-bold text-white/90 uppercase tracking-widest">${r.user_name}</span>
+                        <div class="flex gap-0.5 text-primary">
+                            ${Array(5).fill(0).map((_, i) => `<span class="material-symbols-outlined text-xs ${i < r.rating ? 'fill-1' : 'opacity-20'}">star</span>`).join('')}
+                        </div>
+                    </div>
+                    <p class="text-xs text-white/50 leading-relaxed font-display italic">"${r.comment}"</p>
+                    <p class="text-[8px] uppercase tracking-widest text-white/20 mt-4">${new Date(r.created_at).toLocaleDateString()}</p>
+                </div>
+            `).join("");
+        } catch (err) {
+          list.innerHTML = '<div class="text-center py-10 text-[10px] uppercase tracking-widest text-white/20 italic">Impressions currently private.</div>';
+        }
+      }
+
+      // Review Form Interactivity
+      let selectedRating = 0;
+      const showReviewBtn = document.getElementById("showReviewForm");
+      const reviewForm = document.getElementById("reviewFormContainer");
+
+      showReviewBtn?.addEventListener("click", () => {
+        const isUserLoggedIn = localStorage.getItem("isUserLoggedIn") === "true";
+        if (!isUserLoggedIn) {
+          window.location.href = "boutiquelogin.html";
+          return;
+        }
+        reviewForm.classList.toggle("hidden");
+        showReviewBtn.textContent = reviewForm.classList.contains("hidden") ? "Write Review" : "Cancel";
+      });
+
+      document.querySelectorAll("#starRating span").forEach(star => {
+        star.addEventListener("click", () => {
+          selectedRating = parseInt(star.dataset.val);
+          document.querySelectorAll("#starRating span").forEach((s, idx) => {
+            s.classList.toggle("text-primary", idx < selectedRating);
+            s.classList.toggle("text-white/20", idx >= selectedRating);
+          });
+        });
+      });
+
+      document.getElementById("submitReview")?.addEventListener("click", async () => {
+        const comment = document.getElementById("reviewComment").value.trim();
+        const userName = localStorage.getItem("userName") || "Elite Member";
+        const productId = new URLSearchParams(window.location.search).get("id") || new URLSearchParams(window.location.search).get("productId");
+
+        if (selectedRating === 0) return alert("Select a rating, please.");
+        if (!comment) return alert("Share your thoughts in the comment section.");
+
+        const btn = document.getElementById("submitReview");
+        btn.disabled = true;
+        btn.textContent = "Publishing...";
+
+        try {
+          const res = await fetch(`${API_ORIGIN}/api/reviews/${productId}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ userName, rating: selectedRating, comment })
+          });
+
+          if (res.ok) {
+            document.getElementById("reviewComment").value = "";
+            selectedRating = 0;
+            document.querySelectorAll("#starRating span").forEach(s => {
+              s.classList.remove("text-primary");
+              s.classList.add("text-white/20");
+            });
+            reviewForm.classList.add("hidden");
+            showReviewBtn.textContent = "Write Review";
+            loadReviews(productId);
+          } else {
+            const err = await res.json();
+            if (res.status === 404) {
+              alert("Backend sync required. Please ensure the new reviews route is deployed to your production server.");
+            } else {
+              alert(err.message || "Failed to publish review");
+            }
+          }
         } catch (err) {
           console.error("Failed to load product", err);
         }
