@@ -123,8 +123,8 @@
             <span>Collections</span>
           </a>
           ${!partnerLoggedIn ? `
-          <a href="messageboutique.html" class="side-menu-link">
-            <span class="material-symbols-outlined">chat</span>
+          <a href="messageboutique.html?view=list" class="side-menu-link">
+            <span class="material-symbols-outlined">chat_bubble</span>
             <span>Enquire</span>
           </a>
           ` : ""}

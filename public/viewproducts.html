@@ -1,11 +1,10 @@
 <!DOCTYPE html>
-
 <html class="dark" lang="en">
 
 <head>
   <meta charset="utf-8" />
   <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-  <title>CLOCHE - Luxury Product Detail</title>
+  <title>Product Detail | CLOCHE Luxury</title>
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
   <link
     href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,100..900;1,100..900&amp;family=Inter:wght@300;400;500;600;700&amp;display=swap"
@@ -45,374 +44,383 @@
       border: 1px solid rgba(193, 166, 113, 0.2);
     }
 
-    .glass-effect {
-      background: rgba(29, 26, 21, 0.8);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 1px solid rgba(193, 166, 113, 0.1);
+    .gold-glow {
+      box-shadow: 0 0 25px rgba(193, 166, 113, 0.2);
     }
 
     .royal-border {
-      border-bottom: 1px solid rgba(193, 166, 113, 0.2);
+      border-bottom: 1px solid rgba(193, 166, 113, 0.1);
     }
 
-    .hover-lift {
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    .custom-scrollbar::-webkit-scrollbar {
+      height: 4px;
+      width: 4px;
     }
 
-    .hover-lift:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.5);
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: transparent;
     }
 
-    .image-zoom-container {
-      overflow: hidden;
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: rgba(193, 166, 113, 0.3);
+      border-radius: 10px;
     }
 
-    .image-zoom-container img {
-      transition: transform 0.5s ease;
+    .animate-fade-in {
+      animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
 
-    .image-zoom-container:hover img {
-      transform: scale(1.05);
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
-    body {
-      font-family: 'Inter', sans-serif;
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    
+    .slider-btn {
+        background: rgba(0,0,0,0.4);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(193, 166, 113, 0.2);
+        color: #c1a671;
+        transition: all 0.3s;
+    }
+    .slider-btn:hover {
+        background: #c1a671;
+        color: #0d0d0d;
+        border-color: #c1a671;
     }
 
-    h1,
-    h2,
-    h3,
-    .font-display {
-      font-family: 'Noto Serif', serif;
+    .product-image-container {
+        background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
+    }
+
+    #imageLoader {
+        background: rgba(0,0,0,0.4);
+        backdrop-filter: blur(4px);
+    }
+    
+    .mobile-topbar {
+        display: none; 
     }
   </style>
   <link rel='stylesheet' href='responsive-fixes.css?v=1776237132140' />
 </head>
 
-<body
-  class="bg-background-light dark:bg-background-dark text-gray-800 dark:text-gray-100 selection:bg-primary selection:text-white">
-  <!-- Top Navigation -->
-  <nav class="fixed top-0 w-full z-50 glass-card royal-border">
+<body class="bg-background-dark text-gray-100 selection:bg-primary selection:text-white overflow-x-hidden pt-0">
+
+  <!-- Desktop Navigation (Handled by responsive-layout.js for mobile) -->
+  <nav class="hidden md:block fixed top-0 w-full z-50 glass-card royal-border">
     <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-      <a class="flex items-center gap-2" href="index.html">
-        <span class="material-symbols-outlined text-primary text-3xl">diamond</span>
-        <span class="text-2xl font-bold tracking-[0.2em] font-display text-white">CLOCHE</span>
-      </a>
-      <div class="hidden md:flex items-center gap-12">
-        <a class="text-sm uppercase tracking-widest text-primary" href="boutiques.html">Boutiques</a>
-        <a class="text-sm uppercase tracking-widest hover:text-primary transition-colors"
-          href="index.html#how-it-works">How it Works</a>
-        <a id="listYourBoutiqueNav" class="text-sm uppercase tracking-widest hover:text-primary transition-colors"
-          href="boutiquelogin.html">List Your Boutique</a>
-      </div>
-      <div class="relative flex items-center gap-6">
-        <a id="authNav" href="boutiquelogin.html"
-          class="text-sm uppercase tracking-widest font-medium hover:text-primary transition-colors">LOGIN</a>
-        <a id="profileIconLink" href="boutiquelogin.html"
-          class="h-10 w-10 rounded-full bg-primary/20 border border-primary/40 flex items-center justify-center overflow-hidden hover:border-primary transition-colors">
-          <span id="navAvatar" class="text-primary font-bold">C</span>
+      <div class="flex items-center gap-10">
+        <a href="index.html" class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary text-3xl">diamond</span>
+          <span class="text-2xl font-bold tracking-[0.2em] font-display text-white">CLOCHE</span>
         </a>
-        <div id="userMenuDropdown"
-          class="hidden absolute right-0 top-14 w-44 rounded-lg border border-primary/25 bg-[#141414]/95 backdrop-blur-md shadow-2xl p-2 z-50">
-          <a href="userprofile.html"
-            class="block px-3 py-2 rounded text-xs uppercase tracking-widest text-white/80 hover:bg-primary/10 hover:text-primary">Profile</a>
-          <a href="messageboutique.html"
-            class="block px-3 py-2 rounded text-xs uppercase tracking-widest text-white/80 hover:bg-primary/10 hover:text-primary">Inbox</a>
-          <button id="logoutBtn"
-            class="w-full text-left px-3 py-2 rounded text-xs uppercase tracking-widest text-white/80 hover:bg-primary/10 hover:text-primary">Logout</button>
-        </div>
+      </div>
+      <div class="flex items-center gap-10">
+        <a href="boutiques.html" class="text-xs uppercase tracking-[0.2em] hover:text-primary transition-colors text-white/70">Boutiques</a>
+        <a href="collection.html" class="text-xs uppercase tracking-[0.2em] hover:text-primary transition-colors text-white/70">Collections</a>
+        <div class="h-4 w-[1px] bg-white/10 mx-2"></div>
+        <a id="authNav" href="boutiquelogin.html" class="text-xs uppercase tracking-[0.2em] font-bold text-primary">Login</a>
       </div>
     </div>
   </nav>
 
-  <div class="min-h-screen pt-20 flex items-center justify-center p-6">
-    <div
-      class="max-w-4xl w-full flex flex-col md:flex-row glass-effect rounded-xl overflow-hidden hover-lift shadow-2xl">
-      <!-- Left Column: Product Image -->
-      <div class="w-full md:w-5/12 aspect-[3/4] md:aspect-auto image-zoom-container relative">
-        <img id="mainImage" alt="Luxury bridal lehenga" class="w-full h-full object-cover"
-          data-alt="Intricate golden embroidery on a bridal lehenga"
-          src="https://lh3.googleusercontent.com/aida-public/AB6AXuCHrFN5ufPmYTjN4l2N5WW3LPEAID30HoWBOejS44ZKufKmeD30WdnF39eqdbRn-I0mn-a_Sln8L9ldRooV3XldySB7BZdq2cZrEI93L9Hqm3pxsOC4nrSoCBsIHEzoyhRD0qPf3Kikg4S4y8BRAWZYcY-KaB4nd2Biil1_LEdNCZo3J9s1wY-Hon-oWAvhmDmICZfwzY0rv6aNcLy6hGvgK8aTzS_V8mmJ5idZthUXDGxFcv6ymBPSrHkvvFUD5T4urXUiAcurmZI" />
-        <div id="thumbnailContainer" class="absolute bottom-4 left-4 right-4 flex gap-2 overflow-x-auto pb-1">
-        </div>
+  <main class="max-w-7xl mx-auto px-4 md:px-6 pt-12 md:pt-24 pb-32">
+    <!-- Breadcrumbs -->
+    <div class="flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] text-white/30 mb-8 overflow-x-auto whitespace-nowrap no-scrollbar">
+      <a href="index.html" class="hover:text-primary transition-colors">Home</a>
+      <span class="material-symbols-outlined text-[10px]">chevron_right</span>
+      <a href="boutiques.html" class="hover:text-primary transition-colors">Collections</a>
+      <span class="material-symbols-outlined text-[10px]">chevron_right</span>
+      <span id="breadcrumbProduct" class="text-primary/70">Product Detail</span>
+    </div>
 
-        <div class="absolute top-4 left-4">
-          <span
-            class="bg-primary/90 text-background-dark px-3 py-1 text-[10px] uppercase tracking-widest font-bold rounded">New
-            Collection</span>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-20">
+      <!-- Left side: Product Image + Slider -->
+      <div class="space-y-6">
+        <div class="product-image-container relative aspect-[3/4] md:aspect-[4/5] rounded-[2rem] overflow-hidden shadow-2xl animate-fade-in group">
+          <img id="mainImage" src="" alt="Product Detail" class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105 opacity-0" />
+          
+          <div id="sliderControls" class="absolute inset-0 flex items-center justify-between px-4 opacity-0 group-hover:opacity-100 transition-opacity z-20">
+            <button id="prevImg" class="slider-btn size-10 rounded-full flex items-center justify-center">
+                <span class="material-symbols-outlined">chevron_left</span>
+            </button>
+            <button id="nextImg" class="slider-btn size-10 rounded-full flex items-center justify-center">
+                <span class="material-symbols-outlined">chevron_right</span>
+            </button>
+          </div>
+
+          <div id="imageLoader" class="absolute inset-0 flex items-center justify-center z-10">
+            <div class="w-8 h-8 border-2 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+          </div>
+          <div class="absolute top-6 left-6 z-20">
+            <span class="bg-primary/20 backdrop-blur-md border border-primary/30 text-primary px-3 py-1 rounded-full text-[8px] font-bold tracking-widest uppercase">Verified Luxury</span>
+          </div>
+          
+          <div id="imageDots" class="absolute bottom-6 left-0 right-0 flex justify-center gap-2 z-20"></div>
         </div>
+        
+        <div id="thumbnailContainer" class="flex gap-4 overflow-x-auto pb-2 no-scrollbar snap-x"></div>
       </div>
-      <!-- Right Column: Product Details -->
-      <div class="w-full md:w-7/12 p-8 flex flex-col justify-center gap-6">
-        <!-- Header Section -->
-        <div class="space-y-1">
-          <div class="flex items-center gap-2 text-primary/80 tracking-[0.2em] text-[11px] font-semibold">
-            <span id="metaPrimary">Premium Couture</span>
-            <span id="metaDot" class="w-1 h-1 rounded-full bg-primary/40"></span>
-            <span id="metaSecondary">Handcrafted</span>
+
+      <!-- Right side: Product Info -->
+      <div class="flex flex-col animate-fade-in" style="animation-delay: 0.15s">
+        <div class="mb-8">
+          <span id="productCategory" class="text-[10px] font-black text-primary tracking-[0.4em] uppercase mb-4 block">Designer Piece</span>
+          <h1 id="productTitle" class="text-4xl md:text-6xl font-display text-white mb-6 leading-tight font-medium tracking-tight">Loading...</h1>
+          
+          <!-- Boutique Info Snippet -->
+          <div class="flex flex-col gap-1 mb-8">
+              <div id="subBoutiqueName" class="text-primary font-display text-sm tracking-wide font-medium">Boutique Name</div>
+              <div class="flex flex-wrap items-center gap-4 text-white/40">
+                <div class="flex items-center gap-1.5">
+                  <span class="material-symbols-outlined text-[14px]">location_on</span>
+                  <span id="productLocation" class="text-[10px] uppercase tracking-widest font-medium">Location Detail</span>
+                </div>
+              </div>
           </div>
-          <h1 id="productTitle" class="text-white text-3xl md:text-4xl font-display leading-tight">
-            Golden Zardozi <br /> Bridal Lehenga
-          </h1>
+          <div class="border-b border-white/5 w-full"></div>
         </div>
-        <!-- Info & Status -->
-        <div class="flex items-center justify-between border-y border-white/5 py-4">
 
-          <!-- LEFT: Listing info -->
-          <div class="flex flex-col gap-1">
-            <span class="text-white/80 text-sm uppercase tracking-wider">Cloche Listed Boutique</span>
-            <p class="text-white/40 text-[11px] uppercase tracking-wider">Verified profile and catalog details</p>
-          </div>
-
-          <!-- RIGHT: Availability -->
-          <div class="text-right">
-            <p id="availabilityLabel" class="text-primary text-xs font-bold uppercase tracking-widest
-              flex items-center justify-end gap-1">
-              <span class="relative flex h-2 w-2">
-                <span class="animate-ping absolute inline-flex h-full w-full
-                     rounded-full bg-primary opacity-75"></span>
-                <span class="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
-              </span>
-              Limited Availability
-            </p>
-
-            <p id="availabilitySubtext" class="text-white/40 text-[11px] mt-1 italic">
-              Availability updates from the boutique
+        <div class="space-y-10 mb-12">
+          <div>
+            <h3 class="text-[10px] font-bold uppercase tracking-[0.3em] text-primary mb-5 opacity-80">The Couture Narrative</h3>
+            <p id="productDescription" class="text-sm md:text-[15px] text-white/60 leading-relaxed font-light font-display italic">
+              Loading authentic designer notes...
             </p>
           </div>
-
-        </div>
-
-        <!-- Price & Location -->
-        <div class="space-y-4">
-          <div class="flex items-baseline gap-2">
-            <span id="productPrice" class="text-white text-3xl font-display">₹12,500</span>
-            <span class="text-white/50 text-sm font-sans">/ day rental</span>
-          </div>
-          <div class="flex items-center gap-2">
-            <span class="material-symbols-outlined text-primary text-lg">location_on</span>
-            <span id="productLocation" class="text-sm font-medium tracking-wide text-white"></span>
+          
+          <div class="grid grid-cols-2 gap-4">
+              <div class="p-5 rounded-2xl border border-white/5 bg-white/[0.02] flex flex-col gap-1">
+                  <div class="text-[9px] uppercase tracking-widest text-primary/60 font-bold">Fabric & Feel</div>
+                  <div class="text-[11px] text-white/80 font-medium tracking-wide">Premium Handpicked</div>
+              </div>
+              <div class="p-5 rounded-2xl border border-white/5 bg-white/[0.02] flex flex-col gap-1">
+                  <div class="text-[9px] uppercase tracking-widest text-primary/60 font-bold">Rental Amount</div>
+                  <div id="cardProductPrice" class="text-[11px] text-white/80 font-bold tracking-widest">₹ 0</div>
+              </div>
           </div>
         </div>
 
-        <!-- CTA Buttons -->
-        <div class="flex flex-col sm:flex-row gap-3 pt-4">
-          <button id="messageBoutiqueBtn"
-            class="flex-1 bg-primary text-background-dark font-bold py-4 rounded-lg flex items-center justify-center gap-2 hover:bg-primary/90 transition-colors uppercase tracking-widest text-xs">
-            <span class="material-symbols-outlined text-lg">chat_bubble</span>
-            Message Boutique
-          </button>
+        <!-- Boutique Card -->
+        <div class="glass-card rounded-[2rem] p-8 mb-10 border-primary/10 group">
+          <div class="flex items-center gap-5 mb-6">
+            <div id="boutiqueInitial" class="w-16 h-16 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-primary font-display font-medium text-3xl shadow-inner group-hover:bg-primary group-hover:text-background-dark transition-colors duration-500">B</div>
+            <div>
+              <p id="boutiqueName" class="font-display text-2xl text-white font-bold tracking-wide">Boutique Name</p>
+              <p id="boutiqueArea" class="text-[10px] text-primary/70 uppercase tracking-widest font-bold mt-1">Official Boutique Member</p>
+            </div>
+          </div>
+          <p id="boutiqueBio" class="text-[11px] text-white/40 leading-relaxed mb-6 uppercase tracking-widest">
+            Expertly curated luxury collections from verified boutiques across our elite network.
+          </p>
+          <a id="viewBoutiqueBtn" href="#" class="inline-flex items-center gap-2 text-[10px] font-bold text-primary uppercase tracking-[0.3em] border-b border-primary/30 pb-1 hover:border-primary transition-all">
+            Explore Boutique <span class="material-symbols-outlined text-sm">arrow_forward</span>
+          </a>
         </div>
 
-        <!-- Footer Small Print -->
-        <div class="flex items-center justify-center gap-4 pt-2">
-          <div class="flex items-center gap-1 text-white/30 text-[10px] uppercase tracking-tighter">
-            <span class="material-symbols-outlined text-sm">verified_user</span>
-            Insured Shipping
+        <!-- Reviews Section -->
+        <div class="glass-card rounded-[2rem] p-8 border-primary/5">
+          <div class="flex items-center justify-between mb-8">
+            <div>
+              <h3 class="text-[10px] font-bold uppercase tracking-[0.3em] text-primary mb-1">Feedback</h3>
+              <p class="text-xl font-display text-white">Guest Reviews</p>
+            </div>
+            <button id="showReviewForm" class="text-[10px] font-bold text-primary uppercase tracking-widest border border-primary/30 px-4 py-2 rounded-full hover:bg-primary hover:text-background-dark transition-all">Write Review</button>
           </div>
-          <div class="flex items-center gap-1 text-white/30 text-[10px] uppercase tracking-tighter">
-            <span class="material-symbols-outlined text-sm">workspace_premium</span>
-            Quality Guaranteed
+
+          <!-- Add Review Form -->
+          <div id="reviewFormContainer" class="hidden mb-12 animate-fade-in p-6 rounded-2xl bg-white/[0.03] border border-white/5">
+            <div class="space-y-6">
+              <div>
+                <label class="text-[9px] uppercase tracking-widest text-white/40 block mb-3">Rating</label>
+                <div class="flex gap-2" id="starRating">
+                  <span class="material-symbols-outlined cursor-pointer hover:text-primary transition-colors text-white/20" data-val="1">star</span>
+                  <span class="material-symbols-outlined cursor-pointer hover:text-primary transition-colors text-white/20" data-val="2">star</span>
+                  <span class="material-symbols-outlined cursor-pointer hover:text-primary transition-colors text-white/20" data-val="3">star</span>
+                  <span class="material-symbols-outlined cursor-pointer hover:text-primary transition-colors text-white/20" data-val="4">star</span>
+                  <span class="material-symbols-outlined cursor-pointer hover:text-primary transition-colors text-white/20" data-val="5">star</span>
+                </div>
+              </div>
+              <div>
+                <label class="text-[9px] uppercase tracking-widest text-white/40 block mb-3">Your Perspective</label>
+                <textarea id="reviewComment" rows="3" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-primary outline-none text-white resize-none" placeholder="Share your experience with this couture masterpiece..."></textarea>
+              </div>
+              <button id="submitReview" class="w-full bg-primary text-background-dark py-3 rounded-full font-bold uppercase tracking-widest text-[10px] gold-glow transition-all">Publish Review</button>
+            </div>
+          </div>
+
+          <!-- Reviews List -->
+          <div id="reviewsList" class="space-y-8">
+            <!-- Loading placeholder -->
+            <div class="text-center py-10">
+                <div class="w-6 h-6 border-2 border-primary/20 border-t-primary rounded-full animate-spin mx-auto mb-4"></div>
+                <p class="text-[10px] uppercase tracking-widest text-white/20 italic">Gathering impressions...</p>
+            </div>
           </div>
         </div>
+
       </div>
     </div>
-    <script>
-      const API_BASE = "https://cloche-backend.onrender.com/api/auth";
-      const API_ORIGIN = "https://cloche-backend.onrender.com";
 
-      function resolveAssetUrl(url) {
-        let raw = String(url || "").trim();
-        if (!raw) return "";
-        if (/^data:image\//i.test(raw)) return raw;
+    <!-- Related Products -->
+    <section class="mt-32 pt-24 border-t border-white/5">
+      <div class="flex items-end justify-between mb-16 px-2">
+        <div>
+          <span class="text-primary tracking-[0.4em] uppercase text-[10px] mb-4 block font-bold">Curation</span>
+          <h2 class="text-3xl md:text-5xl font-display text-white">More Collections</h2>
+        </div>
+        <div class="flex gap-4">
+          <button id="slideLeft" class="size-10 rounded-full border border-white/10 flex items-center justify-center hover:border-primary hover:text-primary transition-all">
+            <span class="material-symbols-outlined text-sm">west</span>
+          </button>
+          <button id="slideRight" class="size-10 rounded-full border border-white/10 flex items-center justify-center hover:border-primary hover:text-primary transition-all">
+            <span class="material-symbols-outlined text-sm">east</span>
+          </button>
+        </div>
+      </div>
+      <div id="relatedSlider" class="flex gap-6 overflow-x-auto no-scrollbar scroll-smooth snap-x pb-4"></div>
+    </section>
+  </main>
 
-        if (raw.includes("localhost") || raw.includes("127.0.0.1")) {
-          try {
-            const u = new URL(raw);
-            raw = u.pathname;
-          } catch (e) { }
-        }
-        if (/^https?:\/\//i.test(raw)) return raw;
+  <footer class="bg-background-dark border-t border-white/5 py-12 px-6">
+    <div class="max-w-7xl mx-auto text-center">
+      <p class="text-[9px] text-white/20 uppercase tracking-[0.4em] mb-10">© 2024 CLOCHE LUXURY. ALL RIGHTS RESERVED.</p>
+      <div class="flex items-center justify-center gap-10">
+        <a href="privacy.html" class="text-sm font-display text-white/60 hover:text-primary transition-colors">Privacy Policy</a>
+        <a href="terms.html" class="text-sm font-display text-white/60 hover:text-primary transition-colors">Terms of Service</a>
+      </div>
+    </div>
+  </footer>
 
-        const normalized = raw.replace(/\\/g, "/");
-        const lower = normalized.toLowerCase();
-        const uploadsWithSlash = lower.indexOf("/uploads/");
-        if (uploadsWithSlash >= 0) return `${API_ORIGIN}${normalized.slice(uploadsWithSlash)}`;
-        const uploadsNoSlash = lower.indexOf("uploads/");
-        if (uploadsNoSlash >= 0) return `${API_ORIGIN}/${normalized.slice(uploadsNoSlash)}`;
+  <script>
+    const API_ORIGIN = "https://cloche-backend.onrender.com";
+    const PRODUCT_API = `${API_ORIGIN}/api/products`;
+    
+    let gallery = [];
+    let currentImgIndex = 0;
 
-        return `${API_ORIGIN}${normalized.startsWith("/") ? "" : "/"}${normalized}`;
+    function resolveAssetUrl(url) {
+      let raw = String(url || "").trim();
+      if (!raw) return "https://images.unsplash.com/photo-1540553016722-983e4838cd12?q=80&w=1200&auto=format&fit=crop";
+      if (/^data:image\//i.test(raw)) return raw;
+      if (/^https?:\/\//i.test(raw)) return raw;
+      const normalized = raw.replace(/\\/g, "/");
+      const clean = normalized.startsWith("/") ? normalized.slice(1) : normalized;
+      if (!clean.includes("/") && /\.(jpg|jpeg|png|webp|gif)$/i.test(clean)) {
+          return `https://res.cloudinary.com/dycwsnzyd/image/upload/${clean}`;
       }
+      return `${API_ORIGIN}/${clean}`;
+    }
 
-      function updateAuthNav() {
-        const authNav = document.getElementById("authNav");
-        const profileIconLink = document.getElementById("profileIconLink");
-        const userMenuDropdown = document.getElementById("userMenuDropdown");
-        const listYourBoutiqueNav = document.getElementById("listYourBoutiqueNav");
-        const isPartnerLoggedIn = localStorage.getItem("isLoggedIn") === "true";
-        const isUserLoggedIn = localStorage.getItem("isUserLoggedIn") === "true";
-        const ownerName = localStorage.getItem("ownerName") || "C";
-        const userName = localStorage.getItem("userName") || "User";
-        const firstName = String(userName).trim().split(/\s+/)[0] || "USER";
-
-        if (authNav) {
-          if (isUserLoggedIn) {
-            authNav.textContent = firstName.toUpperCase();
-            authNav.href = "#";
-            if (profileIconLink) profileIconLink.href = "#";
-            const toggleMenu = (e) => {
-              e.preventDefault();
-              if (userMenuDropdown) userMenuDropdown.classList.toggle("hidden");
+    function updateMainImage(index) {
+        if (!gallery.length) return;
+        currentImgIndex = (index + gallery.length) % gallery.length;
+        
+        const mainImg = document.getElementById("mainImage");
+        const loader = document.getElementById("imageLoader");
+        
+        if (mainImg) {
+            mainImg.style.opacity = "0";
+            loader.classList.remove("hidden");
+            
+            mainImg.src = resolveAssetUrl(gallery[currentImgIndex]);
+            mainImg.onload = () => {
+                mainImg.style.opacity = "1";
+                loader.classList.add("hidden");
             };
-            authNav.onclick = toggleMenu;
-            if (profileIconLink) profileIconLink.onclick = toggleMenu;
-            // Keep "LIST YOUR BOUTIQUE" visible for user login
-            if (listYourBoutiqueNav) {
-              listYourBoutiqueNav.style.display = "block";
-            }
-          } else if (isPartnerLoggedIn) {
-            if (userMenuDropdown) userMenuDropdown.classList.add("hidden");
-            authNav.onclick = null;
-            if (profileIconLink) profileIconLink.onclick = null;
-            authNav.textContent = "DASHBOARD";
-            authNav.href = "dashboard.html";
-            if (profileIconLink) profileIconLink.href = "profile.html";
-            // Hide "LIST YOUR BOUTIQUE" when logged in
-            if (listYourBoutiqueNav) {
-              listYourBoutiqueNav.style.display = "none";
-            }
-          } else {
-            if (userMenuDropdown) userMenuDropdown.classList.add("hidden");
-            authNav.onclick = null;
-            if (profileIconLink) profileIconLink.onclick = null;
-            authNav.textContent = "LOGIN";
-            authNav.href = "boutiquelogin.html";
-            if (profileIconLink) profileIconLink.href = "boutiquelogin.html";
-            // Show "LIST YOUR BOUTIQUE" when not logged in
-            if (listYourBoutiqueNav) {
-              listYourBoutiqueNav.style.display = "block";
-            }
-          }
         }
 
-        const avatar = document.getElementById("navAvatar");
-        if (avatar) {
-          avatar.textContent = isUserLoggedIn
-            ? firstName.charAt(0).toUpperCase()
-            : ownerName.charAt(0).toUpperCase();
-        }
+        document.querySelectorAll(".img-dot").forEach((dot, i) => {
+            dot.style.background = (i === currentImgIndex) ? "#c1a671" : "rgba(255,255,255,0.2)";
+        });
+    }
+
+    async function loadProductDetails() {
+      const params = new URLSearchParams(window.location.search);
+      const productId = params.get("id") || params.get("productId");
+      
+      if (!productId) {
+        window.location.href = "boutiques.html";
+        return;
       }
 
-      document.addEventListener("DOMContentLoaded", () => {
-        updateAuthNav();
-        // Setup menu click handler
-        document.addEventListener("click", (e) => {
-          const menu = document.getElementById("userMenuDropdown");
-          const auth = document.getElementById("authNav");
-          const icon = document.getElementById("profileIconLink");
-          if (!menu || menu.classList.contains("hidden")) return;
-          if (menu.contains(e.target) || (auth && auth.contains(e.target)) || (icon && icon.contains(e.target))) return;
-          menu.classList.add("hidden");
-        });
+      try {
+        const res = await fetch(`${PRODUCT_API}/${productId}`);
+        if (!res.ok) throw new Error("Product not found");
+        const product = await res.json();
 
-        // Setup menu scroll handler
-        window.addEventListener("scroll", () => {
-          const menu = document.getElementById("userMenuDropdown");
-          if (menu && !menu.classList.contains("hidden")) {
-            menu.classList.add("hidden");
-          }
-        });
-
-        // Setup logout handler
-        const logoutBtn = document.getElementById("logoutBtn");
-        if (logoutBtn) {
-          logoutBtn.addEventListener("click", () => {
-            localStorage.removeItem("isUserLoggedIn");
-            localStorage.removeItem("userId");
-            localStorage.removeItem("userName");
-            localStorage.removeItem("userEmail");
-            window.location.href = "index.html";
-          });
-        }
-      });
-    </script>
-    <script>
-      const PRODUCT_API = "https://cloche-backend.onrender.com/api/products";
-
-      async function loadProductDetails() {
-        const params = new URLSearchParams(window.location.search);
-        const productId = params.get("productId");
-
-        if (!productId) {
-          console.warn("No productId in URL");
-          return;
-        }
-
-        try {
-          const res = await fetch(`${PRODUCT_API}/${productId}`);
-          if (!res.ok) throw new Error("Product not found");
-          const product = await res.json();
-
-          gallery = [product.image_url];
-          if (Array.isArray(product.gallery)) {
+        gallery = [product.image_url];
+        if (Array.isArray(product.gallery)) {
             gallery = [...new Set([product.image_url, ...product.gallery])].filter(Boolean);
-          }
-
-          const dotContainer = document.getElementById("imageDots");
-          dotContainer.innerHTML = gallery.map((_, i) => `<div class="img-dot size-1.5 rounded-full" style="background: ${i === 0 ? '#c1a671' : 'rgba(255,255,255,0.2)'};"></div>`).join("");
-
-          if (gallery.length <= 1) document.getElementById("sliderControls").classList.add("hidden");
-
-          const title = (product.product_name || product.title || "Exquisite Piece").toUpperCase();
-          document.getElementById("productTitle").textContent = title;
-          document.getElementById("breadcrumbProduct").textContent = title;
-          document.getElementById("productCategory").textContent = (product.category || "Couture Collection").toUpperCase();
-
-          const formattedPrice = `₹ ${Number(product.price || 0).toLocaleString("en-IN")}`;
-          document.getElementById("cardProductPrice").textContent = formattedPrice;
-
-          const bName = product.boutique_name || "Cloche Elite Partner";
-          document.getElementById("subBoutiqueName").textContent = bName;
-          document.getElementById("boutiqueName").textContent = bName;
-
-          const loc = [product.area, product.district].filter(Boolean).join(", ") || product.boutique_city || product.location || "Luxury Hub";
-          document.getElementById("productLocation").textContent = loc.toUpperCase();
-
-          if (product.description) {
-            document.getElementById("productDescription").innerHTML = product.description.split('\n').filter(l => l.trim()).map(p => `<span>${p}</span><br/>`).join('');
-          }
-
-          updateMainImage(0);
-
-          document.getElementById("boutiqueArea").textContent = (product.area || product.district || "Official Boutique").toUpperCase();
-          document.getElementById("boutiqueInitial").textContent = bName.charAt(0).toUpperCase();
-          document.getElementById("viewBoutiqueBtn").href = `viewboutique.html?id=${product.boutique_id}`;
-
-          if (product.boutique_id) loadRelatedProducts(product.boutique_id, productId);
-
-          loadReviews(productId);
-
-          document.title = `${title} | CLOCHE`;
-
-        } catch (err) {
-          console.error("Load failed", err);
         }
-      }
+        
+        const dotContainer = document.getElementById("imageDots");
+        if (dotContainer) {
+            dotContainer.innerHTML = gallery.map((_, i) => `<div class="img-dot size-1.5 rounded-full" style="background: ${i === 0 ? '#c1a671' : 'rgba(255,255,255,0.2)'};"></div>`).join("");
+        }
+        
+        if (gallery.length <= 1) {
+            document.getElementById("sliderControls")?.classList.add("hidden");
+        } else {
+            document.getElementById("sliderControls")?.classList.remove("hidden");
+        }
 
-      async function loadReviews(productId) {
+        const title = (product.product_name || product.title || "Exquisite Piece").toUpperCase();
+        document.getElementById("productTitle").textContent = title;
+        document.getElementById("breadcrumbProduct").textContent = title;
+        document.getElementById("productCategory").textContent = (product.category || "Couture Collection").toUpperCase();
+        
+        const formattedPrice = `₹ ${Number(product.price || 0).toLocaleString("en-IN")}`;
+        document.getElementById("cardProductPrice").textContent = formattedPrice;
+        
+        const bName = product.boutique_name || "Cloche Elite Partner";
+        document.getElementById("subBoutiqueName").textContent = bName;
+        document.getElementById("boutiqueName").textContent = bName;
+        
+        const loc = [product.area, product.district].filter(Boolean).join(", ") || product.boutique_city || product.location || "Luxury Hub";
+        document.getElementById("productLocation").textContent = loc.toUpperCase();
+        
+        if (product.description) {
+            document.getElementById("productDescription").innerHTML = product.description.split('\n').filter(l => l.trim()).map(p => `<span>${p}</span><br/>`).join('');
+        }
+
+        updateMainImage(0);
+
+        document.getElementById("boutiqueArea").textContent = (product.area || product.district || "Official Boutique").toUpperCase();
+        document.getElementById("boutiqueInitial").textContent = bName.charAt(0).toUpperCase();
+        document.getElementById("viewBoutiqueBtn").href = `viewboutique.html?id=${product.boutique_id}`;
+
+        if (product.boutique_id) loadRelatedProducts(product.boutique_id, productId);
+        
+        loadReviews(productId);
+
+        document.title = `${title} | CLOCHE`;
+
+      } catch (err) {
+        console.error("Load failed", err);
+      }
+    }
+
+    async function loadReviews(productId) {
         const list = document.getElementById("reviewsList");
         try {
-          const res = await fetch(`${API_ORIGIN}/api/reviews/${productId}`);
-          const reviews = await res.json();
+            const res = await fetch(`${API_ORIGIN}/api/products/reviews/${productId}`);
+            const reviews = await res.json();
+            
+            if (!reviews.length) {
+                list.innerHTML = '<div class="text-center py-10 text-[10px] uppercase tracking-widest text-white/20 italic">No impressions yet. Be the first to share.</div>';
+                return;
+            }
 
-          if (!reviews.length) {
-            list.innerHTML = '<div class="text-center py-10 text-[10px] uppercase tracking-widest text-white/20 italic">No impressions yet. Be the first to share.</div>';
-            return;
-          }
-
-          list.innerHTML = reviews.map(r => `
+            list.innerHTML = reviews.map(r => `
                 <div class="border-b border-white/5 pb-8">
                     <div class="flex items-center justify-between mb-3">
                         <span class="text-[11px] font-bold text-white/90 uppercase tracking-widest">${r.user_name}</span>
@@ -425,36 +433,36 @@
                 </div>
             `).join("");
         } catch (err) {
-          list.innerHTML = '<div class="text-center py-10 text-[10px] uppercase tracking-widest text-white/20 italic">Impressions currently private.</div>';
+            list.innerHTML = '<div class="text-center py-10 text-[10px] uppercase tracking-widest text-white/20 italic">Impressions currently private.</div>';
         }
-      }
+    }
 
-      // Review Form Interactivity
-      let selectedRating = 0;
-      const showReviewBtn = document.getElementById("showReviewForm");
-      const reviewForm = document.getElementById("reviewFormContainer");
-
-      showReviewBtn?.addEventListener("click", () => {
+    // Review Form Interactivity
+    let selectedRating = 0;
+    const showReviewBtn = document.getElementById("showReviewForm");
+    const reviewForm = document.getElementById("reviewFormContainer");
+    
+    showReviewBtn?.addEventListener("click", () => {
         const isUserLoggedIn = localStorage.getItem("isUserLoggedIn") === "true";
         if (!isUserLoggedIn) {
-          window.location.href = "boutiquelogin.html";
-          return;
+            window.location.href = "boutiquelogin.html";
+            return;
         }
         reviewForm.classList.toggle("hidden");
         showReviewBtn.textContent = reviewForm.classList.contains("hidden") ? "Write Review" : "Cancel";
-      });
+    });
 
-      document.querySelectorAll("#starRating span").forEach(star => {
+    document.querySelectorAll("#starRating span").forEach(star => {
         star.addEventListener("click", () => {
-          selectedRating = parseInt(star.dataset.val);
-          document.querySelectorAll("#starRating span").forEach((s, idx) => {
-            s.classList.toggle("text-primary", idx < selectedRating);
-            s.classList.toggle("text-white/20", idx >= selectedRating);
-          });
+            selectedRating = parseInt(star.dataset.val);
+            document.querySelectorAll("#starRating span").forEach((s, idx) => {
+                s.classList.toggle("text-primary", idx < selectedRating);
+                s.classList.toggle("text-white/20", idx >= selectedRating);
+            });
         });
-      });
+    });
 
-      document.getElementById("submitReview")?.addEventListener("click", async () => {
+    document.getElementById("submitReview")?.addEventListener("click", async () => {
         const comment = document.getElementById("reviewComment").value.trim();
         const userName = localStorage.getItem("userName") || "Elite Member";
         const productId = new URLSearchParams(window.location.search).get("id") || new URLSearchParams(window.location.search).get("productId");
@@ -467,97 +475,73 @@
         btn.textContent = "Publishing...";
 
         try {
-          const res = await fetch(`${API_ORIGIN}/api/reviews/${productId}`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ userName, rating: selectedRating, comment })
-          });
-
-          if (res.ok) {
-            document.getElementById("reviewComment").value = "";
-            selectedRating = 0;
-            document.querySelectorAll("#starRating span").forEach(s => {
-              s.classList.remove("text-primary");
-              s.classList.add("text-white/20");
+            const res = await fetch(`${API_ORIGIN}/api/products/reviews/${productId}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ userName, rating: selectedRating, comment })
             });
-            reviewForm.classList.add("hidden");
-            showReviewBtn.textContent = "Write Review";
-            loadReviews(productId);
-          } else {
-            const err = await res.json();
-            if (res.status === 404) {
-              alert("Backend sync required. Please ensure the new reviews route is deployed to your production server.");
+
+            if (res.ok) {
+                document.getElementById("reviewComment").value = "";
+                selectedRating = 0;
+                document.querySelectorAll("#starRating span").forEach(s => {
+                    s.classList.remove("text-primary");
+                    s.classList.add("text-white/20");
+                });
+                reviewForm.classList.add("hidden");
+                showReviewBtn.textContent = "Write Review";
+                loadReviews(productId);
             } else {
-              alert(err.message || "Failed to publish review");
+                const err = await res.json();
+                if (res.status === 404) {
+                    alert("Backend sync required. Please ensure the new reviews route is deployed to your production server.");
+                } else {
+                    alert(err.message || "Failed to publish review");
+                }
             }
-          }
         } catch (err) {
-          console.error("Failed to load product", err);
+            alert("Connection error. Try again later.");
+        } finally {
+            btn.disabled = false;
+            btn.textContent = "Publish Review";
         }
-      }
+    });
 
-      document.addEventListener("DOMContentLoaded", () => {
+    async function loadRelatedProducts(boutiqueId, currentId) {
+      try {
+        const res = await fetch(`${PRODUCT_API}/boutique/${boutiqueId}`);
+        const products = await res.json();
+        const slider = document.getElementById("relatedSlider");
+        const filtered = products.filter(p => p.id != currentId).slice(0, 8);
+        if (!filtered.length) { 
+            slider.innerHTML = '<p class="text-white/20 text-xs uppercase tracking-widest p-8">No other pieces currently featured.</p>'; 
+            return; 
+        }
+        slider.innerHTML = filtered.map(item => `
+          <a href="viewproducts.html?id=${item.id}" class="flex-none w-[240px] md:w-[280px] snap-start group">
+            <div class="aspect-[3/4] rounded-[2rem] overflow-hidden glass-card mb-4 border-white/5 relative bg-zinc-900">
+              <img src="${resolveAssetUrl(item.image_url)}" class="w-full h-full object-cover grayscale-[0.2] group-hover:grayscale-0 transition-all duration-1000 group-hover:scale-110" loading="lazy" />
+            </div>
+            <h4 class="text-[11px] font-bold uppercase tracking-[0.2em] text-white/70 group-hover:text-primary transition-colors truncate px-1">${item.product_name}</h4>
+          </a>
+        `).join("");
+      } catch (err) {}
+    }
+
+    document.getElementById("prevImg")?.addEventListener("click", () => updateMainImage(currentImgIndex - 1));
+    document.getElementById("nextImg")?.addEventListener("click", () => updateMainImage(currentImgIndex + 1));
+    document.getElementById("slideLeft")?.addEventListener("click", () => document.getElementById("relatedSlider").scrollBy({ left: -320, behavior: "smooth" }));
+    document.getElementById("slideRight")?.addEventListener("click", () => document.getElementById("relatedSlider").scrollBy({ left: 320, behavior: "smooth" }));
+
+    document.addEventListener("DOMContentLoaded", () => {
         loadProductDetails();
-        const logoutBtn = document.getElementById("logoutBtn");
-        if (logoutBtn) {
-          logoutBtn.addEventListener("click", () => {
-            window.logout();
-          });
+        const isUserLoggedIn = localStorage.getItem("isUserLoggedIn") === "true";
+        if (isUserLoggedIn) {
+            const authNav = document.getElementById("authNav");
+            if (authNav) authNav.textContent = (localStorage.getItem("userName") || "").split(' ')[0].toUpperCase();
         }
-      });
-    </script>
-    <script>
-      function renderGallery(product) {
-        const mainImage = document.getElementById("mainImage");
-        const thumbnails = document.getElementById("thumbnailContainer");
-
-        if (!mainImage || !thumbnails) return;
-
-        thumbnails.innerHTML = "";
-
-        // Priority: gallery → single product image → showcase image
-        let images = [];
-
-        if (Array.isArray(product.gallery) && product.gallery.length > 0) {
-          images = product.gallery.map(resolveAssetUrl).filter(Boolean);
-        } else if (product.image_url) {
-          images = [resolveAssetUrl(product.image_url)];
-        } else if (product.showcase_image) {
-          images = [resolveAssetUrl(product.showcase_image)];
-        }
-
-        if (!images.length) return;
-
-        // Set first image
-        mainImage.src = `${images[0]}`;
-
-        images.forEach((img, index) => {
-          const thumb = document.createElement("div");
-          thumb.className =
-            "w-12 h-12 rounded-sm border overflow-hidden cursor-pointer flex-shrink-0 " +
-            (index === 0 ? "border-primary" : "border-white/30 hover:border-primary");
-
-          thumb.innerHTML = `
-      <img src="${img}"
-           class="w-full h-full object-cover ${index === 0 ? "" : "brightness-75"}" />
-    `;
-
-          thumb.onclick = () => {
-            mainImage.src = `${img}`;
-
-            document
-              .querySelectorAll("#thumbnailContainer > div")
-              .forEach(el => el.classList.remove("border-primary"));
-
-            thumb.classList.add("border-primary");
-          };
-
-          thumbnails.appendChild(thumb);
-        });
-      }
-    </script>
-
-    <script src='responsive-layout.js?v=1776237132140'></script>
+    });
+  </script>
+  <script src='responsive-layout.js?v=1776237132140'></script>
 </body>
-
 </html>

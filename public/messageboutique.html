@@ -390,43 +390,18 @@
     let conversationsRaw = [];
     let conversations = [];
 
-    // Some entry points (or browser caches) may land on messageboutique.html without query params.
-    // Recover the intended boutique target from storage so we still open the direct chat.
+    // Normalize route based on query params only, not localStorage fallbacks
     (function normalizeDirectChatRoute() {
       try {
         const p = new URLSearchParams(window.location.search);
-        const hasDirectParam = Boolean(
-          p.get("conversationId") ||
-          p.get("conversation_id") ||
-          p.get("convId") ||
-          p.get("conversation") ||
-          p.get("boutiqueId") ||
-          p.get("boutique_id") ||
-          p.get("boutiqueID") ||
-          p.get("boutiqueid")
-        );
-        if (hasDirectParam) return;
-
-        const storedBoutiqueId =
-          localStorage.getItem("messageTargetBoutiqueId") ||
-          localStorage.getItem("selectedBoutiqueId") ||
-          "";
-        const numericId = Number(String(storedBoutiqueId || "").trim());
-        if (!Number.isFinite(numericId) || numericId <= 0) return;
-
-        p.set("boutiqueId", String(Math.floor(numericId)));
-
-        const storedName =
-          localStorage.getItem("messageTargetBoutiqueName") ||
-          localStorage.getItem("selectedBoutiqueName") ||
-          "";
-        if (storedName && !p.get("boutiqueName")) p.set("boutiqueName", storedName);
-
-        // Update URL without reloading so the rest of the script can use query parsing as usual.
-        window.history.replaceState(null, "", `${window.location.pathname}?${p.toString()}`);
-      } catch (e) {
-        // noop
-      }
+        // If we explicitly want the list view, clear any potential boutique IDs from the URL
+        if (p.get("view") === "list") {
+          p.delete("boutiqueId");
+          p.delete("conversationId");
+          window.history.replaceState(null, "", `${window.location.pathname}?${p.toString()}`);
+          return;
+        }
+      } catch (e) {}
     })();
 
     const routeCtx = getQueryContext();
@@ -681,9 +656,15 @@
 
     function closeChat() {
       if (isDirectChatRoute) {
-        // Direct-chat route has no inbox list to return to on this page.
-        if (document.referrer) window.history.back();
-        else window.location.href = "messageboutique.html";
+        const bId = routeCtx.boutiqueId;
+        if (bId) {
+          // If we came from a specific boutique, go back to that boutique
+          window.location.href = `viewboutique.html?boutiqueId=${bId}`;
+        } else if (document.referrer) {
+          window.history.back();
+        } else {
+          window.location.href = "messageboutique.html?view=list";
+        }
         return;
       }
       document.getElementById("chatPane").classList.remove("active");
