@@ -508,8 +508,14 @@
             return;
           }
 
+          const targetBoutiqueId = Number(boutique.id || getBoutiqueId() || 0);
+          if (!targetBoutiqueId) {
+            alert("Boutique details missing. Please refresh and try again.");
+            return;
+          }
+
           const q = new URLSearchParams({
-            boutiqueId: String(boutique.id),
+            boutiqueId: String(targetBoutiqueId),
             boutiqueName: String(boutique.boutique_name || "")
           });
           window.location.href = `messageboutique.html?${q.toString()}`;

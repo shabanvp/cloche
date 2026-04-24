@@ -423,7 +423,7 @@
              MESSAGE BOUTIQUE
           -------------------------------- */
           const params = new URLSearchParams(window.location.search);
-          const boutiqueId = params.get("boutiqueId") || "";
+          const boutiqueId = params.get("boutiqueId") || params.get("boutique_id") || "";
           const productName = String(product.product_name || "").trim();
           const boutiqueName = String((product.boutique && product.boutique.boutique_name) || "").trim();
 
@@ -436,13 +436,19 @@
                 return;
               }
 
-              if (!boutiqueId) {
+              const targetBoutiqueId = Number(
+                boutiqueId ||
+                product.boutique_id ||
+                (product.boutique && product.boutique.id) ||
+                0
+              );
+              if (!targetBoutiqueId) {
                 alert("Boutique details missing for this product.");
                 return;
               }
 
               const q = new URLSearchParams({
-                boutiqueId: String(boutiqueId),
+                boutiqueId: String(targetBoutiqueId),
                 productName,
                 boutiqueName
               });

@@ -391,6 +391,7 @@
     let conversations = [];
     const routeCtx = getQueryContext();
     const isDirectChatRoute = Boolean(routeCtx.conversationId || routeCtx.boutiqueId);
+    let didDirectOpen = false;
 
     function requireUserSession() {
       if (localStorage.getItem("isUserLoggedIn") !== "true" || !userEmail) {
@@ -402,12 +403,41 @@
 
     function getQueryContext() {
       const p = new URLSearchParams(window.location.search);
-      return {
-        conversationId: Number(p.get("conversationId") || 0),
-        boutiqueId: Number(p.get("boutiqueId") || 0),
-        productName: String(p.get("productName") || "").trim(),
-        boutiqueName: String(p.get("boutiqueName") || "").trim()
+
+      const parsePositiveInt = (value) => {
+        const n = Number(String(value || "").trim());
+        return Number.isFinite(n) && n > 0 ? Math.floor(n) : 0;
       };
+
+      const conversationId = parsePositiveInt(
+        p.get("conversationId") ||
+        p.get("conversation_id") ||
+        p.get("convId") ||
+        p.get("conversation")
+      );
+
+      const boutiqueId = parsePositiveInt(
+        p.get("boutiqueId") ||
+        p.get("boutique_id") ||
+        p.get("boutiqueID") ||
+        p.get("boutiqueid") ||
+        p.get("id")
+      );
+
+      const productName = String(
+        p.get("productName") ||
+        p.get("product_name") ||
+        ""
+      ).trim();
+
+      const boutiqueName = String(
+        p.get("boutiqueName") ||
+        p.get("boutique_name") ||
+        p.get("boutique") ||
+        ""
+      ).trim();
+
+      return { conversationId, boutiqueId, productName, boutiqueName };
     }
 
     function escapeHtml(value) {
@@ -610,6 +640,12 @@
     }
 
     function closeChat() {
+      if (isDirectChatRoute) {
+        // Direct-chat route has no inbox list to return to on this page.
+        if (document.referrer) window.history.back();
+        else window.location.href = "messageboutique.html";
+        return;
+      }
       document.getElementById("chatPane").classList.remove("active");
       activeConversationId = null;
       renderConversationList();
@@ -729,14 +765,38 @@
       await bootstrapConversationFromContext();
 
       // WhatsApp-like behavior: clicking "Message Boutique" opens that boutique's chat directly.
-      if (isDirectChatRoute && activeConversationId) {
-        await openConversation(activeConversationId, false);
+      // Direct route should not hydrate the full inbox list (privacy + UX).
+      if (isDirectChatRoute) {
+        if (!activeConversationId) {
+          document.getElementById("chatDefault").classList.add("hidden");
+          document.getElementById("activeChat").classList.remove("hidden");
+          document.getElementById("chatBoutique").textContent = String(routeCtx.boutiqueName || "BOUTIQUE").toUpperCase();
+          document.getElementById("chatContext").textContent = String(routeCtx.productName || "General Enquiry").toUpperCase();
+          document.getElementById("messagesArea").innerHTML = `<div class="h-full flex items-center justify-center text-white/30 text-[10px] uppercase tracking-[0.2em] italic">Opening chat...</div>`;
+        }
+
+        const tickDirect = async () => {
+          if (!activeConversationId) {
+            await bootstrapConversationFromContext();
+          }
+          if (!activeConversationId) return;
+
+          if (!didDirectOpen) {
+            didDirectOpen = true;
+            await openConversation(activeConversationId, false);
+            return;
+          }
+
+          await openConversation(activeConversationId, true);
+        };
+
+        await tickDirect();
+        setInterval(tickDirect, 3000);
+        return;
       }
 
       await loadConversations();
-      setInterval(async () => {
-        await loadConversations();
-      }, 3000);
+      setInterval(loadConversations, 3000);
     });
   </script>
   <script src='responsive-layout.js?v=1776237132140'></script>
