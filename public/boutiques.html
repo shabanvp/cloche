@@ -338,10 +338,11 @@
         const renderedTags = tags.length
           ? tags
           : ["BRIDAL WEAR", "HANDLOOM", "COUTURE"];
+        const safeName = JSON.stringify(String(b.boutique_name || ""));
 
         return `
         <div class="glass-card rounded-lg overflow-hidden flex flex-col transition-all duration-300">
-          <a href="viewboutique.html?boutiqueId=${b.id}" onclick="localStorage.setItem('selectedBoutiqueId','${b.id}')" class="relative block h-[420px] overflow-hidden group">
+          <a href="viewboutique.html?boutiqueId=${b.id}" onclick="localStorage.setItem('selectedBoutiqueId','${b.id}'); localStorage.setItem('selectedBoutiqueName', ${safeName})" class="relative block h-[420px] overflow-hidden group">
             <img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" src="${image}" alt="${b.boutique_name || "Boutique"}" loading="lazy" onerror="this.onerror=null;this.src='${pickImage(`${b.id}-${b.boutique_name}`)}'" />
             <div class="absolute top-4 left-4 bg-primary px-3 py-1 rounded text-[10px] font-bold tracking-[0.2em] text-background-dark uppercase">${district}</div>
           </a>
@@ -353,7 +354,7 @@
             <div class="flex flex-wrap gap-2 mb-8">
               ${renderedTags.map(tag => `<span class="text-[10px] uppercase tracking-widest px-3 py-1 bg-white/5 border border-white/10 rounded">${tag}</span>`).join("")}
             </div>
-            <a href="viewboutique.html?boutiqueId=${b.id}" onclick="localStorage.setItem('selectedBoutiqueId','${b.id}')" class="mt-auto w-full py-4 bg-primary text-background-dark font-bold text-xs uppercase tracking-[0.2em] rounded hover:bg-white transition-all text-center gold-glow">View Boutique</a>
+            <a href="viewboutique.html?boutiqueId=${b.id}" onclick="localStorage.setItem('selectedBoutiqueId','${b.id}'); localStorage.setItem('selectedBoutiqueName', ${safeName})" class="mt-auto w-full py-4 bg-primary text-background-dark font-bold text-xs uppercase tracking-[0.2em] rounded hover:bg-white transition-all text-center gold-glow">View Boutique</a>
           </div>
         </div>
       `;

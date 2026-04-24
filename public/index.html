@@ -753,7 +753,7 @@
         const name = (b.boutique_name || "Boutique").toUpperCase();
 
         return `
-        <a href="viewboutique.html?boutiqueId=${b.id}" onclick="localStorage.setItem('selectedBoutiqueId','${b.id}')" class="featured-boutique-card group relative aspect-[3/4] rounded-xl overflow-hidden glass-card shimmer-effect cursor-pointer block">
+        <a href="viewboutique.html?boutiqueId=${b.id}" onclick="localStorage.setItem('selectedBoutiqueId','${b.id}'); localStorage.setItem('selectedBoutiqueName', ${JSON.stringify(String(b.boutique_name || ""))})" class="featured-boutique-card group relative aspect-[3/4] rounded-xl overflow-hidden glass-card shimmer-effect cursor-pointer block">
           <img
             class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
             src="${image}"

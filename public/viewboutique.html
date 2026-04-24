@@ -439,6 +439,9 @@
       if (!boutique) throw new Error("Boutique not found");
 
       localStorage.setItem("selectedBoutiqueId", String(boutiqueId));
+      try {
+        localStorage.setItem("selectedBoutiqueName", String(boutique.boutique_name || ""));
+      } catch (e) { }
       return { boutique, allBoutiques: boutiquesArray };
     }
 
@@ -547,8 +550,9 @@
         const image = addCacheBuster(raw || pickImage(`${b.id}-${b.boutique_name}`));
         const location = normalizeLocationParts(b);
         const district = (location.district || "Kerala").toUpperCase();
+        const safeName = JSON.stringify(String(b.boutique_name || ""));
         return `
-          <a href="viewboutique.html?boutiqueId=${b.id}" onclick="localStorage.setItem('selectedBoutiqueId','${b.id}')" class="group block min-w-[220px] max-w-[220px] snap-start relative rounded-lg overflow-hidden glass-card h-[300px]">
+          <a href="viewboutique.html?boutiqueId=${b.id}" onclick="localStorage.setItem('selectedBoutiqueId','${b.id}'); localStorage.setItem('selectedBoutiqueName', ${safeName})" class="group block min-w-[220px] max-w-[220px] snap-start relative rounded-lg overflow-hidden glass-card h-[300px]">
             <img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" src="${image}" alt="${b.boutique_name || 'Boutique'}" loading="lazy" onerror="this.onerror=null;this.src='${pickImage(`${b.id}-${b.boutique_name}`)}'" />
             <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent"></div>
             <div class="absolute bottom-4 left-4 right-4">
