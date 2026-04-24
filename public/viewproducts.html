@@ -452,6 +452,12 @@
                 productName,
                 boutiqueName
               });
+              try {
+                localStorage.setItem("messageTargetBoutiqueId", String(targetBoutiqueId));
+                localStorage.setItem("messageTargetBoutiqueName", String(boutiqueName || ""));
+                localStorage.setItem("selectedBoutiqueId", String(targetBoutiqueId));
+                if (boutiqueName) localStorage.setItem("selectedBoutiqueName", String(boutiqueName));
+              } catch (e) { }
               window.location.href = `messageboutique.html?${q.toString()}`;
             };
           }

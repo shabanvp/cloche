@@ -389,6 +389,46 @@
     let activeConversationId = null;
     let conversationsRaw = [];
     let conversations = [];
+
+    // Some entry points (or browser caches) may land on messageboutique.html without query params.
+    // Recover the intended boutique target from storage so we still open the direct chat.
+    (function normalizeDirectChatRoute() {
+      try {
+        const p = new URLSearchParams(window.location.search);
+        const hasDirectParam = Boolean(
+          p.get("conversationId") ||
+          p.get("conversation_id") ||
+          p.get("convId") ||
+          p.get("conversation") ||
+          p.get("boutiqueId") ||
+          p.get("boutique_id") ||
+          p.get("boutiqueID") ||
+          p.get("boutiqueid")
+        );
+        if (hasDirectParam) return;
+
+        const storedBoutiqueId =
+          localStorage.getItem("messageTargetBoutiqueId") ||
+          localStorage.getItem("selectedBoutiqueId") ||
+          "";
+        const numericId = Number(String(storedBoutiqueId || "").trim());
+        if (!Number.isFinite(numericId) || numericId <= 0) return;
+
+        p.set("boutiqueId", String(Math.floor(numericId)));
+
+        const storedName =
+          localStorage.getItem("messageTargetBoutiqueName") ||
+          localStorage.getItem("selectedBoutiqueName") ||
+          "";
+        if (storedName && !p.get("boutiqueName")) p.set("boutiqueName", storedName);
+
+        // Update URL without reloading so the rest of the script can use query parsing as usual.
+        window.history.replaceState(null, "", `${window.location.pathname}?${p.toString()}`);
+      } catch (e) {
+        // noop
+      }
+    })();
+
     const routeCtx = getQueryContext();
     const isDirectChatRoute = Boolean(routeCtx.conversationId || routeCtx.boutiqueId);
     let didDirectOpen = false;

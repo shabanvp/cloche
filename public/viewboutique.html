@@ -518,6 +518,12 @@
             boutiqueId: String(targetBoutiqueId),
             boutiqueName: String(boutique.boutique_name || "")
           });
+          try {
+            localStorage.setItem("messageTargetBoutiqueId", String(targetBoutiqueId));
+            localStorage.setItem("messageTargetBoutiqueName", String(boutique.boutique_name || ""));
+            localStorage.setItem("selectedBoutiqueId", String(targetBoutiqueId));
+            localStorage.setItem("selectedBoutiqueName", String(boutique.boutique_name || ""));
+          } catch (e) { }
           window.location.href = `messageboutique.html?${q.toString()}`;
         };
       }
