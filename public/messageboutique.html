@@ -767,6 +767,9 @@
       // WhatsApp-like behavior: clicking "Message Boutique" opens that boutique's chat directly.
       // Direct route should not hydrate the full inbox list (privacy + UX).
       if (isDirectChatRoute) {
+        // Make the chat pane visible immediately (desktop + mobile slide-in UIs rely on `.active`).
+        document.getElementById("chatPane").classList.add("active");
+
         if (!activeConversationId) {
           document.getElementById("chatDefault").classList.add("hidden");
           document.getElementById("activeChat").classList.remove("hidden");
