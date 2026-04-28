@@ -58,7 +58,7 @@ const uploadProductImages = async (boutiqueId, files) => {
 // KEEP EVERYTHING SAME ABOVE 👆 (NO CHANGE)
 
 /* ================= GET ALL PRODUCTS ================= */
-router.get("/all", async (req, res) => {
+router.get("/", async (req, res) => {
   try {
     console.log("[Products] Fetching all products with resilient sorting...");
 
