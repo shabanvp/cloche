@@ -56,16 +56,35 @@ const encodeEnquiryBlob = (payload) => {
 
 const extractEnquiryBlob = (text) => {
   const raw = String(text ?? "");
-  const idx = raw.indexOf(ENQUIRY_BLOB_PREFIX);
+  
+  // Look for the specific prefix marker
+  let idx = raw.indexOf(ENQUIRY_BLOB_PREFIX);
+  
+  // Fallback: If prefix missing but looks like JSON at the end
+  if (idx < 0) {
+    idx = raw.lastIndexOf("{\""); // Start of a likely JSON object
+  }
+
   if (idx < 0) return { data: null, stripped: clean(raw) };
 
   const before = raw.slice(0, idx);
-  const jsonPart = raw.slice(idx + ENQUIRY_BLOB_PREFIX.length).trim();
+  let jsonPart = raw.slice(idx + (raw.includes(ENQUIRY_BLOB_PREFIX) ? ENQUIRY_BLOB_PREFIX.length : 0)).trim();
+  
   let data = null;
   try {
+    // Basic sanitization: if it contains multiple objects, try to take the first complete one
+    if (jsonPart.includes("}{")) {
+       jsonPart = jsonPart.split("}{")[0] + "}";
+    }
     data = jsonPart ? JSON.parse(jsonPart) : null;
   } catch (_e) {
-    data = null;
+    try {
+      // One more try: just find anything between { and }
+      const match = jsonPart.match(/\{.*\}/);
+      if (match) data = JSON.parse(match[0]);
+    } catch (_e2) {
+      data = null;
+    }
   }
 
   return { data, stripped: clean(before) };
@@ -783,21 +802,32 @@ router.get("/list/:boutiqueId", async (req, res) => {
 
       const preferred = clean(row.preferred_location || row.location || "") || clean(blob?.preferred_location || "");
       const parsed = parsePreferredLocation(preferred);
+
+      // Clean stripped versions (the text part before the JSON blob)
+      const cleanReqText = clean(req.stripped);
+      const cleanSpecText = clean(spec.stripped);
+
+      // Final values: use DB column if it has real text, else try blob
+      const finalRequirement = cleanReqText || clean(blob?.requirement) || clean(row.category) || "Wedding Enquiry";
+      const finalSpecial = cleanSpecText || clean(blob?.special_requirement) || "—";
+
       return {
         ...row,
         id: row.id,
         boutique_id: row.boutique_id,
-        name: clean(row.name) || clean(blob?.name),
-        email: clean(row.email) || clean(blob?.email),
-        phone: clean(row.phone) || clean(blob?.phone),
-        wedding_date: clean(row.wedding_date || row.date) || clean(blob?.wedding_date) || null,
-        requirement: clean(req.stripped) || clean(blob?.requirement || row.category || ""),
-        special_requirement: clean(spec.stripped) || clean(blob?.special_requirement || ""),
+        name: clean(row.name) || clean(blob?.fullName) || clean(blob?.name) || "Guest",
+        email: clean(row.email) || clean(blob?.email) || "",
+        phone: clean(row.phone) || clean(blob?.mobileNumber) || clean(blob?.phone) || "",
+        wedding_date: clean(row.wedding_date || row.date) || clean(blob?.weddingDate) || clean(blob?.wedding_date) || null,
+        requirement: finalRequirement,
+        special_requirement: finalSpecial,
+        product_name: clean(row.product_name) || clean(blob?.productName) || "",
+        product_image: clean(row.product_image) || clean(blob?.productImage) || "",
         preferred_location: preferred,
-        area: clean(row.area) || clean(blob?.area) || parsed.area,
-        district: clean(row.district) || clean(blob?.district) || parsed.district,
+        area: clean(row.area) || clean(blob?.areaLocation) || clean(blob?.area) || parsed.area,
+        district: clean(row.district) || clean(blob?.districtLocation) || clean(blob?.district) || parsed.district,
         status: clean(row.status || "NEW"),
-        category: clean(row.category || blob?.category || safeLeadCategory(req.stripped || row.requirement)),
+        category: clean(row.category || blob?.category || safeLeadCategory(finalRequirement)),
         created_at: row.created_at || null
       };
     });
