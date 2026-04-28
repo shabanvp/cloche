@@ -60,47 +60,54 @@ const uploadProductImages = async (boutiqueId, files) => {
 /* ================= GET ALL PRODUCTS ================= */
 router.get("/", async (req, res) => {
   try {
-    console.log("[Products] Fetching all products with resilient sorting...");
+    let products = [];
+    let productErr = null;
 
-    let { data: products, error: productErr } = await supabase
-      .from("products")
-      .select("*")
-      .order("created_at", { ascending: false });
-
-    if (productErr && String(productErr.message || "").toLowerCase().includes("created_at")) {
-      console.log("[Products] 'created_at' not found, falling back to 'id' sort...");
-      const fallback = await supabase
+    try {
+      const res = await supabase
         .from("products")
         .select("*")
-        .order("id", { ascending: false });
-      products = fallback.data;
-      productErr = fallback.error;
+        .order("created_at", { ascending: false });
+      products = res.data || [];
+      productErr = res.error;
+    } catch (e) {
+      console.warn("[Products] Primary fetch failed:", e.message);
     }
 
-    if (productErr) {
-      console.error("[Products] Fetch error:", productErr.message);
-      return res.status(500).json({ message: "DB error", error: productErr.message });
+    if (productErr || !products.length) {
+      console.log("[Products] Falling back to ID sort or empty list...");
+      try {
+        const resFallback = await supabase
+          .from("products")
+          .select("*")
+          .order("id", { ascending: false });
+        products = resFallback.data || [];
+      } catch (err) {
+        console.error("[Products] Total DB failure:", err.message);
+        return res.status(500).json({ message: "Database unreachable", error: err.message });
+      }
     }
 
     if (!products || products.length === 0) return res.json([]);
 
     const uniqueBoutiqueIds = [...new Set(products.map(p => p.boutique_id).filter(Boolean))];
+    let boutiqueMap = {};
 
-    const [{ data: boutiques, error: boutiqueErr }, { data: showcases, error: showcaseErr }] = await Promise.all([
-      supabase.from("boutiques").select("id, boutique_name, city").in("id", uniqueBoutiqueIds),
-      supabase.from("boutique_showcase").select("boutique_id, area, district").in("boutique_id", uniqueBoutiqueIds)
-    ]);
+    try {
+      const [bRes, sRes] = await Promise.all([
+        supabase.from("boutiques").select("id, boutique_name, city").in("id", uniqueBoutiqueIds),
+        supabase.from("boutique_showcase").select("boutique_id, area, district").in("boutique_id", uniqueBoutiqueIds)
+      ]);
 
-    if (boutiqueErr) console.error("[Products] Boutique metadata fetch error:", boutiqueErr.message);
-    if (showcaseErr) console.error("[Products] Showcase metadata fetch error:", showcaseErr.message);
-
-    const boutiqueMap = {};
-    (boutiques || []).forEach(b => { boutiqueMap[b.id] = { ...boutiqueMap[b.id], ...b }; });
-    (showcases || []).forEach(s => {
-      if (s.boutique_id) {
-        boutiqueMap[s.boutique_id] = { ...boutiqueMap[s.boutique_id], ...s };
-      }
-    });
+      (bRes.data || []).forEach(b => { boutiqueMap[b.id] = { ...boutiqueMap[b.id], ...b }; });
+      (sRes.data || []).forEach(s => {
+        if (s.boutique_id) {
+          boutiqueMap[s.boutique_id] = { ...boutiqueMap[s.boutique_id], ...s };
+        }
+      });
+    } catch (metaErr) {
+      console.warn("[Products] Non-critical metadata fetch failed:", metaErr.message);
+    }
 
     const flattened = products.map(p => {
       const b = boutiqueMap[p.boutique_id] || {};
