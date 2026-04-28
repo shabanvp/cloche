@@ -355,7 +355,8 @@
               <div class="absolute top-3 left-3 bg-primary/90 text-background-dark px-2 py-1 rounded text-[10px] tracking-widest font-bold">${category}</div>
             </div>
             <p class="font-display text-sm text-white/90 text-center tracking-[0.12em] uppercase mb-1">${product.product_name || "Luxury Collection"}</p>
-            <p class="text-primary text-xs text-center tracking-[0.15em] uppercase">INR ${price.toLocaleString("en-IN")} • ${stock > 0 ? `${stock} available` : "out of stock"}</p>
+            <p class="text-primary/60 text-[10px] text-center tracking-[0.2em] font-bold uppercase mb-2 italic">${product.fabric || "Premium Handpicked"}</p>
+            <p class="text-primary text-xs text-center tracking-[0.15em] uppercase font-bold">INR ${price.toLocaleString("en-IN")} • ${stock > 0 ? `${stock} available` : "out of stock"}</p>
           </a>
         `;
       }).join("");

@@ -71,42 +71,51 @@
     }
 
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     .no-scrollbar::-webkit-scrollbar {
       display: none;
     }
+
     .no-scrollbar {
       -ms-overflow-style: none;
       scrollbar-width: none;
     }
-    
+
     .slider-btn {
-        background: rgba(0,0,0,0.4);
-        backdrop-filter: blur(8px);
-        border: 1px solid rgba(193, 166, 113, 0.2);
-        color: #c1a671;
-        transition: all 0.3s;
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(193, 166, 113, 0.2);
+      color: #c1a671;
+      transition: all 0.3s;
     }
+
     .slider-btn:hover {
-        background: #c1a671;
-        color: #0d0d0d;
-        border-color: #c1a671;
+      background: #c1a671;
+      color: #0d0d0d;
+      border-color: #c1a671;
     }
 
     .product-image-container {
-        background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
+      background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
     }
 
     #imageLoader {
-        background: rgba(0,0,0,0.4);
-        backdrop-filter: blur(4px);
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(4px);
     }
-    
+
     .mobile-topbar {
-        display: none; 
+      display: none;
     }
   </style>
   <link rel='stylesheet' href='responsive-fixes.css?v=1776237132140' />
@@ -124,17 +133,21 @@
         </a>
       </div>
       <div class="flex items-center gap-10">
-        <a href="boutiques.html" class="text-xs uppercase tracking-[0.2em] hover:text-primary transition-colors text-white/70">Boutiques</a>
-        <a href="collection.html" class="text-xs uppercase tracking-[0.2em] hover:text-primary transition-colors text-white/70">Collections</a>
+        <a href="boutiques.html"
+          class="text-xs uppercase tracking-[0.2em] hover:text-primary transition-colors text-white/70">Boutiques</a>
+        <a href="collection.html"
+          class="text-xs uppercase tracking-[0.2em] hover:text-primary transition-colors text-white/70">Collections</a>
         <div class="h-4 w-[1px] bg-white/10 mx-2"></div>
-        <a id="authNav" href="boutiquelogin.html" class="text-xs uppercase tracking-[0.2em] font-bold text-primary">Login</a>
+        <a id="authNav" href="boutiquelogin.html"
+          class="text-xs uppercase tracking-[0.2em] font-bold text-primary">Login</a>
       </div>
     </div>
   </nav>
 
   <main class="max-w-7xl mx-auto px-4 md:px-6 pt-12 md:pt-24 pb-32">
     <!-- Breadcrumbs -->
-    <div class="flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] text-white/30 mb-8 overflow-x-auto whitespace-nowrap no-scrollbar">
+    <div
+      class="flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] text-white/30 mb-8 overflow-x-auto whitespace-nowrap no-scrollbar">
       <a href="index.html" class="hover:text-primary transition-colors">Home</a>
       <span class="material-symbols-outlined text-[10px]">chevron_right</span>
       <a href="boutiques.html" class="hover:text-primary transition-colors">Collections</a>
@@ -145,15 +158,18 @@
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-20">
       <!-- Left side: Product Image + Slider -->
       <div class="space-y-6">
-        <div class="product-image-container relative aspect-[3/4] md:aspect-[4/5] rounded-[2rem] overflow-hidden shadow-2xl animate-fade-in group">
-          <img id="mainImage" src="" alt="Product Detail" class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105 opacity-0" />
-          
-          <div id="sliderControls" class="absolute inset-0 flex items-center justify-between px-4 opacity-0 group-hover:opacity-100 transition-opacity z-20">
+        <div
+          class="product-image-container relative aspect-[3/4] md:aspect-[4/5] rounded-[2rem] overflow-hidden shadow-2xl animate-fade-in group">
+          <img id="mainImage" src="" alt="Product Detail"
+            class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105 opacity-0" />
+
+          <div id="sliderControls"
+            class="absolute inset-0 flex items-center justify-between px-4 opacity-0 group-hover:opacity-100 transition-opacity z-20">
             <button id="prevImg" class="slider-btn size-10 rounded-full flex items-center justify-center">
-                <span class="material-symbols-outlined">chevron_left</span>
+              <span class="material-symbols-outlined">chevron_left</span>
             </button>
             <button id="nextImg" class="slider-btn size-10 rounded-full flex items-center justify-center">
-                <span class="material-symbols-outlined">chevron_right</span>
+              <span class="material-symbols-outlined">chevron_right</span>
             </button>
           </div>
 
@@ -161,67 +177,81 @@
             <div class="w-8 h-8 border-2 border-primary/20 border-t-primary rounded-full animate-spin"></div>
           </div>
           <div class="absolute top-6 left-6 z-20">
-            <span class="bg-primary/20 backdrop-blur-md border border-primary/30 text-primary px-3 py-1 rounded-full text-[8px] font-bold tracking-widest uppercase">Verified Luxury</span>
+            <span
+              class="bg-primary/20 backdrop-blur-md border border-primary/30 text-primary px-3 py-1 rounded-full text-[8px] font-bold tracking-widest uppercase">Verified
+              Luxury</span>
           </div>
-          
+
           <div id="imageDots" class="absolute bottom-6 left-0 right-0 flex justify-center gap-2 z-20"></div>
         </div>
-        
+
         <div id="thumbnailContainer" class="flex gap-4 overflow-x-auto pb-2 no-scrollbar snap-x"></div>
       </div>
 
       <!-- Right side: Product Info -->
       <div class="flex flex-col animate-fade-in" style="animation-delay: 0.15s">
         <div class="mb-8">
-          <span id="productCategory" class="text-[10px] font-black text-primary tracking-[0.4em] uppercase mb-4 block">Designer Piece</span>
-          <h1 id="productTitle" class="text-4xl md:text-6xl font-display text-white mb-6 leading-tight font-medium tracking-tight">Loading...</h1>
-          
+          <span id="productCategory"
+            class="text-[10px] font-black text-primary tracking-[0.4em] uppercase mb-4 block">Designer Piece</span>
+          <h1 id="productTitle"
+            class="text-4xl md:text-6xl font-display text-white mb-6 leading-tight font-medium tracking-tight">
+            Loading...</h1>
+
           <!-- Boutique Info Snippet -->
           <div class="flex flex-col gap-1 mb-8">
-              <div id="subBoutiqueName" class="text-primary font-display text-sm tracking-wide font-medium">Boutique Name</div>
-              <div class="flex flex-wrap items-center gap-4 text-white/40">
-                <div class="flex items-center gap-1.5">
-                  <span class="material-symbols-outlined text-[14px]">location_on</span>
-                  <span id="productLocation" class="text-[10px] uppercase tracking-widest font-medium">Location Detail</span>
-                </div>
+            <div id="subBoutiqueName" class="text-primary font-display text-sm tracking-wide font-medium">Boutique Name
+            </div>
+            <div class="flex flex-wrap items-center gap-4 text-white/40">
+              <div class="flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-[14px]">location_on</span>
+                <span id="productLocation" class="text-[10px] uppercase tracking-widest font-medium">Location
+                  Detail</span>
               </div>
+            </div>
           </div>
           <div class="border-b border-white/5 w-full"></div>
         </div>
 
         <div class="space-y-10 mb-12">
           <div>
-            <h3 class="text-[10px] font-bold uppercase tracking-[0.3em] text-primary mb-5 opacity-80">The Couture Narrative</h3>
-            <p id="productDescription" class="text-sm md:text-[15px] text-white/60 leading-relaxed font-light font-display italic">
+            <h3 class="text-[10px] font-bold uppercase tracking-[0.3em] text-primary mb-5 opacity-80">The Couture
+              Narrative</h3>
+            <p id="productDescription"
+              class="text-sm md:text-[15px] text-white/60 leading-relaxed font-light font-display italic">
               Loading authentic designer notes...
             </p>
           </div>
-          
+
           <div class="grid grid-cols-2 gap-4">
-              <div class="p-5 rounded-2xl border border-white/5 bg-white/[0.02] flex flex-col gap-1">
-                  <div class="text-[9px] uppercase tracking-widest text-primary/60 font-bold">Fabric & Feel</div>
-                  <div id="productFabric" class="text-[11px] text-white/80 font-medium tracking-wide">Premium Handpicked</div>
+            <div class="p-5 rounded-2xl border border-white/5 bg-white/[0.02] flex flex-col gap-1">
+              <div class="text-[9px] uppercase tracking-widest text-primary/60 font-bold">Fabric & Feel</div>
+              <div id="productFabric" class="text-[11px] text-white/80 font-medium tracking-wide">Premium Handpicked
               </div>
-              <div class="p-5 rounded-2xl border border-white/5 bg-white/[0.02] flex flex-col gap-1">
-                  <div class="text-[9px] uppercase tracking-widest text-primary/60 font-bold">Rental Amount</div>
-                  <div id="cardProductPrice" class="text-[11px] text-white/80 font-bold tracking-widest">₹ 0</div>
-              </div>
+            </div>
+            <div class="p-5 rounded-2xl border border-white/5 bg-white/[0.02] flex flex-col gap-1">
+              <div class="text-[9px] uppercase tracking-widest text-primary/60 font-bold">Rental Amount</div>
+              <div id="cardProductPrice" class="text-[11px] text-white/80 font-bold tracking-widest">₹ 0</div>
+            </div>
           </div>
         </div>
 
         <!-- Boutique Card -->
         <div class="glass-card rounded-[2rem] p-8 mb-10 border-primary/10 group">
           <div class="flex items-center gap-5 mb-6">
-            <div id="boutiqueInitial" class="w-16 h-16 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-primary font-display font-medium text-3xl shadow-inner group-hover:bg-primary group-hover:text-background-dark transition-colors duration-500">B</div>
+            <div id="boutiqueInitial"
+              class="w-16 h-16 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-primary font-display font-medium text-3xl shadow-inner group-hover:bg-primary group-hover:text-background-dark transition-colors duration-500">
+              B</div>
             <div>
               <p id="boutiqueName" class="font-display text-2xl text-white font-bold tracking-wide">Boutique Name</p>
-              <p id="boutiqueArea" class="text-[10px] text-primary/70 uppercase tracking-widest font-bold mt-1">Official Boutique Member</p>
+              <p id="boutiqueArea" class="text-[10px] text-primary/70 uppercase tracking-widest font-bold mt-1">Official
+                Boutique Member</p>
             </div>
           </div>
           <p id="boutiqueBio" class="text-[11px] text-white/40 leading-relaxed mb-6 uppercase tracking-widest">
             Expertly curated luxury collections from verified boutiques across our elite network.
           </p>
-          <a id="viewBoutiqueBtn" href="#" class="inline-flex items-center gap-2 text-[10px] font-bold text-primary uppercase tracking-[0.3em] border-b border-primary/30 pb-1 hover:border-primary transition-all">
+          <a id="viewBoutiqueBtn" href="#"
+            class="inline-flex items-center gap-2 text-[10px] font-bold text-primary uppercase tracking-[0.3em] border-b border-primary/30 pb-1 hover:border-primary transition-all">
             Explore Boutique <span class="material-symbols-outlined text-sm">arrow_forward</span>
           </a>
         </div>
@@ -233,27 +263,44 @@
               <h3 class="text-[10px] font-bold uppercase tracking-[0.3em] text-primary mb-1">Feedback</h3>
               <p class="text-xl font-display text-white">Guest Reviews</p>
             </div>
-            <button id="showReviewForm" class="text-[10px] font-bold text-primary uppercase tracking-widest border border-primary/30 px-4 py-2 rounded-full hover:bg-primary hover:text-background-dark transition-all">Write Review</button>
+            <button id="showReviewForm"
+              class="text-[10px] font-bold text-primary uppercase tracking-widest border border-primary/30 px-4 py-2 rounded-full hover:bg-primary hover:text-background-dark transition-all">Write
+              Review</button>
           </div>
 
           <!-- Add Review Form -->
-          <div id="reviewFormContainer" class="hidden mb-12 animate-fade-in p-6 rounded-2xl bg-white/[0.03] border border-white/5">
+          <div id="reviewFormContainer"
+            class="hidden mb-12 animate-fade-in p-6 rounded-2xl bg-white/[0.03] border border-white/5">
             <div class="space-y-6">
               <div>
                 <label class="text-[9px] uppercase tracking-widest text-white/40 block mb-3">Rating</label>
                 <div class="flex gap-2" id="starRating">
-                  <span class="material-symbols-outlined cursor-pointer hover:text-primary transition-colors text-white/20" data-val="1">star</span>
-                  <span class="material-symbols-outlined cursor-pointer hover:text-primary transition-colors text-white/20" data-val="2">star</span>
-                  <span class="material-symbols-outlined cursor-pointer hover:text-primary transition-colors text-white/20" data-val="3">star</span>
-                  <span class="material-symbols-outlined cursor-pointer hover:text-primary transition-colors text-white/20" data-val="4">star</span>
-                  <span class="material-symbols-outlined cursor-pointer hover:text-primary transition-colors text-white/20" data-val="5">star</span>
+                  <span
+                    class="material-symbols-outlined cursor-pointer hover:text-primary transition-colors text-white/20"
+                    data-val="1">star</span>
+                  <span
+                    class="material-symbols-outlined cursor-pointer hover:text-primary transition-colors text-white/20"
+                    data-val="2">star</span>
+                  <span
+                    class="material-symbols-outlined cursor-pointer hover:text-primary transition-colors text-white/20"
+                    data-val="3">star</span>
+                  <span
+                    class="material-symbols-outlined cursor-pointer hover:text-primary transition-colors text-white/20"
+                    data-val="4">star</span>
+                  <span
+                    class="material-symbols-outlined cursor-pointer hover:text-primary transition-colors text-white/20"
+                    data-val="5">star</span>
                 </div>
               </div>
               <div>
                 <label class="text-[9px] uppercase tracking-widest text-white/40 block mb-3">Your Perspective</label>
-                <textarea id="reviewComment" rows="3" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-primary outline-none text-white resize-none" placeholder="Share your experience with this couture masterpiece..."></textarea>
+                <textarea id="reviewComment" rows="3"
+                  class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-primary outline-none text-white resize-none"
+                  placeholder="Share your experience with this couture masterpiece..."></textarea>
               </div>
-              <button id="submitReview" class="w-full bg-primary text-background-dark py-3 rounded-full font-bold uppercase tracking-widest text-[10px] gold-glow transition-all">Publish Review</button>
+              <button id="submitReview"
+                class="w-full bg-primary text-background-dark py-3 rounded-full font-bold uppercase tracking-widest text-[10px] gold-glow transition-all">Publish
+                Review</button>
             </div>
           </div>
 
@@ -261,8 +308,9 @@
           <div id="reviewsList" class="space-y-8">
             <!-- Loading placeholder -->
             <div class="text-center py-10">
-                <div class="w-6 h-6 border-2 border-primary/20 border-t-primary rounded-full animate-spin mx-auto mb-4"></div>
-                <p class="text-[10px] uppercase tracking-widest text-white/20 italic">Gathering impressions...</p>
+              <div class="w-6 h-6 border-2 border-primary/20 border-t-primary rounded-full animate-spin mx-auto mb-4">
+              </div>
+              <p class="text-[10px] uppercase tracking-widest text-white/20 italic">Gathering impressions...</p>
             </div>
           </div>
         </div>
@@ -278,10 +326,12 @@
           <h2 class="text-3xl md:text-5xl font-display text-white">More Collections</h2>
         </div>
         <div class="flex gap-4">
-          <button id="slideLeft" class="size-10 rounded-full border border-white/10 flex items-center justify-center hover:border-primary hover:text-primary transition-all">
+          <button id="slideLeft"
+            class="size-10 rounded-full border border-white/10 flex items-center justify-center hover:border-primary hover:text-primary transition-all">
             <span class="material-symbols-outlined text-sm">west</span>
           </button>
-          <button id="slideRight" class="size-10 rounded-full border border-white/10 flex items-center justify-center hover:border-primary hover:text-primary transition-all">
+          <button id="slideRight"
+            class="size-10 rounded-full border border-white/10 flex items-center justify-center hover:border-primary hover:text-primary transition-all">
             <span class="material-symbols-outlined text-sm">east</span>
           </button>
         </div>
@@ -292,10 +342,13 @@
 
   <footer class="bg-background-dark border-t border-white/5 py-12 px-6">
     <div class="max-w-7xl mx-auto text-center">
-      <p class="text-[9px] text-white/20 uppercase tracking-[0.4em] mb-10">© 2024 CLOCHE LUXURY. ALL RIGHTS RESERVED.</p>
+      <p class="text-[9px] text-white/20 uppercase tracking-[0.4em] mb-10">© 2024 CLOCHE LUXURY. ALL RIGHTS RESERVED.
+      </p>
       <div class="flex items-center justify-center gap-10">
-        <a href="privacy.html" class="text-sm font-display text-white/60 hover:text-primary transition-colors">Privacy Policy</a>
-        <a href="terms.html" class="text-sm font-display text-white/60 hover:text-primary transition-colors">Terms of Service</a>
+        <a href="privacy.html" class="text-sm font-display text-white/60 hover:text-primary transition-colors">Privacy
+          Policy</a>
+        <a href="terms.html" class="text-sm font-display text-white/60 hover:text-primary transition-colors">Terms of
+          Service</a>
       </div>
     </div>
   </footer>
@@ -303,7 +356,7 @@
   <script>
     const API_ORIGIN = "https://cloche-backend.onrender.com";
     const PRODUCT_API = `${API_ORIGIN}/api/products`;
-    
+
     let gallery = [];
     let currentImgIndex = 0;
 
@@ -315,38 +368,38 @@
       const normalized = raw.replace(/\\/g, "/");
       const clean = normalized.startsWith("/") ? normalized.slice(1) : normalized;
       if (!clean.includes("/") && /\.(jpg|jpeg|png|webp|gif)$/i.test(clean)) {
-          return `https://res.cloudinary.com/dycwsnzyd/image/upload/${clean}`;
+        return `https://res.cloudinary.com/dycwsnzyd/image/upload/${clean}`;
       }
       return `${API_ORIGIN}/${clean}`;
     }
 
     function updateMainImage(index) {
-        if (!gallery.length) return;
-        currentImgIndex = (index + gallery.length) % gallery.length;
-        
-        const mainImg = document.getElementById("mainImage");
-        const loader = document.getElementById("imageLoader");
-        
-        if (mainImg) {
-            mainImg.style.opacity = "0";
-            loader.classList.remove("hidden");
-            
-            mainImg.src = resolveAssetUrl(gallery[currentImgIndex]);
-            mainImg.onload = () => {
-                mainImg.style.opacity = "1";
-                loader.classList.add("hidden");
-            };
-        }
+      if (!gallery.length) return;
+      currentImgIndex = (index + gallery.length) % gallery.length;
 
-        document.querySelectorAll(".img-dot").forEach((dot, i) => {
-            dot.style.background = (i === currentImgIndex) ? "#c1a671" : "rgba(255,255,255,0.2)";
-        });
+      const mainImg = document.getElementById("mainImage");
+      const loader = document.getElementById("imageLoader");
+
+      if (mainImg) {
+        mainImg.style.opacity = "0";
+        loader.classList.remove("hidden");
+
+        mainImg.src = resolveAssetUrl(gallery[currentImgIndex]);
+        mainImg.onload = () => {
+          mainImg.style.opacity = "1";
+          loader.classList.add("hidden");
+        };
+      }
+
+      document.querySelectorAll(".img-dot").forEach((dot, i) => {
+        dot.style.background = (i === currentImgIndex) ? "#c1a671" : "rgba(255,255,255,0.2)";
+      });
     }
 
     async function loadProductDetails() {
       const params = new URLSearchParams(window.location.search);
       const productId = params.get("id") || params.get("productId");
-      
+
       if (!productId) {
         window.location.href = "boutiques.html";
         return;
@@ -359,41 +412,41 @@
 
         gallery = [product.image_url];
         if (Array.isArray(product.gallery)) {
-            gallery = [...new Set([product.image_url, ...product.gallery])].filter(Boolean);
+          gallery = [...new Set([product.image_url, ...product.gallery])].filter(Boolean);
         }
-        
+
         const dotContainer = document.getElementById("imageDots");
         if (dotContainer) {
-            dotContainer.innerHTML = gallery.map((_, i) => `<div class="img-dot size-1.5 rounded-full" style="background: ${i === 0 ? '#c1a671' : 'rgba(255,255,255,0.2)'};"></div>`).join("");
+          dotContainer.innerHTML = gallery.map((_, i) => `<div class="img-dot size-1.5 rounded-full" style="background: ${i === 0 ? '#c1a671' : 'rgba(255,255,255,0.2)'};"></div>`).join("");
         }
-        
+
         if (gallery.length <= 1) {
-            document.getElementById("sliderControls")?.classList.add("hidden");
+          document.getElementById("sliderControls")?.classList.add("hidden");
         } else {
-            document.getElementById("sliderControls")?.classList.remove("hidden");
+          document.getElementById("sliderControls")?.classList.remove("hidden");
         }
 
         const title = (product.product_name || product.title || "Exquisite Piece").toUpperCase();
         document.getElementById("productTitle").textContent = title;
         document.getElementById("breadcrumbProduct").textContent = title;
         document.getElementById("productCategory").textContent = (product.category || "Couture Collection").toUpperCase();
-        
+
         const formattedPrice = `₹ ${Number(product.price || 0).toLocaleString("en-IN")}`;
         document.getElementById("cardProductPrice").textContent = formattedPrice;
-        
+
         const bName = product.boutique_name || "Cloche Elite Partner";
         document.getElementById("subBoutiqueName").textContent = bName;
         document.getElementById("boutiqueName").textContent = bName;
-        
+
         const loc = [product.area, product.district].filter(Boolean).join(", ") || product.boutique_city || product.location || "Luxury Hub";
         document.getElementById("productLocation").textContent = loc.toUpperCase();
-        
+
         if (document.getElementById("productFabric")) {
-            document.getElementById("productFabric").textContent = product.fabric || "Premium Handpicked";
+          document.getElementById("productFabric").textContent = product.fabric || "Premium Handpicked";
         }
-        
+
         if (product.description) {
-            document.getElementById("productDescription").innerHTML = product.description.split('\n').filter(l => l.trim()).map(p => `<span>${p}</span><br/>`).join('');
+          document.getElementById("productDescription").innerHTML = product.description.split('\n').filter(l => l.trim()).map(p => `<span>${p}</span><br/>`).join('');
         }
 
         updateMainImage(0);
@@ -403,7 +456,7 @@
         document.getElementById("viewBoutiqueBtn").href = `viewboutique.html?id=${product.boutique_id}`;
 
         if (product.boutique_id) loadRelatedProducts(product.boutique_id, productId);
-        
+
         loadReviews(productId);
 
         document.title = `${title} | CLOCHE`;
@@ -414,17 +467,17 @@
     }
 
     async function loadReviews(productId) {
-        const list = document.getElementById("reviewsList");
-        try {
-            const res = await fetch(`${API_ORIGIN}/api/products/reviews/${productId}`);
-            const reviews = await res.json();
-            
-            if (!reviews.length) {
-                list.innerHTML = '<div class="text-center py-10 text-[10px] uppercase tracking-widest text-white/20 italic">No impressions yet. Be the first to share.</div>';
-                return;
-            }
+      const list = document.getElementById("reviewsList");
+      try {
+        const res = await fetch(`${API_ORIGIN}/api/products/reviews/${productId}`);
+        const reviews = await res.json();
 
-            list.innerHTML = reviews.map(r => `
+        if (!reviews.length) {
+          list.innerHTML = '<div class="text-center py-10 text-[10px] uppercase tracking-widest text-white/20 italic">No impressions yet. Be the first to share.</div>';
+          return;
+        }
+
+        list.innerHTML = reviews.map(r => `
                 <div class="border-b border-white/5 pb-8">
                     <div class="flex items-center justify-between mb-3">
                         <span class="text-[11px] font-bold text-white/90 uppercase tracking-widest">${r.user_name}</span>
@@ -436,100 +489,126 @@
                     <p class="text-[8px] uppercase tracking-widest text-white/20 mt-4">${new Date(r.created_at).toLocaleDateString()}</p>
                 </div>
             `).join("");
-        } catch (err) {
-            list.innerHTML = '<div class="text-center py-10 text-[10px] uppercase tracking-widest text-white/20 italic">Impressions currently private.</div>';
-        }
+      } catch (err) {
+        list.innerHTML = '<div class="text-center py-10 text-[10px] uppercase tracking-widest text-white/20 italic">Impressions currently private.</div>';
+      }
     }
 
     // Review Form Interactivity
     let selectedRating = 0;
     const showReviewBtn = document.getElementById("showReviewForm");
     const reviewForm = document.getElementById("reviewFormContainer");
-    
+
     showReviewBtn?.addEventListener("click", () => {
-        const isUserLoggedIn = localStorage.getItem("isUserLoggedIn") === "true";
-        if (!isUserLoggedIn) {
-            window.location.href = "boutiquelogin.html";
-            return;
-        }
-        reviewForm.classList.toggle("hidden");
-        showReviewBtn.textContent = reviewForm.classList.contains("hidden") ? "Write Review" : "Cancel";
+      const isUserLoggedIn = localStorage.getItem("isUserLoggedIn") === "true";
+      if (!isUserLoggedIn) {
+        window.location.href = "boutiquelogin.html";
+        return;
+      }
+      reviewForm.classList.toggle("hidden");
+      showReviewBtn.textContent = reviewForm.classList.contains("hidden") ? "Write Review" : "Cancel";
     });
 
     document.querySelectorAll("#starRating span").forEach(star => {
-        star.addEventListener("click", () => {
-            selectedRating = parseInt(star.dataset.val);
-            document.querySelectorAll("#starRating span").forEach((s, idx) => {
-                s.classList.toggle("text-primary", idx < selectedRating);
-                s.classList.toggle("text-white/20", idx >= selectedRating);
-            });
+      star.addEventListener("click", () => {
+        selectedRating = parseInt(star.dataset.val);
+        document.querySelectorAll("#starRating span").forEach((s, idx) => {
+          s.classList.toggle("text-primary", idx < selectedRating);
+          s.classList.toggle("text-white/20", idx >= selectedRating);
         });
+      });
     });
 
     document.getElementById("submitReview")?.addEventListener("click", async () => {
-        const comment = document.getElementById("reviewComment").value.trim();
-        const userName = localStorage.getItem("userName") || "Elite Member";
-        const productId = new URLSearchParams(window.location.search).get("id") || new URLSearchParams(window.location.search).get("productId");
+      const comment = document.getElementById("reviewComment").value.trim();
+      const userName = localStorage.getItem("userName") || "Elite Member";
+      const productId = new URLSearchParams(window.location.search).get("id") || new URLSearchParams(window.location.search).get("productId");
 
-        if (selectedRating === 0) return alert("Select a rating, please.");
-        if (!comment) return alert("Share your thoughts in the comment section.");
+      if (selectedRating === 0) return alert("Select a rating, please.");
+      if (!comment) return alert("Share your thoughts in the comment section.");
 
-        const btn = document.getElementById("submitReview");
-        btn.disabled = true;
-        btn.textContent = "Publishing...";
+      const btn = document.getElementById("submitReview");
+      btn.disabled = true;
+      btn.textContent = "Publishing...";
 
-        try {
-            const res = await fetch(`${API_ORIGIN}/api/products/reviews/${productId}`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ userName, rating: selectedRating, comment })
-            });
+      try {
+        const res = await fetch(`${API_ORIGIN}/api/products/reviews/${productId}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userName, rating: selectedRating, comment })
+        });
 
-            if (res.ok) {
-                document.getElementById("reviewComment").value = "";
-                selectedRating = 0;
-                document.querySelectorAll("#starRating span").forEach(s => {
-                    s.classList.remove("text-primary");
-                    s.classList.add("text-white/20");
-                });
-                reviewForm.classList.add("hidden");
-                showReviewBtn.textContent = "Write Review";
-                loadReviews(productId);
-            } else {
-                const err = await res.json();
-                if (res.status === 404) {
-                    alert("Backend sync required. Please ensure the new reviews route is deployed to your production server.");
-                } else {
-                    alert(err.message || "Failed to publish review");
-                }
-            }
-        } catch (err) {
-            alert("Connection error. Try again later.");
-        } finally {
-            btn.disabled = false;
-            btn.textContent = "Publish Review";
+        if (res.ok) {
+          document.getElementById("reviewComment").value = "";
+          selectedRating = 0;
+          document.querySelectorAll("#starRating span").forEach(s => {
+            s.classList.remove("text-primary");
+            s.classList.add("text-white/20");
+          });
+          reviewForm.classList.add("hidden");
+          showReviewBtn.textContent = "Write Review";
+          loadReviews(productId);
+        } else {
+          const err = await res.json();
+          if (res.status === 404) {
+            alert("Backend sync required. Please ensure the new reviews route is deployed to your production server.");
+          } else {
+            alert(err.message || "Failed to publish review");
+          }
         }
+      } catch (err) {
+        alert("Connection error. Try again later.");
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Publish Review";
+      }
     });
 
     async function loadRelatedProducts(boutiqueId, currentId) {
       try {
-        const res = await fetch(`${PRODUCT_API}/boutique/${boutiqueId}`);
-        const products = await res.json();
+        let res = await fetch(`${PRODUCT_API}/boutique/${boutiqueId}`);
+        let products = await res.json();
+        let filtered = (Array.isArray(products) ? products : []).filter(p => p.id != currentId);
+        
+        // Fallback: If this boutique has no other products, fetch from ALL boutiques
+        if (filtered.length === 0) {
+            const allRes = await fetch(`${PRODUCT_API}`);
+            const allProducts = await allRes.json();
+            filtered = (Array.isArray(allProducts) ? allProducts : []).filter(p => p.id != currentId).slice(0, 10);
+        }
+
         const slider = document.getElementById("relatedSlider");
-        const filtered = products.filter(p => p.id != currentId).slice(0, 8);
         if (!filtered.length) { 
-            slider.innerHTML = '<p class="text-white/20 text-xs uppercase tracking-widest p-8">No other pieces currently featured.</p>'; 
+            slider.innerHTML = '<p class="text-white/20 text-[10px] uppercase tracking-[0.4em] p-12 italic">Curation in progress...</p>'; 
             return; 
         }
-        slider.innerHTML = filtered.map(item => `
-          <a href="viewproducts.html?id=${item.id}" class="flex-none w-[240px] md:w-[280px] snap-start group">
-            <div class="aspect-[3/4] rounded-[2rem] overflow-hidden glass-card mb-4 border-white/5 relative bg-zinc-900">
-              <img src="${resolveAssetUrl(item.image_url)}" class="w-full h-full object-cover grayscale-[0.2] group-hover:grayscale-0 transition-all duration-1000 group-hover:scale-110" loading="lazy" />
-            </div>
-            <h4 class="text-[11px] font-bold uppercase tracking-[0.2em] text-white/70 group-hover:text-primary transition-colors truncate px-1">${item.product_name}</h4>
-          </a>
-        `).join("");
-      } catch (err) {}
+        
+        slider.innerHTML = filtered.map(item => {
+            const image = resolveAssetUrl(item.image_url);
+            const category = (item.category || "Couture").toUpperCase();
+            return `
+              <a href="viewproducts.html?id=${item.id}" class="group flex-none w-[240px] md:w-[300px] h-[380px] snap-start relative rounded-[2.5rem] overflow-hidden glass-card">
+                <img src="${image}" class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" loading="lazy" />
+                <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/10 to-transparent"></div>
+                
+                <div class="absolute top-6 left-6">
+                   <span class="bg-primary/20 backdrop-blur-md border border-primary/30 text-primary px-3 py-1 rounded-full text-[8px] font-bold tracking-widest uppercase">${category}</span>
+                </div>
+
+                <div class="absolute bottom-8 left-8 right-8">
+                    <h4 class="font-display text-white text-lg tracking-wide mb-2 group-hover:text-primary transition-colors truncate">${item.product_name}</h4>
+                    <div class="flex items-center gap-2 text-white/40 text-[9px] uppercase tracking-[0.2em] font-bold">
+                        <span>INR ${Number(item.price || 0).toLocaleString("en-IN")}</span>
+                        <span class="w-1 h-1 bg-primary/40 rounded-full"></span>
+                        <span class="truncate">${item.boutique_name || "Cloche Partner"}</span>
+                    </div>
+                </div>
+              </a>
+            `;
+        }).join("");
+      } catch (err) {
+          console.error("Failed to load collections", err);
+      }
     }
 
     document.getElementById("prevImg")?.addEventListener("click", () => updateMainImage(currentImgIndex - 1));
@@ -538,14 +617,15 @@
     document.getElementById("slideRight")?.addEventListener("click", () => document.getElementById("relatedSlider").scrollBy({ left: 320, behavior: "smooth" }));
 
     document.addEventListener("DOMContentLoaded", () => {
-        loadProductDetails();
-        const isUserLoggedIn = localStorage.getItem("isUserLoggedIn") === "true";
-        if (isUserLoggedIn) {
-            const authNav = document.getElementById("authNav");
-            if (authNav) authNav.textContent = (localStorage.getItem("userName") || "").split(' ')[0].toUpperCase();
-        }
+      loadProductDetails();
+      const isUserLoggedIn = localStorage.getItem("isUserLoggedIn") === "true";
+      if (isUserLoggedIn) {
+        const authNav = document.getElementById("authNav");
+        if (authNav) authNav.textContent = (localStorage.getItem("userName") || "").split(' ')[0].toUpperCase();
+      }
     });
   </script>
   <script src='responsive-layout.js?v=1776237132140'></script>
 </body>
+
 </html>
