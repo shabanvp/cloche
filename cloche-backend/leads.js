@@ -59,19 +59,29 @@ const extractEnquiryBlob = (text) => {
   
   // Look for the specific prefix marker
   let idx = raw.indexOf(ENQUIRY_BLOB_PREFIX);
+  let prefixUsed = true;
   
-  // Fallback: If prefix missing but looks like JSON at the end
+  // Fallback 1: If prefix missing but looks like JSON at the end or anywhere
   if (idx < 0) {
-    idx = raw.lastIndexOf("{\""); // Start of a likely JSON object
+    idx = raw.indexOf("{\""); // Start of a likely JSON object
+    prefixUsed = false;
   }
 
+  // Fallback 2: Check for requirement: or other common markers if people pasted manually
   if (idx < 0) return { data: null, stripped: clean(raw) };
 
   const before = raw.slice(0, idx);
-  let jsonPart = raw.slice(idx + (raw.includes(ENQUIRY_BLOB_PREFIX) ? ENQUIRY_BLOB_PREFIX.length : 0)).trim();
+  let jsonPart = raw.slice(idx + (prefixUsed ? ENQUIRY_BLOB_PREFIX.length : 0)).trim();
   
   let data = null;
   try {
+    // If there is text AFTER the JSON, try to isolate just the JSON
+    // We look for the last closing brace
+    const lastBrace = jsonPart.lastIndexOf("}");
+    if (lastBrace !== -1) {
+      jsonPart = jsonPart.slice(0, lastBrace + 1);
+    }
+
     // Basic sanitization: if it contains multiple objects, try to take the first complete one
     if (jsonPart.includes("}{")) {
        jsonPart = jsonPart.split("}{")[0] + "}";
@@ -795,20 +805,25 @@ router.get("/list/:boutiqueId", async (req, res) => {
     console.log(`[Leads] Found ${rows.length} leads`);
 
     // Normalize so the frontend can reliably show all enquiry details
-    const normalized = rows.map((row) => {
-      const req = extractEnquiryBlob(row.requirement || row.category || "");
-      const spec = extractEnquiryBlob(row.special_requirement || row.notes || "");
-      const blob = req.data || spec.data || null;
+      // Extract from BOTH potential blob locations
+      const reqBlob = extractEnquiryBlob(row.requirement || "");
+      const specBlob = extractEnquiryBlob(row.special_requirement || "");
+      
+      // Merge data from both blobs, favoring special_requirement data if it exists
+      const blob = { 
+        ...(reqBlob.data || {}), 
+        ...(specBlob.data || {}) 
+      };
 
       const preferred = clean(row.preferred_location || row.location || "") || clean(blob?.preferred_location || "");
       const parsed = parsePreferredLocation(preferred);
 
       // Clean stripped versions (the text part before the JSON blob)
-      const cleanReqText = clean(req.stripped);
-      const cleanSpecText = clean(spec.stripped);
+      const cleanReqText = clean(reqBlob.stripped);
+      const cleanSpecText = clean(specBlob.stripped);
 
-      // Final values: use DB column if it has real text, else try blob
-      const finalRequirement = cleanReqText || clean(blob?.requirement) || clean(row.category) || "Wedding Enquiry";
+      // Final values: prioritize the most specific user-entered text
+      const finalRequirement = cleanReqText || clean(blob?.requirement) || clean(row.requirement) || clean(row.category) || "Wedding Enquiry";
       const finalSpecial = cleanSpecText || clean(blob?.special_requirement) || "—";
 
       return {
