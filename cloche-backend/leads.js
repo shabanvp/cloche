@@ -805,6 +805,7 @@ router.get("/list/:boutiqueId", async (req, res) => {
     console.log(`[Leads] Found ${rows.length} leads`);
 
     // Normalize so the frontend can reliably show all enquiry details
+    const normalized = rows.map((row) => {
       // Extract from BOTH potential blob locations
       const reqBlob = extractEnquiryBlob(row.requirement || "");
       const specBlob = extractEnquiryBlob(row.special_requirement || "");
@@ -849,7 +850,7 @@ router.get("/list/:boutiqueId", async (req, res) => {
 
     return res.json(normalized);
   } catch (err) {
-    console.error("[Leads] Unexpected error:", err);
+    console.error("[Leads] Fetch error:", err.message);
     return res.status(500).json({ message: "Server error", error: err.message });
   }
 });
