@@ -59,6 +59,7 @@ const uploadProductImages = async (boutiqueId, files) => {
 
 /* ================= GET ALL PRODUCTS ================= */
 router.get("/", async (req, res) => {
+  try {
     let products = [];
     
     // Stage 1: Core Fetch (Ultra Resilient)
