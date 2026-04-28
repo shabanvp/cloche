@@ -272,7 +272,7 @@
 
         try {
           console.log(`[Collection] Fetch attempt ${attempt + 1} with ${COLLECTIONS_FETCH_TIMEOUT_MS}ms timeout...`);
-          const res = await fetchWithTimeout(`${API_PRODUCTS}/all`, COLLECTIONS_FETCH_TIMEOUT_MS);
+          const res = await fetchWithTimeout(`${API_PRODUCTS}`, COLLECTIONS_FETCH_TIMEOUT_MS);
           const data = await res.json().catch(() => []);
           if (!res.ok) throw new Error(data.message || "Failed to load collection");
           console.log(`[Collection] Fetch successful on attempt ${attempt + 1}`);
