@@ -902,22 +902,22 @@ nav.fixed .max-w-7xl {
     min-height: calc(100dvh - 76px) !important;
   }
 
-  body.has-mobile-bars.route-messageboutique main.pt-24 > .grid {
+  body.has-mobile-bars.route-messageboutique main.pt-24>.grid {
     gap: 12px !important;
     height: auto !important;
     min-height: calc(100dvh - 184px) !important;
   }
 
-  body.has-mobile-bars.route-messageboutique main.pt-24 > .grid > section:first-child {
+  body.has-mobile-bars.route-messageboutique main.pt-24>.grid>section:first-child {
     padding-top: 0 !important;
   }
 
-  body.has-mobile-bars.route-messageboutique main.pt-24 > .grid > section:first-child > div:first-child {
+  body.has-mobile-bars.route-messageboutique main.pt-24>.grid>section:first-child>div:first-child {
     padding-top: 14px !important;
     padding-bottom: 14px !important;
   }
 
-  body.has-mobile-bars.route-messageboutique main.pt-24 > .grid > section:first-child > div:first-child > .flex.items-center.justify-between {
+  body.has-mobile-bars.route-messageboutique main.pt-24>.grid>section:first-child>div:first-child>.flex.items-center.justify-between {
     display: none !important;
   }
 
@@ -1413,4 +1413,9 @@ body.menu-open .mobile-bottom-nav {
   nav.fixed.top-0 {
     display: none !important;
   }
+}
+
+body {
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
 }
