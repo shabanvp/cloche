@@ -397,6 +397,21 @@
             </div>
           </div>
 
+          <div id="leadDetailProductSection" class="hidden bg-surface-dark border border-primary/20 rounded-xl p-4 mt-4 overflow-hidden">
+            <p class="text-[10px] text-primary uppercase tracking-[0.24em] font-bold mb-3 flex items-center gap-2">
+               <span class="material-symbols-outlined text-[14px]">diamond</span> Product of interest
+            </p>
+            <div class="flex items-center gap-4">
+              <div class="h-16 w-12 rounded-lg bg-black/40 border border-white/5 overflow-hidden shrink-0">
+                <img id="leadDetailProductImg" class="w-full h-full object-cover" src="" alt="Product snapshot">
+              </div>
+              <div class="min-w-0">
+                <p id="leadDetailProductName" class="text-white font-display text-base truncate pr-2">—</p>
+                <p class="text-[10px] text-slate-500 uppercase tracking-widest mt-1">Direct Boutique Enquiry</p>
+              </div>
+            </div>
+          </div>
+
           <div class="bg-white/5 border border-white/5 rounded-xl p-4 mt-4">
             <p class="text-[10px] text-slate-500 uppercase tracking-[0.24em] font-bold">Requirement</p>
             <p id="leadDetailRequirement" class="mt-2 text-slate-200 font-semibold whitespace-pre-wrap">—</p>
@@ -513,6 +528,19 @@
         district: cleanStr(lead?.district) || parsePreferredLocation(rawLocation).district
       };
       const createdAt = formatDateTime(lead?.created_at) || cleanStr(lead?.created_at) || "—";
+
+      // --- ADDED: Product Preview Logic ---
+      const productSection = document.getElementById("leadDetailProductSection");
+      const productNameEl = document.getElementById("leadDetailProductName");
+      const productImgEl = document.getElementById("leadDetailProductImg");
+
+      if (lead?.product_name && productSection) {
+        productSection.classList.remove("hidden");
+        productNameEl.textContent = lead.product_name;
+        productImgEl.src = resolveAssetUrl(lead.product_image);
+      } else if (productSection) {
+        productSection.classList.add("hidden");
+      }
 
       const setText = (id, value) => {
         const el = document.getElementById(id);

@@ -157,6 +157,8 @@ function leadPayloadCandidates({ boutiqueId, enquiry }) {
     preferred_location: clean(enquiry.preferred_location),
     area: clean(enquiry.area),
     district: clean(enquiry.district),
+    product_name: clean(enquiry.productName),
+    product_image: clean(enquiry.productImage),
     created_at: enquiry.created_at || new Date().toISOString()
   };
 
@@ -220,6 +222,8 @@ function queueLeadPayloadCandidates(enquiry) {
     area: clean(enquiry.area),
     district: clean(enquiry.district),
     source: "web_enquiry",
+    product_name: clean(enquiry.productName),
+    product_image: clean(enquiry.productImage),
     created_at: enquiry.created_at || new Date().toISOString()
   };
 
@@ -286,6 +290,8 @@ function enquiryPayloadCandidates(enquiry) {
     district: clean(enquiry.district),
     status: clean(enquiry.status || "PENDING"),
     source: "web_enquiry",
+    product_name: clean(enquiry.productName),
+    product_image: clean(enquiry.productImage),
     created_at: enquiry.created_at || new Date().toISOString()
   };
 
@@ -523,6 +529,8 @@ router.post("/enquiry", async (req, res) => {
     district: clean(req.body.districtLocation || req.body.district || ""),
     requirement: clean(req.body.requirement),
     special_requirement: clean(req.body.specialRequirement || req.body.special_requirement),
+    productName: clean(req.body.productName),
+    productImage: clean(req.body.productImage),
     status: "PENDING",
     created_at: createdAt
   };
