@@ -59,71 +59,34 @@ const uploadProductImages = async (boutiqueId, files) => {
 
 /* ================= GET ALL PRODUCTS ================= */
 router.get("/", async (req, res) => {
+  console.log("[Products] GET /api/products hit - Attempting fetch...");
   try {
-    let products = [];
+    const { data: products, error } = await supabase.from("products").select("*");
     
-    // Stage 1: Core Fetch (Ultra Resilient)
-    try {
-      const { data, error } = await supabase.from("products").select("*");
-      if (error) throw error;
-      products = data || [];
-    } catch (err) {
-      console.error("[Products] Core fetch failed:", err.message);
-      // Even if fetch fails, don't 500. Return empty so the site stays alive.
+    if (error) {
+      console.error("[Products] Supabase internal error:", error.message);
       return res.json([]);
     }
 
-    if (!products.length) return res.json([]);
-
-    // Stage 2: Sorting (Optional)
-    try {
-      products.sort((a, b) => {
-        const valA = a.created_at || a.id || 0;
-        const valB = b.created_at || b.id || 0;
-        return valB > valA ? 1 : -1;
-      });
-    } catch (e) {
-      console.warn("[Products] Sort failed, returning unsorted.");
+    if (!products || products.length === 0) {
+      console.log("[Products] No products found in DB.");
+      return res.json([]);
     }
 
-    // Stage 3: Metadata (Optional & Resilient)
-    const boutiqueMap = {};
-    try {
-      const uIds = [...new Set(products.map(p => p.boutique_id).filter(Boolean))];
-      if (uIds.length > 0) {
-        const [bRes, sRes] = await Promise.all([
-          supabase.from("boutiques").select("id, boutique_name, city").in("id", uIds),
-          supabase.from("boutique_showcase").select("boutique_id, area, district").in("boutique_id", uIds)
-        ]);
-        
-        (bRes.data || []).forEach(b => { boutiqueMap[b.id] = { ...boutiqueMap[b.id], ...b }; });
-        (sRes.data || []).forEach(s => {
-          if (s.boutique_id) {
-            boutiqueMap[s.boutique_id] = { ...boutiqueMap[s.boutique_id], ...s };
-          }
-        });
-      }
-    } catch (metaErr) {
-      console.warn("[Products] Metadata enrichment skipped:", metaErr.message);
-    }
+    console.log(`[Products] Successfully fetched ${products.length} items from DB.`);
 
-    // Stage 4: Flatten & Safe Return
-    const safeResponse = products.map(p => {
-      const b = boutiqueMap[p.boutique_id] || {};
-      return {
-        ...p,
-        boutique_name: b.boutique_name || "Boutique",
-        city: b.city || "",
-        district: b.district || "",
-        area: b.area || "",
-        location: p.location || b.area || b.city || "Kerala"
-      };
-    });
+    // Resilience: Sort by ID if nothing else
+    const sorted = [...products].sort((a, b) => (b.id || 0) - (a.id || 0));
 
-    return res.json(safeResponse);
+    return res.json(sorted.map(p => ({
+      ...p,
+      boutique_name: p.boutique_name || "Boutique",
+      location: p.location || p.city || "Kerala"
+    })));
+
   } catch (err) {
-    console.error("[Products] Critical handler error:", err.message);
-    return res.json([]); // Fatal fallback: return empty to prevent site freeze
+    console.error("[Products] Unexpected fatal error in /all:", err.message);
+    return res.json([]); // Return empty list rather than 500 error
   }
 });
 
