@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" class="dark">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -7,8 +8,11 @@
   <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@400,0&display=swap" rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Inter:wght@400;500;600&display=swap"
+    rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@400,0&display=swap"
+    rel="stylesheet" />
   <script>
     tailwind.config = {
       darkMode: "class",
@@ -65,8 +69,13 @@
     }
 
     @keyframes drift {
-      from { transform: translateY(0); }
-      to { transform: translateY(-30px); }
+      from {
+        transform: translateY(0);
+      }
+
+      to {
+        transform: translateY(-30px);
+      }
     }
 
     .glass {
@@ -141,13 +150,23 @@
     }
 
     @keyframes fill {
-      from { width: 0%; }
-      to { width: 100%; }
+      from {
+        width: 0%;
+      }
+
+      to {
+        width: 100%;
+      }
     }
 
     @keyframes shimmer {
-      from { background-position: 0% 50%; }
-      to { background-position: 200% 50%; }
+      from {
+        background-position: 0% 50%;
+      }
+
+      to {
+        background-position: 200% 50%;
+      }
     }
 
     .fade-up {
@@ -165,8 +184,10 @@
   </style>
   <link rel="stylesheet" href="responsive-fixes.css?v=1776237132140" />
 </head>
+
 <body>
-  <nav class="fixed top-0 w-full z-50 border-b border-[rgba(193,166,113,0.18)] bg-[rgba(12,12,12,0.72)] backdrop-blur-md">
+  <nav
+    class="fixed top-0 w-full z-50 border-b border-[rgba(193,166,113,0.18)] bg-[rgba(12,12,12,0.72)] backdrop-blur-md">
     <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
       <a href="index.html" class="inline-flex items-center gap-3 leading-none">
         <span class="material-symbols-outlined text-primary text-3xl leading-none shrink-0">diamond</span>
@@ -175,17 +196,24 @@
       <div class="hidden md:flex items-center gap-12">
         <a class="text-sm uppercase tracking-widest text-[#FAF7F2]" href="boutiques.html">Boutiques</a>
         <a class="text-sm uppercase tracking-widest text-[#FAF7F2]" href="index.html#how-it-works">How it Works</a>
-        <a id="listYourBoutiqueNav" class="text-sm uppercase tracking-widest text-[#FAF7F2]" href="boutiquelogin.html">List Your Boutique</a>
+        <a id="listYourBoutiqueNav" class="text-sm uppercase tracking-widest text-[#FAF7F2]"
+          href="boutiquelogin.html">List Your Boutique</a>
       </div>
       <div class="relative flex items-center gap-6">
-        <a id="authNav" href="boutiquelogin.html" class="text-sm uppercase tracking-widest font-medium text-[#FAF7F2]">LOGIN</a>
-        <a id="profileIconLink" href="boutiquelogin.html" class="h-10 w-10 rounded-full bg-primary/20 border border-primary/40 flex items-center justify-center overflow-hidden hover:border-primary transition-colors">
+        <a id="authNav" href="boutiquelogin.html"
+          class="text-sm uppercase tracking-widest font-medium text-[#FAF7F2]">LOGIN</a>
+        <a id="profileIconLink" href="boutiquelogin.html"
+          class="h-10 w-10 rounded-full bg-primary/20 border border-primary/40 flex items-center justify-center overflow-hidden hover:border-primary transition-colors">
           <span id="navAvatar" class="text-primary font-bold">C</span>
         </a>
-        <div id="userMenuDropdown" class="hidden absolute right-0 top-14 w-44 rounded-lg border border-primary/25 bg-[#141414]/95 backdrop-blur-md shadow-2xl p-2 z-50">
-          <a href="userprofile.html" class="block px-3 py-2 rounded text-xs uppercase tracking-widest text-white/80 hover:bg-primary/10 hover:text-primary">Profile</a>
-          <a href="messageboutique.html" class="block px-3 py-2 rounded text-xs uppercase tracking-widest text-white/80 hover:bg-primary/10 hover:text-primary">Inbox</a>
-          <button id="logoutBtn" class="w-full text-left px-3 py-2 rounded text-xs uppercase tracking-widest text-white/80 hover:bg-primary/10 hover:text-primary">Logout</button>
+        <div id="userMenuDropdown"
+          class="hidden absolute right-0 top-14 w-44 rounded-lg border border-primary/25 bg-[#141414]/95 backdrop-blur-md shadow-2xl p-2 z-50">
+          <a href="userprofile.html"
+            class="block px-3 py-2 rounded text-xs uppercase tracking-widest text-white/80 hover:bg-primary/10 hover:text-primary">Profile</a>
+          <a href="messageboutique.html"
+            class="block px-3 py-2 rounded text-xs uppercase tracking-widest text-white/80 hover:bg-primary/10 hover:text-primary">Inbox</a>
+          <button id="logoutBtn"
+            class="w-full text-left px-3 py-2 rounded text-xs uppercase tracking-widest text-white/80 hover:bg-primary/10 hover:text-primary">Logout</button>
         </div>
       </div>
     </div>
@@ -195,7 +223,8 @@
     <section class="hero-glow rounded-3xl px-6 py-8 sm:px-8 sm:py-10 mb-8 fade-up">
       <p class="text-[11px] uppercase tracking-[0.28em] text-primary/75 mb-3">CLOCHE Concierge</p>
       <h1 class="font-display text-4xl sm:text-5xl leading-tight mb-3">Wedding Enquiry</h1>
-      <p class="text-sm sm:text-base text-goldsoft/85 tracking-[0.02em]">Share your details. Cloche will take care of the rest.</p>
+      <p class="text-sm sm:text-base text-goldsoft/85 tracking-[0.02em]">Share your details. Cloche will take care of
+        the rest.</p>
     </section>
 
     <section class="glass p-5 sm:p-8 shadow-luxe fade-up [animation-delay:120ms]">
@@ -205,33 +234,47 @@
           <input type="hidden" id="formBoutiqueId" name="boutiqueId" value="" />
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label for="fullName" class="text-[11px] uppercase tracking-[0.24em] text-primary/75 block mb-2">Full Name</label>
-              <input id="fullName" name="fullName" type="text" required class="gold-input w-full rounded-xl h-12 px-4 focus:ring-0" placeholder="Enter your full name" />
+              <label for="fullName" class="text-[11px] uppercase tracking-[0.24em] text-primary/75 block mb-2">Full
+                Name</label>
+              <input id="fullName" name="fullName" type="text" required
+                class="gold-input w-full rounded-xl h-12 px-4 focus:ring-0" placeholder="Enter your full name" />
             </div>
             <div>
-              <label for="mobileNumber" class="text-[11px] uppercase tracking-[0.24em] text-primary block mb-2">Mobile Number</label>
-              <input id="mobileNumber" name="mobileNumber" type="tel" required class="gold-input w-full rounded-xl h-12 px-4 focus:ring-0 border-primary/55" placeholder="+91 98765 43210" />
+              <label for="mobileNumber" class="text-[11px] uppercase tracking-[0.24em] text-primary block mb-2">Mobile
+                Number</label>
+              <input id="mobileNumber" name="mobileNumber" type="tel" required
+                class="gold-input w-full rounded-xl h-12 px-4 focus:ring-0 border-primary/55"
+                placeholder="+91 98765 43210" />
             </div>
             <div class="md:col-span-2">
-              <label for="email" class="text-[11px] uppercase tracking-[0.24em] text-primary/75 block mb-2">Email (Optional)</label>
-              <input id="email" name="email" type="email" class="gold-input w-full rounded-xl h-12 px-4 focus:ring-0" placeholder="e.g. you@gmail.com" />
+              <label for="email" class="text-[11px] uppercase tracking-[0.24em] text-primary/75 block mb-2">Email
+                (Optional)</label>
+              <input id="email" name="email" type="email" class="gold-input w-full rounded-xl h-12 px-4 focus:ring-0"
+                placeholder="e.g. you@gmail.com" />
             </div>
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label for="weddingDate" class="text-[11px] uppercase tracking-[0.24em] text-primary/75 block mb-2">Wedding Date</label>
-              <input id="weddingDate" name="weddingDate" type="date" required class="gold-input w-full rounded-xl h-12 px-4 focus:ring-0" />
+              <label for="weddingDate"
+                class="text-[11px] uppercase tracking-[0.24em] text-primary/75 block mb-2">Wedding Date</label>
+              <input id="weddingDate" name="weddingDate" type="date" required
+                class="gold-input w-full rounded-xl h-12 px-4 focus:ring-0" />
             </div>
             <div>
-              <label for="areaLocation" class="text-[11px] uppercase tracking-[0.24em] text-primary/75 block mb-2">Area / Town</label>
-              <input id="areaLocation" name="areaLocation" type="text" required class="gold-input w-full rounded-xl h-12 px-4 focus:ring-0" placeholder="e.g. Perinthalmanna" />
+              <label for="areaLocation" class="text-[11px] uppercase tracking-[0.24em] text-primary/75 block mb-2">Area
+                / Town</label>
+              <input id="areaLocation" name="areaLocation" type="text" required
+                class="gold-input w-full rounded-xl h-12 px-4 focus:ring-0" placeholder="e.g. Perinthalmanna" />
             </div>
             <div class="relative">
-              <label for="districtLocation" class="text-[11px] uppercase tracking-[0.24em] text-primary/75 block mb-2">District</label>
+              <label for="districtLocation"
+                class="text-[11px] uppercase tracking-[0.24em] text-primary/75 block mb-2">District</label>
               <div class="relative">
-                <input id="districtLocation" name="districtLocation" type="text" required autocomplete="off" class="gold-input w-full rounded-xl h-12 px-4 focus:ring-0" placeholder="e.g. Malappuram" />
-                <div id="districtSuggestions" class="hidden absolute z-[60] left-0 right-0 top-full mt-1 bg-[#1a1a1a] border border-primary/20 rounded-lg shadow-2xl overflow-hidden max-h-48 overflow-y-auto font-sans">
+                <input id="districtLocation" name="districtLocation" type="text" required autocomplete="off"
+                  class="gold-input w-full rounded-xl h-12 px-4 focus:ring-0" placeholder="e.g. Malappuram" />
+                <div id="districtSuggestions"
+                  class="hidden absolute z-[60] left-0 right-0 top-full mt-1 bg-[#1a1a1a] border border-primary/20 rounded-lg shadow-2xl overflow-hidden max-h-48 overflow-y-auto font-sans">
                   <!-- Suggestions appear here -->
                 </div>
               </div>
@@ -239,16 +282,24 @@
           </div>
 
           <div>
-            <label for="requirement" class="text-[11px] uppercase tracking-[0.24em] text-primary/75 block mb-2">Requirement</label>
-            <input id="requirement" name="requirement" type="text" class="gold-input w-full rounded-xl h-12 px-4 focus:ring-0" placeholder="Bridal Lehenga, Boutique Appointment, etc." />
+            <label for="requirement"
+              class="text-[11px] uppercase tracking-[0.24em] text-primary/75 block mb-2">Requirement</label>
+            <input id="requirement" name="requirement" type="text"
+              class="gold-input w-full rounded-xl h-12 px-4 focus:ring-0"
+              placeholder="Bridal Lehenga, Boutique Appointment, etc." />
           </div>
 
           <div>
-            <label for="specialRequirement" class="text-[11px] uppercase tracking-[0.24em] text-primary/75 block mb-2">Any special requirement? (Optional)</label>
-            <textarea id="specialRequirement" name="specialRequirement" rows="4" class="gold-input w-full rounded-xl px-4 py-3 resize-none focus:ring-0" placeholder="Share custom sizing, timelines, styling needs, or delivery preferences."></textarea>
+            <label for="specialRequirement"
+              class="text-[11px] uppercase tracking-[0.24em] text-primary/75 block mb-2">Any special requirement?
+              (Optional)</label>
+            <textarea id="specialRequirement" name="specialRequirement" rows="4"
+              class="gold-input w-full rounded-xl px-4 py-3 resize-none focus:ring-0"
+              placeholder="Share custom sizing, timelines, styling needs, or delivery preferences."></textarea>
           </div>
 
-          <button id="submitBtn" type="submit" class="cta-gold w-full h-12 rounded-xl text-xs sm:text-sm font-semibold uppercase tracking-[0.19em]">
+          <button id="submitBtn" type="submit"
+            class="cta-gold w-full h-12 rounded-xl text-xs sm:text-sm font-semibold uppercase tracking-[0.19em]">
             Submit Enquiry
           </button>
           <div class="mt-4 flex flex-wrap items-center justify-center gap-3">
@@ -266,7 +317,8 @@
 
       <div id="successView" class="hidden py-5 sm:py-8">
         <div class="max-w-xl mx-auto text-center">
-          <div class="h-16 w-16 rounded-full border border-primary/45 bg-black/45 flex items-center justify-center mx-auto mb-5">
+          <div
+            class="h-16 w-16 rounded-full border border-primary/45 bg-black/45 flex items-center justify-center mx-auto mb-5">
             <span class="material-symbols-outlined text-primary text-4xl">check_circle</span>
           </div>
           <h2 class="font-display text-3xl sm:text-4xl mb-3">Thank you! Your enquiry has been received.</h2>
@@ -274,13 +326,8 @@
           <div class="h-2 bg-black/45 border border-primary/20 rounded-full overflow-hidden mb-7">
             <div class="progress-bar h-full rounded-full"></div>
           </div>
-          <a
-            id="whatsappBtn"
-            href="https://wa.me/"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="cta-gold inline-flex items-center justify-center min-w-[230px] h-11 px-5 rounded-xl text-xs font-semibold uppercase tracking-[0.17em]"
-          >
+          <a id="whatsappBtn" href="https://wa.me/" target="_blank" rel="noopener noreferrer"
+            class="cta-gold inline-flex items-center justify-center min-w-[230px] h-11 px-5 rounded-xl text-xs font-semibold uppercase tracking-[0.17em]">
             Talk to Cloche on WhatsApp
           </a>
         </div>
@@ -353,7 +400,7 @@
     // Be robust: check URL param then localStorage
     const boutiqueIdFromUrl = params.get("boutiqueId") || params.get("id");
     const boutiqueId = boutiqueIdFromUrl || localStorage.getItem("selectedBoutiqueId");
-    
+
     if (boutiqueId) {
       document.getElementById("formBoutiqueId").value = boutiqueId;
       console.log("[Enquiry] Boutique ID identified:", boutiqueId);
@@ -365,38 +412,38 @@
     if (prefilledRequirement) requirementInput.value = prefilledRequirement;
 
     if (prefilledLocation) {
-        // Try to parse "Area, District" or just use as Area
-        const parts = prefilledLocation.split(",").map(s => s.trim());
-        const areaInput = document.getElementById("areaLocation");
-        const distInput = document.getElementById("districtLocation");
-        
-        if (parts.length >= 2) {
-          areaInput.value = parts[0];
-          distInput.value = parts[1];
-        } else {
-          areaInput.value = prefilledLocation;
-        }
+      // Try to parse "Area, District" or just use as Area
+      const parts = prefilledLocation.split(",").map(s => s.trim());
+      const areaInput = document.getElementById("areaLocation");
+      const distInput = document.getElementById("districtLocation");
 
-        areaInput.disabled = true;
-        distInput.disabled = true;
-        areaInput.classList.add("opacity-75", "cursor-not-allowed");
-        distInput.classList.add("opacity-75", "cursor-not-allowed");
+      if (parts.length >= 2) {
+        areaInput.value = parts[0];
+        distInput.value = parts[1];
+      } else {
+        areaInput.value = prefilledLocation;
+      }
+
+      areaInput.disabled = true;
+      distInput.disabled = true;
+      areaInput.classList.add("opacity-75", "cursor-not-allowed");
+      distInput.classList.add("opacity-75", "cursor-not-allowed");
     }
 
     // District Autosuggest Logic
     const districts = [
-      "Alappuzha", "Ernakulam", "Idukki", "Kannur", "Kasaragod", "Kollam", 
-      "Kottayam", "Kozhikode", "Malappuram", "Palakkad", "Pathanamthitta", 
+      "Alappuzha", "Ernakulam", "Idukki", "Kannur", "Kasaragod", "Kollam",
+      "Kottayam", "Kozhikode", "Malappuram", "Palakkad", "Pathanamthitta",
       "Thiruvananthapuram", "Thrissur", "Wayanad"
     ];
 
     const districtInput = document.getElementById("districtLocation");
     const suggestionBox = document.getElementById("districtSuggestions");
 
-    districtInput.addEventListener("input", function() {
+    districtInput.addEventListener("input", function () {
       const val = this.value.trim().toLowerCase();
       suggestionBox.innerHTML = "";
-      
+
       if (val.length < 2) {
         suggestionBox.classList.add("hidden");
         return;
@@ -408,7 +455,7 @@
           const div = document.createElement("div");
           div.className = "px-4 py-3 hover:bg-primary/20 cursor-pointer text-sm text-white/80 transition-colors";
           div.textContent = match;
-          div.onclick = function() {
+          div.onclick = function () {
             districtInput.value = match;
             suggestionBox.classList.add("hidden");
           };
@@ -420,7 +467,7 @@
       }
     });
 
-    document.addEventListener("click", function(e) {
+    document.addEventListener("click", function (e) {
       if (!districtInput.contains(e.target) && !suggestionBox.contains(e.target)) {
         suggestionBox.classList.add("hidden");
       }
@@ -435,6 +482,10 @@
       submitBtn.disabled = true;
       submitBtn.classList.add("opacity-75", "cursor-not-allowed");
 
+      const params = new URLSearchParams(window.location.search);
+      const productName = params.get("productName") || "";
+      const productImage = params.get("productImage") || "";
+
       const payload = {
         boutiqueId: document.getElementById("formBoutiqueId").value || boutiqueId || "",
         fullName: document.getElementById("fullName")?.value.trim() || "",
@@ -447,10 +498,10 @@
         specialRequirement: document.getElementById("specialRequirement")?.value.trim() || "",
         email:
           document.getElementById("email")?.value.trim() ||
-          String(localStorage.getItem("userEmail") || "").trim()
+          String(localStorage.getItem("userEmail") || "").trim(),
+        productName,
+        productImage
       };
-
-      console.log("[Enquiry] SUBMITTING PAYLOAD:", JSON.stringify(payload, null, 2));
 
       console.log("[Enquiry] Submitting payload:", payload);
 
@@ -491,7 +542,7 @@
         }
 
         // 🔹 WhatsApp Redirection with Pre-filled Message (Cloche Official Number)
-        const clocheWhatsAppNumber = "918606924541"; 
+        const clocheWhatsAppNumber = "918606924541";
         const waMessage = `Hello Cloche! I just submitted a wedding enquiry:
 • Name: ${payload.fullName}
 • Requirement: ${payload.requirement || 'Not specified'}
@@ -519,36 +570,37 @@ I'd like to discuss this further.`;
       }
     });
 
-      // Setup menu click handler
-      document.addEventListener("click", (e) => {
-        const menu = document.getElementById("userMenuDropdown");
-        const auth = document.getElementById("authNav");
-        const icon = document.getElementById("profileIconLink");
-        if (!menu || menu.classList.contains("hidden")) return;
-        if (menu.contains(e.target) || (auth && auth.contains(e.target)) || (icon && icon.contains(e.target))) return;
+    // Setup menu click handler
+    document.addEventListener("click", (e) => {
+      const menu = document.getElementById("userMenuDropdown");
+      const auth = document.getElementById("authNav");
+      const icon = document.getElementById("profileIconLink");
+      if (!menu || menu.classList.contains("hidden")) return;
+      if (menu.contains(e.target) || (auth && auth.contains(e.target)) || (icon && icon.contains(e.target))) return;
+      menu.classList.add("hidden");
+    });
+
+    // Setup menu scroll handler
+    window.addEventListener("scroll", () => {
+      const menu = document.getElementById("userMenuDropdown");
+      if (menu && !menu.classList.contains("hidden")) {
         menu.classList.add("hidden");
-      });
-      
-      // Setup menu scroll handler
-      window.addEventListener("scroll", () => {
-        const menu = document.getElementById("userMenuDropdown");
-        if (menu && !menu.classList.contains("hidden")) {
-          menu.classList.add("hidden");
-        }
-      });
-      
-      // Setup logout handler
-      const logoutBtn = document.getElementById("logoutBtn");
-      if (logoutBtn) {
-        logoutBtn.addEventListener("click", () => {
-          localStorage.removeItem("isUserLoggedIn");
-          localStorage.removeItem("userId");
-          localStorage.removeItem("userName");
-          localStorage.removeItem("userEmail");
-          window.location.href = "index.html";
-        });
       }
+    });
+
+    // Setup logout handler
+    const logoutBtn = document.getElementById("logoutBtn");
+    if (logoutBtn) {
+      logoutBtn.addEventListener("click", () => {
+        localStorage.removeItem("isUserLoggedIn");
+        localStorage.removeItem("userId");
+        localStorage.removeItem("userName");
+        localStorage.removeItem("userEmail");
+        window.location.href = "index.html";
+      });
+    }
   </script>
   <script src="responsive-layout.js?v=1776237132140"></script>
 </body>
+
 </html>

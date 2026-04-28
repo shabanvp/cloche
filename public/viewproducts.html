@@ -455,6 +455,13 @@
         document.getElementById("boutiqueInitial").textContent = bName.charAt(0).toUpperCase();
         document.getElementById("viewBoutiqueBtn").href = `viewboutique.html?id=${product.boutique_id}`;
 
+        // --- ADDED: Link Enquiry Button ---
+        const consultBtn = document.getElementById("consultBtn");
+        if (consultBtn) {
+          const productTitle = (product.product_name || product.title || "Exquisite Piece");
+          consultBtn.href = `enquiry.html?boutiqueId=${product.boutique_id}&requirement=${encodeURIComponent(productTitle)}&productName=${encodeURIComponent(productTitle)}&productImage=${encodeURIComponent(product.image_url)}`;
+        }
+
         if (product.boutique_id) loadRelatedProducts(product.boutique_id, productId);
 
         loadReviews(productId);
@@ -569,24 +576,24 @@
         let res = await fetch(`${PRODUCT_API}/boutique/${boutiqueId}`);
         let products = await res.json();
         let filtered = (Array.isArray(products) ? products : []).filter(p => p.id != currentId);
-        
+
         // Fallback: If this boutique has no other products, fetch from ALL boutiques
         if (filtered.length === 0) {
-            const allRes = await fetch(`${PRODUCT_API}`);
-            const allProducts = await allRes.json();
-            filtered = (Array.isArray(allProducts) ? allProducts : []).filter(p => p.id != currentId).slice(0, 10);
+          const allRes = await fetch(`${PRODUCT_API}`);
+          const allProducts = await allRes.json();
+          filtered = (Array.isArray(allProducts) ? allProducts : []).filter(p => p.id != currentId).slice(0, 10);
         }
 
         const slider = document.getElementById("relatedSlider");
-        if (!filtered.length) { 
-            slider.innerHTML = '<p class="text-white/20 text-[10px] uppercase tracking-[0.4em] p-12 italic">Curation in progress...</p>'; 
-            return; 
+        if (!filtered.length) {
+          slider.innerHTML = '<p class="text-white/20 text-[10px] uppercase tracking-[0.4em] p-12 italic">Curation in progress...</p>';
+          return;
         }
-        
+
         slider.innerHTML = filtered.map(item => {
-            const image = resolveAssetUrl(item.image_url);
-            const category = (item.category || "Couture").toUpperCase();
-            return `
+          const image = resolveAssetUrl(item.image_url);
+          const category = (item.category || "Couture").toUpperCase();
+          return `
               <a href="viewproducts.html?id=${item.id}" class="group flex-none w-[240px] md:w-[300px] h-[380px] snap-start relative rounded-[2.5rem] overflow-hidden glass-card">
                 <img src="${image}" class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" loading="lazy" />
                 <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/10 to-transparent"></div>
@@ -607,7 +614,7 @@
             `;
         }).join("");
       } catch (err) {
-          console.error("Failed to load collections", err);
+        console.error("Failed to load collections", err);
       }
     }
 

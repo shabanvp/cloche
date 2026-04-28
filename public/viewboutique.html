@@ -494,12 +494,12 @@
           const q = new URLSearchParams({
             boutiqueId: String(boutique.id),
             boutique: String(boutique.boutique_name || ""),
+            requirement: String(boutique.boutique_name || "General Enquiry"),
             location: String(location.locationLabel || boutique.city || "")
           });
           window.location.href = `enquiry.html?${q.toString()}`;
         };
       }
-
 
       const messageBtn = document.getElementById("messageBtn");
       if (messageBtn) {

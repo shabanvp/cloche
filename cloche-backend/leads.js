@@ -12,8 +12,8 @@ const clean = (value) => String(value || "").trim();
 const cleanLower = (value) => clean(value).toLowerCase();
 
 const isMissingRelation = (error) => /relation .* does not exist/i.test(String(error?.message || ""));
-const isMissingColumn = (error) => 
-  /column .* does not exist/i.test(String(error?.message || "")) || 
+const isMissingColumn = (error) =>
+  /column .* does not exist/i.test(String(error?.message || "")) ||
   /column .* in the schema cache/i.test(String(error?.message || "")) ||
   /Could not find the .* column/i.test(String(error?.message || ""));
 
@@ -419,7 +419,7 @@ async function forwardEnquiryToMatchedBoutiques(enquiry) {
     console.log("[FORWARD] Found", boutiques.length, "boutiques");
     const matchedBoutiques = matchBoutiquesByLocation(boutiques, enquiry.preferred_location);
     console.log("[FORWARD] Matched", matchedBoutiques.length, "boutiques for location:", enquiry.preferred_location);
-    
+
     if (!matchedBoutiques.length) return 0;
 
     let insertedCount = 0;
@@ -546,7 +546,7 @@ router.post("/enquiry", async (req, res) => {
 
     if (directBoutiqueId > 0 && !isNaN(directBoutiqueId)) {
       console.log(`[ENQUIRY] EXECUTING DIRECT ROUTE for boutiqueId: ${directBoutiqueId}`);
-      
+
       // Bypass admin queue and insert straight into leads table for this boutique
       const leadData = await tryInsertWithFallback(LEADS_TABLE, leadPayloadCandidates({
         boutiqueId: directBoutiqueId,
