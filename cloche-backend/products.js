@@ -59,57 +59,55 @@ const uploadProductImages = async (boutiqueId, files) => {
 
 /* ================= GET ALL PRODUCTS ================= */
 router.get("/", async (req, res) => {
-  try {
     let products = [];
-    let productErr = null;
-
+    
+    // Stage 1: Core Fetch (Ultra Resilient)
     try {
-      const res = await supabase
-        .from("products")
-        .select("*")
-        .order("created_at", { ascending: false });
-      products = res.data || [];
-      productErr = res.error;
-    } catch (e) {
-      console.warn("[Products] Primary fetch failed:", e.message);
+      const { data, error } = await supabase.from("products").select("*");
+      if (error) throw error;
+      products = data || [];
+    } catch (err) {
+      console.error("[Products] Core fetch failed:", err.message);
+      // Even if fetch fails, don't 500. Return empty so the site stays alive.
+      return res.json([]);
     }
 
-    if (productErr || !products.length) {
-      console.log("[Products] Falling back to ID sort or empty list...");
-      try {
-        const resFallback = await supabase
-          .from("products")
-          .select("*")
-          .order("id", { ascending: false });
-        products = resFallback.data || [];
-      } catch (err) {
-        console.error("[Products] Total DB failure:", err.message);
-        return res.status(500).json({ message: "Database unreachable", error: err.message });
-      }
-    }
+    if (!products.length) return res.json([]);
 
-    if (!products || products.length === 0) return res.json([]);
-
-    const uniqueBoutiqueIds = [...new Set(products.map(p => p.boutique_id).filter(Boolean))];
-    let boutiqueMap = {};
-
+    // Stage 2: Sorting (Optional)
     try {
-      const [bRes, sRes] = await Promise.all([
-        supabase.from("boutiques").select("id, boutique_name, city").in("id", uniqueBoutiqueIds),
-        supabase.from("boutique_showcase").select("boutique_id, area, district").in("boutique_id", uniqueBoutiqueIds)
-      ]);
-
-      (bRes.data || []).forEach(b => { boutiqueMap[b.id] = { ...boutiqueMap[b.id], ...b }; });
-      (sRes.data || []).forEach(s => {
-        if (s.boutique_id) {
-          boutiqueMap[s.boutique_id] = { ...boutiqueMap[s.boutique_id], ...s };
-        }
+      products.sort((a, b) => {
+        const valA = a.created_at || a.id || 0;
+        const valB = b.created_at || b.id || 0;
+        return valB > valA ? 1 : -1;
       });
-    } catch (metaErr) {
-      console.warn("[Products] Non-critical metadata fetch failed:", metaErr.message);
+    } catch (e) {
+      console.warn("[Products] Sort failed, returning unsorted.");
     }
 
-    const flattened = products.map(p => {
+    // Stage 3: Metadata (Optional & Resilient)
+    const boutiqueMap = {};
+    try {
+      const uIds = [...new Set(products.map(p => p.boutique_id).filter(Boolean))];
+      if (uIds.length > 0) {
+        const [bRes, sRes] = await Promise.all([
+          supabase.from("boutiques").select("id, boutique_name, city").in("id", uIds),
+          supabase.from("boutique_showcase").select("boutique_id, area, district").in("boutique_id", uIds)
+        ]);
+        
+        (bRes.data || []).forEach(b => { boutiqueMap[b.id] = { ...boutiqueMap[b.id], ...b }; });
+        (sRes.data || []).forEach(s => {
+          if (s.boutique_id) {
+            boutiqueMap[s.boutique_id] = { ...boutiqueMap[s.boutique_id], ...s };
+          }
+        });
+      }
+    } catch (metaErr) {
+      console.warn("[Products] Metadata enrichment skipped:", metaErr.message);
+    }
+
+    // Stage 4: Flatten & Safe Return
+    const safeResponse = products.map(p => {
       const b = boutiqueMap[p.boutique_id] || {};
       return {
         ...p,
@@ -117,15 +115,14 @@ router.get("/", async (req, res) => {
         city: b.city || "",
         district: b.district || "",
         area: b.area || "",
-        location: p.location || b.area || b.city || ""
+        location: p.location || b.area || b.city || "Kerala"
       };
     });
 
-    return res.json(flattened);
-
+    return res.json(safeResponse);
   } catch (err) {
-    console.error("[Products] Server error in /all:", err.message);
-    return res.status(500).json({ message: "Server error", error: err.message });
+    console.error("[Products] Critical handler error:", err.message);
+    return res.json([]); // Fatal fallback: return empty to prevent site freeze
   }
 });
 
