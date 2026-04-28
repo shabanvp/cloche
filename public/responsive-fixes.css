@@ -1414,8 +1414,3 @@ body.menu-open .mobile-bottom-nav {
     display: none !important;
   }
 }
-
-body {
-  overscroll-behavior: none;
-  -webkit-tap-highlight-color: transparent;
-}
