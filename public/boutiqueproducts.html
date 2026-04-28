@@ -627,7 +627,7 @@
             </div>`;
 
           const card = `
-                <div class="glass-card bg-white dark:bg-card-dark rounded-xl overflow-hidden group shadow-2xl relative cursor-pointer transition-all hover:shadow-lg" data-product-id="${p.id}" onclick="openProductDetail(${p.id})">
+                <div class="glass-card bg-white dark:bg-card-dark rounded-xl overflow-hidden group shadow-2xl relative transition-all hover:shadow-lg" data-product-id="${p.id}">
                     ${imgUrl ? imageActual : imagePlaceholder}
                     <div class="absolute top-3 right-3 flex gap-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity z-10">
                         <button class="bg-primary/80 hover:bg-primary text-background-dark p-2 rounded-lg" onclick="openEditModal(${p.id}); event.stopPropagation();">
