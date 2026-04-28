@@ -1,11 +1,14 @@
 <!DOCTYPE html>
 <html class="dark" lang="en">
+
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>CLOCHE | Product Detail</title>
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;700&family=Inter:wght@300;400;500;600;700&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;700&family=Inter:wght@300;400;500;600;700&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+    rel="stylesheet" />
   <script id="tailwind-config">
     tailwind.config = {
       darkMode: "class",
@@ -29,24 +32,29 @@
       color: #faf7f2;
       font-family: "Inter", sans-serif;
     }
+
     .glass-card {
       background: rgba(26, 26, 26, 0.6);
       backdrop-filter: blur(12px);
       border: 1px solid rgba(193, 166, 113, 0.2);
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.55);
     }
+
     @media (max-width: 767px) {
       #productName {
         font-size: 3rem;
         line-height: 1;
       }
+
       #productDesc {
         font-size: 1.125rem;
       }
+
       #productLocation {
         font-size: 2.25rem;
         line-height: 1.05;
       }
+
       #editProductBtn,
       #deleteProductBtn {
         padding-top: 0.8rem;
@@ -57,6 +65,7 @@
   </style>
   <link rel='stylesheet' href='responsive-fixes.css?v=1776237132140' />
 </head>
+
 <body class="bg-background-dark text-[#FAF7F2] min-h-screen">
   <nav class="fixed top-0 w-full z-50 glass-card border-b border-primary/20">
     <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
@@ -66,8 +75,10 @@
       </a>
       <div class="hidden md:flex items-center gap-12">
         <a class="text-sm uppercase tracking-widest text-primary" href="boutiques.html">Boutiques</a>
-        <a class="text-sm uppercase tracking-widest hover:text-primary transition-colors" href="index.html#how-it-works">How it Works</a>
-        <a class="text-sm uppercase tracking-widest hover:text-primary transition-colors" href="boutiquelogin.html">List Your Boutique</a>
+        <a class="text-sm uppercase tracking-widest hover:text-primary transition-colors"
+          href="index.html#how-it-works">How it Works</a>
+        <a class="text-sm uppercase tracking-widest hover:text-primary transition-colors" href="boutiquelogin.html">List
+          Your Boutique</a>
       </div>
     </div>
   </nav>
@@ -76,7 +87,8 @@
     <div id="statusWrap" class="text-sm text-white/60 mb-6">Loading product...</div>
 
     <section class="glass-card rounded-3xl p-6 md:p-10">
-      <a id="backBtn" href="boutiques.html" class="absolute right-10 mt-1 text-primary/70 hover:text-primary transition-colors">
+      <a id="backBtn" href="boutiques.html"
+        class="absolute right-10 mt-1 text-primary/70 hover:text-primary transition-colors">
         <span class="material-symbols-outlined text-3xl">close</span>
       </a>
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -93,10 +105,12 @@
           <p id="productDesc" class="text-primary/90 text-2xl mb-6">Description</p>
 
           <div class="mb-8 grid grid-cols-2 gap-3">
-            <button id="editProductBtn" type="button" class="w-full py-4 rounded-full border border-primary/30 text-primary font-bold text-sm uppercase tracking-[0.2em] hover:bg-primary/10 transition-all">
+            <button id="editProductBtn" type="button"
+              class="w-full py-4 rounded-full border border-primary/30 text-primary font-bold text-sm uppercase tracking-[0.2em] hover:bg-primary/10 transition-all">
               Update Product
             </button>
-            <button id="deleteProductBtn" type="button" class="w-full py-4 rounded-full border border-red-500/40 text-red-300 font-bold text-sm uppercase tracking-[0.2em] hover:bg-red-500/10 transition-all">
+            <button id="deleteProductBtn" type="button"
+              class="w-full py-4 rounded-full border border-red-500/40 text-red-300 font-bold text-sm uppercase tracking-[0.2em] hover:bg-red-500/10 transition-all">
               Delete Product
             </button>
           </div>
@@ -116,7 +130,13 @@
             </div>
           </div>
 
-          <button class="mt-4 w-full py-5 rounded-full bg-primary text-background-dark font-bold text-2xl uppercase tracking-[0.2em] hover:brightness-110 transition-all">
+          <div class="mb-8">
+            <p class="text-primary/70 uppercase tracking-[0.2em] text-xs mb-2">Fabric / Material</p>
+            <p id="productFabric" class="text-2xl font-display">Premium Handpicked</p>
+          </div>
+
+          <button
+            class="mt-4 w-full py-5 rounded-full bg-primary text-background-dark font-bold text-2xl uppercase tracking-[0.2em] hover:brightness-110 transition-all">
             Rent It Out
           </button>
         </div>
@@ -137,40 +157,54 @@
       <form id="editProductForm" class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <label class="block text-primary/70 uppercase tracking-[0.2em] text-xs mb-2">Category</label>
-          <input id="editCategory" type="text" class="w-full rounded-2xl border border-primary/20 bg-black/20 px-5 py-4 text-white outline-none focus:border-primary" />
+          <input id="editCategory" type="text"
+            class="w-full rounded-2xl border border-primary/20 bg-black/20 px-5 py-4 text-white outline-none focus:border-primary" />
         </div>
         <div>
           <label class="block text-primary/70 uppercase tracking-[0.2em] text-xs mb-2">Product Name</label>
-          <input id="editName" type="text" class="w-full rounded-2xl border border-primary/20 bg-black/20 px-5 py-4 text-white outline-none focus:border-primary" />
+          <input id="editName" type="text"
+            class="w-full rounded-2xl border border-primary/20 bg-black/20 px-5 py-4 text-white outline-none focus:border-primary" />
         </div>
         <div class="md:col-span-2">
           <label class="block text-primary/70 uppercase tracking-[0.2em] text-xs mb-2">Description</label>
-          <textarea id="editDescription" rows="4" class="w-full rounded-2xl border border-primary/20 bg-black/20 px-5 py-4 text-white outline-none focus:border-primary"></textarea>
+          <textarea id="editDescription" rows="4"
+            class="w-full rounded-2xl border border-primary/20 bg-black/20 px-5 py-4 text-white outline-none focus:border-primary"></textarea>
         </div>
         <div>
           <label class="block text-primary/70 uppercase tracking-[0.2em] text-xs mb-2">Price Per Day</label>
-          <input id="editPrice" type="number" min="0" class="w-full rounded-2xl border border-primary/20 bg-black/20 px-5 py-4 text-white outline-none focus:border-primary" />
+          <input id="editPrice" type="number" min="0"
+            class="w-full rounded-2xl border border-primary/20 bg-black/20 px-5 py-4 text-white outline-none focus:border-primary" />
         </div>
         <div>
           <label class="block text-primary/70 uppercase tracking-[0.2em] text-xs mb-2">Stock</label>
-          <input id="editStock" type="number" min="0" class="w-full rounded-2xl border border-primary/20 bg-black/20 px-5 py-4 text-white outline-none focus:border-primary" />
+          <input id="editStock" type="number" min="0"
+            class="w-full rounded-2xl border border-primary/20 bg-black/20 px-5 py-4 text-white outline-none focus:border-primary" />
         </div>
         <div>
           <label class="block text-primary/70 uppercase tracking-[0.2em] text-xs mb-2">Availability</label>
-          <select id="editAvailability" class="w-full rounded-2xl border border-primary/20 bg-black/20 px-5 py-4 text-white outline-none focus:border-primary">
+          <select id="editAvailability"
+            class="w-full rounded-2xl border border-primary/20 bg-black/20 px-5 py-4 text-white outline-none focus:border-primary">
             <option value="in_stock">In Stock</option>
             <option value="out_of_stock">Out of Stock</option>
           </select>
         </div>
         <div class="md:col-span-2">
           <label class="block text-primary/70 uppercase tracking-[0.2em] text-xs mb-2">Location</label>
-          <input id="editLocation" type="text" class="w-full rounded-2xl border border-primary/20 bg-black/20 px-5 py-4 text-white outline-none focus:border-primary" />
+          <input id="editLocation" type="text"
+            class="w-full rounded-2xl border border-primary/20 bg-black/20 px-5 py-4 text-white outline-none focus:border-primary" />
+        </div>
+        <div class="md:col-span-2">
+          <label class="block text-primary/70 uppercase tracking-[0.2em] text-xs mb-2">Fabric / Material</label>
+          <input id="editFabric" type="text"
+            class="w-full rounded-2xl border border-primary/20 bg-black/20 px-5 py-4 text-white outline-none focus:border-primary" />
         </div>
         <div class="md:col-span-2 flex justify-end gap-4 pt-2">
-          <button id="discardEditBtn" type="button" class="px-6 py-3 rounded-full border border-primary/20 text-primary/80 font-bold uppercase tracking-[0.2em] text-xs hover:bg-primary/10 transition-all">
+          <button id="discardEditBtn" type="button"
+            class="px-6 py-3 rounded-full border border-primary/20 text-primary/80 font-bold uppercase tracking-[0.2em] text-xs hover:bg-primary/10 transition-all">
             Cancel
           </button>
-          <button type="submit" class="px-8 py-3 rounded-full bg-primary text-background-dark font-bold uppercase tracking-[0.2em] text-xs hover:brightness-110 transition-all">
+          <button type="submit"
+            class="px-8 py-3 rounded-full bg-primary text-background-dark font-bold uppercase tracking-[0.2em] text-xs hover:brightness-110 transition-all">
             Save Changes
           </button>
         </div>
@@ -185,27 +219,27 @@
     let currentProduct = null;
 
     function resolveAssetUrl(url) {
-    let raw = String(url || "").trim();
-    if (!raw) return "";
-    if (/^data:image\//i.test(raw)) return raw;
-    
-    if (raw.includes("localhost") || raw.includes("127.0.0.1")) {
-       try {
-           const u = new URL(raw);
-           raw = u.pathname;
-       } catch(e) {}
+      let raw = String(url || "").trim();
+      if (!raw) return "";
+      if (/^data:image\//i.test(raw)) return raw;
+
+      if (raw.includes("localhost") || raw.includes("127.0.0.1")) {
+        try {
+          const u = new URL(raw);
+          raw = u.pathname;
+        } catch (e) { }
+      }
+      if (/^https?:\/\//i.test(raw)) return raw;
+
+      const normalized = raw.replace(/\\/g, "/");
+      const lower = normalized.toLowerCase();
+      const uploadsWithSlash = lower.indexOf("/uploads/");
+      if (uploadsWithSlash >= 0) return `${API_ORIGIN}${normalized.slice(uploadsWithSlash)}`;
+      const uploadsNoSlash = lower.indexOf("uploads/");
+      if (uploadsNoSlash >= 0) return `${API_ORIGIN}/${normalized.slice(uploadsNoSlash)}`;
+
+      return `${API_ORIGIN}${normalized.startsWith("/") ? "" : "/"}${normalized}`;
     }
-    if (/^https?:\/\//i.test(raw)) return raw;
-
-    const normalized = raw.replace(/\\/g, "/");
-    const lower = normalized.toLowerCase();
-    const uploadsWithSlash = lower.indexOf("/uploads/");
-    if (uploadsWithSlash >= 0) return `${API_ORIGIN}${normalized.slice(uploadsWithSlash)}`;
-    const uploadsNoSlash = lower.indexOf("uploads/");
-    if (uploadsNoSlash >= 0) return `${API_ORIGIN}/${normalized.slice(uploadsNoSlash)}`;
-
-    return `${API_ORIGIN}${normalized.startsWith("/") ? "" : "/"}${normalized}`;
-  }
 
     function getParams() {
       const params = new URLSearchParams(window.location.search);
@@ -228,7 +262,7 @@
     async function getProductData(boutiqueId, productId) {
       const localProduct = getLocalProduct(productId);
       if (localProduct) return localProduct;
-      
+
       // Try to fetch from API if we have either ID
       if (boutiqueId && productId) {
         try {
@@ -261,15 +295,15 @@
     function renderThumbs(images) {
       const wrap = document.getElementById("galleryThumbs");
       const main = document.getElementById("mainImage");
-      
+
       // Filter out empty or invalid images
       const validImages = images.filter(img => img && img.trim().length > 0);
-      
+
       if (validImages.length === 0) {
         wrap.innerHTML = "";
         return;
       }
-      
+
       wrap.innerHTML = validImages.map((img, idx) => `
         <button type="button" data-img="${img}" class="thumb-btn h-24 w-24 rounded-xl overflow-hidden border ${idx === 0 ? "border-primary" : "border-primary/30 hover:border-primary/70"} transition-colors bg-black/40 flex items-center justify-center">
           <img src="${img}" class="w-full h-full object-cover" alt="Product thumbnail ${idx + 1}" onerror="this.src='${fallbackImage}'" />
@@ -301,7 +335,7 @@
       const stock = Number(product.stock || 0);
 
       document.title = `CLOCHE | ${product.product_name || "Product"}`;
-      
+
       // Set main image with error handling
       const mainImg = document.getElementById("mainImage");
       mainImg.src = primary;
@@ -315,6 +349,9 @@
       document.getElementById("productDesc").textContent = product.description || "No description available";
       document.getElementById("productPrice").textContent = Number(product.price || 0).toLocaleString("en-IN");
       document.getElementById("productLocation").textContent = product.location || "Not specified";
+      if (document.getElementById("productFabric")) {
+        document.getElementById("productFabric").textContent = product.fabric || "Premium Handpicked";
+      }
       document.getElementById("availabilityText").textContent = stock > 0 ? "In Stock" : "Out of Stock";
       document.getElementById("availabilityText").className = stock > 0
         ? "text-emerald-400 uppercase tracking-[0.2em] text-sm"
@@ -333,6 +370,7 @@
       document.getElementById("editStock").value = product.stock || 0;
       document.getElementById("editAvailability").value = Number(product.stock || 0) > 0 ? "in_stock" : "out_of_stock";
       document.getElementById("editLocation").value = product.location || "";
+      document.getElementById("editFabric").value = product.fabric || "Premium Handpicked";
     }
 
     function toggleEditPanel(show) {
@@ -358,6 +396,7 @@
         : "0";
       formData.append("stock", stockValue);
       formData.append("location", document.getElementById("editLocation").value.trim());
+      formData.append("fabric", document.getElementById("editFabric").value.trim());
 
       const res = await fetch(`${API_PRODUCTS}/${currentProduct.id}`, {
         method: "PUT",
@@ -399,19 +438,19 @@
       try {
         const { boutiqueId, productId } = getParams();
         console.log("Loading product:", { boutiqueId, productId });
-        
+
         if (!productId) {
           document.getElementById("statusWrap").textContent = "No product ID provided. Please select from boutique.";
           return;
         }
-        
+
         const product = await getProductData(boutiqueId, productId);
         if (!product) {
           document.getElementById("statusWrap").textContent = "Product not found. Please open from a boutique page.";
           console.warn("Product not found with IDs:", { boutiqueId, productId });
           return;
         }
-        
+
         console.log("Product loaded:", product);
         renderProduct(product, boutiqueId);
         fillEditForm(product);
@@ -452,5 +491,5 @@
   </script>
   <script src='responsive-layout.js?v=1776237132140'></script>
 </body>
-</html>
 
+</html>

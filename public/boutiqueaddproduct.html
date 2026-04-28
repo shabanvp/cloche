@@ -1,250 +1,320 @@
 <!DOCTYPE html>
 <html class="dark" lang="en">
+
 <head>
-  <meta charset="utf-8" />
-  <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-  <title>Add New Product | CLOCHE</title>
-  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;700;900&amp;family=Noto+Sans:wght@400;500;700&amp;display=swap" rel="stylesheet" />
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet" />
-  <script id="tailwind-config">
-    tailwind.config = {
-      darkMode: "class",
-      theme: {
-        extend: {
-          colors: {
-            "primary": "#c1a671",
-            "background-light": "#f7f6f2",
-            "background-dark": "#0d0d0d",
-            "card-dark": "rgba(26, 26, 26, 0.6)",
-          },
-          fontFamily: {
-            "display": ["Noto Serif", "serif"],
-            "sans": ["Noto Sans", "sans-serif"]
-          },
-          borderRadius: { "DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px" },
-        },
-      },
-    }
-  </script>
-  <style>
-    .glass-card { backdrop-filter: blur(12px); border: 1px solid rgba(193, 166, 113, 0.1); }
-    .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-    .custom-scrollbar::-webkit-scrollbar-track { background: #0d0d0d; }
-    .custom-scrollbar::-webkit-scrollbar-thumb { background: #3e382d; border-radius: 10px; }
-    .image-preview-card { aspect-ratio: 3/4; border: 1px solid rgba(193, 166, 113, 0.2); border-radius: 0.75rem; overflow: hidden; position: relative; }
-  </style>
-  <link rel='stylesheet' href='responsive-fixes.css?v=1776237132140' />
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Add New Product | CLOCHE</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;700;900&amp;family=Noto+Sans:wght@400;500;700&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#c1a671",
+                        "background-light": "#f7f6f2",
+                        "background-dark": "#0d0d0d",
+                        "card-dark": "rgba(26, 26, 26, 0.6)",
+                    },
+                    fontFamily: {
+                        "display": ["Noto Serif", "serif"],
+                        "sans": ["Noto Sans", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+    <style>
+        .glass-card {
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(193, 166, 113, 0.1);
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #0d0d0d;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #3e382d;
+            border-radius: 10px;
+        }
+
+        .image-preview-card {
+            aspect-ratio: 3/4;
+            border: 1px solid rgba(193, 166, 113, 0.2);
+            border-radius: 0.75rem;
+            overflow: hidden;
+            position: relative;
+        }
+    </style>
+    <link rel='stylesheet' href='responsive-fixes.css?v=1776237132140' />
 </head>
-<body class="bg-background-light dark:bg-background-dark font-sans text-slate-900 dark:text-white selection:bg-primary/30 min-h-screen overflow-x-hidden">
-  <div class="flex min-h-screen w-full overflow-hidden">
-    <!-- Sidebar Navigation -->
-    <aside class="w-72 bg-background-dark border-r border-primary/10 flex flex-col z-20 shrink-0 h-screen">
-      <div class="p-8 flex items-center gap-4 shrink-0">
-          <div class="h-10 w-10 bg-primary rounded-full flex items-center justify-center text-background-dark font-bold text-xl">C</div>
-          <div>
-              <h1 class="text-primary text-xl font-black tracking-widest uppercase leading-none">CLOCHE</h1>
-              <p class="text-primary/60 text-[10px] tracking-[0.2em] uppercase font-sans mt-1">Boutique Management</p>
-          </div>
-      </div>
-      <nav class="flex-1 px-4 py-6 space-y-2 font-sans overflow-y-auto custom-scrollbar">
-          <a class="flex items-center gap-4 px-4 py-3 text-slate-400 hover:text-primary transition-colors group" href="dashboard.html">
-              <span class="material-symbols-outlined">dashboard</span>
-              <span class="text-sm font-medium tracking-wide">Dashboard</span>
-          </a>
-          <a class="flex items-center gap-4 px-4 py-3 text-slate-400 hover:text-primary transition-colors group" href="lead.html">
-              <span class="material-symbols-outlined">group</span>
-              <span class="text-sm font-medium tracking-wide">Leads</span>
-          </a>
-          <a class="flex items-center gap-4 px-4 py-3 text-slate-400 hover:text-primary transition-colors group" href="boutiqueproducts.html">
-              <span class="material-symbols-outlined text-primary font-bold">inventory_2</span>
-              <span class="text-sm font-medium tracking-wide text-primary">Products</span>
-          </a>
-          <a class="flex items-center gap-4 px-4 py-3 text-slate-400 hover:text-primary transition-colors group" href="messages.html">
-              <span class="material-symbols-outlined">chat_bubble</span>
-              <span class="text-sm font-medium tracking-wide">Messages</span>
-          </a>
-          <a class="flex items-center gap-4 px-4 py-3 text-slate-400 hover:text-primary transition-colors group" href="subscription.html">
-              <span class="material-symbols-outlined">star</span>
-              <span class="text-sm font-medium tracking-wide">Subscription</span>
-          </a>
-          <a class="flex items-center gap-4 px-4 py-3 text-slate-400 hover:text-primary transition-colors group" href="profile.html">
-              <span class="material-symbols-outlined">settings</span>
-              <span class="text-sm font-medium tracking-wide">Settings</span>
-          </a>
-      </nav>
-    </aside>
 
-    <main class="flex-1 flex flex-col overflow-hidden">
-      <header class="h-20 border-b border-primary/10 flex items-center justify-between px-6 md:px-10 bg-background-light/50 dark:bg-background-dark/50 backdrop-blur-md z-10">
-          <div class="flex items-center gap-4">
-              <button id="menuBtn" class="lg:hidden p-2 text-primary">
-                  <span class="material-symbols-outlined">menu</span>
-              </button>
-              <h2 class="font-display text-xl md:text-2xl font-bold tracking-tight text-white uppercase">Add New Product</h2>
-          </div>
-          <a href="boutiqueproducts.html" class="text-white/40 hover:text-primary transition-colors uppercase text-[10px] tracking-widest flex items-center gap-2">
-              <span class="material-symbols-outlined text-sm">arrow_back</span> Back to Inventory
-          </a>
-      </header>
+<body
+    class="bg-background-light dark:bg-background-dark font-sans text-slate-900 dark:text-white selection:bg-primary/30 min-h-screen overflow-x-hidden">
+    <div class="flex min-h-screen w-full overflow-hidden">
+        <!-- Sidebar Navigation -->
+        <aside class="w-72 bg-background-dark border-r border-primary/10 flex flex-col z-20 shrink-0 h-screen">
+            <div class="p-8 flex items-center gap-4 shrink-0">
+                <div
+                    class="h-10 w-10 bg-primary rounded-full flex items-center justify-center text-background-dark font-bold text-xl">
+                    C</div>
+                <div>
+                    <h1 class="text-primary text-xl font-black tracking-widest uppercase leading-none">CLOCHE</h1>
+                    <p class="text-primary/60 text-[10px] tracking-[0.2em] uppercase font-sans mt-1">Boutique Management
+                    </p>
+                </div>
+            </div>
+            <nav class="flex-1 px-4 py-6 space-y-2 font-sans overflow-y-auto custom-scrollbar">
+                <a class="flex items-center gap-4 px-4 py-3 text-slate-400 hover:text-primary transition-colors group"
+                    href="dashboard.html">
+                    <span class="material-symbols-outlined">dashboard</span>
+                    <span class="text-sm font-medium tracking-wide">Dashboard</span>
+                </a>
+                <a class="flex items-center gap-4 px-4 py-3 text-slate-400 hover:text-primary transition-colors group"
+                    href="lead.html">
+                    <span class="material-symbols-outlined">group</span>
+                    <span class="text-sm font-medium tracking-wide">Leads</span>
+                </a>
+                <a class="flex items-center gap-4 px-4 py-3 text-slate-400 hover:text-primary transition-colors group"
+                    href="boutiqueproducts.html">
+                    <span class="material-symbols-outlined text-primary font-bold">inventory_2</span>
+                    <span class="text-sm font-medium tracking-wide text-primary">Products</span>
+                </a>
+                <a class="flex items-center gap-4 px-4 py-3 text-slate-400 hover:text-primary transition-colors group"
+                    href="messages.html">
+                    <span class="material-symbols-outlined">chat_bubble</span>
+                    <span class="text-sm font-medium tracking-wide">Messages</span>
+                </a>
+                <a class="flex items-center gap-4 px-4 py-3 text-slate-400 hover:text-primary transition-colors group"
+                    href="subscription.html">
+                    <span class="material-symbols-outlined">star</span>
+                    <span class="text-sm font-medium tracking-wide">Subscription</span>
+                </a>
+                <a class="flex items-center gap-4 px-4 py-3 text-slate-400 hover:text-primary transition-colors group"
+                    href="profile.html">
+                    <span class="material-symbols-outlined">settings</span>
+                    <span class="text-sm font-medium tracking-wide">Settings</span>
+                </a>
+            </nav>
+        </aside>
 
-      <div class="flex-1 overflow-y-auto custom-scrollbar p-6 md:p-10 bg-background-dark">
-          <div class="max-w-5xl mx-auto">
-              <form id="addProductForm" class="space-y-10">
-                  <!-- Image Section -->
-                  <section class="space-y-6">
-                      <div class="flex items-end justify-between border-b border-primary/10 pb-4">
-                          <div>
-                              <p class="text-primary text-[10px] uppercase tracking-[0.2em] mb-1 font-bold">Gallery</p>
-                              <h3 class="font-display text-2xl font-bold text-white uppercase">Product Images</h3>
-                          </div>
-                          <button type="button" id="uploadWidgetBtn" class="flex items-center gap-2 text-primary hover:text-white transition-colors uppercase text-[10px] font-bold tracking-widest">
-                              <span class="material-symbols-outlined">add_photo_alternate</span> Upload Images
-                          </button>
-                      </div>
-                      <div id="imagePreviewGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                          <!-- Skeletons / Upload Prompt -->
-                          <div onclick="document.getElementById('uploadWidgetBtn').click()" class="image-preview-card border-dashed bg-primary/5 flex flex-col items-center justify-center cursor-pointer hover:bg-primary/10 transition-colors group">
-                              <span class="material-symbols-outlined text-3xl text-primary/40 group-hover:text-primary transition-colors">add_a_photo</span>
-                              <p class="text-[8px] text-primary/40 mt-2 uppercase font-bold">Click to start</p>
-                          </div>
-                      </div>
-                      <p class="text-[10px] text-white/30 uppercase tracking-widest text-center italic">First image will be the primary thumbnail</p>
-                  </section>
+        <main class="flex-1 flex flex-col overflow-hidden">
+            <header
+                class="h-20 border-b border-primary/10 flex items-center justify-between px-6 md:px-10 bg-background-light/50 dark:bg-background-dark/50 backdrop-blur-md z-10">
+                <div class="flex items-center gap-4">
+                    <button id="menuBtn" class="lg:hidden p-2 text-primary">
+                        <span class="material-symbols-outlined">menu</span>
+                    </button>
+                    <h2 class="font-display text-xl md:text-2xl font-bold tracking-tight text-white uppercase">Add New
+                        Product</h2>
+                </div>
+                <a href="boutiqueproducts.html"
+                    class="text-white/40 hover:text-primary transition-colors uppercase text-[10px] tracking-widest flex items-center gap-2">
+                    <span class="material-symbols-outlined text-sm">arrow_back</span> Back to Inventory
+                </a>
+            </header>
 
-                  <!-- Details Section -->
-                  <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
-                      <section class="space-y-6">
-                          <div class="border-b border-primary/10 pb-4">
-                              <p class="text-primary text-[10px] uppercase tracking-[0.2em] mb-1 font-bold">Basics</p>
-                              <h3 class="font-display text-xl font-bold text-white uppercase">Product Information</h3>
-                          </div>
-                          <div class="space-y-4">
-                              <div>
-                                  <label class="block text-[10px] uppercase tracking-widest text-primary/60 mb-2">Product Name</label>
-                                  <input type="text" id="pName" placeholder="e.g. Royal Sabyasachi Lehenga" required class="w-full bg-primary/5 border border-primary/20 rounded-xl px-5 py-3 text-white focus:border-primary outline-none transition-colors" />
-                              </div>
-                              <div class="grid grid-cols-2 gap-4">
-                                  <div>
-                                      <label class="block text-[10px] uppercase tracking-widest text-primary/60 mb-2">Category</label>
-                                      <select id="pCategory" class="w-full bg-primary/5 border border-primary/20 rounded-xl px-5 py-3 text-white appearance-none outline-none focus:border-primary transition-colors">
-                                          <option value="Couture" style="background:#1a1a1a">Couture</option>
-                                          <option value="Traditional" style="background:#1a1a1a">Traditional</option>
-                                          <option value="Bridal" style="background:#1a1a1a">Bridal</option>
-                                          <option value="Jewelry" style="background:#1a1a1a">Jewelry</option>
-                                          <option value="Groomswear" style="background:#1a1a1a">Groomswear</option>
-                                      </select>
-                                  </div>
-                                  <div>
-                                      <label class="block text-[10px] uppercase tracking-widest text-primary/60 mb-2">Stock / Qty</label>
-                                      <input type="number" id="pStock" value="1" min="1" required class="w-full bg-primary/5 border border-primary/20 rounded-xl px-5 py-3 text-white focus:border-primary outline-none transition-colors" />
-                                  </div>
-                              </div>
-                              <div>
-                                  <label class="block text-[10px] uppercase tracking-widest text-primary/60 mb-2">Price Per Day (₹)</label>
-                                  <input type="number" id="pPrice" placeholder="0.00" required class="w-full bg-primary/5 border border-primary/20 rounded-xl px-5 py-3 text-white focus:border-primary outline-none transition-colors font-bold text-xl" />
-                              </div>
-                          </div>
-                      </section>
+            <div class="flex-1 overflow-y-auto custom-scrollbar p-6 md:p-10 bg-background-dark">
+                <div class="max-w-5xl mx-auto">
+                    <form id="addProductForm" class="space-y-10">
+                        <!-- Image Section -->
+                        <section class="space-y-6">
+                            <div class="flex items-end justify-between border-b border-primary/10 pb-4">
+                                <div>
+                                    <p class="text-primary text-[10px] uppercase tracking-[0.2em] mb-1 font-bold">
+                                        Gallery</p>
+                                    <h3 class="font-display text-2xl font-bold text-white uppercase">Product Images</h3>
+                                </div>
+                                <button type="button" id="uploadWidgetBtn"
+                                    class="flex items-center gap-2 text-primary hover:text-white transition-colors uppercase text-[10px] font-bold tracking-widest">
+                                    <span class="material-symbols-outlined">add_photo_alternate</span> Upload Images
+                                </button>
+                            </div>
+                            <div id="imagePreviewGrid"
+                                class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                                <!-- Skeletons / Upload Prompt -->
+                                <div onclick="document.getElementById('uploadWidgetBtn').click()"
+                                    class="image-preview-card border-dashed bg-primary/5 flex flex-col items-center justify-center cursor-pointer hover:bg-primary/10 transition-colors group">
+                                    <span
+                                        class="material-symbols-outlined text-3xl text-primary/40 group-hover:text-primary transition-colors">add_a_photo</span>
+                                    <p class="text-[8px] text-primary/40 mt-2 uppercase font-bold">Click to start</p>
+                                </div>
+                            </div>
+                            <p class="text-[10px] text-white/30 uppercase tracking-widest text-center italic">First
+                                image will be the primary thumbnail</p>
+                        </section>
 
-                      <section class="space-y-6">
-                          <div class="border-b border-primary/10 pb-4">
-                              <p class="text-primary text-[10px] uppercase tracking-[0.2em] mb-1 font-bold">Details</p>
-                              <h3 class="font-display text-xl font-bold text-white uppercase">Additional Specs</h3>
-                          </div>
-                          <div class="space-y-4">
-                              <div>
-                                  <label class="block text-[10px] uppercase tracking-widest text-primary/60 mb-2">Location/Boutique Sector</label>
-                                  <input type="text" id="pLocation" placeholder="e.g. Kochi, Kerala" class="w-full bg-primary/5 border border-primary/20 rounded-xl px-5 py-3 text-white focus:border-primary outline-none transition-colors" />
-                              </div>
-                              <div>
-                                  <label class="block text-[10px] uppercase tracking-widest text-primary/60 mb-2">Description</label>
-                                  <textarea id="pDescription" rows="5" placeholder="Share the story, fabric details, and styling tips..." class="w-full bg-primary/5 border border-primary/20 rounded-xl px-5 py-3 text-white focus:border-primary outline-none transition-colors custom-scrollbar resize-none"></textarea>
-                              </div>
-                          </div>
-                      </section>
-                  </div>
+                        <!-- Details Section -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                            <section class="space-y-6">
+                                <div class="border-b border-primary/10 pb-4">
+                                    <p class="text-primary text-[10px] uppercase tracking-[0.2em] mb-1 font-bold">Basics
+                                    </p>
+                                    <h3 class="font-display text-xl font-bold text-white uppercase">Product Information
+                                    </h3>
+                                </div>
+                                <div class="space-y-4">
+                                    <div>
+                                        <label
+                                            class="block text-[10px] uppercase tracking-widest text-primary/60 mb-2">Product
+                                            Name</label>
+                                        <input type="text" id="pName" placeholder="e.g. Royal Sabyasachi Lehenga"
+                                            required
+                                            class="w-full bg-primary/5 border border-primary/20 rounded-xl px-5 py-3 text-white focus:border-primary outline-none transition-colors" />
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label
+                                                class="block text-[10px] uppercase tracking-widest text-primary/60 mb-2">Category</label>
+                                            <select id="pCategory"
+                                                class="w-full bg-primary/5 border border-primary/20 rounded-xl px-5 py-3 text-white appearance-none outline-none focus:border-primary transition-colors">
+                                                <option value="Couture" style="background:#1a1a1a">Couture</option>
+                                                <option value="Traditional" style="background:#1a1a1a">Traditional
+                                                </option>
+                                                <option value="Bridal" style="background:#1a1a1a">Bridal</option>
+                                                <option value="Jewelry" style="background:#1a1a1a">Jewelry</option>
+                                                <option value="Groomswear" style="background:#1a1a1a">Groomswear
+                                                </option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label
+                                                class="block text-[10px] uppercase tracking-widest text-primary/60 mb-2">Stock
+                                                / Qty</label>
+                                            <input type="number" id="pStock" value="1" min="1" required
+                                                class="w-full bg-primary/5 border border-primary/20 rounded-xl px-5 py-3 text-white focus:border-primary outline-none transition-colors" />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label
+                                            class="block text-[10px] uppercase tracking-widest text-primary/60 mb-2">Price
+                                            Per Day (₹)</label>
+                                        <input type="number" id="pPrice" placeholder="0.00" required
+                                            class="w-full bg-primary/5 border border-primary/20 rounded-xl px-5 py-3 text-white focus:border-primary outline-none transition-colors font-bold text-xl" />
+                                    </div>
+                                </div>
+                            </section>
 
-                  <div class="pt-10 flex flex-col items-center">
-                      <button type="submit" id="submitBtn" class="w-full md:w-80 py-5 rounded-2xl bg-primary text-background-dark font-black uppercase tracking-[0.3em] shadow-2xl shadow-primary/20 hover:bg-white transition-all disabled:opacity-50 disabled:cursor-not-allowed">
-                          Publish Product
-                      </button>
-                      <p id="statusMsg" class="mt-4 text-[10px] uppercase tracking-widest font-bold"></p>
-                  </div>
-              </form>
-          </div>
-      </div>
-    </main>
-  </div>
+                            <section class="space-y-6">
+                                <div class="border-b border-primary/10 pb-4">
+                                    <p class="text-primary text-[10px] uppercase tracking-[0.2em] mb-1 font-bold">
+                                        Details</p>
+                                    <h3 class="font-display text-xl font-bold text-white uppercase">Additional Specs
+                                    </h3>
+                                </div>
+                                <div class="space-y-4">
+                                    <div>
+                                        <label
+                                            class="block text-[10px] uppercase tracking-widest text-primary/60 mb-2">Location/Boutique
+                                            Sector</label>
+                                        <input type="text" id="pLocation" placeholder="e.g. Kochi, Kerala"
+                                            class="w-full bg-primary/5 border border-primary/20 rounded-xl px-5 py-3 text-white focus:border-primary outline-none transition-colors" />
+                                    </div>
+                                    <div>
+                                        <label
+                                            class="block text-[10px] uppercase tracking-widest text-primary/60 mb-2">Description</label>
+                                        <textarea id="pDescription" rows="5"
+                                            placeholder="Share the story, fabric details, and styling tips..."
+                                            class="w-full bg-primary/5 border border-primary/20 rounded-xl px-5 py-3 text-white focus:border-primary outline-none transition-colors custom-scrollbar resize-none"></textarea>
+                                    </div>
+                                </div>
+                            </section>
+                        </div>
 
-  <script src="https://upload-widget.cloudinary.com/global/all.js" type="text/javascript"></script>
-  <script>
-    const API_BASE = "/api";
-    const boutiqueId = localStorage.getItem("boutiqueId");
-    let uploadedImageUrls = [];
+                        <div class="pt-10 flex flex-col items-center">
+                            <button type="submit" id="submitBtn"
+                                class="w-full md:w-80 py-5 rounded-2xl bg-primary text-background-dark font-black uppercase tracking-[0.3em] shadow-2xl shadow-primary/20 hover:bg-white transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                                Publish Product
+                            </button>
+                            <p id="statusMsg" class="mt-4 text-[10px] uppercase tracking-widest font-bold"></p>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
 
-    // Cloudinary Config Hook
-    let cloudinaryCloudName = "dycwsnzyd"; // Fallback
+    <script src="https://upload-widget.cloudinary.com/global/all.js" type="text/javascript"></script>
+    <script>
+        const API_BASE = "/api";
+        const boutiqueId = localStorage.getItem("boutiqueId");
+        let uploadedImageUrls = [];
 
-    async function loadCloudinary() {
-        try {
-            const res = await fetch(`${API_BASE}/auth/cloudinary-config`);
-            const data = await res.json();
-            if (res.ok && data.cloudName) cloudinaryCloudName = data.cloudName;
-        } catch (_) {}
-    }
-    loadCloudinary();
+        // Cloudinary Config Hook
+        let cloudinaryCloudName = "dycwsnzyd"; // Fallback
 
-    // Widget Setup
-    const myWidget = cloudinary.createUploadWidget({
-        cloudName: cloudinaryCloudName,
-        uploadPreset: 'cloche_presets', // Assuming this preset exists
-        folder: `products/${boutiqueId || 'unknown'}`,
-        multiple: true,
-        maxFiles: 10,
-        clientAllowedFormats: ["png", "jpg", "jpeg", "webp"],
-        styles: {
-            palette: {
-                window: "#0D0D0D",
-                windowBorder: "#c1a671",
-                tabIcon: "#c1a671",
-                menuIcons: "#c1a671",
-                textDark: "#000000",
-                textLight: "#FFFFFF",
-                link: "#c1a671",
-                action: "#c1a671",
-                inactiveTabIcon: "#3E382D",
-                error: "#F44235",
-                inProgress: "#c1a671",
-                complete: "#20B832",
-                sourceBg: "#1A1A1A"
+        async function loadCloudinary() {
+            try {
+                const res = await fetch(`${API_BASE}/auth/cloudinary-config`);
+                const data = await res.json();
+                if (res.ok && data.cloudName) cloudinaryCloudName = data.cloudName;
+            } catch (_) { }
+        }
+        loadCloudinary();
+
+        // Widget Setup
+        const myWidget = cloudinary.createUploadWidget({
+            cloudName: cloudinaryCloudName,
+            uploadPreset: 'cloche_presets', // Assuming this preset exists
+            folder: `products/${boutiqueId || 'unknown'}`,
+            multiple: true,
+            maxFiles: 10,
+            clientAllowedFormats: ["png", "jpg", "jpeg", "webp"],
+            styles: {
+                palette: {
+                    window: "#0D0D0D",
+                    windowBorder: "#c1a671",
+                    tabIcon: "#c1a671",
+                    menuIcons: "#c1a671",
+                    textDark: "#000000",
+                    textLight: "#FFFFFF",
+                    link: "#c1a671",
+                    action: "#c1a671",
+                    inactiveTabIcon: "#3E382D",
+                    error: "#F44235",
+                    inProgress: "#c1a671",
+                    complete: "#20B832",
+                    sourceBg: "#1A1A1A"
+                }
             }
-        }
-    }, (error, result) => {
-        if (!error && result && result.event === "success") {
-            const url = result.info.secure_url;
-            uploadedImageUrls.push(url);
-            renderPreviews();
-        }
-    });
+        }, (error, result) => {
+            if (!error && result && result.event === "success") {
+                const url = result.info.secure_url;
+                uploadedImageUrls.push(url);
+                renderPreviews();
+            }
+        });
 
-    document.getElementById("uploadWidgetBtn").addEventListener("click", () => {
-        myWidget.open();
-    }, false);
+        document.getElementById("uploadWidgetBtn").addEventListener("click", () => {
+            myWidget.open();
+        }, false);
 
-    function renderPreviews() {
-        const grid = document.getElementById("imagePreviewGrid");
-        // Keep the "Add" prompt
-        grid.innerHTML = `
+        function renderPreviews() {
+            const grid = document.getElementById("imagePreviewGrid");
+            // Keep the "Add" prompt
+            grid.innerHTML = `
             <div onclick="myWidget.open()" class="image-preview-card border-dashed bg-primary/5 flex flex-col items-center justify-center cursor-pointer hover:bg-primary/10 transition-colors group">
                 <span class="material-symbols-outlined text-3xl text-primary/40 group-hover:text-primary transition-colors">add_a_photo</span>
                 <p class="text-[8px] text-primary/40 mt-2 uppercase font-bold">Add More</p>
             </div>
         `;
-        uploadedImageUrls.forEach((url, idx) => {
-            const card = document.createElement("div");
-            card.className = "image-preview-card group";
-            card.innerHTML = `
+            uploadedImageUrls.forEach((url, idx) => {
+                const card = document.createElement("div");
+                card.className = "image-preview-card group";
+                card.innerHTML = `
                 <img src="${url}" class="w-full h-full object-cover">
                 <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                     <button type="button" onclick="removeImage(${idx})" class="text-red-400 hover:text-red-300">
@@ -253,76 +323,77 @@
                     ${idx === 0 ? '<span class="absolute top-2 left-2 bg-primary text-background-dark text-[8px] font-bold px-2 py-1 rounded">PRIMARY</span>' : ''}
                 </div>
             `;
-            grid.insertBefore(card, grid.firstChild);
-        });
-    }
-
-    function removeImage(idx) {
-        uploadedImageUrls.splice(idx, 1);
-        renderPreviews();
-    }
-
-    // Form submission
-    const form = document.getElementById("addProductForm");
-    const submitBtn = document.getElementById("submitBtn");
-    const statusMsg = document.getElementById("statusMsg");
-
-    form.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        
-        if (!boutiqueId) {
-            alert("Boutique session expired. Please log in again.");
-            return;
-        }
-
-        if (uploadedImageUrls.length === 0) {
-            alert("Please upload at least one image of the product.");
-            return;
-        }
-
-        submitBtn.disabled = true;
-        submitBtn.textContent = "Publishing...";
-        statusMsg.textContent = "Validating & Processing luxury assets...";
-        statusMsg.className = "mt-4 text-[10px] uppercase tracking-widest font-bold text-primary animate-pulse";
-
-        const payload = {
-            name: document.getElementById("pName").value.trim(),
-            category: document.getElementById("pCategory").value,
-            price: document.getElementById("pPrice").value,
-            stock: document.getElementById("pStock").value,
-            location: document.getElementById("pLocation").value.trim(),
-            description: document.getElementById("pDescription").value.trim(),
-            boutiqueId: boutiqueId,
-            imageUrls: JSON.stringify(uploadedImageUrls)
-        };
-
-        try {
-            const res = await fetch(`${API_BASE}/products/add`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload)
+                grid.insertBefore(card, grid.firstChild);
             });
-            const data = await res.json();
-
-            if (res.ok) {
-                statusMsg.textContent = "Luxury product published successfully!";
-                statusMsg.className = "mt-4 text-[10px] uppercase tracking-widest font-bold text-emerald-400";
-                setTimeout(() => {
-                    window.location.href = "boutiqueproducts.html";
-                }, 1500);
-            } else {
-                throw new Error(data.message || "Failed to add product");
-            }
-        } catch (err) {
-            console.error(err);
-            statusMsg.textContent = `Error: ${err.message}`;
-            statusMsg.className = "mt-4 text-[10px] uppercase tracking-widest font-bold text-red-400";
-            submitBtn.disabled = false;
-            submitBtn.textContent = "Publish Product";
         }
-    });
 
-  </script>
-  <script src='responsive-layout.js?v=1776237132140'></script>
+        function removeImage(idx) {
+            uploadedImageUrls.splice(idx, 1);
+            renderPreviews();
+        }
+
+        // Form submission
+        const form = document.getElementById("addProductForm");
+        const submitBtn = document.getElementById("submitBtn");
+        const statusMsg = document.getElementById("statusMsg");
+
+        form.addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            if (!boutiqueId) {
+                alert("Boutique session expired. Please log in again.");
+                return;
+            }
+
+            if (uploadedImageUrls.length === 0) {
+                alert("Please upload at least one image of the product.");
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = "Publishing...";
+            statusMsg.textContent = "Validating & Processing luxury assets...";
+            statusMsg.className = "mt-4 text-[10px] uppercase tracking-widest font-bold text-primary animate-pulse";
+
+            const payload = {
+                name: document.getElementById("pName").value.trim(),
+                category: document.getElementById("pCategory").value,
+                price: document.getElementById("pPrice").value,
+                stock: document.getElementById("pStock").value,
+                location: document.getElementById("pLocation").value.trim(),
+                description: document.getElementById("pDescription").value.trim(),
+                boutiqueId: boutiqueId,
+                imageUrls: JSON.stringify(uploadedImageUrls)
+            };
+
+            try {
+                const res = await fetch(`${API_BASE}/products/add`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+
+                if (res.ok) {
+                    statusMsg.textContent = "Luxury product published successfully!";
+                    statusMsg.className = "mt-4 text-[10px] uppercase tracking-widest font-bold text-emerald-400";
+                    setTimeout(() => {
+                        window.location.href = "boutiqueproducts.html";
+                    }, 1500);
+                } else {
+                    throw new Error(data.message || "Failed to add product");
+                }
+            } catch (err) {
+                console.error(err);
+                statusMsg.textContent = `Error: ${err.message}`;
+                statusMsg.className = "mt-4 text-[10px] uppercase tracking-widest font-bold text-red-400";
+                submitBtn.disabled = false;
+                submitBtn.textContent = "Publish Product";
+            }
+        });
+
+    </script>
+    <script src='responsive-layout.js?v=1776237132140'></script>
 </body>
+
 </html>

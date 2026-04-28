@@ -300,6 +300,12 @@
               class="w-full bg-primary/5 border-primary/20 rounded-xl px-4 py-3 text-sm focus:border-primary focus:ring-0 text-white"
               placeholder="Luxury velvet with gold embroidery..."></textarea>
           </div>
+          <div>
+            <label class="block text-[10px] font-bold uppercase tracking-widest text-primary/60 mb-2">Fabric</label>
+            <input type="text" id="pFabric"
+              class="w-full bg-primary/5 border-primary/20 rounded-xl px-4 py-3 text-sm focus:border-primary focus:ring-0 text-white"
+              placeholder="e.g. Silk, Velvet, Lace">
+          </div>
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="block text-[10px] font-bold uppercase tracking-widest text-primary/60 mb-2">Boutique
@@ -421,6 +427,10 @@
                   <p class="text-[10px] text-primary/40 font-bold uppercase tracking-widest mb-1">Location</p>
                   <p id="detailLocation" class="text-white font-semibold text-3xl lg:text-[52px] leading-tight">Location
                   </p>
+                </div>
+                <div>
+                  <p class="text-[10px] text-primary/40 font-bold uppercase tracking-widest mb-1">Fabric</p>
+                  <p id="detailFabric" class="text-white font-semibold text-xl leading-tight">Premium Handpicked</p>
                 </div>
                 <div class="text-right">
                   <p id="detailAvailability" class="text-[10px] text-emerald-400 font-bold uppercase tracking-widest">
@@ -632,8 +642,11 @@
                         <p class="text-primary font-bold text-xl mb-4 font-sans">₹${(p.price || 0).toLocaleString('en-IN')} <span class="text-xs font-normal text-primary/50 uppercase">/ Day</span></p>
                         <div class="flex flex-col gap-3 pt-4 border-t border-primary/10">
                              <div class="flex items-center justify-between">
-                                <span class="text-[10px] text-primary/40 font-bold uppercase tracking-widest">${p.location || 'Location TBA'}</span>
-                                <span class="text-[10px] ${p.stock > 0 ? 'text-emerald-400' : 'text-red-400'} font-bold uppercase tracking-widest">${p.stock > 0 ? 'In Stock' : 'Out of Stock'}</span>
+                                 <div class="flex flex-col gap-1">
+                                    <span class="text-[10px] text-primary/40 font-bold uppercase tracking-widest">${p.location || 'Location TBA'}</span>
+                                    <span class="text-[9px] text-primary/60 font-medium italic">${p.fabric || 'Premium Handpicked'}</span>
+                                 </div>
+                                 <span class="text-[10px] ${p.stock > 0 ? 'text-emerald-400' : 'text-red-400'} font-bold uppercase tracking-widest">${p.stock > 0 ? 'In Stock' : 'Out of Stock'}</span>
                              </div>
                              <button class="w-full py-2 bg-primary/10 border border-primary/20 text-primary rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-primary hover:text-background-dark transition-all" onclick="event.stopPropagation();">
                                 Rent it out
@@ -678,6 +691,9 @@
         document.getElementById('detailDescription').textContent = product.description || 'No description available';
         document.getElementById('detailPrice').textContent = (product.price || 0).toLocaleString();
         document.getElementById('detailLocation').textContent = product.location || 'Not specified';
+        if (document.getElementById('detailFabric')) {
+          document.getElementById('detailFabric').textContent = product.fabric || 'Premium Handpicked';
+        }
         const detailAvailability = document.getElementById('detailAvailability');
         if (detailAvailability) {
           const inStock = Number(product.stock || 0) > 0;
@@ -734,6 +750,7 @@
         document.getElementById('pCategory').value = product.category;
         document.getElementById('pName').value = product.product_name;
         document.getElementById('pDescription').value = product.description;
+        document.getElementById('pFabric').value = product.fabric || '';
         document.getElementById('pLocation').value = product.location;
         document.getElementById('pPrice').value = product.price;
         document.getElementById('pAvailability').value = Number(product.stock || 0) > 0 ? 'in_stock' : 'out_of_stock';
@@ -840,7 +857,9 @@
         const price = document.getElementById('pPrice').value.trim();
         const category = document.getElementById('pCategory').value;
         const description = document.getElementById('pDescription').value.trim();
+        const fabric = document.getElementById('pFabric').value.trim();
         const location = document.getElementById('pLocation').value.trim();
+        console.log(`[Form] Submitting - Fabric: "${fabric}"`);
         const availability = document.getElementById('pAvailability').value;
 
         if (!name || !price || !category || !location) {
@@ -858,6 +877,7 @@
         formData.append('price', price);
         formData.append('category', category);
         formData.append('description', description);
+        formData.append('fabric', fabric);
         formData.append('location', location);
         formData.append('stock', availability === 'in_stock' ? '1' : '0');
         formData.append('boutiqueId', boutiqueId);
@@ -1163,7 +1183,7 @@
           })
           .then(data => {
             console.log("✓ Data parsed successfully");
-            console.log("Raw data:", data);
+            console.log("Products loaded from API:", data);
             console.log("Data type:", typeof data);
             console.log("Is array:", Array.isArray(data));
 

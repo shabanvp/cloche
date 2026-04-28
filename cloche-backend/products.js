@@ -12,15 +12,15 @@ const normalizeImageUrl = (value) => {
   const raw = String(value || "").trim();
   if (!raw) return null;
   if (/^https?:\/\//i.test(raw) || /^data:image\//i.test(raw)) return raw;
-  
+
   // Determine cloud name - use env var first, fallback to known value
   const cloudName = CLOUDINARY_CLOUD_NAME || 'dycwsnzyd';
-  
+
   // If it looks like a Cloudinary public ID or path, construct full URL
   if (!raw.includes("image/upload")) {
     return `https://res.cloudinary.com/${cloudName}/image/upload/${raw.replace(/^\/+/, "")}`;
   }
-  
+
   return raw; // Already looks like a full URL
 };
 
@@ -61,7 +61,7 @@ const uploadProductImages = async (boutiqueId, files) => {
 router.get("/all", async (req, res) => {
   try {
     console.log("[Products] Fetching all products with resilient sorting...");
-    
+
     let { data: products, error: productErr } = await supabase
       .from("products")
       .select("*")
@@ -167,7 +167,8 @@ router.get("/:productId", async (req, res, next) => {
 
 /* ================= ADD PRODUCT ================= */
 router.post("/add", upload.array("images", 10), async (req, res) => {
-  const { name, price, stock, boutiqueId, category, description, location } = req.body;
+  const { name, price, stock, boutiqueId, category, description, location, fabric } = req.body;
+  console.log(`[Products] Adding new product: ${name} (Fabric: ${fabric || 'None specified'})`);
   const files = req.files || [];
 
   if (!name || !price || !boutiqueId) {
@@ -237,12 +238,15 @@ router.post("/add", upload.array("images", 10), async (req, res) => {
           boutique_id: boutiqueId,
           category: category || "Uncategorized",
           description: description || "",
+          fabric: fabric || "Premium Handpicked",
           location: location || "",
           image_url: primaryImageUrl
         }
       ])
-      .select("id")
+      .select("id, product_name, fabric")
       .maybeSingle();
+
+    console.log(`[Products] DB Result - Error: ${insertErr ? insertErr.message : 'None'}, Inserted:`, inserted);
 
     if (insertErr) {
       await Promise.all(uploadedImageUrls.map((imageUrl) => deleteStorageObjectByUrl(imageUrl)));
@@ -303,10 +307,10 @@ router.get("/boutique/:boutiqueId", async (req, res) => {
       galleryMap[row.product_id].push(normalizeImageUrl(row.image_url));
     }
 
-    return res.json(products.map((p) => ({ 
-      ...p, 
+    return res.json(products.map((p) => ({
+      ...p,
       image_url: normalizeImageUrl(p.image_url),
-      gallery: galleryMap[p.id] || [] 
+      gallery: galleryMap[p.id] || []
     })));
   } catch (err) {
     return res.status(500).json({ message: "Server error", error: err.message });
@@ -352,7 +356,8 @@ router.delete("/:productId", async (req, res) => {
 /* ================= UPDATE PRODUCT ================= */
 router.put("/:productId", upload.array("images", 10), async (req, res) => {
   const { productId } = req.params;
-  const { name, price, stock, category, description, location } = req.body;
+  const { name, price, stock, category, description, location, fabric } = req.body;
+  console.log(`[Products] UPDATE Request - ID: ${productId}, Fabric: "${fabric}"`);
   const files = req.files || [];
 
   if (!productId) return res.status(400).json({ message: "Product ID is required" });
@@ -366,9 +371,13 @@ router.put("/:productId", upload.array("images", 10), async (req, res) => {
         stock: stock || 0,
         category: category || "Uncategorized",
         description: description || "",
+        fabric: fabric || "Premium Handpicked",
         location: location || ""
       })
-      .eq("id", productId);
+      .eq("id", productId)
+      .select("id, product_name, fabric");
+
+    console.log(`[Products] Update Result - Error: ${updateErr ? updateErr.message : 'None'}`);
 
     if (updateErr) return res.status(500).json({ message: "Update failed", error: updateErr.message });
 
@@ -464,8 +473,8 @@ router.get("/reviews/:productId", async (req, res) => {
       .order("created_at", { ascending: false });
 
     if (error) {
-        if (error.message.includes("relation") && error.message.includes("does not exist")) return res.json([]);
-        return res.status(500).json({ message: "DB error: " + error.message });
+      if (error.message.includes("relation") && error.message.includes("does not exist")) return res.json([]);
+      return res.status(500).json({ message: "DB error: " + error.message });
     }
     res.json(reviews || []);
   } catch (err) {
