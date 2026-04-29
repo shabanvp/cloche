@@ -560,9 +560,13 @@
               <h4 class="font-display text-sm text-white tracking-widest uppercase truncate mb-1">${b.boutique_name || "Boutique"}</h4>
               <p class="text-primary text-[10px] uppercase tracking-[0.2em] truncate mb-2">${district}</p>
               <div class="flex flex-wrap gap-1">
-                ${(String(b.tags || "").split(",").map(t => t.trim()).filter(Boolean).slice(0, 2)).map(tag => `
-                  <span class="text-[8px] uppercase tracking-widest px-1.5 py-0.5 bg-white/5 border border-white/10 rounded text-white/70">${tag}</span>
-                `).join("")}
+                ${(() => {
+                  const tags = String(b.tags || "").split(",").map(t => t.trim()).filter(Boolean).slice(0, 2);
+                  const finalTags = tags.length ? tags : ["BOUTIQUE"];
+                  return finalTags.map(tag => `
+                    <span class="text-[8px] uppercase tracking-widest px-1.5 py-0.5 bg-white/5 border border-white/10 rounded text-white/70">${tag}</span>
+                  `).join("");
+                })()}
               </div>
             </div>
           </a>

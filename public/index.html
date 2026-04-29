@@ -742,6 +742,15 @@
         return;
       }
 
+      status.textContent = "";
+      grid.innerHTML = list.map((b, idx) => {
+        const resolved = b.image_url ? resolveAssetUrl(b.image_url) : null;
+        const fallback = resolved ? resolved : pickImage(`${b.id}-${b.boutique_name}-${idx}`);
+        const image = fallback;
+        const location = normalizeLocationParts(b);
+        const district = (location.district || "Kerala").toUpperCase();
+        const area = (location.area || location.district || "Location").toUpperCase();
+        const name = (b.boutique_name || "Boutique").toUpperCase();
         const tags = (String(b.tags || "").split(",").map(t => t.trim()).filter(Boolean).slice(0, 2));
         const renderedTags = tags.length ? tags : ["BOUTIQUE"];
 
