@@ -1,5 +1,12 @@
 {
   "appId": "com.cloche.app",
   "appName": "Cloche",
-  "webDir": "../public"
+  "webDir": "../public",
+  "plugins": {
+    "StatusBar": {
+      "backgroundColor": "#0d0d0d",
+      "style": "LIGHT",
+      "overlaysWebView": true
+    }
+  }
 }
