@@ -436,18 +436,25 @@
     }
 
     function syncShowcasePreview() {
-      const rawDistrict = document.getElementById("showcaseDistrictInput")?.value.trim() || "";
-      const rawArea = document.getElementById("showcaseAreaInput")?.value.trim() || "";
-      const tags = document.getElementById("showcaseTagsInput")?.value || "";
-      const district = rawDistrict || "District";
-      const area = rawArea || "Area / Locality";
       const boutiqueName = document.getElementById("boutiqueNameInput")?.value || "Boutique Name";
+      const showcaseDistrict = document.getElementById("showcaseDistrictInput")?.value.trim() || "";
+      const showcaseArea = document.getElementById("showcaseAreaInput")?.value.trim() || "";
+      const tags = document.getElementById("showcaseTagsInput")?.value || "";
+
+      // Sync with boutique details if they are empty
+      const districtInput = document.getElementById("districtInput");
+      const cityInput = document.getElementById("cityInput");
+      if (districtInput && !districtInput.value.trim() && showcaseDistrict) districtInput.value = showcaseDistrict;
+      if (cityInput && !cityInput.value.trim() && showcaseArea) cityInput.value = showcaseArea;
+
+      const district = showcaseDistrict || "District";
+      const area = showcaseArea || "Area / Locality";
 
       setText("showcasePreviewDistrict", district.toUpperCase());
       setText("showcasePreviewArea", area.toUpperCase());
       setText("showcasePreviewName", boutiqueName.toUpperCase());
       renderShowcaseTags(tags);
-      writeShowcaseDraft({ district: rawDistrict, area: rawArea, tags });
+      writeShowcaseDraft({ district: showcaseDistrict, area: showcaseArea, tags });
     }
 
     function fillShowcase(data) {
@@ -552,28 +559,39 @@
       const isLoggedIn = localStorage.getItem("isLoggedIn");
 
       if (!boutiqueId || isLoggedIn !== "true") {
+        console.warn("[Profile] User not logged in, redirecting...");
         window.location.href = "boutiquelogin.html";
         return;
       }
 
       try {
-        console.log(`[Profile] Loading profile for boutique ${boutiqueId}...`);
-        const res = await fetchWithTimeout(`${API_BASE}/profile/${boutiqueId}`, 10000);
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.message || "Failed to load profile");
-        console.log("[Profile] Profile loaded successfully");
-        fillProfile(data);
+        console.log(`[Profile] Fetching data for boutique ID: ${boutiqueId}`);
+        
+        // Fetch profile and showcase data
+        const [profileRes, showcaseRes] = await Promise.all([
+          fetchWithTimeout(`${API_BASE}/profile/${boutiqueId}`, 10000),
+          fetchWithTimeout(`${API_BASE}/profile/${boutiqueId}/showcase`, 10000)
+        ]);
 
-        const showcaseRes = await fetchWithTimeout(`${API_BASE}/profile/${boutiqueId}/showcase`, 10000);
-        const showcaseData = await showcaseRes.json();
+        if (!profileRes.ok) throw new Error("Failed to load boutique profile");
+        const profileData = await profileRes.json();
+        console.log("[Profile] Boutique profile data received:", profileData);
+        fillProfile(profileData);
+
         if (showcaseRes.ok) {
-          console.log("[Profile] Showcase data loaded");
+          const showcaseData = await showcaseRes.json();
+          console.log("[Profile] Showcase data received:", showcaseData);
           fillShowcase(showcaseData);
         } else {
+          console.warn("[Profile] Showcase data not found, using draft or defaults");
           fillShowcase(readShowcaseDraft() || {});
         }
+
+        // Final sync for preview
+        syncShowcasePreview();
+        
       } catch (err) {
-        console.error("[Profile] Load error:", err);
+        console.error("[Profile] Error during loadProfile:", err);
         throw err;
       }
     }
@@ -613,8 +631,12 @@
         email: document.getElementById("emailInput").value.trim(),
         phone: document.getElementById("phoneInput").value.trim(),
         city: document.getElementById("cityInput").value.trim(),
-        district: document.getElementById("districtInput").value.trim()
+        district: document.getElementById("districtInput").value.trim(),
+        area: document.getElementById("showcaseAreaInput")?.value.trim() || "",
+        tags: document.getElementById("showcaseTagsInput")?.value.trim() || ""
       };
+
+      console.log("[Profile] Saving profile with payload:", payload);
 
       try {
         const res = await fetchWithTimeout(`${API_BASE}/profile/${boutiqueId}`, 10000, {
@@ -625,8 +647,8 @@
         const result = await res.json();
         if (!res.ok) throw new Error(result.message || "Failed to save profile");
 
+        console.log("[Profile] Profile saved successfully, updating showcase text...");
         await saveShowcaseTextOnly(true);
-        console.log("[Profile] Profile saved successfully");
         alert("Profile updated successfully.");
         await loadProfile();
       } catch (err) {
@@ -791,7 +813,7 @@
         if (status) status.textContent = `ℹ️ Selected: ${file.name} — Click "Save Showcase Setup" to upload and save.`;
       });
 
-      ["showcaseDistrictInput", "showcaseAreaInput", "showcaseTagsInput", "boutiqueNameInput"]
+      ["showcaseDistrictInput", "showcaseAreaInput", "showcaseTagsInput", "boutiqueNameInput", "districtInput", "cityInput"]
         .forEach((id) => {
           document.getElementById(id)?.addEventListener("input", syncShowcasePreview);
         });

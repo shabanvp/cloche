@@ -11,7 +11,15 @@ router.post("/login-user", authController.loginUser);
 router.get("/verify-email", authController.verifyEmail);
 router.get("/email-status", authController.emailStatus);
 router.get("/profile/:boutiqueId", authController.getProfile);
-router.post("/profile/:boutiqueId", authController.updateProfile);
+router.put("/profile/:boutiqueId", authController.updateProfile);
+router.put("/profile/:boutiqueId/password", authController.updatePassword);
+
+// Showcase routes
+router.get("/profile/:boutiqueId/showcase", authController.getShowcase);
+router.post("/profile/:boutiqueId/showcase", authController.updateShowcase);
+router.put("/profile/:boutiqueId/showcase", authController.updateShowcase);
+router.post("/profile/:boutiqueId/showcase-image", authController.updateShowcaseImage);
+
 router.get("/dashboard/:boutiqueId", authController.getDashboard);
 router.get("/cloudinary-config", authController.getCloudinaryConfig);
 

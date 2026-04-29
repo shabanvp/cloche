@@ -248,7 +248,7 @@ exports.getProfile = async (req, res) => {
     try {
         const [{ data: boutique }, { data: showcase }] = await Promise.all([
             supabase.from("boutiques").select("*").eq("id", boutiqueId).maybeSingle(),
-            supabase.from("boutique_showcase").select("district, area, image_url").eq("boutique_id", boutiqueId).maybeSingle()
+            supabase.from("boutique_showcase").select("district, area, tags, image_url").eq("boutique_id", boutiqueId).maybeSingle()
         ]);
 
         if (!boutique) return res.status(404).json({ message: "Not found" });
@@ -257,16 +257,18 @@ exports.getProfile = async (req, res) => {
             ...boutique,
             district: showcase?.district || "",
             area: showcase?.area || "",
+            tags: showcase?.tags || "",
             showcase_image: normalizeImageUrl(showcase?.image_url)
         });
     } catch (err) {
+        console.error("[getProfile] Error:", err);
         return res.status(500).json({ message: "Server error" });
     }
 };
 
 exports.updateProfile = async (req, res) => {
     const { boutiqueId } = req.params;
-    const { boutique_name, owner_name, email, phone, city, district, area } = req.body;
+    const { boutique_name, owner_name, email, phone, city, district, area, tags } = req.body;
 
     try {
         const { error } = await supabase.from("boutiques").update({
@@ -282,11 +284,103 @@ exports.updateProfile = async (req, res) => {
         await supabase.from("boutique_showcase").upsert([{
             boutique_id: Number(boutiqueId),
             district,
-            area
+            area,
+            tags
         }], { onConflict: "boutique_id" });
 
         return res.json({ success: true, message: "Profile updated" });
     } catch (err) {
+        console.error("[updateProfile] Error:", err);
+        return res.status(500).json({ message: "Server error" });
+    }
+};
+
+/* ================= SHOWCASE ================= */
+exports.getShowcase = async (req, res) => {
+    const { boutiqueId } = req.params;
+    try {
+        const { data: showcase, error } = await supabase
+            .from("boutique_showcase")
+            .select("*")
+            .eq("boutique_id", boutiqueId)
+            .maybeSingle();
+
+        if (error && error.code !== "PGRST116") {
+            return res.status(500).json({ message: "Database error", error: error.message });
+        }
+
+        return res.json(showcase || { boutique_id: Number(boutiqueId), district: "", area: "", tags: "", image_url: "" });
+    } catch (err) {
+        console.error("[getShowcase] Error:", err);
+        return res.status(500).json({ message: "Server error" });
+    }
+};
+
+exports.updateShowcase = async (req, res) => {
+    const { boutiqueId } = req.params;
+    const { district, area, tags } = req.body;
+    try {
+        const { error } = await supabase.from("boutique_showcase").upsert([{
+            boutique_id: Number(boutiqueId),
+            district: district || null,
+            area: area || null,
+            tags: tags || null
+        }], { onConflict: "boutique_id" });
+
+        if (error) return res.status(500).json({ message: "Failed to save showcase", error: error.message });
+        return res.json({ success: true, message: "Showcase updated" });
+    } catch (err) {
+        console.error("[updateShowcase] Error:", err);
+        return res.status(500).json({ message: "Server error" });
+    }
+};
+
+exports.updateShowcaseImage = async (req, res) => {
+    const { boutiqueId } = req.params;
+    const { imageUrl } = req.body;
+
+    if (!imageUrl) return res.status(400).json({ message: "imageUrl is required" });
+
+    try {
+        const normalizedUrl = normalizeImageUrl(imageUrl);
+        const { error } = await supabase.from("boutique_showcase").upsert([{
+            boutique_id: Number(boutiqueId),
+            image_url: normalizedUrl
+        }], { onConflict: "boutique_id" });
+
+        if (error) return res.status(500).json({ message: "Failed to save image", error: error.message });
+        return res.json({ success: true, image_url: normalizedUrl, message: "Showcase image updated" });
+    } catch (err) {
+        console.error("[updateShowcaseImage] Error:", err);
+        return res.status(500).json({ message: "Server error" });
+    }
+};
+
+exports.updatePassword = async (req, res) => {
+    const { boutiqueId } = req.params;
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) return res.status(400).json({ message: "Current and new password required" });
+
+    try {
+        const { data: boutique, error } = await supabase.from("boutiques").select("password_hash, password").eq("id", boutiqueId).maybeSingle();
+        if (!boutique || error) return res.status(404).json({ message: "Boutique not found" });
+
+        let match = false;
+        if (boutique.password_hash) {
+            match = await bcrypt.compare(currentPassword, boutique.password_hash);
+        } else if (boutique.password) {
+            match = String(currentPassword) === String(boutique.password);
+        }
+
+        if (!match) return res.status(401).json({ message: "Incorrect current password" });
+
+        const newHash = await bcrypt.hash(newPassword, 10);
+        await supabase.from("boutiques").update({ password_hash: newHash }).eq("id", boutiqueId);
+
+        return res.json({ success: true, message: "Password updated" });
+    } catch (err) {
+        console.error("[updatePassword] Error:", err);
         return res.status(500).json({ message: "Server error" });
     }
 };
