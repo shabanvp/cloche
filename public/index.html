@@ -1089,6 +1089,18 @@
   </script>
 
   <script src='responsive-layout.js?v=1776237132140'></script>
+  <script type="module">
+    import { StatusBar, Style } from '@capacitor/status-bar';
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      try {
+        await StatusBar.setBackgroundColor({ color: "#0d0d0d" });
+        await StatusBar.setStyle({ style: Style.Light });
+      } catch (e) {
+        console.log("StatusBar not available");
+      }
+    });
+  </script>
 </body>
 
 </html>
