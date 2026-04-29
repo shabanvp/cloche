@@ -247,6 +247,7 @@
                 Boutique Member</p>
             </div>
           </div>
+          <div id="boutiqueTags" class="flex flex-wrap gap-2 mb-6"></div>
           <p id="boutiqueBio" class="text-[11px] text-white/40 leading-relaxed mb-6 uppercase tracking-widest">
             Expertly curated luxury collections from verified boutiques across our elite network.
           </p>
@@ -453,6 +454,16 @@
 
         document.getElementById("boutiqueArea").textContent = (product.area || product.district || "Official Boutique").toUpperCase();
         document.getElementById("boutiqueInitial").textContent = bName.charAt(0).toUpperCase();
+
+        // Render Boutique Tags
+        const tagsWrap = document.getElementById("boutiqueTags");
+        if (tagsWrap) {
+          const rawTags = product.showcase_tags || "";
+          const tags = String(rawTags).split(",").map(t => t.trim()).filter(Boolean).slice(0, 3);
+          const finalTags = tags.length ? tags : ["BOUTIQUE"];
+          tagsWrap.innerHTML = finalTags.map(t => `<span class="text-[9px] uppercase tracking-widest px-2 py-1 bg-white/5 border border-white/10 rounded text-primary/80">${t}</span>`).join("");
+        }
+
         document.getElementById("viewBoutiqueBtn").href = `viewboutique.html?id=${product.boutique_id}`;
 
         // --- ADDED: Link Enquiry Button ---

@@ -335,9 +335,7 @@
         const district = (location.district || "Unknown").toUpperCase();
         const locationLabel = (location.locationLabel || district).toUpperCase();
         const tags = String(b.tags || "").split(",").map(t => t.trim()).filter(Boolean).slice(0, 3);
-        const renderedTags = tags.length
-          ? tags
-          : ["BRIDAL WEAR", "HANDLOOM", "COUTURE"];
+        const renderedTags = tags.length ? tags : ["BOUTIQUE"];
         const safeName = JSON.stringify(String(b.boutique_name || ""));
 
         return `

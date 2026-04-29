@@ -325,7 +325,7 @@
         .map((tag) => tag.trim())
         .filter(Boolean)
         .slice(0, 4);
-      const finalTags = tags.length ? tags : ["bridal wear", "handloom", "couture"];
+      const finalTags = tags.length ? tags : ["BOUTIQUE"];
       wrap.innerHTML = finalTags.map((tag) =>
         `<span class="text-[10px] uppercase tracking-widest px-3 py-1 bg-white/5 border border-white/10 rounded">${tag}</span>`
       ).join("");
@@ -558,7 +558,12 @@
             <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent"></div>
             <div class="absolute bottom-4 left-4 right-4">
               <h4 class="font-display text-sm text-white tracking-widest uppercase truncate mb-1">${b.boutique_name || "Boutique"}</h4>
-              <p class="text-primary text-[10px] uppercase tracking-[0.2em] truncate">${district}</p>
+              <p class="text-primary text-[10px] uppercase tracking-[0.2em] truncate mb-2">${district}</p>
+              <div class="flex flex-wrap gap-1">
+                ${(String(b.tags || "").split(",").map(t => t.trim()).filter(Boolean).slice(0, 2)).map(tag => `
+                  <span class="text-[8px] uppercase tracking-widest px-1.5 py-0.5 bg-white/5 border border-white/10 rounded text-white/70">${tag}</span>
+                `).join("")}
+              </div>
             </div>
           </a>
         `;

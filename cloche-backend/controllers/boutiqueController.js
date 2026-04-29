@@ -40,7 +40,7 @@ exports.getAllBoutiques = async (req, res) => {
         const boutiqueIds = boutiques.map(b => b.id);
         const { data: showcases } = await supabase
             .from("boutique_showcase")
-            .select("boutique_id, district, area, image_url, rating")
+            .select("boutique_id, district, area, tags, image_url, rating")
             .in("boutique_id", boutiqueIds);
 
         const showcaseMap = {};
@@ -109,7 +109,14 @@ exports.getBoutiqueDetails = async (req, res) => {
             .eq("boutique_id", boutiqueId)
             .maybeSingle();
 
-        return res.json({ ...boutique, showcase });
+        return res.json({
+            ...boutique,
+            tags: showcase?.tags || "",
+            district: showcase?.district || "",
+            area: showcase?.area || "",
+            showcase_image: showcase?.image_url || null,
+            rating: showcase?.rating || 0
+        });
     } catch (err) {
         return res.status(500).json({ message: "Server error" });
     }

@@ -742,34 +742,32 @@
         return;
       }
 
-      status.textContent = "";
-      grid.innerHTML = list.map((b, idx) => {
-        const resolved = b.image_url ? resolveAssetUrl(b.image_url) : null;
-        const fallback = resolved ? resolved : pickImage(`${b.id}-${b.boutique_name}-${idx}`);
-        const image = fallback;
-        const location = normalizeLocationParts(b);
-        const district = (location.district || "Kerala").toUpperCase();
-        const area = (location.area || location.district || "Location").toUpperCase();
-        const name = (b.boutique_name || "Boutique").toUpperCase();
+        const tags = (String(b.tags || "").split(",").map(t => t.trim()).filter(Boolean).slice(0, 2));
+        const renderedTags = tags.length ? tags : ["BOUTIQUE"];
 
         return `
-        <a href="viewboutique.html?boutiqueId=${b.id}" onclick="localStorage.setItem('selectedBoutiqueId','${b.id}'); localStorage.setItem('selectedBoutiqueName', ${JSON.stringify(String(b.boutique_name || ""))})" class="featured-boutique-card group relative aspect-[3/4] rounded-xl overflow-hidden glass-card shimmer-effect cursor-pointer block">
-          <img
-            class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-            src="${image}"
-            alt="${name}"
-            loading="lazy"
-            onerror="console.warn('Image failed to load:', this.src); this.onerror=null;this.src='${pickImage(`${b.id}-${b.boutique_name}-${idx}`)}'"
-          />
-          <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-black/15"></div>
-          <div class="absolute inset-0 p-6 flex flex-col justify-end">
-            <p class="text-xs uppercase tracking-[0.25em] text-primary mb-2">${district}</p>
-            <h3 class="text-xl font-display text-white mb-2">${name}</h3>
-            <p class="text-[11px] uppercase tracking-[0.2em] text-white/70 mb-1">${area}</p>
-            <div class="h-[1px] w-0 group-hover:w-full bg-primary transition-all duration-500 mt-4"></div>
-          </div>
-        </a>
-      `;
+          <a href="viewboutique.html?boutiqueId=${b.id}" onclick="localStorage.setItem('selectedBoutiqueId','${b.id}'); localStorage.setItem('selectedBoutiqueName', ${JSON.stringify(String(b.boutique_name || ""))})" class="featured-boutique-card group relative aspect-[3/4] rounded-xl overflow-hidden glass-card shimmer-effect cursor-pointer block">
+            <img
+              class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+              src="${image}"
+              alt="${name}"
+              loading="lazy"
+              onerror="console.warn('Image failed to load:', this.src); this.onerror=null;this.src='${pickImage(`${b.id}-${b.boutique_name}-${idx}`)}'"
+            />
+            <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-black/15"></div>
+            <div class="absolute inset-0 p-6 flex flex-col justify-end">
+              <p class="text-xs uppercase tracking-[0.25em] text-primary mb-2">${district}</p>
+              <h3 class="text-xl font-display text-white mb-2">${name}</h3>
+              <p class="text-[11px] uppercase tracking-[0.2em] text-white/70 mb-3">${area}</p>
+              <div class="flex flex-wrap gap-2 mb-4">
+                ${renderedTags.map(tag => `
+                  <span class="text-[9px] uppercase tracking-widest px-2 py-0.5 bg-white/10 border border-white/10 rounded text-white/90">${tag}</span>
+                `).join("")}
+              </div>
+              <div class="h-[1px] w-0 group-hover:w-full bg-primary transition-all duration-500 mt-2"></div>
+            </div>
+          </a>
+        `;
       }).join("");
     }
 

@@ -152,6 +152,12 @@
           </div>
         </div>
 
+        <div id="partnerTagsWrap" class="flex flex-col gap-2">
+          <label class="text-primary/80 text-xs font-bold uppercase tracking-widest">Boutique Tags (comma-separated)</label>
+          <input id="tags" type="text" placeholder="Bridal Wear, Handloom, Couture"
+            class="w-full rounded-lg text-white border border-white/10 bg-white/5 h-14 px-4 focus:border-primary focus:ring-0" />
+        </div>
+
         <div id="partnerShowcaseWrap" class="flex flex-col gap-3">
           <label class="text-primary/80 text-xs font-bold uppercase tracking-widest">Boutique Showcase Image <span
               class="text-rose-500">*</span></label>
@@ -242,6 +248,7 @@
       document.getElementById("partnerBoutiqueWrap").style.display = isUser ? "none" : "flex";
       document.getElementById("partnerPhoneCityWrap").style.display = isUser ? "none" : "grid";
       document.getElementById("partnerDistrictWrap").style.display = isUser ? "none" : "flex";
+      document.getElementById("partnerTagsWrap").style.display = isUser ? "none" : "flex";
       document.getElementById("partnerShowcaseWrap").style.display = isUser ? "none" : "flex";
       document.getElementById("nameLabel").textContent = isUser ? "Name" : "Owner Name";
       document.getElementById("owner").placeholder = isUser ? "Your Full Name" : "Julianne Vaught";
@@ -295,6 +302,7 @@
         const phone = document.getElementById("phone").value.trim();
         const area = document.getElementById("area").value.trim();
         const district = document.getElementById("district").value.trim();
+        const tags = document.getElementById("tags").value.trim();
         const password = document.getElementById("password").value;
         const imageFile = document.getElementById("showcaseImage").files[0];
 
@@ -320,6 +328,7 @@
         formData.append("phone", phone);
         formData.append("area", area);
         formData.append("district", district);
+        formData.append("tags", tags);
         formData.append("password", password);
         formData.append("image", imageFile);
       }

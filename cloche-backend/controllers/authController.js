@@ -97,7 +97,7 @@ exports.signup = async (req, res) => {
     }
 
     if (account_type === "partner") {
-        const { boutique_name, owner_name, email, phone, city, area, district, password } = req.body;
+        const { boutique_name, owner_name, email, phone, city, area, district, password, tags } = req.body;
         if (!boutique_name || !owner_name || !email || !phone || !password) return res.status(400).json({ message: "All partner fields required" });
         if (!req.file) return res.status(400).json({ message: "Showcase image required" });
 
@@ -127,7 +127,7 @@ exports.signup = async (req, res) => {
 
                 if (req.file) {
                     const { publicUrl } = await uploadBufferToStorage({ folder: `boutiques/showcase/${existingBoutique.id}`, file: req.file });
-                    await supabase.from("boutique_showcase").upsert([{ boutique_id: existingBoutique.id, area: loc.area, district: loc.district, image_url: publicUrl }], { onConflict: "boutique_id" });
+                    await supabase.from("boutique_showcase").upsert([{ boutique_id: existingBoutique.id, area: loc.area, district: loc.district, tags: tags || null, image_url: publicUrl }], { onConflict: "boutique_id" });
                 }
 
                 const emailResult = await sendVerificationEmail(normalizedEmail, owner_name, verificationToken, "partner");
@@ -144,7 +144,7 @@ exports.signup = async (req, res) => {
 
             if (inserted?.id && req.file) {
                 const { publicUrl } = await uploadBufferToStorage({ folder: `boutiques/showcase/${inserted.id}`, file: req.file });
-                await supabase.from("boutique_showcase").upsert([{ boutique_id: inserted.id, area: loc.area, district: loc.district, image_url: publicUrl }], { onConflict: "boutique_id" });
+                await supabase.from("boutique_showcase").upsert([{ boutique_id: inserted.id, area: loc.area, district: loc.district, tags: tags || null, image_url: publicUrl }], { onConflict: "boutique_id" });
             }
 
             const emailResult = await sendVerificationEmail(normalizedEmail, owner_name, verificationToken, "partner");
