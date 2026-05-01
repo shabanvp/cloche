@@ -242,6 +242,14 @@
 
     let selectedAccountType = "partner";
 
+    function getInitialSignupType() {
+      const params = new URLSearchParams(window.location.search);
+      const requestedRole = String(params.get("role") || params.get("account_type") || params.get("type") || "")
+        .trim()
+        .toLowerCase();
+      return requestedRole === "user" ? "user" : "partner";
+    }
+
     function setAccountType(type) {
       selectedAccountType = type === "user" ? "user" : "partner";
       const isUser = selectedAccountType === "user";
@@ -576,7 +584,7 @@
       reader.readAsDataURL(file);
     });
 
-    setAccountType("partner");
+    setAccountType(getInitialSignupType());
 
     function togglePassword(inputId, btn) {
       const input = document.getElementById(inputId);

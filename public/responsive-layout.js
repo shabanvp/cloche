@@ -1,4 +1,29 @@
 (function () {
+  const PARTNER_SIGNUP_URL = "signup.html?role=partner";
+
+  function getPartnerSignupUrl() {
+    return PARTNER_SIGNUP_URL;
+  }
+
+  window.CLOCHE_PARTNER_SIGNUP_URL = PARTNER_SIGNUP_URL;
+  window.getPartnerSignupUrl = getPartnerSignupUrl;
+
+  function isPartnerSignupLink(anchor) {
+    if (!anchor) return false;
+    if (anchor.id === "listYourBoutiqueNav" || anchor.id === "heroListBoutiqueBtn") return true;
+    if (anchor.hasAttribute("data-partner-signup-link") || anchor.hasAttribute("data-mobile-partner-cta")) return true;
+    const text = String(anchor.textContent || "").replace(/\s+/g, " ").trim().toLowerCase();
+    return text === "list your boutique" || text === "partner with us";
+  }
+
+  function setupPartnerSignupLinks(root = document) {
+    root.querySelectorAll("a[href]").forEach((anchor) => {
+      if (!isPartnerSignupLink(anchor)) return;
+      anchor.setAttribute("href", getPartnerSignupUrl());
+      anchor.setAttribute("data-partner-signup-link", "");
+    });
+  }
+
   function isMobile() {
     return window.matchMedia("(max-width: 1024px)").matches;
   }
@@ -90,7 +115,7 @@
           <span>Partner Profile</span>
         </a>
       ` : `
-        <a href="boutiquelogin.html" class="side-menu-link">
+        <a href="${getPartnerSignupUrl()}" class="side-menu-link" data-partner-signup-link>
           <span class="material-symbols-outlined">handshake</span>
           <span>Partner With Us</span>
         </a>
@@ -259,7 +284,7 @@
         el.href = "profile.html";
         el.setAttribute("data-mobile-partner-profile", "");
         el.innerHTML = `<span class="material-symbols-outlined">person</span><span>Profile</span>`;
-        const anchorBefore = menuPanel.querySelector("a[href='boutiquelogin.html']");
+        const anchorBefore = partnerCtaItem || menuPanel.querySelector("[data-mobile-partner-cta]");
         if (anchorBefore) menuPanel.insertBefore(el, anchorBefore);
         else menuPanel.appendChild(el);
         partnerProfileItem = el;
@@ -271,8 +296,9 @@
         partnerCtaItem.remove();
       } else if (!partnerLoggedIn && !partnerCtaItem) {
         const el = document.createElement("a");
-        el.href = "boutiquelogin.html";
+        el.href = getPartnerSignupUrl();
         el.setAttribute("data-mobile-partner-cta", "");
+        el.setAttribute("data-partner-signup-link", "");
         el.textContent = "Partner With Us";
         const anchorBefore = menuPanel.querySelector("[data-mobile-login-profile]");
         if (anchorBefore) menuPanel.insertBefore(el, anchorBefore);
@@ -528,9 +554,11 @@
   function init() {
     document.documentElement.classList.add("js-responsive");
     setupGlobalMobileBars();
+    setupPartnerSignupLinks();
     setupSidebarDrawer();
     setupMessagesPage();
     setupTopMenuFallback();
+    setupPartnerSignupLinks();
     setupDesktopHeaderPatching();
   }
 
