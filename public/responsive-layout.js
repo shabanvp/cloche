@@ -24,6 +24,21 @@
     });
   }
 
+  function setupPartnerSignupNavigation() {
+    if (document.documentElement.dataset.partnerSignupNavBound === "true") return;
+    document.documentElement.dataset.partnerSignupNavBound = "true";
+
+    document.addEventListener("click", (event) => {
+      const anchor = event.target && typeof event.target.closest === "function"
+        ? event.target.closest("a")
+        : null;
+      if (!isPartnerSignupLink(anchor)) return;
+
+      event.preventDefault();
+      window.location.href = getPartnerSignupUrl();
+    }, true);
+  }
+
   function isMobile() {
     return window.matchMedia("(max-width: 1024px)").matches;
   }
@@ -553,6 +568,7 @@
   ------------------------------------------------------- */
   function init() {
     document.documentElement.classList.add("js-responsive");
+    setupPartnerSignupNavigation();
     setupGlobalMobileBars();
     setupPartnerSignupLinks();
     setupSidebarDrawer();
