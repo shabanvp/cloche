@@ -7,6 +7,27 @@ const { uploadBufferToStorage, deleteStorageObjectByUrl } = require("../storage"
 const CLOUDINARY_CLOUD_NAME = String(process.env.CLOUDINARY_CLOUD_NAME || "").trim();
 const FRONTEND_BASE_URL = String(process.env.FRONTEND_BASE_URL || "https://cloche-backend.onrender.com").trim().replace(/\/+$/, "");
 
+const normalizeTags = (value) => {
+    const raw = String(value || "").trim();
+    if (!raw) return "";
+
+    const tags = raw
+        .split(",")
+        .map((t) => String(t || "").trim())
+        .filter(Boolean);
+
+    if (!tags.length) return "";
+
+    const lowered = tags.map((t) => t.toLowerCase());
+    const defaults = ["bridal wear", "handloom", "couture"];
+
+    if (lowered.length === defaults.length && defaults.every((d) => lowered.includes(d))) {
+        return "";
+    }
+
+    return tags.join(", ");
+};
+
 /**
  * Normalizes image URLs for Cloudinary
  */
@@ -264,7 +285,7 @@ exports.getProfile = async (req, res) => {
             ...boutique,
             district: showcase?.district || "",
             area: showcase?.area || "",
-            tags: showcase?.tags || "",
+            tags: normalizeTags(showcase?.tags),
             showcase_image: normalizeImageUrl(showcase?.image_url)
         });
     } catch (err) {
@@ -288,11 +309,13 @@ exports.updateProfile = async (req, res) => {
 
         if (error) return res.status(500).json({ message: "Update failed", error: error.message });
 
+        const normalizedTags = normalizeTags(tags) || null;
+
         await supabase.from("boutique_showcase").upsert([{
             boutique_id: Number(boutiqueId),
             district,
             area,
-            tags
+            tags: normalizedTags
         }], { onConflict: "boutique_id" });
 
         return res.json({ success: true, message: "Profile updated" });
@@ -318,7 +341,8 @@ exports.getShowcase = async (req, res) => {
         }
 
         const showcase = Array.isArray(showcaseRows) ? showcaseRows[0] : null;
-        return res.json(showcase || { boutique_id: Number(boutiqueId), district: "", area: "", tags: "", image_url: "" });
+        if (!showcase) return res.json({ boutique_id: Number(boutiqueId), district: "", area: "", tags: "", image_url: "" });
+        return res.json({ ...showcase, tags: normalizeTags(showcase.tags) });
     } catch (err) {
         console.error("[getShowcase] Error:", err);
         return res.status(500).json({ message: "Server error" });
@@ -329,11 +353,12 @@ exports.updateShowcase = async (req, res) => {
     const { boutiqueId } = req.params;
     const { district, area, tags } = req.body;
     try {
+        const normalizedTags = normalizeTags(tags) || null;
         const { error } = await supabase.from("boutique_showcase").upsert([{
             boutique_id: Number(boutiqueId),
             district: district || null,
             area: area || null,
-            tags: tags || null
+            tags: normalizedTags
         }], { onConflict: "boutique_id" });
 
         if (error) return res.status(500).json({ message: "Failed to save showcase", error: error.message });

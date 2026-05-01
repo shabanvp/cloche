@@ -1,6 +1,27 @@
 const supabase = require("../supabase");
 const { PLANS } = require("../services/planService");
 
+const normalizeTags = (value) => {
+    const raw = String(value || "").trim();
+    if (!raw) return "";
+
+    const tags = raw
+        .split(",")
+        .map((t) => String(t || "").trim())
+        .filter(Boolean);
+
+    if (!tags.length) return "";
+
+    const lowered = tags.map((t) => t.toLowerCase());
+    const defaults = ["bridal wear", "handloom", "couture"];
+
+    if (lowered.length === defaults.length && defaults.every((d) => lowered.includes(d))) {
+        return "";
+    }
+
+    return tags.join(", ");
+};
+
 /**
  * Get all boutiques with ranking logic
  * Ranking: Premium > Professional > Early
@@ -84,7 +105,10 @@ exports.getAllBoutiques = async (req, res) => {
             if (!row || !row.boutique_id) continue;
             // Keep the first row encountered (queries above try to return newest-first).
             if (showcaseMap[row.boutique_id]) continue;
-            showcaseMap[row.boutique_id] = row;
+            showcaseMap[row.boutique_id] = {
+                ...row,
+                tags: normalizeTags(row.tags)
+            };
         }
 
         // 🔹 Final Ranking Logic (Premium > Professional > Early)
@@ -171,7 +195,7 @@ exports.getBoutiqueDetails = async (req, res) => {
 
         return res.json({
             ...boutique,
-            tags: showcase?.tags || "",
+            tags: normalizeTags(showcase?.tags),
             district: showcase?.district || "",
             area: showcase?.area || "",
             showcase_image: showcase?.image_url || null,

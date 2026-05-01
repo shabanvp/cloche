@@ -8,6 +8,27 @@ const { deleteStorageObjectByUrl, uploadBufferToStorage } = require("./storage")
 
 const CLOUDINARY_CLOUD_NAME = String(process.env.CLOUDINARY_CLOUD_NAME || "").trim();
 
+const normalizeTags = (value) => {
+  const raw = String(value || "").trim();
+  if (!raw) return null;
+
+  const tags = raw
+    .split(",")
+    .map((t) => String(t || "").trim())
+    .filter(Boolean);
+
+  if (!tags.length) return null;
+
+  const lowered = tags.map((t) => t.toLowerCase());
+  const defaults = ["bridal wear", "handloom", "couture"];
+
+  if (lowered.length === defaults.length && defaults.every((d) => lowered.includes(d))) {
+    return null;
+  }
+
+  return tags.join(", ");
+};
+
 const normalizeImageUrl = (value) => {
   const raw = String(value || "").trim();
   if (!raw) return null;
@@ -127,7 +148,7 @@ router.get("/:productId", async (req, res, next) => {
       area: showcase?.area || null,
       district: showcase?.district || null,
       showcase_rating: showcase?.rating || 5.0,
-      showcase_tags: showcase?.tags || null,
+      showcase_tags: normalizeTags(showcase?.tags),
       showcase_image: showcase?.image_url || null,
       review_count: showcase?.rating ? 1 : 0,
       store_location: product.location || boutique?.city || "",

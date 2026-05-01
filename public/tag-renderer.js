@@ -17,10 +17,18 @@
   }
 
   function parseCommaTags(tagsRaw) {
-    return String(tagsRaw || "")
+    const parsed = String(tagsRaw || "")
       .split(",")
       .map((t) => t.trim())
       .filter(Boolean);
+
+    const lowered = parsed.map((t) => t.toLowerCase());
+    const defaults = ["bridal wear", "handloom", "couture"];
+    if (lowered.length === defaults.length && defaults.every((d) => lowered.includes(d))) {
+      return [];
+    }
+
+    return parsed;
   }
 
   function renderTagSpans(tagsRaw, options) {
