@@ -1,0 +1,13 @@
+/* Footer typography shared across pages */
+.cloche-footer-copy {
+  letter-spacing: 0.05em !important;
+}
+
+/* Safety net: normalize non-link footer text if tracking classes are present */
+footer :not(a)[class*="tracking-["],
+footer :not(a).tracking-widest,
+footer :not(a).tracking-wider,
+footer :not(a).tracking-wide {
+  letter-spacing: 0.05em !important;
+}
+
