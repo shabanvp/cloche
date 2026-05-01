@@ -321,8 +321,9 @@
             <thead>
               <tr
                 class="border-b border-accent-gold/10 bg-white/5 uppercase tracking-[0.2em] text-[10px] font-bold text-slate-400">
-                <th class="px-8 py-5 w-[30%]">Wedding Date</th>
-                <th class="px-8 py-5">Requirements</th>
+                <th class="px-8 py-5">Customer & Contact</th>
+                <th class="px-6 py-5 w-[24%]">Wedding Date</th>
+                <th class="px-8 py-5 text-right">Requirements</th>
               </tr>
             </thead>
             <tbody id="leadsTableBody" class="divide-y divide-accent-gold/5">
@@ -667,7 +668,7 @@
       renderedLeads = [];
 
       if (filteredLeads.length === 0) {
-        tableBody.innerHTML = `<tr><td colspan="2" class="px-8 py-6 text-center text-slate-400">No leads match your current search/filters.</td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan="3" class="px-8 py-6 text-center text-slate-400">No leads match your current search/filters.</td></tr>`;
         return;
       }
 
@@ -683,6 +684,7 @@
         const dateStr = formatDate(rawDate) || "Not Set";
 
         const safeName = cleanStr(lead.name) || "Guest";
+        const initials = safeName.split(" ").map(n => n[0]).join("").toUpperCase().substring(0, 2);
 
         // Safe phone for WhatsApp
         const phone = cleanStr(lead.phone || lead.phoneNumber) || "";
@@ -700,7 +702,21 @@
 
         const row = `
               <tr class="luxury-row transition-all group border-b border-accent-gold/5 last:border-0">
-                  <td class="px-8 py-6 border-r border-accent-gold/5 align-top">
+                  <td class="px-8 py-6 align-top">
+                      <div class="flex items-center gap-4">
+                          <div class="size-10 rounded-full bg-surface-dark border border-primary/20 flex items-center justify-center font-display font-bold text-primary group-hover:scale-110 transition-transform shrink-0">
+                              ${initials}
+                          </div>
+                          <div class="min-w-0">
+                              <p class="font-display font-bold text-lg leading-tight tracking-wide truncate">${escapeHtml(safeName)}</p>
+                              <p class="text-xs text-slate-500 font-medium truncate">${escapeHtml(email)}</p>
+                              <p class="text-[11px] text-primary/80 font-bold mt-1 flex items-center gap-1">
+                                <span class="material-symbols-outlined text-[14px]">smartphone</span> ${escapeHtml(phone || 'No Phone')}
+                              </p>
+                          </div>
+                      </div>
+                  </td>
+                  <td class="px-6 py-6 border-r border-accent-gold/5 align-top">
                     <div class="flex flex-col">
                       <span class="font-medium text-slate-300">${dateStr}</span>
                       <span class="text-[10px] text-slate-500 uppercase tracking-widest mt-1">Scheduled Date</span>
@@ -709,15 +725,7 @@
                   </td>
                   <td class="px-8 py-6 align-top">
                     <div class="flex flex-col gap-3">
-                      <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-                        <div class="min-w-0">
-                          <p class="font-display font-bold text-lg leading-tight tracking-wide truncate">${escapeHtml(safeName)}</p>
-                          <p class="text-xs text-slate-500 font-medium truncate">${escapeHtml(email)}</p>
-                          <p class="text-[11px] text-primary/80 font-bold mt-1 flex items-center gap-1">
-                            <span class="material-symbols-outlined text-[14px]">smartphone</span> ${escapeHtml(phone || 'No Phone')}
-                          </p>
-                        </div>
-                        <div class="flex flex-wrap justify-start sm:justify-end gap-2 shrink-0">
+                      <div class="flex flex-wrap justify-start sm:justify-end gap-2">
                           <button type="button" data-lead-action="view" data-lead-idx="${idx}"
                             class="bg-surface-dark border border-primary/20 text-slate-200 hover:bg-primary/10 hover:text-primary px-4 py-2 rounded-lg text-[11px] font-bold uppercase tracking-wide flex items-center gap-2 transition-colors">
                             <span class="material-symbols-outlined text-sm">visibility</span> View
@@ -725,7 +733,6 @@
                           <a href="${waLink}" target="_blank" class="bg-[#25D366] hover:bg-[#128C7E] text-white px-4 py-2 rounded-lg text-[11px] font-bold uppercase tracking-wide flex items-center gap-2 transition-all hover:scale-105 active:scale-95">
                             <span class="material-symbols-outlined text-sm">chat_bubble</span> WhatsApp
                           </a>
-                        </div>
                       </div>
                       ${location ? `<span class="text-[10px] text-slate-400 flex items-center gap-1"><span class="material-symbols-outlined text-xs">location_on</span> ${escapeHtml(location)}</span>` : ''}
                       ${(locParts.area || locParts.district) ? `
@@ -935,7 +942,7 @@
 
       } catch (err) {
         console.error(err);
-        document.getElementById("leadsTableBody").innerHTML = `<tr><td colspan="2" class="px-8 py-6 text-center text-red-400">Error loading leads.</td></tr>`;
+        document.getElementById("leadsTableBody").innerHTML = `<tr><td colspan="3" class="px-8 py-6 text-center text-red-400">Error loading leads.</td></tr>`;
       }
     });
   </script>
