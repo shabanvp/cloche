@@ -1058,9 +1058,23 @@ nav.fixed .max-w-7xl {
     gap: 10px !important;
   }
 
+  body.has-mobile-bars.route-profile .showcase-preview-card {
+    max-width: min(100%, 380px) !important;
+  }
+
+  body.has-mobile-bars.route-profile .showcase-preview-frame {
+    width: 100% !important;
+    height: clamp(240px, 82vw, 340px) !important;
+    overflow: hidden !important;
+  }
+
   body.has-mobile-bars.route-profile #showcasePreviewImage {
-    min-height: 220px !important;
-    height: 220px !important;
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    object-fit: cover !important;
+    object-position: center center !important;
   }
 
   body.has-mobile-bars.route-profile #showcasePreviewName {
