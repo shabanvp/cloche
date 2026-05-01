@@ -229,11 +229,14 @@
     <p class="text-[9px] uppercase tracking-[0.4em] text-white/20">© 2024 Cloche Luxury Group. All rights reserved.</p>
   </footer>
 
+  <script src="tag-renderer.js?v=20260501"></script>
   <script>
     const API_ADMIN = "https://cloche-backend.onrender.com/api/auth";
     const API_BASE = "https://cloche-backend.onrender.com/api";
     const API_PRODUCTS = "https://cloche-backend.onrender.com/api/products";
     const API_ORIGIN = "https://cloche-backend.onrender.com";
+    const DEBUG_TAGS = new URLSearchParams(window.location.search).has("debugTags");
+    if (DEBUG_TAGS) console.log("[CLOCHE] viewboutique.html v20260501");
 
     const fallbackImages = [
       "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=1200&auto=format&fit=crop",
@@ -321,20 +324,18 @@
     function renderTags(tagsRaw) {
       const wrap = document.getElementById("boutiqueTags");
       if (!wrap) return;
-      const tags = String(tagsRaw || "")
-        .split(",")
-        .map((tag) => tag.trim())
-        .filter(Boolean)
-        .slice(0, 4);
+      if (DEBUG_TAGS) console.log("Tags:", tagsRaw);
 
-      if (!tags.length) {
-        wrap.innerHTML = "";
-        return;
-      }
+      const renderTagSpans = (window.__CLOCHE__ && window.__CLOCHE__.renderTagSpans)
+        ? window.__CLOCHE__.renderTagSpans
+        : null;
 
-      wrap.innerHTML = tags.map((tag) =>
-        `<span class="text-[10px] uppercase tracking-widest px-3 py-1 bg-white/5 border border-white/10 rounded">${tag}</span>`
-      ).join("");
+      const spans = renderTagSpans ? renderTagSpans(tagsRaw, {
+        limit: 4,
+        spanClass: "text-[10px] uppercase tracking-widest px-3 py-1 bg-white/5 border border-white/10 rounded"
+      }) : "";
+
+      wrap.innerHTML = spans;
     }
 
     function renderProducts(products) {
@@ -567,10 +568,14 @@
               <p class="text-primary text-[10px] uppercase tracking-[0.2em] truncate mb-2">${district}</p>
               <div class="flex flex-wrap gap-1">
                 ${(() => {
-                  const tags = String(b.tags || "").split(",").map(t => t.trim()).filter(Boolean).slice(0, 2);
-                  return tags.map(tag => `
-                    <span class="text-[8px] uppercase tracking-widest px-1.5 py-0.5 bg-white/5 border border-white/10 rounded text-white/70">${tag}</span>
-                  `).join("");
+                  const renderTagSpans = (window.__CLOCHE__ && window.__CLOCHE__.renderTagSpans)
+                    ? window.__CLOCHE__.renderTagSpans
+                    : null;
+                  if (!renderTagSpans) return "";
+                  return renderTagSpans(b.tags, {
+                    limit: 2,
+                    spanClass: "text-[8px] uppercase tracking-widest px-1.5 py-0.5 bg-white/5 border border-white/10 rounded text-white/70"
+                  });
                 })()}
               </div>
             </div>

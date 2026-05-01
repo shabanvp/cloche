@@ -521,10 +521,13 @@
 
 
 
+  <script src="tag-renderer.js?v=20260501"></script>
   <script>
     const API_AUTH = "https://cloche-backend.onrender.com/api/auth";
     const API_BASE = "https://cloche-backend.onrender.com/api";
     const API_ORIGIN = "https://cloche-backend.onrender.com";
+    const DEBUG_TAGS = new URLSearchParams(window.location.search).has("debugTags");
+    if (DEBUG_TAGS) console.log("[CLOCHE] index.html v20260501");
     let cloudinaryCloudName = "";
     const FEATURED_CACHE_KEY = "featuredBoutiquesCacheV1";
     const COLLECTIONS_CACHE_KEY = "featuredCollectionsCacheV1";
@@ -736,6 +739,10 @@
       const status = document.getElementById("featuredBoutiquesStatus");
       if (!grid || !status) return;
 
+      const renderTagSpans = (window.__CLOCHE__ && window.__CLOCHE__.renderTagSpans)
+        ? window.__CLOCHE__.renderTagSpans
+        : (() => "");
+
       if (!Array.isArray(list) || !list.length) {
         status.textContent = "No boutiques available yet.";
         grid.innerHTML = "";
@@ -744,6 +751,7 @@
 
       status.textContent = "";
       grid.innerHTML = list.map((b, idx) => {
+        if (DEBUG_TAGS) console.log("Tags:", b.tags);
         const resolved = b.image_url ? resolveAssetUrl(b.image_url) : null;
         const fallback = resolved ? resolved : pickImage(`${b.id}-${b.boutique_name}-${idx}`);
         const image = fallback;
@@ -751,14 +759,11 @@
         const district = (location.district || "Kerala").toUpperCase();
         const area = (location.area || location.district || "Location").toUpperCase();
         const name = (b.boutique_name || "Boutique").toUpperCase();
-        const tags = (String(b.tags || "").split(",").map(t => t.trim()).filter(Boolean).slice(0, 2));
-        const tagsHtml = tags.length
-          ? `<div class="flex flex-wrap gap-2 mb-4">
-              ${tags.map(tag => `
-                <span class="text-[9px] uppercase tracking-widest px-2 py-0.5 bg-white/10 border border-white/10 rounded text-white/90">${tag}</span>
-              `).join("")}
-            </div>`
-          : "";
+        const tagSpans = renderTagSpans(b.tags, {
+          limit: 2,
+          spanClass: "text-[9px] uppercase tracking-widest px-2 py-0.5 bg-white/10 border border-white/10 rounded text-white/90"
+        });
+        const tagsHtml = tagSpans ? `<div class="flex flex-wrap gap-2 mb-4">${tagSpans}</div>` : "";
 
         return `
           <a href="viewboutique.html?boutiqueId=${b.id}" onclick="localStorage.setItem('selectedBoutiqueId','${b.id}'); localStorage.setItem('selectedBoutiqueName', ${JSON.stringify(String(b.boutique_name || ""))})" class="featured-boutique-card group relative aspect-[3/4] rounded-xl overflow-hidden glass-card shimmer-effect cursor-pointer block">

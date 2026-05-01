@@ -354,9 +354,12 @@
     </div>
   </footer>
 
+  <script src="tag-renderer.js?v=20260501"></script>
   <script>
     const API_ORIGIN = "https://cloche-backend.onrender.com";
     const PRODUCT_API = `${API_ORIGIN}/api/products`;
+    const DEBUG_TAGS = new URLSearchParams(window.location.search).has("debugTags");
+    if (DEBUG_TAGS) console.log("[CLOCHE] viewproducts.html v20260501");
 
     let gallery = [];
     let currentImgIndex = 0;
@@ -459,13 +462,21 @@
         const tagsWrap = document.getElementById("boutiqueTags");
         if (tagsWrap) {
           const rawTags = product.showcase_tags || "";
-          const tags = String(rawTags).split(",").map(t => t.trim()).filter(Boolean).slice(0, 3);
-          if (!tags.length) {
+          const renderTagSpans = (window.__CLOCHE__ && window.__CLOCHE__.renderTagSpans)
+            ? window.__CLOCHE__.renderTagSpans
+            : null;
+
+          const spans = renderTagSpans ? renderTagSpans(rawTags, {
+            limit: 3,
+            spanClass: "text-[9px] uppercase tracking-widest px-2 py-1 bg-white/5 border border-white/10 rounded text-primary/80"
+          }) : "";
+
+          if (!spans) {
             tagsWrap.innerHTML = "";
             tagsWrap.classList.add("hidden");
           } else {
             tagsWrap.classList.remove("hidden");
-            tagsWrap.innerHTML = tags.map(t => `<span class="text-[9px] uppercase tracking-widest px-2 py-1 bg-white/5 border border-white/10 rounded text-primary/80">${t}</span>`).join("");
+            tagsWrap.innerHTML = spans;
           }
         }
 
