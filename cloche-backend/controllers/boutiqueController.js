@@ -36,17 +36,56 @@ exports.getAllBoutiques = async (req, res) => {
             boutiques = data;
         }
 
-        // Fetch showcase data for images and location normalization
-        const boutiqueIds = boutiques.map(b => b.id);
-        const { data: showcases } = await supabase
-            .from("boutique_showcase")
-            .select("boutique_id, district, area, tags, image_url, rating")
-            .in("boutique_id", boutiqueIds);
+        // Fetch showcase data for images/location/tags.
+        // Important: if boutique_showcase accidentally has multiple rows per boutique_id,
+        // always pick the latest one (so tags shown on mobile match what the boutique saved).
+        const boutiqueIds = boutiques.map(b => b.id).filter(Boolean);
+        let showcases = [];
+
+        if (boutiqueIds.length) {
+            try {
+                const { data, error } = await supabase
+                    .from("boutique_showcase")
+                    .select("id, boutique_id, district, area, tags, image_url, rating, updated_at")
+                    .in("boutique_id", boutiqueIds)
+                    .order("updated_at", { ascending: false, nullsFirst: false })
+                    .order("id", { ascending: false });
+
+                if (error) throw error;
+                showcases = Array.isArray(data) ? data : [];
+            } catch (e1) {
+                try {
+                    const { data, error } = await supabase
+                        .from("boutique_showcase")
+                        .select("id, boutique_id, district, area, tags, image_url, rating")
+                        .in("boutique_id", boutiqueIds)
+                        .order("id", { ascending: false });
+
+                    if (error) throw error;
+                    showcases = Array.isArray(data) ? data : [];
+                } catch (e2) {
+                    try {
+                        const { data, error } = await supabase
+                            .from("boutique_showcase")
+                            .select("boutique_id, district, area, tags, image_url, rating")
+                            .in("boutique_id", boutiqueIds);
+
+                        if (error) throw error;
+                        showcases = Array.isArray(data) ? data : [];
+                    } catch (e3) {
+                        showcases = [];
+                    }
+                }
+            }
+        }
 
         const showcaseMap = {};
-        (showcases || []).forEach(s => {
-            showcaseMap[s.boutique_id] = s;
-        });
+        for (const row of showcases) {
+            if (!row || !row.boutique_id) continue;
+            // Keep the first row encountered (queries above try to return newest-first).
+            if (showcaseMap[row.boutique_id]) continue;
+            showcaseMap[row.boutique_id] = row;
+        }
 
         // 🔹 Final Ranking Logic (Premium > Professional > Early)
         // This ensures the site feels premium even if the database columns are missing.
@@ -103,11 +142,32 @@ exports.getBoutiqueDetails = async (req, res) => {
 
         if (error || !boutique) return res.status(404).json({ message: "Boutique not found" });
 
-        const { data: showcase } = await supabase
-            .from("boutique_showcase")
-            .select("*")
-            .eq("boutique_id", boutiqueId)
-            .maybeSingle();
+        // Prefer latest showcase row if duplicates exist
+        let showcase = null;
+        try {
+            const { data, error: scErr } = await supabase
+                .from("boutique_showcase")
+                .select("*")
+                .eq("boutique_id", boutiqueId)
+                .order("updated_at", { ascending: false, nullsFirst: false })
+                .order("id", { ascending: false })
+                .limit(1);
+
+            if (!scErr && Array.isArray(data) && data.length) showcase = data[0];
+        } catch (_) { }
+
+        if (!showcase) {
+            try {
+                const { data, error: scErr2 } = await supabase
+                    .from("boutique_showcase")
+                    .select("*")
+                    .eq("boutique_id", boutiqueId)
+                    .order("id", { ascending: false })
+                    .limit(1);
+
+                if (!scErr2 && Array.isArray(data) && data.length) showcase = data[0];
+            } catch (_) { }
+        }
 
         return res.json({
             ...boutique,

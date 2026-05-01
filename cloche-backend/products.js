@@ -106,12 +106,18 @@ router.get("/:productId", async (req, res, next) => {
     if (productErr) return res.status(500).json({ message: "DB error", error: productErr.message });
     if (!product) return res.status(404).json({ message: "Product not found" });
 
-    const [{ data: boutique }, { data: showcase }, { data: images }] = await Promise.all([
+    const [{ data: boutique }, { data: showcaseRows }, { data: images }] = await Promise.all([
       supabase.from("boutiques").select("boutique_name, city").eq("id", product.boutique_id).maybeSingle(),
-      supabase.from("boutique_showcase").select("area, district, rating, tags, image_url").eq("boutique_id", product.boutique_id).maybeSingle(),
+      supabase
+        .from("boutique_showcase")
+        .select("area, district, rating, tags, image_url, id")
+        .eq("boutique_id", product.boutique_id)
+        .order("id", { ascending: false })
+        .limit(1),
       supabase.from("product_images").select("image_url").eq("product_id", productId).order("id", { ascending: true })
     ]);
 
+    const showcase = Array.isArray(showcaseRows) ? showcaseRows[0] : null;
     const gallery = Array.isArray(images) ? images.map((i) => i.image_url) : [];
 
     return res.json({

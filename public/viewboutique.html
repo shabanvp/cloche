@@ -320,13 +320,19 @@
 
     function renderTags(tagsRaw) {
       const wrap = document.getElementById("boutiqueTags");
+      if (!wrap) return;
       const tags = String(tagsRaw || "")
         .split(",")
         .map((tag) => tag.trim())
         .filter(Boolean)
         .slice(0, 4);
-      const finalTags = tags.length ? tags : ["BOUTIQUE"];
-      wrap.innerHTML = finalTags.map((tag) =>
+
+      if (!tags.length) {
+        wrap.innerHTML = "";
+        return;
+      }
+
+      wrap.innerHTML = tags.map((tag) =>
         `<span class="text-[10px] uppercase tracking-widest px-3 py-1 bg-white/5 border border-white/10 rounded">${tag}</span>`
       ).join("");
     }
@@ -562,8 +568,7 @@
               <div class="flex flex-wrap gap-1">
                 ${(() => {
                   const tags = String(b.tags || "").split(",").map(t => t.trim()).filter(Boolean).slice(0, 2);
-                  const finalTags = tags.length ? tags : ["BOUTIQUE"];
-                  return finalTags.map(tag => `
+                  return tags.map(tag => `
                     <span class="text-[8px] uppercase tracking-widest px-1.5 py-0.5 bg-white/5 border border-white/10 rounded text-white/70">${tag}</span>
                   `).join("");
                 })()}

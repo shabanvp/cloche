@@ -460,8 +460,13 @@
         if (tagsWrap) {
           const rawTags = product.showcase_tags || "";
           const tags = String(rawTags).split(",").map(t => t.trim()).filter(Boolean).slice(0, 3);
-          const finalTags = tags.length ? tags : ["BOUTIQUE"];
-          tagsWrap.innerHTML = finalTags.map(t => `<span class="text-[9px] uppercase tracking-widest px-2 py-1 bg-white/5 border border-white/10 rounded text-primary/80">${t}</span>`).join("");
+          if (!tags.length) {
+            tagsWrap.innerHTML = "";
+            tagsWrap.classList.add("hidden");
+          } else {
+            tagsWrap.classList.remove("hidden");
+            tagsWrap.innerHTML = tags.map(t => `<span class="text-[9px] uppercase tracking-widest px-2 py-1 bg-white/5 border border-white/10 rounded text-primary/80">${t}</span>`).join("");
+          }
         }
 
         document.getElementById("viewBoutiqueBtn").href = `viewboutique.html?id=${product.boutique_id}`;

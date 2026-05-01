@@ -335,7 +335,11 @@
         const district = (location.district || "Unknown").toUpperCase();
         const locationLabel = (location.locationLabel || district).toUpperCase();
         const tags = String(b.tags || "").split(",").map(t => t.trim()).filter(Boolean).slice(0, 3);
-        const renderedTags = tags.length ? tags : ["BOUTIQUE"];
+        const tagsHtml = tags.length
+          ? `<div class="flex flex-wrap gap-2 mb-8">
+              ${tags.map(tag => `<span class="text-[10px] uppercase tracking-widest px-3 py-1 bg-white/5 border border-white/10 rounded">${tag}</span>`).join("")}
+            </div>`
+          : "";
         const safeName = JSON.stringify(String(b.boutique_name || ""));
 
         return `
@@ -347,11 +351,9 @@
           <div class="p-8 flex-1 flex flex-col">
             <div class="flex justify-between items-start mb-2 gap-2">
               <h3 class="font-display text-2xl font-semibold tracking-wide uppercase">${b.boutique_name || "Boutique"}</h3>
-            </div>
-            <p class="text-primary/70 text-sm tracking-widest uppercase mb-4 font-medium">${locationLabel}</p>
-            <div class="flex flex-wrap gap-2 mb-8">
-              ${renderedTags.map(tag => `<span class="text-[10px] uppercase tracking-widest px-3 py-1 bg-white/5 border border-white/10 rounded">${tag}</span>`).join("")}
-            </div>
+             </div>
+             <p class="text-primary/70 text-sm tracking-widest uppercase mb-4 font-medium">${locationLabel}</p>
+            ${tagsHtml}
             <a href="viewboutique.html?boutiqueId=${b.id}" onclick="localStorage.setItem('selectedBoutiqueId','${b.id}'); localStorage.setItem('selectedBoutiqueName', ${safeName})" class="mt-auto w-full py-4 bg-primary text-background-dark font-bold text-xs uppercase tracking-[0.2em] rounded hover:bg-white transition-all text-center gold-glow">View Boutique</a>
           </div>
         </div>

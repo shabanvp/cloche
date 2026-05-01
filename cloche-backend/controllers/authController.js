@@ -246,12 +246,19 @@ exports.emailStatus = async (req, res) => {
 exports.getProfile = async (req, res) => {
     const { boutiqueId } = req.params;
     try {
-        const [{ data: boutique }, { data: showcase }] = await Promise.all([
+        const [{ data: boutique }, { data: showcaseRows }] = await Promise.all([
             supabase.from("boutiques").select("*").eq("id", boutiqueId).maybeSingle(),
-            supabase.from("boutique_showcase").select("district, area, tags, image_url").eq("boutique_id", boutiqueId).maybeSingle()
+            supabase
+                .from("boutique_showcase")
+                .select("district, area, tags, image_url, id")
+                .eq("boutique_id", boutiqueId)
+                .order("id", { ascending: false })
+                .limit(1)
         ]);
 
         if (!boutique) return res.status(404).json({ message: "Not found" });
+
+        const showcase = Array.isArray(showcaseRows) ? showcaseRows[0] : null;
 
         return res.json({
             ...boutique,
@@ -299,16 +306,18 @@ exports.updateProfile = async (req, res) => {
 exports.getShowcase = async (req, res) => {
     const { boutiqueId } = req.params;
     try {
-        const { data: showcase, error } = await supabase
+        const { data: showcaseRows, error } = await supabase
             .from("boutique_showcase")
             .select("*")
             .eq("boutique_id", boutiqueId)
-            .maybeSingle();
+            .order("id", { ascending: false })
+            .limit(1);
 
         if (error && error.code !== "PGRST116") {
             return res.status(500).json({ message: "Database error", error: error.message });
         }
 
+        const showcase = Array.isArray(showcaseRows) ? showcaseRows[0] : null;
         return res.json(showcase || { boutique_id: Number(boutiqueId), district: "", area: "", tags: "", image_url: "" });
     } catch (err) {
         console.error("[getShowcase] Error:", err);
