@@ -65,37 +65,46 @@
     }
 
     .showcase-preview-card {
-      max-width: 360px;
+      width: 100%;
+      max-width: 420px;
+      min-width: 0;
     }
 
     .showcase-preview-frame {
+      position: relative;
       width: 100%;
-      height: clamp(300px, 45vw, 420px);
+      height: 250px;
+      min-height: 250px;
+      flex: none;
       overflow: hidden;
       background: #111;
     }
 
     .showcase-preview-image {
+      position: absolute;
+      inset: 0;
       display: block;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      object-position: center center;
+      width: 100% !important;
+      height: 100% !important;
+      min-width: 100%;
+      min-height: 100%;
+      max-width: none;
+      object-fit: cover !important;
+      object-position: center center !important;
+      vertical-align: top;
     }
 
-    @media (max-width: 1024px) {
-      .showcase-preview-card {
-        max-width: min(100%, 380px);
-      }
-
+    @media (min-width: 768px) {
       .showcase-preview-frame {
-        height: clamp(260px, 78vw, 380px);
+        height: 280px;
+        min-height: 280px;
       }
     }
 
     @media (max-width: 480px) {
       .showcase-preview-frame {
-        height: clamp(240px, 82vw, 340px);
+        height: 250px;
+        min-height: 250px;
       }
     }
   </style>
@@ -317,10 +326,10 @@
                 Showcase Setup</button>
             </div>
 
-            <div class="flex justify-center">
-              <div class="showcase-preview-card glass-card rounded-xl overflow-hidden w-full border border-primary/30">
-                <div class="showcase-preview-frame relative">
-                  <img id="showcasePreviewImage" class="showcase-preview-image w-full h-full object-cover object-center"
+            <div class="flex justify-center min-w-0">
+              <div class="showcase-preview-card glass-card rounded-xl overflow-hidden border border-primary/30">
+                <div class="showcase-preview-frame h-[250px] md:h-[280px] overflow-hidden shrink-0">
+                  <img id="showcasePreviewImage" class="showcase-preview-image absolute inset-0 block w-full h-full object-cover object-center"
                     src="https://images.unsplash.com/photo-1583391733981-849840f3f1c2?q=80&w=1200&auto=format&fit=crop"
                     alt="Boutique preview" />
                   <div
