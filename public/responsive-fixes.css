@@ -1054,7 +1054,7 @@ nav.fixed .max-w-7xl {
   }
 
   /* Showcase section compact */
-  body.has-mobile-bars.route-profile .p-8.grid.grid-cols-1.lg\:grid-cols-2.gap-10 {
+  body.has-mobile-bars.route-profile .p-8.grid.grid-cols-1.gap-8.items-start {
     gap: 10px !important;
     align-items: start !important;
   }
