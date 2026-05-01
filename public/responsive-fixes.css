@@ -1081,9 +1081,9 @@ nav.fixed .max-w-7xl {
     min-width: 100% !important;
     min-height: 100% !important;
     max-width: none !important;
-    object-fit: cover !important;
-    object-position: center center !important;
-    vertical-align: top !important;
+    background-size: cover !important;
+    background-position: center center !important;
+    background-repeat: no-repeat !important;
   }
 
   body.has-mobile-bars.route-profile #showcasePreviewName {

@@ -89,9 +89,9 @@
       min-width: 100%;
       min-height: 100%;
       max-width: none;
-      object-fit: cover !important;
-      object-position: center center !important;
-      vertical-align: top;
+      background-size: cover;
+      background-position: center center;
+      background-repeat: no-repeat;
     }
 
     @media (min-width: 768px) {
@@ -329,9 +329,10 @@
             <div class="flex justify-center min-w-0">
               <div class="showcase-preview-card glass-card rounded-xl overflow-hidden border border-primary/30">
                 <div class="showcase-preview-frame h-[250px] md:h-[280px] overflow-hidden shrink-0">
-                  <img id="showcasePreviewImage" class="showcase-preview-image absolute inset-0 block w-full h-full object-cover object-center"
-                    src="https://images.unsplash.com/photo-1583391733981-849840f3f1c2?q=80&w=1200&auto=format&fit=crop"
-                    alt="Boutique preview" />
+                  <div id="showcasePreviewImage" class="showcase-preview-image absolute inset-0 block w-full h-full bg-cover bg-center"
+                    role="img" aria-label="Boutique preview"
+                    style="background-image: url('https://images.unsplash.com/photo-1583391733981-849840f3f1c2?q=80&w=1200&auto=format&fit=crop');">
+                  </div>
                   <div
                     class="absolute top-4 left-4 bg-primary text-background-dark px-3 py-1 rounded text-[10px] font-bold tracking-[0.2em] uppercase"
                     id="showcasePreviewDistrict">District</div>
@@ -516,8 +517,7 @@
       setValue("showcaseTagsInput", merged.tags || "");
 
       if (merged.image_url) {
-        const img = document.getElementById("showcasePreviewImage");
-        if (img) img.src = resolveAssetUrl(merged.image_url);
+        updateShowcasePreviewImage(resolveAssetUrl(merged.image_url));
         const status = document.getElementById("showcaseImageStatus");
         if (status) status.textContent = `Current saved image: ${fileNameFromPath(merged.image_url) || "Uploaded image"}`;
       }
@@ -526,8 +526,8 @@
     }
 
     function updateShowcasePreviewImage(src) {
-      const img = document.getElementById("showcasePreviewImage");
-      if (img && src) img.src = src;
+      const preview = document.getElementById("showcasePreviewImage");
+      if (preview && src) preview.style.backgroundImage = `url("${String(src).replace(/"/g, '\\"')}")`;
     }
 
     function clearShowcasePreviewObjectUrl() {
