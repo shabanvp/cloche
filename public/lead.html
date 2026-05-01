@@ -692,12 +692,6 @@
 
         // Clean values to avoid "undefined" display
         const email = cleanStr(lead.email) || "—";
-        const requirement = cleanStr(lead.requirement) || "—";
-        const location = cleanStr(lead.preferred_location) || "";
-        const locParts = {
-          area: cleanStr(lead.area) || parsePreferredLocation(location).area,
-          district: cleanStr(lead.district) || parsePreferredLocation(location).district
-        };
         const submittedAt = formatDateTime(lead.created_at) || "";
 
         const row = `
@@ -724,29 +718,14 @@
                     </div>
                   </td>
                   <td class="px-8 py-6 align-top">
-                    <div class="flex flex-col gap-3">
-                      <div class="flex flex-wrap justify-start sm:justify-end gap-2">
-                          <button type="button" data-lead-action="view" data-lead-idx="${idx}"
-                            class="bg-surface-dark border border-primary/20 text-slate-200 hover:bg-primary/10 hover:text-primary px-4 py-2 rounded-lg text-[11px] font-bold uppercase tracking-wide flex items-center gap-2 transition-colors">
-                            <span class="material-symbols-outlined text-sm">visibility</span> View
-                          </button>
-                          <a href="${waLink}" target="_blank" class="bg-[#25D366] hover:bg-[#128C7E] text-white px-4 py-2 rounded-lg text-[11px] font-bold uppercase tracking-wide flex items-center gap-2 transition-all hover:scale-105 active:scale-95">
-                            <span class="material-symbols-outlined text-sm">chat_bubble</span> WhatsApp
-                          </a>
-                      </div>
-                      ${location ? `<span class="text-[10px] text-slate-400 flex items-center gap-1"><span class="material-symbols-outlined text-xs">location_on</span> ${escapeHtml(location)}</span>` : ''}
-                      ${(locParts.area || locParts.district) ? `
-                        <div class="flex flex-wrap gap-2 text-[10px] text-slate-400">
-                          ${locParts.area ? `<span class="px-2 py-0.5 bg-white/5 border border-white/10 rounded-lg"><span class="text-slate-500">Area:</span> ${escapeHtml(locParts.area)}</span>` : ''}
-                          ${locParts.district ? `<span class="px-2 py-0.5 bg-white/5 border border-white/10 rounded-lg"><span class="text-slate-500">District:</span> ${escapeHtml(locParts.district)}</span>` : ''}
-                        </div>
-                      ` : ''}
-                      <p class="text-sm text-slate-300 line-clamp-2 italic">"${escapeHtml(requirement)}"</p>
-                      ${cleanStr(lead.special_requirement) ?
-            `<div class="text-[11px] text-slate-500 bg-white/5 p-2 rounded border border-white/5 mt-1 border-l-2 border-l-primary/40">
-                          <span class="font-bold text-primary/70 uppercase text-[9px] block mb-0.5">Note:</span>
-                          ${escapeHtml(cleanStr(lead.special_requirement))}
-                        </div>` : ''}
+                    <div class="flex flex-wrap justify-start sm:justify-end gap-2">
+                      <button type="button" data-lead-action="view" data-lead-idx="${idx}"
+                        class="bg-surface-dark border border-primary/20 text-slate-200 hover:bg-primary/10 hover:text-primary px-4 py-2 rounded-lg text-[11px] font-bold uppercase tracking-wide flex items-center gap-2 transition-colors">
+                        <span class="material-symbols-outlined text-sm">visibility</span> View
+                      </button>
+                      <a href="${waLink}" target="_blank" class="bg-[#25D366] hover:bg-[#128C7E] text-white px-4 py-2 rounded-lg text-[11px] font-bold uppercase tracking-wide flex items-center gap-2 transition-all hover:scale-105 active:scale-95">
+                        <span class="material-symbols-outlined text-sm">chat_bubble</span> WhatsApp
+                      </a>
                     </div>
                   </td>
               </tr>
