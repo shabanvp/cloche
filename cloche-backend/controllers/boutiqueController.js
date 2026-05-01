@@ -12,13 +12,6 @@ const normalizeTags = (value) => {
 
     if (!tags.length) return "";
 
-    const lowered = tags.map((t) => t.toLowerCase());
-    const defaults = ["bridal wear", "handloom", "couture"];
-
-    if (lowered.length === defaults.length && defaults.every((d) => lowered.includes(d))) {
-        return "";
-    }
-
     return tags.join(", ");
 };
 

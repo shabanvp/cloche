@@ -17,18 +17,10 @@
   }
 
   function parseCommaTags(tagsRaw) {
-    const parsed = String(tagsRaw || "")
+    return String(tagsRaw || "")
       .split(",")
       .map((t) => t.trim())
       .filter(Boolean);
-
-    const lowered = parsed.map((t) => t.toLowerCase());
-    const defaults = ["bridal wear", "handloom", "couture"];
-    if (lowered.length === defaults.length && defaults.every((d) => lowered.includes(d))) {
-      return [];
-    }
-
-    return parsed;
   }
 
   function renderTagSpans(tagsRaw, options) {
@@ -49,5 +41,5 @@
   window.__CLOCHE__.parseCommaTags = parseCommaTags;
   window.__CLOCHE__.renderTagSpans = renderTagSpans;
 
-  if (debugTags) console.log("[CLOCHE] tag-renderer.js v20260501 loaded");
+  if (debugTags) console.log("[CLOCHE] tag-renderer.js v20260501-dynamic-tags loaded");
 })();
