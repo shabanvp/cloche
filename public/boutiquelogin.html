@@ -140,8 +140,9 @@
 
             <div class="mt-12 text-center">
                 <p class="text-[#bab2a0] text-sm mb-2">New to CLOCHE?</p>
-                <a class="inline-block text-white font-display italic text-base border-b border-white/20 hover:border-primary transition-all duration-300"
-                    href="signup.html">
+                <a id="createAccountLink"
+                    class="inline-block text-white font-display italic text-base border-b border-white/20 hover:border-primary transition-all duration-300"
+                    href="signup.html?type=user">
                     Create your account
                 </a>
             </div>
@@ -165,6 +166,9 @@
             const submitBtn = document.getElementById("loginSubmitBtn");
             const identifierLabel = document.getElementById("identifierLabel");
             const identifierInput = document.getElementById("email");
+            const createAccountLink = document.getElementById("createAccountLink");
+            const signupUrl = `signup.html?type=${encodeURIComponent(selectedAccountType)}`;
+            if (createAccountLink) createAccountLink.href = signupUrl;
 
             if (selectedAccountType === "user") {
                 if (title) title.textContent = "USER PORTAL";
@@ -260,7 +264,7 @@
             const banner = document.getElementById("verificationBanner");
             const bannerText = document.getElementById("bannerText");
 
-            const type = params.get("type");
+            const type = params.get("type") || params.get("role") || params.get("account_type");
             if (type === "partner" || type === "user") {
                 setAccountType(type);
             }

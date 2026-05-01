@@ -85,24 +85,25 @@
   <main class="flex-1 w-full flex flex-col items-center justify-center px-4 py-12 z-10">
     <div class="glass-card w-full max-w-[600px] p-8 md:p-12 rounded-xl shadow-2xl">
       <div class="text-center mb-10">
-        <h1 class="text-white font-display tracking-[0.1em] text-[28px] md:text-[36px] font-bold leading-tight pb-3">
-          JOIN THE CIRCLE</h1>
-        <p id="signupSubtitle" class="text-white/60 text-sm md:text-base font-light italic">Begin your journey as an
-          esteemed luxury partner.</p>
+        <h1 id="signupTitle"
+          class="text-white font-display tracking-[0.1em] text-[28px] md:text-[36px] font-bold leading-tight pb-3">
+          USER SIGNUP</h1>
+        <p id="signupSubtitle" class="text-white/60 text-sm md:text-base font-light italic">Create your user account in
+          a few steps.</p>
       </div>
 
       <div class="mb-6">
         <p class="text-primary/80 text-xs font-bold uppercase tracking-widest mb-3">I am signing up as</p>
         <div class="grid grid-cols-2 gap-3">
           <button id="userTypeBtn" type="button" onclick="setAccountType('user')"
-            class="h-12 rounded-lg border border-white/10 bg-white/5 text-white/80 text-xs font-bold uppercase tracking-[0.12em]">User</button>
+            class="h-12 rounded-lg border border-primary/40 bg-primary/10 text-primary text-xs font-bold uppercase tracking-[0.12em]">User</button>
           <button id="partnerTypeBtn" type="button" onclick="setAccountType('partner')"
-            class="h-12 rounded-lg border border-primary/40 bg-primary/10 text-primary text-xs font-bold uppercase tracking-[0.12em]">Partner</button>
+            class="h-12 rounded-lg border border-white/10 bg-white/5 text-white/80 text-xs font-bold uppercase tracking-[0.12em]">Partner</button>
         </div>
       </div>
 
       <form id="signupForm" class="flex flex-col gap-6" novalidate>
-        <div id="partnerBoutiqueWrap" class="flex flex-col gap-2">
+        <div id="partnerBoutiqueWrap" class="flex flex-col gap-2" style="display: none;">
           <label class="text-primary/80 text-xs font-bold uppercase tracking-widest">Boutique Name <span
               class="text-rose-500">*</span></label>
           <input id="boutique" type="text" placeholder="The Atelier London" required
@@ -124,7 +125,7 @@
           </div>
         </div>
 
-        <div id="partnerPhoneCityWrap" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div id="partnerPhoneCityWrap" class="grid grid-cols-1 md:grid-cols-2 gap-6" style="display: none;">
           <div class="flex flex-col gap-2">
             <label class="text-primary/80 text-xs font-bold uppercase tracking-widest">Mobile Number <span
                 class="text-rose-500">*</span></label>
@@ -139,7 +140,7 @@
           </div>
         </div>
 
-        <div id="partnerDistrictWrap" class="flex flex-col gap-2 relative">
+        <div id="partnerDistrictWrap" class="flex flex-col gap-2 relative" style="display: none;">
           <label class="text-primary/80 text-xs font-bold uppercase tracking-widest">District <span
               class="text-rose-500">*</span></label>
           <div class="relative">
@@ -152,13 +153,13 @@
           </div>
         </div>
 
-        <div id="partnerTagsWrap" class="flex flex-col gap-2">
+        <div id="partnerTagsWrap" class="flex flex-col gap-2" style="display: none;">
           <label class="text-primary/80 text-xs font-bold uppercase tracking-widest">Boutique Tags (comma-separated)</label>
           <input id="tags" type="text" placeholder="Customized, Gowns, Alterations"
             class="w-full rounded-lg text-white border border-white/10 bg-white/5 h-14 px-4 focus:border-primary focus:ring-0" />
         </div>
 
-        <div id="partnerShowcaseWrap" class="flex flex-col gap-3">
+        <div id="partnerShowcaseWrap" class="flex flex-col gap-3" style="display: none;">
           <label class="text-primary/80 text-xs font-bold uppercase tracking-widest">Boutique Showcase Image <span
               class="text-rose-500">*</span></label>
           <div id="uploadWrapper"
@@ -194,7 +195,7 @@
         <div class="mt-4">
           <button id="signupSubmitBtn"
             class="w-full bg-primary hover:bg-[#d4b984] text-cloche-dark h-14 rounded-lg font-bold text-sm uppercase tracking-[0.2em] shadow-lg shadow-primary/20 transition-all active:scale-[0.98]">
-            Create Boutique Account
+            Create User Account
           </button>
         </div>
       </form>
@@ -215,7 +216,7 @@
           </div>
         </div>
       </div>
-      <p class="mt-8 text-center text-white/40 text-xs font-light">Already a partner? <a
+      <p id="signinPrompt" class="mt-8 text-center text-white/40 text-xs font-light">Already have an account? <a
           class="text-primary font-medium hover:underline ml-1" href="boutiquelogin.html">Sign In</a></p>
     </div>
   </main>
@@ -225,14 +226,14 @@
       ? "http://localhost:5001"
       : "https://cloche-backend.onrender.com";
 
-    let selectedAccountType = "partner";
+    let selectedAccountType = "user";
 
     function getInitialSignupType() {
       const params = new URLSearchParams(window.location.search);
       const requestedRole = String(params.get("role") || params.get("account_type") || params.get("type") || "")
         .trim()
         .toLowerCase();
-      return requestedRole === "user" ? "user" : "partner";
+      return requestedRole === "partner" ? "partner" : "user";
     }
 
     function setAccountType(type) {
@@ -244,10 +245,12 @@
       document.getElementById("partnerDistrictWrap").style.display = isUser ? "none" : "flex";
       document.getElementById("partnerTagsWrap").style.display = isUser ? "none" : "flex";
       document.getElementById("partnerShowcaseWrap").style.display = isUser ? "none" : "flex";
+      document.getElementById("signupTitle").textContent = isUser ? "USER SIGNUP" : "PARTNER SIGNUP";
       document.getElementById("nameLabel").textContent = isUser ? "Name" : "Owner Name";
       document.getElementById("owner").placeholder = isUser ? "Your Full Name" : "Julianne Vaught";
       document.getElementById("signupSubtitle").textContent = isUser ? "Create your user account in a few steps." : "Begin your journey as an esteemed luxury partner.";
       document.getElementById("signupSubmitBtn").textContent = isUser ? "Create User Account" : "Create Boutique Account";
+      document.getElementById("signinPrompt").firstChild.textContent = isUser ? "Already have an account? " : "Already a partner? ";
 
       document.getElementById("userTypeBtn").className = isUser ? "h-12 rounded-lg border border-primary/40 bg-primary/10 text-primary text-xs font-bold uppercase tracking-[0.12em]" : "h-12 rounded-lg border border-white/10 bg-white/5 text-white/80 text-xs font-bold uppercase tracking-[0.12em]";
       document.getElementById("partnerTypeBtn").className = isUser ? "h-12 rounded-lg border border-white/10 bg-white/5 text-white/80 text-xs font-bold uppercase tracking-[0.12em]" : "h-12 rounded-lg border border-primary/40 bg-primary/10 text-primary text-xs font-bold uppercase tracking-[0.12em]";
