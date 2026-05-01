@@ -66,7 +66,6 @@
     }
   </style>
   <link rel='stylesheet' href='responsive-fixes.css?v=1776237132140' />
-  <link rel='stylesheet' href='footer.css?v=20260501' />
 </head>
 
 <body class="luxury-bg min-h-screen flex flex-col relative overflow-x-hidden text-white pt-24">
@@ -220,21 +219,7 @@
           class="text-primary font-medium hover:underline ml-1" href="boutiquelogin.html">Sign In</a></p>
     </div>
   </main>
-
-  <footer
-    class="w-full max-w-[1200px] px-8 py-10 flex flex-col md:flex-row justify-between items-center gap-6 z-10 border-t border-white/5 mx-auto">
-    <p class="text-white/30 text-[10px] uppercase cloche-footer-copy">© 2024 CLOCHE COLLECTIVE. ALL RIGHTS RESERVED.</p>
-    <div class="flex gap-8">
-      <a class="text-white/30 text-[10px] uppercase tracking-widest hover:text-white transition-colors"
-        href="privacy.html">Privacy</a>
-      <a class="text-white/30 text-[10px] uppercase tracking-widest hover:text-white transition-colors"
-        href="terms.html">Terms</a>
-      <a class="text-white/30 text-[10px] uppercase tracking-widest hover:text-white transition-colors"
-        href="vendor-agreement.html">Help</a>
-    </div>
-  </footer>
-
-  <script>
+<script>
     // Use localhost if viewing locally, otherwise use Render production API
     const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:')
       ? "http://localhost:5001"
@@ -641,6 +626,7 @@
   </div>
 
   <script src='responsive-layout.js?v=20260501-partner-signup'></script>
+  <script src="footer.js?v=20260501-global"></script>
 </body>
 
 </html>
