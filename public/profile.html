@@ -64,49 +64,6 @@
       border-radius: 10px;
     }
 
-    .showcase-preview-card {
-      width: 100%;
-      max-width: 420px;
-      min-width: 0;
-    }
-
-    .showcase-preview-frame {
-      position: relative;
-      width: 100%;
-      height: 250px;
-      min-height: 250px;
-      flex: none;
-      overflow: hidden;
-      background: #111;
-    }
-
-    .showcase-preview-image {
-      position: absolute;
-      inset: 0;
-      display: block;
-      width: 100% !important;
-      height: 100% !important;
-      min-width: 100%;
-      min-height: 100%;
-      max-width: none;
-      background-size: cover;
-      background-position: center center;
-      background-repeat: no-repeat;
-    }
-
-    @media (min-width: 768px) {
-      .showcase-preview-frame {
-        height: 280px;
-        min-height: 280px;
-      }
-    }
-
-    @media (max-width: 480px) {
-      .showcase-preview-frame {
-        height: 250px;
-        min-height: 250px;
-      }
-    }
   </style>
   <link rel='stylesheet' href='responsive-fixes.css?v=1776237132140' />
 </head>
@@ -326,13 +283,13 @@
                 Showcase Setup</button>
             </div>
 
-            <div class="flex justify-center min-w-0">
-              <div class="showcase-preview-card glass-card rounded-xl overflow-hidden border border-primary/30">
-                <div class="showcase-preview-frame h-[250px] md:h-[280px] overflow-hidden shrink-0">
-                  <div id="showcasePreviewImage" class="showcase-preview-image absolute inset-0 block w-full h-full bg-cover bg-center"
-                    role="img" aria-label="Boutique preview"
-                    style="background-image: url('https://images.unsplash.com/photo-1583391733981-849840f3f1c2?q=80&w=1200&auto=format&fit=crop');">
-                  </div>
+            <div class="flex justify-center" style="min-width: 0;">
+              <div class="glass-card rounded-xl overflow-hidden border border-primary/30" style="width: 100%; max-width: 420px; min-width: 0;">
+                <div class="w-full rounded-t-xl overflow-hidden" style="height: 260px; min-height: 260px; max-height: 260px; border: 1px solid rgba(193, 166, 113, 0.55); box-sizing: border-box; position: relative; background: #111;">
+                  <img id="showcasePreviewImage"
+                    src="https://images.unsplash.com/photo-1583391733981-849840f3f1c2?q=80&w=1200&auto=format&fit=crop"
+                    alt="Boutique preview"
+                    style="width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; max-width: none;" />
                   <div
                     class="absolute top-4 left-4 bg-primary text-background-dark px-3 py-1 rounded text-[10px] font-bold tracking-[0.2em] uppercase"
                     id="showcasePreviewDistrict">District</div>
@@ -527,7 +484,7 @@
 
     function updateShowcasePreviewImage(src) {
       const preview = document.getElementById("showcasePreviewImage");
-      if (preview && src) preview.style.backgroundImage = `url("${String(src).replace(/"/g, '\\"')}")`;
+      if (preview && src) preview.src = src;
     }
 
     function clearShowcasePreviewObjectUrl() {

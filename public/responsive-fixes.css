@@ -1058,34 +1058,6 @@ nav.fixed .max-w-7xl {
     gap: 10px !important;
   }
 
-  body.has-mobile-bars.route-profile .showcase-preview-card {
-    width: 100% !important;
-    max-width: 420px !important;
-    min-width: 0 !important;
-  }
-
-  body.has-mobile-bars.route-profile .showcase-preview-frame {
-    width: 100% !important;
-    height: 250px !important;
-    min-height: 250px !important;
-    flex: none !important;
-    overflow: hidden !important;
-  }
-
-  body.has-mobile-bars.route-profile #showcasePreviewImage {
-    position: absolute !important;
-    inset: 0 !important;
-    display: block !important;
-    width: 100% !important;
-    height: 100% !important;
-    min-width: 100% !important;
-    min-height: 100% !important;
-    max-width: none !important;
-    background-size: cover !important;
-    background-position: center center !important;
-    background-repeat: no-repeat !important;
-  }
-
   body.has-mobile-bars.route-profile #showcasePreviewName {
     font-size: 22px !important;
     line-height: 1.05 !important;
