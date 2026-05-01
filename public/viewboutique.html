@@ -324,7 +324,7 @@
     function renderTags(tagsRaw) {
       const wrap = document.getElementById("boutiqueTags");
       if (!wrap) return;
-      if (DEBUG_TAGS) console.log("Tags:", tagsRaw);
+      if (DEBUG_TAGS) console.log("Rendering tags:", tagsRaw);
 
       const renderTagSpans = (window.__CLOCHE__ && window.__CLOCHE__.renderTagSpans)
         ? window.__CLOCHE__.renderTagSpans
@@ -548,6 +548,7 @@
     function renderOtherBoutiques(allBoutiques, currentId) {
       const grid = document.getElementById("otherBoutiquesGrid");
       if (!grid) return;
+      if (DEBUG_TAGS) console.log("[CLOCHE] renderOtherBoutiques() viewboutique.html", { width: window.innerWidth, path: location.pathname });
       const filtered = allBoutiques.filter(b => Number(b.id) !== Number(currentId)).slice(0, 6);
       if (!filtered.length) {
         grid.innerHTML = `<p class="text-white/50 text-xs">No other boutiques found.</p>`;

@@ -318,6 +318,7 @@
     function renderGrid() {
       const grid = document.getElementById("boutiquesGrid");
       const status = document.getElementById("statusText");
+      if (DEBUG_TAGS) console.log("[CLOCHE] renderGrid() boutiques.html", { width: window.innerWidth, path: location.pathname });
 
       const list = selectedCity === "All"
         ? boutiques
@@ -335,7 +336,7 @@
         : (() => "");
 
       grid.innerHTML = list.map((boutique) => {
-        if (DEBUG_TAGS) console.log("Tags:", boutique.tags);
+        if (DEBUG_TAGS) console.log("Rendering tags:", boutique.tags);
         const resolved = boutique.image_url ? resolveAssetUrl(boutique.image_url) : null;
         const fallback = resolved ? resolved : pickImage(`${boutique.id}-${boutique.boutique_name}`);
         const image = addCacheBuster(fallback);

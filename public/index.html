@@ -738,6 +738,7 @@
       const grid = document.getElementById("featuredBoutiquesGrid");
       const status = document.getElementById("featuredBoutiquesStatus");
       if (!grid || !status) return;
+      if (DEBUG_TAGS) console.log("[CLOCHE] renderFeaturedBoutiques() index.html", { width: window.innerWidth, path: location.pathname });
 
       const renderTagSpans = (window.__CLOCHE__ && window.__CLOCHE__.renderTagSpans)
         ? window.__CLOCHE__.renderTagSpans
@@ -751,7 +752,7 @@
 
       status.textContent = "";
       grid.innerHTML = list.map((b, idx) => {
-        if (DEBUG_TAGS) console.log("Tags:", b.tags);
+        if (DEBUG_TAGS) console.log("Rendering tags:", b.tags);
         const resolved = b.image_url ? resolveAssetUrl(b.image_url) : null;
         const fallback = resolved ? resolved : pickImage(`${b.id}-${b.boutique_name}-${idx}`);
         const image = fallback;
