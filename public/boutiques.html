@@ -125,13 +125,13 @@
       <div id="boutiquesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10"></div>
     </section>
   </main>
-  <script src="tag-renderer.js?v=20260501-dynamic-tags"></script>
+  <script src="tag-renderer.js?v=20260503-boutique-tags"></script>
   <script>
     const API_AUTH = "https://cloche-backend.onrender.com/api/auth";
     const API_BASE = "https://cloche-backend.onrender.com/api";
     const API_ORIGIN = "https://cloche-backend.onrender.com";
     const DEBUG_TAGS = new URLSearchParams(window.location.search).has("debugTags");
-    if (DEBUG_TAGS) console.log("[CLOCHE] boutiques.html v20260501");
+    if (DEBUG_TAGS) console.log("[CLOCHE] boutiques.html v20260503-boutique-tags");
     const imgPool = [
       "https://images.unsplash.com/photo-1583391733981-849840f3f1c2?q=80&w=1200&auto=format&fit=crop",
       "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=1200&auto=format&fit=crop",
@@ -232,28 +232,7 @@
         .replace(/'/g, "&#39;");
     }
 
-    function isMobileBoutiqueLayout() {
-      return window.matchMedia("(max-width: 1024px)").matches;
-    }
-
     function renderBoutiqueTags(boutique) {
-      if (!boutique?.tags) return "";
-
-      const tags = boutique.tags
-        .split(",")
-        .map(tag => tag.trim())
-        .filter(Boolean);
-
-      if (!tags.length) return "";
-
-      const spans = tags
-        .map(tag => `<span class="text-[10px] uppercase tracking-widest px-3 py-1 bg-white/5 border border-white/10 rounded">${escapeHtml(tag)}</span>`)
-        .join("");
-
-      return `<div class="flex flex-wrap gap-2 mb-8">${spans}</div>`;
-    }
-
-    function renderMobileBoutiqueTags(boutique) {
       const renderTagSpans = window.__CLOCHE__ && window.__CLOCHE__.renderTagSpans;
       const spans = renderTagSpans
         ? renderTagSpans(boutique?.tags, {
@@ -375,7 +354,7 @@
         const location = normalizeLocationParts(boutique);
         const district = (location.district || "Unknown").toUpperCase();
         const locationLabel = (location.locationLabel || district).toUpperCase();
-        const tagsHtml = isMobileBoutiqueLayout() ? renderMobileBoutiqueTags(boutique) : renderBoutiqueTags(boutique);
+        const tagsHtml = renderBoutiqueTags(boutique);
         const safeName = JSON.stringify(String(boutique.boutique_name || ""));
 
         return `
@@ -404,7 +383,10 @@
       try {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 60000); // 60s to allow free-tier spin up
-        const res = await fetch(`${API_BASE}/boutiques`, { signal: controller.signal });
+        const res = await fetch(`${API_BASE}/boutiques?v=${Date.now()}`, {
+          signal: controller.signal,
+          cache: "no-store"
+        });
         clearTimeout(timeoutId);
         const data = await res.json();
         if (!res.ok) throw new Error(data.message || "Failed to load boutiques");
