@@ -125,6 +125,7 @@
       <div id="boutiquesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10"></div>
     </section>
   </main>
+  <script src="tag-renderer.js?v=20260501-dynamic-tags"></script>
   <script>
     const API_AUTH = "https://cloche-backend.onrender.com/api/auth";
     const API_BASE = "https://cloche-backend.onrender.com/api";
@@ -231,6 +232,10 @@
         .replace(/'/g, "&#39;");
     }
 
+    function isMobileBoutiqueLayout() {
+      return window.matchMedia("(max-width: 1024px)").matches;
+    }
+
     function renderBoutiqueTags(boutique) {
       if (!boutique?.tags) return "";
 
@@ -244,6 +249,24 @@
       const spans = tags
         .map(tag => `<span class="text-[10px] uppercase tracking-widest px-3 py-1 bg-white/5 border border-white/10 rounded">${escapeHtml(tag)}</span>`)
         .join("");
+
+      return `<div class="flex flex-wrap gap-2 mb-8">${spans}</div>`;
+    }
+
+    function renderMobileBoutiqueTags(boutique) {
+      const renderTagSpans = window.__CLOCHE__ && window.__CLOCHE__.renderTagSpans;
+      const spans = renderTagSpans
+        ? renderTagSpans(boutique?.tags, {
+          spanClass: "text-[10px] uppercase tracking-widest px-3 py-1 bg-white/5 border border-white/10 rounded"
+        })
+        : String(boutique?.tags || "")
+          .split(",")
+          .map(tag => tag.trim())
+          .filter(Boolean)
+          .map(tag => `<span class="text-[10px] uppercase tracking-widest px-3 py-1 bg-white/5 border border-white/10 rounded">${escapeHtml(tag)}</span>`)
+          .join("");
+
+      if (!spans) return "";
 
       return `<div class="flex flex-wrap gap-2 mb-8">${spans}</div>`;
     }
@@ -352,7 +375,7 @@
         const location = normalizeLocationParts(boutique);
         const district = (location.district || "Unknown").toUpperCase();
         const locationLabel = (location.locationLabel || district).toUpperCase();
-        const tagsHtml = renderBoutiqueTags(boutique);
+        const tagsHtml = isMobileBoutiqueLayout() ? renderMobileBoutiqueTags(boutique) : renderBoutiqueTags(boutique);
         const safeName = JSON.stringify(String(boutique.boutique_name || ""));
 
         return `
