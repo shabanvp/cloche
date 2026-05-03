@@ -454,15 +454,15 @@
 
 
 
-  <script src="tag-renderer.js?v=20260501-dynamic-tags"></script>
+  <script src="tag-renderer.js?v=20260503-boutique-tags"></script>
   <script>
     const API_AUTH = "https://cloche-backend.onrender.com/api/auth";
     const API_BASE = "https://cloche-backend.onrender.com/api";
     const API_ORIGIN = "https://cloche-backend.onrender.com";
     const DEBUG_TAGS = new URLSearchParams(window.location.search).has("debugTags");
-    if (DEBUG_TAGS) console.log("[CLOCHE] index.html v20260501");
+    if (DEBUG_TAGS) console.log("[CLOCHE] index.html v20260503-boutique-tags");
     let cloudinaryCloudName = "";
-    const FEATURED_CACHE_KEY = "featuredBoutiquesCacheV1";
+    const FEATURED_CACHE_KEY = "featuredBoutiquesCacheV2";
     const COLLECTIONS_CACHE_KEY = "featuredCollectionsCacheV1";
     const FEATURED_RETRY_DELAYS_MS = [0, 2000, 5000]; // Give Render backends some time between attempts
     const FEATURED_FETCH_TIMEOUT_MS = 60000; // 60 second timeout per fetch to allow free-tier spin up
@@ -916,7 +916,7 @@
 
         try {
           console.log(`[Featured] Fetch attempt ${attempt + 1} with ${FEATURED_FETCH_TIMEOUT_MS}ms timeout...`);
-          const res = await fetchWithTimeout(`${API_BASE}/boutiques?limit=${FEATURED_BOUTIQUES_LIMIT}`, FEATURED_FETCH_TIMEOUT_MS);
+          const res = await fetchWithTimeout(`${API_BASE}/boutiques?limit=${FEATURED_BOUTIQUES_LIMIT}&v=${Date.now()}`, FEATURED_FETCH_TIMEOUT_MS);
           const data = await res.json().catch(() => []);
           if (!res.ok) throw new Error(data.message || "Failed to load boutiques");
           console.log(`[Featured] Fetch successful on attempt ${attempt + 1}`);
