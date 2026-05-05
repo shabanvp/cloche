@@ -15,6 +15,17 @@ const normalizeTags = (value) => {
     return tags.join(", ");
 };
 
+const normalizeImageUrl = (value) => {
+    const raw = String(value || "").trim();
+    if (!raw) return "";
+    if (/^https?:\/\//i.test(raw) || /^data:image\//i.test(raw)) return raw;
+
+    const cloudName = String(process.env.CLOUDINARY_CLOUD_NAME || "dycwsnzyd").trim();
+    if (raw.includes("uploads/") || raw.startsWith("/uploads/")) return raw;
+    return `https://res.cloudinary.com/${cloudName}/image/upload/${raw.replace(/^\/+/, "")}`;
+
+};
+
 /**
  * Get all boutiques with ranking logic
  * Ranking: Premium > Professional > Early
@@ -117,7 +128,8 @@ exports.getAllBoutiques = async (req, res) => {
         // 🔹 Merge boutique data with showcase data
         const result = boutiques.map(b => ({
             ...b,
-            ...(showcaseMap[b.id] || {})
+            ...(showcaseMap[b.id] || {}),
+            image_url: normalizeImageUrl(showcaseMap[b.id]?.image_url || b.image_url || "")
         }));
 
         const sortedResult = result.sort((a, b) => {
@@ -201,7 +213,8 @@ exports.getBoutiqueDetails = async (req, res) => {
             district: showcase?.district || "",
             area: showcase?.area || "",
             shop_location: showcase?.shop_location || "",
-            showcase_image: showcase?.image_url || null,
+            image_url: normalizeImageUrl(showcase?.image_url || boutique.image_url || ""),
+            showcase_image: normalizeImageUrl(showcase?.image_url || boutique.image_url || ""),
             rating: showcase?.rating || 0
         });
     } catch (err) {

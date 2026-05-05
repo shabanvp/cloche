@@ -636,7 +636,7 @@
     const API_BASE = "https://cloche-backend.onrender.com/api";
     const API_ORIGIN = "https://cloche-backend.onrender.com";
     let cloudinaryCloudName = "";
-    const FEATURED_CACHE_KEY = "featuredBoutiquesCacheV1";
+    const FEATURED_CACHE_KEY = "featuredBoutiquesCacheV2";
     const COLLECTIONS_CACHE_KEY = "featuredCollectionsCacheV1";
     const FEATURED_RETRY_DELAYS_MS = [0, 2000, 5000]; // Give Render backends some time between attempts
     const FEATURED_FETCH_TIMEOUT_MS = 60000; // 60 second timeout per fetch to allow free-tier spin up
@@ -854,7 +854,8 @@
 
       status.textContent = "";
       grid.innerHTML = list.map((b, idx) => {
-        const resolved = b.image_url ? resolveAssetUrl(b.image_url) : null;
+        const rawImage = b.image_url || b.showcase_image || "";
+        const resolved = rawImage ? resolveAssetUrl(rawImage) : null;
         const fallback = resolved ? resolved : pickImage(`${b.id}-${b.boutique_name}-${idx}`);
         const image = fallback;
         const location = normalizeLocationParts(b);

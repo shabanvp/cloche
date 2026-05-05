@@ -563,7 +563,7 @@
       const visitLocation = location.shopLocation || location.locationLabel || location.district || "Location not set";
       const locationLabel = visitLocation.toUpperCase();
       const plan = (boutique.plan || "Basic").toUpperCase();
-      const cover = addCacheBuster(resolveAssetUrl(boutique.image_url) || fallbackImages[0]);
+      const cover = resolveAssetUrl(boutique.image_url || boutique.showcase_image || "") || fallbackImages[0];
       const directionsHref = buildDirectionsHref(location.shopLocation || location.locationLabel || boutique.city || "Kerala");
 
       document.title = `CLOCHE | ${boutique.boutique_name || "Boutique"}`;
@@ -651,8 +651,9 @@
         return;
       }
       grid.innerHTML = filtered.map(b => {
-        const raw = b.image_url ? resolveAssetUrl(b.image_url) : null;
-        const image = addCacheBuster(raw || pickImage(`${b.id}-${b.boutique_name}`));
+        const rawImage = b.image_url || b.showcase_image || "";
+        const raw = rawImage ? resolveAssetUrl(rawImage) : null;
+        const image = raw || pickImage(`${b.id}-${b.boutique_name}`);
         const location = normalizeLocationParts(b);
         const district = (location.district || "Kerala").toUpperCase();
         const safeName = JSON.stringify(String(b.boutique_name || ""));

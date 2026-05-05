@@ -348,9 +348,10 @@
 
       grid.innerHTML = list.map((boutique) => {
         if (DEBUG_TAGS) console.log("Rendering tags:", boutique.tags);
-        const resolved = boutique.image_url ? resolveAssetUrl(boutique.image_url) : null;
+        const rawImage = boutique.image_url || boutique.showcase_image || "";
+        const resolved = rawImage ? resolveAssetUrl(rawImage) : null;
         const fallback = resolved ? resolved : pickImage(`${boutique.id}-${boutique.boutique_name}`);
-        const image = addCacheBuster(fallback);
+        const image = fallback;
         const location = normalizeLocationParts(boutique);
         const district = (location.district || "Unknown").toUpperCase();
         const locationLabel = (location.locationLabel || district).toUpperCase();
