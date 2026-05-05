@@ -76,6 +76,15 @@
       background-size: 200% 200%;
     }
 
+    .hero-background-image {
+      background-size: cover;
+      background-repeat: no-repeat;
+      image-rendering: auto;
+      transform: translateZ(0);
+      backface-visibility: hidden;
+      will-change: transform;
+    }
+
     .royal-border {
       border-bottom: 1px solid rgba(193, 166, 113, 0.2);
     }
@@ -281,7 +290,7 @@
       <div
         class="absolute inset-0 bg-gradient-to-b from-background-dark/30 via-background-dark/60 to-background-dark z-10">
       </div>
-      <div class="w-full h-full bg-cover scale-105"
+      <div class="hero-background-image w-full h-full bg-cover"
         style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuA0wfsJA6L2AZn8ts_o01Itg8tyJMHwQvs-OVIkVJsp3Veg0AN83-jebgYChIDTUgKs1AltoiZdriG42HhR8XgLXEAD38DsYgQ8_PZ08WEZZXJzWL4TNf8pgawKzyPSNXkx-Lc-AWmfhesyOIouI_RXvat44ZAs5ser7su1EdtdjVQc6d88qJThiCqatqsxrYscWB2juxyBoYBwyB0L_BmIFd9M09rN0rRfeSba-NLIP9TbihI2dNvrAmRSRGznmOH9JzWFNqYl0Yw"); background-position: center 20%;'>
       </div>
     </div>

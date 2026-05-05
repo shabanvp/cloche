@@ -79,6 +79,7 @@ const ensureShowcaseTable = (cb) => {
       boutique_id INT NOT NULL UNIQUE,
       district VARCHAR(100) DEFAULT NULL,
       area VARCHAR(255) DEFAULT NULL,
+      shop_location VARCHAR(700) DEFAULT NULL,
       tags VARCHAR(255) DEFAULT NULL,
       image_url VARCHAR(500) DEFAULT NULL,
       rating DECIMAL(2,1) DEFAULT 5.0,
@@ -650,7 +651,7 @@ router.get("/profile/:boutiqueId", async (req, res) => {
         .maybeSingle(),
       supabase
         .from("boutique_showcase")
-        .select("district")
+        .select("district, shop_location")
         .eq("boutique_id", boutiqueId)
         .maybeSingle()
     ]);
@@ -674,6 +675,7 @@ router.get("/profile/:boutiqueId", async (req, res) => {
       ...boutique,
       city: safeCity,
       district: safeDistrict,
+      shop_location: showcase?.shop_location || "",
       plan: boutique.plan || "Basic"
     });
   } catch (err) {
@@ -755,7 +757,7 @@ router.put("/user/:userId", async (req, res) => {
 
 router.put("/profile/:boutiqueId", async (req, res) => {
   const { boutiqueId } = req.params;
-  const { boutique_name, owner_name, email, phone, city, district } = req.body;
+  const { boutique_name, owner_name, email, phone, city, district, shop_location } = req.body;
 
   if (!boutique_name || !owner_name || !email || !phone || !city) {
     return res.status(400).json({ message: "All profile fields are required" });
@@ -771,6 +773,7 @@ router.put("/profile/:boutiqueId", async (req, res) => {
 
   const safeCity = cleanText(city);
   const safeDistrict = cleanText(district);
+  const safeShopLocation = cleanText(shop_location);
   const composedCity = safeDistrict ? `${safeCity}, ${safeDistrict}` : safeCity;
 
   try {
@@ -801,7 +804,8 @@ router.put("/profile/:boutiqueId", async (req, res) => {
       .from("boutique_showcase")
       .upsert([{
         boutique_id: Number(boutiqueId),
-        district: safeDistrict || null
+        district: safeDistrict || null,
+        shop_location: safeShopLocation || null
       }], { onConflict: "boutique_id" });
 
     if (showcaseUpsertError) {
@@ -906,7 +910,7 @@ router.get("/profile/:boutiqueId/showcase", async (req, res) => {
       supabase.from("boutiques").select("id, boutique_name").eq("id", boutiqueId).maybeSingle(),
       supabase
         .from("boutique_showcase")
-        .select("boutique_id, district, area, tags, image_url, rating")
+        .select("boutique_id, district, area, shop_location, tags, image_url, rating")
         .eq("boutique_id", boutiqueId)
         .maybeSingle()
     ]);
@@ -921,6 +925,7 @@ router.get("/profile/:boutiqueId/showcase", async (req, res) => {
       boutique_id: Number(boutiqueId),
       district: showcase?.district || "",
       area: showcase?.area || "",
+      shop_location: showcase?.shop_location || "",
       tags: showcase?.tags || "",
       image_url: showcase?.image_url || "",
       rating: Number(showcase?.rating || 5.0),
@@ -933,7 +938,7 @@ router.get("/profile/:boutiqueId/showcase", async (req, res) => {
 
 router.put("/profile/:boutiqueId/showcase", async (req, res) => {
   const { boutiqueId } = req.params;
-  const { district, area, tags, rating } = req.body;
+  const { district, area, tags, rating, shop_location } = req.body;
   try {
     const safeRating = Number(rating) > 0 ? Number(rating) : 5.0;
     const { data: existing, error: eErr } = await supabase
@@ -952,6 +957,7 @@ router.put("/profile/:boutiqueId/showcase", async (req, res) => {
         .update({
           district: district || null,
           area: area || null,
+          shop_location: cleanText(shop_location) || null,
           tags: tags || null,
           rating: safeRating
         })
@@ -963,6 +969,7 @@ router.put("/profile/:boutiqueId/showcase", async (req, res) => {
           boutique_id: Number(boutiqueId),
           district: district || null,
           area: area || null,
+          shop_location: cleanText(shop_location) || null,
           tags: tags || null,
           rating: safeRating
         }
@@ -981,7 +988,7 @@ router.put("/profile/:boutiqueId/showcase", async (req, res) => {
 
 router.post("/profile/:boutiqueId/showcase", async (req, res) => {
   const { boutiqueId } = req.params;
-  const { district, area, tags, rating } = req.body;
+  const { district, area, tags, rating, shop_location } = req.body;
   try {
     const safeRating = Number(rating) > 0 ? Number(rating) : 5.0;
     const { data: existing, error: eErr } = await supabase
@@ -1000,6 +1007,7 @@ router.post("/profile/:boutiqueId/showcase", async (req, res) => {
         .update({
           district: district || null,
           area: area || null,
+          shop_location: cleanText(shop_location) || null,
           tags: tags || null,
           rating: safeRating
         })
@@ -1011,6 +1019,7 @@ router.post("/profile/:boutiqueId/showcase", async (req, res) => {
           boutique_id: Number(boutiqueId),
           district: district || null,
           area: area || null,
+          shop_location: cleanText(shop_location) || null,
           tags: tags || null,
           rating: safeRating
         }
@@ -1140,7 +1149,7 @@ router.get("/boutiques", async (req, res) => {
     if (boutiqueIds.length) {
       const { data: showcaseRows, error: showcaseError } = await supabase
         .from("boutique_showcase")
-        .select("id, boutique_id, district, area, tags, image_url, rating")
+        .select("id, boutique_id, district, area, shop_location, tags, image_url, rating")
         .in("boutique_id", boutiqueIds)
         .order("id", { ascending: false });
 
@@ -1184,6 +1193,7 @@ router.get("/boutiques", async (req, res) => {
         plan: b.plan || "Basic",
         district: normalizedLocation.district,
         area: normalizedLocation.area,
+        shop_location: showcase.shop_location || null,
         tags: showcase.tags || null,
         image_url: normalizedImageUrl,
         rating: Number(showcase.rating || 5.0)

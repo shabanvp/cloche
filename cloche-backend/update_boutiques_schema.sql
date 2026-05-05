@@ -39,6 +39,7 @@ BEGIN
     END IF;
 
     ALTER TABLE users ADD COLUMN IF NOT EXISTS plan VARCHAR(50) DEFAULT 'early_partner';
+    ALTER TABLE boutique_showcase ADD COLUMN IF NOT EXISTS shop_location VARCHAR(700);
     UPDATE boutiques SET plan = 'early_partner' WHERE LOWER(COALESCE(plan::TEXT, '')) IN ('early', 'basic', 'early partner');
     UPDATE users SET plan = 'early_partner' WHERE plan IS NULL OR LOWER(COALESCE(plan::TEXT, '')) IN ('early', 'basic', 'early partner');
 

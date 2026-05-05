@@ -387,6 +387,7 @@
       const city = String(boutique?.city || "").trim();
       let district = String(boutique?.district || "").trim();
       let area = String(boutique?.area || "").trim();
+      const shopLocation = String(boutique?.shop_location || boutique?.shopLocation || "").trim();
 
       if (!area && city.includes(",")) {
         area = city.split(",")[0].trim();
@@ -405,7 +406,14 @@
       }
 
       const locationLabel = [area, district].filter(Boolean).join(", ");
-      return { area, district, locationLabel };
+      return { area, district, locationLabel, shopLocation };
+    }
+
+    function buildDirectionsHref(locationValue) {
+      const raw = String(locationValue || "").trim();
+      if (!raw) return "https://www.google.com/maps/search/?api=1&query=Kerala";
+      if (/^https?:\/\//i.test(raw)) return raw;
+      return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(raw)}`;
     }
 
     function renderTags(tagsRaw) {
@@ -552,10 +560,11 @@
       const location = normalizeLocationParts(boutique);
       const district = (location.district || "District").toUpperCase();
       const area = (location.area || location.district || "Area").toUpperCase();
-      const locationLabel = (location.locationLabel || location.district || "Location not set").toUpperCase();
+      const visitLocation = location.shopLocation || location.locationLabel || location.district || "Location not set";
+      const locationLabel = visitLocation.toUpperCase();
       const plan = (boutique.plan || "Basic").toUpperCase();
       const cover = addCacheBuster(resolveAssetUrl(boutique.image_url) || fallbackImages[0]);
-      const mapsQuery = encodeURIComponent(location.locationLabel || boutique.city || "Kerala");
+      const directionsHref = buildDirectionsHref(location.shopLocation || location.locationLabel || boutique.city || "Kerala");
 
       document.title = `CLOCHE | ${boutique.boutique_name || "Boutique"}`;
       setText("boutiqueName", (boutique.boutique_name || "Boutique").toUpperCase());
@@ -589,7 +598,7 @@
             boutiqueId: String(boutique.id),
             boutique: String(boutique.boutique_name || ""),
             requirement: String(boutique.boutique_name || "General Enquiry"),
-            location: String(location.locationLabel || boutique.city || "")
+            location: String(visitLocation || boutique.city || "")
           });
           window.location.href = `enquiry.html?${q.toString()}`;
         };
@@ -627,7 +636,7 @@
       }
 
       const directionsBtn = document.getElementById("directionsBtn");
-      if (directionsBtn) directionsBtn.href = `https://www.google.com/maps/search/?api=1&query=${mapsQuery}`;
+      if (directionsBtn) directionsBtn.href = directionsHref;
 
       renderTags(tags);
     }

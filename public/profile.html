@@ -203,6 +203,26 @@
                   </div>
                 </div>
               </div>
+              <div class="md:col-span-2">
+                <label class="block mb-2 text-xs font-bold uppercase tracking-widest text-primary/80">Current Shop
+                  Location / Maps Link</label>
+                <div class="relative">
+                  <span
+                    class="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-primary/50">add_location_alt</span>
+                  <input id="shopLocationInput"
+                    class="w-full bg-background-dark/50 border border-primary/20 rounded-lg pl-12 pr-4 py-3 text-white focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all font-sans"
+                    placeholder="Paste shop address, Maps link, or use GPS"
+                    type="text" />
+                </div>
+                <div class="mt-3 flex flex-col sm:flex-row gap-3 sm:items-center">
+                  <button id="useCurrentLocationBtn" type="button"
+                    class="inline-flex items-center justify-center gap-2 px-4 py-3 border border-primary/30 text-primary hover:bg-primary/10 transition-colors rounded-lg text-[10px] font-bold uppercase tracking-widest">
+                    <span class="material-symbols-outlined text-sm">my_location</span>
+                    Use Current Location
+                  </button>
+                  <p id="shopLocationStatus" class="text-[11px] text-primary/70 font-sans tracking-wide"></p>
+                </div>
+              </div>
             </div>
           </section>
 
@@ -340,10 +360,11 @@
         if (!raw) return null;
         const parsed = JSON.parse(raw);
         return {
-          district: String(parsed?.district || "").trim(),
-          area: String(parsed?.area || "").trim(),
-          tags: String(parsed?.tags || "").trim()
-        };
+        district: String(parsed?.district || "").trim(),
+        area: String(parsed?.area || "").trim(),
+        tags: String(parsed?.tags || "").trim(),
+        shop_location: String(parsed?.shop_location || "").trim()
+      };
       } catch (_) {
         return null;
       }
@@ -352,11 +373,12 @@
     function writeShowcaseDraft(payload) {
       try {
         localStorage.setItem(getShowcaseDraftKey(), JSON.stringify({
-          district: String(payload?.district || "").trim(),
-          area: String(payload?.area || "").trim(),
-          tags: String(payload?.tags || "").trim(),
-          ts: Date.now()
-        }));
+        district: String(payload?.district || "").trim(),
+        area: String(payload?.area || "").trim(),
+        tags: String(payload?.tags || "").trim(),
+        shop_location: String(payload?.shop_location || "").trim(),
+        ts: Date.now()
+      }));
       } catch (_) {}
     }
 
@@ -364,7 +386,8 @@
       return {
         district: document.getElementById("showcaseDistrictInput")?.value.trim() || "",
         area: document.getElementById("showcaseAreaInput")?.value.trim() || "",
-        tags: document.getElementById("showcaseTagsInput")?.value.trim() || ""
+        tags: document.getElementById("showcaseTagsInput")?.value.trim() || "",
+        shop_location: document.getElementById("shopLocationInput")?.value.trim() || ""
       };
     }
 
@@ -440,6 +463,7 @@
       const showcaseDistrict = document.getElementById("showcaseDistrictInput")?.value.trim() || "";
       const showcaseArea = document.getElementById("showcaseAreaInput")?.value.trim() || "";
       const tags = document.getElementById("showcaseTagsInput")?.value || "";
+      const shopLocation = document.getElementById("shopLocationInput")?.value.trim() || "";
 
       // Sync with boutique details if they are empty
       const districtInput = document.getElementById("districtInput");
@@ -454,7 +478,52 @@
       setText("showcasePreviewArea", area.toUpperCase());
       setText("showcasePreviewName", boutiqueName.toUpperCase());
       renderShowcaseTags(tags);
-      writeShowcaseDraft({ district: showcaseDistrict, area: showcaseArea, tags });
+      writeShowcaseDraft({ district: showcaseDistrict, area: showcaseArea, tags, shop_location: shopLocation });
+    }
+
+    function setShopLocationStatus(message, type = "info") {
+      const el = document.getElementById("shopLocationStatus");
+      if (!el) return;
+      const tone = type === "error" ? "text-red-300" : type === "success" ? "text-green-300" : "text-primary/70";
+      el.textContent = message || "";
+      el.className = `${tone} text-[11px] font-sans tracking-wide`;
+    }
+
+    function useCurrentShopLocation() {
+      const btn = document.getElementById("useCurrentLocationBtn");
+      const input = document.getElementById("shopLocationInput");
+
+      if (!navigator.geolocation) {
+        setShopLocationStatus("GPS is not supported in this browser.", "error");
+        return;
+      }
+
+      setShopLocationStatus("Requesting GPS permission...");
+      if (btn) btn.disabled = true;
+
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const lat = Number(position.coords.latitude).toFixed(6);
+          const lng = Number(position.coords.longitude).toFixed(6);
+          const coords = `${lat},${lng}`;
+          if (input) input.value = coords;
+          setShopLocationStatus("Current location added. Save changes to publish it.", "success");
+          writeShowcaseDraft(getShowcaseTextPayload());
+          if (btn) btn.disabled = false;
+        },
+        (error) => {
+          const message = error.code === error.PERMISSION_DENIED
+            ? "Location permission denied."
+            : "Could not fetch current location. Try again near the shop.";
+          setShopLocationStatus(message, "error");
+          if (btn) btn.disabled = false;
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 12000,
+          maximumAge: 0
+        }
+      );
     }
 
     function fillShowcase(data) {
@@ -463,13 +532,15 @@
         ...(data || {}),
         district: (data?.district || draft.district || ""),
         area: (data?.area || draft.area || ""),
-        tags: (data?.tags || draft.tags || "")
+        tags: (data?.tags || draft.tags || ""),
+        shop_location: (data?.shop_location || draft.shop_location || "")
       };
 
       showcaseSnapshot = { ...merged };
       setValue("showcaseDistrictInput", merged.district || "");
       setValue("showcaseAreaInput", merged.area || "");
       setValue("showcaseTagsInput", merged.tags || "");
+      setValue("shopLocationInput", merged.shop_location || "");
 
       if (merged.image_url) {
         const img = document.getElementById("showcasePreviewImage");
@@ -515,6 +586,7 @@
       setValue("phoneInput", data.phone);
       setValue("cityInput", data.city);
       setValue("districtInput", data.district || "");
+      setValue("shopLocationInput", data.shop_location || "");
 
       if (data.created_at) {
         const date = new Date(data.created_at).toLocaleDateString(undefined, {
@@ -633,7 +705,8 @@
         city: document.getElementById("cityInput").value.trim(),
         district: document.getElementById("districtInput").value.trim(),
         area: document.getElementById("showcaseAreaInput")?.value.trim() || "",
-        tags: document.getElementById("showcaseTagsInput")?.value.trim() || ""
+        tags: document.getElementById("showcaseTagsInput")?.value.trim() || "",
+        shop_location: document.getElementById("shopLocationInput")?.value.trim() || ""
       };
 
       console.log("[Profile] Saving profile with payload:", payload);
@@ -780,6 +853,7 @@
       });
 
       document.getElementById("discardChangesBtn")?.addEventListener("click", discardChanges);
+      document.getElementById("useCurrentLocationBtn")?.addEventListener("click", useCurrentShopLocation);
 
       document.getElementById("changePasswordBtn")?.addEventListener("click", async () => {
         try {
@@ -813,7 +887,7 @@
         if (status) status.textContent = `ℹ️ Selected: ${file.name} — Click "Save Showcase Setup" to upload and save.`;
       });
 
-      ["showcaseDistrictInput", "showcaseAreaInput", "showcaseTagsInput", "boutiqueNameInput", "districtInput", "cityInput"]
+      ["showcaseDistrictInput", "showcaseAreaInput", "showcaseTagsInput", "shopLocationInput", "boutiqueNameInput", "districtInput", "cityInput"]
         .forEach((id) => {
           document.getElementById(id)?.addEventListener("input", syncShowcasePreview);
         });

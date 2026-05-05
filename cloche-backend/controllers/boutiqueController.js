@@ -60,7 +60,7 @@ exports.getAllBoutiques = async (req, res) => {
             try {
                 const { data, error } = await supabase
                     .from("boutique_showcase")
-                    .select("id, boutique_id, district, area, tags, image_url, rating, updated_at")
+                    .select("id, boutique_id, district, area, shop_location, tags, image_url, rating, updated_at")
                     .in("boutique_id", boutiqueIds)
                     .order("updated_at", { ascending: false, nullsFirst: false })
                     .order("id", { ascending: false });
@@ -71,7 +71,7 @@ exports.getAllBoutiques = async (req, res) => {
                 try {
                     const { data, error } = await supabase
                         .from("boutique_showcase")
-                        .select("id, boutique_id, district, area, tags, image_url, rating")
+                        .select("id, boutique_id, district, area, shop_location, tags, image_url, rating")
                         .in("boutique_id", boutiqueIds)
                         .order("id", { ascending: false });
 
@@ -81,7 +81,7 @@ exports.getAllBoutiques = async (req, res) => {
                     try {
                         const { data, error } = await supabase
                             .from("boutique_showcase")
-                            .select("boutique_id, district, area, tags, image_url, rating")
+                            .select("boutique_id, district, area, shop_location, tags, image_url, rating")
                             .in("boutique_id", boutiqueIds);
 
                         if (error) throw error;
@@ -200,6 +200,7 @@ exports.getBoutiqueDetails = async (req, res) => {
             tags: normalizeTags(showcase?.tags),
             district: showcase?.district || "",
             area: showcase?.area || "",
+            shop_location: showcase?.shop_location || "",
             showcase_image: showcase?.image_url || null,
             rating: showcase?.rating || 0
         });
