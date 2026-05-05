@@ -45,6 +45,10 @@
   <link rel='stylesheet' href='responsive-fixes.css?v=1776237132140' />
   <style>
     @media (min-width: 1024px) {
+      .messages-shell {
+        min-height: 100vh;
+      }
+
       .inbox-controls .search-bar-gold {
         width: 100% !important;
         max-width: 720px !important;
@@ -86,7 +90,19 @@
       /* Make room for the global mobile navbar (from responsive-layout.js) */
       .messages-shell {
         margin-top: 76px !important;
-        height: calc(100vh - 76px) !important;
+        min-height: calc(100dvh - 76px) !important;
+        height: auto !important;
+        overflow: visible !important;
+      }
+
+      .messages-shell > main {
+        min-height: calc(100dvh - 76px) !important;
+        overflow: visible !important;
+      }
+
+      .messages-shell > main > .flex-1.flex.overflow-hidden {
+        min-height: calc(100dvh - 76px) !important;
+        overflow: visible !important;
       }
 
       /* Ensure fixed chat overlay starts below the mobile navbar too */
@@ -263,17 +279,18 @@
       background: rgba(212, 175, 55, 0.5);
     }
 
-    /* Ensure no outer scrollbar */
+    /* Keep the page scrollable so the shared footer can appear below the inbox. */
     html,
     body {
-      overflow: hidden;
-      height: 100%;
+      min-height: 100%;
+      overflow-x: hidden;
+      overflow-y: auto;
     }
   </style>
 </head>
 
 <body class="bg-background-light dark:bg-background-dark text-white font-sans selection:bg-primary/30">
-  <div class="messages-shell flex h-screen w-full overflow-hidden">
+  <div class="messages-shell flex w-full">
     <!-- Side Navigation (Boutique Dashboard Level) -->
     <!-- SideNavBar (FIXED – SAME AS DASHBOARD) -->
     <aside id="mainSidebar"
@@ -1190,7 +1207,7 @@
     });
   </script>
   <script src='responsive-layout.js?v=20260501-partner-signup'></script>
-  <script src="footer.js?v=20260501-global"></script>
+  <script src="footer.js?v=20260505-footer-fix"></script>
 </body>
 
 </html>

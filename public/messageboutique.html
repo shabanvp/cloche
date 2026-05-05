@@ -106,15 +106,27 @@
 
     html,
     body {
-      height: 100%;
-      overflow: hidden;
+      min-height: 100%;
+      overflow-x: hidden;
+      overflow-y: auto;
     }
 
     main {
       margin-top: var(--cloche-topbar-h) !important;
-      height: calc(100dvh - var(--cloche-topbar-h)) !important;
-      overflow: hidden !important;
+      min-height: calc(100dvh - var(--cloche-topbar-h)) !important;
+      height: auto !important;
+      overflow: visible !important;
       padding-top: 0 !important;
+    }
+
+    body.direct-chat {
+      overflow: hidden;
+    }
+
+    body.direct-chat main {
+      height: calc(100dvh - var(--cloche-topbar-h)) !important;
+      min-height: 0 !important;
+      overflow: hidden !important;
     }
 
     /* If global mobile navbar is active, avoid double top spacing. */
@@ -124,7 +136,13 @@
 
     body.has-mobile-bars main {
       margin-top: 0 !important;
+      min-height: calc(100dvh - 76px) !important;
+      height: auto !important;
+    }
+
+    body.has-mobile-bars.direct-chat main {
       height: calc(100dvh - 76px) !important;
+      min-height: 0 !important;
     }
 
     @media (max-width: 1024px) {
@@ -287,7 +305,7 @@
   <link rel='stylesheet' href='responsive-fixes.css?v=1776237132140' />
 </head>
 
-<body class="bg-background-dark text-white min-h-screen overflow-hidden">
+<body class="bg-background-dark text-white min-h-screen">
   <nav id="pageNav" class="fixed top-0 w-full z-[9999] glass-card border-b border-primary/20 bg-background-dark/95">
     <div class="max-w-7xl mx-auto px-4 md:px-6 h-16 md:h-20 flex items-center justify-between">
       <a href="index.html" class="flex items-center gap-2">
@@ -824,7 +842,7 @@
     });
   </script>
   <script src='responsive-layout.js?v=20260501-partner-signup'></script>
-  <script src="footer.js?v=20260501-global"></script>
+  <script src="footer.js?v=20260505-footer-fix"></script>
 </body>
 
 </html>

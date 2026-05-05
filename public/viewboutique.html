@@ -59,8 +59,48 @@
     .hero-glow {
       background: radial-gradient(circle at center, rgba(193, 166, 113, 0.08) 0%, transparent 70%);
     }
+
+    @media (max-width: 768px) {
+      html,
+      body {
+        width: 100%;
+        min-width: 100%;
+        margin: 0;
+        overflow-x: hidden;
+        background: #0d0d0d;
+      }
+
+      body.has-mobile-bars {
+        padding-top: 76px;
+      }
+
+      body.has-mobile-bars.route-viewboutique main,
+      main {
+        width: 100% !important;
+        max-width: none !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        padding-top: 8px !important;
+        padding-left: 12px !important;
+        padding-right: 12px !important;
+        padding-bottom: 96px !important;
+      }
+
+      .mobile-topbar,
+      .mobile-bottom-nav {
+        left: 12px !important;
+        right: 12px !important;
+        width: auto !important;
+        max-width: none !important;
+      }
+
+      #productsGrid > a {
+        min-width: min(74vw, 280px) !important;
+        max-width: min(74vw, 280px) !important;
+      }
+    }
   </style>
-  <link rel='stylesheet' href='responsive-fixes.css?v=1776237132140' />
+  <link rel='stylesheet' href='responsive-fixes.css?v=20260505-viewboutique-width' />
 </head>
 
 <body class="bg-background-dark text-[#FAF7F2] min-h-screen">

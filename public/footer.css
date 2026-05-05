@@ -113,7 +113,11 @@ body.menu-open .cloche-site-footer {
     gap: 18px;
   }
 
+  body.cloche-footer-ready.has-mobile-bars {
+    padding-bottom: 0 !important;
+  }
+
   body.has-mobile-bars .cloche-site-footer {
-    padding-bottom: 96px;
+    padding-bottom: 28px;
   }
 }
