@@ -537,8 +537,18 @@
       if (!res.ok) throw new Error(data.message || "Failed to load boutique list");
 
       const boutiquesArray = Array.isArray(data) ? data : [];
-      const boutique = boutiquesArray.find((item) => Number(item.id) === Number(boutiqueId));
+      let boutique = boutiquesArray.find((item) => Number(item.id) === Number(boutiqueId));
       if (!boutique) throw new Error("Boutique not found");
+
+      try {
+        const detailRes = await fetch(`${API_BASE}/boutiques/${boutiqueId}?v=${Date.now()}`);
+        const detailData = await detailRes.json();
+        if (detailRes.ok && detailData) {
+          boutique = { ...boutique, ...detailData };
+        }
+      } catch (detailErr) {
+        console.warn("Boutique detail refresh failed:", detailErr);
+      }
 
       localStorage.setItem("selectedBoutiqueId", String(boutiqueId));
       try {

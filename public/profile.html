@@ -489,6 +489,38 @@
       el.className = `${tone} text-[11px] font-sans tracking-wide`;
     }
 
+    async function persistShopLocationFromGps() {
+      const boutiqueId = localStorage.getItem("boutiqueId");
+      if (!boutiqueId) throw new Error("Boutique login missing.");
+
+      const payload = getShowcaseTextPayload();
+      writeShowcaseDraft(payload);
+
+      let res = await fetchWithTimeout(`${API_BASE}/profile/${boutiqueId}/showcase`, 10000, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      if (res.status === 404) {
+        res = await fetchWithTimeout(`${API_BASE}/profile/${boutiqueId}/showcase`, 10000, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+      }
+
+      const result = await res.json();
+      if (!res.ok) {
+        const rawError = String(result.error || result.message || "");
+        if (rawError.toLowerCase().includes("shop_location")) {
+          throw new Error("Database column missing. Run the shop_location SQL migration, then try again.");
+        }
+        throw new Error(result.message || "Failed to save current location");
+      }
+      showcaseSnapshot = { ...(showcaseSnapshot || {}), ...payload };
+    }
+
     function useCurrentShopLocation() {
       const btn = document.getElementById("useCurrentLocationBtn");
       const input = document.getElementById("shopLocationInput");
@@ -502,14 +534,20 @@
       if (btn) btn.disabled = true;
 
       navigator.geolocation.getCurrentPosition(
-        (position) => {
+        async (position) => {
           const lat = Number(position.coords.latitude).toFixed(6);
           const lng = Number(position.coords.longitude).toFixed(6);
           const coords = `${lat},${lng}`;
           if (input) input.value = coords;
-          setShopLocationStatus("Current location added. Save changes to publish it.", "success");
-          writeShowcaseDraft(getShowcaseTextPayload());
-          if (btn) btn.disabled = false;
+          setShopLocationStatus("Current location added. Saving...");
+          try {
+            await persistShopLocationFromGps();
+            setShopLocationStatus("Current location saved. Get Directions will use this location.", "success");
+          } catch (err) {
+            setShopLocationStatus(err.message || "Location added, but save failed.", "error");
+          } finally {
+            if (btn) btn.disabled = false;
+          }
         },
         (error) => {
           const message = error.code === error.PERMISSION_DENIED
