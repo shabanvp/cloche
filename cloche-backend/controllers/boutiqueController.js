@@ -82,7 +82,7 @@ exports.getAllBoutiques = async (req, res) => {
                 try {
                     const { data, error } = await supabase
                         .from("boutique_showcase")
-                        .select("id, boutique_id, district, area, shop_location, tags, image_url, rating")
+                        .select("id, boutique_id, district, area, tags, image_url, rating")
                         .in("boutique_id", boutiqueIds)
                         .order("id", { ascending: false });
 
@@ -92,7 +92,7 @@ exports.getAllBoutiques = async (req, res) => {
                     try {
                         const { data, error } = await supabase
                             .from("boutique_showcase")
-                            .select("boutique_id, district, area, shop_location, tags, image_url, rating")
+                            .select("boutique_id, district, area, tags, image_url, rating")
                             .in("boutique_id", boutiqueIds);
 
                         if (error) throw error;

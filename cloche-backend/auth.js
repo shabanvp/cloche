@@ -1147,11 +1147,26 @@ router.get("/boutiques", async (req, res) => {
     const boutiqueIds = boutiqueList.map((b) => b.id).filter(Boolean);
     let showcaseByBoutiqueId = new Map();
     if (boutiqueIds.length) {
-      const { data: showcaseRows, error: showcaseError } = await supabase
-        .from("boutique_showcase")
-        .select("id, boutique_id, district, area, shop_location, tags, image_url, rating")
-        .in("boutique_id", boutiqueIds)
-        .order("id", { ascending: false });
+      let showcaseRows = [];
+      let showcaseError = null;
+
+      const showcaseQuery = await supabase
+          .from("boutique_showcase")
+          .select("id, boutique_id, district, area, shop_location, tags, image_url, rating")
+          .in("boutique_id", boutiqueIds)
+          .order("id", { ascending: false });
+
+      if (showcaseQuery.error) {
+        const fallbackQuery = await supabase
+          .from("boutique_showcase")
+          .select("id, boutique_id, district, area, tags, image_url, rating")
+          .in("boutique_id", boutiqueIds)
+          .order("id", { ascending: false });
+        showcaseRows = fallbackQuery.data;
+        showcaseError = fallbackQuery.error;
+      } else {
+        showcaseRows = showcaseQuery.data;
+      }
 
       if (showcaseError) {
         console.warn("[BOUTIQUES] Showcase batch query error:", showcaseError.message);
