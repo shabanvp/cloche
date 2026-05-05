@@ -75,6 +75,7 @@
       }
 
       body.has-mobile-bars.route-viewboutique main,
+      body.cloche-footer-ready > main,
       main {
         width: 100% !important;
         max-width: none !important;
@@ -83,7 +84,9 @@
         padding-top: 8px !important;
         padding-left: 12px !important;
         padding-right: 12px !important;
-        padding-bottom: 96px !important;
+        padding-bottom: 4px !important;
+        flex: 0 0 auto !important;
+        min-height: auto !important;
       }
 
       .mobile-topbar,
@@ -129,6 +132,31 @@
       .boutique-actions {
         width: 100%;
         margin-top: 8px;
+      }
+
+      .other-boutiques-section {
+        margin-top: 22px !important;
+        margin-bottom: 0 !important;
+        padding-bottom: 0 !important;
+      }
+
+      #otherBoutiquesGrid {
+        padding-bottom: 0 !important;
+      }
+
+      #otherBoutiquesGrid + * {
+        margin-top: 0 !important;
+      }
+
+      body.route-viewboutique .cloche-site-footer {
+        margin-top: 0 !important;
+        padding-top: 18px !important;
+      }
+
+      body.cloche-footer-ready > main,
+      body.route-viewboutique.cloche-footer-ready > main {
+        flex: 0 0 auto !important;
+        flex-grow: 0 !important;
       }
     }
   </style>
@@ -280,7 +308,7 @@
     </section>
 
     <!-- Other Boutiques Section -->
-    <section class="mt-16 pb-12">
+    <section class="other-boutiques-section mt-16 pb-12">
       <div class="flex justify-between items-end mb-6">
         <h3 class="font-display text-2xl text-primary">Other Boutiques</h3>
       </div>
