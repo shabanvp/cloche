@@ -171,7 +171,7 @@
         <a class="text-sm uppercase tracking-widest hover:text-primary transition-colors" href="#how-it-works">How it
           Works</a>
         <a id="listYourBoutiqueNav" class="text-sm uppercase tracking-widest hover:text-primary transition-colors"
-          href="signup.html?role=partner">List Your Boutique</a>
+          href="boutiquelogin.html">List Your Boutique</a>
       </div>
       <!-- Right side: auth + avatar -->
       <div class="relative flex items-center gap-3">
@@ -212,7 +212,7 @@
           class="inline-block bg-primary text-background-dark px-10 py-5 rounded-full font-bold uppercase tracking-widest text-sm gold-glow hover:scale-105 transition-all duration-300">
           Get Wedding Look
         </a>
-        <a id="heroListBoutiqueBtn" href="signup.html?role=partner"
+        <a id="heroListBoutiqueBtn" href="boutiquelogin.html"
           class="inline-block border border-primary/50 text-white px-10 py-5 rounded-full font-bold uppercase tracking-widest text-sm hover:bg-primary/10 transition-all duration-300">
           List Your Boutique
         </a>
@@ -455,7 +455,74 @@
     </div>
   </section>
   <!-- Footer -->
-<!-- Bottom Navigation Injected by responsive-layout.js -->
+  <footer class="pt-24 pb-12 px-6 bg-[#080808] border-t border-white/5">
+    <div class="max-w-7xl mx-auto">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-20">
+        <div class="col-span-1 md:col-span-1">
+          <div class="flex items-center gap-2 mb-8">
+            <span class="material-symbols-outlined text-primary">diamond</span>
+            <span class="text-xl font-bold tracking-[0.2em] font-display text-white">CLOCHE</span>
+          </div>
+          <p class="text-sm text-gray-500 leading-relaxed mb-8">
+            Redefining bridal elegance through a shared luxury ecosystem.
+          </p>
+          <div class="flex gap-4">
+            <a class="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center hover:border-primary text-gray-400 hover:text-primary transition-all"
+              href="#">
+              <span class="material-symbols-outlined text-lg">public</span>
+            </a>
+            <a class="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center hover:border-primary text-gray-400 hover:text-primary transition-all"
+              href="#">
+              <span class="material-symbols-outlined text-lg">share</span>
+            </a>
+            <a class="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center hover:border-primary text-gray-400 hover:text-primary transition-all"
+              href="#">
+              <span class="material-symbols-outlined text-lg">mail</span>
+            </a>
+          </div>
+        </div>
+        <div>
+          <h4 class="text-white uppercase tracking-widest text-xs font-bold mb-8">The Brand</h4>
+          <ul class="space-y-4 text-sm text-gray-500">
+            <li><a class="hover:text-primary transition-colors" href="#">Our Story</a></li>
+            <li><a class="hover:text-primary transition-colors" href="#">Curation Process</a></li>
+            <li><a class="hover:text-primary transition-colors" href="#">Quality Guarantee</a></li>
+            <li><a class="hover:text-primary transition-colors" href="#">Sustainability</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="text-white uppercase tracking-widest text-xs font-bold mb-8">Help &amp; Support</h4>
+          <ul class="space-y-4 text-sm text-gray-500">
+            <li><a class="hover:text-primary transition-colors" href="terms.html">Rental Terms</a></li>
+            <li><a class="hover:text-primary transition-colors" href="#">Sizing Guide</a></li>
+            <li><a class="hover:text-primary transition-colors" href="payment-policy.html">Return Policy</a></li>
+            <li><a class="hover:text-primary transition-colors" href="#">Shipping</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="text-white uppercase tracking-widest text-xs font-bold mb-8">Bespoke Updates</h4>
+          <p class="text-xs text-gray-500 mb-6">Receive curated collections and royal insights in your inbox.</p>
+          <div class="flex">
+            <input
+              class="bg-surface-dark border-white/10 text-white px-4 py-3 rounded-l-lg focus:ring-primary focus:border-primary flex-grow text-xs outline-none"
+              placeholder="Email Address" type="email" />
+            <button
+              class="bg-primary text-background-dark px-4 py-3 rounded-r-lg font-bold text-[10px] uppercase tracking-widest">Join</button>
+          </div>
+        </div>
+      </div>
+      <div class="pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4">
+        <p class="text-[10px] uppercase tracking-[0.2em] text-gray-600">© 2024 CLOCHE LUXURY. ALL RIGHTS RESERVED<a
+            href="adminlogin.html">.</a></p>
+        <div class="flex gap-8 text-[10px] uppercase tracking-[0.2em] text-gray-600">
+          <a class="hover:text-primary" href="privacy.html">Privacy Policy</a>
+          <a class="hover:text-primary" href="terms.html">Terms of Service</a>
+          <a class="hover:text-primary" href="vendor-agreement.html">Vendor Agreement</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+  <!-- Bottom Navigation Injected by responsive-layout.js -->
 
 
 
@@ -473,15 +540,12 @@
 
 
 
-  <script src="tag-renderer.js?v=20260503-boutique-tags"></script>
   <script>
     const API_AUTH = "https://cloche-backend.onrender.com/api/auth";
     const API_BASE = "https://cloche-backend.onrender.com/api";
     const API_ORIGIN = "https://cloche-backend.onrender.com";
-    const DEBUG_TAGS = new URLSearchParams(window.location.search).has("debugTags");
-    if (DEBUG_TAGS) console.log("[CLOCHE] index.html v20260503-boutique-tags");
     let cloudinaryCloudName = "";
-    const FEATURED_CACHE_KEY = "featuredBoutiquesCacheV2";
+    const FEATURED_CACHE_KEY = "featuredBoutiquesCacheV1";
     const COLLECTIONS_CACHE_KEY = "featuredCollectionsCacheV1";
     const FEATURED_RETRY_DELAYS_MS = [0, 2000, 5000]; // Give Render backends some time between attempts
     const FEATURED_FETCH_TIMEOUT_MS = 60000; // 60 second timeout per fetch to allow free-tier spin up
@@ -690,11 +754,6 @@
       const grid = document.getElementById("featuredBoutiquesGrid");
       const status = document.getElementById("featuredBoutiquesStatus");
       if (!grid || !status) return;
-      if (DEBUG_TAGS) console.log("[CLOCHE] renderFeaturedBoutiques() index.html", { width: window.innerWidth, path: location.pathname });
-
-      const renderTagSpans = (window.__CLOCHE__ && window.__CLOCHE__.renderTagSpans)
-        ? window.__CLOCHE__.renderTagSpans
-        : (() => "");
 
       if (!Array.isArray(list) || !list.length) {
         status.textContent = "No boutiques available yet.";
@@ -704,7 +763,6 @@
 
       status.textContent = "";
       grid.innerHTML = list.map((b, idx) => {
-        if (DEBUG_TAGS) console.log("Rendering tags:", b.tags);
         const resolved = b.image_url ? resolveAssetUrl(b.image_url) : null;
         const fallback = resolved ? resolved : pickImage(`${b.id}-${b.boutique_name}-${idx}`);
         const image = fallback;
@@ -712,31 +770,25 @@
         const district = (location.district || "Kerala").toUpperCase();
         const area = (location.area || location.district || "Location").toUpperCase();
         const name = (b.boutique_name || "Boutique").toUpperCase();
-        const tagSpans = renderTagSpans(b.tags, {
-          limit: 2,
-          spanClass: "text-[9px] uppercase tracking-widest px-2 py-0.5 bg-white/10 border border-white/10 rounded text-white/90"
-        });
-        const tagsHtml = tagSpans ? `<div class="flex flex-wrap gap-2 mb-4">${tagSpans}</div>` : "";
 
         return `
-          <a href="viewboutique.html?boutiqueId=${b.id}" onclick="localStorage.setItem('selectedBoutiqueId','${b.id}'); localStorage.setItem('selectedBoutiqueName', ${JSON.stringify(String(b.boutique_name || ""))})" class="featured-boutique-card group relative aspect-[3/4] rounded-xl overflow-hidden glass-card shimmer-effect cursor-pointer block">
-            <img
-              class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-              src="${image}"
-              alt="${name}"
-              loading="lazy"
-              onerror="console.warn('Image failed to load:', this.src); this.onerror=null;this.src='${pickImage(`${b.id}-${b.boutique_name}-${idx}`)}'"
-            />
-            <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-black/15"></div>
-            <div class="absolute inset-0 p-6 flex flex-col justify-end">
-              <p class="text-xs uppercase tracking-[0.25em] text-primary mb-2">${district}</p>
-              <h3 class="text-xl font-display text-white mb-2">${name}</h3>
-              <p class="text-[11px] uppercase tracking-[0.2em] text-white/70 mb-3">${area}</p>
-              ${tagsHtml}
-              <div class="h-[1px] w-0 group-hover:w-full bg-primary transition-all duration-500 mt-2"></div>
-            </div>
-          </a>
-        `;
+        <a href="viewboutique.html?boutiqueId=${b.id}" onclick="localStorage.setItem('selectedBoutiqueId','${b.id}'); localStorage.setItem('selectedBoutiqueName', ${JSON.stringify(String(b.boutique_name || ""))})" class="featured-boutique-card group relative aspect-[3/4] rounded-xl overflow-hidden glass-card shimmer-effect cursor-pointer block">
+          <img
+            class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+            src="${image}"
+            alt="${name}"
+            loading="lazy"
+            onerror="console.warn('Image failed to load:', this.src); this.onerror=null;this.src='${pickImage(`${b.id}-${b.boutique_name}-${idx}`)}'"
+          />
+          <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-black/15"></div>
+          <div class="absolute inset-0 p-6 flex flex-col justify-end">
+            <p class="text-xs uppercase tracking-[0.25em] text-primary mb-2">${district}</p>
+            <h3 class="text-xl font-display text-white mb-2">${name}</h3>
+            <p class="text-[11px] uppercase tracking-[0.2em] text-white/70 mb-1">${area}</p>
+            <div class="h-[1px] w-0 group-hover:w-full bg-primary transition-all duration-500 mt-4"></div>
+          </div>
+        </a>
+      `;
       }).join("");
     }
 
@@ -950,7 +1002,7 @@
 
         try {
           console.log(`[Featured] Fetch attempt ${attempt + 1} with ${FEATURED_FETCH_TIMEOUT_MS}ms timeout...`);
-          const res = await fetchWithTimeout(`${API_BASE}/boutiques?limit=${FEATURED_BOUTIQUES_LIMIT}&v=${Date.now()}`, FEATURED_FETCH_TIMEOUT_MS);
+          const res = await fetchWithTimeout(`${API_BASE}/boutiques?limit=${FEATURED_BOUTIQUES_LIMIT}`, FEATURED_FETCH_TIMEOUT_MS);
           const data = await res.json().catch(() => []);
           if (!res.ok) throw new Error(data.message || "Failed to load boutiques");
           console.log(`[Featured] Fetch successful on attempt ${attempt + 1}`);
@@ -1070,7 +1122,7 @@
     });
   </script>
 
-  <script src='responsive-layout.js?v=20260501-partner-signup'></script>
+  <script src='responsive-layout.js?v=1776237132140'></script>
   <script type="module">
     import { StatusBar, Style } from '@capacitor/status-bar';
 
@@ -1083,7 +1135,6 @@
       }
     });
   </script>
-  <script src="footer.js?v=20260501-global"></script>
 </body>
 
 </html>
