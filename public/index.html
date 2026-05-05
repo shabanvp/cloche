@@ -133,6 +133,80 @@
         max-width: 86%;
         scroll-snap-align: start;
       }
+
+      .index-footer {
+        padding: 22px 18px 16px !important;
+      }
+
+      .index-footer-inner {
+        max-width: 100% !important;
+      }
+
+      .index-footer-grid {
+        display: flex !important;
+        flex-direction: column;
+        gap: 32px !important;
+        margin-bottom: 32px !important;
+      }
+
+      .index-footer-brand {
+        display: none;
+      }
+
+      .index-footer-heading {
+        margin-bottom: 18px !important;
+        font-size: 10px !important;
+        letter-spacing: 0.18em !important;
+      }
+
+      .index-footer-list {
+        display: grid;
+        gap: 14px !important;
+        font-size: 12px !important;
+        line-height: 1.4;
+      }
+
+      .index-footer-updates p {
+        margin-bottom: 16px !important;
+        font-size: 10px !important;
+        line-height: 1.6;
+      }
+
+      .index-footer-form input {
+        min-width: 0;
+        height: 34px;
+        padding: 0 12px !important;
+        font-size: 12px !important;
+        border-radius: 10px 0 0 10px !important;
+      }
+
+      .index-footer-form button {
+        height: 34px;
+        padding: 0 14px !important;
+        border-radius: 0 10px 10px 0 !important;
+      }
+
+      .index-footer-bottom {
+        align-items: flex-start !important;
+        gap: 18px !important;
+        padding-top: 22px !important;
+      }
+
+      .index-footer-copy {
+        font-size: 8px !important;
+        line-height: 1.6 !important;
+        letter-spacing: 0.22em !important;
+      }
+
+      .index-footer-legal {
+        width: 100%;
+        display: grid !important;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 18px !important;
+        font-size: 8px !important;
+        line-height: 1.25 !important;
+        letter-spacing: 0.22em !important;
+      }
     }
   </style>
   <link rel='stylesheet' href='responsive-fixes.css?v=1776237132140' />
@@ -455,10 +529,10 @@
     </div>
   </section>
   <!-- Footer -->
-  <footer class="pt-24 pb-12 px-6 bg-[#080808] border-t border-white/5">
-    <div class="max-w-7xl mx-auto">
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-20">
-        <div class="col-span-1 md:col-span-1">
+  <footer class="index-footer pt-24 pb-12 px-6 bg-[#080808] border-t border-white/5">
+    <div class="index-footer-inner max-w-7xl mx-auto">
+      <div class="index-footer-grid grid grid-cols-1 md:grid-cols-4 gap-12 mb-20">
+        <div class="index-footer-brand col-span-1 md:col-span-1">
           <div class="flex items-center gap-2 mb-8">
             <span class="material-symbols-outlined text-primary">diamond</span>
             <span class="text-xl font-bold tracking-[0.2em] font-display text-white">CLOCHE</span>
@@ -482,8 +556,8 @@
           </div>
         </div>
         <div>
-          <h4 class="text-white uppercase tracking-widest text-xs font-bold mb-8">The Brand</h4>
-          <ul class="space-y-4 text-sm text-gray-500">
+          <h4 class="index-footer-heading text-white uppercase tracking-widest text-xs font-bold mb-8">The Brand</h4>
+          <ul class="index-footer-list space-y-4 text-sm text-gray-500">
             <li><a class="hover:text-primary transition-colors" href="#">Our Story</a></li>
             <li><a class="hover:text-primary transition-colors" href="#">Curation Process</a></li>
             <li><a class="hover:text-primary transition-colors" href="#">Quality Guarantee</a></li>
@@ -491,18 +565,18 @@
           </ul>
         </div>
         <div>
-          <h4 class="text-white uppercase tracking-widest text-xs font-bold mb-8">Help &amp; Support</h4>
-          <ul class="space-y-4 text-sm text-gray-500">
+          <h4 class="index-footer-heading text-white uppercase tracking-widest text-xs font-bold mb-8">Help &amp; Support</h4>
+          <ul class="index-footer-list space-y-4 text-sm text-gray-500">
             <li><a class="hover:text-primary transition-colors" href="terms.html">Rental Terms</a></li>
             <li><a class="hover:text-primary transition-colors" href="#">Sizing Guide</a></li>
             <li><a class="hover:text-primary transition-colors" href="payment-policy.html">Return Policy</a></li>
             <li><a class="hover:text-primary transition-colors" href="#">Shipping</a></li>
           </ul>
         </div>
-        <div>
-          <h4 class="text-white uppercase tracking-widest text-xs font-bold mb-8">Bespoke Updates</h4>
+        <div class="index-footer-updates">
+          <h4 class="index-footer-heading text-white uppercase tracking-widest text-xs font-bold mb-8">Bespoke Updates</h4>
           <p class="text-xs text-gray-500 mb-6">Receive curated collections and royal insights in your inbox.</p>
-          <div class="flex">
+          <div class="index-footer-form flex">
             <input
               class="bg-surface-dark border-white/10 text-white px-4 py-3 rounded-l-lg focus:ring-primary focus:border-primary flex-grow text-xs outline-none"
               placeholder="Email Address" type="email" />
@@ -511,10 +585,10 @@
           </div>
         </div>
       </div>
-      <div class="pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4">
-        <p class="text-[10px] uppercase tracking-[0.2em] text-gray-600">© 2024 CLOCHE LUXURY. ALL RIGHTS RESERVED<a
+      <div class="index-footer-bottom pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4">
+        <p class="index-footer-copy text-[10px] uppercase tracking-[0.2em] text-gray-600">&copy; 2024 CLOCHE LUXURY. ALL RIGHTS RESERVED<a
             href="adminlogin.html">.</a></p>
-        <div class="flex gap-8 text-[10px] uppercase tracking-[0.2em] text-gray-600">
+        <div class="index-footer-legal flex gap-8 text-[10px] uppercase tracking-[0.2em] text-gray-600">
           <a class="hover:text-primary" href="privacy.html">Privacy Policy</a>
           <a class="hover:text-primary" href="terms.html">Terms of Service</a>
           <a class="hover:text-primary" href="vendor-agreement.html">Vendor Agreement</a>
