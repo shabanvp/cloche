@@ -98,6 +98,38 @@
         min-width: min(74vw, 280px) !important;
         max-width: min(74vw, 280px) !important;
       }
+
+      .boutique-hero-card {
+        align-items: stretch !important;
+        padding: 16px 14px 14px !important;
+        gap: 16px !important;
+      }
+
+      .boutique-identity {
+        width: 100%;
+        text-align: left;
+      }
+
+      #boutiqueName {
+        font-size: clamp(1.85rem, 9vw, 2.6rem) !important;
+        line-height: 1 !important;
+        letter-spacing: 0.04em !important;
+        text-align: left !important;
+        margin: 0 !important;
+      }
+
+      .boutique-location-row {
+        justify-content: flex-start !important;
+        gap: 8px !important;
+        margin-top: 10px !important;
+        font-size: 10px !important;
+        letter-spacing: 0.16em !important;
+      }
+
+      .boutique-actions {
+        width: 100%;
+        margin-top: 8px;
+      }
     }
   </style>
   <link rel='stylesheet' href='responsive-fixes.css?v=20260505-viewboutique-width' />
@@ -140,17 +172,17 @@
     <section id="statusWrap" class="mb-8 text-sm text-[#FAF7F2]/70"></section>
 
     <section
-      class="glass-card rounded-lg p-8 md:p-12 mb-14 flex flex-col md:flex-row justify-between items-end md:items-center gap-8 border-l-4 border-l-primary">
-      <div class="space-y-4">
+      class="boutique-hero-card glass-card rounded-lg p-8 md:p-12 mb-14 flex flex-col md:flex-row justify-between items-end md:items-center gap-8 border-l-4 border-l-primary">
+      <div class="boutique-identity space-y-2">
         <h2 id="boutiqueName" class="font-display text-4xl md:text-5xl font-bold text-white uppercase">Boutique</h2>
-        <div class="flex flex-wrap items-center gap-4 text-white/60 text-sm uppercase tracking-widest">
+        <div class="boutique-location-row flex flex-wrap items-center gap-4 text-white/60 text-sm uppercase tracking-widest">
           <span id="boutiqueCity">City</span>
           <span class="w-1 h-1 bg-primary rounded-full"></span>
           <span id="boutiqueArea">Area</span>
         </div>
         <div id="boutiqueTags" class="flex flex-wrap gap-2"></div>
       </div>
-      <div class="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
+      <div class="boutique-actions flex flex-col sm:flex-row gap-4 w-full md:w-auto">
         <a id="enquiryBtn" href="#"
           class="border border-primary/40 text-primary px-10 py-4 rounded-lg font-bold text-xs uppercase tracking-widest transition-all text-center hover:bg-primary/10">
           Send Enquiry
