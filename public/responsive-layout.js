@@ -176,13 +176,6 @@
           </a>
           ` : ""}
 
-          ${partnerLoggedIn ? `
-          <a href="profile.html" class="side-menu-link">
-            <span class="material-symbols-outlined">person</span>
-            <span>Boutique Profile</span>
-          </a>
-          ` : ""}
-
           <div class="side-menu-section-title">Account</div>
           ${partnerLinks}
           <a href="${loginProfileLink}" class="side-menu-link" onclick="${loginOnClick}">
