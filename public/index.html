@@ -92,6 +92,10 @@
     }
 
     @media (max-width: 767px) {
+      body.has-mobile-bars.route-index {
+        padding-bottom: 0 !important;
+      }
+
       #featuredBoutiquesGrid {
         display: flex !important;
         overflow-x: auto;
@@ -200,12 +204,16 @@
 
       .index-footer-legal {
         width: 100%;
-        display: grid !important;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 18px !important;
+        display: flex !important;
+        justify-content: space-between;
+        gap: 12px !important;
         font-size: 8px !important;
         line-height: 1.25 !important;
-        letter-spacing: 0.22em !important;
+        letter-spacing: 0.14em !important;
+      }
+
+      .index-footer-legal a {
+        white-space: nowrap;
       }
     }
   </style>
