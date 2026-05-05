@@ -376,6 +376,21 @@
       }).join("");
     }
 
+    function normalizePlan(plan) {
+      const normalized = String(plan || "").trim().toLowerCase();
+      if (["early", "basic", "early partner", "early_partner"].includes(normalized)) return "early_partner";
+      if (normalized === "pro") return "premium";
+      return normalized;
+    }
+
+    function sortPremiumFirst(list) {
+      return [...list].sort((a, b) => {
+        if (normalizePlan(a.plan) === "premium" && normalizePlan(b.plan) !== "premium") return -1;
+        if (normalizePlan(b.plan) === "premium" && normalizePlan(a.plan) !== "premium") return 1;
+        return 0;
+      });
+    }
+
     async function loadBoutiques() {
       const status = document.getElementById("statusText");
       status.textContent = "Loading boutiques...";
@@ -391,7 +406,7 @@
         const data = await res.json();
         if (!res.ok) throw new Error(data.message || "Failed to load boutiques");
 
-        boutiques = Array.isArray(data) ? data : [];
+        boutiques = sortPremiumFirst(Array.isArray(data) ? data : []);
         renderFilters();
         renderGrid();
       } catch (err) {

@@ -3,12 +3,18 @@
 
     <!-- Main App Theme -->
     <style name="AppTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
-        <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
-        <item name="colorAccent">@color/colorAccent</item>
+        <!-- Main colors -->
+        <item name="colorPrimary">#0d0d0d</item>
+        <item name="colorPrimaryDark">#000000</item>
+        <item name="colorAccent">#ffffff</item>
 
+        <!-- Status Bar and Navigation Bar -->
         <item name="android:statusBarColor">#0d0d0d</item>
         <item name="android:navigationBarColor">#0d0d0d</item>
+
+        <!-- Setting to false ensures light icons on dark background -->
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
     </style>
 
     <!-- No Action Bar Theme -->
@@ -20,7 +26,9 @@
 
     <!-- Splash Theme -->
     <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
-        <item name="android:background">@drawable/splash</item>
-    </style>
+    <item name="android:background">@drawable/splash</item>
+    <item name="android:statusBarColor">#0d0d0d</item>
+    <item name="android:navigationBarColor">#0d0d0d</item>
+</style>
 
 </resources>

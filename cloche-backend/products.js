@@ -5,6 +5,7 @@ const path = require("path");
 const fs = require("fs");
 const supabase = require("./supabase");
 const { deleteStorageObjectByUrl, uploadBufferToStorage } = require("./storage");
+const { getPlanLimits, normalizePlan } = require("./services/planService");
 
 const CLOUDINARY_CLOUD_NAME = String(process.env.CLOUDINARY_CLOUD_NAME || "").trim();
 
@@ -184,9 +185,8 @@ router.post("/add", upload.array("images", 10), async (req, res) => {
 
     if (planErr) return res.status(500).json({ message: "DB error", error: planErr.message });
 
-    const normalizedPlan = String(planRow?.plan || "Basic").toLowerCase();
-    const productLimitByPlan = { basic: 20, professional: 20, premium: Infinity };
-    const maxProducts = productLimitByPlan[normalizedPlan] ?? productLimitByPlan.basic;
+    const normalizedPlan = normalizePlan(planRow?.plan);
+    const maxProducts = getPlanLimits(normalizedPlan).maxProducts;
 
     const { count, error: countErr } = await supabase
       .from("products")

@@ -2,9 +2,16 @@
  * Plan constants and limits for CLOCHE
  */
 const PLANS = {
-    EARLY: 'early',
+    EARLY: 'early_partner',
     PROFESSIONAL: 'professional',
     PREMIUM: 'premium'
+};
+
+const normalizePlan = (plan) => {
+    const normalized = String(plan || PLANS.EARLY).trim().toLowerCase();
+    if (["early", "basic", "early partner", "early_partner"].includes(normalized)) return PLANS.EARLY;
+    if (normalized === "pro") return PLANS.PREMIUM;
+    return normalized;
 };
 
 const PLAN_LIMITS = {
@@ -44,7 +51,7 @@ const PLAN_LIMITS = {
  * Get limits for a specific plan
  */
 const getPlanLimits = (plan) => {
-    const normalizedPlan = (plan || PLANS.EARLY).toLowerCase();
+    const normalizedPlan = normalizePlan(plan);
     return PLAN_LIMITS[normalizedPlan] || PLAN_LIMITS[PLANS.EARLY];
 };
 
@@ -67,6 +74,7 @@ const canReceiveLead = (boutique) => {
 module.exports = {
     PLANS,
     PLAN_LIMITS,
+    normalizePlan,
     getPlanLimits,
     canAddProduct,
     canReceiveLead

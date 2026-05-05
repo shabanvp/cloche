@@ -318,7 +318,7 @@
     const API_ORIGIN = "https://cloche-backend.onrender.com";
     // Plan Configuration (Matches backend planService.js)
     const planConfig = {
-      "early": {
+      "early_partner": {
         name: "Early Plan",
         displayName: "Early Plan",
         maxLeads: 20,
@@ -356,12 +356,32 @@
       }
     };
 
+    function normalizePlan(plan) {
+      const normalized = String(plan || "early_partner").trim().toLowerCase();
+      if (["early", "basic", "early partner", "early_partner"].includes(normalized)) return "early_partner";
+      if (normalized === "pro") return "premium";
+      return normalized;
+    }
+
+    function isAnalyticsAllowed(plan) {
+      const normalizedPlan = normalizePlan(plan);
+      return normalizedPlan === "professional" || normalizedPlan === "premium";
+    }
+
+    function showUpgradePopup() {
+      alert("Upgrade to continue growing your boutique");
+    }
+
+    function lockAnalytics() {
+      showUpgradePopup();
+    }
+
     function updateDashboardForPlan(plan, data) {
-      const normalizedPlan = (plan || "early").toLowerCase();
-      const baseConfig = planConfig[normalizedPlan] || planConfig.early;
+      const normalizedPlan = normalizePlan(plan);
+      const baseConfig = planConfig[normalizedPlan] || planConfig.early_partner;
 
       // Intro period: first 6 months should show unlimited usage (∞)
-      const introUnlimited = Boolean(data && data.introUnlimited);
+      const introUnlimited = Boolean(data && data.introUnlimited && normalizedPlan !== "early_partner");
       const config = introUnlimited
         ? { ...baseConfig, maxLeads: Infinity, maxMessages: Infinity, maxProducts: Infinity }
         : baseConfig;
@@ -395,11 +415,12 @@
         if (pc) pc.setAttribute("stroke-dashoffset", 0);
       } else {
         const leadsUsed = data.leadsUsed || 0;
-        const leadsRemaining = Math.max(0, config.maxLeads - leadsUsed);
         const usagePercent = Math.min(100, Math.round((leadsUsed / config.maxLeads) * 100));
 
-        safeSetText("leadsRemainingCount", leadsRemaining);
+        safeSetText("leadsRemaining", "Leads Available");
+        safeSetText("leadsRemainingCount", Math.min(leadsUsed, config.maxLeads));
         safeSetText("leadsTotal", `/ ${config.maxLeads}`);
+        safeSetText("quotaMessage", leadsUsed >= config.maxLeads ? "Limit reached - upgrade to receive more leads" : `${Math.max(0, config.maxLeads - leadsUsed)} leads remaining`);
         safeSetText("progressPercent", `${usagePercent}%`);
 
         // Calculate stroke offset for circular progress (radius 40, circum 251.2)
@@ -411,7 +432,7 @@
       // Feature Locking Logic
       const analyticsChart = document.getElementById("performanceChartContainer");
       if (analyticsChart) {
-        if (!config.features.analytics) {
+        if (!isAnalyticsAllowed(normalizedPlan)) {
           analyticsChart.classList.add("opacity-20", "pointer-events-none");
           analyticsChart.parentElement.classList.add("relative");
           if (!document.getElementById("analyticsLock")) {
@@ -422,7 +443,7 @@
                       <span class="material-symbols-outlined text-4xl text-primary mb-2">lock</span>
                       <h5 class="text-white font-bold">Analytics Locked</h5>
                       <p class="text-xs text-slate-400 mb-4">Upgrade to Professional to see trends</p>
-                      <a href="index.html#partnership" class="bg-primary text-background-dark px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest">Upgrade Now</a>
+                      <button type="button" onclick="lockAnalytics()" class="bg-primary text-background-dark px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest">Upgrade Now</button>
                   `;
             analyticsChart.parentElement.appendChild(lock);
           }
@@ -655,7 +676,7 @@
         safeSetTextGlobal("avatarCircle", ownerInitial);
         safeSetTextGlobal("topProfileIconText", ownerInitial);
 
-        updateDashboardForPlan(data.plan || "basic", data);
+        updateDashboardForPlan(data.plan || "early_partner", data);
       }
 
       try {
@@ -691,7 +712,7 @@
         safeSetText("topProfileIconText", ownerInitial);
 
         // 📊 Update dashboard based on plan
-        const userPlan = data.plan || "basic";
+        const userPlan = data.plan || "early_partner";
         updateDashboardForPlan(userPlan, data);
 
       } catch (err) {

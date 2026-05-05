@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const supabase = require("./supabase");
 const { sendEnquiryNotificationEmail } = require("./emailService");
+const { getPlanLimits, normalizePlan } = require("./services/planService");
 
 const LEADS_TABLE = "leads";
 const ENQUIRIES_TABLE = "enquiries";
@@ -22,6 +23,24 @@ const isNotNullViolation = (error) => /null value in column/i.test(String(error?
 const isCheckViolation = (error) => /check constraint/i.test(String(error?.message || ""));
 const isRetryableInsertError = (error) =>
   isMissingColumn(error) || isForeignKeyViolation(error) || isNotNullViolation(error) || isCheckViolation(error);
+
+async function canBoutiqueReceiveLead(boutique) {
+  const plan = normalizePlan(boutique?.plan);
+  const limits = getPlanLimits(plan);
+  if (limits.maxLeads === Infinity) return true;
+
+  const { count, error } = await supabase
+    .from(LEADS_TABLE)
+    .select("*", { count: "exact", head: true })
+    .eq("boutique_id", boutique.id);
+
+  if (error) {
+    console.warn(`[Leads] Failed to count leads for boutique ${boutique.id}:`, error.message);
+    return true;
+  }
+
+  return Number(count || 0) < limits.maxLeads;
+}
 
 const buildPreferredLocationFromBody = (body) => {
   const direct = clean(body?.cityLocation || body?.preferred_location);
@@ -373,7 +392,7 @@ function normalizeAdminEnquiryRow(row) {
 async function fetchAllBoutiquesWithLocation() {
   const { data: boutiques, error: boutiqueErr } = await supabase
     .from("boutiques")
-    .select("id, boutique_name, city, email")
+    .select("id, boutique_name, city, email, plan")
     .order("boutique_name", { ascending: true });
 
   if (boutiqueErr) {
@@ -407,6 +426,7 @@ async function fetchAllBoutiquesWithLocation() {
       id: b.id,
       boutique_name: b.boutique_name,
       email: clean(b.email),
+      plan: b.plan || "early_partner",
       city: clean(b.city),
       area: clean(s.area),
       district: clean(s.district)
@@ -459,6 +479,10 @@ async function forwardEnquiryToMatchedBoutiques(enquiry) {
 
     let insertedCount = 0;
     for (const b of matchedBoutiques) {
+      if (!(await canBoutiqueReceiveLead(b))) {
+        console.log(`[FORWARD] Skipping boutique ${b.id}: lead limit reached`);
+        continue;
+      }
       await tryInsertWithFallback(LEADS_TABLE, leadPayloadCandidates({
         boutiqueId: b.id,
         enquiry: {
@@ -583,6 +607,17 @@ router.post("/enquiry", async (req, res) => {
 
     if (directBoutiqueId > 0 && !isNaN(directBoutiqueId)) {
       console.log(`[ENQUIRY] EXECUTING DIRECT ROUTE for boutiqueId: ${directBoutiqueId}`);
+
+      const { data: directBoutique, error: directBoutiqueErr } = await supabase
+        .from("boutiques")
+        .select("id, plan")
+        .eq("id", directBoutiqueId)
+        .maybeSingle();
+
+      if (directBoutiqueErr) return res.status(500).json({ message: "Database error", error: directBoutiqueErr.message });
+      if (directBoutique && !(await canBoutiqueReceiveLead(directBoutique))) {
+        return res.status(403).json({ message: "This boutique has reached its lead limit. Upgrade to continue growing your boutique." });
+      }
 
       // Bypass admin queue and insert straight into leads table for this boutique
       const leadData = await tryInsertWithFallback(LEADS_TABLE, leadPayloadCandidates({
@@ -720,6 +755,10 @@ router.post("/admin/enquiries/:id/send", async (req, res) => {
 
     let insertedCount = 0;
     for (const b of matchedBoutiques) {
+      if (!(await canBoutiqueReceiveLead(b))) {
+        console.log(`[FORWARD] Skipping boutique ${b.id}: lead limit reached`);
+        continue;
+      }
       await tryInsertWithFallback(LEADS_TABLE, leadPayloadCandidates({
         boutiqueId: b.id,
         enquiry: {

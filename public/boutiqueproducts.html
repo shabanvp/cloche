@@ -455,7 +455,7 @@
 
       // Plan Configuration
       const planConfig = {
-        "basic": {
+        "early_partner": {
           name: "Early Partner Plan",
           displayName: "Free / Invite-only",
           maxLeads: 20,
@@ -471,7 +471,7 @@
           maxProducts: Infinity,
           features: ["Unlimited Products", "Unlimited Normal Leads", "Unlimited Messages"]
         },
-        "pro": {
+        "premium": {
           name: "Couture Pro",
           displayName: "Pro",
           maxLeads: Infinity,
@@ -480,6 +480,25 @@
           features: ["Unlimited Products", "AI Suggestion Feature", "Unlimited Assured Leads", "Automated Reply Messages", "Dashboard Analytics"]
         }
       };
+
+      function normalizePlan(plan) {
+        const normalized = String(plan || "early_partner").trim().toLowerCase();
+        if (["early", "basic", "early partner", "early_partner"].includes(normalized)) return "early_partner";
+        if (normalized === "pro") return "premium";
+        return normalized;
+      }
+
+      function showUpgradePopup() {
+        alert("Upgrade to continue growing your boutique");
+      }
+
+      function getCurrentPlan() {
+        return normalizePlan(localStorage.getItem("plan") || "early_partner");
+      }
+
+      function isEarlyProductLimitReached() {
+        return getCurrentPlan() === "early_partner" && Array.isArray(allProducts) && allProducts.length >= 20;
+      }
 
       // Store selected files in memory with unique IDs
       let selectedFiles = [];
@@ -872,6 +891,12 @@
           return;
         }
 
+        if (!isEditing && isEarlyProductLimitReached()) {
+          alert("Upgrade to add more products");
+          showUpgradePopup();
+          return;
+        }
+
         const formData = new FormData();
         formData.append('name', name);
         formData.append('price', price);
@@ -995,6 +1020,11 @@
         const content = document.getElementById('modalContent');
 
         if (modal.classList.contains('hidden')) {
+          if (!isEditing && isEarlyProductLimitReached()) {
+            alert("Upgrade to add more products");
+            showUpgradePopup();
+            return;
+          }
           modal.classList.remove('hidden');
           setTimeout(() => {
             content.classList.replace('scale-95', 'scale-100');

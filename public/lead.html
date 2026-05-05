@@ -449,6 +449,74 @@
 
   <script>
     const API_ORIGIN = "https://cloche-backend.onrender.com";
+    let cloudinaryCloudName = "";
+
+    function normalizePlan(plan) {
+      const normalized = String(plan || "early_partner").trim().toLowerCase();
+      if (["early", "basic", "early partner", "early_partner"].includes(normalized)) return "early_partner";
+      if (normalized === "pro") return "premium";
+      return normalized;
+    }
+
+    function showUpgradePopup() {
+      alert("Upgrade to continue growing your boutique");
+    }
+
+    async function getCurrentPlan(boutiqueId) {
+      const cachedPlan = localStorage.getItem("plan");
+      if (cachedPlan) return normalizePlan(cachedPlan);
+      try {
+        const res = await fetch(`${API_ORIGIN}/api/auth/dashboard/${boutiqueId}`);
+        const data = await res.json();
+        if (res.ok && data.plan) {
+          localStorage.setItem("plan", data.plan);
+          return normalizePlan(data.plan);
+        }
+      } catch (_) { }
+      return "early_partner";
+    }
+    
+    function resolveAssetUrl(url) {
+      let raw = String(url || "").trim();
+      if (!raw) return "";
+      if (/^data:image\//i.test(raw)) return raw;
+
+      if (raw.includes("localhost") || raw.includes("127.0.0.1")) {
+        try {
+          const u = new URL(raw);
+          raw = u.pathname;
+        } catch (e) { }
+      }
+      if (/^https?:\/\//i.test(raw)) return raw;
+
+      const normalized = raw.replace(/\\/g, "/");
+      const lower = normalized.toLowerCase();
+      const uploadsWithSlash = lower.indexOf("/uploads/");
+      if (uploadsWithSlash >= 0) return `${API_ORIGIN}${normalized.slice(uploadsWithSlash)}`;
+      const uploadsNoSlash = lower.indexOf("uploads/");
+      if (uploadsNoSlash >= 0) return `${API_ORIGIN}/${normalized.slice(uploadsNoSlash)}`;
+
+      // Try to detect Cloudinary public ID
+      if (/\.(png|jpg|jpeg|webp)$/i.test(normalized) && !normalized.includes("/")) {
+        const cloudName = cloudinaryCloudName || 'dycwsnzyd'; 
+        return `https://res.cloudinary.com/${cloudName}/image/upload/${normalized}`;
+      }
+
+      if (cloudinaryCloudName) {
+        return `https://res.cloudinary.com/${cloudinaryCloudName}/image/upload/${normalized.replace(/^\/+/, "")}`;
+      }
+
+      return `${API_ORIGIN}${normalized.startsWith("/") ? "" : "/"}${normalized}`;
+    }
+
+    async function loadCloudinaryConfig() {
+      try {
+        const res = await fetch(`${API_ORIGIN}/api/auth/cloudinary-config`);
+        const data = await res.json();
+        if (res.ok) cloudinaryCloudName = String(data.cloudName || "").trim();
+      } catch (_) { }
+    }
+
     let allLeads = [];
     let renderedLeads = [];
     let currentPage = 1;
@@ -775,6 +843,7 @@
     };
 
     document.addEventListener("DOMContentLoaded", async () => {
+      await loadCloudinaryConfig();
       const boutiqueId = localStorage.getItem("boutiqueId");
       const ownerName = localStorage.getItem("ownerName") || "Guest";
       const boutiqueName = localStorage.getItem("boutiqueName") || "My Boutique";
@@ -862,6 +931,11 @@
 
         // Calculate Stats
         const totalLeads = leads.length;
+        const currentPlan = await getCurrentPlan(boutiqueId);
+        if (currentPlan === "early_partner" && totalLeads >= 20) {
+          showUpgradePopup();
+          allLeads = leads.slice(0, 20);
+        }
         const now = new Date();
         const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
         const twoWeeksAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);

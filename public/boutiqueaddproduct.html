@@ -251,7 +251,30 @@
     <script>
         const API_BASE = "/api";
         const boutiqueId = localStorage.getItem("boutiqueId");
+        const currentPlan = normalizePlan(localStorage.getItem("plan") || "early_partner");
         let uploadedImageUrls = [];
+        let currentProductCount = 0;
+
+        function normalizePlan(plan) {
+            const normalized = String(plan || "early_partner").trim().toLowerCase();
+            if (["early", "basic", "early partner", "early_partner"].includes(normalized)) return "early_partner";
+            if (normalized === "pro") return "premium";
+            return normalized;
+        }
+
+        function showUpgradePopup() {
+            alert("Upgrade to continue growing your boutique");
+        }
+
+        async function loadProductCount() {
+            if (!boutiqueId) return;
+            try {
+                const res = await fetch(`${API_BASE}/products/boutique/${boutiqueId}`);
+                const data = await res.json();
+                currentProductCount = Array.isArray(data) ? data.length : 0;
+            } catch (_) { }
+        }
+        loadProductCount();
 
         // Cloudinary Config Hook
         let cloudinaryCloudName = "dycwsnzyd"; // Fallback
@@ -347,6 +370,12 @@
 
             if (uploadedImageUrls.length === 0) {
                 alert("Please upload at least one image of the product.");
+                return;
+            }
+
+            if (currentPlan === "early_partner" && currentProductCount >= 20) {
+                alert("Upgrade to add more products");
+                showUpgradePopup();
                 return;
             }
 

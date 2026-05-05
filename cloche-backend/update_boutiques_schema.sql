@@ -2,11 +2,13 @@
 DO $$ 
 BEGIN 
     -- Add plan column if it exists as VARCHAR, we might want to convert or just ensure it exists
-    -- However, the user wants ENUM('early', 'professional', 'premium')
+    -- However, the app now stores early partners as 'early_partner'.
     
     -- Check if plan enum exists, if not create it
     IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'subscription_plan') THEN
-        CREATE TYPE subscription_plan AS ENUM ('early', 'professional', 'premium');
+        CREATE TYPE subscription_plan AS ENUM ('early', 'early_partner', 'professional', 'premium');
+    ELSE
+        ALTER TYPE subscription_plan ADD VALUE IF NOT EXISTS 'early_partner';
     END IF;
 
     -- Add columns to boutiques table
@@ -31,9 +33,13 @@ BEGIN
         -- For simplicity in this script, we'll assume we can alter it or it's new.
         -- ALTER TABLE boutiques ALTER COLUMN plan TYPE subscription_plan USING plan::subscription_plan;
         -- Actually, let's just use VARCHAR for now to avoid enum headaches during transition if they have 'Basic'
-        ALTER TABLE boutiques ALTER COLUMN plan SET DEFAULT 'early';
+        ALTER TABLE boutiques ALTER COLUMN plan SET DEFAULT 'early_partner';
     ELSE
-        ALTER TABLE boutiques ADD COLUMN plan VARCHAR(50) DEFAULT 'early';
+        ALTER TABLE boutiques ADD COLUMN plan VARCHAR(50) DEFAULT 'early_partner';
     END IF;
+
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS plan VARCHAR(50) DEFAULT 'early_partner';
+    UPDATE boutiques SET plan = 'early_partner' WHERE LOWER(COALESCE(plan::TEXT, '')) IN ('early', 'basic', 'early partner');
+    UPDATE users SET plan = 'early_partner' WHERE plan IS NULL OR LOWER(COALESCE(plan::TEXT, '')) IN ('early', 'basic', 'early partner');
 
 END $$;

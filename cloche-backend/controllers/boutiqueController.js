@@ -106,7 +106,13 @@ exports.getAllBoutiques = async (req, res) => {
 
         // 🔹 Final Ranking Logic (Premium > Professional > Early)
         // This ensures the site feels premium even if the database columns are missing.
-        const planWeight = { premium: 3, professional: 2, early: 1 };
+        const normalizePlan = (plan) => {
+            const normalized = String(plan || "").trim().toLowerCase();
+            if (["early", "basic", "early partner", "early_partner"].includes(normalized)) return "early_partner";
+            if (normalized === "pro") return "premium";
+            return normalized;
+        };
+        const planWeight = { premium: 3, professional: 2, early_partner: 1 };
         
         // 🔹 Merge boutique data with showcase data
         const result = boutiques.map(b => ({
@@ -119,8 +125,11 @@ exports.getAllBoutiques = async (req, res) => {
             if (a.is_featured !== b.is_featured) return b.is_featured ? 1 : -1;
             
             // 2. Plan tier
-            const weightA = planWeight[a.plan?.toLowerCase()] || 0;
-            const weightB = planWeight[b.plan?.toLowerCase()] || 0;
+            if (normalizePlan(a.plan) === "premium" && normalizePlan(b.plan) !== "premium") return -1;
+            if (normalizePlan(b.plan) === "premium" && normalizePlan(a.plan) !== "premium") return 1;
+
+            const weightA = planWeight[normalizePlan(a.plan)] || 0;
+            const weightB = planWeight[normalizePlan(b.plan)] || 0;
             if (weightA !== weightB) return weightB - weightA;
             
             // 3. Score (if column exists)
