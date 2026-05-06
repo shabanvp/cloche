@@ -60,38 +60,38 @@
         </div>
     </nav>
 
-    <main class="max-w-7xl mx-auto p-6 md:p-10">
+    <main class="max-w-7xl mx-auto p-4 md:p-10">
         <!-- Dashboard Header -->
-        <header class="mb-12">
-            <h1 class="text-3xl md:text-4xl font-display font-bold text-white mb-2">Platform Overview</h1>
-            <p class="text-gray-500 text-sm tracking-wide uppercase font-bold text-[10px]">Real-time Ecosystem Metrics</p>
+        <header class="mb-8 md:mb-12 px-2">
+            <h1 class="text-2xl md:text-4xl font-display font-bold text-white mb-2">Platform Overview</h1>
+            <p class="text-gray-500 text-sm tracking-wide uppercase font-bold text-[9px] md:text-[10px]">Real-time Ecosystem Metrics</p>
         </header>
 
         <!-- KPI Metrics -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 mb-16">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 mb-16">
             <!-- Metric 1 -->
-            <div class="stat-card p-8 rounded-2xl relative overflow-hidden group">
+            <div class="stat-card p-6 md:p-8 rounded-2xl relative overflow-hidden group">
                 <div class="absolute top-0 right-0 p-4 text-primary/5 group-hover:text-primary/10 transition-colors">
-                    <span class="material-symbols-outlined text-6xl">person</span>
+                    <span class="material-symbols-outlined text-4xl md:text-6xl">person</span>
                 </div>
-                <p class="text-[10px] uppercase tracking-[0.4em] text-gray-500 font-bold mb-6">Total Users</p>
-                <h3 id="totalUsers" class="text-5xl md:text-6xl font-display text-primary">0</h3>
+                <p class="text-[9px] md:text-[10px] uppercase tracking-[0.4em] text-gray-500 font-bold mb-4 md:mb-6">Total Users</p>
+                <h3 id="totalUsers" class="text-4xl md:text-6xl font-display text-primary">0</h3>
             </div>
             <!-- Metric 2 -->
-            <div class="stat-card p-8 rounded-2xl relative overflow-hidden group">
+            <div class="stat-card p-6 md:p-8 rounded-2xl relative overflow-hidden group">
                 <div class="absolute top-0 right-0 p-4 text-primary/5 group-hover:text-primary/10 transition-colors">
-                    <span class="material-symbols-outlined text-6xl">store</span>
+                    <span class="material-symbols-outlined text-4xl md:text-6xl">store</span>
                 </div>
-                <p class="text-[10px] uppercase tracking-[0.4em] text-gray-500 font-bold mb-6">Partner Boutiques</p>
-                <h3 id="totalBoutiques" class="text-5xl md:text-6xl font-display text-primary">0</h3>
+                <p class="text-[9px] md:text-[10px] uppercase tracking-[0.4em] text-gray-500 font-bold mb-4 md:mb-6">Partner Boutiques</p>
+                <h3 id="totalBoutiques" class="text-4xl md:text-6xl font-display text-primary">0</h3>
             </div>
             <!-- Metric 3 -->
-            <div class="stat-card p-8 rounded-2xl relative overflow-hidden group">
+            <div class="stat-card p-6 md:p-8 rounded-2xl relative overflow-hidden group">
                 <div class="absolute top-0 right-0 p-4 text-primary/5 group-hover:text-primary/10 transition-colors">
-                    <span class="material-symbols-outlined text-6xl">inventory_2</span>
+                    <span class="material-symbols-outlined text-4xl md:text-6xl">inventory_2</span>
                 </div>
-                <p class="text-[10px] uppercase tracking-[0.4em] text-gray-500 font-bold mb-6">Total Products</p>
-                <h3 id="totalProducts" class="text-5xl md:text-6xl font-display text-primary">0</h3>
+                <p class="text-[9px] md:text-[10px] uppercase tracking-[0.4em] text-gray-500 font-bold mb-4 md:mb-6">Total Products</p>
+                <h3 id="totalProducts" class="text-4xl md:text-6xl font-display text-primary">0</h3>
             </div>
         </div>
 
@@ -246,28 +246,35 @@
 
                     // Render Boutiques
                     const boutiqueTable = document.getElementById('boutiquesTableBody');
-                    boutiqueTable.innerHTML = data.recentBoutiques.map(b => `
-                        <tr class="table-row border-b border-white/5 transition-colors hover:bg-white/[0.02]">
-                            <td class="px-8 py-5 text-sm">
-                                <p class="font-medium text-white">${b.boutique_name}</p>
-                                <p class="text-[10px] text-primary uppercase tracking-[0.2em] font-bold mt-1">${b.owner_name}</p>
-                                <p class="text-[10px] text-gray-500 uppercase tracking-widest mt-1">
-                                  ${(String(b.plan || "early").toUpperCase())}${b.introUnlimited ? " • INTRO ∞" : ""}
-                                </p>
-                            </td>
-                            <td class="px-8 py-5 text-gray-400 hidden sm:table-cell text-sm">
-                                <div class="flex items-center gap-2">
-                                    <span class="material-symbols-outlined text-xs text-primary/40">location_on</span>
-                                    ${b.city}
-                                </div>
-                            </td>
-                            <td class="px-8 py-5 text-right">
-                                <button data-remove-boutique-id="${b.id}" data-remove-boutique-name="${encodeURIComponent(String(b.boutique_name || ''))}" class="px-4 py-2 rounded-lg text-[10px] uppercase tracking-widest border border-red-500/20 text-red-400 hover:bg-red-500/10 transition-all font-bold">
-                                    Remove
-                                </button>
-                            </td>
-                        </tr>
-                    `).join('');
+                    const bList = Array.isArray(data.recentBoutiques) ? data.recentBoutiques : [];
+                    
+                    if (bList.length === 0) {
+                        boutiqueTable.innerHTML = `<tr><td colspan="3" class="px-8 py-10 text-center text-gray-500 text-sm italic">No partners found.</td></tr>`;
+                    } else {
+                        boutiqueTable.innerHTML = bList.map(b => `
+                            <tr class="table-row border-b border-white/5 transition-colors hover:bg-white/[0.02]">
+                                <td class="px-6 md:px-8 py-5 text-sm">
+                                    <p class="font-medium text-white">${b.boutique_name || 'Unnamed'}</p>
+                                    <p class="text-[10px] text-primary uppercase tracking-[0.2em] font-bold mt-1">${b.owner_name || 'No Owner'}</p>
+                                    <p class="text-[10px] text-gray-500 mt-1">${b.email || ''} • ${b.phone || ''}</p>
+                                    <p class="text-[10px] text-gray-500 uppercase tracking-widest mt-1 opacity-60">
+                                      ${(String(b.plan || "early").toUpperCase())}${b.introUnlimited ? " • INTRO ∞" : ""}
+                                    </p>
+                                </td>
+                                <td class="px-8 py-5 text-gray-400 hidden sm:table-cell text-sm">
+                                    <div class="flex items-center gap-2">
+                                        <span class="material-symbols-outlined text-xs text-primary/40">location_on</span>
+                                        ${b.city || '-'}
+                                    </div>
+                                </td>
+                                <td class="px-6 md:px-8 py-5 text-right">
+                                    <button data-remove-boutique-id="${b.id}" data-remove-boutique-name="${encodeURIComponent(String(b.boutique_name || ''))}" class="px-3 md:px-4 py-2 rounded-lg text-[9px] md:text-[10px] uppercase tracking-widest border border-red-500/20 text-red-400 hover:bg-red-500/10 transition-all font-bold">
+                                        Remove
+                                    </button>
+                                </td>
+                            </tr>
+                        `).join('');
+                    }
 
                     boutiqueTable.onclick = (e) => {
                         const btn = e.target.closest("[data-remove-boutique-id]");
