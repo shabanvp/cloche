@@ -335,7 +335,7 @@ exports.getShowcase = async (req, res) => {
         }
 
         const showcase = Array.isArray(showcaseRows) ? showcaseRows[0] : null;
-        if (!showcase) return res.json({ boutique_id: Number(boutiqueId), district: "", area: "", tags: "", image_url: "" });
+        if (!showcase) return res.json({ boutique_id: Number(boutiqueId), district: "", area: "", tags: "", shop_location: "", image_url: "" });
         return res.json({ ...showcase, tags: normalizeTags(showcase.tags) });
     } catch (err) {
         console.error("[getShowcase] Error:", err);
@@ -345,14 +345,15 @@ exports.getShowcase = async (req, res) => {
 
 exports.updateShowcase = async (req, res) => {
     const { boutiqueId } = req.params;
-    const { district, area, tags } = req.body;
+    const { district, area, tags, shop_location } = req.body;
     try {
         const normalizedTags = normalizeTags(tags) || null;
         const { error } = await supabase.from("boutique_showcase").upsert([{
             boutique_id: Number(boutiqueId),
             district: district || null,
             area: area || null,
-            tags: normalizedTags
+            tags: normalizedTags,
+            shop_location: String(shop_location || "").trim() || null
         }], { onConflict: "boutique_id" });
 
         if (error) return res.status(500).json({ message: "Failed to save showcase", error: error.message });
