@@ -660,6 +660,9 @@
         return res;
       } catch (error) {
         clearTimeout(timeoutId);
+        if (error?.name === "AbortError" || String(error?.message || "").toLowerCase().includes("aborted")) {
+          throw new Error("Request timed out. Please check your connection and try again.");
+        }
         throw error;
       }
     }
