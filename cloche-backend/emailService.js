@@ -79,6 +79,13 @@ const sendVerificationEmail = async (email, name, token, type) => {
   `;
 
   try {
+    // Verify SMTP connection before attempting to send
+    const verified = await transporter.verify();
+    if (!verified) {
+      console.error("❌ SMTP Transporter verification failed - connection rejected");
+      return { success: false, error: "SMTP connection cannot be established" };
+    }
+
     await transporter.sendMail({
       from: `"Cloche Luxury" <${GMAIL_USER}>`,
       to: email,
@@ -90,6 +97,8 @@ const sendVerificationEmail = async (email, name, token, type) => {
     return { success: true };
   } catch (error) {
     console.error("❌ SMTP Error:", error.message);
+    console.error("❌ SMTP Error Code:", error.code);
+    console.error("❌ SMTP Error Response:", error.response);
     return { success: false, error: error.message };
   }
 };

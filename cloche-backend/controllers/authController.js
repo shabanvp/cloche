@@ -288,16 +288,22 @@ exports.resendVerification = async (req, res) => {
         );
 
         if (!emailResult?.success) {
+            console.error("[Auth] Email service returned error:", emailResult?.error);
             return res.status(500).json({
-                message: "Failed to send email. Check your SMTP settings.",
-                error: emailResult?.error
+                message: "Failed to send verification email",
+                error: emailResult?.error || "Email service unavailable"
             });
         }
 
+        console.log(`[Auth] Verification email sent successfully to ${email}`);
         return res.json({ success: true, message: "Verification email sent." });
     } catch (err) {
-        console.error("[Auth] Resend failed:", err);
-        return res.status(500).json({ message: "Server error" });
+        console.error("[Auth] Resend verification exception:", err.message);
+        console.error("[Auth] Full exception:", err);
+        return res.status(500).json({ 
+            message: "Failed to resend verification email",
+            error: err.message || "Internal server error"
+        });
     }
 };
 
