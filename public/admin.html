@@ -6,6 +6,7 @@
     <title>Cloche | Admin Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
     <style>
         :root {
             --primary: #c1a671;
@@ -30,112 +31,154 @@
         .table-row:hover {
             background: rgba(193, 166, 113, 0.05);
         }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
     </style>
 </head>
 <body class="min-h-screen">
-    <!-- Auth Guard Script -->
     <script>
         if (!localStorage.getItem('adminToken')) {
             window.location.href = 'adminlogin.html';
         }
     </script>
+    <!-- Decorative Background -->
+    <div class="fixed top-0 right-0 w-[500px] h-[500px] bg-primary/5 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/2 -z-10 pointer-events-none"></div>
+    <div class="fixed bottom-0 left-0 w-[500px] h-[500px] bg-primary/5 blur-[120px] rounded-full translate-y-1/2 -translate-x-1/2 -z-10 pointer-events-none"></div>
 
     <!-- Navigation -->
-    <nav class="border-b border-white/5 py-3 md:py-4 px-4 md:px-8 flex justify-between items-center glass-card sticky top-0 z-50">
-        <div class="flex items-center gap-2 md:gap-4">
-            <span class="text-lg md:text-2xl font-display tracking-widest">CLOCHE</span>
-            <span class="h-4 w-[1px] bg-white/10"></span>
-            <span class="text-primary text-[8px] md:text-[10px] uppercase tracking-[0.3em] md:tracking-[0.4em] mt-1">Admin Dashboard</span>
-        </div>
-        <div class="flex items-center gap-4 md:gap-6">
-            <button onclick="logout()" class="text-[8px] md:text-[10px] uppercase tracking-widest text-gray-400 hover:text-white transition-colors">Logout</button>
+    <nav class="border-b border-white/5 py-4 glass-card sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 md:px-8 flex justify-between items-center text-white">
+            <div class="flex items-center gap-4">
+                <span class="text-xl md:text-2xl font-display tracking-widest">CLOCHE</span>
+                <span class="h-5 w-[1px] bg-white/10 hidden md:block"></span>
+                <span class="text-primary text-[10px] uppercase tracking-[0.4em] mt-1 hidden md:block">Admin Dashboard</span>
+            </div>
+            <div class="flex items-center gap-6">
+                <button onclick="logout()" class="text-[10px] uppercase tracking-widest text-gray-400 hover:text-primary transition-colors font-bold">Logout</button>
+            </div>
         </div>
     </nav>
 
-    <main class="max-w-7xl mx-auto p-4 md:p-8">
+    <main class="max-w-7xl mx-auto p-6 md:p-10">
+        <!-- Dashboard Header -->
+        <header class="mb-12">
+            <h1 class="text-3xl md:text-4xl font-display font-bold text-white mb-2">Platform Overview</h1>
+            <p class="text-gray-500 text-sm tracking-wide uppercase font-bold text-[10px]">Real-time Ecosystem Metrics</p>
+        </header>
+
         <!-- KPI Metrics -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-8 md:mb-12">
-            <div class="stat-card p-6 md:p-8 rounded-2xl">
-                <p class="text-[9px] md:text-[10px] uppercase tracking-[0.3em] md:tracking-[0.4em] text-gray-400 mb-2 md:mb-4">Total Users</p>
-                <h3 id="totalUsers" class="text-3xl md:text-5xl font-display text-primary">--</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 mb-16">
+            <!-- Metric 1 -->
+            <div class="stat-card p-8 rounded-2xl relative overflow-hidden group">
+                <div class="absolute top-0 right-0 p-4 text-primary/5 group-hover:text-primary/10 transition-colors">
+                    <span class="material-symbols-outlined text-6xl">person</span>
+                </div>
+                <p class="text-[10px] uppercase tracking-[0.4em] text-gray-500 font-bold mb-6">Total Users</p>
+                <h3 id="totalUsers" class="text-5xl md:text-6xl font-display text-primary">0</h3>
             </div>
-            <div class="stat-card p-6 md:p-8 rounded-2xl">
-                <p class="text-[9px] md:text-[10px] uppercase tracking-[0.3em] md:tracking-[0.4em] text-gray-400 mb-2 md:mb-4">Partner Boutiques</p>
-                <h3 id="totalBoutiques" class="text-3xl md:text-5xl font-display text-primary">--</h3>
+            <!-- Metric 2 -->
+            <div class="stat-card p-8 rounded-2xl relative overflow-hidden group">
+                <div class="absolute top-0 right-0 p-4 text-primary/5 group-hover:text-primary/10 transition-colors">
+                    <span class="material-symbols-outlined text-6xl">store</span>
+                </div>
+                <p class="text-[10px] uppercase tracking-[0.4em] text-gray-500 font-bold mb-6">Partner Boutiques</p>
+                <h3 id="totalBoutiques" class="text-5xl md:text-6xl font-display text-primary">0</h3>
             </div>
-            <div class="stat-card p-6 md:p-8 rounded-2xl">
-                <p class="text-[9px] md:text-[10px] uppercase tracking-[0.3em] md:tracking-[0.4em] text-gray-400 mb-2 md:mb-4">Total Products</p>
-                <h3 id="totalProducts" class="text-3xl md:text-5xl font-display text-primary">--</h3>
+            <!-- Metric 3 -->
+            <div class="stat-card p-8 rounded-2xl relative overflow-hidden group">
+                <div class="absolute top-0 right-0 p-4 text-primary/5 group-hover:text-primary/10 transition-colors">
+                    <span class="material-symbols-outlined text-6xl">inventory_2</span>
+                </div>
+                <p class="text-[10px] uppercase tracking-[0.4em] text-gray-500 font-bold mb-6">Total Products</p>
+                <h3 id="totalProducts" class="text-5xl md:text-6xl font-display text-primary">0</h3>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-12 mb-8 md:mb-12">
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-10 md:gap-16 mb-16">
             <!-- Recent Users -->
             <section>
-                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 md:mb-6">
-                    <h2 class="text-lg md:text-xl font-display italic">Recent Registrations</h2>
-                    <span class="text-[8px] md:text-[10px] uppercase tracking-widest text-gray-500">Last 10 Users</span>
+                <div class="flex items-end justify-between mb-8 px-2">
+                    <div>
+                        <h2 class="text-xl md:text-2xl font-display font-bold text-white mb-1">Recent Registrations</h2>
+                        <p class="text-[10px] uppercase tracking-widest text-primary font-bold">Newest Community Members</p>
+                    </div>
+                    <span class="text-[10px] uppercase tracking-widest text-gray-600 font-bold hidden sm:block">Limit 10</span>
                 </div>
-                <div class="glass-card rounded-xl overflow-x-auto">
-                    <table class="w-full text-left text-xs md:text-sm">
-                        <thead class="bg-white/5 border-b border-white/5 text-[8px] md:text-[10px] uppercase tracking-widest text-gray-400">
-                            <tr>
-                                <th class="px-3 md:px-6 py-3 md:py-4 font-medium">Name</th>
-                                <th class="px-3 md:px-6 py-3 md:py-4 font-medium hidden sm:table-cell">Email</th>
-                                <th class="px-3 md:px-6 py-3 md:py-4 font-medium">Joined</th>
-                            </tr>
-                        </thead>
-                        <tbody id="usersTableBody">
-                            <!-- Rows loaded via JS -->
-                        </tbody>
-                    </table>
+                <div class="glass-card rounded-2xl overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-white/5 border-b border-white/5">
+                                    <th class="px-8 py-5 text-[10px] uppercase tracking-widest text-gray-400 font-bold">Member</th>
+                                    <th class="px-8 py-5 text-[10px] uppercase tracking-widest text-gray-400 font-bold hidden sm:table-cell">Details</th>
+                                    <th class="px-8 py-5 text-[10px] uppercase tracking-widest text-gray-400 font-bold text-right">Joined</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usersTableBody">
+                                <!-- Loaded via JS -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </section>
 
             <!-- Recent Boutiques -->
             <section>
-                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 md:mb-6">
-                    <h2 class="text-lg md:text-xl font-display italic">New Boutique Partnerships</h2>
-                    <span class="text-[8px] md:text-[10px] uppercase tracking-widest text-gray-500">Last 10 Partners</span>
+                <div class="flex items-end justify-between mb-8 px-2">
+                    <div>
+                        <h2 class="text-xl md:text-2xl font-display font-bold text-white mb-1">New Partnerships</h2>
+                        <p class="text-[10px] uppercase tracking-widest text-primary font-bold">Curated Luxury Partners</p>
+                    </div>
+                    <span class="text-[10px] uppercase tracking-widest text-gray-600 font-bold hidden sm:block">Limit 10</span>
                 </div>
-                <div class="glass-card rounded-xl overflow-x-auto">
-                    <table class="w-full text-left text-xs md:text-sm">
-                        <thead class="bg-white/5 border-b border-white/5 text-[8px] md:text-[10px] uppercase tracking-widest text-gray-400">
-                            <tr>
-                                <th class="px-3 md:px-6 py-3 md:py-4 font-medium">Boutique</th>
-                                <th class="px-3 md:px-6 py-3 md:py-4 font-medium hidden sm:table-cell">Location</th>
-                                <th class="px-3 md:px-6 py-3 md:py-4 font-medium">Contact</th>
-                                <th class="px-3 md:px-6 py-3 md:py-4 font-medium text-right">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="boutiquesTableBody">
-                            <!-- Rows loaded via JS -->
-                        </tbody>
-                    </table>
+                <div class="glass-card rounded-2xl overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-white/5 border-b border-white/5">
+                                    <th class="px-8 py-5 text-[10px] uppercase tracking-widest text-gray-400 font-bold">Boutique</th>
+                                    <th class="px-8 py-5 text-[10px] uppercase tracking-widest text-gray-400 font-bold hidden sm:table-cell">Origin</th>
+                                    <th class="px-8 py-5 text-[10px] uppercase tracking-widest text-gray-400 font-bold text-right">Manage</th>
+                                </tr>
+                            </thead>
+                            <tbody id="boutiquesTableBody">
+                                <!-- Loaded via JS -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </section>
         </div>
 
-        <section class="mt-8 md:mt-12">
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 md:mb-6">
-                <h2 class="text-lg md:text-xl font-display italic">User Enquiries</h2>
-                <button id="refreshEnquiriesBtn" class="text-[8px] md:text-[10px] uppercase tracking-widest text-primary hover:text-white transition-colors">Refresh</button>
+        <section class="mt-20">
+            <div class="flex items-end justify-between mb-10 px-2">
+                <div>
+                    <h2 class="text-2xl md:text-3xl font-display font-bold text-white mb-2">Service Enquiries</h2>
+                    <p class="text-[10px] uppercase tracking-widest text-primary font-bold">Active User Requests Needing Dispatch</p>
+                </div>
+                <button id="refreshEnquiriesBtn" class="flex items-center gap-2 text-[10px] uppercase tracking-widest text-primary hover:text-white transition-all font-bold group">
+                    <span class="material-symbols-outlined text-sm group-hover:rotate-180 transition-transform duration-500">refresh</span>
+                    Refresh Feed
+                </button>
             </div>
-            <div class="glass-card rounded-xl overflow-x-auto">
-                <table class="w-full text-left text-xs md:text-sm min-w-[500px]">
-                    <thead class="bg-white/5 border-b border-white/5 text-[8px] md:text-[10px] uppercase tracking-widest text-gray-400">
-                        <tr>
-                            <th class="px-3 md:px-6 py-3 md:py-4 font-medium">Customer</th>
-                            <th class="px-3 md:px-6 py-3 md:py-4 font-medium">Location</th>
-                            <th class="px-3 md:px-6 py-3 md:py-4 font-medium">Requirement</th>
-                            <th class="px-3 md:px-6 py-3 md:py-4 font-medium">Status</th>
-                            <th class="px-3 md:px-6 py-3 md:py-4 text-center">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="enquiriesTableBody">
-                        <!-- Rows loaded via JS -->
-                    </tbody>
-                </table>
+            <div class="glass-card rounded-2xl overflow-hidden shadow-2xl">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse min-w-[800px]">
+                        <thead>
+                            <tr class="bg-white/5 border-b border-white/5">
+                                <th class="px-8 py-6 text-[10px] uppercase tracking-widest text-gray-400 font-bold">Customer Profile</th>
+                                <th class="px-8 py-6 text-[10px] uppercase tracking-widest text-gray-400 font-bold">Preferred Location</th>
+                                <th class="px-8 py-6 text-[10px] uppercase tracking-widest text-gray-400 font-bold">Specific Requirement</th>
+                                <th class="px-8 py-6 text-[10px] uppercase tracking-widest text-gray-400 font-bold">Dispatch Status</th>
+                                <th class="px-8 py-6 text-[10px] uppercase tracking-widest text-gray-400 font-bold text-center">Protocol</th>
+                            </tr>
+                        </thead>
+                        <tbody id="enquiriesTableBody">
+                            <!-- Rows loaded via JS -->
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </section>
     </main>
@@ -191,32 +234,35 @@
                     // Render Users
                     const userTable = document.getElementById('usersTableBody');
                     userTable.innerHTML = data.recentUsers.map(u => `
-                        <tr class="table-row border-b border-white/5 transition-colors">
-                            <td class="px-3 md:px-6 py-3 md:py-4 font-medium text-white text-xs md:text-sm">
-                                <p>${u.name}</p>
-                                <p class="block sm:hidden text-gray-400 text-[10px]">${u.email}</p>
+                        <tr class="table-row border-b border-white/5 transition-colors hover:bg-white/[0.02]">
+                            <td class="px-8 py-5 text-sm">
+                                <p class="font-medium text-white">${u.name}</p>
+                                <p class="block sm:hidden text-gray-500 text-[10px] mt-1 tracking-tight">${u.email}</p>
                             </td>
-                            <td class="px-3 md:px-6 py-3 md:py-4 text-gray-400 hidden sm:table-cell text-xs md:text-sm">${u.email}</td>
-                            <td class="px-3 md:px-6 py-3 md:py-4 text-[10px] md:text-xs text-gray-500 uppercase">${new Date(u.created_at).toLocaleDateString()}</td>
+                            <td class="px-8 py-5 text-gray-400 hidden sm:table-cell text-sm">${u.email}</td>
+                            <td class="px-8 py-5 text-[10px] text-gray-500 uppercase font-bold text-right">${new Date(u.created_at).toLocaleDateString()}</td>
                         </tr>
                     `).join('');
 
                     // Render Boutiques
                     const boutiqueTable = document.getElementById('boutiquesTableBody');
                     boutiqueTable.innerHTML = data.recentBoutiques.map(b => `
-                        <tr class="table-row border-b border-white/5 transition-colors">
-                            <td class="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm">
+                        <tr class="table-row border-b border-white/5 transition-colors hover:bg-white/[0.02]">
+                            <td class="px-8 py-5 text-sm">
                                 <p class="font-medium text-white">${b.boutique_name}</p>
-                                <p class="text-[9px] md:text-[10px] text-primary uppercase tracking-widest">${b.owner_name}</p>
-                                <p class="text-[9px] md:text-[10px] text-gray-500 uppercase tracking-widest mt-1">
+                                <p class="text-[10px] text-primary uppercase tracking-[0.2em] font-bold mt-1">${b.owner_name}</p>
+                                <p class="text-[10px] text-gray-500 uppercase tracking-widest mt-1">
                                   ${(String(b.plan || "early").toUpperCase())}${b.introUnlimited ? " • INTRO ∞" : ""}
                                 </p>
-                                <p class="block sm:hidden text-gray-500 text-[10px] mt-1">${b.city}</p>
                             </td>
-                            <td class="px-3 md:px-6 py-3 md:py-4 text-gray-400 hidden sm:table-cell text-xs md:text-sm">${b.city}</td>
-                            <td class="px-3 md:px-6 py-3 md:py-4 text-xs text-gray-500 break-all">${b.phone}</td>
-                            <td class="px-3 md:px-6 py-3 md:py-4 text-right">
-                                <button data-remove-boutique-id="${b.id}" data-remove-boutique-name="${encodeURIComponent(String(b.boutique_name || ''))}" class="px-3 py-2 rounded-lg text-[8px] md:text-[10px] uppercase tracking-widest border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-colors">
+                            <td class="px-8 py-5 text-gray-400 hidden sm:table-cell text-sm">
+                                <div class="flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-xs text-primary/40">location_on</span>
+                                    ${b.city}
+                                </div>
+                            </td>
+                            <td class="px-8 py-5 text-right">
+                                <button data-remove-boutique-id="${b.id}" data-remove-boutique-name="${encodeURIComponent(String(b.boutique_name || ''))}" class="px-4 py-2 rounded-lg text-[10px] uppercase tracking-widest border border-red-500/20 text-red-400 hover:bg-red-500/10 transition-all font-bold">
                                     Remove
                                 </button>
                             </td>
@@ -263,23 +309,25 @@
                 const requirement = e.requirement || "General enquiry";
 
                 return `
-                    <tr class="table-row border-b border-white/5 transition-colors">
-                        <td class="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm">
-                            <p class="font-medium text-white truncate">${name}</p>
-                            <p class="text-[9px] md:text-xs text-gray-500 truncate">${phone}</p>
+                    <tr class="table-row border-b border-white/5 transition-colors hover:bg-white/[0.02]">
+                        <td class="px-8 py-6 text-sm">
+                            <p class="font-bold text-white mb-1 tracking-tight">${name}</p>
+                            <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">${phone}</p>
                         </td>
-                        <td class="px-3 md:px-6 py-3 md:py-4 text-gray-300 text-xs md:text-sm truncate">${location}</td>
-                        <td class="px-3 md:px-6 py-3 md:py-4 text-gray-400 text-xs md:text-sm truncate">${requirement}</td>
-                        <td class="px-3 md:px-6 py-3 md:py-4">
-                            <span class="px-2 md:px-2.5 py-1 border rounded-full text-[8px] md:text-[10px] uppercase tracking-widest whitespace-nowrap ${badgeClass}">${status}</span>
+                        <td class="px-8 py-6 text-gray-300 text-sm italic font-medium">${location}</td>
+                        <td class="px-8 py-6 text-gray-400 text-sm max-w-xs truncate">${requirement}</td>
+                        <td class="px-8 py-6">
+                            <span class="px-3 py-1.5 border rounded-full text-[10px] uppercase tracking-widest font-bold whitespace-nowrap ${badgeClass}">${status}</span>
                         </td>
-                        <td class="px-2 md:px-6 py-3 md:py-4 text-center flex items-center justify-center gap-2">
-                            <button data-copy-enquiry-id="${e.id}" class="px-2 md:px-3 py-1 md:py-2 rounded-lg text-[7px] md:text-[10px] uppercase tracking-widest border border-white/10 text-gray-400 hover:text-white hover:bg-white/5 transition-colors">
-                                Copy
-                            </button>
-                            <button ${disabled ? "disabled" : ""} data-send-enquiry-id="${e.id}" class="px-2 md:px-3 py-1 md:py-2 rounded-lg text-[7px] md:text-[10px] uppercase tracking-widest border whitespace-nowrap ${disabled ? "border-white/10 text-gray-600 cursor-not-allowed" : "border-primary/30 text-primary hover:bg-primary/10"} transition-colors">
-                                ${disabled ? "Sent" : "Send"}
-                            </button>
+                        <td class="px-8 py-6 text-center">
+                            <div class="flex items-center justify-center gap-3">
+                                <button data-copy-enquiry-id="${e.id}" class="px-4 py-2 rounded-lg text-[10px] uppercase tracking-widest border border-white/10 text-gray-400 hover:text-white hover:bg-white/5 transition-all font-bold">
+                                    Copy
+                                </button>
+                                <button ${disabled ? "disabled" : ""} data-send-enquiry-id="${e.id}" class="px-4 py-2 rounded-lg text-[10px] uppercase tracking-widest border whitespace-nowrap transition-all font-bold ${disabled ? "border-white/5 text-gray-700 cursor-not-allowed" : "border-primary/40 text-primary hover:bg-primary/10 shadow-lg shadow-primary/5"}">
+                                    ${disabled ? "Dispatched" : "Dispatch"}
+                                </button>
+                            </div>
                         </td>
                     </tr>
                 `;
