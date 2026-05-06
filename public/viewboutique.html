@@ -288,7 +288,7 @@
         <div class="pt-6 border-t border-white/5">
           <a id="directionsBtn" href="#" target="_blank" rel="noopener noreferrer"
             class="inline-flex items-center gap-3 text-primary text-xs uppercase tracking-[0.2em] font-bold group">
-            Get Directions
+            View on Map
             <span
               class="material-symbols-outlined text-sm group-hover:translate-x-2 transition-transform">arrow_forward</span>
           </a>
@@ -414,7 +414,7 @@
       if (/^https?:\/\//i.test(raw)) {
         return raw;
       }
-      return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(raw)}`;
+      return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(raw)}`;
     }
 
     function renderTags(tagsRaw) {
