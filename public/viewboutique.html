@@ -411,8 +411,10 @@
     function buildDirectionsHref(locationValue) {
       const raw = String(locationValue || "").trim();
       if (!raw) return "https://www.google.com/maps/search/?api=1&query=Kerala";
-      if (/^https?:\/\//i.test(raw)) return raw;
-      return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(raw)}`;
+      if (/^https?:\/\//i.test(raw)) {
+        return raw;
+      }
+      return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(raw)}`;
     }
 
     function renderTags(tagsRaw) {
