@@ -23,7 +23,7 @@ const FRONTEND_BASE_URL = String(
 
 // ✅ Gmail SMTP credentials
 const GMAIL_USER = process.env.GMAIL_USER || "cloche.luxury@gmail.com";
-const GMAIL_APP_PASSWORD = process.env.GMAIL_APP_PASSWORD;
+const GMAIL_APP_PASSWORD = String(process.env.GMAIL_APP_PASSWORD || "").replace(/\s+/g, "");
 
 // ✅ Create transporter
 const transporter = nodemailer.createTransport({
@@ -38,6 +38,11 @@ const transporter = nodemailer.createTransport({
 // ✅ SEND VERIFICATION EMAIL
 // ===============================
 const sendVerificationEmail = async (email, name, token, type) => {
+  if (!GMAIL_APP_PASSWORD) {
+    console.error("❌ SMTP Error: GMAIL_APP_PASSWORD is not set in environment variables.");
+    return { success: false, error: "SMTP credentials missing" };
+  }
+
   const verificationUrl = `${BACKEND_BASE_URL}/api/auth/verify-email?token=${encodeURIComponent(
     token
   )}&type=${encodeURIComponent(type)}`;
@@ -125,9 +130,23 @@ const sendEnquiryNotificationEmail = async (
 };
 
 // ===============================
+// ✅ DIAGNOSTICS
+// ===============================
+const getEmailServiceStatus = () => {
+  return {
+    configured: !!GMAIL_APP_PASSWORD,
+    user: GMAIL_USER,
+    hasPassword: !!GMAIL_APP_PASSWORD,
+    backendUrl: BACKEND_BASE_URL,
+    frontendUrl: FRONTEND_BASE_URL,
+  };
+};
+
+// ===============================
 // ✅ EXPORTS
 // ===============================
 module.exports = {
   sendVerificationEmail,
   sendEnquiryNotificationEmail,
+  getEmailServiceStatus,
 };
