@@ -8,6 +8,7 @@ const upload = multer({ storage: storage });
 router.post("/signup", upload.single("image"), authController.signup);
 router.post("/login", authController.login);
 router.post("/login-user", authController.loginUser);
+router.post("/resend-verification", authController.resendVerification);
 router.get("/verify-email", authController.verifyEmail);
 router.get("/email-status", authController.emailStatus);
 router.get("/profile/:boutiqueId", authController.getProfile);

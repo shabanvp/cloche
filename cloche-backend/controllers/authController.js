@@ -247,6 +247,60 @@ exports.verifyEmail = async (req, res) => {
     }
 };
 
+/* ================= RESEND VERIFICATION ================= */
+exports.resendVerification = async (req, res) => {
+    const { email, account_type } = req.body;
+    if (!email || !account_type) {
+        return res.status(400).json({ message: "Email and account type required" });
+    }
+
+    const table = account_type === "partner" ? "boutiques" : "users";
+    const nameField = account_type === "partner" ? "owner_name" : "name";
+
+    try {
+        const { data: record, error } = await supabase
+            .from(table)
+            .select(`id, ${nameField}, is_verified`)
+            .eq("email", email.toLowerCase())
+            .maybeSingle();
+
+        if (error || !record) {
+            return res.status(404).json({ message: "Account not found" });
+        }
+
+        if (isVerifiedTrue(record.is_verified)) {
+            return res.status(400).json({ message: "Account is already verified" });
+        }
+
+        const newToken = uuidv4();
+        const { error: updateErr } = await supabase
+            .from(table)
+            .update({ verification_token: newToken })
+            .eq("id", record.id);
+
+        if (updateErr) throw updateErr;
+
+        const emailResult = await sendVerificationEmail(
+            email.toLowerCase(),
+            record[nameField] || "User",
+            newToken,
+            account_type
+        );
+
+        if (!emailResult?.success) {
+            return res.status(500).json({
+                message: "Failed to send email. Check your SMTP settings.",
+                error: emailResult?.error
+            });
+        }
+
+        return res.json({ success: true, message: "Verification email sent." });
+    } catch (err) {
+        console.error("[Auth] Resend failed:", err);
+        return res.status(500).json({ message: "Server error" });
+    }
+};
+
 /* ================= EMAIL STATUS (DEBUG) ================= */
 exports.emailStatus = async (req, res) => {
     try {
