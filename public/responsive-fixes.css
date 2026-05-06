@@ -1060,7 +1060,7 @@ nav.fixed .max-w-7xl {
 
   body.has-mobile-bars.route-profile #showcasePreviewImage {
     min-height: 220px !important;
-    height: 220px !important;
+    height: auto !important;
   }
 
   body.has-mobile-bars.route-profile #showcasePreviewName {
