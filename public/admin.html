@@ -141,9 +141,7 @@
     </main>
 
     <script>
-        const API_ORIGIN = (window.location.origin && window.location.origin.startsWith("http"))
-            ? window.location.origin
-            : "https://cloche-backend.onrender.com";
+        const API_ORIGIN = "https://cloche-backend.onrender.com";
 
         function getAdminToken() {
             return localStorage.getItem("adminToken") || "";
