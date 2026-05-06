@@ -137,11 +137,29 @@ const sendEnquiryNotificationEmail = async (
 // ===============================
 // ✅ DIAGNOSTICS
 // ===============================
-const getEmailServiceStatus = () => {
+const verifyConnection = async () => {
+  try {
+    await transporter.verify();
+    return { success: true };
+  } catch (error) {
+    console.error("❌ SMTP Verification Failed:", error.message);
+    return { success: false, error: error.message };
+  }
+};
+
+const getEmailServiceStatus = async () => {
+  const connection = await verifyConnection();
+  
+  // Obfuscate user for safety but show enough to verify
+  const userPrefix = GMAIL_USER ? GMAIL_USER.substring(0, 3) : "???";
+  const userSuffix = GMAIL_USER ? GMAIL_USER.split("@")[1] : "???";
+
   return {
     configured: !!GMAIL_APP_PASSWORD,
-    user: GMAIL_USER,
+    user: `${userPrefix}...@${userSuffix}`,
     hasPassword: !!GMAIL_APP_PASSWORD,
+    passwordLength: GMAIL_APP_PASSWORD ? GMAIL_APP_PASSWORD.length : 0,
+    connection,
     backendUrl: BACKEND_BASE_URL,
     frontendUrl: FRONTEND_BASE_URL,
   };

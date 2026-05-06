@@ -304,7 +304,7 @@ exports.resendVerification = async (req, res) => {
 /* ================= EMAIL STATUS (DEBUG) ================= */
 exports.emailStatus = async (req, res) => {
     try {
-        const status = typeof getEmailServiceStatus === "function" ? getEmailServiceStatus() : { configured: false };
+        const status = typeof getEmailServiceStatus === "function" ? await getEmailServiceStatus() : { configured: false };
         return res.json({ success: true, ...status });
     } catch (err) {
         return res.status(500).json({ success: false, message: "Failed to read email status" });
