@@ -25,13 +25,18 @@ const FRONTEND_BASE_URL = String(
 const GMAIL_USER = process.env.GMAIL_USER || "cloche.luxury@gmail.com";
 const GMAIL_APP_PASSWORD = String(process.env.GMAIL_APP_PASSWORD || "").replace(/\s+/g, "");
 
-// ✅ Create transporter
+// ✅ Create transporter (Explicit config for cloud stability)
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+  host: "smtp.gmail.com",
+  port: 587,
+  secure: false, // TLS
   auth: {
     user: GMAIL_USER,
     pass: GMAIL_APP_PASSWORD,
   },
+  connectionTimeout: 10000, // 10s
+  greetingTimeout: 10000,
+  socketTimeout: 15000,
 });
 
 // ===============================
