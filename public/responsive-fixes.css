@@ -24,6 +24,35 @@ svg {
   height: auto;
 }
 
+img.h-full,
+video.h-full,
+img.w-full.object-cover,
+video.w-full.object-cover {
+  height: 100%;
+}
+
+img.object-cover,
+video.object-cover {
+  object-fit: cover;
+}
+
+img.object-contain,
+video.object-contain {
+  object-fit: contain;
+}
+
+.product-image-container {
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+}
+
+.product-image-container > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
 /* Force Material Symbols to render consistently across pages */
 .material-symbols-outlined {
   font-family: "Material Symbols Outlined" !important;
@@ -890,6 +919,60 @@ nav.fixed .max-w-7xl {
 
   body.has-mobile-bars.route-collection section .grid.grid-cols-2 {
     gap: 10px !important;
+  }
+
+  /* Product detail page: uploaded image dimensions must never control layout */
+  body.has-mobile-bars.route-viewproducts main {
+    padding-top: 16px !important;
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+    padding-bottom: 96px !important;
+  }
+
+  body.has-mobile-bars.route-viewproducts main > .flex.items-center {
+    margin-bottom: 16px !important;
+    max-width: 100% !important;
+  }
+
+  body.has-mobile-bars.route-viewproducts .grid.grid-cols-1.lg\:grid-cols-2 {
+    gap: 28px !important;
+  }
+
+  body.has-mobile-bars.route-viewproducts .product-image-container {
+    width: min(100%, calc(68dvh * 4 / 5)) !important;
+    aspect-ratio: 4 / 5 !important;
+    height: auto !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    min-height: 0 !important;
+    border-radius: 28px !important;
+    overflow: hidden !important;
+    contain: layout paint;
+  }
+
+  body.has-mobile-bars.route-viewproducts .product-image-container > #mainImage {
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    object-fit: cover !important;
+    object-position: center center !important;
+    display: block !important;
+  }
+
+  body.has-mobile-bars.route-viewproducts .product-image-container > #imageLoader,
+  body.has-mobile-bars.route-viewproducts .product-image-container > #sliderControls,
+  body.has-mobile-bars.route-viewproducts .product-image-container > #imageDots {
+    position: absolute !important;
+  }
+
+  body.has-mobile-bars.route-viewproducts #productCategory {
+    margin-top: 0 !important;
+  }
+
+  body.has-mobile-bars.route-viewproducts #productTitle {
+    font-size: clamp(2rem, 10vw, 3rem) !important;
+    line-height: 1.05 !important;
+    overflow-wrap: anywhere;
   }
 
   /* Message boutique page */
