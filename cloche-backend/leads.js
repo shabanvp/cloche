@@ -11,6 +11,7 @@ const ENQUIRY_BLOB_PREFIX = "[[CLOCHE_ENQUIRY_JSON]]";
 
 const clean = (value) => String(value || "").trim();
 const cleanLower = (value) => clean(value).toLowerCase();
+const digitsOnly = (value) => clean(value).replace(/\D/g, "");
 
 const isMissingRelation = (error) => /relation .* does not exist/i.test(String(error?.message || ""));
 const isMissingColumn = (error) =>
@@ -843,8 +844,35 @@ router.get("/list/:boutiqueId", async (req, res) => {
     const rows = Array.isArray(data) ? data : [];
     console.log(`[Leads] Found ${rows.length} leads`);
 
+    let enquiryFallbacks = [];
+    const { data: enquiryRows, error: enquiryRowsErr } = await supabase
+      .from(ENQUIRIES_TABLE)
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(500);
+
+    if (!enquiryRowsErr && Array.isArray(enquiryRows)) {
+      enquiryFallbacks = enquiryRows.map(normalizeAdminEnquiryRow);
+    } else if (enquiryRowsErr && !isMissingRelation(enquiryRowsErr)) {
+      console.warn("[Leads] Failed to load enquiry fallback rows:", enquiryRowsErr.message);
+    }
+
+    const findMatchingEnquiry = (row) => {
+      const rowPhone = digitsOnly(row.phone);
+      const rowName = cleanLower(row.name);
+      if (!rowPhone && !rowName) return null;
+
+      return enquiryFallbacks.find((enquiry) => {
+        const enquiryPhone = digitsOnly(enquiry.phone);
+        const enquiryName = cleanLower(enquiry.name);
+        if (rowPhone && enquiryPhone && rowPhone === enquiryPhone) return true;
+        return !!(rowName && enquiryName && rowName === enquiryName);
+      }) || null;
+    };
+
     // Normalize so the frontend can reliably show all enquiry details
     const normalized = rows.map((row) => {
+      const matchedEnquiry = findMatchingEnquiry(row);
       // Extract from BOTH potential blob locations
       const reqBlob = extractEnquiryBlob(row.requirement || "");
       const specBlob = extractEnquiryBlob(row.special_requirement || "");
@@ -856,7 +884,8 @@ router.get("/list/:boutiqueId", async (req, res) => {
       };
 
       const preferred = clean(row.preferred_location || row.location || "") ||
-        clean(blob?.preferred_location || blob?.cityLocation || "");
+        clean(blob?.preferred_location || blob?.cityLocation || "") ||
+        clean(matchedEnquiry?.preferred_location || "");
       const parsed = parsePreferredLocation(preferred);
 
       // Clean stripped versions (the text part before the JSON blob)
@@ -872,16 +901,16 @@ router.get("/list/:boutiqueId", async (req, res) => {
         id: row.id,
         boutique_id: row.boutique_id,
         name: clean(row.name) || clean(blob?.fullName) || clean(blob?.name) || "Guest",
-        email: clean(row.email) || clean(blob?.email) || "",
+        email: clean(row.email) || clean(blob?.email) || clean(matchedEnquiry?.email) || "",
         phone: clean(row.phone) || clean(blob?.mobileNumber) || clean(blob?.phone) || "",
-        wedding_date: clean(row.wedding_date || row.date) || clean(blob?.weddingDate) || clean(blob?.wedding_date) || null,
-        requirement: finalRequirement,
-        special_requirement: finalSpecial,
-        product_name: clean(row.product_name) || clean(blob?.productName) || "",
-        product_image: clean(row.product_image) || clean(blob?.productImage) || "",
+        wedding_date: clean(row.wedding_date || row.date) || clean(blob?.weddingDate) || clean(blob?.wedding_date) || clean(matchedEnquiry?.wedding_date) || null,
+        requirement: finalRequirement || clean(matchedEnquiry?.requirement),
+        special_requirement: finalSpecial !== "—" ? finalSpecial : (clean(matchedEnquiry?.special_requirement) || "—"),
+        product_name: clean(row.product_name) || clean(blob?.productName) || clean(matchedEnquiry?.product_name) || "",
+        product_image: clean(row.product_image) || clean(blob?.productImage) || clean(matchedEnquiry?.product_image) || "",
         preferred_location: preferred,
-        area: clean(row.area) || clean(blob?.areaLocation) || clean(blob?.area) || parsed.area,
-        district: clean(row.district) || clean(blob?.districtLocation) || clean(blob?.district) || parsed.district,
+        area: clean(row.area) || clean(blob?.areaLocation) || clean(blob?.area) || clean(matchedEnquiry?.area) || parsed.area,
+        district: clean(row.district) || clean(blob?.districtLocation) || clean(blob?.district) || clean(matchedEnquiry?.district) || parsed.district,
         status: clean(row.status || "NEW"),
         category: clean(row.category || blob?.category || safeLeadCategory(finalRequirement)),
         created_at: row.created_at || null
