@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+  <title>Resend Verification | CLOCHE</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            primary: "#c1a671",
+            "background-dark": "#0d0d0d"
+          },
+          fontFamily: {
+            display: ["Noto Serif", "serif"],
+            sans: ["Inter", "sans-serif"]
+          }
+        }
+      }
+    };
+  </script>
+  <link rel="stylesheet" href="responsive-fixes.css?v=1776237132140" />
+</head>
+
+<body class="bg-background-dark min-h-screen flex items-center justify-center p-6 text-white font-sans">
+  <main class="w-full max-w-md border border-primary/20 bg-[#14120f]/80 rounded-xl p-8 shadow-2xl">
+    <div class="text-center mb-8">
+      <p class="text-primary text-xs tracking-[0.35em] font-bold mb-3">CLOCHE</p>
+      <h1 class="font-display text-3xl tracking-[0.12em]">Verify Email</h1>
+      <p class="text-white/55 text-sm mt-3">Enter your account email and we will send a new verification link.</p>
+    </div>
+
+    <div class="grid grid-cols-2 gap-3 mb-6">
+      <button id="userTypeBtn" type="button" class="h-11 rounded-lg border border-primary/40 bg-primary/10 text-primary text-xs font-bold uppercase tracking-[0.12em]">User</button>
+      <button id="partnerTypeBtn" type="button" class="h-11 rounded-lg border border-white/10 bg-white/5 text-white/80 text-xs font-bold uppercase tracking-[0.12em]">Partner</button>
+    </div>
+
+    <form id="resendForm" class="space-y-5">
+      <div>
+        <label class="block text-xs uppercase tracking-[0.14em] text-white/80 mb-2">Email Address</label>
+        <input id="email" type="email" required class="w-full h-13 rounded-lg border border-white/10 bg-white/5 text-white px-4" placeholder="you@example.com" />
+      </div>
+      <button id="submitBtn" class="w-full h-13 rounded-lg bg-primary text-black font-display font-bold uppercase tracking-[0.18em] text-sm">
+        Send Verification Link
+      </button>
+    </form>
+
+    <p id="message" class="min-h-5 text-center text-xs text-white/60 mt-5"></p>
+
+    <div class="text-center mt-8">
+      <a href="boutiquelogin.html" class="text-primary/80 hover:text-primary text-xs uppercase tracking-[0.12em]">Back to login</a>
+    </div>
+  </main>
+
+  <script>
+    const API_BASE = (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" || window.location.protocol === "file:")
+      ? "http://localhost:5001"
+      : "https://cloche-backend.onrender.com";
+
+    let selectedAccountType = "user";
+
+    function setAccountType(type) {
+      selectedAccountType = type === "partner" ? "partner" : "user";
+      const userTypeBtn = document.getElementById("userTypeBtn");
+      const partnerTypeBtn = document.getElementById("partnerTypeBtn");
+      userTypeBtn.className = selectedAccountType === "user"
+        ? "h-11 rounded-lg border border-primary/40 bg-primary/10 text-primary text-xs font-bold uppercase tracking-[0.12em]"
+        : "h-11 rounded-lg border border-white/10 bg-white/5 text-white/80 text-xs font-bold uppercase tracking-[0.12em]";
+      partnerTypeBtn.className = selectedAccountType === "partner"
+        ? "h-11 rounded-lg border border-primary/40 bg-primary/10 text-primary text-xs font-bold uppercase tracking-[0.12em]"
+        : "h-11 rounded-lg border border-white/10 bg-white/5 text-white/80 text-xs font-bold uppercase tracking-[0.12em]";
+    }
+
+    document.getElementById("userTypeBtn").addEventListener("click", () => setAccountType("user"));
+    document.getElementById("partnerTypeBtn").addEventListener("click", () => setAccountType("partner"));
+
+    const requestedType = new URLSearchParams(window.location.search).get("type");
+    setAccountType(requestedType === "partner" ? "partner" : "user");
+
+    document.getElementById("resendForm").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const email = document.getElementById("email").value.trim().toLowerCase();
+      const submitBtn = document.getElementById("submitBtn");
+      const message = document.getElementById("message");
+
+      if (!email || !email.includes("@")) {
+        message.textContent = "Enter a valid email address.";
+        message.className = "min-h-5 text-center text-xs text-red-300 mt-5";
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Sending...";
+      message.textContent = "";
+
+      try {
+        const res = await fetch(`${API_BASE}/api/auth/resend-verification`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, account_type: selectedAccountType })
+        });
+        const data = await res.json();
+        message.textContent = data.message || (res.ok ? "Verification email sent." : "Failed to send verification email.");
+        message.className = res.ok
+          ? "min-h-5 text-center text-xs text-primary mt-5"
+          : "min-h-5 text-center text-xs text-red-300 mt-5";
+      } catch (err) {
+        message.textContent = "Server error. Please try again.";
+        message.className = "min-h-5 text-center text-xs text-red-300 mt-5";
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Send Verification Link";
+      }
+    });
+  </script>
+</body>
+
+</html>
