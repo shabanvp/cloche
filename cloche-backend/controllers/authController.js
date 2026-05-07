@@ -1,7 +1,8 @@
 const bcrypt = require("bcrypt");
+const crypto = require("crypto");
 const { v4: uuidv4 } = require("uuid");
 const supabase = require("../supabase");
-const { sendVerificationEmail, getEmailServiceStatus } = require("../emailService");
+const { sendVerificationEmail, sendPasswordResetEmail, getEmailServiceStatus } = require("../emailService");
 const { uploadBufferToStorage, deleteStorageObjectByUrl } = require("../storage");
 
 const CLOUDINARY_CLOUD_NAME = String(process.env.CLOUDINARY_CLOUD_NAME || "").trim();
@@ -40,6 +41,17 @@ const normalizeImageUrl = (value) => {
 const cleanText = (value) => String(value || "").trim().replace(/\s+/g, " ");
 
 const isVerifiedTrue = (value) => value === true || value === "true" || value === 1 || value === "1";
+
+const PASSWORD_RESET_MINUTES = 30;
+
+const normalizeAccountType = (value) => value === "partner" ? "partner" : "user";
+
+const hashResetToken = (token) => crypto
+    .createHash("sha256")
+    .update(String(token || ""))
+    .digest("hex");
+
+const isStrongPassword = (password) => String(password || "").length >= 8;
 
 const normalizeLocationFields = ({ area, district, city }) => {
     const safeCity = cleanText(city);
@@ -302,6 +314,124 @@ exports.resendVerification = async (req, res) => {
         console.error("[Auth] Full exception:", err);
         return res.status(500).json({ 
             message: "Failed to resend verification email",
+            error: err.message || "Internal server error"
+        });
+    }
+};
+
+/* ================= FORGOT PASSWORD ================= */
+exports.forgotPassword = async (req, res) => {
+    const accountType = normalizeAccountType(req.body.account_type);
+    const email = String(req.body.email || "").trim().toLowerCase();
+
+    if (!email || !email.includes("@")) {
+        return res.status(400).json({ message: "Valid email is required" });
+    }
+
+    const table = accountType === "partner" ? "boutiques" : "users";
+    const nameField = accountType === "partner" ? "owner_name" : "name";
+    const genericResponse = {
+        success: true,
+        message: "If an account exists for that email, a password reset link has been sent."
+    };
+
+    try {
+        const { data: record, error } = await supabase
+            .from(table)
+            .select(`id, email, ${nameField}`)
+            .eq("email", email)
+            .maybeSingle();
+
+        if (error) throw error;
+        if (!record) return res.json(genericResponse);
+
+        const rawToken = crypto.randomBytes(32).toString("hex");
+        const tokenHash = hashResetToken(rawToken);
+        const expiresAt = new Date(Date.now() + PASSWORD_RESET_MINUTES * 60 * 1000).toISOString();
+
+        const { error: updateErr } = await supabase
+            .from(table)
+            .update({
+                password_reset_token_hash: tokenHash,
+                password_reset_expires_at: expiresAt
+            })
+            .eq("id", record.id);
+
+        if (updateErr) throw updateErr;
+
+        const emailResult = await sendPasswordResetEmail(
+            email,
+            record[nameField] || "User",
+            rawToken,
+            accountType
+        );
+
+        if (!emailResult?.success) {
+            console.error("[Auth] Password reset email failed:", emailResult?.error);
+            return res.status(500).json({
+                message: "Failed to send password reset email",
+                error: emailResult?.error || "Email service unavailable"
+            });
+        }
+
+        return res.json(genericResponse);
+    } catch (err) {
+        console.error("[Auth] Forgot password exception:", err.message);
+        return res.status(500).json({
+            message: "Failed to start password reset",
+            error: err.message || "Internal server error"
+        });
+    }
+};
+
+/* ================= RESET PASSWORD ================= */
+exports.resetPassword = async (req, res) => {
+    const accountType = normalizeAccountType(req.body.account_type);
+    const token = String(req.body.token || "").trim();
+    const password = String(req.body.password || "");
+
+    if (!token || !password) {
+        return res.status(400).json({ message: "Reset token and new password are required" });
+    }
+
+    if (!isStrongPassword(password)) {
+        return res.status(400).json({ message: "Password must be at least 8 characters" });
+    }
+
+    const table = accountType === "partner" ? "boutiques" : "users";
+    const tokenHash = hashResetToken(token);
+
+    try {
+        const { data: record, error } = await supabase
+            .from(table)
+            .select("id, password_reset_expires_at")
+            .eq("password_reset_token_hash", tokenHash)
+            .maybeSingle();
+
+        if (error) throw error;
+
+        const expiresAt = record?.password_reset_expires_at ? new Date(record.password_reset_expires_at) : null;
+        if (!record || !expiresAt || Number.isNaN(expiresAt.getTime()) || expiresAt.getTime() < Date.now()) {
+            return res.status(400).json({ message: "Reset link is invalid or expired" });
+        }
+
+        const passwordHash = await bcrypt.hash(password, 10);
+        const { error: updateErr } = await supabase
+            .from(table)
+            .update({
+                password_hash: passwordHash,
+                password_reset_token_hash: null,
+                password_reset_expires_at: null
+            })
+            .eq("id", record.id);
+
+        if (updateErr) throw updateErr;
+
+        return res.json({ success: true, message: "Password updated. You can now login." });
+    } catch (err) {
+        console.error("[Auth] Reset password exception:", err.message);
+        return res.status(500).json({
+            message: "Failed to reset password",
             error: err.message || "Internal server error"
         });
     }

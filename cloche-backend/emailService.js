@@ -241,6 +241,46 @@ const sendVerificationEmail = async (email, name, token, type) => {
 };
 
 // ===============================
+// SEND PASSWORD RESET EMAIL
+// ===============================
+const sendPasswordResetEmail = async (email, name, token, type) => {
+  const resetUrl = `${FRONTEND_BASE_URL}/reset-password.html?token=${encodeURIComponent(
+    token
+  )}&type=${encodeURIComponent(type)}`;
+
+  const htmlBody = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px;">
+      <h2 style="color:#c1a671;">CLOCHE</h2>
+      <p>Hi <strong>${name || "there"}</strong>,</p>
+      <p>We received a request to reset your Cloche password.</p>
+
+      <div style="margin:20px 0;">
+        <a href="${resetUrl}"
+           style="background:#c1a671;color:#fff;padding:12px 25px;text-decoration:none;border-radius:5px;">
+          Reset Password
+        </a>
+      </div>
+
+      <p style="font-size:12px;color:#888;">
+        This link expires in 30 minutes. If you did not request this, you can ignore this email.
+      </p>
+    </div>
+  `;
+
+  const result = await sendEmailMessage({
+    to: email,
+    subject: "Reset Your Cloche Password",
+    html: htmlBody
+  });
+
+  if (result.success) {
+    console.log(`Password reset email sent to ${email}`);
+  }
+
+  return result;
+};
+
+// ===============================
 // SEND LEAD / ENQUIRY EMAIL
 // ===============================
 const sendEnquiryNotificationEmail = async (
@@ -310,6 +350,7 @@ const getEmailServiceStatus = async () => {
 
 module.exports = {
   sendVerificationEmail,
+  sendPasswordResetEmail,
   sendEnquiryNotificationEmail,
   getEmailServiceStatus,
   createEmailMessage,
