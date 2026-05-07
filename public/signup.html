@@ -370,13 +370,11 @@
       const modalSubDesc = document.getElementById("modalSubDesc");
       const modalIcon = document.getElementById("modalIcon");
       const modalSpinner = document.getElementById("modalSpinner");
-      const resendBtn = document.getElementById("resendBtn");
       const goLoginBtn = document.getElementById("goLoginBtn");
       const manualVerifyBtn = document.getElementById("manualVerifyBtn");
 
       // Reset
       manualVerifyBtn.classList.add("hidden");
-      resendBtn.classList.add("hidden");
       goLoginBtn.classList.remove("hidden");
       goLoginBtn.textContent = "Go to Login";
 
@@ -388,8 +386,6 @@
         modalDesc.innerHTML = `Your account was created, but we couldn't send the verification email to <strong class="text-white">${email}</strong>.`;
         modalSubDesc.textContent = "Please check your server configuration.";
         modalSpinner.classList.add("hidden");
-        resendBtn.classList.remove("hidden");
-        goLoginBtn.classList.add("hidden");
       } else {
         modalIcon.textContent = "mail";
         modalIcon.classList.remove("text-amber-400");
@@ -412,60 +408,6 @@
       if (modal) {
         modal.classList.remove("hidden");
         modal.classList.add("flex");
-      }
-    }
-
-    async function resendVerification() {
-      const resendBtn = document.getElementById("resendBtn");
-      const resendText = resendBtn.querySelector("span:last-child");
-      const originalText = resendText.textContent;
-
-      resendBtn.disabled = true;
-      resendText.textContent = "Sending...";
-      resendBtn.classList.add("opacity-70");
-
-      try {
-        // Re-submit the signup form to trigger a resend
-        const formData = new FormData();
-        formData.append("account_type", selectedAccountType);
-
-        if (selectedAccountType === "user") {
-          formData.append("name", document.getElementById("owner").value.trim());
-          formData.append("email", lastSignupEmail);
-          formData.append("password", document.getElementById("password").value);
-        } else {
-          formData.append("boutique_name", document.getElementById("boutique").value.trim());
-          formData.append("owner_name", document.getElementById("owner").value.trim());
-          formData.append("email", lastSignupEmail);
-          formData.append("phone", document.getElementById("phone").value.trim());
-          formData.append("area", document.getElementById("area").value.trim());
-          formData.append("district", document.getElementById("district").value.trim());
-          formData.append("password", document.getElementById("password").value);
-          const imageFile = document.getElementById("showcaseImage").files[0];
-          if (imageFile) formData.append("image", imageFile);
-        }
-
-        const res = await fetch(`${API_BASE}/api/auth/signup`, {
-          method: "POST",
-          body: formData
-        });
-        const result = await res.json();
-
-        if (result.success && !result.email_failed) {
-          // Email sent successfully this time
-          showSuccessModal(false, lastSignupEmail);
-        } else if (result.email_failed) {
-          alert(result.email_error || result.message || "Email sending still failed.");
-          showSuccessModal(true, lastSignupEmail, result.verification_url);
-        } else {
-          alert(result.message || "Failed to resend. Please try again.");
-        }
-      } catch (err) {
-        alert("Connection error. Please try again.");
-      } finally {
-        resendBtn.disabled = false;
-        resendText.textContent = originalText;
-        resendBtn.classList.remove("opacity-70");
       }
     }
 
@@ -611,13 +553,6 @@
         class="hidden w-full bg-green-600 hover:bg-green-500 text-white h-12 rounded-lg font-bold text-xs uppercase tracking-[0.15em] shadow-lg shadow-green-900/20 transition-all active:scale-[0.98] flex items-center justify-center gap-2 mt-2">
         <span class="material-symbols-outlined text-base">verified</span>
         <span>Verify Manually Now</span>
-      </button>
-
-      <!-- Resend Button (shown when email failed) -->
-      <button id="resendBtn" onclick="resendVerification()"
-        class="hidden w-full bg-white/5 border border-white/10 hover:bg-white/10 text-white/70 h-10 rounded-lg font-bold text-[10px] uppercase tracking-widest transition-all active:scale-[0.98] flex items-center justify-center gap-2 mt-1">
-        <span class="material-symbols-outlined text-sm">send</span>
-        <span>Resend Email</span>
       </button>
 
       <!-- Go to Login Button -->

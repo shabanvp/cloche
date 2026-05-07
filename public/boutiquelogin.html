@@ -130,13 +130,6 @@
                         Secure Login
                     </button>
                 </div>
-                <div id="resendWrap" class="hidden text-center mt-4">
-                    <button id="resendBtn" type="button" onclick="resendFromLogin()"
-                        class="text-xs text-primary hover:underline tracking-wide">
-                        Resend Verification Email
-                    </button>
-                    <p id="resendMessage" class="mt-3 text-[11px] text-[#bab2a0]"></p>
-                </div>
             </form>
 
             <div class="mt-12 text-center">
@@ -224,15 +217,9 @@
                 if (!res.ok) {
                     alert(result.message || "Login failed");
 
-                    // 👉 show resend button ONLY if not verified
-                    if (res.status === 403) {
-                        document.getElementById("resendWrap").classList.remove("hidden");
-                    }
-
                     return;
                 }
                 if (isUser) {
-                    document.getElementById("resendWrap").classList.add("hidden");
                     localStorage.removeItem("isLoggedIn");
                     localStorage.removeItem("boutiqueId");
                     localStorage.removeItem("ownerName");
@@ -245,7 +232,6 @@
                     window.location.href = "index.html";
                     return;
                 }
-                document.getElementById("resendWrap").classList.add("hidden");
                 localStorage.removeItem("isUserLoggedIn");
                 localStorage.removeItem("userId");
                 localStorage.removeItem("userName");
@@ -287,75 +273,6 @@
             setAccountType("user");
             checkVerificationStatus();
         });
-        async function resendFromLogin() {
-            const email = document.getElementById("email").value.trim().toLowerCase();
-            const resendBtn = document.getElementById("resendBtn");
-            const resendMessage = document.getElementById("resendMessage");
-            const originalText = resendBtn ? resendBtn.textContent : "";
-
-            if (!email) {
-                alert("Enter your email first");
-                return;
-            }
-
-            if (!email.includes("@")) {
-                alert("Please enter your email address to resend verification.");
-                return;
-            }
-
-            if (resendBtn) {
-                resendBtn.disabled = true;
-                resendBtn.textContent = "Sending...";
-                resendBtn.classList.add("opacity-60");
-            }
-            if (resendMessage) {
-                resendMessage.textContent = "Sending verification email...";
-                resendMessage.className = "mt-3 text-[11px] text-[#bab2a0]";
-            }
-
-            try {
-                const res = await fetch(`${API_BASE}/api/auth/resend-verification`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        email: email,
-                        account_type: selectedAccountType
-                    })
-                });
-
-                const data = await res.json();
-
-                if (res.ok) {
-                    if (resendMessage) {
-                        resendMessage.textContent = "Verification email sent. Check your inbox.";
-                        resendMessage.className = "mt-3 text-[11px] text-primary";
-                    }
-                    alert("Verification email sent. Check your inbox.");
-                } else {
-                    const details = data.error ? ` (${data.error})` : "";
-                    if (resendMessage) {
-                        resendMessage.textContent = `${data.message || "Failed to resend email"}${details}`;
-                        resendMessage.className = "mt-3 text-[11px] text-red-300";
-                    }
-                    alert(data.message || "Failed to resend email");
-                }
-
-            } catch (err) {
-                if (resendMessage) {
-                    resendMessage.textContent = "Server error. Please try again.";
-                    resendMessage.className = "mt-3 text-[11px] text-red-300";
-                }
-                alert("Server error");
-            } finally {
-                if (resendBtn) {
-                    resendBtn.disabled = false;
-                    resendBtn.textContent = originalText;
-                    resendBtn.classList.remove("opacity-60");
-                }
-            }
-        }
     </script>
     <script src="responsive-layout.js?v=20260501-partner-signup"></script>
   <script src="footer.js?v=20260505-footer-fix"></script>
