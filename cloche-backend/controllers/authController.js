@@ -96,7 +96,7 @@ exports.signup = async (req, res) => {
 
             if (existingUser) {
                 if (isVerifiedTrue(existingUser.is_verified)) return res.status(409).json({ message: "User already exists" });
-                await supabase.from("users").update({ name, password_hash: passwordHash, verification_token: verificationToken, plan: "early_partner" }).eq("id", existingUser.id);
+                await supabase.from("users").update({ name, password_hash: passwordHash, verification_token: verificationToken }).eq("id", existingUser.id);
                 const emailResult = await sendVerificationEmail(email, name, verificationToken, "user");
                 const verificationUrl = `${FRONTEND_BASE_URL}/api/auth/verify-email?token=${encodeURIComponent(String(verificationToken))}&type=user`;
                 if (!emailResult?.success) {
@@ -106,7 +106,7 @@ exports.signup = async (req, res) => {
                 return res.json({ success: true, message: "Verification email resent.", email: { sent: true, messageId: emailResult?.messageId || null } });
             }
 
-            const { error } = await supabase.from("users").insert([{ name, email, password_hash: passwordHash, plan: "early_partner", is_verified: false, verification_token: verificationToken }]);
+            const { error } = await supabase.from("users").insert([{ name, email, password_hash: passwordHash, is_verified: false, verification_token: verificationToken }]);
             if (error) return res.status(500).json({ message: error.message });
 
             const emailResult = await sendVerificationEmail(email, name, verificationToken, "user");
@@ -235,7 +235,7 @@ exports.loginUser = async (req, res) => {
             userId: user.id,
             name: user.name,
             email: user.email,
-            plan: user.plan || "early_partner"
+            plan: "early_partner"
         });
     } catch (err) {
         return res.status(500).json({ message: "Server error" });
