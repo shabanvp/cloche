@@ -1,5 +1,6 @@
 const { google } = require("googleapis");
 const nodemailer = require("nodemailer");
+const dns = require("dns");
 
 /**
  * CLOCHE Email Service - Gmail API OAuth2
@@ -31,6 +32,7 @@ const GMAIL_APP_PASSWORD = String(process.env.GMAIL_APP_PASSWORD || "").trim().r
 const hasGmailApiSetup = !!(GMAIL_CLIENT_ID && GMAIL_CLIENT_SECRET && GMAIL_REFRESH_TOKEN);
 const hasSmtpSetup = !!(GMAIL_USER && GMAIL_APP_PASSWORD);
 const isSetup = hasGmailApiSetup || hasSmtpSetup;
+let cachedSmtpIpv4 = null;
 
 const oauth2Client = new google.auth.OAuth2(
   GMAIL_CLIENT_ID,
@@ -43,21 +45,6 @@ if (hasGmailApiSetup) {
 }
 
 const gmail = google.gmail({ version: "v1", auth: oauth2Client });
-
-const smtpTransporter = hasSmtpSetup ? nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 587,
-  secure: false,
-  requireTLS: true,
-  family: 4,
-  connectionTimeout: 15000,
-  greetingTimeout: 15000,
-  socketTimeout: 30000,
-  auth: {
-    user: GMAIL_USER,
-    pass: GMAIL_APP_PASSWORD,
-  },
-}) : null;
 
 console.log(`Email service configured: Gmail API=${hasGmailApiSetup}, SMTP app password=${hasSmtpSetup}`);
 
@@ -84,55 +71,94 @@ const createEmailMessage = (to, subject, html, fromName = "Cloche Luxury") => {
   return encodeMessage(lines.join("\n"));
 };
 
+const resolveSmtpIpv4 = async () => {
+  if (cachedSmtpIpv4) return cachedSmtpIpv4;
+
+  const addresses = await dns.promises.resolve4("smtp.gmail.com");
+  cachedSmtpIpv4 = addresses[0];
+  return cachedSmtpIpv4;
+};
+
+const createSmtpTransporter = async () => {
+  const smtpIpv4 = await resolveSmtpIpv4();
+
+  return nodemailer.createTransport({
+    host: smtpIpv4,
+    port: 587,
+    secure: false,
+    requireTLS: true,
+    connectionTimeout: 15000,
+    greetingTimeout: 15000,
+    socketTimeout: 30000,
+    name: "smtp.gmail.com",
+    tls: {
+      servername: "smtp.gmail.com",
+    },
+    auth: {
+      user: GMAIL_USER,
+      pass: GMAIL_APP_PASSWORD,
+    },
+  });
+};
+
+const sendSmtpMessage = async ({ to, subject, html, fromName }) => {
+  const smtpTransporter = await createSmtpTransporter();
+  const info = await smtpTransporter.sendMail({
+    from: `"${escapeHeader(fromName || "Cloche Luxury")}" <${GMAIL_USER}>`,
+    to,
+    subject,
+    html,
+  });
+
+  return { success: true, messageId: info?.messageId || null, method: "gmail-smtp-app-password" };
+};
+
+const sendGmailApiMessage = async ({ to, subject, html, fromName }) => {
+  const response = await gmail.users.messages.send({
+    userId: "me",
+    requestBody: {
+      raw: createEmailMessage(to, subject, html, fromName)
+    }
+  });
+
+  return { success: true, messageId: response?.data?.id || null, method: "gmail-api" };
+};
+
 const sendGmailMessage = async ({ to, subject, html, fromName }) => {
   if (!isSetup) {
     console.error("Email Error: Missing Gmail API credentials and GMAIL_APP_PASSWORD");
     return { success: false, error: "Gmail email credentials not configured" };
   }
 
-  let apiError = null;
+  let smtpError = null;
 
-  if (hasGmailApiSetup) {
+  if (hasSmtpSetup) {
     try {
-      const response = await gmail.users.messages.send({
-        userId: "me",
-        requestBody: {
-          raw: createEmailMessage(to, subject, html, fromName)
-        }
-      });
-
-      return { success: true, messageId: response?.data?.id || null, method: "gmail-api" };
+      return await sendSmtpMessage({ to, subject, html, fromName });
     } catch (error) {
-      apiError = error?.response?.data?.error || error.message || "Gmail API send failed";
-      console.error("Gmail API Error:", apiError);
-      console.error("Gmail API Error Code:", error.code || error?.response?.status || "UNKNOWN");
+      smtpError = error.message || "Gmail SMTP send failed";
+      console.error("Gmail SMTP Error:", smtpError);
+      console.error("Gmail SMTP Error Code:", error.code || "UNKNOWN");
     }
   }
 
-  if (smtpTransporter) {
+  if (hasGmailApiSetup) {
     try {
-      const info = await smtpTransporter.sendMail({
-        from: `"${escapeHeader(fromName || "Cloche Luxury")}" <${GMAIL_USER}>`,
-        to,
-        subject,
-        html,
-      });
-
-      return { success: true, messageId: info?.messageId || null, method: "gmail-smtp-app-password" };
+      return await sendGmailApiMessage({ to, subject, html, fromName });
     } catch (error) {
-      const smtpError = error.message || "Gmail SMTP send failed";
-      console.error("Gmail SMTP Error:", smtpError);
-      console.error("Gmail SMTP Error Code:", error.code || "UNKNOWN");
+      const apiError = error?.response?.data?.error || error.message || "Gmail API send failed";
+      console.error("Gmail API Error:", apiError);
+      console.error("Gmail API Error Code:", error.code || error?.response?.status || "UNKNOWN");
 
       const errorParts = [];
-      if (apiError) errorParts.push(`Gmail API: ${apiError}`);
-      errorParts.push(`SMTP: ${smtpError}`);
+      if (smtpError) errorParts.push(`SMTP: ${smtpError}`);
+      errorParts.push(`Gmail API: ${apiError}`);
 
       return { success: false, error: errorParts.join(" | ") };
     }
   }
 
-  return { success: false, error: apiError || "No Gmail send method configured" };
+  return { success: false, error: smtpError || "No Gmail send method configured" };
 };
 
 // ===============================
@@ -233,7 +259,7 @@ const getEmailServiceStatus = async () => {
     hasClientSecret: !!GMAIL_CLIENT_SECRET,
     hasRefreshToken: !!GMAIL_REFRESH_TOKEN,
     hasAppPassword: !!GMAIL_APP_PASSWORD,
-    method: hasGmailApiSetup ? "Gmail API OAuth2" : "Gmail SMTP app password",
+    method: hasSmtpSetup ? "Gmail SMTP app password" : "Gmail API OAuth2",
     hasGmailApiSetup,
     hasSmtpSetup,
     backendUrl: BACKEND_BASE_URL,
