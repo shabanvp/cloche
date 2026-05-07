@@ -118,7 +118,36 @@
       display: none;
     }
   </style>
-  <link rel='stylesheet' href='responsive-fixes.css?v=20260507-panel-lock' />
+  <link rel='stylesheet' href='responsive-fixes.css?v=20260507-strict-panel' />
+  <style id="collection-detail-panel-lock">
+    .collection-detail-media-frame {
+      position: relative !important;
+      display: block !important;
+      flex: none !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      aspect-ratio: 4 / 5 !important;
+      height: auto !important;
+      min-height: 0 !important;
+      max-height: none !important;
+      overflow: hidden !important;
+      border-radius: 32px !important;
+      contain: layout paint !important;
+      isolation: isolate !important;
+    }
+
+    .collection-detail-media-image {
+      position: absolute !important;
+      inset: 0 !important;
+      width: 100% !important;
+      height: 100% !important;
+      max-width: none !important;
+      min-height: 0 !important;
+      object-fit: cover !important;
+      object-position: center center !important;
+      display: block !important;
+    }
+  </style>
 </head>
 
 <body class="bg-background-dark text-gray-100 selection:bg-primary selection:text-white overflow-x-hidden pt-0">
@@ -159,8 +188,9 @@
       <!-- Left side: Product Image + Slider -->
       <div class="collection-detail-media space-y-6">
         <div
-          class="collection-detail-media-frame product-image-container relative rounded-[2rem] overflow-hidden shadow-2xl animate-fade-in group">
-          <img id="mainImage" src="" alt="Product Detail"
+          class="collection-detail-media-frame product-image-container relative rounded-[2rem] overflow-hidden shadow-2xl animate-fade-in group"
+          data-collection-detail-panel="true">
+          <img id="mainImage" src="" alt="Product Detail" data-collection-detail-image="true"
             class="collection-detail-media-image w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105 opacity-0" />
 
           <div id="sliderControls"
@@ -350,6 +380,39 @@
     let gallery = [];
     let currentImgIndex = 0;
 
+    function lockCollectionDetailImagePanel() {
+      const panel = document.querySelector("[data-collection-detail-panel='true']");
+      const image = document.querySelector("[data-collection-detail-image='true']");
+
+      if (panel) {
+        panel.style.position = "relative";
+        panel.style.display = "block";
+        panel.style.flex = "none";
+        panel.style.width = "100%";
+        panel.style.maxWidth = "100%";
+        panel.style.aspectRatio = "4 / 5";
+        panel.style.height = "auto";
+        panel.style.minHeight = "0";
+        panel.style.maxHeight = "none";
+        panel.style.overflow = "hidden";
+        panel.style.borderRadius = "32px";
+        panel.style.contain = "layout paint";
+        panel.style.isolation = "isolate";
+      }
+
+      if (image) {
+        image.style.position = "absolute";
+        image.style.inset = "0";
+        image.style.width = "100%";
+        image.style.height = "100%";
+        image.style.maxWidth = "none";
+        image.style.minHeight = "0";
+        image.style.objectFit = "cover";
+        image.style.objectPosition = "center center";
+        image.style.display = "block";
+      }
+    }
+
     function resolveAssetUrl(url) {
       let raw = String(url || "").trim();
       if (!raw) return "https://images.unsplash.com/photo-1540553016722-983e4838cd12?q=80&w=1200&auto=format&fit=crop";
@@ -371,11 +434,13 @@
       const loader = document.getElementById("imageLoader");
 
       if (mainImg) {
+        lockCollectionDetailImagePanel();
         mainImg.style.opacity = "0";
         loader.classList.remove("hidden");
 
         mainImg.src = resolveAssetUrl(gallery[currentImgIndex]);
         mainImg.onload = () => {
+          lockCollectionDetailImagePanel();
           mainImg.style.opacity = "1";
           loader.classList.add("hidden");
         };
@@ -637,6 +702,7 @@
     document.getElementById("slideRight")?.addEventListener("click", () => document.getElementById("relatedSlider").scrollBy({ left: 320, behavior: "smooth" }));
 
     document.addEventListener("DOMContentLoaded", () => {
+      lockCollectionDetailImagePanel();
       loadProductDetails();
       const isUserLoggedIn = localStorage.getItem("isUserLoggedIn") === "true";
       if (isUserLoggedIn) {
@@ -644,6 +710,9 @@
         if (authNav) authNav.textContent = (localStorage.getItem("userName") || "").split(' ')[0].toUpperCase();
       }
     });
+
+    window.addEventListener("resize", lockCollectionDetailImagePanel);
+    window.addEventListener("orientationchange", lockCollectionDetailImagePanel);
   </script>
   <script src='responsive-layout.js?v=20260501-partner-signup'></script>
   <script src="footer.js?v=20260505-footer-fix"></script>

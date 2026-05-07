@@ -42,7 +42,7 @@ video.object-contain {
 }
 
 .collection-detail-page {
-  --collection-detail-image-aspect: 3 / 4;
+  --collection-detail-image-aspect: 4 / 5;
   --collection-detail-radius: 2rem;
   --collection-detail-mobile-gap: 4.5rem;
   --collection-detail-desktop-gap: 5rem;
@@ -65,7 +65,7 @@ video.object-contain {
   flex: none;
   width: 100%;
   max-width: 100%;
-  aspect-ratio: var(--collection-detail-image-aspect, 3 / 4);
+  aspect-ratio: var(--collection-detail-image-aspect, 4 / 5);
   height: auto;
   min-height: 0;
   max-height: none;
@@ -99,6 +99,34 @@ video.object-contain {
   .collection-detail-layout {
     gap: var(--collection-detail-desktop-gap, 5rem);
   }
+}
+
+.collection-detail-media-frame {
+  position: relative !important;
+  display: block !important;
+  flex: none !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  aspect-ratio: 4 / 5 !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow: hidden !important;
+  border-radius: 32px !important;
+  contain: layout paint !important;
+  isolation: isolate !important;
+}
+
+.collection-detail-media-image {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  min-height: 0 !important;
+  object-fit: cover !important;
+  object-position: center center !important;
+  display: block !important;
 }
 
 /* Force Material Symbols to render consistently across pages */
@@ -1000,7 +1028,7 @@ nav.fixed .max-w-7xl {
     flex: none !important;
     width: 100% !important;
     max-width: 100% !important;
-    aspect-ratio: 3 / 4 !important;
+    aspect-ratio: 4 / 5 !important;
     height: auto !important;
     min-height: 0 !important;
     max-height: none !important;
