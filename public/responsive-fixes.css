@@ -60,10 +60,15 @@ video.object-contain {
 
 .collection-detail-media-frame,
 .product-image-container {
+  position: relative;
+  display: block;
+  flex: none;
   width: 100%;
+  max-width: 100%;
   aspect-ratio: var(--collection-detail-image-aspect, 3 / 4);
   height: auto;
   min-height: 0;
+  max-height: none;
   overflow: hidden;
   border-radius: var(--collection-detail-radius, 2rem);
   contain: layout paint;
@@ -72,10 +77,13 @@ video.object-contain {
 
 .collection-detail-media-frame > img,
 .product-image-container > img {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
+  max-width: none;
   object-fit: cover;
-  object-position: center;
+  object-position: center center;
   display: block;
 }
 
@@ -987,18 +995,26 @@ nav.fixed .max-w-7xl {
   }
 
   body.has-mobile-bars.route-viewproducts .collection-detail-media-frame {
+    position: relative !important;
+    display: block !important;
+    flex: none !important;
     width: 100% !important;
+    max-width: 100% !important;
     aspect-ratio: 3 / 4 !important;
     height: auto !important;
     min-height: 0 !important;
+    max-height: none !important;
     border-radius: 28px !important;
     overflow: hidden !important;
     contain: layout paint;
   }
 
   body.has-mobile-bars.route-viewproducts .collection-detail-media-image {
+    position: absolute !important;
+    inset: 0 !important;
     width: 100% !important;
     height: 100% !important;
+    max-width: none !important;
     min-height: 0 !important;
     object-fit: cover !important;
     object-position: center center !important;
