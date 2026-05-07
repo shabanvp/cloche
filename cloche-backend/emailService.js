@@ -1,11 +1,10 @@
 const nodemailer = require("nodemailer");
-const dns = require("dns").promises;
-const dnsSync = require("dns");
 
 /**
- * CLOCHE Email Service (FINAL - SMTP VERSION)
- * ✔ Real Gmail emails
- * ✔ Stable IPv4-only connections for Render
+ * CLOCHE Email Service - Gmail OAuth2
+ * ✔ Real Gmail emails via OAuth2
+ * ✔ No IPv6 issues
+ * ✔ Cloud-friendly (Render compatible)
  */
 
 const DEFAULT_BASE_URL = "https://cloche-backend.onrender.com";
@@ -23,41 +22,42 @@ const FRONTEND_BASE_URL = String(
   DEFAULT_BASE_URL
 ).trim().replace(/\/+$/, "");
 
-// ✅ Gmail SMTP credentials
+// ✅ Gmail OAuth2 Credentials
 const GMAIL_USER = process.env.GMAIL_USER || "cloche.luxury@gmail.com";
-const GMAIL_APP_PASSWORD = String(process.env.GMAIL_APP_PASSWORD || "").replace(/\s+/g, "");
+const GMAIL_CLIENT_ID = String(process.env.GMAIL_CLIENT_ID || "").trim();
+const GMAIL_CLIENT_SECRET = String(process.env.GMAIL_CLIENT_SECRET || "").trim();
+const GMAIL_REFRESH_TOKEN = String(process.env.GMAIL_REFRESH_TOKEN || "").trim();
 
-// Custom lookup function that forces IPv4 only
-const ipv4OnlyLookup = (hostname, options, callback) => {
-  if (typeof options === "function") {
-    callback = options;
-  }
-  // Always force family 4 (IPv4 only)
-  dnsSync.lookup(hostname, { family: 4 }, callback);
-};
-
-// ✅ Create transporter with IPv4-only lookup
+// ✅ Create transporter with Gmail OAuth2
 const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 587,
-  secure: false, // TLS
+  service: "gmail",
   auth: {
+    type: "OAuth2",
     user: GMAIL_USER,
-    pass: GMAIL_APP_PASSWORD,
+    clientId: GMAIL_CLIENT_ID,
+    clientSecret: GMAIL_CLIENT_SECRET,
+    refreshToken: GMAIL_REFRESH_TOKEN,
+    accessUrl: "https://oauth.google.com/token",
   },
-  lookup: ipv4OnlyLookup, // Force IPv4 lookup
-  connectionTimeout: 15000, // 15s
-  greetingTimeout: 15000,
-  socketTimeout: 20000, // 20s
+});
+
+// Verify transporter on startup
+transporter.verify((error, success) => {
+  if (error) {
+    console.error("❌ Gmail OAuth2 transporter verification failed:", error.message);
+  } else {
+    console.log("✅ Gmail OAuth2 transporter verified and ready");
+  }
 });
 
 // ===============================
 // ✅ SEND VERIFICATION EMAIL
 // ===============================
 const sendVerificationEmail = async (email, name, token, type) => {
-  if (!GMAIL_APP_PASSWORD) {
-    console.error("❌ SMTP Error: GMAIL_APP_PASSWORD is not set in environment variables.");
-    return { success: false, error: "SMTP credentials missing" };
+  // Check OAuth2 credentials
+  if (!GMAIL_CLIENT_ID || !GMAIL_CLIENT_SECRET || !GMAIL_REFRESH_TOKEN) {
+    console.error("❌ Gmail OAuth2 Error: Missing credentials (CLIENT_ID, CLIENT_SECRET, or REFRESH_TOKEN)");
+    return { success: false, error: "Gmail OAuth2 credentials not configured" };
   }
 
   const verificationUrl = `${BACKEND_BASE_URL}/api/auth/verify-email?token=${encodeURIComponent(
@@ -85,13 +85,6 @@ const sendVerificationEmail = async (email, name, token, type) => {
   `;
 
   try {
-    // Verify SMTP connection before attempting to send
-    const verified = await transporter.verify();
-    if (!verified) {
-      console.error("❌ SMTP Transporter verification failed - connection rejected");
-      return { success: false, error: "SMTP connection cannot be established" };
-    }
-
     await transporter.sendMail({
       from: `"Cloche Luxury" <${GMAIL_USER}>`,
       to: email,
@@ -102,9 +95,8 @@ const sendVerificationEmail = async (email, name, token, type) => {
     console.log(`✅ Verification email sent to ${email}`);
     return { success: true };
   } catch (error) {
-    console.error("❌ SMTP Error:", error.message);
-    console.error("❌ SMTP Error Code:", error.code);
-    console.error("❌ SMTP Error Response:", error.response);
+    console.error("❌ Gmail OAuth2 Error:", error.message);
+    console.error("❌ Error Code:", error.code);
     return { success: false, error: error.message };
   }
 };
@@ -150,7 +142,7 @@ const sendEnquiryNotificationEmail = async (
     console.log(`✅ Lead email sent to ${boutiqueEmail}`);
     return { success: true };
   } catch (error) {
-    console.error("❌ SMTP Error:", error.message);
+    console.error("❌ Gmail OAuth2 Error:", error.message);
     return { success: false, error: error.message };
   }
 };
@@ -158,29 +150,20 @@ const sendEnquiryNotificationEmail = async (
 // ===============================
 // ✅ DIAGNOSTICS
 // ===============================
-const verifyConnection = async () => {
-  try {
-    await transporter.verify();
-    return { success: true };
-  } catch (error) {
-    console.error("❌ SMTP Verification Failed:", error.message);
-    return { success: false, error: error.message };
-  }
-};
-
 const getEmailServiceStatus = async () => {
-  const connection = await verifyConnection();
-  
   // Obfuscate user for safety but show enough to verify
   const userPrefix = GMAIL_USER ? GMAIL_USER.substring(0, 3) : "???";
   const userSuffix = GMAIL_USER ? GMAIL_USER.split("@")[1] : "???";
 
+  const hasAllOAuth2Creds = !!(GMAIL_CLIENT_ID && GMAIL_CLIENT_SECRET && GMAIL_REFRESH_TOKEN);
+
   return {
-    configured: !!GMAIL_APP_PASSWORD,
+    configured: hasAllOAuth2Creds,
     user: `${userPrefix}...@${userSuffix}`,
-    hasPassword: !!GMAIL_APP_PASSWORD,
-    passwordLength: GMAIL_APP_PASSWORD ? GMAIL_APP_PASSWORD.length : 0,
-    connection,
+    hasClientId: !!GMAIL_CLIENT_ID,
+    hasClientSecret: !!GMAIL_CLIENT_SECRET,
+    hasRefreshToken: !!GMAIL_REFRESH_TOKEN,
+    method: "Gmail OAuth2",
     backendUrl: BACKEND_BASE_URL,
     frontendUrl: FRONTEND_BASE_URL,
   };
