@@ -855,7 +855,8 @@ router.get("/list/:boutiqueId", async (req, res) => {
         ...(specBlob.data || {}) 
       };
 
-      const preferred = clean(row.preferred_location || row.location || "") || clean(blob?.preferred_location || "");
+      const preferred = clean(row.preferred_location || row.location || "") ||
+        clean(blob?.preferred_location || blob?.cityLocation || "");
       const parsed = parsePreferredLocation(preferred);
 
       // Clean stripped versions (the text part before the JSON blob)

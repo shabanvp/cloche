@@ -533,6 +533,42 @@
       return v;
     };
 
+    const ENQUIRY_BLOB_PREFIX = "[[CLOCHE_ENQUIRY_JSON]]";
+
+    const extractEnquiryBlob = (value) => {
+      const raw = String(value ?? "");
+      let idx = raw.indexOf(ENQUIRY_BLOB_PREFIX);
+      let prefixUsed = true;
+
+      if (idx < 0) {
+        idx = raw.indexOf("{\"");
+        prefixUsed = false;
+      }
+
+      if (idx < 0) return { data: null, stripped: cleanStr(raw) };
+
+      const before = raw.slice(0, idx);
+      let jsonPart = raw.slice(idx + (prefixUsed ? ENQUIRY_BLOB_PREFIX.length : 0)).trim();
+
+      try {
+        const lastBrace = jsonPart.lastIndexOf("}");
+        if (lastBrace >= 0) jsonPart = jsonPart.slice(0, lastBrace + 1);
+        return { data: JSON.parse(jsonPart), stripped: cleanStr(before) };
+      } catch (_) {
+        return { data: null, stripped: cleanStr(before) };
+      }
+    };
+
+    const valueFromLead = (lead, blob, keys) => {
+      for (const key of keys) {
+        const direct = cleanStr(lead?.[key]);
+        if (direct) return direct;
+        const embedded = cleanStr(blob?.[key]);
+        if (embedded) return embedded;
+      }
+      return "";
+    };
+
     const escapeHtml = (unsafe) => {
       return String(unsafe ?? "")
         .replace(/&/g, "&amp;")
@@ -579,19 +615,27 @@
       const modal = document.getElementById("leadDetailModal");
       if (!modal) return;
 
-      const name = cleanStr(lead?.name) || "Guest";
-      const email = cleanStr(lead?.email) || "";
-      const phone = cleanStr(lead?.phone || lead?.phoneNumber) || "";
-      const category = cleanStr(lead?.category) || "Wedding";
-      const status = cleanStr(lead?.status) || "NEW";
-      const requirement = cleanStr(lead?.requirement) || "";
-      const special = cleanStr(lead?.special_requirement);
-      const weddingDate = formatDate(lead?.wedding_date || lead?.date) || "";
+      const reqBlob = extractEnquiryBlob(lead?.requirement || "");
+      const specialBlob = extractEnquiryBlob(lead?.special_requirement || "");
+      const blob = {
+        ...(reqBlob.data || {}),
+        ...(specialBlob.data || {})
+      };
 
-      const rawLocation = cleanStr(lead?.preferred_location);
+      const name = valueFromLead(lead, blob, ["name", "fullName"]) || "Guest";
+      const email = valueFromLead(lead, blob, ["email"]);
+      const phone = valueFromLead(lead, blob, ["phone", "mobileNumber", "phoneNumber"]);
+      const category = valueFromLead(lead, blob, ["category"]) || "Wedding";
+      const status = valueFromLead(lead, blob, ["status"]) || "NEW";
+      const requirement = cleanStr(reqBlob.stripped) || valueFromLead(lead, blob, ["requirement"]) || "";
+      const special = cleanStr(specialBlob.stripped) || valueFromLead(lead, blob, ["special_requirement", "specialRequirement"]);
+      const weddingDateRaw = valueFromLead(lead, blob, ["wedding_date", "weddingDate", "date"]);
+      const weddingDate = formatDate(weddingDateRaw) || weddingDateRaw || "";
+
+      const rawLocation = valueFromLead(lead, blob, ["preferred_location", "cityLocation", "location"]);
       const parsedLoc = {
-        area: cleanStr(lead?.area) || parsePreferredLocation(rawLocation).area,
-        district: cleanStr(lead?.district) || parsePreferredLocation(rawLocation).district
+        area: valueFromLead(lead, blob, ["area", "areaLocation"]) || parsePreferredLocation(rawLocation).area,
+        district: valueFromLead(lead, blob, ["district", "districtLocation"]) || parsePreferredLocation(rawLocation).district
       };
       const createdAt = formatDateTime(lead?.created_at) || cleanStr(lead?.created_at) || "—";
 
@@ -600,10 +644,13 @@
       const productNameEl = document.getElementById("leadDetailProductName");
       const productImgEl = document.getElementById("leadDetailProductImg");
 
-      if (lead?.product_name && productSection) {
+      const productName = valueFromLead(lead, blob, ["product_name", "productName"]);
+      const productImage = valueFromLead(lead, blob, ["product_image", "productImage"]);
+
+      if (productName && productSection) {
         productSection.classList.remove("hidden");
-        productNameEl.textContent = lead.product_name;
-        productImgEl.src = resolveAssetUrl(lead.product_image);
+        productNameEl.textContent = productName;
+        productImgEl.src = resolveAssetUrl(productImage);
       } else if (productSection) {
         productSection.classList.add("hidden");
       }
