@@ -1,23 +1,11 @@
+const { google } = require("googleapis");
 const nodemailer = require("nodemailer");
-const http = require("http");
-const https = require("https");
-const dns = require("dns");
 
 /**
- * CLOCHE Email Service - Gmail OAuth2
- * ✔ Real Gmail emails via OAuth2
- * ✔ IPv4-only enforcement
- * ✔ Cloud-friendly (Render compatible)
+ * CLOCHE Email Service - Gmail API OAuth2
+ * Sends through the Gmail HTTP API instead of SMTP so local networks and hosts
+ * that block SMTP/IPv6 port 465 do not break verification emails.
  */
-
-// IPv4-only lookup function for nodemailer
-const ipv4OnlyLookup = (hostname, options, callback) => {
-  // Handle both callback and promise-based calls
-  if (typeof options === "function") {
-    callback = options;
-  }
-  dns.lookup(hostname, { family: 4, all: false }, callback);
-};
 
 const DEFAULT_BASE_URL = "https://cloche-backend.onrender.com";
 
@@ -34,88 +22,162 @@ const FRONTEND_BASE_URL = String(
   DEFAULT_BASE_URL
 ).trim().replace(/\/+$/, "");
 
-// ✅ Gmail OAuth2 Credentials
 const GMAIL_USER = process.env.GMAIL_USER || "cloche.luxury@gmail.com";
 const GMAIL_CLIENT_ID = String(process.env.GMAIL_CLIENT_ID || "").trim();
 const GMAIL_CLIENT_SECRET = String(process.env.GMAIL_CLIENT_SECRET || "").trim();
 const GMAIL_REFRESH_TOKEN = String(process.env.GMAIL_REFRESH_TOKEN || "").trim();
+const GMAIL_APP_PASSWORD = String(process.env.GMAIL_APP_PASSWORD || "").trim().replace(/\s+/g, "");
 
-// ✅ Create agents that force IPv4
-const httpAgent = new http.Agent({ family: 4 });
-const httpsAgent = new https.Agent({ family: 4 });
+const hasGmailApiSetup = !!(GMAIL_CLIENT_ID && GMAIL_CLIENT_SECRET && GMAIL_REFRESH_TOKEN);
+const hasSmtpSetup = !!(GMAIL_USER && GMAIL_APP_PASSWORD);
+const isSetup = hasGmailApiSetup || hasSmtpSetup;
 
-// ✅ Create transporter with Gmail OAuth2 and IPv4-enforced agents
-const transporter = nodemailer.createTransport({
-  service: "gmail",
+const oauth2Client = new google.auth.OAuth2(
+  GMAIL_CLIENT_ID,
+  GMAIL_CLIENT_SECRET,
+  "https://developers.google.com/oauthplayground"
+);
+
+if (hasGmailApiSetup) {
+  oauth2Client.setCredentials({ refresh_token: GMAIL_REFRESH_TOKEN });
+}
+
+const gmail = google.gmail({ version: "v1", auth: oauth2Client });
+
+const smtpTransporter = hasSmtpSetup ? nodemailer.createTransport({
+  host: "smtp.gmail.com",
+  port: 587,
+  secure: false,
+  requireTLS: true,
+  family: 4,
+  connectionTimeout: 15000,
+  greetingTimeout: 15000,
+  socketTimeout: 30000,
   auth: {
-    type: "OAuth2",
     user: GMAIL_USER,
-    clientId: GMAIL_CLIENT_ID,
-    clientSecret: GMAIL_CLIENT_SECRET,
-    refreshToken: GMAIL_REFRESH_TOKEN,
-    accessUrl: "https://oauth.google.com/token",
+    pass: GMAIL_APP_PASSWORD,
   },
-  httpAgent,
-  httpsAgent,
-  lookup: ipv4OnlyLookup,
-});
+}) : null;
 
-// Don't verify on startup - just log when ready
-console.log("✅ Gmail OAuth2 transporter configured with IPv4-only enforcement");
+console.log(`Email service configured: Gmail API=${hasGmailApiSetup}, SMTP app password=${hasSmtpSetup}`);
 
-// ===============================
-// ✅ SEND VERIFICATION EMAIL
-// ===============================
-const sendVerificationEmail = async (email, name, token, type) => {
-  // Check OAuth2 credentials
-  if (!GMAIL_CLIENT_ID || !GMAIL_CLIENT_SECRET || !GMAIL_REFRESH_TOKEN) {
-    console.error("❌ Gmail OAuth2 Error: Missing credentials (CLIENT_ID, CLIENT_SECRET, or REFRESH_TOKEN)");
-    return { success: false, error: "Gmail OAuth2 credentials not configured" };
+const escapeHeader = (value) => String(value || "").replace(/[\r\n]+/g, " ").trim();
+
+const encodeMessage = (message) => Buffer
+  .from(message, "utf8")
+  .toString("base64")
+  .replace(/\+/g, "-")
+  .replace(/\//g, "_")
+  .replace(/=+$/, "");
+
+const createEmailMessage = (to, subject, html, fromName = "Cloche Luxury") => {
+  const lines = [
+    `From: "${escapeHeader(fromName)}" <${GMAIL_USER}>`,
+    `To: ${escapeHeader(to)}`,
+    "Content-Type: text/html; charset=UTF-8",
+    "MIME-Version: 1.0",
+    `Subject: ${escapeHeader(subject)}`,
+    "",
+    html
+  ];
+
+  return encodeMessage(lines.join("\n"));
+};
+
+const sendGmailMessage = async ({ to, subject, html, fromName }) => {
+  if (!isSetup) {
+    console.error("Email Error: Missing Gmail API credentials and GMAIL_APP_PASSWORD");
+    return { success: false, error: "Gmail email credentials not configured" };
   }
 
+  let apiError = null;
+
+  if (hasGmailApiSetup) {
+    try {
+      const response = await gmail.users.messages.send({
+        userId: "me",
+        requestBody: {
+          raw: createEmailMessage(to, subject, html, fromName)
+        }
+      });
+
+      return { success: true, messageId: response?.data?.id || null, method: "gmail-api" };
+    } catch (error) {
+      apiError = error?.response?.data?.error || error.message || "Gmail API send failed";
+      console.error("Gmail API Error:", apiError);
+      console.error("Gmail API Error Code:", error.code || error?.response?.status || "UNKNOWN");
+    }
+  }
+
+  if (smtpTransporter) {
+    try {
+      const info = await smtpTransporter.sendMail({
+        from: `"${escapeHeader(fromName || "Cloche Luxury")}" <${GMAIL_USER}>`,
+        to,
+        subject,
+        html,
+      });
+
+      return { success: true, messageId: info?.messageId || null, method: "gmail-smtp-app-password" };
+    } catch (error) {
+      const smtpError = error.message || "Gmail SMTP send failed";
+      console.error("Gmail SMTP Error:", smtpError);
+      console.error("Gmail SMTP Error Code:", error.code || "UNKNOWN");
+
+      const errorParts = [];
+      if (apiError) errorParts.push(`Gmail API: ${apiError}`);
+      errorParts.push(`SMTP: ${smtpError}`);
+
+      return { success: false, error: errorParts.join(" | ") };
+    }
+  }
+
+  return { success: false, error: apiError || "No Gmail send method configured" };
+};
+
+// ===============================
+// SEND VERIFICATION EMAIL
+// ===============================
+const sendVerificationEmail = async (email, name, token, type) => {
   const verificationUrl = `${BACKEND_BASE_URL}/api/auth/verify-email?token=${encodeURIComponent(
     token
   )}&type=${encodeURIComponent(type)}`;
 
   const htmlBody = `
-    <div style="font-family: Arial; max-width: 600px; margin: auto; padding: 20px;">
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px;">
       <h2 style="color:#c1a671;">CLOCHE</h2>
-      <p>Hi <strong>${name}</strong>,</p>
+      <p>Hi <strong>${name || "there"}</strong>,</p>
       <p>Welcome to Cloche Luxury.</p>
       <p>Please verify your email to continue:</p>
 
       <div style="margin:20px 0;">
-        <a href="${verificationUrl}" 
+        <a href="${verificationUrl}"
            style="background:#c1a671;color:#fff;padding:12px 25px;text-decoration:none;border-radius:5px;">
           Verify Account
         </a>
       </div>
 
       <p style="font-size:12px;color:#888;">
-        If you didn’t create this account, ignore this email.
+        If you did not create this account, ignore this email.
       </p>
     </div>
   `;
 
-  try {
-    await transporter.sendMail({
-      from: `"Cloche Luxury" <${GMAIL_USER}>`,
-      to: email,
-      subject: "Verify Your Cloche Account",
-      html: htmlBody,
-    });
+  const result = await sendGmailMessage({
+    to: email,
+    subject: "Verify Your Cloche Account",
+    html: htmlBody
+  });
 
-    console.log(`✅ Verification email sent to ${email}`);
-    return { success: true };
-  } catch (error) {
-    console.error("❌ Gmail OAuth2 Error:", error.message);
-    console.error("❌ Error Code:", error.code);
-    return { success: false, error: error.message };
+  if (result.success) {
+    console.log(`Verification email sent to ${email}`);
   }
+
+  return result;
 };
 
 // ===============================
-// ✅ SEND LEAD / ENQUIRY EMAIL
+// SEND LEAD / ENQUIRY EMAIL
 // ===============================
 const sendEnquiryNotificationEmail = async (
   boutiqueEmail,
@@ -123,10 +185,10 @@ const sendEnquiryNotificationEmail = async (
   enquiry
 ) => {
   const htmlBody = `
-    <div style="font-family: Arial; max-width: 600px; margin: auto; padding: 20px;">
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px;">
       <h2 style="color:#c1a671;">New Lead Received</h2>
 
-      <p>Hello <strong>${boutiqueName}</strong>,</p>
+      <p>Hello <strong>${boutiqueName || "Partner"}</strong>,</p>
       <p>You received a new enquiry:</p>
 
       <ul>
@@ -144,49 +206,47 @@ const sendEnquiryNotificationEmail = async (
     </div>
   `;
 
-  try {
-    await transporter.sendMail({
-      from: `"Cloche Luxury" <${GMAIL_USER}>`,
-      to: boutiqueEmail,
-      subject: "New Lead Received",
-      html: htmlBody,
-    });
+  const result = await sendGmailMessage({
+    to: boutiqueEmail,
+    subject: "New Lead Received",
+    html: htmlBody
+  });
 
-    console.log(`✅ Lead email sent to ${boutiqueEmail}`);
-    return { success: true };
-  } catch (error) {
-    console.error("❌ Gmail OAuth2 Error:", error.message);
-    return { success: false, error: error.message };
+  if (result.success) {
+    console.log(`Lead email sent to ${boutiqueEmail}`);
   }
+
+  return result;
 };
 
 // ===============================
-// ✅ DIAGNOSTICS
+// DIAGNOSTICS
 // ===============================
 const getEmailServiceStatus = async () => {
-  // Obfuscate user for safety but show enough to verify
   const userPrefix = GMAIL_USER ? GMAIL_USER.substring(0, 3) : "???";
   const userSuffix = GMAIL_USER ? GMAIL_USER.split("@")[1] : "???";
 
-  const hasAllOAuth2Creds = !!(GMAIL_CLIENT_ID && GMAIL_CLIENT_SECRET && GMAIL_REFRESH_TOKEN);
-
   return {
-    configured: hasAllOAuth2Creds,
+    configured: isSetup,
     user: `${userPrefix}...@${userSuffix}`,
     hasClientId: !!GMAIL_CLIENT_ID,
     hasClientSecret: !!GMAIL_CLIENT_SECRET,
     hasRefreshToken: !!GMAIL_REFRESH_TOKEN,
-    method: "Gmail OAuth2",
+    hasAppPassword: !!GMAIL_APP_PASSWORD,
+    method: hasGmailApiSetup ? "Gmail API OAuth2" : "Gmail SMTP app password",
+    hasGmailApiSetup,
+    hasSmtpSetup,
     backendUrl: BACKEND_BASE_URL,
     frontendUrl: FRONTEND_BASE_URL,
   };
 };
 
-// ===============================
-// ✅ EXPORTS
-// ===============================
 module.exports = {
   sendVerificationEmail,
   sendEnquiryNotificationEmail,
   getEmailServiceStatus,
+  createEmailMessage,
+  encodeMessage,
+  gmail,
+  isSetup,
 };
