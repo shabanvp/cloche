@@ -118,56 +118,7 @@
       display: none;
     }
   </style>
-  <link rel='stylesheet' href='responsive-fixes.css?v=20260507-mobile-panel-3x4' />
-  <style id="collection-detail-panel-lock">
-    .collection-detail-media-frame {
-      position: relative !important;
-      display: block !important;
-      flex: none !important;
-      width: 100% !important;
-      max-width: 100% !important;
-      aspect-ratio: 4 / 5 !important;
-      height: auto !important;
-      min-height: 0 !important;
-      max-height: none !important;
-      overflow: hidden !important;
-      border-radius: 32px !important;
-      contain: layout paint !important;
-      isolation: isolate !important;
-    }
-
-    .collection-detail-media-frame::before {
-      content: "" !important;
-      display: block !important;
-      width: 100% !important;
-      padding-top: 125% !important;
-    }
-
-    .collection-detail-media-image {
-      position: absolute !important;
-      inset: 0 !important;
-      width: 100% !important;
-      height: 100% !important;
-      max-width: none !important;
-      min-height: 0 !important;
-      object-fit: cover !important;
-      object-position: center center !important;
-      display: block !important;
-    }
-
-    @media (max-width: 1024px) {
-      .collection-detail-media-frame {
-        aspect-ratio: auto !important;
-        height: calc((100vw - 32px) * 4 / 3) !important;
-        max-height: none !important;
-      }
-
-      .collection-detail-media-frame::before {
-        display: none !important;
-        padding-top: 0 !important;
-      }
-    }
-  </style>
+  <link rel='stylesheet' href='responsive-fixes.css?v=20260507-universal-detail-image' />
 </head>
 
 <body class="bg-background-dark text-gray-100 selection:bg-primary selection:text-white overflow-x-hidden pt-0">
@@ -207,35 +158,7 @@
     <div class="collection-detail-layout grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-20">
       <!-- Left side: Product Image + Slider -->
       <div class="collection-detail-media space-y-6">
-        <div
-          class="collection-detail-media-frame product-image-container relative rounded-[2rem] overflow-hidden shadow-2xl animate-fade-in group"
-          data-collection-detail-panel="true"
-          style="position: relative; display: block; flex: none; width: 100%; max-width: 100%; aspect-ratio: 4 / 5; height: auto; min-height: 0; max-height: none; overflow: hidden; border-radius: 32px; contain: layout paint; isolation: isolate;">
-          <img id="mainImage" src="" alt="Product Detail" data-collection-detail-image="true"
-            class="collection-detail-media-image w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105 opacity-0"
-            style="position: absolute; inset: 0; width: 100%; height: 100%; max-width: none; min-height: 0; object-fit: cover; object-position: center center; display: block;" />
-
-          <div id="sliderControls"
-            class="absolute inset-0 flex items-center justify-between px-4 opacity-0 group-hover:opacity-100 transition-opacity z-20">
-            <button id="prevImg" class="slider-btn size-10 rounded-full flex items-center justify-center">
-              <span class="material-symbols-outlined">chevron_left</span>
-            </button>
-            <button id="nextImg" class="slider-btn size-10 rounded-full flex items-center justify-center">
-              <span class="material-symbols-outlined">chevron_right</span>
-            </button>
-          </div>
-
-          <div id="imageLoader" class="absolute inset-0 flex items-center justify-center z-10">
-            <div class="w-8 h-8 border-2 border-primary/20 border-t-primary rounded-full animate-spin"></div>
-          </div>
-          <div class="absolute top-6 left-6 z-20">
-            <span
-              class="bg-primary/20 backdrop-blur-md border border-primary/30 text-primary px-3 py-1 rounded-full text-[8px] font-bold tracking-widest uppercase">Verified
-              Luxury</span>
-          </div>
-
-          <div id="imageDots" class="absolute bottom-6 left-0 right-0 flex justify-center gap-2 z-20"></div>
-        </div>
+        <div id="collectionDetailImageHost" data-collection-detail-host="true"></div>
 
         <div id="thumbnailContainer" class="flex gap-4 overflow-x-auto pb-2 no-scrollbar snap-x"></div>
       </div>
@@ -393,6 +316,7 @@
     </section>
   </main>
 <script src="tag-renderer.js?v=20260501-dynamic-tags"></script>
+<script src="collection-detail-image.js?v=20260507-universal-detail-image"></script>
   <script>
     const API_ORIGIN = "https://cloche-backend.onrender.com";
     const PRODUCT_API = `${API_ORIGIN}/api/products`;
@@ -401,41 +325,21 @@
 
     let gallery = [];
     let currentImgIndex = 0;
+    let detailImagePanel = null;
 
-    function lockCollectionDetailImagePanel() {
-      const panel = document.querySelector("[data-collection-detail-panel='true']");
-      const image = document.querySelector("[data-collection-detail-image='true']");
-
-      if (panel) {
-        const isMobileDetail = window.matchMedia("(max-width: 1024px)").matches;
-        const panelWidth = panel.getBoundingClientRect().width || panel.parentElement?.getBoundingClientRect().width || 0;
-
-        panel.style.position = "relative";
-        panel.style.display = "block";
-        panel.style.flex = "none";
-        panel.style.width = "100%";
-        panel.style.maxWidth = "100%";
-        panel.style.aspectRatio = isMobileDetail ? "auto" : "4 / 5";
-        panel.style.height = isMobileDetail && panelWidth ? `${Math.round(panelWidth * 4 / 3)}px` : "auto";
-        panel.style.minHeight = "0";
-        panel.style.maxHeight = "none";
-        panel.style.overflow = "hidden";
-        panel.style.borderRadius = "32px";
-        panel.style.contain = "layout paint";
-        panel.style.isolation = "isolate";
+    function ensureDetailImagePanel() {
+      if (detailImagePanel) {
+        detailImagePanel.relock();
+        return detailImagePanel;
       }
 
-      if (image) {
-        image.style.position = "absolute";
-        image.style.inset = "0";
-        image.style.width = "100%";
-        image.style.height = "100%";
-        image.style.maxWidth = "none";
-        image.style.minHeight = "0";
-        image.style.objectFit = "cover";
-        image.style.objectPosition = "center center";
-        image.style.display = "block";
-      }
+      if (!window.CLOCHE_COLLECTION_DETAIL_IMAGE) return null;
+      detailImagePanel = window.CLOCHE_COLLECTION_DETAIL_IMAGE.mount("collectionDetailImageHost");
+      detailImagePanel?.frame?.addEventListener("click", (event) => {
+        if (event.target.closest("#prevImg")) updateMainImage(currentImgIndex - 1);
+        if (event.target.closest("#nextImg")) updateMainImage(currentImgIndex + 1);
+      });
+      return detailImagePanel;
     }
 
     function resolveAssetUrl(url) {
@@ -455,25 +359,10 @@
       if (!gallery.length) return;
       currentImgIndex = (index + gallery.length) % gallery.length;
 
-      const mainImg = document.getElementById("mainImage");
-      const loader = document.getElementById("imageLoader");
-
-      if (mainImg) {
-        lockCollectionDetailImagePanel();
-        mainImg.style.opacity = "0";
-        loader.classList.remove("hidden");
-
-        mainImg.src = resolveAssetUrl(gallery[currentImgIndex]);
-        mainImg.onload = () => {
-          lockCollectionDetailImagePanel();
-          mainImg.style.opacity = "1";
-          loader.classList.add("hidden");
-        };
-      }
-
-      document.querySelectorAll(".img-dot").forEach((dot, i) => {
-        dot.style.background = (i === currentImgIndex) ? "#c1a671" : "rgba(255,255,255,0.2)";
-      });
+      const panel = ensureDetailImagePanel();
+      if (!panel) return;
+      panel.setImage(resolveAssetUrl(gallery[currentImgIndex]));
+      panel.setDots(gallery.length, currentImgIndex);
     }
 
     async function loadProductDetails() {
@@ -495,16 +384,7 @@
           gallery = [...new Set([product.image_url, ...product.gallery])].filter(Boolean);
         }
 
-        const dotContainer = document.getElementById("imageDots");
-        if (dotContainer) {
-          dotContainer.innerHTML = gallery.map((_, i) => `<div class="img-dot size-1.5 rounded-full" style="background: ${i === 0 ? '#c1a671' : 'rgba(255,255,255,0.2)'};"></div>`).join("");
-        }
-
-        if (gallery.length <= 1) {
-          document.getElementById("sliderControls")?.classList.add("hidden");
-        } else {
-          document.getElementById("sliderControls")?.classList.remove("hidden");
-        }
+        ensureDetailImagePanel()?.setControlsVisible(gallery.length > 1);
 
         const title = (product.product_name || product.title || "Exquisite Piece").toUpperCase();
         document.getElementById("productTitle").textContent = title;
@@ -721,13 +601,11 @@
       }
     }
 
-    document.getElementById("prevImg")?.addEventListener("click", () => updateMainImage(currentImgIndex - 1));
-    document.getElementById("nextImg")?.addEventListener("click", () => updateMainImage(currentImgIndex + 1));
     document.getElementById("slideLeft")?.addEventListener("click", () => document.getElementById("relatedSlider").scrollBy({ left: -320, behavior: "smooth" }));
     document.getElementById("slideRight")?.addEventListener("click", () => document.getElementById("relatedSlider").scrollBy({ left: 320, behavior: "smooth" }));
 
     document.addEventListener("DOMContentLoaded", () => {
-      lockCollectionDetailImagePanel();
+      ensureDetailImagePanel();
       loadProductDetails();
       const isUserLoggedIn = localStorage.getItem("isUserLoggedIn") === "true";
       if (isUserLoggedIn) {
@@ -736,8 +614,8 @@
       }
     });
 
-    window.addEventListener("resize", lockCollectionDetailImagePanel);
-    window.addEventListener("orientationchange", lockCollectionDetailImagePanel);
+    window.addEventListener("resize", () => ensureDetailImagePanel()?.relock());
+    window.addEventListener("orientationchange", () => ensureDetailImagePanel()?.relock());
   </script>
   <script src='responsive-layout.js?v=20260501-partner-signup'></script>
   <script src="footer.js?v=20260505-footer-fix"></script>
