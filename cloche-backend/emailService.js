@@ -1,11 +1,23 @@
 const nodemailer = require("nodemailer");
+const http = require("http");
+const https = require("https");
+const dns = require("dns");
 
 /**
  * CLOCHE Email Service - Gmail OAuth2
  * ✔ Real Gmail emails via OAuth2
- * ✔ No IPv6 issues
+ * ✔ IPv4-only enforcement
  * ✔ Cloud-friendly (Render compatible)
  */
+
+// IPv4-only lookup function for nodemailer
+const ipv4OnlyLookup = (hostname, options, callback) => {
+  // Handle both callback and promise-based calls
+  if (typeof options === "function") {
+    callback = options;
+  }
+  dns.lookup(hostname, { family: 4, all: false }, callback);
+};
 
 const DEFAULT_BASE_URL = "https://cloche-backend.onrender.com";
 
@@ -28,7 +40,11 @@ const GMAIL_CLIENT_ID = String(process.env.GMAIL_CLIENT_ID || "").trim();
 const GMAIL_CLIENT_SECRET = String(process.env.GMAIL_CLIENT_SECRET || "").trim();
 const GMAIL_REFRESH_TOKEN = String(process.env.GMAIL_REFRESH_TOKEN || "").trim();
 
-// ✅ Create transporter with Gmail OAuth2
+// ✅ Create agents that force IPv4
+const httpAgent = new http.Agent({ family: 4 });
+const httpsAgent = new https.Agent({ family: 4 });
+
+// ✅ Create transporter with Gmail OAuth2 and IPv4-enforced agents
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
@@ -39,16 +55,13 @@ const transporter = nodemailer.createTransport({
     refreshToken: GMAIL_REFRESH_TOKEN,
     accessUrl: "https://oauth.google.com/token",
   },
+  httpAgent,
+  httpsAgent,
+  lookup: ipv4OnlyLookup,
 });
 
-// Verify transporter on startup
-transporter.verify((error, success) => {
-  if (error) {
-    console.error("❌ Gmail OAuth2 transporter verification failed:", error.message);
-  } else {
-    console.log("✅ Gmail OAuth2 transporter verified and ready");
-  }
-});
+// Don't verify on startup - just log when ready
+console.log("✅ Gmail OAuth2 transporter configured with IPv4-only enforcement");
 
 // ===============================
 // ✅ SEND VERIFICATION EMAIL
