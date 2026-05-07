@@ -118,7 +118,7 @@
       display: none;
     }
   </style>
-  <link rel='stylesheet' href='responsive-fixes.css?v=20260507-ratio-spacer' />
+  <link rel='stylesheet' href='responsive-fixes.css?v=20260507-mobile-panel-3x4' />
   <style id="collection-detail-panel-lock">
     .collection-detail-media-frame {
       position: relative !important;
@@ -153,6 +153,19 @@
       object-fit: cover !important;
       object-position: center center !important;
       display: block !important;
+    }
+
+    @media (max-width: 1024px) {
+      .collection-detail-media-frame {
+        aspect-ratio: auto !important;
+        height: calc((100vw - 32px) * 4 / 3) !important;
+        max-height: none !important;
+      }
+
+      .collection-detail-media-frame::before {
+        display: none !important;
+        padding-top: 0 !important;
+      }
     }
   </style>
 </head>
@@ -394,13 +407,16 @@
       const image = document.querySelector("[data-collection-detail-image='true']");
 
       if (panel) {
+        const isMobileDetail = window.matchMedia("(max-width: 1024px)").matches;
+        const panelWidth = panel.getBoundingClientRect().width || panel.parentElement?.getBoundingClientRect().width || 0;
+
         panel.style.position = "relative";
         panel.style.display = "block";
         panel.style.flex = "none";
         panel.style.width = "100%";
         panel.style.maxWidth = "100%";
-        panel.style.aspectRatio = "4 / 5";
-        panel.style.height = "auto";
+        panel.style.aspectRatio = isMobileDetail ? "auto" : "4 / 5";
+        panel.style.height = isMobileDetail && panelWidth ? `${Math.round(panelWidth * 4 / 3)}px` : "auto";
         panel.style.minHeight = "0";
         panel.style.maxHeight = "none";
         panel.style.overflow = "hidden";

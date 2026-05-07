@@ -1042,13 +1042,18 @@ nav.fixed .max-w-7xl {
     flex: none !important;
     width: 100% !important;
     max-width: 100% !important;
-    aspect-ratio: 4 / 5 !important;
-    height: auto !important;
+    aspect-ratio: auto !important;
+    height: calc((100vw - 32px) * 4 / 3) !important;
     min-height: 0 !important;
     max-height: none !important;
     border-radius: 28px !important;
     overflow: hidden !important;
     contain: layout paint;
+  }
+
+  body.has-mobile-bars.route-viewproducts .collection-detail-media-frame::before {
+    display: none !important;
+    padding-top: 0 !important;
   }
 
   body.has-mobile-bars.route-viewproducts .collection-detail-media-image {
