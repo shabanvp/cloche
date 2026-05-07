@@ -1,20 +1,26 @@
 (function () {
-  const MOBILE_QUERY = "(max-width: 1024px)";
-  const MOBILE_HEIGHT_RATIO = 4 / 3;
-  const DESKTOP_ASPECT_RATIO = "4 / 5";
+  const HERO_HEIGHT_RATIO = 0.68;
+  const HERO_MIN_HEIGHT = 520;
+  const HERO_MAX_HEIGHT = 760;
   const FRAME_RADIUS = "32px";
+
+  function clamp(value, min, max) {
+    return Math.min(max, Math.max(min, value));
+  }
+
+  function getHeroHeight() {
+    return Math.round(clamp(window.innerHeight * HERO_HEIGHT_RATIO, HERO_MIN_HEIGHT, HERO_MAX_HEIGHT));
+  }
 
   function applyFrameStyles(frame) {
     if (!frame) return;
-
-    const isMobile = window.matchMedia(MOBILE_QUERY).matches;
-    const width = frame.getBoundingClientRect().width || frame.parentElement?.getBoundingClientRect().width || 0;
 
     frame.style.position = "relative";
     frame.style.display = "block";
     frame.style.flex = "none";
     frame.style.width = "100%";
     frame.style.maxWidth = "100%";
+    frame.style.height = `${getHeroHeight()}px`;
     frame.style.minHeight = "0";
     frame.style.maxHeight = "none";
     frame.style.overflow = "hidden";
@@ -22,14 +28,7 @@
     frame.style.contain = "layout paint";
     frame.style.isolation = "isolate";
     frame.style.background = "linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%)";
-
-    if (isMobile && width) {
-      frame.style.aspectRatio = "auto";
-      frame.style.height = `${Math.round(width * MOBILE_HEIGHT_RATIO)}px`;
-    } else {
-      frame.style.aspectRatio = DESKTOP_ASPECT_RATIO;
-      frame.style.height = "auto";
-    }
+    frame.style.aspectRatio = "auto";
   }
 
   function applyImageStyles(image) {

@@ -10,7 +10,10 @@ const view = fs.readFileSync(viewPath, "utf8");
 const css = fs.readFileSync(cssPath, "utf8");
 
 const requiredComponentTokens = [
-  "MOBILE_HEIGHT_RATIO = 4 / 3",
+  "HERO_HEIGHT_RATIO = 0.68",
+  "HERO_MIN_HEIGHT = 520",
+  "HERO_MAX_HEIGHT = 760",
+  "getHeroHeight()",
   "mountCollectionDetailImage",
   "setImage(src)",
   "applyFrameStyles(frame)",
@@ -20,14 +23,14 @@ const requiredComponentTokens = [
 
 const requiredViewTokens = [
   "id=\"collectionDetailImageHost\"",
-  "collection-detail-image.js?v=20260507-universal-detail-image",
+  "collection-detail-image.js?v=20260507-fixed-hero-height",
   "ensureDetailImagePanel()",
   "panel.setImage(resolveAssetUrl(gallery[currentImgIndex]))",
   "panel.setDots(gallery.length, currentImgIndex)"
 ];
 
 const requiredCssTokens = [
-  "height: calc((100vw - 32px) * 4 / 3) !important",
+  "height: clamp(520px, 68dvh, 760px) !important",
   "aspect-ratio: auto !important",
   ".collection-detail-media-frame",
   ".collection-detail-media-image"
@@ -45,7 +48,7 @@ assertTokens("component", component, requiredComponentTokens);
 assertTokens("viewproducts", view, requiredViewTokens);
 assertTokens("responsive CSS", css, requiredCssTokens);
 
-const fixtureWidths = [320, 360, 390, 428];
+const fixtureViewports = [640, 760, 900, 1200];
 const uploadedImageShapes = [
   { name: "tall", width: 900, height: 1600 },
   { name: "portrait", width: 1200, height: 1500 },
@@ -54,10 +57,14 @@ const uploadedImageShapes = [
   { name: "compressed", width: 360, height: 640 }
 ];
 
-for (const panelWidth of fixtureWidths) {
-  const expectedPanelHeight = Math.round(panelWidth * 4 / 3);
+function clamp(value, min, max) {
+  return Math.min(max, Math.max(min, value));
+}
+
+for (const viewportHeight of fixtureViewports) {
+  const expectedPanelHeight = Math.round(clamp(viewportHeight * 0.68, 520, 760));
   for (const image of uploadedImageShapes) {
-    const actualPanelHeight = Math.round(panelWidth * 4 / 3);
+    const actualPanelHeight = Math.round(clamp(viewportHeight * 0.68, 520, 760));
     if (actualPanelHeight !== expectedPanelHeight) {
       throw new Error(`Panel height changed for ${image.name}: expected ${expectedPanelHeight}, got ${actualPanelHeight}`);
     }

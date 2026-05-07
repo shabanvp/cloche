@@ -42,7 +42,7 @@ video.object-contain {
 }
 
 .collection-detail-page {
-  --collection-detail-image-aspect: 4 / 5;
+  --collection-detail-hero-height: clamp(520px, 68dvh, 760px);
   --collection-detail-radius: 2rem;
   --collection-detail-mobile-gap: 4.5rem;
   --collection-detail-desktop-gap: 5rem;
@@ -65,8 +65,8 @@ video.object-contain {
   flex: none;
   width: 100%;
   max-width: 100%;
-  aspect-ratio: var(--collection-detail-image-aspect, 4 / 5);
-  height: auto;
+  aspect-ratio: auto;
+  height: var(--collection-detail-hero-height, clamp(520px, 68dvh, 760px));
   min-height: 0;
   max-height: none;
   overflow: hidden;
@@ -92,10 +92,6 @@ video.object-contain {
 }
 
 @media (min-width: 1024px) {
-  .collection-detail-page {
-    --collection-detail-image-aspect: 4 / 5;
-  }
-
   .collection-detail-layout {
     gap: var(--collection-detail-desktop-gap, 5rem);
   }
@@ -107,8 +103,8 @@ video.object-contain {
   flex: none !important;
   width: 100% !important;
   max-width: 100% !important;
-  aspect-ratio: 4 / 5 !important;
-  height: auto !important;
+  aspect-ratio: auto !important;
+  height: clamp(520px, 68dvh, 760px) !important;
   min-height: 0 !important;
   max-height: none !important;
   overflow: hidden !important;
@@ -1029,7 +1025,7 @@ nav.fixed .max-w-7xl {
     width: 100% !important;
     max-width: 100% !important;
     aspect-ratio: auto !important;
-    height: calc((100vw - 32px) * 4 / 3) !important;
+    height: clamp(520px, 68dvh, 760px) !important;
     min-height: 0 !important;
     max-height: none !important;
     border-radius: 28px !important;
