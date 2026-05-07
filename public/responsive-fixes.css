@@ -1211,26 +1211,6 @@ nav.fixed .max-w-7xl {
     background: transparent !important;
   }
 
-  /* Modal Overlap & Alignment Fixes (Premium UX) */
-  body.has-mobile-bars .fixed.inset-0[id*="Modal"],
-  body.has-mobile-bars .fixed.inset-0[id*="Detail"] {
-    z-index: 1100 !important;
-  }
-
-  body.has-mobile-bars .fixed.inset-0[id*="Modal"] > div.relative,
-  body.has-mobile-bars .fixed.inset-0[id*="Detail"] > div.relative {
-    margin-top: 82px !important;
-    margin-bottom: 96px !important;
-    max-height: calc(100dvh - 180px) !important;
-    overflow-y: auto !important;
-  }
-
-  /* Ensure modal header stays readable */
-  body.has-mobile-bars .fixed.inset-0[id*="Modal"] .px-6.py-5,
-  body.has-mobile-bars .fixed.inset-0[id*="Detail"] .px-6.py-5 {
-    padding: 14px 16px !important;
-  }
-
   /* Dashboard mobile: compact layout + two sections per row */
   body.has-mobile-bars.route-dashboard main {
     padding-bottom: 88px !important;
@@ -1433,4 +1413,47 @@ body.menu-open .mobile-bottom-nav {
   nav.fixed.top-0 {
     display: none !important;
   }
+}
+
+/* Notification Badges */
+.nav-notification-dot {
+  position: relative;
+  display: inline-flex !important;
+}
+
+.nav-notification-dot::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 9px;
+  height: 9px;
+  background: #ff3b30;
+  /* Vibrant red */
+  border: 2px solid #0d0d0d;
+  border-radius: 50%;
+  box-shadow: 0 0 5px rgba(255, 59, 48, 0.4);
+  z-index: 10;
+}
+
+/* Pulse animation for the dot to make it more noticeable */
+@keyframes pulse-red {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.7);
+  }
+
+  70% {
+    transform: scale(1.1);
+    box-shadow: 0 0 0 6px rgba(255, 59, 48, 0);
+  }
+
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(255, 59, 48, 0);
+  }
+}
+
+.nav-notification-dot::after {
+  animation: pulse-red 2s infinite;
 }
