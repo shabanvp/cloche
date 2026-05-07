@@ -3,9 +3,8 @@ const nodemailer = require("nodemailer");
 const dns = require("dns");
 
 /**
- * CLOCHE Email Service - Gmail API OAuth2
- * Sends through the Gmail HTTP API instead of SMTP so local networks and hosts
- * that block SMTP/IPv6 port 465 do not break verification emails.
+ * CLOCHE Email Service
+ * Uses Resend over HTTPS first, then falls back to Gmail API/SMTP if configured.
  */
 
 const DEFAULT_BASE_URL = "https://cloche-backend.onrender.com";
@@ -28,10 +27,13 @@ const GMAIL_CLIENT_ID = String(process.env.GMAIL_CLIENT_ID || "").trim();
 const GMAIL_CLIENT_SECRET = String(process.env.GMAIL_CLIENT_SECRET || "").trim();
 const GMAIL_REFRESH_TOKEN = String(process.env.GMAIL_REFRESH_TOKEN || "").trim();
 const GMAIL_APP_PASSWORD = String(process.env.GMAIL_APP_PASSWORD || "").trim().replace(/\s+/g, "");
+const RESEND_API_KEY = String(process.env.RESEND_API_KEY || "").trim();
+const RESEND_FROM_EMAIL = String(process.env.RESEND_FROM_EMAIL || "CLOCHE <onboarding@resend.dev>").trim();
 
+const hasResendSetup = !!RESEND_API_KEY;
 const hasGmailApiSetup = !!(GMAIL_CLIENT_ID && GMAIL_CLIENT_SECRET && GMAIL_REFRESH_TOKEN);
 const hasSmtpSetup = !!(GMAIL_USER && GMAIL_APP_PASSWORD);
-const isSetup = hasGmailApiSetup || hasSmtpSetup;
+const isSetup = hasResendSetup || hasGmailApiSetup || hasSmtpSetup;
 let cachedSmtpIpv4 = null;
 
 const oauth2Client = new google.auth.OAuth2(
@@ -46,7 +48,7 @@ if (hasGmailApiSetup) {
 
 const gmail = google.gmail({ version: "v1", auth: oauth2Client });
 
-console.log(`Email service configured: Gmail API=${hasGmailApiSetup}, SMTP app password=${hasSmtpSetup}`);
+console.log(`Email service configured: Resend=${hasResendSetup}, Gmail API=${hasGmailApiSetup}, SMTP app password=${hasSmtpSetup}`);
 
 const escapeHeader = (value) => String(value || "").replace(/[\r\n]+/g, " ").trim();
 
@@ -124,13 +126,48 @@ const sendGmailApiMessage = async ({ to, subject, html, fromName }) => {
   return { success: true, messageId: response?.data?.id || null, method: "gmail-api" };
 };
 
-const sendGmailMessage = async ({ to, subject, html, fromName }) => {
-  if (!isSetup) {
-    console.error("Email Error: Missing Gmail API credentials and GMAIL_APP_PASSWORD");
-    return { success: false, error: "Gmail email credentials not configured" };
+const sendResendMessage = async ({ to, subject, html }) => {
+  const response = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${RESEND_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      from: RESEND_FROM_EMAIL,
+      to,
+      subject,
+      html,
+    }),
+  });
+
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    const message = data?.message || data?.error || `Resend API failed with status ${response.status}`;
+    throw new Error(message);
   }
 
+  return { success: true, messageId: data?.id || null, method: "resend" };
+};
+
+const sendEmailMessage = async ({ to, subject, html, fromName }) => {
+  if (!isSetup) {
+    console.error("Email Error: Missing RESEND_API_KEY, Gmail API credentials, and GMAIL_APP_PASSWORD");
+    return { success: false, error: "Email provider is not configured" };
+  }
+
+  let resendError = null;
   let smtpError = null;
+
+  if (hasResendSetup) {
+    try {
+      return await sendResendMessage({ to, subject, html, fromName });
+    } catch (error) {
+      resendError = error.message || "Resend send failed";
+      console.error("Resend Error:", resendError);
+    }
+  }
 
   if (hasSmtpSetup) {
     try {
@@ -151,6 +188,7 @@ const sendGmailMessage = async ({ to, subject, html, fromName }) => {
       console.error("Gmail API Error Code:", error.code || error?.response?.status || "UNKNOWN");
 
       const errorParts = [];
+      if (resendError) errorParts.push(`Resend: ${resendError}`);
       if (smtpError) errorParts.push(`SMTP: ${smtpError}`);
       errorParts.push(`Gmail API: ${apiError}`);
 
@@ -158,7 +196,7 @@ const sendGmailMessage = async ({ to, subject, html, fromName }) => {
     }
   }
 
-  return { success: false, error: smtpError || "No Gmail send method configured" };
+  return { success: false, error: resendError || smtpError || "No email send method configured" };
 };
 
 // ===============================
@@ -189,7 +227,7 @@ const sendVerificationEmail = async (email, name, token, type) => {
     </div>
   `;
 
-  const result = await sendGmailMessage({
+  const result = await sendEmailMessage({
     to: email,
     subject: "Verify Your Cloche Account",
     html: htmlBody
@@ -232,7 +270,7 @@ const sendEnquiryNotificationEmail = async (
     </div>
   `;
 
-  const result = await sendGmailMessage({
+  const result = await sendEmailMessage({
     to: boutiqueEmail,
     subject: "New Lead Received",
     html: htmlBody
@@ -259,7 +297,10 @@ const getEmailServiceStatus = async () => {
     hasClientSecret: !!GMAIL_CLIENT_SECRET,
     hasRefreshToken: !!GMAIL_REFRESH_TOKEN,
     hasAppPassword: !!GMAIL_APP_PASSWORD,
-    method: hasSmtpSetup ? "Gmail SMTP app password" : "Gmail API OAuth2",
+    hasResendApiKey: !!RESEND_API_KEY,
+    resendFromEmail: RESEND_FROM_EMAIL.replace(/<.*>/, "<hidden>"),
+    method: hasResendSetup ? "Resend API" : (hasSmtpSetup ? "Gmail SMTP app password" : "Gmail API OAuth2"),
+    hasResendSetup,
     hasGmailApiSetup,
     hasSmtpSetup,
     backendUrl: BACKEND_BASE_URL,
