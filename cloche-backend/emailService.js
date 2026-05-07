@@ -1,15 +1,28 @@
 const nodemailer = require("nodemailer");
 const dns = require("dns");
+const net = require("net");
 
 // Force IPv4 to prevent ENETUNREACH errors on cloud providers like Render
 if (typeof dns.setDefaultResultOrder === "function") {
   dns.setDefaultResultOrder("ipv4first");
 }
 
+// Also override family lookups to force IPv4
+dns.lookup = ((original) => {
+  return function(hostname, options, callback) {
+    if (typeof options === "function") {
+      callback = options;
+      options = {};
+    }
+    return original(hostname, { ...options, family: 4 }, callback);
+  };
+})(dns.lookup);
+
 /**
  * CLOCHE Email Service (FINAL - SMTP VERSION)
  * ✔ Real Gmail emails
  * ✔ Stable (no OAuth issues)
+ * ✔ IPv4-only connections for cloud providers
  */
 
 const DEFAULT_BASE_URL = "https://cloche-backend.onrender.com";
@@ -31,18 +44,25 @@ const FRONTEND_BASE_URL = String(
 const GMAIL_USER = process.env.GMAIL_USER || "cloche.luxury@gmail.com";
 const GMAIL_APP_PASSWORD = String(process.env.GMAIL_APP_PASSWORD || "").replace(/\s+/g, "");
 
-// ✅ Create transporter (Explicit config for cloud stability)
+// ✅ Create transporter (Explicit config for cloud stability + IPv4-only)
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
   port: 587,
   secure: false, // TLS
+  family: 4, // Force IPv4 explicitly
   auth: {
     user: GMAIL_USER,
     pass: GMAIL_APP_PASSWORD,
   },
-  connectionTimeout: 10000, // 10s
-  greetingTimeout: 10000,
-  socketTimeout: 15000,
+  connectionTimeout: 15000, // 15s (increased)
+  greetingTimeout: 15000,
+  socketTimeout: 20000, // 20s (increased)
+  pool: {
+    maxConnections: 1,
+    maxMessages: 100,
+    rateDelta: 1000,
+    rateLimit: 5
+  }
 });
 
 // ===============================
