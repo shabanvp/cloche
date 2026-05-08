@@ -40,7 +40,7 @@
     image.style.maxWidth = "none";
     image.style.minHeight = "0";
     image.style.objectFit = "cover";
-    image.style.objectPosition = "center center";
+    image.style.objectPosition = "center top";
     image.style.display = "block";
   }
 
@@ -58,6 +58,7 @@
       applyFrameStyles(frame);
       applyImageStyles(image);
       image.style.opacity = "1";
+      loader.classList.add("hidden");
     });
 
     const controls = document.createElement("div");

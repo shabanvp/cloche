@@ -126,11 +126,7 @@
       display: none;
     }
   </style>
-<<<<<<< HEAD
-  <link rel='stylesheet' href='responsive-fixes.css?v=20260507-fixed-hero-height' />
-=======
   <link rel='stylesheet' href='responsive-fixes.css?v=20260508-product-image-align' />
->>>>>>> 00b4c92 (fix: force IPv4 for SMTP to resolve ENETUNREACH)
 </head>
 
 <body class="bg-background-dark text-gray-100 selection:bg-primary selection:text-white overflow-x-hidden pt-0">
@@ -169,38 +165,8 @@
 
     <div class="collection-detail-layout grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-20">
       <!-- Left side: Product Image + Slider -->
-<<<<<<< HEAD
       <div class="collection-detail-media space-y-6">
         <div id="collectionDetailImageHost" data-collection-detail-host="true"></div>
-=======
-      <div class="space-y-6">
-        <div
-          class="product-image-container relative aspect-[3/4] md:aspect-[4/5] rounded-[2rem] overflow-hidden shadow-2xl animate-fade-in group">
-          <img id="mainImage" src="" alt="Product Detail"
-            class="w-full h-full object-cover object-top transition-transform duration-1000 group-hover:scale-105 opacity-0" />
-
-          <div id="sliderControls"
-            class="absolute inset-0 flex items-center justify-between px-4 opacity-0 group-hover:opacity-100 transition-opacity z-20">
-            <button id="prevImg" class="slider-btn size-10 rounded-full flex items-center justify-center">
-              <span class="material-symbols-outlined">chevron_left</span>
-            </button>
-            <button id="nextImg" class="slider-btn size-10 rounded-full flex items-center justify-center">
-              <span class="material-symbols-outlined">chevron_right</span>
-            </button>
-          </div>
-
-          <div id="imageLoader" class="absolute inset-0 flex items-center justify-center z-10">
-            <div class="w-8 h-8 border-2 border-primary/20 border-t-primary rounded-full animate-spin"></div>
-          </div>
-          <div class="absolute top-6 left-6 z-20">
-            <span
-              class="bg-primary/20 backdrop-blur-md border border-primary/30 text-primary px-3 py-1 rounded-full text-[8px] font-bold tracking-widest uppercase">Verified
-              Luxury</span>
-          </div>
-
-          <div id="imageDots" class="absolute bottom-6 left-0 right-0 flex justify-center gap-2 z-20"></div>
-        </div>
->>>>>>> 00b4c92 (fix: force IPv4 for SMTP to resolve ENETUNREACH)
 
         <div id="thumbnailContainer" class="flex gap-4 overflow-x-auto pb-2 no-scrollbar snap-x"></div>
       </div>
@@ -358,7 +324,7 @@
     </section>
   </main>
 <script src="tag-renderer.js?v=20260501-dynamic-tags"></script>
-<script src="collection-detail-image.js?v=20260507-fixed-hero-height"></script>
+<script src="collection-detail-image.js?v=20260508-loader-align-fix"></script>
   <script>
     const API_ORIGIN = "https://cloche-backend.onrender.com";
     const PRODUCT_API = `${API_ORIGIN}/api/products`;
