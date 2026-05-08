@@ -74,7 +74,7 @@
       border-radius: 10px;
     }
   </style>
-  <link rel='stylesheet' href='responsive-fixes.css?v=1776237132140' />
+  <link rel='stylesheet' href='responsive-fixes.css?v=20260508-product-image-frame' />
 </head>
 
 <body
@@ -497,8 +497,8 @@
 
         return `
           <a href="boutiqueproducts.html" class="glass-card rounded-xl overflow-hidden group shadow-2xl relative cursor-pointer transition-all hover:shadow-lg block">
-            <div class="relative aspect-[3/4] overflow-hidden group/img bg-primary/5">
-              <img src="${imgUrl}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" alt="${p.product_name || "Product"}">
+            <div class="product-image-frame relative aspect-[3/4] overflow-hidden group/img bg-primary/5">
+              <img src="${imgUrl}" class="product-image w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" alt="${p.product_name || "Product"}">
             </div>
             <div class="p-6">
               <h4 class="font-display font-bold text-lg mb-1 uppercase tracking-tight truncate">${p.product_name || "Product"}</h4>

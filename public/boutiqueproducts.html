@@ -82,7 +82,7 @@
       box-shadow: 0 0 20px rgba(193, 166, 113, 0.1);
     }
   </style>
-  <link rel='stylesheet' href='responsive-fixes.css?v=1776237132140' />
+  <link rel='stylesheet' href='responsive-fixes.css?v=20260508-product-image-frame' />
 </head>
 
 <body
@@ -394,8 +394,8 @@
           <!-- Image Gallery -->
           <div class="flex flex-col gap-5 w-full max-w-[470px] lg:h-full">
             <div
-              class="aspect-[3/4] md:aspect-auto md:h-[540px] lg:h-[580px] rounded-[26px] overflow-hidden bg-primary/5">
-              <img id="detailMainImage" src="" class="w-full h-full object-cover" alt="Product">
+              class="product-image-frame aspect-[3/4] md:aspect-auto md:h-[540px] lg:h-[580px] rounded-[26px] overflow-hidden bg-primary/5">
+              <img id="detailMainImage" src="" class="product-image w-full h-full object-cover" alt="Product">
             </div>
             <!-- Thumbnails -->
             <div id="detailGallery" class="flex gap-3 flex-wrap max-w-[470px] min-h-[112px]">
@@ -628,7 +628,7 @@
           const imgUrl = primaryImg || null;
 
           const imagePlaceholder = `
-            <div class="relative aspect-[3/4] overflow-hidden bg-primary/5 flex items-center justify-center">
+            <div class="product-image-frame relative aspect-[3/4] overflow-hidden bg-primary/5 flex items-center justify-center">
                 <span class="material-symbols-outlined text-6xl text-primary/20">image</span>
                 <div class="absolute bottom-4 left-4">
                     <span class="px-3 py-1 rounded-md bg-background-dark/80 backdrop-blur-md text-[10px] text-primary font-black uppercase tracking-[0.2em]">${p.category || 'Product'}</span>
@@ -636,8 +636,8 @@
             </div>`;
 
           const imageActual = `
-            <div class="relative aspect-[3/4] overflow-hidden group/img">
-                <img src="${imgUrl}" onerror="this.src='${PRODUCT_PLACEHOLDER}'" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" alt="${p.product_name || 'Product'}">
+            <div class="product-image-frame relative aspect-[3/4] overflow-hidden group/img">
+                <img src="${imgUrl}" onerror="this.src='${PRODUCT_PLACEHOLDER}'" class="product-image w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" alt="${p.product_name || 'Product'}">
                 <div class="absolute inset-0 bg-gradient-to-t from-background-dark/80 via-transparent to-transparent opacity-60"></div>
                 <div class="absolute bottom-4 left-4">
                     <span class="px-3 py-1 rounded-md bg-background-dark/80 backdrop-blur-md text-[10px] text-primary font-black uppercase tracking-[0.2em]">${p.category || 'Product'}</span>

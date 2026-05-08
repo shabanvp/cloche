@@ -40,7 +40,7 @@
     image.style.maxWidth = "none";
     image.style.minHeight = "0";
     image.style.objectFit = "cover";
-    image.style.objectPosition = "center top";
+    image.style.objectPosition = "center center";
     image.style.display = "block";
   }
 

@@ -32,7 +32,7 @@
       border: 1px solid rgba(193, 166, 113, 0.14);
     }
   </style>
-  <link rel="stylesheet" href="responsive-fixes.css?v=20260507-fixed-hero-height" />
+  <link rel="stylesheet" href="responsive-fixes.css?v=20260508-product-image-frame" />
 </head>
 <body class="bg-background-dark text-white font-sans min-h-screen">
   <nav class="fixed top-0 left-0 right-0 z-50 border-b border-primary/20 bg-background-dark/95 backdrop-blur-sm">
@@ -193,9 +193,9 @@
         return `
           <a href="viewproducts.html?productId=${productId}" onclick="localStorage.setItem('selectedBoutiqueId','${boutiqueId}')"
              class="glass-card rounded-xl overflow-hidden block hover:border-primary/40 transition-all">
-            <div class="aspect-[2/3] bg-surface-dark overflow-hidden relative">
+            <div class="product-image-frame aspect-[2/3] bg-surface-dark overflow-hidden relative">
               ${image
-                ? `<img src="${safeImage}" alt="${name}" class="w-full h-full object-cover" loading="lazy" onerror="console.warn('Image failed to load:', this.src); this.style.display='none';" />`
+                ? `<img src="${safeImage}" alt="${name}" class="product-image w-full h-full object-cover" loading="lazy" onerror="console.warn('Image failed to load:', this.src); this.style.display='none';" />`
                 : `<div class="w-full h-full flex items-center justify-center text-white/40 text-xs tracking-[0.2em] uppercase">No Image</div>`
               }
               <span class="absolute top-2 left-2 bg-primary/90 text-black text-[9px] px-2 py-1 rounded tracking-[0.2em] uppercase font-bold">${category}</span>

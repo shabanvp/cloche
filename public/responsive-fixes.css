@@ -807,18 +807,27 @@ nav.fixed .max-w-7xl {
   overflow: visible;
 }
 
-/* Product detail: keep uploaded product photos framed consistently. */
+/* Product images: uniform partner-uploaded fashion framing. */
+.product-image-frame,
 .product-image-container {
   width: 100%;
   max-width: 100%;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  border-radius: 16px;
+  background: rgba(193, 166, 113, 0.05);
+  position: relative;
 }
 
+.product-image-frame > img,
+.product-image,
 .product-image-container #mainImage {
   width: 100% !important;
   height: 100% !important;
   object-fit: cover !important;
-  object-position: center top !important;
+  object-position: center !important;
   display: block !important;
+  max-width: none !important;
 }
 
 @media (max-width: 1024px) {
@@ -832,6 +841,10 @@ nav.fixed .max-w-7xl {
   body.has-mobile-bars.route-viewproducts .product-image-container {
     aspect-ratio: 3 / 4 !important;
     border-radius: 1.75rem !important;
+  }
+
+  .product-image-frame {
+    border-radius: 14px;
   }
 }
 

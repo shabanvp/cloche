@@ -113,7 +113,7 @@
       width: 100%;
       height: 100%;
       object-fit: cover;
-      object-position: center top;
+      object-position: center;
       display: block;
     }
 
@@ -126,7 +126,7 @@
       display: none;
     }
   </style>
-  <link rel='stylesheet' href='responsive-fixes.css?v=20260508-product-image-align' />
+  <link rel='stylesheet' href='responsive-fixes.css?v=20260508-product-image-frame' />
 </head>
 
 <body class="bg-background-dark text-gray-100 selection:bg-primary selection:text-white overflow-x-hidden pt-0">
@@ -585,8 +585,8 @@
           const image = resolveAssetUrl(item.image_url);
           const category = (item.category || "Couture").toUpperCase();
           return `
-              <a href="viewproducts.html?id=${item.id}" class="group flex-none w-[240px] md:w-[300px] h-[380px] snap-start relative rounded-[2.5rem] overflow-hidden glass-card">
-                <img src="${image}" class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" loading="lazy" />
+              <a href="viewproducts.html?id=${item.id}" class="product-image-frame group flex-none w-[240px] md:w-[300px] h-[380px] snap-start relative rounded-[2.5rem] overflow-hidden glass-card">
+                <img src="${image}" class="product-image w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" loading="lazy" />
                 <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/10 to-transparent"></div>
                 
                 <div class="absolute top-6 left-6">
