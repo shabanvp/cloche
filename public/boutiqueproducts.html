@@ -16,6 +16,8 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
     rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
   <script id="tailwind-config">
     tailwind.config = {
       darkMode: "class",
@@ -249,7 +251,7 @@
         <div id="productGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
           <!-- Add New Card Skeleton (Always first or last? Let's keep it last) -->
           <button onclick="toggleModal()"
-            class="flex flex-col items-center justify-center border-2 border-dashed border-primary/20 rounded-xl aspect-[3/4] hover:bg-primary/5 transition-all group p-10 text-center">
+            class="flex flex-col items-center justify-center border-2 border-dashed border-primary/20 rounded-xl aspect-[4/5] hover:bg-primary/5 transition-all group p-10 text-center">
             <div
               class="size-20 rounded-full bg-primary/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
               <span class="material-symbols-outlined text-4xl text-primary font-light">add_circle</span>
@@ -394,7 +396,7 @@
           <!-- Image Gallery -->
           <div class="flex flex-col gap-5 w-full max-w-[470px] lg:h-full">
             <div
-              class="product-image-frame aspect-[3/4] md:aspect-auto md:h-[540px] lg:h-[580px] rounded-[26px] overflow-hidden bg-primary/5">
+              class="product-image-frame aspect-[4/5] md:aspect-auto md:h-[540px] lg:h-[580px] rounded-[26px] overflow-hidden bg-primary/5">
               <img id="detailMainImage" src="" class="product-image w-full h-full object-cover" alt="Product">
             </div>
             <!-- Thumbnails -->
@@ -444,6 +446,39 @@
               Rent It Out
             </button>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Image Cropper Modal -->
+    <div id="cropperModal"
+      class="fixed inset-0 bg-background-dark/95 backdrop-blur-xl z-[100] hidden flex flex-col items-center justify-center p-4">
+      <div
+        class="bg-card-dark border border-primary/20 rounded-2xl w-full max-w-2xl overflow-hidden glass-card flex flex-col">
+        <div class="p-6 border-b border-primary/10 flex justify-between items-center">
+          <div>
+            <h3 class="font-display text-xl font-bold text-primary">Crop Product Image</h3>
+            <p class="text-[10px] text-primary/60 uppercase tracking-widest mt-1">Adjust each image to fit your product (4:5)</p>
+          </div>
+          <div id="cropperProgress"
+            class="text-xs text-primary font-bold bg-primary/10 px-3 py-1 rounded-full uppercase tracking-widest">
+            Image 1 of 1
+          </div>
+        </div>
+
+        <div class="flex-1 bg-black/40 relative min-h-[400px] flex items-center justify-center overflow-hidden">
+          <img id="cropperImage" src="" class="max-w-full max-h-[60vh] block">
+        </div>
+
+        <div class="p-6 border-t border-primary/10 flex justify-between items-center gap-4">
+          <button onclick="cancelCropping()"
+            class="px-6 py-3 text-xs font-bold uppercase tracking-widest text-primary/60 hover:text-primary transition-colors">
+            Cancel
+          </button>
+          <button onclick="cropAndNext()"
+            class="flex-1 bg-primary text-background-dark py-4 rounded-xl font-bold uppercase tracking-widest hover:bg-white transition-all active:scale-[0.98]">
+            Save & Continue
+          </button>
         </div>
       </div>
     </div>
@@ -505,6 +540,12 @@
       let fileIdCounter = 0;
       const PRODUCT_PLACEHOLDER = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 800'><rect width='600' height='800' fill='%23161512'/><text x='50%25' y='48%25' dominant-baseline='middle' text-anchor='middle' fill='%23c1a671' font-family='Arial, sans-serif' font-size='34' letter-spacing='6'>NO IMAGE</text></svg>";
 
+      let cropper = null;
+      let croppingFiles = [];
+      let croppingIndex = 0;
+      let currentObjectURL = null; 
+      let previewObjectURLs = []; // FIX: Track all preview URLs for final cleanup
+
       function resolveAssetUrl(url) {
         let raw = String(url || "").trim();
         if (!raw) return "";
@@ -531,23 +572,176 @@
       function addMoreFiles() {
         const fileInput = document.getElementById('pImages');
         const newFiles = Array.from(fileInput.files);
+        if (newFiles.length === 0) return;
+        startCroppingFlow(newFiles);
+        fileInput.value = ''; // Reset file input
+      }
 
-        // Add new files with unique IDs
-        newFiles.forEach(file => {
-          selectedFiles.push({
-            id: fileIdCounter++,
-            file: file
-          });
-        });
+      function startCroppingFlow(files) {
+        // FIX: Early guard for image limit (including dropped files)
+        if (files.length + selectedFiles.length > 10) {
+          alert(`Maximum 10 images allowed. You already have ${selectedFiles.length} selected.`);
+          return;
+        }
+        croppingFiles = files;
+        croppingIndex = 0;
+        openCropper(croppingFiles[croppingIndex]);
+      }
 
-        // Keep only up to 10 files
-        if (selectedFiles.length > 10) {
-          selectedFiles = selectedFiles.slice(0, 10);
-          alert('Maximum 10 images allowed. Extra images were removed.');
+      function openCropper(file) {
+        // FIX: Security check for file type
+        if (!file.type.startsWith('image/')) {
+          alert("Invalid file type. Please select an image.");
+          return;
         }
 
+        // FIX: File size validation (5MB limit)
+        if (file.size > 5 * 1024 * 1024) {
+          alert(`File too large: ${file.name}. Max size is 5MB.`);
+          return;
+        }
+
+        const modal = document.getElementById('cropperModal');
+        const image = document.getElementById('cropperImage');
+        const progress = document.getElementById('cropperProgress');
+
+        progress.textContent = `Image ${croppingIndex + 1} of ${croppingFiles.length}`;
+        
+        // FIX: Bulletproof ObjectURL management
+        if (currentObjectURL) {
+          URL.revokeObjectURL(currentObjectURL);
+        }
+        currentObjectURL = URL.createObjectURL(file);
+        image.src = currentObjectURL;
+        
+        modal.classList.remove('hidden');
+
+        if (cropper) cropper.destroy();
+
+        // FIX: Prevent race conditions with onload and multiple fast clicks
+        image.onload = null;
+        image.onload = () => {
+          if (!image.src) return; // Guard against cleared src
+          if (cropper) cropper.destroy();
+          cropper = new Cropper(image, {
+            aspectRatio: 4 / 5,
+            viewMode: 1,
+            autoCropArea: 1,
+            dragMode: 'move',
+            responsive: true,
+            restore: false,
+            guides: true,
+            center: true,
+            highlight: false,
+            cropBoxMovable: true,
+            cropBoxResizable: true,
+            toggleDragModeOnDblclick: false,
+            checkOrientation: true, // FIX: Handle EXIF orientation for mobile photos
+          });
+        };
+      }
+
+      function cropAndNext() {
+        if (!cropper) return;
+
+        // FIX: Loading state during crop
+        const saveBtn = document.querySelector('#cropperModal button[onclick="cropAndNext()"]');
+        if (saveBtn) {
+          saveBtn.disabled = true;
+          saveBtn.textContent = "Processing...";
+        }
+
+        const canvas = cropper.getCroppedCanvas({
+          width: 1080,
+          height: 1350,
+          imageSmoothingEnabled: true,
+          imageSmoothingQuality: 'high',
+        });
+
+        canvas.toBlob((blob) => {
+          // FIX: Explicitly revoke URL to prevent leaks
+          if (currentObjectURL) {
+            URL.revokeObjectURL(currentObjectURL);
+            currentObjectURL = null;
+          }
+
+          // FIX: Error handling for blob
+          if (!blob) {
+            alert("Image processing failed");
+            if (saveBtn) {
+              saveBtn.disabled = false;
+              saveBtn.textContent = "Save & Continue";
+            }
+            return;
+          }
+
+          const fileName = croppingFiles[croppingIndex].name || `image_${croppingIndex}.jpg`;
+          const croppedFile = new File([blob], fileName, { type: 'image/jpeg' });
+
+          // FIX: Sequence tracking
+          selectedFiles.push({
+            id: fileIdCounter++,
+            file: croppedFile,
+            order: croppingIndex
+          });
+
+          if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.textContent = "Save & Continue";
+          }
+
+          if (selectedFiles.length > 10) {
+            selectedFiles = selectedFiles.slice(0, 10);
+            alert('Maximum 10 images allowed.');
+            finishCropping();
+            return;
+          }
+
+          croppingIndex++;
+
+          if (croppingIndex < croppingFiles.length) {
+            openCropper(croppingFiles[croppingIndex]);
+          } else {
+            finishCropping();
+          }
+        }, 'image/jpeg', 0.85); // FIX: Reduced quality for performance
+      }
+
+      function finishCropping() {
+        const modal = document.getElementById('cropperModal');
+        modal.classList.add('hidden');
+
+        // FIX: Final memory cleanup
+        if (currentObjectURL) {
+          URL.revokeObjectURL(currentObjectURL);
+          currentObjectURL = null;
+        }
+
+        if (cropper) {
+          cropper.destroy();
+          cropper = null;
+        }
         previewFiles();
-        fileInput.value = ''; // Reset file input
+      }
+
+      function cancelCropping() {
+        const choice = confirm("Skip this image? Press 'Cancel' to stop all uploads.");
+        if (choice) {
+          // Skip current image
+          if (currentObjectURL) {
+            URL.revokeObjectURL(currentObjectURL);
+            currentObjectURL = null;
+          }
+          croppingIndex++;
+          if (croppingIndex < croppingFiles.length) {
+            openCropper(croppingFiles[croppingIndex]);
+          } else {
+            finishCropping();
+          }
+        } else {
+          // Cancel entire batch
+          finishCropping();
+        }
       }
 
       function previewFiles() {
@@ -557,6 +751,10 @@
         const uploadCount = document.getElementById('uploadCount');
         const addMoreBtn = document.getElementById('addMoreBtn');
         const clearBtn = document.getElementById('clearBtn');
+
+        // FIX: Clean up ALL preview URLs before rendering to prevent massive leaks
+        previewObjectURLs.forEach(url => URL.revokeObjectURL(url));
+        previewObjectURLs = [];
 
         if (selectedFiles.length > 0) {
           placeholder.classList.add('hidden');
@@ -568,28 +766,32 @@
           selectedFiles.forEach((fileObj) => {
             const file = fileObj.file;
             const fileId = fileObj.id;
-            const reader = new FileReader();
-            reader.onload = function (e) {
-              const imgContainer = document.createElement('div');
-              imgContainer.className = "relative group/img rounded-lg overflow-hidden border border-primary/20 hover:border-primary/50 transition-all";
-              imgContainer.setAttribute('data-file-id', fileId);
-              imgContainer.innerHTML = `
-                <img src="${e.target.result}" class="w-full h-20 object-cover" alt="${file.name}">
-                <div class="absolute inset-0 bg-black/0 group-hover/img:bg-black/30 transition-all flex items-center justify-center">
-                  <button type="button" class="remove-btn bg-red-500/80 hover:bg-red-600 text-white p-1.5 rounded opacity-0 group-hover/img:opacity-100 transition-opacity">
-                    <span class="material-symbols-outlined text-sm">close</span>
-                  </button>
-                </div>
-              `;
-              grid.appendChild(imgContainer);
+            
+            // FIX: Faster preview using ObjectURL + Tracking
+            const previewUrl = URL.createObjectURL(file);
+            previewObjectURLs.push(previewUrl);
+            
+            const imgContainer = document.createElement('div');
+            imgContainer.className = "relative group/img rounded-lg overflow-hidden border border-primary/20 hover:border-primary/50 transition-all";
+            imgContainer.setAttribute('data-file-id', fileId);
+            imgContainer.innerHTML = `
+              <img src="${previewUrl}" class="w-full h-20 object-cover" alt="${file.name}">
+              <div class="absolute inset-0 bg-black/0 group-hover/img:bg-black/30 transition-all flex items-center justify-center">
+                <button type="button" class="remove-btn bg-red-500/80 hover:bg-red-600 text-white p-1.5 rounded opacity-0 group-hover/img:opacity-100 transition-opacity">
+                  <span class="material-symbols-outlined text-sm">close</span>
+                </button>
+              </div>
+            `;
+            grid.appendChild(imgContainer);
 
-              imgContainer.querySelector('.remove-btn').addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                removeImageById(fileId);
-              });
-            }
-            reader.readAsDataURL(file);
+            imgContainer.querySelector('.remove-btn').addEventListener('click', (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              // Note: revoking single URL here is optional if we revoke all on re-render, 
+              // but good for performance.
+              URL.revokeObjectURL(previewUrl);
+              removeImageById(fileId);
+            });
           });
 
           uploadCount.textContent = `${selectedFiles.length} image${selectedFiles.length !== 1 ? 's' : ''} selected (Max 10)`;
@@ -603,6 +805,39 @@
         }
       }
 
+      // FIX: Drag & Drop Logic implementation
+      (function initDragAndDrop() {
+        const dropZone = document.getElementById('imagePreview');
+        if (!dropZone) return;
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+          dropZone.addEventListener(eventName, e => {
+            e.preventDefault();
+            e.stopPropagation();
+          }, false);
+        });
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+          dropZone.addEventListener(eventName, () => {
+            dropZone.classList.add('border-primary', 'bg-primary/10');
+          }, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+          dropZone.addEventListener(eventName, () => {
+            dropZone.classList.remove('border-primary', 'bg-primary/10');
+          }, false);
+        });
+
+        dropZone.addEventListener('drop', e => {
+          const dt = e.dataTransfer;
+          const files = dt.files;
+          if (files && files.length > 0) {
+            startCroppingFlow(Array.from(files));
+          }
+        }, false);
+      })();
+
       function removeImageById(fileId) {
         selectedFiles = selectedFiles.filter(fileObj => fileObj.id !== fileId);
         previewFiles();
@@ -610,6 +845,9 @@
 
       function clearAllImages() {
         selectedFiles = [];
+        // FIX: Cleanup URLs on clear
+        previewObjectURLs.forEach(url => URL.revokeObjectURL(url));
+        previewObjectURLs = [];
         previewFiles();
       }
 
@@ -628,7 +866,7 @@
           const imgUrl = primaryImg || null;
 
           const imagePlaceholder = `
-            <div class="product-image-frame relative aspect-[3/4] overflow-hidden bg-primary/5 flex items-center justify-center">
+            <div class="product-image-frame relative aspect-[4/5] overflow-hidden bg-primary/5 flex items-center justify-center">
                 <span class="material-symbols-outlined text-6xl text-primary/20">image</span>
                 <div class="absolute bottom-4 left-4">
                     <span class="px-3 py-1 rounded-md bg-background-dark/80 backdrop-blur-md text-[10px] text-primary font-black uppercase tracking-[0.2em]">${p.category || 'Product'}</span>
@@ -636,7 +874,7 @@
             </div>`;
 
           const imageActual = `
-            <div class="product-image-frame relative aspect-[3/4] overflow-hidden group/img">
+            <div class="product-image-frame relative aspect-[4/5] overflow-hidden group/img">
                 <img src="${imgUrl}" onerror="this.src='${PRODUCT_PLACEHOLDER}'" class="product-image w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" alt="${p.product_name || 'Product'}">
                 <div class="absolute inset-0 bg-gradient-to-t from-background-dark/80 via-transparent to-transparent opacity-60"></div>
                 <div class="absolute bottom-4 left-4">
@@ -933,28 +1171,56 @@
           submitBtn.disabled = true;
 
           try {
-            // Upload selected images to Cloudinary concurrently
-            await Promise.all(selectedFiles.map(async (fileObj) => {
-              const uploadData = new FormData();
-              uploadData.append("file", fileObj.file);
-              uploadData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+            // FIX: Sorting to ensure sequence
+            selectedFiles.sort((a, b) => (a.order || 0) - (b.order || 0));
 
-              const cloudRes = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
-                method: "POST",
-                body: uploadData,
-              });
+            // FIX: Timeout wrapper for production resilience
+            const fetchWithTimeout = (url, options, timeout = 25000) =>
+              Promise.race([
+                fetch(url, options),
+                new Promise((_, reject) =>
+                  setTimeout(() => reject(new Error("Upload timeout (25s)")), timeout)
+                )
+              ]);
 
-              const cloudResult = await cloudRes.json();
-              if (cloudResult.secure_url) {
-                cloudinaryUrls.push(cloudResult.secure_url);
-              } else {
-                console.error("Cloudinary error:", cloudResult);
-                throw new Error(cloudResult.error?.message || "Failed to upload to Cloudinary");
+            // FIX: Minimal retry logic (1 retry) to increase success rate
+            async function uploadWithRetry(fileObj, config, retries = 1) {
+              try {
+                const uploadData = new FormData();
+                uploadData.append("file", fileObj.file);
+                uploadData.append("upload_preset", config.uploadPreset);
+
+                const cloudRes = await fetchWithTimeout(`https://api.cloudinary.com/v1_1/${config.cloudName}/image/upload`, {
+                  method: "POST",
+                  body: uploadData,
+                });
+
+                const cloudResult = await cloudRes.json();
+                if (cloudResult.secure_url) return cloudResult.secure_url;
+                throw new Error(cloudResult.error?.message || "Upload failed");
+              } catch (e) {
+                if (retries > 0) {
+                  console.warn(`Retrying upload for ${fileObj.file.name}...`);
+                  return uploadWithRetry(fileObj, config, retries - 1);
+                }
+                throw e;
               }
-            }));
+            }
+
+            const cloudConfig = { cloudName: CLOUDINARY_CLOUD_NAME, uploadPreset: CLOUDINARY_UPLOAD_PRESET };
+            const results = await Promise.allSettled(selectedFiles.map(f => uploadWithRetry(f, cloudConfig)));
+
+            results.forEach(res => {
+              if (res.status === 'fulfilled') cloudinaryUrls.push(res.value);
+              else console.error("Final upload failure:", res.reason);
+            });
+
+            if (cloudinaryUrls.length === 0) {
+              throw new Error("All image uploads failed. Please check your connection.");
+            }
           } catch (cloudErr) {
             console.error(cloudErr);
-            alert("Image upload failed: " + cloudErr.message + ". Check your Cloudinary Cloud Name and Upload Preset in the code.");
+            alert("Image upload failed: " + cloudErr.message);
             submitBtn.textContent = originalBtnText;
             submitBtn.disabled = false;
             return;
@@ -979,6 +1245,11 @@
 
           if (res.ok) {
             alert(result.message || (isEditing ? "Success: Product updated!" : "Success: Product added!"));
+            
+            // FIX: Cleanup memory on success
+            previewObjectURLs.forEach(url => URL.revokeObjectURL(url));
+            previewObjectURLs = [];
+            
             toggleModal();
             const bid = localStorage.getItem('boutiqueId');
             if (bid) fetchProductsWithId(bid);
@@ -1025,6 +1296,17 @@
             showUpgradePopup();
             return;
           }
+          
+          // FIX: Reset state on new modal open to prevent session cross-talk
+          if (!isEditing) {
+            selectedFiles = [];
+            previewObjectURLs.forEach(url => URL.revokeObjectURL(url));
+            previewObjectURLs = [];
+            if (document.getElementById('previewGrid')) document.getElementById('previewGrid').innerHTML = '';
+            if (document.getElementById('previewPlaceholder')) document.getElementById('previewPlaceholder').classList.remove('hidden');
+            if (document.getElementById('uploadCount')) document.getElementById('uploadCount').textContent = '';
+          }
+
           modal.classList.remove('hidden');
           setTimeout(() => {
             content.classList.replace('scale-95', 'scale-100');

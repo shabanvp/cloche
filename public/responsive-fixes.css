@@ -812,7 +812,7 @@ nav.fixed .max-w-7xl {
 .product-image-container {
   width: 100%;
   max-width: 100%;
-  aspect-ratio: 3 / 4;
+  aspect-ratio: 4 / 5;
   overflow: hidden;
   border-radius: 16px;
   background: rgba(193, 166, 113, 0.05);
@@ -824,8 +824,9 @@ nav.fixed .max-w-7xl {
 .product-image-container #mainImage {
   width: 100% !important;
   height: 100% !important;
-  object-fit: cover !important;
+  object-fit: contain !important;
   object-position: center !important;
+  background: #0d0d0d !important;
   display: block !important;
   max-width: none !important;
 }
@@ -839,7 +840,7 @@ nav.fixed .max-w-7xl {
   }
 
   body.has-mobile-bars.route-viewproducts .product-image-container {
-    aspect-ratio: 3 / 4 !important;
+    aspect-ratio: 4 / 5 !important;
     border-radius: 1.75rem !important;
   }
 

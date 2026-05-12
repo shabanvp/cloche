@@ -39,8 +39,9 @@
     image.style.height = "100%";
     image.style.maxWidth = "none";
     image.style.minHeight = "0";
-    image.style.objectFit = "cover";
+    image.style.objectFit = "contain";
     image.style.objectPosition = "center center";
+    image.style.background = "#0d0d0d";
     image.style.display = "block";
   }
 
