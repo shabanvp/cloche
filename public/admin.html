@@ -34,6 +34,20 @@
         .material-symbols-outlined {
             font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
         }
+        /* Explicit Scroll Styling */
+        .custom-scrollbar::-webkit-scrollbar {
+            height: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.02);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(193, 166, 113, 0.2);
+            border-radius: 10px;
+        }
+        .scroll-touch {
+            -webkit-overflow-scrolling: touch;
+        }
     </style>
 </head>
 <body class="min-h-screen overflow-x-hidden">
@@ -96,9 +110,8 @@
                     </div>
                     <span class="text-[10px] uppercase tracking-widest text-gray-600 font-bold hidden sm:block">Limit 10</span>
                 </div>
-                <div class="glass-card rounded-2xl overflow-hidden">
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse min-w-[500px]">
+                <div class="glass-card rounded-2xl overflow-x-auto scroll-touch custom-scrollbar">
+                    <table class="w-full text-left border-collapse min-w-[800px]">
                             <thead>
                                     <th class="px-4 md:px-8 py-5 text-[10px] uppercase tracking-widest text-gray-400 font-bold">Member</th>
                                     <th class="px-4 md:px-8 py-5 text-[10px] uppercase tracking-widest text-gray-400 font-bold hidden sm:table-cell">Details</th>
@@ -127,9 +140,8 @@
                         </a>
                     </div>
                 </div>
-                <div class="glass-card rounded-2xl overflow-hidden">
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse min-w-[500px]">
+                <div class="glass-card rounded-2xl overflow-x-auto scroll-touch custom-scrollbar">
+                    <table class="w-full text-left border-collapse min-w-[800px]">
                             <thead>
                                 <tr class="bg-white/5 border-b border-white/5">
                                     <th class="px-4 md:px-8 py-5 text-[10px] uppercase tracking-widest text-gray-400 font-bold">Boutique</th>
@@ -157,9 +169,8 @@
                     Refresh Feed
                 </button>
             </div>
-            <div class="glass-card rounded-2xl overflow-hidden shadow-2xl">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse min-w-[800px]">
+            <div class="glass-card rounded-2xl overflow-x-auto scroll-touch custom-scrollbar shadow-2xl">
+                <table class="w-full text-left border-collapse min-w-[800px]">
                         <thead>
                             <tr class="bg-white/5 border-b border-white/5">
                                 <th class="px-4 md:px-8 py-6 text-[10px] uppercase tracking-widest text-gray-400 font-bold">Customer Profile</th>
