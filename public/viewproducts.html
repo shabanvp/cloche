@@ -226,16 +226,24 @@
             Loading...</h1>
 
           <!-- Boutique Info Snippet -->
-          <div class="flex flex-col gap-1 mb-8">
-            <div id="subBoutiqueName" class="text-primary font-display text-sm tracking-wide font-medium">Boutique Name
-            </div>
-            <div class="flex flex-wrap items-center gap-4 text-white/40">
-              <div class="flex items-center gap-1.5">
-                <span class="material-symbols-outlined text-[14px]">location_on</span>
-                <span id="productLocation" class="text-[10px] uppercase tracking-widest font-medium">Location
-                  Detail</span>
+          <div class="flex items-start justify-between gap-4 mb-8">
+            <div class="flex min-w-0 flex-col gap-1">
+              <div id="subBoutiqueName" class="text-primary font-display text-sm tracking-wide font-medium truncate">
+                Boutique Name
+              </div>
+              <div class="flex flex-wrap items-center gap-4 text-white/40">
+                <div class="flex items-center gap-1.5 min-w-0">
+                  <span class="material-symbols-outlined text-[14px]">location_on</span>
+                  <span id="productLocation" class="text-[10px] uppercase tracking-widest font-medium truncate">Location
+                    Detail</span>
+                </div>
               </div>
             </div>
+            <button id="shareToBoutiqueChatBtn" type="button"
+              class="shrink-0 size-11 rounded-full border border-primary/30 bg-primary/10 text-primary flex items-center justify-center hover:bg-primary hover:text-background-dark transition-all"
+              aria-label="Share dress to boutique chat" title="Share to boutique chat">
+              <span class="material-symbols-outlined text-[20px]">send</span>
+            </button>
           </div>
           <div class="border-b border-white/5 w-full"></div>
         </div>
@@ -574,6 +582,43 @@
         if (consultBtn) {
           const productTitle = asText(product.product_name || product.title, "Exquisite Piece");
           consultBtn.href = `enquiry.html?boutiqueId=${product.boutique_id || ""}&requirement=${encodeURIComponent(productTitle)}&productName=${encodeURIComponent(productTitle)}&productImage=${encodeURIComponent(gallery[0] || "")}`;
+        }
+
+        const shareToBoutiqueChatBtn = document.getElementById("shareToBoutiqueChatBtn");
+        if (shareToBoutiqueChatBtn) {
+          shareToBoutiqueChatBtn.onclick = () => {
+            if (localStorage.getItem("isUserLoggedIn") !== "true") {
+              alert("Please login as user first to share this dress with the boutique.");
+              window.location.href = "boutiquelogin.html";
+              return;
+            }
+
+            const targetBoutiqueId = Number(product.boutique_id || 0);
+            if (!targetBoutiqueId) {
+              alert("Boutique details missing. Please refresh and try again.");
+              return;
+            }
+
+            const productTitle = asText(product.product_name || product.title, "Exquisite Piece");
+            const productImage = resolveAssetUrl(gallery[0] || product.image_url || "");
+            const q = new URLSearchParams({
+              boutiqueId: String(targetBoutiqueId),
+              boutiqueName: bName,
+              productName: productTitle,
+              productImage
+            });
+
+            try {
+              localStorage.setItem("messageTargetBoutiqueId", String(targetBoutiqueId));
+              localStorage.setItem("messageTargetBoutiqueName", bName);
+              localStorage.setItem("selectedBoutiqueId", String(targetBoutiqueId));
+              localStorage.setItem("selectedBoutiqueName", bName);
+              localStorage.setItem("messageTargetProductName", productTitle);
+              localStorage.setItem("messageTargetProductImage", productImage);
+            } catch (e) { }
+
+            window.location.href = `messageboutique.html?${q.toString()}`;
+          };
         }
 
         if (product.boutique_id) loadRelatedProducts(product.boutique_id, productId);
