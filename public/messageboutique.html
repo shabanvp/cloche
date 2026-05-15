@@ -120,7 +120,9 @@
     }
 
     html.direct-chat,
-    body.direct-chat {
+    body.direct-chat,
+    html.chat-scroll-locked,
+    body.chat-scroll-locked {
       height: 100dvh;
       max-height: 100dvh;
       overflow: hidden !important;
@@ -128,16 +130,19 @@
       touch-action: none;
     }
 
-    body.direct-chat {
+    body.direct-chat,
+    body.chat-scroll-locked {
       position: fixed;
       inset: 0;
       width: 100%;
     }
 
-    body.direct-chat main {
+    body.direct-chat main,
+    body.chat-scroll-locked main {
       height: calc(100dvh - var(--cloche-topbar-h)) !important;
       min-height: 0 !important;
       overflow: hidden !important;
+      overscroll-behavior: none;
     }
 
     /* If global mobile navbar is active, avoid double top spacing. */
@@ -151,14 +156,35 @@
       height: auto !important;
     }
 
-    body.has-mobile-bars.direct-chat main {
+    body.has-mobile-bars.direct-chat main,
+    body.has-mobile-bars.chat-scroll-locked main {
       height: calc(100dvh - 76px) !important;
       min-height: 0 !important;
     }
 
     body.direct-chat #messagesArea,
-    body.direct-chat #messageInput {
+    body.direct-chat #messageInput,
+    body.chat-scroll-locked #messagesArea,
+    body.chat-scroll-locked #messageInput {
       touch-action: auto;
+    }
+
+    body.direct-chat #chatPane,
+    body.chat-scroll-locked #chatPane {
+      overscroll-behavior: none;
+      contain: layout paint;
+    }
+
+    body.direct-chat #activeChat,
+    body.chat-scroll-locked #activeChat {
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    body.direct-chat #messagesArea,
+    body.chat-scroll-locked #messagesArea {
+      overscroll-behavior: contain;
+      -webkit-overflow-scrolling: touch;
     }
 
     @media (max-width: 1024px) {
@@ -423,6 +449,7 @@
     let activeConversationId = null;
     let conversationsRaw = [];
     let conversations = [];
+    let directChatScrollY = 0;
 
     // Normalize route based on query params only, not localStorage fallbacks
     (function normalizeDirectChatRoute() {
@@ -441,6 +468,36 @@
     const routeCtx = getQueryContext();
     const isDirectChatRoute = Boolean(routeCtx.conversationId || routeCtx.boutiqueId);
     let didDirectOpen = false;
+
+    function lockChatScroll() {
+      directChatScrollY = window.scrollY || document.documentElement.scrollTop || 0;
+      document.documentElement.classList.add("chat-scroll-locked");
+      document.body.classList.add("chat-scroll-locked");
+      document.body.style.top = `-${directChatScrollY}px`;
+      window.scrollTo(0, 0);
+    }
+
+    function unlockChatScroll() {
+      if (isDirectChatRoute) return;
+      document.documentElement.classList.remove("chat-scroll-locked");
+      document.body.classList.remove("chat-scroll-locked");
+      document.body.style.top = "";
+      window.scrollTo(0, directChatScrollY);
+    }
+
+    function lockDirectChatScroll() {
+      if (!isDirectChatRoute) return;
+      document.documentElement.classList.add("direct-chat");
+      document.body.classList.add("direct-chat");
+      lockChatScroll();
+    }
+
+    function keepDirectChatScrollLocked() {
+      if (!document.body.classList.contains("chat-scroll-locked")) return;
+      if ((window.scrollY || document.documentElement.scrollTop || 0) !== 0) {
+        window.scrollTo(0, 0);
+      }
+    }
 
     function requireUserSession() {
       if (localStorage.getItem("isUserLoggedIn") !== "true" || !userEmail) {
@@ -702,12 +759,14 @@
         return;
       }
       document.getElementById("chatPane").classList.remove("active");
+      unlockChatScroll();
       activeConversationId = null;
       renderConversationList();
     }
 
     async function openConversation(conversationId, quiet = false) {
       activeConversationId = Number(conversationId);
+      lockChatScroll();
       if (!quiet) {
         document.getElementById("chatPane").classList.add("active");
       }
@@ -812,10 +871,8 @@
     });
 
     document.addEventListener("DOMContentLoaded", async () => {
-      if (isDirectChatRoute) {
-        document.documentElement.classList.add("direct-chat");
-        document.body.classList.add("direct-chat");
-      }
+      lockDirectChatScroll();
+      window.addEventListener("scroll", keepDirectChatScrollLocked, { passive: true });
       await hydrateUserIfNeeded();
       userEmail = localStorage.getItem("userEmail") || userEmail;
       userName = localStorage.getItem("userName") || userName;
