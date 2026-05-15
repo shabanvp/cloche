@@ -109,10 +109,9 @@
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse">
                             <thead>
-                                <tr class="bg-white/5 border-b border-white/5">
                                     <th class="px-8 py-5 text-[10px] uppercase tracking-widest text-gray-400 font-bold">Member</th>
                                     <th class="px-8 py-5 text-[10px] uppercase tracking-widest text-gray-400 font-bold hidden sm:table-cell">Details</th>
-                                    <th class="px-8 py-5 text-[10px] uppercase tracking-widest text-gray-400 font-bold text-right">Joined</th>
+                                    <th class="px-8 py-5 text-[10px] uppercase tracking-widest text-gray-400 font-bold text-center">Manage</th>
                                 </tr>
                             </thead>
                             <tbody id="usersTableBody">
@@ -224,6 +223,32 @@
             }
         }
 
+        async function deleteUser(userId, userName) {
+            if (!userId) return;
+            const name = userName || "this user";
+            if (!confirm(`Remove account for ${name}? This action cannot be undone.`)) return;
+
+            try {
+                const token = getAdminToken();
+                const res = await fetch(`${API_ORIGIN}/api/admin/users/${encodeURIComponent(userId)}`, {
+                    method: "DELETE",
+                    headers: {
+                        "Authorization": `Bearer ${token}`
+                    }
+                });
+                const data = await res.json();
+                if (!res.ok) {
+                    alert(data.message || "Failed to remove user");
+                    return;
+                }
+                alert("User account removed successfully.");
+                await loadAnalytics();
+            } catch (err) {
+                console.error("Delete user failed:", err);
+                alert("Server error while removing user");
+            }
+        }
+
         async function loadAnalytics() {
             try {
                 const response = await fetch(`${API_ORIGIN}/api/admin/analytics`);
@@ -241,16 +266,34 @@
                         <tr class="table-row border-b border-white/5 transition-colors hover:bg-white/[0.02]">
                             <td class="px-8 py-5 text-sm">
                                 <p class="font-medium text-white">${u.name}</p>
+                                <p class="text-[10px] text-primary uppercase font-bold tracking-widest mt-1">${u.role || 'Member'}</p>
                                 <p class="block sm:hidden text-gray-500 text-[10px] mt-1 tracking-tight">${u.email}</p>
                             </td>
-                            <td class="px-8 py-5 text-gray-400 hidden sm:table-cell text-sm">${u.email}</td>
-                            <td class="px-8 py-5 text-[10px] text-gray-500 uppercase font-bold text-right">${new Date(u.created_at).toLocaleDateString()}</td>
+                            <td class="px-8 py-5 text-gray-400 hidden sm:table-cell text-sm">
+                                <p>${u.email}</p>
+                                <p class="text-[10px] text-gray-600 mt-1 uppercase tracking-widest font-bold">Joined ${new Date(u.created_at).toLocaleDateString()}</p>
+                            </td>
+                            <td class="px-8 py-5 text-center">
+                                <button data-remove-user-id="${u.id}" data-remove-user-name="${encodeURIComponent(u.name)}" class="px-4 py-2 rounded-lg text-[10px] uppercase tracking-widest border border-red-500/10 text-red-400/60 hover:text-red-400 hover:bg-red-500/10 transition-all font-bold">
+                                    Remove
+                                </button>
+                            </td>
                         </tr>
                     `).join('');
 
+                    userTable.onclick = (e) => {
+                        const btn = e.target.closest("[data-remove-user-id]");
+                        if (!btn) return;
+                        const id = btn.getAttribute("data-remove-user-id");
+                        const name = decodeURIComponent(btn.getAttribute("data-remove-user-name") || "");
+                        deleteUser(id, name);
+                    };
+
                     // Render Boutiques
                     const boutiqueTable = document.getElementById('boutiquesTableBody');
-                    const bList = Array.isArray(data.recentBoutiques) ? data.recentBoutiques : [];
+                    const bList = Array.isArray(data.recentBoutiques) && data.recentBoutiques.length > 0 
+                        ? data.recentBoutiques 
+                        : (Array.isArray(data.boutiques) ? data.boutiques : []);
                     
                     if (bList.length === 0) {
                         boutiqueTable.innerHTML = `<tr><td colspan="3" class="px-8 py-10 text-center text-gray-500 text-sm italic">No partners found.</td></tr>`;
