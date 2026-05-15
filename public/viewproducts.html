@@ -601,11 +601,13 @@
 
             const productTitle = asText(product.product_name || product.title, "Exquisite Piece");
             const productImage = resolveAssetUrl(gallery[0] || product.image_url || "");
+            const productUrl = window.location.href;
             const q = new URLSearchParams({
               boutiqueId: String(targetBoutiqueId),
               boutiqueName: bName,
               productName: productTitle,
-              productImage
+              productImage,
+              productUrl
             });
 
             try {
@@ -615,6 +617,7 @@
               localStorage.setItem("selectedBoutiqueName", bName);
               localStorage.setItem("messageTargetProductName", productTitle);
               localStorage.setItem("messageTargetProductImage", productImage);
+              localStorage.setItem("messageTargetProductUrl", productUrl);
             } catch (e) { }
 
             window.location.href = `messageboutique.html?${q.toString()}`;

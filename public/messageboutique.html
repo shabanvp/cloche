@@ -536,6 +536,18 @@
         ""
       ).trim();
 
+      const productImage = String(
+        p.get("productImage") ||
+        p.get("product_image") ||
+        ""
+      ).trim();
+
+      const productUrl = String(
+        p.get("productUrl") ||
+        p.get("product_url") ||
+        ""
+      ).trim();
+
       const boutiqueName = String(
         p.get("boutiqueName") ||
         p.get("boutique_name") ||
@@ -543,14 +555,43 @@
         ""
       ).trim();
 
-      return { conversationId, boutiqueId, productName, boutiqueName };
+      return { conversationId, boutiqueId, productName, productImage, productUrl, boutiqueName };
     }
 
     function escapeHtml(value) {
       return String(value || "")
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;");
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function parseProductShareMessage(text) {
+      const raw = String(text || "");
+      const prefix = "__CLOCHE_PRODUCT_SHARE__";
+      if (!raw.startsWith(prefix)) return null;
+      try {
+        const data = JSON.parse(raw.slice(prefix.length));
+        if (!data || !data.name) return null;
+        return data;
+      } catch (_) {
+        return null;
+      }
+    }
+
+    function renderProductShareCard(share) {
+      const image = escapeHtml(share.image || "");
+      const url = escapeHtml(share.url || "#");
+      const name = escapeHtml(share.name || "Shared dress");
+      return `
+        <a href="${url}" class="block overflow-hidden rounded-2xl border border-primary/25 bg-primary/10 text-left shadow-xl shadow-primary/5">
+          ${image ? `<img src="${image}" alt="${name}" class="h-44 w-full object-cover" loading="lazy">` : ""}
+          <div class="p-4">
+            <p class="text-[9px] uppercase tracking-[0.24em] text-primary/70 font-bold mb-1">Shared Dress</p>
+            <p class="font-display text-sm text-white leading-tight">${name}</p>
+          </div>
+        </a>
+      `;
     }
 
     async function readJsonSafe(res) {
@@ -590,6 +631,39 @@
         }
       } catch (err) {
         console.error("Failed to initialize conversation", err);
+      }
+    }
+
+    async function sendSharedProductMessageOnce() {
+      const { productName, productImage, productUrl } = getQueryContext();
+      if (!activeConversationId || !productName) return;
+
+      const shareKey = `clocheSharedProductMessage.${activeConversationId}.${productName}`;
+      if (sessionStorage.getItem(shareKey) === "sent") return;
+
+      const sharedPost = {
+        type: "product_share",
+        name: productName,
+        image: productImage,
+        url: productUrl
+      };
+
+      try {
+        const res = await fetch(`${API}/send`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            conversationId: activeConversationId,
+            message_text: `__CLOCHE_PRODUCT_SHARE__${JSON.stringify(sharedPost)}`,
+            senderType: "customer"
+          })
+        });
+
+        const data = await readJsonSafe(res);
+        if (!res.ok) throw new Error(data.message || "Failed to share product");
+        sessionStorage.setItem(shareKey, "sent");
+      } catch (err) {
+        console.error("Failed to send shared product message", err);
       }
     }
 
@@ -714,6 +788,8 @@
           const active = Array.isArray(c.ids) && c.ids.some(id => Number(id) === Number(activeConversationId));
           const name = (c.boutique_name || "Boutique").toUpperCase();
           const initial = name.charAt(0);
+          const sharedPost = parseProductShareMessage(c.last_message);
+          const preview = sharedPost ? `Shared dress: ${sharedPost.name}` : (c.last_message || "Product Enquiry Started");
 
           return `
             <div 
@@ -734,7 +810,7 @@
                   <span class="text-[9px] md:text-[10px] text-white/30 font-medium ml-2">${timeLabel(c.last_message_time)}</span>
                 </div>
                 <div class="flex items-center justify-between">
-                  <p class="text-[11px] md:text-xs text-white/50 line-clamp-1 font-premium-sans">${escapeHtml(c.last_message || "Product Enquiry Started")}</p>
+                  <p class="text-[11px] md:text-xs text-white/50 line-clamp-1 font-premium-sans">${escapeHtml(preview)}</p>
                   ${Number(c.unread_count) > 0 ? `
                     <span class="min-w-5 h-5 px-1.5 bg-primary rounded-full text-[10px] font-black text-black flex items-center justify-center shadow-[0_0_12px_rgba(193,166,113,0.35)]">${Number(c.unread_count)}</span>
                   ` : ""}
@@ -808,10 +884,14 @@
 
       area.innerHTML = messages.map(m => {
         const isUser = m.sender_type === "customer";
+        const sharedPost = parseProductShareMessage(m.message_text);
+        const body = sharedPost
+          ? renderProductShareCard(sharedPost)
+          : `<p class="text-[13px] md:text-sm leading-relaxed">${escapeHtml(m.message_text)}</p>`;
         return `
           <div class="mb-5 flex ${isUser ? "justify-end" : "justify-start"}">
             <div class="max-w-[85%] md:max-w-[78%] ${isUser ? "bg-primary/10 border-primary/25 text-primary" : "bg-white/5 border-white/10 text-white/90"} border rounded-2xl px-4 py-3 shadow-sm">
-              <p class="text-[13px] md:text-sm leading-relaxed">${escapeHtml(m.message_text)}</p>
+              ${body}
               <p class="text-[9px] mt-2 ${isUser ? "text-primary/60" : "text-white/30"} text-right font-medium">${timeLabel(m.created_at)}</p>
             </div>
           </div>
@@ -901,6 +981,7 @@
 
           if (!didDirectOpen) {
             didDirectOpen = true;
+            await sendSharedProductMessageOnce();
             await openConversation(activeConversationId, false);
             return;
           }

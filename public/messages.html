@@ -638,6 +638,42 @@
       }
     }
 
+    function escapeHtml(value) {
+      return String(value || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function parseProductShareMessage(text) {
+      const raw = String(text || "");
+      const prefix = "__CLOCHE_PRODUCT_SHARE__";
+      if (!raw.startsWith(prefix)) return null;
+      try {
+        const data = JSON.parse(raw.slice(prefix.length));
+        if (!data || !data.name) return null;
+        return data;
+      } catch (_) {
+        return null;
+      }
+    }
+
+    function renderProductShareCard(share) {
+      const image = escapeHtml(share.image || "");
+      const url = escapeHtml(share.url || "#");
+      const name = escapeHtml(share.name || "Shared dress");
+      return `
+        <a href="${url}" class="block w-[220px] max-w-full overflow-hidden rounded-2xl border border-primary/30 bg-primary/10 text-left shadow-xl shadow-primary/5">
+          ${image ? `<img src="${image}" alt="${name}" class="h-44 w-full object-cover" loading="lazy">` : ""}
+          <div class="p-4">
+            <p class="text-[9px] uppercase tracking-[0.24em] text-primary/70 font-bold mb-1">Shared Dress</p>
+            <p class="font-display text-sm text-white leading-tight">${name}</p>
+          </div>
+        </a>
+      `;
+    }
+
     // Global logout is now handled by responsive-layout.js
 
     // Toggle notification panel
@@ -939,6 +975,8 @@
         const name = (conv.customer_name || 'Valued Customer').toUpperCase();
         const initial = name.charAt(0) || '?';
         const productName = String(conv.product_name || "General inquiry");
+        const sharedPost = parseProductShareMessage(conv.last_message);
+        const preview = sharedPost ? `Shared dress: ${sharedPost.name}` : (conv.last_message || productName || 'New inquiry received - Open to respond');
 
         // Escape quotes to prevent breaking the onclick handler
         const safeName = name.replace(/'/g, "\\'");
@@ -962,7 +1000,7 @@
               <span class="text-[10px] sm:text-[11px] text-white/30 font-medium tracking-widest whitespace-nowrap shrink-0">${time}</span>
             </div>
             <div class="flex items-center justify-between gap-4">
-              <p class="text-[11px] text-white/40 line-clamp-1 font-premium-sans flex-1 truncate">${conv.last_message || productName || 'New inquiry received - Open to respond'}</p>
+              <p class="text-[11px] text-white/40 line-clamp-1 font-premium-sans flex-1 truncate">${escapeHtml(preview)}</p>
               ${Number(conv.unread_count) > 0 ? `
                 <div class="min-w-6 h-6 px-2 bg-primary rounded-full flex items-center justify-center shadow-lg shadow-primary/20 shrink-0">
                    <span class="text-[10px] font-black text-black">${Number(conv.unread_count)}</span>
@@ -1145,12 +1183,14 @@
       messages.forEach(msg => {
         const isOwner = msg.sender_type === 'boutique';
         const time = new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const sharedPost = parseProductShareMessage(msg.message_text);
+        const body = sharedPost ? renderProductShareCard(sharedPost) : null;
 
         if (isOwner) {
           html += `
           <div class="flex items-end gap-3 justify-end ml-auto max-w-[70%]">
             <div class="bg-primary/10 border border-primary/30 p-4 rounded-xl rounded-br-none shadow-xl shadow-primary/5">
-              <p class="text-sm leading-relaxed text-primary">${msg.message_text}</p>
+              ${body || `<p class="text-sm leading-relaxed text-primary">${escapeHtml(msg.message_text)}</p>`}
               <span class="block mt-2 text-[10px] text-primary/60 text-right font-display italic">${time}</span>
             </div>
           </div>
@@ -1162,7 +1202,7 @@
               <span class="text-sm font-bold text-primary/90">C</span>
             </div>
             <div class="glass-panel p-4 rounded-xl rounded-bl-none">
-              <p class="text-sm leading-relaxed text-white/90">${msg.message_text}</p>
+              ${body || `<p class="text-sm leading-relaxed text-white/90">${escapeHtml(msg.message_text)}</p>`}
               <span class="block mt-2 text-[10px] text-white/30 text-right font-display italic">${time}</span>
             </div>
           </div>
