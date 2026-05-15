@@ -583,20 +583,29 @@
             `;
 
         const initialCount = 2;
-        const displayedReviews = allReviews.slice(0, initialCount);
-        list.innerHTML = displayedReviews.map(renderReview).join("");
+        let isExpanded = false;
 
-        if (allReviews.length > initialCount) {
-          const viewAllBtn = document.createElement("button");
-          viewAllBtn.id = "viewAllReviews";
-          viewAllBtn.className = "w-full mt-6 py-3 border border-white/10 rounded-xl text-[10px] uppercase tracking-[0.2em] text-white/40 hover:text-primary hover:border-primary/30 transition-all";
-          viewAllBtn.textContent = `View All ${allReviews.length} Impressions`;
-          viewAllBtn.onclick = () => {
-            list.innerHTML = allReviews.map(renderReview).join("");
-            viewAllBtn.remove();
-          };
-          list.appendChild(viewAllBtn);
+        function renderCurrentState() {
+          const displayedReviews = isExpanded ? allReviews : allReviews.slice(0, initialCount);
+          list.innerHTML = displayedReviews.map(renderReview).join("");
+
+          if (allReviews.length > initialCount) {
+            const toggleBtn = document.createElement("button");
+            toggleBtn.className = "w-full mt-6 py-3 border border-white/10 rounded-xl text-[10px] uppercase tracking-[0.2em] text-white/40 hover:text-primary hover:border-primary/30 transition-all";
+            toggleBtn.textContent = isExpanded ? "Show Less" : `View All ${allReviews.length} Impressions`;
+            toggleBtn.onclick = () => {
+              isExpanded = !isExpanded;
+              renderCurrentState();
+              if (!isExpanded) {
+                // Smoothly scroll back to the reviews section when collapsing
+                list.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }
+            };
+            list.appendChild(toggleBtn);
+          }
         }
+
+        renderCurrentState();
 
       } catch (err) {
         list.innerHTML = '<div class="text-center py-10 text-[10px] uppercase tracking-widest text-white/20 italic">Impressions currently private.</div>';
