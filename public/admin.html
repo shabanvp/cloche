@@ -291,28 +291,49 @@
 
                     // Render Boutiques
                     const boutiqueTable = document.getElementById('boutiquesTableBody');
-                    const bList = Array.isArray(data.recentBoutiques) && data.recentBoutiques.length > 0 
-                        ? data.recentBoutiques 
-                        : (Array.isArray(data.boutiques) ? data.boutiques : []);
+                    
+                    // Try to find the boutique list in multiple possible keys
+                    let bList = [];
+                    if (Array.isArray(data.recentBoutiques) && data.recentBoutiques.length > 0) {
+                        bList = data.recentBoutiques;
+                    } else if (Array.isArray(data.boutiques) && data.boutiques.length > 0) {
+                        bList = data.boutiques;
+                    } else if (Array.isArray(data.recent_boutiques) && data.recent_boutiques.length > 0) {
+                        bList = data.recent_boutiques;
+                    }
+
+                    // Fallback to fetching all boutiques from the public API if analytics is empty
+                    if (bList.length === 0) {
+                        try {
+                            const publicRes = await fetch(`${API_ORIGIN}/api/boutiques`);
+                            if (publicRes.ok) {
+                                const publicData = await publicRes.json();
+                                if (Array.isArray(publicData)) bList = publicData;
+                            }
+                        } catch (publicErr) {
+                            console.warn("Public boutique fallback failed:", publicErr);
+                        }
+                    }
                     
                     if (bList.length === 0) {
-                        boutiqueTable.innerHTML = `<tr><td colspan="3" class="px-8 py-10 text-center text-gray-500 text-sm italic">No partners found.</td></tr>`;
+                        boutiqueTable.innerHTML = `<tr><td colspan="3" class="px-8 py-10 text-center text-gray-500 text-sm italic">No current partners found in registry.</td></tr>`;
                     } else {
                         boutiqueTable.innerHTML = bList.map(b => `
                             <tr class="table-row border-b border-white/5 transition-colors hover:bg-white/[0.02]">
                                 <td class="px-6 md:px-8 py-5 text-sm">
-                                    <p class="font-medium text-white">${b.boutique_name || 'Unnamed'}</p>
-                                    <p class="text-[10px] text-primary uppercase tracking-[0.2em] font-bold mt-1">${b.owner_name || 'No Owner'}</p>
-                                    <p class="text-[10px] text-gray-500 mt-1">${b.email || ''} • ${b.phone || ''}</p>
+                                    <p class="font-medium text-white">${b.boutique_name || 'Unnamed Boutique'}</p>
+                                    <p class="text-[10px] text-primary uppercase tracking-[0.2em] font-bold mt-1">${b.owner_name || b.contact_name || 'No Owner Listed'}</p>
+                                    <p class="text-[10px] text-gray-500 mt-1">${b.email || b.contact_email || 'No Email'} • ${b.phone || b.contact_phone || ''}</p>
                                     <p class="text-[10px] text-gray-500 uppercase tracking-widest mt-1 opacity-60">
-                                      ${(String(b.plan || "early").toUpperCase())}${b.introUnlimited ? " • INTRO ∞" : ""}
+                                      ${(String(b.plan || "early partner").toUpperCase())}${b.introUnlimited ? " • INTRO ∞" : ""}
                                     </p>
                                 </td>
                                 <td class="px-8 py-5 text-gray-400 hidden sm:table-cell text-sm">
                                     <div class="flex items-center gap-2">
                                         <span class="material-symbols-outlined text-xs text-primary/40">location_on</span>
-                                        ${b.city || '-'}
+                                        ${b.city || b.area || b.district || '-'}
                                     </div>
+                                    <p class="text-[9px] text-gray-600 mt-1 uppercase tracking-widest font-bold">Partner ID: ${b.id}</p>
                                 </td>
                                 <td class="px-6 md:px-8 py-5 text-right">
                                     <button data-remove-boutique-id="${b.id}" data-remove-boutique-name="${encodeURIComponent(String(b.boutique_name || ''))}" class="px-3 md:px-4 py-2 rounded-lg text-[9px] md:text-[10px] uppercase tracking-widest border border-red-500/20 text-red-400 hover:bg-red-500/10 transition-all font-bold">
