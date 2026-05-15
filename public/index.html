@@ -489,7 +489,7 @@
         </ul>
         <div
           class="w-full py-4 bg-primary/10 text-primary border border-primary/40 font-bold text-xs uppercase tracking-widest rounded-lg text-center hover:bg-primary hover:text-background-dark transition-all">
-          <a href="boutiquelogin.html" class="inline-block w-full text-primary hover:text-white transition-colors">Elevate Your Boutique Now</a>
+          <button onclick="handleSubscriptionClick()" class="inline-block w-full text-primary hover:text-white transition-colors">Elevate Your Boutique Now</button>
         </div>
       </div>
       <!-- Premium Plan -->
@@ -540,7 +540,7 @@
         </ul>
         <div
           class="w-full py-4 bg-primary/10 text-primary border border-primary/40 font-bold text-xs uppercase tracking-widest rounded-lg text-center hover:bg-primary hover:text-background-dark transition-all">
-          <a href="boutiquelogin.html" class="inline-block w-full text-primary hover:text-white transition-colors">Elevate Your Boutique Now</a>
+          <button onclick="handleSubscriptionClick()" class="inline-block w-full text-primary hover:text-white transition-colors">Elevate Your Boutique Now</button>
         </div>
       </div>
     </div>
@@ -632,6 +632,16 @@
 
 
   <script src="product-upload-utils.js?v=20260515-upload-normalizer"></script>
+  <script>
+    function handleSubscriptionClick() {
+      const isPartnerLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+      if (isPartnerLoggedIn) {
+        window.location.href = "subscription.html";
+      } else {
+        window.location.href = "boutiquelogin.html";
+      }
+    }
+  </script>
   <script>
     const API_AUTH = "https://cloche-backend.onrender.com/api/auth";
     const API_BASE = "https://cloche-backend.onrender.com/api";
