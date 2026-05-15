@@ -340,7 +340,9 @@
         if (res.ok && result.success) {
           // Account created successfully
           const userEmail = email;
-          if (result.email_failed) {
+          if (result.auto_verified) {
+            showSuccessModal(false, userEmail, "", true);
+          } else if (result.email_failed) {
             // Account created, but the email provider is temporarily unavailable.
             showSuccessModal(true, userEmail, result.verification_url);
           } else {
@@ -360,9 +362,11 @@
     });
 
     let lastSignupEmail = "";
+    let lastSignupAutoVerified = false;
 
     function showSuccessModal(emailFailed = false, email = "", verificationUrl = "", autoVerified = false, testEmailUrl = "") {
       lastSignupEmail = email;
+      lastSignupAutoVerified = !!autoVerified;
       const modal = document.getElementById("successModal");
       const modalTitle = document.getElementById("modalTitle");
       const modalDesc = document.getElementById("modalDesc");
@@ -377,7 +381,16 @@
       goLoginBtn.classList.remove("hidden");
       goLoginBtn.textContent = "Go to Login";
 
-      if (emailFailed) {
+      if (autoVerified) {
+        modalIcon.textContent = "verified";
+        modalIcon.classList.remove("text-amber-400");
+        modalIcon.classList.add("text-primary");
+        modalTitle.textContent = "ACCOUNT READY";
+        modalDesc.innerHTML = `Your account has been created for <strong class="text-white">${email}</strong>.`;
+        modalSubDesc.textContent = "You can log in now.";
+        modalSpinner.classList.add("hidden");
+        goLoginBtn.textContent = "Continue to Login";
+      } else if (emailFailed) {
         modalIcon.textContent = "warning";
         modalIcon.classList.remove("text-primary");
         modalIcon.classList.add("text-amber-400");
@@ -420,7 +433,8 @@
     }
 
     function closeSuccessModal() {
-      window.location.href = `boutiquelogin.html?status=verification_sent&type=${encodeURIComponent(selectedAccountType)}`;
+      const status = lastSignupAutoVerified ? "verified" : "verification_sent";
+      window.location.href = `boutiquelogin.html?status=${status}&type=${encodeURIComponent(selectedAccountType)}`;
     }
 
     // District Autosuggest Logic

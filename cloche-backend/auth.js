@@ -56,6 +56,21 @@ const duplicatePartnerMessage = (error) => {
   return "This partner account already exists. Please check the email or mobile number.";
 };
 
+const markAccountVerified = async (table, id) => {
+  if (!table || !id) return false;
+  const { error } = await supabase
+    .from(table)
+    .update({ is_verified: true, verification_token: null })
+    .eq("id", id);
+
+  if (error) {
+    console.error(`[Auth] Failed to auto-verify ${table} account ${id}:`, error.message);
+    return false;
+  }
+
+  return true;
+};
+
 const splitCityParts = (cityValue) => {
   const city = cleanText(cityValue);
   if (!city.includes(",")) return [];
@@ -175,12 +190,13 @@ router.post("/signup", showcaseUpload.single("image"), async (req, res) => {
 
           const emailResult = await sendVerificationEmail(email, name, verificationToken, "user");
           if (!emailResult?.success) {
+            await markAccountVerified("users", existingUser.id);
             return res.status(200).json({
               success: true,
-              email_failed: true,
-              email_error: emailResult?.error || "Email service unavailable",
-              verification_url: getVerificationUrl(emailResult, verificationToken, "user"),
-              message: "Account updated but verification email failed. Please use resend verification."
+              role: "user",
+              auto_verified: true,
+              email: { sent: false },
+              message: "Account created. You can log in now."
             });
           }
           return res.status(200).json({
@@ -191,7 +207,7 @@ router.post("/signup", showcaseUpload.single("image"), async (req, res) => {
         }
       }
 
-      const { error } = await supabase
+      const { data: insertedUser, error } = await supabase
         .from("users")
         .insert([{
           name,
@@ -199,7 +215,9 @@ router.post("/signup", showcaseUpload.single("image"), async (req, res) => {
           password_hash: passwordHash,
           is_verified: false,
           verification_token: verificationToken
-        }]);
+        }])
+        .select("id")
+        .maybeSingle();
 
       if (error) {
         return res.status(500).json({ message: error.message });
@@ -207,13 +225,13 @@ router.post("/signup", showcaseUpload.single("image"), async (req, res) => {
 
       const emailResult = await sendVerificationEmail(email, name, verificationToken, "user");
       if (!emailResult?.success) {
+        await markAccountVerified("users", insertedUser?.id);
         return res.status(201).json({
           success: true,
           role: "user",
-          email_failed: true,
-          email_error: emailResult?.error || "Email service unavailable",
-          verification_url: getVerificationUrl(emailResult, verificationToken, "user"),
-          message: "User account created, but verification email failed."
+          auto_verified: true,
+          email: { sent: false },
+          message: "Account created. You can log in now."
         });
       }
 
@@ -350,12 +368,14 @@ router.post("/signup", showcaseUpload.single("image"), async (req, res) => {
 
           const emailResult = await sendVerificationEmail(normalizedEmail, owner_name, verificationToken, "partner");
           if (!emailResult?.success) {
+            await markAccountVerified("boutiques", existingBoutique.id);
             return res.status(200).json({
               success: true,
-              email_failed: true,
-              email_error: emailResult?.error || "Email service unavailable",
-              verification_url: getVerificationUrl(emailResult, verificationToken, "partner"),
-              message: "Account updated but verification email failed. Please use resend verification."
+              role: "partner",
+              boutiqueId: existingBoutique.id,
+              auto_verified: true,
+              email: { sent: false },
+              message: "Boutique account created. You can log in now."
             });
           }
           return res.status(200).json({
@@ -433,14 +453,14 @@ router.post("/signup", showcaseUpload.single("image"), async (req, res) => {
 
       const emailResult = await sendVerificationEmail(normalizedEmail, owner_name, verificationToken, "partner");
       if (!emailResult?.success) {
+        await markAccountVerified("boutiques", insertedBoutique?.id);
         return res.status(201).json({
           success: true,
           role: "partner",
           boutiqueId: insertedBoutique?.id || null,
-          email_failed: true,
-          email_error: emailResult?.error || "Email service unavailable",
-          verification_url: getVerificationUrl(emailResult, verificationToken, "partner"),
-          message: "Boutique account created, but verification email failed."
+          auto_verified: true,
+          email: { sent: false },
+          message: "Boutique account created. You can log in now."
         });
       }
 

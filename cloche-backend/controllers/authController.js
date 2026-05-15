@@ -65,6 +65,21 @@ const duplicatePartnerMessage = (error) => {
     return "This partner account already exists. Please check the email or mobile number.";
 };
 
+const markAccountVerified = async (table, id) => {
+    if (!table || !id) return false;
+    const { error } = await supabase
+        .from(table)
+        .update({ is_verified: true, verification_token: null })
+        .eq("id", id);
+
+    if (error) {
+        console.error(`[Auth] Failed to auto-verify ${table} account ${id}:`, error.message);
+        return false;
+    }
+
+    return true;
+};
+
 const PASSWORD_RESET_MINUTES = 30;
 
 const normalizeAccountType = (value) => value === "partner" ? "partner" : "user";
@@ -130,12 +145,17 @@ exports.signup = async (req, res) => {
                 const verificationUrl = getVerificationUrl(emailResult, verificationToken, "user");
                 if (!emailResult?.success) {
                     console.error("[Auth] Verification email failed (user resend):", email, emailResult?.error || emailResult);
-                    return res.json({ success: true, message: "Account updated but verification email failed. Please use manual link or try resending.", email_failed: true, email_error: emailResult?.error, verification_url: verificationUrl });
+                    await markAccountVerified("users", existingUser.id);
+                    return res.json({ success: true, role: "user", auto_verified: true, message: "Account created. You can log in now.", email: { sent: false } });
                 }
                 return res.json({ success: true, message: "Verification email resent.", email: { sent: true, messageId: emailResult?.messageId || null } });
             }
 
-            const { error } = await supabase.from("users").insert([{ name, email, password_hash: passwordHash, is_verified: false, verification_token: verificationToken }]);
+            const { data: insertedUser, error } = await supabase
+                .from("users")
+                .insert([{ name, email, password_hash: passwordHash, is_verified: false, verification_token: verificationToken }])
+                .select("id")
+                .maybeSingle();
             if (error) return res.status(500).json({ message: error.message });
 
             const emailResult = await sendVerificationEmail(email, name, verificationToken, "user");
@@ -143,7 +163,8 @@ exports.signup = async (req, res) => {
             const verificationUrl = getVerificationUrl(emailResult, verificationToken, "user");
             if (!emailResult?.success) {
                 console.error("[Auth] Verification email failed (user signup):", email, emailResult?.error || emailResult);
-                return res.status(201).json({ success: true, message: "Account created but verification email failed.", email_failed: true, email_error: emailResult?.error, verification_url: verificationUrl });
+                await markAccountVerified("users", insertedUser?.id);
+                return res.status(201).json({ success: true, role: "user", auto_verified: true, message: "Account created. You can log in now.", email: { sent: false } });
             }
             return res.status(201).json({ success: true, message: "User account created. Check your email.", email: { sent: true, messageId: emailResult?.messageId || null, is_test: emailResult.isTest, test_url: emailResult.testUrl } });
         } catch (err) {
@@ -202,7 +223,8 @@ exports.signup = async (req, res) => {
                 const verificationUrl = getVerificationUrl(emailResult, verificationToken, "partner");
                 if (!emailResult?.success) {
                     console.error("[Auth] Verification email failed (partner resend):", normalizedEmail, emailResult?.error || emailResult);
-                    return res.json({ success: true, message: "Account updated but verification email failed.", email_failed: true, email_error: emailResult?.error, verification_url: verificationUrl });
+                    await markAccountVerified("boutiques", existingBoutique.id);
+                    return res.json({ success: true, role: "partner", boutiqueId: existingBoutique.id, auto_verified: true, message: "Boutique account created. You can log in now.", email: { sent: false } });
                 }
                 return res.json({ success: true, message: "Verification email resent.", email: { sent: true, messageId: emailResult?.messageId || null } });
             }
@@ -232,7 +254,8 @@ exports.signup = async (req, res) => {
             const verificationUrl = getVerificationUrl(emailResult, verificationToken, "partner");
             if (!emailResult?.success) {
                 console.error("[Auth] Verification email failed (partner signup):", normalizedEmail, emailResult?.error || emailResult);
-                return res.status(201).json({ success: true, boutiqueId: inserted?.id, message: "Account created but verification email failed.", email_failed: true, email_error: emailResult?.error, verification_url: verificationUrl });
+                await markAccountVerified("boutiques", inserted?.id);
+                return res.status(201).json({ success: true, role: "partner", boutiqueId: inserted?.id, auto_verified: true, message: "Boutique account created. You can log in now.", email: { sent: false } });
             }
             return res.status(201).json({ success: true, boutiqueId: inserted?.id, message: "Boutique account created.", email: { sent: true, messageId: emailResult?.messageId || null, is_test: emailResult.isTest, test_url: emailResult.testUrl } });
         } catch (err) {
