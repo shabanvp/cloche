@@ -935,9 +935,7 @@
         const boutiqueId = String(item.boutique_id || "").trim();
         const productId = String(item.id || "").trim();
         const href = productId ? `viewproducts.html?productId=${encodeURIComponent(productId)}` : "collection.html";
-        const verifiedBadge = shouldShowVerifiedBadge(item)
-          ? `<div class="absolute top-4 right-4 z-10 rounded-full bg-primary/90 px-3 py-1 text-[8px] font-bold uppercase tracking-[0.18em] text-background-dark">Verified</div>`
-          : "";
+        const verifiedBadge = ""; // Removed from collection cards as per request
 
         return `
           <a href="${href}" onclick="${boutiqueId ? `localStorage.setItem('selectedBoutiqueId','${boutiqueId}')` : ""}" class="featured-collection-card listing-product-card product-image-frame group relative aspect-[3/4] rounded-xl overflow-hidden glass-card shimmer-effect cursor-pointer block">

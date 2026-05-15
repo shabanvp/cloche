@@ -205,9 +205,7 @@
         const productId = encodeURIComponent(item.id || "");
         const boutiqueId = encodeURIComponent(item.boutique_id || "");
         const safeImage = escapeHtml(image);
-        const verifiedBadge = shouldShowVerifiedBadge(item)
-          ? `<span class="absolute top-2 right-2 bg-primary/90 text-black text-[9px] px-2 py-1 rounded tracking-[0.16em] uppercase font-bold">Verified</span>`
-          : "";
+        const verifiedBadge = ""; // Removed from collection cards as per request
 
         return `
           <a href="viewproducts.html?productId=${productId}" onclick="localStorage.setItem('selectedBoutiqueId','${boutiqueId}')"
