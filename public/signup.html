@@ -384,8 +384,17 @@
         modalIcon.classList.add("text-amber-400");
         modalTitle.textContent = "ACCOUNT CREATED";
         modalDesc.innerHTML = `Your account was created, but we couldn't send the verification email to <strong class="text-white">${email}</strong>.`;
-        modalSubDesc.textContent = "Please check your server configuration.";
+        modalSubDesc.textContent = verificationUrl ? "You can verify this account now or resend the email from login." : "Please use the resend option from login.";
         modalSpinner.classList.add("hidden");
+
+        if (verificationUrl) {
+          manualVerifyBtn.classList.remove("hidden");
+          manualVerifyBtn.className = "w-full bg-primary hover:bg-[#d4b984] text-cloche-dark h-12 rounded-lg font-bold text-xs uppercase tracking-[0.15em] shadow-lg shadow-primary/20 transition-all active:scale-[0.98] flex items-center justify-center gap-2 mt-4";
+          manualVerifyBtn.innerHTML = `<span class="material-symbols-outlined text-base">verified</span> <span>VERIFY ACCOUNT</span>`;
+          manualVerifyBtn.onclick = () => {
+            window.location.href = verificationUrl;
+          };
+        }
       } else {
         modalIcon.textContent = "mail";
         modalIcon.classList.remove("text-amber-400");
@@ -412,7 +421,7 @@
     }
 
     function closeSuccessModal() {
-      window.location.href = "boutiquelogin.html?status=verification_sent";
+      window.location.href = `boutiquelogin.html?status=verification_sent&type=${encodeURIComponent(selectedAccountType)}`;
     }
 
     // District Autosuggest Logic

@@ -9,7 +9,14 @@ const supabase = require("./supabase");
 const { sendVerificationEmail } = require("./emailService");
 const { deleteStorageObjectByUrl, uploadBufferToStorage } = require("./storage");
 const CLOUDINARY_CLOUD_NAME = String(process.env.CLOUDINARY_CLOUD_NAME || "").trim();
+const BACKEND_BASE_URL = String(process.env.BACKEND_BASE_URL || process.env.RENDER_EXTERNAL_URL || "https://cloche-backend.onrender.com").trim().replace(/\/+$/, "");
 const FRONTEND_BASE_URL = String(process.env.FRONTEND_BASE_URL || "https://cloche-backend.onrender.com").trim().replace(/\/+$/, "");
+
+const buildVerificationUrl = (token, type) => `${BACKEND_BASE_URL}/api/auth/verify-email?token=${encodeURIComponent(
+  String(token || "")
+)}&type=${encodeURIComponent(String(type || ""))}`;
+
+const getVerificationUrl = (emailResult, token, type) => emailResult?.verificationUrl || buildVerificationUrl(token, type);
 
 const normalizeImageUrl = (value) => {
   const raw = String(value || "").trim();
@@ -148,9 +155,19 @@ router.post("/signup", showcaseUpload.single("image"), async (req, res) => {
             return res.status(500).json({ message: updateError.message });
           }
 
-          sendVerificationEmail(email, name, verificationToken, "user"); // Removed 'await' to speed up response
+          const emailResult = await sendVerificationEmail(email, name, verificationToken, "user");
+          if (!emailResult?.success) {
+            return res.status(200).json({
+              success: true,
+              email_failed: true,
+              email_error: emailResult?.error || "Email service unavailable",
+              verification_url: getVerificationUrl(emailResult, verificationToken, "user"),
+              message: "Account updated but verification email failed. Please use resend verification."
+            });
+          }
           return res.status(200).json({
             success: true,
+            email: { sent: true, messageId: emailResult?.messageId || null },
             message: "Verification email resent. Please check your inbox."
           });
         }
@@ -170,12 +187,22 @@ router.post("/signup", showcaseUpload.single("image"), async (req, res) => {
         return res.status(500).json({ message: error.message });
       }
 
-      // Send verification email asynchronously
-      sendVerificationEmail(email, name, verificationToken, "user");
+      const emailResult = await sendVerificationEmail(email, name, verificationToken, "user");
+      if (!emailResult?.success) {
+        return res.status(201).json({
+          success: true,
+          role: "user",
+          email_failed: true,
+          email_error: emailResult?.error || "Email service unavailable",
+          verification_url: getVerificationUrl(emailResult, verificationToken, "user"),
+          message: "User account created, but verification email failed."
+        });
+      }
 
       return res.status(201).json({
         success: true,
         role: "user",
+        email: { sent: true, messageId: emailResult?.messageId || null },
         message: "User account created. Please check your email for verification."
       });
     } catch (err) {
@@ -310,9 +337,19 @@ router.post("/signup", showcaseUpload.single("image"), async (req, res) => {
             }
           }
 
-          sendVerificationEmail(normalizedEmail, owner_name, verificationToken, "partner"); // Non-blocking
+          const emailResult = await sendVerificationEmail(normalizedEmail, owner_name, verificationToken, "partner");
+          if (!emailResult?.success) {
+            return res.status(200).json({
+              success: true,
+              email_failed: true,
+              email_error: emailResult?.error || "Email service unavailable",
+              verification_url: getVerificationUrl(emailResult, verificationToken, "partner"),
+              message: "Account updated but verification email failed. Please use resend verification."
+            });
+          }
           return res.status(200).json({
             success: true,
+            email: { sent: true, messageId: emailResult?.messageId || null },
             message: "Verification email resent. Please check your inbox."
           });
         }
@@ -369,13 +406,24 @@ router.post("/signup", showcaseUpload.single("image"), async (req, res) => {
         }
       }
 
-      // Send verification email asynchronously
-      sendVerificationEmail(normalizedEmail, owner_name, verificationToken, "partner");
+      const emailResult = await sendVerificationEmail(normalizedEmail, owner_name, verificationToken, "partner");
+      if (!emailResult?.success) {
+        return res.status(201).json({
+          success: true,
+          role: "partner",
+          boutiqueId: insertedBoutique?.id || null,
+          email_failed: true,
+          email_error: emailResult?.error || "Email service unavailable",
+          verification_url: getVerificationUrl(emailResult, verificationToken, "partner"),
+          message: "Boutique account created, but verification email failed."
+        });
+      }
 
       return res.status(201).json({
         success: true,
         role: "partner",
         boutiqueId: insertedBoutique?.id || null,
+        email: { sent: true, messageId: emailResult?.messageId || null },
         message: "Boutique account created. Please check your email for verification."
       });
     } catch (err) {
@@ -1332,7 +1380,14 @@ router.post("/resend-verification", async (req, res) => {
       .update({ verification_token: newToken })
       .eq("id", user.id);
 
-    await sendVerificationEmail(email, user.name || user.owner_name, newToken, account_type);
+    const emailResult = await sendVerificationEmail(email, user.name || user.owner_name, newToken, account_type);
+    if (!emailResult?.success) {
+      return res.status(500).json({
+        message: "Failed to send verification email",
+        error: emailResult?.error || "Email service unavailable",
+        verification_url: getVerificationUrl(emailResult, newToken, account_type)
+      });
+    }
 
     return res.json({ success: true, message: "Verification email resent" });
 

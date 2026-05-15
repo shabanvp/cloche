@@ -52,6 +52,17 @@ console.log(`Email service configured: Resend=${hasResendSetup}, Gmail API=${has
 
 const escapeHeader = (value) => String(value || "").replace(/[\r\n]+/g, " ").trim();
 
+const escapeHtml = (value) => String(value || "")
+  .replace(/&/g, "&amp;")
+  .replace(/</g, "&lt;")
+  .replace(/>/g, "&gt;")
+  .replace(/"/g, "&quot;")
+  .replace(/'/g, "&#39;");
+
+const buildVerificationUrl = (token, type) => `${BACKEND_BASE_URL}/api/auth/verify-email?token=${encodeURIComponent(
+  String(token || "")
+)}&type=${encodeURIComponent(String(type || ""))}`;
+
 const encodeMessage = (message) => Buffer
   .from(message, "utf8")
   .toString("base64")
@@ -213,14 +224,13 @@ const sendEmailMessage = async ({ to, subject, html, fromName }) => {
 // SEND VERIFICATION EMAIL
 // ===============================
 const sendVerificationEmail = async (email, name, token, type) => {
-  const verificationUrl = `${BACKEND_BASE_URL}/api/auth/verify-email?token=${encodeURIComponent(
-    token
-  )}&type=${encodeURIComponent(type)}`;
+  const verificationUrl = buildVerificationUrl(token, type);
+  const safeName = escapeHtml(name || "there");
 
   const htmlBody = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px;">
       <h2 style="color:#c1a671;">CLOCHE</h2>
-      <p>Hi <strong>${name || "there"}</strong>,</p>
+      <p>Hi <strong>${safeName}</strong>,</p>
       <p>Welcome to Cloche Luxury.</p>
       <p>Please verify your email to continue:</p>
 
@@ -240,14 +250,17 @@ const sendVerificationEmail = async (email, name, token, type) => {
   const result = await sendEmailMessage({
     to: email,
     subject: "Verify Your Cloche Account",
-    html: htmlBody
+    html: htmlBody,
+    fromName: "Cloche Luxury"
   });
 
   if (result.success) {
-    console.log(`Verification email sent to ${email}`);
+    console.log(`Verification email sent to ${email} via ${result.method || "email provider"}`);
+  } else {
+    console.error(`Verification email failed for ${email}: ${result.error || "unknown email error"}`);
   }
 
-  return result;
+  return { ...result, verificationUrl };
 };
 
 // ===============================

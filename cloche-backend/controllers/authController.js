@@ -6,6 +6,7 @@ const { sendVerificationEmail, sendPasswordResetEmail, getEmailServiceStatus } =
 const { uploadBufferToStorage, deleteStorageObjectByUrl } = require("../storage");
 
 const CLOUDINARY_CLOUD_NAME = String(process.env.CLOUDINARY_CLOUD_NAME || "").trim();
+const BACKEND_BASE_URL = String(process.env.BACKEND_BASE_URL || process.env.RENDER_EXTERNAL_URL || "https://cloche-backend.onrender.com").trim().replace(/\/+$/, "");
 const FRONTEND_BASE_URL = String(process.env.FRONTEND_BASE_URL || "https://cloche-backend.onrender.com").trim().replace(/\/+$/, "");
 
 const normalizeTags = (value) => {
@@ -45,6 +46,12 @@ const isVerifiedTrue = (value) => value === true || value === "true" || value ==
 const PASSWORD_RESET_MINUTES = 30;
 
 const normalizeAccountType = (value) => value === "partner" ? "partner" : "user";
+
+const buildVerificationUrl = (token, type) => `${BACKEND_BASE_URL}/api/auth/verify-email?token=${encodeURIComponent(
+    String(token || "")
+)}&type=${encodeURIComponent(String(type || ""))}`;
+
+const getVerificationUrl = (emailResult, token, type) => emailResult?.verificationUrl || buildVerificationUrl(token, type);
 
 const hashResetToken = (token) => crypto
     .createHash("sha256")
@@ -98,7 +105,7 @@ exports.signup = async (req, res) => {
                 if (isVerifiedTrue(existingUser.is_verified)) return res.status(409).json({ message: "User already exists" });
                 await supabase.from("users").update({ name, password_hash: passwordHash, verification_token: verificationToken }).eq("id", existingUser.id);
                 const emailResult = await sendVerificationEmail(email, name, verificationToken, "user");
-                const verificationUrl = `${FRONTEND_BASE_URL}/api/auth/verify-email?token=${encodeURIComponent(String(verificationToken))}&type=user`;
+                const verificationUrl = getVerificationUrl(emailResult, verificationToken, "user");
                 if (!emailResult?.success) {
                     console.error("[Auth] Verification email failed (user resend):", email, emailResult?.error || emailResult);
                     return res.json({ success: true, message: "Account updated but verification email failed. Please use manual link or try resending.", email_failed: true, email_error: emailResult?.error, verification_url: verificationUrl });
@@ -111,7 +118,7 @@ exports.signup = async (req, res) => {
 
             const emailResult = await sendVerificationEmail(email, name, verificationToken, "user");
 
-            const verificationUrl = `${FRONTEND_BASE_URL}/api/auth/verify-email?token=${encodeURIComponent(String(verificationToken))}&type=user`;
+            const verificationUrl = getVerificationUrl(emailResult, verificationToken, "user");
             if (!emailResult?.success) {
                 console.error("[Auth] Verification email failed (user signup):", email, emailResult?.error || emailResult);
                 return res.status(201).json({ success: true, message: "Account created but verification email failed.", email_failed: true, email_error: emailResult?.error, verification_url: verificationUrl });
@@ -157,7 +164,7 @@ exports.signup = async (req, res) => {
                 }
 
                 const emailResult = await sendVerificationEmail(normalizedEmail, owner_name, verificationToken, "partner");
-                const verificationUrl = `${FRONTEND_BASE_URL}/api/auth/verify-email?token=${encodeURIComponent(String(verificationToken))}&type=partner`;
+                const verificationUrl = getVerificationUrl(emailResult, verificationToken, "partner");
                 if (!emailResult?.success) {
                     console.error("[Auth] Verification email failed (partner resend):", normalizedEmail, emailResult?.error || emailResult);
                     return res.json({ success: true, message: "Account updated but verification email failed.", email_failed: true, email_error: emailResult?.error, verification_url: verificationUrl });
@@ -175,7 +182,7 @@ exports.signup = async (req, res) => {
 
             const emailResult = await sendVerificationEmail(normalizedEmail, owner_name, verificationToken, "partner");
 
-            const verificationUrl = `${FRONTEND_BASE_URL}/api/auth/verify-email?token=${encodeURIComponent(String(verificationToken))}&type=partner`;
+            const verificationUrl = getVerificationUrl(emailResult, verificationToken, "partner");
             if (!emailResult?.success) {
                 console.error("[Auth] Verification email failed (partner signup):", normalizedEmail, emailResult?.error || emailResult);
                 return res.status(201).json({ success: true, boutiqueId: inserted?.id, message: "Account created but verification email failed.", email_failed: true, email_error: emailResult?.error, verification_url: verificationUrl });
@@ -199,7 +206,10 @@ exports.login = async (req, res) => {
         if (!boutique || error) return res.status(401).json({ message: "Invalid credentials" });
         if (!isVerifiedTrue(boutique.is_verified)) return res.status(403).json({ message: "Please verify email first." });
 
-        const match = await bcrypt.compare(password, boutique.password_hash);
+        let match = false;
+        if (boutique.password_hash) {
+            match = await bcrypt.compare(password, boutique.password_hash);
+        }
         if (!match && boutique.password) match = String(password) === String(boutique.password); // Fallback for old passwords
 
         if (!match) return res.status(401).json({ message: "Invalid credentials" });
