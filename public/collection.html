@@ -93,6 +93,19 @@
         .replace(/'/g, "&#39;");
     }
 
+    function normalizePlan(plan) {
+      const normalized = String(plan || "early_partner").trim().toLowerCase();
+      if (["early", "basic", "early partner", "early_partner"].includes(normalized)) return "early_partner";
+      if (normalized === "pro") return "premium";
+      return normalized;
+    }
+
+    function shouldShowVerifiedBadge(item) {
+      if (item?.is_verified_partner_product === true) return true;
+      const plan = normalizePlan(item?.boutique_plan || item?.plan);
+      return plan === "professional" || plan === "premium";
+    }
+
   function resolveAssetUrl(url) {
     if (window.CLOCHE_PRODUCTS?.resolveAssetUrl) return addCacheBuster(window.CLOCHE_PRODUCTS.resolveAssetUrl(url, API_ORIGIN));
     let raw = String(url || "").trim();
@@ -192,6 +205,9 @@
         const productId = encodeURIComponent(item.id || "");
         const boutiqueId = encodeURIComponent(item.boutique_id || "");
         const safeImage = escapeHtml(image);
+        const verifiedBadge = shouldShowVerifiedBadge(item)
+          ? `<span class="absolute top-2 right-2 bg-primary/90 text-black text-[9px] px-2 py-1 rounded tracking-[0.16em] uppercase font-bold">Verified</span>`
+          : "";
 
         return `
           <a href="viewproducts.html?productId=${productId}" onclick="localStorage.setItem('selectedBoutiqueId','${boutiqueId}')"
@@ -202,6 +218,7 @@
                 : `<div class="w-full h-full flex items-center justify-center text-white/40 text-xs tracking-[0.2em] uppercase">No Image</div>`
               }
               <span class="absolute top-2 left-2 bg-primary/90 text-black text-[9px] px-2 py-1 rounded tracking-[0.2em] uppercase font-bold">${category}</span>
+              ${verifiedBadge}
             </div>
             <div class="p-3 sm:p-4">
               <p class="font-display text-lg leading-tight mb-2">${name}</p>

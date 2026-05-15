@@ -93,17 +93,11 @@
     loader.className = "absolute inset-0 flex items-center justify-center z-10";
     loader.innerHTML = `<div class="w-8 h-8 border-2 border-primary/20 border-t-primary rounded-full animate-spin"></div>`;
 
-    const badge = document.createElement("div");
-    badge.className = "absolute top-6 left-6 z-20";
-    badge.innerHTML = `
-      <span class="bg-primary/20 backdrop-blur-md border border-primary/30 text-primary px-3 py-1 rounded-full text-[8px] font-bold tracking-widest uppercase">Verified Luxury</span>
-    `;
-
     const dots = document.createElement("div");
     dots.id = "imageDots";
     dots.className = "absolute bottom-6 left-0 right-0 flex justify-center gap-2 z-20";
 
-    frame.append(image, controls, loader, badge, dots);
+    frame.append(image, controls, loader, dots);
     applyFrameStyles(frame);
     applyImageStyles(image);
     return { frame, image, controls, loader, dots };

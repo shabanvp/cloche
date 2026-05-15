@@ -39,6 +39,39 @@ const normalizeImageUrl = (value) => {
   return raw; // Already looks like a full URL
 };
 
+const isVerifiedPartnerPlan = (plan) => {
+  const normalized = normalizePlan(plan);
+  return normalized === "professional" || normalized === "premium";
+};
+
+const attachBoutiquePlans = async (products = []) => {
+  if (!Array.isArray(products) || !products.length) return [];
+
+  const boutiqueIds = [...new Set(products.map((p) => p.boutique_id).filter(Boolean))];
+  if (!boutiqueIds.length) return products;
+
+  const { data: boutiques, error } = await supabase
+    .from("boutiques")
+    .select("id, plan")
+    .in("id", boutiqueIds);
+
+  if (error) {
+    console.error("[Products] Failed to attach boutique plans:", error.message);
+    return products;
+  }
+
+  const planByBoutique = new Map((boutiques || []).map((b) => [String(b.id), normalizePlan(b.plan)]));
+
+  return products.map((p) => {
+    const boutiquePlan = planByBoutique.get(String(p.boutique_id)) || normalizePlan(p.plan);
+    return {
+      ...p,
+      boutique_plan: boutiquePlan,
+      is_verified_partner_product: isVerifiedPartnerPlan(boutiquePlan)
+    };
+  });
+};
+
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 10 * 1024 * 1024 },
@@ -93,7 +126,9 @@ router.get("/", async (req, res) => {
     // Resilience: Sort by ID if nothing else
     const sorted = [...products].sort((a, b) => (b.id || 0) - (a.id || 0));
 
-    return res.json(sorted.map(p => ({
+    const productsWithPlans = await attachBoutiquePlans(sorted);
+
+    return res.json(productsWithPlans.map(p => ({
       ...p,
       boutique_name: p.boutique_name || "Boutique",
       location: p.location || p.city || "Kerala"
@@ -122,7 +157,7 @@ router.get("/:productId", async (req, res, next) => {
     if (!product) return res.status(404).json({ message: "Product not found" });
 
     const [{ data: boutique }, { data: showcaseRows }, { data: images }] = await Promise.all([
-      supabase.from("boutiques").select("boutique_name, city").eq("id", product.boutique_id).maybeSingle(),
+      supabase.from("boutiques").select("boutique_name, city, plan").eq("id", product.boutique_id).maybeSingle(),
       supabase
         .from("boutique_showcase")
         .select("area, district, rating, tags, image_url, id")
@@ -139,6 +174,8 @@ router.get("/:productId", async (req, res, next) => {
       ...product,
       boutique_name: boutique?.boutique_name || null,
       boutique_city: boutique?.city || null,
+      boutique_plan: normalizePlan(boutique?.plan),
+      is_verified_partner_product: isVerifiedPartnerPlan(boutique?.plan),
       area: showcase?.area || null,
       district: showcase?.district || null,
       showcase_rating: showcase?.rating || 5.0,
@@ -286,7 +323,8 @@ router.get("/boutique/:boutiqueId", async (req, res) => {
       .order("id", { ascending: true });
 
     if (galleryErr) {
-      return res.json(products.map((p) => ({ ...p, gallery: [] })));
+      const productsWithPlans = await attachBoutiquePlans(products);
+      return res.json(productsWithPlans.map((p) => ({ ...p, gallery: [] })));
     }
 
     const galleryMap = {};
@@ -295,7 +333,9 @@ router.get("/boutique/:boutiqueId", async (req, res) => {
       galleryMap[row.product_id].push(normalizeImageUrl(row.image_url));
     }
 
-    return res.json(products.map((p) => ({
+    const productsWithPlans = await attachBoutiquePlans(products);
+
+    return res.json(productsWithPlans.map((p) => ({
       ...p,
       image_url: normalizeImageUrl(p.image_url),
       gallery: galleryMap[p.id] || []

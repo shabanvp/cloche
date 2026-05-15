@@ -26,7 +26,7 @@ const requiredComponentTokens = [
 
 const requiredViewTokens = [
   "id=\"collectionDetailImageHost\"",
-  "collection-detail-image.js?v=20260515-mobile-frame-lock",
+  "collection-detail-image.js?v=",
   "normalizeGallery(product)",
   "optimizeImageUrl(url)",
   "c_limit,w_1400,h_1800",
@@ -55,6 +55,10 @@ function assertTokens(label, source, tokens) {
 assertTokens("component", component, requiredComponentTokens);
 assertTokens("viewproducts", view, requiredViewTokens);
 assertTokens("responsive CSS", css, requiredCssTokens);
+
+if (/Verified Luxury/i.test(component)) {
+  throw new Error("collection detail image component must not hard-code the Verified Luxury badge");
+}
 
 const fixtureViewports = [640, 760, 900, 1200];
 const uploadedImageShapes = [

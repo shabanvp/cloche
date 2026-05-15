@@ -892,6 +892,12 @@
       return normalized;
     }
 
+    function shouldShowVerifiedBadge(item) {
+      if (item?.is_verified_partner_product === true) return true;
+      const plan = normalizePlan(item?.boutique_plan || item?.plan);
+      return plan === "professional" || plan === "premium";
+    }
+
     function sortPremiumFirst(list) {
       return [...list].sort((a, b) => {
         if (normalizePlan(a.plan) === "premium" && normalizePlan(b.plan) !== "premium") return -1;
@@ -923,6 +929,9 @@
         const boutiqueId = String(item.boutique_id || "").trim();
         const productId = String(item.id || "").trim();
         const href = productId ? `viewproducts.html?productId=${encodeURIComponent(productId)}` : "collection.html";
+        const verifiedBadge = shouldShowVerifiedBadge(item)
+          ? `<div class="absolute top-4 right-4 z-10 rounded-full bg-primary/90 px-3 py-1 text-[8px] font-bold uppercase tracking-[0.18em] text-background-dark">Verified</div>`
+          : "";
 
         return `
           <a href="${href}" onclick="${boutiqueId ? `localStorage.setItem('selectedBoutiqueId','${boutiqueId}')` : ""}" class="featured-collection-card listing-product-card product-image-frame group relative aspect-[3/4] rounded-xl overflow-hidden glass-card shimmer-effect cursor-pointer block">
@@ -933,6 +942,7 @@
               loading="lazy"
               onerror="this.onerror=null;this.src='${pickImage(`collection-${idx}-${title}`)}'"
             />
+            ${verifiedBadge}
             <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-black/15"></div>
             <div class="absolute inset-0 p-6 flex flex-col justify-end">
               <p class="text-xs uppercase tracking-[0.25em] text-primary mb-2">${district}</p>

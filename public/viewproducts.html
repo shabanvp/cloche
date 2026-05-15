@@ -391,6 +391,34 @@
       if (node) node.textContent = asText(value, fallback);
     }
 
+    function normalizePlan(plan) {
+      const normalized = String(plan || "early_partner").trim().toLowerCase();
+      if (["early", "basic", "early partner", "early_partner"].includes(normalized)) return "early_partner";
+      if (normalized === "pro") return "premium";
+      return normalized;
+    }
+
+    function shouldShowVerifiedBadge(product) {
+      if (product?.is_verified_partner_product === true) return true;
+      const plan = normalizePlan(product?.boutique_plan || product?.plan);
+      return plan === "professional" || plan === "premium";
+    }
+
+    function updateVerifiedLuxuryBadge(product) {
+      const panel = ensureDetailImagePanel();
+      const frame = panel?.frame;
+      if (!frame) return;
+
+      frame.querySelector("[data-verified-luxury-badge]")?.remove();
+      if (!shouldShowVerifiedBadge(product)) return;
+
+      const badge = document.createElement("span");
+      badge.dataset.verifiedLuxuryBadge = "true";
+      badge.className = "absolute top-6 left-6 z-30 rounded-full border border-primary/40 bg-primary/90 px-3 py-1 text-[8px] font-black uppercase tracking-[0.22em] text-background-dark shadow-lg";
+      badge.textContent = "Verified Luxury";
+      frame.appendChild(badge);
+    }
+
     function normalizeGallery(product) {
       if (window.CLOCHE_PRODUCTS?.normalizeGallery) return window.CLOCHE_PRODUCTS.normalizeGallery(product);
       const images = [];
@@ -505,6 +533,7 @@
         setText("productLocation", loc.toUpperCase());
 
         setText("productFabric", product.fabric, "Premium Handpicked");
+        updateVerifiedLuxuryBadge(product);
 
         if (product.description && document.getElementById("productDescription")) {
           document.getElementById("productDescription").textContent = asText(product.description);
