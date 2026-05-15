@@ -634,12 +634,8 @@
   <script src="product-upload-utils.js?v=20260515-upload-normalizer"></script>
   <script>
     function handleSubscriptionClick() {
-      const isPartnerLoggedIn = localStorage.getItem("isLoggedIn") === "true";
-      if (isPartnerLoggedIn) {
-        window.location.href = "subscription.html";
-      } else {
-        window.location.href = "boutiquelogin.html";
-      }
+      // Direct to plans; subscription.html will handle login if they try to buy
+      window.location.href = "subscription.html";
     }
   </script>
   <script>

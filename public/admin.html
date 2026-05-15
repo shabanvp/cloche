@@ -263,8 +263,29 @@
                 </div>
             </section>
 
-            <!-- Recent Boutiques -->
-            <section class="min-w-0">
+        <!-- Payment Proofs Section -->
+        <section class="mb-12">
+            <div class="flex items-center justify-between mb-8">
+                <h2 class="text-xl font-display text-white uppercase tracking-[0.2em]">Payment Verification</h2>
+                <span id="proofCount" class="text-[10px] bg-primary/20 text-primary px-3 py-1 rounded-full font-bold uppercase tracking-widest">0 Pending</span>
+            </div>
+            <div class="glass-card rounded-xl border-white/5 overflow-hidden">
+                <div class="admin-table-scroll scroll-touch custom-scrollbar">
+                    <table class="w-full text-left border-collapse min-w-[900px]">
+                        <thead>
+                            <tr class="bg-white/5 border-b border-white/5">
+                                <th class="px-8 py-6 text-[10px] uppercase tracking-widest text-gray-400 font-bold">Boutique</th>
+                                <th class="px-8 py-6 text-[10px] uppercase tracking-widest text-gray-400 font-bold">Plan Details</th>
+                                <th class="px-8 py-6 text-[10px] uppercase tracking-widest text-gray-400 font-bold text-center">Screenshot</th>
+                                <th class="px-8 py-6 text-[10px] uppercase tracking-widest text-gray-400 font-bold text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="proofsTableBody">
+                            <!-- Proofs loaded via JS -->
+                            <tr><td colspan="4" class="px-8 py-10 text-center text-gray-500 text-sm italic">Loading proofs...</td></tr>
+                        </tbody>
+            <!-- Recent Partnerships -->
+            <section class="min-w-0 mb-20">
                 <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between mb-8 px-2 gap-4">
                     <div>
                         <h2 class="text-xl md:text-2xl font-display font-bold text-white mb-1">New Partnerships</h2>
@@ -587,10 +608,14 @@
         }
 
         function renderPaymentProofs(rows) {
-            const table = document.getElementById("paymentProofsTableBody");
+            const table = document.getElementById("proofsTableBody");
             if (!table) return;
 
             const list = Array.isArray(rows) ? rows : [];
+            const pendingCount = list.filter(p => p.status === 'pending').length;
+            const counterEl = document.getElementById('proofCount');
+            if (counterEl) counterEl.textContent = `${pendingCount} Pending`;
+
             if (!list.length) {
                 table.innerHTML = `<tr><td colspan="4" class="px-8 py-10 text-center text-gray-500 text-sm italic">No payment proofs found.</td></tr>`;
                 return;
@@ -725,6 +750,10 @@ Special Notes: ${e.special_requirement || "None"}
             }
         }
 
+        function handleSubscriptionClick() {
+            window.location.href = "subscription.html";
+        }
+
         function logout() {
             localStorage.removeItem('adminToken');
             window.location.href = 'index.html';
@@ -749,8 +778,9 @@ Special Notes: ${e.special_requirement || "None"}
 
             document.getElementById("refreshEnquiriesBtn")?.addEventListener("click", loadEnquiries);
             document.getElementById("refreshProofsBtn")?.addEventListener("click", loadPaymentProofs);
-
+            
             document.addEventListener("click", (event) => {
+                // Proof Actions
                 const approveProofBtn = event.target?.closest?.("[data-approve-proof-id]");
                 if (approveProofBtn) {
                     reviewPaymentProof(approveProofBtn.getAttribute("data-approve-proof-id"), "approve");
@@ -763,6 +793,7 @@ Special Notes: ${e.special_requirement || "None"}
                     return;
                 }
 
+                // Enquiry Actions
                 const sendBtn = event.target?.closest?.("[data-send-enquiry-id]");
                 if (sendBtn) {
                     sendEnquiryToBoutiques(sendBtn.getAttribute("data-send-enquiry-id"));
