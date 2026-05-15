@@ -55,6 +55,10 @@
     return localStorage.getItem("isUserLoggedIn") === "true" || localStorage.getItem("isLoggedIn") === "true";
   }
 
+  function badgeMarkup(type) {
+    return `<span class="side-menu-badge hidden" data-menu-badge="${type}" aria-label="0 new items">0</span>`;
+  }
+
   function resolveCurrentFile() {
     const path = (window.location.pathname || "").toLowerCase();
     const file = path.split("/").filter(Boolean).pop() || "index.html";
@@ -116,6 +120,7 @@
         <a href="lead.html" class="side-menu-link">
           <span class="material-symbols-outlined">group</span>
           <span>Leads</span>
+          ${badgeMarkup("leads")}
         </a>
         <a href="boutiqueproducts.html" class="side-menu-link">
           <span class="material-symbols-outlined">inventory_2</span>
@@ -124,6 +129,7 @@
         <a href="messages.html" class="side-menu-link">
           <span class="material-symbols-outlined">chat_bubble</span>
           <span>Messages</span>
+          ${badgeMarkup("messages")}
         </a>
         <a href="profile.html" class="side-menu-link">
           <span class="material-symbols-outlined">person</span>
@@ -166,6 +172,7 @@
           <a href="messageboutique.html?view=list" class="side-menu-link">
             <span class="material-symbols-outlined">chat_bubble</span>
             <span>Enquire</span>
+            ${badgeMarkup("messages")}
           </a>
           ` : ""}
 
@@ -232,6 +239,8 @@
         closeMenuFunc();
       });
     });
+
+    updateMobileMenuBadges({ partnerLoggedIn, userLoggedIn });
 
     // --- Global Click-Outside Handler for <details> Dropdowns ---
     window.addEventListener("click", (e) => {
@@ -329,6 +338,78 @@
       } else {
         loginProfileLink.textContent = "Login / Profile";
         loginProfileLink.setAttribute("href", profileHref);
+      }
+    }
+  }
+
+  function setMenuBadge(type, count) {
+    const safeCount = Math.max(0, Number(count || 0));
+    document.querySelectorAll(`[data-menu-badge="${type}"]`).forEach((badge) => {
+      badge.textContent = safeCount > 99 ? "99+" : String(safeCount);
+      badge.setAttribute("aria-label", `${safeCount} new ${type}`);
+      badge.classList.toggle("hidden", safeCount <= 0);
+    });
+  }
+
+  async function fetchJson(url) {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`Request failed: ${res.status}`);
+    return res.json();
+  }
+
+  function currentRouteName() {
+    return resolveCurrentRouteClass().replace(/^route-/, "");
+  }
+
+  async function updateMobileMenuBadges({ partnerLoggedIn, userLoggedIn }) {
+    const API_ORIGIN = window.API_ORIGIN || "https://cloche-backend.onrender.com";
+
+    if (partnerLoggedIn) {
+      const boutiqueId = localStorage.getItem("boutiqueId") || localStorage.getItem("selectedBoutiqueId") || "";
+      if (!boutiqueId) return;
+
+      try {
+        const conversations = await fetchJson(`${API_ORIGIN}/api/messages/conversations/${encodeURIComponent(boutiqueId)}`);
+        const unreadMessages = (Array.isArray(conversations) ? conversations : [])
+          .reduce((sum, conv) => sum + Number(conv.unread_count || 0), 0);
+        setMenuBadge("messages", unreadMessages);
+      } catch (_) {
+        setMenuBadge("messages", 0);
+      }
+
+      try {
+        const leads = await fetchJson(`${API_ORIGIN}/api/leads/list/${encodeURIComponent(boutiqueId)}`);
+        const totalLeads = Array.isArray(leads) ? leads.length : 0;
+        const seenKey = `clocheSeenLeadCount.${boutiqueId}`;
+        const route = currentRouteName();
+        if (route === "lead") {
+          localStorage.setItem(seenKey, String(totalLeads));
+          setMenuBadge("leads", 0);
+        } else {
+          if (localStorage.getItem(seenKey) === null) {
+            localStorage.setItem(seenKey, String(totalLeads));
+            setMenuBadge("leads", 0);
+            return;
+          }
+          const seenLeads = Number(localStorage.getItem(seenKey) || 0);
+          setMenuBadge("leads", Math.max(0, totalLeads - seenLeads));
+        }
+      } catch (_) {
+        setMenuBadge("leads", 0);
+      }
+      return;
+    }
+
+    if (userLoggedIn) {
+      const email = String(localStorage.getItem("userEmail") || "").trim();
+      if (!email) return;
+      try {
+        const conversations = await fetchJson(`${API_ORIGIN}/api/messages/customer/conversations?email=${encodeURIComponent(email)}`);
+        const unreadMessages = (Array.isArray(conversations) ? conversations : [])
+          .reduce((sum, conv) => sum + Number(conv.unread_count || 0), 0);
+        setMenuBadge("messages", unreadMessages);
+      } catch (_) {
+        setMenuBadge("messages", 0);
       }
     }
   }

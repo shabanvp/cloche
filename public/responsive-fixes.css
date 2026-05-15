@@ -1482,6 +1482,35 @@ nav.fixed .max-w-7xl {
   transition: color 0.2s;
 }
 
+.side-menu-link > span:not(.material-symbols-outlined):not(.side-menu-badge) {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.side-menu-badge {
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  background: #c1a671;
+  color: #090909;
+  border: 1px solid rgba(250, 247, 242, 0.22);
+  box-shadow: 0 0 14px rgba(193, 166, 113, 0.24);
+  font-size: 10px;
+  line-height: 1;
+  font-weight: 900;
+  letter-spacing: 0;
+  font-family: Inter, system-ui, sans-serif;
+}
+
+.side-menu-badge.hidden {
+  display: none !important;
+}
+
 .side-menu-link:hover {
   color: #c1a671;
 }
