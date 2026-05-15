@@ -173,13 +173,14 @@ router.post("/signup", showcaseUpload.single("image"), async (req, res) => {
         if (existingUser.is_verified) {
           return res.status(409).json({ message: "User already exists" });
         } else {
-          // Update unverified user and resend email
+          // Update and verify during onboarding; email delivery is not reliable enough to block signup.
           const { error: updateError } = await supabase
             .from("users")
             .update({
               name,
               password_hash: passwordHash,
-              verification_token: verificationToken,
+              is_verified: true,
+              verification_token: null,
               created_at: new Date().toISOString()
             })
             .eq("id", existingUser.id);
@@ -188,21 +189,12 @@ router.post("/signup", showcaseUpload.single("image"), async (req, res) => {
             return res.status(500).json({ message: updateError.message });
           }
 
-          const emailResult = await sendVerificationEmail(email, name, verificationToken, "user");
-          if (!emailResult?.success) {
-            await markAccountVerified("users", existingUser.id);
-            return res.status(200).json({
-              success: true,
-              role: "user",
-              auto_verified: true,
-              email: { sent: false },
-              message: "Account created. You can log in now."
-            });
-          }
           return res.status(200).json({
             success: true,
-            email: { sent: true, messageId: emailResult?.messageId || null },
-            message: "Verification email resent. Please check your inbox."
+            role: "user",
+            auto_verified: true,
+            email: { sent: false },
+            message: "Account ready. You can log in now."
           });
         }
       }
@@ -213,8 +205,8 @@ router.post("/signup", showcaseUpload.single("image"), async (req, res) => {
           name,
           email,
           password_hash: passwordHash,
-          is_verified: false,
-          verification_token: verificationToken
+          is_verified: true,
+          verification_token: null
         }])
         .select("id")
         .maybeSingle();
@@ -223,23 +215,13 @@ router.post("/signup", showcaseUpload.single("image"), async (req, res) => {
         return res.status(500).json({ message: error.message });
       }
 
-      const emailResult = await sendVerificationEmail(email, name, verificationToken, "user");
-      if (!emailResult?.success) {
-        await markAccountVerified("users", insertedUser?.id);
-        return res.status(201).json({
-          success: true,
-          role: "user",
-          auto_verified: true,
-          email: { sent: false },
-          message: "Account created. You can log in now."
-        });
-      }
-
       return res.status(201).json({
         success: true,
         role: "user",
-        email: { sent: true, messageId: emailResult?.messageId || null },
-        message: "User account created. Please check your email for verification."
+        userId: insertedUser?.id || null,
+        auto_verified: true,
+        email: { sent: false },
+        message: "Account ready. You can log in now."
       });
     } catch (err) {
       return res.status(500).json({ message: err.message });
@@ -324,13 +306,14 @@ router.post("/signup", showcaseUpload.single("image"), async (req, res) => {
         if (isVerifiedTrue(existingBoutique.is_verified)) {
           return res.status(409).json({ message: "This email is already registered. Please log in or use another email." });
         } else {
-          // Update unverified boutique and resend email
+          // Update and verify during onboarding; email delivery is not reliable enough to block signup.
           const { error: updateError } = await supabase
             .from("boutiques")
             .update({
               ...basePayload,
               password_hash: passwordHash,
-              verification_token: verificationToken
+              is_verified: true,
+              verification_token: null
             })
             .eq("id", existingBoutique.id);
 
@@ -366,22 +349,13 @@ router.post("/signup", showcaseUpload.single("image"), async (req, res) => {
             }
           }
 
-          const emailResult = await sendVerificationEmail(normalizedEmail, owner_name, verificationToken, "partner");
-          if (!emailResult?.success) {
-            await markAccountVerified("boutiques", existingBoutique.id);
-            return res.status(200).json({
-              success: true,
-              role: "partner",
-              boutiqueId: existingBoutique.id,
-              auto_verified: true,
-              email: { sent: false },
-              message: "Boutique account created. You can log in now."
-            });
-          }
           return res.status(200).json({
             success: true,
-            email: { sent: true, messageId: emailResult?.messageId || null },
-            message: "Verification email resent. Please check your inbox."
+            role: "partner",
+            boutiqueId: existingBoutique.id,
+            auto_verified: true,
+            email: { sent: false },
+            message: "Boutique account ready. You can log in now."
           });
         }
       }
@@ -403,7 +377,7 @@ router.post("/signup", showcaseUpload.single("image"), async (req, res) => {
       for (const payload of payloadCandidates) {
         const { data, error } = await supabase
           .from("boutiques")
-          .insert([payload])
+          .insert([{ ...payload, is_verified: true, verification_token: null }])
           .select("id")
           .maybeSingle();
 
@@ -451,25 +425,13 @@ router.post("/signup", showcaseUpload.single("image"), async (req, res) => {
         }
       }
 
-      const emailResult = await sendVerificationEmail(normalizedEmail, owner_name, verificationToken, "partner");
-      if (!emailResult?.success) {
-        await markAccountVerified("boutiques", insertedBoutique?.id);
-        return res.status(201).json({
-          success: true,
-          role: "partner",
-          boutiqueId: insertedBoutique?.id || null,
-          auto_verified: true,
-          email: { sent: false },
-          message: "Boutique account created. You can log in now."
-        });
-      }
-
       return res.status(201).json({
         success: true,
         role: "partner",
         boutiqueId: insertedBoutique?.id || null,
-        email: { sent: true, messageId: emailResult?.messageId || null },
-        message: "Boutique account created. Please check your email for verification."
+        auto_verified: true,
+        email: { sent: false },
+        message: "Boutique account ready. You can log in now."
       });
     } catch (err) {
       return res.status(500).json({ message: err.message || "Server error" });

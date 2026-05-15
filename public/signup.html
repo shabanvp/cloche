@@ -346,8 +346,7 @@
             // Account created, but the email provider is temporarily unavailable.
             showSuccessModal(true, userEmail, result.verification_url);
           } else {
-            // Full success (could be test email)
-            showSuccessModal(false, userEmail, "", false, result.email?.is_test ? result.email.test_url : "");
+            showSuccessModal(false, userEmail, "", true);
           }
         } else {
           alert(result.message || "Signup failed. Please try again.");
@@ -408,15 +407,14 @@
           };
         }
       } else {
-        modalIcon.textContent = "mail";
+        modalIcon.textContent = "verified";
         modalIcon.classList.remove("text-amber-400");
         modalIcon.classList.add("text-primary");
-        modalTitle.textContent = testEmailUrl ? "TEST EMAIL SENT" : "CHECK YOUR INBOX";
-        modalDesc.innerHTML = testEmailUrl
-          ? `A test verification email has been sent for <strong class="text-white">${email}</strong>. You can view the message below.`
-          : `A verification email has been sent to <strong class="text-white">${email}</strong>. Please verify your account to join the circle.`;
-        modalSubDesc.textContent = testEmailUrl ? "Click below to see the luxury email message." : "After you verify, you'll be automatically redirected to login. ✨";
-        modalSpinner.classList.toggle("hidden", !!testEmailUrl);
+        modalTitle.textContent = "ACCOUNT READY";
+        modalDesc.innerHTML = `Your account has been created for <strong class="text-white">${email}</strong>.`;
+        modalSubDesc.textContent = "You can log in now.";
+        modalSpinner.classList.add("hidden");
+        goLoginBtn.textContent = "Continue to Login";
 
         if (testEmailUrl) {
           manualVerifyBtn.classList.remove("hidden");
@@ -551,23 +549,23 @@
     <div
       class="glass-card relative w-full max-w-md p-8 rounded-xl shadow-2xl text-center flex flex-col items-center gap-6 animate-in fade-in zoom-in duration-300">
       <div class="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mb-2">
-        <span id="modalIcon" class="material-symbols-outlined text-primary text-4xl">mail</span>
+        <span id="modalIcon" class="material-symbols-outlined text-primary text-4xl">verified</span>
       </div>
       <div>
-        <h2 id="modalTitle" class="font-display text-white text-2xl font-bold tracking-widest mb-3 uppercase">Check Your
-          Inbox</h2>
+        <h2 id="modalTitle" class="font-display text-white text-2xl font-bold tracking-widest mb-3 uppercase">Account
+          Ready</h2>
         <p id="modalDesc" class="text-white/60 text-sm font-light leading-relaxed mb-2">
-          A verification email has been sent to your email address. Please verify your account to join the circle.
+          Your account has been created.
         </p>
         <p id="modalSubDesc" class="text-white/50 text-xs font-light">
-          After you verify, you'll be automatically redirected to login. ✨
+          You can log in now.
         </p>
       </div>
 
       <!-- Spinner (shown when email was sent OK) -->
-      <div id="modalSpinner" class="w-full flex items-center justify-center gap-2 mt-2">
+      <div id="modalSpinner" class="hidden w-full items-center justify-center gap-2 mt-2">
         <div class="animate-spin w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full"></div>
-        <p class="text-white/60 text-xs">Waiting for verification...</p>
+        <p class="text-white/60 text-xs">Account ready.</p>
       </div>
 
       <!-- Manual Verification Button (shown when email failed) -->
