@@ -341,8 +341,7 @@
           // Account created successfully
           const userEmail = email;
           if (result.email_failed) {
-            // Account created but email failed
-            alert(result.email_error || result.message || "Account created, but email failed to send.");
+            // Account created, but the email provider is temporarily unavailable.
             showSuccessModal(true, userEmail, result.verification_url);
           } else {
             // Full success (could be test email)
