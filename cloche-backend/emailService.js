@@ -153,50 +153,58 @@ const sendResendMessage = async ({ to, subject, html }) => {
 
 const sendEmailMessage = async ({ to, subject, html, fromName }) => {
   if (!isSetup) {
-    console.error("Email Error: Missing RESEND_API_KEY, Gmail API credentials, and GMAIL_APP_PASSWORD");
+    console.error("Email Error: No email provider configured (Resend, SMTP, or Gmail OAuth2)");
     return { success: false, error: "Email provider is not configured" };
   }
 
-  let resendError = null;
-  let smtpError = null;
+  // 1. Try Gmail OAuth2 First (as requested)
+  if (hasGmailApiSetup) {
+    try {
+      const oauthTransporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+          type: "OAuth2",
+          user: GMAIL_USER,
+          clientId: GMAIL_CLIENT_ID,
+          clientSecret: GMAIL_CLIENT_SECRET,
+          refreshToken: GMAIL_REFRESH_TOKEN,
+        },
+      });
 
+      const info = await oauthTransporter.sendMail({
+        from: `"${escapeHeader(fromName || "Cloche Luxury")}" <${GMAIL_USER}>`,
+        to,
+        subject,
+        html,
+      });
+
+      return { success: true, messageId: info.messageId, method: "gmail-oauth2" };
+    } catch (error) {
+      console.error("[EmailService] Gmail OAuth2 Error:", error.message);
+      // Fall through to other methods if OAuth2 fails
+    }
+  }
+
+  // 2. Fallback to Resend
   if (hasResendSetup) {
     try {
       return await sendResendMessage({ to, subject, html, fromName });
     } catch (error) {
-      resendError = error.message || "Resend send failed";
-      console.error("Resend Error:", resendError);
+      console.error("[EmailService] Resend Fallback Error:", error.message);
     }
   }
 
+  // 3. Final Fallback to SMTP
   if (hasSmtpSetup) {
     try {
       return await sendSmtpMessage({ to, subject, html, fromName });
     } catch (error) {
-      smtpError = error.message || "Gmail SMTP send failed";
-      console.error("Gmail SMTP Error:", smtpError);
-      console.error("Gmail SMTP Error Code:", error.code || "UNKNOWN");
+      console.error("[EmailService] SMTP Fallback Error:", error.message);
+      return { success: false, error: error.message };
     }
   }
 
-  if (hasGmailApiSetup) {
-    try {
-      return await sendGmailApiMessage({ to, subject, html, fromName });
-    } catch (error) {
-      const apiError = error?.response?.data?.error || error.message || "Gmail API send failed";
-      console.error("Gmail API Error:", apiError);
-      console.error("Gmail API Error Code:", error.code || error?.response?.status || "UNKNOWN");
-
-      const errorParts = [];
-      if (resendError) errorParts.push(`Resend: ${resendError}`);
-      if (smtpError) errorParts.push(`SMTP: ${smtpError}`);
-      errorParts.push(`Gmail API: ${apiError}`);
-
-      return { success: false, error: errorParts.join(" | ") };
-    }
-  }
-
-  return { success: false, error: resendError || smtpError || "No email send method configured" };
+  return { success: false, error: "All email methods failed" };
 };
 
 // ===============================
