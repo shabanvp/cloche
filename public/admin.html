@@ -110,23 +110,55 @@
             }
             .force-scroll-mobile,
             .admin-table-scroll table {
-                min-width: 720px;
+                min-width: 100%;
+                width: 100%;
+                table-layout: fixed;
+            }
+            .admin-table-scroll {
+                overflow-x: hidden;
             }
             .admin-table-action {
-                min-width: 132px;
-                width: 132px;
+                position: static;
+                min-width: 112px;
+                width: 112px;
+                box-shadow: none;
+                background: rgba(14, 14, 14, 0.96);
+                padding-left: 8px !important;
+                padding-right: 8px !important;
+            }
+            .admin-table-action button {
+                width: 100%;
+                padding-left: 8px !important;
+                padding-right: 8px !important;
+                letter-spacing: 0.12em !important;
             }
             .admin-scroll-hint {
-                display: flex;
-                align-items: center;
-                justify-content: flex-end;
-                gap: 6px;
-                padding: 10px 14px 0;
-                color: rgba(193, 166, 113, 0.72);
-                font-size: 9px;
-                font-weight: 700;
-                letter-spacing: 0.18em;
-                text-transform: uppercase;
+                display: none;
+            }
+            .admin-users-table th:nth-child(1),
+            .admin-users-table td:nth-child(1),
+            .admin-boutiques-table th:nth-child(1),
+            .admin-boutiques-table td:nth-child(1) {
+                width: calc(100vw - 156px) !important;
+            }
+            .admin-users-table th:nth-child(2),
+            .admin-users-table td:nth-child(2),
+            .admin-boutiques-table th:nth-child(2),
+            .admin-boutiques-table td:nth-child(2) {
+                display: none;
+            }
+            .admin-enquiries-table th:nth-child(1),
+            .admin-enquiries-table td:nth-child(1) {
+                width: calc(100vw - 156px) !important;
+            }
+            .admin-enquiries-table th:nth-child(2),
+            .admin-enquiries-table td:nth-child(2),
+            .admin-enquiries-table th:nth-child(3),
+            .admin-enquiries-table td:nth-child(3) {
+                display: none;
+            }
+            .admin-row-text {
+                max-width: calc(100vw - 190px);
             }
         }
     </style>
@@ -197,7 +229,7 @@
                         <span class="material-symbols-outlined text-sm">swipe</span>
                     </div>
                     <div class="admin-table-scroll scroll-touch custom-scrollbar">
-                        <table class="w-full text-left border-collapse force-scroll-mobile">
+                        <table class="admin-users-table w-full text-left border-collapse force-scroll-mobile">
                             <thead>
                                 <tr class="bg-white/5 border-b border-white/5">
                                     <th class="px-4 md:px-8 py-5 text-[10px] uppercase tracking-widest text-gray-400 font-bold w-[260px]">Member</th>
@@ -232,7 +264,7 @@
                         <span class="material-symbols-outlined text-sm">swipe</span>
                     </div>
                     <div class="admin-table-scroll scroll-touch custom-scrollbar">
-                        <table class="w-full text-left border-collapse force-scroll-mobile">
+                        <table class="admin-boutiques-table w-full text-left border-collapse force-scroll-mobile">
                             <thead>
                                 <tr class="bg-white/5 border-b border-white/5">
                                     <th class="px-4 md:px-8 py-5 text-[10px] uppercase tracking-widest text-gray-400 font-bold w-[330px]">Boutique</th>
@@ -266,7 +298,7 @@
                     <span class="material-symbols-outlined text-sm">swipe</span>
                 </div>
                 <div class="admin-table-scroll scroll-touch custom-scrollbar">
-                <table class="w-full text-left border-collapse min-w-[800px]">
+                <table class="admin-enquiries-table w-full text-left border-collapse min-w-[800px]">
                     <thead>
                         <tr class="bg-white/5 border-b border-white/5">
                             <th class="px-4 md:px-8 py-6 text-[10px] uppercase tracking-widest text-gray-400 font-bold w-[220px]">Customer Profile</th>
