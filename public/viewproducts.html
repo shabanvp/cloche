@@ -562,15 +562,15 @@
       const list = document.getElementById("reviewsList");
       try {
         const res = await fetch(`${API_ORIGIN}/api/products/reviews/${productId}`);
-        const reviews = await res.json();
+        const allReviews = await res.json();
 
-        if (!reviews.length) {
+        if (!allReviews.length) {
           list.innerHTML = '<div class="text-center py-10 text-[10px] uppercase tracking-widest text-white/20 italic">No impressions yet. Be the first to share.</div>';
           return;
         }
 
-        list.innerHTML = reviews.map(r => `
-                <div class="border-b border-white/5 pb-8">
+        const renderReview = (r) => `
+                <div class="border-b border-white/5 pb-8 animate-fade-in">
                     <div class="flex items-center justify-between mb-3">
                         <span class="text-[11px] font-bold text-white/90 uppercase tracking-widest">${r.user_name}</span>
                         <div class="flex gap-0.5 text-primary">
@@ -580,7 +580,24 @@
                     <p class="text-xs text-white/50 leading-relaxed font-display italic">"${r.comment}"</p>
                     <p class="text-[8px] uppercase tracking-widest text-white/20 mt-4">${new Date(r.created_at).toLocaleDateString()}</p>
                 </div>
-            `).join("");
+            `;
+
+        const initialCount = 2;
+        const displayedReviews = allReviews.slice(0, initialCount);
+        list.innerHTML = displayedReviews.map(renderReview).join("");
+
+        if (allReviews.length > initialCount) {
+          const viewAllBtn = document.createElement("button");
+          viewAllBtn.id = "viewAllReviews";
+          viewAllBtn.className = "w-full mt-6 py-3 border border-white/10 rounded-xl text-[10px] uppercase tracking-[0.2em] text-white/40 hover:text-primary hover:border-primary/30 transition-all";
+          viewAllBtn.textContent = `View All ${allReviews.length} Impressions`;
+          viewAllBtn.onclick = () => {
+            list.innerHTML = allReviews.map(renderReview).join("");
+            viewAllBtn.remove();
+          };
+          list.appendChild(viewAllBtn);
+        }
+
       } catch (err) {
         list.innerHTML = '<div class="text-center py-10 text-[10px] uppercase tracking-widest text-white/20 italic">Impressions currently private.</div>';
       }
