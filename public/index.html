@@ -925,9 +925,9 @@
         const href = productId ? `viewproducts.html?productId=${encodeURIComponent(productId)}` : "collection.html";
 
         return `
-          <a href="${href}" onclick="${boutiqueId ? `localStorage.setItem('selectedBoutiqueId','${boutiqueId}')` : ""}" class="featured-collection-card product-image-frame group relative aspect-[3/4] rounded-xl overflow-hidden glass-card shimmer-effect cursor-pointer block">
+          <a href="${href}" onclick="${boutiqueId ? `localStorage.setItem('selectedBoutiqueId','${boutiqueId}')` : ""}" class="featured-collection-card listing-product-card product-image-frame group relative aspect-[3/4] rounded-xl overflow-hidden glass-card shimmer-effect cursor-pointer block">
             <img
-              class="product-image absolute inset-0 w-full h-full object-contain transition-transform duration-700 group-hover:scale-105"
+              class="product-image absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
               src="${image}"
               alt="${title}"
               loading="lazy"

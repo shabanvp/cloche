@@ -195,10 +195,10 @@
 
         return `
           <a href="viewproducts.html?productId=${productId}" onclick="localStorage.setItem('selectedBoutiqueId','${boutiqueId}')"
-             class="glass-card rounded-xl overflow-hidden block hover:border-primary/40 transition-all">
-            <div class="product-image-frame aspect-[2/3] bg-surface-dark overflow-hidden relative">
+             class="collection-listing-card listing-product-card glass-card rounded-xl overflow-hidden block hover:border-primary/40 transition-all">
+            <div class="product-image-frame aspect-[3/4] bg-surface-dark overflow-hidden relative">
               ${image
-                ? `<img src="${safeImage}" alt="${name}" class="product-image w-full h-full object-contain" loading="lazy" onerror="console.warn('Image failed to load:', this.src); this.style.display='none';" />`
+                ? `<img src="${safeImage}" alt="${name}" class="product-image w-full h-full object-cover" loading="lazy" onerror="console.warn('Image failed to load:', this.src); this.style.display='none';" />`
                 : `<div class="w-full h-full flex items-center justify-center text-white/40 text-xs tracking-[0.2em] uppercase">No Image</div>`
               }
               <span class="absolute top-2 left-2 bg-primary/90 text-black text-[9px] px-2 py-1 rounded tracking-[0.2em] uppercase font-bold">${category}</span>

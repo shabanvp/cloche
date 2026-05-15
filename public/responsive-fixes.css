@@ -856,6 +856,20 @@ nav.fixed .max-w-7xl {
   margin: 0 !important;
 }
 
+.listing-product-card .product-image,
+.featured-collection-card .product-image,
+.collection-listing-card .product-image {
+  object-fit: cover !important;
+  object-position: center top !important;
+  background: transparent !important;
+}
+
+.featured-collection-card,
+.collection-listing-card {
+  aspect-ratio: 3 / 4 !important;
+  border-radius: 14px !important;
+}
+
 @media (max-width: 1024px) {
   body.has-mobile-bars.route-viewproducts main {
     width: 100% !important;
