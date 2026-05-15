@@ -286,6 +286,50 @@
       overflow-x: hidden;
       overflow-y: auto;
     }
+
+    html.chat-scroll-locked,
+    body.chat-scroll-locked {
+      height: 100dvh;
+      max-height: 100dvh;
+      overflow: hidden !important;
+      overscroll-behavior: none;
+      touch-action: none;
+    }
+
+    body.chat-scroll-locked {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+    }
+
+    body.chat-scroll-locked .messages-shell,
+    body.chat-scroll-locked main {
+      height: 100dvh !important;
+      min-height: 0 !important;
+      overflow: hidden !important;
+      overscroll-behavior: none;
+    }
+
+    body.has-mobile-bars.chat-scroll-locked .messages-shell,
+    body.has-mobile-bars.chat-scroll-locked main {
+      height: calc(100dvh - 76px) !important;
+      min-height: 0 !important;
+    }
+
+    body.chat-scroll-locked #chatPane {
+      overscroll-behavior: none;
+      contain: layout paint;
+    }
+
+    body.chat-scroll-locked #messagesArea,
+    body.chat-scroll-locked #messageInput {
+      touch-action: auto;
+    }
+
+    body.chat-scroll-locked #messagesArea {
+      overscroll-behavior: contain;
+      -webkit-overflow-scrolling: touch;
+    }
   </style>
 </head>
 
@@ -576,6 +620,29 @@
     let previousConversationCount = 0;
     let notificationQueue = [];
     let hasNewNotifications = false;
+    let chatScrollY = 0;
+
+    function lockChatScroll() {
+      chatScrollY = window.scrollY || document.documentElement.scrollTop || 0;
+      document.documentElement.classList.add("chat-scroll-locked");
+      document.body.classList.add("chat-scroll-locked");
+      document.body.style.top = `-${chatScrollY}px`;
+      window.scrollTo(0, 0);
+    }
+
+    function unlockChatScroll() {
+      document.documentElement.classList.remove("chat-scroll-locked");
+      document.body.classList.remove("chat-scroll-locked");
+      document.body.style.top = "";
+      window.scrollTo(0, chatScrollY);
+    }
+
+    function keepChatScrollLocked() {
+      if (!document.body.classList.contains("chat-scroll-locked")) return;
+      if ((window.scrollY || document.documentElement.scrollTop || 0) !== 0) {
+        window.scrollTo(0, 0);
+      }
+    }
 
     // Global logout is now handled by responsive-layout.js
 
@@ -915,6 +982,7 @@
     // Open a conversation (Slide In Focus Mode)
     async function openConversation(conversationId, customerName, customerEmail) {
       currentConversationId = conversationId;
+      lockChatScroll();
       const bName = localStorage.getItem("boutiqueName") || "Our Boutique";
 
       const chatPane = document.getElementById("chatPane");
@@ -966,6 +1034,7 @@
       setTimeout(() => {
         chatPane.classList.add("invisible");
       }, 500);
+      unlockChatScroll();
       currentConversationId = null;
     }
 
@@ -1038,6 +1107,7 @@
           </div>`;
 
         currentConversationId = null;
+        unlockChatScroll();
         await loadConversations();
       } catch (err) {
         console.error("Error archiving conversation:", err);
@@ -1167,6 +1237,11 @@
 
     // Initialize
     document.addEventListener("DOMContentLoaded", () => {
+      window.addEventListener("scroll", keepChatScrollLocked, { passive: true });
+      document.addEventListener("click", (event) => {
+        if (event.target.closest("#mobileChatBack")) unlockChatScroll();
+      });
+
       const ownerName = localStorage.getItem("ownerName") || "Guest";
       const boutiqueName = localStorage.getItem("boutiqueName") || "My Boutique";
 
