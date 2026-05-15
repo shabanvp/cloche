@@ -7,7 +7,6 @@
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;700&amp;family=Noto+Sans:wght@400;500;700&amp;display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet" />
-<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script id="tailwind-config">
         tailwind.config = {
             darkMode: "class",
@@ -191,8 +190,8 @@
 
     <script>
         const boutiqueId = localStorage.getItem("boutiqueId");
-        const userEmail = localStorage.getItem("userEmail") || "";
-        const ownerName = localStorage.getItem("ownerName") || "Owner";
+        const API_ORIGIN = "https://cloche-backend.onrender.com";
+        const CLOCHE_UPI_ID = "cloche@upi";
 
         const pricingData = {
             monthly: {
@@ -217,53 +216,22 @@
             });
         });
 
-        async function handlePayment(plan) {
+        function handlePayment(plan) {
             if (!boutiqueId) return alert("Please login first");
-            
-            try {
-                const amount = pricingData[selectedCycle][plan].amount;
-                const orderRes = await fetch(`/api/payment/create-order`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ boutiqueId, plan, amount })
-                });
-                const orderData = await orderRes.json();
-                if (!orderRes.ok) throw new Error(orderData.message);
 
-                const options = {
-                    key: orderData.key,
-                    amount: orderData.amount,
-                    currency: "INR",
-                    name: "CLOCHE LUXURY",
-                    description: `${plan.toUpperCase()} Plan`,
-                    order_id: orderData.orderId,
-                    handler: async function (response) {
-                        const verifyRes = await fetch(`/api/payment/verify`, {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({
-                                boutiqueId,
-                                plan,
-                                razorpay_order_id: response.razorpay_order_id,
-                                razorpay_payment_id: response.razorpay_payment_id,
-                                razorpay_signature: response.razorpay_signature
-                            })
-                        });
-                        if (verifyRes.ok) {
-                            alert("Plan activated!");
-                            window.location.href = "dashboard.html";
-                        } else {
-                            alert("Verification failed");
-                        }
-                    },
-                    prefill: { name: ownerName, email: userEmail },
-                    theme: { color: "#c1a671" }
-                };
-                const rzp = new Razorpay(options);
-                rzp.open();
-            } catch (err) {
-                alert("Error: " + err.message);
-            }
+            const amount = pricingData[selectedCycle][plan].amount;
+            localStorage.setItem("selectedPlan", plan);
+            localStorage.setItem("selectedAmount", String(amount));
+            localStorage.setItem("selectedBillingCycle", selectedCycle);
+            localStorage.setItem("selectedBoutiquePaymentId", boutiqueId);
+
+            const upiLink = `upi://pay?pa=${encodeURIComponent(CLOCHE_UPI_ID)}&pn=${encodeURIComponent("Cloche")}&am=${encodeURIComponent(String(amount))}&cu=INR&tn=${encodeURIComponent(`${plan} ${selectedCycle} plan`)}`;
+            localStorage.setItem("selectedUpiLink", upiLink);
+
+            window.location.href = upiLink;
+            setTimeout(() => {
+                window.location.href = "payment-proof.html";
+            }, 1500);
         }
     </script>
   <script src="footer.js?v=20260505-footer-fix"></script>
