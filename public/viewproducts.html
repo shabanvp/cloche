@@ -127,7 +127,7 @@
       display: none;
     }
   </style>
-  <link rel='stylesheet' href='responsive-fixes.css?v=20260508-product-image-frame' />
+  <link rel='stylesheet' href='responsive-fixes.css?v=20260515-product-detail-mobile' />
 </head>
 
 <body class="bg-background-dark text-gray-100 selection:bg-primary selection:text-white overflow-x-hidden pt-0">
@@ -325,7 +325,7 @@
     </section>
   </main>
 <script src="tag-renderer.js?v=20260501-dynamic-tags"></script>
-<script src="collection-detail-image.js?v=20260508-loader-align-fix"></script>
+<script src="collection-detail-image.js?v=20260515-mobile-frame-lock"></script>
   <script>
     const API_ORIGIN = "https://cloche-backend.onrender.com";
     const PRODUCT_API = `${API_ORIGIN}/api/products`;
@@ -335,6 +335,47 @@
     let gallery = [];
     let currentImgIndex = 0;
     let detailImagePanel = null;
+
+    function asText(value, fallback = "") {
+      const text = String(value ?? "").trim();
+      return text || fallback;
+    }
+
+    function setText(id, value, fallback = "") {
+      const node = document.getElementById(id);
+      if (node) node.textContent = asText(value, fallback);
+    }
+
+    function normalizeGallery(product) {
+      const images = [];
+      const addImage = (value) => {
+        if (Array.isArray(value)) {
+          value.forEach(addImage);
+          return;
+        }
+        if (typeof value === "string") {
+          const text = value.trim();
+          if (!text) return;
+          if ((text.startsWith("[") && text.endsWith("]")) || (text.startsWith("{") && text.endsWith("}"))) {
+            try {
+              addImage(JSON.parse(text));
+              return;
+            } catch (_) { }
+          }
+          images.push(text);
+          return;
+        }
+        if (value && typeof value === "object") {
+          addImage(value.url || value.secure_url || value.image_url || value.src);
+        }
+      };
+
+      addImage(product?.image_url);
+      addImage(product?.gallery);
+      addImage(product?.imageUrls);
+      addImage(product?.images);
+      return [...new Set(images)].filter(Boolean);
+    }
 
     function ensureDetailImagePanel() {
       if (detailImagePanel) {
@@ -388,40 +429,36 @@
         if (!res.ok) throw new Error("Product not found");
         const product = await res.json();
 
-        gallery = [product.image_url];
-        if (Array.isArray(product.gallery)) {
-          gallery = [...new Set([product.image_url, ...product.gallery])].filter(Boolean);
-        }
+        gallery = normalizeGallery(product);
+        if (!gallery.length) gallery = [""];
 
         ensureDetailImagePanel()?.setControlsVisible(gallery.length > 1);
 
-        const title = (product.product_name || product.title || "Exquisite Piece").toUpperCase();
-        document.getElementById("productTitle").textContent = title;
-        document.getElementById("breadcrumbProduct").textContent = title;
-        document.getElementById("productCategory").textContent = (product.category || "Couture Collection").toUpperCase();
+        const title = asText(product.product_name || product.title, "Exquisite Piece").toUpperCase();
+        setText("productTitle", title);
+        setText("breadcrumbProduct", title);
+        setText("productCategory", asText(product.category, "Couture Collection").toUpperCase());
 
         const formattedPrice = `₹ ${Number(product.price || 0).toLocaleString("en-IN")}`;
-        document.getElementById("cardProductPrice").textContent = formattedPrice;
+        setText("cardProductPrice", formattedPrice);
 
-        const bName = product.boutique_name || "Cloche Elite Partner";
-        document.getElementById("subBoutiqueName").textContent = bName;
-        document.getElementById("boutiqueName").textContent = bName;
+        const bName = asText(product.boutique_name, "Cloche Elite Partner");
+        setText("subBoutiqueName", bName);
+        setText("boutiqueName", bName);
 
         const loc = [product.area, product.district].filter(Boolean).join(", ") || product.boutique_city || product.location || "Luxury Hub";
-        document.getElementById("productLocation").textContent = loc.toUpperCase();
+        setText("productLocation", loc.toUpperCase());
 
-        if (document.getElementById("productFabric")) {
-          document.getElementById("productFabric").textContent = product.fabric || "Premium Handpicked";
-        }
+        setText("productFabric", product.fabric, "Premium Handpicked");
 
-        if (product.description) {
-          document.getElementById("productDescription").innerHTML = product.description.split('\n').filter(l => l.trim()).map(p => `<span>${p}</span><br/>`).join('');
+        if (product.description && document.getElementById("productDescription")) {
+          document.getElementById("productDescription").textContent = asText(product.description);
         }
 
         updateMainImage(0);
 
-        document.getElementById("boutiqueArea").textContent = (product.area || product.district || "Official Boutique").toUpperCase();
-        document.getElementById("boutiqueInitial").textContent = bName.charAt(0).toUpperCase();
+        setText("boutiqueArea", (product.area || product.district || "Official Boutique").toUpperCase());
+        setText("boutiqueInitial", bName.charAt(0).toUpperCase());
 
         // Render Boutique Tags
         const tagsWrap = document.getElementById("boutiqueTags");
@@ -445,13 +482,14 @@
           }
         }
 
-        document.getElementById("viewBoutiqueBtn").href = `viewboutique.html?id=${product.boutique_id}`;
+        const viewBoutiqueBtn = document.getElementById("viewBoutiqueBtn");
+        if (viewBoutiqueBtn) viewBoutiqueBtn.href = `viewboutique.html?id=${product.boutique_id || ""}`;
 
         // --- ADDED: Link Enquiry Button ---
         const consultBtn = document.getElementById("consultBtn");
         if (consultBtn) {
-          const productTitle = (product.product_name || product.title || "Exquisite Piece");
-          consultBtn.href = `enquiry.html?boutiqueId=${product.boutique_id}&requirement=${encodeURIComponent(productTitle)}&productName=${encodeURIComponent(productTitle)}&productImage=${encodeURIComponent(product.image_url)}`;
+          const productTitle = asText(product.product_name || product.title, "Exquisite Piece");
+          consultBtn.href = `enquiry.html?boutiqueId=${product.boutique_id || ""}&requirement=${encodeURIComponent(productTitle)}&productName=${encodeURIComponent(productTitle)}&productImage=${encodeURIComponent(gallery[0] || "")}`;
         }
 
         if (product.boutique_id) loadRelatedProducts(product.boutique_id, productId);

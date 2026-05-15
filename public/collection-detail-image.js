@@ -2,6 +2,9 @@
   const HERO_HEIGHT_RATIO = 0.68;
   const HERO_MIN_HEIGHT = 520;
   const HERO_MAX_HEIGHT = 760;
+  const MOBILE_HERO_HEIGHT_RATIO = 0.58;
+  const MOBILE_HERO_MIN_HEIGHT = 360;
+  const MOBILE_HERO_MAX_HEIGHT = 520;
   const FRAME_RADIUS = "32px";
 
   function clamp(value, min, max) {
@@ -9,7 +12,11 @@
   }
 
   function getHeroHeight() {
-    return Math.round(clamp(window.innerHeight * HERO_HEIGHT_RATIO, HERO_MIN_HEIGHT, HERO_MAX_HEIGHT));
+    const isMobile = window.matchMedia("(max-width: 640px)").matches;
+    const ratio = isMobile ? MOBILE_HERO_HEIGHT_RATIO : HERO_HEIGHT_RATIO;
+    const min = isMobile ? MOBILE_HERO_MIN_HEIGHT : HERO_MIN_HEIGHT;
+    const max = isMobile ? MOBILE_HERO_MAX_HEIGHT : HERO_MAX_HEIGHT;
+    return Math.round(clamp(window.innerHeight * ratio, min, max));
   }
 
   function applyFrameStyles(frame) {
@@ -56,6 +63,12 @@
     image.alt = "Product Detail";
     image.dataset.collectionDetailImage = "true";
     image.addEventListener("load", () => {
+      applyFrameStyles(frame);
+      applyImageStyles(image);
+      image.style.opacity = "1";
+      loader.classList.add("hidden");
+    });
+    image.addEventListener("error", () => {
       applyFrameStyles(frame);
       applyImageStyles(image);
       image.style.opacity = "1";
