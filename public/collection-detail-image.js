@@ -22,12 +22,13 @@
   function applyFrameStyles(frame) {
     if (!frame) return;
 
+    const isMobile = window.matchMedia("(max-width: 640px)").matches;
     frame.style.position = "relative";
     frame.style.display = "block";
     frame.style.flex = "none";
     frame.style.width = "100%";
     frame.style.maxWidth = "100%";
-    frame.style.height = `${getHeroHeight()}px`;
+    frame.style.height = isMobile ? "auto" : `${getHeroHeight()}px`;
     frame.style.minHeight = "0";
     frame.style.maxHeight = "none";
     frame.style.overflow = "hidden";
@@ -35,7 +36,7 @@
     frame.style.contain = "layout paint";
     frame.style.isolation = "isolate";
     frame.style.background = "linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%)";
-    frame.style.aspectRatio = "auto";
+    frame.style.aspectRatio = isMobile ? "4 / 5" : "auto";
   }
 
   function applyImageStyles(image) {
