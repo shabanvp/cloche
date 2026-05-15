@@ -2,7 +2,7 @@
 <html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Cloche | Admin Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -36,7 +36,7 @@
         }
     </style>
 </head>
-<body class="min-h-screen">
+<body class="min-h-screen overflow-x-hidden">
     <script>
         if (!localStorage.getItem('adminToken')) {
             window.location.href = 'adminlogin.html';
@@ -68,30 +68,21 @@
         </header>
 
         <!-- KPI Metrics -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8 mb-16">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 mb-16">
             <!-- Metric 1 -->
-            <div class="stat-card p-6 md:p-8 rounded-2xl relative overflow-hidden group">
-                <div class="absolute top-0 right-0 p-4 text-primary/5 group-hover:text-primary/10 transition-colors">
-                    <span class="material-symbols-outlined text-4xl md:text-6xl">person</span>
-                </div>
-                <p class="text-[9px] md:text-[10px] uppercase tracking-[0.4em] text-gray-500 font-bold mb-4 md:mb-6">Total Users</p>
-                <h3 id="totalUsers" class="text-4xl md:text-6xl font-display text-primary">0</h3>
+            <div class="stat-card p-10 md:p-12 rounded-2xl relative overflow-hidden group">
+                <p class="text-[10px] uppercase tracking-[0.4em] text-gray-500 font-bold mb-8">Total Users</p>
+                <h3 id="totalUsers" class="text-6xl md:text-7xl font-display text-primary">0</h3>
             </div>
             <!-- Metric 2 -->
-            <div class="stat-card p-6 md:p-8 rounded-2xl relative overflow-hidden group">
-                <div class="absolute top-0 right-0 p-4 text-primary/5 group-hover:text-primary/10 transition-colors">
-                    <span class="material-symbols-outlined text-4xl md:text-6xl">store</span>
-                </div>
-                <p class="text-[9px] md:text-[10px] uppercase tracking-[0.4em] text-gray-500 font-bold mb-4 md:mb-6">Partner Boutiques</p>
-                <h3 id="totalBoutiques" class="text-4xl md:text-6xl font-display text-primary">0</h3>
+            <div class="stat-card p-10 md:p-12 rounded-2xl relative overflow-hidden group">
+                <p class="text-[10px] uppercase tracking-[0.4em] text-gray-500 font-bold mb-8">Partner Boutiques</p>
+                <h3 id="totalBoutiques" class="text-6xl md:text-7xl font-display text-primary">0</h3>
             </div>
             <!-- Metric 3 -->
-            <div class="stat-card p-6 md:p-8 rounded-2xl relative overflow-hidden group">
-                <div class="absolute top-0 right-0 p-4 text-primary/5 group-hover:text-primary/10 transition-colors">
-                    <span class="material-symbols-outlined text-4xl md:text-6xl">inventory_2</span>
-                </div>
-                <p class="text-[9px] md:text-[10px] uppercase tracking-[0.4em] text-gray-500 font-bold mb-4 md:mb-6">Total Products</p>
-                <h3 id="totalProducts" class="text-4xl md:text-6xl font-display text-primary">0</h3>
+            <div class="stat-card p-10 md:p-12 rounded-2xl relative overflow-hidden group">
+                <p class="text-[10px] uppercase tracking-[0.4em] text-gray-500 font-bold mb-8">Total Products</p>
+                <h3 id="totalProducts" class="text-6xl md:text-7xl font-display text-primary">0</h3>
             </div>
         </div>
 
