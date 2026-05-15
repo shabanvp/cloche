@@ -10,6 +10,24 @@
       ]
     },
     {
+      "source": "/viewproducts",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store" }
+      ]
+    },
+    {
+      "source": "/collection",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store" }
+      ]
+    },
+    {
+      "source": "/viewboutique",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store" }
+      ]
+    },
+    {
       "source": "/(.*)\\.html",
       "headers": [
         { "key": "Cache-Control", "value": "no-store" }

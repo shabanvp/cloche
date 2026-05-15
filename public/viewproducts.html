@@ -126,6 +126,50 @@
     .mobile-topbar {
       display: none;
     }
+
+    .collection-detail-layout,
+    .collection-detail-media,
+    .collection-detail-content,
+    [data-collection-detail-host="true"] {
+      min-width: 0;
+      max-width: 100%;
+    }
+
+    #productTitle,
+    #breadcrumbProduct {
+      overflow-wrap: anywhere;
+      word-break: normal;
+      hyphens: auto;
+    }
+
+    @media (max-width: 640px) {
+      .collection-detail-page {
+        padding-left: 12px !important;
+        padding-right: 12px !important;
+      }
+
+      .collection-detail-layout {
+        display: block !important;
+      }
+
+      .collection-detail-media {
+        margin-bottom: 28px !important;
+      }
+
+      #productTitle {
+        font-size: clamp(1.85rem, 9vw, 2.75rem) !important;
+        line-height: 1.08 !important;
+        letter-spacing: 0 !important;
+        margin-bottom: 18px !important;
+      }
+
+      #breadcrumbProduct {
+        min-width: 0;
+        max-width: 58vw;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    }
   </style>
   <link rel='stylesheet' href='responsive-fixes.css?v=20260515-product-detail-mobile' />
 </head>
@@ -330,7 +374,7 @@
     const API_ORIGIN = "https://cloche-backend.onrender.com";
     const PRODUCT_API = `${API_ORIGIN}/api/products`;
     const DEBUG_TAGS = new URLSearchParams(window.location.search).has("debugTags");
-    if (DEBUG_TAGS) console.log("[CLOCHE] viewproducts.html v20260501");
+    if (DEBUG_TAGS) console.log("[CLOCHE] viewproducts.html v20260515-production-upload-hardening");
 
     let gallery = [];
     let currentImgIndex = 0;
@@ -396,13 +440,21 @@
       let raw = String(url || "").trim();
       if (!raw) return "https://images.unsplash.com/photo-1540553016722-983e4838cd12?q=80&w=1200&auto=format&fit=crop";
       if (/^data:image\//i.test(raw)) return raw;
-      if (/^https?:\/\//i.test(raw)) return raw;
+      if (/^https?:\/\//i.test(raw)) return optimizeImageUrl(raw);
       const normalized = raw.replace(/\\/g, "/");
       const clean = normalized.startsWith("/") ? normalized.slice(1) : normalized;
       if (!clean.includes("/") && /\.(jpg|jpeg|png|webp|gif)$/i.test(clean)) {
-        return `https://res.cloudinary.com/dycwsnzyd/image/upload/${clean}`;
+        return optimizeImageUrl(`https://res.cloudinary.com/dycwsnzyd/image/upload/${clean}`);
       }
-      return `${API_ORIGIN}/${clean}`;
+      return optimizeImageUrl(`${API_ORIGIN}/${clean}`);
+    }
+
+    function optimizeImageUrl(url) {
+      const raw = String(url || "").trim();
+      if (!raw || /^data:image\//i.test(raw)) return raw;
+      if (!/res\.cloudinary\.com\/[^/]+\/image\/upload\//i.test(raw)) return raw;
+      if (/\/image\/upload\/[^/]*(?:c_limit|c_pad|w_|h_|f_auto|q_auto)/i.test(raw)) return raw;
+      return raw.replace("/image/upload/", "/image/upload/f_auto,q_auto,c_limit,w_1400,h_1800/");
     }
 
     function updateMainImage(index) {

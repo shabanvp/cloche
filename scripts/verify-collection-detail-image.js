@@ -28,6 +28,8 @@ const requiredViewTokens = [
   "id=\"collectionDetailImageHost\"",
   "collection-detail-image.js?v=20260515-mobile-frame-lock",
   "normalizeGallery(product)",
+  "optimizeImageUrl(url)",
+  "c_limit,w_1400,h_1800",
   "ensureDetailImagePanel()",
   "panel.setImage(resolveAssetUrl(gallery[currentImgIndex]))",
   "panel.setDots(gallery.length, currentImgIndex)"
