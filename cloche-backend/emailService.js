@@ -160,28 +160,23 @@ const sendEmailMessage = async ({ to, subject, html, fromName }) => {
   // 1. Try Gmail OAuth2 First (as requested)
   if (hasGmailApiSetup) {
     try {
-      const oauthTransporter = nodemailer.createTransport({
-        service: "gmail",
-        auth: {
-          type: "OAuth2",
-          user: GMAIL_USER,
-          clientId: GMAIL_CLIENT_ID,
-          clientSecret: GMAIL_CLIENT_SECRET,
-          refreshToken: GMAIL_REFRESH_TOKEN,
+      // Use the Gmail API (HTTPS) instead of SMTP to avoid port blocking
+      const rawMessage = createEmailMessage(to, subject, html, fromName);
+      
+      const response = await gmail.users.messages.send({
+        userId: "me",
+        requestBody: {
+          raw: rawMessage,
         },
       });
 
-      const info = await oauthTransporter.sendMail({
-        from: `"${escapeHeader(fromName || "Cloche Luxury")}" <${GMAIL_USER}>`,
-        to,
-        subject,
-        html,
-      });
-
-      return { success: true, messageId: info.messageId, method: "gmail-oauth2" };
+      if (response.data && response.data.id) {
+        return { success: true, messageId: response.data.id, method: "gmail-api-https" };
+      }
     } catch (error) {
-      console.error("[EmailService] Gmail OAuth2 Error:", error.message);
-      // Fall through to other methods if OAuth2 fails
+      const apiError = error?.response?.data?.error?.message || error.message;
+      console.error("[EmailService] Gmail API Error:", apiError);
+      // Fall through to other methods if API fails
     }
   }
 
