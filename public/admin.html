@@ -47,10 +47,87 @@
         }
         .scroll-touch {
             -webkit-overflow-scrolling: touch;
-            touch-action: pan-x;
+            touch-action: pan-x pan-y;
+            overscroll-behavior-x: contain;
         }
         .force-scroll-mobile {
             min-width: 800px;
+        }
+        .admin-table-shell {
+            position: relative;
+            overflow: hidden;
+        }
+        .admin-table-scroll {
+            display: block;
+            width: 100%;
+            max-width: 100%;
+            overflow-x: auto;
+            overflow-y: hidden;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(193, 166, 113, 0.35) rgba(255, 255, 255, 0.03);
+        }
+        .admin-table-scroll table {
+            table-layout: fixed;
+            width: max-content;
+            min-width: 760px;
+        }
+        .admin-table-scroll th,
+        .admin-table-scroll td {
+            vertical-align: middle;
+        }
+        .admin-table-action {
+            position: sticky;
+            right: 0;
+            z-index: 2;
+            background: rgba(14, 14, 14, 0.96);
+            box-shadow: -18px 0 22px rgba(13, 13, 13, 0.78);
+        }
+        thead .admin-table-action {
+            background: rgba(31, 31, 31, 0.98);
+            z-index: 3;
+        }
+        .admin-scroll-hint {
+            display: none;
+        }
+        .admin-row-text {
+            min-width: 0;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        @media (max-width: 640px) {
+            body {
+                overflow-x: hidden;
+            }
+            main {
+                padding-left: 12px !important;
+                padding-right: 12px !important;
+            }
+            .stat-card {
+                padding: 28px 32px !important;
+            }
+            .force-scroll-mobile,
+            .admin-table-scroll table {
+                min-width: 720px;
+            }
+            .admin-table-action {
+                min-width: 132px;
+                width: 132px;
+            }
+            .admin-scroll-hint {
+                display: flex;
+                align-items: center;
+                justify-content: flex-end;
+                gap: 6px;
+                padding: 10px 14px 0;
+                color: rgba(193, 166, 113, 0.72);
+                font-size: 9px;
+                font-weight: 700;
+                letter-spacing: 0.18em;
+                text-transform: uppercase;
+            }
         }
     </style>
 </head>
@@ -114,14 +191,18 @@
                     </div>
                     <span class="text-[10px] uppercase tracking-widest text-gray-600 font-bold hidden sm:block">Limit 10</span>
                 </div>
-                <div class="glass-card rounded-2xl overflow-hidden">
-                    <div class="overflow-x-auto scroll-touch custom-scrollbar">
+                <div class="glass-card rounded-2xl admin-table-shell">
+                    <div class="admin-scroll-hint">
+                        <span>Swipe table</span>
+                        <span class="material-symbols-outlined text-sm">swipe</span>
+                    </div>
+                    <div class="admin-table-scroll scroll-touch custom-scrollbar">
                         <table class="w-full text-left border-collapse force-scroll-mobile">
                             <thead>
                                 <tr class="bg-white/5 border-b border-white/5">
-                                    <th class="px-4 md:px-8 py-5 text-[10px] uppercase tracking-widest text-gray-400 font-bold">Member</th>
-                                    <th class="px-4 md:px-8 py-5 text-[10px] uppercase tracking-widest text-gray-400 font-bold hidden sm:table-cell">Details</th>
-                                    <th class="px-4 md:px-8 py-5 text-[10px] uppercase tracking-widest text-gray-400 font-bold text-center">Manage</th>
+                                    <th class="px-4 md:px-8 py-5 text-[10px] uppercase tracking-widest text-gray-400 font-bold w-[260px]">Member</th>
+                                    <th class="px-4 md:px-8 py-5 text-[10px] uppercase tracking-widest text-gray-400 font-bold w-[330px]">Details</th>
+                                    <th class="px-4 md:px-8 py-5 text-[10px] uppercase tracking-widest text-gray-400 font-bold text-center admin-table-action">Manage</th>
                                 </tr>
                             </thead>
                             <tbody id="usersTableBody">
@@ -145,14 +226,18 @@
                         </a>
                     </div>
                 </div>
-                <div class="glass-card rounded-2xl overflow-hidden">
-                    <div class="overflow-x-auto scroll-touch custom-scrollbar">
+                <div class="glass-card rounded-2xl admin-table-shell">
+                    <div class="admin-scroll-hint">
+                        <span>Swipe table</span>
+                        <span class="material-symbols-outlined text-sm">swipe</span>
+                    </div>
+                    <div class="admin-table-scroll scroll-touch custom-scrollbar">
                         <table class="w-full text-left border-collapse force-scroll-mobile">
                             <thead>
                                 <tr class="bg-white/5 border-b border-white/5">
-                                    <th class="px-4 md:px-8 py-5 text-[10px] uppercase tracking-widest text-gray-400 font-bold">Boutique</th>
-                                    <th class="px-4 md:px-8 py-5 text-[10px] uppercase tracking-widest text-gray-400 font-bold hidden sm:table-cell">Origin</th>
-                                    <th class="px-4 md:px-8 py-5 text-[10px] uppercase tracking-widest text-gray-400 font-bold text-right">Manage</th>
+                                    <th class="px-4 md:px-8 py-5 text-[10px] uppercase tracking-widest text-gray-400 font-bold w-[330px]">Boutique</th>
+                                    <th class="px-4 md:px-8 py-5 text-[10px] uppercase tracking-widest text-gray-400 font-bold w-[260px]">Origin</th>
+                                    <th class="px-4 md:px-8 py-5 text-[10px] uppercase tracking-widest text-gray-400 font-bold text-right admin-table-action">Manage</th>
                                 </tr>
                             </thead>
                             <tbody id="boutiquesTableBody">
@@ -175,20 +260,26 @@
                     Refresh Feed
                 </button>
             </div>
-            <div class="glass-card rounded-2xl overflow-x-auto scroll-touch custom-scrollbar shadow-2xl">
+            <div class="glass-card rounded-2xl admin-table-shell shadow-2xl">
+                <div class="admin-scroll-hint">
+                    <span>Swipe table</span>
+                    <span class="material-symbols-outlined text-sm">swipe</span>
+                </div>
+                <div class="admin-table-scroll scroll-touch custom-scrollbar">
                 <table class="w-full text-left border-collapse min-w-[800px]">
                     <thead>
                         <tr class="bg-white/5 border-b border-white/5">
-                            <th class="px-4 md:px-8 py-6 text-[10px] uppercase tracking-widest text-gray-400 font-bold">Customer Profile</th>
-                            <th class="px-4 md:px-8 py-6 text-[10px] uppercase tracking-widest text-gray-400 font-bold">Preferred Location</th>
-                            <th class="px-4 md:px-8 py-6 text-[10px] uppercase tracking-widest text-gray-400 font-bold hidden md:table-cell">Specific Requirement</th>
-                            <th class="px-4 md:px-8 py-6 text-[10px] uppercase tracking-widest text-gray-400 font-bold text-center">Protocol</th>
+                            <th class="px-4 md:px-8 py-6 text-[10px] uppercase tracking-widest text-gray-400 font-bold w-[220px]">Customer Profile</th>
+                            <th class="px-4 md:px-8 py-6 text-[10px] uppercase tracking-widest text-gray-400 font-bold w-[200px]">Preferred Location</th>
+                            <th class="px-4 md:px-8 py-6 text-[10px] uppercase tracking-widest text-gray-400 font-bold w-[260px]">Specific Requirement</th>
+                            <th class="px-4 md:px-8 py-6 text-[10px] uppercase tracking-widest text-gray-400 font-bold text-center admin-table-action">Protocol</th>
                         </tr>
                     </thead>
                     <tbody id="enquiriesTableBody">
                         <!-- Rows loaded via JS -->
                     </tbody>
                 </table>
+                </div>
             </div>
         </section>
     </main>
@@ -271,16 +362,16 @@
                     const userTable = document.getElementById('usersTableBody');
                     userTable.innerHTML = data.recentUsers.map(u => `
                         <tr class="table-row border-b border-white/5 transition-colors hover:bg-white/[0.02]">
-                            <td class="px-4 md:px-8 py-5 text-sm">
-                                <p class="font-medium text-white">${u.name}</p>
+                            <td class="px-4 md:px-8 py-5 text-sm w-[260px]">
+                                <p class="font-medium text-white admin-row-text">${u.name}</p>
                                 <p class="text-[10px] text-primary uppercase font-bold tracking-widest mt-1">${u.role || 'Member'}</p>
-                                <p class="block sm:hidden text-gray-500 text-[9px] mt-1 tracking-tight truncate max-w-[120px]">${u.email}</p>
+                                <p class="text-gray-500 text-[9px] mt-1 tracking-tight admin-row-text">${u.email}</p>
                             </td>
-                            <td class="px-4 md:px-8 py-5 text-gray-400 hidden sm:table-cell text-sm">
-                                <p class="truncate max-w-[150px]">${u.email}</p>
+                            <td class="px-4 md:px-8 py-5 text-gray-400 text-sm w-[330px]">
+                                <p class="admin-row-text">${u.email}</p>
                                 <p class="text-[9px] text-gray-600 mt-1 uppercase tracking-widest font-bold">Joined ${new Date(u.created_at).toLocaleDateString()}</p>
                             </td>
-                            <td class="px-4 md:px-8 py-5 text-center">
+                            <td class="px-4 md:px-8 py-5 text-center admin-table-action">
                                 <button data-remove-user-id="${u.id}" data-remove-user-name="${encodeURIComponent(u.name)}" class="px-3 md:px-4 py-2 rounded-lg text-[9px] md:text-[10px] uppercase tracking-widest border border-red-500/10 text-red-400/60 hover:text-red-400 hover:bg-red-500/10 transition-all font-bold">
                                     Remove
                                 </button>
@@ -323,22 +414,22 @@
                     } else {
                         boutiqueTable.innerHTML = bList.map(b => `
                             <tr class="table-row border-b border-white/5 transition-colors hover:bg-white/[0.02]">
-                                <td class="px-6 md:px-8 py-5 text-sm">
-                                    <p class="font-medium text-white">${b.boutique_name || 'Unnamed Boutique'}</p>
-                                    <p class="text-[10px] text-primary uppercase tracking-[0.2em] font-bold mt-1">${b.owner_name || b.contact_name || 'No Owner Listed'}</p>
-                                    <p class="text-[10px] text-gray-500 mt-1">${b.email || b.contact_email || 'No Email'} • ${b.phone || b.contact_phone || ''}</p>
+                                <td class="px-6 md:px-8 py-5 text-sm w-[330px]">
+                                    <p class="font-medium text-white admin-row-text">${b.boutique_name || 'Unnamed Boutique'}</p>
+                                    <p class="text-[10px] text-primary uppercase tracking-[0.2em] font-bold mt-1 admin-row-text">${b.owner_name || b.contact_name || 'No Owner Listed'}</p>
+                                    <p class="text-[10px] text-gray-500 mt-1 admin-row-text">${b.email || b.contact_email || 'No Email'} • ${b.phone || b.contact_phone || ''}</p>
                                     <p class="text-[10px] text-gray-500 uppercase tracking-widest mt-1 opacity-60">
                                       ${(String(b.plan || "early partner").toUpperCase())}${b.introUnlimited ? " • INTRO ∞" : ""}
                                     </p>
                                 </td>
-                                <td class="px-8 py-5 text-gray-400 hidden sm:table-cell text-sm">
+                                <td class="px-8 py-5 text-gray-400 text-sm w-[260px]">
                                     <div class="flex items-center gap-2">
                                         <span class="material-symbols-outlined text-xs text-primary/40">location_on</span>
-                                        ${b.city || b.area || b.district || '-'}
+                                        <span class="admin-row-text">${b.city || b.area || b.district || '-'}</span>
                                     </div>
-                                    <p class="text-[9px] text-gray-600 mt-1 uppercase tracking-widest font-bold">Partner ID: ${b.id}</p>
+                                    <p class="text-[9px] text-gray-600 mt-1 uppercase tracking-widest font-bold admin-row-text">Partner ID: ${b.id}</p>
                                 </td>
-                                <td class="px-6 md:px-8 py-5 text-right">
+                                <td class="px-6 md:px-8 py-5 text-right admin-table-action">
                                     <button data-remove-boutique-id="${b.id}" data-remove-boutique-name="${encodeURIComponent(String(b.boutique_name || ''))}" class="px-3 md:px-4 py-2 rounded-lg text-[9px] md:text-[10px] uppercase tracking-widest border border-red-500/20 text-red-400 hover:bg-red-500/10 transition-all font-bold">
                                         Remove
                                     </button>
@@ -380,13 +471,13 @@
 
                 return `
                     <tr class="table-row border-b border-white/5 transition-colors hover:bg-white/[0.02]">
-                        <td class="px-4 md:px-8 py-6 text-sm">
-                            <p class="font-bold text-white mb-1 tracking-tight">${e.name || "User"}</p>
+                        <td class="px-4 md:px-8 py-6 text-sm w-[220px]">
+                            <p class="font-bold text-white mb-1 tracking-tight admin-row-text">${e.name || "User"}</p>
                             <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">${e.phone || "-"}</p>
                         </td>
-                        <td class="px-4 md:px-8 py-6 text-gray-300 text-sm italic font-medium">${e.preferred_location || "-"}</td>
-                        <td class="px-4 md:px-8 py-6 text-gray-400 text-sm max-w-xs truncate hidden md:table-cell">${e.requirement || "General enquiry"}</td>
-                        <td class="px-4 md:px-8 py-6 text-center">
+                        <td class="px-4 md:px-8 py-6 text-gray-300 text-sm italic font-medium w-[200px]"><p class="admin-row-text">${e.preferred_location || "-"}</p></td>
+                        <td class="px-4 md:px-8 py-6 text-gray-400 text-sm w-[260px]"><p class="admin-row-text">${e.requirement || "General enquiry"}</p></td>
+                        <td class="px-4 md:px-8 py-6 text-center admin-table-action">
                             <div class="flex items-center justify-center gap-3">
                                 <button data-copy-enquiry-id="${e.id}" class="px-4 py-2 rounded-lg text-[10px] uppercase tracking-widest border border-white/10 text-gray-400 hover:text-white hover:bg-white/5 transition-all font-bold">
                                     Copy
@@ -468,9 +559,21 @@ Special Notes: ${e.special_requirement || "None"}
             window.location.href = 'index.html';
         }
 
+        function primeAdminTableScroll() {
+            document.querySelectorAll(".admin-table-scroll").forEach((wrap) => {
+                wrap.dataset.scrollReady = wrap.scrollWidth > wrap.clientWidth ? "true" : "false";
+                wrap.addEventListener("wheel", (event) => {
+                    if (Math.abs(event.deltaX) <= Math.abs(event.deltaY) || wrap.scrollWidth <= wrap.clientWidth) return;
+                    event.preventDefault();
+                    wrap.scrollLeft += event.deltaX;
+                }, { passive: false });
+            });
+        }
+
         document.addEventListener('DOMContentLoaded', async () => {
             await loadAnalytics();
             await loadEnquiries();
+            primeAdminTableScroll();
 
             document.getElementById("refreshEnquiriesBtn")?.addEventListener("click", loadEnquiries);
 
