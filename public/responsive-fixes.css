@@ -858,6 +858,9 @@ nav.fixed .max-w-7xl {
 
 @media (max-width: 1024px) {
   body.has-mobile-bars.route-viewproducts main {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
     padding-top: 8px !important;
     padding-left: 16px !important;
     padding-right: 16px !important;
