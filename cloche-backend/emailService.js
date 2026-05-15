@@ -160,7 +160,10 @@ const sendEmailMessage = async ({ to, subject, html, fromName }) => {
   // 1. Try Gmail OAuth2 First (as requested)
   if (hasGmailApiSetup) {
     try {
-      // Use the Gmail API (HTTPS) instead of SMTP to avoid port blocking
+      // Validate token before trying to send
+      const { token } = await oauth2Client.getAccessToken();
+      if (!token) throw new Error("Google Refresh Token is invalid or expired. Please generate a new one.");
+
       const rawMessage = createEmailMessage(to, subject, html, fromName);
       
       const response = await gmail.users.messages.send({
@@ -176,7 +179,11 @@ const sendEmailMessage = async ({ to, subject, html, fromName }) => {
     } catch (error) {
       const apiError = error?.response?.data?.error?.message || error.message;
       console.error("[EmailService] Gmail API Error:", apiError);
-      // Fall through to other methods if API fails
+      
+      // If this is the only method, return the specific error
+      if (!hasResendSetup && !hasSmtpSetup) {
+        return { success: false, error: `Gmail API Error: ${apiError}` };
+      }
     }
   }
 
