@@ -110,19 +110,17 @@
                     </div>
                     <span class="text-[10px] uppercase tracking-widest text-gray-600 font-bold hidden sm:block">Limit 10</span>
                 </div>
-                <div class="glass-card rounded-2xl overflow-x-auto scroll-touch custom-scrollbar">
-                    <table class="w-full text-left border-collapse min-w-[800px]">
-                            <thead>
-                                    <th class="px-4 md:px-8 py-5 text-[10px] uppercase tracking-widest text-gray-400 font-bold">Member</th>
-                                    <th class="px-4 md:px-8 py-5 text-[10px] uppercase tracking-widest text-gray-400 font-bold hidden sm:table-cell">Details</th>
-                                    <th class="px-4 md:px-8 py-5 text-[10px] uppercase tracking-widest text-gray-400 font-bold text-center">Manage</th>
-                                </tr>
-                            </thead>
-                            <tbody id="usersTableBody">
-                                <!-- Loaded via JS -->
-                            </tbody>
-                        </table>
-                    </div>
+                <div class="glass-card rounded-2xl overflow-hidden">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-white/5 border-b border-white/5">
+                                <th class="px-4 md:px-8 py-5 text-[10px] uppercase tracking-widest text-gray-400 font-bold">Member & Account Control</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody">
+                            <!-- Loaded via JS -->
+                        </tbody>
+                    </table>
                 </div>
             </section>
 
@@ -134,26 +132,22 @@
                         <p class="text-[10px] uppercase tracking-widest text-primary font-bold">Curated Luxury Partners</p>
                     </div>
                     <div class="flex flex-wrap items-center gap-3">
-                        <span class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Showing latest 10</span>
                         <a href="boutiques.html" class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-primary/20 text-[10px] uppercase tracking-widest text-primary hover:bg-primary/10 transition-all font-bold">
                             View All Partners
                         </a>
                     </div>
                 </div>
-                <div class="glass-card rounded-2xl overflow-x-auto scroll-touch custom-scrollbar">
-                    <table class="w-full text-left border-collapse min-w-[800px]">
-                            <thead>
-                                <tr class="bg-white/5 border-b border-white/5">
-                                    <th class="px-4 md:px-8 py-5 text-[10px] uppercase tracking-widest text-gray-400 font-bold">Boutique</th>
-                                    <th class="px-4 md:px-8 py-5 text-[10px] uppercase tracking-widest text-gray-400 font-bold hidden sm:table-cell">Origin</th>
-                                    <th class="px-4 md:px-8 py-5 text-[10px] uppercase tracking-widest text-gray-400 font-bold text-right">Manage</th>
-                                </tr>
-                            </thead>
-                            <tbody id="boutiquesTableBody">
-                                <!-- Loaded via JS -->
-                            </tbody>
-                        </table>
-                    </div>
+                <div class="glass-card rounded-2xl overflow-hidden">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-white/5 border-b border-white/5">
+                                <th class="px-4 md:px-8 py-5 text-[10px] uppercase tracking-widest text-gray-400 font-bold">Boutique Partner Control</th>
+                            </tr>
+                        </thead>
+                        <tbody id="boutiquesTableBody">
+                            <!-- Loaded via JS -->
+                        </tbody>
+                    </table>
                 </div>
             </section>
         </div>
@@ -171,20 +165,18 @@
             </div>
             <div class="glass-card rounded-2xl overflow-x-auto scroll-touch custom-scrollbar shadow-2xl">
                 <table class="w-full text-left border-collapse min-w-[800px]">
-                        <thead>
-                            <tr class="bg-white/5 border-b border-white/5">
-                                <th class="px-4 md:px-8 py-6 text-[10px] uppercase tracking-widest text-gray-400 font-bold">Customer Profile</th>
-                                <th class="px-4 md:px-8 py-6 text-[10px] uppercase tracking-widest text-gray-400 font-bold">Preferred Location</th>
-                                <th class="px-4 md:px-8 py-6 text-[10px] uppercase tracking-widest text-gray-400 font-bold hidden md:table-cell">Specific Requirement</th>
-                                <th class="px-4 md:px-8 py-6 text-[10px] uppercase tracking-widest text-gray-400 font-bold">Dispatch Status</th>
-                                <th class="px-4 md:px-8 py-6 text-[10px] uppercase tracking-widest text-gray-400 font-bold text-center">Protocol</th>
-                            </tr>
-                        </thead>
-                        <tbody id="enquiriesTableBody">
-                            <!-- Rows loaded via JS -->
-                        </tbody>
-                    </table>
-                </div>
+                    <thead>
+                        <tr class="bg-white/5 border-b border-white/5">
+                            <th class="px-4 md:px-8 py-6 text-[10px] uppercase tracking-widest text-gray-400 font-bold">Customer Profile</th>
+                            <th class="px-4 md:px-8 py-6 text-[10px] uppercase tracking-widest text-gray-400 font-bold">Preferred Location</th>
+                            <th class="px-4 md:px-8 py-6 text-[10px] uppercase tracking-widest text-gray-400 font-bold hidden md:table-cell">Specific Requirement</th>
+                            <th class="px-4 md:px-8 py-6 text-[10px] uppercase tracking-widest text-gray-400 font-bold text-center">Protocol</th>
+                        </tr>
+                    </thead>
+                    <tbody id="enquiriesTableBody">
+                        <!-- Rows loaded via JS -->
+                    </tbody>
+                </table>
             </div>
         </section>
     </main>
@@ -267,19 +259,18 @@
                     const userTable = document.getElementById('usersTableBody');
                     userTable.innerHTML = data.recentUsers.map(u => `
                         <tr class="table-row border-b border-white/5 transition-colors hover:bg-white/[0.02]">
-                            <td class="px-4 md:px-8 py-5 text-sm">
-                                <p class="font-medium text-white">${u.name}</p>
-                                <p class="text-[10px] text-primary uppercase font-bold tracking-widest mt-1">${u.role || 'Member'}</p>
-                                <p class="block sm:hidden text-gray-500 text-[9px] mt-1 tracking-tight truncate max-w-[120px]">${u.email}</p>
-                            </td>
-                            <td class="px-4 md:px-8 py-5 text-gray-400 hidden sm:table-cell text-sm">
-                                <p class="truncate max-w-[150px]">${u.email}</p>
-                                <p class="text-[9px] text-gray-600 mt-1 uppercase tracking-widest font-bold">Joined ${new Date(u.created_at).toLocaleDateString()}</p>
-                            </td>
-                            <td class="px-4 md:px-8 py-5 text-center">
-                                <button data-remove-user-id="${u.id}" data-remove-user-name="${encodeURIComponent(u.name)}" class="px-3 md:px-4 py-2 rounded-lg text-[9px] md:text-[10px] uppercase tracking-widest border border-red-500/10 text-red-400/60 hover:text-red-400 hover:bg-red-500/10 transition-all font-bold">
-                                    Remove
-                                </button>
+                            <td class="px-4 md:px-8 py-6">
+                                <div class="flex items-center justify-between gap-4">
+                                    <div class="min-w-0">
+                                        <p class="font-medium text-white text-base truncate">${u.name}</p>
+                                        <p class="text-[10px] text-primary uppercase font-bold tracking-[0.2em] mt-1">${u.role || 'Member'}</p>
+                                        <p class="text-gray-500 text-[10px] mt-1 tracking-tight truncate">${u.email}</p>
+                                        <p class="text-[9px] text-gray-700 mt-2 uppercase tracking-widest font-bold">Joined ${new Date(u.created_at).toLocaleDateString()}</p>
+                                    </div>
+                                    <button data-remove-user-id="${u.id}" data-remove-user-name="${encodeURIComponent(u.name)}" class="shrink-0 px-4 py-2 rounded-lg text-[10px] uppercase tracking-widest border border-red-500/20 text-red-400/80 hover:text-red-400 hover:bg-red-500/10 transition-all font-bold">
+                                        Remove
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                     `).join('');
@@ -295,7 +286,6 @@
                     // Render Boutiques
                     const boutiqueTable = document.getElementById('boutiquesTableBody');
                     
-                    // Try to find the boutique list in multiple possible keys
                     let bList = [];
                     if (Array.isArray(data.recentBoutiques) && data.recentBoutiques.length > 0) {
                         bList = data.recentBoutiques;
@@ -305,7 +295,6 @@
                         bList = data.recent_boutiques;
                     }
 
-                    // Fallback to fetching all boutiques from the public API if analytics is empty
                     if (bList.length === 0) {
                         try {
                             const publicRes = await fetch(`${API_ORIGIN}/api/boutiques`);
@@ -313,35 +302,30 @@
                                 const publicData = await publicRes.json();
                                 if (Array.isArray(publicData)) bList = publicData;
                             }
-                        } catch (publicErr) {
-                            console.warn("Public boutique fallback failed:", publicErr);
-                        }
+                        } catch (publicErr) {}
                     }
                     
                     if (bList.length === 0) {
-                        boutiqueTable.innerHTML = `<tr><td colspan="3" class="px-8 py-10 text-center text-gray-500 text-sm italic">No current partners found in registry.</td></tr>`;
+                        boutiqueTable.innerHTML = `<tr><td class="px-8 py-10 text-center text-gray-500 text-sm italic">No current partners found.</td></tr>`;
                     } else {
                         boutiqueTable.innerHTML = bList.map(b => `
                             <tr class="table-row border-b border-white/5 transition-colors hover:bg-white/[0.02]">
-                                <td class="px-6 md:px-8 py-5 text-sm">
-                                    <p class="font-medium text-white">${b.boutique_name || 'Unnamed Boutique'}</p>
-                                    <p class="text-[10px] text-primary uppercase tracking-[0.2em] font-bold mt-1">${b.owner_name || b.contact_name || 'No Owner Listed'}</p>
-                                    <p class="text-[10px] text-gray-500 mt-1">${b.email || b.contact_email || 'No Email'} • ${b.phone || b.contact_phone || ''}</p>
-                                    <p class="text-[10px] text-gray-500 uppercase tracking-widest mt-1 opacity-60">
-                                      ${(String(b.plan || "early partner").toUpperCase())}${b.introUnlimited ? " • INTRO ∞" : ""}
-                                    </p>
-                                </td>
-                                <td class="px-8 py-5 text-gray-400 hidden sm:table-cell text-sm">
-                                    <div class="flex items-center gap-2">
-                                        <span class="material-symbols-outlined text-xs text-primary/40">location_on</span>
-                                        ${b.city || b.area || b.district || '-'}
+                                <td class="px-4 md:px-8 py-6">
+                                    <div class="flex items-start justify-between gap-4">
+                                        <div class="min-w-0">
+                                            <p class="font-medium text-white text-base truncate">${b.boutique_name || 'Unnamed Boutique'}</p>
+                                            <p class="text-[10px] text-primary uppercase tracking-[0.2em] font-bold mt-1">${b.owner_name || b.contact_name || 'No Owner Listed'}</p>
+                                            <p class="text-[10px] text-gray-500 mt-1 truncate">${b.email || b.contact_email || 'No Email'} • ${b.phone || b.contact_phone || ''}</p>
+                                            <div class="flex items-center gap-2 mt-2">
+                                                <span class="material-symbols-outlined text-[10px] text-primary/40">location_on</span>
+                                                <span class="text-[10px] text-gray-400 uppercase tracking-widest">${b.city || b.area || b.district || '-'}</span>
+                                            </div>
+                                            <p class="text-[9px] text-gray-700 mt-1 uppercase tracking-widest font-bold">ID: ${b.id}</p>
+                                        </div>
+                                        <button data-remove-boutique-id="${b.id}" data-remove-boutique-name="${encodeURIComponent(String(b.boutique_name || ''))}" class="shrink-0 px-4 py-2 rounded-lg text-[10px] uppercase tracking-widest border border-red-500/20 text-red-400 hover:bg-red-500/10 transition-all font-bold">
+                                            Remove
+                                        </button>
                                     </div>
-                                    <p class="text-[9px] text-gray-600 mt-1 uppercase tracking-widest font-bold">Partner ID: ${b.id}</p>
-                                </td>
-                                <td class="px-6 md:px-8 py-5 text-right">
-                                    <button data-remove-boutique-id="${b.id}" data-remove-boutique-name="${encodeURIComponent(String(b.boutique_name || ''))}" class="px-3 md:px-4 py-2 rounded-lg text-[9px] md:text-[10px] uppercase tracking-widest border border-red-500/20 text-red-400 hover:bg-red-500/10 transition-all font-bold">
-                                        Remove
-                                    </button>
                                 </td>
                             </tr>
                         `).join('');
@@ -367,11 +351,7 @@
 
             const list = Array.isArray(rows) ? rows : [];
             if (!list.length) {
-                table.innerHTML = `
-                    <tr>
-                        <td colspan="5" class="px-3 md:px-6 py-6 text-center text-gray-500 text-xs md:text-sm">No enquiries found.</td>
-                    </tr>
-                `;
+                table.innerHTML = `<tr><td colspan="4" class="px-3 md:px-6 py-6 text-center text-gray-500 text-sm">No enquiries found.</td></tr>`;
                 return;
             }
 
@@ -381,29 +361,22 @@
                     ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400"
                     : "bg-primary/10 border-primary/30 text-primary";
                 const disabled = status === "SENT";
-                const name = e.name || "User";
-                const phone = e.phone || "-";
-                const location = e.preferred_location || "-";
-                const requirement = e.requirement || "General enquiry";
 
                 return `
                     <tr class="table-row border-b border-white/5 transition-colors hover:bg-white/[0.02]">
                         <td class="px-4 md:px-8 py-6 text-sm">
-                            <p class="font-bold text-white mb-1 tracking-tight truncate max-w-[100px] md:max-w-none">${name}</p>
-                            <p class="text-[9px] md:text-[10px] text-gray-500 font-bold uppercase tracking-widest">${phone}</p>
+                            <p class="font-bold text-white mb-1 tracking-tight">${e.name || "User"}</p>
+                            <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">${e.phone || "-"}</p>
                         </td>
-                        <td class="px-4 md:px-8 py-6 text-gray-300 text-xs md:text-sm italic font-medium truncate max-w-[80px] md:max-w-none">${location}</td>
-                        <td class="px-4 md:px-8 py-6 text-gray-400 text-sm max-w-xs truncate hidden md:table-cell">${requirement}</td>
-                        <td class="px-4 md:px-8 py-6">
-                            <span class="px-2 md:px-3 py-1 md:py-1.5 border rounded-full text-[9px] md:text-[10px] uppercase tracking-widest font-bold whitespace-nowrap ${badgeClass}">${status}</span>
-                        </td>
+                        <td class="px-4 md:px-8 py-6 text-gray-300 text-sm italic font-medium">${e.preferred_location || "-"}</td>
+                        <td class="px-4 md:px-8 py-6 text-gray-400 text-sm max-w-xs truncate hidden md:table-cell">${e.requirement || "General enquiry"}</td>
                         <td class="px-4 md:px-8 py-6 text-center">
-                            <div class="flex flex-col md:flex-row items-center justify-center gap-2 md:gap-3">
-                                <button data-copy-enquiry-id="${e.id}" class="w-full md:w-auto px-3 md:px-4 py-2 rounded-lg text-[9px] md:text-[10px] uppercase tracking-widest border border-white/10 text-gray-400 hover:text-white hover:bg-white/5 transition-all font-bold">
+                            <div class="flex items-center justify-center gap-3">
+                                <button data-copy-enquiry-id="${e.id}" class="px-4 py-2 rounded-lg text-[10px] uppercase tracking-widest border border-white/10 text-gray-400 hover:text-white hover:bg-white/5 transition-all font-bold">
                                     Copy
                                 </button>
-                                <button ${disabled ? "disabled" : ""} data-send-enquiry-id="${e.id}" class="w-full md:w-auto px-3 md:px-4 py-2 rounded-lg text-[9px] md:text-[10px] uppercase tracking-widest border whitespace-nowrap transition-all font-bold ${disabled ? "border-white/5 text-gray-700 mt-2 md:mt-0 cursor-not-allowed" : "border-primary/40 text-primary hover:bg-primary/10 shadow-lg shadow-primary/5"}">
-                                    ${disabled ? "Sent" : "Send"}
+                                <button ${disabled ? "disabled" : ""} data-send-enquiry-id="${e.id}" class="px-4 py-2 rounded-lg text-[10px] uppercase tracking-widest border whitespace-nowrap transition-all font-bold ${disabled ? "border-white/5 text-gray-700 cursor-not-allowed" : "border-primary/40 text-primary hover:bg-primary/10 shadow-lg shadow-primary/5"}">
+                                    ${disabled ? "Sent" : "Dispatch"}
                                 </button>
                             </div>
                         </td>
@@ -458,7 +431,6 @@ Special Notes: ${e.special_requirement || "None"}
 
                 await navigator.clipboard.writeText(text);
                 
-                // Visual feedback on button
                 const btn = document.querySelector(`[data-copy-enquiry-id="${enquiryId}"]`);
                 if (btn) {
                     const original = btn.textContent;
