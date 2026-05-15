@@ -18,6 +18,26 @@
                         "background-dark": "#0d0d0d",
                     },
                     fontFamily: {
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Boutique Subscription Plans | CLOCHE</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;700&amp;family=Noto+Sans:wght@400;500;700&amp;display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet" />
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#c1a671",
+                        "background-light": "#f7f6f2",
+                        "background-dark": "#0d0d0d",
+                    },
+                    fontFamily: {
                         "display": ["Noto Serif", "serif"],
                         "sans": ["Noto Sans", "sans-serif"]
                     },
@@ -26,6 +46,7 @@
             },
         }
     </script>
+    <link rel="stylesheet" href="responsive-fixes.css?v=20260515-subscription-mobile" />
     <style>
         .glass-card {
             background: rgba(26, 26, 26, 0.6);
@@ -110,9 +131,9 @@
             </div>
         </aside>
 
-        <main class="flex-1 overflow-y-auto px-10 py-16 gold-gradient-bg scrollbar-hide">
+        <main class="flex-1 overflow-y-auto px-6 py-12 md:px-10 md:py-16 gold-gradient-bg scrollbar-hide">
             <div class="text-center mb-16">
-                <h1 class="text-white font-display tracking-[0.3em] text-[32px] md:text-[48px] font-bold leading-tight pb-4 uppercase">Boutique Subscriptions</h1>
+                <h1 class="text-white font-display tracking-[0.15em] md:tracking-[0.3em] text-[24px] md:text-[48px] font-bold leading-tight pb-4 uppercase">Boutique Subscriptions</h1>
                 <p class="text-primary/80 font-display text-lg md:text-xl font-normal max-w-2xl mx-auto italic">
                     Elevate your boutique's presence with our tiered membership plans designed for modern luxury.
                 </p>
@@ -234,6 +255,7 @@
             }, 1500);
         }
     </script>
+    <script src="responsive-layout.js?v=20260515-subscription-mobile"></script>
   <script src="footer.js?v=20260505-footer-fix"></script>
 </body>
 </html>
