@@ -38,6 +38,24 @@ const cleanText = (value) => String(value || "").trim().replace(/\s+/g, " ");
 
 const sameText = (a, b) => cleanText(a).toLowerCase() === cleanText(b).toLowerCase();
 
+const isVerifiedTrue = (value) => value === true || value === "true" || value === 1 || value === "1";
+
+const normalizePhoneValue = (value) => String(value || "").replace(/\D/g, "");
+
+const isDuplicateKeyError = (error) => {
+  const code = String(error?.code || "");
+  const message = String(error?.message || "");
+  return code === "23505" || /duplicate key value|unique constraint/i.test(message);
+};
+
+const duplicatePartnerMessage = (error) => {
+  const detail = `${error?.message || ""} ${error?.details || ""}`.toLowerCase();
+  if (detail.includes("phone")) return "This mobile number is already registered.";
+  if (detail.includes("email")) return "This email is already registered. Please log in or use another email.";
+  if (detail.includes("boutique_name")) return "A boutique with this name is already listed. Please adjust the boutique name and try again.";
+  return "This partner account already exists. Please check the email or mobile number.";
+};
+
 const splitCityParts = (cityValue) => {
   const city = cleanText(cityValue);
   if (!city.includes(",")) return [];
@@ -242,18 +260,7 @@ router.post("/signup", showcaseUpload.single("image"), async (req, res) => {
     }
     try {
       const normalizedEmail = String(email).trim().toLowerCase();
-      const normalizedPhone = String(phone).trim();
-
-      // Check if mobile number exists
-      const { data: existingPhone } = await supabase
-        .from("boutiques")
-        .select("id")
-        .eq("phone", normalizedPhone)
-        .maybeSingle();
-
-      if (existingPhone) {
-        return res.status(409).json({ message: "mobile number exists" });
-      }
+      const normalizedPhone = normalizePhoneValue(phone);
 
       const passwordHash = await bcrypt.hash(password, 10);
       const verificationToken = uuidv4();
@@ -288,12 +295,16 @@ router.post("/signup", showcaseUpload.single("image"), async (req, res) => {
       const { data: existingBoutique, error: findError } = await supabase
         .from("boutiques")
         .select("id, is_verified")
-        .eq("email", normalizedEmail)
+        .ilike("email", normalizedEmail)
         .maybeSingle();
 
+      if (findError) {
+        return res.status(500).json({ message: findError.message });
+      }
+
       if (existingBoutique) {
-        if (existingBoutique.is_verified) {
-          return res.status(409).json({ message: "Boutique already exists" });
+        if (isVerifiedTrue(existingBoutique.is_verified)) {
+          return res.status(409).json({ message: "This email is already registered. Please log in or use another email." });
         } else {
           // Update unverified boutique and resend email
           const { error: updateError } = await supabase
@@ -355,6 +366,20 @@ router.post("/signup", showcaseUpload.single("image"), async (req, res) => {
         }
       }
 
+      const { data: existingPhone, error: existingPhoneError } = await supabase
+        .from("boutiques")
+        .select("id")
+        .eq("phone", normalizedPhone)
+        .maybeSingle();
+
+      if (existingPhoneError) {
+        return res.status(500).json({ message: existingPhoneError.message });
+      }
+
+      if (existingPhone) {
+        return res.status(409).json({ message: "This mobile number is already registered." });
+      }
+
       for (const payload of payloadCandidates) {
         const { data, error } = await supabase
           .from("boutiques")
@@ -369,8 +394,8 @@ router.post("/signup", showcaseUpload.single("image"), async (req, res) => {
         }
 
         insertError = error;
-        if (error.code === "23505") {
-          return res.status(409).json({ message: "Boutique already exists" });
+        if (isDuplicateKeyError(error)) {
+          return res.status(409).json({ message: duplicatePartnerMessage(error) });
         }
       }
 
