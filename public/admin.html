@@ -269,23 +269,32 @@
                 <h2 class="text-xl font-display text-white uppercase tracking-[0.2em]">Payment Verification</h2>
                 <span id="proofCount" class="text-[10px] bg-primary/20 text-primary px-3 py-1 rounded-full font-bold uppercase tracking-widest">0 Pending</span>
             </div>
-            <div class="glass-card rounded-xl border-white/5 overflow-hidden">
+            <div class="glass-card rounded-2xl admin-table-shell shadow-2xl mb-12">
+                <div class="admin-scroll-hint">
+                    <span>Swipe table</span>
+                    <span class="material-symbols-outlined text-sm">swipe</span>
+                </div>
                 <div class="admin-table-scroll scroll-touch custom-scrollbar">
                     <table class="w-full text-left border-collapse min-w-[900px]">
                         <thead>
                             <tr class="bg-white/5 border-b border-white/5">
-                                <th class="px-8 py-6 text-[10px] uppercase tracking-widest text-gray-400 font-bold">Boutique</th>
-                                <th class="px-8 py-6 text-[10px] uppercase tracking-widest text-gray-400 font-bold">Plan Details</th>
-                                <th class="px-8 py-6 text-[10px] uppercase tracking-widest text-gray-400 font-bold text-center">Screenshot</th>
-                                <th class="px-8 py-6 text-[10px] uppercase tracking-widest text-gray-400 font-bold text-center">Actions</th>
+                                <th class="px-8 py-6 text-[10px] uppercase tracking-widest text-gray-400 font-bold w-[260px]">Boutique</th>
+                                <th class="px-8 py-6 text-[10px] uppercase tracking-widest text-gray-400 font-bold w-[180px]">Plan Details</th>
+                                <th class="px-8 py-6 text-[10px] uppercase tracking-widest text-gray-400 font-bold w-[200px]">Screenshot</th>
+                                <th class="px-8 py-6 text-[10px] uppercase tracking-widest text-gray-400 font-bold text-center admin-table-action">Action</th>
                             </tr>
                         </thead>
                         <tbody id="proofsTableBody">
                             <!-- Proofs loaded via JS -->
                             <tr><td colspan="4" class="px-8 py-10 text-center text-gray-500 text-sm italic">Loading proofs...</td></tr>
                         </tbody>
-            <!-- Recent Partnerships -->
-            <section class="min-w-0 mb-20">
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Recent Partnerships -->
+        <section class="min-w-0 mb-20">
                 <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between mb-8 px-2 gap-4">
                     <div>
                         <h2 class="text-xl md:text-2xl font-display font-bold text-white mb-1">New Partnerships</h2>
@@ -644,12 +653,14 @@
                             <p class="text-[9px] text-gray-500 uppercase tracking-widest mt-1">${proof.billing_cycle || "monthly"}</p>
                             <span class="inline-flex mt-3 px-2 py-1 rounded border text-[9px] uppercase tracking-widest font-bold ${statusClass}">${status}</span>
                         </td>
-                        <td class="px-4 md:px-8 py-6 text-sm w-[180px]">
-                            <a href="${proof.screenshot_url}" target="_blank" class="inline-flex items-center gap-2 text-primary text-[10px] uppercase tracking-widest font-bold hover:text-white">
-                                <span class="material-symbols-outlined text-sm">image</span>
-                                View Screenshot
-                            </a>
-                            <p class="text-[9px] text-gray-600 uppercase tracking-widest mt-2">${proof.created_at ? new Date(proof.created_at).toLocaleString() : ""}</p>
+                        <td class="px-4 md:px-8 py-6 text-sm w-[200px]">
+                            <div class="relative group/proof w-24 h-16 rounded-lg overflow-hidden border border-white/10 bg-black/40">
+                                <img src="${proof.screenshot_url}" class="w-full h-full object-cover transition-transform duration-500 group-hover/proof:scale-110" alt="Proof">
+                                <a href="${proof.screenshot_url}" target="_blank" class="absolute inset-0 bg-black/60 opacity-0 group-hover/proof:opacity-100 flex items-center justify-center transition-opacity">
+                                    <span class="material-symbols-outlined text-white text-sm">open_in_new</span>
+                                </a>
+                            </div>
+                            <p class="text-[9px] text-gray-600 uppercase tracking-widest mt-3 font-medium">${proof.created_at ? new Date(proof.created_at).toLocaleString() : ""}</p>
                         </td>
                         <td class="px-4 md:px-8 py-6 text-center admin-table-action">
                             <div class="admin-action-stack">
