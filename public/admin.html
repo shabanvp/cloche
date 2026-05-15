@@ -97,6 +97,12 @@
             text-overflow: ellipsis;
             white-space: nowrap;
         }
+        .admin-action-stack {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
         @media (max-width: 640px) {
             body {
                 overflow-x: hidden;
@@ -131,6 +137,18 @@
                 padding-left: 8px !important;
                 padding-right: 8px !important;
                 letter-spacing: 0.12em !important;
+            }
+            .admin-action-stack {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 8px;
+                width: 100%;
+            }
+            .admin-action-stack button {
+                min-height: 30px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
             }
             .admin-scroll-hint {
                 display: none;
@@ -510,7 +528,7 @@
                         <td class="px-4 md:px-8 py-6 text-gray-300 text-sm italic font-medium w-[200px]"><p class="admin-row-text">${e.preferred_location || "-"}</p></td>
                         <td class="px-4 md:px-8 py-6 text-gray-400 text-sm w-[260px]"><p class="admin-row-text">${e.requirement || "General enquiry"}</p></td>
                         <td class="px-4 md:px-8 py-6 text-center admin-table-action">
-                            <div class="flex items-center justify-center gap-3">
+                            <div class="admin-action-stack">
                                 <button data-copy-enquiry-id="${e.id}" class="px-4 py-2 rounded-lg text-[10px] uppercase tracking-widest border border-white/10 text-gray-400 hover:text-white hover:bg-white/5 transition-all font-bold">
                                     Copy
                                 </button>
