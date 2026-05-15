@@ -369,6 +369,7 @@
     </section>
   </main>
 <script src="tag-renderer.js?v=20260501-dynamic-tags"></script>
+<script src="product-upload-utils.js?v=20260515-upload-normalizer"></script>
 <script src="collection-detail-image.js?v=20260515-mobile-frame-lock"></script>
   <script>
     const API_ORIGIN = "https://cloche-backend.onrender.com";
@@ -391,6 +392,7 @@
     }
 
     function normalizeGallery(product) {
+      if (window.CLOCHE_PRODUCTS?.normalizeGallery) return window.CLOCHE_PRODUCTS.normalizeGallery(product);
       const images = [];
       const addImage = (value) => {
         if (Array.isArray(value)) {
@@ -450,6 +452,7 @@
     }
 
     function optimizeImageUrl(url) {
+      if (window.CLOCHE_PRODUCTS?.optimizeImageUrl) return window.CLOCHE_PRODUCTS.optimizeImageUrl(url);
       const raw = String(url || "").trim();
       if (!raw || /^data:image\//i.test(raw)) return raw;
       if (!/res\.cloudinary\.com\/[^/]+\/image\/upload\//i.test(raw)) return raw;

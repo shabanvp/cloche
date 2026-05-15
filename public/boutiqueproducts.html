@@ -483,6 +483,7 @@
       </div>
     </div>
 
+    <script src="product-upload-utils.js?v=20260515-upload-normalizer"></script>
     <script>
       // 🔧 API Configuration - MUST BE FIRST
       const API_ORIGIN = "https://cloche-backend.onrender.com";
@@ -547,6 +548,7 @@
       let previewObjectURLs = []; // FIX: Track all preview URLs for final cleanup
 
       function resolveAssetUrl(url) {
+        if (window.CLOCHE_PRODUCTS?.resolveAssetUrl) return window.CLOCHE_PRODUCTS.resolveAssetUrl(url, API_ORIGIN);
         let raw = String(url || "").trim();
         if (!raw) return "";
         if (/^data:image\//i.test(raw)) return raw;
@@ -861,7 +863,9 @@
         // Render each product
         products.forEach(p => {
           // Get primary image (first in gallery or image_url)
-          const gallery = Array.isArray(p.gallery) ? p.gallery.map(resolveAssetUrl).filter(Boolean) : [];
+          const gallery = window.CLOCHE_PRODUCTS?.getProductImages
+            ? window.CLOCHE_PRODUCTS.getProductImages(p, API_ORIGIN)
+            : (Array.isArray(p.gallery) ? p.gallery.map(resolveAssetUrl).filter(Boolean) : []);
           const primaryImg = gallery.length > 0 ? gallery[0] : resolveAssetUrl(p.image_url || '');
           const imgUrl = primaryImg || null;
 
@@ -875,7 +879,7 @@
 
           const imageActual = `
             <div class="product-image-frame relative aspect-[4/5] overflow-hidden group/img">
-                <img src="${imgUrl}" onerror="this.src='${PRODUCT_PLACEHOLDER}'" class="product-image w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" alt="${p.product_name || 'Product'}">
+                <img src="${imgUrl}" onerror="this.src='${PRODUCT_PLACEHOLDER}'" class="product-image w-full h-full object-contain transition-transform duration-700 group-hover:scale-105" alt="${p.product_name || 'Product'}">
                 <div class="absolute inset-0 bg-gradient-to-t from-background-dark/80 via-transparent to-transparent opacity-60"></div>
                 <div class="absolute bottom-4 left-4">
                     <span class="px-3 py-1 rounded-md bg-background-dark/80 backdrop-blur-md text-[10px] text-primary font-black uppercase tracking-[0.2em]">${p.category || 'Product'}</span>
@@ -936,7 +940,9 @@
         }
 
         const modal = document.getElementById('productDetailModal');
-        const gallery = Array.isArray(product.gallery) ? product.gallery.map(resolveAssetUrl).filter(Boolean) : [];
+        const gallery = window.CLOCHE_PRODUCTS?.getProductImages
+          ? window.CLOCHE_PRODUCTS.getProductImages(product, API_ORIGIN)
+          : (Array.isArray(product.gallery) ? product.gallery.map(resolveAssetUrl).filter(Boolean) : []);
         const primaryImg = gallery.length > 0 ? gallery[0] : resolveAssetUrl(product.image_url || '');
 
         // Set main image

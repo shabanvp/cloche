@@ -631,6 +631,7 @@
 
 
 
+  <script src="product-upload-utils.js?v=20260515-upload-normalizer"></script>
   <script>
     const API_AUTH = "https://cloche-backend.onrender.com/api/auth";
     const API_BASE = "https://cloche-backend.onrender.com/api";
@@ -654,6 +655,7 @@
     ];
 
     function resolveAssetUrl(url) {
+      if (window.CLOCHE_PRODUCTS?.resolveAssetUrl) return window.CLOCHE_PRODUCTS.resolveAssetUrl(url, API_ORIGIN);
       let raw = String(url || "").trim();
       if (!raw) return "";
       if (/^data:image\//i.test(raw)) return raw;
@@ -911,7 +913,10 @@
 
       status.textContent = "";
       grid.innerHTML = items.map((item, idx) => {
-        const image = resolveAssetUrl(item.image_url || (Array.isArray(item.gallery) ? item.gallery[0] : "")) || pickImage(`collection-${idx}-${item.product_name || item.category}`);
+        const images = window.CLOCHE_PRODUCTS?.getProductImages
+          ? window.CLOCHE_PRODUCTS.getProductImages(item, API_ORIGIN)
+          : [];
+        const image = images[0] || resolveAssetUrl(item.image_url || (Array.isArray(item.gallery) ? item.gallery[0] : "")) || pickImage(`collection-${idx}-${item.product_name || item.category}`);
         const title = String(item.product_name || "Collection").toUpperCase();
         const subtitle = String(item.category || item.boutique_name || "Partner Collection").trim().toUpperCase();
         const district = String(item.district || item.city || "Kerala").toUpperCase();
@@ -922,7 +927,7 @@
         return `
           <a href="${href}" onclick="${boutiqueId ? `localStorage.setItem('selectedBoutiqueId','${boutiqueId}')` : ""}" class="featured-collection-card product-image-frame group relative aspect-[3/4] rounded-xl overflow-hidden glass-card shimmer-effect cursor-pointer block">
             <img
-              class="product-image absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+              class="product-image absolute inset-0 w-full h-full object-contain transition-transform duration-700 group-hover:scale-105"
               src="${image}"
               alt="${title}"
               loading="lazy"

@@ -71,6 +71,7 @@
       </div>
     </section>
   </main>
+<script src="product-upload-utils.js?v=20260515-upload-normalizer"></script>
 <script>
     const API_ORIGIN = "https://cloche-backend.onrender.com";
     const API_AUTH = `${API_ORIGIN}/api/auth`;
@@ -92,7 +93,8 @@
         .replace(/'/g, "&#39;");
     }
 
-    function resolveAssetUrl(url) {
+  function resolveAssetUrl(url) {
+    if (window.CLOCHE_PRODUCTS?.resolveAssetUrl) return addCacheBuster(window.CLOCHE_PRODUCTS.resolveAssetUrl(url, API_ORIGIN));
     let raw = String(url || "").trim();
     if (!raw) return "";
     if (/^data:image\//i.test(raw)) return raw;
@@ -142,10 +144,11 @@
     }
 
     function pickProductImage(item) {
-      const gallery = Array.isArray(item.gallery) ? item.gallery : [];
-      const firstValid = [item.image_url, ...gallery].find(Boolean);
-      const rawUrl = firstValid || "";
-      const resolved = resolveAssetUrl(rawUrl);
+      const gallery = window.CLOCHE_PRODUCTS?.getProductImages
+        ? window.CLOCHE_PRODUCTS.getProductImages(item, API_ORIGIN)
+        : (Array.isArray(item.gallery) ? item.gallery : []);
+      const firstValid = gallery[0] || item.image_url || "";
+      const resolved = /^https?:\/\//i.test(firstValid) ? firstValid : resolveAssetUrl(firstValid);
       const busted = addCacheBuster(resolved);
       return busted;
     }
@@ -195,7 +198,7 @@
              class="glass-card rounded-xl overflow-hidden block hover:border-primary/40 transition-all">
             <div class="product-image-frame aspect-[2/3] bg-surface-dark overflow-hidden relative">
               ${image
-                ? `<img src="${safeImage}" alt="${name}" class="product-image w-full h-full object-cover" loading="lazy" onerror="console.warn('Image failed to load:', this.src); this.style.display='none';" />`
+                ? `<img src="${safeImage}" alt="${name}" class="product-image w-full h-full object-contain" loading="lazy" onerror="console.warn('Image failed to load:', this.src); this.style.display='none';" />`
                 : `<div class="w-full h-full flex items-center justify-center text-white/40 text-xs tracking-[0.2em] uppercase">No Image</div>`
               }
               <span class="absolute top-2 left-2 bg-primary/90 text-black text-[9px] px-2 py-1 rounded tracking-[0.2em] uppercase font-bold">${category}</span>

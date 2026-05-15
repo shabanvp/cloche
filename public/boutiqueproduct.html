@@ -212,6 +212,7 @@
     </section>
   </main>
 
+  <script src="product-upload-utils.js?v=20260515-upload-normalizer"></script>
   <script>
     const API_PRODUCTS = "https://cloche-backend.onrender.com/api/products";
     const API_ORIGIN = "https://cloche-backend.onrender.com";
@@ -219,6 +220,7 @@
     let currentProduct = null;
 
     function resolveAssetUrl(url) {
+      if (window.CLOCHE_PRODUCTS?.resolveAssetUrl) return window.CLOCHE_PRODUCTS.resolveAssetUrl(url, API_ORIGIN);
       let raw = String(url || "").trim();
       if (!raw) return "";
       if (/^data:image\//i.test(raw)) return raw;
@@ -306,7 +308,7 @@
 
       wrap.innerHTML = validImages.map((img, idx) => `
         <button type="button" data-img="${img}" class="thumb-btn h-24 w-24 rounded-xl overflow-hidden border ${idx === 0 ? "border-primary" : "border-primary/30 hover:border-primary/70"} transition-colors bg-black/40 flex items-center justify-center">
-          <img src="${img}" class="w-full h-full object-cover" alt="Product thumbnail ${idx + 1}" onerror="this.src='${fallbackImage}'" />
+          <img src="${img}" class="w-full h-full object-contain bg-black" alt="Product thumbnail ${idx + 1}" onerror="this.src='${fallbackImage}'" />
         </button>
       `).join("");
 
@@ -329,8 +331,10 @@
 
     function renderProduct(product, boutiqueId) {
       currentProduct = product;
-      const gallery = Array.isArray(product.gallery) ? product.gallery.map(resolveAssetUrl).filter(Boolean) : [];
-      const primary = resolveAssetUrl(product.image_url) || gallery[0] || fallbackImage;
+      const gallery = window.CLOCHE_PRODUCTS?.getProductImages
+        ? window.CLOCHE_PRODUCTS.getProductImages(product, API_ORIGIN)
+        : (Array.isArray(product.gallery) ? product.gallery.map(resolveAssetUrl).filter(Boolean) : []);
+      const primary = gallery[0] || resolveAssetUrl(product.image_url) || fallbackImage;
       const images = [primary, ...gallery.filter((img) => img !== primary)];
       const stock = Number(product.stock || 0);
 

@@ -456,6 +456,7 @@
     }
 
     function resolveAssetUrl(url) {
+      if (window.CLOCHE_PRODUCTS?.resolveAssetUrl) return window.CLOCHE_PRODUCTS.resolveAssetUrl(url, API_ORIGIN);
       let raw = String(url || "").trim();
       if (!raw) return "";
       if (/^data:image\//i.test(raw)) return raw;
@@ -492,7 +493,10 @@
       }
 
       grid.innerHTML = products.slice(0, 4).map((p) => {
-        const imgUrl = resolveAssetUrl((Array.isArray(p.gallery) && p.gallery[0]) || p.image_url);
+        const images = window.CLOCHE_PRODUCTS?.getProductImages
+          ? window.CLOCHE_PRODUCTS.getProductImages(p, API_ORIGIN)
+          : [resolveAssetUrl((Array.isArray(p.gallery) && p.gallery[0]) || p.image_url)].filter(Boolean);
+        const imgUrl = images[0] || "https://images.unsplash.com/photo-1540553016722-983e4838cd12?q=80&w=1200&auto=format&fit=crop";
         const stock = Number(p.stock || 0);
 
         return `
@@ -807,6 +811,7 @@
 
 
 
+  <script src="product-upload-utils.js?v=20260515-upload-normalizer"></script>
   <script src='responsive-layout.js?v=20260501-partner-signup'></script>
   <script src="footer.js?v=20260505-footer-fix"></script>
 </body>
