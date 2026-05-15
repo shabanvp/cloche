@@ -119,8 +119,19 @@
       padding-top: 0 !important;
     }
 
+    html.direct-chat,
     body.direct-chat {
-      overflow: hidden;
+      height: 100dvh;
+      max-height: 100dvh;
+      overflow: hidden !important;
+      overscroll-behavior: none;
+      touch-action: none;
+    }
+
+    body.direct-chat {
+      position: fixed;
+      inset: 0;
+      width: 100%;
     }
 
     body.direct-chat main {
@@ -143,6 +154,11 @@
     body.has-mobile-bars.direct-chat main {
       height: calc(100dvh - 76px) !important;
       min-height: 0 !important;
+    }
+
+    body.direct-chat #messagesArea,
+    body.direct-chat #messageInput {
+      touch-action: auto;
     }
 
     @media (max-width: 1024px) {
@@ -796,7 +812,10 @@
     });
 
     document.addEventListener("DOMContentLoaded", async () => {
-      if (isDirectChatRoute) document.body.classList.add("direct-chat");
+      if (isDirectChatRoute) {
+        document.documentElement.classList.add("direct-chat");
+        document.body.classList.add("direct-chat");
+      }
       await hydrateUserIfNeeded();
       userEmail = localStorage.getItem("userEmail") || userEmail;
       userName = localStorage.getItem("userName") || userName;
