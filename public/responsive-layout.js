@@ -236,6 +236,13 @@
       if (el.dataset.mobileCloseMenuBound === "true") return;
       el.dataset.mobileCloseMenuBound = "true";
       el.addEventListener("click", () => {
+        const href = String(el.getAttribute("href") || "");
+        if (href.includes("messages.html") || href.includes("messageboutique.html")) {
+          setMenuBadge("messages", 0);
+        }
+        if (href.includes("lead.html")) {
+          setMenuBadge("leads", 0);
+        }
         closeMenuFunc();
       });
     });
@@ -363,6 +370,7 @@
 
   async function updateMobileMenuBadges({ partnerLoggedIn, userLoggedIn }) {
     const API_ORIGIN = window.API_ORIGIN || "https://cloche-backend.onrender.com";
+    const route = currentRouteName();
 
     if (partnerLoggedIn) {
       const boutiqueId = localStorage.getItem("boutiqueId") || localStorage.getItem("selectedBoutiqueId") || "";
@@ -372,7 +380,14 @@
         const conversations = await fetchJson(`${API_ORIGIN}/api/messages/conversations/${encodeURIComponent(boutiqueId)}`);
         const unreadMessages = (Array.isArray(conversations) ? conversations : [])
           .reduce((sum, conv) => sum + Number(conv.unread_count || 0), 0);
-        setMenuBadge("messages", unreadMessages);
+        const seenMessageKey = `clocheSeenMessageUnread.partner.${boutiqueId}`;
+        if (route === "messages") {
+          localStorage.setItem(seenMessageKey, String(unreadMessages));
+          setMenuBadge("messages", 0);
+        } else {
+          const seenUnread = Number(localStorage.getItem(seenMessageKey) || 0);
+          setMenuBadge("messages", Math.max(0, unreadMessages - seenUnread));
+        }
       } catch (_) {
         setMenuBadge("messages", 0);
       }
@@ -381,7 +396,6 @@
         const leads = await fetchJson(`${API_ORIGIN}/api/leads/list/${encodeURIComponent(boutiqueId)}`);
         const totalLeads = Array.isArray(leads) ? leads.length : 0;
         const seenKey = `clocheSeenLeadCount.${boutiqueId}`;
-        const route = currentRouteName();
         if (route === "lead") {
           localStorage.setItem(seenKey, String(totalLeads));
           setMenuBadge("leads", 0);
@@ -407,7 +421,14 @@
         const conversations = await fetchJson(`${API_ORIGIN}/api/messages/customer/conversations?email=${encodeURIComponent(email)}`);
         const unreadMessages = (Array.isArray(conversations) ? conversations : [])
           .reduce((sum, conv) => sum + Number(conv.unread_count || 0), 0);
-        setMenuBadge("messages", unreadMessages);
+        const seenMessageKey = `clocheSeenMessageUnread.user.${email.toLowerCase()}`;
+        if (route === "messageboutique") {
+          localStorage.setItem(seenMessageKey, String(unreadMessages));
+          setMenuBadge("messages", 0);
+        } else {
+          const seenUnread = Number(localStorage.getItem(seenMessageKey) || 0);
+          setMenuBadge("messages", Math.max(0, unreadMessages - seenUnread));
+        }
       } catch (_) {
         setMenuBadge("messages", 0);
       }
