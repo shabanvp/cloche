@@ -13,6 +13,9 @@ const requiredComponentTokens = [
   "HERO_HEIGHT_RATIO = 0.68",
   "HERO_MIN_HEIGHT = 520",
   "HERO_MAX_HEIGHT = 760",
+  "MOBILE_HERO_HEIGHT_RATIO = 0.58",
+  "MOBILE_HERO_MIN_HEIGHT = 360",
+  "MOBILE_HERO_MAX_HEIGHT = 520",
   "getHeroHeight()",
   "mountCollectionDetailImage",
   "setImage(src)",
@@ -23,17 +26,20 @@ const requiredComponentTokens = [
 
 const requiredViewTokens = [
   "id=\"collectionDetailImageHost\"",
-  "collection-detail-image.js?v=20260507-fixed-hero-height",
+  "collection-detail-image.js?v=20260515-mobile-frame-lock",
+  "normalizeGallery(product)",
   "ensureDetailImagePanel()",
   "panel.setImage(resolveAssetUrl(gallery[currentImgIndex]))",
   "panel.setDots(gallery.length, currentImgIndex)"
 ];
 
 const requiredCssTokens = [
-  "height: clamp(520px, 68dvh, 760px) !important",
-  "aspect-ratio: auto !important",
+  "[data-collection-detail-host=\"true\"]",
+  "body.has-mobile-bars.route-viewproducts #productTitle",
+  "overflow-wrap: anywhere",
   ".collection-detail-media-frame",
-  ".collection-detail-media-image"
+  ".collection-detail-media-image",
+  "object-fit: contain !important"
 ];
 
 function assertTokens(label, source, tokens) {
@@ -62,9 +68,13 @@ function clamp(value, min, max) {
 }
 
 for (const viewportHeight of fixtureViewports) {
-  const expectedPanelHeight = Math.round(clamp(viewportHeight * 0.68, 520, 760));
+  const isMobile = viewportHeight <= 640;
+  const ratio = isMobile ? 0.58 : 0.68;
+  const min = isMobile ? 360 : 520;
+  const max = isMobile ? 520 : 760;
+  const expectedPanelHeight = Math.round(clamp(viewportHeight * ratio, min, max));
   for (const image of uploadedImageShapes) {
-    const actualPanelHeight = Math.round(clamp(viewportHeight * 0.68, 520, 760));
+    const actualPanelHeight = Math.round(clamp(viewportHeight * ratio, min, max));
     if (actualPanelHeight !== expectedPanelHeight) {
       throw new Error(`Panel height changed for ${image.name}: expected ${expectedPanelHeight}, got ${actualPanelHeight}`);
     }
