@@ -566,93 +566,6 @@
     }
   </script>
   <script>
-    function compactPromoListingsText(value) {
-      return String(value || "").toLowerCase().replace(/[^a-z0-9]/g, "");
-    }
-
-    function hasPromoListingsSignal(value) {
-      const text = compactPromoListingsText(value);
-      return text.includes("featuredlisting")
-        || text.includes("featuredlistings")
-        || text.includes("browseboutiques");
-    }
-
-    function isPromoListingsSectionText(value) {
-      const text = compactPromoListingsText(value);
-      const hasListing = text.includes("featuredlisting") || text.includes("featuredlistings");
-      const hasBrowse = text.includes("browseboutiques");
-      return hasListing || hasBrowse;
-    }
-
-    function findPromoListingsSurface(el) {
-      let current = el;
-      let surface = null;
-
-      while (current && current !== document.body && current !== document.documentElement) {
-        const tag = current.tagName;
-        if (tag === "NAV" || tag === "HEADER" || tag === "FOOTER") break;
-
-        if (isPromoListingsSectionText(current.textContent)) {
-          const containsProtectedLayout = current.querySelector("#how-it-works, #partnership, footer, nav");
-          if (!containsProtectedLayout) {
-            surface = current;
-          }
-        }
-
-        if (!current.parentElement || current.parentElement === document.body) break;
-        current = current.parentElement;
-      }
-
-      return surface || el;
-    }
-
-    function isPromoListingsPlaceholder(el) {
-      if (!el || el.nodeType !== Node.ELEMENT_NODE) return false;
-      const text = compactPromoListingsText(el.textContent);
-      const className = String(el.className || "").toLowerCase();
-      const rect = el.getBoundingClientRect();
-
-      return text.length < 32 && (
-        rect.height > 120
-        || className.includes("skeleton")
-        || className.includes("placeholder")
-        || className.includes("loading")
-        || className.includes("shimmer")
-        || className.includes("animate-pulse")
-      );
-    }
-
-    function removePromoListingsSection(root = document) {
-      const scope = root && typeof root.querySelectorAll === "function" ? root : document;
-      const nodes = [];
-
-      if (scope.nodeType === Node.ELEMENT_NODE && hasPromoListingsSignal(scope.textContent)) {
-        nodes.push(scope);
-      }
-
-      scope.querySelectorAll("section, article, div, h1, h2, h3, h4, h5, h6, span, p, a, button").forEach((el) => {
-        if (hasPromoListingsSignal(el.textContent)) nodes.push(el);
-      });
-
-      nodes.forEach((node) => {
-        if (!node.isConnected || !isPromoListingsSectionText(node.textContent)) return;
-
-        const surface = findPromoListingsSurface(node);
-        if (!surface || surface === document.body || surface === document.documentElement || !surface.isConnected) return;
-
-        const nearby = [];
-        let next = surface.nextElementSibling;
-        for (let i = 0; i < 3 && next; i += 1) {
-          if (!isPromoListingsPlaceholder(next)) break;
-          nearby.push(next);
-          next = next.nextElementSibling;
-        }
-
-        nearby.forEach((el) => el.remove());
-        surface.remove();
-      });
-    }
-
     function updateAuthNav() {
       const authNav = document.getElementById("authNav");
       const profileIconLink = document.getElementById("profileIconLink");
@@ -760,23 +673,6 @@
 
     document.addEventListener("DOMContentLoaded", () => {
       if (redirectVerificationToLogin()) return;
-
-      removePromoListingsSection();
-      window.setTimeout(removePromoListingsSection, 100);
-      window.setTimeout(removePromoListingsSection, 500);
-      window.setTimeout(removePromoListingsSection, 1500);
-
-      const promoListingsObserver = new MutationObserver((mutations) => {
-        mutations.forEach((mutation) => {
-          if (mutation.type === "characterData" && mutation.target.parentElement) {
-            removePromoListingsSection(mutation.target.parentElement);
-          }
-          mutation.addedNodes.forEach((node) => {
-            if (node.nodeType === Node.ELEMENT_NODE) removePromoListingsSection(node);
-          });
-        });
-      });
-      promoListingsObserver.observe(document.body, { childList: true, subtree: true, characterData: true });
 
       // Update UI instantly (synchronous)
       updateAuthNav();

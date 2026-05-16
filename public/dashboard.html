@@ -317,32 +317,6 @@
   <script>
     const API_ORIGIN = "https://cloche-backend.onrender.com";
 
-    function removeFeaturedListingCtas(root = document) {
-      const candidates = root.querySelectorAll("a, button");
-      candidates.forEach((el) => {
-        const text = String(el.textContent || "").toLowerCase().replace(/[^a-z0-9]/g, "");
-        if (!text.includes("featuredlisting")) return;
-        const wrapper = el.closest("[data-featured-listing-cta], .featured-listing-cta");
-        (wrapper || el).remove();
-      });
-    }
-
-    removeFeaturedListingCtas();
-
-    document.addEventListener("DOMContentLoaded", () => {
-      removeFeaturedListingCtas();
-      const observer = new MutationObserver((mutations) => {
-        mutations.forEach((mutation) => {
-          mutation.addedNodes.forEach((node) => {
-            if (node.nodeType === Node.ELEMENT_NODE) {
-              removeFeaturedListingCtas(node);
-            }
-          });
-        });
-      });
-      observer.observe(document.body, { childList: true, subtree: true });
-    });
-
     // Plan Configuration (Matches backend planService.js)
     const planConfig = {
       "early_partner": {

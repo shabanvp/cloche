@@ -591,84 +591,6 @@
     });
   }
 
-  function compactText(value) {
-    return String(value || "").toLowerCase().replace(/[^a-z0-9]/g, "");
-  }
-
-  function isLegacyPromoListingSurfaceText(text) {
-    const compacted = compactText(text);
-    return compacted.includes("featuredlisting")
-      || compacted.includes("featuredlistings")
-      || compacted.includes("browseboutiques");
-  }
-
-  function getLegacyPromoListingSurface(el) {
-    if (!el || !el.parentElement) return el;
-
-    const explicit = el.closest("[data-featured-listing-surface], [data-featured-listing-cta], .featured-listing-surface, .featured-listing-cta");
-    if (explicit) return explicit;
-
-    const section = el.closest("section, article");
-    if (section) return section;
-
-    let current = el;
-    let surface = el;
-
-    while (current && current.parentElement) {
-      const tagName = current.tagName;
-      if (tagName === "HTML" || tagName === "BODY" || tagName === "MAIN" || tagName === "NAV" || tagName === "FOOTER") break;
-      if (isLegacyPromoListingSurfaceText(current.textContent)) {
-        surface = current;
-      }
-      const parentTag = current.parentElement.tagName;
-      if (parentTag === "BODY" || parentTag === "MAIN") break;
-      current = current.parentElement;
-    }
-
-    return surface;
-  }
-
-  function removeFeaturedListingSurfaces(root = document) {
-    const scope = root && typeof root.querySelectorAll === "function" ? root : document;
-    const candidates = [];
-    if (scope.nodeType === Node.ELEMENT_NODE && isLegacyPromoListingSurfaceText(scope.textContent)) {
-      candidates.push(scope);
-    }
-    scope.querySelectorAll("section, article, div, a, button, h1, h2, h3, h4, h5, h6").forEach((el) => {
-      if (isLegacyPromoListingSurfaceText(el.textContent)) candidates.push(el);
-    });
-
-    candidates.forEach((el) => {
-      const surface = getLegacyPromoListingSurface(el);
-      if (surface && surface !== document.body && surface !== document.documentElement) surface.remove();
-    });
-  }
-
-  function setupFeaturedListingRemoval() {
-    removeFeaturedListingSurfaces();
-    window.setTimeout(removeFeaturedListingSurfaces, 250);
-    window.setTimeout(removeFeaturedListingSurfaces, 1000);
-    window.setTimeout(removeFeaturedListingSurfaces, 2500);
-
-    if (!document.body || document.documentElement.dataset.featuredListingRemovalBound === "true") return;
-    document.documentElement.dataset.featuredListingRemovalBound = "true";
-
-    const observer = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        if (mutation.type === "characterData" && mutation.target.parentElement) {
-          removeFeaturedListingSurfaces(mutation.target.parentElement);
-        }
-        mutation.addedNodes.forEach((node) => {
-          if (node.nodeType === Node.ELEMENT_NODE) {
-            removeFeaturedListingSurfaces(node);
-          }
-        });
-      });
-    });
-
-    observer.observe(document.body, { childList: true, subtree: true, characterData: true });
-  }
-
   /* -------------------------------------------------------
      Global Logout
   ------------------------------------------------------- */
@@ -749,7 +671,6 @@
     setupTopMenuFallback();
     setupPartnerSignupLinks();
     setupDesktopHeaderPatching();
-    setupFeaturedListingRemoval();
   }
 
   if (document.readyState === "loading") {
