@@ -595,14 +595,14 @@
     return String(value || "").toLowerCase().replace(/[^a-z0-9]/g, "");
   }
 
-  function isFeaturedListingSurfaceText(text) {
+  function isLegacyPromoListingSurfaceText(text) {
     const compacted = compactText(text);
     return compacted.includes("featuredlisting")
       || compacted.includes("featuredlistings")
-      || (compacted.includes("browseboutiques") && (compacted.includes("sponsored") || compacted.includes("sponsered")));
+      || compacted.includes("browseboutiques");
   }
 
-  function getFeaturedListingSurface(el) {
+  function getLegacyPromoListingSurface(el) {
     if (!el || !el.parentElement) return el;
 
     const explicit = el.closest("[data-featured-listing-surface], [data-featured-listing-cta], .featured-listing-surface, .featured-listing-cta");
@@ -617,7 +617,7 @@
     while (current && current.parentElement) {
       const tagName = current.tagName;
       if (tagName === "HTML" || tagName === "BODY" || tagName === "MAIN" || tagName === "NAV" || tagName === "FOOTER") break;
-      if (isFeaturedListingSurfaceText(current.textContent)) {
+      if (isLegacyPromoListingSurfaceText(current.textContent)) {
         surface = current;
       }
       const parentTag = current.parentElement.tagName;
@@ -631,15 +631,15 @@
   function removeFeaturedListingSurfaces(root = document) {
     const scope = root && typeof root.querySelectorAll === "function" ? root : document;
     const candidates = [];
-    if (scope.nodeType === Node.ELEMENT_NODE && isFeaturedListingSurfaceText(scope.textContent)) {
+    if (scope.nodeType === Node.ELEMENT_NODE && isLegacyPromoListingSurfaceText(scope.textContent)) {
       candidates.push(scope);
     }
     scope.querySelectorAll("section, article, div, a, button, h1, h2, h3, h4, h5, h6").forEach((el) => {
-      if (isFeaturedListingSurfaceText(el.textContent)) candidates.push(el);
+      if (isLegacyPromoListingSurfaceText(el.textContent)) candidates.push(el);
     });
 
     candidates.forEach((el) => {
-      const surface = getFeaturedListingSurface(el);
+      const surface = getLegacyPromoListingSurface(el);
       if (surface && surface !== document.body && surface !== document.documentElement) surface.remove();
     });
   }
