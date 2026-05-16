@@ -591,6 +591,53 @@
     });
   }
 
+  function compactText(value) {
+    return String(value || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+  }
+
+  function removeFeaturedListingSurfaces(root = document) {
+    const scope = root && typeof root.querySelectorAll === "function" ? root : document;
+    const candidates = scope.querySelectorAll("section, a, button, h1, h2, h3, h4, h5, h6");
+
+    candidates.forEach((el) => {
+      const text = compactText(el.textContent);
+      if (!text.includes("featuredlisting")) return;
+
+      if (el.matches("a, button")) {
+        const wrapper = el.closest("[data-featured-listing-cta], .featured-listing-cta");
+        (wrapper || el).remove();
+        return;
+      }
+
+      const section = el.closest("section");
+      if (section && section !== document.body && section !== document.documentElement) {
+        section.remove();
+        return;
+      }
+
+      el.remove();
+    });
+  }
+
+  function setupFeaturedListingRemoval() {
+    removeFeaturedListingSurfaces();
+
+    if (!document.body || document.documentElement.dataset.featuredListingRemovalBound === "true") return;
+    document.documentElement.dataset.featuredListingRemovalBound = "true";
+
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        mutation.addedNodes.forEach((node) => {
+          if (node.nodeType === Node.ELEMENT_NODE) {
+            removeFeaturedListingSurfaces(node);
+          }
+        });
+      });
+    });
+
+    observer.observe(document.body, { childList: true, subtree: true });
+  }
+
   /* -------------------------------------------------------
      Global Logout
   ------------------------------------------------------- */
@@ -671,6 +718,7 @@
     setupTopMenuFallback();
     setupPartnerSignupLinks();
     setupDesktopHeaderPatching();
+    setupFeaturedListingRemoval();
   }
 
   if (document.readyState === "loading") {

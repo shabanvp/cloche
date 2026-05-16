@@ -320,8 +320,8 @@
     function removeFeaturedListingCtas(root = document) {
       const candidates = root.querySelectorAll("a, button");
       candidates.forEach((el) => {
-        const text = String(el.textContent || "").replace(/\s+/g, " ").trim().toLowerCase();
-        if (!text.includes("featured listing")) return;
+        const text = String(el.textContent || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+        if (!text.includes("featuredlisting")) return;
         const wrapper = el.closest("[data-featured-listing-cta], .featured-listing-cta");
         (wrapper || el).remove();
       });
