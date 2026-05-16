@@ -105,27 +105,6 @@
         padding-bottom: 0 !important;
       }
 
-      #featuredCollectionsGrid {
-        display: flex !important;
-        overflow-x: auto;
-        gap: 14px;
-        padding: 0 16px 6px;
-        scroll-snap-type: x mandatory;
-        scroll-behavior: smooth;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: none;
-      }
-
-      #featuredCollectionsGrid::-webkit-scrollbar {
-        display: none;
-      }
-
-      #featuredCollectionsGrid .featured-collection-card {
-        flex: 0 0 86%;
-        max-width: 86%;
-        scroll-snap-align: start;
-      }
-
       .index-footer {
         padding: 22px 18px 16px !important;
       }
@@ -345,21 +324,8 @@
       </div>
     </div>
   </section>
-  <!-- Featured Collections -->
-  <section class="pt-20 pb-10 px-6 max-w-7xl mx-auto">
-    <div class="flex items-end justify-between mb-12 px-4">
-      <div>
-        <span class="text-primary tracking-[0.4em] uppercase text-xs mb-4 block">Collections</span>
-        <h2 class="text-4xl md:text-5xl font-display text-white">Featured Collections</h2>
-      </div>
-      <a class="text-sm uppercase tracking-widest border-b border-primary text-primary pb-1" href="collection.html">View
-        All</a>
-    </div>
-    <div id="featuredCollectionsStatus" class="hidden text-sm text-gray-400 px-4 mb-6">Loading collections...</div>
-    <div id="featuredCollectionsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"></div>
-  </section>
   <!-- Boutique Partnership -->
-  <section id="partnership" class="pt-12 pb-24 px-6 max-w-7xl mx-auto">
+  <section id="partnership" class="py-24 px-6 max-w-7xl mx-auto">
     <div class="text-center mb-16">
       <h2 class="text-4xl md:text-5xl font-display text-white mb-6">Partner with CLOCHE</h2>
       <p class="text-gray-400 max-w-2xl mx-auto">Join an elite circle of boutique owners. Monetize your inventory and
@@ -593,7 +559,6 @@
 
 
 
-  <script src="product-upload-utils.js?v=20260515-upload-normalizer"></script>
   <script>
     function handleSubscriptionClick() {
       // Direct to plans; subscription.html will handle login if they try to buy
@@ -601,69 +566,6 @@
     }
   </script>
   <script>
-    const API_AUTH = "https://cloche-backend.onrender.com/api/auth";
-    const API_BASE = "https://cloche-backend.onrender.com/api";
-    const API_ORIGIN = "https://cloche-backend.onrender.com";
-    let cloudinaryCloudName = "";
-    const COLLECTIONS_CACHE_KEY = "featuredCollectionsCacheV1";
-    const FEATURED_RETRY_DELAYS_MS = [0, 2000, 5000]; // Give Render backends some time between attempts
-    const FEATURED_FETCH_TIMEOUT_MS = 60000; // 60 second timeout per fetch to allow free-tier spin up
-    const FEATURED_COLLECTIONS_LIMIT = 4;
-    let collectionsLoadInProgress = false;
-    let collectionsRetryTimer = null;
-    const previewFallbackImages = [
-      "https://images.unsplash.com/photo-1583391733981-849840f3f1c2?q=80&w=1200&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=1200&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1542060748-10c28b62716f?q=80&w=1200&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?q=80&w=1200&auto=format&fit=crop"
-    ];
-
-    function resolveAssetUrl(url) {
-      if (window.CLOCHE_PRODUCTS?.resolveAssetUrl) return window.CLOCHE_PRODUCTS.resolveAssetUrl(url, API_ORIGIN);
-      let raw = String(url || "").trim();
-      if (!raw) return "";
-      if (/^data:image\//i.test(raw)) return raw;
-
-      if (raw.includes("localhost") || raw.includes("127.0.0.1")) {
-        try {
-          const u = new URL(raw);
-          raw = u.pathname;
-        } catch (e) { }
-      }
-      if (/^https?:\/\//i.test(raw)) return raw;
-
-      const normalized = raw.replace(/\\/g, "/");
-      const lower = normalized.toLowerCase();
-      const uploadsWithSlash = lower.indexOf("/uploads/");
-      if (uploadsWithSlash >= 0) return `${API_ORIGIN}${normalized.slice(uploadsWithSlash)}`;
-      const uploadsNoSlash = lower.indexOf("uploads/");
-      if (uploadsNoSlash >= 0) return `${API_ORIGIN}/${normalized.slice(uploadsNoSlash)}`;
-
-      // Try to detect Cloudinary public ID (has .png .jpg .jpeg .webp) without being a full path
-      if (/\.(png|jpg|jpeg|webp)$/i.test(normalized) && !normalized.includes("/")) {
-        const cloudName = cloudinaryCloudName || 'dycwsnzyd'; // Fallback to known cloud name
-        return `https://res.cloudinary.com/${cloudName}/image/upload/${normalized}`;
-      }
-
-      if (cloudinaryCloudName) {
-        return `https://res.cloudinary.com/${cloudinaryCloudName}/image/upload/${normalized.replace(/^\/+/, "")}`;
-      }
-
-      return `${API_ORIGIN}${normalized.startsWith("/") ? "" : "/"}${normalized}`;
-    }
-    async function loadCloudinaryConfig() {
-      try {
-        const res = await fetch(`${API_AUTH}/cloudinary-config`);
-        const data = await res.json();
-        if (res.ok) cloudinaryCloudName = String(data.cloudName || "").trim();
-      } catch (_) { }
-    }
-
-    function pickImage(seed) {
-      const label = encodeURIComponent(String(seed || "CLOCHE").slice(0, 32));
-      return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 800'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23201812'/%3E%3Cstop offset='0.55' stop-color='%230d0d0d'/%3E%3Cstop offset='1' stop-color='%23c1a671'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='600' height='800' fill='%230d0d0d'/%3E%3Crect width='600' height='800' fill='url(%23g)' opacity='0.34'/%3E%3Ctext x='50%25' y='50%25' fill='%23c1a671' font-family='serif' font-size='34' letter-spacing='8' text-anchor='middle'%3E${label}%3C/text%3E%3C/svg%3E`;
-    }
-
     function updateAuthNav() {
       const authNav = document.getElementById("authNav");
       const profileIconLink = document.getElementById("profileIconLink");
@@ -752,205 +654,6 @@
       }
     }
 
-    function showCollectionSkeletons(count = FEATURED_COLLECTIONS_LIMIT) {
-      const grid = document.getElementById("featuredCollectionsGrid");
-      if (!grid) return;
-      grid.innerHTML = Array(count).fill(0).map(() => `
-        <div class="featured-collection-card relative aspect-[3/4] rounded-xl overflow-hidden glass-card animate-pulse">
-          <div class="absolute inset-0 bg-gray-700/30"></div>
-          <div class="absolute bottom-6 left-6 right-6 space-y-3">
-            <div class="h-3 bg-gray-600/50 rounded w-20"></div>
-            <div class="h-5 bg-gray-600/50 rounded w-3/4"></div>
-            <div class="h-2 bg-gray-600/50 rounded w-1/2"></div>
-          </div>
-        </div>
-      `).join("");
-    }
-
-    function normalizePlan(plan) {
-      const normalized = String(plan || "").trim().toLowerCase();
-      if (["early", "basic", "early partner", "early_partner"].includes(normalized)) return "early_partner";
-      if (normalized === "pro") return "premium";
-      return normalized;
-    }
-
-    function shouldShowVerifiedBadge(item) {
-      if (item?.is_verified_partner_product === true) return true;
-      const plan = normalizePlan(item?.boutique_plan || item?.plan);
-      return plan === "professional" || plan === "premium";
-    }
-
-    function renderFeaturedCollections(items) {
-      const grid = document.getElementById("featuredCollectionsGrid");
-      const status = document.getElementById("featuredCollectionsStatus");
-      if (!grid || !status) return;
-
-      if (!Array.isArray(items) || !items.length) {
-        status.textContent = "No live collections available yet.";
-        grid.innerHTML = "";
-        return;
-      }
-
-      status.textContent = "";
-      grid.innerHTML = items.map((item, idx) => {
-        const images = window.CLOCHE_PRODUCTS?.getProductImages
-          ? window.CLOCHE_PRODUCTS.getProductImages(item, API_ORIGIN)
-          : [];
-        const image = images[0] || resolveAssetUrl(item.image_url || (Array.isArray(item.gallery) ? item.gallery[0] : "")) || pickImage(`collection-${idx}-${item.product_name || item.category}`);
-        const title = String(item.product_name || "Collection").toUpperCase();
-        const subtitle = String(item.category || item.boutique_name || "Partner Collection").trim().toUpperCase();
-        const district = String(item.district || item.city || "Kerala").toUpperCase();
-        const boutiqueId = String(item.boutique_id || "").trim();
-        const productId = String(item.id || "").trim();
-        const href = productId ? `viewproducts.html?productId=${encodeURIComponent(productId)}` : "collection.html";
-        const verifiedBadge = ""; // Removed from collection cards as per request
-
-        return `
-          <a href="${href}" onclick="${boutiqueId ? `localStorage.setItem('selectedBoutiqueId','${boutiqueId}')` : ""}" class="featured-collection-card listing-product-card product-image-frame group relative aspect-[3/4] rounded-xl overflow-hidden glass-card shimmer-effect cursor-pointer block">
-            <img
-              class="product-image absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-              src="${image}"
-              alt="${title}"
-              loading="lazy"
-              onerror="this.onerror=null;this.src='${pickImage(`collection-${idx}-${title}`)}'"
-            />
-            ${verifiedBadge}
-            <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-black/15"></div>
-            <div class="absolute inset-0 p-6 flex flex-col justify-end">
-              <p class="text-xs uppercase tracking-[0.25em] text-primary mb-2">${district}</p>
-              <h3 class="text-xl font-display text-white mb-2">${title}</h3>
-              <p class="text-[11px] uppercase tracking-[0.2em] text-white/70 mb-1">${subtitle}</p>
-              <div class="h-[1px] w-0 group-hover:w-full bg-primary transition-all duration-500 mt-4"></div>
-            </div>
-          </a>
-        `;
-      }).join("");
-    }
-
-    function loadFeaturedCollectionsFromCache() {
-      try {
-        const cached = localStorage.getItem(COLLECTIONS_CACHE_KEY);
-        if (cached) {
-          const { data, timestamp } = JSON.parse(cached);
-          const ageHours = (Date.now() - timestamp) / (1000 * 60 * 60);
-          if (ageHours < 24) {
-            console.log("[Collections] Serving from cache, age:", ageHours.toFixed(2), "hours");
-            renderFeaturedCollections(data.slice(0, FEATURED_COLLECTIONS_LIMIT));
-            return true;
-          }
-        }
-      } catch (e) {
-        console.warn("[Collections] Cache read error:", e);
-      }
-      return false;
-    }
-
-    async function fetchFeaturedCollectionsWithRetry(statusEl) {
-      let lastError = null;
-      for (let attempt = 0; attempt < FEATURED_RETRY_DELAYS_MS.length; attempt += 1) {
-        const delay = FEATURED_RETRY_DELAYS_MS[attempt];
-        if (delay > 0) {
-          if (statusEl) {
-            statusEl.textContent = `Loading collections... (attempt ${attempt + 1}/${FEATURED_RETRY_DELAYS_MS.length})`;
-          }
-          await wait(delay);
-        }
-
-        try {
-          console.log(`[Collections] Fetch attempt ${attempt + 1} with ${FEATURED_FETCH_TIMEOUT_MS}ms timeout...`);
-          const res = await fetchWithTimeout(`${API_BASE}/products`, FEATURED_FETCH_TIMEOUT_MS);
-          const data = await res.json().catch(() => []);
-          if (!res.ok) throw new Error(data.message || "Failed to load collections");
-          console.log(`[Collections] Fetch successful on attempt ${attempt + 1}`);
-          return Array.isArray(data) ? data : [];
-        } catch (err) {
-          console.log(`[Collections] Attempt ${attempt + 1} failed:`, err.message);
-          lastError = err;
-        }
-      }
-      throw lastError || new Error("Failed to load collections");
-    }
-
-    async function loadFeaturedCollections() {
-      if (collectionsLoadInProgress) return;
-      collectionsLoadInProgress = true;
-      const status = document.getElementById("featuredCollectionsStatus");
-      const grid = document.getElementById("featuredCollectionsGrid");
-
-      try {
-        // Try cache first for instant display
-        const hasCache = loadFeaturedCollectionsFromCache();
-
-        if (!hasCache && status) {
-          // Only show skeletons if no cache available
-          const cachedData = localStorage.getItem(COLLECTIONS_CACHE_KEY);
-          let cachedItems = [];
-          try {
-            if (cachedData) {
-              const parsed = JSON.parse(cachedData);
-              cachedItems = Array.isArray(parsed?.data) ? parsed.data : [];
-            }
-          } catch (_) { }
-
-          const skeletonCount = cachedItems.length > 0 ? Math.min(cachedItems.length, FEATURED_COLLECTIONS_LIMIT) : 1;
-          showCollectionSkeletons(skeletonCount);
-          if (status) status.textContent = "Loading collections...";
-        } else if (hasCache && status) {
-          if (status) status.textContent = "";
-        }
-
-        // Fetch fresh data in background
-        const data = await fetchFeaturedCollectionsWithRetry(status);
-        const sortedItems = data.sort((a, b) => {
-          const aTime = new Date(a.created_at || 0).getTime();
-          const bTime = new Date(b.created_at || 0).getTime();
-          return bTime - aTime;
-        });
-
-        localStorage.setItem(COLLECTIONS_CACHE_KEY, JSON.stringify({
-          data: sortedItems,
-          timestamp: Date.now()
-        }));
-
-        renderFeaturedCollections(sortedItems.slice(0, FEATURED_COLLECTIONS_LIMIT));
-        if (status) status.textContent = "";
-        console.log(`[Collections] Successfully loaded ${sortedItems.length} items`);
-      } catch (err) {
-        console.log("[Collections] Load failed, trying cache:", err.message);
-        const hasCache = loadFeaturedCollectionsFromCache();
-        if (!hasCache) {
-          showCollectionSkeletons(1);
-          if (status) status.textContent = "Unable to load collections. Retrying...";
-        }
-        if (!collectionsRetryTimer) {
-          collectionsRetryTimer = setTimeout(() => {
-            collectionsRetryTimer = null;
-            console.log("[Collections] Retrying load...");
-            loadFeaturedCollections();
-          }, 5000);
-        }
-      } finally {
-        collectionsLoadInProgress = false;
-      }
-    }
-
-    function wait(ms) {
-      return new Promise((resolve) => setTimeout(resolve, ms));
-    }
-
-    async function fetchWithTimeout(url, timeoutMs) {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-      try {
-        const res = await fetch(url, { signal: controller.signal });
-        clearTimeout(timeoutId);
-        return res;
-      } catch (error) {
-        clearTimeout(timeoutId);
-        throw error;
-      }
-    }
-
     function redirectVerificationToLogin() {
       const params = new URLSearchParams(window.location.search);
       const isVerifiedFlow = params.get("verified") === "true" || params.get("status") === "verified";
@@ -973,10 +676,6 @@
 
       // Update UI instantly (synchronous)
       updateAuthNav();
-
-      // Start background loading (non-blocking)
-      loadCloudinaryConfig().catch(() => { });
-      loadFeaturedCollections().catch(() => { });
 
       // Setup menu click handler
       document.addEventListener("click", (e) => {
