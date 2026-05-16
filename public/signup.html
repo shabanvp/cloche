@@ -346,7 +346,8 @@
             // Account created, but the email provider is temporarily unavailable.
             showSuccessModal(true, userEmail, result.verification_url);
           } else {
-            showSuccessModal(false, userEmail, "", true);
+            // Full success (the email provider accepted the message)
+            showSuccessModal(false, userEmail, "", false, result.email?.is_test ? result.email.test_url : "");
           }
         } else {
           alert(result.message || "Signup failed. Please try again.");
@@ -407,14 +408,15 @@
           };
         }
       } else {
-        modalIcon.textContent = "verified";
+        modalIcon.textContent = "mail";
         modalIcon.classList.remove("text-amber-400");
         modalIcon.classList.add("text-primary");
-        modalTitle.textContent = "ACCOUNT READY";
-        modalDesc.innerHTML = `Your account has been created for <strong class="text-white">${email}</strong>.`;
-        modalSubDesc.textContent = "You can log in now.";
-        modalSpinner.classList.add("hidden");
-        goLoginBtn.textContent = "Continue to Login";
+        modalTitle.textContent = testEmailUrl ? "TEST EMAIL SENT" : "CHECK YOUR INBOX";
+        modalDesc.innerHTML = testEmailUrl
+          ? `A test verification email has been sent for <strong class="text-white">${email}</strong>. You can view the message below.`
+          : `Gmail accepted a verification email for <strong class="text-white">${email}</strong>. Please check Inbox, Promotions, and Spam.`;
+        modalSubDesc.textContent = testEmailUrl ? "Click below to see the luxury email message." : "After you verify, you'll be automatically redirected to login.";
+        modalSpinner.classList.toggle("hidden", !!testEmailUrl);
 
         if (testEmailUrl) {
           manualVerifyBtn.classList.remove("hidden");
@@ -552,20 +554,20 @@
         <span id="modalIcon" class="material-symbols-outlined text-primary text-4xl">verified</span>
       </div>
       <div>
-        <h2 id="modalTitle" class="font-display text-white text-2xl font-bold tracking-widest mb-3 uppercase">Account
-          Ready</h2>
+        <h2 id="modalTitle" class="font-display text-white text-2xl font-bold tracking-widest mb-3 uppercase">Check Your
+          Inbox</h2>
         <p id="modalDesc" class="text-white/60 text-sm font-light leading-relaxed mb-2">
-          Your account has been created.
+          Gmail accepted a verification email for your address. Please check Inbox, Promotions, and Spam.
         </p>
         <p id="modalSubDesc" class="text-white/50 text-xs font-light">
-          You can log in now.
+          After you verify, you'll be automatically redirected to login.
         </p>
       </div>
 
-      <!-- Spinner (shown when email was sent OK) -->
-      <div id="modalSpinner" class="hidden w-full items-center justify-center gap-2 mt-2">
+      <!-- Spinner (shown when email was accepted by the provider) -->
+      <div id="modalSpinner" class="w-full flex items-center justify-center gap-2 mt-2">
         <div class="animate-spin w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full"></div>
-        <p class="text-white/60 text-xs">Account ready.</p>
+        <p class="text-white/60 text-xs">Waiting for verification...</p>
       </div>
 
       <!-- Manual Verification Button (shown when email failed) -->

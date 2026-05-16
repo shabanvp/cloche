@@ -9,6 +9,14 @@ const CLOUDINARY_CLOUD_NAME = String(process.env.CLOUDINARY_CLOUD_NAME || "").tr
 const BACKEND_BASE_URL = String(process.env.BACKEND_BASE_URL || process.env.RENDER_EXTERNAL_URL || "https://cloche-backend.onrender.com").trim().replace(/\/+$/, "");
 const FRONTEND_BASE_URL = String(process.env.FRONTEND_BASE_URL || "https://cloche-backend.onrender.com").trim().replace(/\/+$/, "");
 
+const emailAcceptedPayload = (emailResult) => ({
+    sent: true,
+    messageId: emailResult?.messageId || null,
+    method: emailResult?.method || null,
+    is_test: emailResult?.isTest || false,
+    test_url: emailResult?.testUrl || ""
+});
+
 const normalizeTags = (value) => {
     const raw = String(value || "").trim();
     if (!raw) return "";
@@ -367,8 +375,12 @@ exports.resendVerification = async (req, res) => {
             });
         }
 
-        console.log(`[Auth] Verification email sent successfully to ${email}`);
-        return res.json({ success: true, message: "Verification email sent." });
+        console.log(`[Auth] Verification email accepted for ${email} via ${emailResult.method || "unknown"}`);
+        return res.json({
+            success: true,
+            message: "Verification email accepted.",
+            email: emailAcceptedPayload(emailResult)
+        });
     } catch (err) {
         console.error("[Auth] Resend verification exception:", err.message);
         console.error("[Auth] Full exception:", err);

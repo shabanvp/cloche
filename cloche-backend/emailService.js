@@ -75,6 +75,8 @@ const createEmailMessage = (to, subject, html, fromName = "Cloche Luxury") => {
   const lines = [
     `From: "${escapeHeader(fromName)}" <${GMAIL_USER}>`,
     `To: ${escapeHeader(to)}`,
+    `Date: ${new Date().toUTCString()}`,
+    `Message-ID: <${Date.now()}.${Math.random().toString(36).slice(2)}@cloche>`,
     "Content-Type: text/html; charset=UTF-8",
     "MIME-Version: 1.0",
     `Subject: ${escapeHeader(subject)}`,
@@ -82,7 +84,7 @@ const createEmailMessage = (to, subject, html, fromName = "Cloche Luxury") => {
     html
   ];
 
-  return encodeMessage(lines.join("\n"));
+  return encodeMessage(lines.join("\r\n"));
 };
 
 const resolveSmtpIpv4 = async () => {
@@ -197,6 +199,8 @@ const sendEmailMessage = async ({ to, subject, html, fromName }) => {
       if (response.data && response.data.id) {
         return { success: true, messageId: response.data.id, method: "gmail-api-https" };
       }
+
+      throw new Error("Gmail API accepted the request but did not return a message id.");
     } catch (error) {
       const apiError = error?.response?.data?.error?.message || error.message;
       console.error("[EmailService] Gmail API Error:", apiError);
@@ -255,7 +259,7 @@ const sendVerificationEmail = async (email, name, token, type) => {
   });
 
   if (result.success) {
-    console.log(`Verification email sent to ${email} via ${result.method || "email provider"}`);
+    console.log(`Verification email accepted for ${email} via ${result.method || "email provider"} (${result.messageId || "no-message-id"})`);
   } else {
     console.error(`Verification email failed for ${email}: ${result.error || "unknown email error"}`);
   }
@@ -353,7 +357,7 @@ const getEmailServiceStatus = async () => {
   const userPrefix = GMAIL_USER ? GMAIL_USER.substring(0, 3) : "???";
   const userSuffix = GMAIL_USER ? GMAIL_USER.split("@")[1] : "???";
 
-  return {
+  const status = {
     configured: isSetup,
     user: `${userPrefix}...@${userSuffix}`,
     hasClientId: !!GMAIL_CLIENT_ID,
@@ -369,6 +373,24 @@ const getEmailServiceStatus = async () => {
     backendUrl: BACKEND_BASE_URL,
     frontendUrl: FRONTEND_BASE_URL,
   };
+
+  if (hasGmailApiSetup) {
+    try {
+      const { token } = await oauth2Client.getAccessToken();
+      status.gmailTokenValid = !!token;
+      if (token) {
+        const profile = await gmail.users.getProfile({ userId: "me" });
+        status.gmailProfileEmail = profile?.data?.emailAddress
+          ? profile.data.emailAddress.replace(/^(.{3}).*(@.*)$/, "$1...$2")
+          : null;
+      }
+    } catch (error) {
+      status.gmailTokenValid = false;
+      status.gmailError = error?.response?.data?.error?.message || error.message || "Gmail validation failed";
+    }
+  }
+
+  return status;
 };
 
 module.exports = {
