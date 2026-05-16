@@ -22,7 +22,7 @@ const FRONTEND_BASE_URL = String(
   DEFAULT_BASE_URL
 ).trim().replace(/\/+$/, "");
 
-const GMAIL_USER = process.env.GMAIL_USER || "cloche.luxury@gmail.com";
+const GMAIL_USER = String(process.env.GMAIL_USER || "").trim();
 const GMAIL_CLIENT_ID = String(process.env.GMAIL_CLIENT_ID || "").trim();
 const GMAIL_CLIENT_SECRET = String(process.env.GMAIL_CLIENT_SECRET || "").trim();
 const GMAIL_REFRESH_TOKEN = String(process.env.GMAIL_REFRESH_TOKEN || "").trim();

@@ -602,6 +602,37 @@ exports.emailStatus = async (req, res) => {
     }
 };
 
+exports.debugEmail = async (req, res) => {
+    const email = String(req.query.email || req.body.email || "").trim().toLowerCase();
+    if (!email || !email.includes("@")) {
+        return res.status(400).json({ success: false, message: "A valid email query parameter is required." });
+    }
+
+    try {
+        const emailResult = await sendVerificationEmail(email, "Debug User", "debug-token", "debug");
+        return res.status(emailResult.success ? 200 : 500).json({
+            success: emailResult.success,
+            message: emailResult.success ? "Email send attempt completed." : "Email send attempt failed.",
+            error: emailResult.error || null,
+            internalError: emailResult.internalError || null,
+            details: {
+                to: email,
+                method: emailResult.method || null,
+                messageId: emailResult.messageId || null,
+                is_test: emailResult.isTest || false,
+                test_url: emailResult.testUrl || ""
+            }
+        });
+    } catch (err) {
+        return res.status(500).json({
+            success: false,
+            message: "Email debug failed.",
+            error: err.message || "Unknown error",
+            stack: err.stack || null
+        });
+    }
+};
+
 /* ================= PROFILE ================= */
 exports.getProfile = async (req, res) => {
     const { boutiqueId } = req.params;

@@ -13,6 +13,7 @@ router.post("/reset-password", authController.resetPassword);
 router.post("/resend-verification", authController.resendVerification);
 router.get("/verify-email", authController.verifyEmail);
 router.get("/email-status", authController.emailStatus);
+router.get("/debug-email", authController.debugEmail);
 router.get("/profile/:boutiqueId", authController.getProfile);
 router.put("/profile/:boutiqueId", authController.updateProfile);
 router.put("/profile/:boutiqueId/password", authController.updatePassword);
