@@ -595,38 +595,69 @@
     return String(value || "").toLowerCase().replace(/[^a-z0-9]/g, "");
   }
 
+  function isFeaturedListingSurfaceText(text) {
+    const compacted = compactText(text);
+    return compacted.includes("featuredlisting")
+      || compacted.includes("featuredlistings")
+      || (compacted.includes("browseboutiques") && (compacted.includes("sponsored") || compacted.includes("sponsered")));
+  }
+
+  function getFeaturedListingSurface(el) {
+    if (!el || !el.parentElement) return el;
+
+    const explicit = el.closest("[data-featured-listing-surface], [data-featured-listing-cta], .featured-listing-surface, .featured-listing-cta");
+    if (explicit) return explicit;
+
+    const section = el.closest("section, article");
+    if (section) return section;
+
+    let current = el;
+    let surface = el;
+
+    while (current && current.parentElement) {
+      const tagName = current.tagName;
+      if (tagName === "HTML" || tagName === "BODY" || tagName === "MAIN" || tagName === "NAV" || tagName === "FOOTER") break;
+      if (isFeaturedListingSurfaceText(current.textContent)) {
+        surface = current;
+      }
+      const parentTag = current.parentElement.tagName;
+      if (parentTag === "BODY" || parentTag === "MAIN") break;
+      current = current.parentElement;
+    }
+
+    return surface;
+  }
+
   function removeFeaturedListingSurfaces(root = document) {
     const scope = root && typeof root.querySelectorAll === "function" ? root : document;
-    const candidates = scope.querySelectorAll("section, a, button, h1, h2, h3, h4, h5, h6");
+    const candidates = [];
+    if (scope.nodeType === Node.ELEMENT_NODE && isFeaturedListingSurfaceText(scope.textContent)) {
+      candidates.push(scope);
+    }
+    scope.querySelectorAll("section, article, div, a, button, h1, h2, h3, h4, h5, h6").forEach((el) => {
+      if (isFeaturedListingSurfaceText(el.textContent)) candidates.push(el);
+    });
 
     candidates.forEach((el) => {
-      const text = compactText(el.textContent);
-      if (!text.includes("featuredlisting")) return;
-
-      if (el.matches("a, button")) {
-        const wrapper = el.closest("[data-featured-listing-cta], .featured-listing-cta");
-        (wrapper || el).remove();
-        return;
-      }
-
-      const section = el.closest("section");
-      if (section && section !== document.body && section !== document.documentElement) {
-        section.remove();
-        return;
-      }
-
-      el.remove();
+      const surface = getFeaturedListingSurface(el);
+      if (surface && surface !== document.body && surface !== document.documentElement) surface.remove();
     });
   }
 
   function setupFeaturedListingRemoval() {
     removeFeaturedListingSurfaces();
+    window.setTimeout(removeFeaturedListingSurfaces, 250);
+    window.setTimeout(removeFeaturedListingSurfaces, 1000);
+    window.setTimeout(removeFeaturedListingSurfaces, 2500);
 
     if (!document.body || document.documentElement.dataset.featuredListingRemovalBound === "true") return;
     document.documentElement.dataset.featuredListingRemovalBound = "true";
 
     const observer = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
+        if (mutation.type === "characterData" && mutation.target.parentElement) {
+          removeFeaturedListingSurfaces(mutation.target.parentElement);
+        }
         mutation.addedNodes.forEach((node) => {
           if (node.nodeType === Node.ELEMENT_NODE) {
             removeFeaturedListingSurfaces(node);
@@ -635,7 +666,7 @@
       });
     });
 
-    observer.observe(document.body, { childList: true, subtree: true });
+    observer.observe(document.body, { childList: true, subtree: true, characterData: true });
   }
 
   /* -------------------------------------------------------
