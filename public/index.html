@@ -105,27 +105,6 @@
         padding-bottom: 0 !important;
       }
 
-      #featuredBoutiquesGrid {
-        display: flex !important;
-        overflow-x: auto;
-        gap: 14px;
-        padding: 0 16px 6px;
-        scroll-snap-type: x mandatory;
-        scroll-behavior: smooth;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: none;
-      }
-
-      #featuredBoutiquesGrid::-webkit-scrollbar {
-        display: none;
-      }
-
-      #featuredBoutiquesGrid .featured-boutique-card {
-        flex: 0 0 86%;
-        max-width: 86%;
-        scroll-snap-align: start;
-      }
-
       #featuredCollectionsGrid {
         display: flex !important;
         overflow-x: auto;
@@ -310,19 +289,6 @@
 
       </div>
     </div>
-  </section>
-  <!-- Boutiques Section -->
-  <section class="py-24 px-6 max-w-7xl mx-auto">
-    <div class="flex items-end justify-between mb-16 px-4">
-      <div>
-        <span class="text-primary tracking-[0.4em] uppercase text-xs mb-4 block">Curation</span>
-        <h2 class="text-4xl md:text-5xl font-display text-white">Featured Boutiques</h2>
-      </div>
-      <a class="text-sm uppercase tracking-widest border-b border-primary text-primary pb-1" href="boutiques.html">View
-        All</a>
-    </div>
-    <div id="featuredBoutiquesStatus" class="hidden text-sm text-gray-400 px-4 mb-6">Loading boutiques...</div>
-    <div id="featuredBoutiquesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"></div>
   </section>
   <!-- How it Works: The Royal Journey -->
   <section id="how-it-works" class="py-24 bg-surface-dark/50">
@@ -643,15 +609,11 @@
     const API_BASE = "https://cloche-backend.onrender.com/api";
     const API_ORIGIN = "https://cloche-backend.onrender.com";
     let cloudinaryCloudName = "";
-    const FEATURED_CACHE_KEY = "featuredBoutiquesCacheV3";
     const COLLECTIONS_CACHE_KEY = "featuredCollectionsCacheV1";
     const FEATURED_RETRY_DELAYS_MS = [0, 2000, 5000]; // Give Render backends some time between attempts
     const FEATURED_FETCH_TIMEOUT_MS = 60000; // 60 second timeout per fetch to allow free-tier spin up
-    const FEATURED_BOUTIQUES_LIMIT = 4;
     const FEATURED_COLLECTIONS_LIMIT = 4;
-    let featuredLoadInProgress = false;
     let collectionsLoadInProgress = false;
-    let featuredRetryTimer = null;
     let collectionsRetryTimer = null;
     const previewFallbackImages = [
       "https://images.unsplash.com/photo-1583391733981-849840f3f1c2?q=80&w=1200&auto=format&fit=crop",
@@ -704,30 +666,6 @@
     function pickImage(seed) {
       const label = encodeURIComponent(String(seed || "CLOCHE").slice(0, 32));
       return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 800'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23201812'/%3E%3Cstop offset='0.55' stop-color='%230d0d0d'/%3E%3Cstop offset='1' stop-color='%23c1a671'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='600' height='800' fill='%230d0d0d'/%3E%3Crect width='600' height='800' fill='url(%23g)' opacity='0.34'/%3E%3Ctext x='50%25' y='50%25' fill='%23c1a671' font-family='serif' font-size='34' letter-spacing='8' text-anchor='middle'%3E${label}%3C/text%3E%3C/svg%3E`;
-    }
-
-    function normalizeLocationParts(boutique) {
-      const city = String(boutique?.city || "").trim();
-      let district = String(boutique?.district || "").trim();
-      let area = String(boutique?.area || "").trim();
-
-      if (!area && city.includes(",")) {
-        area = city.split(",")[0].trim();
-      }
-
-      if (!district) {
-        if (city.includes(",")) {
-          district = city.split(",").slice(1).join(",").trim();
-        } else {
-          district = city;
-        }
-      }
-
-      if (area && district && area.toLowerCase() === district.toLowerCase()) {
-        area = "";
-      }
-
-      return { area, district };
     }
 
     function updateAuthNav() {
@@ -818,21 +756,6 @@
       }
     }
 
-    function showSkeletons(count = FEATURED_BOUTIQUES_LIMIT) {
-      const grid = document.getElementById("featuredBoutiquesGrid");
-      if (!grid) return;
-      grid.innerHTML = Array(count).fill(0).map(() => `
-        <div class="featured-boutique-card relative aspect-[3/4] rounded-xl overflow-hidden glass-card animate-pulse">
-          <div class="absolute inset-0 bg-gray-700/30"></div>
-          <div class="absolute bottom-6 left-6 right-6 space-y-3">
-            <div class="h-3 bg-gray-600/50 rounded w-20"></div>
-            <div class="h-5 bg-gray-600/50 rounded w-3/4"></div>
-            <div class="h-2 bg-gray-600/50 rounded w-1/2"></div>
-          </div>
-        </div>
-      `).join("");
-    }
-
     function showCollectionSkeletons(count = FEATURED_COLLECTIONS_LIMIT) {
       const grid = document.getElementById("featuredCollectionsGrid");
       if (!grid) return;
@@ -848,49 +771,6 @@
       `).join("");
     }
 
-    function renderFeaturedBoutiques(list) {
-      const grid = document.getElementById("featuredBoutiquesGrid");
-      const status = document.getElementById("featuredBoutiquesStatus");
-      if (!grid || !status) return;
-
-      if (!Array.isArray(list) || !list.length) {
-        status.textContent = "No boutiques available yet.";
-        grid.innerHTML = "";
-        return;
-      }
-
-      status.textContent = "";
-      grid.innerHTML = list.map((b, idx) => {
-        const rawImage = b.image_url || b.showcase_image || "";
-        const resolved = rawImage ? resolveAssetUrl(rawImage) : null;
-        const fallback = resolved ? resolved : pickImage(`${b.id}-${b.boutique_name}-${idx}`);
-        const image = fallback;
-        const location = normalizeLocationParts(b);
-        const district = (location.district || "Kerala").toUpperCase();
-        const area = (location.area || location.district || "Location").toUpperCase();
-        const name = (b.boutique_name || "Boutique").toUpperCase();
-
-        return `
-        <a href="viewboutique.html?boutiqueId=${b.id}" onclick="localStorage.setItem('selectedBoutiqueId','${b.id}'); localStorage.setItem('selectedBoutiqueName', ${JSON.stringify(String(b.boutique_name || ""))})" class="featured-boutique-card group relative aspect-[3/4] rounded-xl overflow-hidden glass-card shimmer-effect cursor-pointer block">
-          <img
-            class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-            src="${image}"
-            alt="${name}"
-            loading="lazy"
-            onerror="console.warn('Image failed to load:', this.src); this.onerror=null;this.src='${pickImage(`${b.id}-${b.boutique_name}-${idx}`)}'"
-          />
-          <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-black/15"></div>
-          <div class="absolute inset-0 p-6 flex flex-col justify-end">
-            <p class="text-xs uppercase tracking-[0.25em] text-primary mb-2">${district}</p>
-            <h3 class="text-xl font-display text-white mb-2">${name}</h3>
-            <p class="text-[11px] uppercase tracking-[0.2em] text-white/70 mb-1">${area}</p>
-            <div class="h-[1px] w-0 group-hover:w-full bg-primary transition-all duration-500 mt-4"></div>
-          </div>
-        </a>
-      `;
-      }).join("");
-    }
-
     function normalizePlan(plan) {
       const normalized = String(plan || "").trim().toLowerCase();
       if (["early", "basic", "early partner", "early_partner"].includes(normalized)) return "early_partner";
@@ -902,14 +782,6 @@
       if (item?.is_verified_partner_product === true) return true;
       const plan = normalizePlan(item?.boutique_plan || item?.plan);
       return plan === "professional" || plan === "premium";
-    }
-
-    function sortPremiumFirst(list) {
-      return [...list].sort((a, b) => {
-        if (normalizePlan(a.plan) === "premium" && normalizePlan(b.plan) !== "premium") return -1;
-        if (normalizePlan(b.plan) === "premium" && normalizePlan(a.plan) !== "premium") return 1;
-        return 0;
-      });
     }
 
     function renderFeaturedCollections(items) {
@@ -1066,22 +938,6 @@
       }
     }
 
-    function loadFeaturedBoutiquesFromCache() {
-      try {
-        const raw = localStorage.getItem(FEATURED_CACHE_KEY);
-        if (!raw) return false;
-        const parsed = JSON.parse(raw);
-        const list = Array.isArray(parsed?.items) ? parsed.items : [];
-        if (!list.length) return false;
-        renderFeaturedBoutiques(list.slice(0, FEATURED_BOUTIQUES_LIMIT));
-        const status = document.getElementById("featuredBoutiquesStatus");
-        if (status) status.textContent = "";
-        return true;
-      } catch (_) {
-        return false;
-      }
-    }
-
     function wait(ms) {
       return new Promise((resolve) => setTimeout(resolve, ms));
     }
@@ -1096,89 +952,6 @@
       } catch (error) {
         clearTimeout(timeoutId);
         throw error;
-      }
-    }
-
-    async function fetchFeaturedBoutiquesWithRetry(statusEl) {
-      let lastError = null;
-      for (let attempt = 0; attempt < FEATURED_RETRY_DELAYS_MS.length; attempt += 1) {
-        const delay = FEATURED_RETRY_DELAYS_MS[attempt];
-        if (delay > 0) {
-          if (statusEl) {
-            statusEl.textContent = `Loading boutiques... (attempt ${attempt + 1}/${FEATURED_RETRY_DELAYS_MS.length})`;
-          }
-          await wait(delay);
-        }
-
-        try {
-          console.log(`[Featured] Fetch attempt ${attempt + 1} with ${FEATURED_FETCH_TIMEOUT_MS}ms timeout...`);
-          const res = await fetchWithTimeout(`${API_BASE}/boutiques?limit=${FEATURED_BOUTIQUES_LIMIT}`, FEATURED_FETCH_TIMEOUT_MS);
-          const data = await res.json().catch(() => []);
-          if (!res.ok) throw new Error(data.message || "Failed to load boutiques");
-          console.log(`[Featured] Fetch successful on attempt ${attempt + 1}`);
-          return Array.isArray(data) ? data : [];
-        } catch (err) {
-          console.log(`[Featured] Attempt ${attempt + 1} failed:`, err.message);
-          lastError = err;
-        }
-      }
-      throw lastError || new Error("Failed to load boutiques");
-    }
-
-    async function loadFeaturedBoutiques() {
-      if (featuredLoadInProgress) return;
-      featuredLoadInProgress = true;
-      const status = document.getElementById("featuredBoutiquesStatus");
-      const grid = document.getElementById("featuredBoutiquesGrid");
-
-      try {
-        // Try cache first for instant display (no skeleton needed if we have cache)
-        const hasCache = loadFeaturedBoutiquesFromCache();
-
-        if (!hasCache && status) {
-          // Only show skeletons if no cache available
-          const cachedData = localStorage.getItem(FEATURED_CACHE_KEY);
-          let cachedBoutiques = [];
-          try {
-            if (cachedData) {
-              const parsed = JSON.parse(cachedData);
-              cachedBoutiques = Array.isArray(parsed?.items) ? parsed.items : [];
-            }
-          } catch (_) { }
-
-          // Show skeletons for actual count or smarter default
-          const skeletonCount = cachedBoutiques.length > 0 ? cachedBoutiques.length : 1;
-          showSkeletons(skeletonCount);
-          if (status) status.textContent = "Loading boutiques...";
-        } else if (hasCache && status) {
-          if (status) status.textContent = "";
-        }
-
-        // Fetch fresh data in background
-        const data = await fetchFeaturedBoutiquesWithRetry(status);
-        const boutiques = sortPremiumFirst(data).slice(0, FEATURED_BOUTIQUES_LIMIT);
-        try {
-          localStorage.setItem(FEATURED_CACHE_KEY, JSON.stringify({ items: data, ts: Date.now() }));
-        } catch (_) { }
-        renderFeaturedBoutiques(boutiques);
-        console.log(`[Featured] Successfully loaded ${boutiques.length} boutiques`);
-      } catch (err) {
-        console.log("[Featured] Load failed, trying cache:", err.message);
-        const hasCache = loadFeaturedBoutiquesFromCache();
-        if (!hasCache) {
-          // Only show skeletons if we have nothing at all
-          showSkeletons(1);
-          if (status) status.textContent = "Unable to load boutiques. Retrying...";
-        }
-        if (!featuredRetryTimer) {
-          featuredRetryTimer = setTimeout(() => {
-            featuredRetryTimer = null;
-            console.log("[Featured] Retrying load...");
-            loadFeaturedBoutiques();
-          }, 5000);
-        }
-      } finally {
-        featuredLoadInProgress = false;
       }
     }
 
@@ -1207,7 +980,6 @@
 
       // Start background loading (non-blocking)
       loadCloudinaryConfig().catch(() => { });
-      loadFeaturedBoutiques().catch(() => { });
       loadFeaturedCollections().catch(() => { });
 
       // Setup menu click handler
