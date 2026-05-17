@@ -916,12 +916,14 @@
             const newUnread = Number(newConv.unread_count || 0);
             const oldUnread = Number(oldConv.unread_count || 0);
             if (newUnread > oldUnread) {
-              addNotification("new_message", {
-                conversationId: newConv.id,
-                customer_name: newConv.customer_name || "Customer",
-                customer_email: newConv.customer_email || "",
-                preview: String(newConv.last_message || "New message").substring(0, 50),
-              });
+              if (String(newConv.id) !== String(currentConversationId)) {
+                addNotification("new_message", {
+                  conversationId: newConv.id,
+                  customer_name: newConv.customer_name || "Customer",
+                  customer_email: newConv.customer_email || "",
+                  preview: String(newConv.last_message || "New message").substring(0, 50),
+                });
+              }
             }
           });
         }
@@ -1307,11 +1309,11 @@
 
       // Refresh conversations and active thread every 3 seconds
       setInterval(async () => {
-        await loadConversations();
         if (currentConversationId) {
           await loadMessages(currentConversationId);
           updateSidebar(currentConversationId);
         }
+        await loadConversations();
       }, 3000);
 
       // Allow Enter key to send message

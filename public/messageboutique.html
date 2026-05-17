@@ -762,12 +762,7 @@
         conversations = groupConversationsByBoutique(conversationsRaw);
         renderConversationList();
 
-        if (activeConversationId) {
-          const exists = conversationsRaw.some(c => Number(c.id) === Number(activeConversationId));
-          if (exists) {
-            openConversation(activeConversationId, true);
-          }
-        }
+        // Active conversation re-fetching is now handled by the polling interval
       } catch (err) {
         document.getElementById("conversationList").innerHTML = `<div class="p-5 text-red-300/60 text-[10px] tracking-wider uppercase text-center">${escapeHtml(err.message)}</div>`;
       }
@@ -996,7 +991,13 @@
       }
 
       await loadConversations();
-      setInterval(loadConversations, 3000);
+      setInterval(async () => {
+        if (activeConversationId) {
+          await openConversation(activeConversationId, true);
+        } else {
+          await loadConversations();
+        }
+      }, 3000);
     });
 
     window.addEventListener("pageshow", async (event) => {
@@ -1011,7 +1012,13 @@
         }
         return;
       }
-      await loadConversations();
+      } else {
+        if (activeConversationId) {
+          await openConversation(activeConversationId, true);
+        } else {
+          await loadConversations();
+        }
+      }
     });
 
     window.addEventListener("focus", async () => {
@@ -1025,7 +1032,13 @@
         }
         return;
       }
-      await loadConversations();
+      } else {
+        if (activeConversationId) {
+          await openConversation(activeConversationId, true);
+        } else {
+          await loadConversations();
+        }
+      }
     });
 
     document.addEventListener("visibilitychange", async () => {
@@ -1040,7 +1053,13 @@
         }
         return;
       }
-      await loadConversations();
+      } else {
+        if (activeConversationId) {
+          await openConversation(activeConversationId, true);
+        } else {
+          await loadConversations();
+        }
+      }
     });
   </script>
   <script src='responsive-layout.js?v=20260501-partner-signup'></script>
