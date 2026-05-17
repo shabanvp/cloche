@@ -259,7 +259,7 @@
         </div>
       </div>
       <!-- Chart and Details Section -->
-      <div class="px-8 pb-12 flex flex-col lg:flex-row gap-6">
+      <div class="px-8 pb-4 flex flex-col lg:flex-row gap-6">
         <!-- Performance Chart -->
         <div class="glass-card flex-grow rounded-xl p-8 relative">
           <div id="performanceChartContainer">
@@ -304,8 +304,8 @@
           <div id="recentActivityList" class="space-y-6 flex-1">
             <p class="text-slate-500 text-sm">Loading recent activity...</p>
           </div>
-          <button
-            class="w-full mt-10 py-3 border border-primary/20 rounded-lg text-xs font-bold uppercase tracking-widest text-primary hover:bg-primary/5 transition-all">
+          <button onclick="window.location.href='lead.html'"
+            class="w-full mt-6 py-3 border border-primary/20 rounded-lg text-xs font-bold uppercase tracking-widest text-primary hover:bg-primary/5 transition-all">
             View All Activity
           </button>
         </div>
@@ -742,7 +742,7 @@
           console.log(`[Dashboard] ${leads?.length || 0} leads loaded`);
           updateLeadKpiFromLeads(leads);
           updatePerformanceChart(leads);
-          const recentLeads = leads.slice(0, 3); // Top 3
+          const recentLeads = leads.slice(0, 2); // Top 2
 
           const activityContainer = document.getElementById("recentActivityList");
           if (activityContainer && recentLeads.length > 0) {
