@@ -1036,9 +1036,10 @@
       // Show input area
       document.getElementById("inputArea").classList.remove("hidden");
 
-      // Load messages and check for existing boutique replies
-      const messages = await loadMessages(conversationId);
-      await loadConversations();
+      const group = allConversations.find(g => g.ids && g.ids.includes(conversationId)) || { ids: [conversationId] };
+      
+      // Load messages for all grouped conversations to ensure all are marked read and visible
+      const messages = await loadMessagesForGroup(group.ids);
 
       // AUTOMATED WELCOME LOGIC:
       // Check if we need to send a welcome message (only if no boutique response exists yet)
@@ -1058,7 +1059,7 @@
             })
           });
           // Reload to show the sent message
-          await loadMessages(conversationId);
+          await loadMessagesForGroup(group.ids);
         } catch (err) {
           console.error("Auto-welcome failed:", err);
         }
@@ -1156,15 +1157,23 @@
       }
     }
 
-    // Load messages for a conversation
-    async function loadMessages(conversationId) {
+    // Load messages for all conversations in a group
+    async function loadMessagesForGroup(groupIds) {
       try {
-        const res = await fetch(`${API_ORIGIN}/api/messages/conversation/${conversationId}`);
-        if (!res.ok) throw new Error("Failed to fetch messages");
-
-        const messages = await res.json();
-        renderMessages(messages);
-        return messages; // Return messages array for logic checks
+        let allMsgs = [];
+        for (const id of groupIds) {
+          const res = await fetch(`${API_ORIGIN}/api/messages/conversation/${id}`);
+          if (res.ok) {
+            const msgs = await res.json();
+            allMsgs = allMsgs.concat(msgs);
+          }
+        }
+        
+        // Sort combined messages chronologically
+        allMsgs.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+        
+        renderMessages(allMsgs);
+        return allMsgs;
       } catch (err) {
         console.error("Error loading messages:", err);
         document.getElementById("messagesArea").innerHTML = `<div class="text-red-400">Error loading messages</div>`;
@@ -1310,7 +1319,8 @@
       // Refresh conversations and active thread every 3 seconds
       setInterval(async () => {
         if (currentConversationId) {
-          await loadMessages(currentConversationId);
+          const group = allConversations.find(g => g.ids && g.ids.includes(currentConversationId)) || { ids: [currentConversationId] };
+          await loadMessagesForGroup(group.ids);
           updateSidebar(currentConversationId);
         }
         await loadConversations();

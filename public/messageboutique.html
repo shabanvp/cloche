@@ -861,10 +861,21 @@
       }
 
       try {
-        const res = await fetch(`${API}/customer/conversation/${conversationId}`);
-        const msgs = await readJsonSafe(res);
-        if (!res.ok) throw new Error(msgs.message || "Failed to load messages");
-        renderMessages(Array.isArray(msgs) ? msgs : []);
+        let allMsgs = [];
+        const groupIds = convo && convo.ids ? convo.ids : [conversationId];
+        
+        for (const id of groupIds) {
+          const res = await fetch(`${API}/customer/conversation/${id}`);
+          if (res.ok) {
+             const msgs = await readJsonSafe(res);
+             allMsgs = allMsgs.concat(Array.isArray(msgs) ? msgs : []);
+          }
+        }
+        
+        // Sort chronologically
+        allMsgs.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+        
+        renderMessages(allMsgs);
         await loadConversations();
       } catch (err) {
         document.getElementById("messagesArea").innerHTML = `<div class="p-10 text-red-300 text-xs text-center uppercase tracking-widest">${escapeHtml(err.message)}</div>`;
