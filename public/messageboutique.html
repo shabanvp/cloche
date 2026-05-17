@@ -870,6 +870,7 @@
         const msgs = await readJsonSafe(res);
         if (!res.ok) throw new Error(msgs.message || "Failed to load messages");
         renderMessages(Array.isArray(msgs) ? msgs : []);
+        await loadConversations();
       } catch (err) {
         document.getElementById("messagesArea").innerHTML = `<div class="p-10 text-red-300 text-xs text-center uppercase tracking-widest">${escapeHtml(err.message)}</div>`;
       }
@@ -1000,6 +1001,35 @@
 
     window.addEventListener("pageshow", async (event) => {
       if (!event.persisted) return;
+      if (!requireUserSession()) return;
+      if (isDirectChatRoute) {
+        if (!activeConversationId) {
+          await bootstrapConversationFromContext();
+        }
+        if (activeConversationId) {
+          await openConversation(activeConversationId, true);
+        }
+        return;
+      }
+      await loadConversations();
+    });
+
+    window.addEventListener("focus", async () => {
+      if (!requireUserSession()) return;
+      if (isDirectChatRoute) {
+        if (!activeConversationId) {
+          await bootstrapConversationFromContext();
+        }
+        if (activeConversationId) {
+          await openConversation(activeConversationId, true);
+        }
+        return;
+      }
+      await loadConversations();
+    });
+
+    document.addEventListener("visibilitychange", async () => {
+      if (document.visibilityState !== "visible") return;
       if (!requireUserSession()) return;
       if (isDirectChatRoute) {
         if (!activeConversationId) {

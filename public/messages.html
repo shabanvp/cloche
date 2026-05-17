@@ -1036,6 +1036,7 @@
 
       // Load messages and check for existing boutique replies
       const messages = await loadMessages(conversationId);
+      await loadConversations();
 
       // AUTOMATED WELCOME LOGIC:
       // Check if we need to send a welcome message (only if no boutique response exists yet)
@@ -1239,6 +1240,7 @@
 
         input.value = "";
         await loadMessages(currentConversationId);
+        await loadConversations();
       } catch (err) {
         console.error("Error sending message:", err);
         alert("Failed to send message");
@@ -1325,6 +1327,26 @@
         await loadConversations();
         if (currentConversationId) {
           await loadMessages(currentConversationId);
+          await loadConversations();
+          updateSidebar(currentConversationId);
+        }
+      });
+
+      window.addEventListener("focus", async () => {
+        await loadConversations();
+        if (currentConversationId) {
+          await loadMessages(currentConversationId);
+          await loadConversations();
+          updateSidebar(currentConversationId);
+        }
+      });
+
+      document.addEventListener("visibilitychange", async () => {
+        if (document.visibilityState !== "visible") return;
+        await loadConversations();
+        if (currentConversationId) {
+          await loadMessages(currentConversationId);
+          await loadConversations();
           updateSidebar(currentConversationId);
         }
       });
