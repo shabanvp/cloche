@@ -1041,29 +1041,7 @@
       // Load messages for all grouped conversations to ensure all are marked read and visible
       const messages = await loadMessagesForGroup(group.ids);
 
-      // AUTOMATED WELCOME LOGIC:
-      // Check if we need to send a welcome message (only if no boutique response exists yet)
-      const hasBoutiqueMessage = messages.some(m => m.sender_type === 'boutique');
 
-      if (!hasBoutiqueMessage) {
-        const welcomeText = `Hello and welcome to ${bName}!\nHow can I assist you today?`;
-        // Send this as a real message through the API
-        try {
-          await fetch(`${API_ORIGIN}/api/messages/send`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              conversationId: conversationId,
-              message_text: welcomeText,
-              senderType: "boutique"
-            })
-          });
-          // Reload to show the sent message
-          await loadMessagesForGroup(group.ids);
-        } catch (err) {
-          console.error("Auto-welcome failed:", err);
-        }
-      }
 
       // Update Sidebar Info
       updateSidebar(conversationId);
