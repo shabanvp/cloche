@@ -26,7 +26,7 @@ const PLAN_LIMITS = {
         }
     },
     [PLANS.PROFESSIONAL]: {
-        maxProducts: 20,
+        maxProducts: 50,
         maxLeads: 50,
         features: {
             analytics: true,
