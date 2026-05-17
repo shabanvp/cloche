@@ -1319,6 +1319,15 @@
           sendMessage();
         }
       });
+
+      window.addEventListener("pageshow", async (event) => {
+        if (!event.persisted) return;
+        await loadConversations();
+        if (currentConversationId) {
+          await loadMessages(currentConversationId);
+          updateSidebar(currentConversationId);
+        }
+      });
     });
   </script>
   <script src='responsive-layout.js?v=20260501-partner-signup'></script>
