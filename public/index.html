@@ -324,6 +324,14 @@
     <div id="featuredBoutiquesStatus" class="hidden text-sm text-gray-400 px-4 mb-6">Loading boutiques...</div>
     <div id="featuredBoutiquesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"></div>
   </section>
+
+  <!-- AD SECTION 1 -->
+  <section class="w-full px-4 md:px-10 mt-10">
+    <div id="adSection1" class="w-full max-w-6xl mx-auto rounded-2xl overflow-hidden border border-primary/10 cursor-pointer">
+      <img id="adImage1" src="/images/default-ad.jpg" class="w-full h-[180px] md:h-[260px] object-cover" />
+    </div>
+  </section>
+
   <!-- How it Works: The Royal Journey -->
   <section id="how-it-works" class="py-24 bg-surface-dark/50">
     <div class="max-w-7xl mx-auto px-6">
@@ -392,6 +400,14 @@
     <div id="featuredCollectionsStatus" class="hidden text-sm text-gray-400 px-4 mb-6">Loading collections...</div>
     <div id="featuredCollectionsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"></div>
   </section>
+
+  <!-- AD SECTION 2 -->
+  <section class="w-full px-4 md:px-10 mt-10">
+    <div id="adSection2" class="w-full max-w-6xl mx-auto rounded-2xl overflow-hidden border border-primary/10 cursor-pointer">
+      <img id="adImage2" src="/images/default-ad.jpg" class="w-full h-[180px] md:h-[260px] object-cover" />
+    </div>
+  </section>
+
   <!-- Boutique Partnership -->
   <section id="partnership" class="pt-12 pb-24 px-6 max-w-7xl mx-auto">
     <div class="text-center mb-16">
@@ -637,6 +653,40 @@
       // Direct to plans; subscription.html will handle login if they try to buy
       window.location.href = "subscription.html";
     }
+
+    // --- ADVERTISEMENT SYSTEM ---
+    const ads = [
+      {
+        image: "https://images.unsplash.com/photo-1550005809-91ad75fb315f?q=80&w=1200&auto=format&fit=crop", // Placeholder image 1
+        link: "/boutique.html?id=123"
+      },
+      {
+        image: "https://images.unsplash.com/photo-1542060748-10c28b62716f?q=80&w=1200&auto=format&fit=crop", // Placeholder image 2
+        link: "/subscription.html"
+      }
+    ];
+
+    document.addEventListener("DOMContentLoaded", () => {
+      // AD 1
+      const adImage1 = document.getElementById("adImage1");
+      const adSection1 = document.getElementById("adSection1");
+      if (adImage1 && adSection1 && ads[0]) {
+        adImage1.src = ads[0].image;
+        adSection1.onclick = () => {
+          window.location.href = ads[0].link;
+        };
+      }
+
+      // AD 2
+      const adImage2 = document.getElementById("adImage2");
+      const adSection2 = document.getElementById("adSection2");
+      if (adImage2 && adSection2 && ads[1]) {
+        adImage2.src = ads[1].image;
+        adSection2.onclick = () => {
+          window.location.href = ads[1].link;
+        };
+      }
+    });
   </script>
   <script>
     const API_AUTH = "https://cloche-backend.onrender.com/api/auth";
