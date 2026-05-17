@@ -378,13 +378,7 @@
 
     function updateDashboardForPlan(plan, data) {
       const normalizedPlan = normalizePlan(plan);
-      const baseConfig = planConfig[normalizedPlan] || planConfig.early_partner;
-
-      // Intro period: first 6 months should show unlimited usage (∞)
-      const introUnlimited = Boolean(data && data.introUnlimited && normalizedPlan !== "early_partner");
-      const config = introUnlimited
-        ? { ...baseConfig, maxLeads: Infinity, maxMessages: Infinity, maxProducts: Infinity }
-        : baseConfig;
+      const config = planConfig[normalizedPlan] || planConfig.early_partner;
 
       const safeSetText = (id, text) => {
         const el = document.getElementById(id);
@@ -409,7 +403,7 @@
         safeSetText("leadsRemaining", "Leads Available");
         safeSetText("leadsRemainingCount", "∞");
         safeSetText("leadsTotal", "");
-        safeSetText("quotaMessage", introUnlimited ? "Intro period — unlimited usage" : "Unlimited leads available");
+        safeSetText("quotaMessage", "Unlimited leads available");
         safeSetText("progressPercent", "100%");
         const pc = document.getElementById("progressCircle");
         if (pc) pc.setAttribute("stroke-dashoffset", 0);
@@ -418,7 +412,7 @@
         const usagePercent = Math.min(100, Math.round((leadsUsed / config.maxLeads) * 100));
 
         safeSetText("leadsRemaining", "Leads Available");
-        safeSetText("leadsRemainingCount", Math.min(leadsUsed, config.maxLeads));
+        safeSetText("leadsRemainingCount", Math.max(0, config.maxLeads - leadsUsed));
         safeSetText("leadsTotal", `/ ${config.maxLeads}`);
         safeSetText("quotaMessage", leadsUsed >= config.maxLeads ? "Limit reached - upgrade to receive more leads" : `${Math.max(0, config.maxLeads - leadsUsed)} leads remaining`);
         safeSetText("progressPercent", `${usagePercent}%`);
