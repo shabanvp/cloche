@@ -327,7 +327,7 @@
 
   <!-- AD SECTION 1 -->
   <section class="w-full px-4 md:px-10 mt-2">
-    <div id="adSection1" class="w-full max-w-6xl mx-auto rounded-2xl overflow-hidden border border-primary/10 cursor-pointer">
+    <div id="adSection1" class="w-full max-w-6xl mx-auto rounded-2xl overflow-hidden border border-primary/10 cursor-default">
       <img id="adImage1" src="halo&hue.png" class="w-full h-[180px] md:h-[260px] object-cover" />
     </div>
   </section>
@@ -403,7 +403,7 @@
 
   <!-- AD SECTION 2 -->
   <section class="w-full px-4 md:px-10 mt-2">
-    <div id="adSection2" class="w-full max-w-6xl mx-auto rounded-2xl overflow-hidden border border-primary/10 cursor-pointer">
+    <div id="adSection2" class="w-full max-w-6xl mx-auto rounded-2xl overflow-hidden border border-primary/10 cursor-default">
       <img id="adImage2" src="ad.png" class="w-full h-[180px] md:h-[260px] object-cover" />
     </div>
   </section>
@@ -657,12 +657,10 @@
     // --- ADVERTISEMENT SYSTEM ---
     const ads = [
       {
-        image: "halo&hue.png", // Used in adSection1
-        link: "/boutique.html?id=123"
+        image: "halo&hue.png" // Used in adSection1
       },
       {
-        image: "ad.png", // Used in adSection2
-        link: "/subscription.html"
+        image: "ad.png" // Used in adSection2
       }
     ];
 
@@ -672,9 +670,6 @@
       const adSection1 = document.getElementById("adSection1");
       if (adImage1 && adSection1 && ads[0]) {
         adImage1.src = ads[0].image;
-        adSection1.onclick = () => {
-          window.location.href = ads[0].link;
-        };
       }
 
       // AD 2
@@ -682,9 +677,6 @@
       const adSection2 = document.getElementById("adSection2");
       if (adImage2 && adSection2 && ads[1]) {
         adImage2.src = ads[1].image;
-        adSection2.onclick = () => {
-          window.location.href = ads[1].link;
-        };
       }
     });
   </script>
