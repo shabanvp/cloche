@@ -646,6 +646,15 @@
         .replace(/"/g, "&quot;");
     }
 
+    // Safely escape strings for insertion inside single-quoted JS attribute values
+    function jsEscape(value) {
+      return String(value || "")
+        .replace(/\\/g, "\\\\")
+        .replace(/'/g, "\\'")
+        .replace(/\n/g, "\\n")
+        .replace(/\r/g, "\\r");
+    }
+
     function parseProductShareMessage(text) {
       const raw = String(text || "");
       const prefix = "__CLOCHE_PRODUCT_SHARE__";
@@ -722,29 +731,34 @@
 
       list.innerHTML = notificationQueue.map(notif => {
         if (notif.type === 'new_conversation') {
-          const safeProduct = String(notif.data.product_name || "General inquiry").replace(/'/g, "\\'");
+          const safeProduct = jsEscape(notif.data.product_name || "General inquiry");
+          const safeName = jsEscape(notif.data.customer_name || "");
+          const safeEmail = jsEscape(notif.data.customer_email || "");
           return `
-            <div class="p-3 bg-white/5 rounded-lg border border-white/10 hover:border-primary/30 cursor-pointer transition-all hover:bg-white/10" onclick="openConversation(${notif.data.id}, '${notif.data.customer_name}', '${notif.data.customer_email}', '${safeProduct}'); document.getElementById('notificationPanel').classList.add('hidden');">
+            <div class="p-3 bg-white/5 rounded-lg border border-white/10 hover:border-primary/30 cursor-pointer transition-all hover:bg-white/10" data-notif-id="${notif.id}">
               <div class="flex items-start gap-2">
                 <span class="material-symbols-outlined text-primary text-sm mt-1">mail_outline</span>
                 <div class="flex-1 min-w-0">
                   <p class="text-xs font-bold text-primary">New Conversation</p>
-                  <p class="text-xs text-white/70 truncate mt-1">From <strong>${notif.data.customer_name}</strong></p>
-                  <p class="text-xs text-white/50 truncate">Re: ${notif.data.product_name || 'General inquiry'}</p>
+                  <p class="text-xs text-white/70 truncate mt-1">From <strong>${escapeHtml(notif.data.customer_name)}</strong></p>
+                  <p class="text-xs text-white/50 truncate">Re: ${escapeHtml(notif.data.product_name || 'General inquiry')}</p>
                   <p class="text-[10px] text-white/30 mt-2">${getTimeAgo(notif.timestamp)}</p>
                 </div>
               </div>
             </div>
           `;
         } else if (notif.type === 'new_message') {
+          const safeName = jsEscape(notif.data.customer_name || "");
+          const safeEmail = jsEscape(notif.data.customer_email || "");
+          const safePreview = jsEscape(notif.data.preview || "");
           return `
-            <div class="p-3 bg-white/5 rounded-lg border border-white/10 hover:border-primary/30 cursor-pointer transition-all hover:bg-white/10" onclick="openConversation(${notif.data.conversationId}, '${notif.data.customer_name}', '${notif.data.customer_email}'); document.getElementById('notificationPanel').classList.add('hidden');">
+            <div class="p-3 bg-white/5 rounded-lg border border-white/10 hover:border-primary/30 cursor-pointer transition-all hover:bg-white/10" data-notif-id="${notif.id}">
               <div class="flex items-start gap-2">
                 <span class="material-symbols-outlined text-green-400 text-sm mt-1">chat_bubble</span>
                 <div class="flex-1 min-w-0">
                   <p class="text-xs font-bold text-green-400">New Message</p>
-                  <p class="text-xs text-white/70 truncate mt-1">From <strong>${notif.data.customer_name}</strong></p>
-                  <p class="text-xs text-white/50 truncate line-clamp-2">"${notif.data.preview}"</p>
+                  <p class="text-xs text-white/70 truncate mt-1">From <strong>${escapeHtml(notif.data.customer_name)}</strong></p>
+                  <p class="text-xs text-white/50 truncate line-clamp-2">"${escapeHtml(notif.data.preview)}"</p>
                   <p class="text-[10px] text-white/30 mt-2">${getTimeAgo(notif.timestamp)}</p>
                 </div>
               </div>
@@ -752,6 +766,20 @@
           `;
         }
       }).join('');
+
+      // Attach click handlers safely after inserting nodes
+      setTimeout(() => {
+        notificationQueue.forEach(notif => {
+          const el = document.querySelector(`[data-notif-id="${notif.id}"]`);
+          if (!el) return;
+          el.onclick = () => {
+            const data = notif.data || {};
+            const cid = data.id || data.conversationId;
+            openConversation(cid, data.customer_name || 'Customer', data.customer_email || '', data.product_name || '');
+            document.getElementById('notificationPanel').classList.add('hidden');
+          };
+        });
+      }, 0);
     }
 
     // Handle search input
@@ -980,10 +1008,10 @@
         const sharedPost = parseProductShareMessage(conv.last_message);
         const preview = sharedPost ? `Shared dress: ${sharedPost.name}` : (conv.last_message || productName || 'New inquiry received - Open to respond');
 
-        // Escape quotes to prevent breaking the onclick handler
-        const safeName = name.replace(/'/g, "\\'");
-        const safeEmail = (conv.customer_email || '').replace(/'/g, "\\'");
-        const safeProduct = productName.replace(/'/g, "\\'");
+        // Escape values for safe insertion into inline handlers
+        const safeName = jsEscape(name);
+        const safeEmail = jsEscape(conv.customer_email || '');
+        const safeProduct = jsEscape(productName);
 
         return `
         <div class="chat-item py-3.5 px-8 cursor-pointer flex items-center gap-6 transition-all hover:bg-white/5 border-b border-white/5" 
@@ -1157,6 +1185,12 @@
         document.getElementById("messagesArea").innerHTML = `<div class="text-red-400">Error loading messages</div>`;
         return [];
       }
+    }
+
+    // Backwards-compatible helper: load messages for a single conversation
+    async function loadMessages(conversationId) {
+      if (!conversationId) return [];
+      return await loadMessagesForGroup([conversationId]);
     }
 
     // Render messages
