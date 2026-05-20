@@ -135,22 +135,20 @@
           <div id="partnerAreaWrap" class="flex flex-col gap-2">
             <label class="text-primary/80 text-xs font-bold uppercase tracking-widest">Area / Town <span
                 class="text-rose-500">*</span></label>
-            <input id="area" type="text" placeholder="Perinthalmanna" required
-              class="w-full rounded-lg text-white border border-white/10 bg-white/5 h-14 px-4 focus:border-primary focus:ring-0" />
+            <select id="area" required disabled
+              class="w-full rounded-lg text-white border border-white/10 bg-white/5 h-14 px-4 focus:border-primary focus:ring-0 disabled:opacity-50 disabled:cursor-not-allowed">
+              <option value="">Select District First</option>
+            </select>
           </div>
         </div>
 
-        <div id="partnerDistrictWrap" class="flex flex-col gap-2 relative" style="display: none;">
+        <div id="partnerDistrictWrap" class="flex flex-col gap-2" style="display: none;">
           <label class="text-primary/80 text-xs font-bold uppercase tracking-widest">District <span
               class="text-rose-500">*</span></label>
-          <div class="relative">
-            <input id="district" type="text" placeholder="Malappuram" autocomplete="off" required
-              class="w-full rounded-lg text-white border border-white/10 bg-white/5 h-14 px-4 focus:border-primary focus:ring-0" />
-            <div id="districtSuggestions"
-              class="hidden absolute z-[60] left-0 right-0 top-full mt-1 bg-[#1a1a1a] border border-primary/20 rounded-lg shadow-2xl overflow-hidden max-h-48 overflow-y-auto">
-              <!-- Suggestions will appear here -->
-            </div>
-          </div>
+          <select id="district" required
+            class="w-full rounded-lg text-white border border-white/10 bg-white/5 h-14 px-4 focus:border-primary focus:ring-0">
+            <option value="">Select District</option>
+          </select>
         </div>
 
         <div id="partnerTagsWrap" class="flex flex-col gap-2" style="display: none;">
@@ -228,6 +226,55 @@
 
     let selectedAccountType = "user";
 
+    const townsByDistrict = {
+      Alappuzha: ["Alappuzha", "Ambalappuzha", "Aroor", "Chengannur", "Cherthala", "Haripad", "Kayamkulam", "Mavelikkara", "Muhamma", "Nooranad", "Pattanakkad", "Thakazhi"],
+      Ernakulam: ["Aluva", "Angamaly", "Edappally", "Kakkanad", "Kalady", "Kalamassery", "Kochi", "Kolenchery", "Koothattukulam", "Kothamangalam", "Maradu", "Muvattupuzha", "North Paravur", "Perumbavoor", "Piravom", "Thrippunithura", "Vazhakkala", "Vyttila"],
+      Idukki: ["Adimali", "Cheruthoni", "Idukki", "Kattappana", "Kumily", "Munnar", "Nedumkandam", "Peermade", "Thodupuzha", "Vandiperiyar"],
+      Kannur: ["Azhikode", "Chakkarakkal", "Iritty", "Kannur", "Koothuparamba", "Mattannur", "Payyanur", "Panoor", "Taliparamba", "Thalassery"],
+      Kasaragod: ["Bekal", "Cheruvathur", "Kanhangad", "Kasaragod", "Manjeshwaram", "Nileshwaram", "Uppala"],
+      Kollam: ["Anchal", "Chathannoor", "Karunagappally", "Kollam", "Kottarakkara", "Kundara", "Paravur", "Pathanapuram", "Punalur", "Sasthamcotta"],
+      Kottayam: ["Changanassery", "Ettumanoor", "Erattupetta", "Kanjirappally", "Kottayam", "Kumarakom", "Pala", "Pampady", "Ponkunnam", "Vaikom"],
+      Kozhikode: ["Balussery", "Beypore", "Feroke", "Koduvally", "Koyilandy", "Kozhikode", "Mavoor", "Nadapuram", "Ramanattukara", "Thamarassery", "Vadakara"],
+      Malappuram: ["Areekode", "Chelari", "Edappal", "Kondotty", "Kottakkal", "Malappuram", "Manjeri", "Nilambur", "Parappanangadi", "Perinthalmanna", "Ponnani", "Tanur", "Tirur", "Tirurangadi", "Valanchery", "Vengara"],
+      Palakkad: ["Alathur", "Chittur", "Mannarkkad", "Ottapalam", "Palakkad", "Pattambi", "Shornur", "Thrithala", "Vadakkencherry"],
+      Pathanamthitta: ["Adoor", "Konni", "Kozhencherry", "Mallappally", "Pandalam", "Pathanamthitta", "Ranni", "Thiruvalla"],
+      Thiruvananthapuram: ["Attingal", "Balaramapuram", "Kazhakootam", "Kilimanoor", "Kovalam", "Nedumangad", "Neyyattinkara", "Parassala", "Peroorkada", "Thiruvananthapuram", "Varkala", "Vizhinjam"],
+      Thrissur: ["Chalakudy", "Chavakkad", "Guruvayur", "Irinjalakuda", "Kodungallur", "Kunnamkulam", "Mala", "Thrissur", "Wadakkanchery"],
+      Wayanad: ["Kalpetta", "Mananthavady", "Meenangadi", "Pulpally", "Sulthan Bathery", "Vythiri"]
+    };
+
+    function normalizeLocationValue(value) {
+      return String(value || "").normalize("NFKC").trim().toLowerCase().replace(/\s+/g, " ");
+    }
+
+    function setupLocationSelects() {
+      const districtSelect = document.getElementById("district");
+      const areaSelect = document.getElementById("area");
+      if (!districtSelect || !areaSelect || districtSelect.dataset.bound) return;
+
+      Object.keys(townsByDistrict).forEach((district) => {
+        const option = document.createElement("option");
+        option.value = district;
+        option.textContent = district;
+        districtSelect.appendChild(option);
+      });
+
+      districtSelect.dataset.bound = "true";
+      districtSelect.addEventListener("change", function () {
+        const towns = townsByDistrict[this.value] || [];
+        areaSelect.innerHTML = towns.length
+          ? '<option value="">Select Town</option>'
+          : '<option value="">Select District First</option>';
+        towns.forEach((town) => {
+          const option = document.createElement("option");
+          option.value = town;
+          option.textContent = town;
+          areaSelect.appendChild(option);
+        });
+        areaSelect.disabled = !towns.length;
+      });
+    }
+
     function getInitialSignupType() {
       const params = new URLSearchParams(window.location.search);
       const requestedRole = String(params.get("role") || params.get("account_type") || params.get("type") || "")
@@ -297,8 +344,8 @@
         const boutiqueName = document.getElementById("boutique").value.trim();
         const ownerName = document.getElementById("owner").value.trim();
         const phone = document.getElementById("phone").value.trim();
-        const area = document.getElementById("area").value.trim();
-        const district = document.getElementById("district").value.trim();
+        const area = normalizeLocationValue(document.getElementById("area").value);
+        const district = normalizeLocationValue(document.getElementById("district").value);
         const tags = document.getElementById("tags").value.trim();
         const password = document.getElementById("password").value;
         const imageFile = document.getElementById("showcaseImage").files[0];
@@ -437,50 +484,6 @@
       window.location.href = `boutiquelogin.html?status=${status}&type=${encodeURIComponent(selectedAccountType)}`;
     }
 
-    // District Autosuggest Logic
-    const districts = [
-      "Alappuzha", "Ernakulam", "Idukki", "Kannur", "Kasaragod", "Kollam",
-      "Kottayam", "Kozhikode", "Malappuram", "Palakkad", "Pathanamthitta",
-      "Thiruvananthapuram", "Thrissur", "Wayanad"
-    ];
-
-    const districtInput = document.getElementById("district");
-    const suggestionBox = document.getElementById("districtSuggestions");
-
-    districtInput.addEventListener("input", function () {
-      const val = this.value.trim().toLowerCase();
-      suggestionBox.innerHTML = "";
-
-      if (val.length < 2) {
-        suggestionBox.classList.add("hidden");
-        return;
-      }
-
-      const matches = districts.filter(d => d.toLowerCase().includes(val));
-      if (matches.length > 0) {
-        matches.forEach(match => {
-          const div = document.createElement("div");
-          div.className = "px-4 py-3 hover:bg-primary/20 cursor-pointer text-sm text-white/80 transition-colors";
-          div.textContent = match;
-          div.onclick = function () {
-            districtInput.value = match;
-            suggestionBox.classList.add("hidden");
-          };
-          suggestionBox.appendChild(div);
-        });
-        suggestionBox.classList.remove("hidden");
-      } else {
-        suggestionBox.classList.add("hidden");
-      }
-    });
-
-    // Close suggestions when clicking outside
-    document.addEventListener("click", function (e) {
-      if (!districtInput.contains(e.target) && !suggestionBox.contains(e.target)) {
-        suggestionBox.classList.add("hidden");
-      }
-    });
-
     // ========== IMAGE PREVIEW LOGIC ==========
     const showcaseInput = document.getElementById("showcaseImage");
     const previewContainer = document.getElementById("previewContainer");
@@ -536,6 +539,7 @@
       reader.readAsDataURL(file);
     });
 
+    setupLocationSelects();
     setAccountType(getInitialSignupType());
 
     function togglePassword(inputId, btn) {

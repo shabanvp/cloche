@@ -15,6 +15,83 @@ const normalizeTags = (value) => {
     return tags.join(", ");
 };
 
+const normalizeText = (value) => String(value || "")
+    .normalize("NFKC")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, " ");
+
+const locationAliases = {
+    perumbavoor: ["perumbavoor", "perumbavur"],
+    perumbavur: ["perumbavoor", "perumbavur"],
+    kochi: ["kochi", "cochin", "ernakulam"],
+    cochin: ["kochi", "cochin", "ernakulam"],
+    edappally: ["edappally", "edapally"],
+    edapally: ["edappally", "edapally"],
+    trivandrum: ["trivandrum", "thiruvananthapuram"],
+    thiruvananthapuram: ["trivandrum", "thiruvananthapuram"]
+};
+
+const getLocationVariants = (value) => {
+    const normalized = normalizeText(value);
+    if (!normalized) return [];
+    return locationAliases[normalized] || [normalized];
+};
+
+const levenshteinDistance = (a, b) => {
+    const left = normalizeText(a);
+    const right = normalizeText(b);
+    if (left === right) return 0;
+    if (!left) return right.length;
+    if (!right) return left.length;
+
+    const previous = Array.from({ length: right.length + 1 }, (_, i) => i);
+    const current = Array(right.length + 1).fill(0);
+
+    for (let i = 1; i <= left.length; i += 1) {
+        current[0] = i;
+        for (let j = 1; j <= right.length; j += 1) {
+            const cost = left[i - 1] === right[j - 1] ? 0 : 1;
+            current[j] = Math.min(
+                current[j - 1] + 1,
+                previous[j] + 1,
+                previous[j - 1] + cost
+            );
+        }
+        for (let j = 0; j <= right.length; j += 1) previous[j] = current[j];
+    }
+
+    return previous[right.length];
+};
+
+const fuzzyMatch = (source, query) => {
+    const sourceText = normalizeText(source);
+    const queryText = normalizeText(query);
+    if (!sourceText || !queryText || queryText.length < 4) return false;
+
+    const allowedDistance = queryText.length <= 6 ? 1 : 2;
+    const sourceWords = sourceText.split(/[\s,/-]+/).filter(Boolean);
+    const queryWords = queryText.split(/[\s,/-]+/).filter(Boolean);
+
+    return queryWords.some((queryWord) =>
+        sourceWords.some((sourceWord) => {
+            if (sourceWord.length < 4) return false;
+            return levenshteinDistance(sourceWord, queryWord) <= allowedDistance;
+        })
+    );
+};
+
+const locationMatches = (source, query) => {
+    const sourceText = normalizeText(source);
+    const queryText = normalizeText(query);
+    if (!queryText) return true;
+    const sourceVariants = [sourceText, ...getLocationVariants(sourceText)].filter(Boolean);
+    const queryVariants = getLocationVariants(queryText);
+    return queryVariants.some((q) =>
+        sourceVariants.some((s) => s.includes(q) || q.includes(s) || fuzzyMatch(s, q))
+    );
+};
+
 const normalizeImageUrl = (value) => {
     const raw = String(value || "").trim();
     if (!raw) return "";
@@ -31,7 +108,7 @@ const normalizeImageUrl = (value) => {
  * Ranking: Premium > Professional > Early
  */
 exports.getAllBoutiques = async (req, res) => {
-    const city = String(req.query.city || "").trim().toLowerCase();
+    const city = normalizeText(req.query.city);
     const limit = parseInt(req.query.limit) || 100;
 
     try {
@@ -157,8 +234,9 @@ exports.getAllBoutiques = async (req, res) => {
         // Filter by city if provided
         let filtered = city 
             ? sortedResult.filter(b => 
-                (b.city && b.city.toLowerCase().includes(city)) || 
-                (b.district && b.district.toLowerCase().includes(city))
+                locationMatches(b.city, city) ||
+                locationMatches(b.district, city) ||
+                locationMatches(b.area, city)
               )
             : sortedResult;
 

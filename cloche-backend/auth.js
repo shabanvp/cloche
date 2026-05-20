@@ -35,8 +35,37 @@ const normalizeImageUrl = (value) => {
 };
 
 const cleanText = (value) => String(value || "").trim().replace(/\s+/g, " ");
+const cleanLocationText = (value) => cleanText(value).toLowerCase();
 
 const sameText = (a, b) => cleanText(a).toLowerCase() === cleanText(b).toLowerCase();
+
+const locationAliases = {
+  perumbavoor: ["perumbavoor", "perumbavur"],
+  perumbavur: ["perumbavoor", "perumbavur"],
+  kochi: ["kochi", "cochin", "ernakulam"],
+  cochin: ["kochi", "cochin", "ernakulam"],
+  edappally: ["edappally", "edapally"],
+  edapally: ["edappally", "edapally"],
+  trivandrum: ["trivandrum", "thiruvananthapuram"],
+  thiruvananthapuram: ["trivandrum", "thiruvananthapuram"]
+};
+
+const getLocationVariants = (value) => {
+  const normalized = cleanLocationText(value);
+  if (!normalized) return [];
+  return locationAliases[normalized] || [normalized];
+};
+
+const locationIncludes = (source, query) => {
+  const sourceText = cleanLocationText(source);
+  const queryText = cleanLocationText(query);
+  if (!queryText) return true;
+  const sourceVariants = [sourceText, ...getLocationVariants(sourceText)].filter(Boolean);
+  const queryVariants = getLocationVariants(queryText);
+  return queryVariants.some((q) =>
+    sourceVariants.some((s) => s.includes(q) || q.includes(s))
+  );
+};
 
 const isVerifiedTrue = (value) => value === true || value === "true" || value === 1 || value === "1";
 
@@ -83,12 +112,12 @@ const normalizeLocationFields = ({ area, district, city }) => {
   const cityArea = cityParts[0] || "";
   const cityDistrict = cityParts.slice(1).join(", ");
 
-  let safeArea = cleanText(area);
-  let safeDistrict = cleanText(district);
+  let safeArea = cleanLocationText(area);
+  let safeDistrict = cleanLocationText(district);
 
-  if (!safeArea && cityParts.length > 1) safeArea = cityArea;
-  if (!safeDistrict && cityDistrict) safeDistrict = cityDistrict;
-  if (!safeDistrict && safeCity) safeDistrict = safeCity;
+  if (!safeArea && cityParts.length > 1) safeArea = cleanLocationText(cityArea);
+  if (!safeDistrict && cityDistrict) safeDistrict = cleanLocationText(cityDistrict);
+  if (!safeDistrict && safeCity) safeDistrict = cleanLocationText(safeCity);
 
   if (safeArea && safeDistrict && sameText(safeArea, safeDistrict)) {
     safeArea = "";
@@ -97,7 +126,7 @@ const normalizeLocationFields = ({ area, district, city }) => {
   return {
     area: safeArea || null,
     district: safeDistrict || null,
-    city: safeCity || null
+    city: cleanLocationText(safeCity) || null
   };
 };
 
@@ -826,8 +855,8 @@ router.put("/profile/:boutiqueId", async (req, res) => {
     return res.status(400).json({ message: "Phone number must be exactly 10 digits" });
   }
 
-  const safeCity = cleanText(city);
-  const safeDistrict = cleanText(district);
+  const safeCity = cleanLocationText(city);
+  const safeDistrict = cleanLocationText(district);
   const safeShopLocation = cleanText(shop_location);
   const composedCity = safeDistrict ? `${safeCity}, ${safeDistrict}` : safeCity;
 
@@ -1010,8 +1039,8 @@ router.put("/profile/:boutiqueId/showcase", async (req, res) => {
       const { error } = await supabase
         .from("boutique_showcase")
         .update({
-          district: district || null,
-          area: area || null,
+          district: cleanLocationText(district) || null,
+          area: cleanLocationText(area) || null,
           shop_location: cleanText(shop_location) || null,
           tags: tags || null,
           rating: safeRating
@@ -1022,8 +1051,8 @@ router.put("/profile/:boutiqueId/showcase", async (req, res) => {
       const { error } = await supabase.from("boutique_showcase").insert([
         {
           boutique_id: Number(boutiqueId),
-          district: district || null,
-          area: area || null,
+          district: cleanLocationText(district) || null,
+          area: cleanLocationText(area) || null,
           shop_location: cleanText(shop_location) || null,
           tags: tags || null,
           rating: safeRating
@@ -1060,8 +1089,8 @@ router.post("/profile/:boutiqueId/showcase", async (req, res) => {
       const { error } = await supabase
         .from("boutique_showcase")
         .update({
-          district: district || null,
-          area: area || null,
+          district: cleanLocationText(district) || null,
+          area: cleanLocationText(area) || null,
           shop_location: cleanText(shop_location) || null,
           tags: tags || null,
           rating: safeRating
@@ -1072,8 +1101,8 @@ router.post("/profile/:boutiqueId/showcase", async (req, res) => {
       const { error } = await supabase.from("boutique_showcase").insert([
         {
           boutique_id: Number(boutiqueId),
-          district: district || null,
-          area: area || null,
+          district: cleanLocationText(district) || null,
+          area: cleanLocationText(area) || null,
           shop_location: cleanText(shop_location) || null,
           tags: tags || null,
           rating: safeRating
@@ -1271,7 +1300,7 @@ router.get("/boutiques", async (req, res) => {
     });
 
     let filtered = city
-      ? merged.filter((row) => String(row.district || row.city || "").trim().toLowerCase() === city)
+      ? merged.filter((row) => locationIncludes(row.district || row.city || "", city) || locationIncludes(row.area || "", city))
       : merged;
 
     if (city && limit) {

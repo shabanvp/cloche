@@ -48,6 +48,7 @@ const normalizeImageUrl = (value) => {
 };
 
 const cleanText = (value) => String(value || "").trim().replace(/\s+/g, " ");
+const cleanLocationText = (value) => cleanText(value).toLowerCase();
 
 const isVerifiedTrue = (value) => value === true || value === "true" || value === 1 || value === "1";
 
@@ -106,14 +107,14 @@ const hashResetToken = (token) => crypto
 const isStrongPassword = (password) => String(password || "").length >= 8;
 
 const normalizeLocationFields = ({ area, district, city }) => {
-    const safeCity = cleanText(city);
-    const splitCityParts = (val) => val.includes(",") ? val.split(",").map(p => cleanText(p)).filter(Boolean) : [];
+    const safeCity = cleanLocationText(city);
+    const splitCityParts = (val) => val.includes(",") ? val.split(",").map(p => cleanLocationText(p)).filter(Boolean) : [];
     const cityParts = splitCityParts(safeCity);
     const cityArea = cityParts[0] || "";
     const cityDistrict = cityParts.slice(1).join(", ");
 
-    let safeArea = cleanText(area);
-    let safeDistrict = cleanText(district);
+    let safeArea = cleanLocationText(area);
+    let safeDistrict = cleanLocationText(district);
 
     if (!safeArea && cityParts.length > 1) safeArea = cityArea;
     if (!safeDistrict && cityDistrict) safeDistrict = cityDistrict;
@@ -209,7 +210,7 @@ exports.signup = async (req, res) => {
 
     if (account_type === "partner") {
         const { boutique_name, owner_name, email, phone, city, area, district, password, tags } = req.body;
-        if (!boutique_name || !owner_name || !email || !phone || !password) return res.status(400).json({ message: "All partner fields required" });
+        if (!boutique_name || !owner_name || !email || !phone || (!city && (!area || !district)) || !password) return res.status(400).json({ message: "All partner fields required" });
         if (!req.file) return res.status(400).json({ message: "Showcase image required" });
 
         try {
@@ -674,7 +675,7 @@ exports.updateProfile = async (req, res) => {
             owner_name,
             email: String(email).trim().toLowerCase(),
             phone: String(phone).trim(),
-            city: city
+            city: cleanLocationText(city)
         }).eq("id", boutiqueId);
 
         if (error) return res.status(500).json({ message: "Update failed", error: error.message });
@@ -683,8 +684,8 @@ exports.updateProfile = async (req, res) => {
 
         await supabase.from("boutique_showcase").upsert([{
             boutique_id: Number(boutiqueId),
-            district,
-            area,
+            district: cleanLocationText(district) || null,
+            area: cleanLocationText(area) || null,
             tags: normalizedTags
         }], { onConflict: "boutique_id" });
 
@@ -726,8 +727,8 @@ exports.updateShowcase = async (req, res) => {
         const normalizedTags = normalizeTags(tags) || null;
         const { error } = await supabase.from("boutique_showcase").upsert([{
             boutique_id: Number(boutiqueId),
-            district: district || null,
-            area: area || null,
+            district: cleanLocationText(district) || null,
+            area: cleanLocationText(area) || null,
             tags: normalizedTags,
             shop_location: String(shop_location || "").trim() || null
         }], { onConflict: "boutique_id" });
