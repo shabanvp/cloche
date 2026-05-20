@@ -760,6 +760,14 @@
       const city = String(boutique?.city || "").trim();
       let district = String(boutique?.district || "").trim();
       let area = String(boutique?.area || "").trim();
+      const splitParts = (value) => String(value || "").split(",").map((part) => part.trim()).filter(Boolean);
+      const samePart = (a, b) => a.toLowerCase() === b.toLowerCase();
+      const normalizePart = (value) => String(value || "").trim().toLowerCase().replace(/\s+/g, " ");
+      const duplicateLocationPart = (part, target) => {
+        const a = normalizePart(part);
+        const b = normalizePart(target);
+        return !!a && !!b && (a === b || a.includes(b) || b.includes(a));
+      };
 
       if (!area && city.includes(",")) {
         area = city.split(",")[0].trim();
@@ -776,6 +784,13 @@
       if (area && district && area.toLowerCase() === district.toLowerCase()) {
         area = "";
       }
+
+      const districtParts = splitParts(district);
+      district = districtParts[districtParts.length - 1] || district;
+      const areaParts = splitParts(area).filter((part) => !duplicateLocationPart(part, district));
+      area = areaParts
+        .filter((part, index, parts) => parts.findIndex((item) => samePart(item, part) || duplicateLocationPart(item, part)) === index)
+        .join(", ");
 
       return { area, district };
     }

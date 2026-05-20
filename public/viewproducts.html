@@ -537,7 +537,21 @@
         setText("subBoutiqueName", bName);
         setText("boutiqueName", bName);
 
-        const loc = [product.area, product.district].filter(Boolean).join(", ") || product.boutique_city || product.location || "Luxury Hub";
+        const splitLocationParts = (value) => String(value || "").split(",").map((part) => part.trim()).filter(Boolean);
+        const sameLocationPart = (a, b) => a.toLowerCase() === b.toLowerCase();
+        const normalizeLocationPart = (value) => String(value || "").trim().toLowerCase().replace(/\s+/g, " ");
+        const duplicateLocationPart = (part, target) => {
+          const a = normalizeLocationPart(part);
+          const b = normalizeLocationPart(target);
+          return !!a && !!b && (a === b || a.includes(b) || b.includes(a));
+        };
+        const districtParts = splitLocationParts(product.district);
+        const displayDistrict = districtParts[districtParts.length - 1] || product.district || "";
+        const areaParts = splitLocationParts(product.area).filter((part) => !duplicateLocationPart(part, displayDistrict));
+        const loc = [...areaParts, displayDistrict]
+          .filter(Boolean)
+          .filter((part, index, parts) => parts.findIndex((item) => sameLocationPart(item, part) || duplicateLocationPart(item, part)) === index)
+          .join(", ") || product.boutique_city || product.location || "Luxury Hub";
         setText("productLocation", loc.toUpperCase());
 
         setText("productFabric", product.fabric, "Premium Handpicked");
@@ -549,7 +563,7 @@
 
         updateMainImage(0);
 
-        setText("boutiqueArea", (product.area || product.district || "Official Boutique").toUpperCase());
+        setText("boutiqueArea", (areaParts[0] || displayDistrict || "Official Boutique").toUpperCase());
         setText("boutiqueInitial", bName.charAt(0).toUpperCase());
 
         // Render Boutique Tags
