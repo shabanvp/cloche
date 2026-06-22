@@ -1,8 +1,6 @@
-const nodemailer = require("nodemailer");
-
 /**
  * CLOCHE Email Service
- * Uses Resend over HTTPS first, then falls back to Gmail SMTP App Password if configured.
+ * Uses Brevo's Transactional Email API over HTTPS.
  */
 
 const DEFAULT_BASE_URL = "https://cloche-backend.onrender.com";
@@ -20,17 +18,15 @@ const FRONTEND_BASE_URL = String(
   DEFAULT_BASE_URL
 ).trim().replace(/\/+$/, "");
 
-const GMAIL_USER = String(process.env.GMAIL_USER || "").trim();
-const GMAIL_APP_PASSWORD = String(process.env.GMAIL_APP_PASSWORD || "").trim().replace(/\s+/g, "");
-const RESEND_API_KEY = String(process.env.RESEND_API_KEY || "").trim();
-const RESEND_FROM_EMAIL = String(process.env.RESEND_FROM_EMAIL || "CLOCHE <onboarding@resend.dev>").trim();
+const BREVO_API_KEY = String(process.env.BREVO_API_KEY || process.env.SENDINBLUE_API_KEY || "").trim();
+const BREVO_FROM_EMAIL = String(process.env.BREVO_FROM_EMAIL || process.env.EMAIL_FROM || "").trim();
+const BREVO_FROM_NAME = String(process.env.BREVO_FROM_NAME || "Cloche Luxury").trim();
 
-const hasResendSetup = !!RESEND_API_KEY;
-const hasSmtpSetup = !!(GMAIL_USER && GMAIL_APP_PASSWORD);
-const isSetup = hasResendSetup || hasSmtpSetup;
+const hasBrevoSetup = !!(BREVO_API_KEY && BREVO_FROM_EMAIL);
+const isSetup = hasBrevoSetup;
 const USER_SAFE_EMAIL_ERROR = "We created your account, but couldn't send the verification email right now.";
 
-console.log(`Email service configured: Resend=${hasResendSetup}, SMTP app password=${hasSmtpSetup}`);
+console.log(`Email service configured: Brevo API=${hasBrevoSetup}`);
 
 const escapeHeader = (value) => String(value || "").replace(/[\r\n]+/g, " ").trim();
 
@@ -54,7 +50,7 @@ const encodeMessage = (message) => Buffer
 
 const createEmailMessage = (to, subject, html, fromName = "Cloche Luxury") => {
   const lines = [
-    `From: "${escapeHeader(fromName)}" <${GMAIL_USER}>`,
+    `From: "${escapeHeader(fromName)}" <${BREVO_FROM_EMAIL}>`,
     `To: ${escapeHeader(to)}`,
     `Date: ${new Date().toUTCString()}`,
     `Message-ID: <${Date.now()}.${Math.random().toString(36).slice(2)}@cloche>`,
@@ -68,110 +64,47 @@ const createEmailMessage = (to, subject, html, fromName = "Cloche Luxury") => {
   return encodeMessage(lines.join("\r\n"));
 };
 
-const createSmtpTransporter = (options = {}) => {
-  const port = options.port || 465;
-  const secure = port === 465;
-
-  return nodemailer.createTransport({
-    host: "smtp.gmail.com",
-    port,
-    secure,
-    requireTLS: !secure,
-    connectionTimeout: 15000,
-    greetingTimeout: 15000,
-    socketTimeout: 30000,
-    auth: {
-      user: GMAIL_USER,
-      pass: GMAIL_APP_PASSWORD,
-    },
-  });
-};
-
-const formatEmailSendError = (error) => [
-  error?.code,
-  error?.command,
-  error?.responseCode,
-  error?.message
-].filter(Boolean).join(" | ") || "failed";
-
-const sendSmtpMessage = async ({ to, subject, html, fromName }) => {
-  const attempts = [];
-
-  for (const port of [465, 587]) {
-    try {
-      const smtpTransporter = createSmtpTransporter({ port });
-      const info = await smtpTransporter.sendMail({
-        from: `"${escapeHeader(fromName || "Cloche Luxury")}" <${GMAIL_USER}>`,
-        to,
-        subject,
-        html,
-      });
-
-      return { success: true, messageId: info?.messageId || null, method: `gmail-smtp-app-password:${port}` };
-    } catch (error) {
-      attempts.push(`port ${port}: ${formatEmailSendError(error)}`);
-    }
-  }
-
-  throw new Error(`Gmail SMTP failed (${attempts.join("; ")})`);
-};
-
-const sendResendMessage = async ({ to, subject, html, fromName }) => {
-  const senderName = fromName || "Cloche Luxury";
-  const fromAddress = RESEND_FROM_EMAIL.includes("<") 
-    ? RESEND_FROM_EMAIL 
-    : `"${senderName}" <${RESEND_FROM_EMAIL}>`;
-
-  const response = await fetch("https://api.resend.com/emails", {
+const sendBrevoMessage = async ({ to, subject, html, fromName }) => {
+  const response = await fetch("https://api.brevo.com/v3/smtp/email", {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${RESEND_API_KEY}`,
+      "api-key": BREVO_API_KEY,
       "Content-Type": "application/json",
+      Accept: "application/json",
     },
     body: JSON.stringify({
-      from: fromAddress,
-      to,
+      sender: {
+        name: fromName || BREVO_FROM_NAME,
+        email: BREVO_FROM_EMAIL,
+      },
+      to: [{ email: to }],
       subject,
-      html,
+      htmlContent: html,
     }),
   });
 
   const data = await response.json().catch(() => ({}));
 
   if (!response.ok) {
-    const message = data?.message || data?.error || `Resend API failed with status ${response.status}`;
+    const message = data?.message || data?.error || `Brevo API failed with status ${response.status}`;
     throw new Error(message);
   }
 
-  return { success: true, messageId: data?.id || null, method: "resend" };
+  return { success: true, messageId: data?.messageId || data?.id || null, method: "brevo-api" };
 };
 
 const sendEmailMessage = async ({ to, subject, html, fromName }) => {
   if (!isSetup) {
-    console.error("Email Error: No email provider configured (Resend or Gmail SMTP app password)");
+    console.error("Email Error: Brevo API is not configured");
     return { success: false, error: USER_SAFE_EMAIL_ERROR, internalError: "Email provider is not configured" };
   }
 
-  // 1. Try Resend first, preserving the existing provider order.
-  if (hasResendSetup) {
-    try {
-      return await sendResendMessage({ to, subject, html, fromName });
-    } catch (error) {
-      console.error("[EmailService] Resend Error:", error.message);
-    }
+  try {
+    return await sendBrevoMessage({ to, subject, html, fromName });
+  } catch (error) {
+    console.error("[EmailService] Brevo API Error:", error.message);
+    return { success: false, error: USER_SAFE_EMAIL_ERROR, internalError: error.message };
   }
-
-  // 2. Fallback to Gmail SMTP using an App Password.
-  if (hasSmtpSetup) {
-    try {
-      return await sendSmtpMessage({ to, subject, html, fromName });
-    } catch (error) {
-      console.error("[EmailService] SMTP Fallback Error:", error.message);
-      return { success: false, error: USER_SAFE_EMAIL_ERROR, internalError: error.message };
-    }
-  }
-
-  return { success: false, error: USER_SAFE_EMAIL_ERROR, internalError: "All configured email methods failed" };
 };
 
 // ===============================
@@ -304,18 +237,17 @@ const sendEnquiryNotificationEmail = async (
 // DIAGNOSTICS
 // ===============================
 const getEmailServiceStatus = async () => {
-  const userPrefix = GMAIL_USER ? GMAIL_USER.substring(0, 3) : "???";
-  const userSuffix = GMAIL_USER ? GMAIL_USER.split("@")[1] : "???";
+  const fromPrefix = BREVO_FROM_EMAIL ? BREVO_FROM_EMAIL.substring(0, 3) : "???";
+  const fromSuffix = BREVO_FROM_EMAIL ? BREVO_FROM_EMAIL.split("@")[1] : "???";
 
   const status = {
     configured: isSetup,
-    user: `${userPrefix}...@${userSuffix}`,
-    hasAppPassword: !!GMAIL_APP_PASSWORD,
-    hasResendApiKey: !!RESEND_API_KEY,
-    resendFromEmail: RESEND_FROM_EMAIL.replace(/<.*>/, "<hidden>"),
-    method: hasResendSetup ? "Resend API" : (hasSmtpSetup ? "Gmail SMTP app password" : "Not configured"),
-    hasResendSetup,
-    hasSmtpSetup,
+    from: `${fromPrefix}...@${fromSuffix}`,
+    hasBrevoApiKey: !!BREVO_API_KEY,
+    hasBrevoFromEmail: !!BREVO_FROM_EMAIL,
+    brevoFromName: BREVO_FROM_NAME,
+    method: hasBrevoSetup ? "Brevo API" : "Not configured",
+    hasBrevoSetup,
     backendUrl: BACKEND_BASE_URL,
     frontendUrl: FRONTEND_BASE_URL,
   };
