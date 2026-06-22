@@ -1,5 +1,4 @@
 const nodemailer = require("nodemailer");
-const dns = require("dns");
 
 /**
  * CLOCHE Email Service
@@ -29,7 +28,6 @@ const RESEND_FROM_EMAIL = String(process.env.RESEND_FROM_EMAIL || "CLOCHE <onboa
 const hasResendSetup = !!RESEND_API_KEY;
 const hasSmtpSetup = !!(GMAIL_USER && GMAIL_APP_PASSWORD);
 const isSetup = hasResendSetup || hasSmtpSetup;
-let cachedSmtpIpv4 = null;
 const USER_SAFE_EMAIL_ERROR = "We created your account, but couldn't send the verification email right now.";
 
 console.log(`Email service configured: Resend=${hasResendSetup}, SMTP app password=${hasSmtpSetup}`);
@@ -70,29 +68,15 @@ const createEmailMessage = (to, subject, html, fromName = "Cloche Luxury") => {
   return encodeMessage(lines.join("\r\n"));
 };
 
-const resolveSmtpIpv4 = async () => {
-  if (cachedSmtpIpv4) return cachedSmtpIpv4;
-
-  const addresses = await dns.promises.resolve4("smtp.gmail.com");
-  cachedSmtpIpv4 = addresses[0];
-  return cachedSmtpIpv4;
-};
-
-const createSmtpTransporter = async () => {
-  const smtpIpv4 = await resolveSmtpIpv4();
-
+const createSmtpTransporter = () => {
   return nodemailer.createTransport({
-    host: smtpIpv4,
-    port: 587,
-    secure: false,
-    requireTLS: true,
+    service: "gmail",
+    host: "smtp.gmail.com",
+    port: 465,
+    secure: true,
     connectionTimeout: 15000,
     greetingTimeout: 15000,
     socketTimeout: 30000,
-    name: "smtp.gmail.com",
-    tls: {
-      servername: "smtp.gmail.com",
-    },
     auth: {
       user: GMAIL_USER,
       pass: GMAIL_APP_PASSWORD,
