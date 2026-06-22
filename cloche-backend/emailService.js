@@ -1,10 +1,9 @@
-const { google } = require("googleapis");
 const nodemailer = require("nodemailer");
 const dns = require("dns");
 
 /**
  * CLOCHE Email Service
- * Uses Resend over HTTPS first, then falls back to Gmail API/SMTP if configured.
+ * Uses Resend over HTTPS first, then falls back to Gmail SMTP App Password if configured.
  */
 
 const DEFAULT_BASE_URL = "https://cloche-backend.onrender.com";
@@ -23,33 +22,17 @@ const FRONTEND_BASE_URL = String(
 ).trim().replace(/\/+$/, "");
 
 const GMAIL_USER = String(process.env.GMAIL_USER || "").trim();
-const GMAIL_CLIENT_ID = String(process.env.GMAIL_CLIENT_ID || "").trim();
-const GMAIL_CLIENT_SECRET = String(process.env.GMAIL_CLIENT_SECRET || "").trim();
-const GMAIL_REFRESH_TOKEN = String(process.env.GMAIL_REFRESH_TOKEN || "").trim();
 const GMAIL_APP_PASSWORD = String(process.env.GMAIL_APP_PASSWORD || "").trim().replace(/\s+/g, "");
 const RESEND_API_KEY = String(process.env.RESEND_API_KEY || "").trim();
 const RESEND_FROM_EMAIL = String(process.env.RESEND_FROM_EMAIL || "CLOCHE <onboarding@resend.dev>").trim();
 
 const hasResendSetup = !!RESEND_API_KEY;
-const hasGmailApiSetup = !!(GMAIL_CLIENT_ID && GMAIL_CLIENT_SECRET && GMAIL_REFRESH_TOKEN);
 const hasSmtpSetup = !!(GMAIL_USER && GMAIL_APP_PASSWORD);
-const isSetup = hasResendSetup || hasGmailApiSetup || hasSmtpSetup;
+const isSetup = hasResendSetup || hasSmtpSetup;
 let cachedSmtpIpv4 = null;
 const USER_SAFE_EMAIL_ERROR = "We created your account, but couldn't send the verification email right now.";
 
-const oauth2Client = new google.auth.OAuth2(
-  GMAIL_CLIENT_ID,
-  GMAIL_CLIENT_SECRET,
-  "https://developers.google.com/oauthplayground"
-);
-
-if (hasGmailApiSetup) {
-  oauth2Client.setCredentials({ refresh_token: GMAIL_REFRESH_TOKEN });
-}
-
-const gmail = google.gmail({ version: "v1", auth: oauth2Client });
-
-console.log(`Email service configured: Resend=${hasResendSetup}, Gmail API=${hasGmailApiSetup}, SMTP app password=${hasSmtpSetup}`);
+console.log(`Email service configured: Resend=${hasResendSetup}, SMTP app password=${hasSmtpSetup}`);
 
 const escapeHeader = (value) => String(value || "").replace(/[\r\n]+/g, " ").trim();
 
@@ -129,18 +112,12 @@ const sendSmtpMessage = async ({ to, subject, html, fromName }) => {
   return { success: true, messageId: info?.messageId || null, method: "gmail-smtp-app-password" };
 };
 
-const sendGmailApiMessage = async ({ to, subject, html, fromName }) => {
-  const response = await gmail.users.messages.send({
-    userId: "me",
-    requestBody: {
-      raw: createEmailMessage(to, subject, html, fromName)
-    }
-  });
+const sendResendMessage = async ({ to, subject, html, fromName }) => {
+  const senderName = fromName || "Cloche Luxury";
+  const fromAddress = RESEND_FROM_EMAIL.includes("<") 
+    ? RESEND_FROM_EMAIL 
+    : `"${senderName}" <${RESEND_FROM_EMAIL}>`;
 
-  return { success: true, messageId: response?.data?.id || null, method: "gmail-api" };
-};
-
-const sendResendMessage = async ({ to, subject, html }) => {
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {
@@ -148,7 +125,7 @@ const sendResendMessage = async ({ to, subject, html }) => {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      from: RESEND_FROM_EMAIL,
+      from: fromAddress,
       to,
       subject,
       html,
@@ -167,11 +144,11 @@ const sendResendMessage = async ({ to, subject, html }) => {
 
 const sendEmailMessage = async ({ to, subject, html, fromName }) => {
   if (!isSetup) {
-    console.error("Email Error: No email provider configured (Resend, SMTP, or Gmail OAuth2)");
+    console.error("Email Error: No email provider configured (Resend or Gmail SMTP app password)");
     return { success: false, error: USER_SAFE_EMAIL_ERROR, internalError: "Email provider is not configured" };
   }
 
-  // 1. Try Resend first. It does not depend on Gmail OAuth refresh tokens.
+  // 1. Try Resend first, preserving the existing provider order.
   if (hasResendSetup) {
     try {
       return await sendResendMessage({ to, subject, html, fromName });
@@ -180,38 +157,7 @@ const sendEmailMessage = async ({ to, subject, html, fromName }) => {
     }
   }
 
-  // 2. Fallback to Gmail OAuth2
-  if (hasGmailApiSetup) {
-    try {
-      // Validate token before trying to send
-      const { token } = await oauth2Client.getAccessToken();
-      if (!token) throw new Error("Google Refresh Token is invalid or expired. Please generate a new one.");
-
-      const rawMessage = createEmailMessage(to, subject, html, fromName);
-      
-      const response = await gmail.users.messages.send({
-        userId: "me",
-        requestBody: {
-          raw: rawMessage,
-        },
-      });
-
-      if (response.data && response.data.id) {
-        return { success: true, messageId: response.data.id, method: "gmail-api-https" };
-      }
-
-      throw new Error("Gmail API accepted the request but did not return a message id.");
-    } catch (error) {
-      const apiError = error?.response?.data?.error?.message || error.message;
-      console.error("[EmailService] Gmail API Error:", apiError);
-
-      if (!hasSmtpSetup) {
-        return { success: false, error: USER_SAFE_EMAIL_ERROR, internalError: `Gmail API Error: ${apiError}` };
-      }
-    }
-  }
-
-  // 3. Final fallback to SMTP
+  // 2. Fallback to Gmail SMTP using an App Password.
   if (hasSmtpSetup) {
     try {
       return await sendSmtpMessage({ to, subject, html, fromName });
@@ -221,7 +167,7 @@ const sendEmailMessage = async ({ to, subject, html, fromName }) => {
     }
   }
 
-  return { success: false, error: USER_SAFE_EMAIL_ERROR, internalError: "All email methods failed" };
+  return { success: false, error: USER_SAFE_EMAIL_ERROR, internalError: "All configured email methods failed" };
 };
 
 // ===============================
@@ -360,35 +306,15 @@ const getEmailServiceStatus = async () => {
   const status = {
     configured: isSetup,
     user: `${userPrefix}...@${userSuffix}`,
-    hasClientId: !!GMAIL_CLIENT_ID,
-    hasClientSecret: !!GMAIL_CLIENT_SECRET,
-    hasRefreshToken: !!GMAIL_REFRESH_TOKEN,
     hasAppPassword: !!GMAIL_APP_PASSWORD,
     hasResendApiKey: !!RESEND_API_KEY,
     resendFromEmail: RESEND_FROM_EMAIL.replace(/<.*>/, "<hidden>"),
-    method: hasResendSetup ? "Resend API" : (hasSmtpSetup ? "Gmail SMTP app password" : "Gmail API OAuth2"),
+    method: hasResendSetup ? "Resend API" : (hasSmtpSetup ? "Gmail SMTP app password" : "Not configured"),
     hasResendSetup,
-    hasGmailApiSetup,
     hasSmtpSetup,
     backendUrl: BACKEND_BASE_URL,
     frontendUrl: FRONTEND_BASE_URL,
   };
-
-  if (hasGmailApiSetup) {
-    try {
-      const { token } = await oauth2Client.getAccessToken();
-      status.gmailTokenValid = !!token;
-      if (token) {
-        const profile = await gmail.users.getProfile({ userId: "me" });
-        status.gmailProfileEmail = profile?.data?.emailAddress
-          ? profile.data.emailAddress.replace(/^(.{3}).*(@.*)$/, "$1...$2")
-          : null;
-      }
-    } catch (error) {
-      status.gmailTokenValid = false;
-      status.gmailError = error?.response?.data?.error?.message || error.message || "Gmail validation failed";
-    }
-  }
 
   return status;
 };
@@ -398,8 +324,8 @@ module.exports = {
   sendPasswordResetEmail,
   sendEnquiryNotificationEmail,
   getEmailServiceStatus,
+  sendEmailMessage,
   createEmailMessage,
   encodeMessage,
-  gmail,
   isSetup,
 };

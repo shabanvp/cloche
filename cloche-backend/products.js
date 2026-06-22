@@ -5,23 +5,8 @@ const path = require("path");
 const fs = require("fs");
 const supabase = require("./supabase");
 const { deleteStorageObjectByUrl, uploadBufferToStorage } = require("./storage");
-const { getPlanLimits, normalizePlan } = require("./services/planService");
 
 const CLOUDINARY_CLOUD_NAME = String(process.env.CLOUDINARY_CLOUD_NAME || "").trim();
-
-const normalizeTags = (value) => {
-  const raw = String(value || "").trim();
-  if (!raw) return null;
-
-  const tags = raw
-    .split(",")
-    .map((t) => String(t || "").trim())
-    .filter(Boolean);
-
-  if (!tags.length) return null;
-
-  return tags.join(", ");
-};
 
 const normalizeImageUrl = (value) => {
   const raw = String(value || "").trim();
@@ -37,39 +22,6 @@ const normalizeImageUrl = (value) => {
   }
 
   return raw; // Already looks like a full URL
-};
-
-const isVerifiedPartnerPlan = (plan) => {
-  const normalized = normalizePlan(plan);
-  return normalized === "professional" || normalized === "premium";
-};
-
-const attachBoutiquePlans = async (products = []) => {
-  if (!Array.isArray(products) || !products.length) return [];
-
-  const boutiqueIds = [...new Set(products.map((p) => p.boutique_id).filter(Boolean))];
-  if (!boutiqueIds.length) return products;
-
-  const { data: boutiques, error } = await supabase
-    .from("boutiques")
-    .select("id, plan")
-    .in("id", boutiqueIds);
-
-  if (error) {
-    console.error("[Products] Failed to attach boutique plans:", error.message);
-    return products;
-  }
-
-  const planByBoutique = new Map((boutiques || []).map((b) => [String(b.id), normalizePlan(b.plan)]));
-
-  return products.map((p) => {
-    const boutiquePlan = planByBoutique.get(String(p.boutique_id)) || normalizePlan(p.plan);
-    return {
-      ...p,
-      boutique_plan: boutiquePlan,
-      is_verified_partner_product: isVerifiedPartnerPlan(boutiquePlan)
-    };
-  });
 };
 
 const upload = multer({
@@ -107,36 +59,73 @@ const uploadProductImages = async (boutiqueId, files) => {
 
 /* ================= GET ALL PRODUCTS ================= */
 router.get("/", async (req, res) => {
-  console.log("[Products] GET /api/products hit - Attempting fetch...");
   try {
-    const { data: products, error } = await supabase.from("products").select("*");
-    
-    if (error) {
-      console.error("[Products] Supabase internal error:", error.message);
-      return res.json([]);
+    let products = [];
+    let productErr = null;
+
+    try {
+      const res = await supabase
+        .from("products")
+        .select("*")
+        .order("created_at", { ascending: false });
+      products = res.data || [];
+      productErr = res.error;
+    } catch (e) {
+      console.warn("[Products] Primary fetch failed:", e.message);
     }
 
-    if (!products || products.length === 0) {
-      console.log("[Products] No products found in DB.");
-      return res.json([]);
+    if (productErr || !products.length) {
+      console.log("[Products] Falling back to ID sort or empty list...");
+      try {
+        const resFallback = await supabase
+          .from("products")
+          .select("*")
+          .order("id", { ascending: false });
+        products = resFallback.data || [];
+      } catch (err) {
+        console.error("[Products] Total DB failure:", err.message);
+        return res.status(500).json({ message: "Database unreachable", error: err.message });
+      }
     }
 
-    console.log(`[Products] Successfully fetched ${products.length} items from DB.`);
+    if (!products || products.length === 0) return res.json([]);
 
-    // Resilience: Sort by ID if nothing else
-    const sorted = [...products].sort((a, b) => (b.id || 0) - (a.id || 0));
+    const uniqueBoutiqueIds = [...new Set(products.map(p => p.boutique_id).filter(Boolean))];
+    let boutiqueMap = {};
 
-    const productsWithPlans = await attachBoutiquePlans(sorted);
+    try {
+      const [bRes, sRes] = await Promise.all([
+        supabase.from("boutiques").select("id, boutique_name, city").in("id", uniqueBoutiqueIds),
+        supabase.from("boutique_showcase").select("boutique_id, area, district").in("boutique_id", uniqueBoutiqueIds)
+      ]);
 
-    return res.json(productsWithPlans.map(p => ({
-      ...p,
-      boutique_name: p.boutique_name || "Boutique",
-      location: p.location || p.city || "Kerala"
-    })));
+      (bRes.data || []).forEach(b => { boutiqueMap[b.id] = { ...boutiqueMap[b.id], ...b }; });
+      (sRes.data || []).forEach(s => {
+        if (s.boutique_id) {
+          boutiqueMap[s.boutique_id] = { ...boutiqueMap[s.boutique_id], ...s };
+        }
+      });
+    } catch (metaErr) {
+      console.warn("[Products] Non-critical metadata fetch failed:", metaErr.message);
+    }
+
+    const flattened = products.map(p => {
+      const b = boutiqueMap[p.boutique_id] || {};
+      return {
+        ...p,
+        boutique_name: b.boutique_name || "Boutique",
+        city: b.city || "",
+        district: b.district || "",
+        area: b.area || "",
+        location: p.location || b.area || b.city || ""
+      };
+    });
+
+    return res.json(flattened);
 
   } catch (err) {
-    console.error("[Products] Unexpected fatal error in /all:", err.message);
-    return res.json([]); // Return empty list rather than 500 error
+    console.error("[Products] Server error in /all:", err.message);
+    return res.status(500).json({ message: "Server error", error: err.message });
   }
 });
 
@@ -156,30 +145,22 @@ router.get("/:productId", async (req, res, next) => {
     if (productErr) return res.status(500).json({ message: "DB error", error: productErr.message });
     if (!product) return res.status(404).json({ message: "Product not found" });
 
-    const [{ data: boutique }, { data: showcaseRows }, { data: images }] = await Promise.all([
-      supabase.from("boutiques").select("boutique_name, city, plan").eq("id", product.boutique_id).maybeSingle(),
-      supabase
-        .from("boutique_showcase")
-        .select("area, district, rating, tags, image_url, id")
-        .eq("boutique_id", product.boutique_id)
-        .order("id", { ascending: false })
-        .limit(1),
+    const [{ data: boutique }, { data: showcase }, { data: images }] = await Promise.all([
+      supabase.from("boutiques").select("boutique_name, city").eq("id", product.boutique_id).maybeSingle(),
+      supabase.from("boutique_showcase").select("area, district, rating, tags, image_url").eq("boutique_id", product.boutique_id).maybeSingle(),
       supabase.from("product_images").select("image_url").eq("product_id", productId).order("id", { ascending: true })
     ]);
 
-    const showcase = Array.isArray(showcaseRows) ? showcaseRows[0] : null;
     const gallery = Array.isArray(images) ? images.map((i) => i.image_url) : [];
 
     return res.json({
       ...product,
       boutique_name: boutique?.boutique_name || null,
       boutique_city: boutique?.city || null,
-      boutique_plan: normalizePlan(boutique?.plan),
-      is_verified_partner_product: isVerifiedPartnerPlan(boutique?.plan),
       area: showcase?.area || null,
       district: showcase?.district || null,
       showcase_rating: showcase?.rating || 5.0,
-      showcase_tags: normalizeTags(showcase?.tags),
+      showcase_tags: showcase?.tags || null,
       showcase_image: showcase?.image_url || null,
       review_count: showcase?.rating ? 1 : 0,
       store_location: product.location || boutique?.city || "",
@@ -222,8 +203,9 @@ router.post("/add", upload.array("images", 10), async (req, res) => {
 
     if (planErr) return res.status(500).json({ message: "DB error", error: planErr.message });
 
-    const normalizedPlan = normalizePlan(planRow?.plan);
-    const maxProducts = getPlanLimits(normalizedPlan).maxProducts;
+    const normalizedPlan = String(planRow?.plan || "Basic").toLowerCase();
+    const productLimitByPlan = { basic: 20, professional: 20, premium: Infinity };
+    const maxProducts = productLimitByPlan[normalizedPlan] ?? productLimitByPlan.basic;
 
     const { count, error: countErr } = await supabase
       .from("products")
@@ -323,8 +305,7 @@ router.get("/boutique/:boutiqueId", async (req, res) => {
       .order("id", { ascending: true });
 
     if (galleryErr) {
-      const productsWithPlans = await attachBoutiquePlans(products);
-      return res.json(productsWithPlans.map((p) => ({ ...p, gallery: [] })));
+      return res.json(products.map((p) => ({ ...p, gallery: [] })));
     }
 
     const galleryMap = {};
@@ -333,9 +314,7 @@ router.get("/boutique/:boutiqueId", async (req, res) => {
       galleryMap[row.product_id].push(normalizeImageUrl(row.image_url));
     }
 
-    const productsWithPlans = await attachBoutiquePlans(products);
-
-    return res.json(productsWithPlans.map((p) => ({
+    return res.json(products.map((p) => ({
       ...p,
       image_url: normalizeImageUrl(p.image_url),
       gallery: galleryMap[p.id] || []
