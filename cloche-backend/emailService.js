@@ -68,12 +68,16 @@ const createEmailMessage = (to, subject, html, fromName = "Cloche Luxury") => {
   return encodeMessage(lines.join("\r\n"));
 };
 
-const createSmtpTransporter = () => {
+const createSmtpTransporter = (options = {}) => {
+  const port = options.port || 465;
+  const secure = port === 465;
+
   return nodemailer.createTransport({
     service: "gmail",
     host: "smtp.gmail.com",
-    port: 465,
-    secure: true,
+    port,
+    secure,
+    requireTLS: !secure,
     connectionTimeout: 15000,
     greetingTimeout: 15000,
     socketTimeout: 30000,
@@ -85,15 +89,25 @@ const createSmtpTransporter = () => {
 };
 
 const sendSmtpMessage = async ({ to, subject, html, fromName }) => {
-  const smtpTransporter = await createSmtpTransporter();
-  const info = await smtpTransporter.sendMail({
-    from: `"${escapeHeader(fromName || "Cloche Luxury")}" <${GMAIL_USER}>`,
-    to,
-    subject,
-    html,
-  });
+  const attempts = [];
 
-  return { success: true, messageId: info?.messageId || null, method: "gmail-smtp-app-password" };
+  for (const port of [465, 587]) {
+    try {
+      const smtpTransporter = createSmtpTransporter({ port });
+      const info = await smtpTransporter.sendMail({
+        from: `"${escapeHeader(fromName || "Cloche Luxury")}" <${GMAIL_USER}>`,
+        to,
+        subject,
+        html,
+      });
+
+      return { success: true, messageId: info?.messageId || null, method: `gmail-smtp-app-password:${port}` };
+    } catch (error) {
+      attempts.push(`port ${port}: ${error?.code || error?.message || "failed"}`);
+    }
+  }
+
+  throw new Error(`Gmail SMTP failed (${attempts.join("; ")})`);
 };
 
 const sendResendMessage = async ({ to, subject, html, fromName }) => {
