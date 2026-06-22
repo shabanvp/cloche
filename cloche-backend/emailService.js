@@ -73,7 +73,6 @@ const createSmtpTransporter = (options = {}) => {
   const secure = port === 465;
 
   return nodemailer.createTransport({
-    service: "gmail",
     host: "smtp.gmail.com",
     port,
     secure,
@@ -87,6 +86,13 @@ const createSmtpTransporter = (options = {}) => {
     },
   });
 };
+
+const formatEmailSendError = (error) => [
+  error?.code,
+  error?.command,
+  error?.responseCode,
+  error?.message
+].filter(Boolean).join(" | ") || "failed";
 
 const sendSmtpMessage = async ({ to, subject, html, fromName }) => {
   const attempts = [];
@@ -103,7 +109,7 @@ const sendSmtpMessage = async ({ to, subject, html, fromName }) => {
 
       return { success: true, messageId: info?.messageId || null, method: `gmail-smtp-app-password:${port}` };
     } catch (error) {
-      attempts.push(`port ${port}: ${error?.code || error?.message || "failed"}`);
+      attempts.push(`port ${port}: ${formatEmailSendError(error)}`);
     }
   }
 
