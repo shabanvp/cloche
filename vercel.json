@@ -1,8 +1,19 @@
 {
-  "public": true,
   "cleanUrls": true,
   "trailingSlash": false,
   "headers": [
+    {
+      "source": "/subscription",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store" }
+      ]
+    },
+    {
+      "source": "/payment-proof",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store" }
+      ]
+    },
     {
       "source": "/boutiques",
       "headers": [
