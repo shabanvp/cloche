@@ -687,6 +687,57 @@
   }
 
   /* -------------------------------------------------------
+     Instant Smooth Navigation (Zero Lag)
+  ------------------------------------------------------- */
+  function setupInstantSmoothNavigation() {
+    const prefetched = new Set();
+
+    // 1. Prefetch on hover (desktop) or touchstart (mobile) for instant loading
+    function prefetchLink(e) {
+      const anchor = e.target.closest('aside a, nav a, .mobile-bottom-nav a, .responsive-topmenu-list a, .desktop-user-menu a');
+      if (!anchor) return;
+      
+      const href = anchor.getAttribute('href');
+      if (!href || href.startsWith('#') || href.startsWith('javascript:')) return;
+      if (anchor.target === '_blank' || anchor.hasAttribute('download')) return;
+      if (anchor.hostname && anchor.hostname !== window.location.hostname) return;
+      
+      if (!prefetched.has(href)) {
+        prefetched.add(href);
+        const link = document.createElement('link');
+        link.rel = 'prefetch';
+        link.href = href;
+        document.head.appendChild(link);
+      }
+    }
+    
+    document.addEventListener('mouseover', prefetchLink, { passive: true });
+    document.addEventListener('touchstart', prefetchLink, { passive: true });
+
+    // 2. Clear transition if coming back via swipe/back-button
+    window.addEventListener('pageshow', (e) => {
+      if (e.persisted) document.body.style.opacity = '1';
+    });
+
+    // 3. Fade out smoothly on click without artificially delaying the browser
+    document.addEventListener('click', (event) => {
+      const anchor = event.target.closest('aside a, nav a, .mobile-bottom-nav a, .responsive-topmenu-list a, .desktop-user-menu a');
+      if (!anchor) return;
+      
+      const href = anchor.getAttribute('href');
+      if (!href || href.startsWith('#') || href.startsWith('javascript:')) return;
+      if (anchor.target === '_blank' || anchor.hasAttribute('download')) return;
+      if (anchor.hostname && anchor.hostname !== window.location.hostname) return;
+      if (anchor.hasAttribute('data-partner-signup-link')) return;
+
+      // DO NOT prevent default. Let browser route immediately to avoid "time lag".
+      // Just visually fade out while the browser does its work natively.
+      document.body.style.transition = 'opacity 0.15s ease-in';
+      document.body.style.opacity = '0';
+    });
+  }
+
+  /* -------------------------------------------------------
      Init
   ------------------------------------------------------- */
   function init() {
@@ -699,6 +750,7 @@
     setupTopMenuFallback();
     setupPartnerSignupLinks();
     setupDesktopHeaderPatching();
+    setupInstantSmoothNavigation();
   }
 
   if (document.readyState === "loading") {
