@@ -609,6 +609,7 @@
   function setupDesktopHeaderPatching() {
     const authNav = document.getElementById("authNav");
     const profileIconLink = document.getElementById("profileIconLink");
+    const listYourBoutiqueNav = document.getElementById("listYourBoutiqueNav");
     const userMenuDropdown = document.getElementById("userMenuDropdown");
     const avatar = document.getElementById("navAvatar");
 
@@ -632,7 +633,12 @@
       authNav.href = "dashboard.html";
       authNav.onclick = toggleMenu;
       if (profileIconLink) profileIconLink.onclick = toggleMenu;
+      if (profileIconLink) {
+        profileIconLink.href = "profile.html";
+        profileIconLink.title = "Boutique Profile";
+      }
       if (avatar) avatar.textContent = ownerName.charAt(0).toUpperCase();
+      if (listYourBoutiqueNav) listYourBoutiqueNav.style.display = "none";
 
       userMenuDropdown.innerHTML = `
         <a href="dashboard.html" class="block px-3 py-2 rounded text-xs uppercase tracking-widest text-white/80 hover:bg-primary/10 hover:text-primary">Dashboard</a>
@@ -648,13 +654,30 @@
       authNav.href = "#";
       authNav.onclick = toggleMenu;
       if (profileIconLink) profileIconLink.onclick = toggleMenu;
+      if (profileIconLink) {
+        profileIconLink.href = "#";
+        profileIconLink.title = "Profile";
+      }
       if (avatar) avatar.textContent = firstName.charAt(0).toUpperCase();
+      if (listYourBoutiqueNav) listYourBoutiqueNav.style.display = "";
 
       userMenuDropdown.innerHTML = `
         <a href="userprofile.html" class="block px-3 py-2 rounded text-xs uppercase tracking-widest text-white/80 hover:bg-primary/10 hover:text-primary">Profile</a>
         <a href="messageboutique.html" class="block px-3 py-2 rounded text-xs uppercase tracking-widest text-white/80 hover:bg-primary/10 hover:text-primary">Inbox</a>
         <button onclick="window.logout()" class="w-full text-left px-3 py-2 rounded text-xs uppercase tracking-widest text-white/80 hover:bg-primary/10 hover:text-primary">Logout</button>
       `;
+    } else {
+      authNav.textContent = "LOGIN";
+      authNav.href = "boutiquelogin.html";
+      authNav.onclick = null;
+      if (profileIconLink) {
+        profileIconLink.href = "boutiquelogin.html";
+        profileIconLink.title = "Login";
+        profileIconLink.onclick = null;
+      }
+      if (avatar) avatar.textContent = "C";
+      if (listYourBoutiqueNav) listYourBoutiqueNav.style.display = "";
+      userMenuDropdown.classList.add("hidden");
     }
   }
 
