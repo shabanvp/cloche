@@ -544,10 +544,10 @@
             Access to more buyers
           </li>
         </ul>
-        <div
-          class="w-full py-4 bg-primary/10 text-primary border border-primary/40 font-bold text-xs uppercase tracking-widest rounded-lg text-center hover:bg-primary hover:text-background-dark transition-all">
-          <button onclick="handleSubscriptionClick()" class="inline-block w-full text-primary hover:text-white transition-colors">Elevate Your Boutique Now</button>
-        </div>
+        <a href="subscription.html" onclick="handleSubscriptionClick(event)"
+          class="relative z-10 mt-auto block w-full py-4 bg-primary/10 text-primary border border-primary/40 font-bold text-xs uppercase tracking-widest rounded-lg text-center hover:bg-primary hover:text-background-dark transition-all">
+          Elevate Your Boutique Now
+        </a>
       </div>
       <!-- Premium Plan -->
       <div class="glass-card plan-card-hover rounded-xl p-10 flex flex-col h-full border-white/5">
@@ -595,10 +595,10 @@
             Faster Support
           </li>
         </ul>
-        <div
-          class="w-full py-4 bg-primary/10 text-primary border border-primary/40 font-bold text-xs uppercase tracking-widest rounded-lg text-center hover:bg-primary hover:text-background-dark transition-all">
-          <button onclick="handleSubscriptionClick()" class="inline-block w-full text-primary hover:text-white transition-colors">Elevate Your Boutique Now</button>
-        </div>
+        <a href="subscription.html" onclick="handleSubscriptionClick(event)"
+          class="relative z-10 mt-auto block w-full py-4 bg-primary/10 text-primary border border-primary/40 font-bold text-xs uppercase tracking-widest rounded-lg text-center hover:bg-primary hover:text-background-dark transition-all">
+          Elevate Your Boutique Now
+        </a>
       </div>
     </div>
   </section>
@@ -690,7 +690,8 @@
 
   <script src="product-upload-utils.js?v=20260515-upload-normalizer"></script>
   <script>
-    function handleSubscriptionClick() {
+    function handleSubscriptionClick(event) {
+      if (event) event.preventDefault();
       // Direct to plans; subscription.html will handle login if they try to buy
       window.location.href = "subscription.html";
     }
