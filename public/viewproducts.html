@@ -605,7 +605,14 @@
         }
 
         const viewBoutiqueBtn = document.getElementById("viewBoutiqueBtn");
-        if (viewBoutiqueBtn) viewBoutiqueBtn.href = `viewboutique.html?id=${product.boutique_id || ""}`;
+        if (viewBoutiqueBtn) {
+          const boutiqueId = String(product.boutique_id || "").trim();
+          viewBoutiqueBtn.href = `viewboutique.html?boutiqueId=${encodeURIComponent(boutiqueId)}`;
+          viewBoutiqueBtn.onclick = () => {
+            localStorage.setItem("selectedBoutiqueId", boutiqueId);
+            localStorage.setItem("selectedBoutiqueName", bName);
+          };
+        }
 
         // --- ADDED: Link Enquiry Button ---
         const consultBtn = document.getElementById("consultBtn");

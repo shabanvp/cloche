@@ -376,7 +376,7 @@
       const params = new URLSearchParams(window.location.search);
       const fromParam = params.get("boutiqueId") || params.get("id");
       const fromStorage = localStorage.getItem("selectedBoutiqueId");
-      return Number(fromParam || fromStorage || 0);
+      return String(fromParam || fromStorage || "").trim();
     }
 
     function setText(id, value) {
@@ -554,23 +554,32 @@
       }
 
       statusWrap.textContent = "Loading boutique profile...";
-      const res = await fetch(`${API_BASE}/boutiques`);
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Failed to load boutique list");
-
-      const boutiquesArray = Array.isArray(data) ? data : [];
-      let boutique = boutiquesArray.find((item) => Number(item.id) === Number(boutiqueId));
-      if (!boutique) throw new Error("Boutique not found");
+      let boutique = null;
+      let boutiquesArray = [];
 
       try {
-        const detailRes = await fetch(`${API_BASE}/boutiques/${boutiqueId}?v=${Date.now()}`);
+        const detailRes = await fetch(`${API_BASE}/boutiques/${encodeURIComponent(boutiqueId)}?v=${Date.now()}`);
         const detailData = await detailRes.json();
         if (detailRes.ok && detailData) {
-          boutique = { ...boutique, ...detailData };
+          boutique = detailData;
         }
       } catch (detailErr) {
         console.warn("Boutique detail refresh failed:", detailErr);
       }
+
+      try {
+        const listRes = await fetch(`${API_BASE}/boutiques?limit=1000&v=${Date.now()}`);
+        const listData = await listRes.json();
+        if (listRes.ok && Array.isArray(listData)) {
+          boutiquesArray = listData;
+          const listedBoutique = boutiquesArray.find((item) => String(item.id) === String(boutiqueId));
+          if (listedBoutique) boutique = { ...listedBoutique, ...(boutique || {}) };
+        }
+      } catch (listErr) {
+        console.warn("Boutique list refresh failed:", listErr);
+      }
+
+      if (!boutique) throw new Error("Boutique not found");
 
       localStorage.setItem("selectedBoutiqueId", String(boutiqueId));
       try {
@@ -580,7 +589,7 @@
     }
 
     async function loadProducts(boutiqueId) {
-      const res = await fetch(`${API_PRODUCTS}/boutique/${boutiqueId}`);
+      const res = await fetch(`${API_PRODUCTS}/boutique/${encodeURIComponent(boutiqueId)}`);
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Failed to load products");
       return Array.isArray(data) ? data : [];
@@ -676,7 +685,7 @@
       const grid = document.getElementById("otherBoutiquesGrid");
       if (!grid) return;
       if (DEBUG_TAGS) console.log("[CLOCHE] renderOtherBoutiques() viewboutique.html", { width: window.innerWidth, path: location.pathname });
-      const filtered = allBoutiques.filter(b => Number(b.id) !== Number(currentId)).slice(0, 6);
+      const filtered = allBoutiques.filter(b => String(b.id) !== String(currentId)).slice(0, 6);
       if (!filtered.length) {
         grid.innerHTML = `<p class="text-white/50 text-xs">No other boutiques found.</p>`;
         return;
