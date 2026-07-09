@@ -85,6 +85,26 @@
       will-change: transform;
     }
 
+    .ad-banner-frame {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: clamp(170px, 24vw, 320px);
+      padding: clamp(8px, 1.4vw, 14px);
+      background:
+        radial-gradient(circle at center, rgba(193, 166, 113, 0.08), transparent 55%),
+        linear-gradient(135deg, rgba(19, 19, 19, 0.98), rgba(8, 8, 8, 0.98));
+    }
+
+    .ad-banner-image {
+      display: block;
+      width: 100%;
+      height: 100%;
+      max-height: clamp(150px, 22vw, 292px);
+      object-fit: contain;
+      object-position: center;
+    }
+
     .royal-border {
       border-bottom: 1px solid rgba(193, 166, 113, 0.2);
     }
@@ -101,6 +121,15 @@
     }
 
     @media (max-width: 767px) {
+      .ad-banner-frame {
+        min-height: clamp(150px, 46vw, 240px);
+        padding: 8px;
+      }
+
+      .ad-banner-image {
+        max-height: clamp(134px, 42vw, 220px);
+      }
+
       body.has-mobile-bars.route-index {
         padding-bottom: 0 !important;
       }
@@ -327,8 +356,9 @@
 
   <!-- AD SECTION 1 -->
   <section class="w-full px-4 md:px-10 mt-2">
-    <div id="adSection1" class="w-full max-w-6xl mx-auto rounded-2xl overflow-hidden border border-primary/10 cursor-default">
-      <img id="adImage1" src="halo&hue.png" class="w-full h-[180px] md:h-[260px] object-cover" />
+    <div id="adSection1"
+      class="ad-banner-frame w-full max-w-6xl mx-auto rounded-2xl overflow-hidden border border-primary/10 cursor-default">
+      <img id="adImage1" src="halo&hue.png" alt="Featured advertisement banner" class="ad-banner-image" />
     </div>
   </section>
 
@@ -403,8 +433,9 @@
 
   <!-- AD SECTION 2 -->
   <section class="w-full px-4 md:px-10 mt-2">
-    <div id="adSection2" class="w-full max-w-6xl mx-auto rounded-2xl overflow-hidden border border-primary/10 cursor-default">
-      <img id="adImage2" src="ad.png" class="w-full h-[180px] md:h-[260px] object-cover" />
+    <div id="adSection2"
+      class="ad-banner-frame w-full max-w-6xl mx-auto rounded-2xl overflow-hidden border border-primary/10 cursor-default">
+      <img id="adImage2" src="ad.png" alt="Promotional advertisement banner" class="ad-banner-image" />
     </div>
   </section>
 
