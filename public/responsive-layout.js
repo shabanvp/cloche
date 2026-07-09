@@ -131,6 +131,10 @@
           <span>Messages</span>
           ${badgeMarkup("messages")}
         </a>
+        <a href="subscription.html" class="side-menu-link">
+          <span class="material-symbols-outlined">star</span>
+          <span>Subscription</span>
+        </a>
         <a href="profile.html" class="side-menu-link">
           <span class="material-symbols-outlined">person</span>
           <span>Partner Profile</span>
@@ -645,6 +649,7 @@
         <a href="lead.html" class="block px-3 py-2 rounded text-xs uppercase tracking-widest text-white/80 hover:bg-primary/10 hover:text-primary">Leads</a>
         <a href="boutiqueproducts.html" class="block px-3 py-2 rounded text-xs uppercase tracking-widest text-white/80 hover:bg-primary/10 hover:text-primary">Products</a>
         <a href="messages.html" class="block px-3 py-2 rounded text-xs uppercase tracking-widest text-white/80 hover:bg-primary/10 hover:text-primary">Messages</a>
+        <a href="subscription.html" class="block px-3 py-2 rounded text-xs uppercase tracking-widest text-white/80 hover:bg-primary/10 hover:text-primary">Subscription</a>
         <a href="profile.html" class="block px-3 py-2 rounded text-xs uppercase tracking-widest text-white/80 hover:bg-primary/10 hover:text-primary">Profile</a>
         <button onclick="window.logout()" class="w-full text-left px-3 py-2 rounded text-xs uppercase tracking-widest text-white/80 hover:bg-primary/10 hover:text-primary">Logout</button>
       `;
