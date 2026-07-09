@@ -107,8 +107,8 @@
       }
 
       #productsGrid > a {
-        min-width: min(74vw, 280px) !important;
-        max-width: min(74vw, 280px) !important;
+        min-width: min(68vw, 250px) !important;
+        max-width: min(68vw, 250px) !important;
       }
 
       .boutique-hero-card {
@@ -237,7 +237,7 @@
         <div class="h-[1px] flex-grow mx-8 bg-gradient-to-r from-primary/40 to-transparent mb-3"></div>
       </div>
       <div id="productsGrid"
-        class="flex gap-6 overflow-x-auto pb-4 snap-x snap-mandatory md:grid md:grid-cols-2 lg:grid-cols-3 md:overflow-visible md:pb-0">
+        class="flex gap-5 overflow-x-auto pb-4 snap-x snap-mandatory md:grid md:grid-cols-3 xl:grid-cols-4 md:overflow-visible md:pb-0 md:gap-6">
       </div>
     </section>
 
@@ -480,7 +480,7 @@
         const encodedProduct = encodeURIComponent(JSON.stringify(product));
 
         return `
-          <a href="viewproducts.html?boutiqueId=${boutiqueId}&productId=${product.id}" onclick="localStorage.setItem('selectedProductData', decodeURIComponent('${encodedProduct}')); localStorage.setItem('selectedBoutiqueId', '${boutiqueId}')" class="group block min-w-[260px] max-w-[260px] snap-start md:min-w-0 md:max-w-none">
+          <a href="viewproducts.html?boutiqueId=${boutiqueId}&productId=${product.id}" onclick="localStorage.setItem('selectedProductData', decodeURIComponent('${encodedProduct}')); localStorage.setItem('selectedBoutiqueId', '${boutiqueId}')" class="group block min-w-[240px] max-w-[240px] snap-start md:min-w-0 md:max-w-[300px] md:mx-auto md:w-full">
             <div class="product-image-frame aspect-[3/4] overflow-hidden rounded-lg mb-4 relative glass-card">
               <img class="product-image w-full h-full object-contain transition-transform duration-700 group-hover:scale-105" src="${image}" alt="${product.product_name || "Product"}" />
               <div class="absolute inset-0 bg-black/20 group-hover:bg-black/0 transition-colors"></div>
