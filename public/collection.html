@@ -35,16 +35,42 @@
   <link rel="stylesheet" href="responsive-fixes.css?v=20260508-product-image-frame" />
 </head>
 <body class="bg-background-dark text-white font-sans min-h-screen">
-  <nav class="fixed top-0 left-0 right-0 z-50 border-b border-primary/20 bg-background-dark/95 backdrop-blur-sm">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between gap-4">
-      <a href="index.html" class="font-display text-xl tracking-[0.25em] text-white">CLOCHE</a>
-      <div class="hidden md:flex items-center gap-10 uppercase tracking-[0.14em] text-xs text-white/85">
-        <a href="boutiques.html" class="hover:text-primary transition-colors">Boutiques</a>
-        <a href="collection.html" class="text-primary transition-colors">Collection</a>
-        <a href="index.html#howItWorks" class="hover:text-primary transition-colors">How It Works</a>
-        <a href="signup.html?role=partner" class="hover:text-primary transition-colors">List Your Boutique</a>
+  <nav class="fixed top-0 w-full z-[9999] glass-card royal-border">
+    <div class="max-w-7xl mx-auto px-4 md:px-6 h-16 md:h-20 flex items-center justify-between gap-2">
+      <!-- Logo -->
+      <div class="flex items-center gap-1.5 shrink-0">
+        <span class="material-symbols-outlined text-primary text-2xl md:text-3xl">diamond</span>
+        <span class="text-lg md:text-2xl font-bold tracking-[0.2em] font-display text-white">CLOCHE</span>
       </div>
-      <a href="userprofile.html" class="h-10 w-10 rounded-full border border-primary/50 bg-primary/20 text-primary flex items-center justify-center font-display">U</a>
+      <!-- Desktop nav links -->
+      <div class="hidden md:flex items-center gap-12">
+        <a class="text-sm uppercase tracking-widest hover:text-primary transition-colors"
+          href="boutiques.html">Boutiques</a>
+        <a class="text-sm uppercase tracking-widest text-primary transition-colors"
+          href="collection.html">Collection</a>
+        <a class="text-sm uppercase tracking-widest hover:text-primary transition-colors" href="index.html#how-it-works">How it
+          Works</a>
+        <a id="listYourBoutiqueNav" class="text-sm uppercase tracking-widest hover:text-primary transition-colors"
+          href="signup.html?role=partner">List Your Boutique</a>
+      </div>
+      <!-- Right side: auth + avatar -->
+      <div class="relative flex items-center gap-3">
+        <a id="authNav" href="boutiquelogin.html"
+          class="text-xs md:text-sm uppercase tracking-widest font-medium hover:text-primary transition-colors whitespace-nowrap">LOGIN</a>
+        <a id="profileIconLink" href="userprofile.html"
+          class="h-9 w-9 md:h-10 md:w-10 rounded-full bg-primary/20 border border-primary/40 flex items-center justify-center overflow-hidden hover:border-primary transition-colors shrink-0">
+          <span id="navAvatar" class="text-primary font-bold text-sm">C</span>
+        </a>
+        <div id="userMenuDropdown"
+          class="hidden absolute right-0 top-12 md:top-14 w-44 rounded-lg border border-primary/25 bg-[#141414]/95 backdrop-blur-md shadow-2xl p-2 z-50">
+          <a href="userprofile.html"
+            class="block px-3 py-2 rounded text-xs uppercase tracking-widest text-white/80 hover:bg-primary/10 hover:text-primary">Profile</a>
+          <a href="messageboutique.html"
+            class="block px-3 py-2 rounded text-xs uppercase tracking-widest text-white/80 hover:bg-primary/10 hover:text-primary">Inbox</a>
+          <button id="logoutBtn"
+            class="w-full text-left px-3 py-2 rounded text-xs uppercase tracking-widest text-white/80 hover:bg-primary/10 hover:text-primary">Logout</button>
+        </div>
+      </div>
     </div>
   </nav>
 
