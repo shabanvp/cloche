@@ -89,7 +89,6 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      min-height: clamp(170px, 24vw, 320px);
       padding: clamp(8px, 1.4vw, 14px);
       background:
         radial-gradient(circle at center, rgba(193, 166, 113, 0.08), transparent 55%),
@@ -98,11 +97,23 @@
 
     .ad-banner-image {
       display: block;
-      width: 100%;
-      height: 100%;
+      width: auto;
+      height: auto;
+      max-width: 100%;
       max-height: clamp(150px, 22vw, 292px);
       object-fit: contain;
       object-position: center;
+      margin: 0 auto;
+    }
+
+    @media (max-width: 1100px) {
+      .ad-banner-frame {
+        padding: 10px;
+      }
+
+      .ad-banner-image {
+        max-height: clamp(140px, 27vw, 250px);
+      }
     }
 
     .royal-border {
@@ -122,12 +133,11 @@
 
     @media (max-width: 767px) {
       .ad-banner-frame {
-        min-height: clamp(150px, 46vw, 240px);
         padding: 8px;
       }
 
       .ad-banner-image {
-        max-height: clamp(134px, 42vw, 220px);
+        max-height: clamp(120px, 42vw, 220px);
       }
 
       body.has-mobile-bars.route-index {
