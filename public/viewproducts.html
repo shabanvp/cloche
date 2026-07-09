@@ -287,92 +287,90 @@
           </div>
         </div>
 
-        <!-- Boutique Card -->
-        <div class="glass-card rounded-[2rem] p-8 mb-10 border-primary/10 group">
-          <div class="flex items-center gap-5 mb-6">
-            <div id="boutiqueInitial"
-              class="w-16 h-16 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-primary font-display font-medium text-3xl shadow-inner group-hover:bg-primary group-hover:text-background-dark transition-colors duration-500">
-              B</div>
-            <div>
-              <p id="boutiqueName" class="font-display text-2xl text-white font-bold tracking-wide">Boutique Name</p>
-              <p id="boutiqueArea" class="text-[10px] text-primary/70 uppercase tracking-widest font-bold mt-1">Official
-                Boutique Member</p>
-            </div>
-          </div>
-          <div id="boutiqueTags" class="flex flex-wrap gap-2 mb-6"></div>
-          <p id="boutiqueBio" class="text-[11px] text-white/40 leading-relaxed mb-6 uppercase tracking-widest">
-            Expertly curated luxury collections from verified boutiques across our elite network.
-          </p>
-          <a id="viewBoutiqueBtn" href="#"
-            class="inline-flex items-center gap-2 text-[10px] font-bold text-primary uppercase tracking-[0.3em] border-b border-primary/30 pb-1 hover:border-primary transition-all">
-            Explore Boutique <span class="material-symbols-outlined text-sm">arrow_forward</span>
-          </a>
-        </div>
-
-        <!-- Reviews Section -->
-        <div class="glass-card rounded-[2rem] p-8 border-primary/5">
-          <div class="flex items-center justify-between mb-8">
-            <div>
-              <h3 class="text-[10px] font-bold uppercase tracking-[0.3em] text-primary mb-1">Feedback</h3>
-              <p class="text-xl font-display text-white">Guest Reviews</p>
-            </div>
-            <button id="showReviewForm"
-              class="text-[10px] font-bold text-primary uppercase tracking-widest border border-primary/30 px-4 py-2 rounded-full hover:bg-primary hover:text-background-dark transition-all">Write
-              Review</button>
-          </div>
-
-          <!-- Add Review Form -->
-          <div id="reviewFormContainer"
-            class="hidden mb-12 animate-fade-in p-6 rounded-2xl bg-white/[0.03] border border-white/5">
-            <div class="space-y-6">
-              <div>
-                <label class="text-[9px] uppercase tracking-widest text-white/40 block mb-3">Rating</label>
-                <div class="flex gap-2" id="starRating">
-                  <span
-                    class="material-symbols-outlined cursor-pointer hover:text-primary transition-colors text-white/20"
-                    data-val="1">star</span>
-                  <span
-                    class="material-symbols-outlined cursor-pointer hover:text-primary transition-colors text-white/20"
-                    data-val="2">star</span>
-                  <span
-                    class="material-symbols-outlined cursor-pointer hover:text-primary transition-colors text-white/20"
-                    data-val="3">star</span>
-                  <span
-                    class="material-symbols-outlined cursor-pointer hover:text-primary transition-colors text-white/20"
-                    data-val="4">star</span>
-                  <span
-                    class="material-symbols-outlined cursor-pointer hover:text-primary transition-colors text-white/20"
-                    data-val="5">star</span>
-                </div>
-              </div>
-              <div>
-                <label class="text-[9px] uppercase tracking-widest text-white/40 block mb-3">Your Perspective</label>
-                <textarea id="reviewComment" rows="3"
-                  class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-primary outline-none text-white resize-none"
-                  placeholder="Share your experience with this couture masterpiece..."></textarea>
-              </div>
-              <button id="submitReview"
-                class="w-full bg-primary text-background-dark py-3 rounded-full font-bold uppercase tracking-widest text-[10px] gold-glow transition-all">Publish
-                Review</button>
-            </div>
-          </div>
-
-          <!-- Reviews List -->
-          <div id="reviewsList" class="space-y-8">
-            <!-- Loading placeholder -->
-            <div class="text-center py-10">
-              <div class="w-6 h-6 border-2 border-primary/20 border-t-primary rounded-full animate-spin mx-auto mb-4">
-              </div>
-              <p class="text-[10px] uppercase tracking-widest text-white/20 italic">Gathering impressions...</p>
-            </div>
-          </div>
-        </div>
-
       </div>
     </div>
 
+    <section class="mt-16 grid grid-cols-1 lg:grid-cols-[0.95fr_1.05fr] gap-6 lg:gap-8">
+      <!-- Boutique Card -->
+      <div class="glass-card rounded-[2rem] p-6 md:p-8 border-primary/10 group h-fit">
+        <div class="flex items-center gap-5 mb-6">
+          <div id="boutiqueInitial"
+            class="w-16 h-16 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-primary font-display font-medium text-3xl shadow-inner group-hover:bg-primary group-hover:text-background-dark transition-colors duration-500">
+            B</div>
+          <div class="min-w-0">
+            <p id="boutiqueName" class="font-display text-2xl text-white font-bold tracking-wide truncate">Boutique
+              Name</p>
+            <p id="boutiqueArea" class="text-[10px] text-primary/70 uppercase tracking-widest font-bold mt-1">Official
+              Boutique Member</p>
+          </div>
+        </div>
+        <div id="boutiqueTags" class="flex flex-wrap gap-2 mb-6"></div>
+        <p id="boutiqueBio" class="text-[11px] text-white/40 leading-relaxed mb-6 uppercase tracking-widest">
+          Expertly curated luxury collections from verified boutiques across our elite network.
+        </p>
+        <a id="viewBoutiqueBtn" href="#"
+          class="inline-flex items-center gap-2 text-[10px] font-bold text-primary uppercase tracking-[0.3em] border-b border-primary/30 pb-1 hover:border-primary transition-all">
+          Explore Boutique <span class="material-symbols-outlined text-sm">arrow_forward</span>
+        </a>
+      </div>
+
+      <!-- Reviews Section -->
+      <div class="glass-card rounded-[2rem] p-6 md:p-8 border-primary/5">
+        <div class="flex flex-wrap items-center justify-between gap-4 mb-8">
+          <div>
+            <h3 class="text-[10px] font-bold uppercase tracking-[0.3em] text-primary mb-1">Feedback</h3>
+            <p class="text-xl font-display text-white">Guest Reviews</p>
+          </div>
+          <button id="showReviewForm"
+            class="text-[10px] font-bold text-primary uppercase tracking-widest border border-primary/30 px-4 py-2 rounded-full hover:bg-primary hover:text-background-dark transition-all">Write
+            Review</button>
+        </div>
+
+        <!-- Add Review Form -->
+        <div id="reviewFormContainer"
+          class="hidden mb-12 animate-fade-in p-6 rounded-2xl bg-white/[0.03] border border-white/5">
+          <div class="space-y-6">
+            <div>
+              <label class="text-[9px] uppercase tracking-widest text-white/40 block mb-3">Rating</label>
+              <div class="flex gap-2" id="starRating">
+                <span class="material-symbols-outlined cursor-pointer hover:text-primary transition-colors text-white/20"
+                  data-val="1">star</span>
+                <span class="material-symbols-outlined cursor-pointer hover:text-primary transition-colors text-white/20"
+                  data-val="2">star</span>
+                <span class="material-symbols-outlined cursor-pointer hover:text-primary transition-colors text-white/20"
+                  data-val="3">star</span>
+                <span class="material-symbols-outlined cursor-pointer hover:text-primary transition-colors text-white/20"
+                  data-val="4">star</span>
+                <span class="material-symbols-outlined cursor-pointer hover:text-primary transition-colors text-white/20"
+                  data-val="5">star</span>
+              </div>
+            </div>
+            <div>
+              <label class="text-[9px] uppercase tracking-widest text-white/40 block mb-3">Your Perspective</label>
+              <textarea id="reviewComment" rows="3"
+                class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-primary outline-none text-white resize-none"
+                placeholder="Share your experience with this couture masterpiece..."></textarea>
+            </div>
+            <button id="submitReview"
+              class="w-full bg-primary text-background-dark py-3 rounded-full font-bold uppercase tracking-widest text-[10px] gold-glow transition-all">Publish
+              Review</button>
+          </div>
+        </div>
+
+        <!-- Reviews List -->
+        <div id="reviewsList" class="space-y-8">
+          <!-- Loading placeholder -->
+          <div class="text-center py-10">
+            <div class="w-6 h-6 border-2 border-primary/20 border-t-primary rounded-full animate-spin mx-auto mb-4">
+            </div>
+            <p class="text-[10px] uppercase tracking-widest text-white/20 italic">Gathering impressions...</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- Other Boutique Products -->
-    <section class="mt-32 pt-24 border-t border-white/5">
+    <section class="mt-20 pt-16 border-t border-white/5">
       <div class="flex items-end justify-between mb-16 px-2">
         <div>
           <span class="text-primary tracking-[0.4em] uppercase text-[10px] mb-4 block font-bold">Other Boutiques</span>
