@@ -91,14 +91,18 @@
 <body class="bg-background-light dark:bg-background-dark font-sans text-stone-800 dark:text-stone-200 h-screen overflow-hidden selection:bg-primary/30">
     <div class="flex h-screen overflow-hidden">
         <aside class="w-72 bg-background-dark border-r border-primary/10 flex flex-col z-20 shrink-0 h-screen">
-            <div class="p-8 flex items-center gap-4 shrink-0">
-                <div class="h-10 w-10 bg-primary rounded-full flex items-center justify-center text-background-dark font-bold text-xl">C</div>
+            <a href="index.html" class="p-8 flex items-center gap-4 shrink-0 group cursor-pointer block">
+                <div class="h-10 w-10 bg-primary rounded-full flex items-center justify-center text-background-dark font-bold text-xl group-hover:scale-105 transition-transform">C</div>
                 <div>
-                    <h1 class="text-primary text-xl font-black tracking-widest uppercase leading-none">CLOCHE</h1>
+                    <h1 class="text-primary text-xl font-black tracking-widest uppercase leading-none group-hover:text-white transition-colors">CLOCHE</h1>
                     <p class="text-primary/60 text-[10px] tracking-[0.2em] uppercase font-sans mt-1">Boutique Management</p>
                 </div>
-            </div>
+            </a>
             <nav class="flex-1 px-4 py-6 space-y-2 font-sans overflow-y-auto custom-scrollbar">
+                <a class="flex items-center gap-4 px-4 py-3 text-slate-400 hover:text-primary transition-colors group" href="index.html">
+                    <span class="material-symbols-outlined">home</span>
+                    <span class="text-sm font-medium tracking-wide">Home</span>
+                </a>
                 <a class="flex items-center gap-4 px-4 py-3 text-slate-400 hover:text-primary transition-colors group" href="dashboard.html">
                     <span class="material-symbols-outlined">dashboard</span>
                     <span class="text-sm font-medium tracking-wide">Dashboard</span>
