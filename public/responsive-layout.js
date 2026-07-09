@@ -239,7 +239,7 @@
     sideMenu.querySelectorAll("a, .side-menu-category").forEach((el) => {
       if (el.dataset.mobileCloseMenuBound === "true") return;
       el.dataset.mobileCloseMenuBound = "true";
-      el.addEventListener("click", () => {
+      el.addEventListener("click", (e) => {
         const href = String(el.getAttribute("href") || "");
         if (href.includes("messages.html") || href.includes("messageboutique.html")) {
           setMenuBadge("messages", 0);
@@ -247,7 +247,19 @@
         if (href.includes("lead.html")) {
           setMenuBadge("leads", 0);
         }
-        closeMenuFunc();
+
+        const isStandardLink = el.tagName.toLowerCase() === 'a' && href && href !== '#' && !href.startsWith('javascript:') && !el.hasAttribute('onclick') && el.target !== '_blank';
+
+        if (isStandardLink) {
+          e.preventDefault();
+          closeMenuFunc();
+          // Delay routing so the mobile menu can fully animate closed smoothly
+          setTimeout(() => {
+            window.location.href = href;
+          }, 300);
+        } else {
+          closeMenuFunc();
+        }
       });
     });
 
