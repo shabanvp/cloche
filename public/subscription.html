@@ -252,11 +252,17 @@
 
             const upiLink = `upi://pay?pa=${encodeURIComponent(CLOCHE_UPI_ID)}&pn=${encodeURIComponent("Cloche")}&am=${encodeURIComponent(String(amount))}&cu=INR&tn=${encodeURIComponent(`${plan} ${selectedCycle} plan`)}`;
             localStorage.setItem("selectedUpiLink", upiLink);
+            const isMobileDevice = /android|iphone|ipad|ipod/i.test(navigator.userAgent || "");
 
-            window.location.href = upiLink;
-            setTimeout(() => {
-                window.location.href = "payment-proof.html";
-            }, 1500);
+            if (isMobileDevice) {
+                window.location.href = upiLink;
+                setTimeout(() => {
+                    window.location.href = "payment-proof.html";
+                }, 1200);
+                return;
+            }
+
+            window.location.href = "payment-proof.html";
         }
     </script>
     <script src="responsive-layout.js?v=20260515-subscription-mobile"></script>
