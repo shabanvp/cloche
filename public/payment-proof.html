@@ -6,7 +6,6 @@
   <title>Submit Payment Proof | CLOCHE</title>
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;700&family=Noto+Sans:wght@400;500;700&display=swap" rel="stylesheet" />
-  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
   <script>
     tailwind.config = {
       darkMode: "class",
@@ -32,7 +31,7 @@
       <a href="subscription.html" class="text-[10px] uppercase tracking-[0.25em] text-primary/70 hover:text-primary">Back to Plans</a>
       <h1 class="font-display text-3xl md:text-4xl mt-6 mb-3">Submit Payment Proof</h1>
       <p class="text-white/55 text-sm leading-relaxed mb-8">
-        Complete the subscription payment online or upload your UPI payment screenshot. Admin will review manual payments and activate your plan after approval.
+        Scan the QR code or click the button below to complete the subscription payment using your preferred UPI app. Admin will review manual payments and activate your plan after approval.
       </p>
 
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-8">
@@ -52,24 +51,23 @@
 
       <div class="space-y-5">
         <div class="rounded-2xl border border-primary/20 bg-black/20 p-5 space-y-4">
-          <div>
-            <p class="text-[10px] uppercase tracking-[0.25em] text-primary/70 mb-2">Pay Online</p>
-            <p class="text-sm leading-relaxed text-white/60">
-              On laptop or desktop, enter your UPI ID and continue with the online payment window. If that does not work, you can still pay from your phone and upload the screenshot below.
+          <div class="text-center">
+            <p class="text-[10px] uppercase tracking-[0.25em] text-primary/70 mb-2">Scan to Pay</p>
+            <p class="text-sm leading-relaxed text-white/60 mb-4">
+              Open Google Pay, PhonePe, or any UPI app on your phone and scan the QR code to pay the exact amount.
             </p>
+            <div class="flex justify-center mb-4">
+              <div class="bg-white p-2 rounded-xl">
+                <img id="upiQrCode" src="" alt="UPI QR Code" class="w-48 h-48 hidden" />
+                <div id="qrPlaceholder" class="w-48 h-48 flex items-center justify-center bg-gray-200 rounded-lg text-black text-xs">Loading QR...</div>
+              </div>
+            </div>
           </div>
 
-          <label class="block">
-            <span class="block text-[10px] uppercase tracking-[0.25em] text-white/50 mb-3">Your UPI ID</span>
-            <input id="payerUpiId" type="text" inputmode="email" autocomplete="off" placeholder="yourname@bank"
-              class="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white placeholder:text-white/25 focus:border-primary/50 focus:outline-none" />
-            <span class="mt-2 block text-xs text-white/35">Use the same UPI ID in the payment window if your bank app asks again.</span>
-          </label>
-
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <button id="payOnlineBtn" type="button"
+          <div class="grid grid-cols-1 gap-3">
+            <button id="openUpiBtn" type="button"
               class="w-full rounded-xl bg-primary px-5 py-3 text-black text-xs font-black uppercase tracking-widest hover:bg-white transition-all">
-              Pay Online with UPI
+              Open UPI App / Pay Now
             </button>
             <button id="copyPaymentInfoBtn" type="button"
               class="w-full rounded-xl border border-primary/40 px-5 py-3 text-primary text-xs font-bold uppercase tracking-widest hover:bg-primary hover:text-black transition-all">
@@ -77,7 +75,7 @@
             </button>
           </div>
 
-          <div class="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_auto] gap-3 items-center rounded-xl border border-white/10 bg-black/30 p-4">
+          <div class="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_auto] gap-3 items-center rounded-xl border border-white/10 bg-black/30 p-4 mt-2">
             <div>
               <p class="text-[10px] uppercase tracking-[0.25em] text-white/45 mb-2">Merchant UPI</p>
               <p id="merchantUpiText" class="text-sm font-semibold break-all">-</p>
@@ -89,16 +87,12 @@
           </div>
         </div>
 
-        <button id="openUpiBtn" type="button" class="w-full rounded-xl border border-primary/40 px-5 py-3 text-primary text-xs font-bold uppercase tracking-widest hover:bg-primary hover:text-black transition-all">
-          Open UPI App Again
-        </button>
-
-        <label class="block">
-          <span class="block text-[10px] uppercase tracking-[0.25em] text-white/50 mb-3">Payment Screenshot</span>
+        <label class="block mt-6">
+          <span class="block text-[10px] uppercase tracking-[0.25em] text-white/50 mb-3">Upload Payment Screenshot</span>
           <input id="screenshot" type="file" accept="image/*" class="w-full rounded-xl border border-white/10 bg-black/30 p-3 text-sm text-white file:mr-4 file:rounded-lg file:border-0 file:bg-primary file:px-4 file:py-2 file:text-black file:font-bold" />
         </label>
 
-        <button id="submitProofBtn" type="button" onclick="submitProof()" class="w-full rounded-xl bg-primary px-5 py-4 text-black text-xs font-black uppercase tracking-widest hover:bg-white transition-all">
+        <button id="submitProofBtn" type="button" onclick="submitProof()" class="w-full rounded-xl bg-primary px-5 py-4 text-black text-xs font-black uppercase tracking-widest hover:bg-white transition-all mt-4">
           Submit for Review
         </button>
 
@@ -117,9 +111,6 @@
     const selectedAmount = localStorage.getItem("selectedAmount") || "";
     const selectedCycle = localStorage.getItem("selectedBillingCycle") || "monthly";
     const boutiqueId = localStorage.getItem("selectedBoutiquePaymentId") || localStorage.getItem("boutiqueId") || "";
-    const ownerName = localStorage.getItem("ownerName") || "";
-    const boutiqueEmail = localStorage.getItem("email") || localStorage.getItem("ownerEmail") || "";
-    const boutiquePhone = localStorage.getItem("phone") || localStorage.getItem("ownerPhone") || "";
 
     function buildUpiLink() {
       if (!selectedAmount || !selectedPlan) return "";
@@ -127,13 +118,25 @@
     }
 
     const upiLink = localStorage.getItem("selectedUpiLink") || buildUpiLink();
-    const savedPayerUpiId = localStorage.getItem("selectedPayerUpiId") || "";
 
     document.getElementById("proofPlan").textContent = selectedPlan || "-";
     document.getElementById("proofAmount").textContent = selectedAmount ? `Rs ${Number(selectedAmount).toLocaleString("en-IN")}` : "-";
     document.getElementById("proofCycle").textContent = selectedCycle || "-";
     document.getElementById("merchantUpiText").textContent = CLOCHE_UPI_ID;
-    document.getElementById("payerUpiId").value = savedPayerUpiId;
+
+    // Generate QR Code
+    if (upiLink) {
+      const qrImg = document.getElementById("upiQrCode");
+      const qrPlaceholder = document.getElementById("qrPlaceholder");
+      // Use quickchart api to generate qr code
+      qrImg.src = `https://quickchart.io/qr?size=250&text=${encodeURIComponent(upiLink)}`;
+      qrImg.onload = () => {
+        qrPlaceholder.classList.add("hidden");
+        qrImg.classList.remove("hidden");
+      };
+    } else {
+      document.getElementById("qrPlaceholder").textContent = "Plan details missing";
+    }
 
     document.getElementById("openUpiBtn").addEventListener("click", () => {
       if (!upiLink) return alert("Please choose a plan first.");
@@ -150,7 +153,6 @@
     });
 
     document.getElementById("copyPaymentInfoBtn").addEventListener("click", async () => {
-      const payerUpiId = getPayerUpiId();
       const lines = [
         "CLOCHE Subscription Payment",
         `Plan: ${selectedPlan || "-"}`,
@@ -158,7 +160,6 @@
         `Cycle: ${selectedCycle || "-"}`,
         `Merchant UPI: ${CLOCHE_UPI_ID}`
       ];
-      if (payerUpiId) lines.push(`Customer UPI ID: ${payerUpiId}`);
 
       try {
         await navigator.clipboard.writeText(lines.join("\n"));
@@ -168,121 +169,10 @@
       }
     });
 
-    document.getElementById("payOnlineBtn").addEventListener("click", startOnlinePayment);
-
-    function getPayerUpiId() {
-      return String(document.getElementById("payerUpiId")?.value || "").trim().toLowerCase();
-    }
-
-    function isValidUpiId(value) {
-      return /^[a-z0-9._-]{2,}@[a-z][a-z0-9.-]{1,}$/i.test(String(value || "").trim());
-    }
-
     function setStatus(message, toneClass) {
       const status = document.getElementById("proofStatus");
       status.textContent = message;
       status.className = `min-h-5 text-center text-xs ${toneClass}`;
-    }
-
-    async function startOnlinePayment() {
-      if (!boutiqueId || !selectedPlan || !selectedAmount) {
-        alert("Plan details missing. Please select a plan again.");
-        window.location.href = "subscription.html";
-        return;
-      }
-
-      const payerUpiId = getPayerUpiId();
-      if (payerUpiId && !isValidUpiId(payerUpiId)) {
-        setStatus("Enter a valid UPI ID like yourname@bank.", "text-red-300");
-        return;
-      }
-
-      localStorage.setItem("selectedPayerUpiId", payerUpiId);
-      setStatus("Opening secure payment window...", "text-white/50");
-
-      try {
-        const res = await fetch(`${API_ORIGIN}/api/payment/initiate`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            boutiqueId,
-            planType: selectedPlan,
-            billingCycle: selectedCycle
-          })
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.message || "Could not start online payment.");
-        if (!data.key || typeof Razorpay === "undefined") {
-          throw new Error("Online gateway is not available right now. Use manual UPI payment below.");
-        }
-
-        const options = {
-          key: data.key,
-          amount: data.amount,
-          currency: data.currency || "INR",
-          name: "CLOCHE",
-          description: `${String(selectedPlan).toUpperCase()} ${String(selectedCycle).toUpperCase()} Subscription`,
-          order_id: data.order_id,
-          prefill: {
-            name: ownerName,
-            email: boutiqueEmail,
-            contact: boutiquePhone,
-            method: 'upi',
-            vpa: payerUpiId
-          },
-          notes: {
-            boutique_id: String(boutiqueId),
-            billing_cycle: selectedCycle,
-            entered_upi_id: payerUpiId
-          },
-          theme: {
-            color: "#c1a671"
-          },
-          modal: {
-            ondismiss: () => {
-              setStatus("Payment window closed. You can reopen it or submit a manual UPI screenshot below.", "text-white/50");
-            }
-          },
-          handler: async function (response) {
-            try {
-              setStatus("Verifying payment...", "text-white/50");
-              const verifyRes = await fetch(`${API_ORIGIN}/api/payment/verify`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  ...response,
-                  boutiqueId,
-                  planType: selectedPlan,
-                  billingCycle: selectedCycle
-                })
-              });
-              const verifyData = await verifyRes.json();
-              if (!verifyRes.ok) throw new Error(verifyData.message || "Payment verification failed.");
-
-              setStatus("Payment successful. Your subscription is now active.", "text-primary");
-              document.getElementById("submitProofBtn").disabled = true;
-              document.getElementById("submitProofBtn").textContent = "Payment Completed";
-              localStorage.removeItem("selectedPlan");
-              localStorage.removeItem("selectedAmount");
-              localStorage.removeItem("selectedBillingCycle");
-              localStorage.removeItem("selectedBoutiquePaymentId");
-              localStorage.removeItem("selectedUpiLink");
-              localStorage.removeItem("selectedPayerUpiId");
-            } catch (err) {
-              setStatus(err.message || "Payment succeeded but confirmation failed. Please contact support.", "text-red-300");
-            }
-          }
-        };
-
-        const rzp = new Razorpay(options);
-        rzp.on("payment.failed", (event) => {
-          const description = event?.error?.description || "Online payment failed.";
-          setStatus(description, "text-red-300");
-        });
-        rzp.open();
-      } catch (err) {
-        setStatus(err.message || "Could not start online payment.", "text-red-300");
-      }
     }
 
     async function submitProof() {
@@ -337,7 +227,6 @@
         localStorage.removeItem("selectedBillingCycle");
         localStorage.removeItem("selectedBoutiquePaymentId");
         localStorage.removeItem("selectedUpiLink");
-        localStorage.removeItem("selectedPayerUpiId");
       } catch (err) {
         setStatus(err.message || "Could not submit proof.", "text-red-300");
         btn.disabled = false;
