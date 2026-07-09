@@ -227,6 +227,11 @@
         localStorage.removeItem("selectedBillingCycle");
         localStorage.removeItem("selectedBoutiquePaymentId");
         localStorage.removeItem("selectedUpiLink");
+
+        // Redirect to home page after 4 seconds
+        setTimeout(() => {
+          window.location.href = "index.html";
+        }, 4000);
       } catch (err) {
         setStatus(err.message || "Could not submit proof.", "text-red-300");
         btn.disabled = false;
