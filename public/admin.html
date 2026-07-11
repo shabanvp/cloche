@@ -506,6 +506,21 @@
             return localStorage.getItem("adminToken") || "";
         }
 
+        function formatPlanName(plan) {
+            const normalized = String(plan || "").toLowerCase().trim();
+            const planMap = {
+                "early_partner": "Early Plan",
+                "early": "Early Plan",
+                "basic": "Early Plan",
+                "early partner": "Early Plan",
+                "professional": "Professional",
+                "growth": "Professional",
+                "premium": "Premium",
+                "elite": "Premium"
+            };
+            return planMap[normalized] || (String(plan || "").charAt(0).toUpperCase() + String(plan || "").slice(1).toLowerCase());
+        }
+
         async function deleteBoutique(boutiqueId, boutiqueName) {
             if (!boutiqueId) return;
             const name = boutiqueName || "this boutique";
@@ -639,7 +654,7 @@
                                     <p class="text-[10px] text-primary uppercase tracking-[0.2em] font-bold mt-1 admin-row-text">${b.owner_name || b.contact_name || 'No Owner Listed'}</p>
                                     <p class="text-[10px] text-gray-500 mt-1 admin-row-text">${b.email || b.contact_email || 'No Email'} • ${b.phone || b.contact_phone || ''}</p>
                                     <p class="text-[10px] text-gray-500 uppercase tracking-widest mt-1 opacity-60">
-                                      ${(String(b.plan || "early partner").toUpperCase())}${b.introUnlimited ? " • INTRO ∞" : ""}
+                                      ${formatPlanName(b.plan || "early partner")}${b.introUnlimited ? " • INTRO ∞" : ""}
                                     </p>
                                 </td>
                                 <td class="px-8 py-5 text-gray-400 text-sm w-[260px]">
@@ -760,7 +775,7 @@
                             <p class="text-[10px] text-gray-500 mt-1">${boutique.email || ""}</p>
                         </td>
                         <td class="px-4 md:px-8 py-6 text-sm w-[180px]">
-                            <p class="text-white uppercase tracking-widest font-bold">${proof.plan}</p>
+                            <p class="text-white uppercase tracking-widest font-bold">${formatPlanName(proof.plan)}</p>
                             <p class="text-primary text-xs mt-1">₹${Number(proof.amount || 0).toLocaleString("en-IN")}</p>
                             <p class="text-[9px] text-gray-500 uppercase tracking-widest mt-1">${proof.billing_cycle || "monthly"}</p>
                             <span class="inline-flex mt-3 px-2 py-1 rounded border text-[9px] uppercase tracking-widest font-bold ${statusClass}">${status}</span>

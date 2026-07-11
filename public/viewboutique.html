@@ -443,6 +443,20 @@
       return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(raw)}`;
     }
 
+    function formatPlanName(plan) {
+      const normalized = String(plan || "").toLowerCase().trim();
+      const planMap = {
+        "early_partner": "Early Plan",
+        "early": "Early Plan",
+        "basic": "Early Plan",
+        "professional": "Professional",
+        "growth": "Professional",
+        "premium": "Premium",
+        "elite": "Premium"
+      };
+      return planMap[normalized] || (String(plan || "").charAt(0).toUpperCase() + String(plan || "").slice(1).toLowerCase());
+    }
+
     function renderTags(tagsRaw) {
       const wrap = document.getElementById("boutiqueTags");
       if (!wrap) return;
@@ -611,7 +625,7 @@
       const area = (location.area || location.district || "Area").toUpperCase();
       const visitLocation = location.shopLocation || location.locationLabel || location.district || "Location not set";
       const locationLabel = visitLocation.toUpperCase();
-      const plan = (boutique.plan || "Basic").toUpperCase();
+      const plan = formatPlanName(boutique.plan || "Early Plan");
       const cover = resolveAssetUrl(boutique.image_url || boutique.showcase_image || "") || fallbackImages[0];
       const directionsHref = buildDirectionsHref(location.shopLocation || location.locationLabel || boutique.city || "Kerala");
 
@@ -619,7 +633,7 @@
       setText("boutiqueName", (boutique.boutique_name || "Boutique").toUpperCase());
       setText("boutiqueCity", district);
       setText("boutiqueArea", area);
-      setText("boutiquePlan", `${plan} PLAN`);
+      setText("boutiquePlan", `${plan} Plan`);
       setText("metricProducts", `${productsCount} product${productsCount === 1 ? "" : "s"} listed`);
       setText("metricPlan", `${plan} subscription`);
       setText("metricDistrict", district);
