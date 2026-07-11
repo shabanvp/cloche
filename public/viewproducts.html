@@ -550,7 +550,8 @@
         const title = asText(product.product_name || product.title, "Exquisite Piece").toUpperCase();
         setText("productTitle", title);
         setText("breadcrumbProduct", title);
-        setText("productCategory", asText(product.category, "Couture Collection").toUpperCase());
+        if (product.category === "Couture") product.category = "Bridal";
+        setText("productCategory", asText(product.category, "Bridal Collection").toUpperCase());
 
         const formattedPrice = `₹ ${Number(product.price || 0).toLocaleString("en-IN")}`;
         setText("cardProductPrice", formattedPrice);
@@ -821,7 +822,8 @@
 
         slider.innerHTML = filtered.map(item => {
           const image = resolveAssetUrl(item.image_url) || "https://images.unsplash.com/photo-1583391733981-849840f3f1c2?q=80&w=900&auto=format&fit=crop";
-          const category = escapeHtml((item.category || "Couture").toUpperCase());
+          if (item.category === "Couture") item.category = "Bridal";
+          const category = escapeHtml((item.category || "Bridal").toUpperCase());
           const title = escapeHtml(item.product_name || "Luxury Collection");
           const boutiqueName = escapeHtml(item.boutique_name || "Boutique");
           const location = escapeHtml((item.area || item.district || item.city || "Cloche Boutique").toUpperCase());
