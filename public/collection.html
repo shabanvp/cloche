@@ -90,6 +90,16 @@
         </div>
       </div>
 
+      <div class="flex flex-wrap items-center justify-center gap-2 mb-6" id="categoryFilters">
+        <button onclick="filterByCategory('')" class="cat-btn active-cat px-5 py-2 rounded-full border border-primary/40 bg-primary/10 text-primary text-xs font-bold uppercase tracking-widest transition-all">All</button>
+        <button onclick="filterByCategory('Couture')" class="cat-btn px-5 py-2 rounded-full border border-white/10 bg-white/5 text-white/70 text-xs font-bold uppercase tracking-widest hover:border-primary/30 transition-all">Couture</button>
+        <button onclick="filterByCategory('Traditional')" class="cat-btn px-5 py-2 rounded-full border border-white/10 bg-white/5 text-white/70 text-xs font-bold uppercase tracking-widest hover:border-primary/30 transition-all">Traditional</button>
+        <button onclick="filterByCategory('Bridal')" class="cat-btn px-5 py-2 rounded-full border border-white/10 bg-white/5 text-white/70 text-xs font-bold uppercase tracking-widest hover:border-primary/30 transition-all">Bridal</button>
+        <button onclick="filterByCategory('Jewelry')" class="cat-btn px-5 py-2 rounded-full border border-white/10 bg-white/5 text-white/70 text-xs font-bold uppercase tracking-widest hover:border-primary/30 transition-all">Jewelry</button>
+        <button onclick="filterByCategory('Accessories')" class="cat-btn px-5 py-2 rounded-full border border-white/10 bg-white/5 text-white/70 text-xs font-bold uppercase tracking-widest hover:border-primary/30 transition-all">Accessories</button>
+        <button onclick="filterByCategory('Groom')" class="cat-btn px-5 py-2 rounded-full border border-white/10 bg-white/5 text-white/70 text-xs font-bold uppercase tracking-widest hover:border-primary/30 transition-all">Groom</button>
+      </div>
+
       <p id="collectionStatusText" class="text-center text-white/60 text-sm mb-6"></p>
 
       <div id="collectionGrid" class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
@@ -253,22 +263,43 @@
       }).join("");
     }
 
+    let selectedCategory = "";
+
+    function filterByCategory(cat) {
+      selectedCategory = cat;
+      const buttons = document.querySelectorAll('.cat-btn');
+      buttons.forEach(btn => {
+        const btnCat = btn.textContent.trim();
+        if ((cat === '' && btnCat === 'All') || btnCat === cat) {
+          btn.className = "cat-btn active-cat px-5 py-2 rounded-full border border-primary/40 bg-primary/10 text-primary text-xs font-bold uppercase tracking-widest transition-all";
+        } else {
+          btn.className = "cat-btn px-5 py-2 rounded-full border border-white/10 bg-white/5 text-white/70 text-xs font-bold uppercase tracking-widest hover:border-primary/30 transition-all";
+        }
+      });
+      applySearch();
+    }
+
     function applySearch() {
       const input = document.getElementById("collectionSearchInput");
       const q = String(input?.value || "").trim().toLowerCase();
-      if (!q) {
-        renderItems(allItems);
-        return;
+      
+      let filtered = allItems;
+      
+      if (selectedCategory) {
+        filtered = filtered.filter(item => String(item.category || "").toLowerCase() === selectedCategory.toLowerCase());
       }
-      const filtered = allItems.filter((item) => {
-        return [
-          item.product_name,
-          item.category,
-          item.boutique_name,
-          item.location,
-          item.city
-        ].some((field) => String(field || "").toLowerCase().includes(q));
-      });
+
+      if (q) {
+        filtered = filtered.filter((item) => {
+          return [
+            item.product_name,
+            item.category,
+            item.boutique_name,
+            item.location,
+            item.city
+          ].some((field) => String(field || "").toLowerCase().includes(q));
+        });
+      }
       renderItems(filtered);
     }
 
