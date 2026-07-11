@@ -175,9 +175,7 @@
 <body class="bg-background-dark text-[#FAF7F2] min-h-screen">
   <nav class="fixed top-0 w-full z-50 nav-glass royal-border">
     <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-      <a class="flex items-center gap-2" href="index.html">
-        <span class="material-symbols-outlined text-primary text-3xl">diamond</span>
-        <span class="text-2xl font-bold tracking-[0.2em] font-display text-white">CLOCHE</span>
+      <a class="flex items-center gap-2" href="index.html"><span class="text-2xl font-bold tracking-[0.2em] font-display text-white">CLOCHE</span>
       </a>
       <div class="hidden md:flex items-center gap-12">
         <a class="text-sm uppercase tracking-widest text-[#FAF7F2]" href="boutiques.html">Boutiques</a>
@@ -446,9 +444,9 @@
     function formatPlanName(plan) {
       const normalized = String(plan || "").toLowerCase().trim();
       const planMap = {
-        "early_partner": "Early Plan",
-        "early": "Early Plan",
-        "basic": "Early Plan",
+        "early_partner": "Basic Plan",
+        "early": "Basic Plan",
+        "basic": "Basic Plan",
         "professional": "Professional",
         "growth": "Professional",
         "premium": "Premium",
@@ -625,7 +623,7 @@
       const area = (location.area || location.district || "Area").toUpperCase();
       const visitLocation = location.shopLocation || location.locationLabel || location.district || "Location not set";
       const locationLabel = visitLocation.toUpperCase();
-      const plan = formatPlanName(boutique.plan || "Early Plan");
+      const plan = formatPlanName(boutique.plan || "Basic Plan");
       const cover = resolveAssetUrl(boutique.image_url || boutique.showcase_image || "") || fallbackImages[0];
       const directionsHref = buildDirectionsHref(location.shopLocation || location.locationLabel || boutique.city || "Kerala");
 

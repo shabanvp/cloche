@@ -9,7 +9,7 @@ db.query(countMessagesQuery, [boutiqueId], (err, result) => {
 
   const totalMessages = result[0].total;
 
-  // Early Partner Plan: unlimited messages during launch phase.
+  // Basic Plan: unlimited messages during launch phase.
 
   // ✅ Allow sending message
 });
