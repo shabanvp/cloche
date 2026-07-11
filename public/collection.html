@@ -90,14 +90,14 @@
         </div>
       </div>
 
-      <div class="flex flex-wrap items-center justify-center gap-2 mb-6" id="categoryFilters">
-        <button onclick="filterByCategory('')" class="cat-btn active-cat px-5 py-2 rounded-full border border-primary/40 bg-primary/10 text-primary text-xs font-bold uppercase tracking-widest transition-all">All</button>
-        <button onclick="filterByCategory('Bridal')" class="cat-btn px-5 py-2 rounded-full border border-white/10 bg-white/5 text-white/70 text-xs font-bold uppercase tracking-widest hover:border-primary/30 transition-all">Bridal</button>
-        <button onclick="filterByCategory('Groom')" class="cat-btn px-5 py-2 rounded-full border border-white/10 bg-white/5 text-white/70 text-xs font-bold uppercase tracking-widest hover:border-primary/30 transition-all">Groom</button>
-        <button onclick="filterByCategory('Traditional')" class="cat-btn px-5 py-2 rounded-full border border-white/10 bg-white/5 text-white/70 text-xs font-bold uppercase tracking-widest hover:border-primary/30 transition-all">Traditional</button>
-        <button onclick="filterByCategory('Jewelry')" class="cat-btn px-5 py-2 rounded-full border border-white/10 bg-white/5 text-white/70 text-xs font-bold uppercase tracking-widest hover:border-primary/30 transition-all">Jewelry</button>
-        <button onclick="filterByCategory('Accessories')" class="cat-btn px-5 py-2 rounded-full border border-white/10 bg-white/5 text-white/70 text-xs font-bold uppercase tracking-widest hover:border-primary/30 transition-all">Accessories</button>
-        <button onclick="filterByCategory('Dresscode')" class="cat-btn px-5 py-2 rounded-full border border-white/10 bg-white/5 text-white/70 text-xs font-bold uppercase tracking-widest hover:border-primary/30 transition-all">Dresscode</button>
+      <div class="flex items-center justify-start md:justify-center gap-2 md:gap-3 mb-6 overflow-x-auto pb-4 no-scrollbar w-full px-2" id="categoryFilters">
+        <button onclick="filterByCategory('')" class="cat-btn active-cat shrink-0 whitespace-nowrap px-5 py-2 rounded-full border border-primary/40 bg-primary/10 text-primary text-xs font-bold uppercase tracking-widest transition-all">All</button>
+        <button onclick="filterByCategory('Bridal')" class="cat-btn shrink-0 whitespace-nowrap px-5 py-2 rounded-full border border-white/10 bg-white/5 text-white/70 text-xs font-bold uppercase tracking-widest hover:border-primary/30 transition-all">Bridal</button>
+        <button onclick="filterByCategory('Groom')" class="cat-btn shrink-0 whitespace-nowrap px-5 py-2 rounded-full border border-white/10 bg-white/5 text-white/70 text-xs font-bold uppercase tracking-widest hover:border-primary/30 transition-all">Groom</button>
+        <button onclick="filterByCategory('Traditional')" class="cat-btn shrink-0 whitespace-nowrap px-5 py-2 rounded-full border border-white/10 bg-white/5 text-white/70 text-xs font-bold uppercase tracking-widest hover:border-primary/30 transition-all">Traditional</button>
+        <button onclick="filterByCategory('Jewelry')" class="cat-btn shrink-0 whitespace-nowrap px-5 py-2 rounded-full border border-white/10 bg-white/5 text-white/70 text-xs font-bold uppercase tracking-widest hover:border-primary/30 transition-all">Jewelry</button>
+        <button onclick="filterByCategory('Accessories')" class="cat-btn shrink-0 whitespace-nowrap px-5 py-2 rounded-full border border-white/10 bg-white/5 text-white/70 text-xs font-bold uppercase tracking-widest hover:border-primary/30 transition-all">Accessories</button>
+        <button onclick="filterByCategory('Dresscode')" class="cat-btn shrink-0 whitespace-nowrap px-5 py-2 rounded-full border border-white/10 bg-white/5 text-white/70 text-xs font-bold uppercase tracking-widest hover:border-primary/30 transition-all">Dresscode</button>
       </div>
 
       <p id="collectionStatusText" class="text-center text-white/60 text-sm mb-6"></p>
