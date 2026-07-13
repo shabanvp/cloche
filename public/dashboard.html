@@ -120,7 +120,7 @@
           <span class="text-sm font-medium tracking-wide">Messages</span>
         </a>
         <a class="flex items-center gap-4 px-4 py-3 text-slate-400 hover:text-primary transition-colors group"
-          href="index.html#partnership">
+          href="subscription.html">
           <span class="material-symbols-outlined">star</span>
           <span class="text-sm font-medium tracking-wide">Subscription</span>
         </a>
@@ -203,8 +203,8 @@
           <p class="text-slate-400 text-xs uppercase tracking-[0.25em] mb-2">
             Active Plan
           </p>
-          <h3 id="planName" class="text-3xl font-display font-bold text-primary tracking-tight">
-            Early Partner Plan
+          <h3 id="planName" class="text-2xl font-display font-bold text-primary tracking-tight sm:text-3xl">
+            Basic Plan
           </h3>
           <p id="activePlan" class="mt-1 text-sm italic text-slate-400">
             Free / Invite-only
@@ -214,7 +214,7 @@
               <span class="uppercase tracking-widest text-slate-500">
                 Leads Used
               </span>
-              <span class="font-bold text-primary">
+              <span class="font-bold text-primary whitespace-nowrap ml-2">
                 <span id="leadsUsed">0</span> / <span id="leadsLimit">5</span>
               </span>
             </div>
@@ -222,7 +222,7 @@
               <span class="uppercase tracking-widest text-slate-500">
                 Messages Used
               </span>
-              <span class="font-bold text-primary">
+              <span class="font-bold text-primary whitespace-nowrap ml-2">
                 <span id="messagesUsed">0</span> / <span id="messagesLimit">5</span>
               </span>
             </div>
@@ -230,7 +230,7 @@
               <span class="uppercase tracking-widest text-slate-500">
                 Products Added
               </span>
-              <span class="font-bold text-primary">
+              <span class="font-bold text-primary whitespace-nowrap ml-2">
                 <span id="productsUsed">0</span> / <span id="productsLimit">3</span>
               </span>
             </div>
@@ -259,7 +259,7 @@
         </div>
       </div>
       <!-- Chart and Details Section -->
-      <div class="px-8 pb-12 flex flex-col lg:flex-row gap-6">
+      <div class="px-8 pb-4 flex flex-col lg:flex-row gap-6">
         <!-- Performance Chart -->
         <div class="glass-card flex-grow rounded-xl p-8 relative">
           <div id="performanceChartContainer">
@@ -304,8 +304,8 @@
           <div id="recentActivityList" class="space-y-6 flex-1">
             <p class="text-slate-500 text-sm">Loading recent activity...</p>
           </div>
-          <button
-            class="w-full mt-10 py-3 border border-primary/20 rounded-lg text-xs font-bold uppercase tracking-widest text-primary hover:bg-primary/5 transition-all">
+          <button onclick="window.location.href='lead.html'"
+            class="w-full mt-6 py-3 border border-primary/20 rounded-lg text-xs font-bold uppercase tracking-widest text-primary hover:bg-primary/5 transition-all">
             View All Activity
           </button>
         </div>
@@ -320,8 +320,8 @@
     // Plan Configuration (Matches backend planService.js)
     const planConfig = {
       "early_partner": {
-        name: "Early Plan",
-        displayName: "Early Plan",
+        name: "Basic Plan",
+        displayName: "Basic Plan",
         maxLeads: 20,
         maxMessages: 5,
         maxProducts: 20,
@@ -336,7 +336,7 @@
         displayName: "Professional",
         maxLeads: 50,
         maxMessages: Infinity,
-        maxProducts: 20,
+        maxProducts: 50,
         features: {
           analytics: true,
           featured: false,
@@ -379,13 +379,7 @@
 
     function updateDashboardForPlan(plan, data) {
       const normalizedPlan = normalizePlan(plan);
-      const baseConfig = planConfig[normalizedPlan] || planConfig.early_partner;
-
-      // Intro period: first 6 months should show unlimited usage (∞)
-      const introUnlimited = Boolean(data && data.introUnlimited && normalizedPlan !== "early_partner");
-      const config = introUnlimited
-        ? { ...baseConfig, maxLeads: Infinity, maxMessages: Infinity, maxProducts: Infinity }
-        : baseConfig;
+      const config = planConfig[normalizedPlan] || planConfig.early_partner;
 
       const safeSetText = (id, text) => {
         const el = document.getElementById(id);
@@ -410,7 +404,7 @@
         safeSetText("leadsRemaining", "Leads Available");
         safeSetText("leadsRemainingCount", "∞");
         safeSetText("leadsTotal", "");
-        safeSetText("quotaMessage", introUnlimited ? "Intro period — unlimited usage" : "Unlimited leads available");
+        safeSetText("quotaMessage", "Unlimited leads available");
         safeSetText("progressPercent", "100%");
         const pc = document.getElementById("progressCircle");
         if (pc) pc.setAttribute("stroke-dashoffset", 0);
@@ -419,7 +413,7 @@
         const usagePercent = Math.min(100, Math.round((leadsUsed / config.maxLeads) * 100));
 
         safeSetText("leadsRemaining", "Leads Available");
-        safeSetText("leadsRemainingCount", Math.min(leadsUsed, config.maxLeads));
+        safeSetText("leadsRemainingCount", Math.max(0, config.maxLeads - leadsUsed));
         safeSetText("leadsTotal", `/ ${config.maxLeads}`);
         safeSetText("quotaMessage", leadsUsed >= config.maxLeads ? "Limit reached - upgrade to receive more leads" : `${Math.max(0, config.maxLeads - leadsUsed)} leads remaining`);
         safeSetText("progressPercent", `${usagePercent}%`);
@@ -749,7 +743,7 @@
           console.log(`[Dashboard] ${leads?.length || 0} leads loaded`);
           updateLeadKpiFromLeads(leads);
           updatePerformanceChart(leads);
-          const recentLeads = leads.slice(0, 3); // Top 3
+          const recentLeads = leads.slice(0, 2); // Top 2
 
           const activityContainer = document.getElementById("recentActivityList");
           if (activityContainer && recentLeads.length > 0) {

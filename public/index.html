@@ -85,6 +85,37 @@
       will-change: transform;
     }
 
+    .ad-banner-frame {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: clamp(8px, 1.4vw, 14px);
+      background:
+        radial-gradient(circle at center, rgba(193, 166, 113, 0.08), transparent 55%),
+        linear-gradient(135deg, rgba(19, 19, 19, 0.98), rgba(8, 8, 8, 0.98));
+    }
+
+    .ad-banner-image {
+      display: block;
+      width: auto;
+      height: auto;
+      max-width: 100%;
+      max-height: clamp(150px, 22vw, 292px);
+      object-fit: contain;
+      object-position: center;
+      margin: 0 auto;
+    }
+
+    @media (max-width: 1100px) {
+      .ad-banner-frame {
+        padding: 10px;
+      }
+
+      .ad-banner-image {
+        max-height: clamp(140px, 27vw, 250px);
+      }
+    }
+
     .royal-border {
       border-bottom: 1px solid rgba(193, 166, 113, 0.2);
     }
@@ -101,6 +132,14 @@
     }
 
     @media (max-width: 767px) {
+      .ad-banner-frame {
+        padding: 8px;
+      }
+
+      .ad-banner-image {
+        max-height: clamp(120px, 42vw, 220px);
+      }
+
       body.has-mobile-bars.route-index {
         padding-bottom: 0 !important;
       }
@@ -210,13 +249,14 @@
     <div class="max-w-7xl mx-auto px-4 md:px-6 h-16 md:h-20 flex items-center justify-between gap-2">
       <!-- Logo -->
       <div class="flex items-center gap-1.5 shrink-0">
-        <span class="material-symbols-outlined text-primary text-2xl md:text-3xl">diamond</span>
         <span class="text-lg md:text-2xl font-bold tracking-[0.2em] font-display text-white">CLOCHE</span>
       </div>
       <!-- Desktop nav links -->
       <div class="hidden md:flex items-center gap-12">
         <a class="text-sm uppercase tracking-widest hover:text-primary transition-colors"
           href="boutiques.html">Boutiques</a>
+        <a class="text-sm uppercase tracking-widest hover:text-primary transition-colors"
+          href="collection.html">Collection</a>
         <a class="text-sm uppercase tracking-widest hover:text-primary transition-colors" href="#how-it-works">How it
           Works</a>
         <a id="listYourBoutiqueNav" class="text-sm uppercase tracking-widest hover:text-primary transition-colors"
@@ -269,8 +309,32 @@
       </div>
     </div>
   </section>
+
+  <!-- Boutiques Section -->
+  <section class="pt-24 pb-6 px-6 max-w-7xl mx-auto">
+    <div class="flex items-end justify-between mb-16 px-4">
+      <div>
+        <span class="text-primary tracking-[0.4em] uppercase text-xs mb-4 block">Curation</span>
+        <h2 class="text-4xl md:text-5xl font-display text-white">Featured Boutiques</h2>
+      </div>
+      <a class="text-sm uppercase tracking-widest border-b border-primary text-primary pb-1" href="boutiques.html">View
+        All</a>
+    </div>
+    <div id="featuredBoutiquesStatus" class="hidden text-sm text-gray-400 px-4 mb-6">Loading boutiques...</div>
+    <div id="featuredBoutiquesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"></div>
+  </section>
+
+  <!-- AD SECTION 1 -->
+  <section class="w-full px-4 md:px-10 mt-2">
+    <div id="adSection1"
+      class="ad-banner-frame w-full max-w-6xl mx-auto rounded-2xl overflow-hidden border border-primary/10 cursor-default">
+      <img id="adImage1" src="halo&hue.png" alt="Featured advertisement banner" class="ad-banner-image" />
+    </div>
+  </section>
+
+
   <!-- How it Works: The Royal Journey -->
-  <section id="how-it-works" class="py-24 bg-surface-dark/50">
+  <section id="how-it-works" class="pt-8 pb-24 bg-surface-dark/50">
     <div class="max-w-7xl mx-auto px-6">
       <div class="text-center mb-20">
         <span class="text-primary tracking-[0.4em] uppercase text-xs mb-4 block">The Process</span>
@@ -324,6 +388,30 @@
       </div>
     </div>
   </section>
+
+  <!-- Featured Collections -->
+  <section class="pt-20 pb-10 px-6 max-w-7xl mx-auto">
+    <div class="flex items-end justify-between mb-12 px-4">
+      <div>
+        <span class="text-primary tracking-[0.4em] uppercase text-xs mb-4 block">Collections</span>
+        <h2 class="text-4xl md:text-5xl font-display text-white">Featured Collections</h2>
+      </div>
+      <a class="text-sm uppercase tracking-widest border-b border-primary text-primary pb-1" href="collection.html">View
+        All</a>
+    </div>
+    <div id="featuredCollectionsStatus" class="hidden text-sm text-gray-400 px-4 mb-6">Loading collections...</div>
+    <div id="featuredCollectionsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"></div>
+  </section>
+
+  <!-- AD SECTION 2 -->
+  <section class="w-full px-4 md:px-10 mt-2">
+    <div id="adSection2"
+      class="ad-banner-frame w-full max-w-6xl mx-auto rounded-2xl overflow-hidden border border-primary/10 cursor-default">
+      <img id="adImage2" src="ad.png" alt="Promotional advertisement banner" class="ad-banner-image" />
+    </div>
+  </section>
+
+
   <!-- Boutique Partnership -->
   <section id="partnership" class="py-24 px-6 max-w-7xl mx-auto">
     <div class="text-center mb-16">
@@ -339,7 +427,7 @@
       </div>
     </div>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-      <!-- Early Partner Plan -->
+      <!-- Basic Plan -->
       <div class="glass-card plan-card-hover rounded-xl p-10 flex flex-col h-full border-white/5">
         <h3 class="text-xl font-display text-white mb-1">Early Partner</h3>
         <p class="text-gray-500 text-[10px] uppercase tracking-widest mb-4 italic">Launch Stage – FREE</p>
@@ -419,10 +507,10 @@
             Access to more buyers
           </li>
         </ul>
-        <div
-          class="w-full py-4 bg-primary/10 text-primary border border-primary/40 font-bold text-xs uppercase tracking-widest rounded-lg text-center hover:bg-primary hover:text-background-dark transition-all">
-          <button onclick="handleSubscriptionClick()" class="inline-block w-full text-primary hover:text-white transition-colors">Elevate Your Boutique Now</button>
-        </div>
+        <a href="subscription.html" onclick="handleSubscriptionClick(event)"
+          class="relative z-10 mt-auto block w-full py-4 bg-primary/10 text-primary border border-primary/40 font-bold text-xs uppercase tracking-widest rounded-lg text-center hover:bg-primary hover:text-background-dark transition-all">
+          Elevate Your Boutique Now
+        </a>
       </div>
       <!-- Premium Plan -->
       <div class="glass-card plan-card-hover rounded-xl p-10 flex flex-col h-full border-white/5">
@@ -466,10 +554,10 @@
             Faster Support
           </li>
         </ul>
-        <div
-          class="w-full py-4 bg-primary/10 text-primary border border-primary/40 font-bold text-xs uppercase tracking-widest rounded-lg text-center hover:bg-primary hover:text-background-dark transition-all">
-          <button onclick="handleSubscriptionClick()" class="inline-block w-full text-primary hover:text-white transition-colors">Elevate Your Boutique Now</button>
-        </div>
+        <a href="subscription.html" onclick="handleSubscriptionClick(event)"
+          class="relative z-10 mt-auto block w-full py-4 bg-primary/10 text-primary border border-primary/40 font-bold text-xs uppercase tracking-widest rounded-lg text-center hover:bg-primary hover:text-background-dark transition-all">
+          Elevate Your Boutique Now
+        </a>
       </div>
     </div>
   </section>
@@ -478,9 +566,7 @@
     <div class="index-footer-inner max-w-7xl mx-auto">
       <div class="index-footer-grid grid grid-cols-1 md:grid-cols-4 gap-12 mb-20">
         <div class="index-footer-brand col-span-1 md:col-span-1">
-          <div class="flex items-center gap-2 mb-8">
-            <span class="material-symbols-outlined text-primary">diamond</span>
-            <span class="text-xl font-bold tracking-[0.2em] font-display text-white">CLOCHE</span>
+          <div class="flex items-center gap-2 mb-8"><span class="text-xl font-bold tracking-[0.2em] font-display text-white">CLOCHE</span>
           </div>
           <p class="text-sm text-gray-500 leading-relaxed mb-8">
             Redefining bridal elegance through a shared luxury ecosystem.
@@ -560,12 +646,147 @@
 
 
   <script>
-    function handleSubscriptionClick() {
+    function handleSubscriptionClick(event) {
+      if (event) event.preventDefault();
       // Direct to plans; subscription.html will handle login if they try to buy
       window.location.href = "subscription.html";
     }
+
+    // --- ADVERTISEMENT SYSTEM ---
+    const ads = [
+      {
+        image: "halo&hue.png" // Used in adSection1
+      },
+      {
+        image: "ad.png" // Used in adSection2
+      }
+    ];
+
+    document.addEventListener("DOMContentLoaded", () => {
+      // AD 1
+      const adImage1 = document.getElementById("adImage1");
+      const adSection1 = document.getElementById("adSection1");
+      if (adImage1 && adSection1 && ads[0]) {
+        adImage1.src = ads[0].image;
+      }
+
+      // AD 2
+      const adImage2 = document.getElementById("adImage2");
+      const adSection2 = document.getElementById("adSection2");
+      if (adImage2 && adSection2 && ads[1]) {
+        adImage2.src = ads[1].image;
+      }
+    });
   </script>
   <script>
+
+    const API_AUTH = "https://cloche-backend.onrender.com/api/auth";
+    const API_BASE = "https://cloche-backend.onrender.com/api";
+    const API_ORIGIN = "https://cloche-backend.onrender.com";
+    let cloudinaryCloudName = "";
+    const FEATURED_CACHE_KEY = "featuredBoutiquesCacheV3";
+    const COLLECTIONS_CACHE_KEY = "featuredCollectionsCacheV1";
+    const FEATURED_RETRY_DELAYS_MS = [0, 2000, 5000]; // Give Render backends some time between attempts
+    const FEATURED_FETCH_TIMEOUT_MS = 60000; // 60 second timeout per fetch to allow free-tier spin up
+    const FEATURED_BOUTIQUES_LIMIT = 4;
+    const FEATURED_COLLECTIONS_LIMIT = 4;
+    let featuredLoadInProgress = false;
+    let collectionsLoadInProgress = false;
+    let featuredRetryTimer = null;
+    let collectionsRetryTimer = null;
+    const previewFallbackImages = [
+      "https://images.unsplash.com/photo-1583391733981-849840f3f1c2?q=80&w=1200&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=1200&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1542060748-10c28b62716f?q=80&w=1200&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?q=80&w=1200&auto=format&fit=crop"
+    ];
+
+    function resolveAssetUrl(url) {
+      if (window.CLOCHE_PRODUCTS?.resolveAssetUrl) return window.CLOCHE_PRODUCTS.resolveAssetUrl(url, API_ORIGIN);
+      let raw = String(url || "").trim();
+      if (!raw) return "";
+      if (/^data:image\//i.test(raw)) return raw;
+
+      if (raw.includes("localhost") || raw.includes("127.0.0.1")) {
+        try {
+          const u = new URL(raw);
+          raw = u.pathname;
+        } catch (e) { }
+      }
+      if (/^https?:\/\//i.test(raw)) return raw;
+
+      const normalized = raw.replace(/\\/g, "/");
+      const lower = normalized.toLowerCase();
+      const uploadsWithSlash = lower.indexOf("/uploads/");
+      if (uploadsWithSlash >= 0) return `${API_ORIGIN}${normalized.slice(uploadsWithSlash)}`;
+      const uploadsNoSlash = lower.indexOf("uploads/");
+      if (uploadsNoSlash >= 0) return `${API_ORIGIN}/${normalized.slice(uploadsNoSlash)}`;
+
+      // Try to detect Cloudinary public ID (has .png .jpg .jpeg .webp) without being a full path
+      if (/\.(png|jpg|jpeg|webp)$/i.test(normalized) && !normalized.includes("/")) {
+        const cloudName = cloudinaryCloudName || 'dycwsnzyd'; // Fallback to known cloud name
+        return `https://res.cloudinary.com/${cloudName}/image/upload/${normalized}`;
+      }
+
+      if (cloudinaryCloudName) {
+        return `https://res.cloudinary.com/${cloudinaryCloudName}/image/upload/${normalized.replace(/^\/+/, "")}`;
+      }
+
+      return `${API_ORIGIN}${normalized.startsWith("/") ? "" : "/"}${normalized}`;
+    }
+    async function loadCloudinaryConfig() {
+      try {
+        const res = await fetch(`${API_AUTH}/cloudinary-config`);
+        const data = await res.json();
+        if (res.ok) cloudinaryCloudName = String(data.cloudName || "").trim();
+      } catch (_) { }
+    }
+
+    function pickImage(seed) {
+      const label = encodeURIComponent(String(seed || "CLOCHE").slice(0, 32));
+      return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 800'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23201812'/%3E%3Cstop offset='0.55' stop-color='%230d0d0d'/%3E%3Cstop offset='1' stop-color='%23c1a671'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='600' height='800' fill='%230d0d0d'/%3E%3Crect width='600' height='800' fill='url(%23g)' opacity='0.34'/%3E%3Ctext x='50%25' y='50%25' fill='%23c1a671' font-family='serif' font-size='34' letter-spacing='8' text-anchor='middle'%3E${label}%3C/text%3E%3C/svg%3E`;
+    }
+
+    function normalizeLocationParts(boutique) {
+      const city = String(boutique?.city || "").trim();
+      let district = String(boutique?.district || "").trim();
+      let area = String(boutique?.area || "").trim();
+      const splitParts = (value) => String(value || "").split(",").map((part) => part.trim()).filter(Boolean);
+      const samePart = (a, b) => a.toLowerCase() === b.toLowerCase();
+      const normalizePart = (value) => String(value || "").trim().toLowerCase().replace(/\s+/g, " ");
+      const duplicateLocationPart = (part, target) => {
+        const a = normalizePart(part);
+        const b = normalizePart(target);
+        return !!a && !!b && (a === b || a.includes(b) || b.includes(a));
+      };
+
+      if (!area && city.includes(",")) {
+        area = city.split(",")[0].trim();
+      }
+
+      if (!district) {
+        if (city.includes(",")) {
+          district = city.split(",").slice(1).join(",").trim();
+        } else {
+          district = city;
+        }
+      }
+
+      if (area && district && area.toLowerCase() === district.toLowerCase()) {
+        area = "";
+      }
+
+      const districtParts = splitParts(district);
+      district = districtParts[districtParts.length - 1] || district;
+      const areaParts = splitParts(area).filter((part) => !duplicateLocationPart(part, district));
+      area = areaParts
+        .filter((part, index, parts) => parts.findIndex((item) => samePart(item, part) || duplicateLocationPart(item, part)) === index)
+        .join(", ");
+
+      return { area, district };
+    }
+
+
     function updateAuthNav() {
       const authNav = document.getElementById("authNav");
       const profileIconLink = document.getElementById("profileIconLink");

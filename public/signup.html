@@ -72,10 +72,7 @@
   <nav class="fixed top-0 w-full z-50">
     <div class="bg-[rgba(26,26,26,0.6)] backdrop-blur-md border-b border-[rgba(193,166,113,0.2)]">
       <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-        <a href="index.html" class="flex items-center gap-2 group">
-          <span
-            class="material-symbols-outlined text-primary text-3xl group-hover:scale-105 transition-transform">diamond</span>
-          <span
+        <a href="index.html" class="flex items-center gap-2 group"><span
             class="text-2xl font-display font-bold tracking-[0.2em] text-white group-hover:text-primary transition-colors">CLOCHE</span>
         </a>
       </div>
@@ -135,22 +132,22 @@
           <div id="partnerAreaWrap" class="flex flex-col gap-2">
             <label class="text-primary/80 text-xs font-bold uppercase tracking-widest">Area / Town <span
                 class="text-rose-500">*</span></label>
-            <input id="area" type="text" placeholder="Perinthalmanna" required
-              class="w-full rounded-lg text-white border border-white/10 bg-white/5 h-14 px-4 focus:border-primary focus:ring-0" />
+            <select id="area" required disabled
+              class="w-full rounded-lg text-white border border-white/10 bg-white/5 h-14 px-4 focus:border-primary focus:ring-0 disabled:opacity-50 disabled:cursor-not-allowed">
+              <option value="" class="bg-[#0d0d0d] text-white">Select District First</option>
+            </select>
+            <input id="customArea" type="text" placeholder="Enter your area manually"
+              class="w-full rounded-lg text-white border border-white/10 bg-white/5 h-14 px-4 focus:border-primary focus:ring-0 hidden mt-1" />
           </div>
         </div>
 
-        <div id="partnerDistrictWrap" class="flex flex-col gap-2 relative" style="display: none;">
+        <div id="partnerDistrictWrap" class="flex flex-col gap-2" style="display: none;">
           <label class="text-primary/80 text-xs font-bold uppercase tracking-widest">District <span
               class="text-rose-500">*</span></label>
-          <div class="relative">
-            <input id="district" type="text" placeholder="Malappuram" autocomplete="off" required
-              class="w-full rounded-lg text-white border border-white/10 bg-white/5 h-14 px-4 focus:border-primary focus:ring-0" />
-            <div id="districtSuggestions"
-              class="hidden absolute z-[60] left-0 right-0 top-full mt-1 bg-[#1a1a1a] border border-primary/20 rounded-lg shadow-2xl overflow-hidden max-h-48 overflow-y-auto">
-              <!-- Suggestions will appear here -->
-            </div>
-          </div>
+          <select id="district" required
+            class="w-full rounded-lg text-white border border-white/10 bg-white/5 h-14 px-4 focus:border-primary focus:ring-0">
+            <option value="" class="bg-[#0d0d0d] text-white">Select District</option>
+          </select>
         </div>
 
         <div id="partnerTagsWrap" class="flex flex-col gap-2" style="display: none;">
@@ -228,6 +225,83 @@
 
     let selectedAccountType = "user";
 
+    const townsByDistrict = {
+      Alappuzha: ["Alappuzha", "Ambalappuzha", "Aroor", "Chengannur", "Cherthala", "Haripad", "Kayamkulam", "Mavelikkara", "Muhamma", "Nooranad", "Pattanakkad", "Thakazhi"],
+      Ernakulam: ["Aluva", "Angamaly", "Edappally", "Kakkanad", "Kalady", "Kalamassery", "Kochi", "Kolenchery", "Koothattukulam", "Kothamangalam", "Maradu", "Muvattupuzha", "North Paravur", "Perumbavoor", "Piravom", "Thrippunithura", "Vazhakkala", "Vyttila"],
+      Idukki: ["Adimali", "Cheruthoni", "Idukki", "Kattappana", "Kumily", "Munnar", "Nedumkandam", "Peermade", "Thodupuzha", "Vandiperiyar"],
+      Kannur: ["Azhikode", "Chakkarakkal", "Iritty", "Kannur", "Koothuparamba", "Mattannur", "Payyanur", "Panoor", "Taliparamba", "Thalassery"],
+      Kasaragod: ["Bekal", "Cheruvathur", "Kanhangad", "Kasaragod", "Manjeshwaram", "Nileshwaram", "Uppala"],
+      Kollam: ["Anchal", "Chathannoor", "Karunagappally", "Kollam", "Kottarakkara", "Kundara", "Paravur", "Pathanapuram", "Punalur", "Sasthamcotta"],
+      Kottayam: ["Changanassery", "Ettumanoor", "Erattupetta", "Kanjirappally", "Kottayam", "Kumarakom", "Pala", "Pampady", "Ponkunnam", "Vaikom"],
+      Kozhikode: ["Balussery", "Beypore", "Feroke", "Koduvally", "Koyilandy", "Kozhikode", "Mavoor", "Nadapuram", "Ramanattukara", "Thamarassery", "Vadakara"],
+      Malappuram: ["Areekode", "Chelari", "Edappal", "Kondotty", "Kottakkal", "Malappuram", "Manjeri", "Nilambur", "Parappanangadi", "Perinthalmanna", "Ponnani", "Tanur", "Tirur", "Tirurangadi", "Valanchery", "Vengara"],
+      Palakkad: ["Alathur", "Chittur", "Mannarkkad", "Ottapalam", "Palakkad", "Pattambi", "Shornur", "Thrithala", "Vadakkencherry"],
+      Pathanamthitta: ["Adoor", "Konni", "Kozhencherry", "Mallappally", "Pandalam", "Pathanamthitta", "Ranni", "Thiruvalla"],
+      Thiruvananthapuram: ["Attingal", "Balaramapuram", "Kazhakootam", "Kilimanoor", "Kovalam", "Nedumangad", "Neyyattinkara", "Parassala", "Peroorkada", "Thiruvananthapuram", "Varkala", "Vizhinjam"],
+      Thrissur: ["Chalakudy", "Chavakkad", "Guruvayur", "Irinjalakuda", "Kodungallur", "Kunnamkulam", "Mala", "Thrissur", "Wadakkanchery"],
+      Wayanad: ["Kalpetta", "Mananthavady", "Meenangadi", "Pulpally", "Sulthan Bathery", "Vythiri"]
+    };
+
+    function normalizeLocationValue(value) {
+      return String(value || "").normalize("NFKC").trim().toLowerCase().replace(/\s+/g, " ");
+    }
+
+    function setupLocationSelects() {
+      const districtSelect = document.getElementById("district");
+      const areaSelect = document.getElementById("area");
+      if (!districtSelect || !areaSelect || districtSelect.dataset.bound) return;
+
+      Object.keys(townsByDistrict).forEach((district) => {
+        const option = document.createElement("option");
+        option.value = district;
+        option.textContent = district;
+        option.className = "bg-[#0d0d0d] text-white";
+        districtSelect.appendChild(option);
+      });
+
+      districtSelect.dataset.bound = "true";
+      districtSelect.addEventListener("change", function () {
+        const towns = townsByDistrict[this.value] || [];
+        areaSelect.innerHTML = towns.length
+          ? '<option value="" class="bg-[#0d0d0d] text-white">Select Town</option>'
+          : '<option value="" class="bg-[#0d0d0d] text-white">Select District First</option>';
+        towns.forEach((town) => {
+          const option = document.createElement("option");
+          option.value = town;
+          option.textContent = town;
+          option.className = "bg-[#0d0d0d] text-white";
+          areaSelect.appendChild(option);
+        });
+        if (towns.length) {
+          const option = document.createElement("option");
+          option.value = "Other";
+          option.textContent = "Other (Enter Manually)";
+          option.className = "bg-[#0d0d0d] text-primary font-bold";
+          areaSelect.appendChild(option);
+        }
+        areaSelect.disabled = !towns.length;
+
+        const customInput = document.getElementById("customArea");
+        if (customInput) {
+          customInput.classList.add("hidden");
+          customInput.required = false;
+          customInput.value = "";
+        }
+      });
+
+      areaSelect.addEventListener("change", function () {
+        const customInput = document.getElementById("customArea");
+        if (this.value === "Other") {
+          customInput.classList.remove("hidden");
+          customInput.required = true;
+          customInput.focus();
+        } else {
+          customInput.classList.add("hidden");
+          customInput.required = false;
+        }
+      });
+    }
+
     function getInitialSignupType() {
       const params = new URLSearchParams(window.location.search);
       const requestedRole = String(params.get("role") || params.get("account_type") || params.get("type") || "")
@@ -297,8 +371,11 @@
         const boutiqueName = document.getElementById("boutique").value.trim();
         const ownerName = document.getElementById("owner").value.trim();
         const phone = document.getElementById("phone").value.trim();
-        const area = document.getElementById("area").value.trim();
-        const district = document.getElementById("district").value.trim();
+        const areaSelectVal = normalizeLocationValue(document.getElementById("area").value);
+        const area = areaSelectVal === "other" 
+          ? normalizeLocationValue(document.getElementById("customArea").value)
+          : areaSelectVal;
+        const district = normalizeLocationValue(document.getElementById("district").value);
         const tags = document.getElementById("tags").value.trim();
         const password = document.getElementById("password").value;
         const imageFile = document.getElementById("showcaseImage").files[0];
@@ -346,7 +423,7 @@
             // Account created, but the email provider is temporarily unavailable.
             showSuccessModal(true, userEmail, result.verification_url);
           } else {
-            // Full success (could be test email)
+            // Full success (the email provider accepted the message)
             showSuccessModal(false, userEmail, "", false, result.email?.is_test ? result.email.test_url : "");
           }
         } else {
@@ -414,8 +491,8 @@
         modalTitle.textContent = testEmailUrl ? "TEST EMAIL SENT" : "CHECK YOUR INBOX";
         modalDesc.innerHTML = testEmailUrl
           ? `A test verification email has been sent for <strong class="text-white">${email}</strong>. You can view the message below.`
-          : `A verification email has been sent to <strong class="text-white">${email}</strong>. Please verify your account to join the circle.`;
-        modalSubDesc.textContent = testEmailUrl ? "Click below to see the luxury email message." : "After you verify, you'll be automatically redirected to login. ✨";
+          : `Gmail accepted a verification email for <strong class="text-white">${email}</strong>. Please check Inbox, Promotions, and Spam.`;
+        modalSubDesc.textContent = testEmailUrl ? "Click below to see the luxury email message." : "After you verify, you'll be automatically redirected to login.";
         modalSpinner.classList.toggle("hidden", !!testEmailUrl);
 
         if (testEmailUrl) {
@@ -436,50 +513,6 @@
       const status = lastSignupAutoVerified ? "verified" : "verification_sent";
       window.location.href = `boutiquelogin.html?status=${status}&type=${encodeURIComponent(selectedAccountType)}`;
     }
-
-    // District Autosuggest Logic
-    const districts = [
-      "Alappuzha", "Ernakulam", "Idukki", "Kannur", "Kasaragod", "Kollam",
-      "Kottayam", "Kozhikode", "Malappuram", "Palakkad", "Pathanamthitta",
-      "Thiruvananthapuram", "Thrissur", "Wayanad"
-    ];
-
-    const districtInput = document.getElementById("district");
-    const suggestionBox = document.getElementById("districtSuggestions");
-
-    districtInput.addEventListener("input", function () {
-      const val = this.value.trim().toLowerCase();
-      suggestionBox.innerHTML = "";
-
-      if (val.length < 2) {
-        suggestionBox.classList.add("hidden");
-        return;
-      }
-
-      const matches = districts.filter(d => d.toLowerCase().includes(val));
-      if (matches.length > 0) {
-        matches.forEach(match => {
-          const div = document.createElement("div");
-          div.className = "px-4 py-3 hover:bg-primary/20 cursor-pointer text-sm text-white/80 transition-colors";
-          div.textContent = match;
-          div.onclick = function () {
-            districtInput.value = match;
-            suggestionBox.classList.add("hidden");
-          };
-          suggestionBox.appendChild(div);
-        });
-        suggestionBox.classList.remove("hidden");
-      } else {
-        suggestionBox.classList.add("hidden");
-      }
-    });
-
-    // Close suggestions when clicking outside
-    document.addEventListener("click", function (e) {
-      if (!districtInput.contains(e.target) && !suggestionBox.contains(e.target)) {
-        suggestionBox.classList.add("hidden");
-      }
-    });
 
     // ========== IMAGE PREVIEW LOGIC ==========
     const showcaseInput = document.getElementById("showcaseImage");
@@ -536,6 +569,7 @@
       reader.readAsDataURL(file);
     });
 
+    setupLocationSelects();
     setAccountType(getInitialSignupType());
 
     function togglePassword(inputId, btn) {
@@ -551,20 +585,20 @@
     <div
       class="glass-card relative w-full max-w-md p-8 rounded-xl shadow-2xl text-center flex flex-col items-center gap-6 animate-in fade-in zoom-in duration-300">
       <div class="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mb-2">
-        <span id="modalIcon" class="material-symbols-outlined text-primary text-4xl">mail</span>
+        <span id="modalIcon" class="material-symbols-outlined text-primary text-4xl">verified</span>
       </div>
       <div>
         <h2 id="modalTitle" class="font-display text-white text-2xl font-bold tracking-widest mb-3 uppercase">Check Your
           Inbox</h2>
         <p id="modalDesc" class="text-white/60 text-sm font-light leading-relaxed mb-2">
-          A verification email has been sent to your email address. Please verify your account to join the circle.
+          Gmail accepted a verification email for your address. Please check Inbox, Promotions, and Spam.
         </p>
         <p id="modalSubDesc" class="text-white/50 text-xs font-light">
-          After you verify, you'll be automatically redirected to login. ✨
+          After you verify, you'll be automatically redirected to login.
         </p>
       </div>
 
-      <!-- Spinner (shown when email was sent OK) -->
+      <!-- Spinner (shown when email was accepted by the provider) -->
       <div id="modalSpinner" class="w-full flex items-center justify-center gap-2 mt-2">
         <div class="animate-spin w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full"></div>
         <p class="text-white/60 text-xs">Waiting for verification...</p>

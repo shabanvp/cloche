@@ -289,8 +289,8 @@
                         <p class="text-[10px] uppercase tracking-widest text-primary font-bold">Newest Community Members
                         </p>
                     </div>
-                    <span class="text-[10px] uppercase tracking-widest text-gray-600 font-bold hidden sm:block">Limit
-                        10</span>
+                    <span class="text-[10px] uppercase tracking-widest text-gray-600 font-bold hidden sm:block">All
+                        Users</span>
                 </div>
                 <div class="glass-card rounded-2xl admin-table-shell">
                     <div class="admin-scroll-hint">
@@ -506,6 +506,21 @@
             return localStorage.getItem("adminToken") || "";
         }
 
+        function formatPlanName(plan) {
+            const normalized = String(plan || "").toLowerCase().trim();
+            const planMap = {
+                "early_partner": "Basic Plan",
+                "early": "Basic Plan",
+                "basic": "Basic Plan",
+                "early partner": "Basic Plan",
+                "professional": "Professional",
+                "growth": "Professional",
+                "premium": "Premium",
+                "elite": "Premium"
+            };
+            return planMap[normalized] || (String(plan || "").charAt(0).toUpperCase() + String(plan || "").slice(1).toLowerCase());
+        }
+
         async function deleteBoutique(boutiqueId, boutiqueName) {
             if (!boutiqueId) return;
             const name = boutiqueName || "this boutique";
@@ -575,24 +590,29 @@
 
                     // Render Users
                     const userTable = document.getElementById('usersTableBody');
-                    userTable.innerHTML = data.recentUsers.map(u => `
+                    const users = Array.isArray(data.recentUsers) ? data.recentUsers : [];
+                    if (!users.length) {
+                        userTable.innerHTML = `<tr><td colspan="3" class="px-8 py-10 text-center text-gray-500 text-sm italic">No registered users found.</td></tr>`;
+                    } else {
+                        userTable.innerHTML = users.map(u => `
                         <tr class="table-row border-b border-white/5 transition-colors hover:bg-white/[0.02]">
                             <td class="px-4 md:px-8 py-5 text-sm w-[260px]">
-                                <p class="font-medium text-white admin-row-text">${u.name}</p>
+                                <p class="font-medium text-white admin-row-text">${u.name || "Unnamed User"}</p>
                                 <p class="text-[10px] text-primary uppercase font-bold tracking-widest mt-1">${u.role || 'Member'}</p>
-                                <p class="text-gray-500 text-[9px] mt-1 tracking-tight admin-row-text">${u.email}</p>
+                                <p class="text-gray-500 text-[9px] mt-1 tracking-tight admin-row-text">${u.email || ""}</p>
                             </td>
                             <td class="px-4 md:px-8 py-5 text-gray-400 text-sm w-[330px]">
-                                <p class="admin-row-text">${u.email}</p>
-                                <p class="text-[9px] text-gray-600 mt-1 uppercase tracking-widest font-bold">Joined ${new Date(u.created_at).toLocaleDateString()}</p>
+                                <p class="admin-row-text">${u.email || ""}</p>
+                                <p class="text-[9px] text-gray-600 mt-1 uppercase tracking-widest font-bold">Joined ${u.created_at ? new Date(u.created_at).toLocaleDateString() : "-"}</p>
                             </td>
                             <td class="px-4 md:px-8 py-5 text-center admin-table-action">
-                                <button data-remove-user-id="${u.id}" data-remove-user-name="${encodeURIComponent(u.name)}" class="px-3 md:px-4 py-2 rounded-lg text-[9px] md:text-[10px] uppercase tracking-widest border border-red-500/10 text-red-400/60 hover:text-red-400 hover:bg-red-500/10 transition-all font-bold">
+                                <button data-remove-user-id="${u.id}" data-remove-user-name="${encodeURIComponent(u.name || u.email || "this user")}" class="px-3 md:px-4 py-2 rounded-lg text-[9px] md:text-[10px] uppercase tracking-widest border border-red-500/10 text-red-400/60 hover:text-red-400 hover:bg-red-500/10 transition-all font-bold">
                                     Remove
                                 </button>
                             </td>
                         </tr>
                     `).join('');
+                    }
 
                     userTable.onclick = (e) => {
                         const btn = e.target.closest("[data-remove-user-id]");
@@ -634,7 +654,7 @@
                                     <p class="text-[10px] text-primary uppercase tracking-[0.2em] font-bold mt-1 admin-row-text">${b.owner_name || b.contact_name || 'No Owner Listed'}</p>
                                     <p class="text-[10px] text-gray-500 mt-1 admin-row-text">${b.email || b.contact_email || 'No Email'} • ${b.phone || b.contact_phone || ''}</p>
                                     <p class="text-[10px] text-gray-500 uppercase tracking-widest mt-1 opacity-60">
-                                      ${(String(b.plan || "early partner").toUpperCase())}${b.introUnlimited ? " • INTRO ∞" : ""}
+                                      ${formatPlanName(b.plan || "early partner")}${b.introUnlimited ? " • INTRO ∞" : ""}
                                     </p>
                                 </td>
                                 <td class="px-8 py-5 text-gray-400 text-sm w-[260px]">
@@ -664,6 +684,10 @@
                 }
             } catch (err) {
                 console.error('Failed to load analytics:', err);
+                const userTable = document.getElementById('usersTableBody');
+                if (userTable) {
+                    userTable.innerHTML = `<tr><td colspan="3" class="px-8 py-10 text-center text-red-400/70 text-sm italic">Failed to load users.</td></tr>`;
+                }
             }
         }
 
@@ -751,7 +775,7 @@
                             <p class="text-[10px] text-gray-500 mt-1">${boutique.email || ""}</p>
                         </td>
                         <td class="px-4 md:px-8 py-6 text-sm w-[180px]">
-                            <p class="text-white uppercase tracking-widest font-bold">${proof.plan}</p>
+                            <p class="text-white uppercase tracking-widest font-bold">${formatPlanName(proof.plan)}</p>
                             <p class="text-primary text-xs mt-1">₹${Number(proof.amount || 0).toLocaleString("en-IN")}</p>
                             <p class="text-[9px] text-gray-500 uppercase tracking-widest mt-1">${proof.billing_cycle || "monthly"}</p>
                             <span class="inline-flex mt-3 px-2 py-1 rounded border text-[9px] uppercase tracking-widest font-bold ${statusClass}">${status}</span>

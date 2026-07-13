@@ -453,12 +453,6 @@
       <div class="flex-1 flex overflow-hidden">
         <!-- Main Inbox Panel (Full Width next to Sidebar) -->
         <section id="inboxPanel" class="flex-1 flex flex-col bg-background-dark h-full relative z-10">
-          <!-- Premium Brand Header (HIDDEN ON MOBILE) -->
-          <div class="hidden lg:block px-8 pt-12 pb-6 bg-background-dark/80 backdrop-blur-xl">
-            <h2 class="text-[#D4AF37] text-2xl font-bold tracking-[0.4em] uppercase mb-12 text-center w-full">CLOCHE
-            </h2>
-          </div>
-
           <div class="inbox-controls w-full px-4 lg:px-8">
             <!-- Search Hub -->
             <div
@@ -646,6 +640,15 @@
         .replace(/"/g, "&quot;");
     }
 
+    // Safely escape strings for insertion inside single-quoted JS attribute values
+    function jsEscape(value) {
+      return String(value || "")
+        .replace(/\\/g, "\\\\")
+        .replace(/'/g, "\\'")
+        .replace(/\n/g, "\\n")
+        .replace(/\r/g, "\\r");
+    }
+
     function parseProductShareMessage(text) {
       const raw = String(text || "");
       const prefix = "__CLOCHE_PRODUCT_SHARE__";
@@ -722,29 +725,34 @@
 
       list.innerHTML = notificationQueue.map(notif => {
         if (notif.type === 'new_conversation') {
-          const safeProduct = String(notif.data.product_name || "General inquiry").replace(/'/g, "\\'");
+          const safeProduct = jsEscape(notif.data.product_name || "General inquiry");
+          const safeName = jsEscape(notif.data.customer_name || "");
+          const safeEmail = jsEscape(notif.data.customer_email || "");
           return `
-            <div class="p-3 bg-white/5 rounded-lg border border-white/10 hover:border-primary/30 cursor-pointer transition-all hover:bg-white/10" onclick="openConversation(${notif.data.id}, '${notif.data.customer_name}', '${notif.data.customer_email}', '${safeProduct}'); document.getElementById('notificationPanel').classList.add('hidden');">
+            <div class="p-3 bg-white/5 rounded-lg border border-white/10 hover:border-primary/30 cursor-pointer transition-all hover:bg-white/10" data-notif-id="${notif.id}">
               <div class="flex items-start gap-2">
                 <span class="material-symbols-outlined text-primary text-sm mt-1">mail_outline</span>
                 <div class="flex-1 min-w-0">
                   <p class="text-xs font-bold text-primary">New Conversation</p>
-                  <p class="text-xs text-white/70 truncate mt-1">From <strong>${notif.data.customer_name}</strong></p>
-                  <p class="text-xs text-white/50 truncate">Re: ${notif.data.product_name || 'General inquiry'}</p>
+                  <p class="text-xs text-white/70 truncate mt-1">From <strong>${escapeHtml(notif.data.customer_name)}</strong></p>
+                  <p class="text-xs text-white/50 truncate">Re: ${escapeHtml(notif.data.product_name || 'General inquiry')}</p>
                   <p class="text-[10px] text-white/30 mt-2">${getTimeAgo(notif.timestamp)}</p>
                 </div>
               </div>
             </div>
           `;
         } else if (notif.type === 'new_message') {
+          const safeName = jsEscape(notif.data.customer_name || "");
+          const safeEmail = jsEscape(notif.data.customer_email || "");
+          const safePreview = jsEscape(notif.data.preview || "");
           return `
-            <div class="p-3 bg-white/5 rounded-lg border border-white/10 hover:border-primary/30 cursor-pointer transition-all hover:bg-white/10" onclick="openConversation(${notif.data.conversationId}, '${notif.data.customer_name}', '${notif.data.customer_email}'); document.getElementById('notificationPanel').classList.add('hidden');">
+            <div class="p-3 bg-white/5 rounded-lg border border-white/10 hover:border-primary/30 cursor-pointer transition-all hover:bg-white/10" data-notif-id="${notif.id}">
               <div class="flex items-start gap-2">
                 <span class="material-symbols-outlined text-green-400 text-sm mt-1">chat_bubble</span>
                 <div class="flex-1 min-w-0">
                   <p class="text-xs font-bold text-green-400">New Message</p>
-                  <p class="text-xs text-white/70 truncate mt-1">From <strong>${notif.data.customer_name}</strong></p>
-                  <p class="text-xs text-white/50 truncate line-clamp-2">"${notif.data.preview}"</p>
+                  <p class="text-xs text-white/70 truncate mt-1">From <strong>${escapeHtml(notif.data.customer_name)}</strong></p>
+                  <p class="text-xs text-white/50 truncate line-clamp-2">"${escapeHtml(notif.data.preview)}"</p>
                   <p class="text-[10px] text-white/30 mt-2">${getTimeAgo(notif.timestamp)}</p>
                 </div>
               </div>
@@ -752,6 +760,20 @@
           `;
         }
       }).join('');
+
+      // Attach click handlers safely after inserting nodes
+      setTimeout(() => {
+        notificationQueue.forEach(notif => {
+          const el = document.querySelector(`[data-notif-id="${notif.id}"]`);
+          if (!el) return;
+          el.onclick = () => {
+            const data = notif.data || {};
+            const cid = data.id || data.conversationId;
+            openConversation(cid, data.customer_name || 'Customer', data.customer_email || '', data.product_name || '');
+            document.getElementById('notificationPanel').classList.add('hidden');
+          };
+        });
+      }, 0);
     }
 
     // Handle search input
@@ -916,12 +938,14 @@
             const newUnread = Number(newConv.unread_count || 0);
             const oldUnread = Number(oldConv.unread_count || 0);
             if (newUnread > oldUnread) {
-              addNotification("new_message", {
-                conversationId: newConv.id,
-                customer_name: newConv.customer_name || "Customer",
-                customer_email: newConv.customer_email || "",
-                preview: String(newConv.last_message || "New message").substring(0, 50),
-              });
+              if (String(newConv.id) !== String(currentConversationId)) {
+                addNotification("new_message", {
+                  conversationId: newConv.id,
+                  customer_name: newConv.customer_name || "Customer",
+                  customer_email: newConv.customer_email || "",
+                  preview: String(newConv.last_message || "New message").substring(0, 50),
+                });
+              }
             }
           });
         }
@@ -978,10 +1002,10 @@
         const sharedPost = parseProductShareMessage(conv.last_message);
         const preview = sharedPost ? `Shared dress: ${sharedPost.name}` : (conv.last_message || productName || 'New inquiry received - Open to respond');
 
-        // Escape quotes to prevent breaking the onclick handler
-        const safeName = name.replace(/'/g, "\\'");
-        const safeEmail = (conv.customer_email || '').replace(/'/g, "\\'");
-        const safeProduct = productName.replace(/'/g, "\\'");
+        // Escape values for safe insertion into inline handlers
+        const safeName = jsEscape(name);
+        const safeEmail = jsEscape(conv.customer_email || '');
+        const safeProduct = jsEscape(productName);
 
         return `
         <div class="chat-item py-3.5 px-8 cursor-pointer flex items-center gap-6 transition-all hover:bg-white/5 border-b border-white/5" 
@@ -1034,32 +1058,12 @@
       // Show input area
       document.getElementById("inputArea").classList.remove("hidden");
 
-      // Load messages and check for existing boutique replies
-      const messages = await loadMessages(conversationId);
+      const group = allConversations.find(g => g.ids && g.ids.includes(conversationId)) || { ids: [conversationId] };
+      
+      // Load messages for all grouped conversations to ensure all are marked read and visible
+      const messages = await loadMessagesForGroup(group.ids);
 
-      // AUTOMATED WELCOME LOGIC:
-      // Check if we need to send a welcome message (only if no boutique response exists yet)
-      const hasBoutiqueMessage = messages.some(m => m.sender_type === 'boutique');
 
-      if (!hasBoutiqueMessage) {
-        const welcomeText = `Hello and welcome to ${bName}!\nHow can I assist you today?`;
-        // Send this as a real message through the API
-        try {
-          await fetch(`${API_ORIGIN}/api/messages/send`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              conversationId: conversationId,
-              message_text: welcomeText,
-              senderType: "boutique"
-            })
-          });
-          // Reload to show the sent message
-          await loadMessages(conversationId);
-        } catch (err) {
-          console.error("Auto-welcome failed:", err);
-        }
-      }
 
       // Update Sidebar Info
       updateSidebar(conversationId);
@@ -1153,20 +1157,34 @@
       }
     }
 
-    // Load messages for a conversation
-    async function loadMessages(conversationId) {
+    // Load messages for all conversations in a group
+    async function loadMessagesForGroup(groupIds) {
       try {
-        const res = await fetch(`${API_ORIGIN}/api/messages/conversation/${conversationId}`);
-        if (!res.ok) throw new Error("Failed to fetch messages");
-
-        const messages = await res.json();
-        renderMessages(messages);
-        return messages; // Return messages array for logic checks
+        let allMsgs = [];
+        for (const id of groupIds) {
+          const res = await fetch(`${API_ORIGIN}/api/messages/conversation/${id}`);
+          if (res.ok) {
+            const msgs = await res.json();
+            allMsgs = allMsgs.concat(msgs);
+          }
+        }
+        
+        // Sort combined messages chronologically
+        allMsgs.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+        
+        renderMessages(allMsgs);
+        return allMsgs;
       } catch (err) {
         console.error("Error loading messages:", err);
         document.getElementById("messagesArea").innerHTML = `<div class="text-red-400">Error loading messages</div>`;
         return [];
       }
+    }
+
+    // Backwards-compatible helper: load messages for a single conversation
+    async function loadMessages(conversationId) {
+      if (!conversationId) return [];
+      return await loadMessagesForGroup([conversationId]);
     }
 
     // Render messages
@@ -1239,6 +1257,7 @@
 
         input.value = "";
         await loadMessages(currentConversationId);
+        await loadConversations();
       } catch (err) {
         console.error("Error sending message:", err);
         alert("Failed to send message");
@@ -1305,11 +1324,12 @@
 
       // Refresh conversations and active thread every 3 seconds
       setInterval(async () => {
-        await loadConversations();
         if (currentConversationId) {
-          await loadMessages(currentConversationId);
+          const group = allConversations.find(g => g.ids && g.ids.includes(currentConversationId)) || { ids: [currentConversationId] };
+          await loadMessagesForGroup(group.ids);
           updateSidebar(currentConversationId);
         }
+        await loadConversations();
       }, 3000);
 
       // Allow Enter key to send message
@@ -1319,10 +1339,38 @@
           sendMessage();
         }
       });
+
+      window.addEventListener("pageshow", async (event) => {
+        if (!event.persisted) return;
+        await loadConversations();
+        if (currentConversationId) {
+          await loadMessages(currentConversationId);
+          await loadConversations();
+          updateSidebar(currentConversationId);
+        }
+      });
+
+      window.addEventListener("focus", async () => {
+        await loadConversations();
+        if (currentConversationId) {
+          await loadMessages(currentConversationId);
+          await loadConversations();
+          updateSidebar(currentConversationId);
+        }
+      });
+
+      document.addEventListener("visibilitychange", async () => {
+        if (document.visibilityState !== "visible") return;
+        await loadConversations();
+        if (currentConversationId) {
+          await loadMessages(currentConversationId);
+          await loadConversations();
+          updateSidebar(currentConversationId);
+        }
+      });
     });
   </script>
   <script src='responsive-layout.js?v=20260501-partner-signup'></script>
-  <script src="footer.js?v=20260505-footer-fix"></script>
 </body>
 
 </html>

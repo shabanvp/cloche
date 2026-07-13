@@ -60,6 +60,15 @@
       background: radial-gradient(circle at center, rgba(193, 166, 113, 0.08) 0%, transparent 70%);
     }
 
+    #otherBoutiquesGrid {
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+
+    #otherBoutiquesGrid::-webkit-scrollbar {
+      display: none;
+    }
+
     @media (max-width: 768px) {
       html,
       body {
@@ -98,8 +107,8 @@
       }
 
       #productsGrid > a {
-        min-width: min(74vw, 280px) !important;
-        max-width: min(74vw, 280px) !important;
+        min-width: min(68vw, 250px) !important;
+        max-width: min(68vw, 250px) !important;
       }
 
       .boutique-hero-card {
@@ -166,9 +175,7 @@
 <body class="bg-background-dark text-[#FAF7F2] min-h-screen">
   <nav class="fixed top-0 w-full z-50 nav-glass royal-border">
     <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-      <a class="flex items-center gap-2" href="index.html">
-        <span class="material-symbols-outlined text-primary text-3xl">diamond</span>
-        <span class="text-2xl font-bold tracking-[0.2em] font-display text-white">CLOCHE</span>
+      <a class="flex items-center gap-2" href="index.html"><span class="text-2xl font-bold tracking-[0.2em] font-display text-white">CLOCHE</span>
       </a>
       <div class="hidden md:flex items-center gap-12">
         <a class="text-sm uppercase tracking-widest text-[#FAF7F2]" href="boutiques.html">Boutiques</a>
@@ -228,7 +235,7 @@
         <div class="h-[1px] flex-grow mx-8 bg-gradient-to-r from-primary/40 to-transparent mb-3"></div>
       </div>
       <div id="productsGrid"
-        class="flex gap-6 overflow-x-auto pb-4 snap-x snap-mandatory md:grid md:grid-cols-2 lg:grid-cols-3 md:overflow-visible md:pb-0">
+        class="flex gap-5 overflow-x-auto pb-4 snap-x snap-mandatory md:grid md:grid-cols-3 xl:grid-cols-4 md:overflow-visible md:pb-0 md:gap-6">
       </div>
     </section>
 
@@ -376,7 +383,7 @@
       const params = new URLSearchParams(window.location.search);
       const fromParam = params.get("boutiqueId") || params.get("id");
       const fromStorage = localStorage.getItem("selectedBoutiqueId");
-      return Number(fromParam || fromStorage || 0);
+      return String(fromParam || fromStorage || "").trim();
     }
 
     function setText(id, value) {
@@ -389,6 +396,14 @@
       let district = String(boutique?.district || "").trim();
       let area = String(boutique?.area || "").trim();
       const shopLocation = String(boutique?.shop_location || boutique?.shopLocation || "").trim();
+      const splitParts = (value) => String(value || "").split(",").map((part) => part.trim()).filter(Boolean);
+      const samePart = (a, b) => a.toLowerCase() === b.toLowerCase();
+      const normalizePart = (value) => String(value || "").trim().toLowerCase().replace(/\s+/g, " ");
+      const duplicateLocationPart = (part, target) => {
+        const a = normalizePart(part);
+        const b = normalizePart(target);
+        return !!a && !!b && (a === b || a.includes(b) || b.includes(a));
+      };
 
       if (!area && city.includes(",")) {
         area = city.split(",")[0].trim();
@@ -406,7 +421,14 @@
         area = "";
       }
 
-      const locationLabel = [area, district].filter(Boolean).join(", ");
+      const districtParts = splitParts(district);
+      district = districtParts[districtParts.length - 1] || district;
+      const areaParts = splitParts(area).filter((part) => !duplicateLocationPart(part, district));
+      area = areaParts.join(", ");
+      const locationLabel = [...areaParts, district]
+        .filter(Boolean)
+        .filter((part, index, parts) => parts.findIndex((item) => samePart(item, part) || duplicateLocationPart(item, part)) === index)
+        .join(", ");
       return { area, district, locationLabel, shopLocation };
     }
 
@@ -417,6 +439,20 @@
         return raw;
       }
       return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(raw)}`;
+    }
+
+    function formatPlanName(plan) {
+      const normalized = String(plan || "").toLowerCase().trim();
+      const planMap = {
+        "early_partner": "Basic Plan",
+        "early": "Basic Plan",
+        "basic": "Basic Plan",
+        "professional": "Professional",
+        "growth": "Professional",
+        "premium": "Premium",
+        "elite": "Premium"
+      };
+      return planMap[normalized] || (String(plan || "").charAt(0).toUpperCase() + String(plan || "").slice(1).toLowerCase());
     }
 
     function renderTags(tagsRaw) {
@@ -455,7 +491,7 @@
         const encodedProduct = encodeURIComponent(JSON.stringify(product));
 
         return `
-          <a href="viewproducts.html?boutiqueId=${boutiqueId}&productId=${product.id}" onclick="localStorage.setItem('selectedProductData', decodeURIComponent('${encodedProduct}')); localStorage.setItem('selectedBoutiqueId', '${boutiqueId}')" class="group block min-w-[260px] max-w-[260px] snap-start md:min-w-0 md:max-w-none">
+          <a href="viewproducts.html?boutiqueId=${boutiqueId}&productId=${product.id}" onclick="localStorage.setItem('selectedProductData', decodeURIComponent('${encodedProduct}')); localStorage.setItem('selectedBoutiqueId', '${boutiqueId}')" class="group block min-w-[240px] max-w-[240px] snap-start md:min-w-0 md:max-w-[300px] md:mx-auto md:w-full">
             <div class="product-image-frame aspect-[3/4] overflow-hidden rounded-lg mb-4 relative glass-card">
               <img class="product-image w-full h-full object-contain transition-transform duration-700 group-hover:scale-105" src="${image}" alt="${product.product_name || "Product"}" />
               <div class="absolute inset-0 bg-black/20 group-hover:bg-black/0 transition-colors"></div>
@@ -538,23 +574,32 @@
       }
 
       statusWrap.textContent = "Loading boutique profile...";
-      const res = await fetch(`${API_BASE}/boutiques`);
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Failed to load boutique list");
-
-      const boutiquesArray = Array.isArray(data) ? data : [];
-      let boutique = boutiquesArray.find((item) => Number(item.id) === Number(boutiqueId));
-      if (!boutique) throw new Error("Boutique not found");
+      let boutique = null;
+      let boutiquesArray = [];
 
       try {
-        const detailRes = await fetch(`${API_BASE}/boutiques/${boutiqueId}?v=${Date.now()}`);
+        const detailRes = await fetch(`${API_BASE}/boutiques/${encodeURIComponent(boutiqueId)}?v=${Date.now()}`);
         const detailData = await detailRes.json();
         if (detailRes.ok && detailData) {
-          boutique = { ...boutique, ...detailData };
+          boutique = detailData;
         }
       } catch (detailErr) {
         console.warn("Boutique detail refresh failed:", detailErr);
       }
+
+      try {
+        const listRes = await fetch(`${API_BASE}/boutiques?limit=1000&v=${Date.now()}`);
+        const listData = await listRes.json();
+        if (listRes.ok && Array.isArray(listData)) {
+          boutiquesArray = listData;
+          const listedBoutique = boutiquesArray.find((item) => String(item.id) === String(boutiqueId));
+          if (listedBoutique) boutique = { ...listedBoutique, ...(boutique || {}) };
+        }
+      } catch (listErr) {
+        console.warn("Boutique list refresh failed:", listErr);
+      }
+
+      if (!boutique) throw new Error("Boutique not found");
 
       localStorage.setItem("selectedBoutiqueId", String(boutiqueId));
       try {
@@ -564,7 +609,7 @@
     }
 
     async function loadProducts(boutiqueId) {
-      const res = await fetch(`${API_PRODUCTS}/boutique/${boutiqueId}`);
+      const res = await fetch(`${API_PRODUCTS}/boutique/${encodeURIComponent(boutiqueId)}`);
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Failed to load products");
       return Array.isArray(data) ? data : [];
@@ -577,7 +622,7 @@
       const area = (location.area || location.district || "Area").toUpperCase();
       const visitLocation = location.shopLocation || location.locationLabel || location.district || "Location not set";
       const locationLabel = visitLocation.toUpperCase();
-      const plan = (boutique.plan || "Basic").toUpperCase();
+      const plan = formatPlanName(boutique.plan || "Basic Plan");
       const cover = resolveAssetUrl(boutique.image_url || boutique.showcase_image || "") || fallbackImages[0];
       const directionsHref = buildDirectionsHref(location.shopLocation || location.locationLabel || boutique.city || "Kerala");
 
@@ -585,7 +630,7 @@
       setText("boutiqueName", (boutique.boutique_name || "Boutique").toUpperCase());
       setText("boutiqueCity", district);
       setText("boutiqueArea", area);
-      setText("boutiquePlan", `${plan} PLAN`);
+      setText("boutiquePlan", `${plan} Plan`);
       setText("metricProducts", `${productsCount} product${productsCount === 1 ? "" : "s"} listed`);
       setText("metricPlan", `${plan} subscription`);
       setText("metricDistrict", district);
@@ -660,7 +705,7 @@
       const grid = document.getElementById("otherBoutiquesGrid");
       if (!grid) return;
       if (DEBUG_TAGS) console.log("[CLOCHE] renderOtherBoutiques() viewboutique.html", { width: window.innerWidth, path: location.pathname });
-      const filtered = allBoutiques.filter(b => Number(b.id) !== Number(currentId)).slice(0, 6);
+      const filtered = allBoutiques.filter(b => String(b.id) !== String(currentId)).slice(0, 6);
       if (!filtered.length) {
         grid.innerHTML = `<p class="text-white/50 text-xs">No other boutiques found.</p>`;
         return;

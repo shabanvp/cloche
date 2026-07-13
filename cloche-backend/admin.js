@@ -78,12 +78,12 @@ router.get("/analytics", async (req, res) => {
       throw new Error("Error fetching counts");
     }
 
-    // 2. Fetch recent users
+    // 2. Fetch registered users for the admin panel
     const { data: recentUsers, error: recUserErr } = await supabase
       .from("users")
       .select("id, name, email, created_at")
       .order("created_at", { ascending: false })
-      .limit(10);
+      .limit(1000);
 
     // 3. Fetch recent boutiques
     const { data: recentBoutiques, error: recBoutErr } = await supabase
@@ -105,6 +105,10 @@ router.get("/analytics", async (req, res) => {
       };
     });
 
+    if (recUserErr || recBoutErr) {
+      throw new Error(recUserErr?.message || recBoutErr?.message || "Error fetching registrations");
+    }
+
     res.json({
       success: true,
       metrics: {
@@ -118,6 +122,68 @@ router.get("/analytics", async (req, res) => {
   } catch (err) {
     console.error("Admin Analytics Error:", err);
     res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+/**
+ * @route   DELETE /api/admin/users/:userId
+ * @desc    Permanently remove a user account
+ */
+router.delete("/users/:userId", requireAdmin, async (req, res) => {
+  const userId = Number(req.params.userId);
+  if (!Number.isFinite(userId) || userId <= 0) {
+    return res.status(400).json({ success: false, message: "Invalid user id" });
+  }
+
+  try {
+    const { data: user, error: userErr } = await supabase
+      .from("users")
+      .select("id, name, email")
+      .eq("id", userId)
+      .maybeSingle();
+
+    if (userErr) throw userErr;
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    const userEmail = String(user.email || "").trim().toLowerCase();
+
+    if (userEmail) {
+      const { data: conversations, error: convErr } = await supabase
+        .from("conversations")
+        .select("id")
+        .ilike("customer_email", userEmail);
+
+      if (convErr && !isMissingTableError(convErr)) throw convErr;
+
+      const conversationIds = Array.isArray(conversations)
+        ? conversations.map((c) => c?.id).filter(Boolean)
+        : [];
+
+      if (conversationIds.length) {
+        const { error: msgDelErr } = await supabase.from("messages").delete().in("conversation_id", conversationIds);
+        if (msgDelErr && !isMissingTableError(msgDelErr)) throw msgDelErr;
+
+        const { error: convDelErr } = await supabase.from("conversations").delete().in("id", conversationIds);
+        if (convDelErr && !isMissingTableError(convDelErr)) throw convDelErr;
+      }
+
+      const { error: leadDelErr } = await supabase.from("leads").delete().ilike("email", userEmail);
+      if (leadDelErr && !isMissingTableError(leadDelErr)) throw leadDelErr;
+    }
+
+    const { error: deleteErr } = await supabase.from("users").delete().eq("id", userId);
+    if (deleteErr) throw deleteErr;
+
+    return res.json({
+      success: true,
+      message: "User account removed",
+      removed: { id: user.id, name: user.name, email: user.email }
+    });
+  } catch (err) {
+    console.error("Admin Delete User Error:", err);
+    return res.status(500).json({ success: false, message: err?.message || "Failed to delete user" });
   }
 });
 

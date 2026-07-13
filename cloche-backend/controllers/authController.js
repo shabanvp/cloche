@@ -9,6 +9,14 @@ const CLOUDINARY_CLOUD_NAME = String(process.env.CLOUDINARY_CLOUD_NAME || "").tr
 const BACKEND_BASE_URL = String(process.env.BACKEND_BASE_URL || process.env.RENDER_EXTERNAL_URL || "https://cloche-backend.onrender.com").trim().replace(/\/+$/, "");
 const FRONTEND_BASE_URL = String(process.env.FRONTEND_BASE_URL || "https://cloche-backend.onrender.com").trim().replace(/\/+$/, "");
 
+const emailAcceptedPayload = (emailResult) => ({
+    sent: true,
+    messageId: emailResult?.messageId || null,
+    method: emailResult?.method || null,
+    is_test: emailResult?.isTest || false,
+    test_url: emailResult?.testUrl || ""
+});
+
 const normalizeTags = (value) => {
     const raw = String(value || "").trim();
     if (!raw) return "";
@@ -40,6 +48,7 @@ const normalizeImageUrl = (value) => {
 };
 
 const cleanText = (value) => String(value || "").trim().replace(/\s+/g, " ");
+const cleanLocationText = (value) => cleanText(value).toLowerCase();
 
 const isVerifiedTrue = (value) => value === true || value === "true" || value === 1 || value === "1";
 
@@ -98,14 +107,14 @@ const hashResetToken = (token) => crypto
 const isStrongPassword = (password) => String(password || "").length >= 8;
 
 const normalizeLocationFields = ({ area, district, city }) => {
-    const safeCity = cleanText(city);
-    const splitCityParts = (val) => val.includes(",") ? val.split(",").map(p => cleanText(p)).filter(Boolean) : [];
+    const safeCity = cleanLocationText(city);
+    const splitCityParts = (val) => val.includes(",") ? val.split(",").map(p => cleanLocationText(p)).filter(Boolean) : [];
     const cityParts = splitCityParts(safeCity);
     const cityArea = cityParts[0] || "";
     const cityDistrict = cityParts.slice(1).join(", ");
 
-    let safeArea = cleanText(area);
-    let safeDistrict = cleanText(district);
+    let safeArea = cleanLocationText(area);
+    let safeDistrict = cleanLocationText(district);
 
     if (!safeArea && cityParts.length > 1) safeArea = cityArea;
     if (!safeDistrict && cityDistrict) safeDistrict = cityDistrict;
@@ -140,15 +149,30 @@ exports.signup = async (req, res) => {
 
             if (existingUser) {
                 if (isVerifiedTrue(existingUser.is_verified)) return res.status(409).json({ message: "User already exists" });
-                await supabase.from("users").update({ name, password_hash: passwordHash, verification_token: verificationToken }).eq("id", existingUser.id);
+                await supabase
+                    .from("users")
+                    .update({ name, password_hash: passwordHash, is_verified: false, verification_token: verificationToken })
+                    .eq("id", existingUser.id);
+
                 const emailResult = await sendVerificationEmail(email, name, verificationToken, "user");
-                const verificationUrl = getVerificationUrl(emailResult, verificationToken, "user");
                 if (!emailResult?.success) {
-                    console.error("[Auth] Verification email failed (user resend):", email, emailResult?.error || emailResult);
-                    await markAccountVerified("users", existingUser.id);
-                    return res.json({ success: true, role: "user", auto_verified: true, message: "Account created. You can log in now.", email: { sent: false } });
+                    console.error("[Auth] Verification email failed (user resend):", email, emailResult?.internalError || emailResult?.error || emailResult);
+                    return res.json({
+                        success: true,
+                        role: "user",
+                        message: "Account updated but verification email failed.",
+                        email_failed: true,
+                        email_error: emailResult?.error,
+                        verification_url: getVerificationUrl(emailResult, verificationToken, "user")
+                    });
                 }
-                return res.json({ success: true, message: "Verification email resent.", email: { sent: true, messageId: emailResult?.messageId || null } });
+
+                return res.json({
+                    success: true,
+                    role: "user",
+                    message: "Verification email sent. Please check your inbox.",
+                    email: emailAcceptedPayload(emailResult)
+                });
             }
 
             const { data: insertedUser, error } = await supabase
@@ -159,14 +183,26 @@ exports.signup = async (req, res) => {
             if (error) return res.status(500).json({ message: error.message });
 
             const emailResult = await sendVerificationEmail(email, name, verificationToken, "user");
-
-            const verificationUrl = getVerificationUrl(emailResult, verificationToken, "user");
             if (!emailResult?.success) {
-                console.error("[Auth] Verification email failed (user signup):", email, emailResult?.error || emailResult);
-                await markAccountVerified("users", insertedUser?.id);
-                return res.status(201).json({ success: true, role: "user", auto_verified: true, message: "Account created. You can log in now.", email: { sent: false } });
+                console.error("[Auth] Verification email failed (user signup):", email, emailResult?.internalError || emailResult?.error || emailResult);
+                return res.status(201).json({
+                    success: true,
+                    role: "user",
+                    userId: insertedUser?.id,
+                    message: "Account created but verification email failed.",
+                    email_failed: true,
+                    email_error: emailResult?.error,
+                    verification_url: getVerificationUrl(emailResult, verificationToken, "user")
+                });
             }
-            return res.status(201).json({ success: true, message: "User account created. Check your email.", email: { sent: true, messageId: emailResult?.messageId || null, is_test: emailResult.isTest, test_url: emailResult.testUrl } });
+
+            return res.status(201).json({
+                success: true,
+                role: "user",
+                userId: insertedUser?.id,
+                message: "User account created. Verification email sent.",
+                email: emailAcceptedPayload(emailResult)
+            });
         } catch (err) {
             return res.status(500).json({ message: err.message });
         }
@@ -174,7 +210,7 @@ exports.signup = async (req, res) => {
 
     if (account_type === "partner") {
         const { boutique_name, owner_name, email, phone, city, area, district, password, tags } = req.body;
-        if (!boutique_name || !owner_name || !email || !phone || !password) return res.status(400).json({ message: "All partner fields required" });
+        if (!boutique_name || !owner_name || !email || !phone || (!city && (!area || !district)) || !password) return res.status(400).json({ message: "All partner fields required" });
         if (!req.file) return res.status(400).json({ message: "Showcase image required" });
 
         try {
@@ -212,7 +248,10 @@ exports.signup = async (req, res) => {
                     return res.status(409).json({ message: "This email is already registered. Please log in or use another email." });
                 }
 
-                await supabase.from("boutiques").update({ ...basePayload, password_hash: passwordHash }).eq("id", existingBoutique.id);
+                await supabase
+                    .from("boutiques")
+                    .update({ ...basePayload, password_hash: passwordHash })
+                    .eq("id", existingBoutique.id);
 
                 if (req.file) {
                     const { publicUrl } = await uploadBufferToStorage({ folder: `boutiques/showcase/${existingBoutique.id}`, file: req.file });
@@ -220,13 +259,26 @@ exports.signup = async (req, res) => {
                 }
 
                 const emailResult = await sendVerificationEmail(normalizedEmail, owner_name, verificationToken, "partner");
-                const verificationUrl = getVerificationUrl(emailResult, verificationToken, "partner");
                 if (!emailResult?.success) {
-                    console.error("[Auth] Verification email failed (partner resend):", normalizedEmail, emailResult?.error || emailResult);
-                    await markAccountVerified("boutiques", existingBoutique.id);
-                    return res.json({ success: true, role: "partner", boutiqueId: existingBoutique.id, auto_verified: true, message: "Boutique account created. You can log in now.", email: { sent: false } });
+                    console.error("[Auth] Verification email failed (partner resend):", normalizedEmail, emailResult?.internalError || emailResult?.error || emailResult);
+                    return res.json({
+                        success: true,
+                        role: "partner",
+                        boutiqueId: existingBoutique.id,
+                        message: "Account updated but verification email failed.",
+                        email_failed: true,
+                        email_error: emailResult?.error,
+                        verification_url: getVerificationUrl(emailResult, verificationToken, "partner")
+                    });
                 }
-                return res.json({ success: true, message: "Verification email resent.", email: { sent: true, messageId: emailResult?.messageId || null } });
+
+                return res.json({
+                    success: true,
+                    role: "partner",
+                    boutiqueId: existingBoutique.id,
+                    message: "Verification email sent. Please check your inbox.",
+                    email: emailAcceptedPayload(emailResult)
+                });
             }
 
             const { data: existingPhone, error: existingPhoneError } = await supabase
@@ -238,7 +290,11 @@ exports.signup = async (req, res) => {
             if (existingPhoneError) return res.status(500).json({ message: existingPhoneError.message });
             if (existingPhone) return res.status(409).json({ message: "This mobile number is already registered." });
 
-            const { data: inserted, error } = await supabase.from("boutiques").insert([{ ...basePayload, password_hash: passwordHash }]).select("id").maybeSingle();
+            const { data: inserted, error } = await supabase
+                .from("boutiques")
+                .insert([{ ...basePayload, password_hash: passwordHash }])
+                .select("id")
+                .maybeSingle();
             if (error) {
                 if (isDuplicateKeyError(error)) return res.status(409).json({ message: duplicatePartnerMessage(error) });
                 return res.status(500).json({ message: error.message });
@@ -250,14 +306,26 @@ exports.signup = async (req, res) => {
             }
 
             const emailResult = await sendVerificationEmail(normalizedEmail, owner_name, verificationToken, "partner");
-
-            const verificationUrl = getVerificationUrl(emailResult, verificationToken, "partner");
             if (!emailResult?.success) {
-                console.error("[Auth] Verification email failed (partner signup):", normalizedEmail, emailResult?.error || emailResult);
-                await markAccountVerified("boutiques", inserted?.id);
-                return res.status(201).json({ success: true, role: "partner", boutiqueId: inserted?.id, auto_verified: true, message: "Boutique account created. You can log in now.", email: { sent: false } });
+                console.error("[Auth] Verification email failed (partner signup):", normalizedEmail, emailResult?.internalError || emailResult?.error || emailResult);
+                return res.status(201).json({
+                    success: true,
+                    role: "partner",
+                    boutiqueId: inserted?.id,
+                    message: "Account created but verification email failed.",
+                    email_failed: true,
+                    email_error: emailResult?.error,
+                    verification_url: getVerificationUrl(emailResult, verificationToken, "partner")
+                });
             }
-            return res.status(201).json({ success: true, boutiqueId: inserted?.id, message: "Boutique account created.", email: { sent: true, messageId: emailResult?.messageId || null, is_test: emailResult.isTest, test_url: emailResult.testUrl } });
+
+            return res.status(201).json({
+                success: true,
+                role: "partner",
+                boutiqueId: inserted?.id,
+                message: "Boutique account created. Verification email sent.",
+                email: emailAcceptedPayload(emailResult)
+            });
         } catch (err) {
             return res.status(500).json({ message: err.message });
         }
@@ -274,7 +342,9 @@ exports.login = async (req, res) => {
         const { data: boutique, error } = await supabase.from("boutiques").select("*").eq(isEmail ? "email" : "phone", isEmail ? identifier.toLowerCase() : identifier).maybeSingle();
 
         if (!boutique || error) return res.status(401).json({ message: "Invalid credentials" });
-        if (!isVerifiedTrue(boutique.is_verified)) return res.status(403).json({ message: "Please verify email first." });
+        if (!isVerifiedTrue(boutique.is_verified)) {
+            return res.status(403).json({ message: "Please verify your email first. Check your inbox for the Cloche verification link." });
+        }
 
         let match = false;
         if (boutique.password_hash) {
@@ -305,7 +375,9 @@ exports.loginUser = async (req, res) => {
         const { data: user, error } = await supabase.from("users").select("*").eq("email", email.toLowerCase()).maybeSingle();
 
         if (!user || error) return res.status(401).json({ message: "Invalid credentials" });
-        if (!isVerifiedTrue(user.is_verified)) return res.status(403).json({ message: "Please verify email first." });
+        if (!isVerifiedTrue(user.is_verified)) {
+            return res.status(403).json({ message: "Please verify your email first. Check your inbox for the Cloche verification link." });
+        }
 
         const match = await bcrypt.compare(password, user.password_hash);
         if (!match) return res.status(401).json({ message: "Invalid credentials" });
@@ -387,8 +459,12 @@ exports.resendVerification = async (req, res) => {
             });
         }
 
-        console.log(`[Auth] Verification email sent successfully to ${email}`);
-        return res.json({ success: true, message: "Verification email sent." });
+        console.log(`[Auth] Verification email accepted for ${email} via ${emailResult.method || "unknown"}`);
+        return res.json({
+            success: true,
+            message: "Verification email accepted.",
+            email: emailAcceptedPayload(emailResult)
+        });
     } catch (err) {
         console.error("[Auth] Resend verification exception:", err.message);
         console.error("[Auth] Full exception:", err);
@@ -527,6 +603,37 @@ exports.emailStatus = async (req, res) => {
     }
 };
 
+exports.debugEmail = async (req, res) => {
+    const email = String(req.query.email || req.body.email || "").trim().toLowerCase();
+    if (!email || !email.includes("@")) {
+        return res.status(400).json({ success: false, message: "A valid email query parameter is required." });
+    }
+
+    try {
+        const emailResult = await sendVerificationEmail(email, "Debug User", "debug-token", "debug");
+        return res.status(emailResult.success ? 200 : 500).json({
+            success: emailResult.success,
+            message: emailResult.success ? "Email send attempt completed." : "Email send attempt failed.",
+            error: emailResult.error || null,
+            internalError: emailResult.internalError || null,
+            details: {
+                to: email,
+                method: emailResult.method || null,
+                messageId: emailResult.messageId || null,
+                is_test: emailResult.isTest || false,
+                test_url: emailResult.testUrl || ""
+            }
+        });
+    } catch (err) {
+        return res.status(500).json({
+            success: false,
+            message: "Email debug failed.",
+            error: err.message || "Unknown error",
+            stack: err.stack || null
+        });
+    }
+};
+
 /* ================= PROFILE ================= */
 exports.getProfile = async (req, res) => {
     const { boutiqueId } = req.params;
@@ -568,7 +675,7 @@ exports.updateProfile = async (req, res) => {
             owner_name,
             email: String(email).trim().toLowerCase(),
             phone: String(phone).trim(),
-            city: city
+            city: cleanLocationText(city)
         }).eq("id", boutiqueId);
 
         if (error) return res.status(500).json({ message: "Update failed", error: error.message });
@@ -577,8 +684,8 @@ exports.updateProfile = async (req, res) => {
 
         await supabase.from("boutique_showcase").upsert([{
             boutique_id: Number(boutiqueId),
-            district,
-            area,
+            district: cleanLocationText(district) || null,
+            area: cleanLocationText(area) || null,
             tags: normalizedTags
         }], { onConflict: "boutique_id" });
 
@@ -620,8 +727,8 @@ exports.updateShowcase = async (req, res) => {
         const normalizedTags = normalizeTags(tags) || null;
         const { error } = await supabase.from("boutique_showcase").upsert([{
             boutique_id: Number(boutiqueId),
-            district: district || null,
-            area: area || null,
+            district: cleanLocationText(district) || null,
+            area: cleanLocationText(area) || null,
             tags: normalizedTags,
             shop_location: String(shop_location || "").trim() || null
         }], { onConflict: "boutique_id" });

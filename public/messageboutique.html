@@ -350,9 +350,7 @@
 <body class="bg-background-dark text-white min-h-screen">
   <nav id="pageNav" class="fixed top-0 w-full z-[9999] glass-card border-b border-primary/20 bg-background-dark/95">
     <div class="max-w-7xl mx-auto px-4 md:px-6 h-16 md:h-20 flex items-center justify-between">
-      <a href="index.html" class="flex items-center gap-2">
-        <span class="material-symbols-outlined text-primary text-2xl md:text-3xl">diamond</span>
-        <span class="text-xl md:text-2xl font-bold md:tracking-[0.2em] font-display">CLOCHE</span>
+      <a href="index.html" class="flex items-center gap-2"><span class="text-xl md:text-2xl font-bold md:tracking-[0.2em] font-display">CLOCHE</span>
       </a>
       <div class="flex items-center gap-3">
         <a id="profileLink" href="userprofile.html"
@@ -762,12 +760,7 @@
         conversations = groupConversationsByBoutique(conversationsRaw);
         renderConversationList();
 
-        if (activeConversationId) {
-          const exists = conversationsRaw.some(c => Number(c.id) === Number(activeConversationId));
-          if (exists) {
-            openConversation(activeConversationId, true);
-          }
-        }
+        // Active conversation re-fetching is now handled by the polling interval
       } catch (err) {
         document.getElementById("conversationList").innerHTML = `<div class="p-5 text-red-300/60 text-[10px] tracking-wider uppercase text-center">${escapeHtml(err.message)}</div>`;
       }
@@ -821,7 +814,7 @@
         }).join("");
     }
 
-    function closeChat() {
+    async function closeChat() {
       if (isDirectChatRoute) {
         const bId = routeCtx.boutiqueId;
         if (bId) {
@@ -837,7 +830,7 @@
       document.getElementById("chatPane").classList.remove("active");
       unlockChatScroll();
       activeConversationId = null;
-      renderConversationList();
+      await loadConversations();
     }
 
     async function openConversation(conversationId, quiet = false) {
@@ -866,10 +859,22 @@
       }
 
       try {
-        const res = await fetch(`${API}/customer/conversation/${conversationId}`);
-        const msgs = await readJsonSafe(res);
-        if (!res.ok) throw new Error(msgs.message || "Failed to load messages");
-        renderMessages(Array.isArray(msgs) ? msgs : []);
+        let allMsgs = [];
+        const groupIds = convo && convo.ids ? convo.ids : [conversationId];
+        
+        for (const id of groupIds) {
+          const res = await fetch(`${API}/customer/conversation/${id}`);
+          if (res.ok) {
+             const msgs = await readJsonSafe(res);
+             allMsgs = allMsgs.concat(Array.isArray(msgs) ? msgs : []);
+          }
+        }
+        
+        // Sort chronologically
+        allMsgs.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+        
+        renderMessages(allMsgs);
+        await loadConversations();
       } catch (err) {
         document.getElementById("messagesArea").innerHTML = `<div class="p-10 text-red-300 text-xs text-center uppercase tracking-widest">${escapeHtml(err.message)}</div>`;
       }
@@ -995,7 +1000,72 @@
       }
 
       await loadConversations();
-      setInterval(loadConversations, 3000);
+      setInterval(async () => {
+        if (activeConversationId) {
+          await openConversation(activeConversationId, true);
+        } else {
+          await loadConversations();
+        }
+      }, 3000);
+    });
+
+    window.addEventListener("pageshow", async (event) => {
+      if (!event.persisted) return;
+      if (!requireUserSession()) return;
+      if (isDirectChatRoute) {
+        if (!activeConversationId) {
+          await bootstrapConversationFromContext();
+        }
+        if (activeConversationId) {
+          await openConversation(activeConversationId, true);
+        }
+        return;
+      } else {
+        if (activeConversationId) {
+          await openConversation(activeConversationId, true);
+        } else {
+          await loadConversations();
+        }
+      }
+    });
+
+    window.addEventListener("focus", async () => {
+      if (!requireUserSession()) return;
+      if (isDirectChatRoute) {
+        if (!activeConversationId) {
+          await bootstrapConversationFromContext();
+        }
+        if (activeConversationId) {
+          await openConversation(activeConversationId, true);
+        }
+        return;
+      } else {
+        if (activeConversationId) {
+          await openConversation(activeConversationId, true);
+        } else {
+          await loadConversations();
+        }
+      }
+    });
+
+    document.addEventListener("visibilitychange", async () => {
+      if (document.visibilityState !== "visible") return;
+      if (!requireUserSession()) return;
+      if (isDirectChatRoute) {
+        if (!activeConversationId) {
+          await bootstrapConversationFromContext();
+        }
+        if (activeConversationId) {
+          await openConversation(activeConversationId, true);
+        }
+        return;
+      } else {
+        if (activeConversationId) {
+          await openConversation(activeConversationId, true);
+        } else {
+          await loadConversations();
+        }
+      }
     });
   </script>
   <script src='responsive-layout.js?v=20260501-partner-signup'></script>

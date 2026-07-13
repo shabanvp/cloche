@@ -1,10 +1,6 @@
-const { google } = require("googleapis");
-const nodemailer = require("nodemailer");
-const dns = require("dns");
-
 /**
  * CLOCHE Email Service
- * Uses Resend over HTTPS first, then falls back to Gmail API/SMTP if configured.
+ * Uses Brevo's Transactional Email API over HTTPS.
  */
 
 const DEFAULT_BASE_URL = "https://cloche-backend.onrender.com";
@@ -22,34 +18,15 @@ const FRONTEND_BASE_URL = String(
   DEFAULT_BASE_URL
 ).trim().replace(/\/+$/, "");
 
-const GMAIL_USER = process.env.GMAIL_USER || "cloche.luxury@gmail.com";
-const GMAIL_CLIENT_ID = String(process.env.GMAIL_CLIENT_ID || "").trim();
-const GMAIL_CLIENT_SECRET = String(process.env.GMAIL_CLIENT_SECRET || "").trim();
-const GMAIL_REFRESH_TOKEN = String(process.env.GMAIL_REFRESH_TOKEN || "").trim();
-const GMAIL_APP_PASSWORD = String(process.env.GMAIL_APP_PASSWORD || "").trim().replace(/\s+/g, "");
-const RESEND_API_KEY = String(process.env.RESEND_API_KEY || "").trim();
-const RESEND_FROM_EMAIL = String(process.env.RESEND_FROM_EMAIL || "CLOCHE <onboarding@resend.dev>").trim();
+const BREVO_API_KEY = String(process.env.BREVO_API_KEY || process.env.SENDINBLUE_API_KEY || "").trim();
+const BREVO_FROM_EMAIL = String(process.env.BREVO_FROM_EMAIL || process.env.EMAIL_FROM || "").trim();
+const BREVO_FROM_NAME = String(process.env.BREVO_FROM_NAME || "Cloche Luxury").trim();
 
-const hasResendSetup = !!RESEND_API_KEY;
-const hasGmailApiSetup = !!(GMAIL_CLIENT_ID && GMAIL_CLIENT_SECRET && GMAIL_REFRESH_TOKEN);
-const hasSmtpSetup = !!(GMAIL_USER && GMAIL_APP_PASSWORD);
-const isSetup = hasResendSetup || hasGmailApiSetup || hasSmtpSetup;
-let cachedSmtpIpv4 = null;
+const hasBrevoSetup = !!(BREVO_API_KEY && BREVO_FROM_EMAIL);
+const isSetup = hasBrevoSetup;
 const USER_SAFE_EMAIL_ERROR = "We created your account, but couldn't send the verification email right now.";
 
-const oauth2Client = new google.auth.OAuth2(
-  GMAIL_CLIENT_ID,
-  GMAIL_CLIENT_SECRET,
-  "https://developers.google.com/oauthplayground"
-);
-
-if (hasGmailApiSetup) {
-  oauth2Client.setCredentials({ refresh_token: GMAIL_REFRESH_TOKEN });
-}
-
-const gmail = google.gmail({ version: "v1", auth: oauth2Client });
-
-console.log(`Email service configured: Resend=${hasResendSetup}, Gmail API=${hasGmailApiSetup}, SMTP app password=${hasSmtpSetup}`);
+console.log(`Email service configured: Brevo API=${hasBrevoSetup}`);
 
 const escapeHeader = (value) => String(value || "").replace(/[\r\n]+/g, " ").trim();
 
@@ -73,8 +50,10 @@ const encodeMessage = (message) => Buffer
 
 const createEmailMessage = (to, subject, html, fromName = "Cloche Luxury") => {
   const lines = [
-    `From: "${escapeHeader(fromName)}" <${GMAIL_USER}>`,
+    `From: "${escapeHeader(fromName)}" <${BREVO_FROM_EMAIL}>`,
     `To: ${escapeHeader(to)}`,
+    `Date: ${new Date().toUTCString()}`,
+    `Message-ID: <${Date.now()}.${Math.random().toString(36).slice(2)}@cloche>`,
     "Content-Type: text/html; charset=UTF-8",
     "MIME-Version: 1.0",
     `Subject: ${escapeHeader(subject)}`,
@@ -82,142 +61,50 @@ const createEmailMessage = (to, subject, html, fromName = "Cloche Luxury") => {
     html
   ];
 
-  return encodeMessage(lines.join("\n"));
+  return encodeMessage(lines.join("\r\n"));
 };
 
-const resolveSmtpIpv4 = async () => {
-  if (cachedSmtpIpv4) return cachedSmtpIpv4;
-
-  const addresses = await dns.promises.resolve4("smtp.gmail.com");
-  cachedSmtpIpv4 = addresses[0];
-  return cachedSmtpIpv4;
-};
-
-const createSmtpTransporter = async () => {
-  const smtpIpv4 = await resolveSmtpIpv4();
-
-  return nodemailer.createTransport({
-    host: smtpIpv4,
-    port: 587,
-    secure: false,
-    requireTLS: true,
-    connectionTimeout: 15000,
-    greetingTimeout: 15000,
-    socketTimeout: 30000,
-    name: "smtp.gmail.com",
-    tls: {
-      servername: "smtp.gmail.com",
-    },
-    auth: {
-      user: GMAIL_USER,
-      pass: GMAIL_APP_PASSWORD,
-    },
-  });
-};
-
-const sendSmtpMessage = async ({ to, subject, html, fromName }) => {
-  const smtpTransporter = await createSmtpTransporter();
-  const info = await smtpTransporter.sendMail({
-    from: `"${escapeHeader(fromName || "Cloche Luxury")}" <${GMAIL_USER}>`,
-    to,
-    subject,
-    html,
-  });
-
-  return { success: true, messageId: info?.messageId || null, method: "gmail-smtp-app-password" };
-};
-
-const sendGmailApiMessage = async ({ to, subject, html, fromName }) => {
-  const response = await gmail.users.messages.send({
-    userId: "me",
-    requestBody: {
-      raw: createEmailMessage(to, subject, html, fromName)
-    }
-  });
-
-  return { success: true, messageId: response?.data?.id || null, method: "gmail-api" };
-};
-
-const sendResendMessage = async ({ to, subject, html }) => {
-  const response = await fetch("https://api.resend.com/emails", {
+const sendBrevoMessage = async ({ to, subject, html, fromName }) => {
+  const response = await fetch("https://api.brevo.com/v3/smtp/email", {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${RESEND_API_KEY}`,
+      "api-key": BREVO_API_KEY,
       "Content-Type": "application/json",
+      Accept: "application/json",
     },
     body: JSON.stringify({
-      from: RESEND_FROM_EMAIL,
-      to,
+      sender: {
+        name: fromName || BREVO_FROM_NAME,
+        email: BREVO_FROM_EMAIL,
+      },
+      to: [{ email: to }],
       subject,
-      html,
+      htmlContent: html,
     }),
   });
 
   const data = await response.json().catch(() => ({}));
 
   if (!response.ok) {
-    const message = data?.message || data?.error || `Resend API failed with status ${response.status}`;
+    const message = data?.message || data?.error || `Brevo API failed with status ${response.status}`;
     throw new Error(message);
   }
 
-  return { success: true, messageId: data?.id || null, method: "resend" };
+  return { success: true, messageId: data?.messageId || data?.id || null, method: "brevo-api" };
 };
 
 const sendEmailMessage = async ({ to, subject, html, fromName }) => {
   if (!isSetup) {
-    console.error("Email Error: No email provider configured (Resend, SMTP, or Gmail OAuth2)");
+    console.error("Email Error: Brevo API is not configured");
     return { success: false, error: USER_SAFE_EMAIL_ERROR, internalError: "Email provider is not configured" };
   }
 
-  // 1. Try Resend first. It does not depend on Gmail OAuth refresh tokens.
-  if (hasResendSetup) {
-    try {
-      return await sendResendMessage({ to, subject, html, fromName });
-    } catch (error) {
-      console.error("[EmailService] Resend Error:", error.message);
-    }
+  try {
+    return await sendBrevoMessage({ to, subject, html, fromName });
+  } catch (error) {
+    console.error("[EmailService] Brevo API Error:", error.message);
+    return { success: false, error: USER_SAFE_EMAIL_ERROR, internalError: error.message };
   }
-
-  // 2. Fallback to Gmail OAuth2
-  if (hasGmailApiSetup) {
-    try {
-      // Validate token before trying to send
-      const { token } = await oauth2Client.getAccessToken();
-      if (!token) throw new Error("Google Refresh Token is invalid or expired. Please generate a new one.");
-
-      const rawMessage = createEmailMessage(to, subject, html, fromName);
-      
-      const response = await gmail.users.messages.send({
-        userId: "me",
-        requestBody: {
-          raw: rawMessage,
-        },
-      });
-
-      if (response.data && response.data.id) {
-        return { success: true, messageId: response.data.id, method: "gmail-api-https" };
-      }
-    } catch (error) {
-      const apiError = error?.response?.data?.error?.message || error.message;
-      console.error("[EmailService] Gmail API Error:", apiError);
-
-      if (!hasSmtpSetup) {
-        return { success: false, error: USER_SAFE_EMAIL_ERROR, internalError: `Gmail API Error: ${apiError}` };
-      }
-    }
-  }
-
-  // 3. Final fallback to SMTP
-  if (hasSmtpSetup) {
-    try {
-      return await sendSmtpMessage({ to, subject, html, fromName });
-    } catch (error) {
-      console.error("[EmailService] SMTP Fallback Error:", error.message);
-      return { success: false, error: USER_SAFE_EMAIL_ERROR, internalError: error.message };
-    }
-  }
-
-  return { success: false, error: USER_SAFE_EMAIL_ERROR, internalError: "All email methods failed" };
 };
 
 // ===============================
@@ -255,7 +142,7 @@ const sendVerificationEmail = async (email, name, token, type) => {
   });
 
   if (result.success) {
-    console.log(`Verification email sent to ${email} via ${result.method || "email provider"}`);
+    console.log(`Verification email accepted for ${email} via ${result.method || "email provider"} (${result.messageId || "no-message-id"})`);
   } else {
     console.error(`Verification email failed for ${email}: ${result.error || "unknown email error"}`);
   }
@@ -350,25 +237,22 @@ const sendEnquiryNotificationEmail = async (
 // DIAGNOSTICS
 // ===============================
 const getEmailServiceStatus = async () => {
-  const userPrefix = GMAIL_USER ? GMAIL_USER.substring(0, 3) : "???";
-  const userSuffix = GMAIL_USER ? GMAIL_USER.split("@")[1] : "???";
+  const fromPrefix = BREVO_FROM_EMAIL ? BREVO_FROM_EMAIL.substring(0, 3) : "???";
+  const fromSuffix = BREVO_FROM_EMAIL ? BREVO_FROM_EMAIL.split("@")[1] : "???";
 
-  return {
+  const status = {
     configured: isSetup,
-    user: `${userPrefix}...@${userSuffix}`,
-    hasClientId: !!GMAIL_CLIENT_ID,
-    hasClientSecret: !!GMAIL_CLIENT_SECRET,
-    hasRefreshToken: !!GMAIL_REFRESH_TOKEN,
-    hasAppPassword: !!GMAIL_APP_PASSWORD,
-    hasResendApiKey: !!RESEND_API_KEY,
-    resendFromEmail: RESEND_FROM_EMAIL.replace(/<.*>/, "<hidden>"),
-    method: hasResendSetup ? "Resend API" : (hasSmtpSetup ? "Gmail SMTP app password" : "Gmail API OAuth2"),
-    hasResendSetup,
-    hasGmailApiSetup,
-    hasSmtpSetup,
+    from: `${fromPrefix}...@${fromSuffix}`,
+    hasBrevoApiKey: !!BREVO_API_KEY,
+    hasBrevoFromEmail: !!BREVO_FROM_EMAIL,
+    brevoFromName: BREVO_FROM_NAME,
+    method: hasBrevoSetup ? "Brevo API" : "Not configured",
+    hasBrevoSetup,
     backendUrl: BACKEND_BASE_URL,
     frontendUrl: FRONTEND_BASE_URL,
   };
+
+  return status;
 };
 
 module.exports = {
@@ -376,8 +260,8 @@ module.exports = {
   sendPasswordResetEmail,
   sendEnquiryNotificationEmail,
   getEmailServiceStatus,
+  sendEmailMessage,
   createEmailMessage,
   encodeMessage,
-  gmail,
   isSetup,
 };

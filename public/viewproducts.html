@@ -178,21 +178,35 @@
 
   <!-- Desktop Navigation (Handled by responsive-layout.js for mobile) -->
   <nav class="hidden md:block fixed top-0 w-full z-50 glass-card royal-border">
-    <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-      <div class="flex items-center gap-10">
-        <a href="index.html" class="flex items-center gap-2">
-          <span class="material-symbols-outlined text-primary text-3xl">diamond</span>
-          <span class="text-2xl font-bold tracking-[0.2em] font-display text-white">CLOCHE</span>
-        </a>
+    <div class="max-w-7xl mx-auto px-4 md:px-6 h-16 md:h-20 flex items-center justify-between gap-2">
+      <a href="index.html" class="flex items-center gap-1.5 shrink-0"><span class="text-lg md:text-2xl font-bold tracking-[0.2em] font-display text-white">CLOCHE</span>
+      </a>
+
+      <div class="hidden md:flex items-center gap-12">
+        <a class="text-sm uppercase tracking-widest hover:text-primary transition-colors"
+          href="boutiques.html">Boutiques</a>
+        <a class="text-sm uppercase tracking-widest hover:text-primary transition-colors"
+          href="index.html#how-it-works">How it Works</a>
+        <a id="listYourBoutiqueNav" class="text-sm uppercase tracking-widest hover:text-primary transition-colors"
+          href="boutiquelogin.html">List Your Boutique</a>
       </div>
-      <div class="flex items-center gap-10">
-        <a href="boutiques.html"
-          class="text-xs uppercase tracking-[0.2em] hover:text-primary transition-colors text-white/70">Boutiques</a>
-        <a href="collection.html"
-          class="text-xs uppercase tracking-[0.2em] hover:text-primary transition-colors text-white/70">Collections</a>
-        <div class="h-4 w-[1px] bg-white/10 mx-2"></div>
+
+      <div class="relative flex items-center gap-3">
         <a id="authNav" href="boutiquelogin.html"
-          class="text-xs uppercase tracking-[0.2em] font-bold text-primary">Login</a>
+          class="text-xs md:text-sm uppercase tracking-widest font-medium hover:text-primary transition-colors whitespace-nowrap">LOGIN</a>
+        <a id="profileIconLink" href="boutiquelogin.html"
+          class="h-9 w-9 md:h-10 md:w-10 rounded-full bg-primary/20 border border-primary/40 flex items-center justify-center overflow-hidden hover:border-primary transition-colors shrink-0">
+          <span id="navAvatar" class="text-primary font-bold text-sm">C</span>
+        </a>
+        <div id="userMenuDropdown"
+          class="hidden absolute right-0 top-12 md:top-14 w-44 rounded-lg border border-primary/25 bg-[#141414]/95 backdrop-blur-md shadow-2xl p-2 z-50">
+          <a href="userprofile.html"
+            class="block px-3 py-2 rounded text-xs uppercase tracking-widest text-white/80 hover:bg-primary/10 hover:text-primary">Profile</a>
+          <a href="messageboutique.html"
+            class="block px-3 py-2 rounded text-xs uppercase tracking-widest text-white/80 hover:bg-primary/10 hover:text-primary">Inbox</a>
+          <button onclick="logout()"
+            class="w-full text-left px-3 py-2 rounded text-xs uppercase tracking-widest text-white/80 hover:bg-primary/10 hover:text-primary">Logout</button>
+        </div>
       </div>
     </div>
   </nav>
@@ -271,96 +285,94 @@
           </div>
         </div>
 
-        <!-- Boutique Card -->
-        <div class="glass-card rounded-[2rem] p-8 mb-10 border-primary/10 group">
-          <div class="flex items-center gap-5 mb-6">
-            <div id="boutiqueInitial"
-              class="w-16 h-16 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-primary font-display font-medium text-3xl shadow-inner group-hover:bg-primary group-hover:text-background-dark transition-colors duration-500">
-              B</div>
-            <div>
-              <p id="boutiqueName" class="font-display text-2xl text-white font-bold tracking-wide">Boutique Name</p>
-              <p id="boutiqueArea" class="text-[10px] text-primary/70 uppercase tracking-widest font-bold mt-1">Official
-                Boutique Member</p>
-            </div>
-          </div>
-          <div id="boutiqueTags" class="flex flex-wrap gap-2 mb-6"></div>
-          <p id="boutiqueBio" class="text-[11px] text-white/40 leading-relaxed mb-6 uppercase tracking-widest">
-            Expertly curated luxury collections from verified boutiques across our elite network.
-          </p>
-          <a id="viewBoutiqueBtn" href="#"
-            class="inline-flex items-center gap-2 text-[10px] font-bold text-primary uppercase tracking-[0.3em] border-b border-primary/30 pb-1 hover:border-primary transition-all">
-            Explore Boutique <span class="material-symbols-outlined text-sm">arrow_forward</span>
-          </a>
-        </div>
-
-        <!-- Reviews Section -->
-        <div class="glass-card rounded-[2rem] p-8 border-primary/5">
-          <div class="flex items-center justify-between mb-8">
-            <div>
-              <h3 class="text-[10px] font-bold uppercase tracking-[0.3em] text-primary mb-1">Feedback</h3>
-              <p class="text-xl font-display text-white">Guest Reviews</p>
-            </div>
-            <button id="showReviewForm"
-              class="text-[10px] font-bold text-primary uppercase tracking-widest border border-primary/30 px-4 py-2 rounded-full hover:bg-primary hover:text-background-dark transition-all">Write
-              Review</button>
-          </div>
-
-          <!-- Add Review Form -->
-          <div id="reviewFormContainer"
-            class="hidden mb-12 animate-fade-in p-6 rounded-2xl bg-white/[0.03] border border-white/5">
-            <div class="space-y-6">
-              <div>
-                <label class="text-[9px] uppercase tracking-widest text-white/40 block mb-3">Rating</label>
-                <div class="flex gap-2" id="starRating">
-                  <span
-                    class="material-symbols-outlined cursor-pointer hover:text-primary transition-colors text-white/20"
-                    data-val="1">star</span>
-                  <span
-                    class="material-symbols-outlined cursor-pointer hover:text-primary transition-colors text-white/20"
-                    data-val="2">star</span>
-                  <span
-                    class="material-symbols-outlined cursor-pointer hover:text-primary transition-colors text-white/20"
-                    data-val="3">star</span>
-                  <span
-                    class="material-symbols-outlined cursor-pointer hover:text-primary transition-colors text-white/20"
-                    data-val="4">star</span>
-                  <span
-                    class="material-symbols-outlined cursor-pointer hover:text-primary transition-colors text-white/20"
-                    data-val="5">star</span>
-                </div>
-              </div>
-              <div>
-                <label class="text-[9px] uppercase tracking-widest text-white/40 block mb-3">Your Perspective</label>
-                <textarea id="reviewComment" rows="3"
-                  class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-primary outline-none text-white resize-none"
-                  placeholder="Share your experience with this couture masterpiece..."></textarea>
-              </div>
-              <button id="submitReview"
-                class="w-full bg-primary text-background-dark py-3 rounded-full font-bold uppercase tracking-widest text-[10px] gold-glow transition-all">Publish
-                Review</button>
-            </div>
-          </div>
-
-          <!-- Reviews List -->
-          <div id="reviewsList" class="space-y-8">
-            <!-- Loading placeholder -->
-            <div class="text-center py-10">
-              <div class="w-6 h-6 border-2 border-primary/20 border-t-primary rounded-full animate-spin mx-auto mb-4">
-              </div>
-              <p class="text-[10px] uppercase tracking-widest text-white/20 italic">Gathering impressions...</p>
-            </div>
-          </div>
-        </div>
-
       </div>
     </div>
 
-    <!-- Related Products -->
-    <section class="mt-32 pt-24 border-t border-white/5">
+    <section class="mt-16 grid grid-cols-1 lg:grid-cols-[0.95fr_1.05fr] gap-6 lg:gap-8">
+      <!-- Boutique Card -->
+      <div class="glass-card rounded-[2rem] p-6 md:p-8 border-primary/10 group h-fit">
+        <div class="flex items-center gap-5 mb-6">
+          <div id="boutiqueInitial"
+            class="w-16 h-16 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-primary font-display font-medium text-3xl shadow-inner group-hover:bg-primary group-hover:text-background-dark transition-colors duration-500">
+            B</div>
+          <div class="min-w-0">
+            <p id="boutiqueName" class="font-display text-2xl text-white font-bold tracking-wide truncate">Boutique
+              Name</p>
+            <p id="boutiqueArea" class="text-[10px] text-primary/70 uppercase tracking-widest font-bold mt-1">Official
+              Boutique Member</p>
+          </div>
+        </div>
+        <div id="boutiqueTags" class="flex flex-wrap gap-2 mb-6"></div>
+        <p id="boutiqueBio" class="text-[11px] text-white/40 leading-relaxed mb-6 uppercase tracking-widest">
+          Expertly curated luxury collections from verified boutiques across our elite network.
+        </p>
+        <a id="viewBoutiqueBtn" href="#"
+          class="inline-flex items-center gap-2 text-[10px] font-bold text-primary uppercase tracking-[0.3em] border-b border-primary/30 pb-1 hover:border-primary transition-all">
+          Explore Boutique <span class="material-symbols-outlined text-sm">arrow_forward</span>
+        </a>
+      </div>
+
+      <!-- Reviews Section -->
+      <div class="glass-card rounded-[2rem] p-6 md:p-8 border-primary/5">
+        <div class="flex flex-wrap items-center justify-between gap-4 mb-8">
+          <div>
+            <h3 class="text-[10px] font-bold uppercase tracking-[0.3em] text-primary mb-1">Feedback</h3>
+            <p class="text-xl font-display text-white">Guest Reviews</p>
+          </div>
+          <button id="showReviewForm"
+            class="text-[10px] font-bold text-primary uppercase tracking-widest border border-primary/30 px-4 py-2 rounded-full hover:bg-primary hover:text-background-dark transition-all">Write
+            Review</button>
+        </div>
+
+        <!-- Add Review Form -->
+        <div id="reviewFormContainer"
+          class="hidden mb-12 animate-fade-in p-6 rounded-2xl bg-white/[0.03] border border-white/5">
+          <div class="space-y-6">
+            <div>
+              <label class="text-[9px] uppercase tracking-widest text-white/40 block mb-3">Rating</label>
+              <div class="flex gap-2" id="starRating">
+                <span class="material-symbols-outlined cursor-pointer hover:text-primary transition-colors text-white/20"
+                  data-val="1">star</span>
+                <span class="material-symbols-outlined cursor-pointer hover:text-primary transition-colors text-white/20"
+                  data-val="2">star</span>
+                <span class="material-symbols-outlined cursor-pointer hover:text-primary transition-colors text-white/20"
+                  data-val="3">star</span>
+                <span class="material-symbols-outlined cursor-pointer hover:text-primary transition-colors text-white/20"
+                  data-val="4">star</span>
+                <span class="material-symbols-outlined cursor-pointer hover:text-primary transition-colors text-white/20"
+                  data-val="5">star</span>
+              </div>
+            </div>
+            <div>
+              <label class="text-[9px] uppercase tracking-widest text-white/40 block mb-3">Your Perspective</label>
+              <textarea id="reviewComment" rows="3"
+                class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:border-primary outline-none text-white resize-none"
+                placeholder="Share your experience with this couture masterpiece..."></textarea>
+            </div>
+            <button id="submitReview"
+              class="w-full bg-primary text-background-dark py-3 rounded-full font-bold uppercase tracking-widest text-[10px] gold-glow transition-all">Publish
+              Review</button>
+          </div>
+        </div>
+
+        <!-- Reviews List -->
+        <div id="reviewsList" class="space-y-8">
+          <!-- Loading placeholder -->
+          <div class="text-center py-10">
+            <div class="w-6 h-6 border-2 border-primary/20 border-t-primary rounded-full animate-spin mx-auto mb-4">
+            </div>
+            <p class="text-[10px] uppercase tracking-widest text-white/20 italic">Gathering impressions...</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Other Boutique Products -->
+    <section class="mt-20 pt-16 border-t border-white/5">
       <div class="flex items-end justify-between mb-16 px-2">
         <div>
-          <span class="text-primary tracking-[0.4em] uppercase text-[10px] mb-4 block font-bold">Curation</span>
-          <h2 class="text-3xl md:text-5xl font-display text-white">More Collections</h2>
+          <span class="text-primary tracking-[0.4em] uppercase text-[10px] mb-4 block font-bold">Other Boutiques</span>
+          <h2 class="text-3xl md:text-5xl font-display text-white">Explore More Collections</h2>
         </div>
         <div class="flex gap-4">
           <button id="slideLeft"
@@ -397,6 +409,16 @@
     function setText(id, value, fallback = "") {
       const node = document.getElementById(id);
       if (node) node.textContent = asText(value, fallback);
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "").replace(/[&<>"']/g, (char) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+      }[char]));
     }
 
     function normalizePlan(plan) {
@@ -528,7 +550,8 @@
         const title = asText(product.product_name || product.title, "Exquisite Piece").toUpperCase();
         setText("productTitle", title);
         setText("breadcrumbProduct", title);
-        setText("productCategory", asText(product.category, "Couture Collection").toUpperCase());
+        if (product.category === "Couture") product.category = "Bridal";
+        setText("productCategory", asText(product.category, "Bridal Collection").toUpperCase());
 
         const formattedPrice = `₹ ${Number(product.price || 0).toLocaleString("en-IN")}`;
         setText("cardProductPrice", formattedPrice);
@@ -537,7 +560,21 @@
         setText("subBoutiqueName", bName);
         setText("boutiqueName", bName);
 
-        const loc = [product.area, product.district].filter(Boolean).join(", ") || product.boutique_city || product.location || "Luxury Hub";
+        const splitLocationParts = (value) => String(value || "").split(",").map((part) => part.trim()).filter(Boolean);
+        const sameLocationPart = (a, b) => a.toLowerCase() === b.toLowerCase();
+        const normalizeLocationPart = (value) => String(value || "").trim().toLowerCase().replace(/\s+/g, " ");
+        const duplicateLocationPart = (part, target) => {
+          const a = normalizeLocationPart(part);
+          const b = normalizeLocationPart(target);
+          return !!a && !!b && (a === b || a.includes(b) || b.includes(a));
+        };
+        const districtParts = splitLocationParts(product.district);
+        const displayDistrict = districtParts[districtParts.length - 1] || product.district || "";
+        const areaParts = splitLocationParts(product.area).filter((part) => !duplicateLocationPart(part, displayDistrict));
+        const loc = [...areaParts, displayDistrict]
+          .filter(Boolean)
+          .filter((part, index, parts) => parts.findIndex((item) => sameLocationPart(item, part) || duplicateLocationPart(item, part)) === index)
+          .join(", ") || product.boutique_city || product.location || "Luxury Hub";
         setText("productLocation", loc.toUpperCase());
 
         setText("productFabric", product.fabric, "Premium Handpicked");
@@ -549,7 +586,7 @@
 
         updateMainImage(0);
 
-        setText("boutiqueArea", (product.area || product.district || "Official Boutique").toUpperCase());
+        setText("boutiqueArea", (areaParts[0] || displayDistrict || "Official Boutique").toUpperCase());
         setText("boutiqueInitial", bName.charAt(0).toUpperCase());
 
         // Render Boutique Tags
@@ -575,7 +612,14 @@
         }
 
         const viewBoutiqueBtn = document.getElementById("viewBoutiqueBtn");
-        if (viewBoutiqueBtn) viewBoutiqueBtn.href = `viewboutique.html?id=${product.boutique_id || ""}`;
+        if (viewBoutiqueBtn) {
+          const boutiqueId = String(product.boutique_id || "").trim();
+          viewBoutiqueBtn.href = `viewboutique.html?boutiqueId=${encodeURIComponent(boutiqueId)}`;
+          viewBoutiqueBtn.onclick = () => {
+            localStorage.setItem("selectedBoutiqueId", boutiqueId);
+            localStorage.setItem("selectedBoutiqueName", bName);
+          };
+        }
 
         // --- ADDED: Link Enquiry Button ---
         const consultBtn = document.getElementById("consultBtn");
@@ -761,46 +805,72 @@
 
     async function loadRelatedProducts(boutiqueId, currentId) {
       try {
-        let res = await fetch(`${PRODUCT_API}/boutique/${boutiqueId}`);
-        let products = await res.json();
-        let filtered = (Array.isArray(products) ? products : []).filter(p => p.id != currentId);
-
-        // Fallback: If this boutique has no other products, fetch from ALL boutiques
-        if (filtered.length === 0) {
-          const allRes = await fetch(`${PRODUCT_API}`);
-          const allProducts = await allRes.json();
-          filtered = (Array.isArray(allProducts) ? allProducts : []).filter(p => p.id != currentId).slice(0, 10);
-        }
-
         const slider = document.getElementById("relatedSlider");
+        if (!slider) return;
+
+        const allRes = await fetch(`${PRODUCT_API}`);
+        const allProducts = await allRes.json();
+        const filtered = (Array.isArray(allProducts) ? allProducts : [])
+          .filter((item) => String(item.id) !== String(currentId))
+          .filter((item) => String(item.boutique_id || "") !== String(boutiqueId || ""))
+          .slice(0, 12);
+
         if (!filtered.length) {
-          slider.innerHTML = '<p class="text-white/20 text-[10px] uppercase tracking-[0.4em] p-12 italic">Curation in progress...</p>';
+          slider.innerHTML = '<p class="text-white/20 text-[10px] uppercase tracking-[0.4em] p-12 italic">Other boutique collections are being curated.</p>';
           return;
         }
 
         slider.innerHTML = filtered.map(item => {
-          const image = resolveAssetUrl(item.image_url);
-          const category = (item.category || "Couture").toUpperCase();
+          const image = resolveAssetUrl(item.image_url) || "https://images.unsplash.com/photo-1583391733981-849840f3f1c2?q=80&w=900&auto=format&fit=crop";
+          if (item.category === "Couture") item.category = "Bridal";
+          const category = escapeHtml((item.category || "Bridal").toUpperCase());
+          const title = escapeHtml(item.product_name || "Luxury Collection");
+          const boutiqueName = escapeHtml(item.boutique_name || "Boutique");
+          const location = escapeHtml((item.area || item.district || item.city || "Cloche Boutique").toUpperCase());
+          const productId = encodeURIComponent(item.id || "");
+          const relatedBoutiqueId = String(item.boutique_id || "").trim();
+          const encodedBoutiqueId = encodeURIComponent(relatedBoutiqueId);
+          const safeBoutiqueName = JSON.stringify(String(item.boutique_name || ""));
           return `
-              <a href="viewproducts.html?id=${item.id}" class="listing-product-card product-image-frame group flex-none w-[240px] md:w-[300px] h-[380px] snap-start relative rounded-[2.5rem] overflow-hidden glass-card">
-                <img src="${image}" class="product-image w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" loading="lazy" />
-                <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/10 to-transparent"></div>
-                
-                <div class="absolute top-6 left-6">
-                   <span class="bg-primary/20 backdrop-blur-md border border-primary/30 text-primary px-3 py-1 rounded-full text-[8px] font-bold tracking-widest uppercase">${category}</span>
-                </div>
+              <div class="listing-product-card group flex-none w-[250px] md:w-[310px] snap-start">
+                <a href="viewproducts.html?boutiqueId=${encodedBoutiqueId}&productId=${productId}"
+                  onclick="localStorage.setItem('selectedBoutiqueId','${encodedBoutiqueId}'); localStorage.setItem('selectedBoutiqueName', ${safeBoutiqueName})"
+                  class="product-image-frame block h-[360px] md:h-[410px] relative rounded-[2rem] overflow-hidden glass-card">
+                  <img src="${image}" class="product-image w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" loading="lazy" alt="${title}" />
+                  <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/15 to-transparent"></div>
+                  
+                  <div class="absolute top-5 left-5">
+                    <span class="bg-primary/20 backdrop-blur-md border border-primary/30 text-primary px-3 py-1 rounded-full text-[8px] font-bold tracking-widest uppercase">${category}</span>
+                  </div>
 
-                <div class="absolute bottom-8 left-8 right-8">
-                    <h4 class="font-display text-white text-lg tracking-wide mb-2 group-hover:text-primary transition-colors truncate">${item.product_name}</h4>
-                    <div class="flex items-center gap-2 text-white/40 text-[9px] uppercase tracking-[0.2em] font-bold">
-                        <span>INR ${Number(item.price || 0).toLocaleString("en-IN")}</span>
+                  <div class="absolute bottom-7 left-7 right-7">
+                    <p class="text-primary/80 text-[9px] uppercase tracking-[0.24em] font-bold mb-2 truncate">${location}</p>
+                    <h4 class="font-display text-white text-lg tracking-wide mb-2 group-hover:text-primary transition-colors line-clamp-2">${title}</h4>
+                    <div class="flex items-center gap-2 text-white/50 text-[9px] uppercase tracking-[0.18em] font-bold">
+                      <span>INR ${Number(item.price || 0).toLocaleString("en-IN")}</span>
                     </div>
+                  </div>
+                </a>
+                <div class="mt-4 flex items-center justify-between gap-3">
+                  <div class="min-w-0">
+                    <p class="text-[9px] uppercase tracking-[0.22em] text-white/35 mb-1">Boutique</p>
+                    <p class="truncate font-display text-sm text-primary">${boutiqueName}</p>
+                  </div>
+                  <a href="viewboutique.html?boutiqueId=${encodedBoutiqueId}"
+                    onclick="localStorage.setItem('selectedBoutiqueId','${encodedBoutiqueId}'); localStorage.setItem('selectedBoutiqueName', ${safeBoutiqueName})"
+                    class="shrink-0 text-[9px] uppercase tracking-[0.2em] text-white/70 hover:text-primary border-b border-primary/30 pb-1">
+                    Explore
+                  </a>
                 </div>
-              </a>
+              </div>
             `;
         }).join("");
       } catch (err) {
-        console.error("Failed to load collections", err);
+        console.error("Failed to load other boutique collections", err);
+        const slider = document.getElementById("relatedSlider");
+        if (slider) {
+          slider.innerHTML = '<p class="text-white/20 text-[10px] uppercase tracking-[0.4em] p-12 italic">Other boutique collections are currently unavailable.</p>';
+        }
       }
     }
 

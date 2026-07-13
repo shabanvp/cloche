@@ -35,8 +35,37 @@ const normalizeImageUrl = (value) => {
 };
 
 const cleanText = (value) => String(value || "").trim().replace(/\s+/g, " ");
+const cleanLocationText = (value) => cleanText(value).toLowerCase();
 
 const sameText = (a, b) => cleanText(a).toLowerCase() === cleanText(b).toLowerCase();
+
+const locationAliases = {
+  perumbavoor: ["perumbavoor", "perumbavur"],
+  perumbavur: ["perumbavoor", "perumbavur"],
+  kochi: ["kochi", "cochin", "ernakulam"],
+  cochin: ["kochi", "cochin", "ernakulam"],
+  edappally: ["edappally", "edapally"],
+  edapally: ["edappally", "edapally"],
+  trivandrum: ["trivandrum", "thiruvananthapuram"],
+  thiruvananthapuram: ["trivandrum", "thiruvananthapuram"]
+};
+
+const getLocationVariants = (value) => {
+  const normalized = cleanLocationText(value);
+  if (!normalized) return [];
+  return locationAliases[normalized] || [normalized];
+};
+
+const locationIncludes = (source, query) => {
+  const sourceText = cleanLocationText(source);
+  const queryText = cleanLocationText(query);
+  if (!queryText) return true;
+  const sourceVariants = [sourceText, ...getLocationVariants(sourceText)].filter(Boolean);
+  const queryVariants = getLocationVariants(queryText);
+  return queryVariants.some((q) =>
+    sourceVariants.some((s) => s.includes(q) || q.includes(s))
+  );
+};
 
 const isVerifiedTrue = (value) => value === true || value === "true" || value === 1 || value === "1";
 
@@ -83,12 +112,12 @@ const normalizeLocationFields = ({ area, district, city }) => {
   const cityArea = cityParts[0] || "";
   const cityDistrict = cityParts.slice(1).join(", ");
 
-  let safeArea = cleanText(area);
-  let safeDistrict = cleanText(district);
+  let safeArea = cleanLocationText(area);
+  let safeDistrict = cleanLocationText(district);
 
-  if (!safeArea && cityParts.length > 1) safeArea = cityArea;
-  if (!safeDistrict && cityDistrict) safeDistrict = cityDistrict;
-  if (!safeDistrict && safeCity) safeDistrict = safeCity;
+  if (!safeArea && cityParts.length > 1) safeArea = cleanLocationText(cityArea);
+  if (!safeDistrict && cityDistrict) safeDistrict = cleanLocationText(cityDistrict);
+  if (!safeDistrict && safeCity) safeDistrict = cleanLocationText(safeCity);
 
   if (safeArea && safeDistrict && sameText(safeArea, safeDistrict)) {
     safeArea = "";
@@ -97,7 +126,7 @@ const normalizeLocationFields = ({ area, district, city }) => {
   return {
     area: safeArea || null,
     district: safeDistrict || null,
-    city: safeCity || null
+    city: cleanLocationText(safeCity) || null
   };
 };
 
@@ -173,13 +202,14 @@ router.post("/signup", showcaseUpload.single("image"), async (req, res) => {
         if (existingUser.is_verified) {
           return res.status(409).json({ message: "User already exists" });
         } else {
-          // Update unverified user and resend email
+          // Update and verify during onboarding; email delivery is not reliable enough to block signup.
           const { error: updateError } = await supabase
             .from("users")
             .update({
               name,
               password_hash: passwordHash,
-              verification_token: verificationToken,
+              is_verified: true,
+              verification_token: null,
               created_at: new Date().toISOString()
             })
             .eq("id", existingUser.id);
@@ -188,21 +218,12 @@ router.post("/signup", showcaseUpload.single("image"), async (req, res) => {
             return res.status(500).json({ message: updateError.message });
           }
 
-          const emailResult = await sendVerificationEmail(email, name, verificationToken, "user");
-          if (!emailResult?.success) {
-            await markAccountVerified("users", existingUser.id);
-            return res.status(200).json({
-              success: true,
-              role: "user",
-              auto_verified: true,
-              email: { sent: false },
-              message: "Account created. You can log in now."
-            });
-          }
           return res.status(200).json({
             success: true,
-            email: { sent: true, messageId: emailResult?.messageId || null },
-            message: "Verification email resent. Please check your inbox."
+            role: "user",
+            auto_verified: true,
+            email: { sent: false },
+            message: "Account ready. You can log in now."
           });
         }
       }
@@ -213,8 +234,8 @@ router.post("/signup", showcaseUpload.single("image"), async (req, res) => {
           name,
           email,
           password_hash: passwordHash,
-          is_verified: false,
-          verification_token: verificationToken
+          is_verified: true,
+          verification_token: null
         }])
         .select("id")
         .maybeSingle();
@@ -223,23 +244,13 @@ router.post("/signup", showcaseUpload.single("image"), async (req, res) => {
         return res.status(500).json({ message: error.message });
       }
 
-      const emailResult = await sendVerificationEmail(email, name, verificationToken, "user");
-      if (!emailResult?.success) {
-        await markAccountVerified("users", insertedUser?.id);
-        return res.status(201).json({
-          success: true,
-          role: "user",
-          auto_verified: true,
-          email: { sent: false },
-          message: "Account created. You can log in now."
-        });
-      }
-
       return res.status(201).json({
         success: true,
         role: "user",
-        email: { sent: true, messageId: emailResult?.messageId || null },
-        message: "User account created. Please check your email for verification."
+        userId: insertedUser?.id || null,
+        auto_verified: true,
+        email: { sent: false },
+        message: "Account ready. You can log in now."
       });
     } catch (err) {
       return res.status(500).json({ message: err.message });
@@ -324,13 +335,14 @@ router.post("/signup", showcaseUpload.single("image"), async (req, res) => {
         if (isVerifiedTrue(existingBoutique.is_verified)) {
           return res.status(409).json({ message: "This email is already registered. Please log in or use another email." });
         } else {
-          // Update unverified boutique and resend email
+          // Update and verify during onboarding; email delivery is not reliable enough to block signup.
           const { error: updateError } = await supabase
             .from("boutiques")
             .update({
               ...basePayload,
               password_hash: passwordHash,
-              verification_token: verificationToken
+              is_verified: true,
+              verification_token: null
             })
             .eq("id", existingBoutique.id);
 
@@ -366,22 +378,13 @@ router.post("/signup", showcaseUpload.single("image"), async (req, res) => {
             }
           }
 
-          const emailResult = await sendVerificationEmail(normalizedEmail, owner_name, verificationToken, "partner");
-          if (!emailResult?.success) {
-            await markAccountVerified("boutiques", existingBoutique.id);
-            return res.status(200).json({
-              success: true,
-              role: "partner",
-              boutiqueId: existingBoutique.id,
-              auto_verified: true,
-              email: { sent: false },
-              message: "Boutique account created. You can log in now."
-            });
-          }
           return res.status(200).json({
             success: true,
-            email: { sent: true, messageId: emailResult?.messageId || null },
-            message: "Verification email resent. Please check your inbox."
+            role: "partner",
+            boutiqueId: existingBoutique.id,
+            auto_verified: true,
+            email: { sent: false },
+            message: "Boutique account ready. You can log in now."
           });
         }
       }
@@ -403,7 +406,7 @@ router.post("/signup", showcaseUpload.single("image"), async (req, res) => {
       for (const payload of payloadCandidates) {
         const { data, error } = await supabase
           .from("boutiques")
-          .insert([payload])
+          .insert([{ ...payload, is_verified: true, verification_token: null }])
           .select("id")
           .maybeSingle();
 
@@ -451,25 +454,13 @@ router.post("/signup", showcaseUpload.single("image"), async (req, res) => {
         }
       }
 
-      const emailResult = await sendVerificationEmail(normalizedEmail, owner_name, verificationToken, "partner");
-      if (!emailResult?.success) {
-        await markAccountVerified("boutiques", insertedBoutique?.id);
-        return res.status(201).json({
-          success: true,
-          role: "partner",
-          boutiqueId: insertedBoutique?.id || null,
-          auto_verified: true,
-          email: { sent: false },
-          message: "Boutique account created. You can log in now."
-        });
-      }
-
       return res.status(201).json({
         success: true,
         role: "partner",
         boutiqueId: insertedBoutique?.id || null,
-        email: { sent: true, messageId: emailResult?.messageId || null },
-        message: "Boutique account created. Please check your email for verification."
+        auto_verified: true,
+        email: { sent: false },
+        message: "Boutique account ready. You can log in now."
       });
     } catch (err) {
       return res.status(500).json({ message: err.message || "Server error" });
@@ -864,8 +855,8 @@ router.put("/profile/:boutiqueId", async (req, res) => {
     return res.status(400).json({ message: "Phone number must be exactly 10 digits" });
   }
 
-  const safeCity = cleanText(city);
-  const safeDistrict = cleanText(district);
+  const safeCity = cleanLocationText(city);
+  const safeDistrict = cleanLocationText(district);
   const safeShopLocation = cleanText(shop_location);
   const composedCity = safeDistrict ? `${safeCity}, ${safeDistrict}` : safeCity;
 
@@ -1048,8 +1039,8 @@ router.put("/profile/:boutiqueId/showcase", async (req, res) => {
       const { error } = await supabase
         .from("boutique_showcase")
         .update({
-          district: district || null,
-          area: area || null,
+          district: cleanLocationText(district) || null,
+          area: cleanLocationText(area) || null,
           shop_location: cleanText(shop_location) || null,
           tags: tags || null,
           rating: safeRating
@@ -1060,8 +1051,8 @@ router.put("/profile/:boutiqueId/showcase", async (req, res) => {
       const { error } = await supabase.from("boutique_showcase").insert([
         {
           boutique_id: Number(boutiqueId),
-          district: district || null,
-          area: area || null,
+          district: cleanLocationText(district) || null,
+          area: cleanLocationText(area) || null,
           shop_location: cleanText(shop_location) || null,
           tags: tags || null,
           rating: safeRating
@@ -1098,8 +1089,8 @@ router.post("/profile/:boutiqueId/showcase", async (req, res) => {
       const { error } = await supabase
         .from("boutique_showcase")
         .update({
-          district: district || null,
-          area: area || null,
+          district: cleanLocationText(district) || null,
+          area: cleanLocationText(area) || null,
           shop_location: cleanText(shop_location) || null,
           tags: tags || null,
           rating: safeRating
@@ -1110,8 +1101,8 @@ router.post("/profile/:boutiqueId/showcase", async (req, res) => {
       const { error } = await supabase.from("boutique_showcase").insert([
         {
           boutique_id: Number(boutiqueId),
-          district: district || null,
-          area: area || null,
+          district: cleanLocationText(district) || null,
+          area: cleanLocationText(area) || null,
           shop_location: cleanText(shop_location) || null,
           tags: tags || null,
           rating: safeRating
@@ -1309,7 +1300,7 @@ router.get("/boutiques", async (req, res) => {
     });
 
     let filtered = city
-      ? merged.filter((row) => String(row.district || row.city || "").trim().toLowerCase() === city)
+      ? merged.filter((row) => locationIncludes(row.district || row.city || "", city) || locationIncludes(row.area || "", city))
       : merged;
 
     if (city && limit) {

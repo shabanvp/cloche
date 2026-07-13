@@ -131,6 +131,10 @@
           <span>Messages</span>
           ${badgeMarkup("messages")}
         </a>
+        <a href="subscription.html" class="side-menu-link">
+          <span class="material-symbols-outlined">star</span>
+          <span>Subscription</span>
+        </a>
         <a href="profile.html" class="side-menu-link">
           <span class="material-symbols-outlined">person</span>
           <span>Partner Profile</span>
@@ -235,7 +239,7 @@
     sideMenu.querySelectorAll("a, .side-menu-category").forEach((el) => {
       if (el.dataset.mobileCloseMenuBound === "true") return;
       el.dataset.mobileCloseMenuBound = "true";
-      el.addEventListener("click", () => {
+      el.addEventListener("click", (e) => {
         const href = String(el.getAttribute("href") || "");
         if (href.includes("messages.html") || href.includes("messageboutique.html")) {
           setMenuBadge("messages", 0);
@@ -243,7 +247,19 @@
         if (href.includes("lead.html")) {
           setMenuBadge("leads", 0);
         }
-        closeMenuFunc();
+
+        const isStandardLink = el.tagName.toLowerCase() === 'a' && href && href !== '#' && !href.startsWith('javascript:') && !el.hasAttribute('onclick') && el.target !== '_blank';
+
+        if (isStandardLink) {
+          e.preventDefault();
+          closeMenuFunc();
+          // Delay routing so the mobile menu can fully animate closed smoothly
+          setTimeout(() => {
+            window.location.href = href;
+          }, 300);
+        } else {
+          closeMenuFunc();
+        }
       });
     });
 
@@ -609,6 +625,7 @@
   function setupDesktopHeaderPatching() {
     const authNav = document.getElementById("authNav");
     const profileIconLink = document.getElementById("profileIconLink");
+    const listYourBoutiqueNav = document.getElementById("listYourBoutiqueNav");
     const userMenuDropdown = document.getElementById("userMenuDropdown");
     const avatar = document.getElementById("navAvatar");
 
@@ -632,13 +649,19 @@
       authNav.href = "dashboard.html";
       authNav.onclick = toggleMenu;
       if (profileIconLink) profileIconLink.onclick = toggleMenu;
+      if (profileIconLink) {
+        profileIconLink.href = "profile.html";
+        profileIconLink.title = "Boutique Profile";
+      }
       if (avatar) avatar.textContent = ownerName.charAt(0).toUpperCase();
+      if (listYourBoutiqueNav) listYourBoutiqueNav.style.display = "none";
 
       userMenuDropdown.innerHTML = `
         <a href="dashboard.html" class="block px-3 py-2 rounded text-xs uppercase tracking-widest text-white/80 hover:bg-primary/10 hover:text-primary">Dashboard</a>
         <a href="lead.html" class="block px-3 py-2 rounded text-xs uppercase tracking-widest text-white/80 hover:bg-primary/10 hover:text-primary">Leads</a>
         <a href="boutiqueproducts.html" class="block px-3 py-2 rounded text-xs uppercase tracking-widest text-white/80 hover:bg-primary/10 hover:text-primary">Products</a>
         <a href="messages.html" class="block px-3 py-2 rounded text-xs uppercase tracking-widest text-white/80 hover:bg-primary/10 hover:text-primary">Messages</a>
+        <a href="subscription.html" class="block px-3 py-2 rounded text-xs uppercase tracking-widest text-white/80 hover:bg-primary/10 hover:text-primary">Subscription</a>
         <a href="profile.html" class="block px-3 py-2 rounded text-xs uppercase tracking-widest text-white/80 hover:bg-primary/10 hover:text-primary">Profile</a>
         <button onclick="window.logout()" class="w-full text-left px-3 py-2 rounded text-xs uppercase tracking-widest text-white/80 hover:bg-primary/10 hover:text-primary">Logout</button>
       `;
@@ -648,14 +671,82 @@
       authNav.href = "#";
       authNav.onclick = toggleMenu;
       if (profileIconLink) profileIconLink.onclick = toggleMenu;
+      if (profileIconLink) {
+        profileIconLink.href = "#";
+        profileIconLink.title = "Profile";
+      }
       if (avatar) avatar.textContent = firstName.charAt(0).toUpperCase();
+      if (listYourBoutiqueNav) listYourBoutiqueNav.style.display = "";
 
       userMenuDropdown.innerHTML = `
         <a href="userprofile.html" class="block px-3 py-2 rounded text-xs uppercase tracking-widest text-white/80 hover:bg-primary/10 hover:text-primary">Profile</a>
         <a href="messageboutique.html" class="block px-3 py-2 rounded text-xs uppercase tracking-widest text-white/80 hover:bg-primary/10 hover:text-primary">Inbox</a>
         <button onclick="window.logout()" class="w-full text-left px-3 py-2 rounded text-xs uppercase tracking-widest text-white/80 hover:bg-primary/10 hover:text-primary">Logout</button>
       `;
+    } else {
+      authNav.textContent = "LOGIN";
+      authNav.href = "boutiquelogin.html";
+      authNav.onclick = null;
+      if (profileIconLink) {
+        profileIconLink.href = "boutiquelogin.html";
+        profileIconLink.title = "Login";
+        profileIconLink.onclick = null;
+      }
+      if (avatar) avatar.textContent = "C";
+      if (listYourBoutiqueNav) listYourBoutiqueNav.style.display = "";
+      userMenuDropdown.classList.add("hidden");
     }
+  }
+
+  /* -------------------------------------------------------
+     Instant Smooth Navigation (Zero Lag)
+  ------------------------------------------------------- */
+  function setupInstantSmoothNavigation() {
+    const prefetched = new Set();
+
+    // 1. Prefetch on hover (desktop) or touchstart (mobile) for instant loading
+    function prefetchLink(e) {
+      const anchor = e.target.closest('aside a, nav a, .mobile-bottom-nav a, .responsive-topmenu-list a, .desktop-user-menu a');
+      if (!anchor) return;
+      
+      const href = anchor.getAttribute('href');
+      if (!href || href.startsWith('#') || href.startsWith('javascript:')) return;
+      if (anchor.target === '_blank' || anchor.hasAttribute('download')) return;
+      if (anchor.hostname && anchor.hostname !== window.location.hostname) return;
+      
+      if (!prefetched.has(href)) {
+        prefetched.add(href);
+        const link = document.createElement('link');
+        link.rel = 'prefetch';
+        link.href = href;
+        document.head.appendChild(link);
+      }
+    }
+    
+    document.addEventListener('mouseover', prefetchLink, { passive: true });
+    document.addEventListener('touchstart', prefetchLink, { passive: true });
+
+    // 2. Clear transition if coming back via swipe/back-button
+    window.addEventListener('pageshow', (e) => {
+      if (e.persisted) document.body.style.opacity = '1';
+    });
+
+    // 3. Fade out smoothly on click without artificially delaying the browser
+    document.addEventListener('click', (event) => {
+      const anchor = event.target.closest('aside a, nav a, .mobile-bottom-nav a, .responsive-topmenu-list a, .desktop-user-menu a');
+      if (!anchor) return;
+      
+      const href = anchor.getAttribute('href');
+      if (!href || href.startsWith('#') || href.startsWith('javascript:')) return;
+      if (anchor.target === '_blank' || anchor.hasAttribute('download')) return;
+      if (anchor.hostname && anchor.hostname !== window.location.hostname) return;
+      if (anchor.hasAttribute('data-partner-signup-link')) return;
+
+      // DO NOT prevent default. Let browser route immediately to avoid "time lag".
+      // Just visually fade out while the browser does its work natively.
+      document.body.style.transition = 'opacity 0.15s ease-in';
+      document.body.style.opacity = '0';
+    });
   }
 
   /* -------------------------------------------------------
@@ -671,6 +762,7 @@
     setupTopMenuFallback();
     setupPartnerSignupLinks();
     setupDesktopHeaderPatching();
+    setupInstantSmoothNavigation();
   }
 
   if (document.readyState === "loading") {
