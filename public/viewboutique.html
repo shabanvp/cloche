@@ -608,11 +608,45 @@
       return { boutique, allBoutiques: boutiquesArray };
     }
 
+    function normalizeProductList(data) {
+      if (Array.isArray(data)) return data;
+      if (Array.isArray(data?.products)) return data.products;
+      if (Array.isArray(data?.items)) return data.items;
+      return [];
+    }
+
+    async function fetchJson(url) {
+      const res = await fetch(url);
+      const data = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(data?.message || "Failed to load products");
+      return data;
+    }
+
+    function productBelongsToBoutique(product, boutiqueId) {
+      const expected = String(boutiqueId || "").trim();
+      if (!expected) return false;
+      return [
+        product?.boutique_id,
+        product?.boutiqueId,
+        product?.boutique?.id,
+        product?.boutiqueID
+      ].some((value) => String(value || "").trim() === expected);
+    }
+
     async function loadProducts(boutiqueId) {
-      const res = await fetch(`${API_PRODUCTS}/boutique/${encodeURIComponent(boutiqueId)}`);
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Failed to load products");
-      return Array.isArray(data) ? data : [];
+      const effectiveBoutiqueId = String(boutiqueId || getBoutiqueId() || "").trim();
+      if (!effectiveBoutiqueId) return [];
+
+      try {
+        const data = await fetchJson(`${API_PRODUCTS}/boutique/${encodeURIComponent(effectiveBoutiqueId)}?v=${Date.now()}`);
+        const products = normalizeProductList(data);
+        if (products.length) return products;
+      } catch (err) {
+        console.warn("Boutique products endpoint failed, trying public collection feed:", err);
+      }
+
+      const allProducts = normalizeProductList(await fetchJson(`${API_PRODUCTS}?v=${Date.now()}`));
+      return allProducts.filter((product) => productBelongsToBoutique(product, effectiveBoutiqueId));
     }
 
     function fillBoutique(boutique, productsCount) {
@@ -747,10 +781,11 @@
       try {
         const payload = await loadBoutique();
         if (!payload || !payload.boutique) return;
-        const products = await loadProducts(payload.boutique.id);
-        fillBoutique(payload.boutique, products.length);
+        const boutiqueId = String(payload.boutique.id || getBoutiqueId() || "").trim();
+        const products = await loadProducts(boutiqueId);
+        fillBoutique({ ...payload.boutique, id: boutiqueId }, products.length);
         renderProducts(products);
-        renderOtherBoutiques(payload.allBoutiques, payload.boutique.id);
+        renderOtherBoutiques(payload.allBoutiques, boutiqueId);
         setText("statusWrap", "");
       } catch (err) {
         setText("statusWrap", err.message || "Failed to load boutique profile.");
