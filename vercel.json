@@ -3,21 +3,25 @@
   "trailingSlash": false,
   "headers": [
     {
-<<<<<<< HEAD
       "source": "/",
-=======
-      "source": "/subscription",
->>>>>>> 4ee2c29c021607d075192cde97b245a0deb860d3
       "headers": [
         { "key": "Cache-Control", "value": "no-store" }
       ]
     },
     {
-<<<<<<< HEAD
       "source": "/index",
-=======
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store" }
+      ]
+    },
+    {
+      "source": "/subscription",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store" }
+      ]
+    },
+    {
       "source": "/payment-proof",
->>>>>>> 4ee2c29c021607d075192cde97b245a0deb860d3
       "headers": [
         { "key": "Cache-Control", "value": "no-store" }
       ]
