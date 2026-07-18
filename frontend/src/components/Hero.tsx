@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { Button } from "./Button";
-import { Search } from "lucide-react";
+import { Search, Flower2 } from "lucide-react";
 
 interface HeroProps {
   title?: string;
@@ -10,35 +10,37 @@ interface HeroProps {
 
 export function Hero({ title, subtitle, imageUrl }: HeroProps) {
   return (
-    <div className="relative w-full h-[600px] bg-ivory flex items-center">
+    <div className="relative w-full bg-ivory flex items-center pt-20 pb-32 md:pb-40">
       {/* Background with slight dark overlay to ensure text readability */}
-      <div className="absolute inset-0 z-0">
-        <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent z-10"></div>
-        {/* Using a standard img tag to bypass Vercel image optimization errors */}
+      <div className="absolute inset-0 z-0 h-[85%]">
+        <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent z-10"></div>
+        {/* Using a guaranteed working Wikimedia Commons Kerala Wedding image */}
         <img 
-          src={imageUrl || "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?q=80&w=2000&auto=format&fit=crop"}
+          src={imageUrl || "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cb/Kerala_Hindu_Wedding_-_Tying_the_Thali.jpg/1280px-Kerala_Hindu_Wedding_-_Tying_the_Thali.jpg"}
           alt={title || "Kerala Wedding"}
-          className="object-cover w-full h-full"
+          className="object-cover w-full h-full object-top"
         />
       </div>
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         <div className="max-w-2xl">
-          <h1 className="text-4xl md:text-5xl lg:text-6xl text-white mb-6 leading-tight drop-shadow-md">
+          <h1 className="text-5xl md:text-6xl lg:text-7xl font-display text-white mb-6 leading-[1.15] drop-shadow-lg">
             {title ? title : (
               <>
-                <span className="font-light">Curate your</span><br/>
-                <span className="font-light">perfect wedding,</span><br/>
-                <span className="font-display">the Kerala way.</span>
+                Curate your<br/>
+                perfect wedding,<br/>
+                the Kerala way.
               </>
             )}
           </h1>
-          <p className="text-base md:text-lg text-white/90 mb-12 font-light max-w-sm drop-shadow-md">
+          <p className="text-base md:text-lg text-white/90 mb-8 font-light max-w-sm drop-shadow-md leading-relaxed">
             {subtitle || "Discover the finest boutiques, curated collections & trusted experts."}
           </p>
           
-          {/* Advanced Search Bar Container */}
-          <div className="bg-white p-3 md:p-4 rounded-2xl shadow-2xl max-w-2xl mt-4">
+          <Flower2 className="w-12 h-12 text-gold mb-12 opacity-80" strokeWidth={1} />
+          
+          {/* Advanced Search Bar Container - overlaps the bottom edge */}
+          <div className="absolute -bottom-16 left-4 right-4 md:left-8 md:right-auto md:w-[700px] bg-white p-4 md:p-5 rounded-2xl shadow-xl z-20">
             <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3 md:gap-0 border border-gray-200 rounded-lg md:rounded-full p-1.5 mb-3">
               <div className="flex-1 px-4 py-2 md:py-0">
                 <input 
@@ -48,10 +50,10 @@ export function Hero({ title, subtitle, imageUrl }: HeroProps) {
                 />
               </div>
               <div className="hidden md:block h-6 w-px bg-gray-200 mx-2"></div>
-              <div className="px-4 py-2 md:py-0 border-t md:border-t-0 border-gray-100 md:border-none">
+              <div className="px-4 py-2 md:py-0 border-t md:border-t-0 border-gray-100 md:border-none w-full md:w-48">
                 <select 
                   aria-label="Category select"
-                  className="bg-transparent border-none focus:outline-none text-charcoal text-sm font-medium cursor-pointer w-full md:w-auto"
+                  className="bg-transparent border-none focus:outline-none text-charcoal text-sm font-medium cursor-pointer w-full"
                 >
                   <option>All Categories</option>
                   <option>Bridal Wear</option>
@@ -60,17 +62,17 @@ export function Hero({ title, subtitle, imageUrl }: HeroProps) {
                 </select>
               </div>
               <Button size="icon" className="w-full md:w-12 h-10 md:h-10 rounded-lg md:rounded-full bg-emerald hover:bg-emerald/90 flex justify-center items-center shrink-0">
-                <Search className="w-4 h-4 text-white" />
+                <Search className="w-5 h-5 text-white" />
               </Button>
             </div>
             
-            <div className="flex flex-wrap items-center gap-2 md:gap-3 text-xs text-charcoal/70 font-medium px-2">
-              <span>Popular searches:</span>
-              <span className="cursor-pointer bg-gray-50 hover:bg-gray-100 border border-gray-200 px-3 py-1 rounded-full transition-colors">Bridal wear</span>
-              <span className="cursor-pointer bg-gray-50 hover:bg-gray-100 border border-gray-200 px-3 py-1 rounded-full transition-colors">Jewellery</span>
-              <span className="cursor-pointer bg-gray-50 hover:bg-gray-100 border border-gray-200 px-3 py-1 rounded-full transition-colors">Wedding planners</span>
-              <span className="cursor-pointer bg-gray-50 hover:bg-gray-100 border border-gray-200 px-3 py-1 rounded-full transition-colors">Makeup artists</span>
-              <span className="cursor-pointer bg-gray-50 hover:bg-gray-100 border border-gray-200 px-3 py-1 rounded-full transition-colors">Venues</span>
+            <div className="flex flex-wrap items-center gap-2 md:gap-3 text-xs text-charcoal/60 font-medium px-2">
+              <span className="mr-1">Popular searches:</span>
+              <span className="cursor-pointer bg-gray-50 hover:bg-gray-100 px-3 py-1.5 rounded-md transition-colors">Bridal wear</span>
+              <span className="cursor-pointer bg-gray-50 hover:bg-gray-100 px-3 py-1.5 rounded-md transition-colors">Jewellery</span>
+              <span className="cursor-pointer bg-gray-50 hover:bg-gray-100 px-3 py-1.5 rounded-md transition-colors">Wedding planners</span>
+              <span className="cursor-pointer bg-gray-50 hover:bg-gray-100 px-3 py-1.5 rounded-md transition-colors">Makeup artists</span>
+              <span className="cursor-pointer bg-gray-50 hover:bg-gray-100 px-3 py-1.5 rounded-md transition-colors">Venues</span>
             </div>
           </div>
         </div>
