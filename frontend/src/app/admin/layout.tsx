@@ -11,7 +11,8 @@ import {
   BarChart3, 
   CreditCard,
   LogOut,
-  ShieldCheck
+  ShieldCheck,
+  Calendar
 } from "lucide-react";
 
 export const metadata = {
@@ -27,6 +28,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     { label: "Homepage CMS", icon: LayoutTemplate, href: "/admin/homepage" },
     { label: "Categories", icon: Tag, href: "/admin/categories" },
     { label: "Content", icon: FileText, href: "/admin/content" },
+    { label: "Appointments", icon: Calendar, href: "/admin/appointments" },
     { label: "Reports", icon: BarChart3, href: "/admin/reports" },
     { label: "Subscriptions", icon: CreditCard, href: "/admin/subscriptions" },
   ];

@@ -5,7 +5,8 @@ import { getBoutiqueDetails, getBoutiqueProducts } from "@/services/api";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/Button";
-import { MapPin, Star, Phone, MessageCircle, Share2, Heart, Calendar } from "lucide-react";
+import { MapPin, Star, Phone, MessageCircle, Share2, Heart } from "lucide-react";
+import { BookingModal } from "@/components/BookingModal";
 
 interface Props {
   params: { id: string };
@@ -67,9 +68,7 @@ export default async function BoutiqueProfilePage({ params }: Props) {
               <Button className="rounded-full flex items-center gap-2 bg-emerald hover:bg-emerald/90 text-white">
                 <MessageCircle className="w-4 h-4" /> WhatsApp
               </Button>
-              <Button variant="outline" className="rounded-full flex items-center gap-2 border-emerald text-emerald hover:bg-emerald hover:text-white">
-                <Calendar className="w-4 h-4" /> Book Appointment
-              </Button>
+              <BookingModal boutiqueId={Number(boutique.id)} boutiqueName={boutique.boutique_name} />
             </div>
             <div className="flex gap-2 shrink-0 text-charcoal">
               <Button variant="ghost" size="icon" className="rounded-full hover:bg-gold/10 hover:text-gold"><Phone className="w-4 h-4" /></Button>

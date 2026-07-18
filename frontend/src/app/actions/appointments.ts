@@ -67,3 +67,20 @@ export async function updateAppointmentStatus(id: number, status: string, newDat
     return { success: false };
   }
 }
+
+export async function deleteAppointment(id: number) {
+  const token = await getAuthToken();
+  if (!token) return { success: false };
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/appointments/${id}`, {
+      method: "DELETE",
+      headers: {
+        "Authorization": `Bearer ${token}`
+      }
+    });
+    return await res.json();
+  } catch (err) {
+    return { success: false };
+  }
+}

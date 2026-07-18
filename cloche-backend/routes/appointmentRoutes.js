@@ -78,6 +78,20 @@ router.post("/", async (req, res) => {
             return res.status(400).json({ success: false, message: "Cannot book an appointment in the past" });
         }
 
+        // Prevent duplicate bookings
+        const { data: existing, error: checkErr } = await supabase
+            .from("appointments")
+            .select("id")
+            .eq("boutique_id", boutique_id)
+            .eq("appointment_date", appointment_date)
+            .eq("appointment_time", appointment_time)
+            .in("status", ["pending", "confirmed"])
+            .maybeSingle();
+
+        if (existing) {
+            return res.status(409).json({ success: false, message: "This time slot is already booked or requested" });
+        }
+
         const { data, error } = await supabase
             .from("appointments")
             .insert([{ user_id: userId, boutique_id, appointment_date, appointment_time, notes, status: "pending" }])
