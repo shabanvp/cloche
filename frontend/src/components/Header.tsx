@@ -1,70 +1,72 @@
 "use client";
 
 import Link from "next/link";
-import { Search, Heart, User, Menu, Flower2 } from "lucide-react";
+import { Search, Heart, User, Menu, Flower2, X } from "lucide-react";
 import { useState } from "react";
 
 export function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
-    <header className="w-full bg-ivory/95 backdrop-blur-md sticky top-0 z-50 border-b border-gold/20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-[72px] md:h-[80px] lg:h-[88px] xl:h-[96px]">
-          {/* Logo */}
+    <header className="w-full bg-ivory/98 sticky top-0 z-50 border-b border-[#e7dccb]">
+      <div className="mx-auto w-full max-w-[1728px] px-5 sm:px-7 lg:px-10 xl:px-12 2xl:px-14">
+        <div className="flex h-[72px] items-center justify-between md:h-[80px] lg:h-[88px] xl:h-[92px] 2xl:h-[96px]">
           <div className="flex-shrink-0 flex items-center">
-            <Link href="/" className="flex flex-col items-center">
-              <Flower2 className="w-5 h-5 text-gold mb-1" strokeWidth={1.5} />
-              <span className="font-display text-2xl tracking-[0.15em] text-charcoal font-bold uppercase">Cloche</span>
-              <span className="text-[8px] uppercase tracking-[0.25em] text-charcoal/70 mt-0.5">Stories in threads</span>
+            <Link href="/" className="flex flex-col items-center leading-none">
+              <Flower2 className="mb-1 h-5 w-5 text-gold sm:h-6 sm:w-6" strokeWidth={1.35} />
+              <span className="font-display text-[24px] font-semibold uppercase tracking-[0.15em] text-charcoal sm:text-[28px] lg:text-[31px]">
+                Cloche
+              </span>
+              <span className="mt-1 text-[7px] uppercase tracking-[0.28em] text-charcoal/70 sm:text-[8px]">
+                Stories in threads
+              </span>
             </Link>
           </div>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex space-x-8">
-            <Link href="/categories" className="text-sm font-medium text-charcoal hover:text-emerald transition-colors">Categories</Link>
-            <Link href="/boutiques" className="text-sm font-medium text-charcoal hover:text-emerald transition-colors">Boutiques</Link>
-            <Link href="/collections" className="text-sm font-medium text-charcoal hover:text-emerald transition-colors">Collections</Link>
-            <Link href="/inspiration" className="text-sm font-medium text-charcoal hover:text-emerald transition-colors">Inspiration</Link>
-            <Link href="/deals" className="text-sm font-medium text-charcoal hover:text-emerald transition-colors">Deals</Link>
+          <nav className="hidden items-center gap-7 lg:flex xl:gap-9">
+            <Link href="/categories" className="text-[14px] font-semibold text-charcoal transition-colors hover:text-emerald">Categories</Link>
+            <Link href="/boutiques" className="text-[14px] font-semibold text-charcoal transition-colors hover:text-emerald">Boutiques</Link>
+            <Link href="/collections" className="text-[14px] font-semibold text-charcoal transition-colors hover:text-emerald">Collections</Link>
+            <Link href="/inspiration" className="text-[14px] font-semibold text-charcoal transition-colors hover:text-emerald">Inspiration</Link>
+            <Link href="/deals" className="text-[14px] font-semibold text-charcoal transition-colors hover:text-emerald">Deals</Link>
           </nav>
 
-          {/* Actions & Mobile Menu Toggle */}
-          <div className="flex items-center space-x-4 md:space-x-5 text-charcoal">
-            <Link href="/search" aria-label="Search" className="hover:text-gold transition-colors hidden sm:block">
-              <Search className="w-5 h-5" />
+          <div className="flex items-center gap-4 text-charcoal sm:gap-5">
+            <Link href="/search" aria-label="Search" className="hidden transition-colors hover:text-gold sm:block">
+              <Search className="h-5 w-5 lg:h-[22px] lg:w-[22px]" strokeWidth={1.8} />
             </Link>
-            <Link href="/wishlist" aria-label="Wishlist" className="hover:text-gold transition-colors hidden sm:block">
-              <Heart className="w-5 h-5" />
+            <Link href="/wishlist" aria-label="Wishlist" className="hidden transition-colors hover:text-gold sm:block">
+              <Heart className="h-5 w-5 lg:h-[22px] lg:w-[22px]" strokeWidth={1.8} />
             </Link>
-            <Link href="/dashboard" aria-label="Account" className="hover:text-gold transition-colors">
-              <User className="w-5 h-5" />
+            <Link href="/dashboard" aria-label="Account" className="transition-colors hover:text-gold">
+              <User className="h-5 w-5 lg:h-[22px] lg:w-[22px]" strokeWidth={1.8} />
             </Link>
             <button 
               aria-label="Menu" 
-              className="md:hidden hover:text-gold transition-colors"
+              className="transition-colors hover:text-gold lg:hidden"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             >
-              <Menu className="w-6 h-6" />
+              {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
           </div>
         </div>
       </div>
 
-      {/* Mobile Navigation Dropdown */}
       {isMobileMenuOpen && (
-        <div className="md:hidden bg-ivory border-t border-gold/10 px-4 py-4 space-y-4 shadow-lg absolute w-full left-0">
-          <Link href="/categories" className="block text-sm font-medium text-charcoal hover:text-emerald">Categories</Link>
-          <Link href="/boutiques" className="block text-sm font-medium text-charcoal hover:text-emerald">Boutiques</Link>
-          <Link href="/collections" className="block text-sm font-medium text-charcoal hover:text-emerald">Collections</Link>
-          <Link href="/inspiration" className="block text-sm font-medium text-charcoal hover:text-emerald">Inspiration</Link>
-          <Link href="/deals" className="block text-sm font-medium text-charcoal hover:text-emerald">Deals</Link>
-          <div className="pt-4 border-t border-gold/10 flex space-x-6">
-             <Link href="/search" aria-label="Search" className="hover:text-gold transition-colors flex items-center gap-2 text-sm text-charcoal">
-              <Search className="w-5 h-5" /> Search
+        <div className="absolute left-0 w-full border-t border-gold/10 bg-ivory px-5 py-5 shadow-lg lg:hidden">
+          <div className="mx-auto grid max-w-[1728px] gap-4 sm:grid-cols-2">
+            <Link href="/categories" className="block text-sm font-semibold text-charcoal hover:text-emerald">Categories</Link>
+            <Link href="/boutiques" className="block text-sm font-semibold text-charcoal hover:text-emerald">Boutiques</Link>
+            <Link href="/collections" className="block text-sm font-semibold text-charcoal hover:text-emerald">Collections</Link>
+            <Link href="/inspiration" className="block text-sm font-semibold text-charcoal hover:text-emerald">Inspiration</Link>
+            <Link href="/deals" className="block text-sm font-semibold text-charcoal hover:text-emerald">Deals</Link>
+          </div>
+          <div className="mx-auto mt-5 flex max-w-[1728px] gap-6 border-t border-gold/10 pt-5">
+             <Link href="/search" aria-label="Search" className="flex items-center gap-2 text-sm text-charcoal transition-colors hover:text-gold">
+              <Search className="h-5 w-5" /> Search
             </Link>
-            <Link href="/wishlist" aria-label="Wishlist" className="hover:text-gold transition-colors flex items-center gap-2 text-sm text-charcoal">
-              <Heart className="w-5 h-5" /> Wishlist
+            <Link href="/wishlist" aria-label="Wishlist" className="flex items-center gap-2 text-sm text-charcoal transition-colors hover:text-gold">
+              <Heart className="h-5 w-5" /> Wishlist
             </Link>
           </div>
         </div>

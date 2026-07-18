@@ -1,13 +1,14 @@
 import Link from "next/link";
-import { Sparkles, Shirt, Gem, Scissors, Camera, Map, MoreHorizontal } from "lucide-react";
+import { Camera, Gem, MapPinned, MoreHorizontal, Scissors, Shirt, Sparkles, UserRoundCheck } from "lucide-react";
 
 const CATEGORIES = [
   { name: "Bridal Wear", icon: Sparkles, href: "/categories/bridal" },
   { name: "Groom Wear", icon: Shirt, href: "/categories/groom" },
   { name: "Jewellery", icon: Gem, href: "/categories/jewellery" },
   { name: "Makeup & Hair", icon: Scissors, href: "/categories/makeup" },
+  { name: "Wedding Planners", icon: UserRoundCheck, href: "/categories/wedding-planners" },
   { name: "Photography", icon: Camera, href: "/categories/photography" },
-  { name: "Venues", icon: Map, href: "/categories/venues" },
+  { name: "Venues", icon: MapPinned, href: "/categories/venues" },
   { name: "More", icon: MoreHorizontal, href: "/categories" },
 ];
 
@@ -18,30 +19,34 @@ interface CategoriesProps {
 
 export function Categories({ title, subtitle }: CategoriesProps) {
   return (
-    <section className="pt-32 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-b border-gold/10">
-      <div className="flex justify-between items-end mb-12">
+    <section className="mx-auto w-full max-w-[1728px] border-b border-[#e7dccb] px-5 py-12 sm:px-7 sm:py-14 md:py-16 lg:px-10 xl:px-12 2xl:px-14">
+      <div className="mb-9 flex items-end justify-between md:mb-11">
         <div>
-          <span className="text-gold tracking-[0.4em] uppercase text-xs mb-3 block font-bold">{subtitle || "Browse by Category"}</span>
-          <h2 className="text-3xl md:text-4xl font-display text-charcoal">{title || "Everything for your big day"}</h2>
+          <span className="mb-3 block text-[12px] font-medium uppercase tracking-[0.22em] text-[#8f7856]">
+            {subtitle || "Browse by Category"}
+          </span>
+          <h2 className="font-display text-[26px] font-normal leading-tight text-charcoal sm:text-[30px] lg:text-[36px]">
+            {title || "Everything for your big day"}
+          </h2>
         </div>
-        <Link href="/categories" className="text-sm font-medium text-emerald hover:text-gold transition-colors hidden sm:block">
+        <Link href="/categories" className="hidden text-[14px] font-semibold text-emerald transition-colors hover:text-gold sm:block">
           View all
         </Link>
       </div>
 
-      <div className="flex overflow-x-auto pb-6 hide-scrollbar gap-6 md:justify-center md:flex-wrap snap-x">
+      <div className="grid grid-cols-4 gap-x-3 gap-y-7 sm:gap-x-5 md:grid-cols-4 lg:grid-cols-8 lg:gap-x-7 xl:gap-x-9">
         {CATEGORIES.map((category) => {
           const Icon = category.icon;
           return (
             <Link 
               key={category.name} 
               href={category.href}
-              className="flex flex-col items-center group min-w-[80px] snap-center"
+              className="group flex min-w-0 flex-col items-center"
             >
-              <div className="w-20 h-20 rounded-full border border-gold/30 flex items-center justify-center mb-4 text-gold group-hover:bg-gold group-hover:text-white group-hover:scale-105 transition-all duration-300 shadow-sm bg-white">
-                <Icon aria-hidden="true" strokeWidth={1.5} className="w-8 h-8" />
+              <div className="mb-4 flex aspect-square w-[64px] items-center justify-center rounded-full border border-gold/35 bg-ivory text-gold transition-all duration-300 group-hover:scale-105 group-hover:bg-gold group-hover:text-white sm:w-[74px] md:w-[80px] lg:w-[84px] xl:w-[88px]">
+                <Icon aria-hidden="true" strokeWidth={1.35} className="h-[26px] w-[26px] sm:h-8 sm:w-8" />
               </div>
-              <span className="text-xs font-medium text-charcoal text-center group-hover:text-emerald transition-colors">
+              <span className="text-center text-[11px] font-medium leading-snug text-charcoal transition-colors group-hover:text-emerald sm:text-[12px] lg:text-[13px]">
                 {category.name}
               </span>
             </Link>

@@ -2,35 +2,35 @@ import { CheckCircle2, Crown, ShieldCheck, HeartHandshake } from "lucide-react";
 
 export function TrustBadges() {
   return (
-    <section className="bg-emerald py-12 md:py-16">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12 text-white">
-          <div className="flex flex-col md:flex-row items-center md:items-start text-center md:text-left gap-4">
-            <CheckCircle2 className="w-8 h-8 text-gold shrink-0" strokeWidth={1.5} />
+    <section className="bg-emerald py-9 md:py-10 lg:py-12">
+      <div className="mx-auto w-full max-w-[1728px] px-5 sm:px-7 lg:px-10 xl:px-12 2xl:px-14">
+        <div className="grid grid-cols-1 gap-7 text-white sm:grid-cols-2 lg:grid-cols-4 lg:gap-10 xl:gap-14">
+          <div className="flex items-center justify-center gap-4 text-center sm:justify-start sm:text-left">
+            <CheckCircle2 className="h-8 w-8 shrink-0 text-gold lg:h-9 lg:w-9" strokeWidth={1.35} />
             <div>
-              <h4 className="font-medium text-sm md:text-base mb-1">Verified boutiques</h4>
-              <p className="text-xs md:text-sm text-white/70 font-light">Trusted by millions</p>
+              <h4 className="mb-1 text-[14px] font-semibold md:text-[15px]">Verified boutiques</h4>
+              <p className="text-[12px] font-light text-white/74 md:text-[13px]">Trusted by millions</p>
             </div>
           </div>
-          <div className="flex flex-col md:flex-row items-center md:items-start text-center md:text-left gap-4">
-            <Crown className="w-8 h-8 text-gold shrink-0" strokeWidth={1.5} />
+          <div className="flex items-center justify-center gap-4 text-center sm:justify-start sm:text-left">
+            <Crown className="h-8 w-8 shrink-0 text-gold lg:h-9 lg:w-9" strokeWidth={1.35} />
             <div>
-              <h4 className="font-medium text-sm md:text-base mb-1">Exclusive collections</h4>
-              <p className="text-xs md:text-sm text-white/70 font-light">Handpicked for you</p>
+              <h4 className="mb-1 text-[14px] font-semibold md:text-[15px]">Exclusive collections</h4>
+              <p className="text-[12px] font-light text-white/74 md:text-[13px]">Handpicked for you</p>
             </div>
           </div>
-          <div className="flex flex-col md:flex-row items-center md:items-start text-center md:text-left gap-4">
-            <ShieldCheck className="w-8 h-8 text-gold shrink-0" strokeWidth={1.5} />
+          <div className="flex items-center justify-center gap-4 text-center sm:justify-start sm:text-left">
+            <ShieldCheck className="h-8 w-8 shrink-0 text-gold lg:h-9 lg:w-9" strokeWidth={1.35} />
             <div>
-              <h4 className="font-medium text-sm md:text-base mb-1">Secure & seamless</h4>
-              <p className="text-xs md:text-sm text-white/70 font-light">Your privacy, our priority</p>
+              <h4 className="mb-1 text-[14px] font-semibold md:text-[15px]">Secure & seamless</h4>
+              <p className="text-[12px] font-light text-white/74 md:text-[13px]">Your privacy, our priority</p>
             </div>
           </div>
-          <div className="flex flex-col md:flex-row items-center md:items-start text-center md:text-left gap-4">
-            <HeartHandshake className="w-8 h-8 text-gold shrink-0" strokeWidth={1.5} />
+          <div className="flex items-center justify-center gap-4 text-center sm:justify-start sm:text-left">
+            <HeartHandshake className="h-8 w-8 shrink-0 text-gold lg:h-9 lg:w-9" strokeWidth={1.35} />
             <div>
-              <h4 className="font-medium text-sm md:text-base mb-1">Wedding experts</h4>
-              <p className="text-xs md:text-sm text-white/70 font-light">Here to help you</p>
+              <h4 className="mb-1 text-[14px] font-semibold md:text-[15px]">Wedding experts</h4>
+              <p className="text-[12px] font-light text-white/74 md:text-[13px]">Here to help you</p>
             </div>
           </div>
         </div>

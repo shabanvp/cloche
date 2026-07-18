@@ -1,6 +1,5 @@
-import Image from "next/image";
 import { Button } from "./Button";
-import { Search, Flower2 } from "lucide-react";
+import { ChevronDown, Flower2, Search } from "lucide-react";
 
 interface HeroProps {
   title?: string;
@@ -10,21 +9,22 @@ interface HeroProps {
 
 export function Hero({ title, subtitle, imageUrl }: HeroProps) {
   return (
-    <div className="relative w-full bg-ivory flex items-center min-h-[480px] md:min-h-[640px] lg:min-h-[760px] xl:min-h-[850px] pb-16 md:pb-24">
-      {/* Background with slight dark overlay to ensure text readability */}
-      <div className="absolute inset-0 z-0 h-[85%]">
-        <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent z-10"></div>
-        {/* Using a local fallback SVG until the user provides the actual photograph */}
+    <section className="relative w-full bg-ivory">
+      <div className="relative h-[600px] overflow-hidden sm:h-[630px] md:h-[620px] lg:h-[650px] xl:h-[690px] 2xl:h-[720px]">
+        <div className="absolute inset-0 z-0">
+          <div className="absolute inset-0 z-10 bg-gradient-to-r from-black/62 via-black/30 to-black/10" />
+          <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
+          <div className="absolute inset-y-0 left-0 z-10 hidden w-[58%] bg-[#6a5534]/20 md:block" />
         <img 
-          src={imageUrl || "/hero.svg"}
+            src={imageUrl || "https://images.unsplash.com/photo-1583391733981-84984049cc66?q=90&w=2400&auto=format&fit=crop"}
           alt={title || "Kerala Wedding"}
-          className="object-cover w-full h-full object-top"
+            className="h-full w-full object-cover object-[60%_42%]"
         />
       </div>
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full h-full flex flex-col justify-center">
-        <div className="max-w-2xl mt-12 md:mt-0">
-          <h1 className="text-5xl md:text-6xl lg:text-7xl font-display text-white mb-6 leading-[1.15] drop-shadow-lg">
+        <div className="relative z-20 mx-auto flex h-full w-full max-w-[1728px] flex-col px-5 sm:px-7 md:justify-center lg:px-10 xl:px-12 2xl:px-14">
+          <div className="pt-12 sm:pt-16 md:max-w-[570px] md:pt-0 lg:max-w-[650px] xl:max-w-[710px]">
+            <h1 className="font-display text-[43px] font-normal leading-[1.18] text-white drop-shadow-md sm:text-[50px] md:text-[56px] lg:text-[62px] xl:text-[70px] 2xl:text-[78px]">
             {title ? title : (
               <>
                 Curate your<br/>
@@ -33,50 +33,55 @@ export function Hero({ title, subtitle, imageUrl }: HeroProps) {
               </>
             )}
           </h1>
-          <p className="text-base md:text-lg text-white/90 mb-8 font-light max-w-sm drop-shadow-md leading-relaxed">
+            <p className="mt-6 max-w-[390px] text-[15px] font-light leading-relaxed text-white/90 drop-shadow sm:text-base lg:text-[18px]">
             {subtitle || "Discover the finest boutiques, curated collections & trusted experts."}
           </p>
           
-          <Flower2 className="w-12 h-12 text-gold mb-12 opacity-80" strokeWidth={1} />
-          
-          {/* Advanced Search Bar Container - overlaps the bottom edge */}
-          <div className="absolute -bottom-16 left-4 right-4 md:left-1/2 md:-translate-x-1/2 lg:left-8 lg:-translate-x-0 lg:right-auto w-auto md:w-[700px] lg:w-[800px] bg-white p-4 md:p-5 rounded-2xl shadow-xl z-20">
-            <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3 md:gap-0 border border-gray-200 rounded-lg md:rounded-full p-1.5 mb-3">
-              <div className="flex-1 px-4 py-2 md:py-0">
+            <Flower2 className="mt-9 hidden h-[62px] w-[62px] text-gold opacity-90 sm:block lg:mt-12 lg:h-[74px] lg:w-[74px]" strokeWidth={1} />
+          </div>
+
+          <div className="mt-auto pb-5 sm:pb-7 md:absolute md:bottom-[8%] md:left-1/2 md:mt-0 md:w-[min(74vw,980px)] md:-translate-x-1/2 md:pb-0 lg:left-[18%] lg:w-[min(72vw,1040px)] lg:translate-x-0 xl:left-[18%] 2xl:left-[18%]">
+            <div className="rounded-[12px] bg-white p-4 shadow-[0_18px_42px_rgba(40,31,18,0.22)] sm:p-5 md:p-6">
+              <div className="grid gap-3 rounded-[8px] border border-[#e4ded4] bg-white p-0 md:grid-cols-[1fr_210px_64px] md:gap-0">
+                <div className="flex min-h-[50px] items-center px-4 md:min-h-[64px] md:px-6">
                 <input 
                   type="text" 
                   placeholder="What are you looking for?"
-                  className="w-full bg-transparent border-none focus:outline-none text-charcoal placeholder-charcoal/50 text-sm md:text-base"
+                    className="h-full w-full border-none bg-transparent text-[14px] text-charcoal placeholder:text-charcoal/45 focus:outline-none sm:text-[15px]"
                 />
               </div>
-              <div className="hidden md:block h-6 w-px bg-gray-200 mx-2"></div>
-              <div className="px-4 py-2 md:py-0 border-t md:border-t-0 border-gray-100 md:border-none w-full md:w-48">
+                <div className="relative flex min-h-[50px] items-center border-t border-[#e4ded4] px-4 md:min-h-[64px] md:border-l md:border-t-0 md:px-5">
                 <select 
                   aria-label="Category select"
-                  className="bg-transparent border-none focus:outline-none text-charcoal text-sm font-medium cursor-pointer w-full"
+                    className="h-full w-full cursor-pointer appearance-none border-none bg-transparent pr-8 text-[14px] font-medium text-charcoal focus:outline-none sm:text-[15px]"
                 >
                   <option>All Categories</option>
                   <option>Bridal Wear</option>
                   <option>Groom Wear</option>
                   <option>Jewellery</option>
+                    <option>Wedding Planners</option>
                 </select>
+                  <ChevronDown className="pointer-events-none absolute right-5 h-4 w-4 text-charcoal/55" strokeWidth={1.7} />
               </div>
-              <Button size="icon" className="w-full md:w-12 h-10 md:h-10 rounded-lg md:rounded-full bg-emerald hover:bg-emerald/90 flex justify-center items-center shrink-0">
-                <Search className="w-5 h-5 text-white" />
+                <div className="p-0 md:p-2">
+                  <Button size="icon" className="flex h-[50px] w-full shrink-0 items-center justify-center rounded-[8px] bg-emerald hover:bg-emerald/90 md:h-12 md:w-12">
+                    <Search className="h-5 w-5 text-white" strokeWidth={1.8} />
               </Button>
             </div>
+              </div>
             
-            <div className="flex flex-wrap items-center gap-2 md:gap-3 text-xs text-charcoal/60 font-medium px-2">
-              <span className="mr-1">Popular searches:</span>
-              <span className="cursor-pointer bg-gray-50 hover:bg-gray-100 px-3 py-1.5 rounded-md transition-colors">Bridal wear</span>
-              <span className="cursor-pointer bg-gray-50 hover:bg-gray-100 px-3 py-1.5 rounded-md transition-colors">Jewellery</span>
-              <span className="cursor-pointer bg-gray-50 hover:bg-gray-100 px-3 py-1.5 rounded-md transition-colors">Wedding planners</span>
-              <span className="cursor-pointer bg-gray-50 hover:bg-gray-100 px-3 py-1.5 rounded-md transition-colors">Makeup artists</span>
-              <span className="cursor-pointer bg-gray-50 hover:bg-gray-100 px-3 py-1.5 rounded-md transition-colors">Venues</span>
+              <div className="mt-4 flex flex-wrap items-center gap-2 px-1 text-[12px] font-medium text-charcoal/65 sm:gap-3">
+                <span className="mr-1 text-charcoal/65">Popular searches:</span>
+                <span className="cursor-pointer rounded-full bg-[#f7f4ef] px-4 py-2 transition-colors hover:bg-[#eee8df]">Bridal wear</span>
+                <span className="cursor-pointer rounded-full bg-[#f7f4ef] px-4 py-2 transition-colors hover:bg-[#eee8df]">Jewellery</span>
+                <span className="cursor-pointer rounded-full bg-[#f7f4ef] px-4 py-2 transition-colors hover:bg-[#eee8df]">Wedding planners</span>
+                <span className="cursor-pointer rounded-full bg-[#f7f4ef] px-4 py-2 transition-colors hover:bg-[#eee8df]">Makeup artists</span>
+                <span className="cursor-pointer rounded-full bg-[#f7f4ef] px-4 py-2 transition-colors hover:bg-[#eee8df]">Venues</span>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 }
