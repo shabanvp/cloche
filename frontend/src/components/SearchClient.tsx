@@ -1,45 +1,90 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Product, Boutique } from "@/types";
-import { Search, MapPin, Filter, Star, ChevronDown, CheckCircle2 } from "lucide-react";
+import { Search, MapPin, Filter, Star, CheckCircle2, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { Button } from "./Button";
+import { searchProducts, searchBoutiques } from "@/app/actions/search";
 
-interface Props {
-  initialProducts: Product[];
-  initialBoutiques: Boutique[];
-}
-
-export function SearchClient({ initialProducts, initialBoutiques }: Props) {
+export function SearchClient() {
   const [activeTab, setActiveTab] = useState<"collections" | "boutiques">("collections");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedDistrict, setSelectedDistrict] = useState("All");
+  
+  // Results & Pagination
+  const [products, setProducts] = useState<Product[]>([]);
+  const [boutiques, setBoutiques] = useState<Boutique[]>([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalResults, setTotalResults] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
 
   const categories = ["All", "Bridal Wear", "Groom Wear", "Jewellery", "Makeup & Hair", "Photography"];
   const districts = ["All", "Ernakulam", "Trivandrum", "Kozhikode", "Thrissur", "Kottayam"];
 
-  const filteredProducts = useMemo(() => {
-    return initialProducts.filter(p => {
-      const matchesSearch = p.product_name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                            p.description?.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesCategory = selectedCategory === "All" || p.category === selectedCategory;
-      const matchesDistrict = selectedDistrict === "All" || p.location?.toLowerCase().includes(selectedDistrict.toLowerCase());
-      return matchesSearch && matchesCategory && matchesDistrict;
-    });
-  }, [initialProducts, searchQuery, selectedCategory, selectedDistrict]);
+  const fetchResults = useCallback(async (isBoutique: boolean, currentPage: number) => {
+    setIsLoading(true);
+    
+    if (isBoutique) {
+      const res = await searchBoutiques({
+        keyword: searchQuery,
+        district: selectedDistrict,
+        page: currentPage,
+        limit: 12
+      });
+      if (res.success) {
+        setBoutiques(res.data);
+        setTotalPages(res.pagination.totalPages || 1);
+        setTotalResults(res.pagination.total || 0);
+      } else {
+        setBoutiques([]);
+      }
+    } else {
+      const res = await searchProducts({
+        keyword: searchQuery,
+        district: selectedDistrict,
+        category: selectedCategory,
+        page: currentPage,
+        limit: 12
+      });
+      if (res.success) {
+        setProducts(res.data);
+        setTotalPages(res.pagination.totalPages || 1);
+        setTotalResults(res.pagination.total || 0);
+      } else {
+        setProducts([]);
+      }
+    }
+    
+    setIsLoading(false);
+  }, [searchQuery, selectedDistrict, selectedCategory]);
 
-  const filteredBoutiques = useMemo(() => {
-    return initialBoutiques.filter(b => {
-      const matchesSearch = b.boutique_name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                            b.tags?.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesDistrict = selectedDistrict === "All" || b.city?.toLowerCase().includes(selectedDistrict.toLowerCase()) || b.district?.toLowerCase().includes(selectedDistrict.toLowerCase());
-      return matchesSearch && matchesDistrict;
-    });
-  }, [initialBoutiques, searchQuery, selectedDistrict]);
+  useEffect(() => {
+    // Reset page on filter change
+    setPage(1);
+    const timeoutId = setTimeout(() => {
+      fetchResults(activeTab === "boutiques", 1);
+    }, 400); // 400ms debounce
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery, selectedCategory, selectedDistrict, activeTab, fetchResults]);
+
+  // When page explicitly changes
+  useEffect(() => {
+    if (page > 1) {
+      fetchResults(activeTab === "boutiques", page);
+    }
+  }, [page, activeTab, fetchResults]);
+
+  const handleClearFilters = () => {
+    setSearchQuery("");
+    setSelectedCategory("All");
+    setSelectedDistrict("All");
+    setPage(1);
+  };
 
   return (
     <div className="flex flex-col md:flex-row gap-8">
@@ -118,18 +163,19 @@ export function SearchClient({ initialProducts, initialBoutiques }: Props) {
       {/* Results */}
       <div className="flex-1">
         <div className="mb-6 flex justify-between items-end">
-          <h2 className="text-2xl font-display text-charcoal">
+          <h2 className="text-2xl font-display text-charcoal flex items-center gap-3">
             {activeTab === "collections" ? "Discover Collections" : "Discover Boutiques"}
+            {isLoading && <Loader2 className="w-5 h-5 text-emerald animate-spin" />}
           </h2>
           <span className="text-sm text-charcoal/50">
-            {activeTab === "collections" ? filteredProducts.length : filteredBoutiques.length} results
+            {totalResults} results
           </span>
         </div>
 
         {activeTab === "collections" ? (
-          filteredProducts.length > 0 ? (
+          products.length > 0 ? (
             <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
-              {filteredProducts.map(product => (
+              {products.map(product => (
                 <Link key={product.id} href={`/collections/${product.id}`} className="group block">
                   <div className="relative aspect-[3/4] rounded-xl overflow-hidden mb-3 shadow-sm group-hover:shadow-xl transition-all duration-300">
                     <Image
@@ -150,17 +196,19 @@ export function SearchClient({ initialProducts, initialBoutiques }: Props) {
               ))}
             </div>
           ) : (
-            <div className="text-center py-20 bg-white rounded-2xl border border-gold/10 border-dashed">
-              <Search className="w-8 h-8 text-gold mx-auto mb-4 opacity-50" />
-              <p className="text-charcoal font-medium mb-1">No collections found</p>
-              <p className="text-sm text-charcoal/50">Try adjusting your filters or search query.</p>
-              <Button variant="outline" className="mt-4 border-emerald text-emerald hover:bg-emerald hover:text-white rounded-full" onClick={() => {setSearchQuery(""); setSelectedCategory("All"); setSelectedDistrict("All");}}>Clear Filters</Button>
-            </div>
+            !isLoading && (
+              <div className="text-center py-20 bg-white rounded-2xl border border-gold/10 border-dashed">
+                <Search className="w-8 h-8 text-gold mx-auto mb-4 opacity-50" />
+                <p className="text-charcoal font-medium mb-1">No collections found</p>
+                <p className="text-sm text-charcoal/50">Try adjusting your filters or search query.</p>
+                <Button variant="outline" className="mt-4 border-emerald text-emerald hover:bg-emerald hover:text-white rounded-full" onClick={handleClearFilters}>Clear Filters</Button>
+              </div>
+            )
           )
         ) : (
-          filteredBoutiques.length > 0 ? (
+          boutiques.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-              {filteredBoutiques.map(boutique => (
+              {boutiques.map(boutique => (
                 <Link key={boutique.id} href={`/boutiques/${boutique.id}`} className="group block bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all border border-gold/10">
                   <div className="relative aspect-[4/3] w-full">
                     <Image
@@ -173,7 +221,7 @@ export function SearchClient({ initialProducts, initialBoutiques }: Props) {
                     <div className="absolute bottom-4 left-4 right-4 text-white">
                       <h3 className="font-display text-lg font-medium mb-1 truncate flex items-center gap-2">
                         {boutique.boutique_name}
-                        {boutique.is_featured && <CheckCircle2 className="w-3.5 h-3.5 text-gold fill-white" />}
+                        {boutique.plan === 'premium' && <CheckCircle2 className="w-3.5 h-3.5 text-gold fill-white" />}
                       </h3>
                       <div className="flex items-center justify-between text-xs text-white/90">
                         <span className="flex items-center gap-1"><MapPin className="w-3 h-3" /> {boutique.city || boutique.district || 'Kerala'}</span>
@@ -189,13 +237,42 @@ export function SearchClient({ initialProducts, initialBoutiques }: Props) {
               ))}
             </div>
           ) : (
-            <div className="text-center py-20 bg-white rounded-2xl border border-gold/10 border-dashed">
-              <Search className="w-8 h-8 text-gold mx-auto mb-4 opacity-50" />
-              <p className="text-charcoal font-medium mb-1">No boutiques found</p>
-              <p className="text-sm text-charcoal/50">Try adjusting your filters or search query.</p>
-              <Button variant="outline" className="mt-4 border-emerald text-emerald hover:bg-emerald hover:text-white rounded-full" onClick={() => {setSearchQuery(""); setSelectedDistrict("All");}}>Clear Filters</Button>
-            </div>
+            !isLoading && (
+              <div className="text-center py-20 bg-white rounded-2xl border border-gold/10 border-dashed">
+                <Search className="w-8 h-8 text-gold mx-auto mb-4 opacity-50" />
+                <p className="text-charcoal font-medium mb-1">No boutiques found</p>
+                <p className="text-sm text-charcoal/50">Try adjusting your filters or search query.</p>
+                <Button variant="outline" className="mt-4 border-emerald text-emerald hover:bg-emerald hover:text-white rounded-full" onClick={handleClearFilters}>Clear Filters</Button>
+              </div>
+            )
           )
+        )}
+
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="mt-12 flex items-center justify-center gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => setPage(p => Math.max(1, p - 1))}
+              disabled={page === 1 || isLoading}
+              className="p-2 h-10 w-10 rounded-full flex items-center justify-center border-gold/20 text-charcoal disabled:opacity-50"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </Button>
+            
+            <div className="text-sm font-medium text-charcoal px-4">
+              Page {page} of {totalPages}
+            </div>
+
+            <Button 
+              variant="outline" 
+              onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+              disabled={page === totalPages || isLoading}
+              className="p-2 h-10 w-10 rounded-full flex items-center justify-center border-gold/20 text-charcoal disabled:opacity-50"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </Button>
+          </div>
         )}
       </div>
     </div>

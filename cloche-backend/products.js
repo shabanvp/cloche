@@ -129,6 +129,77 @@ router.get("/", async (req, res) => {
   }
 });
 
+/* ================= ADVANCED SEARCH PRODUCTS ================= */
+router.get("/search", async (req, res) => {
+  try {
+    const { keyword, category, minPrice, maxPrice, district, sort, page = 1, limit = 20 } = req.query;
+    
+    let query = supabase.from("products").select("*, boutiques!inner(boutique_name, city)", { count: "exact" });
+
+    // Text search
+    if (keyword) {
+      query = query.ilike("product_name", `%${keyword}%`);
+    }
+
+    // Category filter
+    if (category && category !== "all" && category !== "All Categories") {
+      query = query.ilike("category", `%${category}%`);
+    }
+
+    // Price range
+    if (minPrice) query = query.gte("price", Number(minPrice));
+    if (maxPrice) query = query.lte("price", Number(maxPrice));
+
+    // District/Location filter via inner join
+    if (district && district !== "all") {
+      query = query.ilike("boutiques.city", `%${district}%`);
+    }
+
+    // Sorting
+    if (sort === "price_asc") {
+      query = query.order("price", { ascending: true });
+    } else if (sort === "price_desc") {
+      query = query.order("price", { ascending: false });
+    } else {
+      query = query.order("created_at", { ascending: false }); // "newest"
+    }
+
+    // Pagination
+    const from = (page - 1) * limit;
+    const to = from + limit - 1;
+    query = query.range(from, to);
+
+    const { data, count, error } = await query;
+    if (error) throw error;
+
+    // Flatten boutique info
+    const flattened = (data || []).map(p => ({
+      ...p,
+      boutique_name: p.boutiques?.boutique_name || "Boutique",
+      city: p.boutiques?.city || "",
+      district: p.boutiques?.city || "",
+      location: p.location || p.boutiques?.city || ""
+    }));
+
+    // Remove the joined object to keep payload clean
+    flattened.forEach(p => delete p.boutiques);
+
+    return res.json({
+      success: true,
+      data: flattened,
+      pagination: {
+        total: count || 0,
+        page: Number(page),
+        limit: Number(limit),
+        totalPages: Math.ceil((count || 0) / limit)
+      }
+    });
+
+  } catch (err) {
+    console.error("[Products] Search error:", err.message);
+    return res.status(500).json({ success: false, message: "Search error", error: err.message });
+  }
+});
 
 /* ================= GET PRODUCT DETAILS ================= */
 router.get("/:productId", async (req, res, next) => {

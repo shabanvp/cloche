@@ -249,6 +249,71 @@ exports.getAllBoutiques = async (req, res) => {
     }
 };
 
+exports.searchBoutiques = async (req, res) => {
+    try {
+        const { keyword, district, category, verified, plan, page = 1, limit = 20 } = req.query;
+        
+        let query = supabase.from("boutique_showcase").select("*, boutiques!inner(id, boutique_name, owner_name, city, plan)", { count: "exact" });
+
+        // Keyword search
+        if (keyword) {
+            query = query.or(`boutiques.boutique_name.ilike.%${keyword}%, tags.ilike.%${keyword}%`);
+        }
+
+        // District filter
+        if (district && district !== "all") {
+            query = query.ilike("district", `%${district}%`);
+        }
+
+        // Category / tags filter
+        if (category && category !== "all") {
+            query = query.ilike("tags", `%${category}%`);
+        }
+
+        // Plan / verified filter
+        if (verified === 'true') {
+            query = query.in("boutiques.plan", ["professional", "premium"]);
+        }
+
+        // Pagination
+        const from = (page - 1) * limit;
+        const to = from + limit - 1;
+        query = query.range(from, to).order('rating', { ascending: false });
+
+        const { data, count, error } = await query;
+        if (error) throw error;
+
+        // Map data to expected format
+        const flattened = (data || []).map(row => ({
+            id: row.boutiques.id,
+            boutique_name: row.boutiques.boutique_name,
+            owner_name: row.boutiques.owner_name,
+            city: row.boutiques.city,
+            plan: row.boutiques.plan,
+            district: row.district,
+            area: row.area,
+            tags: normalizeTags(row.tags),
+            image_url: normalizeImageUrl(row.image_url),
+            rating: row.rating
+        }));
+
+        return res.json({
+            success: true,
+            data: flattened,
+            pagination: {
+                total: count || 0,
+                page: Number(page),
+                limit: Number(limit),
+                totalPages: Math.ceil((count || 0) / limit)
+            }
+        });
+
+    } catch (err) {
+        console.error("[BoutiqueController Search] Error:", err.message);
+        return res.status(500).json({ success: false, message: "Search error", error: err.message });
+    }
+};
+
 exports.getBoutiqueDetails = async (req, res) => {
     const { boutiqueId } = req.params;
     try {
