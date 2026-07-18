@@ -28,3 +28,42 @@ export async function getTrendingCollections(): Promise<Product[]> {
     return [];
   }
 }
+
+export async function getBoutiqueDetails(id: string): Promise<Boutique | null> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/boutiques/${id}`, {
+      next: { revalidate: 3600 }
+    });
+    if (!res.ok) return null;
+    return res.json();
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+}
+
+export async function getBoutiqueProducts(boutiqueId: string): Promise<Product[]> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/products/boutique/${boutiqueId}`, {
+      next: { revalidate: 3600 }
+    });
+    if (!res.ok) return [];
+    return res.json();
+  } catch (error) {
+    console.error(error);
+    return [];
+  }
+}
+
+export async function getProductDetails(id: string): Promise<Product & { gallery?: string[], boutique_name?: string, boutique_city?: string, store_location?: string } | null> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/products/${id}`, {
+      next: { revalidate: 3600 }
+    });
+    if (!res.ok) return null;
+    return res.json();
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+}

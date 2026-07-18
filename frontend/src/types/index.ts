@@ -25,4 +25,6 @@ export interface Product {
   description?: string;
   image_url?: string;
   tags?: string;
+  fabric?: string;
+  location?: string;
 }
