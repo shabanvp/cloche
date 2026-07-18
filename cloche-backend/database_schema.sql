@@ -1,0 +1,88 @@
+-- Cloche 2.0 Database Schema Extensions
+
+-- 1. Wishlists
+CREATE TABLE IF NOT EXISTS wishlists (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    product_id INTEGER REFERENCES products(id) ON DELETE CASCADE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(user_id, product_id)
+);
+
+-- 2. Appointments
+CREATE TABLE IF NOT EXISTS appointments (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    boutique_id INTEGER REFERENCES boutiques(id) ON DELETE CASCADE,
+    appointment_date DATE NOT NULL,
+    appointment_time TIME NOT NULL,
+    status VARCHAR(50) DEFAULT 'pending', -- pending, confirmed, cancelled, completed
+    notes TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 3. Content Articles (Blogs, Guides, Inspiration)
+CREATE TABLE IF NOT EXISTS content_articles (
+    id SERIAL PRIMARY KEY,
+    slug VARCHAR(255) UNIQUE NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    excerpt TEXT,
+    content TEXT NOT NULL,
+    author VARCHAR(255) NOT NULL,
+    category VARCHAR(100) NOT NULL,
+    image_url TEXT,
+    published_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 4. Real Weddings
+CREATE TABLE IF NOT EXISTS real_weddings (
+    id SERIAL PRIMARY KEY,
+    slug VARCHAR(255) UNIQUE NOT NULL,
+    couple_name VARCHAR(255) NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    wedding_date DATE,
+    location VARCHAR(255),
+    style VARCHAR(100),
+    venue_id INTEGER REFERENCES boutiques(id) ON DELETE SET NULL, -- Assuming venues can be boutiques
+    photographer_id INTEGER REFERENCES boutiques(id) ON DELETE SET NULL, -- Assuming photographers can be boutiques
+    gallery_urls TEXT[], -- Array of image URLs
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 5. Newsletter Subscribers
+CREATE TABLE IF NOT EXISTS newsletter_subscribers (
+    id SERIAL PRIMARY KEY,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    status VARCHAR(50) DEFAULT 'active', -- active, unsubscribed
+    subscribed_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 6. Homepage CMS Sections
+CREATE TABLE IF NOT EXISTS homepage_sections (
+    id SERIAL PRIMARY KEY,
+    section_type VARCHAR(100) NOT NULL, -- hero, trending, featured_boutiques, etc.
+    title VARCHAR(255),
+    subtitle TEXT,
+    content JSONB, -- Flexible JSON for section-specific data (e.g. image URLs, lists of featured IDs)
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 7. Notifications
+CREATE TABLE IF NOT EXISTS notifications (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    boutique_id INTEGER REFERENCES boutiques(id) ON DELETE CASCADE,
+    title VARCHAR(255) NOT NULL,
+    message TEXT NOT NULL,
+    type VARCHAR(100) NOT NULL, -- appointment_update, new_lead, offer, etc.
+    is_read BOOLEAN DEFAULT false,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
