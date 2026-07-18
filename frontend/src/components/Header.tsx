@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Search, Heart, User, Menu } from "lucide-react";
+import { Search, Heart, User, Menu, Flower2 } from "lucide-react";
 import { useState } from "react";
 
 export function Header() {
@@ -14,8 +14,9 @@ export function Header() {
           {/* Logo */}
           <div className="flex-shrink-0 flex items-center">
             <Link href="/" className="flex flex-col items-center">
-              <span className="font-display text-2xl tracking-widest text-emerald font-bold uppercase">Cloche</span>
-              <span className="text-[9px] uppercase tracking-[0.3em] text-gold mt-1">Weddings of Kerala</span>
+              <Flower2 className="w-5 h-5 text-gold mb-1" strokeWidth={1.5} />
+              <span className="font-display text-2xl tracking-[0.15em] text-charcoal font-bold uppercase">Cloche</span>
+              <span className="text-[8px] uppercase tracking-[0.25em] text-charcoal/70 mt-0.5">Stories in threads</span>
             </Link>
           </div>
 
