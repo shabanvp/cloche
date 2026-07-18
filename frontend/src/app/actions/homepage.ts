@@ -6,10 +6,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/a
 
 async function getAdminToken() {
   const cookieStore = await cookies();
-  // We don't have a dedicated admin token in cookies from the prompt, 
-  // but if admin logs in, they might use the same auth_token or an admin_token.
-  // We'll fall back to hardcoded "admin-session-secure-token" for the CMS endpoints if not found
-  return cookieStore.get("admin_token")?.value || "admin-session-secure-token";
+  return cookieStore.get("auth_token")?.value || "";
 }
 
 export async function getHomepageSections() {

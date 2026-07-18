@@ -6,7 +6,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/a
 
 async function getAdminToken() {
   const cookieStore = await cookies();
-  return cookieStore.get("admin_token")?.value || "admin-session-secure-token";
+  return cookieStore.get("auth_token")?.value || "";
 }
 
 /* =======================================
