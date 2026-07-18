@@ -56,6 +56,22 @@ export async function getAllBoutiques(): Promise<Boutique[]> {
   }
 }
 
+export async function getAdminAnalytics(token: string) {
+  try {
+    const res = await fetch(`${API_BASE_URL}/admin/analytics`, {
+      headers: {
+        "x-admin-token": token
+      },
+      next: { revalidate: 60 }
+    });
+    if (!res.ok) throw new Error("Failed to fetch admin analytics");
+    return res.json();
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+}
+
 export async function getBoutiqueDetails(id: string): Promise<Boutique | null> {
   try {
     const res = await fetch(`${API_BASE_URL}/boutiques/${id}`, {
