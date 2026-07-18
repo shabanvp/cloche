@@ -11,7 +11,7 @@ import Image from "next/image";
 interface Props {
   params: { id: string };
 }
-
+import { WishlistButton } from "@/components/WishlistButton";
 export default async function CollectionPage({ params }: Props) {
   const { id } = await params;
   const product = await getProductDetails(id);
@@ -74,9 +74,7 @@ export default async function CollectionPage({ params }: Props) {
               <Button variant="outline" className="flex-1 rounded-full border-charcoal text-charcoal hover:bg-charcoal hover:text-white">
                 Book Appointment
               </Button>
-              <Button variant="ghost" size="icon" className="rounded-full border border-gray-200 hover:border-gold hover:text-gold shrink-0">
-                <Heart className="w-5 h-5" />
-              </Button>
+              <WishlistButton product={product} />
               <Button variant="ghost" size="icon" className="rounded-full border border-gray-200 hover:border-gold hover:text-gold shrink-0">
                 <Share2 className="w-5 h-5" />
               </Button>
