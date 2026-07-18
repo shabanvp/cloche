@@ -14,13 +14,11 @@ export function Hero({ title, subtitle, imageUrl }: HeroProps) {
       {/* Background with slight dark overlay to ensure text readability */}
       <div className="absolute inset-0 z-0">
         <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent z-10"></div>
-        {/* Using a high-quality Kerala wedding image */}
-        <Image 
-          src={imageUrl || "https://images.unsplash.com/photo-1583391733981-849840f3f1c2?q=80&w=2000&auto=format&fit=crop"}
+        {/* Using a standard img tag to bypass Vercel image optimization errors */}
+        <img 
+          src={imageUrl || "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?q=80&w=2000&auto=format&fit=crop"}
           alt={title || "Kerala Wedding"}
-          fill
-          className="object-cover"
-          priority
+          className="object-cover w-full h-full"
         />
       </div>
 
@@ -40,8 +38,8 @@ export function Hero({ title, subtitle, imageUrl }: HeroProps) {
           </p>
           
           {/* Advanced Search Bar Container */}
-          <div className="bg-white p-4 md:p-6 rounded-2xl shadow-2xl max-w-2xl mt-4">
-            <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3 md:gap-0 border border-gray-200 rounded-lg md:rounded-full p-2 mb-4">
+          <div className="bg-white p-3 md:p-4 rounded-2xl shadow-2xl max-w-2xl mt-4">
+            <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3 md:gap-0 border border-gray-200 rounded-lg md:rounded-full p-1.5 mb-3">
               <div className="flex-1 px-4 py-2 md:py-0">
                 <input 
                   type="text" 
