@@ -6,50 +6,44 @@ import { Footer } from "@/components/Footer";
 import { Newsletter } from "@/components/Newsletter";
 import { Calendar, Clock, Share2, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/Button";
-
-// This is where we would fetch data based on the slug.
-// For now, we return a mock CMS payload.
-const getArticleData = (slug: string) => {
-  return {
-    title: "The Ultimate Guide to Kanchipuram Silks for the Modern Bride",
-    excerpt: "Everything you need to know about selecting, draping, and styling authentic Kanchipuram silk sarees for your big day.",
-    content: `
-      <p>Kanchipuram silk sarees are the epitome of South Indian bridal elegance. Woven with pure mulberry silk thread and zari, these sarees are not just garments; they are heirlooms passed down through generations.</p>
-      <h2>Understanding the Zari</h2>
-      <p>The hallmark of a true Kanchipuram silk is its zari. Traditional zari is made by twisting a silver wire with a silk thread, which is then electroplated with pure gold. When shopping for your bridal saree, always check the weight and the reverse side of the zari work.</p>
-      <h2>Color Trends for 2026</h2>
-      <p>While the classic vermillion red and mustard yellow remain timeless favorites, modern brides are increasingly opting for pastel shades like mint green, powder blue, and soft lavender, paired with contrasting heavy zari borders.</p>
-    `,
-    author: "Sneha Nair",
-    date: "October 12, 2026",
-    readTime: "8 min read",
-    category: "Bridal Guide",
-    image: "https://images.unsplash.com/photo-1594223274512-ad4803739b7c?q=80&w=1600&auto=format&fit=crop",
-    slug
-  };
-};
+import { getArticleBySlug } from "@/app/actions/content";
+import { notFound } from "next/navigation";
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   const { slug } = await params;
-  const article = getArticleData(slug);
+  const res = await getArticleBySlug(slug);
+  
+  if (!res.success || !res.data) {
+    return {
+      title: "Article Not Found | Cloche Editorial",
+    };
+  }
+  const article = res.data;
   
   return {
-    title: `${article.title} | Cloche Editorial`,
-    description: article.excerpt,
+    title: `${article.seo_metadata?.title || article.title} | Cloche Editorial`,
+    description: article.seo_metadata?.description || article.excerpt,
     openGraph: {
-      title: article.title,
-      description: article.excerpt,
+      title: article.seo_metadata?.title || article.title,
+      description: article.seo_metadata?.description || article.excerpt,
       type: "article",
-      publishedTime: article.date,
-      authors: [article.author],
-      images: [{ url: article.image }]
+      publishedTime: article.created_at,
+      authors: [article.author || "Cloche Team"],
+      images: [{ url: article.cover_image || "" }]
     }
   };
 }
 
 export default async function ArticlePage({ params }: { params: { slug: string } }) {
   const { slug } = await params;
-  const article = getArticleData(slug);
+  const res = await getArticleBySlug(slug);
+  
+  if (!res.success || !res.data) {
+    notFound();
+  }
+
+  const article = res.data;
+  const date = new Date(article.created_at).toLocaleDateString();
 
   return (
     <div className="min-h-screen bg-ivory flex flex-col">
@@ -64,22 +58,20 @@ export default async function ArticlePage({ params }: { params: { slug: string }
 
           <div className="text-center mb-10">
             <span className="inline-block bg-emerald/10 text-emerald px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider mb-4">
-              {article.category}
+              {article.category || 'Article'}
             </span>
             <h1 className="text-3xl md:text-5xl font-display text-charcoal mb-6 leading-tight">{article.title}</h1>
             
             <div className="flex flex-wrap items-center justify-center gap-4 text-xs font-semibold uppercase tracking-wider text-charcoal/50">
-              <span className="text-charcoal/80">By {article.author}</span>
+              <span className="text-charcoal/80">By {article.author || 'Cloche Team'}</span>
               <span>•</span>
-              <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5" /> {article.date}</span>
-              <span>•</span>
-              <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" /> {article.readTime}</span>
+              <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5" /> {date}</span>
             </div>
           </div>
 
           <div className="relative aspect-video w-full rounded-3xl overflow-hidden mb-12 shadow-xl">
             <Image 
-              src={article.image}
+              src={article.cover_image || "https://images.unsplash.com/photo-1594223274512-ad4803739b7c?q=80&w=1600&auto=format&fit=crop"}
               alt={article.title}
               fill
               className="object-cover"

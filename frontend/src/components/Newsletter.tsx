@@ -2,26 +2,27 @@
 
 import { useState } from "react";
 import { Send, CheckCircle2, AlertCircle } from "lucide-react";
+import { subscribeNewsletter } from "@/app/actions/content";
 import { Button } from "./Button";
 
 export function Newsletter() {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [errorMsg, setErrorMsg] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) return;
     
     setStatus("loading");
-    // Simulate API call
-    setTimeout(() => {
-      if (email.includes("@")) {
-        setStatus("success");
-        setEmail("");
-      } else {
-        setStatus("error");
-      }
-    }, 1000);
+    const res = await subscribeNewsletter(email);
+    if (res.success) {
+      setStatus("success");
+      setEmail("");
+    } else {
+      setStatus("error");
+      setErrorMsg(res.message || "Failed to subscribe.");
+    }
   };
 
   return (
@@ -68,7 +69,7 @@ export function Newsletter() {
         )}
         
         {status === "error" && (
-          <p className="text-xs text-red-500 mt-2">Please enter a valid email address.</p>
+          <p className="text-xs text-red-500 mt-2">{errorMsg}</p>
         )}
         <p className="text-[10px] text-charcoal/40 uppercase tracking-wider">
           No spam. Unsubscribe at any time.
