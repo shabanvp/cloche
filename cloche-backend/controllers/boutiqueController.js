@@ -186,8 +186,10 @@ exports.getAllBoutiques = async (req, res) => {
             if (!row || !row.boutique_id) continue;
             // Keep the first row encountered (queries above try to return newest-first).
             if (showcaseMap[row.boutique_id]) continue;
+            
+            const { id: _showcaseId, ...rest } = row;
             showcaseMap[row.boutique_id] = {
-                ...row,
+                ...rest,
                 tags: normalizeTags(row.tags)
             };
         }
