@@ -18,7 +18,7 @@ interface CategoriesProps {
 
 export function Categories({ title, subtitle }: CategoriesProps) {
   return (
-    <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-b border-gold/10">
+    <section className="pt-32 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-b border-gold/10">
       <div className="flex justify-between items-end mb-12">
         <div>
           <span className="text-gold tracking-[0.4em] uppercase text-xs mb-3 block font-bold">{subtitle || "Browse by Category"}</span>

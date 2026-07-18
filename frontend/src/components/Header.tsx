@@ -10,7 +10,7 @@ export function Header() {
   return (
     <header className="w-full bg-ivory/95 backdrop-blur-md sticky top-0 z-50 border-b border-gold/20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-20">
+        <div className="flex justify-between items-center h-[72px] md:h-[80px] lg:h-[88px] xl:h-[96px]">
           {/* Logo */}
           <div className="flex-shrink-0 flex items-center">
             <Link href="/" className="flex flex-col items-center">

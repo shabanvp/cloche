@@ -4,9 +4,7 @@ import { Hero } from "@/components/Hero";
 import { Categories } from "@/components/Categories";
 import { FeaturedBoutiques } from "@/components/FeaturedBoutiques";
 import { TrendingCollections } from "@/components/TrendingCollections";
-import { Testimonials } from "@/components/Testimonials";
-import { PartnerCTA } from "@/components/PartnerCTA";
-import { Footer } from "@/components/Footer";
+import { TrustBadges } from "@/components/TrustBadges";
 import { SkeletonGrid } from "@/components/SkeletonGrid";
 import { getHomepageSections } from "@/app/actions/homepage";
 
@@ -33,10 +31,8 @@ export default async function Home() {
           <Suspense fallback={<SkeletonGrid />}>
             <TrendingCollections />
           </Suspense>
-          <Testimonials />
-          <PartnerCTA />
+          <TrustBadges />
         </main>
-        <Footer />
       </div>
     );
   }
@@ -63,16 +59,13 @@ export default async function Home() {
                   <TrendingCollections title={sec.title} subtitle={sec.subtitle} />
                 </Suspense>
               );
-            case "testimonials":
-              return <Testimonials key={sec.id} title={sec.title} subtitle={sec.subtitle} />;
             default:
-              return null; // Ignore unknown or custom sections for now, or implement a CustomComponent
+              return null;
           }
         })}
-        {/* We keep PartnerCTA at the very bottom as a static section, or it could be added to CMS */}
-        <PartnerCTA />
+        {/* We keep TrustBadges at the very bottom */}
+        <TrustBadges />
       </main>
-      <Footer />
     </div>
   );
 }

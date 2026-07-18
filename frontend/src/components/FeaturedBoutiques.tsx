@@ -25,7 +25,7 @@ export async function FeaturedBoutiques({ title, subtitle }: FeaturedBoutiquesPr
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
         {boutiques.slice(0, 4).map((boutique) => (
           <Link key={boutique.id} href={`/boutiques/${boutique.id}`} className="group block">
             <div className="bg-white rounded-xl border border-gray-100 overflow-hidden mb-4 shadow-sm group-hover:shadow-md transition-all duration-300 pb-2">

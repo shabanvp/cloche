@@ -10,7 +10,7 @@ interface HeroProps {
 
 export function Hero({ title, subtitle, imageUrl }: HeroProps) {
   return (
-    <div className="relative w-full bg-ivory flex items-center pt-20 pb-32 md:pb-40">
+    <div className="relative w-full bg-ivory flex items-center min-h-[480px] md:min-h-[640px] lg:min-h-[760px] xl:min-h-[850px] pb-16 md:pb-24">
       {/* Background with slight dark overlay to ensure text readability */}
       <div className="absolute inset-0 z-0 h-[85%]">
         <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent z-10"></div>
@@ -22,8 +22,8 @@ export function Hero({ title, subtitle, imageUrl }: HeroProps) {
         />
       </div>
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-        <div className="max-w-2xl">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full h-full flex flex-col justify-center">
+        <div className="max-w-2xl mt-12 md:mt-0">
           <h1 className="text-5xl md:text-6xl lg:text-7xl font-display text-white mb-6 leading-[1.15] drop-shadow-lg">
             {title ? title : (
               <>
@@ -40,7 +40,7 @@ export function Hero({ title, subtitle, imageUrl }: HeroProps) {
           <Flower2 className="w-12 h-12 text-gold mb-12 opacity-80" strokeWidth={1} />
           
           {/* Advanced Search Bar Container - overlaps the bottom edge */}
-          <div className="absolute -bottom-16 left-4 right-4 md:left-8 md:right-auto md:w-[700px] bg-white p-4 md:p-5 rounded-2xl shadow-xl z-20">
+          <div className="absolute -bottom-16 left-4 right-4 md:left-1/2 md:-translate-x-1/2 lg:left-8 lg:-translate-x-0 lg:right-auto w-auto md:w-[700px] lg:w-[800px] bg-white p-4 md:p-5 rounded-2xl shadow-xl z-20">
             <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3 md:gap-0 border border-gray-200 rounded-lg md:rounded-full p-1.5 mb-3">
               <div className="flex-1 px-4 py-2 md:py-0">
                 <input 

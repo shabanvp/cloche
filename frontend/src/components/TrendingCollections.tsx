@@ -24,7 +24,7 @@ export async function TrendingCollections({ title, subtitle }: TrendingCollectio
         </Link>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
         {collections.slice(0, 4).map((product) => (
           <Link key={product.id} href={`/collections/${product.id}`} className="group block">
             <div className="relative aspect-[3/4] rounded-xl overflow-hidden mb-3 shadow-md group-hover:shadow-xl transition-all duration-300">
