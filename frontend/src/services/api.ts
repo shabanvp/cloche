@@ -18,10 +18,37 @@ export async function getFeaturedBoutiques(): Promise<Boutique[]> {
 
 export async function getTrendingCollections(): Promise<Product[]> {
   try {
-    const res = await fetch(`${API_BASE_URL}/products?limit=8`, {
+    const res = await fetch(`${API_BASE_URL}/products`, {
       next: { revalidate: 3600 }
     });
     if (!res.ok) throw new Error("Failed to fetch products");
+    const data = await res.json();
+    return Array.isArray(data) ? data.slice(0, 8) : [];
+  } catch (error) {
+    console.error(error);
+    return [];
+  }
+}
+
+export async function getAllProducts(): Promise<Product[]> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/products`, {
+      next: { revalidate: 3600 }
+    });
+    if (!res.ok) throw new Error("Failed to fetch products");
+    return res.json();
+  } catch (error) {
+    console.error(error);
+    return [];
+  }
+}
+
+export async function getAllBoutiques(): Promise<Boutique[]> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/boutiques`, {
+      next: { revalidate: 3600 }
+    });
+    if (!res.ok) throw new Error("Failed to fetch boutiques");
     return res.json();
   } catch (error) {
     console.error(error);

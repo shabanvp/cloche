@@ -30,9 +30,9 @@ export function Header() {
 
           {/* Actions & Mobile Menu Toggle */}
           <div className="flex items-center space-x-4 md:space-x-5 text-charcoal">
-            <button aria-label="Search" className="hover:text-gold transition-colors hidden sm:block">
+            <Link href="/search" aria-label="Search" className="hover:text-gold transition-colors hidden sm:block">
               <Search className="w-5 h-5" />
-            </button>
+            </Link>
             <Link href="/wishlist" aria-label="Wishlist" className="hover:text-gold transition-colors hidden sm:block">
               <Heart className="w-5 h-5" />
             </Link>
@@ -59,9 +59,9 @@ export function Header() {
           <Link href="/inspiration" className="block text-sm font-medium text-charcoal hover:text-emerald">Inspiration</Link>
           <Link href="/deals" className="block text-sm font-medium text-charcoal hover:text-emerald">Deals</Link>
           <div className="pt-4 border-t border-gold/10 flex space-x-6">
-             <button aria-label="Search" className="hover:text-gold transition-colors flex items-center gap-2 text-sm text-charcoal">
+             <Link href="/search" aria-label="Search" className="hover:text-gold transition-colors flex items-center gap-2 text-sm text-charcoal">
               <Search className="w-5 h-5" /> Search
-            </button>
+            </Link>
             <Link href="/wishlist" aria-label="Wishlist" className="hover:text-gold transition-colors flex items-center gap-2 text-sm text-charcoal">
               <Heart className="w-5 h-5" /> Wishlist
             </Link>
