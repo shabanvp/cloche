@@ -11,24 +11,28 @@ export default function WishlistPage() {
   const [wishlist, setWishlist] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load wishlist from local storage to simulate DB sync
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem("cloche_wishlist");
-      if (stored) {
-        setWishlist(JSON.parse(stored));
+    async function loadWishlist() {
+      try {
+        const { getWishlist } = await import("@/app/actions/wishlist");
+        const res = await getWishlist();
+        if (res.success) {
+          setWishlist(res.data);
+        }
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setIsLoading(false);
       }
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setIsLoading(false);
     }
+    loadWishlist();
   }, []);
 
-  const removeFromWishlist = (id: string | number) => {
-    const updated = wishlist.filter(p => p.id !== id);
+  const removeFromWishlist = async (id: number) => {
+    const { removeFromWishlist: removeApi } = await import("@/app/actions/wishlist");
+    const updated = wishlist.filter((p: any) => p.id !== id);
     setWishlist(updated);
-    localStorage.setItem("cloche_wishlist", JSON.stringify(updated));
+    await removeApi(id);
   };
 
   if (isLoading) {
@@ -55,30 +59,30 @@ export default function WishlistPage() {
 
       {wishlist.length > 0 ? (
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
-          {wishlist.map(product => (
-            <div key={product.id} className="group block relative">
-              <Link href={`/collections/${product.id}`} className="block">
+          {wishlist.map((item: any) => (
+            <div key={item.id} className="group block relative">
+              <Link href={`/collections/${item.product_id}`} className="block">
                 <div className="relative aspect-[3/4] rounded-xl overflow-hidden mb-3 shadow-sm group-hover:shadow-md transition-all duration-300">
                   <Image
-                    src={product.image_url || "https://images.unsplash.com/photo-1594223274512-ad4803739b7c?q=80&w=800&auto=format&fit=crop"}
-                    alt={product.product_name}
+                    src={item.product?.image || "https://images.unsplash.com/photo-1594223274512-ad4803739b7c?q=80&w=800&auto=format&fit=crop"}
+                    alt={item.product?.name || "Product"}
                     fill
                     className="object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                   <div className="absolute top-2 left-2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider text-charcoal shadow-sm">
-                    {product.category}
+                    {item.product?.boutique_name || "Boutique"}
                   </div>
                 </div>
                 <div>
-                  <h3 className="font-display text-sm md:text-base font-medium text-charcoal mb-1 truncate">{product.product_name}</h3>
-                  <p className="text-xs font-semibold text-emerald">₹{product.price.toLocaleString('en-IN')}</p>
+                  <h3 className="font-display text-sm md:text-base font-medium text-charcoal mb-1 truncate">{item.product?.name}</h3>
+                  <p className="text-xs font-semibold text-emerald">₹{(item.product?.price || 0).toLocaleString('en-IN')}</p>
                 </div>
               </Link>
               
               <button 
                 onClick={(e) => {
                   e.preventDefault();
-                  removeFromWishlist(product.id);
+                  removeFromWishlist(item.id);
                 }}
                 className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm p-2 rounded-full text-red-500 hover:bg-red-500 hover:text-white transition-colors shadow-sm opacity-0 group-hover:opacity-100"
                 aria-label="Remove from wishlist"

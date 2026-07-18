@@ -15,6 +15,7 @@ const productRoutes = require("./products"); // Still using legacy products.js f
 const leadRoutes = require("./leads");
 const messageRoutes = require("./messages");
 const adminRoutes = require("./admin");
+const wishlistRoutes = require("./routes/wishlistRoutes");
 const { checkExpiredSubscriptions } = require("./services/expiryJob");
 
 const app = express();
@@ -73,6 +74,7 @@ app.use("/api/products", productRoutes);
 app.use("/api/leads", leadRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/wishlist", wishlistRoutes);
 
 // 🔹 Global error handler
 app.use((err, req, res, next) => {

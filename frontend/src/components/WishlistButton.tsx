@@ -13,33 +13,54 @@ interface Props {
 export function WishlistButton({ product }: Props) {
   const [isSaved, setIsSaved] = useState(false);
 
+  const [wishlistId, setWishlistId] = useState<number | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem("cloche_wishlist");
-      if (stored) {
-        const wishlist: Product[] = JSON.parse(stored);
-        setIsSaved(wishlist.some(p => p.id === product.id));
+    async function checkSaved() {
+      try {
+        const { getWishlist } = await import("@/app/actions/wishlist");
+        const res = await getWishlist();
+        if (res.success && res.data) {
+          const item = res.data.find((p: any) => p.product_id === product.id);
+          if (item) {
+            setIsSaved(true);
+            setWishlistId(item.id);
+          }
+        }
+      } catch (e) {
+        console.error(e);
       }
-    } catch (e) {
-      console.error(e);
     }
+    checkSaved();
   }, [product.id]);
 
-  const toggleWishlist = () => {
+  const toggleWishlist = async () => {
+    if (isLoading) return;
+    setIsLoading(true);
+
     try {
-      const stored = localStorage.getItem("cloche_wishlist");
-      let wishlist: Product[] = stored ? JSON.parse(stored) : [];
-
-      if (isSaved) {
-        wishlist = wishlist.filter(p => p.id !== product.id);
+      if (isSaved && wishlistId) {
+        const { removeFromWishlist } = await import("@/app/actions/wishlist");
+        const res = await removeFromWishlist(wishlistId);
+        if (res.success) {
+          setIsSaved(false);
+          setWishlistId(null);
+        }
       } else {
-        wishlist.push(product);
+        const { addToWishlist } = await import("@/app/actions/wishlist");
+        const res = await addToWishlist(product.id as number);
+        if (res.success) {
+          setIsSaved(true);
+          setWishlistId(res.data.id);
+        } else if (res.message === "Please login to save items") {
+           alert(res.message);
+        }
       }
-
-      localStorage.setItem("cloche_wishlist", JSON.stringify(wishlist));
-      setIsSaved(!isSaved);
     } catch (e) {
       console.error(e);
+    } finally {
+      setIsLoading(false);
     }
   };
 

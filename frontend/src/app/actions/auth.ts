@@ -1,7 +1,7 @@
 "use server";
 
 import { cookies } from "next/headers";
-import { API_BASE_URL } from "@/services/api";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
 export async function login(formData: FormData) {
   const email = formData.get("email") as string;

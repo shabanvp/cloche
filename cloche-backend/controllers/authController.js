@@ -353,8 +353,9 @@ exports.login = async (req, res) => {
         if (!match && boutique.password) match = String(password) === String(boutique.password); // Fallback for old passwords
 
         if (!match) return res.status(401).json({ message: "Invalid credentials" });
-
-        return res.json({
+        const { generateToken } = require("../middleware/authMiddleware");
+        const token = typeof user !== 'undefined' && user ? generateToken({ id: user.id, role: "user" }) : generateToken({ id: boutique.id, role: "vendor" });
+        return res.json({ token,
             success: true,
             boutiqueId: boutique.id,
             boutiqueName: boutique.boutique_name,
@@ -381,8 +382,9 @@ exports.loginUser = async (req, res) => {
 
         const match = await bcrypt.compare(password, user.password_hash);
         if (!match) return res.status(401).json({ message: "Invalid credentials" });
-
-        return res.json({
+        const { generateToken } = require("../middleware/authMiddleware");
+        const token = typeof user !== 'undefined' && user ? generateToken({ id: user.id, role: "user" }) : generateToken({ id: boutique.id, role: "vendor" });
+        return res.json({ token,
             success: true,
             userId: user.id,
             name: user.name,
