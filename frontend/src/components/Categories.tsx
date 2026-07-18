@@ -11,13 +11,18 @@ const CATEGORIES = [
   { name: "More", icon: MoreHorizontal, href: "/categories" },
 ];
 
-export function Categories() {
+interface CategoriesProps {
+  title?: string;
+  subtitle?: string;
+}
+
+export function Categories({ title, subtitle }: CategoriesProps) {
   return (
     <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-b border-gold/10">
       <div className="flex justify-between items-end mb-12">
         <div>
-          <span className="text-gold tracking-[0.4em] uppercase text-xs mb-3 block font-bold">Browse by Category</span>
-          <h2 className="text-3xl md:text-4xl font-display text-charcoal">Everything for your big day</h2>
+          <span className="text-gold tracking-[0.4em] uppercase text-xs mb-3 block font-bold">{subtitle || "Browse by Category"}</span>
+          <h2 className="text-3xl md:text-4xl font-display text-charcoal">{title || "Everything for your big day"}</h2>
         </div>
         <Link href="/categories" className="text-sm font-medium text-emerald hover:text-gold transition-colors hidden sm:block">
           View all

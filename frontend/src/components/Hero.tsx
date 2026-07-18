@@ -2,7 +2,13 @@ import Image from "next/image";
 import { Button } from "./Button";
 import { Search } from "lucide-react";
 
-export function Hero() {
+interface HeroProps {
+  title?: string;
+  subtitle?: string;
+  imageUrl?: string;
+}
+
+export function Hero({ title, subtitle, imageUrl }: HeroProps) {
   return (
     <div className="relative w-full h-[600px] bg-ivory flex items-center">
       {/* Background with slight gradient overlay */}
@@ -10,8 +16,8 @@ export function Hero() {
         <div className="absolute inset-0 bg-gradient-to-r from-emerald/90 via-emerald/60 to-transparent z-10"></div>
         {/* Replace with high-quality wedding image from cloudinary or unsplash for now */}
         <Image 
-          src="https://images.unsplash.com/photo-1583391733981-849840f3f1c2?q=80&w=2000&auto=format&fit=crop"
-          alt="Kerala Wedding"
+          src={imageUrl || "https://images.unsplash.com/photo-1583391733981-849840f3f1c2?q=80&w=2000&auto=format&fit=crop"}
+          alt={title || "Kerala Wedding"}
           fill
           className="object-cover"
           priority
@@ -21,11 +27,10 @@ export function Hero() {
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         <div className="max-w-2xl">
           <h1 className="text-5xl md:text-6xl font-display text-white mb-6 leading-tight">
-            Curate your perfect wedding, <br/>
-            <span className="text-gold italic">the Kerala way.</span>
+            {title ? title : <>Curate your perfect wedding, <br/><span className="text-gold italic">the Kerala way.</span></>}
           </h1>
           <p className="text-lg text-white/90 mb-10 font-light max-w-xl">
-            Discover the finest boutiques, curated collections & trusted experts.
+            {subtitle || "Discover the finest boutiques, curated collections & trusted experts."}
           </p>
           
           {/* Advanced Search Bar */}

@@ -17,6 +17,7 @@ const messageRoutes = require("./messages");
 const adminRoutes = require("./admin");
 const wishlistRoutes = require("./routes/wishlistRoutes");
 const appointmentRoutes = require("./routes/appointmentRoutes");
+const homepageRoutes = require("./routes/homepageRoutes");
 const { checkExpiredSubscriptions } = require("./services/expiryJob");
 
 const app = express();
@@ -75,6 +76,7 @@ app.use("/api/products", productRoutes);
 app.use("/api/leads", leadRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/admin/homepage", homepageRoutes); // Mount admin/homepage specifically
 app.use("/api/wishlist", wishlistRoutes);
 app.use("/api/appointments", appointmentRoutes);
 

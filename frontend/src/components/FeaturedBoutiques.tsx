@@ -3,7 +3,12 @@ import Link from "next/link";
 import { getFeaturedBoutiques } from "@/services/api";
 import { MapPin, Star } from "lucide-react";
 
-export async function FeaturedBoutiques() {
+interface FeaturedBoutiquesProps {
+  title?: string;
+  subtitle?: string;
+}
+
+export async function FeaturedBoutiques({ title, subtitle }: FeaturedBoutiquesProps) {
   const boutiques = await getFeaturedBoutiques();
 
   if (!boutiques?.length) return null;
@@ -12,8 +17,8 @@ export async function FeaturedBoutiques() {
     <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
       <div className="flex justify-between items-end mb-10">
         <div>
-          <span className="text-gold tracking-[0.4em] uppercase text-xs mb-3 block font-bold">Featured Boutiques</span>
-          <h2 className="text-3xl md:text-4xl font-display text-charcoal">Handpicked excellence</h2>
+          <span className="text-gold tracking-[0.4em] uppercase text-xs mb-3 block font-bold">{subtitle || "Featured Boutiques"}</span>
+          <h2 className="text-3xl md:text-4xl font-display text-charcoal">{title || "Handpicked excellence"}</h2>
         </div>
         <Link href="/boutiques" className="text-sm font-medium text-emerald hover:text-gold transition-colors hidden sm:block">
           View all
