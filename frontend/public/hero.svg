@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/200.svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1A2421" />
+      <stop offset="50%" stop-color="#2D4A3E" />
+      <stop offset="100%" stop-color="#1A1A1A" />
+    </linearGradient>
+  </defs>
+  <rect width="1920" height="1080" fill="url(#bg)" />
+  <text x="50%" y="50%" font-family="serif" font-size="48" fill="#C5A880" text-anchor="middle">Please place 'hero-bg.jpg' in the public folder to see your image here</text>
+</svg>

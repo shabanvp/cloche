@@ -14,9 +14,9 @@ export function Hero({ title, subtitle, imageUrl }: HeroProps) {
       {/* Background with slight dark overlay to ensure text readability */}
       <div className="absolute inset-0 z-0 h-[85%]">
         <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent z-10"></div>
-        {/* Using a guaranteed working Wikimedia Commons Kerala Wedding image */}
+        {/* Using a local fallback SVG until the user provides the actual photograph */}
         <img 
-          src={imageUrl || "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cb/Kerala_Hindu_Wedding_-_Tying_the_Thali.jpg/1280px-Kerala_Hindu_Wedding_-_Tying_the_Thali.jpg"}
+          src={imageUrl || "/hero.svg"}
           alt={title || "Kerala Wedding"}
           className="object-cover w-full h-full object-top"
         />
