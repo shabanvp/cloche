@@ -371,7 +371,7 @@
     <section class="mt-20 pt-16 border-t border-white/5">
       <div class="flex items-end justify-between mb-16 px-2">
         <div>
-          <span class="text-primary tracking-[0.4em] uppercase text-[10px] mb-4 block font-bold">Other Boutiques</span>
+          <span class="text-primary tracking-[0.4em] uppercase text-[10px] mb-4 block font-bold">Related Collections</span>
           <h2 class="text-3xl md:text-5xl font-display text-white">Explore More Collections</h2>
         </div>
         <div class="flex gap-4">
@@ -668,7 +668,7 @@
           };
         }
 
-        if (product.boutique_id) loadRelatedProducts(product.boutique_id, productId);
+        if (product.boutique_id) loadRelatedProducts(product.boutique_id, productId, product.category);
 
         loadReviews(productId);
 
@@ -803,20 +803,36 @@
       }
     });
 
-    async function loadRelatedProducts(boutiqueId, currentId) {
+    async function loadRelatedProducts(boutiqueId, currentId, currentCategory) {
       try {
         const slider = document.getElementById("relatedSlider");
         if (!slider) return;
 
         const allRes = await fetch(`${PRODUCT_API}`);
         const allProducts = await allRes.json();
+        
+        let targetCategory = (currentCategory || "").toLowerCase();
+        if (targetCategory === "couture") targetCategory = "bridal";
+
         const filtered = (Array.isArray(allProducts) ? allProducts : [])
           .filter((item) => String(item.id) !== String(currentId))
-          .filter((item) => String(item.boutique_id || "") !== String(boutiqueId || ""))
+          .filter((item) => {
+            if (!targetCategory) return true;
+            let itemCat = (item.category || "").toLowerCase();
+            if (itemCat === "couture") itemCat = "bridal";
+            return itemCat === targetCategory;
+          })
+          .sort((a, b) => {
+             const aSame = String(a.boutique_id || "") === String(boutiqueId || "");
+             const bSame = String(b.boutique_id || "") === String(boutiqueId || "");
+             if (aSame && !bSame) return -1;
+             if (!aSame && bSame) return 1;
+             return 0;
+          })
           .slice(0, 12);
 
         if (!filtered.length) {
-          slider.innerHTML = '<p class="text-white/20 text-[10px] uppercase tracking-[0.4em] p-12 italic">Other boutique collections are being curated.</p>';
+          slider.innerHTML = '<p class="text-white/20 text-[10px] uppercase tracking-[0.4em] p-12 italic">Other related collections are being curated.</p>';
           return;
         }
 
@@ -866,10 +882,10 @@
             `;
         }).join("");
       } catch (err) {
-        console.error("Failed to load other boutique collections", err);
+        console.error("Failed to load other related collections", err);
         const slider = document.getElementById("relatedSlider");
         if (slider) {
-          slider.innerHTML = '<p class="text-white/20 text-[10px] uppercase tracking-[0.4em] p-12 italic">Other boutique collections are currently unavailable.</p>';
+          slider.innerHTML = '<p class="text-white/20 text-[10px] uppercase tracking-[0.4em] p-12 italic">Other related collections are currently unavailable.</p>';
         }
       }
     }
