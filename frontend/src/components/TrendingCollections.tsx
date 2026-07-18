@@ -27,17 +27,19 @@ export async function TrendingCollections({ title, subtitle }: TrendingCollectio
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
         {collections.slice(0, 4).map((product) => (
           <Link key={product.id} href={`/collections/${product.id}`} className="group block">
-            <div className="relative aspect-[3/4] rounded-2xl overflow-hidden mb-3 shadow-md group-hover:shadow-lg transition-all duration-300">
+            <div className="relative aspect-[3/4] rounded-xl overflow-hidden mb-3 shadow-md group-hover:shadow-xl transition-all duration-300">
               <Image
                 src={product.image_url || "https://images.unsplash.com/photo-1594223274512-ad4803739b7c?q=80&w=800&auto=format&fit=crop"}
                 alt={product.product_name}
                 fill
                 className="object-cover group-hover:scale-105 transition-transform duration-500"
               />
-            </div>
-            <div>
-              <h3 className="font-display text-lg font-medium text-charcoal mb-1 truncate">{product.product_name}</h3>
-              <p className="text-xs text-charcoal/60 capitalize">{product.category}</p>
+              <div className="absolute inset-0 bg-gradient-to-t from-charcoal/90 via-charcoal/10 to-transparent opacity-80"></div>
+              <div className="absolute bottom-6 left-6 right-6">
+                <h3 className="font-display text-2xl md:text-3xl text-white font-medium leading-tight drop-shadow-md">
+                  {product.product_name}
+                </h3>
+              </div>
             </div>
           </Link>
         ))}
