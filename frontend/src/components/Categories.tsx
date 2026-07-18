@@ -24,7 +24,7 @@ export function Categories() {
         </Link>
       </div>
 
-      <div className="flex overflow-x-auto pb-6 hide-scrollbar gap-6 md:justify-between snap-x">
+      <div className="flex overflow-x-auto pb-6 hide-scrollbar gap-6 md:justify-center md:flex-wrap snap-x">
         {CATEGORIES.map((category) => {
           const Icon = category.icon;
           return (
@@ -34,7 +34,7 @@ export function Categories() {
               className="flex flex-col items-center group min-w-[80px] snap-center"
             >
               <div className="w-20 h-20 rounded-full border border-gold/30 flex items-center justify-center mb-4 text-gold group-hover:bg-gold group-hover:text-white group-hover:scale-105 transition-all duration-300 shadow-sm bg-white">
-                <Icon strokeWidth={1.5} className="w-8 h-8" />
+                <Icon aria-hidden="true" strokeWidth={1.5} className="w-8 h-8" />
               </div>
               <span className="text-xs font-medium text-charcoal text-center group-hover:text-emerald transition-colors">
                 {category.name}

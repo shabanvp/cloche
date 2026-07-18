@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { Header } from "@/components/Header";
 import { Hero } from "@/components/Hero";
 import { Categories } from "@/components/Categories";
@@ -6,6 +7,7 @@ import { TrendingCollections } from "@/components/TrendingCollections";
 import { Testimonials } from "@/components/Testimonials";
 import { PartnerCTA } from "@/components/PartnerCTA";
 import { Footer } from "@/components/Footer";
+import { SkeletonGrid } from "@/components/SkeletonGrid";
 
 export default function Home() {
   return (
@@ -14,8 +16,12 @@ export default function Home() {
       <main>
         <Hero />
         <Categories />
-        <FeaturedBoutiques />
-        <TrendingCollections />
+        <Suspense fallback={<SkeletonGrid />}>
+          <FeaturedBoutiques />
+        </Suspense>
+        <Suspense fallback={<SkeletonGrid />}>
+          <TrendingCollections />
+        </Suspense>
         <Testimonials />
         <PartnerCTA />
       </main>

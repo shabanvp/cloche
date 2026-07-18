@@ -39,7 +39,10 @@ export function Hero() {
             </div>
             <div className="hidden md:block h-8 w-px bg-gray-200 mx-2"></div>
             <div className="px-4 py-2 md:py-0 border-t md:border-t-0 border-gray-100 md:border-none">
-              <select className="bg-transparent border-none focus:outline-none text-charcoal text-sm font-medium cursor-pointer w-full md:w-auto">
+              <select 
+                aria-label="Category select"
+                className="bg-transparent border-none focus:outline-none text-charcoal text-sm font-medium cursor-pointer w-full md:w-auto"
+              >
                 <option>All Categories</option>
                 <option>Bridal Wear</option>
                 <option>Groom Wear</option>
