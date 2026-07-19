@@ -138,22 +138,6 @@ export default function SignupPage() {
         </div>
       </form>
 
-      {/* Divider with Atmosphere */}
-      <div className="flex items-center gap-4 my-16 opacity-20">
-        <div className="h-[1px] bg-outline flex-grow"></div>
-        <span className="material-symbols-outlined text-[12px]" style={{fontVariationSettings: "'FILL' 1"}}>star</span>
-        <div className="h-[1px] bg-outline flex-grow"></div>
-      </div>
-
-      {/* Secondary Branding Gallery (Editorial Feel) */}
-      <div className="grid grid-cols-2 gap-4 opacity-90 grayscale hover:grayscale-0 transition-all duration-700">
-        <div className="aspect-[3/4] overflow-hidden rounded-lg shadow-sm border border-outline-variant/10">
-          <img className="w-full h-full object-cover" data-alt="A macro close-up of a delicate ivory silk wedding gown texture with intricate lace detailing." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCmcWDzr-UI7klBEuUPafGefRcU7cYvyvigUo6iLvmbh9oLbhp7n-z626z8u0Sz7_AnssZi7HIAd7HxXNPChtWNO-C15aMJMhiW6d9tb8Qpp_egvp5zuIguuqNJCARjgJIRcy7cBeIJ_fzOZhdPk02JhABqDAiieTPzICO8t5RhavxVJHH4WXhwJlphzrZ5P4vMTbDKL9rjLK4KCCypV0ko8t_HM15eQ2GylkYUunnjr2TQVfPIg_pC3bsv5bLHrbHAMl8FgUwBs2xS" />
-        </div>
-        <div className="aspect-square mt-8 overflow-hidden rounded-lg shadow-sm border border-outline-variant/10">
-          <img className="w-full h-full object-cover" data-alt="A minimalist table setting at a high-end wedding venue featuring champagne gold cutlery and a single white peony in a crystal vase." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDvccmL4TmBvGu_ZDfKzM-zkIiiHkIzF0YrhewrMV0XtubIL-yc3FWKCvhNC-TxR983CdG_fXS_g9RyuRUOyZJI_-nDOpMt8GD5r-lCBTDOk24IWo0xIjHkLsNNjO6m5brEUWV-5s6ESbXvTdYLaY1Q8fxqoQeanNIJ-AnVO1YZv-YxyCX7BhfGi_zgFcx2leJZRWPeh2GXgF_i8qVT7pvJHxivz9EqLuECUQO050cls20149PnxBdoF-BeJnD0Qdwdu0Fm1XMsu2aw" />
-        </div>
-      </div>
 
       {/* Footer Decorative Ornament */}
       <footer className="pb-16 pt-8 text-center">

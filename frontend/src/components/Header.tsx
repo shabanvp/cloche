@@ -1,7 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { Search, Edit3, Smartphone, Menu, X, ChevronDown } from "lucide-react";
+import { 
+  Search, Edit3, Smartphone, Menu, X, ChevronDown, 
+  User, MapPin, Store, Image as ImageIcon, BookHeart, FileText, Mail, Wand2, ChevronDown as ChevronDownIcon
+} from "lucide-react";
 import { useState } from "react";
 
 export function Header() {
@@ -58,24 +61,107 @@ export function Header() {
           </Link>
           <button 
             className="lg:hidden text-white hover:text-gold transition-colors"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            onClick={() => setIsMobileMenuOpen(true)}
           >
-            {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            <Menu className="w-6 h-6" />
           </button>
         </div>
       </div>
 
-      {/* Mobile Menu */}
+      {/* Mobile Sidebar Menu (Drawer) */}
       {isMobileMenuOpen && (
-        <div className="lg:hidden absolute top-full left-0 w-full bg-primary border-t border-white/20 p-4 flex flex-col gap-4 shadow-lg text-white">
-          <Link href="/categories" className="text-lg font-semibold border-b border-white/10 pb-2">Venues</Link>
-          <Link href="/boutiques" className="text-lg font-semibold border-b border-white/10 pb-2">Vendors</Link>
-          <Link href="/inspiration" className="text-lg font-semibold border-b border-white/10 pb-2">Photos</Link>
-          <Link href="/real-weddings" className="text-lg font-semibold border-b border-white/10 pb-2">Real Weddings</Link>
-          <Link href="/blog" className="text-lg font-semibold border-b border-white/10 pb-2">Blog</Link>
-          <Link href="/e-invites" className="text-lg font-semibold border-b border-white/10 pb-2">E-Invites</Link>
-          <Link href="/genie" className="text-lg font-semibold border-b border-white/10 pb-2">Genie</Link>
-          <Link href="/login" className="text-lg font-semibold text-gold">Log In</Link>
+        <div className="lg:hidden fixed inset-0 z-[60] flex">
+          {/* Overlay */}
+          <div 
+            className="absolute inset-0 bg-black/50 transition-opacity" 
+            onClick={() => setIsMobileMenuOpen(false)}
+          ></div>
+          
+          {/* Sidebar */}
+          <div className="relative w-[85%] max-w-sm h-full bg-surface shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-left duration-300">
+            {/* Top Auth Section */}
+            <Link 
+              href="/login" 
+              className="flex items-center gap-4 p-5 border-b border-outline-variant/30 hover:bg-surface-dim transition-colors mt-2"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              <div className="w-12 h-12 rounded-full bg-outline-variant/30 flex items-center justify-center text-on-surface-variant">
+                <User className="w-6 h-6" />
+              </div>
+              <span className="font-semibold text-[18px] text-on-surface">Sign In / Sign Up</span>
+            </Link>
+
+            {/* Categories List */}
+            <div className="flex-1 overflow-y-auto py-6">
+              <h3 className="px-6 mb-2 font-semibold text-outline uppercase text-[13px] tracking-wider">Wedding Categories</h3>
+              
+              <div className="flex flex-col">
+                <Link href="/categories" className="flex items-center justify-between px-6 py-4 hover:bg-surface-dim transition-colors group" onClick={() => setIsMobileMenuOpen(false)}>
+                  <div className="flex items-center gap-4 text-on-surface">
+                    <MapPin className="w-5 h-5 text-outline group-hover:text-primary transition-colors" />
+                    <span className="font-medium text-[16px]">Venues</span>
+                  </div>
+                  <ChevronDownIcon className="w-5 h-5 text-outline-variant" />
+                </Link>
+                
+                <Link href="/boutiques" className="flex items-center justify-between px-6 py-4 hover:bg-surface-dim transition-colors group" onClick={() => setIsMobileMenuOpen(false)}>
+                  <div className="flex items-center gap-4 text-on-surface">
+                    <Store className="w-5 h-5 text-outline group-hover:text-primary transition-colors" />
+                    <span className="font-medium text-[16px]">Vendors</span>
+                  </div>
+                  <ChevronDownIcon className="w-5 h-5 text-outline-variant" />
+                </Link>
+                
+                <Link href="/inspiration" className="flex items-center justify-between px-6 py-4 hover:bg-surface-dim transition-colors group" onClick={() => setIsMobileMenuOpen(false)}>
+                  <div className="flex items-center gap-4 text-on-surface">
+                    <ImageIcon className="w-5 h-5 text-outline group-hover:text-primary transition-colors" />
+                    <span className="font-medium text-[16px]">Photos</span>
+                  </div>
+                  <ChevronDownIcon className="w-5 h-5 text-outline-variant" />
+                </Link>
+                
+                <Link href="/real-weddings" className="flex items-center justify-between px-6 py-4 hover:bg-surface-dim transition-colors group" onClick={() => setIsMobileMenuOpen(false)}>
+                  <div className="flex items-center gap-4 text-on-surface">
+                    <BookHeart className="w-5 h-5 text-outline group-hover:text-primary transition-colors" />
+                    <span className="font-medium text-[16px]">Real Weddings</span>
+                  </div>
+                  <ChevronDownIcon className="w-5 h-5 text-outline-variant" />
+                </Link>
+                
+                <Link href="/blog" className="flex items-center justify-between px-6 py-4 hover:bg-surface-dim transition-colors group" onClick={() => setIsMobileMenuOpen(false)}>
+                  <div className="flex items-center gap-4 text-on-surface">
+                    <FileText className="w-5 h-5 text-outline group-hover:text-primary transition-colors" />
+                    <span className="font-medium text-[16px]">Blog</span>
+                  </div>
+                  <ChevronDownIcon className="w-5 h-5 text-outline-variant" />
+                </Link>
+
+                <Link href="/e-invites" className="flex items-center justify-between px-6 py-4 hover:bg-surface-dim transition-colors group" onClick={() => setIsMobileMenuOpen(false)}>
+                  <div className="flex items-center gap-4 text-on-surface">
+                    <Mail className="w-5 h-5 text-outline group-hover:text-primary transition-colors" />
+                    <span className="font-medium text-[16px]">E-Invites</span>
+                  </div>
+                  <ChevronDownIcon className="w-5 h-5 text-outline-variant" />
+                </Link>
+
+                <Link href="/genie" className="flex items-center justify-between px-6 py-4 hover:bg-surface-dim transition-colors group" onClick={() => setIsMobileMenuOpen(false)}>
+                  <div className="flex items-center gap-4 text-on-surface">
+                    <Wand2 className="w-5 h-5 text-outline group-hover:text-primary transition-colors" />
+                    <span className="font-medium text-[16px]">Genie</span>
+                  </div>
+                  <ChevronDownIcon className="w-5 h-5 text-outline-variant" />
+                </Link>
+              </div>
+            </div>
+            
+            {/* Close Button Inside Sidebar */}
+            <button 
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="absolute top-3 right-3 text-on-surface-variant hover:text-primary p-2 bg-surface-dim rounded-full transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
       )}
     </header>
