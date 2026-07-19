@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Playfair_Display } from "next/font/google";
+import { Inter, Playfair_Display, Public_Sans } from "next/font/google";
 import "./globals.css";
 
 const inter = Inter({
@@ -12,9 +12,14 @@ const playfair = Playfair_Display({
   subsets: ["latin"],
 });
 
+const publicSans = Public_Sans({
+  variable: "--font-public-sans",
+  subsets: ["latin"],
+});
+
 export const metadata: Metadata = {
-  title: "Cloche - Premium Kerala Wedding Marketplace",
-  description: "Curate your perfect wedding, the Kerala way. Discover the finest boutiques, curated collections & trusted experts.",
+  title: "CLOCHE - Your Wedding, Your Way",
+  description: "Find the best wedding vendors with thousands of trusted reviews",
 };
 
 export default function RootLayout({
@@ -25,8 +30,11 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${playfair.variable} h-full antialiased`}
+      className={`${inter.variable} ${playfair.variable} ${publicSans.variable} h-full antialiased`}
     >
+      <head>
+        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+      </head>
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );
