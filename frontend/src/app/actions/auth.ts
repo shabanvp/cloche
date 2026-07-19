@@ -39,7 +39,7 @@ export async function login(formData: FormData) {
     // Store the JWT token in an HttpOnly secure cookie
     cookieStore.set("auth_token", data.token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: false, // Ensure cookie is saved on local IPs
       sameSite: "lax",
       path: "/",
       maxAge: 7 * 24 * 60 * 60, // 7 days
