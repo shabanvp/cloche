@@ -1,6 +1,6 @@
 "use server";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://cloche-backend.onrender.com/api";
 
 export async function searchProducts(params: Record<string, any>) {
   try {

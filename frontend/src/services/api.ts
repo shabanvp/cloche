@@ -4,9 +4,8 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://cloche-backend.
 
 export async function getFeaturedBoutiques(): Promise<Boutique[]> {
   try {
-    // Adding revalidate tag for Next.js caching
-    const res = await fetch(`${API_BASE_URL}/boutiques?limit=8`, {
-      next: { revalidate: 3600 } // Cache for 1 hour
+    const res = await fetch(`${API_BASE_URL}/boutiques?limit=8&cache_bust=${Date.now()}`, {
+      next: { revalidate: 3600 } 
     });
     if (!res.ok) throw new Error("Failed to fetch boutiques");
     return res.json();
@@ -18,7 +17,7 @@ export async function getFeaturedBoutiques(): Promise<Boutique[]> {
 
 export async function getTrendingCollections(): Promise<Product[]> {
   try {
-    const res = await fetch(`${API_BASE_URL}/products`, {
+    const res = await fetch(`${API_BASE_URL}/products?cache_bust=${Date.now()}`, {
       next: { revalidate: 3600 }
     });
     if (!res.ok) throw new Error("Failed to fetch products");
@@ -32,7 +31,7 @@ export async function getTrendingCollections(): Promise<Product[]> {
 
 export async function getAllProducts(): Promise<Product[]> {
   try {
-    const res = await fetch(`${API_BASE_URL}/products`, {
+    const res = await fetch(`${API_BASE_URL}/products?cache_bust=${Date.now()}`, {
       next: { revalidate: 3600 }
     });
     if (!res.ok) throw new Error("Failed to fetch products");
@@ -45,7 +44,7 @@ export async function getAllProducts(): Promise<Product[]> {
 
 export async function getAllBoutiques(): Promise<Boutique[]> {
   try {
-    const res = await fetch(`${API_BASE_URL}/boutiques`, {
+    const res = await fetch(`${API_BASE_URL}/boutiques?cache_bust=${Date.now()}`, {
       next: { revalidate: 3600 }
     });
     if (!res.ok) throw new Error("Failed to fetch boutiques");
@@ -74,7 +73,7 @@ export async function getAdminAnalytics(token: string) {
 
 export async function getBoutiqueDetails(id: string): Promise<Boutique | null> {
   try {
-    const res = await fetch(`${API_BASE_URL}/boutiques/${id}`, {
+    const res = await fetch(`${API_BASE_URL}/boutiques/${id}?cache_bust=${Date.now()}`, {
       next: { revalidate: 3600 }
     });
     if (!res.ok) return null;
@@ -87,7 +86,7 @@ export async function getBoutiqueDetails(id: string): Promise<Boutique | null> {
 
 export async function getBoutiqueProducts(boutiqueId: string): Promise<Product[]> {
   try {
-    const res = await fetch(`${API_BASE_URL}/products/boutique/${boutiqueId}`, {
+    const res = await fetch(`${API_BASE_URL}/products/boutique/${boutiqueId}?cache_bust=${Date.now()}`, {
       next: { revalidate: 3600 }
     });
     if (!res.ok) return [];
@@ -100,7 +99,7 @@ export async function getBoutiqueProducts(boutiqueId: string): Promise<Product[]
 
 export async function getProductDetails(id: string): Promise<Product & { gallery?: string[], boutique_name?: string, boutique_city?: string, store_location?: string } | null> {
   try {
-    const res = await fetch(`${API_BASE_URL}/products/${id}`, {
+    const res = await fetch(`${API_BASE_URL}/products/${id}?cache_bust=${Date.now()}`, {
       next: { revalidate: 3600 }
     });
     if (!res.ok) return null;
