@@ -1,7 +1,7 @@
 "use server";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://cloche-backend.onrender.com/api";
-
+const rawBaseUrl = process.env.NEXT_PUBLIC_API_URL || "https://cloche-backend.onrender.com";
+const API_BASE_URL = rawBaseUrl.endsWith('/api') ? rawBaseUrl : `${rawBaseUrl}/api`;
 export async function searchProducts(params: Record<string, any>) {
   try {
     const query = new URLSearchParams();

@@ -2,8 +2,8 @@
 
 import { cookies } from "next/headers";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://cloche-backend.onrender.com/api";
-
+const rawBaseUrl = process.env.NEXT_PUBLIC_API_URL || "https://cloche-backend.onrender.com";
+const API_BASE_URL = rawBaseUrl.endsWith('/api') ? rawBaseUrl : `${rawBaseUrl}/api`;
 async function getAdminToken() {
   const cookieStore = await cookies();
   return cookieStore.get("auth_token")?.value || "";

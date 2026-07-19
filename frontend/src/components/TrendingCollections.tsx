@@ -3,40 +3,7 @@ import Link from "next/link";
 import { getTrendingCollections } from "@/services/api";
 import { Product } from "@/types";
 
-const FALLBACK_COLLECTIONS: Product[] = [
-  {
-    id: "heritage-edit",
-    boutique_id: "fallback",
-    product_name: "The\nHeritage Edit",
-    category: "Collection",
-    price: 0,
-    image_url: "https://images.unsplash.com/photo-1583391265517-35bbdad01209?q=90&w=900&auto=format&fit=crop",
-  },
-  {
-    id: "modern-muse",
-    boutique_id: "fallback",
-    product_name: "Modern\nMuse",
-    category: "Collection",
-    price: 0,
-    image_url: "https://images.unsplash.com/photo-1606216794074-735e91aa2c92?q=90&w=900&auto=format&fit=crop",
-  },
-  {
-    id: "golden-hour",
-    boutique_id: "fallback",
-    product_name: "Golden\nHour",
-    category: "Collection",
-    price: 0,
-    image_url: "https://images.unsplash.com/photo-1583391733956-6c78276477e2?q=90&w=900&auto=format&fit=crop",
-  },
-  {
-    id: "the-minimalist",
-    boutique_id: "fallback",
-    product_name: "The\nMinimalist",
-    category: "Collection",
-    price: 0,
-    image_url: "https://images.unsplash.com/photo-1594938298596-70f594f74246?q=90&w=900&auto=format&fit=crop",
-  },
-];
+
 
 interface TrendingCollectionsProps {
   title?: string;
@@ -45,7 +12,28 @@ interface TrendingCollectionsProps {
 
 export async function TrendingCollections({ title, subtitle }: TrendingCollectionsProps) {
   const collections = await getTrendingCollections();
-  const displayCollections = collections?.length ? collections.slice(0, 4) : FALLBACK_COLLECTIONS;
+  const displayCollections = collections?.length ? collections.slice(0, 4) : [];
+
+  if (displayCollections.length === 0) {
+    return (
+      <section className="mx-auto w-full max-w-[1728px] px-5 pb-16 pt-8 sm:px-7 sm:pb-18 sm:pt-10 md:pb-20 lg:px-10 xl:px-12 2xl:px-14">
+        <div className="mb-9 flex items-end justify-between md:mb-10">
+          <div>
+            <span className="mb-3 block text-[12px] font-medium uppercase tracking-[0.22em] text-[#8f7856]">
+              {subtitle || "Curated Collections"}
+            </span>
+            <h2 className="font-display text-[26px] font-normal leading-tight text-charcoal sm:text-[30px] lg:text-[36px]">
+              {title || "Timeless styles. Modern stories."}
+            </h2>
+          </div>
+        </div>
+        <div className="py-20 text-center border border-gold/10 rounded-2xl bg-white shadow-sm">
+          <h3 className="font-display text-2xl text-charcoal mb-2">No collections currently</h3>
+          <p className="text-charcoal/60">Check back soon for our latest collections.</p>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="mx-auto w-full max-w-[1728px] px-5 pb-16 pt-8 sm:px-7 sm:pb-18 sm:pt-10 md:pb-20 lg:px-10 xl:px-12 2xl:px-14">

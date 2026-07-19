@@ -4,40 +4,7 @@ import { getFeaturedBoutiques } from "@/services/api";
 import { ArrowRight, Star } from "lucide-react";
 import { Boutique } from "@/types";
 
-const FALLBACK_BOUTIQUES: Boutique[] = [
-  {
-    id: "panache",
-    boutique_name: "Panache",
-    email: "hello@panache.example",
-    city: "Kochi",
-    image_url: "https://images.unsplash.com/photo-1606216794074-735e91aa2c92?q=90&w=900&auto=format&fit=crop",
-    rating: 4.8,
-  },
-  {
-    id: "somaaya",
-    boutique_name: "Somaaya",
-    email: "hello@somaaya.example",
-    city: "Thrissur",
-    image_url: "https://images.unsplash.com/photo-1583391733956-6c78276477e2?q=90&w=900&auto=format&fit=crop",
-    rating: 4.8,
-  },
-  {
-    id: "la-rosa",
-    boutique_name: "La Rosa",
-    email: "hello@larosa.example",
-    city: "Kozhikode",
-    image_url: "https://images.unsplash.com/photo-1583391265517-35bbdad01209?q=90&w=900&auto=format&fit=crop",
-    rating: 4.8,
-  },
-  {
-    id: "the-a-chapter",
-    boutique_name: "The A Chapter",
-    email: "hello@achapter.example",
-    city: "Kochi",
-    image_url: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?q=90&w=900&auto=format&fit=crop",
-    rating: 4.8,
-  },
-];
+
 
 const CARD_CATEGORIES = ["Bridal Wear", "Jewellery", "Makeup Studio", "Wedding Planners"];
 
@@ -48,7 +15,28 @@ interface FeaturedBoutiquesProps {
 
 export async function FeaturedBoutiques({ title, subtitle }: FeaturedBoutiquesProps) {
   const boutiques = await getFeaturedBoutiques();
-  const displayBoutiques = boutiques?.length ? boutiques.slice(0, 4) : FALLBACK_BOUTIQUES;
+  const displayBoutiques = boutiques?.length ? boutiques.slice(0, 4) : [];
+
+  if (displayBoutiques.length === 0) {
+    return (
+      <section className="relative mx-auto w-full max-w-[1728px] px-5 py-12 sm:px-7 sm:py-14 md:py-16 lg:px-10 xl:px-12 2xl:px-14">
+        <div className="mb-9 flex items-end justify-between md:mb-10">
+          <div>
+            <span className="mb-3 block text-[12px] font-medium uppercase tracking-[0.22em] text-[#8f7856]">
+              {subtitle || "Featured Boutiques"}
+            </span>
+            <h2 className="font-display text-[26px] font-normal leading-tight text-charcoal sm:text-[30px] lg:text-[36px]">
+              {title || "Handpicked excellence"}
+            </h2>
+          </div>
+        </div>
+        <div className="py-20 text-center border border-gold/10 rounded-2xl bg-white shadow-sm">
+          <h3 className="font-display text-2xl text-charcoal mb-2">No featured boutiques currently</h3>
+          <p className="text-charcoal/60">Check back soon for our latest curated selections.</p>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="relative mx-auto w-full max-w-[1728px] px-5 py-12 sm:px-7 sm:py-14 md:py-16 lg:px-10 xl:px-12 2xl:px-14">
