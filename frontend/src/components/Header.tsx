@@ -53,7 +53,7 @@ export function Header() {
           <button className="w-9 h-9 lg:w-10 lg:h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors">
             <Search className="w-4 h-4 lg:w-5 lg:h-5" />
           </button>
-          <Link href="/admin/login" className="hidden md:flex bg-[#12584C] hover:bg-[#186f61] border border-[#1d796b] px-6 py-2 lg:px-8 lg:py-2.5 rounded-full font-semibold transition-colors text-sm lg:text-[15px]">
+          <Link href="/login" className="hidden md:flex bg-[#12584C] hover:bg-[#186f61] border border-[#1d796b] px-6 py-2 lg:px-8 lg:py-2.5 rounded-full font-semibold transition-colors text-sm lg:text-[15px]">
             Log In
           </Link>
           <button 
@@ -75,7 +75,7 @@ export function Header() {
           <Link href="/blog" className="text-lg font-semibold border-b border-white/10 pb-2">Blog</Link>
           <Link href="/e-invites" className="text-lg font-semibold border-b border-white/10 pb-2">E-Invites</Link>
           <Link href="/genie" className="text-lg font-semibold border-b border-white/10 pb-2">Genie</Link>
-          <Link href="/admin/login" className="text-lg font-semibold text-gold">Log In</Link>
+          <Link href="/login" className="text-lg font-semibold text-gold">Log In</Link>
         </div>
       )}
     </header>
