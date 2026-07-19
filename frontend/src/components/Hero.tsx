@@ -16,7 +16,7 @@ export function Hero({ title, subtitle, imageUrl }: HeroProps) {
           <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
           <div className="absolute inset-y-0 left-0 z-10 hidden w-[58%] bg-[#6a5534]/20 md:block" />
         <img 
-            src={imageUrl || "https://images.unsplash.com/photo-1583391733981-84984049cc66?q=90&w=2400&auto=format&fit=crop"}
+            src={imageUrl || "https://lh3.googleusercontent.com/aida-public/AB6AXuA0wfsJA6L2AZn8ts_o01Itg8tyJMHwQvs-OVIkVJsp3Veg0AN83-jebgYChIDTUgKs1AltoiZdriG42HhR8XgLXEAD38DsYgQ8_PZ08WEZZXJzWL4TNf8pgawKzyPSNXkx-Lc-AWmfhesyOIouI_RXvat44ZAs5ser7su1EdtdjVQc6d88qJThiCqatqsxrYscWB2juxyBoYBwyB0L_BmIFd9M09rN0rRfeSba-NLIP9TbihI2dNvrAmRSRGznmOH9JzWFNqYl0Yw"}
           alt={title || "Kerala Wedding"}
             className="h-full w-full object-cover object-[60%_42%]"
         />
