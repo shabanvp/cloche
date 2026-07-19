@@ -8,7 +8,7 @@ import {
 import { useState } from "react";
 
 type HeaderProps = {
-  session?: { token: string; role: string } | null;
+  session?: { token: string; role?: string } | null;
 };
 
 export function Header({ session }: HeaderProps = {}) {
