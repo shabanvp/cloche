@@ -9,20 +9,24 @@ export async function login(formData: FormData) {
   const role = formData.get("role") as string; // 'customer', 'vendor', 'admin'
 
   try {
-    let endpoint = `${API_BASE_URL}/auth/login`;
+    let endpoint = `${API_BASE_URL}/auth/login-user`;
+    const payload: any = { password };
     
-    // Depending on role, the backend might have different login endpoints or unified.
-    // Assuming unified or specific based on Phase 9 structure.
-    if (role === 'vendor') {
-      endpoint = `${API_BASE_URL}/auth/partner-login`;
+    if (role === 'vendor' || role === 'partner') {
+      endpoint = `${API_BASE_URL}/auth/login`;
+      payload.identifier = email;
     } else if (role === 'admin') {
       endpoint = `${API_BASE_URL}/admin/login`;
+      payload.email = email;
+    } else {
+      endpoint = `${API_BASE_URL}/auth/login-user`;
+      payload.email = email;
     }
 
     const res = await fetch(endpoint, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify(payload),
     });
 
     const data = await res.json();
