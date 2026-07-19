@@ -25,7 +25,7 @@ export async function FeaturedBoutiques({ title, subtitle }: FeaturedBoutiquesPr
             <span className="mb-3 block text-[12px] font-medium uppercase tracking-[0.22em] text-[#8f7856]">
               {subtitle || "Featured Boutiques"}
             </span>
-            <h2 className="font-display text-[26px] font-normal leading-tight text-charcoal sm:text-[30px] lg:text-[36px]">
+            <h2 className="font-display text-[32px] font-normal leading-tight text-charcoal sm:text-[30px] lg:text-[36px]">
               {title || "Handpicked excellence"}
             </h2>
           </div>
@@ -45,7 +45,7 @@ export async function FeaturedBoutiques({ title, subtitle }: FeaturedBoutiquesPr
           <span className="mb-3 block text-[12px] font-medium uppercase tracking-[0.22em] text-[#8f7856]">
             {subtitle || "Featured Boutiques"}
           </span>
-          <h2 className="font-display text-[26px] font-normal leading-tight text-charcoal sm:text-[30px] lg:text-[36px]">
+          <h2 className="font-display text-[32px] font-normal leading-tight text-charcoal sm:text-[30px] lg:text-[36px]">
             {title || "Handpicked excellence"}
           </h2>
         </div>
@@ -58,21 +58,22 @@ export async function FeaturedBoutiques({ title, subtitle }: FeaturedBoutiquesPr
         {displayBoutiques.map((boutique, index) => (
           <Link key={boutique.id} href={`/boutiques/${boutique.id}`} className="group block">
             <div className="overflow-hidden rounded-[8px] border border-[#eadfce] bg-white shadow-[0_10px_24px_rgba(40,31,18,0.08)] transition-all duration-300 group-hover:shadow-[0_16px_32px_rgba(40,31,18,0.14)]">
-              <div className="relative aspect-[1/0.96] w-full overflow-hidden bg-[#eee6da]">
+              <div className="relative aspect-[4/3] sm:aspect-[1/0.96] w-full overflow-hidden bg-[#eee6da]">
                 <Image
                   src={boutique.image_url || "https://images.unsplash.com/photo-1594938298596-70f594f74246?q=80&w=800&auto=format&fit=crop"}
                   alt={boutique.boutique_name}
                   fill
+                  sizes="100vw"
                   className="object-cover group-hover:scale-105 transition-transform duration-500"
                 />
               </div>
               
-              <div className="p-5 pt-4">
-                <h3 className="mb-2 truncate font-display text-[20px] font-semibold leading-tight text-charcoal">
+              <div className="p-4 pt-3 sm:p-5 sm:pt-4">
+                <h3 className="mb-1 sm:mb-2 truncate font-display text-[20px] font-semibold leading-tight text-charcoal">
                   {boutique.boutique_name}
                 </h3>
-                <p className="mb-5 text-[13px] text-charcoal/62">{CARD_CATEGORIES[index] || "Bridal Wear"}</p>
-                <div className="flex items-center justify-between text-[13px] text-charcoal/75">
+                <p className="mb-3 sm:mb-5 text-[15px] sm:text-[13px] text-charcoal/62">{CARD_CATEGORIES[index] || "Bridal Wear"}</p>
+                <div className="flex items-center justify-between text-[15px] sm:text-[13px] text-charcoal/75">
                   <span className="min-w-0 truncate">{boutique.city || boutique.district || "Kochi"}</span>
                   <div className="flex items-center gap-1.5 font-medium text-charcoal">
                     <Star className="h-3.5 w-3.5 fill-gold text-gold" />

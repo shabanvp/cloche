@@ -16,13 +16,13 @@ export async function TrendingCollections({ title, subtitle }: TrendingCollectio
 
   if (displayCollections.length === 0) {
     return (
-      <section className="mx-auto w-full max-w-[1728px] px-5 pb-16 pt-8 sm:px-7 sm:pb-18 sm:pt-10 md:pb-20 lg:px-10 xl:px-12 2xl:px-14">
+      <section className="mx-auto w-full max-w-[1728px] px-5 py-12 sm:px-7 sm:pb-18 sm:pt-10 md:pb-20 lg:px-10 xl:px-12 2xl:px-14">
         <div className="mb-9 flex items-end justify-between md:mb-10">
           <div>
             <span className="mb-3 block text-[12px] font-medium uppercase tracking-[0.22em] text-[#8f7856]">
               {subtitle || "Curated Collections"}
             </span>
-            <h2 className="font-display text-[26px] font-normal leading-tight text-charcoal sm:text-[30px] lg:text-[36px]">
+            <h2 className="font-display text-[32px] font-normal leading-tight text-charcoal sm:text-[30px] lg:text-[36px]">
               {title || "Timeless styles. Modern stories."}
             </h2>
           </div>
@@ -36,13 +36,13 @@ export async function TrendingCollections({ title, subtitle }: TrendingCollectio
   }
 
   return (
-    <section className="mx-auto w-full max-w-[1728px] px-5 pb-16 pt-8 sm:px-7 sm:pb-18 sm:pt-10 md:pb-20 lg:px-10 xl:px-12 2xl:px-14">
+    <section className="mx-auto w-full max-w-[1728px] px-5 py-12 sm:px-7 sm:pb-18 sm:pt-10 md:pb-20 lg:px-10 xl:px-12 2xl:px-14">
       <div className="mb-9 flex items-end justify-between md:mb-10">
         <div>
           <span className="mb-3 block text-[12px] font-medium uppercase tracking-[0.22em] text-[#8f7856]">
             {subtitle || "Curated Collections"}
           </span>
-          <h2 className="font-display text-[26px] font-normal leading-tight text-charcoal sm:text-[30px] lg:text-[36px]">
+          <h2 className="font-display text-[32px] font-normal leading-tight text-charcoal sm:text-[30px] lg:text-[36px]">
             {title || "Timeless styles. Modern stories."}
           </h2>
         </div>
@@ -59,6 +59,7 @@ export async function TrendingCollections({ title, subtitle }: TrendingCollectio
                 src={product.image_url || "https://images.unsplash.com/photo-1594223274512-ad4803739b7c?q=80&w=800&auto=format&fit=crop"}
                 alt={product.product_name}
                 fill
+                sizes="100vw"
                 className="object-cover group-hover:scale-105 transition-transform duration-500"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-charcoal/82 via-charcoal/18 to-transparent"></div>

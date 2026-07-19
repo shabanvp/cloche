@@ -25,7 +25,7 @@ export function Categories({ title, subtitle }: CategoriesProps) {
           <span className="mb-3 block text-[12px] font-medium uppercase tracking-[0.22em] text-[#8f7856]">
             {subtitle || "Browse by Category"}
           </span>
-          <h2 className="font-display text-[26px] font-normal leading-tight text-charcoal sm:text-[30px] lg:text-[36px]">
+          <h2 className="font-display text-[32px] font-normal leading-tight text-charcoal sm:text-[30px] lg:text-[36px]">
             {title || "Everything for your big day"}
           </h2>
         </div>
@@ -34,14 +34,14 @@ export function Categories({ title, subtitle }: CategoriesProps) {
         </Link>
       </div>
 
-      <div className="grid grid-cols-4 gap-x-3 gap-y-7 sm:gap-x-5 md:grid-cols-4 lg:grid-cols-8 lg:gap-x-7 xl:gap-x-9">
+      <div className="flex overflow-x-auto snap-x snap-mandatory gap-x-6 pb-4 sm:grid sm:grid-cols-4 sm:gap-x-5 sm:gap-y-7 sm:pb-0 md:grid-cols-4 lg:grid-cols-8 lg:gap-x-7 xl:gap-x-9 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         {CATEGORIES.map((category) => {
           const Icon = category.icon;
           return (
             <Link 
               key={category.name} 
               href={category.href}
-              className="group flex min-w-0 flex-col items-center"
+              className="group flex min-w-[72px] shrink-0 snap-start flex-col items-center sm:min-w-0"
             >
               <div className="mb-4 flex aspect-square w-[64px] items-center justify-center rounded-full border border-gold/35 bg-ivory text-gold transition-all duration-300 group-hover:scale-105 group-hover:bg-gold group-hover:text-white sm:w-[74px] md:w-[80px] lg:w-[84px] xl:w-[88px]">
                 <Icon aria-hidden="true" strokeWidth={1.35} className="h-[26px] w-[26px] sm:h-8 sm:w-8" />
