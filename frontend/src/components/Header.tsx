@@ -1,74 +1,81 @@
 "use client";
 
 import Link from "next/link";
-import { Search, Heart, User, Menu, Flower2, X } from "lucide-react";
+import { Search, Edit3, Smartphone, Menu, X, ChevronDown } from "lucide-react";
 import { useState } from "react";
 
 export function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-50 w-full max-w-[100vw] overflow-hidden border-b border-[#e7dccb] bg-ivory/98">
-      <div className="mx-auto w-full max-w-[100vw] px-4 sm:max-w-[1728px] sm:px-7 lg:px-10 xl:px-12 2xl:px-14">
-        <div className="relative flex h-[72px] items-center justify-between md:h-[80px] lg:h-[88px] xl:h-[92px] 2xl:h-[96px]">
-          <div className="flex-shrink-0 flex items-center">
-            <Link href="/" className="flex flex-col items-center leading-none">
-              <Flower2 className="mb-1 h-5 w-5 text-gold sm:h-6 sm:w-6" strokeWidth={1.35} />
-              <span className="font-display text-[22px] font-semibold uppercase tracking-[0.15em] text-charcoal sm:text-[28px] lg:text-[31px]">
-                Cloche
-              </span>
-              <span className="mt-1 text-[7px] uppercase tracking-[0.28em] text-charcoal/70 sm:text-[8px]">
-                Stories in threads
-              </span>
-            </Link>
-          </div>
-
-          <nav className="hidden items-center gap-7 lg:flex xl:gap-9">
-            <Link href="/categories" className="text-[14px] font-semibold text-charcoal transition-colors hover:text-emerald">Categories</Link>
-            <Link href="/boutiques" className="text-[14px] font-semibold text-charcoal transition-colors hover:text-emerald">Boutiques</Link>
-            <Link href="/collections" className="text-[14px] font-semibold text-charcoal transition-colors hover:text-emerald">Collections</Link>
-            <Link href="/inspiration" className="text-[14px] font-semibold text-charcoal transition-colors hover:text-emerald">Inspiration</Link>
-            <Link href="/deals" className="text-[14px] font-semibold text-charcoal transition-colors hover:text-emerald">Deals</Link>
-          </nav>
-
-          <div className="absolute right-0 flex min-w-0 items-center gap-2.5 text-charcoal sm:gap-5 lg:static">
-            <Link href="/search" aria-label="Search" className="transition-colors hover:text-gold">
-              <Search className="h-5 w-5 lg:h-[22px] lg:w-[22px]" strokeWidth={1.8} />
-            </Link>
-            <Link href="/wishlist" aria-label="Wishlist" className="transition-colors hover:text-gold">
-              <Heart className="h-5 w-5 lg:h-[22px] lg:w-[22px]" strokeWidth={1.8} />
-            </Link>
-            <Link href="/dashboard" aria-label="Account" className="transition-colors hover:text-gold">
-              <User className="h-5 w-5 lg:h-[22px] lg:w-[22px]" strokeWidth={1.8} />
-            </Link>
-            <button 
-              aria-label="Menu" 
-              className="transition-colors hover:text-gold lg:hidden"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            >
-              {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-            </button>
-          </div>
+    <header className="sticky top-0 z-50 w-full flex flex-col shadow-md">
+      {/* Top Bar (Hidden on Mobile) */}
+      <div className="hidden md:flex justify-between items-center px-4 sm:px-6 lg:px-10 xl:px-12 py-2 text-xs lg:text-sm bg-[#0B3B2D] text-white border-b border-white/10">
+        <div className="flex items-center gap-4">
+          <span className="text-gray-300">India's Favourite Wedding Planning Platform</span>
+          <button className="flex items-center gap-1 bg-white text-gray-900 px-3 py-1 rounded-sm font-medium hover:bg-gray-100 transition-colors">
+            All Cities <ChevronDown className="w-4 h-4" />
+          </button>
+        </div>
+        <div className="flex items-center gap-6">
+          <Link href="/review" className="flex items-center gap-2 hover:text-gold transition-colors">
+            <Edit3 className="w-4 h-4" />
+            <span>Write A Review</span>
+          </Link>
+          <Link href="/download" className="flex items-center gap-2 hover:text-gold transition-colors">
+            <Smartphone className="w-4 h-4" />
+            <span>Download App</span>
+          </Link>
         </div>
       </div>
 
+      {/* Main Nav */}
+      <div className="flex justify-between items-center px-4 sm:px-6 lg:px-10 xl:px-12 py-4 bg-primary text-white">
+        {/* Logo */}
+        <Link href="/" className="flex items-center gap-3 shrink-0">
+          <div className="w-7 h-7 lg:w-8 lg:h-8 bg-white"></div>
+          <span className="font-display text-2xl lg:text-[28px] font-bold tracking-wide">Cloche</span>
+        </Link>
+
+        {/* Desktop Links */}
+        <nav className="hidden lg:flex items-center gap-5 xl:gap-8 font-semibold text-[14px] xl:text-[15px]">
+          <Link href="/categories" className="hover:text-gold transition-colors">Venues</Link>
+          <Link href="/boutiques" className="hover:text-gold transition-colors">Vendors</Link>
+          <Link href="/inspiration" className="hover:text-gold transition-colors">Photos</Link>
+          <Link href="/real-weddings" className="hover:text-gold transition-colors">Real Weddings</Link>
+          <Link href="/blog" className="hover:text-gold transition-colors">Blog</Link>
+          <Link href="/e-invites" className="hover:text-gold transition-colors">E-Invites</Link>
+          <Link href="/genie" className="hover:text-gold transition-colors">Genie</Link>
+        </nav>
+
+        {/* Actions */}
+        <div className="flex items-center gap-3 lg:gap-5 shrink-0">
+          <button className="w-9 h-9 lg:w-10 lg:h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors">
+            <Search className="w-4 h-4 lg:w-5 lg:h-5" />
+          </button>
+          <Link href="/admin/login" className="hidden md:flex bg-[#12584C] hover:bg-[#186f61] border border-[#1d796b] px-6 py-2 lg:px-8 lg:py-2.5 rounded-full font-semibold transition-colors text-sm lg:text-[15px]">
+            Log In
+          </Link>
+          <button 
+            className="lg:hidden text-white hover:text-gold transition-colors"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          >
+            {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile Menu */}
       {isMobileMenuOpen && (
-        <div className="absolute left-0 w-full border-t border-gold/10 bg-ivory px-5 py-5 shadow-lg lg:hidden">
-          <div className="mx-auto grid max-w-[1728px] gap-4 sm:grid-cols-2">
-            <Link href="/categories" className="block text-sm font-semibold text-charcoal hover:text-emerald">Categories</Link>
-            <Link href="/boutiques" className="block text-sm font-semibold text-charcoal hover:text-emerald">Boutiques</Link>
-            <Link href="/collections" className="block text-sm font-semibold text-charcoal hover:text-emerald">Collections</Link>
-            <Link href="/inspiration" className="block text-sm font-semibold text-charcoal hover:text-emerald">Inspiration</Link>
-            <Link href="/deals" className="block text-sm font-semibold text-charcoal hover:text-emerald">Deals</Link>
-          </div>
-          <div className="mx-auto mt-5 flex max-w-[1728px] gap-6 border-t border-gold/10 pt-5">
-             <Link href="/search" aria-label="Search" className="flex items-center gap-2 text-sm text-charcoal transition-colors hover:text-gold">
-              <Search className="h-5 w-5" /> Search
-            </Link>
-            <Link href="/wishlist" aria-label="Wishlist" className="flex items-center gap-2 text-sm text-charcoal transition-colors hover:text-gold">
-              <Heart className="h-5 w-5" /> Wishlist
-            </Link>
-          </div>
+        <div className="lg:hidden absolute top-full left-0 w-full bg-primary border-t border-white/20 p-4 flex flex-col gap-4 shadow-lg text-white">
+          <Link href="/categories" className="text-lg font-semibold border-b border-white/10 pb-2">Venues</Link>
+          <Link href="/boutiques" className="text-lg font-semibold border-b border-white/10 pb-2">Vendors</Link>
+          <Link href="/inspiration" className="text-lg font-semibold border-b border-white/10 pb-2">Photos</Link>
+          <Link href="/real-weddings" className="text-lg font-semibold border-b border-white/10 pb-2">Real Weddings</Link>
+          <Link href="/blog" className="text-lg font-semibold border-b border-white/10 pb-2">Blog</Link>
+          <Link href="/e-invites" className="text-lg font-semibold border-b border-white/10 pb-2">E-Invites</Link>
+          <Link href="/genie" className="text-lg font-semibold border-b border-white/10 pb-2">Genie</Link>
+          <Link href="/admin/login" className="text-lg font-semibold text-gold">Log In</Link>
         </div>
       )}
     </header>

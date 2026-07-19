@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Inter, Playfair_Display, Public_Sans } from "next/font/google";
 import "./globals.css";
+import { Header } from "@/components/Header";
+import { BottomNavBar } from "@/components/BottomNavBar";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -35,7 +37,11 @@ export default function RootLayout({
       <head>
         <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
       </head>
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <Header />
+        {children}
+        <BottomNavBar />
+      </body>
     </html>
   );
 }

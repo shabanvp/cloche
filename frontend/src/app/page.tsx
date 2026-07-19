@@ -2,50 +2,10 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
 
 export default function Home() {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
   return (
     <>
-<header className="sticky top-0 z-50 w-full bg-surface/90 backdrop-blur-md border-b border-outline-variant/30 flex justify-between items-center px-4 py-4">
-<div className="flex items-center gap-3">
-<button 
-  className="text-primary hover:opacity-80 transition-opacity active:scale-95"
-  onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
->
-<span className="material-symbols-outlined">{isMobileMenuOpen ? 'close' : 'menu'}</span>
-</button>
-<img alt="CLOCHE Logo" className="h-8 w-auto" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCDqVgJoQurUXZG2V7fKyBEnHcmvjEo8_OtfnMiMMZCq3fMibSvSs5XUboCPm3UbMM9s9S97aFDfrdRW4mDknscdzQ8vhaqS62NStbOuxhElxWE19KmHilAarh-RUdkvAwV9aBmbx9NK4qZ0ON79ewJwh5L7cGSZp7-6vBPQ9MAZUZx5fLCb3SxTDowUsz9aDCIQbBj3YDrZsZRROq35vHYo-LSaySU6yUApA7YgQWXnWy4xhR24j5TXcMlnrz9DD7_WB1_Diq01UwG"/>
-</div>
-<div className="flex items-center gap-4">
-<div className="hidden md:flex items-center gap-1 text-primary text-label-md font-label-md cursor-pointer hover:opacity-80">
-<span>All Cities</span>
-<span className="material-symbols-outlined text-[18px]">arrow_drop_down</span>
-</div>
-<Link href="/dashboard" className="text-primary hover:opacity-80 transition-opacity active:scale-95">
-<span className="material-symbols-outlined">account_circle</span>
-</Link>
-</div>
-</header>
-
-{/* Mobile Menu Dropdown */}
-{isMobileMenuOpen && (
-  <div className="fixed inset-0 z-40 bg-black/50" onClick={() => setIsMobileMenuOpen(false)}>
-    <div 
-      className="absolute top-[72px] left-0 w-64 h-full bg-surface shadow-2xl p-6 flex flex-col gap-6"
-      onClick={e => e.stopPropagation()}
-    >
-      <Link href="/" className="text-on-surface font-bold text-lg border-b border-outline-variant/30 pb-2">Home</Link>
-      <Link href="/categories" className="text-on-surface font-bold text-lg border-b border-outline-variant/30 pb-2">Categories</Link>
-      <Link href="/boutiques" className="text-on-surface font-bold text-lg border-b border-outline-variant/30 pb-2">Boutiques</Link>
-      <Link href="/collections" className="text-on-surface font-bold text-lg border-b border-outline-variant/30 pb-2">Collections</Link>
-      <Link href="/inspiration" className="text-on-surface font-bold text-lg border-b border-outline-variant/30 pb-2">Inspiration</Link>
-      <Link href="/contact" className="text-on-surface font-bold text-lg border-b border-outline-variant/30 pb-2">Contact Us</Link>
-    </div>
-  </div>
-)}
 <main className="pb-20">
 {/* Hero Section */}
 <section className="relative h-[480px] w-full flex flex-col justify-end overflow-hidden">
@@ -291,34 +251,6 @@ export default function Home() {
 </div>
 </section>
 </main>
-{/* BottomNavBar */}
-<nav className="fixed bottom-0 w-full z-50 bg-surface/95 backdrop-blur-lg border-t border-outline-variant/15 h-16 flex justify-around items-center shadow-[0_-10px_30px_rgba(0,0,0,0.04)] pb-safe">
-<Link className="flex flex-col items-center justify-center text-primary font-bold active:scale-90 transition-all" href="/">
-<span className="material-symbols-outlined" style={{fontVariationSettings: 'FILL 1'}}>home</span>
-<span className="text-[10px] uppercase tracking-wider mt-1">Home</span>
-</Link>
-<Link className="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-all active:scale-90" href="/categories">
-<span className="material-symbols-outlined">location_on</span>
-<span className="text-[10px] uppercase tracking-wider mt-1">Venues</span>
-</Link>
-<Link className="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-all active:scale-90" href="/boutiques">
-<span className="material-symbols-outlined">group</span>
-<span className="text-[10px] uppercase tracking-wider mt-1">Vendors</span>
-</Link>
-<Link className="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-all active:scale-90" href="/inspiration">
-<span className="material-symbols-outlined">photo_library</span>
-<span className="text-[10px] uppercase tracking-wider mt-1">Photos</span>
-</Link>
-<Link className="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-all active:scale-90" href="/real-weddings">
-<span className="material-symbols-outlined">auto_stories</span>
-<span className="text-[10px] uppercase tracking-wider mt-1">Blogs</span>
-</Link>
-</nav>
-{/* Contextual FAB */}
-<button className="fixed bottom-20 right-6 z-40 bg-secondary text-primary w-14 h-14 rounded-full shadow-2xl flex items-center justify-center group active:scale-90 transition-transform">
-<span className="material-symbols-outlined text-3xl group-hover:rotate-12 transition-transform">magic_button</span>
-</button>
-
     </>
   );
 }
