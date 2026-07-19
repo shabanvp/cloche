@@ -1,19 +1,34 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { signup } from "@/app/actions/auth";
 
 export default function SignupPage() {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
-      // Logic for signup goes here
-    }, 1500);
+    setErrorMsg("");
+    
+    const formData = new FormData(e.currentTarget);
+    formData.append("account_type", "user"); // Matches older website logic
+
+    const res = await signup(formData);
+    
+    setIsSubmitting(false);
+    
+    if (res.error) {
+      setErrorMsg(res.error);
+    } else {
+      // Assuming success redirects to login with verification status
+      router.push("/login?status=verification_sent"); 
+    }
   };
 
   return (
@@ -32,7 +47,8 @@ export default function SignupPage() {
         <div className="relative group">
           <input 
             className="peer w-full bg-transparent border-t-0 border-x-0 border-b border-outline/30 py-3 text-on-surface placeholder-transparent focus:outline-none focus:border-b-secondary transition-all duration-300" 
-            id="fullname" 
+            id="fullname"
+            name="name"
             placeholder=" " 
             required 
             type="text"
@@ -50,6 +66,7 @@ export default function SignupPage() {
           <input 
             className="peer w-full bg-transparent border-t-0 border-x-0 border-b border-outline/30 py-3 text-on-surface placeholder-transparent focus:outline-none focus:border-b-secondary transition-all duration-300" 
             id="email" 
+            name="email"
             placeholder=" " 
             required 
             type="email"
@@ -67,6 +84,7 @@ export default function SignupPage() {
           <input 
             className="peer w-full bg-transparent border-t-0 border-x-0 border-b border-outline/30 py-3 text-on-surface placeholder-transparent focus:outline-none focus:border-b-secondary transition-all duration-300" 
             id="phone" 
+            name="phone"
             placeholder=" " 
             required 
             type="tel"
@@ -84,6 +102,7 @@ export default function SignupPage() {
           <input 
             className="peer w-full bg-transparent border-t-0 border-x-0 border-b border-outline/30 py-3 text-on-surface placeholder-transparent focus:outline-none focus:border-b-secondary transition-all duration-300" 
             id="password" 
+            name="password"
             placeholder=" " 
             required 
             type={showPassword ? "text" : "password"}
@@ -115,6 +134,12 @@ export default function SignupPage() {
             I agree to the <Link className="text-secondary underline decoration-outline-variant/50 hover:text-primary transition-colors" href="#">Terms & Conditions</Link> and Privacy Policy.
           </label>
         </div>
+
+        {errorMsg && (
+          <div className="bg-red-500/10 text-red-500 border border-red-500/20 px-4 py-3 text-sm rounded-lg">
+            {errorMsg}
+          </div>
+        )}
 
         {/* Primary Action Button */}
         <button 

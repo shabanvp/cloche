@@ -53,6 +53,27 @@ export async function login(formData: FormData) {
   }
 }
 
+export async function signup(formData: FormData) {
+  try {
+    const endpoint = `${API_BASE_URL}/auth/signup`;
+    
+    const res = await fetch(endpoint, {
+      method: "POST",
+      body: formData,
+    });
+
+    const data = await res.json();
+
+    if (!res.ok || !data.success) {
+      return { error: data.message || "Signup failed" };
+    }
+
+    return { success: true, ...data };
+  } catch (error: any) {
+    return { error: "An unexpected error occurred." };
+  }
+}
+
 export async function logout() {
   const cookieStore = await cookies();
   cookieStore.delete("auth_token");

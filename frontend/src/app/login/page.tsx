@@ -1,19 +1,33 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { login } from "@/app/actions/auth";
 
 export default function LoginPage() {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
-      // Logic for login goes here
-    }, 1500);
+    setErrorMsg("");
+    
+    const formData = new FormData(e.currentTarget);
+    formData.append("role", "customer");
+
+    const res = await login(formData);
+    
+    setIsSubmitting(false);
+
+    if (res.error) {
+      setErrorMsg(res.error);
+    } else {
+      router.push("/");
+    }
   };
 
   return (
@@ -72,6 +86,12 @@ export default function LoginPage() {
           <div className="flex justify-end mt-[-16px]">
             <Link className="font-sans font-semibold text-[12px] tracking-[0.08em] text-secondary hover:text-primary transition-colors italic" href="#">Forgot Password?</Link>
           </div>
+
+          {errorMsg && (
+            <div className="bg-red-500/10 text-red-500 border border-red-500/20 px-4 py-3 text-sm rounded-lg -mt-2">
+              {errorMsg}
+            </div>
+          )}
 
           {/* Primary Login Button */}
           <button 
