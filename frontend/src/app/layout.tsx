@@ -5,6 +5,8 @@ import { Header } from "@/components/Header";
 import { BottomNavBar } from "@/components/BottomNavBar";
 import { getSession } from "@/app/actions/auth";
 
+export const dynamic = 'force-dynamic';
+
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
