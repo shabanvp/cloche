@@ -8,13 +8,13 @@ export function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
-    <header className="w-full bg-ivory/98 sticky top-0 z-50 border-b border-[#e7dccb]">
-      <div className="mx-auto w-full max-w-[1728px] px-5 sm:px-7 lg:px-10 xl:px-12 2xl:px-14">
-        <div className="flex h-[72px] items-center justify-between md:h-[80px] lg:h-[88px] xl:h-[92px] 2xl:h-[96px]">
+    <header className="sticky top-0 z-50 w-full max-w-[100vw] overflow-hidden border-b border-[#e7dccb] bg-ivory/98">
+      <div className="mx-auto w-full max-w-[100vw] px-4 sm:max-w-[1728px] sm:px-7 lg:px-10 xl:px-12 2xl:px-14">
+        <div className="relative flex h-[72px] items-center justify-between md:h-[80px] lg:h-[88px] xl:h-[92px] 2xl:h-[96px]">
           <div className="flex-shrink-0 flex items-center">
             <Link href="/" className="flex flex-col items-center leading-none">
               <Flower2 className="mb-1 h-5 w-5 text-gold sm:h-6 sm:w-6" strokeWidth={1.35} />
-              <span className="font-display text-[24px] font-semibold uppercase tracking-[0.15em] text-charcoal sm:text-[28px] lg:text-[31px]">
+              <span className="font-display text-[22px] font-semibold uppercase tracking-[0.15em] text-charcoal sm:text-[28px] lg:text-[31px]">
                 Cloche
               </span>
               <span className="mt-1 text-[7px] uppercase tracking-[0.28em] text-charcoal/70 sm:text-[8px]">
@@ -31,11 +31,11 @@ export function Header() {
             <Link href="/deals" className="text-[14px] font-semibold text-charcoal transition-colors hover:text-emerald">Deals</Link>
           </nav>
 
-          <div className="flex items-center gap-4 text-charcoal sm:gap-5">
-            <Link href="/search" aria-label="Search" className="hidden transition-colors hover:text-gold sm:block">
+          <div className="absolute right-0 flex min-w-0 items-center gap-2.5 text-charcoal sm:gap-5 lg:static">
+            <Link href="/search" aria-label="Search" className="transition-colors hover:text-gold">
               <Search className="h-5 w-5 lg:h-[22px] lg:w-[22px]" strokeWidth={1.8} />
             </Link>
-            <Link href="/wishlist" aria-label="Wishlist" className="hidden transition-colors hover:text-gold sm:block">
+            <Link href="/wishlist" aria-label="Wishlist" className="transition-colors hover:text-gold">
               <Heart className="h-5 w-5 lg:h-[22px] lg:w-[22px]" strokeWidth={1.8} />
             </Link>
             <Link href="/dashboard" aria-label="Account" className="transition-colors hover:text-gold">

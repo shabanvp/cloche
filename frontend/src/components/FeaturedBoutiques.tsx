@@ -2,9 +2,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { getFeaturedBoutiques } from "@/services/api";
 import { ArrowRight, Star } from "lucide-react";
-import { Boutique } from "@/types";
-
-
 
 const CARD_CATEGORIES = ["Bridal Wear", "Jewellery", "Makeup Studio", "Wedding Planners"];
 
@@ -58,7 +55,7 @@ export async function FeaturedBoutiques({ title, subtitle }: FeaturedBoutiquesPr
         {displayBoutiques.map((boutique, index) => (
           <Link key={boutique.id} href={`/boutiques/${boutique.id}`} className="group block">
             <div className="overflow-hidden rounded-[8px] border border-[#eadfce] bg-white shadow-[0_10px_24px_rgba(40,31,18,0.08)] transition-all duration-300 group-hover:shadow-[0_16px_32px_rgba(40,31,18,0.14)]">
-              <div className="relative aspect-[4/3] sm:aspect-[1/0.96] w-full overflow-hidden bg-[#eee6da]">
+              <div className="relative aspect-[1/0.96] w-full overflow-hidden bg-[#eee6da]">
                 <Image
                   src={boutique.image_url || "https://images.unsplash.com/photo-1594938298596-70f594f74246?q=80&w=800&auto=format&fit=crop"}
                   alt={boutique.boutique_name}

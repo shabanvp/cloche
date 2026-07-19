@@ -1,9 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import { getTrendingCollections } from "@/services/api";
-import { Product } from "@/types";
-
-
 
 interface TrendingCollectionsProps {
   title?: string;
