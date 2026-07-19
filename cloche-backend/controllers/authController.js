@@ -143,65 +143,27 @@ exports.signup = async (req, res) => {
 
         try {
             const passwordHash = await bcrypt.hash(password, 10);
-            const verificationToken = uuidv4();
 
-            const { data: existingUser } = await supabase.from("users").select("id, is_verified").eq("email", email).maybeSingle();
+            const { data: existingUser } = await supabase.from("users").select("id").eq("email", email).maybeSingle();
 
             if (existingUser) {
-                if (isVerifiedTrue(existingUser.is_verified)) return res.status(409).json({ message: "User already exists" });
-                await supabase
-                    .from("users")
-                    .update({ name, password_hash: passwordHash, is_verified: false, verification_token: verificationToken })
-                    .eq("id", existingUser.id);
-
-                const emailResult = await sendVerificationEmail(email, name, verificationToken, "user");
-                if (!emailResult?.success) {
-                    console.error("[Auth] Verification email failed (user resend):", email, emailResult?.internalError || emailResult?.error || emailResult);
-                    return res.json({
-                        success: true,
-                        role: "user",
-                        message: "Account updated but verification email failed.",
-                        email_failed: true,
-                        email_error: emailResult?.error,
-                        verification_url: getVerificationUrl(emailResult, verificationToken, "user")
-                    });
-                }
-
-                return res.json({
-                    success: true,
-                    role: "user",
-                    message: "Verification email sent. Please check your inbox.",
-                    email: emailAcceptedPayload(emailResult)
-                });
+                return res.status(409).json({ message: "User already exists" });
             }
 
             const { data: insertedUser, error } = await supabase
                 .from("users")
-                .insert([{ name, email, password_hash: passwordHash, is_verified: false, verification_token: verificationToken }])
+                .insert([{ name, email, password_hash: passwordHash, is_verified: true, verification_token: null }])
                 .select("id")
                 .maybeSingle();
+            
             if (error) return res.status(500).json({ message: error.message });
-
-            const emailResult = await sendVerificationEmail(email, name, verificationToken, "user");
-            if (!emailResult?.success) {
-                console.error("[Auth] Verification email failed (user signup):", email, emailResult?.internalError || emailResult?.error || emailResult);
-                return res.status(201).json({
-                    success: true,
-                    role: "user",
-                    userId: insertedUser?.id,
-                    message: "Account created but verification email failed.",
-                    email_failed: true,
-                    email_error: emailResult?.error,
-                    verification_url: getVerificationUrl(emailResult, verificationToken, "user")
-                });
-            }
 
             return res.status(201).json({
                 success: true,
+                auto_verified: true,
                 role: "user",
                 userId: insertedUser?.id,
-                message: "User account created. Verification email sent.",
-                email: emailAcceptedPayload(emailResult)
+                message: "User account created successfully."
             });
         } catch (err) {
             return res.status(500).json({ message: err.message });
@@ -376,9 +338,6 @@ exports.loginUser = async (req, res) => {
         const { data: user, error } = await supabase.from("users").select("*").eq("email", email.toLowerCase()).maybeSingle();
 
         if (!user || error) return res.status(401).json({ message: "Invalid credentials" });
-        if (!isVerifiedTrue(user.is_verified)) {
-            return res.status(403).json({ message: "Please verify your email first. Check your inbox for the Cloche verification link." });
-        }
 
         const match = await bcrypt.compare(password, user.password_hash);
         if (!match) return res.status(401).json({ message: "Invalid credentials" });

@@ -3,6 +3,7 @@ import { Inter, Playfair_Display, Public_Sans } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/Header";
 import { BottomNavBar } from "@/components/BottomNavBar";
+import { getSession } from "@/app/actions/auth";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -24,11 +25,13 @@ export const metadata: Metadata = {
   description: "Find the best wedding vendors with thousands of trusted reviews",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const session = await getSession();
+
   return (
     <html
       lang="en"
@@ -38,7 +41,7 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
       </head>
       <body className="min-h-full flex flex-col">
-        <Header />
+        <Header session={session} />
         {children}
         <BottomNavBar />
       </body>

@@ -26,8 +26,7 @@ export default function SignupPage() {
     if (res.error) {
       setErrorMsg(res.error);
     } else {
-      // Assuming success redirects to login with verification status
-      router.push("/login?status=verification_sent"); 
+      router.push("/login"); 
     }
   };
 
