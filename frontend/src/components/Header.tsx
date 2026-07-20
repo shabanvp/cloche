@@ -14,6 +14,13 @@ type HeaderProps = {
 export function Header({ session }: HeaderProps = {}) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  let profileLink = "/dashboard";
+  if (session?.role === "vendor" || session?.role === "partner") {
+    profileLink = "/vendor/profile";
+  } else if (session?.role === "admin") {
+    profileLink = "/admin";
+  }
+
   return (
     <header className="sticky top-0 z-50 w-full flex flex-col shadow-md">
       {/* Top Bar (Hidden on Mobile) */}
@@ -62,7 +69,7 @@ export function Header({ session }: HeaderProps = {}) {
           </button>
           
           {session ? (
-            <Link href="/profile" className="hidden md:flex bg-[#12584C] hover:bg-[#186f61] border border-[#1d796b] px-6 py-2 lg:px-8 lg:py-2.5 rounded-full font-semibold transition-colors text-sm lg:text-[15px]">
+            <Link href={profileLink} className="hidden md:flex bg-[#12584C] hover:bg-[#186f61] border border-[#1d796b] px-6 py-2 lg:px-8 lg:py-2.5 rounded-full font-semibold transition-colors text-sm lg:text-[15px]">
               Profile
             </Link>
           ) : (
@@ -94,7 +101,7 @@ export function Header({ session }: HeaderProps = {}) {
             {/* Top Auth Section */}
             {session ? (
               <Link 
-                href="/profile" 
+                href={profileLink} 
                 className="flex items-center gap-4 p-5 border-b border-outline-variant/30 hover:bg-surface-dim transition-colors mt-2"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
