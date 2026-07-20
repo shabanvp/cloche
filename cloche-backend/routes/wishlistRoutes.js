@@ -43,19 +43,28 @@ router.get("/", async (req, res) => {
             throw error;
         }
 
-        // Format response
-        const formattedData = data.map(item => ({
-            id: item.id,
-            product_id: item.product_id,
-            product: {
-                id: item.products.id,
-                name: item.products.product_name,
-                price: item.products.price,
-                image: item.products.image_url,
-                boutique_name: item.products.boutiques?.boutique_name || "Unknown Boutique"
-            },
-            created_at: item.created_at
-        }));
+        // Format response safely
+        const formattedData = data.reduce((acc, item) => {
+            const productData = Array.isArray(item.products) ? item.products[0] : item.products;
+            
+            if (productData) {
+                const boutiqueData = Array.isArray(productData.boutiques) ? productData.boutiques[0] : productData.boutiques;
+                
+                acc.push({
+                    id: item.id,
+                    product_id: item.product_id,
+                    product: {
+                        id: productData.id,
+                        name: productData.product_name,
+                        price: productData.price,
+                        image: productData.image_url,
+                        boutique_name: boutiqueData?.boutique_name || "Unknown Boutique"
+                    },
+                    created_at: item.created_at
+                });
+            }
+            return acc;
+        }, []);
 
         res.json({ success: true, data: formattedData });
     } catch (err) {

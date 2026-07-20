@@ -11,6 +11,7 @@ interface Props {
   params: { id: string };
 }
 import { WishlistButton } from "@/components/WishlistButton";
+import { BookingModal } from "@/components/BookingModal";
 export default async function CollectionPage({ params }: Props) {
   const { id } = await params;
   const product = await getProductDetails(id);
@@ -66,12 +67,14 @@ export default async function CollectionPage({ params }: Props) {
             </div>
 
             <div className="flex gap-4 mb-8 border-y border-gold/10 py-6">
-              <Button className="flex-1 rounded-full bg-emerald hover:bg-emerald/90 text-white shadow-lg shadow-emerald/20">
-                Enquire Now
-              </Button>
-              <Button variant="outline" className="flex-1 rounded-full border-charcoal text-charcoal hover:bg-charcoal hover:text-white">
-                Book Appointment
-              </Button>
+              <Link href={`/contact?subject=Enquiry regarding ${product.product_name}`} className="flex-1">
+                <Button className="w-full rounded-full bg-emerald hover:bg-emerald/90 text-white shadow-lg shadow-emerald/20">
+                  Enquire Now
+                </Button>
+              </Link>
+              <div className="flex-1">
+                <BookingModal boutiqueId={Number(product.boutique_id)} boutiqueName={product.boutique_name || 'Boutique'} />
+              </div>
               <WishlistButton product={product} />
               <Button variant="ghost" size="icon" className="rounded-full border border-gray-200 hover:border-gold hover:text-gold shrink-0">
                 <Share2 className="w-5 h-5" />

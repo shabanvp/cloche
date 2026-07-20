@@ -1,6 +1,23 @@
 import { Button } from "@/components/Button";
+import { cookies } from "next/headers";
 
-export default function SettingsPage() {
+export default async function SettingsPage() {
+  const cookieStore = await cookies();
+  const userDataStr = cookieStore.get("user_data")?.value;
+  
+  let user = { first_name: "", last_name: "", email: "", phone: "" };
+  if (userDataStr) {
+    try {
+      const parsed = JSON.parse(userDataStr);
+      const fullName = parsed.user_metadata?.full_name || parsed.name || parsed.owner_name || parsed.boutique_name || "";
+      const nameParts = fullName.split(" ");
+      user.first_name = nameParts[0] || "";
+      user.last_name = nameParts.slice(1).join(" ") || "";
+      user.email = parsed.email || "";
+      user.phone = parsed.phone || parsed.user_metadata?.phone || "";
+    } catch(e) {}
+  }
+
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       <div className="border-b border-gold/10 pb-4">
@@ -17,20 +34,20 @@ export default function SettingsPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider text-charcoal/60 mb-2">First Name</label>
-                <input type="text" defaultValue="Cloche" className="w-full bg-ivory border border-gold/20 rounded-xl p-3 text-sm text-charcoal focus:outline-none focus:border-emerald" />
+                <input type="text" defaultValue={user.first_name} placeholder="First Name" className="w-full bg-ivory border border-gold/20 rounded-xl p-3 text-sm text-charcoal focus:outline-none focus:border-emerald" />
               </div>
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider text-charcoal/60 mb-2">Last Name</label>
-                <input type="text" defaultValue="User" className="w-full bg-ivory border border-gold/20 rounded-xl p-3 text-sm text-charcoal focus:outline-none focus:border-emerald" />
+                <input type="text" defaultValue={user.last_name} placeholder="Last Name" className="w-full bg-ivory border border-gold/20 rounded-xl p-3 text-sm text-charcoal focus:outline-none focus:border-emerald" />
               </div>
             </div>
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-charcoal/60 mb-2">Email Address</label>
-              <input type="email" defaultValue="user@cloche.com" className="w-full bg-ivory border border-gold/20 rounded-xl p-3 text-sm text-charcoal focus:outline-none focus:border-emerald" />
+              <input type="email" defaultValue={user.email} placeholder="Email" className="w-full bg-ivory border border-gold/20 rounded-xl p-3 text-sm text-charcoal focus:outline-none focus:border-emerald" />
             </div>
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-charcoal/60 mb-2">Phone Number</label>
-              <input type="tel" defaultValue="+91 9876543210" className="w-full bg-ivory border border-gold/20 rounded-xl p-3 text-sm text-charcoal focus:outline-none focus:border-emerald" />
+              <input type="tel" defaultValue={user.phone} placeholder="Phone" className="w-full bg-ivory border border-gold/20 rounded-xl p-3 text-sm text-charcoal focus:outline-none focus:border-emerald" />
             </div>
             <div className="pt-2">
               <Button className="bg-emerald text-white rounded-full">Save Changes</Button>

@@ -68,7 +68,7 @@ export function BookingModal({ boutiqueId, boutiqueName }: Props) {
       <Button 
         onClick={() => setIsOpen(true)}
         variant="outline" 
-        className="rounded-full flex items-center gap-2 border-emerald text-emerald hover:bg-emerald hover:text-white"
+        className="w-full justify-center rounded-full flex items-center gap-2 border-emerald text-emerald hover:bg-emerald hover:text-white"
       >
         <Calendar className="w-4 h-4" /> Book Appointment
       </Button>
