@@ -5,7 +5,7 @@ const multer = require("multer");
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
-router.post("/signup", upload.single("image"), authController.signup);
+router.post("/signup", upload.fields([{ name: 'image', maxCount: 1 }, { name: 'logo', maxCount: 1 }, { name: 'cover', maxCount: 1 }]), authController.signup);
 router.post("/login", authController.login);
 router.post("/login-user", authController.loginUser);
 router.post("/forgot-password", authController.forgotPassword);

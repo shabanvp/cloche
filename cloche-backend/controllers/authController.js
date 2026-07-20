@@ -171,9 +171,12 @@ exports.signup = async (req, res) => {
     }
 
     if (account_type === "partner") {
-        const { boutique_name, owner_name, email, phone, city, area, district, password, tags } = req.body;
-        if (!boutique_name || !owner_name || !email || !phone || (!city && (!area || !district)) || !password) return res.status(400).json({ message: "All partner fields required" });
-        if (!req.file) return res.status(400).json({ message: "Showcase image required" });
+        const { boutique_name, owner_name, email, phone, city, area, district, password, tags, category, address, state, pincode, website, instagram, facebook, description, gst_number } = req.body;
+        if (!boutique_name || !owner_name || !email || !phone || !password || !category) return res.status(400).json({ message: "Required partner fields missing (must include category)" });
+        
+        const files = req.files || {};
+        const hasAnyFile = files.image || files.logo || files.cover || req.file;
+        if (!hasAnyFile) return res.status(400).json({ message: "Showcase or logo image required" });
 
         try {
             const normalizedEmail = normalizeEmailValue(email);
@@ -192,6 +195,15 @@ exports.signup = async (req, res) => {
                 email: normalizedEmail,
                 phone: normalizedPhone,
                 city: loc.city || "",
+                category: String(category || "").trim(),
+                address: String(address || "").trim(),
+                state: String(state || "").trim(),
+                pincode: String(pincode || "").trim(),
+                website: String(website || "").trim(),
+                instagram: String(instagram || "").trim(),
+                facebook: String(facebook || "").trim(),
+                description: String(description || "").trim(),
+                gst_number: String(gst_number || "").trim(),
                 plan: "early_partner",
                 is_verified: false,
                 verification_token: verificationToken
@@ -215,9 +227,36 @@ exports.signup = async (req, res) => {
                     .update({ ...basePayload, password_hash: passwordHash })
                     .eq("id", existingBoutique.id);
 
-                if (req.file) {
-                    const { publicUrl } = await uploadBufferToStorage({ folder: `boutiques/showcase/${existingBoutique.id}`, file: req.file });
-                    await supabase.from("boutique_showcase").upsert([{ boutique_id: existingBoutique.id, area: loc.area, district: loc.district, tags: tags || null, image_url: publicUrl }], { onConflict: "boutique_id" });
+                if (hasAnyFile) {
+                    let publicUrl = null;
+                    let logoUrl = null;
+                    let coverUrl = null;
+                    
+                    if (files.image && files.image[0]) {
+                        const res = await uploadBufferToStorage({ folder: `boutiques/showcase/${existingBoutique.id}`, file: files.image[0] });
+                        publicUrl = res.publicUrl;
+                        await supabase.from("boutique_showcase").upsert([{ boutique_id: existingBoutique.id, area: loc.area, district: loc.district, tags: tags || null, image_url: publicUrl }], { onConflict: "boutique_id" });
+                    } else if (req.file) {
+                        const res = await uploadBufferToStorage({ folder: `boutiques/showcase/${existingBoutique.id}`, file: req.file });
+                        publicUrl = res.publicUrl;
+                        await supabase.from("boutique_showcase").upsert([{ boutique_id: existingBoutique.id, area: loc.area, district: loc.district, tags: tags || null, image_url: publicUrl }], { onConflict: "boutique_id" });
+                    }
+
+                    if (files.logo && files.logo[0]) {
+                        const res = await uploadBufferToStorage({ folder: `boutiques/logo/${existingBoutique.id}`, file: files.logo[0] });
+                        logoUrl = res.publicUrl;
+                    }
+                    if (files.cover && files.cover[0]) {
+                        const res = await uploadBufferToStorage({ folder: `boutiques/cover/${existingBoutique.id}`, file: files.cover[0] });
+                        coverUrl = res.publicUrl;
+                    }
+
+                    if (logoUrl || coverUrl) {
+                        const updates = {};
+                        if (logoUrl) updates.logo_url = logoUrl;
+                        if (coverUrl) updates.cover_url = coverUrl;
+                        await supabase.from("boutiques").update(updates).eq("id", existingBoutique.id);
+                    }
                 }
 
                 const emailResult = await sendVerificationEmail(normalizedEmail, owner_name, verificationToken, "partner");
@@ -262,9 +301,36 @@ exports.signup = async (req, res) => {
                 return res.status(500).json({ message: error.message });
             }
 
-            if (inserted?.id && req.file) {
-                const { publicUrl } = await uploadBufferToStorage({ folder: `boutiques/showcase/${inserted.id}`, file: req.file });
-                await supabase.from("boutique_showcase").upsert([{ boutique_id: inserted.id, area: loc.area, district: loc.district, tags: tags || null, image_url: publicUrl }], { onConflict: "boutique_id" });
+            if (inserted?.id && hasAnyFile) {
+                let publicUrl = null;
+                let logoUrl = null;
+                let coverUrl = null;
+
+                if (files.image && files.image[0]) {
+                    const res = await uploadBufferToStorage({ folder: `boutiques/showcase/${inserted.id}`, file: files.image[0] });
+                    publicUrl = res.publicUrl;
+                    await supabase.from("boutique_showcase").upsert([{ boutique_id: inserted.id, area: loc.area, district: loc.district, tags: tags || null, image_url: publicUrl }], { onConflict: "boutique_id" });
+                } else if (req.file) {
+                    const res = await uploadBufferToStorage({ folder: `boutiques/showcase/${inserted.id}`, file: req.file });
+                    publicUrl = res.publicUrl;
+                    await supabase.from("boutique_showcase").upsert([{ boutique_id: inserted.id, area: loc.area, district: loc.district, tags: tags || null, image_url: publicUrl }], { onConflict: "boutique_id" });
+                }
+
+                if (files.logo && files.logo[0]) {
+                    const res = await uploadBufferToStorage({ folder: `boutiques/logo/${inserted.id}`, file: files.logo[0] });
+                    logoUrl = res.publicUrl;
+                }
+                if (files.cover && files.cover[0]) {
+                    const res = await uploadBufferToStorage({ folder: `boutiques/cover/${inserted.id}`, file: files.cover[0] });
+                    coverUrl = res.publicUrl;
+                }
+
+                if (logoUrl || coverUrl) {
+                    const updates = {};
+                    if (logoUrl) updates.logo_url = logoUrl;
+                    if (coverUrl) updates.cover_url = coverUrl;
+                    await supabase.from("boutiques").update(updates).eq("id", inserted.id);
+                }
             }
 
             const emailResult = await sendVerificationEmail(normalizedEmail, owner_name, verificationToken, "partner");
@@ -322,7 +388,15 @@ exports.login = async (req, res) => {
             boutiqueId: boutique.id,
             boutiqueName: boutique.boutique_name,
             ownerName: boutique.owner_name,
-            plan: boutique.plan || "early_partner"
+            plan: boutique.plan || "early_partner",
+            category: boutique.category,
+            user: {
+                id: boutique.id,
+                name: boutique.boutique_name,
+                role: "vendor",
+                category: boutique.category,
+                email: boutique.email
+            }
         });
     } catch (err) {
         return res.status(500).json({ message: "Server error" });
