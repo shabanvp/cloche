@@ -36,30 +36,30 @@ export default function Home() {
 </div>
 <div className="flex overflow-x-auto hide-scrollbar gap-4 px-6">
 {/* Circular Cards */}
-<div className="flex-shrink-0 flex flex-col items-center gap-2 group cursor-pointer">
+<Link href="/photographers" className="flex-shrink-0 flex flex-col items-center gap-2 group cursor-pointer">
 <div className="w-20 h-20 rounded-xl overflow-hidden shadow-md ring-2 ring-transparent group-hover:ring-secondary transition-all">
 <img className="w-full h-full object-cover" data-alt="Close-up of a professional photographer using a high-end mirrorless camera at a lavish wedding venue. The background is softly blurred with fairy lights and elegant decor. Cinematic lighting, deep greens and gold accents." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAhu3icOJFqvCTS0Yc-P5E3dS49T9gfcnLUGMEJUhz1FH0rWgdSyks60a9D_mvFEwxqsDf-7NZqI2xdlVSWq7JNTdhk55a9ApAXK3tSrQ0LuAKMF_ERJTfXOe_plw1o4cWStgv3avsNJmKjj0TMI7Qh58nWN7PXxcshFJWIXmlUuaJM70m2qvh9dYeyCNM8tnlyWufnjAyXgQK3b0GDo5eomlGyLjh1VFgmzxgJx1sy5BxDx8uBwxXCpuwKcZjZkw6S_C_Tyd_KWhRG"/>
 </div>
 <span className="text-label-md font-label-md text-on-surface">Photographers</span>
-</div>
-<div className="flex-shrink-0 flex flex-col items-center gap-2 group cursor-pointer">
+</Link>
+<Link href="/invitations" className="flex-shrink-0 flex flex-col items-center gap-2 group cursor-pointer">
 <div className="w-20 h-20 rounded-xl overflow-hidden shadow-md ring-2 ring-transparent group-hover:ring-secondary transition-all">
 <img className="w-full h-full object-cover" data-alt="Elegant cream and gold wedding invitations laid out on a silk fabric background. Detailed foil embossing and sophisticated typography. The style is classic luxury, clean and high-end." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCZAPbI_YUAMNRWikML7wsySzfjqEypSebODZuEtNr3ZGtyb6q_i5zWAfnhu5c76vzUNisHAj9nGpYaOro-C8D97o9kwmiYH7F9MtyqUWawQPDlHBNyTreVuBhB6JViI9JhamJ_6-okzLqjL5ZZOiJHQ3NRv3MQoYMaMcZ_L3HGRmxHD6IYa08ijWYMuTk6GUN6O-U1Sd0v-2RdUFoC9DObKocGyGm_zLg5T3q3QLDST-MD3cnfXaPhxA0k8qgUQG6JrbAstOv951YD"/>
 </div>
 <span className="text-label-md font-label-md text-on-surface">Invitations</span>
-</div>
-<div className="flex-shrink-0 flex flex-col items-center gap-2 group cursor-pointer">
+</Link>
+<Link href="/catering" className="flex-shrink-0 flex flex-col items-center gap-2 group cursor-pointer">
 <div className="w-20 h-20 rounded-xl overflow-hidden shadow-md ring-2 ring-transparent group-hover:ring-secondary transition-all">
 <img className="w-full h-full object-cover" data-alt="A grand multi-tiered white wedding cake adorned with delicate edible gold leaves and ivory roses. Placed on a marble pedestal in a sunlit reception hall. High-key lighting, minimalist and modern." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAIttErFBHy9QscHEJk0OBcJyKoRuebpySjvFYxChzwBGdF0_CkESZFpAz7RwTeD47dIGBsebzVOM7njZsd3DIrvBXKh0Fnp8TIns3bKInyycQ5URRN8M-lQ-4gHSayBikcseL_SS7X8HPen8XdGz4b5KuheFjT3QYrN64ogJ0w4iYaaTUIOq0Fqc_uA7ed6IiNT5xz4zF2hQOjD_CNhCdT_4z7AdZ6GDEucyEYoVM_oM9xqSKVyWfhHh-jbFiuepkEs-ayDg8RQRgV"/>
 </div>
 <span className="text-label-md font-label-md text-on-surface">Catering</span>
-</div>
-<div className="flex-shrink-0 flex flex-col items-center gap-2 group cursor-pointer">
+</Link>
+<Link href="/boutiques" className="flex-shrink-0 flex flex-col items-center gap-2 group cursor-pointer">
 <div className="w-20 h-20 rounded-xl overflow-hidden shadow-md ring-2 ring-transparent group-hover:ring-secondary transition-all">
 <img className="w-full h-full object-cover" data-alt="Bespoke bridal lehenga in deep emerald and gold hanging against a minimalist arched window. Cinematic architectural shadows and soft silk textures. Premium high-fashion photography." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAEsY487mYFYvQkZCNfBcXsTzh1p5Yw4tRBQd_WTibQv72oGWZf2uTN8XzzW_Gv54COfSRIcj4brm8yydAp-aU43QT-AnIhikqUubUlu0TlLArULUjbT-lGAJbiYHlcAo85I3afH1s7monPfzLPp-11EVvmfl5CIZS3nyVlGTIZbozNQFrAKpDAFyy_8giP4chciVm0kfKj8XWC_ublaoicYNcafYSjpEXCSMZlZ8MA-RdOPuD-hbUJFoC7URHDwuD1pWjOz1Po3l2D"/>
 </div>
 <span className="text-label-md font-label-md text-on-surface">Bridal Wear</span>
-</div>
+</Link>
 </div>
 </section>
 {/* Wedding Categories (Split Layout) */}
