@@ -1,4 +1,3 @@
-import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { getAllProducts } from "@/services/api";
 import Image from "next/image";
@@ -9,7 +8,6 @@ export default async function CollectionsPage() {
 
   return (
     <div className="min-h-screen bg-ivory flex flex-col">
-      <Header />
       <main className="flex-grow max-w-[1728px] mx-auto w-full px-5 sm:px-7 lg:px-10 xl:px-12 2xl:px-14 py-12 pb-24">
         <h1 className="font-display text-[36px] sm:text-[42px] lg:text-[48px] text-charcoal mb-4">
           Curated Collections

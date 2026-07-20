@@ -1,6 +1,5 @@
 import Link from "next/link";
 import Image from "next/image";
-import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Newsletter } from "@/components/Newsletter";
 import { ArrowRight, BookOpen, Camera, Sparkles, MapPin } from "lucide-react";
@@ -27,7 +26,6 @@ export default async function ContentHub() {
 
   return (
     <div className="min-h-screen bg-ivory flex flex-col">
-      <Header />
       
       <main className="flex-1 pb-24">
         

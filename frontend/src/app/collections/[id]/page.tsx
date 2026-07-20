@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getProductDetails, getBoutiqueProducts } from "@/services/api";
-import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/Button";
 import { ProductGallery } from "@/components/ProductGallery";
@@ -29,7 +28,6 @@ export default async function CollectionPage({ params }: Props) {
 
   return (
     <div className="min-h-screen bg-ivory">
-      <Header />
       
       {/* Breadcrumbs */}
       <div className="border-b border-gold/10">

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { MapPin, Phone, Mail, Send, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/Button";
@@ -19,7 +18,6 @@ export default function ContactPage() {
 
   return (
     <div className="min-h-screen bg-ivory flex flex-col">
-      <Header />
       
       <main className="flex-1 pb-24">
         

@@ -2,7 +2,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getBoutiqueDetails, getBoutiqueProducts } from "@/services/api";
-import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/Button";
 import { MapPin, Star, Phone, MessageCircle, Share2, Heart } from "lucide-react";
@@ -24,7 +23,6 @@ export default async function BoutiqueProfilePage({ params }: Props) {
 
   return (
     <div className="min-h-screen bg-ivory">
-      <Header />
       
       <main>
         {/* Luxury Hero */}

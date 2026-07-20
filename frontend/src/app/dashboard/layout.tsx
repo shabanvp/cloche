@@ -1,6 +1,5 @@
 import { ReactNode } from "react";
 import Link from "next/link";
-import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { User, Heart, Calendar, Settings, LogOut, Bell } from "lucide-react";
 
@@ -11,7 +10,6 @@ export const metadata = {
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-ivory flex flex-col">
-      <Header />
       
       <main className="flex-1 py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
         <div className="flex flex-col md:flex-row gap-8">

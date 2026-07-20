@@ -1,7 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Metadata } from "next";
-import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { MapPin, Calendar, Heart, Share2, ChevronLeft, Building, Camera, Sparkles } from "lucide-react";
 import { Button } from "@/components/Button";
@@ -44,7 +43,6 @@ export default async function RealWeddingDetails({ params }: { params: { slug: s
 
   return (
     <div className="min-h-screen bg-ivory flex flex-col">
-      <Header />
       
       <main className="flex-1 pb-24 pt-8">
         <article className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">

@@ -1,6 +1,5 @@
 import { ReactNode } from "react";
 import Link from "next/link";
-import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { 
   LayoutDashboard, 
@@ -32,7 +31,6 @@ export default function VendorLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-screen bg-ivory flex flex-col">
-      <Header />
       
       <main className="flex-1 py-12 px-4 sm:px-6 lg:px-8 max-w-[1400px] mx-auto w-full">
         <div className="flex flex-col lg:flex-row gap-8">

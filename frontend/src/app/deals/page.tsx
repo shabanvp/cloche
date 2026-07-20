@@ -1,11 +1,9 @@
-import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Tag } from "lucide-react";
 
 export default function DealsPage() {
   return (
     <div className="min-h-screen bg-ivory flex flex-col">
-      <Header />
       <main className="flex-grow flex items-center justify-center p-6">
         <div className="max-w-md w-full text-center py-20 px-8 bg-white rounded-[24px] shadow-sm border border-gold/20">
           <div className="mx-auto w-16 h-16 bg-gold/10 rounded-full flex items-center justify-center mb-6">

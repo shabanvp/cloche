@@ -1,5 +1,4 @@
 import { Suspense } from "react";
-import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { SearchClient } from "@/components/SearchClient";
 import { SkeletonGrid } from "@/components/SkeletonGrid";
@@ -12,7 +11,6 @@ export const metadata = {
 export default function SearchPage() {
   return (
     <div className="min-h-screen bg-ivory flex flex-col">
-      <Header />
       
       <main className="flex-1 py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
         <div className="mb-8">
