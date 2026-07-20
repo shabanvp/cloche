@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { Footer } from "@/components/Footer";
 
 export const dynamic = 'force-dynamic';
 
@@ -216,43 +217,8 @@ export default function Home() {
 </div>
 </div>
 </section>
-{/* Footer Contact Info */}
-<section className="py-10 px-6 bg-surface border-t border-outline-variant/20">
-<h2 className="text-xl font-bold text-on-surface mb-6">CLOCHE - Your Personal Wedding Planner</h2>
-<p className="text-sm text-on-surface-variant leading-relaxed mb-8">
-                CLOCHE is a luxury wedding planning platform designed for modern couples. We curate the finest vendors, venues, and inspirations to ensure your special day is handled with bespoke care and timeless elegance.
-            </p>
-<div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-<div>
-<h3 className="font-bold text-on-surface mb-2">For Vendors</h3>
-<p className="text-sm text-primary">partners@cloche.luxury</p>
-<p className="text-sm text-outline">0124-6812346</p>
-</div>
-<div>
-<h3 className="font-bold text-on-surface mb-2">For Users</h3>
-<p className="text-sm text-primary">bespoke@cloche.luxury</p>
-<p className="text-sm text-outline">0124-6812345</p>
-</div>
-</div>
-<div className="mb-10">
-<h3 className="font-bold text-on-surface mb-2">Registered Office</h3>
-<p className="text-sm text-outline leading-relaxed">
-                    12th Floor, Elegance Tower, 45 Heritage Road, Sector-62, Gurgaon, Haryana, India, 122011
-                </p>
-</div>
-<div className="flex flex-col gap-4">
-<button className="w-full py-4 border border-primary text-primary font-bold rounded-lg hover:bg-primary/5 transition-colors">
-                    Register as a Vendor
-                </button>
-<div className="relative flex items-center">
-<input className="w-full px-4 py-4 rounded-lg bg-surface-dim border-none focus:ring-2 focus:ring-primary" placeholder="Email*" type="email"/>
-<button className="absolute right-2 bg-secondary text-primary font-bold px-4 py-2 rounded-md text-xs">
-                        Subscribe
-                    </button>
-</div>
-</div>
-</section>
-</main>
+      </main>
+      <Footer />
     </>
   );
 }
