@@ -22,7 +22,7 @@ export function WishlistButton({ product }: Props) {
         const { getWishlist } = await import("@/app/actions/wishlist");
         const res = await getWishlist();
         if (res.success && res.data) {
-          const item = res.data.find((p: any) => p.product_id === product.id);
+          const item = res.data.find((p: any) => Number(p.product_id) === Number(product.id));
           if (item) {
             setIsSaved(true);
             setWishlistId(item.id);
@@ -53,8 +53,8 @@ export function WishlistButton({ product }: Props) {
         if (res.success) {
           setIsSaved(true);
           setWishlistId(res.data.id);
-        } else if (res.message === "Please login to save items") {
-           alert(res.message);
+        } else {
+           alert(res.message || "Failed to add to wishlist. Please ensure you are logged in.");
         }
       }
     } catch (e) {

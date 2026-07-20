@@ -30,7 +30,7 @@ export function Footer() {
               <li><Link href="/boutiques" className="hover:text-white transition-colors">Featured Boutiques</Link></li>
               <li><Link href="/collections" className="hover:text-white transition-colors">Trending Collections</Link></li>
               <li><Link href="/categories" className="hover:text-white transition-colors">Browse Categories</Link></li>
-              <li><Link href="/inspiration" className="hover:text-white transition-colors">Real Kerala Weddings</Link></li>
+              <li><Link href="/real-weddings" className="hover:text-white transition-colors">Real Kerala Weddings</Link></li>
               <li><Link href="/deals" className="hover:text-white transition-colors">Exclusive Offers</Link></li>
             </ul>
           </div>
@@ -39,10 +39,10 @@ export function Footer() {
           <div>
             <h4 className="font-display text-lg mb-6 text-gold">For Partners</h4>
             <ul className="space-y-4 text-sm text-white/80 font-light">
-              <li><Link href="/partner" className="hover:text-white transition-colors">Partner Dashboard</Link></li>
-              <li><Link href="/partner/register" className="hover:text-white transition-colors">Register as Boutique</Link></li>
-              <li><Link href="/vendor-agreement" className="hover:text-white transition-colors">Vendor Agreement</Link></li>
-              <li><Link href="/payment-policy" className="hover:text-white transition-colors">Subscription Pricing</Link></li>
+              <li><Link href="/vendor" className="hover:text-white transition-colors">Partner Dashboard</Link></li>
+              <li><Link href="/signup?role=vendor" className="hover:text-white transition-colors">Register as Boutique</Link></li>
+              <li><Link href="/content/vendor-agreement" className="hover:text-white transition-colors">Vendor Agreement</Link></li>
+              <li><Link href="/content/pricing" className="hover:text-white transition-colors">Subscription Pricing</Link></li>
             </ul>
           </div>
 
@@ -70,8 +70,8 @@ export function Footer() {
         <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-white/50 font-light">
           <p>&copy; {new Date().getFullYear()} Cloche. All rights reserved.</p>
           <div className="flex space-x-6">
-            <Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
-            <Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link>
+            <Link href="/content/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
+            <Link href="/content/terms" className="hover:text-white transition-colors">Terms of Service</Link>
           </div>
         </div>
       </div>
