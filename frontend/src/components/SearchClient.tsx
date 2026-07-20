@@ -33,7 +33,11 @@ export function SearchClient() {
     { label: "Makeup & Hair", value: "Makeup" },
     { label: "Photography", value: "Photography" }
   ];
-  const districts = ["All", "Ernakulam", "Trivandrum", "Kozhikode", "Thrissur", "Kottayam"];
+  const districts = [
+    "All", "Alappuzha", "Ernakulam", "Idukki", "Kannur", "Kasaragod", "Kollam", 
+    "Kottayam", "Kozhikode", "Malappuram", "Palakkad", "Pathanamthitta", 
+    "Thiruvananthapuram", "Thrissur", "Wayanad"
+  ];
 
   const fetchResults = useCallback(async (isBoutique: boolean, currentPage: number) => {
     setIsLoading(true);

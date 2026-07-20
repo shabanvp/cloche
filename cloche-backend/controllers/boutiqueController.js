@@ -257,7 +257,18 @@ exports.searchBoutiques = async (req, res) => {
 
         // Keyword search
         if (keyword) {
-            query = query.or(`boutiques.boutique_name.ilike.%${keyword}%, tags.ilike.%${keyword}%`);
+            // Fetch boutique IDs matching the keyword
+            const { data: bData } = await supabase.from('boutiques')
+                .select('id')
+                .or(`boutique_name.ilike.%${keyword}%,city.ilike.%${keyword}%`);
+            
+            const bIds = (bData || []).map(b => b.id);
+            
+            if (bIds.length > 0) {
+                query = query.or(`boutique_id.in.(${bIds.join(',')}),tags.ilike.%${keyword}%,area.ilike.%${keyword}%`);
+            } else {
+                query = query.or(`tags.ilike.%${keyword}%,area.ilike.%${keyword}%`);
+            }
         }
 
         // District filter
