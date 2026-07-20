@@ -23,7 +23,16 @@ export function SearchClient() {
   const [totalResults, setTotalResults] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
 
-  const categories = ["All", "Bridal Wear", "Groom Wear", "Jewellery", "Makeup & Hair", "Photography"];
+  const categories = [
+    { label: "All", value: "All" },
+    { label: "Bridal Wear", value: "Bridal" },
+    { label: "Groom Wear", value: "Groom" },
+    { label: "Couture", value: "Couture" },
+    { label: "Traditional", value: "Traditional" },
+    { label: "Jewellery", value: "Jewellery" },
+    { label: "Makeup & Hair", value: "Makeup" },
+    { label: "Photography", value: "Photography" }
+  ];
   const districts = ["All", "Ernakulam", "Trivandrum", "Kozhikode", "Thrissur", "Kottayam"];
 
   const fetchResults = useCallback(async (isBoutique: boolean, currentPage: number) => {
@@ -143,15 +152,15 @@ export function SearchClient() {
               <h4 className="text-xs font-bold uppercase tracking-wider text-charcoal mb-3">Category</h4>
               <div className="space-y-2">
                 {categories.map(c => (
-                  <label key={c} className="flex items-center gap-2 cursor-pointer group">
+                  <label key={c.value} className="flex items-center gap-2 cursor-pointer group">
                     <input 
                       type="radio" 
                       name="category" 
-                      checked={selectedCategory === c}
-                      onChange={() => setSelectedCategory(c)}
+                      checked={selectedCategory === c.value}
+                      onChange={() => setSelectedCategory(c.value)}
                       className="accent-emerald w-3 h-3"
                     />
-                    <span className={cn("text-sm transition-colors", selectedCategory === c ? "text-emerald font-medium" : "text-charcoal/70 group-hover:text-charcoal")}>{c}</span>
+                    <span className={cn("text-sm transition-colors", selectedCategory === c.value ? "text-emerald font-medium" : "text-charcoal/70 group-hover:text-charcoal")}>{c.label}</span>
                   </label>
                 ))}
               </div>
