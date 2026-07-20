@@ -8,7 +8,7 @@ export function middleware(request: NextRequest) {
 
   // Define protected route prefixes
   const isCustomerRoute = path.startsWith('/dashboard');
-  const isVendorRoute = path.startsWith('/vendor');
+  const isVendorRoute = path.startsWith('/vendor') && !path.startsWith('/vendor/login') && !path.startsWith('/vendor/register');
   const isAdminRoute = path.startsWith('/admin');
 
   // If accessing a protected route without a token
@@ -17,7 +17,7 @@ export function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL('/adminlogin.html', request.url));
     }
     if (isVendorRoute) {
-      return NextResponse.redirect(new URL('/boutiquelogin.html', request.url));
+      return NextResponse.redirect(new URL('/vendor/login', request.url));
     }
     return NextResponse.redirect(new URL('/login.html', request.url));
   }
