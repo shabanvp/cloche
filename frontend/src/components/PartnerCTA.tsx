@@ -1,5 +1,6 @@
 import { Button } from "./Button";
 import { CheckCircle2 } from "lucide-react";
+import Link from "next/link";
 
 export function PartnerCTA() {
   return (
@@ -19,9 +20,11 @@ export function PartnerCTA() {
                 </li>
               ))}
             </ul>
-            <Button variant="secondary" size="lg" className="font-semibold px-8 rounded-full">
-              Register as Partner
-            </Button>
+            <Link href="/vendor/register" className="inline-block">
+              <Button variant="secondary" size="lg" className="font-semibold px-8 rounded-full">
+                Register as Partner
+              </Button>
+            </Link>
           </div>
           
           <div className="grid grid-cols-2 gap-4">
