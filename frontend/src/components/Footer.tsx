@@ -9,9 +9,12 @@ export function Footer() {
           
           {/* Brand */}
           <div>
-            <Link href="/" className="inline-flex flex-col mb-6">
-              <span className="font-display text-3xl tracking-widest text-white font-bold uppercase">Cloche</span>
-              <span className="text-[10px] uppercase tracking-[0.3em] text-gold mt-1">Weddings of Kerala</span>
+            <Link href="/" className="inline-flex items-center gap-3 mb-6">
+              <img src="/logo.png" alt="Cloche Logo" className="w-10 h-10 object-contain drop-shadow-md" />
+              <div className="flex flex-col">
+                <span className="font-display text-3xl tracking-widest text-white font-bold uppercase">Cloche</span>
+                <span className="text-[10px] uppercase tracking-[0.3em] text-gold mt-1">Weddings of Kerala</span>
+              </div>
             </Link>
             <p className="text-white/70 text-sm font-light leading-relaxed mb-6">
               Curate your perfect wedding, the Kerala way. Discover the finest boutiques, curated collections & trusted experts all in one premium marketplace.

@@ -47,7 +47,7 @@ export function Header({ session }: HeaderProps = {}) {
       <div className="flex justify-between items-center px-4 sm:px-6 lg:px-10 xl:px-12 py-4 bg-primary text-white">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-3 shrink-0">
-          <div className="w-7 h-7 lg:w-8 lg:h-8 bg-white"></div>
+          <img src="/logo.png" alt="Cloche Logo" className="w-8 h-8 lg:w-10 lg:h-10 object-contain drop-shadow-md" />
           <span className="font-display text-2xl lg:text-[28px] font-bold tracking-wide">Cloche</span>
         </Link>
 
