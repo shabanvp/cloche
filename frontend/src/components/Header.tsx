@@ -46,8 +46,8 @@ export function Header({ session }: HeaderProps = {}) {
       {/* Main Nav */}
       <div className="flex justify-between items-center px-4 sm:px-6 lg:px-10 xl:px-12 py-4 bg-primary text-white">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-3 xl:gap-4 shrink-0">
-          <img src="/logo.png" alt="Cloche Logo" className="h-[40px] md:h-[48px] lg:h-[50px] xl:h-[56px] w-auto object-contain drop-shadow-md" />
+        <Link href="/" className="flex items-center gap-1 xl:gap-2 shrink-0">
+          <img src="/logo.png" alt="Cloche Logo" className="h-[50px] md:h-[60px] lg:h-[70px] xl:h-[80px] w-auto object-contain drop-shadow-sm -my-4" />
           <span className="hidden sm:block font-display text-2xl lg:text-[28px] font-bold tracking-wide">Cloche</span>
         </Link>
 

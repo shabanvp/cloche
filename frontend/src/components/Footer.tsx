@@ -9,8 +9,8 @@ export function Footer() {
           
           {/* Brand */}
           <div>
-            <Link href="/" className="inline-flex items-center gap-3 mb-6">
-              <img src="/logo.png" alt="Cloche Logo" className="w-10 h-10 object-contain drop-shadow-md" />
+            <Link href="/" className="inline-flex items-center gap-2 mb-6">
+              <img src="/logo.png" alt="Cloche Logo" className="h-16 w-auto object-contain drop-shadow-sm -ml-2 -my-2" />
               <div className="flex flex-col">
                 <span className="font-display text-3xl tracking-widest text-white font-bold uppercase">Cloche</span>
                 <span className="text-[10px] uppercase tracking-[0.3em] text-gold mt-1">Weddings of Kerala</span>
