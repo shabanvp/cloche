@@ -363,6 +363,46 @@
                 </div>
             </section>
 
+            <!-- Pending Boutique Applications -->
+            <section class="min-w-0 mb-20">
+                <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between mb-8 px-2 gap-4">
+                    <div>
+                        <h2 class="text-xl md:text-2xl font-display font-bold text-white mb-1">Pending Applications</h2>
+                        <p class="text-[10px] uppercase tracking-widest text-yellow-500/80 font-bold">Boutiques Awaiting Email Verification
+                        </p>
+                    </div>
+                    <span id="pendingCount"
+                        class="text-[10px] bg-yellow-500/20 text-yellow-400 px-3 py-1 rounded-full font-bold uppercase tracking-widest">0
+                        Pending</span>
+                </div>
+                <div class="glass-card rounded-2xl admin-table-shell">
+                    <div class="admin-scroll-hint">
+                        <span>Swipe table</span>
+                        <span class="material-symbols-outlined text-sm">swipe</span>
+                    </div>
+                    <div class="admin-table-scroll scroll-touch custom-scrollbar">
+                        <table class="admin-pending-applications-table w-full text-left border-collapse force-scroll-mobile">
+                            <thead>
+                                <tr class="bg-white/5 border-b border-white/5">
+                                    <th
+                                        class="px-4 md:px-8 py-5 text-[10px] uppercase tracking-widest text-gray-400 font-bold w-[330px]">
+                                        Boutique</th>
+                                    <th
+                                        class="px-4 md:px-8 py-5 text-[10px] uppercase tracking-widest text-gray-400 font-bold w-[260px]">
+                                        Submitted</th>
+                                    <th
+                                        class="px-4 md:px-8 py-5 text-[10px] uppercase tracking-widest text-gray-400 font-bold text-right admin-table-action">
+                                        Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pendingApplicationsTableBody">
+                                <!-- Loaded via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
             <!-- Recent Partnerships -->
             <section class="min-w-0 mb-20">
                 <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between mb-8 px-2 gap-4">
@@ -680,6 +720,60 @@
                         const name = decodeURIComponent(btn.getAttribute("data-remove-boutique-name") || "");
                         deleteBoutique(id, name);
                     };
+
+                    // Render Pending Applications (unverified boutiques)
+                    const pendingTable = document.getElementById('pendingApplicationsTableBody');
+                    const pendingCountEl = document.getElementById('pendingCount');
+                    
+                    // Get all boutiques and filter for unverified ones
+                    let allBoutiques = [];
+                    if (Array.isArray(data.recentBoutiques)) {
+                        allBoutiques = data.recentBoutiques;
+                    }
+                    
+                    // Fetch all boutiques to get unverified ones
+                    try {
+                        const allBoutiquesRes = await fetch(`${API_ORIGIN}/api/boutiques`);
+                        if (allBoutiquesRes.ok) {
+                            const allBoutiquesData = await allBoutiquesRes.json();
+                            if (Array.isArray(allBoutiquesData)) {
+                                allBoutiques = allBoutiquesData;
+                            }
+                        }
+                    } catch (err) {
+                        console.error("Error fetching all boutiques for pending apps:", err);
+                    }
+                    
+                    // Filter for unverified boutiques (pending applications)
+                    const pendingBoutiques = allBoutiques.filter(b => !b.is_verified);
+                    if (pendingCountEl) {
+                        pendingCountEl.textContent = `${pendingBoutiques.length} Pending`;
+                    }
+                    
+                    if (!pendingBoutiques.length) {
+                        if (pendingTable) {
+                            pendingTable.innerHTML = `<tr><td colspan="3" class="px-8 py-10 text-center text-gray-500 text-sm italic">No pending applications found.</td></tr>`;
+                        }
+                    } else if (pendingTable) {
+                        pendingTable.innerHTML = pendingBoutiques.map(b => `
+                            <tr class="table-row border-b border-white/5 transition-colors hover:bg-white/[0.02]">
+                                <td class="px-4 md:px-8 py-5 text-sm w-[330px]">
+                                    <p class="font-medium text-white admin-row-text">${b.boutique_name || 'Unnamed Boutique'}</p>
+                                    <p class="text-[10px] text-yellow-400 uppercase tracking-[0.2em] font-bold mt-1 admin-row-text">${b.owner_name || 'No Owner'}</p>
+                                    <p class="text-[10px] text-gray-500 mt-1 admin-row-text">${b.email || 'No Email'} • ${b.phone || ''}</p>
+                                </td>
+                                <td class="px-4 md:px-8 py-5 text-gray-400 text-sm w-[260px]">
+                                    <p class="text-white font-medium admin-row-text">${b.category || 'Unknown'}</p>
+                                    <p class="text-[9px] text-gray-600 mt-1 uppercase tracking-widest font-bold admin-row-text">Applied ${b.created_at ? new Date(b.created_at).toLocaleDateString() : "-"}</p>
+                                </td>
+                                <td class="px-4 md:px-8 py-5 text-right admin-table-action">
+                                    <span class="inline-flex px-3 py-1 rounded-full border border-yellow-500/30 bg-yellow-500/10 text-yellow-400 text-[10px] uppercase tracking-widest font-bold">
+                                        Awaiting Verification
+                                    </span>
+                                </td>
+                            </tr>
+                        `).join('');
+                    }
 
                 }
             } catch (err) {

@@ -17,6 +17,14 @@ export default function VendorLoginPage() {
     setErrorMsg("");
     
     const formData = new FormData(e.currentTarget);
+    const email = String(formData.get("email") || "").trim().toLowerCase();
+
+    if (email === "admin@cloche.com") {
+      setErrorMsg("This is the vendor portal. Admins should sign in from the Admin Portal below.");
+      setIsSubmitting(false);
+      return;
+    }
+
     formData.append("role", "vendor");
 
     const res = await login(formData);
@@ -99,6 +107,9 @@ export default function VendorLoginPage() {
           <div className="mt-8 pt-6 border-t border-gold/10 text-center">
             <p className="text-sm text-charcoal/60">
               Don't have a partner account yet? <Link href="/vendor/register" className="text-emerald font-bold hover:underline">Apply here</Link>
+            </p>
+            <p className="text-sm text-charcoal/60 mt-3">
+              Admin user? <Link href="/admin" className="text-emerald font-bold hover:underline">Open Admin Portal</Link>
             </p>
           </div>
         </form>

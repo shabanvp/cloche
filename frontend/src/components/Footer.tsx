@@ -1,7 +1,16 @@
+"use client";
+
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { MapPin, Mail, Phone } from "lucide-react";
 
 export function Footer() {
+  const router = useRouter();
+
+  const handleAdminAccess = () => {
+    router.push("/admin");
+  };
+
   return (
     <footer className="bg-emerald text-white pt-20 pb-10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -73,7 +82,16 @@ export function Footer() {
         </div>
 
         <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-white/50 font-light">
-          <p>&copy; {new Date().getFullYear()} Cloche. All rights reserved.</p>
+          <p>
+            &copy; {new Date().getFullYear()} Cloche. All rights reserved
+            <span 
+              onClick={handleAdminAccess}
+              className="cursor-pointer hover:text-white transition-colors"
+              title="Admin Access"
+            >
+              .
+            </span>
+          </p>
           <div className="flex space-x-6">
             <Link href="/content/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
             <Link href="/content/terms" className="hover:text-white transition-colors">Terms of Service</Link>

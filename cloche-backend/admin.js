@@ -88,7 +88,7 @@ router.get("/analytics", async (req, res) => {
     // 3. Fetch recent boutiques
     const { data: recentBoutiques, error: recBoutErr } = await supabase
       .from("boutiques")
-      .select("id, boutique_name, owner_name, email, phone, city, created_at, plan, start_date")
+      .select("id, boutique_name, owner_name, email, phone, city, category, is_verified, created_at, plan, start_date")
       .order("created_at", { ascending: false })
       .limit(10);
 
@@ -122,6 +122,38 @@ router.get("/analytics", async (req, res) => {
   } catch (err) {
     console.error("Admin Analytics Error:", err);
     res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+/**
+ * @route   GET /api/admin/boutiques
+ * @desc    Get all boutiques for admin management
+ */
+router.get("/boutiques", requireAdmin, async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from("boutiques")
+      .select("id, boutique_name, owner_name, email, phone, city, category, is_verified, created_at, plan, start_date")
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+
+    const nowTs = Date.now();
+    const boutiques = (data || []).map((b) => {
+      const subscriptionStartDate = b.start_date || b.created_at || null;
+      const introEnd = addSixMonthsUtc(subscriptionStartDate);
+      return {
+        ...b,
+        subscriptionStartDate,
+        introUnlimited: Boolean(introEnd && nowTs < introEnd.getTime()),
+        introEndsAt: introEnd ? introEnd.toISOString() : null
+      };
+    });
+
+    return res.json({ success: true, boutiques });
+  } catch (err) {
+    console.error("Admin Boutiques Error:", err);
+    return res.status(500).json({ success: false, message: err?.message || "Failed to load boutiques" });
   }
 });
 
@@ -184,6 +216,53 @@ router.delete("/users/:userId", requireAdmin, async (req, res) => {
   } catch (err) {
     console.error("Admin Delete User Error:", err);
     return res.status(500).json({ success: false, message: err?.message || "Failed to delete user" });
+  }
+});
+
+/**
+ * @route   POST /api/admin/boutiques/:boutiqueId/approve
+ * @desc    Approve a pending boutique so the vendor can log in
+ */
+router.post("/boutiques/:boutiqueId/approve", requireAdmin, async (req, res) => {
+  const boutiqueId = Number(req.params.boutiqueId);
+  if (!Number.isFinite(boutiqueId) || boutiqueId <= 0) {
+    return res.status(400).json({ success: false, message: "Invalid boutique id" });
+  }
+
+  try {
+    const { data: boutique, error: boutiqueErr } = await supabase
+      .from("boutiques")
+      .select("id, boutique_name, email, is_verified")
+      .eq("id", boutiqueId)
+      .maybeSingle();
+
+    if (boutiqueErr) throw boutiqueErr;
+    if (!boutique) {
+      return res.status(404).json({ success: false, message: "Boutique not found" });
+    }
+
+    const { error: updateErr } = await supabase
+      .from("boutiques")
+      .update({
+        is_verified: true,
+        verification_token: null
+      })
+      .eq("id", boutiqueId);
+
+    if (updateErr) throw updateErr;
+
+    return res.json({
+      success: true,
+      message: "Boutique approved successfully",
+      boutique: {
+        id: boutique.id,
+        boutique_name: boutique.boutique_name,
+        email: boutique.email
+      }
+    });
+  } catch (err) {
+    console.error("Admin Approve Boutique Error:", err);
+    return res.status(500).json({ success: false, message: err?.message || "Failed to approve boutique" });
   }
 });
 

@@ -120,7 +120,7 @@ exports.getAllBoutiques = async (req, res) => {
         try {
             const { data, error } = await supabase
                 .from("boutiques")
-                .select("id, boutique_name, owner_name, email, phone, city, plan, is_featured, priority_score")
+                .select("id, boutique_name, owner_name, email, phone, city, category, is_verified, created_at, plan, is_featured, priority_score")
                 .order("is_featured", { ascending: false })
                 .order("priority_score", { ascending: false })
                 .order("boutique_name", { ascending: true });
@@ -131,7 +131,7 @@ exports.getAllBoutiques = async (req, res) => {
             console.warn("[BoutiqueController] Advanced ranking failed, falling back to basic sort:", dbErr.message);
             const { data, error } = await supabase
                 .from("boutiques")
-                .select("id, boutique_name, owner_name, email, phone, city, plan")
+                .select("id, boutique_name, owner_name, email, phone, city, category, is_verified, created_at, plan")
                 .order("boutique_name", { ascending: true });
                 
             if (error) return res.status(500).json({ message: "Database error", error: error.message });
@@ -205,7 +205,9 @@ exports.getAllBoutiques = async (req, res) => {
         const planWeight = { premium: 3, professional: 2, early_partner: 1 };
         
         // 🔹 Merge boutique data with showcase data
-        const result = boutiques.map(b => ({
+        const result = boutiques
+            .filter(b => b.is_verified === true || b.is_verified === "true" || b.is_verified === 1 || b.is_verified === "1")
+            .map(b => ({
             ...b,
             ...(showcaseMap[b.id] || {}),
             image_url: normalizeImageUrl(showcaseMap[b.id]?.image_url || b.image_url || "")

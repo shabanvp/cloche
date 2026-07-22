@@ -16,7 +16,7 @@ export default function Home() {
 </div>
 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
 <div className="relative z-10 p-6 space-y-4">
-<h1 className="text-white text-4xl font-extrabold tracking-tight">Your Wedding, Your Way</h1>
+<h1 className="text-white text-4xl font-extrabold tracking-tight">Where Every Wedding Begins</h1>
 <p className="text-white/90 text-lg">Find the best wedding vendors with thousands of trusted reviews</p>
 <div className="flex bg-white rounded-lg overflow-hidden shadow-xl mt-6">
 <div className="bg-primary w-16 flex items-center justify-center">
