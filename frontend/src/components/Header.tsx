@@ -27,8 +27,18 @@ export function Header({ session }: HeaderProps = {}) {
   }, [isMobileMenuOpen]);
 
   useEffect(() => {
-    if (isMobileMenuOpen) setIsNotificationsOpen(false);
-  }, [isMobileMenuOpen]);
+    if (!isNotificationsOpen) return;
+
+    const closeNotificationsOnScroll = () => {
+      setIsNotificationsOpen(false);
+    };
+
+    window.addEventListener("scroll", closeNotificationsOnScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", closeNotificationsOnScroll);
+    };
+  }, [isNotificationsOpen]);
 
   let profileLink = "/dashboard";
   if (session?.role === "vendor" || session?.role === "partner") {
