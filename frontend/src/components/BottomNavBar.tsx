@@ -1,28 +1,49 @@
-import Link from "next/link";
+"use client";
 
-export function BottomNavBar() {
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+
+
+type BottomNavBarProps = {
+  activeTab?: "home" | "venues" | "vendors" | "photos" | "blogs";
+};
+
+export function BottomNavBar({ activeTab }: BottomNavBarProps = {}) {
+  const pathname = usePathname();
+
+  const isActive = (tab: string, href: string) => {
+    if (activeTab) return activeTab === tab;
+    if (href === "/") return pathname === "/";
+    return pathname === href || pathname.startsWith(`${href}/`);
+  };
+
+  const cls = (tab: string, href: string) =>
+    `flex flex-col items-center justify-center transition-all active:scale-90 ${
+      isActive(tab, href) ? "text-secondary font-bold" : "text-white/75 hover:text-secondary"
+    }`;
+
   return (
     <>
       {/* BottomNavBar */}
       <nav className="mobile-bottom-nav fixed bottom-0 w-full z-50 bg-primary border-t border-white/10 h-16 flex md:hidden justify-around items-center shadow-[0_-10px_30px_rgba(0,0,0,0.18)] pb-safe">
-        <Link className="flex flex-col items-center justify-center text-secondary font-bold active:scale-90 transition-all" href="/">
-          <span className="material-symbols-outlined" style={{fontVariationSettings: 'FILL 1'}}>home</span>
+        <Link className={cls("home", "/")} href="/">
+          <span className="material-symbols-outlined" style={{ fontVariationSettings: isActive("home", "/") ? "'FILL' 1" : "'FILL' 0" }}>home</span>
           <span className="text-[10px] uppercase tracking-wider mt-1">Home</span>
         </Link>
-        <Link className="flex flex-col items-center justify-center text-white/90 hover:text-secondary transition-all active:scale-90" href="/categories">
-          <span className="material-symbols-outlined">location_on</span>
+        <Link className={cls("venues", "/venues")} href="/venues">
+          <span className="material-symbols-outlined" style={{ fontVariationSettings: isActive("venues", "/venues") ? "'FILL' 1" : "'FILL' 0" }}>location_on</span>
           <span className="text-[10px] uppercase tracking-wider mt-1">Venues</span>
         </Link>
-        <Link className="flex flex-col items-center justify-center text-white/90 hover:text-secondary transition-all active:scale-90" href="/boutiques">
-          <span className="material-symbols-outlined">group</span>
+        <Link className={cls("vendors", "/boutiques")} href="/boutiques">
+          <span className="material-symbols-outlined" style={{ fontVariationSettings: isActive("vendors", "/boutiques") ? "'FILL' 1" : "'FILL' 0" }}>group</span>
           <span className="text-[10px] uppercase tracking-wider mt-1">Vendors</span>
         </Link>
-        <Link className="flex flex-col items-center justify-center text-white/90 hover:text-secondary transition-all active:scale-90" href="/inspiration">
-          <span className="material-symbols-outlined">photo_library</span>
+        <Link className={cls("photos", "/inspiration")} href="/inspiration">
+          <span className="material-symbols-outlined" style={{ fontVariationSettings: isActive("photos", "/inspiration") ? "'FILL' 1" : "'FILL' 0" }}>photo_library</span>
           <span className="text-[10px] uppercase tracking-wider mt-1">Photos</span>
         </Link>
-        <Link className="flex flex-col items-center justify-center text-white/90 hover:text-secondary transition-all active:scale-90" href="/real-weddings">
-          <span className="material-symbols-outlined">auto_stories</span>
+        <Link className={cls("blogs", "/real-weddings")} href="/real-weddings">
+          <span className="material-symbols-outlined" style={{ fontVariationSettings: isActive("blogs", "/real-weddings") ? "'FILL' 1" : "'FILL' 0" }}>auto_stories</span>
           <span className="text-[10px] uppercase tracking-wider mt-1">Blogs</span>
         </Link>
       </nav>
@@ -33,3 +54,4 @@ export function BottomNavBar() {
     </>
   );
 }
+
