@@ -131,16 +131,20 @@ export default function AdminDashboard() {
       if (data.success) {
         setMetrics(data.metrics);
         setUsers(Array.isArray(data.recentUsers) ? data.recentUsers : []);
-        setBoutiques(Array.isArray(data.recentBoutiques) ? data.recentBoutiques : []);
+        setBoutiques(Array.isArray(data.recentBoutiques) ? data.recentBoutiques.filter((b) => b.is_verified) : []);
 
-        // Fetch all boutiques for pending applications
+        // Fetch all boutiques for admin approval status.
         try {
-          const allRes = await fetch(`${API_ORIGIN}/api/boutiques`);
+          const token = getAdminToken();
+          const allRes = await fetch(`${API_ORIGIN}/api/admin/boutiques`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
           if (allRes.ok) {
             const allData = await allRes.json();
-            if (Array.isArray(allData)) {
-              const pending = allData.filter((b: Boutique) => !b.is_verified);
-              setPendingBoutiques(pending);
+            const adminBoutiques = Array.isArray(allData.boutiques) ? allData.boutiques : [];
+            if (adminBoutiques.length) {
+              setPendingBoutiques(adminBoutiques.filter((b: Boutique) => !b.is_verified));
+              setBoutiques(adminBoutiques.filter((b: Boutique) => b.is_verified));
             }
           }
         } catch (err) {
@@ -154,7 +158,7 @@ export default function AdminDashboard() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [getAdminToken]);
 
   // Load Enquiries
   const loadEnquiries = useCallback(async () => {
@@ -254,6 +258,31 @@ export default function AdminDashboard() {
       loadAnalytics();
     } catch (err) {
       alert("Server error while removing boutique");
+    }
+  };
+
+  // Approve Boutique
+  const handleApproveBoutique = async (boutiqueId: number, boutiqueName: string) => {
+    const name = boutiqueName || "this boutique";
+    if (!confirm(`Approve ${name}? This will allow the vendor to log in.`)) return;
+
+    try {
+      const token = getAdminToken();
+      const res = await fetch(`${API_ORIGIN}/api/admin/boutiques/${boutiqueId}/approve`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.message || "Failed to approve boutique");
+        return;
+      }
+
+      alert("Boutique approved successfully. The vendor can log in now.");
+      loadAnalytics();
+    } catch (err) {
+      alert("Server error while approving boutique");
     }
   };
 
@@ -562,7 +591,7 @@ Special Notes: ${enquiry.special_requirement || "None"}
                     <tr className="bg-white/5 border-b border-white/5">
                       <th className="px-4 md:px-8 py-5 text-[10px] uppercase tracking-widest text-gray-400 font-bold">Boutique</th>
                       <th className="px-4 md:px-8 py-5 text-[10px] uppercase tracking-widest text-gray-400 font-bold">Submitted</th>
-                      <th className="px-4 md:px-8 py-5 text-[10px] uppercase tracking-widest text-gray-400 font-bold text-right">Status</th>
+                      <th className="px-4 md:px-8 py-5 text-[10px] uppercase tracking-widest text-gray-400 font-bold text-right">Action</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -585,9 +614,17 @@ Special Notes: ${enquiry.special_requirement || "None"}
                             <p className="text-[9px] text-gray-600 mt-1 uppercase tracking-widest font-bold">Applied {formatDate(b.created_at)}</p>
                           </td>
                           <td className="px-4 md:px-8 py-5 text-right">
-                            <span className="inline-flex px-3 py-1 rounded-full border border-yellow-500/30 bg-yellow-500/10 text-yellow-400 text-[10px] uppercase tracking-widest font-bold">
-                              Awaiting Verification
-                            </span>
+                            <div className="flex flex-col items-end gap-2">
+                              <span className="inline-flex px-3 py-1 rounded-full border border-yellow-500/30 bg-yellow-500/10 text-yellow-400 text-[10px] uppercase tracking-widest font-bold">
+                                Awaiting Approval
+                              </span>
+                              <button
+                                onClick={() => handleApproveBoutique(b.id, b.boutique_name)}
+                                className="px-3 md:px-4 py-2 rounded-lg text-[9px] md:text-[10px] uppercase tracking-widest border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10 transition-all font-bold"
+                              >
+                                Approve
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))

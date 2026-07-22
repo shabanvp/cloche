@@ -5,6 +5,30 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Upload } from "lucide-react";
 
+type FieldName =
+  | "boutique_name"
+  | "owner_name"
+  | "category"
+  | "gst_number"
+  | "email"
+  | "phone"
+  | "address"
+  | "city"
+  | "district"
+  | "state"
+  | "pincode"
+  | "website"
+  | "instagram"
+  | "facebook"
+  | "description"
+  | "logo"
+  | "cover"
+  | "password"
+  | "confirm_password"
+  | "terms";
+
+type FieldErrors = Partial<Record<FieldName, string>>;
+
 const rawBaseUrl = process.env.NEXT_PUBLIC_API_URL || "https://cloche-backend.onrender.com";
 const API_BASE_URL = rawBaseUrl.endsWith("/api") ? rawBaseUrl : `${rawBaseUrl}/api`;
 
@@ -16,13 +40,213 @@ const VENDOR_CATEGORIES = [
   "Gift Store", "Honeymoon Planner", "Other"
 ];
 
+const fieldNames: FieldName[] = [
+  "boutique_name", "owner_name", "category", "gst_number", "email", "phone",
+  "address", "city", "district", "state", "pincode", "website", "instagram",
+  "facebook", "description", "logo", "cover", "password", "confirm_password",
+  "terms"
+];
+
+const textInputClass = "w-full bg-surface-dim border rounded-xl px-4 py-3 focus:outline-none transition-colors";
+const normalBorderClass = "border-outline/20 focus:border-emerald";
+const errorBorderClass = "border-red-400 focus:border-red-500 bg-red-50/40";
+
+const textValue = (formData: FormData, name: FieldName) => String(formData.get(name) || "").trim();
+const digitsOnly = (value: string) => value.replace(/\D/g, "");
+
+const isValidUrl = (value: string) => {
+  try {
+    const url = new URL(value);
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
+    return false;
+  }
+};
+
+const addRequiredTextError = (errors: FieldErrors, formData: FormData, name: FieldName, label: string) => {
+  if (!textValue(formData, name)) {
+    errors[name] = `${label} is required. Type ${label.toLowerCase()} here.`;
+  }
+};
+
+const mapServerErrorToField = (message: string): { fieldErrors: FieldErrors; generalError: string } => {
+  const lower = message.toLowerCase();
+  const fieldErrors: FieldErrors = {};
+
+  if (lower.includes("mobile") || lower.includes("phone") || lower.includes("character varying(10)")) {
+    fieldErrors.phone = "Enter only the 10-digit mobile number, without +91. Example: 8606924541.";
+  } else if (lower.includes("email")) {
+    fieldErrors.email = message;
+  } else if (lower.includes("boutique_name") || lower.includes("boutique with this name")) {
+    fieldErrors.boutique_name = message;
+  } else if (lower.includes("category")) {
+    fieldErrors.category = "Select the correct vendor category.";
+  } else if (lower.includes("image") || lower.includes("logo")) {
+    fieldErrors.logo = "Upload a profile logo image.";
+    fieldErrors.cover = "Upload a cover image.";
+  }
+
+  return {
+    fieldErrors,
+    generalError: Object.keys(fieldErrors).length ? "Please fix the highlighted fields below." : message,
+  };
+};
+
+const validateVendorForm = (formData: FormData) => {
+  const errors: FieldErrors = {};
+  const limits: Partial<Record<FieldName, number>> = {
+    boutique_name: 100,
+    owner_name: 100,
+    email: 255,
+    address: 255,
+    city: 100,
+    district: 100,
+    state: 100,
+    website: 255,
+    instagram: 30,
+    facebook: 255,
+    description: 1000,
+    gst_number: 15,
+  };
+
+  addRequiredTextError(errors, formData, "boutique_name", "Business name");
+  addRequiredTextError(errors, formData, "owner_name", "Owner name");
+  addRequiredTextError(errors, formData, "category", "Vendor category");
+  addRequiredTextError(errors, formData, "email", "Email address");
+  addRequiredTextError(errors, formData, "phone", "Mobile number");
+  addRequiredTextError(errors, formData, "address", "Business address");
+  addRequiredTextError(errors, formData, "city", "City");
+  addRequiredTextError(errors, formData, "district", "District");
+  addRequiredTextError(errors, formData, "state", "State");
+  addRequiredTextError(errors, formData, "pincode", "Pincode");
+  addRequiredTextError(errors, formData, "instagram", "Instagram handle");
+  addRequiredTextError(errors, formData, "description", "Business description");
+
+  fieldNames.forEach((name) => {
+    const limit = limits[name];
+    const value = textValue(formData, name);
+    if (limit && value.length > limit) {
+      errors[name] = `Too long. Type ${limit} characters or fewer here.`;
+    }
+  });
+
+  const email = textValue(formData, "email");
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    errors.email = "Type a valid email address, for example business@example.com.";
+  }
+
+  const phone = textValue(formData, "phone");
+  const phoneDigits = digitsOnly(phone);
+  if (phone && (phoneDigits.length !== 10 || phone.startsWith("+91") || phoneDigits.startsWith("91"))) {
+    errors.phone = "Enter only the 10-digit mobile number, without +91. Example: 8606924541.";
+  }
+
+  const pincode = textValue(formData, "pincode");
+  if (pincode && !/^\d{6}$/.test(pincode)) {
+    errors.pincode = "Type a 6-digit pincode, for example 679341.";
+  }
+
+  const website = textValue(formData, "website");
+  if (website && !isValidUrl(website)) {
+    errors.website = "Type a full website URL, for example https://cloche.com, or leave this box empty.";
+  }
+
+  const instagram = textValue(formData, "instagram").replace(/^@/, "");
+  if (instagram && !/^[A-Za-z0-9._]{1,30}$/.test(instagram)) {
+    errors.instagram = "Type only the Instagram username, for example cloche.in_.";
+  }
+
+  const gstNumber = textValue(formData, "gst_number");
+  if (gstNumber && !/^[0-9A-Za-z]{15}$/.test(gstNumber)) {
+    errors.gst_number = "Type a 15-character GST number, or leave this box empty.";
+  }
+
+  const description = textValue(formData, "description");
+  if (description && description.length < 20) {
+    errors.description = "Type at least 20 characters describing your business.";
+  }
+
+  const logo = formData.get("logo");
+  const cover = formData.get("cover");
+  if (!(logo instanceof File) || logo.size === 0) {
+    errors.logo = "Upload a profile logo image here.";
+  }
+  if (!(cover instanceof File) || cover.size === 0) {
+    errors.cover = "Upload a cover image here.";
+  }
+
+  ["logo", "cover"].forEach((name) => {
+    const fieldName = name as FieldName;
+    const file = formData.get(fieldName);
+    if (file instanceof File && file.size > 10 * 1024 * 1024) {
+      errors[fieldName] = "Upload an image smaller than 10 MB.";
+    }
+  });
+
+  const password = textValue(formData, "password");
+  const confirm = textValue(formData, "confirm_password");
+  if (!password) {
+    errors.password = "Type a password here.";
+  } else if (password.length < 8) {
+    errors.password = "Type at least 8 characters for the password.";
+  }
+  if (!confirm) {
+    errors.confirm_password = "Retype the same password here.";
+  } else if (password && password !== confirm) {
+    errors.confirm_password = "Passwords do not match. Type the same password in both boxes.";
+  }
+
+  if (formData.get("terms") !== "on") {
+    errors.terms = "Tick this box to accept the Terms of Service and Privacy Policy.";
+  }
+
+  if (!errors.phone && phoneDigits) {
+    formData.set("phone", phoneDigits);
+  }
+  if (!errors.instagram && instagram) {
+    formData.set("instagram", instagram);
+  }
+
+  return errors;
+};
+
 export default function VendorRegisterPage() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
+
+  const getInputClass = (name: FieldName, extra = "") =>
+    `${textInputClass} ${fieldErrors[name] ? errorBorderClass : normalBorderClass} ${extra}`.trim();
+
+  const getUploadClass = (name: FieldName) =>
+    `border-2 border-dashed rounded-2xl p-6 flex flex-col items-center justify-center relative hover:bg-surface-dim transition-colors cursor-pointer group ${
+      fieldErrors[name] ? "border-red-400 bg-red-50/40" : "border-outline/30"
+    }`;
+
+  const fieldError = (name: FieldName) => fieldErrors[name] ? (
+    <p className="text-xs text-red-600 font-medium mt-1" id={`${name}-error`}>
+      {fieldErrors[name]}
+    </p>
+  ) : null;
+
+  const fieldErrorProps = (name: FieldName) => ({
+    "aria-invalid": Boolean(fieldErrors[name]),
+    "aria-describedby": fieldErrors[name] ? `${name}-error` : undefined,
+  });
+
+  const clearFieldError = (name: string) => {
+    if (!fieldNames.includes(name as FieldName)) return;
+    setFieldErrors((prev) => {
+      if (!prev[name as FieldName]) return prev;
+      const next = { ...prev };
+      delete next[name as FieldName];
+      return next;
+    });
+  };
 
   const submitSignup = async (formData: FormData) => {
     const controller = new AbortController();
@@ -57,63 +281,48 @@ export default function VendorRegisterPage() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: "logo" | "cover") => {
     const file = e.target.files?.[0];
     if (file) {
+      clearFieldError(type);
       const url = URL.createObjectURL(file);
       if (type === "logo") setLogoPreview(url);
       else setCoverPreview(url);
     }
   };
 
+  const handleFormChange = (e: React.ChangeEvent<HTMLFormElement>) => {
+    const target = e.target as EventTarget & { name?: string };
+    clearFieldError(target.name || "");
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
     setErrorMsg("");
-    
+    setFieldErrors({});
+
     const formData = new FormData(e.currentTarget);
-    formData.append("account_type", "partner"); 
-    
-    // Validate passwords match
-    const password = formData.get("password") as string;
-    const confirm = formData.get("confirm_password") as string;
-    
-    if (!password || !confirm) {
-      setErrorMsg("Password fields are required");
+    formData.append("account_type", "partner");
+
+    const validationErrors = validateVendorForm(formData);
+    if (Object.keys(validationErrors).length > 0) {
+      setFieldErrors(validationErrors);
+      setErrorMsg("Please fix the highlighted fields below.");
       setIsSubmitting(false);
-      return;
-    }
-    
-    if (password !== confirm) {
-      setErrorMsg("Passwords do not match");
-      setIsSubmitting(false);
+      const firstError = Object.keys(validationErrors)[0];
+      e.currentTarget.querySelector<HTMLElement>(`[name="${firstError}"], #${firstError}`)?.focus();
       return;
     }
 
-<<<<<<< HEAD
     const res = await submitSignup(formData);
-=======
-    // Debug log
-    console.log("[Vendor Register] Submitting form with data:", {
-      boutique_name: formData.get("boutique_name"),
-      owner_name: formData.get("owner_name"),
-      email: formData.get("email"),
-      phone: formData.get("phone"),
-      category: formData.get("category"),
-      hasLogo: !!formData.get("logo"),
-      hasCover: !!formData.get("cover"),
-    });
 
-    const res = await signup(formData);
->>>>>>> cce9905 (nav logo new)
-    
     setIsSubmitting(false);
-    
-    console.log("[Vendor Register] Response:", res);
-    
+
     if (res.error) {
-      setErrorMsg(res.error);
+      const mappedError = mapServerErrorToField(res.error);
+      setFieldErrors(mappedError.fieldErrors);
+      setErrorMsg(mappedError.generalError);
     } else if (res.success) {
-      // Show success message with email info if available
-      alert(`✅ Application submitted successfully!\n\nA verification email has been sent to your email address. Please check your inbox and verify your account to complete registration.`);
-      router.push("/vendor/login?status=registered"); 
+      alert("Application submitted successfully.\n\nPlease wait for admin approval before logging in.");
+      router.push("/vendor/login?status=registered");
     } else {
       setErrorMsg("Application submission failed. Please try again.");
     }
@@ -128,100 +337,114 @@ export default function VendorRegisterPage() {
         </p>
       </div>
 
-      <form className="bg-white rounded-3xl shadow-sm border border-gold/10 p-8 md:p-12" onSubmit={handleSubmit}>
-        
+      <form
+        className="bg-white rounded-3xl shadow-sm border border-gold/10 p-8 md:p-12"
+        onSubmit={handleSubmit}
+        onChange={handleFormChange}
+        noValidate
+      >
         {errorMsg && (
           <div className="bg-red-50 text-red-600 border border-red-200 px-4 py-3 text-sm rounded-xl mb-8 font-medium text-center">
             {errorMsg}
           </div>
         )}
 
-        {/* SECTION: BASIC DETAILS */}
         <h3 className="font-display text-xl text-charcoal mb-6 border-b border-gold/10 pb-2">Business Details</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
           <div className="space-y-1">
             <label className="text-xs font-semibold text-charcoal/70 uppercase tracking-wider">Business Name *</label>
-            <input name="boutique_name" required type="text" className="w-full bg-surface-dim border border-outline/20 rounded-xl px-4 py-3 focus:outline-none focus:border-emerald transition-colors" placeholder="E.g. Milan Designs" />
+            <input name="boutique_name" required maxLength={100} type="text" className={getInputClass("boutique_name")} placeholder="E.g. Milan Designs" {...fieldErrorProps("boutique_name")} />
+            {fieldError("boutique_name")}
           </div>
           <div className="space-y-1">
             <label className="text-xs font-semibold text-charcoal/70 uppercase tracking-wider">Owner Name *</label>
-            <input name="owner_name" required type="text" className="w-full bg-surface-dim border border-outline/20 rounded-xl px-4 py-3 focus:outline-none focus:border-emerald transition-colors" placeholder="Full Name" />
+            <input name="owner_name" required maxLength={100} type="text" className={getInputClass("owner_name")} placeholder="Full Name" {...fieldErrorProps("owner_name")} />
+            {fieldError("owner_name")}
           </div>
           <div className="space-y-1">
             <label className="text-xs font-semibold text-charcoal/70 uppercase tracking-wider">Vendor Category *</label>
-            <select name="category" required className="w-full bg-surface-dim border border-outline/20 rounded-xl px-4 py-3 focus:outline-none focus:border-emerald transition-colors text-charcoal appearance-none">
+            <select name="category" required className={getInputClass("category", "text-charcoal appearance-none")} {...fieldErrorProps("category")}>
               <option value="">Select Category</option>
               {VENDOR_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
+            {fieldError("category")}
           </div>
           <div className="space-y-1">
             <label className="text-xs font-semibold text-charcoal/70 uppercase tracking-wider">GST Number</label>
-            <input name="gst_number" type="text" className="w-full bg-surface-dim border border-outline/20 rounded-xl px-4 py-3 focus:outline-none focus:border-emerald transition-colors" placeholder="Optional" />
+            <input name="gst_number" type="text" maxLength={15} className={getInputClass("gst_number")} placeholder="Optional" {...fieldErrorProps("gst_number")} />
+            {fieldError("gst_number")}
           </div>
         </div>
 
-        {/* SECTION: CONTACT & LOCATION */}
         <h3 className="font-display text-xl text-charcoal mb-6 border-b border-gold/10 pb-2">Contact & Location</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
           <div className="space-y-1">
             <label className="text-xs font-semibold text-charcoal/70 uppercase tracking-wider">Email Address *</label>
-            <input name="email" required type="email" className="w-full bg-surface-dim border border-outline/20 rounded-xl px-4 py-3 focus:outline-none focus:border-emerald transition-colors" placeholder="business@example.com" />
+            <input name="email" required maxLength={255} type="email" className={getInputClass("email")} placeholder="business@example.com" {...fieldErrorProps("email")} />
+            {fieldError("email")}
           </div>
           <div className="space-y-1">
             <label className="text-xs font-semibold text-charcoal/70 uppercase tracking-wider">Mobile Number *</label>
-            <input name="phone" required type="tel" className="w-full bg-surface-dim border border-outline/20 rounded-xl px-4 py-3 focus:outline-none focus:border-emerald transition-colors" placeholder="+91 98765 43210" />
+            <input name="phone" required type="tel" inputMode="numeric" maxLength={14} className={getInputClass("phone")} placeholder="9876543210" {...fieldErrorProps("phone")} />
+            {fieldError("phone")}
           </div>
           <div className="space-y-1 md:col-span-2">
             <label className="text-xs font-semibold text-charcoal/70 uppercase tracking-wider">Business Address *</label>
-            <input name="address" required type="text" className="w-full bg-surface-dim border border-outline/20 rounded-xl px-4 py-3 focus:outline-none focus:border-emerald transition-colors" placeholder="Street, Building, etc." />
+            <input name="address" required maxLength={255} type="text" className={getInputClass("address")} placeholder="Street, Building, etc." {...fieldErrorProps("address")} />
+            {fieldError("address")}
           </div>
           <div className="space-y-1">
             <label className="text-xs font-semibold text-charcoal/70 uppercase tracking-wider">City *</label>
-            <input name="city" required type="text" className="w-full bg-surface-dim border border-outline/20 rounded-xl px-4 py-3 focus:outline-none focus:border-emerald transition-colors" placeholder="E.g. Mumbai" />
+            <input name="city" required maxLength={100} type="text" className={getInputClass("city")} placeholder="E.g. Mumbai" {...fieldErrorProps("city")} />
+            {fieldError("city")}
           </div>
           <div className="space-y-1">
             <label className="text-xs font-semibold text-charcoal/70 uppercase tracking-wider">District *</label>
-            <input name="district" required type="text" className="w-full bg-surface-dim border border-outline/20 rounded-xl px-4 py-3 focus:outline-none focus:border-emerald transition-colors" placeholder="E.g. Mumbai Suburban" />
+            <input name="district" required maxLength={100} type="text" className={getInputClass("district")} placeholder="E.g. Mumbai Suburban" {...fieldErrorProps("district")} />
+            {fieldError("district")}
           </div>
           <div className="space-y-1">
             <label className="text-xs font-semibold text-charcoal/70 uppercase tracking-wider">State *</label>
-            <input name="state" required type="text" className="w-full bg-surface-dim border border-outline/20 rounded-xl px-4 py-3 focus:outline-none focus:border-emerald transition-colors" placeholder="E.g. Maharashtra" />
+            <input name="state" required maxLength={100} type="text" className={getInputClass("state")} placeholder="E.g. Maharashtra" {...fieldErrorProps("state")} />
+            {fieldError("state")}
           </div>
           <div className="space-y-1">
             <label className="text-xs font-semibold text-charcoal/70 uppercase tracking-wider">Pincode *</label>
-            <input name="pincode" required type="text" className="w-full bg-surface-dim border border-outline/20 rounded-xl px-4 py-3 focus:outline-none focus:border-emerald transition-colors" placeholder="E.g. 400050" />
+            <input name="pincode" required type="text" inputMode="numeric" maxLength={6} className={getInputClass("pincode")} placeholder="E.g. 400050" {...fieldErrorProps("pincode")} />
+            {fieldError("pincode")}
           </div>
         </div>
 
-        {/* SECTION: SOCIAL & ONLINE */}
         <h3 className="font-display text-xl text-charcoal mb-6 border-b border-gold/10 pb-2">Online Presence</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
           <div className="space-y-1">
             <label className="text-xs font-semibold text-charcoal/70 uppercase tracking-wider">Website</label>
-            <input name="website" type="url" className="w-full bg-surface-dim border border-outline/20 rounded-xl px-4 py-3 focus:outline-none focus:border-emerald transition-colors" placeholder="https://" />
+            <input name="website" type="url" maxLength={255} className={getInputClass("website")} placeholder="https://cloche.com" {...fieldErrorProps("website")} />
+            {fieldError("website")}
           </div>
           <div className="space-y-1">
             <label className="text-xs font-semibold text-charcoal/70 uppercase tracking-wider">Instagram Handle *</label>
-            <input name="instagram" required type="text" className="w-full bg-surface-dim border border-outline/20 rounded-xl px-4 py-3 focus:outline-none focus:border-emerald transition-colors" placeholder="@username" />
+            <input name="instagram" required type="text" maxLength={30} className={getInputClass("instagram")} placeholder="username" {...fieldErrorProps("instagram")} />
+            {fieldError("instagram")}
           </div>
           <div className="space-y-1">
             <label className="text-xs font-semibold text-charcoal/70 uppercase tracking-wider">Facebook</label>
-            <input name="facebook" type="text" className="w-full bg-surface-dim border border-outline/20 rounded-xl px-4 py-3 focus:outline-none focus:border-emerald transition-colors" placeholder="Username or Link" />
+            <input name="facebook" type="text" maxLength={255} className={getInputClass("facebook")} placeholder="Username or Link" {...fieldErrorProps("facebook")} />
+            {fieldError("facebook")}
           </div>
           <div className="space-y-1 md:col-span-3">
             <label className="text-xs font-semibold text-charcoal/70 uppercase tracking-wider">Business Description *</label>
-            <textarea name="description" required rows={3} className="w-full bg-surface-dim border border-outline/20 rounded-xl px-4 py-3 focus:outline-none focus:border-emerald transition-colors resize-none" placeholder="Tell couples about your services..."></textarea>
+            <textarea name="description" required rows={3} maxLength={1000} className={getInputClass("description", "resize-none")} placeholder="Tell couples about your services..." {...fieldErrorProps("description")}></textarea>
+            {fieldError("description")}
           </div>
         </div>
 
-        {/* SECTION: MEDIA & PASSWORD */}
         <h3 className="font-display text-xl text-charcoal mb-6 border-b border-gold/10 pb-2">Media & Security</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
-          {/* Logo Upload */}
           <div>
             <label className="text-xs font-semibold text-charcoal/70 uppercase tracking-wider block mb-2">Profile Logo *</label>
-            <div className="border-2 border-dashed border-outline/30 rounded-2xl p-6 flex flex-col items-center justify-center relative hover:bg-surface-dim transition-colors cursor-pointer group">
-              <input type="file" name="logo" required accept="image/*" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onChange={(e) => handleFileChange(e, "logo")} />
+            <div className={getUploadClass("logo")}>
+              <input type="file" name="logo" required accept="image/*" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onChange={(e) => handleFileChange(e, "logo")} {...fieldErrorProps("logo")} />
               {logoPreview ? (
                 <img src={logoPreview} alt="Logo Preview" className="w-24 h-24 object-contain mb-2" />
               ) : (
@@ -232,13 +455,13 @@ export default function VendorRegisterPage() {
               <span className="text-sm text-charcoal font-medium">{logoPreview ? "Change Logo" : "Upload Logo"}</span>
               <span className="text-xs text-charcoal/50 mt-1">1:1 ratio recommended</span>
             </div>
+            {fieldError("logo")}
           </div>
 
-          {/* Cover Upload */}
           <div>
             <label className="text-xs font-semibold text-charcoal/70 uppercase tracking-wider block mb-2">Cover Image *</label>
-            <div className="border-2 border-dashed border-outline/30 rounded-2xl p-6 flex flex-col items-center justify-center relative hover:bg-surface-dim transition-colors cursor-pointer group">
-              <input type="file" name="cover" required accept="image/*" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onChange={(e) => handleFileChange(e, "cover")} />
+            <div className={getUploadClass("cover")}>
+              <input type="file" name="cover" required accept="image/*" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onChange={(e) => handleFileChange(e, "cover")} {...fieldErrorProps("cover")} />
               {coverPreview ? (
                 <img src={coverPreview} alt="Cover Preview" className="w-full h-24 object-cover rounded-lg mb-2" />
               ) : (
@@ -249,34 +472,36 @@ export default function VendorRegisterPage() {
               <span className="text-sm text-charcoal font-medium">{coverPreview ? "Change Cover" : "Upload Cover Image"}</span>
               <span className="text-xs text-charcoal/50 mt-1">16:9 ratio recommended</span>
             </div>
+            {fieldError("cover")}
           </div>
 
-          {/* Passwords */}
           <div className="space-y-1">
             <label className="text-xs font-semibold text-charcoal/70 uppercase tracking-wider">Password *</label>
             <div className="relative">
-              <input name="password" required type={showPassword ? "text" : "password"} className="w-full bg-surface-dim border border-outline/20 rounded-xl px-4 py-3 focus:outline-none focus:border-emerald transition-colors" placeholder="••••••••" />
+              <input name="password" required type={showPassword ? "text" : "password"} className={getInputClass("password", "pr-12")} placeholder="At least 8 characters" {...fieldErrorProps("password")} />
               <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-3.5 text-charcoal/40 hover:text-charcoal transition-colors">
-                <span className="material-symbols-outlined text-[20px]">{showPassword ? 'visibility_off' : 'visibility'}</span>
+                <span className="material-symbols-outlined text-[20px]">{showPassword ? "visibility_off" : "visibility"}</span>
               </button>
             </div>
+            {fieldError("password")}
           </div>
           <div className="space-y-1">
             <label className="text-xs font-semibold text-charcoal/70 uppercase tracking-wider">Confirm Password *</label>
-            <input name="confirm_password" required type={showPassword ? "text" : "password"} className="w-full bg-surface-dim border border-outline/20 rounded-xl px-4 py-3 focus:outline-none focus:border-emerald transition-colors" placeholder="••••••••" />
+            <input name="confirm_password" required type={showPassword ? "text" : "password"} className={getInputClass("confirm_password")} placeholder="Retype password" {...fieldErrorProps("confirm_password")} />
+            {fieldError("confirm_password")}
           </div>
         </div>
 
-        {/* Terms & Submit */}
         <div className="pt-6 border-t border-gold/10">
-          <div className="flex items-start gap-3 mb-6">
-            <input id="terms" type="checkbox" required className="mt-1 w-4 h-4 text-emerald rounded border-outline/30 focus:ring-emerald cursor-pointer" />
+          <div className="flex items-start gap-3 mb-2">
+            <input id="terms" name="terms" type="checkbox" required className="mt-1 w-4 h-4 text-emerald rounded border-outline/30 focus:ring-emerald cursor-pointer" {...fieldErrorProps("terms")} />
             <label className="text-sm text-charcoal/80" htmlFor="terms">
               I certify that I am an authorized representative of this business and agree to the <Link href="/terms" className="text-emerald font-semibold hover:underline">Terms of Service</Link> and <Link href="/privacy" className="text-emerald font-semibold hover:underline">Privacy Policy</Link>.
             </label>
           </div>
+          <div className="mb-6">{fieldError("terms")}</div>
 
-          <button 
+          <button
             type="submit"
             disabled={isSubmitting}
             className="w-full bg-charcoal text-white py-4 rounded-xl font-semibold tracking-wide uppercase hover:bg-charcoal/90 active:scale-[0.99] transition-all flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed"
@@ -287,7 +512,7 @@ export default function VendorRegisterPage() {
               "Submit Application"
             )}
           </button>
-          
+
           <p className="text-center text-sm text-charcoal/60 mt-6">
             Already a partner? <Link href="/vendor/login" className="text-emerald font-bold hover:underline">Login here</Link>
           </p>
