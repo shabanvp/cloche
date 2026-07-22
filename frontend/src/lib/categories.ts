@@ -1,0 +1,302 @@
+import type { LucideIcon } from "lucide-react";
+import {
+  BriefcaseBusiness,
+  Cake,
+  CarFront,
+  Camera,
+  ChefHat,
+  Flower2,
+  Gift,
+  Gem,
+  Mail,
+  MapPinned,
+  Music2,
+  Package,
+  Paintbrush,
+  Plane,
+  Shirt,
+  Sparkles,
+  Store,
+  Users,
+  Video,
+} from "lucide-react";
+
+export type CategorySlug =
+  | "bridal-boutiques"
+  | "groom-wear"
+  | "venues"
+  | "photographers"
+  | "videographers"
+  | "makeup"
+  | "mehendi"
+  | "decor-planning"
+  | "wedding-planners"
+  | "caterers"
+  | "jewellery"
+  | "invitation-designers"
+  | "cakes-desserts"
+  | "entertainment"
+  | "choreographers"
+  | "car-rentals"
+  | "flower-decoration"
+  | "wedding-gifts"
+  | "honeymoon"
+  | "rental-services";
+
+export type CategoryCard = {
+  slug: CategorySlug;
+  title: string;
+  description: string;
+  icon: LucideIcon;
+  image: string;
+  imageAlt: string;
+  badge: string;
+  detail: string;
+  chips: string[];
+};
+
+const sharedThumb = {
+  weddingVenue: "https://images.unsplash.com/photo-1519167758481-83f552bb8c74?auto=format&fit=crop&w=1200&q=80",
+  couplePortrait: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=80",
+  bridalMakeup: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=1200&q=80",
+  floralDecor: "https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=1200&q=80",
+  henna: "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=1200&q=80",
+  bridalWear: "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=1200&q=80",
+  jewellery: "https://images.unsplash.com/photo-1617038220319-276d3cfab638?auto=format&fit=crop&w=1200&q=80",
+  invitation: "https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=1200&q=80",
+  cake: "https://images.unsplash.com/photo-1562777717-dc6984f65a63?auto=format&fit=crop&w=1200&q=80",
+  entertainment: "https://images.unsplash.com/photo-1516280440614-37939bbacd81?auto=format&fit=crop&w=1200&q=80",
+  car: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1200&q=80",
+  flowers: "https://images.unsplash.com/photo-1492496913980-501348b61469?auto=format&fit=crop&w=1200&q=80",
+  travel: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80",
+  rental: "https://images.unsplash.com/photo-1494526585095-c41746248156?auto=format&fit=crop&w=1200&q=80",
+};
+
+export const categories: CategoryCard[] = [
+  {
+    slug: "bridal-boutiques",
+    title: "Bridal Boutiques",
+    description: "Handpicked bridal silhouettes, couture fittings, and luxury styling.",
+    icon: Store,
+    image: sharedThumb.bridalWear,
+    imageAlt: "Bridal couture displayed in a premium fashion setting.",
+    badge: "Luxury fashion",
+    detail: "Discover premium bridal edits, bespoke tailoring, and curated designer collections.",
+    chips: ["Couture", "Bespoke tailoring", "Styling consults"],
+  },
+  {
+    slug: "groom-wear",
+    title: "Groom Wear",
+    description: "Elevated sherwanis, tuxedos, and modern ceremonial dressing.",
+    icon: Shirt,
+    image: sharedThumb.couplePortrait,
+    imageAlt: "Elegant wedding fashion styling for the groom.",
+    badge: "Ceremony looks",
+    detail: "Find occasion wear that feels formal, refined, and celebration-ready.",
+    chips: ["Sherwanis", "Tuxedos", "Custom fits"],
+  },
+  {
+    slug: "venues",
+    title: "Wedding Venues",
+    description: "Banquet halls, lawns, and heritage spaces with beautiful settings.",
+    icon: MapPinned,
+    image: sharedThumb.weddingVenue,
+    imageAlt: "A decorated luxury wedding venue with floral arch and aisle seating.",
+    badge: "Destination spaces",
+    detail: "Browse premium venues designed for vows, receptions, and grand celebrations.",
+    chips: ["Banquets", "Lawns", "Heritage venues"],
+  },
+  {
+    slug: "photographers",
+    title: "Photographers",
+    description: "Candid, traditional, and cinematic storytelling for your day.",
+    icon: Camera,
+    image: sharedThumb.couplePortrait,
+    imageAlt: "A wedding couple photographed in an intimate portrait moment.",
+    badge: "Storytelling",
+    detail: "Explore photographers who capture the feeling, the details, and the in-between moments.",
+    chips: ["Candid", "Traditional", "Editorial"],
+  },
+  {
+    slug: "videographers",
+    title: "Videographers",
+    description: "Film teams creating luxury highlights, reels, and feature edits.",
+    icon: Video,
+    image: sharedThumb.entertainment,
+    imageAlt: "A cinematic wedding production setup with lights and motion.",
+    badge: "Motion-led",
+    detail: "Choose a film style that turns your celebration into a timeless moving story.",
+    chips: ["Highlight films", "Reels", "Drone coverage"],
+  },
+  {
+    slug: "makeup",
+    title: "Bridal Makeup",
+    description: "Soft glam, bridal looks, and finishing touches that photograph beautifully.",
+    icon: Sparkles,
+    image: sharedThumb.bridalMakeup,
+    imageAlt: "Premium bridal makeup close-up with warm, polished lighting.",
+    badge: "Bridal beauty",
+    detail: "Find artists who balance long-wear comfort with polished wedding-day elegance.",
+    chips: ["Soft glam", "Hair styling", "Touch-up kits"],
+  },
+  {
+    slug: "mehendi",
+    title: "Mehendi Artists",
+    description: "Traditional motifs, modern detailing, and custom bridal designs.",
+    icon: Paintbrush,
+    image: sharedThumb.henna,
+    imageAlt: "Intricate mehendi patterns on a bride's hands.",
+    badge: "Artistry",
+    detail: "Browse artists for delicate initials, elaborate patterns, and ceremony-ready detailing.",
+    chips: ["Bridal mehendi", "Guest packages", "Custom motifs"],
+  },
+  {
+    slug: "decor-planning",
+    title: "Decor & Planning",
+    description: "Florals, staging, and full-event styling with a luxury finish.",
+    icon: Flower2,
+    image: sharedThumb.floralDecor,
+    imageAlt: "A floral wedding stage designed with warm lights and premium styling.",
+    badge: "Full service",
+    detail: "From mood boards to the final aisle setup, everything is styled with intention.",
+    chips: ["Floral design", "Stage styling", "Vendor coordination"],
+  },
+  {
+    slug: "wedding-planners",
+    title: "Wedding Planners",
+    description: "Trusted planners for timelines, budgets, and calm execution.",
+    icon: BriefcaseBusiness,
+    image: sharedThumb.weddingVenue,
+    imageAlt: "A wedding planning setup with elegant stationery and floral details.",
+    badge: "Planning support",
+    detail: "Get structured planning help for the logistics that keep the day effortless.",
+    chips: ["Budgeting", "Timeline support", "On-day coordination"],
+  },
+  {
+    slug: "caterers",
+    title: "Caterers",
+    description: "Menu curation, tasting tables, and crowd-pleasing service.",
+    icon: ChefHat,
+    image: sharedThumb.cake,
+    imageAlt: "Luxury wedding food presentation on a beautifully styled table.",
+    badge: "Hospitality",
+    detail: "Discover caterers who balance presentation, flavour, and seamless service.",
+    chips: ["Tastings", "Regional menus", "Live counters"],
+  },
+  {
+    slug: "jewellery",
+    title: "Jewellery",
+    description: "Polki, kundan, and contemporary bridal jewellery edits.",
+    icon: Gem,
+    image: sharedThumb.jewellery,
+    imageAlt: "Premium bridal jewellery arranged with pearls and gold detailing.",
+    badge: "Heirloom shine",
+    detail: "Shop elegant sets designed to complement traditional and modern bridal looks.",
+    chips: ["Polki", "Kundan", "Custom sets"],
+  },
+  {
+    slug: "invitation-designers",
+    title: "Invitation Designers",
+    description: "Printed suites, digital invites, and signature stationery.",
+    icon: Mail,
+    image: sharedThumb.invitation,
+    imageAlt: "Luxury wedding invitation suite with elegant floral stationery.",
+    badge: "Paper & digital",
+    detail: "Find invitation studios that bring your wedding identity into every card and envelope.",
+    chips: ["Printed suites", "Digital invites", "Custom monograms"],
+  },
+  {
+    slug: "cakes-desserts",
+    title: "Cakes & Desserts",
+    description: "Statement cakes, dessert tables, and sweet finishing touches.",
+    icon: Cake,
+    image: sharedThumb.cake,
+    imageAlt: "A refined wedding cake and dessert presentation.",
+    badge: "Sweet moments",
+    detail: "Choose dessert creators who style and serve the final course beautifully.",
+    chips: ["Custom cakes", "Dessert tables", "Signature flavours"],
+  },
+  {
+    slug: "entertainment",
+    title: "Entertainment",
+    description: "Live acts, DJs, and show-stopping guest experiences.",
+    icon: Music2,
+    image: sharedThumb.entertainment,
+    imageAlt: "Wedding entertainment with lights and performance energy.",
+    badge: "Celebration energy",
+    detail: "Book entertainment that keeps the evening moving and the dance floor full.",
+    chips: ["Live music", "DJ sets", "Stage acts"],
+  },
+  {
+    slug: "choreographers",
+    title: "Choreographers",
+    description: "First-dance routines and family performances, made simple.",
+    icon: Users,
+    image: sharedThumb.entertainment,
+    imageAlt: "A wedding dance rehearsal moment with performance lighting.",
+    badge: "Dance direction",
+    detail: "Find choreography partners who make every performance feel polished and fun.",
+    chips: ["Family routines", "First dances", "Performance sets"],
+  },
+  {
+    slug: "car-rentals",
+    title: "Car Rentals",
+    description: "Vintage arrivals, luxury transport, and wedding day logistics.",
+    icon: CarFront,
+    image: sharedThumb.car,
+    imageAlt: "A premium vintage car ready for wedding arrival photography.",
+    badge: "Arrival details",
+    detail: "Rent elegant transport that complements your entry, exit, and photo moments.",
+    chips: ["Vintage cars", "Luxury sedans", "Procession vehicles"],
+  },
+  {
+    slug: "flower-decoration",
+    title: "Flower Decoration",
+    description: "Aisle styling, mandap florals, and scented venue details.",
+    icon: Flower2,
+    image: sharedThumb.flowers,
+    imageAlt: "Fresh floral arrangements in warm premium lighting.",
+    badge: "Botanical styling",
+    detail: "Bring the venue to life with florals that feel cohesive, lush, and premium.",
+    chips: ["Mandaps", "Aisles", "Table florals"],
+  },
+  {
+    slug: "wedding-gifts",
+    title: "Wedding Gifts",
+    description: "Curated favours and keepsakes for guests and family.",
+    icon: Gift,
+    image: sharedThumb.rental,
+    imageAlt: "Elegant wedding favour boxes and keepsake gifting details.",
+    badge: "Thoughtful gifting",
+    detail: "Pick gifts that feel personal, polished, and worth remembering after the celebration.",
+    chips: ["Guest favours", "Return gifts", "Curated hampers"],
+  },
+  {
+    slug: "honeymoon",
+    title: "Honeymoon",
+    description: "Romantic getaways and travel planning after the celebration.",
+    icon: Plane,
+    image: sharedThumb.travel,
+    imageAlt: "A serene travel scene for a honeymoon getaway.",
+    badge: "After the vows",
+    detail: "Explore destination ideas and curated travel experiences for your first trip together.",
+    chips: ["Beach escapes", "Romantic stays", "Travel planning"],
+  },
+  {
+    slug: "rental-services",
+    title: "Rental Services",
+    description: "Furniture, props, and event essentials for a seamless setup.",
+    icon: Package,
+    image: sharedThumb.rental,
+    imageAlt: "Premium event props and rental items arranged for a wedding setup.",
+    badge: "Event essentials",
+    detail: "Find the practical details that make your venue feel complete and polished.",
+    chips: ["Furniture", "Props", "Event essentials"],
+  },
+];
+
+const categoryMap = new Map(categories.map((category) => [category.slug, category]));
+
+export function getCategoryBySlug(slug: string) {
+  return categoryMap.get(slug as CategorySlug) ?? null;
+}
