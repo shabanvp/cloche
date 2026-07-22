@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { 
-  Search, Edit3, Smartphone, Menu, X, ChevronDown, 
-  User, MapPin, Store, Image as ImageIcon, BookHeart, FileText, Mail, Wand2, ChevronDown as ChevronDownIcon
+  Search, Edit3, Smartphone, Menu, X, ChevronDown,
+  Home, MapPin, Store, BookHeart, FileText, Mail,
+  Heart, Lightbulb, Info, CircleHelp, ArrowRight, Users
 } from "lucide-react";
 import { useState } from "react";
 
@@ -13,6 +15,7 @@ type HeaderProps = {
 
 export function Header({ session }: HeaderProps = {}) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const pathname = usePathname();
 
   let profileLink = "/dashboard";
   if (session?.role === "vendor" || session?.role === "partner") {
@@ -21,12 +24,61 @@ export function Header({ session }: HeaderProps = {}) {
     profileLink = "/admin";
   }
 
+  const browseLinks = [
+    { label: "Home", href: "/", icon: Home },
+    { label: "Venues", href: "/categories", icon: MapPin },
+    { label: "Vendors", href: "/boutiques", icon: Users },
+    { label: "Boutiques", href: "/boutiques", icon: Store },
+    { label: "Collections", href: "/collections", icon: Heart },
+    { label: "Real Weddings", href: "/real-weddings", icon: BookHeart },
+    { label: "Inspiration", href: "/inspiration", icon: Lightbulb },
+    { label: "Blogs", href: "/content", icon: FileText },
+  ];
+
+  const companyLinks = [
+    { label: "About Cloche", href: "/about", icon: Info },
+    { label: "For Vendors", href: "/vendor/register", icon: Store },
+    { label: "Contact Us", href: "/contact", icon: Mail },
+    { label: "Help & Support", href: "/contact", icon: CircleHelp },
+  ];
+
+  const closeMobileMenu = () => setIsMobileMenuOpen(false);
+
+  const isActiveLink = (href: string) => {
+    if (href === "/") return pathname === "/";
+    return pathname === href || pathname.startsWith(`${href}/`);
+  };
+
+  const MobileMenuLink = ({ item, index }: {
+    item: { label: string; href: string; icon: React.ElementType };
+    index: number;
+  }) => {
+    const Icon = item.icon;
+    const active = isActiveLink(item.href);
+
+    return (
+      <Link
+        href={item.href}
+        className={`group flex min-h-12 items-center gap-5 rounded-2xl px-3 py-3 transition-all duration-200 ${
+          active
+            ? "bg-[#123f3a] text-[#F7F3EC] shadow-[inset_3px_0_0_#C8A96A]"
+            : "text-[#F7F3EC]/90 hover:bg-white/7 hover:text-[#F7F3EC]"
+        }`}
+        style={{ animationDelay: `${index * 32}ms` }}
+        onClick={closeMobileMenu}
+      >
+        <Icon className="h-6 w-6 shrink-0 text-[#C8A96A] transition-transform duration-200 group-hover:scale-105" strokeWidth={1.7} />
+        <span className="font-sans text-[18px] leading-6 tracking-normal">{item.label}</span>
+      </Link>
+    );
+  };
+
   return (
     <header className="sticky top-0 z-50 w-full flex flex-col shadow-md">
       {/* Top Bar (Hidden on Mobile) */}
       <div className="hidden md:flex justify-between items-center px-4 sm:px-6 lg:px-10 xl:px-12 py-2 text-xs lg:text-sm bg-[#0B3B2D] text-white border-b border-white/10">
         <div className="flex items-center gap-4">
-          <span className="text-gray-300">India's Favourite Wedding Planning Platform</span>
+          <span className="text-gray-300">India&apos;s Favourite Wedding Planning Platform</span>
           <button className="flex items-center gap-1 bg-white text-gray-900 px-3 py-1 rounded-sm font-medium hover:bg-gray-100 transition-colors">
             All Cities <ChevronDown className="w-4 h-4" />
           </button>
@@ -91,110 +143,84 @@ export function Header({ session }: HeaderProps = {}) {
 
       {/* Mobile Sidebar Menu (Drawer) */}
       {isMobileMenuOpen && (
-        <div className="lg:hidden fixed inset-0 z-[60] flex">
+        <div className="lg:hidden fixed inset-0 z-[60] flex justify-end">
           {/* Overlay */}
           <div 
-            className="absolute inset-0 bg-black/50 transition-opacity" 
-            onClick={() => setIsMobileMenuOpen(false)}
+            className="absolute inset-0 bg-black/65 backdrop-blur-[2px] transition-opacity duration-300" 
+            onClick={closeMobileMenu}
           ></div>
           
           {/* Sidebar */}
-          <div className="relative w-[85%] max-w-sm h-full bg-surface shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-left duration-300">
-            {/* Top Auth Section */}
-            {session ? (
-              <Link 
-                href={profileLink} 
-                className="flex items-center gap-4 p-5 border-b border-outline-variant/30 hover:bg-surface-dim transition-colors mt-2"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                <div className="w-12 h-12 rounded-full bg-outline-variant/30 flex items-center justify-center text-on-surface-variant">
-                  <User className="w-6 h-6" />
-                </div>
-                <span className="font-semibold text-[18px] text-on-surface">My Profile</span>
-              </Link>
-            ) : (
-              <Link 
-                href="/login" 
-                className="flex items-center gap-4 p-5 border-b border-outline-variant/30 hover:bg-surface-dim transition-colors mt-2"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                <div className="w-12 h-12 rounded-full bg-outline-variant/30 flex items-center justify-center text-on-surface-variant">
-                  <User className="w-6 h-6" />
-                </div>
-                <span className="font-semibold text-[18px] text-on-surface">Sign In / Sign Up</span>
-              </Link>
-            )}
+          <div className="relative flex h-[100dvh] w-[84vw] max-w-[390px] flex-col overflow-hidden rounded-l-[34px] bg-[#0B3B36] text-[#F7F3EC] shadow-[-28px_0_70px_rgba(0,0,0,0.38)] animate-in slide-in-from-right duration-300 ease-in-out">
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_8%,rgba(216,195,154,0.16),transparent_30%),linear-gradient(160deg,rgba(8,47,44,0.16),rgba(8,47,44,0.84))]"></div>
+            <div className="pointer-events-none absolute -right-16 bottom-0 h-36 w-36 rounded-full bg-[#082F2C]/80 blur-2xl"></div>
 
-            {/* Categories List */}
-            <div className="flex-1 overflow-y-auto py-6">
-              <h3 className="px-6 mb-2 font-semibold text-outline uppercase text-[13px] tracking-wider">Wedding Categories</h3>
-              
-              <div className="flex flex-col">
-                <Link href="/categories" className="flex items-center justify-between px-6 py-4 hover:bg-surface-dim transition-colors group" onClick={() => setIsMobileMenuOpen(false)}>
-                  <div className="flex items-center gap-4 text-on-surface">
-                    <MapPin className="w-5 h-5 text-outline group-hover:text-primary transition-colors" />
-                    <span className="font-medium text-[16px]">Venues</span>
-                  </div>
-                  <ChevronDownIcon className="w-5 h-5 text-outline-variant" />
-                </Link>
-                
-                <Link href="/boutiques" className="flex items-center justify-between px-6 py-4 hover:bg-surface-dim transition-colors group" onClick={() => setIsMobileMenuOpen(false)}>
-                  <div className="flex items-center gap-4 text-on-surface">
-                    <Store className="w-5 h-5 text-outline group-hover:text-primary transition-colors" />
-                    <span className="font-medium text-[16px]">Vendors</span>
-                  </div>
-                  <ChevronDownIcon className="w-5 h-5 text-outline-variant" />
-                </Link>
-                
-                <Link href="/inspiration" className="flex items-center justify-between px-6 py-4 hover:bg-surface-dim transition-colors group" onClick={() => setIsMobileMenuOpen(false)}>
-                  <div className="flex items-center gap-4 text-on-surface">
-                    <ImageIcon className="w-5 h-5 text-outline group-hover:text-primary transition-colors" />
-                    <span className="font-medium text-[16px]">Photos</span>
-                  </div>
-                  <ChevronDownIcon className="w-5 h-5 text-outline-variant" />
-                </Link>
-                
-                <Link href="/real-weddings" className="flex items-center justify-between px-6 py-4 hover:bg-surface-dim transition-colors group" onClick={() => setIsMobileMenuOpen(false)}>
-                  <div className="flex items-center gap-4 text-on-surface">
-                    <BookHeart className="w-5 h-5 text-outline group-hover:text-primary transition-colors" />
-                    <span className="font-medium text-[16px]">Real Weddings</span>
-                  </div>
-                  <ChevronDownIcon className="w-5 h-5 text-outline-variant" />
-                </Link>
-                
-                <Link href="/blog" className="flex items-center justify-between px-6 py-4 hover:bg-surface-dim transition-colors group" onClick={() => setIsMobileMenuOpen(false)}>
-                  <div className="flex items-center gap-4 text-on-surface">
-                    <FileText className="w-5 h-5 text-outline group-hover:text-primary transition-colors" />
-                    <span className="font-medium text-[16px]">Blog</span>
-                  </div>
-                  <ChevronDownIcon className="w-5 h-5 text-outline-variant" />
-                </Link>
-
-                <Link href="/e-invites" className="flex items-center justify-between px-6 py-4 hover:bg-surface-dim transition-colors group" onClick={() => setIsMobileMenuOpen(false)}>
-                  <div className="flex items-center gap-4 text-on-surface">
-                    <Mail className="w-5 h-5 text-outline group-hover:text-primary transition-colors" />
-                    <span className="font-medium text-[16px]">E-Invites</span>
-                  </div>
-                  <ChevronDownIcon className="w-5 h-5 text-outline-variant" />
-                </Link>
-
-                <Link href="/genie" className="flex items-center justify-between px-6 py-4 hover:bg-surface-dim transition-colors group" onClick={() => setIsMobileMenuOpen(false)}>
-                  <div className="flex items-center gap-4 text-on-surface">
-                    <Wand2 className="w-5 h-5 text-outline group-hover:text-primary transition-colors" />
-                    <span className="font-medium text-[16px]">Genie</span>
-                  </div>
-                  <ChevronDownIcon className="w-5 h-5 text-outline-variant" />
-                </Link>
-              </div>
-            </div>
-            
-            {/* Close Button Inside Sidebar */}
             <button 
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="absolute top-3 right-3 text-on-surface-variant hover:text-primary p-2 bg-surface-dim rounded-full transition-colors"
+              onClick={closeMobileMenu}
+              className="absolute right-6 top-[calc(env(safe-area-inset-top)+22px)] z-10 text-[#D8C39A] transition-colors hover:text-[#F7F3EC]"
+              aria-label="Close menu"
             >
-              <X className="w-5 h-5" />
+              <X className="h-8 w-8" strokeWidth={1.35} />
             </button>
+
+            <div className="relative z-[1] flex min-h-0 flex-1 flex-col overflow-y-auto px-6 pb-[calc(env(safe-area-inset-bottom)+24px)] pt-[calc(env(safe-area-inset-top)+76px)]">
+              <Link
+                href={session ? profileLink : "/login"}
+                onClick={closeMobileMenu}
+                className="mb-10 flex items-center gap-5 rounded-3xl p-1 transition-colors hover:bg-white/7"
+              >
+                <div className="flex h-[86px] w-[86px] shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#D8C39A]/60 bg-[#F7F3EC] shadow-[0_16px_30px_rgba(0,0,0,0.22)]">
+                  <img src="/logo.png" alt="" className="h-full w-full object-contain scale-[1.45]" />
+                </div>
+                <div className="min-w-0">
+                  <h2 className="font-display text-[26px] font-bold leading-8 text-[#F7F3EC]">
+                    {session ? "My Profile" : "Cloche Guest"}
+                  </h2>
+                  <p className="mt-1 font-sans text-[17px] leading-6 text-[#D8C39A]">
+                    {session ? "View Profile" : "Sign In / Sign Up"}
+                  </p>
+                </div>
+              </Link>
+
+              <nav className="space-y-9">
+                <section>
+                  <h3 className="mb-4 px-3 font-display text-[15px] font-bold uppercase tracking-[0.08em] text-[#C8A96A]">
+                    Browse
+                  </h3>
+                  <div className="space-y-1">
+                    {browseLinks.map((item, index) => (
+                      <MobileMenuLink key={`${item.label}-${item.href}`} item={item} index={index} />
+                    ))}
+                  </div>
+                </section>
+
+                <section>
+                  <h3 className="mb-4 px-3 font-display text-[15px] font-bold uppercase tracking-[0.08em] text-[#C8A96A]">
+                    Company
+                  </h3>
+                  <div className="space-y-1">
+                    {companyLinks.map((item, index) => (
+                      <MobileMenuLink key={`${item.label}-${item.href}`} item={item} index={index + browseLinks.length} />
+                    ))}
+                  </div>
+                </section>
+              </nav>
+
+              <Link
+                href="/vendor/register"
+                onClick={closeMobileMenu}
+                className="mt-9 flex items-center gap-4 rounded-[22px] border border-[#C8A96A]/55 bg-[#F7F3EC] p-3 text-[#082F2C] shadow-[0_18px_34px_rgba(0,0,0,0.22)] transition-transform duration-200 hover:scale-[1.02]"
+              >
+                <div className="flex h-[66px] w-[66px] shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#D8C39A]/55">
+                  <img src="/logo.png" alt="" className="h-full w-full object-contain scale-[1.55]" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="font-sans text-[18px] font-bold leading-6">List Your Business</p>
+                  <p className="mt-1 font-sans text-[14px] leading-5 text-[#082F2C]/80">Grow with Cloche</p>
+                </div>
+                <ArrowRight className="h-8 w-8 shrink-0 text-[#082F2C]" strokeWidth={1.8} />
+              </Link>
+            </div>
           </div>
         </div>
       )}
