@@ -79,3 +79,7 @@ section {
     background: rgba(248, 246, 242, 0.85);
 }
 
+body.mobile-menu-open .mobile-bottom-nav,
+body.mobile-menu-open .mobile-menu-floating-action {
+    display: none;
+}

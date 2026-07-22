@@ -7,7 +7,7 @@ import {
   Home, MapPin, Store, BookHeart, FileText, Mail,
   Heart, Lightbulb, Info, CircleHelp, ArrowRight, Users
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 type HeaderProps = {
   session?: { token: string; role?: string } | null;
@@ -16,6 +16,14 @@ type HeaderProps = {
 export function Header({ session }: HeaderProps = {}) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
+
+  useEffect(() => {
+    document.body.classList.toggle("mobile-menu-open", isMobileMenuOpen);
+
+    return () => {
+      document.body.classList.remove("mobile-menu-open");
+    };
+  }, [isMobileMenuOpen]);
 
   let profileLink = "/dashboard";
   if (session?.role === "vendor" || session?.role === "partner") {
@@ -151,7 +159,7 @@ export function Header({ session }: HeaderProps = {}) {
           ></div>
           
           {/* Sidebar */}
-          <div className="relative flex h-[100dvh] w-[84vw] max-w-[390px] flex-col overflow-hidden rounded-l-[34px] bg-[#0B3B36] text-[#F7F3EC] shadow-[-28px_0_70px_rgba(0,0,0,0.38)] animate-in slide-in-from-right duration-300 ease-in-out">
+          <div className="relative flex h-[100dvh] w-[84vw] max-w-[390px] flex-col overflow-hidden bg-[#0B3B36] text-[#F7F3EC] shadow-[-28px_0_70px_rgba(0,0,0,0.38)] animate-in slide-in-from-right duration-300 ease-in-out">
             <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_8%,rgba(216,195,154,0.16),transparent_30%),linear-gradient(160deg,rgba(8,47,44,0.16),rgba(8,47,44,0.84))]"></div>
             <div className="pointer-events-none absolute -right-16 bottom-0 h-36 w-36 rounded-full bg-[#082F2C]/80 blur-2xl"></div>
 
