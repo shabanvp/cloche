@@ -74,7 +74,8 @@ const uploadBufferToCloudinary = async ({ folder, file }) => {
     `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
     formData,
     {
-      headers: formData.getHeaders()
+      headers: formData.getHeaders(),
+      timeout: 30000
     }
   );
 
@@ -110,7 +111,8 @@ const destroyCloudinaryAsset = async (publicUrl) => {
     .post(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/destroy`, body.toString(), {
       headers: {
         "Content-Type": "application/x-www-form-urlencoded"
-      }
+      },
+      timeout: 15000
     })
     .catch(() => undefined);
 };

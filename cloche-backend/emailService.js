@@ -65,6 +65,9 @@ const createEmailMessage = (to, subject, html, fromName = "Cloche Luxury") => {
 };
 
 const sendBrevoMessage = async ({ to, subject, html, fromName }) => {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15000);
+
   const response = await fetch("https://api.brevo.com/v3/smtp/email", {
     method: "POST",
     headers: {
@@ -81,7 +84,8 @@ const sendBrevoMessage = async ({ to, subject, html, fromName }) => {
       subject,
       htmlContent: html,
     }),
-  });
+    signal: controller.signal,
+  }).finally(() => clearTimeout(timeout));
 
   const data = await response.json().catch(() => ({}));
 

@@ -3,8 +3,10 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { signup } from "@/app/actions/auth";
 import { Upload } from "lucide-react";
+
+const rawBaseUrl = process.env.NEXT_PUBLIC_API_URL || "https://cloche-backend.onrender.com";
+const API_BASE_URL = rawBaseUrl.endsWith("/api") ? rawBaseUrl : `${rawBaseUrl}/api`;
 
 const VENDOR_CATEGORIES = [
   "Bridal Boutique", "Groom Wear", "Wedding Venue", "Photographer", "Videographer",
@@ -21,6 +23,36 @@ export default function VendorRegisterPage() {
   const [errorMsg, setErrorMsg] = useState("");
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
+
+  const submitSignup = async (formData: FormData) => {
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 60000);
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/auth/signup`, {
+        method: "POST",
+        body: formData,
+        signal: controller.signal,
+      });
+
+      const text = await res.text();
+      const data = text ? JSON.parse(text) : {};
+
+      if (!res.ok || !data.success) {
+        return { error: data.message || "Signup failed" };
+      }
+
+      return { success: true };
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") {
+        return { error: "Upload timed out. Please try again with smaller images." };
+      }
+
+      return { error: "Could not submit the application. Please try again." };
+    } finally {
+      window.clearTimeout(timeout);
+    }
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: "logo" | "cover") => {
     const file = e.target.files?.[0];
@@ -48,7 +80,7 @@ export default function VendorRegisterPage() {
       return;
     }
 
-    const res = await signup(formData);
+    const res = await submitSignup(formData);
     
     setIsSubmitting(false);
     
