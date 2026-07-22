@@ -21,7 +21,7 @@ export const metadata = {
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   const navItems = [
-    { label: "Overview", icon: LayoutDashboard, href: "/admin" },
+    { label: "Overview", icon: LayoutDashboard, href: "/admin/dashboard" },
     { label: "Vendors", icon: Users, href: "/admin/vendors" },
     { label: "Boutiques", icon: Store, href: "/admin/boutiques" },
     { label: "Collections", icon: ShoppingBag, href: "/admin/collections" },

@@ -17,7 +17,10 @@ export default function AdminNav({ items }: { items: AdminNavItem[] }) {
     <nav className="p-4 space-y-2 flex-1 overflow-y-auto">
       {items.map((item) => {
         const Icon = item.icon;
-        const isActive = item.href === "/admin" ? pathname === "/admin" : pathname.startsWith(item.href);
+        const isActive =
+          item.href === "/admin/dashboard"
+            ? pathname === "/admin" || pathname.startsWith("/admin/dashboard")
+            : pathname.startsWith(item.href);
 
         return (
           <Link
