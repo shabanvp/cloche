@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { 
-  Search, Edit3, Smartphone, Menu, X, ChevronDown,
+  Bell, Edit3, Smartphone, Menu, X, ChevronDown,
   Home, MapPin, Store, BookHeart, FileText, Mail,
-  Heart, Lightbulb, Info, CircleHelp, ArrowRight, Users
+  Heart, Lightbulb, Info, CircleHelp, ArrowRight, Users, MessageCircle, CheckCircle2
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -15,6 +15,7 @@ type HeaderProps = {
 
 export function Header({ session }: HeaderProps = {}) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const pathname = usePathname();
 
   useEffect(() => {
@@ -23,6 +24,10 @@ export function Header({ session }: HeaderProps = {}) {
     return () => {
       document.body.classList.remove("mobile-menu-open");
     };
+  }, [isMobileMenuOpen]);
+
+  useEffect(() => {
+    if (isMobileMenuOpen) setIsNotificationsOpen(false);
   }, [isMobileMenuOpen]);
 
   let profileLink = "/dashboard";
@@ -51,6 +56,41 @@ export function Header({ session }: HeaderProps = {}) {
   ];
 
   const closeMobileMenu = () => setIsMobileMenuOpen(false);
+  const isVendorSession = session?.role === "vendor" || session?.role === "partner";
+
+  const notifications = session
+    ? isVendorSession
+      ? [
+          {
+            title: "Vendor notifications",
+            body: "New enquiries, messages, and appointment updates will appear here.",
+            href: "/vendor",
+          },
+          {
+            title: "Profile status",
+            body: "Keep your profile, images, and collections updated for better visibility.",
+            href: "/vendor/profile",
+          },
+        ]
+      : [
+          {
+            title: "Wedding updates",
+            body: "Boutique replies and appointment updates will appear here.",
+            href: "/dashboard",
+          },
+          {
+            title: "Saved favourites",
+            body: "Check your wishlist for boutiques and collections you saved.",
+            href: "/dashboard/wishlist",
+          },
+        ]
+    : [
+        {
+          title: "Sign in for notifications",
+          body: "Log in to see replies, appointment updates, and saved vendor alerts.",
+          href: "/login",
+        },
+      ];
 
   const isActiveLink = (href: string) => {
     if (href === "/") return pathname === "/";
@@ -104,7 +144,7 @@ export function Header({ session }: HeaderProps = {}) {
       </div>
 
       {/* Main Nav */}
-      <div className="flex justify-between items-center px-4 sm:px-6 lg:px-10 xl:px-12 py-4 bg-primary text-white">
+      <div className="relative flex justify-between items-center px-4 sm:px-6 lg:px-10 xl:px-12 py-4 bg-primary text-white">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-3 shrink-0">
           <div className="relative flex items-center justify-center w-[60px] h-[40px] md:w-[55px] md:h-[48px] lg:w-[65px] lg:h-[52px] xl:w-[70px] xl:h-[56px]">
@@ -126,8 +166,15 @@ export function Header({ session }: HeaderProps = {}) {
 
         {/* Actions */}
         <div className="flex items-center gap-3 lg:gap-5 shrink-0">
-          <button className="w-9 h-9 lg:w-10 lg:h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors">
-            <Search className="w-4 h-4 lg:w-5 lg:h-5" />
+          <button
+            type="button"
+            className="relative w-9 h-9 lg:w-10 lg:h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors"
+            onClick={() => setIsNotificationsOpen((open) => !open)}
+            aria-label="Open notifications"
+            aria-expanded={isNotificationsOpen}
+          >
+            <Bell className="w-4 h-4 lg:w-5 lg:h-5" />
+            <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-[#C8A96A] shadow-[0_0_0_2px_#0F4C45]" />
           </button>
           
           {session ? (
@@ -142,11 +189,62 @@ export function Header({ session }: HeaderProps = {}) {
 
           <button 
             className="lg:hidden text-white hover:text-gold transition-colors"
-            onClick={() => setIsMobileMenuOpen(true)}
+            onClick={() => {
+              setIsNotificationsOpen(false);
+              setIsMobileMenuOpen(true);
+            }}
           >
             <Menu className="w-6 h-6" />
           </button>
         </div>
+
+        {isNotificationsOpen && (
+          <div className="absolute right-4 top-[calc(100%+10px)] z-[70] w-[min(calc(100vw-2rem),360px)] overflow-hidden rounded-2xl border border-[#C8A96A]/30 bg-[#F7F3EC] text-[#082F2C] shadow-[0_22px_60px_rgba(0,0,0,0.22)]">
+            <div className="flex items-center justify-between border-b border-[#C8A96A]/20 bg-[#0B3B36] px-4 py-3 text-[#F7F3EC]">
+              <div className="flex items-center gap-2">
+                <Bell className="h-4 w-4 text-[#C8A96A]" />
+                <p className="font-display text-lg font-bold">Notifications</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsNotificationsOpen(false)}
+                className="text-[#D8C39A] hover:text-white"
+                aria-label="Close notifications"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="max-h-[320px] overflow-y-auto p-3">
+              {notifications.map((notification) => (
+                <Link
+                  key={notification.title}
+                  href={notification.href}
+                  onClick={() => setIsNotificationsOpen(false)}
+                  className="group flex gap-3 rounded-xl px-3 py-3 transition-colors hover:bg-[#0B3B36]/8"
+                >
+                  <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#0B3B36]/10 text-[#0B3B36]">
+                    {session ? <MessageCircle className="h-4 w-4" /> : <CheckCircle2 className="h-4 w-4" />}
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block font-sans text-sm font-bold text-[#082F2C]">{notification.title}</span>
+                    <span className="mt-1 block font-sans text-xs leading-5 text-[#082F2C]/70">{notification.body}</span>
+                  </span>
+                </Link>
+              ))}
+            </div>
+
+            <div className="border-t border-[#C8A96A]/20 px-4 py-3 text-center">
+              <Link
+                href={session ? profileLink : "/login"}
+                onClick={() => setIsNotificationsOpen(false)}
+                className="font-sans text-xs font-bold uppercase tracking-[0.18em] text-[#0B3B36] hover:text-[#C8A96A]"
+              >
+                {session ? "Open account" : "Login to continue"}
+              </Link>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Mobile Sidebar Menu (Drawer) */}
