@@ -70,9 +70,16 @@ export default function VendorRegisterPage() {
     
     const formData = new FormData(e.currentTarget);
     formData.append("account_type", "partner"); 
-    // The password confirmation is validated below
+    
+    // Validate passwords match
     const password = formData.get("password") as string;
     const confirm = formData.get("confirm_password") as string;
+    
+    if (!password || !confirm) {
+      setErrorMsg("Password fields are required");
+      setIsSubmitting(false);
+      return;
+    }
     
     if (password !== confirm) {
       setErrorMsg("Passwords do not match");
@@ -80,14 +87,35 @@ export default function VendorRegisterPage() {
       return;
     }
 
+<<<<<<< HEAD
     const res = await submitSignup(formData);
+=======
+    // Debug log
+    console.log("[Vendor Register] Submitting form with data:", {
+      boutique_name: formData.get("boutique_name"),
+      owner_name: formData.get("owner_name"),
+      email: formData.get("email"),
+      phone: formData.get("phone"),
+      category: formData.get("category"),
+      hasLogo: !!formData.get("logo"),
+      hasCover: !!formData.get("cover"),
+    });
+
+    const res = await signup(formData);
+>>>>>>> cce9905 (nav logo new)
     
     setIsSubmitting(false);
     
+    console.log("[Vendor Register] Response:", res);
+    
     if (res.error) {
       setErrorMsg(res.error);
-    } else {
+    } else if (res.success) {
+      // Show success message with email info if available
+      alert(`✅ Application submitted successfully!\n\nA verification email has been sent to your email address. Please check your inbox and verify your account to complete registration.`);
       router.push("/vendor/login?status=registered"); 
+    } else {
+      setErrorMsg("Application submission failed. Please try again.");
     }
   };
 
