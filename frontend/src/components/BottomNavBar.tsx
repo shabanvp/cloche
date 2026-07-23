@@ -42,8 +42,8 @@ export function BottomNavBar({ activeTab }: BottomNavBarProps = {}) {
           <span className="material-symbols-outlined" style={{ fontVariationSettings: isActive("photos", "/inspiration") ? "'FILL' 1" : "'FILL' 0" }}>photo_library</span>
           <span className="text-[10px] uppercase tracking-wider mt-1">Photos</span>
         </Link>
-        <Link className={cls("blogs", "/real-weddings")} href="/real-weddings">
-          <span className="material-symbols-outlined" style={{ fontVariationSettings: isActive("blogs", "/real-weddings") ? "'FILL' 1" : "'FILL' 0" }}>auto_stories</span>
+        <Link className={cls("blogs", "/blogs")} href="/blogs">
+          <span className="material-symbols-outlined" style={{ fontVariationSettings: isActive("blogs", "/blogs") ? "'FILL' 1" : "'FILL' 0" }}>auto_stories</span>
           <span className="text-[10px] uppercase tracking-wider mt-1">Blogs</span>
         </Link>
       </nav>
