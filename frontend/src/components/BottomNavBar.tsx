@@ -10,6 +10,7 @@ type BottomNavBarProps = {
 
 export function BottomNavBar({ activeTab }: BottomNavBarProps = {}) {
   const pathname = usePathname();
+  if (pathname === "/login" || pathname === "/signup") return null;
 
   const isActive = (tab: string, href: string) => {
     if (activeTab) return activeTab === tab;

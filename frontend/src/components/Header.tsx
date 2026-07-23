@@ -17,6 +17,7 @@ export function Header({ session }: HeaderProps = {}) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const pathname = usePathname();
+  const isAuthRoute = pathname === "/login" || pathname === "/signup";
 
   useEffect(() => {
     document.body.classList.toggle("mobile-menu-open", isMobileMenuOpen);
@@ -39,6 +40,8 @@ export function Header({ session }: HeaderProps = {}) {
       window.removeEventListener("scroll", closeNotificationsOnScroll);
     };
   }, [isNotificationsOpen]);
+
+  if (isAuthRoute) return null;
 
   let profileLink = "/dashboard";
   if (session?.role === "vendor" || session?.role === "partner") {
