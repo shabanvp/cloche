@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { ArrowRight, Eye, EyeOff, Lock, Mail, Smartphone, UserRound } from "lucide-react";
 import { signup } from "@/app/actions/auth";
+import { AuthShell } from "@/components/AuthShell";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -15,158 +17,146 @@ export default function SignupPage() {
     e.preventDefault();
     setIsSubmitting(true);
     setErrorMsg("");
-    
+
     const formData = new FormData(e.currentTarget);
-    formData.append("account_type", "user"); // Matches older website logic
+    formData.append("account_type", "user");
 
     const res = await signup(formData);
-    
+
     setIsSubmitting(false);
-    
+
     if (res.error) {
       setErrorMsg(res.error);
     } else {
-      router.push("/login"); 
+      router.push("/login");
     }
   };
 
   return (
-    <main className="flex-grow flex flex-col px-6 py-8 max-w-md mx-auto w-full min-h-[calc(100vh-140px)] bg-surface">
-      {/* Hero Branding Section */}
-      <div className="text-center mb-16 mt-4">
-        <h2 className="font-display text-[32px] leading-[40px] tracking-[-0.01em] font-semibold text-primary mb-2">Create Your Account</h2>
-        <p className="font-sans text-[16px] leading-[26px] text-on-surface-variant max-w-[280px] mx-auto italic">
-          Join Cloche for a bespoke wedding planning experience.
-        </p>
-      </div>
-
-      {/* Signup Form */}
-      <form className="flex flex-col gap-8" onSubmit={handleSubmit}>
-        {/* Full Name */}
-        <div className="relative group">
-          <input 
-            className="peer w-full bg-transparent border-t-0 border-x-0 border-b border-outline/30 py-3 text-on-surface placeholder-transparent focus:outline-none focus:border-b-secondary transition-all duration-300" 
-            id="fullname"
-            name="name"
-            placeholder=" " 
-            required 
-            type="text"
-          />
-          <label 
-            className="absolute left-0 -top-3.5 text-on-surface-variant font-sans font-semibold text-[12px] tracking-[0.08em] transition-all peer-placeholder-shown:text-[14px] peer-placeholder-shown:top-3 peer-focus:-top-3.5 peer-focus:text-secondary peer-focus:text-[12px]" 
-            htmlFor="fullname"
-          >
+    <AuthShell
+      activeTab="signup"
+      title="Sign Up"
+      subtitle="Curated Luxury, Timeless Weddings"
+      footerText="Already have an account?"
+      footerLink="/login"
+      footerLinkLabel="Login"
+    >
+      <form className="space-y-5" onSubmit={handleSubmit}>
+        <div className="space-y-2">
+          <label className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#3E3A33]" htmlFor="fullname">
             Full Name
           </label>
+          <div className="flex min-h-14 items-center gap-3 rounded-[18px] border border-[#D9CEBF] bg-[#FBF7EF] px-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.85)] transition-colors focus-within:border-[#0F4C45] focus-within:shadow-[0_0_0_3px_rgba(15,76,69,0.08)]">
+            <UserRound className="h-5 w-5 shrink-0 text-[#8E7D62]" />
+            <input
+              id="fullname"
+              name="name"
+              type="text"
+              required
+              placeholder="Olivia Bennett"
+              className="w-full bg-transparent text-[16px] text-[#1E1B16] outline-none placeholder:text-[#A79B8B]"
+            />
+          </div>
         </div>
 
-        {/* Email Address */}
-        <div className="relative group">
-          <input 
-            className="peer w-full bg-transparent border-t-0 border-x-0 border-b border-outline/30 py-3 text-on-surface placeholder-transparent focus:outline-none focus:border-b-secondary transition-all duration-300" 
-            id="email" 
-            name="email"
-            placeholder=" " 
-            required 
-            type="email"
-          />
-          <label 
-            className="absolute left-0 -top-3.5 text-on-surface-variant font-sans font-semibold text-[12px] tracking-[0.08em] transition-all peer-placeholder-shown:text-[14px] peer-placeholder-shown:top-3 peer-focus:-top-3.5 peer-focus:text-secondary peer-focus:text-[12px]" 
-            htmlFor="email"
-          >
+        <div className="space-y-2">
+          <label className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#3E3A33]" htmlFor="email">
             Email Address
           </label>
+          <div className="flex min-h-14 items-center gap-3 rounded-[18px] border border-[#D9CEBF] bg-[#FBF7EF] px-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.85)] transition-colors focus-within:border-[#0F4C45] focus-within:shadow-[0_0_0_3px_rgba(15,76,69,0.08)]">
+            <Mail className="h-5 w-5 shrink-0 text-[#8E7D62]" />
+            <input
+              id="email"
+              name="email"
+              type="email"
+              required
+              placeholder="olivia.bennett@gmail.com"
+              className="w-full bg-transparent text-[16px] text-[#1E1B16] outline-none placeholder:text-[#A79B8B]"
+            />
+          </div>
         </div>
 
-        {/* Phone Number */}
-        <div className="relative group">
-          <input 
-            className="peer w-full bg-transparent border-t-0 border-x-0 border-b border-outline/30 py-3 text-on-surface placeholder-transparent focus:outline-none focus:border-b-secondary transition-all duration-300" 
-            id="phone" 
-            name="phone"
-            placeholder=" " 
-            required 
-            type="tel"
-          />
-          <label 
-            className="absolute left-0 -top-3.5 text-on-surface-variant font-sans font-semibold text-[12px] tracking-[0.08em] transition-all peer-placeholder-shown:text-[14px] peer-placeholder-shown:top-3 peer-focus:-top-3.5 peer-focus:text-secondary peer-focus:text-[12px]" 
-            htmlFor="phone"
-          >
-            Phone Number
+        <div className="space-y-2">
+          <label className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#3E3A33]" htmlFor="phone">
+            Mobile Number
           </label>
+          <div className="flex min-h-14 items-center gap-3 rounded-[18px] border border-[#D9CEBF] bg-[#FBF7EF] px-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.85)] transition-colors focus-within:border-[#0F4C45] focus-within:shadow-[0_0_0_3px_rgba(15,76,69,0.08)]">
+            <Smartphone className="h-5 w-5 shrink-0 text-[#8E7D62]" />
+            <input
+              id="phone"
+              name="phone"
+              type="tel"
+              required
+              placeholder="+91 98765 43210"
+              className="w-full bg-transparent text-[16px] text-[#1E1B16] outline-none placeholder:text-[#A79B8B]"
+            />
+          </div>
         </div>
 
-        {/* Password */}
-        <div className="relative group">
-          <input 
-            className="peer w-full bg-transparent border-t-0 border-x-0 border-b border-outline/30 py-3 text-on-surface placeholder-transparent focus:outline-none focus:border-b-secondary transition-all duration-300" 
-            id="password" 
-            name="password"
-            placeholder=" " 
-            required 
-            type={showPassword ? "text" : "password"}
-          />
-          <label 
-            className="absolute left-0 -top-3.5 text-on-surface-variant font-sans font-semibold text-[12px] tracking-[0.08em] transition-all peer-placeholder-shown:text-[14px] peer-placeholder-shown:top-3 peer-focus:-top-3.5 peer-focus:text-secondary peer-focus:text-[12px]" 
-            htmlFor="password"
-          >
-            Password
-          </label>
-          <button 
-            type="button" 
-            onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-0 bottom-3 text-outline/50 cursor-pointer"
-          >
-            <span className="material-symbols-outlined">{showPassword ? 'visibility_off' : 'visibility'}</span>
-          </button>
+        <div className="space-y-2">
+          <div className="flex items-end justify-between gap-4">
+            <label className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#3E3A33]" htmlFor="password">
+              Password
+            </label>
+          </div>
+          <div className="flex min-h-14 items-center gap-3 rounded-[18px] border border-[#D9CEBF] bg-[#FBF7EF] px-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.85)] transition-colors focus-within:border-[#0F4C45] focus-within:shadow-[0_0_0_3px_rgba(15,76,69,0.08)]">
+            <Lock className="h-5 w-5 shrink-0 text-[#8E7D62]" />
+            <input
+              id="password"
+              name="password"
+              type={showPassword ? "text" : "password"}
+              required
+              placeholder="Create a password"
+              className="w-full bg-transparent text-[16px] text-[#1E1B16] outline-none placeholder:text-[#A79B8B]"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((value) => !value)}
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[#8E7D62] transition-colors hover:bg-[#F2EADF] hover:text-[#0F4C45]"
+              aria-label={showPassword ? "Hide password" : "Show password"}
+            >
+              {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+            </button>
+          </div>
         </div>
 
-        {/* Terms & Conditions */}
-        <div className="flex items-start gap-3 mt-2">
-          <input 
-            className="mt-1 appearance-none w-[1.15em] h-[1.15em] border border-outline grid place-content-center checked:before:scale-100 before:content-[''] before:w-[0.65em] before:h-[0.65em] before:scale-0 before:transition-transform before:shadow-[inset_1em_1em_#00342f] before:bg-[CanvasText]" 
-            id="terms" 
+        <div className="flex items-start gap-3 pt-1">
+          <input
+            id="terms"
             type="checkbox"
             required
+            className="mt-1 h-5 w-5 rounded-[4px] border-[#CDBFAE] text-[#0F4C45] focus:ring-[#0F4C45]"
           />
-          <label className="font-sans text-[14px] text-on-surface-variant leading-tight" htmlFor="terms">
-            I agree to the <Link className="text-secondary underline decoration-outline-variant/50 hover:text-primary transition-colors" href="#">Terms & Conditions</Link> and Privacy Policy.
+          <label className="text-[14px] leading-6 text-[#3B372F]" htmlFor="terms">
+            I agree to the{" "}
+            <Link href="#" className="font-semibold text-[#0F4C45] underline decoration-[#0F4C45]/25 underline-offset-4">
+              Terms & Conditions
+            </Link>{" "}
+            and Privacy Policy.
           </label>
         </div>
 
         {errorMsg && (
-          <div className="bg-red-500/10 text-red-500 border border-red-500/20 px-4 py-3 text-sm rounded-lg">
+          <div className="rounded-[16px] border border-[#F1B4A9] bg-[#FFF2EF] px-4 py-3 text-sm text-[#A43E2E]">
             {errorMsg}
           </div>
         )}
 
-        {/* Primary Action Button */}
-        <button 
-          className="bg-primary text-white py-4 mt-4 font-sans font-semibold text-[12px] tracking-[0.08em] uppercase shadow-lg hover:opacity-90 active:scale-[0.98] transition-all duration-300 flex items-center justify-center min-h-[50px]" 
+        <button
+          className="group flex min-h-14 w-full items-center justify-center gap-2 rounded-[18px] bg-[#0F4C45] px-5 text-[12px] font-semibold uppercase tracking-[0.22em] text-[#F2E6D0] shadow-[0_16px_30px_rgba(15,76,69,0.18)] transition-all hover:-translate-y-0.5 hover:bg-[#0B3B36] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-70"
           type="submit"
           disabled={isSubmitting}
         >
           {isSubmitting ? (
-            <span className="material-symbols-outlined animate-spin text-white">refresh</span>
+            <span className="material-symbols-outlined animate-spin text-[#F2E6D0]">refresh</span>
           ) : (
-            "SIGN UP"
+            <>
+              Sign Up
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+            </>
           )}
         </button>
-
-        {/* Login Link */}
-        <div className="text-center mt-4">
-          <p className="font-sans text-[14px] text-on-surface-variant">
-            Already have an account?{' '}
-            <Link className="text-secondary font-bold hover:text-primary transition-colors" href="/login">Login</Link>
-          </p>
-        </div>
       </form>
-
-
-      {/* Footer Decorative Ornament */}
-      <footer className="pb-16 pt-8 text-center">
-        <span className="font-display text-[18px] opacity-20 tracking-[0.5em] uppercase">Cloche Luxe</span>
-      </footer>
-    </main>
+    </AuthShell>
   );
 }

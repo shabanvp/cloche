@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { ArrowRight, Eye, EyeOff, Lock, Mail } from "lucide-react";
 import { login } from "@/app/actions/auth";
+import { AuthShell } from "@/components/AuthShell";
 
 export default function LoginPage() {
-  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -15,12 +15,12 @@ export default function LoginPage() {
     e.preventDefault();
     setIsSubmitting(true);
     setErrorMsg("");
-    
+
     const formData = new FormData(e.currentTarget);
     formData.append("role", "customer");
 
     const res = await login(formData);
-    
+
     setIsSubmitting(false);
 
     if (res.error) {
@@ -31,119 +31,94 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="flex-grow flex flex-col w-full min-h-[calc(100vh-140px)] relative pb-16 bg-surface">
-      {/* Hero Section */}
-      <section className="relative h-[353px] min-h-[300px] w-full overflow-hidden">
-        <div 
-          className="absolute inset-0 bg-cover bg-center" 
-          style={{backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuA914wivhHk2-zd-mcS4hJIEmfCEGmsz2llbcZJuHtVmh3DnNylOz-PDsC4vqvOnneLqRhplPskv2gzcuHU2vOuOu0AXkcdTKN7vrxRen3yJxzyxQCUym9wVADno5PY9FAdnC8qqgaYdFnbgOTTNNi_aS8NOrWPRoDJTkgbZWOu2ccIWo0XlU8k4nUq9_dqeJ5wiTG4cu0rRtdBfezH3DCOgA4VmZkZZMtsnIs0fqxK8u-lZ40aElcVh0xKMME93zFQAR5KT0s7jjEe')"}}
-        ></div>
-        <div className="absolute inset-0 bg-gradient-to-t from-surface via-surface/40 to-transparent"></div>
-        <div className="absolute bottom-0 left-0 w-full px-6 pb-8">
-          <p className="font-sans font-semibold text-[12px] text-secondary uppercase tracking-[0.2em] mb-2">Bespoke Excellence</p>
-          <h2 className="font-display text-[32px] leading-[40px] tracking-[-0.01em] font-semibold text-primary">Welcome Back</h2>
-        </div>
-      </section>
-
-      {/* Form Section */}
-      <section className="px-6 py-8 flex flex-col gap-16 max-w-md mx-auto w-full relative z-10">
-        <form className="flex flex-col gap-8" onSubmit={handleSubmit}>
-          {/* Email Field */}
-          <div className="relative flex flex-col gap-1 py-2 group">
-            <label className="font-sans font-semibold text-[12px] tracking-[0.08em] text-outline uppercase" htmlFor="email">Email Address</label>
-            <input 
-              className="bg-transparent border-none p-0 font-sans text-[16px] text-on-surface placeholder:text-outline-variant/50 focus:ring-0 focus:outline-none" 
-              id="email" 
-              name="email" 
-              placeholder="bespoke@cloche.luxury" 
+    <AuthShell
+      activeTab="login"
+      subtitle={"Curated Luxury,\nTimeless Weddings"}
+      showSocial
+      footerText="Don't have an account?"
+      footerLink="/signup"
+      footerLinkLabel="Sign up"
+    >
+      <form className="space-y-5" onSubmit={handleSubmit}>
+        <div className="space-y-2">
+          <label className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#3E3A33]" htmlFor="email">
+            Email Address
+          </label>
+          <div className="flex min-h-14 items-center gap-3 rounded-[18px] border border-[#D9CEBF] bg-[#FBF7EF] px-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.85)] transition-colors focus-within:border-[#0F4C45] focus-within:shadow-[0_0_0_3px_rgba(15,76,69,0.08)]">
+            <Mail className="h-5 w-5 shrink-0 text-[#8E7D62]" />
+            <input
+              id="email"
+              name="email"
               type="email"
               required
+              placeholder="olivia.bennett@gmail.com"
+              className="w-full bg-transparent text-[16px] text-[#1E1B16] outline-none placeholder:text-[#A79B8B]"
             />
-            <div className="absolute bottom-0 left-0 w-full h-[1.5px] bg-secondary/30 transition-all duration-300 group-focus-within:h-[2px] group-focus-within:bg-secondary group-focus-within:opacity-100"></div>
           </div>
+        </div>
 
-          {/* Password Field */}
-          <div className="relative flex flex-col gap-1 py-2 group">
-            <label className="font-sans font-semibold text-[12px] tracking-[0.08em] text-outline uppercase" htmlFor="password">Password</label>
-            <input 
-              className="bg-transparent border-none p-0 font-sans text-[16px] text-on-surface placeholder:text-outline-variant/50 focus:ring-0 focus:outline-none" 
-              id="password" 
-              name="password" 
-              placeholder="••••••••" 
+        <div className="space-y-2">
+          <div className="flex items-end justify-between gap-4">
+            <label className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#3E3A33]" htmlFor="password">
+              Password
+            </label>
+            <Link href="/reset-password" className="text-[13px] text-[#4D4A43] transition-colors hover:text-[#0F4C45]">
+              Forgot?
+            </Link>
+          </div>
+          <div className="flex min-h-14 items-center gap-3 rounded-[18px] border border-[#D9CEBF] bg-[#FBF7EF] px-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.85)] transition-colors focus-within:border-[#0F4C45] focus-within:shadow-[0_0_0_3px_rgba(15,76,69,0.08)]">
+            <Lock className="h-5 w-5 shrink-0 text-[#8E7D62]" />
+            <input
+              id="password"
+              name="password"
               type={showPassword ? "text" : "password"}
               required
+              placeholder="••••••••••"
+              className="w-full bg-transparent text-[16px] text-[#1E1B16] outline-none placeholder:text-[#A79B8B]"
             />
-            <button 
-              className="absolute right-0 bottom-2 text-outline-variant hover:text-primary transition-colors" 
+            <button
               type="button"
-              onClick={() => setShowPassword(!showPassword)}
+              onClick={() => setShowPassword((value) => !value)}
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[#8E7D62] transition-colors hover:bg-[#F2EADF] hover:text-[#0F4C45]"
+              aria-label={showPassword ? "Hide password" : "Show password"}
             >
-              <span className="material-symbols-outlined text-[20px]">{showPassword ? 'visibility_off' : 'visibility'}</span>
+              {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
             </button>
-            <div className="absolute bottom-0 left-0 w-full h-[1.5px] bg-secondary/30 transition-all duration-300 group-focus-within:h-[2px] group-focus-within:bg-secondary group-focus-within:opacity-100"></div>
           </div>
+        </div>
 
-          <div className="flex justify-end mt-[-16px]">
-            <Link className="font-sans font-semibold text-[12px] tracking-[0.08em] text-secondary hover:text-primary transition-colors italic" href="#">Forgot Password?</Link>
+        <div className="flex items-center justify-between gap-4 pt-1">
+          <label className="flex items-center gap-3 text-[14px] text-[#2D2A25]">
+            <input
+              type="checkbox"
+              name="remember_me"
+              className="h-5 w-5 rounded-[4px] border-[#CDBFAE] text-[#0F4C45] focus:ring-[#0F4C45]"
+            />
+            Remember me
+          </label>
+        </div>
+
+        {errorMsg && (
+          <div className="rounded-[16px] border border-[#F1B4A9] bg-[#FFF2EF] px-4 py-3 text-sm text-[#A43E2E]">
+            {errorMsg}
           </div>
+        )}
 
-          {errorMsg && (
-            <div className="bg-red-500/10 text-red-500 border border-red-500/20 px-4 py-3 text-sm rounded-lg -mt-2">
-              {errorMsg}
-            </div>
+        <button
+          className="group flex min-h-14 w-full items-center justify-center gap-2 rounded-[18px] bg-[#0F4C45] px-5 text-[12px] font-semibold uppercase tracking-[0.22em] text-[#F2E6D0] shadow-[0_16px_30px_rgba(15,76,69,0.18)] transition-all hover:-translate-y-0.5 hover:bg-[#0B3B36] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-70"
+          type="submit"
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? (
+            <span className="material-symbols-outlined animate-spin text-[#F2E6D0]">refresh</span>
+          ) : (
+            <>
+              Login
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+            </>
           )}
-
-          {/* Primary Login Button */}
-          <button 
-            className="w-full bg-primary py-5 rounded-none flex items-center justify-center gap-2 group active:scale-95 transition-all shadow-[0_10px_30px_rgba(27,28,28,0.04)] mt-4" 
-            type="submit"
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? (
-              <span className="material-symbols-outlined animate-spin text-white">refresh</span>
-            ) : (
-              <>
-                <span className="font-sans font-semibold text-[12px] tracking-[0.08em] text-[#f1e1c0] uppercase group-hover:opacity-80 transition-opacity">Login to Atelier</span>
-                <span className="material-symbols-outlined text-[#f1e1c0] text-[18px]">arrow_forward</span>
-              </>
-            )}
-          </button>
-        </form>
-
-        {/* Social Login & Signup */}
-        <div className="flex flex-col gap-4">
-          <div className="flex items-center gap-4">
-            <div className="h-[1px] flex-grow bg-outline-variant/20"></div>
-            <span className="font-sans font-semibold text-[12px] tracking-[0.08em] text-outline-variant uppercase">Or continue with</span>
-            <div className="h-[1px] flex-grow bg-outline-variant/20"></div>
-          </div>
-          
-          <div className="grid grid-cols-2 gap-4">
-            <button className="flex items-center justify-center gap-3 py-4 border border-outline-variant/30 hover:bg-surface-dim transition-colors">
-              <svg className="w-5 h-5" viewBox="0 0 24 24">
-                <path d="M12.48 10.92v3.28h7.84c-.24 1.84-.91 3.28-1.92 4.28-1.01 1-2.58 2.08-5.92 2.08-5.36 0-9.68-4.32-9.68-9.68s4.32-9.68 9.68-9.68c3.04 0 5.28 1.12 6.96 2.72l2.32-2.32C19.76 1.12 16.56 0 12.48 0 5.6 0 0 5.6 0 12.48s5.6 12.48 12.48 12.48c3.76 0 6.64-1.2 8.88-3.52 2.32-2.32 3.04-5.52 3.04-8.16 0-.56-.08-1.12-.16-1.68h-11.76z" fill="currentColor"></path>
-              </svg>
-              <span className="font-sans font-semibold text-[12px] tracking-[0.08em] uppercase">Google</span>
-            </button>
-            <button className="flex items-center justify-center gap-3 py-4 border border-outline-variant/30 hover:bg-surface-dim transition-colors">
-              <svg className="w-5 h-5" viewBox="0 0 24 24">
-                <path d="M17.05 20.28c-.96.95-2.44 1.78-4.43 1.78-3.48 0-6.1-2.61-6.1-6.42 0-3.8 2.62-6.42 6.1-6.42 1.99 0 3.47.83 4.43 1.78l1.71-1.71c-1.47-1.46-3.66-2.67-6.14-2.67-5.1 0-9.1 3.99-9.1 9.02 0 5.03 4 9.02 9.1 9.02 2.48 0 4.67-1.21 6.14-2.67l-1.71-1.71zM12.62 14.12V11h8.38v3.12h-8.38z" fill="currentColor"></path>
-              </svg>
-              <span className="font-sans font-semibold text-[12px] tracking-[0.08em] uppercase">Apple</span>
-            </button>
-          </div>
-        </div>
-
-        <div className="text-center pb-16">
-          <p className="font-sans text-[14px] text-outline">
-            Don't have an account?{' '}
-            <Link className="text-primary font-bold ml-1 hover:underline underline-offset-4" href="/signup">Sign up</Link>
-          </p>
-        </div>
-      </section>
-      
-      {/* Bottom Ornament */}
-      <div className="fixed bottom-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-secondary to-primary opacity-20 z-50"></div>
-    </main>
+        </button>
+      </form>
+    </AuthShell>
   );
 }
