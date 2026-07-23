@@ -35,7 +35,6 @@ export default function SignupPage() {
   return (
     <AuthShell
       activeTab="signup"
-      title="Sign Up"
       subtitle="Curated Luxury, Timeless Weddings"
       footerText="Already have an account?"
       footerLink="/login"
