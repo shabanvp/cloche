@@ -10,6 +10,7 @@ import { useState, useEffect } from "react";
 
 export default function SettingsPage() {
   const [darkMode, setDarkMode] = useState(false);
+  const [showLogoutMsg, setShowLogoutMsg] = useState(false);
 
   // Apply dark background to body when dark mode is enabled
   useEffect(() => {
@@ -159,7 +160,13 @@ export default function SettingsPage() {
               <ChevronRight className={`w-4 h-4 ${chevronClass} transition-colors duration-300`} strokeWidth={2} />
             </Link>
 
-            <button className="flex items-center justify-between py-4 px-1 group hover:bg-red-500/10 transition-colors w-full">
+            <button 
+              onClick={() => {
+                setShowLogoutMsg(true);
+                setTimeout(() => setShowLogoutMsg(false), 3000);
+              }}
+              className="flex items-center justify-between py-4 px-1 group hover:bg-red-500/10 transition-colors w-full"
+            >
               <div className="flex items-center gap-4 text-[#E56A6A]">
                 <LogOut className="w-5 h-5" strokeWidth={1.5} />
                 <span className="font-medium text-[15px]">Log Out</span>
@@ -173,6 +180,14 @@ export default function SettingsPage() {
       {/* Hide surrounding layout background visually if possible by making an absolute pseudo-backdrop */}
       {darkMode && (
         <div className="fixed inset-0 bg-[#111412] -z-10 transition-colors duration-300" />
+      )}
+      
+      {/* Logout Message Toast */}
+      {showLogoutMsg && (
+        <div className="fixed top-12 left-1/2 -translate-x-1/2 bg-[#0F4C45] text-[#FAF7F2] px-6 py-3 rounded-full text-[14px] font-medium shadow-xl z-50 flex items-center gap-3 border border-[#C8A96A]/30 transition-all duration-300">
+          <LogOut className="w-4 h-4 text-[#C8A96A]" />
+          You have successfully logged out.
+        </div>
       )}
     </div>
   );
