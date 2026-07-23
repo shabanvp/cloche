@@ -234,30 +234,30 @@ export function CategoriesShowcase() {
             >
               <Link
                 href={category.href}
-                className="group relative block overflow-hidden rounded-[14px] sm:rounded-[16px] border border-black/5 shadow-[0_1px_6px_rgba(0,0,0,0.02)] transition-all duration-300 hover:shadow-[0_4px_12px_rgba(0,0,0,0.05)] active:scale-[0.99]"
+                className="group relative block overflow-hidden rounded-[12px] sm:rounded-[14px] border border-black/5 shadow-[0_1px_6px_rgba(0,0,0,0.02)] transition-all duration-300 hover:shadow-[0_4px_12px_rgba(0,0,0,0.05)] active:scale-[0.99]"
                 style={{ backgroundColor: category.bgColor }}
               >
-                <div className="relative flex min-h-[58px] sm:min-h-[72px] items-center">
+                <div className="relative flex min-h-[46px] sm:min-h-[56px] items-center">
                   {/* Left Text & Icon Section */}
-                  <div className="flex flex-1 items-center gap-1.5 sm:gap-2.5 p-2 sm:p-2.5 pr-[40%] sm:pr-[38%] z-10">
+                  <div className="flex flex-1 items-center gap-1.5 sm:gap-2 px-1.5 py-1.5 sm:px-2 sm:py-2 pr-[40%] sm:pr-[38%] z-10">
                     {/* Circle Icon Badge */}
-                    <div className="flex h-7 w-7 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-full border border-black/5 bg-[#FAF7F2] text-[#0F4C45] shadow-[0_1px_4px_rgba(0,0,0,0.04)] transition-transform duration-300 group-hover:scale-105">
-                      <IconComponent className="h-3.5 w-3.5 sm:h-4.5 sm:w-4.5" />
+                    <div className="flex h-6 w-6 sm:h-8 sm:w-8 shrink-0 items-center justify-center rounded-full border border-black/5 bg-[#FAF7F2] text-[#0F4C45] shadow-[0_1px_4px_rgba(0,0,0,0.04)] transition-transform duration-300 group-hover:scale-105">
+                      <IconComponent className="h-3 w-3 sm:h-4 sm:w-4" />
                     </div>
 
                     {/* Category Title & Subtitle */}
-                    <div className="min-w-0 flex-1">
-                      <h2 className="font-serif text-[13.5px] sm:text-[16px] font-bold text-[#0F4C45] leading-tight tracking-tight">
+                    <div className="min-w-0 flex-1 flex flex-col justify-center">
+                      <h2 className="font-serif text-[13.5px] sm:text-[16px] font-bold text-[#0F4C45] leading-[1.1] tracking-tight">
                         {category.title}
                       </h2>
-                        <p className="mt-0.5 text-[9px] sm:text-[10.5px] font-sans text-[#5A6561] leading-tight line-clamp-1">
+                      <p className="text-[9px] sm:text-[10.5px] font-sans text-[#5A6561] leading-[1.1] line-clamp-1 mt-[1px]">
                         {category.subtitle}
                       </p>
                     </div>
 
                     {/* Dark Green Action Chevron Button */}
-                    <div className="flex h-5 w-5 sm:h-6 sm:w-6 shrink-0 items-center justify-center rounded-full bg-[#0F4C45] text-white shadow-xs transition-transform duration-300 group-hover:scale-110">
-                      <ChevronRight className="h-3 w-3 sm:h-3.5 sm:w-3.5" strokeWidth={2.4} />
+                    <div className="flex h-4 w-4 sm:h-5 sm:w-5 shrink-0 items-center justify-center rounded-full bg-[#0F4C45] text-white shadow-xs transition-transform duration-300 group-hover:scale-110">
+                      <ChevronRight className="h-2.5 w-2.5 sm:h-3 sm:w-3" strokeWidth={2.4} />
                     </div>
                   </div>
 
