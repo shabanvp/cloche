@@ -7,8 +7,11 @@ import {
   HelpCircle, FileText, LogOut, ChevronRight 
 } from "lucide-react";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { logout } from "@/app/actions/auth";
 
 export default function SettingsPage() {
+  const router = useRouter();
   const [darkMode, setDarkMode] = useState(false);
   const [showLogoutMsg, setShowLogoutMsg] = useState(false);
 
@@ -161,9 +164,9 @@ export default function SettingsPage() {
             </Link>
 
             <button 
-              onClick={() => {
-                setShowLogoutMsg(true);
-                setTimeout(() => setShowLogoutMsg(false), 3000);
+              onClick={async () => {
+                await logout();
+                router.push('/login?logout=success');
               }}
               className="flex items-center justify-between py-4 px-1 group hover:bg-red-500/10 transition-colors w-full"
             >
@@ -182,13 +185,6 @@ export default function SettingsPage() {
         <div className="fixed inset-0 bg-[#111412] -z-10 transition-colors duration-300" />
       )}
       
-      {/* Logout Message Toast */}
-      {showLogoutMsg && (
-        <div className="fixed top-12 left-1/2 -translate-x-1/2 bg-[#0F4C45] text-[#FAF7F2] px-6 py-3 rounded-full text-[14px] font-medium shadow-xl z-50 flex items-center gap-3 border border-[#C8A96A]/30 transition-all duration-300">
-          <LogOut className="w-4 h-4 text-[#C8A96A]" />
-          You have successfully logged out.
-        </div>
-      )}
     </div>
   );
 }

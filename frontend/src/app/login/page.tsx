@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
-import { ArrowRight, Eye, EyeOff, Lock, Mail } from "lucide-react";
+import { useState, useEffect } from "react";
+import { ArrowRight, Eye, EyeOff, Lock, Mail, LogOut } from "lucide-react";
 import { login } from "@/app/actions/auth";
 import { AuthShell } from "@/components/AuthShell";
 
@@ -10,6 +10,15 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [showLogoutMsg, setShowLogoutMsg] = useState(false);
+
+  useEffect(() => {
+    if (window.location.search.includes("logout=success")) {
+      setShowLogoutMsg(true);
+      window.history.replaceState({}, document.title, window.location.pathname);
+      setTimeout(() => setShowLogoutMsg(false), 4000);
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -31,9 +40,16 @@ export default function LoginPage() {
   };
 
   return (
-    <AuthShell
-      activeTab="login"
-      subtitle={"Curated Luxury,\nTimeless Weddings"}
+    <>
+      {showLogoutMsg && (
+        <div className="fixed top-12 left-1/2 -translate-x-1/2 bg-[#0F4C45] text-[#FAF7F2] px-6 py-3 rounded-full text-[14px] font-medium shadow-xl z-50 flex items-center gap-3 border border-[#C8A96A]/30 animate-fade-in-down transition-all duration-300">
+          <LogOut className="w-4 h-4 text-[#C8A96A]" />
+          You have successfully logged out.
+        </div>
+      )}
+      <AuthShell
+        activeTab="login"
+        subtitle={"Curated Luxury,\nTimeless Weddings"}
       showSocial
       footerText="Don't have an account?"
       footerLink="/signup"
@@ -120,5 +136,6 @@ export default function LoginPage() {
         </button>
       </form>
     </AuthShell>
+    </>
   );
 }
