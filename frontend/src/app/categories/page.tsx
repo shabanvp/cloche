@@ -9,9 +9,11 @@ export const metadata: Metadata = {
 
 export default function CategoriesPage() {
   return (
-    <div className="min-h-screen bg-ivory flex flex-col">
+    <div className="min-h-screen bg-[#FAF7F2] flex flex-col pb-20 md:pb-0">
       <CategoriesShowcase />
-      <Footer />
+      <div className="hidden md:block">
+        <Footer />
+      </div>
     </div>
   );
 }

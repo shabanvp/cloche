@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-
+import { Home, Compass, ShoppingBag, Heart, User } from "lucide-react";
 
 type BottomNavBarProps = {
-  activeTab?: "home" | "venues" | "vendors" | "photos" | "blogs";
+  activeTab?: "home" | "explore" | "vendors" | "collections" | "profile";
 };
 
 export function BottomNavBar({ activeTab }: BottomNavBarProps = {}) {
@@ -17,41 +17,68 @@ export function BottomNavBar({ activeTab }: BottomNavBarProps = {}) {
     return pathname === href || pathname.startsWith(`${href}/`);
   };
 
-  const cls = (tab: string, href: string) =>
-    `flex flex-col items-center justify-center transition-all active:scale-90 ${
-      isActive(tab, href) ? "text-secondary font-bold" : "text-white/75 hover:text-secondary"
-    }`;
-
   return (
-    <>
-      {/* BottomNavBar */}
-      <nav className="mobile-bottom-nav fixed bottom-0 w-full z-50 bg-primary border-t border-white/10 h-16 flex md:hidden justify-around items-center shadow-[0_-10px_30px_rgba(0,0,0,0.18)] pb-safe">
-        <Link className={cls("home", "/")} href="/">
-          <span className="material-symbols-outlined" style={{ fontVariationSettings: isActive("home", "/") ? "'FILL' 1" : "'FILL' 0" }}>home</span>
-          <span className="text-[10px] uppercase tracking-wider mt-1">Home</span>
+    <nav className="mobile-bottom-nav fixed bottom-0 left-0 right-0 z-50 bg-[#FAF7F2]/95 backdrop-blur-md border-t border-[#EAE2D5] h-16 flex md:hidden justify-around items-end px-2 pb-2 shadow-[0_-4px_20px_rgba(0,0,0,0.06)]">
+      {/* Home */}
+      <Link
+        href="/"
+        className={`flex flex-col items-center justify-center flex-1 py-1 transition-colors ${
+          isActive("home", "/") ? "text-[#0F4C45] font-semibold" : "text-[#7A8580] hover:text-[#0F4C45]"
+        }`}
+      >
+        <Home className="w-5 h-5" strokeWidth={1.8} />
+        <span className="text-[10px] tracking-tight mt-1">Home</span>
+      </Link>
+
+      {/* Explore / Categories */}
+      <Link
+        href="/categories"
+        className={`flex flex-col items-center justify-center flex-1 py-1 transition-colors ${
+          isActive("explore", "/categories") ? "text-[#0F4C45] font-semibold" : "text-[#7A8580] hover:text-[#0F4C45]"
+        }`}
+      >
+        <Compass className="w-5 h-5" strokeWidth={1.8} />
+        <span className="text-[10px] tracking-tight mt-1">Explore</span>
+      </Link>
+
+      {/* Floating Center Vendors Button */}
+      <div className="relative flex flex-col items-center justify-center flex-1">
+        <Link
+          href="/boutiques"
+          className="relative -top-3 flex items-center justify-center w-12 h-12 rounded-full bg-[#0F4C45] border-2 border-[#C8A96A] text-white shadow-lg active:scale-95 transition-transform"
+        >
+          <ShoppingBag className="w-5 h-5 text-white" strokeWidth={1.8} />
         </Link>
-        <Link className={cls("venues", "/venues")} href="/venues">
-          <span className="material-symbols-outlined" style={{ fontVariationSettings: isActive("venues", "/venues") ? "'FILL' 1" : "'FILL' 0" }}>location_on</span>
-          <span className="text-[10px] uppercase tracking-wider mt-1">Venues</span>
-        </Link>
-        <Link className={cls("vendors", "/boutiques")} href="/boutiques">
-          <span className="material-symbols-outlined" style={{ fontVariationSettings: isActive("vendors", "/boutiques") ? "'FILL' 1" : "'FILL' 0" }}>group</span>
-          <span className="text-[10px] uppercase tracking-wider mt-1">Vendors</span>
-        </Link>
-        <Link className={cls("photos", "/inspiration")} href="/inspiration">
-          <span className="material-symbols-outlined" style={{ fontVariationSettings: isActive("photos", "/inspiration") ? "'FILL' 1" : "'FILL' 0" }}>photo_library</span>
-          <span className="text-[10px] uppercase tracking-wider mt-1">Photos</span>
-        </Link>
-        <Link className={cls("blogs", "/blogs")} href="/blogs">
-          <span className="material-symbols-outlined" style={{ fontVariationSettings: isActive("blogs", "/blogs") ? "'FILL' 1" : "'FILL' 0" }}>auto_stories</span>
-          <span className="text-[10px] uppercase tracking-wider mt-1">Blogs</span>
-        </Link>
-      </nav>
-      {/* Contextual FAB */}
-      <button className="mobile-menu-floating-action fixed bottom-20 right-6 z-40 md:hidden bg-secondary text-primary w-14 h-14 rounded-full shadow-2xl flex items-center justify-center group active:scale-90 transition-transform">
-        <span className="material-symbols-outlined text-3xl group-hover:rotate-12 transition-transform">magic_button</span>
-      </button>
-    </>
+        <span
+          className={`text-[10px] font-semibold tracking-tight -mt-2 ${
+            isActive("vendors", "/boutiques") ? "text-[#0F4C45]" : "text-[#5A6561]"
+          }`}
+        >
+          Vendors
+        </span>
+      </div>
+
+      {/* Collections */}
+      <Link
+        href="/collections"
+        className={`flex flex-col items-center justify-center flex-1 py-1 transition-colors ${
+          isActive("collections", "/collections") ? "text-[#0F4C45] font-semibold" : "text-[#7A8580] hover:text-[#0F4C45]"
+        }`}
+      >
+        <Heart className="w-5 h-5" strokeWidth={1.8} />
+        <span className="text-[10px] tracking-tight mt-1">Collections</span>
+      </Link>
+
+      {/* Profile */}
+      <Link
+        href="/dashboard"
+        className={`flex flex-col items-center justify-center flex-1 py-1 transition-colors ${
+          isActive("profile", "/dashboard") ? "text-[#0F4C45] font-semibold" : "text-[#7A8580] hover:text-[#0F4C45]"
+        }`}
+      >
+        <User className="w-5 h-5" strokeWidth={1.8} />
+        <span className="text-[10px] tracking-tight mt-1">Profile</span>
+      </Link>
+    </nav>
   );
 }
-
