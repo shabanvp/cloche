@@ -1,99 +1,147 @@
-import { Button } from "@/components/Button";
-import { cookies } from "next/headers";
+"use client";
 
-export default async function SettingsPage() {
-  const cookieStore = await cookies();
-  const userDataStr = cookieStore.get("user_data")?.value;
-  
-  let user = { first_name: "", last_name: "", email: "", phone: "" };
-  if (userDataStr) {
-    try {
-      const parsed = JSON.parse(userDataStr);
-      const fullName = parsed.user_metadata?.full_name || parsed.name || parsed.owner_name || parsed.boutique_name || "";
-      const nameParts = fullName.split(" ");
-      user.first_name = nameParts[0] || "";
-      user.last_name = nameParts.slice(1).join(" ") || "";
-      user.email = parsed.email || "";
-      user.phone = parsed.phone || parsed.user_metadata?.phone || "";
-    } catch(e) {}
-  }
+import Link from "next/link";
+import { 
+  ArrowLeft, User, Lock, Mail, Info, 
+  Bell, Globe, CircleDollarSign, Moon, 
+  HelpCircle, FileText, LogOut, ChevronRight 
+} from "lucide-react";
+import { useState } from "react";
+
+export default function SettingsPage() {
+  const [darkMode, setDarkMode] = useState(false);
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
-      <div className="border-b border-gold/10 pb-4">
-        <h1 className="text-3xl font-display text-charcoal">Account Settings</h1>
-        <p className="text-sm text-charcoal/60 mt-1">Manage your profile and preferences.</p>
+    <div className="mx-auto w-full max-w-md bg-[#FAF7F2] min-h-[calc(100vh-100px)] rounded-[24px] shadow-sm border border-black/5 overflow-hidden font-sans pb-10">
+      {/* Header */}
+      <div className="relative flex items-center justify-center p-5 border-b border-[#EAE2D5]">
+        <Link href="/dashboard" className="absolute left-5 p-1 text-[#0F4C45] hover:opacity-70 transition-opacity">
+          <ArrowLeft className="w-5 h-5 md:w-6 md:h-6" strokeWidth={1.8} />
+        </Link>
+        <h1 className="text-lg md:text-xl font-bold text-[#0F4C45]">Settings</h1>
       </div>
 
-      <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gold/10 space-y-8">
+      <div className="px-5 py-6 space-y-8">
         
-        {/* Profile Info */}
+        {/* ACCOUNT SECTION */}
         <section>
-          <h2 className="text-lg font-display text-charcoal mb-4">Personal Information</h2>
-          <form className="space-y-4 max-w-xl">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-charcoal/60 mb-2">First Name</label>
-                <input type="text" defaultValue={user.first_name} placeholder="First Name" className="w-full bg-ivory border border-gold/20 rounded-xl p-3 text-sm text-charcoal focus:outline-none focus:border-emerald" />
+          <h2 className="text-[12px] font-bold text-[#5A6561] tracking-wider uppercase mb-3 px-1">
+            Account
+          </h2>
+          <div className="bg-[#FAF7F2] flex flex-col">
+            <Link href="#" className="flex items-center justify-between py-4 px-1 border-b border-[#EAE2D5] group hover:bg-black/5 transition-colors">
+              <div className="flex items-center gap-4 text-[#0F4C45]">
+                <User className="w-5 h-5 text-[#5A6561]" strokeWidth={1.5} />
+                <span className="font-medium text-[15px]">Edit Profile</span>
               </div>
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-charcoal/60 mb-2">Last Name</label>
-                <input type="text" defaultValue={user.last_name} placeholder="Last Name" className="w-full bg-ivory border border-gold/20 rounded-xl p-3 text-sm text-charcoal focus:outline-none focus:border-emerald" />
+              <ChevronRight className="w-4 h-4 text-[#A38B6B]" strokeWidth={2} />
+            </Link>
+            
+            <Link href="#" className="flex items-center justify-between py-4 px-1 border-b border-[#EAE2D5] group hover:bg-black/5 transition-colors">
+              <div className="flex items-center gap-4 text-[#0F4C45]">
+                <Lock className="w-5 h-5 text-[#5A6561]" strokeWidth={1.5} />
+                <span className="font-medium text-[15px]">Change Password</span>
               </div>
-            </div>
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-charcoal/60 mb-2">Email Address</label>
-              <input type="email" defaultValue={user.email} placeholder="Email" className="w-full bg-ivory border border-gold/20 rounded-xl p-3 text-sm text-charcoal focus:outline-none focus:border-emerald" />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-charcoal/60 mb-2">Phone Number</label>
-              <input type="tel" defaultValue={user.phone} placeholder="Phone" className="w-full bg-ivory border border-gold/20 rounded-xl p-3 text-sm text-charcoal focus:outline-none focus:border-emerald" />
-            </div>
-            <div className="pt-2">
-              <Button className="bg-emerald text-white rounded-full">Save Changes</Button>
-            </div>
-          </form>
+              <ChevronRight className="w-4 h-4 text-[#A38B6B]" strokeWidth={2} />
+            </Link>
+            
+            <Link href="#" className="flex items-center justify-between py-4 px-1 border-b border-[#EAE2D5] group hover:bg-black/5 transition-colors">
+              <div className="flex items-center gap-4 text-[#0F4C45]">
+                <Mail className="w-5 h-5 text-[#5A6561]" strokeWidth={1.5} />
+                <span className="font-medium text-[15px]">Email Preferences</span>
+              </div>
+              <ChevronRight className="w-4 h-4 text-[#A38B6B]" strokeWidth={2} />
+            </Link>
+            
+            <Link href="#" className="flex items-center justify-between py-4 px-1 border-b border-[#EAE2D5] group hover:bg-black/5 transition-colors">
+              <div className="flex items-center gap-4 text-[#0F4C45]">
+                <Info className="w-5 h-5 text-[#5A6561]" strokeWidth={1.5} />
+                <span className="font-medium text-[15px]">Privacy</span>
+              </div>
+              <ChevronRight className="w-4 h-4 text-[#A38B6B]" strokeWidth={2} />
+            </Link>
+          </div>
         </section>
 
-        <hr className="border-gold/10" />
-
-        {/* Password */}
+        {/* APP SETTINGS SECTION */}
         <section>
-          <h2 className="text-lg font-display text-charcoal mb-4">Security</h2>
-          <form className="space-y-4 max-w-xl">
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-charcoal/60 mb-2">Current Password</label>
-              <input type="password" placeholder="••••••••" className="w-full bg-ivory border border-gold/20 rounded-xl p-3 text-sm text-charcoal focus:outline-none focus:border-emerald" />
+          <h2 className="text-[12px] font-bold text-[#5A6561] tracking-wider uppercase mb-3 px-1">
+            App Settings
+          </h2>
+          <div className="bg-[#FAF7F2] flex flex-col">
+            <Link href="#" className="flex items-center justify-between py-4 px-1 border-b border-[#EAE2D5] group hover:bg-black/5 transition-colors">
+              <div className="flex items-center gap-4 text-[#0F4C45]">
+                <Bell className="w-5 h-5 text-[#5A6561]" strokeWidth={1.5} />
+                <span className="font-medium text-[15px]">Notifications</span>
+              </div>
+              <ChevronRight className="w-4 h-4 text-[#A38B6B]" strokeWidth={2} />
+            </Link>
+            
+            <Link href="#" className="flex items-center justify-between py-4 px-1 border-b border-[#EAE2D5] group hover:bg-black/5 transition-colors">
+              <div className="flex items-center gap-4 text-[#0F4C45]">
+                <Globe className="w-5 h-5 text-[#5A6561]" strokeWidth={1.5} />
+                <span className="font-medium text-[15px]">Language</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-[#5A6561] text-[15px]">English</span>
+                <ChevronRight className="w-4 h-4 text-[#A38B6B]" strokeWidth={2} />
+              </div>
+            </Link>
+            
+            <Link href="#" className="flex items-center justify-between py-4 px-1 border-b border-[#EAE2D5] group hover:bg-black/5 transition-colors">
+              <div className="flex items-center gap-4 text-[#0F4C45]">
+                <CircleDollarSign className="w-5 h-5 text-[#5A6561]" strokeWidth={1.5} />
+                <span className="font-medium text-[15px]">Currency</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-[#5A6561] text-[15px]">USD ($)</span>
+                <ChevronRight className="w-4 h-4 text-[#A38B6B]" strokeWidth={2} />
+              </div>
+            </Link>
+
+            <div className="flex items-center justify-between py-4 px-1 border-b border-[#EAE2D5]">
+              <div className="flex items-center gap-4 text-[#0F4C45]">
+                <Moon className="w-5 h-5 text-[#5A6561]" strokeWidth={1.5} />
+                <span className="font-medium text-[15px]">Dark Mode</span>
+              </div>
+              <button 
+                onClick={() => setDarkMode(!darkMode)}
+                className={`relative inline-flex h-[28px] w-[50px] shrink-0 cursor-pointer items-center justify-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${darkMode ? 'bg-[#0F4C45]' : 'bg-[#D6CFC1]'}`}
+              >
+                <span className={`pointer-events-none inline-block h-[24px] w-[24px] transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${darkMode ? 'translate-x-[11px]' : '-translate-x-[11px]'}`} />
+              </button>
             </div>
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-charcoal/60 mb-2">New Password</label>
-              <input type="password" placeholder="New Password" className="w-full bg-ivory border border-gold/20 rounded-xl p-3 text-sm text-charcoal focus:outline-none focus:border-emerald" />
-            </div>
-            <div className="pt-2">
-              <Button className="bg-charcoal text-white rounded-full">Update Password</Button>
-            </div>
-          </form>
+          </div>
         </section>
 
-        <hr className="border-gold/10" />
-
-        {/* Notifications */}
+        {/* SUPPORT SECTION */}
         <section>
-          <h2 className="text-lg font-display text-charcoal mb-4">Notification Preferences</h2>
-          <div className="space-y-4 max-w-xl">
-            {[
-              { label: "Appointment Reminders", desc: "Get notified about upcoming visits." },
-              { label: "Boutique Messages", desc: "Receive alerts when boutiques reply to you." },
-              { label: "Platform Updates", desc: "News, updates, and feature launches." }
-            ].map((pref, i) => (
-              <label key={i} className="flex items-start gap-3 cursor-pointer">
-                <input type="checkbox" defaultChecked className="mt-1 w-4 h-4 accent-emerald rounded border-gray-300" />
-                <div>
-                  <p className="text-sm font-medium text-charcoal">{pref.label}</p>
-                  <p className="text-xs text-charcoal/60">{pref.desc}</p>
-                </div>
-              </label>
-            ))}
+          <h2 className="text-[12px] font-bold text-[#5A6561] tracking-wider uppercase mb-3 px-1">
+            Support
+          </h2>
+          <div className="bg-[#FAF7F2] flex flex-col">
+            <Link href="#" className="flex items-center justify-between py-4 px-1 border-b border-[#EAE2D5] group hover:bg-black/5 transition-colors">
+              <div className="flex items-center gap-4 text-[#0F4C45]">
+                <HelpCircle className="w-5 h-5 text-[#5A6561]" strokeWidth={1.5} />
+                <span className="font-medium text-[15px]">Help & Support</span>
+              </div>
+              <ChevronRight className="w-4 h-4 text-[#A38B6B]" strokeWidth={2} />
+            </Link>
+            
+            <Link href="#" className="flex items-center justify-between py-4 px-1 border-b border-[#EAE2D5] group hover:bg-black/5 transition-colors">
+              <div className="flex items-center gap-4 text-[#0F4C45]">
+                <FileText className="w-5 h-5 text-[#5A6561]" strokeWidth={1.5} />
+                <span className="font-medium text-[15px]">Terms & Conditions</span>
+              </div>
+              <ChevronRight className="w-4 h-4 text-[#A38B6B]" strokeWidth={2} />
+            </Link>
+
+            <button className="flex items-center justify-between py-4 px-1 group hover:bg-red-50/50 transition-colors w-full">
+              <div className="flex items-center gap-4 text-[#C63A3A]">
+                <LogOut className="w-5 h-5" strokeWidth={1.5} />
+                <span className="font-medium text-[15px]">Log Out</span>
+              </div>
+            </button>
           </div>
         </section>
 

@@ -128,8 +128,8 @@ export function Header({ session }: HeaderProps = {}) {
         style={{ animationDelay: `${index * 32}ms` }}
         onClick={closeMobileMenu}
       >
-        <Icon className="h-6 w-6 shrink-0 text-[#C8A96A] transition-transform duration-200 group-hover:scale-105" strokeWidth={1.7} />
-        <span className="font-sans text-[18px] leading-6 tracking-normal">{item.label}</span>
+        <Icon className="h-5 w-5 shrink-0 text-[#C8A96A] transition-transform duration-200 group-hover:scale-105" strokeWidth={1.7} />
+        <span className="font-sans text-[15px] leading-5 tracking-normal">{item.label}</span>
       </Link>
     );
   };
@@ -372,10 +372,10 @@ export function Header({ session }: HeaderProps = {}) {
                   <img src="/logo.png" alt="" className="h-full w-full object-contain scale-[1.45]" />
                 </div>
                 <div className="min-w-0">
-                  <h2 className="font-display text-[26px] font-bold leading-8 text-[#F7F3EC]">
+                  <h2 className="font-display text-[20px] font-bold leading-7 text-[#F7F3EC]">
                     {session ? "My Profile" : "Cloche Guest"}
                   </h2>
-                  <p className="mt-1 font-sans text-[17px] leading-6 text-[#D8C39A]">
+                  <p className="mt-0.5 font-sans text-[14px] leading-5 text-[#D8C39A]">
                     {session ? "View Profile" : "Sign In / Sign Up"}
                   </p>
                 </div>
