@@ -197,13 +197,14 @@ export function MakeupDetailClient({ artist }: { artist: VendorDetail }) {
 
       {/* Sticky Bottom Action */}
       <div className="fixed bottom-16 left-0 right-0 z-35 px-4 py-3" style={{ background: "rgba(245,240,232,0.95)", backdropFilter: "blur(12px)", borderTop: "1px solid rgba(226,213,192,0.6)" }}>
-        <button
+        <Link
+          href={`/makeup/${artist.id}/book`}
           className="w-full flex items-center justify-center gap-2 rounded-2xl py-3.5 text-[15px] font-semibold text-white transition-all active:scale-[0.98]"
           style={{ background: "#0F4C45", boxShadow: "0 6px 20px rgba(15,76,69,0.3)" }}
         >
           Book Appointment
           <span className="material-symbols-outlined text-[16px] animate-pulse">star_rate</span>
-        </button>
+        </Link>
       </div>
 
       <BottomNavBar activeTab="vendors" />
