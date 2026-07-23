@@ -65,7 +65,7 @@ export default function Home() {
 {/* Wedding Categories (Split Layout) */}
 <section className="px-4 py-4 space-y-4">
 <h2 className="text-xl font-bold text-on-surface px-2 mb-2">Wedding Categories</h2>
-<div className="bg-[#E3EAF3] rounded-2xl overflow-hidden flex h-36 shadow-sm">
+<Link href="/venues" className="block bg-[#E3EAF3] rounded-2xl overflow-hidden flex h-36 shadow-sm transition-transform active:scale-[0.99]">
 <div className="flex-1 p-5 flex flex-col justify-center">
 <div className="flex items-center gap-1 font-bold text-on-primary-container text-lg">
                         Venues <span className="material-symbols-outlined">expand_more</span>
@@ -75,8 +75,8 @@ export default function Home() {
 <div className="w-1/2 relative">
 <img className="w-full h-full object-cover rounded-l-[40%]" data-alt="Wide shot of an outdoor luxury wedding venue at dusk with symmetrical rows of seating and ambient warm lighting. Deep teal sky and ivory decor. Clean, symmetrical composition." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDwImcvhKSNtY87jO7yUWDMGtC2wvA3zoPaGIT3jcrypuyx5VXIDR6QO2_N2252Yn5fh7UP4Hvwwu15tAYkGwVd65vIRmMZtjMrCFWMR8fmdQUy9Lr9E02Dd7ULRUKFoL0rh4BvtIUHiS_LV3mbhjdbd65tgwEGVwbXIHOITSxmU6sOk1GSjoTaNsTiToKmb2IrC4YnTSN-xeFiBq02iS1bts-wz5YLu9d6jMR1jB2AXrfS23xcT9V9zsyr5iEzT4Xxkdo9VgP3trFh"/>
 </div>
-</div>
-<div className="bg-[#FCEFE3] rounded-2xl overflow-hidden flex h-36 shadow-sm">
+</Link>
+<Link href="/photographers" className="block bg-[#FCEFE3] rounded-2xl overflow-hidden flex h-36 shadow-sm transition-transform active:scale-[0.99]">
 <div className="flex-1 p-5 flex flex-col justify-center">
 <div className="flex items-center gap-1 font-bold text-on-primary-container text-lg">
                         Photographers <span className="material-symbols-outlined">expand_more</span>
@@ -86,8 +86,8 @@ export default function Home() {
 <div className="w-1/2 relative">
 <img className="w-full h-full object-cover rounded-l-[40%]" data-alt="A cinematic portrait of a wedding couple laughing together in a garden. The lighting is warm and golden, capturing a candid, high-quality moment. Professional wedding photography aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAXFaF6d056sykk48Tz6L5q9m1bVeLNZLe9rnljhUzM9UeIMi1Px322dGknokkhTOoF8LYbSEKq71TcBIjp9sXQiWXf40yP6gfdIjBlRSZFnKgwSB3nsdN2Ss1hdte3lNz9j_p-SCXGvq0tW5DCYm6bGgqsWLnQnFYgqx_TyxehrfezZ3ci1bLZ3gmFuAfaroY0BgHbhGVP9bHx2WmeeoPm45MQYdogWmzMfGuOY-pDhvXBXeiaravjlgykew9aGeueN_nH4dBq0lJr"/>
 </div>
-</div>
-<div className="bg-[#F6E5E5] rounded-2xl overflow-hidden flex h-36 shadow-sm">
+</Link>
+<Link href="/makeup" className="block bg-[#F6E5E5] rounded-2xl overflow-hidden flex h-36 shadow-sm transition-transform active:scale-[0.99]">
 <div className="flex-1 p-5 flex flex-col justify-center">
 <div className="flex items-center gap-1 font-bold text-on-primary-container text-lg">
                         Makeup <span className="material-symbols-outlined">expand_more</span>
@@ -97,7 +97,7 @@ export default function Home() {
 <div className="w-1/2 relative">
 <img className="w-full h-full object-cover rounded-l-[40%]" data-alt="Extreme close-up of a bride's eyes with exquisite shimmering makeup. Warm tones, professional lighting, focus on detail and luxury beauty standards. High-end cosmetic photography." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAEYzOP_1Ub5JM0qYXF-kaJm2njnRsiVDwCImcpFQaRm-QwUwmvdjYzb-ua-KBG67BZvPTxJI0DqCS6VYnthiW-FUrcIpSnXFeQaOvfDkadu6a3WJnHmCZhve8oBlJ2cI5vDhQbq4C3VLHLPbjZMS61WB93IZGpFiCVtuWSbJHdpzT3f3BY8sNllRsxJhp2UmbppTGSyo9wlK_iRiOTMP7g5fQNBm-65h4XJQXdZFi20hbgOkfTDgf_8v7QMhQLKy0Z6iWbzSxOW29p"/>
 </div>
-</div>
+</Link>
 <Link href="/categories" className="w-full text-center py-4 text-primary font-bold text-sm flex items-center justify-center gap-1">
                 View All Categories <span className="material-symbols-outlined text-[18px]">chevron_right</span>
 </Link>
