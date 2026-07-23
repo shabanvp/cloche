@@ -339,7 +339,6 @@ export function Header({ session }: HeaderProps = {}) {
             </div>
           </div>
         )}
-      </div>
 
       {/* Mobile Sidebar Menu (Drawer) */}
       {isMobileMenuOpen && (
