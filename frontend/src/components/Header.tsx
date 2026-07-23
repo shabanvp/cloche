@@ -55,7 +55,7 @@ export function Header({ session }: HeaderProps = {}) {
     { label: "Collections", href: "/collections", icon: Heart },
     { label: "Real Weddings", href: "/real-weddings", icon: BookHeart },
     { label: "Inspiration", href: "/inspiration", icon: Lightbulb },
-    { label: "Blogs", href: "/content", icon: FileText },
+    { label: "Blogs", href: "/blogs", icon: FileText },
   ];
 
   const companyLinks = [
@@ -169,7 +169,7 @@ export function Header({ session }: HeaderProps = {}) {
           <Link href="/boutiques" className="hover:text-gold transition-colors">Vendors</Link>
           <Link href="/inspiration" className="hover:text-gold transition-colors">Photos</Link>
           <Link href="/real-weddings" className="hover:text-gold transition-colors">Real Weddings</Link>
-          <Link href="/blog" className="hover:text-gold transition-colors">Blog</Link>
+          <Link href="/blogs" className="hover:text-gold transition-colors">Blog</Link>
           <Link href="/e-invites" className="hover:text-gold transition-colors">E-Invites</Link>
           <Link href="/genie" className="hover:text-gold transition-colors">Genie</Link>
         </nav>
