@@ -209,7 +209,7 @@ export function VenuesListing() {
       </div>
 
       {/* Bottom nav */}
-      <BottomNavBar activeTab="venues" />
+      <BottomNavBar />
     </div>
   );
 }
