@@ -3,9 +3,29 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { ArrowLeft, MoreHorizontal, Star, MapPin, Phone, MessageSquare, Share2, Instagram, Heart, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, MoreHorizontal, Star, MapPin, Phone, MessageSquare, Share2, Heart, CheckCircle2 } from "lucide-react";
 import { BottomNavBar } from "@/components/BottomNavBar";
 import { VendorDetail } from "@/lib/vendorLists";
+
+const InstagramIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...props}
+  >
+    <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
+    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+    <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
+  </svg>
+);
+
 
 export function PhotographerDetailClient({ photographer }: { photographer: VendorDetail }) {
   const [activeTab, setActiveTab] = useState<"about" | "portfolio" | "reviews" | "info">("about");
@@ -85,7 +105,7 @@ export function PhotographerDetailClient({ photographer }: { photographer: Vendo
               { icon: Phone, label: "Call", onClick: () => window.location.href = `tel:${photographer.phone}` },
               { icon: MessageSquare, label: "Message", onClick: () => window.open(`https://wa.me/${photographer.phone}`, "_blank") },
               { icon: Share2, label: "Share", onClick: () => {} },
-              { icon: Instagram, label: "Instagram", onClick: () => {} },
+              { icon: InstagramIcon, label: "Instagram", onClick: () => {} },
             ].map((act, i) => (
               <button key={i} onClick={act.onClick} className="flex flex-col items-center gap-1.5 transition-transform active:scale-95">
                 <div className="flex h-11 w-11 items-center justify-center rounded-full shadow-sm" style={{ background: "rgba(143,120,86,0.08)", border: "1px solid rgba(143,120,86,0.15)" }}>
