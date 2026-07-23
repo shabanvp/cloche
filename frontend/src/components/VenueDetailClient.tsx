@@ -648,7 +648,7 @@ export function VenueDetailClient({ venue }: { venue: VenueDetail }) {
         </div>
       </div>
 
-      <BottomNavBar activeTab="venues" />
+      <BottomNavBar />
     </div>
   );
 }
