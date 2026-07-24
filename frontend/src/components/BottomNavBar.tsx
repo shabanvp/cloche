@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Compass, ShoppingBag, Heart, User } from "lucide-react";
+import { BookOpenText, Home, ImageIcon, MapPin, Sparkles, Users } from "lucide-react";
 
 type BottomNavBarProps = {
-  activeTab?: "home" | "explore" | "vendors" | "collections" | "profile";
+  activeTab?: "home" | "venues" | "vendors" | "photos" | "blogs";
 };
 
 export function BottomNavBar({ activeTab }: BottomNavBarProps = {}) {
@@ -18,68 +18,43 @@ export function BottomNavBar({ activeTab }: BottomNavBarProps = {}) {
     return pathname === href || pathname.startsWith(`${href}/`);
   };
 
+  const navItems = [
+    { tab: "home", label: "Home", href: "/", icon: Home },
+    { tab: "venues", label: "Venues", href: "/venues", icon: MapPin },
+    { tab: "vendors", label: "Vendors", href: "/boutiques", icon: Users },
+    { tab: "photos", label: "Photos", href: "/inspiration", icon: ImageIcon },
+    { tab: "blogs", label: "Blogs", href: "/blogs", icon: BookOpenText },
+  ];
+
   return (
-    <nav className="mobile-bottom-nav fixed bottom-0 left-0 right-0 z-50 bg-[#FAF7F2]/95 backdrop-blur-md border-t border-[#EAE2D5] h-16 flex md:hidden justify-around items-end px-2 pb-2 shadow-[0_-4px_20px_rgba(0,0,0,0.06)]">
-      {/* Home */}
+    <>
       <Link
-        href="/"
-        className={`flex flex-col items-center justify-center flex-1 py-1 transition-colors ${
-          isActive("home", "/") ? "text-[#0F4C45] font-semibold" : "text-[#7A8580] hover:text-[#0F4C45]"
-        }`}
+        href="/search"
+        className="mobile-menu-floating-action fixed bottom-[88px] right-6 z-50 flex h-16 w-16 items-center justify-center rounded-full bg-[#D4B66E] text-[#0F4C45] shadow-[0_10px_24px_rgba(15,76,69,0.28)] transition-transform active:scale-95 md:hidden"
+        aria-label="Search wedding vendors"
       >
-        <Home className="w-5 h-5" strokeWidth={1.8} />
-        <span className="text-[10px] tracking-tight mt-1">Home</span>
+        <Sparkles className="h-7 w-7" strokeWidth={1.9} />
       </Link>
+      <nav className="mobile-bottom-nav fixed bottom-0 left-0 right-0 z-50 flex h-[76px] items-center justify-around bg-[#0F4C45] px-2 pb-[max(10px,env(safe-area-inset-bottom))] pt-3 text-white shadow-[0_-8px_24px_rgba(0,0,0,0.16)] md:hidden">
+        {navItems.map((item) => {
+          const Icon = item.icon;
+          const active = isActive(item.tab, item.href);
 
-      {/* Explore / Categories */}
-      <Link
-        href="/categories"
-        className={`flex flex-col items-center justify-center flex-1 py-1 transition-colors ${
-          isActive("explore", "/categories") ? "text-[#0F4C45] font-semibold" : "text-[#7A8580] hover:text-[#0F4C45]"
-        }`}
-      >
-        <Compass className="w-5 h-5" strokeWidth={1.8} />
-        <span className="text-[10px] tracking-tight mt-1">Explore</span>
-      </Link>
-
-      {/* Floating Center Vendors Button */}
-      <div className="relative flex flex-col items-center justify-center flex-1">
-        <Link
-          href="/boutiques"
-          className="relative -top-3 flex items-center justify-center w-12 h-12 rounded-full bg-[#0F4C45] border-2 border-[#C8A96A] text-white shadow-lg active:scale-95 transition-transform"
-        >
-          <ShoppingBag className="w-5 h-5 text-white" strokeWidth={1.8} />
-        </Link>
-        <span
-          className={`text-[10px] font-semibold tracking-tight -mt-2 ${
-            isActive("vendors", "/boutiques") ? "text-[#0F4C45]" : "text-[#5A6561]"
-          }`}
-        >
-          Vendors
-        </span>
-      </div>
-
-      {/* Collections */}
-      <Link
-        href="/collections"
-        className={`flex flex-col items-center justify-center flex-1 py-1 transition-colors ${
-          isActive("collections", "/collections") ? "text-[#0F4C45] font-semibold" : "text-[#7A8580] hover:text-[#0F4C45]"
-        }`}
-      >
-        <Heart className="w-5 h-5" strokeWidth={1.8} />
-        <span className="text-[10px] tracking-tight mt-1">Collections</span>
-      </Link>
-
-      {/* Profile */}
-      <Link
-        href="/dashboard"
-        className={`flex flex-col items-center justify-center flex-1 py-1 transition-colors ${
-          isActive("profile", "/dashboard") ? "text-[#0F4C45] font-semibold" : "text-[#7A8580] hover:text-[#0F4C45]"
-        }`}
-      >
-        <User className="w-5 h-5" strokeWidth={1.8} />
-        <span className="text-[10px] tracking-tight mt-1">Profile</span>
-      </Link>
-    </nav>
+          return (
+            <Link
+              key={item.tab}
+              href={item.href}
+              className={`flex min-w-0 flex-1 flex-col items-center justify-center gap-1 text-[11px] font-medium uppercase leading-none transition-colors ${
+                active ? "text-[#D4B66E]" : "text-white hover:text-[#D4B66E]"
+              }`}
+              aria-current={active ? "page" : undefined}
+            >
+              <Icon className="h-[25px] w-[25px]" strokeWidth={2} />
+              <span className="truncate text-[11px] leading-none">{item.label}</span>
+            </Link>
+          );
+        })}
+      </nav>
+    </>
   );
 }
