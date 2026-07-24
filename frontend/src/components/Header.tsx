@@ -22,6 +22,25 @@ export function Header({ session }: HeaderProps = {}) {
   useEffect(() => {
     document.body.classList.toggle("mobile-menu-open", isMobileMenuOpen);
 
+    if (isMobileMenuOpen) {
+      const scrollY = window.scrollY;
+      document.body.style.position = "fixed";
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.left = "0";
+      document.body.style.right = "0";
+      document.body.style.width = "100%";
+
+      return () => {
+        document.body.classList.remove("mobile-menu-open");
+        document.body.style.position = "";
+        document.body.style.top = "";
+        document.body.style.left = "";
+        document.body.style.right = "";
+        document.body.style.width = "";
+        window.scrollTo(0, scrollY);
+      };
+    }
+
     return () => {
       document.body.classList.remove("mobile-menu-open");
     };
@@ -350,7 +369,7 @@ export function Header({ session }: HeaderProps = {}) {
           ></div>
           
           {/* Sidebar */}
-          <div className="relative flex h-[100dvh] w-[84vw] max-w-[390px] flex-col overflow-hidden bg-[#0B3B36] text-[#F7F3EC] shadow-[-28px_0_70px_rgba(0,0,0,0.38)] animate-in slide-in-from-right duration-300 ease-in-out">
+          <div className="relative flex h-[100dvh] w-[76vw] max-w-[340px] flex-col overflow-hidden bg-[#0B3B36] text-[#F7F3EC] shadow-[-28px_0_70px_rgba(0,0,0,0.38)] animate-in slide-in-from-right duration-300 ease-in-out">
             <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_8%,rgba(216,195,154,0.16),transparent_30%),linear-gradient(160deg,rgba(8,47,44,0.16),rgba(8,47,44,0.84))]"></div>
             <div className="pointer-events-none absolute -right-16 bottom-0 h-36 w-36 rounded-full bg-[#082F2C]/80 blur-2xl"></div>
 
@@ -359,23 +378,23 @@ export function Header({ session }: HeaderProps = {}) {
               className="absolute right-6 top-[calc(env(safe-area-inset-top)+22px)] z-10 text-[#D8C39A] transition-colors hover:text-[#F7F3EC]"
               aria-label="Close menu"
             >
-              <X className="h-8 w-8" strokeWidth={1.35} />
+              <X className="h-7 w-7" strokeWidth={1.35} />
             </button>
 
-            <div className="relative z-[1] flex min-h-0 flex-1 flex-col overflow-y-auto px-6 pb-[calc(env(safe-area-inset-bottom)+24px)] pt-[calc(env(safe-area-inset-top)+76px)]">
+            <div className="relative z-[1] flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain px-5 pb-[calc(env(safe-area-inset-bottom)+24px)] pt-[calc(env(safe-area-inset-top)+70px)]">
               <Link
                 href={session ? profileLink : "/login"}
                 onClick={closeMobileMenu}
-                className="mb-10 flex items-center gap-5 rounded-3xl p-1 transition-colors hover:bg-white/7"
+                className="mb-8 flex items-center gap-4 rounded-2xl p-1 transition-colors hover:bg-white/7"
               >
-                <div className="flex h-[86px] w-[86px] shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#D8C39A]/60 bg-[#F7F3EC] shadow-[0_16px_30px_rgba(0,0,0,0.22)]">
-                  <img src="/logo.png" alt="" className="h-full w-full object-contain scale-[1.45]" />
+                <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#D8C39A]/60 bg-[#F7F3EC] shadow-[0_12px_22px_rgba(0,0,0,0.2)]">
+                  <img src="/logo.png" alt="" className="h-full w-full object-contain scale-[1.35]" />
                 </div>
                 <div className="min-w-0">
-                  <h2 className="font-display text-[20px] font-bold leading-7 text-[#F7F3EC]">
+                  <h2 className="truncate font-display text-[18px] font-bold leading-6 text-[#F7F3EC]">
                     {session ? "My Profile" : "Cloche Guest"}
                   </h2>
-                  <p className="mt-0.5 font-sans text-[14px] leading-5 text-[#D8C39A]">
+                  <p className="mt-0.5 truncate font-sans text-[13px] leading-5 text-[#D8C39A]">
                     {session ? "View Profile" : "Sign In / Sign Up"}
                   </p>
                 </div>

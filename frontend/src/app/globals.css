@@ -86,3 +86,9 @@ body.mobile-menu-open .mobile-bottom-nav,
 body.mobile-menu-open .mobile-menu-floating-action {
     display: none;
 }
+
+html:has(body.mobile-menu-open),
+body.mobile-menu-open {
+    overflow: hidden;
+    overscroll-behavior: none;
+}

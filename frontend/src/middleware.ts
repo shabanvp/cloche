@@ -14,12 +14,12 @@ export function middleware(request: NextRequest) {
   // If accessing a protected route without a token
   if (!token && (isCustomerRoute || isVendorRoute || isAdminRoute)) {
     if (isAdminRoute) {
-      return NextResponse.redirect(new URL('/adminlogin.html', request.url));
+      return NextResponse.redirect(new URL('/login?role=admin', request.url));
     }
     if (isVendorRoute) {
       return NextResponse.redirect(new URL('/vendor/login', request.url));
     }
-    return NextResponse.redirect(new URL('/login.html', request.url));
+    return NextResponse.redirect(new URL('/login', request.url));
   }
 
   // Cross-role access prevention

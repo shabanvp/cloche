@@ -7,12 +7,15 @@ import { login } from "@/app/actions/auth";
 import { AuthShell } from "@/components/AuthShell";
 
 export default function LoginPage() {
+  const [requestedRole, setRequestedRole] = useState<"admin" | "customer">("customer");
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [showLogoutMsg, setShowLogoutMsg] = useState(false);
 
   useEffect(() => {
+    setRequestedRole(new URLSearchParams(window.location.search).get("role") === "admin" ? "admin" : "customer");
+
     if (window.location.search.includes("logout=success")) {
       setShowLogoutMsg(true);
       window.history.replaceState({}, document.title, window.location.pathname);
@@ -26,7 +29,7 @@ export default function LoginPage() {
     setErrorMsg("");
 
     const formData = new FormData(e.currentTarget);
-    formData.append("role", "customer");
+    formData.append("role", requestedRole);
 
     const res = await login(formData);
 
@@ -35,7 +38,7 @@ export default function LoginPage() {
     if (res.error) {
       setErrorMsg(res.error);
     } else {
-      window.location.href = "/";
+      window.location.href = requestedRole === "admin" ? "/admin" : "/";
     }
   };
 
@@ -49,7 +52,7 @@ export default function LoginPage() {
       )}
       <AuthShell
         activeTab="login"
-        subtitle={"Curated Luxury,\nTimeless Weddings"}
+        subtitle={requestedRole === "admin" ? "Administrative\nPortal" : "Curated Luxury,\nTimeless Weddings"}
       showSocial
       footerText="Don't have an account?"
       footerLink="/signup"
