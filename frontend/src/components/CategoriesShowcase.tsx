@@ -133,7 +133,7 @@ export const showcaseCategories: CategoryItem[] = [
     subtitle: "Banquets, Halls, Heritage Spaces & Gardens",
     bgColor: "#F3EFE6",
     href: "/venues",
-    image: "https://images.unsplash.com/photo-1519167758481-83f552bb8c74?auto=format&fit=crop&w=1200&q=80",
+    image: "https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=1200&q=80",
     icon: VenueIcon,
   },
   {
@@ -142,7 +142,7 @@ export const showcaseCategories: CategoryItem[] = [
     subtitle: "Candid, Traditional & Cinematic Stories",
     bgColor: "#E8EFE9",
     href: "/photographers",
-    image: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=80",
+    image: "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=1200&q=80",
     icon: CameraIcon,
   },
   {
@@ -169,7 +169,7 @@ export const showcaseCategories: CategoryItem[] = [
     subtitle: "Bridal Mehendi Artists & Designs",
     bgColor: "#F7EBE5",
     href: "/categories/mehendi",
-    image: "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=1200&q=80",
+    image: "https://images.unsplash.com/photo-1591623004786-901f0cdb98a9?auto=format&fit=crop&w=1200&q=80",
     icon: MehendiIcon,
   },
   {
@@ -178,7 +178,7 @@ export const showcaseCategories: CategoryItem[] = [
     subtitle: "Lehengas, Sarees, Couture & Accessories",
     bgColor: "#F8F3EA",
     href: "/boutiques",
-    image: "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=1200&q=80",
+    image: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=1200&q=80",
     icon: DressIcon,
   },
   {
@@ -187,7 +187,7 @@ export const showcaseCategories: CategoryItem[] = [
     subtitle: "Bridal Jewellery, Polki, Kundan & Diamonds",
     bgColor: "#E8F1EC",
     href: "/categories/jewellery",
-    image: "https://images.unsplash.com/photo-1617038220319-276d3cfab638?auto=format&fit=crop&w=1200&q=80",
+    image: "https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=1200&q=80",
     icon: JewelleryIcon,
   },
   {
@@ -196,7 +196,7 @@ export const showcaseCategories: CategoryItem[] = [
     subtitle: "Digital Invites, Printed Cards & Stationery",
     bgColor: "#F2ECF4",
     href: "/invitations",
-    image: "https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=1200&q=80",
+    image: "https://images.unsplash.com/photo-1522673607200-164d1b6ce486?auto=format&fit=crop&w=1200&q=80",
     icon: InvitationsIcon,
   },
   {
@@ -205,7 +205,7 @@ export const showcaseCategories: CategoryItem[] = [
     subtitle: "Sherwanis, Tuxedos & Custom Suits",
     bgColor: "#EBEFF3",
     href: "/search?category=Groom",
-    image: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=1200&q=80",
+    image: "https://images.unsplash.com/photo-1593032465175-481ac7f401a0?auto=format&fit=crop&w=1200&q=80",
     icon: GroomIcon,
   },
   {
@@ -237,33 +237,33 @@ export function CategoriesShowcase() {
                 className="group relative block overflow-hidden rounded-[12px] sm:rounded-[14px] border border-black/5 shadow-[0_1px_6px_rgba(0,0,0,0.02)] transition-all duration-300 hover:shadow-[0_4px_12px_rgba(0,0,0,0.05)] active:scale-[0.99]"
                 style={{ backgroundColor: category.bgColor }}
               >
-                <div className="relative flex min-h-[76px] sm:min-h-[84px] md:min-h-[92px] items-center">
+                <div className="relative flex min-h-[96px] sm:min-h-[112px] md:min-h-[126px] items-center">
                   {/* Left Text & Icon Section */}
-                  <div className="flex flex-1 items-center gap-2 sm:gap-3 px-3 py-3 sm:px-4 sm:py-4 pr-[44%] sm:pr-[43%] z-10">
+                  <div className="flex flex-1 items-center gap-3 sm:gap-4 px-4 py-4 sm:px-5 sm:py-5 pr-[48%] sm:pr-[46%] z-10">
                     {/* Circle Icon Badge */}
-                    <div className="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-full border border-black/5 bg-[#FAF7F2] text-[#0F4C45] shadow-[0_1px_4px_rgba(0,0,0,0.04)] transition-transform duration-300 group-hover:scale-105">
-                      <IconComponent className="h-4 w-4 sm:h-5 sm:w-5" />
+                    <div className="flex h-11 w-11 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-full border border-black/5 bg-[#FAF7F2] text-[#0F4C45] shadow-[0_1px_4px_rgba(0,0,0,0.04)] transition-transform duration-300 group-hover:scale-105">
+                      <IconComponent className="h-5 w-5 sm:h-6 sm:w-6" />
                     </div>
 
                     {/* Category Title & Subtitle */}
                     <div className="min-w-0 flex-1 flex flex-col justify-center">
-                      <h2 className="font-serif text-[17px] sm:text-[20px] font-bold text-[#0F4C45] leading-[1.1] tracking-tight">
+                      <h2 className="font-serif text-[20px] sm:text-[24px] font-bold text-[#0F4C45] leading-[1.08] tracking-tight">
                         {category.title}
                       </h2>
-                      <p className="text-[11px] sm:text-[12px] font-sans text-[#5A6561] leading-[1.25] line-clamp-2 mt-0.5">
+                      <p className="text-[12px] sm:text-[14px] font-sans text-[#5A6561] leading-[1.25] line-clamp-2 mt-1">
                         {category.subtitle}
                       </p>
                     </div>
 
                     {/* Dark Green Action Chevron Button */}
-                    <div className="flex h-7 w-7 sm:h-8 sm:w-8 shrink-0 items-center justify-center rounded-full bg-[#0F4C45] text-white shadow-xs transition-transform duration-300 group-hover:scale-110">
-                      <ChevronRight className="h-4 w-4 sm:h-4.5 sm:w-4.5" strokeWidth={2.4} />
+                    <div className="flex h-8 w-8 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-full bg-[#0F4C45] text-white shadow-xs transition-transform duration-300 group-hover:scale-110">
+                      <ChevronRight className="h-5 w-5" strokeWidth={2.4} />
                     </div>
                   </div>
 
                   {/* Right Slanted Image Section */}
                   <div
-                    className="absolute inset-y-0 right-0 w-[44%] sm:w-[43%] overflow-hidden"
+                    className="absolute inset-y-0 right-0 w-[48%] sm:w-[46%] overflow-hidden"
                     style={{
                       clipPath: "polygon(22% 0, 100% 0, 100% 100%, 0% 100%)",
                     }}
@@ -272,7 +272,7 @@ export function CategoriesShowcase() {
                       src={category.image}
                       alt={category.title}
                       fill
-                      sizes="(max-width: 640px) 44vw, 43vw"
+                      sizes="(max-width: 640px) 48vw, 46vw"
                       className="object-cover object-center transition-transform duration-700 ease-out group-hover:scale-105"
                       priority={idx < 4}
                     />
