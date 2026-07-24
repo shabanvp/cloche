@@ -133,7 +133,7 @@ export const showcaseCategories: CategoryItem[] = [
     subtitle: "Banquets, Halls, Heritage Spaces & Gardens",
     bgColor: "#F3EFE6",
     href: "/venues",
-    image: "https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=1200&q=80",
+    image: "/category-images/venues.jpg",
     icon: VenueIcon,
   },
   {
@@ -160,7 +160,7 @@ export const showcaseCategories: CategoryItem[] = [
     subtitle: "Floral Design, Decor Staging & Full Planning",
     bgColor: "#F6EFE2",
     href: "/categories/decor-planning",
-    image: "https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=1200&q=80",
+    image: "/category-images/decor-planning.jpg",
     icon: DecorIcon,
   },
   {
@@ -178,7 +178,7 @@ export const showcaseCategories: CategoryItem[] = [
     subtitle: "Lehengas, Sarees, Couture & Accessories",
     bgColor: "#F8F3EA",
     href: "/boutiques",
-    image: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=1200&q=80",
+    image: "/category-images/bridal-wear.jpg",
     icon: DressIcon,
   },
   {
@@ -187,7 +187,7 @@ export const showcaseCategories: CategoryItem[] = [
     subtitle: "Bridal Jewellery, Polki, Kundan & Diamonds",
     bgColor: "#E8F1EC",
     href: "/categories/jewellery",
-    image: "https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=1200&q=80",
+    image: "/category-images/jewellery.jpg",
     icon: JewelleryIcon,
   },
   {
@@ -196,7 +196,7 @@ export const showcaseCategories: CategoryItem[] = [
     subtitle: "Digital Invites, Printed Cards & Stationery",
     bgColor: "#F2ECF4",
     href: "/invitations",
-    image: "https://images.unsplash.com/photo-1522673607200-164d1b6ce486?auto=format&fit=crop&w=1200&q=80",
+    image: "/category-images/invitations.jpg",
     icon: InvitationsIcon,
   },
   {
@@ -205,7 +205,7 @@ export const showcaseCategories: CategoryItem[] = [
     subtitle: "Sherwanis, Tuxedos & Custom Suits",
     bgColor: "#EBEFF3",
     href: "/search?category=Groom",
-    image: "https://images.unsplash.com/photo-1593032465175-481ac7f401a0?auto=format&fit=crop&w=1200&q=80",
+    image: "/category-images/groom-wear.jpg",
     icon: GroomIcon,
   },
   {
