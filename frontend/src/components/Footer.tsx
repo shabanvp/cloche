@@ -8,7 +8,7 @@ export function Footer() {
   const router = useRouter();
 
   const handleAdminAccess = () => {
-    router.push("/admin");
+    router.push("/login?role=admin");
   };
 
   return (

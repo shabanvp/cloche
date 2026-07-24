@@ -13,6 +13,8 @@ import {
 import type { ReactNode } from "react";
 import { getAdminAnalytics } from "@/services/api";
 
+export const dynamic = "force-dynamic";
+
 type RecentUser = {
   id?: string | number;
   name?: string;
