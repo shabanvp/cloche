@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Header } from "@/components/Header";
 import { BottomNavBar } from "@/components/BottomNavBar";
@@ -9,6 +9,13 @@ export const dynamic = 'force-dynamic';
 export const metadata: Metadata = {
   title: "CLOCHE - Your Wedding, Your Way",
   description: "Find the best wedding vendors with thousands of trusted reviews",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export default async function RootLayout({

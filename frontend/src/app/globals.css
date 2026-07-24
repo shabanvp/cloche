@@ -49,6 +49,7 @@ html {
   background: var(--background);
   max-width: 100vw;
   overflow-x: hidden;
+  touch-action: manipulation;
 }
 
 * {

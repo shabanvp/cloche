@@ -255,13 +255,13 @@ export function Header({ session }: HeaderProps = {}) {
           </div>
         </>
       ) : (
-        <div className="relative flex justify-between items-center px-4 sm:px-6 lg:px-10 xl:px-12 py-4 bg-primary text-white">
+        <div className="relative flex justify-between items-center px-4 sm:px-6 lg:px-10 xl:px-12 py-2.5 md:py-4 bg-primary text-white">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-3 shrink-0">
-            <div className="relative flex items-center justify-center w-[60px] h-[40px] md:w-[55px] md:h-[48px] lg:w-[65px] lg:h-[52px] xl:w-[70px] xl:h-[56px]">
-              <img src="/logo.png" alt="Cloche Logo" className="absolute inset-0 w-full h-full object-contain scale-[2.5] md:scale-[1.8] lg:scale-[1.9] drop-shadow-sm origin-center" />
+            <div className="relative flex items-center justify-center w-11 h-10 md:w-[55px] md:h-[48px] lg:w-[65px] lg:h-[52px] xl:w-[70px] xl:h-[56px]">
+              <img src="/logo.png" alt="Cloche Logo" className="absolute inset-0 w-full h-full object-contain scale-[1.75] md:scale-[1.8] lg:scale-[1.9] drop-shadow-sm origin-center" />
             </div>
-            <span className="block font-display text-[22px] md:text-2xl lg:text-[28px] font-bold tracking-wide mt-1">Cloche</span>
+            <span className="block font-display text-[20px] md:text-2xl lg:text-[28px] font-bold tracking-wide mt-0.5 md:mt-1">Cloche</span>
           </Link>
 
           {/* Desktop Links */}
@@ -279,13 +279,13 @@ export function Header({ session }: HeaderProps = {}) {
           <div className="flex items-center gap-3 lg:gap-5 shrink-0">
             <button
               type="button"
-              className="relative w-9 h-9 lg:w-10 lg:h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors"
+              className="relative w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors"
               onClick={() => setIsNotificationsOpen((open) => !open)}
               aria-label="Open notifications"
               aria-expanded={isNotificationsOpen}
             >
-              <Bell className="w-4 h-4 lg:w-5 lg:h-5" />
-              <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-[#C8A96A] shadow-[0_0_0_2px_#0F4C45]" />
+              <Bell className="w-[17px] h-[17px] lg:w-5 lg:h-5" />
+              <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-[#C8A96A] shadow-[0_0_0_2px_#0F4C45]" />
             </button>
             
             {session ? (
@@ -305,7 +305,7 @@ export function Header({ session }: HeaderProps = {}) {
                 setIsMobileMenuOpen(true);
               }}
             >
-              <Menu className="w-6 h-6" />
+              <Menu className="w-5 h-5" />
             </button>
           </div>
         </div>
