@@ -19,23 +19,29 @@ export default function CategoriesPage() {
       fs.mkdirSync(targetDir, { recursive: true });
     }
 
-    const mappings = {
-      "venues.png": "venue_profile_1784907466304.png",
-      "bridal-wear.png": "bridal_gown_1784907531518.png",
-      "mehendi.png": "mehendi_artist_1784907511565.png",
-      "decor-planning.png": "decor_planning_1784907489100.png",
-      "jewellery.png": "bridal_jewellery_1784907557855.png",
-    };
+    if (fs.existsSync(brainDir)) {
+      const files = fs.readdirSync(brainDir);
+      
+      const findAndCopy = (prefix: string, targetName: string) => {
+        const matchingFiles = files.filter(f => f.startsWith(prefix) && f.endsWith(".png"));
+        if (matchingFiles.length > 0) {
+          // Sort to get the latest file
+          matchingFiles.sort();
+          const latestFile = matchingFiles[matchingFiles.length - 1];
+          const srcPath = path.join(brainDir, latestFile);
+          const destPath = path.join(targetDir, targetName);
+          fs.copyFileSync(srcPath, destPath);
+        }
+      };
 
-    for (const [targetName, sourceName] of Object.entries(mappings)) {
-      const srcPath = path.join(brainDir, sourceName);
-      const destPath = path.join(targetDir, targetName);
-      if (fs.existsSync(srcPath)) {
-        fs.copyFileSync(srcPath, destPath);
-      }
+      findAndCopy("venue_profile", "venues.png");
+      findAndCopy("bridal_gown", "bridal-wear.png");
+      findAndCopy("mehendi_artist", "mehendi.png");
+      findAndCopy("decor_planning", "decor-planning.png");
+      findAndCopy("bridal_jewellery", "jewellery.png");
     }
   } catch (error) {
-    console.error("Failed to copy category images:", error);
+    console.error("Failed to copy category images dynamically:", error);
   }
 
   return (
