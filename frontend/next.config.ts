@@ -12,10 +12,11 @@ try {
   }
 
   const mappings = {
-    "bridal-wear.png": "media__1784906501747.png",
-    "mehendi.png": "media__1784906634980.png",
-    "decor-planning.png": "media__1784906689932.png",
-    "jewellery.png": "media__1784906727482.png",
+    "venues.png": "venue_profile_1784907466304.png",
+    "bridal-wear.png": "bridal_gown_1784907531518.png",
+    "mehendi.png": "mehendi_artist_1784907511565.png",
+    "decor-planning.png": "decor_planning_1784907489100.png",
+    "jewellery.png": "bridal_jewellery_1784907557855.png",
   };
 
   for (const [targetName, sourceName] of Object.entries(mappings)) {
