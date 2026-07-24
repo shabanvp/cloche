@@ -133,7 +133,7 @@ export const showcaseCategories: CategoryItem[] = [
     subtitle: "Banquets, Halls, Heritage Spaces & Gardens",
     bgColor: "#F3EFE6",
     href: "/venues",
-    image: "/category-images/venues.jpg",
+    image: "https://images.unsplash.com/photo-1519167758481-83f552bb8c74?auto=format&fit=crop&w=1200&q=80",
     icon: VenueIcon,
   },
   {
@@ -160,7 +160,7 @@ export const showcaseCategories: CategoryItem[] = [
     subtitle: "Floral Design, Decor Staging & Full Planning",
     bgColor: "#F6EFE2",
     href: "/categories/decor-planning",
-    image: "/category-images/decor-planning.jpg",
+    image: "https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=1200&q=80",
     icon: DecorIcon,
   },
   {
@@ -169,7 +169,7 @@ export const showcaseCategories: CategoryItem[] = [
     subtitle: "Bridal Mehendi Artists & Designs",
     bgColor: "#F7EBE5",
     href: "/categories/mehendi",
-    image: "https://images.unsplash.com/photo-1591623004786-901f0cdb98a9?auto=format&fit=crop&w=1200&q=80",
+    image: "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=1200&q=80",
     icon: MehendiIcon,
   },
   {
@@ -178,7 +178,7 @@ export const showcaseCategories: CategoryItem[] = [
     subtitle: "Lehengas, Sarees, Couture & Accessories",
     bgColor: "#F8F3EA",
     href: "/boutiques",
-    image: "/category-images/bridal-wear.jpg",
+    image: "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=1200&q=80",
     icon: DressIcon,
   },
   {
@@ -187,7 +187,7 @@ export const showcaseCategories: CategoryItem[] = [
     subtitle: "Bridal Jewellery, Polki, Kundan & Diamonds",
     bgColor: "#E8F1EC",
     href: "/categories/jewellery",
-    image: "/category-images/jewellery.jpg",
+    image: "https://images.unsplash.com/photo-1617038220319-276d3cfab638?auto=format&fit=crop&w=1200&q=80",
     icon: JewelleryIcon,
   },
   {
@@ -196,7 +196,7 @@ export const showcaseCategories: CategoryItem[] = [
     subtitle: "Digital Invites, Printed Cards & Stationery",
     bgColor: "#F2ECF4",
     href: "/invitations",
-    image: "/category-images/invitations.jpg",
+    image: "https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=1200&q=80",
     icon: InvitationsIcon,
   },
   {
@@ -205,7 +205,7 @@ export const showcaseCategories: CategoryItem[] = [
     subtitle: "Sherwanis, Tuxedos & Custom Suits",
     bgColor: "#EBEFF3",
     href: "/search?category=Groom",
-    image: "/category-images/groom-wear.jpg",
+    image: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=80",
     icon: GroomIcon,
   },
   {
