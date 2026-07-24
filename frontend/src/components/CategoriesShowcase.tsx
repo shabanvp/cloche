@@ -133,7 +133,7 @@ export const showcaseCategories: CategoryItem[] = [
     subtitle: "Banquets, Halls, Heritage Spaces & Gardens",
     bgColor: "#F3EFE6",
     href: "/venues",
-    image: "/category-images/venues.png",
+    image: "https://images.unsplash.com/photo-1519167758481-83f552bb8c74?auto=format&fit=crop&w=1200&q=80",
     icon: VenueIcon,
   },
   {
@@ -160,7 +160,7 @@ export const showcaseCategories: CategoryItem[] = [
     subtitle: "Floral Design, Decor Staging & Full Planning",
     bgColor: "#F6EFE2",
     href: "/categories/decor-planning",
-    image: "/category-images/decor-planning.png",
+    image: "https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=1200&q=80",
     icon: DecorIcon,
   },
   {
@@ -169,7 +169,7 @@ export const showcaseCategories: CategoryItem[] = [
     subtitle: "Bridal Mehendi Artists & Designs",
     bgColor: "#F7EBE5",
     href: "/categories/mehendi",
-    image: "/category-images/mehendi.png",
+    image: "https://images.unsplash.com/photo-1605001011156-cbf0b0f67a51?auto=format&fit=crop&w=1200&q=80",
     icon: MehendiIcon,
   },
   {
@@ -178,7 +178,7 @@ export const showcaseCategories: CategoryItem[] = [
     subtitle: "Lehengas, Sarees, Couture & Accessories",
     bgColor: "#F8F3EA",
     href: "/boutiques",
-    image: "/category-images/bridal-wear.png",
+    image: "https://images.unsplash.com/photo-1549417229-aa67d3263c09?auto=format&fit=crop&w=1200&q=80",
     icon: DressIcon,
   },
   {
@@ -187,7 +187,7 @@ export const showcaseCategories: CategoryItem[] = [
     subtitle: "Bridal Jewellery, Polki, Kundan & Diamonds",
     bgColor: "#E8F1EC",
     href: "/categories/jewellery",
-    image: "/category-images/jewellery.png",
+    image: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=1200&q=80",
     icon: JewelleryIcon,
   },
   {
