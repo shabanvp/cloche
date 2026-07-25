@@ -175,141 +175,60 @@ export function Header({ session }: HeaderProps = {}) {
         </div>
       </div>
 
-      {/* Main Nav */}
-      {pathname === "/categories" ? (
-        <>
-          {/* Mobile Header matching Picture 3 */}
-          <div className="lg:hidden flex justify-between items-center px-4 py-3 bg-[#FAF7F2] border-b border-[#EAE2D5]">
-            <button
-              className="text-[#0F4C45] hover:opacity-80 transition-opacity p-1"
-              onClick={() => {
-                setIsNotificationsOpen(false);
-                setIsMobileMenuOpen(true);
-              }}
-              aria-label="Open navigation menu"
-            >
-              <Menu className="w-6 h-6" strokeWidth={1.75} />
-            </button>
+      {/* Main Nav - Same dark green header for all pages */}
+      <div className="relative flex justify-between items-center px-4 sm:px-6 lg:px-10 xl:px-12 py-2.5 md:py-4 bg-primary text-white">
+        {/* Logo */}
+        <Link href="/" className="flex items-center gap-3 shrink-0">
+          <div className="relative flex items-center justify-center w-11 h-10 md:w-[55px] md:h-[48px] lg:w-[65px] lg:h-[52px] xl:w-[70px] xl:h-[56px]">
+            <img src="/logo.png" alt="Cloche Logo" className="absolute inset-0 w-full h-full object-contain scale-[1.75] md:scale-[1.8] lg:scale-[1.9] drop-shadow-sm origin-center" />
+          </div>
+          <span className="block font-display text-[20px] md:text-2xl lg:text-[28px] font-bold tracking-wide mt-0.5 md:mt-1">Cloche</span>
+        </Link>
 
-            <Link href="/" className="flex flex-col items-center">
-              <div className="text-[10px] text-[#C8A96A] leading-none mb-0.5">✦</div>
-              <span className="font-serif text-xl font-bold tracking-[0.2em] text-[#0F4C45] uppercase leading-none">
-                CLOCHE
-              </span>
-              <span className="text-[7.5px] font-semibold tracking-[0.25em] text-[#A38B6B] uppercase mt-1">
-                Weddings, Perfected.
-              </span>
+        {/* Desktop Links */}
+        <nav className="hidden lg:flex items-center gap-5 xl:gap-8 font-semibold text-[14px] xl:text-[15px]">
+          <Link href="/categories" className="hover:text-gold transition-colors">Venues</Link>
+          <Link href="/boutiques" className="hover:text-gold transition-colors">Vendors</Link>
+          <Link href="/inspiration" className="hover:text-gold transition-colors">Photos</Link>
+          <Link href="/real-weddings" className="hover:text-gold transition-colors">Real Weddings</Link>
+          <Link href="/blogs" className="hover:text-gold transition-colors">Blog</Link>
+          <Link href="/e-invites" className="hover:text-gold transition-colors">E-Invites</Link>
+          <Link href="/genie" className="hover:text-gold transition-colors">Genie</Link>
+        </nav>
+
+        {/* Actions */}
+        <div className="flex items-center gap-3 lg:gap-5 shrink-0">
+          <button
+            type="button"
+            className="relative w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors"
+            onClick={() => setIsNotificationsOpen((open) => !open)}
+            aria-label="Open notifications"
+            aria-expanded={isNotificationsOpen}
+          >
+            <Bell className="w-[17px] h-[17px] lg:w-5 lg:h-5" />
+            <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-[#C8A96A] shadow-[0_0_0_2px_#0F4C45]" />
+          </button>
+          
+          {session ? (
+            <Link href={profileLink} className="hidden md:flex bg-[#12584C] hover:bg-[#186f61] border border-[#1d796b] px-6 py-2 lg:px-8 lg:py-2.5 rounded-full font-semibold transition-colors text-sm lg:text-[15px]">
+              Profile
             </Link>
-
-            <div className="flex items-center gap-3 text-[#0F4C45]">
-              <Link href="/search" className="p-1 hover:opacity-80 transition-opacity" aria-label="Search">
-                <Search className="w-5 h-5" strokeWidth={1.75} />
-              </Link>
-              <Link href={profileLink} className="w-7 h-7 rounded-full border border-[#0F4C45] flex items-center justify-center hover:bg-[#0F4C45]/10 transition-colors" aria-label="User Profile">
-                <User className="w-4 h-4" strokeWidth={1.75} />
-              </Link>
-            </div>
-          </div>
-
-          {/* Desktop Main Nav when on /categories */}
-          <div className="hidden lg:flex justify-between items-center px-4 sm:px-6 lg:px-10 xl:px-12 py-4 bg-primary text-white">
-            <Link href="/" className="flex items-center gap-3 shrink-0">
-              <div className="relative flex items-center justify-center w-[60px] h-[40px] md:w-[55px] md:h-[48px] lg:w-[65px] lg:h-[52px] xl:w-[70px] xl:h-[56px]">
-                <img src="/logo.png" alt="Cloche Logo" className="absolute inset-0 w-full h-full object-contain scale-[2.5] md:scale-[1.8] lg:scale-[1.9] drop-shadow-sm origin-center" />
-              </div>
-              <span className="block font-display text-[22px] md:text-2xl lg:text-[28px] font-bold tracking-wide mt-1">Cloche</span>
+          ) : (
+            <Link href="/login" className="hidden md:flex bg-[#12584C] hover:bg-[#186f61] border border-[#1d796b] px-6 py-2 lg:px-8 lg:py-2.5 rounded-full font-semibold transition-colors text-sm lg:text-[15px]">
+              Log In
             </Link>
+          )}
 
-            <nav className="flex items-center gap-5 xl:gap-8 font-semibold text-[14px] xl:text-[15px]">
-              <Link href="/categories" className="hover:text-gold transition-colors text-gold font-bold">Venues</Link>
-              <Link href="/boutiques" className="hover:text-gold transition-colors">Vendors</Link>
-              <Link href="/inspiration" className="hover:text-gold transition-colors">Photos</Link>
-              <Link href="/real-weddings" className="hover:text-gold transition-colors">Real Weddings</Link>
-              <Link href="/blogs" className="hover:text-gold transition-colors">Blog</Link>
-              <Link href="/e-invites" className="hover:text-gold transition-colors">E-Invites</Link>
-              <Link href="/genie" className="hover:text-gold transition-colors">Genie</Link>
-            </nav>
-
-            <div className="flex items-center gap-3 lg:gap-5 shrink-0">
-              <button
-                type="button"
-                className="relative w-9 h-9 lg:w-10 lg:h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors"
-                onClick={() => setIsNotificationsOpen((open) => !open)}
-                aria-label="Open notifications"
-                aria-expanded={isNotificationsOpen}
-              >
-                <Bell className="w-4 h-4 lg:w-5 lg:h-5" />
-                <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-[#C8A96A] shadow-[0_0_0_2px_#0F4C45]" />
-              </button>
-              
-              {session ? (
-                <Link href={profileLink} className="flex bg-[#12584C] hover:bg-[#186f61] border border-[#1d796b] px-6 py-2 lg:px-8 lg:py-2.5 rounded-full font-semibold transition-colors text-sm lg:text-[15px]">
-                  Profile
-                </Link>
-              ) : (
-                <Link href="/login" className="flex bg-[#12584C] hover:bg-[#186f61] border border-[#1d796b] px-6 py-2 lg:px-8 lg:py-2.5 rounded-full font-semibold transition-colors text-sm lg:text-[15px]">
-                  Log In
-                </Link>
-              )}
-            </div>
-          </div>
-        </>
-      ) : (
-        <div className="relative flex justify-between items-center px-4 sm:px-6 lg:px-10 xl:px-12 py-2.5 md:py-4 bg-primary text-white">
-          {/* Logo */}
-          <Link href="/" className="flex items-center gap-3 shrink-0">
-            <div className="relative flex items-center justify-center w-11 h-10 md:w-[55px] md:h-[48px] lg:w-[65px] lg:h-[52px] xl:w-[70px] xl:h-[56px]">
-              <img src="/logo.png" alt="Cloche Logo" className="absolute inset-0 w-full h-full object-contain scale-[1.75] md:scale-[1.8] lg:scale-[1.9] drop-shadow-sm origin-center" />
-            </div>
-            <span className="block font-display text-[20px] md:text-2xl lg:text-[28px] font-bold tracking-wide mt-0.5 md:mt-1">Cloche</span>
-          </Link>
-
-          {/* Desktop Links */}
-          <nav className="hidden lg:flex items-center gap-5 xl:gap-8 font-semibold text-[14px] xl:text-[15px]">
-            <Link href="/categories" className="hover:text-gold transition-colors">Venues</Link>
-            <Link href="/boutiques" className="hover:text-gold transition-colors">Vendors</Link>
-            <Link href="/inspiration" className="hover:text-gold transition-colors">Photos</Link>
-            <Link href="/real-weddings" className="hover:text-gold transition-colors">Real Weddings</Link>
-            <Link href="/blogs" className="hover:text-gold transition-colors">Blog</Link>
-            <Link href="/e-invites" className="hover:text-gold transition-colors">E-Invites</Link>
-            <Link href="/genie" className="hover:text-gold transition-colors">Genie</Link>
-          </nav>
-
-          {/* Actions */}
-          <div className="flex items-center gap-3 lg:gap-5 shrink-0">
-            <button
-              type="button"
-              className="relative w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors"
-              onClick={() => setIsNotificationsOpen((open) => !open)}
-              aria-label="Open notifications"
-              aria-expanded={isNotificationsOpen}
-            >
-              <Bell className="w-[17px] h-[17px] lg:w-5 lg:h-5" />
-              <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-[#C8A96A] shadow-[0_0_0_2px_#0F4C45]" />
-            </button>
-            
-            {session ? (
-              <Link href={profileLink} className="hidden md:flex bg-[#12584C] hover:bg-[#186f61] border border-[#1d796b] px-6 py-2 lg:px-8 lg:py-2.5 rounded-full font-semibold transition-colors text-sm lg:text-[15px]">
-                Profile
-              </Link>
-            ) : (
-              <Link href="/login" className="hidden md:flex bg-[#12584C] hover:bg-[#186f61] border border-[#1d796b] px-6 py-2 lg:px-8 lg:py-2.5 rounded-full font-semibold transition-colors text-sm lg:text-[15px]">
-                Log In
-              </Link>
-            )}
-
-            <button 
-              className="lg:hidden text-white hover:text-gold transition-colors"
-              onClick={() => {
-                setIsNotificationsOpen(false);
-                setIsMobileMenuOpen(true);
-              }}
-            >
-              <Menu className="w-5 h-5" />
-            </button>
-          </div>
+          <button 
+            className="lg:hidden text-white hover:text-gold transition-colors"
+            onClick={() => {
+              setIsNotificationsOpen(false);
+              setIsMobileMenuOpen(true);
+            }}
+          >
+            <Menu className="w-5 h-5" />
+          </button>
         </div>
-      )}
 
         {isNotificationsOpen && (
           <div className="absolute right-4 top-[calc(100%+10px)] z-[70] w-[min(calc(100vw-2rem),360px)] overflow-hidden rounded-2xl border border-[#C8A96A]/30 bg-[#F7F3EC] text-[#082F2C] shadow-[0_22px_60px_rgba(0,0,0,0.22)]">
@@ -358,6 +277,7 @@ export function Header({ session }: HeaderProps = {}) {
             </div>
           </div>
         )}
+      </div>
 
       {/* Mobile Sidebar Menu (Drawer) */}
       {isMobileMenuOpen && (
