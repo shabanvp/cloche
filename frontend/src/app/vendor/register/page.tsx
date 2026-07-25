@@ -329,10 +329,10 @@ export default function VendorRegisterPage() {
   };
 
   return (
-    <div className="flex-grow flex flex-col px-6 pt-4 pb-12 max-w-5xl mx-auto w-full min-h-[calc(100vh-140px)] bg-ivory">
-      <div className="text-center mb-6 pt-2">
-        <h2 className="font-display text-[32px] leading-[40px] text-charcoal mb-2">Partner with Cloche</h2>
-        <p className="font-sans text-[16px] text-charcoal/70 max-w-md mx-auto">
+    <div className="flex-grow flex flex-col px-6 pt-1 pb-10 max-w-5xl mx-auto w-full min-h-[calc(100vh-140px)] bg-ivory">
+      <div className="text-center mb-4 pt-0">
+        <h2 className="font-display text-[30px] sm:text-[32px] leading-tight text-charcoal mb-1">Partner with Cloche</h2>
+        <p className="font-sans text-[15px] text-charcoal/70 max-w-md mx-auto">
           Join the exclusive network of premium wedding vendors and grow your business.
         </p>
       </div>
