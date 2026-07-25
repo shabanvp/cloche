@@ -35,27 +35,6 @@ export function DecorPlanningListing() {
 
   return (
     <div className="min-h-screen flex flex-col bg-[#FAF7F2] pb-24 text-[#2D2520]">
-      {/* Mobile Top Header (Picture 2 header) */}
-      <header className="sticky top-0 z-40 bg-[#0F4C45] px-4 py-3 text-white flex items-center justify-between shadow-sm">
-        <div className="flex items-center gap-2">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-full border border-gold/40 bg-white/10">
-              <span className="font-serif text-sm font-bold text-[#D4B66E]">C</span>
-            </div>
-            <span className="font-serif text-xl font-bold tracking-tight text-white">Cloche</span>
-          </Link>
-        </div>
-        <div className="flex items-center gap-3">
-          <button className="relative p-1 text-white/90 hover:text-white" aria-label="Notifications">
-            <Bell className="h-5 w-5" />
-            <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-[#D4B66E]" />
-          </button>
-          <button className="p-1 text-white/90 hover:text-white" aria-label="Menu">
-            <Menu className="h-6 w-6" />
-          </button>
-        </div>
-      </header>
-
       <main className="flex-1">
         {/* Breadcrumb & Hero Header */}
         <div className="px-4 pt-4 pb-2">
