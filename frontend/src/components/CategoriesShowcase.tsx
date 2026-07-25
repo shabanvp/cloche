@@ -239,31 +239,31 @@ export function CategoriesShowcase() {
               >
                 <div className="relative flex min-h-[128px] sm:min-h-[148px] md:min-h-[168px] items-center">
                   {/* Left Text & Icon Section */}
-                  <div className="flex flex-1 items-center gap-3 sm:gap-4 px-4 py-5 sm:px-6 sm:py-6 pr-[54%] sm:pr-[52%] z-10">
+                  <div className="flex flex-1 items-center gap-3 sm:gap-4 pl-4 pr-[48%] py-4 sm:pl-6 sm:pr-[46%] sm:py-6 z-10 min-w-0">
                     {/* Circle Icon Badge */}
-                    <div className="flex h-12 w-12 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-full border border-black/5 bg-[#FAF7F2] text-[#0F4C45] shadow-[0_1px_4px_rgba(0,0,0,0.04)] transition-transform duration-300 group-hover:scale-105">
-                      <IconComponent className="h-6 w-6 sm:h-7 sm:w-7" />
+                    <div className="flex h-11 w-11 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-full border border-black/5 bg-[#FAF7F2] text-[#0F4C45] shadow-[0_1px_4px_rgba(0,0,0,0.04)] transition-transform duration-300 group-hover:scale-105">
+                      <IconComponent className="h-5 w-5 sm:h-7 sm:w-7" />
                     </div>
 
                     {/* Category Title & Subtitle */}
                     <div className="min-w-0 flex-1 flex flex-col justify-center">
-                      <h2 className="font-serif text-[22px] sm:text-[27px] font-bold text-[#0F4C45] leading-[1.08] tracking-tight">
+                      <h2 className="font-serif text-[19px] sm:text-[25px] font-bold text-[#0F4C45] leading-[1.1] tracking-tight break-words">
                         {category.title}
                       </h2>
-                      <p className="text-[13px] sm:text-[15px] font-sans text-[#5A6561] leading-[1.3] line-clamp-2 mt-1">
+                      <p className="text-[12px] sm:text-[14px] font-sans text-[#5A6561] leading-[1.3] line-clamp-2 mt-1">
                         {category.subtitle}
                       </p>
                     </div>
+                  </div>
 
-                    {/* Dark Green Action Chevron Button */}
-                    <div className="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-full bg-[#0F4C45] text-white shadow-xs transition-transform duration-300 group-hover:scale-110">
-                      <ChevronRight className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={2.4} />
-                    </div>
+                  {/* Dark Green Action Chevron Button (Positioned over slant center) */}
+                  <div className="absolute left-[54%] sm:left-[52%] top-1/2 -translate-y-1/2 -translate-x-1/2 z-20 flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-full bg-[#0F4C45] text-white shadow-md transition-transform duration-300 group-hover:scale-110">
+                    <ChevronRight className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={2.4} />
                   </div>
 
                   {/* Right Slanted Image Section */}
                   <div
-                    className="absolute inset-y-0 right-0 w-[54%] sm:w-[52%] overflow-hidden"
+                    className="absolute inset-y-0 right-0 w-[48%] sm:w-[46%] overflow-hidden"
                     style={{
                       clipPath: "polygon(22% 0, 100% 0, 100% 100%, 0% 100%)",
                     }}
@@ -272,7 +272,7 @@ export function CategoriesShowcase() {
                       src={category.image}
                       alt={category.title}
                       fill
-                      sizes="(max-width: 640px) 54vw, 52vw"
+                      sizes="(max-width: 640px) 48vw, 46vw"
                       className="object-cover object-center transition-transform duration-700 ease-out group-hover:scale-105"
                       priority={idx < 4}
                     />
