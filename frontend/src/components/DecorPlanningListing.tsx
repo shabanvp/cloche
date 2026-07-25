@@ -36,18 +36,30 @@ export function DecorPlanningListing() {
   return (
     <div className="min-h-screen flex flex-col bg-[#FAF7F2] pb-24 text-[#2D2520]">
       <main className="flex-1">
-        {/* Breadcrumb & Hero Header */}
+        {/* Top Header Row with Circular Back Arrow & Breadcrumb */}
         <div className="px-4 pt-4 pb-2">
-          <nav className="flex items-center gap-1.5 text-xs text-[#7A6E65]">
-            <Link href="/" className="hover:underline">Home</Link>
-            <span>/</span>
-            <span className="text-[#0F4C45] font-medium">Decor & Planning</span>
-          </nav>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/categories"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#EFE9DF] text-[#0F4C45] transition-transform active:scale-95 hover:bg-[#E5DDCF]"
+              aria-label="Back to all categories"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Link>
 
-          <h1 className="mt-3 font-serif text-[28px] sm:text-[34px] font-bold text-[#0F4C45] leading-tight">
-            Decor &amp; Planning
-          </h1>
-          <p className="mt-1 text-[13px] sm:text-[14px] text-[#5A6561] leading-snug">
+            <div>
+              <nav className="flex items-center gap-1.5 text-xs text-[#7A6E65]">
+                <Link href="/categories" className="hover:underline">Categories</Link>
+                <span>/</span>
+                <span className="text-[#0F4C45] font-medium">Decor &amp; Planning</span>
+              </nav>
+              <h1 className="font-serif text-[24px] sm:text-[30px] font-bold text-[#0F4C45] leading-tight">
+                Decor &amp; Planning
+              </h1>
+            </div>
+          </div>
+
+          <p className="mt-2 text-[13px] sm:text-[14px] text-[#5A6561] leading-snug">
             Curated decor &amp; planning experts to bring your dream wedding to life.
           </p>
         </div>
