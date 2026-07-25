@@ -40,12 +40,12 @@ export default function SignupPage() {
       footerLink="/login"
       footerLinkLabel="Login"
     >
-      <form className="space-y-2.5" onSubmit={handleSubmit}>
+      <form className="space-y-3" onSubmit={handleSubmit}>
         <div className="space-y-1">
           <label className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#3E3A33]" htmlFor="fullname">
             Full Name
           </label>
-          <div className="flex min-h-10 items-center gap-2.5 rounded-[12px] border border-[#D9CEBF] bg-[#FBF7EF] px-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.85)] transition-colors focus-within:border-[#0F4C45] focus-within:shadow-[0_0_0_3px_rgba(15,76,69,0.08)]">
+          <div className="flex min-h-11 items-center gap-2.5 rounded-[13px] border border-[#D9CEBF] bg-[#FBF7EF] px-3.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.85)] transition-colors focus-within:border-[#0F4C45] focus-within:shadow-[0_0_0_3px_rgba(15,76,69,0.08)]">
             <UserRound className="h-4 w-4 shrink-0 text-[#8E7D62]" />
             <input
               id="fullname"
@@ -53,7 +53,7 @@ export default function SignupPage() {
               type="text"
               required
               placeholder="Olivia Bennett"
-              className="w-full bg-transparent text-[13px] text-[#1E1B16] outline-none placeholder:text-[#A79B8B]"
+              className="w-full bg-transparent text-[14px] text-[#1E1B16] outline-none placeholder:text-[#A79B8B]"
             />
           </div>
         </div>
@@ -62,7 +62,7 @@ export default function SignupPage() {
           <label className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#3E3A33]" htmlFor="email">
             Email Address
           </label>
-          <div className="flex min-h-10 items-center gap-2.5 rounded-[12px] border border-[#D9CEBF] bg-[#FBF7EF] px-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.85)] transition-colors focus-within:border-[#0F4C45] focus-within:shadow-[0_0_0_3px_rgba(15,76,69,0.08)]">
+          <div className="flex min-h-11 items-center gap-2.5 rounded-[13px] border border-[#D9CEBF] bg-[#FBF7EF] px-3.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.85)] transition-colors focus-within:border-[#0F4C45] focus-within:shadow-[0_0_0_3px_rgba(15,76,69,0.08)]">
             <Mail className="h-4 w-4 shrink-0 text-[#8E7D62]" />
             <input
               id="email"
@@ -70,7 +70,7 @@ export default function SignupPage() {
               type="email"
               required
               placeholder="olivia.bennett@gmail.com"
-              className="w-full bg-transparent text-[13px] text-[#1E1B16] outline-none placeholder:text-[#A79B8B]"
+              className="w-full bg-transparent text-[14px] text-[#1E1B16] outline-none placeholder:text-[#A79B8B]"
             />
           </div>
         </div>
@@ -79,7 +79,7 @@ export default function SignupPage() {
           <label className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#3E3A33]" htmlFor="phone">
             Mobile Number
           </label>
-          <div className="flex min-h-10 items-center gap-2.5 rounded-[12px] border border-[#D9CEBF] bg-[#FBF7EF] px-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.85)] transition-colors focus-within:border-[#0F4C45] focus-within:shadow-[0_0_0_3px_rgba(15,76,69,0.08)]">
+          <div className="flex min-h-11 items-center gap-2.5 rounded-[13px] border border-[#D9CEBF] bg-[#FBF7EF] px-3.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.85)] transition-colors focus-within:border-[#0F4C45] focus-within:shadow-[0_0_0_3px_rgba(15,76,69,0.08)]">
             <Smartphone className="h-4 w-4 shrink-0 text-[#8E7D62]" />
             <input
               id="phone"
@@ -87,7 +87,7 @@ export default function SignupPage() {
               type="tel"
               required
               placeholder="+91 98765 43210"
-              className="w-full bg-transparent text-[13px] text-[#1E1B16] outline-none placeholder:text-[#A79B8B]"
+              className="w-full bg-transparent text-[14px] text-[#1E1B16] outline-none placeholder:text-[#A79B8B]"
             />
           </div>
         </div>
@@ -96,7 +96,7 @@ export default function SignupPage() {
           <label className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#3E3A33]" htmlFor="password">
             Password
           </label>
-          <div className="flex min-h-10 items-center gap-2.5 rounded-[12px] border border-[#D9CEBF] bg-[#FBF7EF] px-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.85)] transition-colors focus-within:border-[#0F4C45] focus-within:shadow-[0_0_0_3px_rgba(15,76,69,0.08)]">
+          <div className="flex min-h-11 items-center gap-2.5 rounded-[13px] border border-[#D9CEBF] bg-[#FBF7EF] px-3.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.85)] transition-colors focus-within:border-[#0F4C45] focus-within:shadow-[0_0_0_3px_rgba(15,76,69,0.08)]">
             <Lock className="h-4 w-4 shrink-0 text-[#8E7D62]" />
             <input
               id="password"
@@ -104,7 +104,7 @@ export default function SignupPage() {
               type={showPassword ? "text" : "password"}
               required
               placeholder="Create a password"
-              className="w-full bg-transparent text-[13px] text-[#1E1B16] outline-none placeholder:text-[#A79B8B]"
+              className="w-full bg-transparent text-[14px] text-[#1E1B16] outline-none placeholder:text-[#A79B8B]"
             />
             <button
               type="button"
@@ -121,9 +121,9 @@ export default function SignupPage() {
             id="terms"
             type="checkbox"
             required
-            className="mt-0.5 h-3.5 w-3.5 rounded border-[#D9CEBF] text-[#0F4C45] focus:ring-[#0F4C45]"
+            className="mt-0.5 h-4 w-4 rounded border-[#D9CEBF] text-[#0F4C45] focus:ring-[#0F4C45]"
           />
-          <label className="text-[12px] leading-snug text-[#3B372F]" htmlFor="terms">
+          <label className="text-[13px] leading-snug text-[#3B372F]" htmlFor="terms">
             I agree to the{" "}
             <Link href="#" className="font-semibold text-[#0F4C45] underline decoration-[#0F4C45]/25 underline-offset-4">
               Terms &amp; Conditions
@@ -141,7 +141,7 @@ export default function SignupPage() {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="flex h-10 w-full items-center justify-center gap-2 rounded-[12px] bg-[#0F4C45] px-4 font-sans text-[13px] font-bold tracking-[0.14em] text-white uppercase shadow-[0_8px_20px_rgba(15,76,69,0.22)] transition-transform hover:bg-[#12584E] active:scale-[0.98] disabled:opacity-50"
+          className="flex h-11 w-full items-center justify-center gap-2 rounded-[13px] bg-[#0F4C45] px-4 font-sans text-[13px] font-bold tracking-[0.14em] text-white uppercase shadow-[0_8px_20px_rgba(15,76,69,0.22)] transition-transform hover:bg-[#12584E] active:scale-[0.98] disabled:opacity-50"
         >
           {isSubmitting ? "Signing up..." : "Sign Up"}
           <ArrowRight className="h-4 w-4" />

@@ -13,13 +13,20 @@ export default function LoginPage() {
   const [errorMsg, setErrorMsg] = useState("");
   const [showLogoutMsg, setShowLogoutMsg] = useState(false);
 
+  const [showUnauthorizedMsg, setShowUnauthorizedMsg] = useState(false);
+
   useEffect(() => {
     setRequestedRole(new URLSearchParams(window.location.search).get("role") === "admin" ? "admin" : "customer");
 
-    if (window.location.search.includes("logout=success")) {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("logout") === "success") {
       setShowLogoutMsg(true);
       window.history.replaceState({}, document.title, window.location.pathname);
-      setTimeout(() => setShowLogoutMsg(false), 4000);
+      setTimeout(() => setShowLogoutMsg(false), 5000);
+    } else if (params.get("unauthorized") === "true") {
+      setShowUnauthorizedMsg(true);
+      window.history.replaceState({}, document.title, window.location.pathname);
+      setTimeout(() => setShowUnauthorizedMsg(false), 5000);
     }
   }, []);
 
@@ -45,9 +52,15 @@ export default function LoginPage() {
   return (
     <>
       {showLogoutMsg && (
-        <div className="fixed top-12 left-1/2 -translate-x-1/2 bg-[#0F4C45] text-[#FAF7F2] px-6 py-3 rounded-full text-[14px] font-medium shadow-xl z-50 flex items-center gap-3 border border-[#C8A96A]/30 animate-fade-in-down transition-all duration-300">
+        <div className="fixed top-12 left-1/2 -translate-x-1/2 bg-[#0F4C45] text-[#FAF7F2] px-6 py-3 rounded-full text-[14px] font-medium shadow-xl z-[60] flex items-center gap-3 border border-[#C8A96A]/30 animate-fade-in-down transition-all duration-300">
           <LogOut className="w-4 h-4 text-[#C8A96A]" />
-          You have successfully logged out.
+          You have been signed out successfully.
+        </div>
+      )}
+      {showUnauthorizedMsg && (
+        <div className="fixed top-12 left-1/2 -translate-x-1/2 bg-[#7A281E] text-[#FAF7F2] px-6 py-3 rounded-full text-[14px] font-medium shadow-xl z-[60] flex items-center gap-3 border border-red-300/30 animate-fade-in-down transition-all duration-300">
+          <LogOut className="w-4 h-4 text-[#E6A89E]" />
+          Please log in again to access your account page.
         </div>
       )}
       <AuthShell

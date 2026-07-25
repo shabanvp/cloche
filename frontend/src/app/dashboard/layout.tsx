@@ -1,13 +1,21 @@
 import { ReactNode } from "react";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Footer } from "@/components/Footer";
 import { DashboardSidebar } from "@/components/DashboardSidebar";
+import { getSession } from "@/app/actions/auth";
 
 export const metadata = {
   title: "Dashboard - Cloche",
 };
 
-export default function DashboardLayout({ children }: { children: ReactNode }) {
+export default async function DashboardLayout({ children }: { children: ReactNode }) {
+  const session = await getSession();
+
+  if (!session?.token) {
+    redirect("/login?unauthorized=true");
+  }
+
   return (
     <div className="min-h-screen bg-ivory flex flex-col">
       
