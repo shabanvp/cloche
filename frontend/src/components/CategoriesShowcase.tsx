@@ -169,7 +169,7 @@ export const showcaseCategories: CategoryItem[] = [
     subtitle: "Bridal Mehendi Artists & Designs",
     bgColor: "#F7EBE5",
     href: "/categories/mehendi",
-    image: "https://images.unsplash.com/photo-1565557623262-b51c2513a641?auto=format&fit=crop&w=1200&q=80",
+    image: "/mehendi-category-bride.jpg",
     icon: MehendiIcon,
   },
   {
