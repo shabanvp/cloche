@@ -37,17 +37,17 @@ export function AuthShell({
         initial={reduceMotion ? false : { opacity: 0, y: 18 }}
         animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
         transition={{ duration: 0.45, ease: "easeOut" }}
-        className="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-[640px] flex-col items-center justify-center"
+        className="mx-auto flex min-h-[calc(100vh-2rem)] w-full max-w-[420px] flex-col items-center justify-center"
       >
-        <div className="w-full max-w-[560px] rounded-[32px] border border-[#E6DDCF] bg-[linear-gradient(180deg,rgba(255,255,255,0.82),rgba(248,244,236,0.94))] px-4 py-8 shadow-[0_24px_80px_rgba(28,27,23,0.08)] backdrop-blur-sm sm:px-7 sm:py-10">
-          <div className="mb-8 flex flex-col items-center text-center">
-            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full border border-[#D7C2A0] bg-[#FBF7EF] shadow-[0_12px_30px_rgba(15,76,69,0.08)]">
-              <img src="/logo.png" alt="Cloche" className="h-10 w-10 object-contain" />
+        <div className="w-full max-w-[380px] rounded-[24px] border border-[#E6DDCF] bg-[linear-gradient(180deg,rgba(255,255,255,0.82),rgba(248,244,236,0.94))] px-4 py-5 shadow-[0_16px_50px_rgba(28,27,23,0.08)] backdrop-blur-sm sm:px-6 sm:py-6">
+          <div className="mb-4 flex flex-col items-center text-center">
+            <div className="mb-2 flex h-11 w-11 items-center justify-center rounded-full border border-[#D7C2A0] bg-[#FBF7EF] shadow-[0_8px_20px_rgba(15,76,69,0.08)]">
+              <img src="/logo.png" alt="Cloche" className="h-7 w-7 object-contain" />
             </div>
-            <h1 className="font-display text-[clamp(3rem,7vw,5.2rem)] leading-none text-[#0F4C45]">
+            <h1 className="font-display text-[2.4rem] leading-none text-[#0F4C45]">
               Cloche
             </h1>
-            <p className="mt-4 max-w-[280px] font-display text-[clamp(1.25rem,3.1vw,1.9rem)] leading-[1.2] text-[#A97B3E]">
+            <p className="mt-2 max-w-[240px] font-display text-[1.1rem] leading-[1.2] text-[#A97B3E]">
               {subtitle.split("\n").map((line) => (
                 <span key={line} className="block">
                   {line}
@@ -56,8 +56,8 @@ export function AuthShell({
             </p>
           </div>
 
-          <div className="mb-7 flex border-b border-[#DDD3C5]">
-            <Link href="/login" className={tabBase}>
+          <div className="mb-4 flex border-b border-[#DDD3C5]">
+            <Link href="/login" className="relative flex h-10 min-h-9 flex-1 items-center justify-center text-[15px] font-semibold transition-colors">
               <span className={activeTab === "login" ? "text-[#123f3a]" : "text-[#33312d]/80"}>Login</span>
               <span
                 className={`absolute bottom-[-1px] h-0.5 w-[82%] rounded-full bg-[#123f3a] transition-transform duration-300 ${
@@ -65,7 +65,7 @@ export function AuthShell({
                 }`}
               />
             </Link>
-            <Link href="/signup" className={tabBase}>
+            <Link href="/signup" className="relative flex h-10 min-h-9 flex-1 items-center justify-center text-[15px] font-semibold transition-colors">
               <span className={activeTab === "signup" ? "text-[#123f3a]" : "text-[#33312d]/80"}>Sign Up</span>
               <span
                 className={`absolute bottom-[-1px] h-0.5 w-[82%] rounded-full bg-[#123f3a] transition-transform duration-300 ${
@@ -75,35 +75,35 @@ export function AuthShell({
             </Link>
           </div>
 
-          <div className="space-y-7">
-            <div className="space-y-5">{children}</div>
+          <div className="space-y-4">
+            <div className="space-y-3">{children}</div>
 
             {showSocial && (
               <div className="pt-1">
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-3">
                   <div className="h-px flex-1 bg-[#DDD3C5]" />
-                  <span className="text-[14px] text-[#3C372F]">or continue with</span>
+                  <span className="text-[12px] text-[#3C372F]">or continue with</span>
                   <div className="h-px flex-1 bg-[#DDD3C5]" />
                 </div>
 
-                <div className="mt-5 grid grid-cols-3 gap-4">
+                <div className="mt-3 grid grid-cols-3 gap-3">
                   <button
                     type="button"
-                    className="flex h-24 items-center justify-center rounded-2xl border border-[#D8CEC0] bg-[#FBF8F1] text-[#0F4C45] shadow-[0_8px_18px_rgba(28,27,23,0.04)] transition-transform hover:-translate-y-0.5 active:scale-[0.98]"
+                    className="flex h-14 items-center justify-center rounded-xl border border-[#D8CEC0] bg-[#FBF8F1] text-[#0F4C45] shadow-[0_4px_12px_rgba(28,27,23,0.04)] transition-transform hover:-translate-y-0.5 active:scale-[0.98]"
                     aria-label="Continue with Google"
                   >
                     <GoogleMark />
                   </button>
                   <button
                     type="button"
-                    className="flex h-24 items-center justify-center rounded-2xl border border-[#D8CEC0] bg-[#FBF8F1] text-[#0F4C45] shadow-[0_8px_18px_rgba(28,27,23,0.04)] transition-transform hover:-translate-y-0.5 active:scale-[0.98]"
+                    className="flex h-14 items-center justify-center rounded-xl border border-[#D8CEC0] bg-[#FBF8F1] text-[#0F4C45] shadow-[0_4px_12px_rgba(28,27,23,0.04)] transition-transform hover:-translate-y-0.5 active:scale-[0.98]"
                     aria-label="Continue with Apple"
                   >
-                    <Apple className="h-9 w-9 text-black" />
+                    <Apple className="h-6 w-6 text-black" />
                   </button>
                   <button
                     type="button"
-                    className="flex h-24 items-center justify-center rounded-2xl border border-[#D8CEC0] bg-[#FBF8F1] text-[#0F4C45] shadow-[0_8px_18px_rgba(28,27,23,0.04)] transition-transform hover:-translate-y-0.5 active:scale-[0.98]"
+                    className="flex h-14 items-center justify-center rounded-xl border border-[#D8CEC0] bg-[#FBF8F1] text-[#0F4C45] shadow-[0_4px_12px_rgba(28,27,23,0.04)] transition-transform hover:-translate-y-0.5 active:scale-[0.98]"
                     aria-label="Continue with Facebook"
                   >
                     <FacebookMark />

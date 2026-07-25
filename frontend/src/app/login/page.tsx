@@ -53,92 +53,81 @@ export default function LoginPage() {
       <AuthShell
         activeTab="login"
         subtitle={requestedRole === "admin" ? "Administrative\nPortal" : "Curated Luxury,\nTimeless Weddings"}
-      showSocial
-      footerText="Don't have an account?"
-      footerLink="/signup"
-      footerLinkLabel="Sign up"
-    >
-      <form className="space-y-5" onSubmit={handleSubmit}>
-        <div className="space-y-2">
-          <label className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#3E3A33]" htmlFor="email">
-            Email Address
-          </label>
-          <div className="flex min-h-14 items-center gap-3 rounded-[18px] border border-[#D9CEBF] bg-[#FBF7EF] px-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.85)] transition-colors focus-within:border-[#0F4C45] focus-within:shadow-[0_0_0_3px_rgba(15,76,69,0.08)]">
-            <Mail className="h-5 w-5 shrink-0 text-[#8E7D62]" />
-            <input
-              id="email"
-              name="email"
-              type="email"
-              required
-              placeholder="olivia.bennett@gmail.com"
-              className="w-full bg-transparent text-[16px] text-[#1E1B16] outline-none placeholder:text-[#A79B8B]"
-            />
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <div className="flex items-end justify-between gap-4">
-            <label className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#3E3A33]" htmlFor="password">
-              Password
+        showSocial
+        footerText="Don't have an account?"
+        footerLink="/signup"
+        footerLinkLabel="Sign up"
+      >
+        <form className="space-y-3.5" onSubmit={handleSubmit}>
+          <div className="space-y-1.5">
+            <label className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#3E3A33]" htmlFor="email">
+              Email Address
             </label>
-            <Link href="/reset-password" className="text-[13px] text-[#4D4A43] transition-colors hover:text-[#0F4C45]">
-              Forgot?
-            </Link>
+            <div className="flex min-h-11 items-center gap-2.5 rounded-[14px] border border-[#D9CEBF] bg-[#FBF7EF] px-3.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.85)] transition-colors focus-within:border-[#0F4C45] focus-within:shadow-[0_0_0_3px_rgba(15,76,69,0.08)]">
+              <Mail className="h-4 w-4 shrink-0 text-[#8E7D62]" />
+              <input
+                id="email"
+                name="email"
+                type="email"
+                required
+                placeholder="olivia.bennett@gmail.com"
+                className="w-full bg-transparent text-[14px] text-[#1E1B16] outline-none placeholder:text-[#A79B8B]"
+              />
+            </div>
           </div>
-          <div className="flex min-h-14 items-center gap-3 rounded-[18px] border border-[#D9CEBF] bg-[#FBF7EF] px-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.85)] transition-colors focus-within:border-[#0F4C45] focus-within:shadow-[0_0_0_3px_rgba(15,76,69,0.08)]">
-            <Lock className="h-5 w-5 shrink-0 text-[#8E7D62]" />
-            <input
-              id="password"
-              name="password"
-              type={showPassword ? "text" : "password"}
-              required
-              placeholder="••••••••••"
-              className="w-full bg-transparent text-[16px] text-[#1E1B16] outline-none placeholder:text-[#A79B8B]"
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword((value) => !value)}
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[#8E7D62] transition-colors hover:bg-[#F2EADF] hover:text-[#0F4C45]"
-              aria-label={showPassword ? "Hide password" : "Show password"}
-            >
-              {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-            </button>
+
+          <div className="space-y-1.5">
+            <div className="flex items-end justify-between gap-4">
+              <label className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#3E3A33]" htmlFor="password">
+                Password
+              </label>
+              <Link href="/reset-password" className="text-[12px] text-[#4D4A43] transition-colors hover:text-[#0F4C45]">
+                Forgot?
+              </Link>
+            </div>
+            <div className="flex min-h-11 items-center gap-2.5 rounded-[14px] border border-[#D9CEBF] bg-[#FBF7EF] px-3.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.85)] transition-colors focus-within:border-[#0F4C45] focus-within:shadow-[0_0_0_3px_rgba(15,76,69,0.08)]">
+              <Lock className="h-4 w-4 shrink-0 text-[#8E7D62]" />
+              <input
+                id="password"
+                name="password"
+                type={showPassword ? "text" : "password"}
+                required
+                placeholder="••••••••••"
+                className="w-full bg-transparent text-[14px] text-[#1E1B16] outline-none placeholder:text-[#A79B8B]"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((value) => !value)}
+                className="text-[#8E7D62] transition-colors hover:text-[#0F4C45]"
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
           </div>
-        </div>
 
-        <div className="flex items-center justify-between gap-4 pt-1">
-          <label className="flex items-center gap-3 text-[14px] text-[#2D2A25]">
-            <input
-              type="checkbox"
-              name="remember_me"
-              className="h-5 w-5 rounded-[4px] border-[#CDBFAE] text-[#0F4C45] focus:ring-[#0F4C45]"
-            />
-            Remember me
-          </label>
-        </div>
-
-        {errorMsg && (
-          <div className="rounded-[16px] border border-[#F1B4A9] bg-[#FFF2EF] px-4 py-3 text-sm text-[#A43E2E]">
-            {errorMsg}
+          <div className="flex items-center justify-between pt-1">
+            <label className="flex items-center gap-2 text-[13px] text-[#423E37]">
+              <input type="checkbox" className="h-4 w-4 rounded border-[#D9CEBF] text-[#0F4C45] focus:ring-[#0F4C45]" />
+              Remember me
+            </label>
           </div>
-        )}
 
-        <button
-          className="group flex min-h-14 w-full items-center justify-center gap-2 rounded-[18px] bg-[#0F4C45] px-5 text-[12px] font-semibold uppercase tracking-[0.22em] text-[#F2E6D0] shadow-[0_16px_30px_rgba(15,76,69,0.18)] transition-all hover:-translate-y-0.5 hover:bg-[#0B3B36] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-70"
-          type="submit"
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? (
-            <span className="material-symbols-outlined animate-spin text-[#F2E6D0]">refresh</span>
-          ) : (
-            <>
-              Login
-              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-            </>
+          {errorMsg && (
+            <div className="rounded-xl border border-red-200 bg-red-50 p-2.5 text-center text-xs font-medium text-red-600">
+              {errorMsg}
+            </div>
           )}
-        </button>
-      </form>
-    </AuthShell>
+
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="flex h-11 w-full items-center justify-center gap-2 rounded-[14px] bg-[#0F4C45] px-4 font-sans text-[13px] font-bold tracking-[0.14em] text-white uppercase shadow-[0_8px_20px_rgba(15,76,69,0.22)] transition-transform hover:bg-[#12584E] active:scale-[0.98] disabled:opacity-50"
+          >
+            {isSubmitting ? "Logging in..." : "Login"}
+            <ArrowRight className="h-4 w-4" />
+          </button>
+        </form>
+      </AuthShell>
     </>
   );
 }
