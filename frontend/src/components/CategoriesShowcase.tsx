@@ -205,7 +205,7 @@ export const showcaseCategories: CategoryItem[] = [
     subtitle: "Sherwanis, Tuxedos & Custom Suits",
     bgColor: "#EBEFF3",
     href: "/categories/groom-wear",
-    image: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=1200&q=80",
+    image: "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=1200&q=80",
     icon: GroomIcon,
   },
   {
