@@ -32,13 +32,8 @@ export function AuthShell({
   const reduceMotion = useReducedMotion();
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.9),rgba(250,246,239,0.96)_45%,rgba(245,239,229,1))] px-4 py-8 text-charcoal sm:px-6 sm:py-10">
-      <AuthMotion
-        initial={reduceMotion ? false : { opacity: 0, y: 18 }}
-        animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
-        transition={{ duration: 0.45, ease: "easeOut" }}
-        className="mx-auto flex min-h-[calc(100vh-2rem)] w-full max-w-[420px] flex-col items-center justify-center"
-      >
+    <main className="h-screen w-screen overflow-hidden fixed inset-0 z-50 flex items-center justify-center bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.9),rgba(250,246,239,0.96)_45%,rgba(245,239,229,1))] px-4 text-charcoal sm:px-6">
+      <div className="mx-auto flex h-full w-full max-w-[420px] flex-col items-center justify-center">
         <div className="w-full max-w-[380px] rounded-[24px] border border-[#E6DDCF] bg-[linear-gradient(180deg,rgba(255,255,255,0.82),rgba(248,244,236,0.94))] px-4 py-5 shadow-[0_16px_50px_rgba(28,27,23,0.08)] backdrop-blur-sm sm:px-6 sm:py-6">
           <div className="mb-4 flex flex-col items-center text-center">
             <div className="mb-2 flex h-11 w-11 items-center justify-center rounded-full border border-[#D7C2A0] bg-[#FBF7EF] shadow-[0_8px_20px_rgba(15,76,69,0.08)]">
@@ -122,7 +117,7 @@ export function AuthShell({
             </div>
           </div>
         </div>
-      </AuthMotion>
+      </div>
     </main>
   );
 }

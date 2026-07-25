@@ -40,120 +40,111 @@ export default function SignupPage() {
       footerLink="/login"
       footerLinkLabel="Login"
     >
-      <form className="space-y-5" onSubmit={handleSubmit}>
-        <div className="space-y-2">
-          <label className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#3E3A33]" htmlFor="fullname">
+      <form className="space-y-2.5" onSubmit={handleSubmit}>
+        <div className="space-y-1">
+          <label className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#3E3A33]" htmlFor="fullname">
             Full Name
           </label>
-          <div className="flex min-h-14 items-center gap-3 rounded-[18px] border border-[#D9CEBF] bg-[#FBF7EF] px-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.85)] transition-colors focus-within:border-[#0F4C45] focus-within:shadow-[0_0_0_3px_rgba(15,76,69,0.08)]">
-            <UserRound className="h-5 w-5 shrink-0 text-[#8E7D62]" />
+          <div className="flex min-h-10 items-center gap-2.5 rounded-[12px] border border-[#D9CEBF] bg-[#FBF7EF] px-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.85)] transition-colors focus-within:border-[#0F4C45] focus-within:shadow-[0_0_0_3px_rgba(15,76,69,0.08)]">
+            <UserRound className="h-4 w-4 shrink-0 text-[#8E7D62]" />
             <input
               id="fullname"
               name="name"
               type="text"
               required
               placeholder="Olivia Bennett"
-              className="w-full bg-transparent text-[16px] text-[#1E1B16] outline-none placeholder:text-[#A79B8B]"
+              className="w-full bg-transparent text-[13px] text-[#1E1B16] outline-none placeholder:text-[#A79B8B]"
             />
           </div>
         </div>
 
-        <div className="space-y-2">
-          <label className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#3E3A33]" htmlFor="email">
+        <div className="space-y-1">
+          <label className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#3E3A33]" htmlFor="email">
             Email Address
           </label>
-          <div className="flex min-h-14 items-center gap-3 rounded-[18px] border border-[#D9CEBF] bg-[#FBF7EF] px-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.85)] transition-colors focus-within:border-[#0F4C45] focus-within:shadow-[0_0_0_3px_rgba(15,76,69,0.08)]">
-            <Mail className="h-5 w-5 shrink-0 text-[#8E7D62]" />
+          <div className="flex min-h-10 items-center gap-2.5 rounded-[12px] border border-[#D9CEBF] bg-[#FBF7EF] px-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.85)] transition-colors focus-within:border-[#0F4C45] focus-within:shadow-[0_0_0_3px_rgba(15,76,69,0.08)]">
+            <Mail className="h-4 w-4 shrink-0 text-[#8E7D62]" />
             <input
               id="email"
               name="email"
               type="email"
               required
               placeholder="olivia.bennett@gmail.com"
-              className="w-full bg-transparent text-[16px] text-[#1E1B16] outline-none placeholder:text-[#A79B8B]"
+              className="w-full bg-transparent text-[13px] text-[#1E1B16] outline-none placeholder:text-[#A79B8B]"
             />
           </div>
         </div>
 
-        <div className="space-y-2">
-          <label className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#3E3A33]" htmlFor="phone">
+        <div className="space-y-1">
+          <label className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#3E3A33]" htmlFor="phone">
             Mobile Number
           </label>
-          <div className="flex min-h-14 items-center gap-3 rounded-[18px] border border-[#D9CEBF] bg-[#FBF7EF] px-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.85)] transition-colors focus-within:border-[#0F4C45] focus-within:shadow-[0_0_0_3px_rgba(15,76,69,0.08)]">
-            <Smartphone className="h-5 w-5 shrink-0 text-[#8E7D62]" />
+          <div className="flex min-h-10 items-center gap-2.5 rounded-[12px] border border-[#D9CEBF] bg-[#FBF7EF] px-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.85)] transition-colors focus-within:border-[#0F4C45] focus-within:shadow-[0_0_0_3px_rgba(15,76,69,0.08)]">
+            <Smartphone className="h-4 w-4 shrink-0 text-[#8E7D62]" />
             <input
               id="phone"
               name="phone"
               type="tel"
               required
               placeholder="+91 98765 43210"
-              className="w-full bg-transparent text-[16px] text-[#1E1B16] outline-none placeholder:text-[#A79B8B]"
+              className="w-full bg-transparent text-[13px] text-[#1E1B16] outline-none placeholder:text-[#A79B8B]"
             />
           </div>
         </div>
 
-        <div className="space-y-2">
-          <div className="flex items-end justify-between gap-4">
-            <label className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#3E3A33]" htmlFor="password">
-              Password
-            </label>
-          </div>
-          <div className="flex min-h-14 items-center gap-3 rounded-[18px] border border-[#D9CEBF] bg-[#FBF7EF] px-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.85)] transition-colors focus-within:border-[#0F4C45] focus-within:shadow-[0_0_0_3px_rgba(15,76,69,0.08)]">
-            <Lock className="h-5 w-5 shrink-0 text-[#8E7D62]" />
+        <div className="space-y-1">
+          <label className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#3E3A33]" htmlFor="password">
+            Password
+          </label>
+          <div className="flex min-h-10 items-center gap-2.5 rounded-[12px] border border-[#D9CEBF] bg-[#FBF7EF] px-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.85)] transition-colors focus-within:border-[#0F4C45] focus-within:shadow-[0_0_0_3px_rgba(15,76,69,0.08)]">
+            <Lock className="h-4 w-4 shrink-0 text-[#8E7D62]" />
             <input
               id="password"
               name="password"
               type={showPassword ? "text" : "password"}
               required
               placeholder="Create a password"
-              className="w-full bg-transparent text-[16px] text-[#1E1B16] outline-none placeholder:text-[#A79B8B]"
+              className="w-full bg-transparent text-[13px] text-[#1E1B16] outline-none placeholder:text-[#A79B8B]"
             />
             <button
               type="button"
               onClick={() => setShowPassword((value) => !value)}
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[#8E7D62] transition-colors hover:bg-[#F2EADF] hover:text-[#0F4C45]"
-              aria-label={showPassword ? "Hide password" : "Show password"}
+              className="text-[#8E7D62] transition-colors hover:text-[#0F4C45]"
             >
-              {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </button>
           </div>
         </div>
 
-        <div className="flex items-start gap-3 pt-1">
+        <div className="flex items-start gap-2 pt-0.5">
           <input
             id="terms"
             type="checkbox"
             required
-            className="mt-1 h-5 w-5 rounded-[4px] border-[#CDBFAE] text-[#0F4C45] focus:ring-[#0F4C45]"
+            className="mt-0.5 h-3.5 w-3.5 rounded border-[#D9CEBF] text-[#0F4C45] focus:ring-[#0F4C45]"
           />
-          <label className="text-[14px] leading-6 text-[#3B372F]" htmlFor="terms">
+          <label className="text-[12px] leading-snug text-[#3B372F]" htmlFor="terms">
             I agree to the{" "}
             <Link href="#" className="font-semibold text-[#0F4C45] underline decoration-[#0F4C45]/25 underline-offset-4">
-              Terms & Conditions
+              Terms &amp; Conditions
             </Link>{" "}
             and Privacy Policy.
           </label>
         </div>
 
         {errorMsg && (
-          <div className="rounded-[16px] border border-[#F1B4A9] bg-[#FFF2EF] px-4 py-3 text-sm text-[#A43E2E]">
+          <div className="rounded-xl border border-red-200 bg-red-50 p-2 text-center text-xs font-medium text-red-600">
             {errorMsg}
           </div>
         )}
 
         <button
-          className="group flex min-h-14 w-full items-center justify-center gap-2 rounded-[18px] bg-[#0F4C45] px-5 text-[12px] font-semibold uppercase tracking-[0.22em] text-[#F2E6D0] shadow-[0_16px_30px_rgba(15,76,69,0.18)] transition-all hover:-translate-y-0.5 hover:bg-[#0B3B36] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-70"
           type="submit"
           disabled={isSubmitting}
+          className="flex h-10 w-full items-center justify-center gap-2 rounded-[12px] bg-[#0F4C45] px-4 font-sans text-[13px] font-bold tracking-[0.14em] text-white uppercase shadow-[0_8px_20px_rgba(15,76,69,0.22)] transition-transform hover:bg-[#12584E] active:scale-[0.98] disabled:opacity-50"
         >
-          {isSubmitting ? (
-            <span className="material-symbols-outlined animate-spin text-[#F2E6D0]">refresh</span>
-          ) : (
-            <>
-              Sign Up
-              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-            </>
-          )}
+          {isSubmitting ? "Signing up..." : "Sign Up"}
+          <ArrowRight className="h-4 w-4" />
         </button>
       </form>
     </AuthShell>
