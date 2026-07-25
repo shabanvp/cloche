@@ -62,13 +62,13 @@ export const bridalBoutiqueVendors: BridalBoutiqueVendor[] = [
     rating: 4.7,
     reviews: 96,
     location: "Defence Colony, Delhi",
-    image: "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=800&q=80",
+    image: "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=800&q=80",
     isVerified: true,
     about: "Vibrant high-fashion Indian couture featuring signature embellishments, metallics, and whimsical pastel embroidery.",
     yearsInBusiness: 9,
     bridesDressed: 380,
     collections: [
-      { name: "Pop Pastel Edit", image: "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=600&q=80" },
+      { name: "Pop Pastel Edit", image: "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=600&q=80" },
     ],
     prices: [
       { category: "Lehengas", price: "₹1,20,000", isPopular: true },
@@ -86,13 +86,13 @@ export const bridalBoutiqueVendors: BridalBoutiqueVendor[] = [
     rating: 4.9,
     reviews: 212,
     location: "Alipore, Kolkata",
-    image: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=80",
+    image: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80",
     isVerified: true,
     about: "Heritage Indian bridal couture handcrafted with antique zardosi, velvet borders, and royal regal elegance.",
     yearsInBusiness: 20,
     bridesDressed: 1500,
     collections: [
-      { name: "Heritage Bridal", image: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=600&q=80" },
+      { name: "Heritage Bridal", image: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=600&q=80" },
     ],
     prices: [
       { category: "Royal Lehengas", price: "₹3,50,000", isPopular: true },
@@ -110,13 +110,13 @@ export const bridalBoutiqueVendors: BridalBoutiqueVendor[] = [
     rating: 4.8,
     reviews: 88,
     location: "Saket, Delhi",
-    image: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=800&q=80",
+    image: "https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?auto=format&fit=crop&w=800&q=80",
     isVerified: true,
     about: "Sustainable luxury wedding ensembles infused with Rajasthan's handcrafted gotapatti tradition.",
     yearsInBusiness: 15,
     bridesDressed: 900,
     collections: [
-      { name: "Gotapatti Edits", image: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=600&q=80" },
+      { name: "Gotapatti Edits", image: "https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?auto=format&fit=crop&w=600&q=80" },
     ],
     prices: [
       { category: "Silk Lehengas", price: "₹1,80,000", isPopular: true },

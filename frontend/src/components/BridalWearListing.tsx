@@ -44,55 +44,44 @@ export function BridalWearListing() {
   return (
     <div className="min-h-screen flex flex-col bg-[#FAF7F2] pb-24 text-[#2D2520]">
       <main className="flex-1">
-        {/* Banner Hero Section (Picture 1) */}
-        <div className="relative w-full overflow-hidden bg-[#FAF7F2]">
-          <div className="relative flex items-center justify-between px-4 pt-4 pb-4 sm:px-6">
-            <div className="flex items-center gap-3 z-10 max-w-[60%]">
-              <Link
-                href="/categories"
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#EFE9DF] text-[#0F4C45] transition-transform active:scale-95 hover:bg-[#E5DDCF]"
-                aria-label="Back to categories"
-              >
-                <ArrowLeft className="h-5 w-5" />
-              </Link>
-              <div>
-                <h1 className="font-serif text-[28px] sm:text-[34px] font-bold text-[#0F4C45] leading-none">
-                  Bridal Wear
-                </h1>
-                <p className="mt-1.5 text-[13px] sm:text-[14px] text-[#5A6561] leading-snug">
-                  Elegant looks for your unforgettable day
-                </p>
-              </div>
-            </div>
+        {/* Header Row matching Venues & Mehendi layout (Title in middle below main Cloche header) */}
+        <div className="px-4 pt-4 pb-2">
+          <div className="flex items-center justify-between">
+            <Link
+              href="/categories"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#EFE9DF] text-[#0F4C45] transition-transform active:scale-95 hover:bg-[#E5DDCF]"
+              aria-label="Back to categories"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Link>
 
-            {/* Banner Image */}
-            <div className="relative w-[38%] aspect-[4/3] rounded-2xl overflow-hidden shadow-sm border border-black/5">
-              <Image
-                src="https://images.unsplash.com/photo-1549417229-aa67d3263c09?auto=format&fit=crop&w=600&q=80"
-                alt="Bridal Wear banner"
-                fill
-                className="object-cover object-center"
-              />
-            </div>
+            <h1 className="font-serif text-[24px] sm:text-[28px] font-bold text-[#0F4C45] text-center">
+              Bridal Wear
+            </h1>
+
+            <button
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#EFE9DF] text-[#0F4C45] transition-transform active:scale-95 hover:bg-[#E5DDCF]"
+              aria-label="Filter options"
+            >
+              <SlidersHorizontal className="h-4 w-4" />
+            </button>
           </div>
+          <p className="mt-2 text-[13px] sm:text-[14px] text-[#5A6561] text-center leading-snug">
+            Elegant looks for your unforgettable day
+          </p>
         </div>
 
         {/* Search Bar */}
         <div className="px-4 py-2">
-          <div className="flex items-center gap-2">
-            <div className="flex-1 flex items-center gap-2.5 rounded-full bg-white px-4 py-2.5 shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-black/5">
-              <Search className="h-4 w-4 shrink-0 text-[#8C827A]" />
-              <input
-                type="text"
-                placeholder="Search bridal boutiques, outfits..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-full bg-transparent text-[13px] sm:text-[14px] outline-none placeholder:text-[#AAA29A] text-[#1A1410]"
-              />
-            </div>
-            <button className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#0F4C45] text-white shadow-xs">
-              <SlidersHorizontal className="h-4 w-4" />
-            </button>
+          <div className="flex items-center gap-2.5 rounded-full bg-white px-4 py-2.5 shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-black/5">
+            <Search className="h-4 w-4 shrink-0 text-[#8C827A]" />
+            <input
+              type="text"
+              placeholder="Search bridal boutiques, outfits..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full bg-transparent text-[13px] sm:text-[14px] outline-none placeholder:text-[#AAA29A] text-[#1A1410]"
+            />
           </div>
         </div>
 
@@ -131,8 +120,8 @@ export function BridalWearListing() {
           </div>
           <div className="relative w-[40%] aspect-[3/4] rounded-xl overflow-hidden border border-white/20 shadow-sm">
             <Image
-              src="https://images.unsplash.com/photo-1549417229-aa67d3263c09?auto=format&fit=crop&w=600&q=80"
-              alt="Featured Couture"
+              src="https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=600&q=80"
+              alt="Featured Bride in Lehenga"
               fill
               className="object-cover"
             />
