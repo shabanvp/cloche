@@ -178,7 +178,7 @@ export const showcaseCategories: CategoryItem[] = [
     subtitle: "Lehengas, Sarees, Couture & Accessories",
     bgColor: "#F8F3EA",
     href: "/categories/bridal-wear",
-    image: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=1200&q=80",
+    image: "https://images.unsplash.com/photo-1594552072238-b8a33785b261?auto=format&fit=crop&w=1200&q=80",
     icon: DressIcon,
   },
   {
