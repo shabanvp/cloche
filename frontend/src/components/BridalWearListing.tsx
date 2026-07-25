@@ -102,31 +102,7 @@ export function BridalWearListing() {
           ))}
         </div>
 
-        {/* Featured House Card (Picture 1) */}
-        <div className="mx-4 my-3 rounded-2xl bg-[#0F4C45] p-4 text-white shadow-md flex items-center justify-between relative overflow-hidden">
-          <div className="max-w-[55%] z-10 space-y-2">
-            <div className="flex items-center gap-1 text-[11px] font-bold text-[#D4B66E] uppercase tracking-wider">
-              <span>👑</span> Featured Boutique
-            </div>
-            <h3 className="font-serif text-[20px] font-bold leading-tight">
-              House of Mehendi
-            </h3>
-            <p className="text-[12px] text-white/80 leading-tight">
-              Timeless couture for the modern bride.
-            </p>
-            <button className="mt-1 inline-flex items-center gap-1 rounded-xl bg-[#C8A96A] px-3.5 py-1.5 text-[12px] font-bold text-[#0F4C45]">
-              Explore Collection <ChevronRight className="h-3.5 w-3.5" />
-            </button>
-          </div>
-          <div className="relative w-[40%] aspect-[3/4] rounded-xl overflow-hidden border border-white/20 shadow-sm">
-            <Image
-              src="https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=600&q=80"
-              alt="Featured Bride in Lehenga"
-              fill
-              className="object-cover"
-            />
-          </div>
-        </div>
+
 
         {/* Top Bridal Boutiques List (Picture 1) */}
         <div className="px-4 pt-2 pb-1 flex items-center justify-between">
