@@ -133,7 +133,7 @@ export const showcaseCategories: CategoryItem[] = [
     subtitle: "Banquets, Halls, Heritage Spaces & Gardens",
     bgColor: "#F3EFE6",
     href: "/venues",
-    image: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=80",
+    image: "https://images.unsplash.com/photo-1519167758481-83f552bb8c74?auto=format&fit=crop&w=1200&q=80",
     icon: VenueIcon,
   },
   {
@@ -196,7 +196,7 @@ export const showcaseCategories: CategoryItem[] = [
     subtitle: "Digital Invites, Printed Cards & Stationery",
     bgColor: "#F2ECF4",
     href: "/categories/invitations",
-    image: "https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=1200&q=80",
+    image: "https://images.unsplash.com/photo-1513519245088-0e12902e5a38?auto=format&fit=crop&w=1200&q=80",
     icon: InvitationsIcon,
   },
   {
@@ -205,7 +205,7 @@ export const showcaseCategories: CategoryItem[] = [
     subtitle: "Sherwanis, Tuxedos & Custom Suits",
     bgColor: "#EBEFF3",
     href: "/categories/groom-wear",
-    image: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=80",
+    image: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=1200&q=80",
     icon: GroomIcon,
   },
   {
