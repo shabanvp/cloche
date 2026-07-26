@@ -1,26 +1,46 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { 
   Megaphone, Check, X, Pause, Play, Trash2, Eye, ShieldCheck, DollarSign, 
-  TrendingUp, Download, Sparkles, Filter, Search, Award, Star, CheckCircle2, AlertCircle
+  TrendingUp, Download, Sparkles, Filter, Search, Award, Star, CheckCircle2, AlertCircle, Plus, PhoneCall,
+  RefreshCw, MessageSquare, Calendar, Users, FileText, Layers, Clock
 } from "lucide-react";
 import { Button } from "@/components/Button";
-import { getStoredCampaigns, updateCampaignStatus, Campaign, AD_PACKAGES } from "@/lib/adStore";
+import { 
+  getStoredCampaigns, updateCampaignStatus, Campaign, AD_PACKAGES, 
+  getCampaignRequests, updateCampaignRequestStatus, CampaignRequest,
+  renewCampaign, addInternalNoteToCampaign, getCRMLeads, getFollowUps 
+} from "@/lib/adStore";
+import { CampaignPreviewModal } from "@/components/CampaignPreviewModal";
 
 export default function AdminMarketingPage() {
-  const [activeTab, setActiveTab] = useState<"campaigns" | "sponsored" | "revenue" | "analytics">("campaigns");
+  const router = useRouter();
+  const [activeTab, setActiveTab] = useState<"dashboard" | "campaigns" | "drafts" | "requests" | "revenue" | "analytics">("dashboard");
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [requests, setRequests] = useState<CampaignRequest[]>([]);
   const [statusFilter, setStatusFilter] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
+  
+  // Modals
   const [previewCampaign, setPreviewCampaign] = useState<Campaign | null>(null);
+  const [noteCampaign, setNoteCampaign] = useState<Campaign | null>(null);
+  const [newNoteText, setNewNoteText] = useState("");
+
+  const [leadsCount, setLeadsCount] = useState(0);
+  const [followUpsCount, setFollowUpsCount] = useState(0);
 
   useEffect(() => {
-    setCampaigns(getStoredCampaigns());
+    refreshData();
   }, []);
 
   const refreshData = () => {
     setCampaigns(getStoredCampaigns());
+    setRequests(getCampaignRequests());
+    setLeadsCount(getCRMLeads().length);
+    setFollowUpsCount(getFollowUps().filter((f) => f.status === "Pending").length);
   };
 
   const handleApprove = (id: string) => {
@@ -41,11 +61,48 @@ export default function AdminMarketingPage() {
     refreshData();
   };
 
+  const handleRenew = (id: string) => {
+    const renewed = renewCampaign(id);
+    if (renewed) {
+      refreshData();
+      alert(`Campaign renewed successfully as draft "${renewed.campaignName}"!`);
+      setActiveTab("drafts");
+    }
+  };
+
+  const handleAddNote = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!noteCampaign || !newNoteText.trim()) return;
+
+    addInternalNoteToCampaign(noteCampaign.id, newNoteText, "Marketing Superadmin");
+    setNewNoteText("");
+    setNoteCampaign(null);
+    refreshData();
+    alert("Internal admin note saved.");
+  };
+
+  const handleExportCSV = () => {
+    const headers = "Campaign,Vendor,Placement,Status,Amount,Impressions,Clicks,CTR%\n";
+    const rows = campaigns
+      .map((c) => `"${c.campaignName}","${c.vendorName}","${c.placement}","${c.status}",${c.amount},${c.impressions},${c.clicks},${c.ctr}`)
+      .join("\n");
+    const blob = new Blob([headers + rows], { type: "text/csv" });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `cloche_marketing_report_${new Date().toISOString().split("T")[0]}.csv`;
+    a.click();
+  };
+
   const filteredCampaigns = campaigns.filter((c) => {
+    if (activeTab === "drafts") {
+      if (c.status !== "draft") return false;
+    }
     const matchesStatus =
       statusFilter === "All" ||
       (statusFilter === "Active" && c.status === "active") ||
       (statusFilter === "Pending Approval" && c.status === "pending") ||
+      (statusFilter === "Draft" && c.status === "draft") ||
       (statusFilter === "Paused" && c.status === "paused") ||
       (statusFilter === "Rejected" && c.status === "rejected");
     const q = searchQuery.toLowerCase();
@@ -63,46 +120,83 @@ export default function AdminMarketingPage() {
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       
-      {/* Header */}
+      {/* Top Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end pb-4 gap-4 border-b border-gold/10">
         <div>
-          <h1 className="text-3xl font-display text-charcoal font-semibold">Advertisement & Sponsored Listings Management</h1>
+          <h1 className="text-3xl font-display text-charcoal font-semibold">Marketing CRM & Advertisement Platform</h1>
           <p className="text-sm text-charcoal/70 mt-1">
-            Approve vendor campaigns, manage sponsored placements, track ad revenue, and monitor platform performance.
+            Manage vendor ad campaigns, sales leads, follow-ups, revenue reports, and advertisement placements.
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="bg-emerald/10 text-emerald px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
-            <ShieldCheck className="w-4 h-4" /> Marketing Control Center
-          </span>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleExportCSV}
+            className="bg-white text-charcoal hover:bg-gold/10 border border-gold/20 px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2"
+          >
+            <Download className="w-4 h-4" /> Export Report (CSV)
+          </button>
+          <Link
+            href="/admin/marketing/create"
+            className="bg-[#0F4C45] text-white px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider shadow-md hover:bg-[#12584E] transition-all flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" /> Create Advertisement
+          </Link>
         </div>
       </div>
 
-      {/* Admin Tabs */}
+      {/* Admin Submenu Tabs */}
       <div className="flex gap-2 overflow-x-auto pb-2 border-b border-gold/10 hide-scrollbar">
+        <button
+          onClick={() => setActiveTab("dashboard")}
+          className={`px-5 py-2.5 rounded-2xl text-xs font-bold uppercase tracking-wider transition-all ${
+            activeTab === "dashboard" ? "bg-[#0F4C45] text-white shadow-md" : "bg-white text-charcoal/70 hover:bg-gold/10"
+          }`}
+        >
+          Dashboard & Widgets
+        </button>
         <button
           onClick={() => setActiveTab("campaigns")}
           className={`px-5 py-2.5 rounded-2xl text-xs font-bold uppercase tracking-wider transition-all ${
             activeTab === "campaigns" ? "bg-[#0F4C45] text-white shadow-md" : "bg-white text-charcoal/70 hover:bg-gold/10"
           }`}
         >
-          Campaigns & Approvals ({campaigns.filter((c) => c.status === "pending").length} Pending)
+          All Campaigns ({campaigns.filter((c) => c.status === "pending").length} Pending)
         </button>
         <button
-          onClick={() => setActiveTab("sponsored")}
+          onClick={() => setActiveTab("drafts")}
           className={`px-5 py-2.5 rounded-2xl text-xs font-bold uppercase tracking-wider transition-all ${
-            activeTab === "sponsored" ? "bg-[#0F4C45] text-white shadow-md" : "bg-white text-charcoal/70 hover:bg-gold/10"
+            activeTab === "drafts" ? "bg-[#0F4C45] text-white shadow-md" : "bg-white text-charcoal/70 hover:bg-gold/10"
           }`}
         >
-          Sponsored Vendors & Placements
+          Draft Campaigns ({campaigns.filter((c) => c.status === "draft").length})
         </button>
+        <button
+          onClick={() => setActiveTab("requests")}
+          className={`px-5 py-2.5 rounded-2xl text-xs font-bold uppercase tracking-wider transition-all ${
+            activeTab === "requests" ? "bg-[#0F4C45] text-white shadow-md" : "bg-white text-charcoal/70 hover:bg-gold/10"
+          }`}
+        >
+          Campaign Requests ({requests.length})
+        </button>
+        <Link
+          href="/admin/marketing/leads"
+          className="bg-white text-charcoal/70 hover:bg-gold/10 border border-gold/15 px-5 py-2.5 rounded-2xl text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5"
+        >
+          <Users className="w-3.5 h-3.5 text-gold" /> Sales Leads ({leadsCount})
+        </Link>
+        <Link
+          href="/admin/marketing/followups"
+          className="bg-white text-charcoal/70 hover:bg-gold/10 border border-gold/15 px-5 py-2.5 rounded-2xl text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5"
+        >
+          <Calendar className="w-3.5 h-3.5 text-emerald" /> Follow-Ups ({followUpsCount})
+        </Link>
         <button
           onClick={() => setActiveTab("revenue")}
           className={`px-5 py-2.5 rounded-2xl text-xs font-bold uppercase tracking-wider transition-all ${
             activeTab === "revenue" ? "bg-[#0F4C45] text-white shadow-md" : "bg-white text-charcoal/70 hover:bg-gold/10"
           }`}
         >
-          Revenue & Packages (₹{totalRevenue.toLocaleString()})
+          Revenue (₹{totalRevenue.toLocaleString()})
         </button>
         <button
           onClick={() => setActiveTab("analytics")}
@@ -110,17 +204,94 @@ export default function AdminMarketingPage() {
             activeTab === "analytics" ? "bg-[#0F4C45] text-white shadow-md" : "bg-white text-charcoal/70 hover:bg-gold/10"
           }`}
         >
-          Analytics & CTR Reports
+          Analytics & CTR
         </button>
       </div>
 
-      {/* Tab 1: Campaigns & Approvals */}
-      {activeTab === "campaigns" && (
+      {/* Tab 1: Dashboard Widgets */}
+      {activeTab === "dashboard" && (
         <div className="space-y-6">
-          {/* Filters & Search */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            <div className="bg-white p-6 rounded-2xl border border-gold/15 shadow-sm space-y-2">
+              <div className="flex justify-between items-center text-charcoal/60">
+                <span className="text-xs font-bold uppercase">Total Ad Revenue</span>
+                <DollarSign className="w-5 h-5 text-emerald" />
+              </div>
+              <p className="text-3xl font-display font-bold text-emerald">₹{totalRevenue.toLocaleString()}</p>
+              <p className="text-xs text-charcoal/60">Across all active campaigns</p>
+            </div>
+
+            <div className="bg-white p-6 rounded-2xl border border-gold/15 shadow-sm space-y-2">
+              <div className="flex justify-between items-center text-charcoal/60">
+                <span className="text-xs font-bold uppercase">Sales Leads</span>
+                <Users className="w-5 h-5 text-gold" />
+              </div>
+              <p className="text-3xl font-display font-bold text-charcoal">{leadsCount} Leads</p>
+              <Link href="/admin/marketing/leads" className="text-xs text-emerald font-semibold hover:underline block">
+                Manage CRM pipeline →
+              </Link>
+            </div>
+
+            <div className="bg-white p-6 rounded-2xl border border-gold/15 shadow-sm space-y-2">
+              <div className="flex justify-between items-center text-charcoal/60">
+                <span className="text-xs font-bold uppercase">Pending Follow-ups</span>
+                <Clock className="w-5 h-5 text-amber-600" />
+              </div>
+              <p className="text-3xl font-display font-bold text-charcoal">{followUpsCount} Reminders</p>
+              <Link href="/admin/marketing/followups" className="text-xs text-emerald font-semibold hover:underline block">
+                View call schedule →
+              </Link>
+            </div>
+
+            <div className="bg-white p-6 rounded-2xl border border-gold/15 shadow-sm space-y-2">
+              <div className="flex justify-between items-center text-charcoal/60">
+                <span className="text-xs font-bold uppercase">Draft Campaigns</span>
+                <FileText className="w-5 h-5 text-purple-600" />
+              </div>
+              <p className="text-3xl font-display font-bold text-charcoal">
+                {campaigns.filter((c) => c.status === "draft").length} Drafts
+              </p>
+              <button onClick={() => setActiveTab("drafts")} className="text-xs text-emerald font-semibold hover:underline">
+                View draft queue →
+              </button>
+            </div>
+          </div>
+
+          {/* Quick Actions Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="bg-white p-6 rounded-2xl border border-gold/15 shadow-sm space-y-3">
+              <h3 className="font-display font-semibold text-lg text-charcoal">Direct Admin Creation</h3>
+              <p className="text-xs text-charcoal/70">Create ad campaigns for vendors who contacted Cloche directly via phone or WhatsApp.</p>
+              <Link href="/admin/marketing/create" className="inline-block bg-[#0F4C45] text-white px-4 py-2 rounded-xl text-xs font-bold uppercase">
+                Launch Form →
+              </Link>
+            </div>
+
+            <div className="bg-white p-6 rounded-2xl border border-gold/15 shadow-sm space-y-3">
+              <h3 className="font-display font-semibold text-lg text-charcoal">Sales Leads CRM</h3>
+              <p className="text-xs text-charcoal/70">Track vendor sales deals from initial contact to negotiation and won deals.</p>
+              <Link href="/admin/marketing/leads" className="inline-block bg-[#0F4C45] text-white px-4 py-2 rounded-xl text-xs font-bold uppercase">
+                Open CRM →
+              </Link>
+            </div>
+
+            <div className="bg-white p-6 rounded-2xl border border-gold/15 shadow-sm space-y-3">
+              <h3 className="font-display font-semibold text-lg text-charcoal">Dynamic Packages</h3>
+              <p className="text-xs text-charcoal/70">Manage ad placement pricing, reach estimates, and priority caps.</p>
+              <Link href="/admin/marketing/packages" className="inline-block bg-[#0F4C45] text-white px-4 py-2 rounded-xl text-xs font-bold uppercase">
+                Manage Packages →
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Tab 2 & 3: Campaigns / Drafts Table */}
+      {(activeTab === "campaigns" || activeTab === "drafts") && (
+        <div className="space-y-6">
           <div className="flex flex-col sm:flex-row justify-between gap-4 bg-white p-4 rounded-2xl border border-gold/15 shadow-sm">
             <div className="flex gap-2 overflow-x-auto pb-2 sm:pb-0 hide-scrollbar">
-              {["All", "Pending Approval", "Active", "Paused", "Rejected"].map((tab) => (
+              {["All", "Pending Approval", "Active", "Draft", "Paused", "Rejected"].map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setStatusFilter(tab)}
@@ -144,13 +315,13 @@ export default function AdminMarketingPage() {
             </div>
           </div>
 
-          {/* Table */}
           <div className="bg-white rounded-2xl border border-gold/15 shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse text-xs">
                 <thead>
                   <tr className="bg-[#F8F6F0] border-b border-gold/10 uppercase tracking-wider text-charcoal/60 font-semibold">
                     <th className="p-4 pl-6">Campaign & Vendor</th>
+                    <th className="p-4">Source</th>
                     <th className="p-4">Placement</th>
                     <th className="p-4">Duration</th>
                     <th className="p-4">Payment</th>
@@ -176,6 +347,18 @@ export default function AdminMarketingPage() {
                       </td>
 
                       <td className="p-4">
+                        {camp.createdSource === "admin_created" ? (
+                          <span className="bg-emerald/10 text-emerald font-bold px-2 py-0.5 rounded text-[10px] uppercase">
+                            Admin Created
+                          </span>
+                        ) : (
+                          <span className="bg-blue-50 text-blue-700 font-bold px-2 py-0.5 rounded text-[10px] uppercase">
+                            Self Service
+                          </span>
+                        )}
+                      </td>
+
+                      <td className="p-4">
                         <span className="bg-gold/15 text-charcoal font-semibold px-2.5 py-1 rounded-md">
                           {camp.placement}
                         </span>
@@ -187,7 +370,7 @@ export default function AdminMarketingPage() {
 
                       <td className="p-4">
                         <div className="font-bold text-emerald">₹{camp.amount.toLocaleString()}</div>
-                        <div className="text-[10px] text-emerald uppercase font-bold">{camp.paymentStatus}</div>
+                        <div className="text-[10px] text-charcoal/60 font-semibold">{camp.paymentSource || "Paid Online"}</div>
                       </td>
 
                       <td className="p-4">
@@ -205,6 +388,10 @@ export default function AdminMarketingPage() {
                           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-800 border border-amber-300">
                             <AlertCircle className="w-3 h-3" /> Pending Review
                           </span>
+                        ) : camp.status === "draft" ? (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-purple-100 text-purple-800 border border-purple-200">
+                            <FileText className="w-3 h-3" /> Draft
+                          </span>
                         ) : (
                           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-gray-100 text-gray-700">
                             {camp.status}
@@ -217,31 +404,31 @@ export default function AdminMarketingPage() {
                         <div className="text-emerald font-semibold">{camp.clicks} clicks ({camp.ctr}% CTR)</div>
                       </td>
 
-                      <td className="p-4 pr-6 text-right space-x-2">
+                      <td className="p-4 pr-6 text-right space-x-1.5">
                         <button
                           onClick={() => setPreviewCampaign(camp)}
-                          className="bg-gray-100 text-charcoal hover:bg-gray-200 px-2.5 py-1.5 rounded-lg font-semibold transition-colors"
-                          title="Preview Creative"
+                          className="bg-gray-100 text-charcoal hover:bg-gray-200 p-2 rounded-lg font-semibold transition-colors"
+                          title="Interactive Multi-Device Preview"
                         >
                           <Eye className="w-3.5 h-3.5" />
                         </button>
 
-                        {camp.status === "pending" && (
-                          <>
-                            <button
-                              onClick={() => handleApprove(camp.id)}
-                              className="bg-emerald text-white px-3 py-1.5 rounded-lg font-semibold hover:bg-emerald/90 transition-colors inline-flex items-center gap-1"
-                            >
-                              <Check className="w-3.5 h-3.5" /> Approve
-                            </button>
-                            <button
-                              onClick={() => handleReject(camp.id)}
-                              className="bg-red-50 text-red-600 hover:bg-red-100 px-3 py-1.5 rounded-lg font-semibold transition-colors inline-flex items-center gap-1"
-                            >
-                              <X className="w-3.5 h-3.5" /> Reject
-                            </button>
-                          </>
-                        )}
+                        <button
+                          onClick={() => setNoteCampaign(camp)}
+                          className="bg-gold/15 text-charcoal hover:bg-gold/25 p-2 rounded-lg font-semibold transition-colors"
+                          title="Internal Admin Notes"
+                        >
+                          <MessageSquare className="w-3.5 h-3.5" />
+                        </button>
+
+                        {camp.status === "pending" || camp.status === "draft" ? (
+                          <button
+                            onClick={() => handleApprove(camp.id)}
+                            className="bg-emerald text-white px-3 py-1.5 rounded-lg font-semibold hover:bg-emerald/90 transition-colors inline-flex items-center gap-1"
+                          >
+                            <Check className="w-3.5 h-3.5" /> Approve & Live
+                          </button>
+                        ) : null}
 
                         {camp.status === "active" && (
                           <button
@@ -252,14 +439,13 @@ export default function AdminMarketingPage() {
                           </button>
                         )}
 
-                        {camp.status === "paused" && (
-                          <button
-                            onClick={() => handleTogglePause(camp.id, camp.status)}
-                            className="bg-emerald/10 text-emerald hover:bg-emerald/20 px-3 py-1.5 rounded-lg font-semibold transition-colors inline-flex items-center gap-1"
-                          >
-                            <Play className="w-3.5 h-3.5" /> Resume
-                          </button>
-                        )}
+                        <button
+                          onClick={() => handleRenew(camp.id)}
+                          className="bg-blue-50 text-blue-700 hover:bg-blue-100 p-2 rounded-lg font-semibold transition-colors"
+                          title="Renew Campaign"
+                        >
+                          <RefreshCw className="w-3.5 h-3.5" />
+                        </button>
                       </td>
                     </tr>
                   ))}
@@ -270,32 +456,48 @@ export default function AdminMarketingPage() {
         </div>
       )}
 
-      {/* Tab 2: Sponsored Vendors */}
-      {activeTab === "sponsored" && (
+      {/* Tab 4: Campaign Requests */}
+      {activeTab === "requests" && (
         <div className="space-y-6">
           <div className="bg-white p-6 rounded-2xl border border-gold/15 shadow-sm space-y-4">
-            <h3 className="text-xl font-display font-semibold text-charcoal">Sponsored Listing Slots Across Pages</h3>
-            <p className="text-xs text-charcoal/70">Manage high-priority sponsored badges displayed on search results and category listing headers.</p>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5 pt-2">
-              {["Homepage Hero Banner", "Category Page Top", "Search Results"].map((slot) => {
-                const count = campaigns.filter((c) => c.placement === slot && c.status === "active").length;
-                return (
-                  <div key={slot} className="bg-[#FBF8F1] p-5 rounded-2xl border border-gold/15 space-y-2">
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-gold bg-gold/10 px-2 py-0.5 rounded">
-                      Placement Slot
-                    </span>
-                    <h4 className="font-display font-semibold text-lg text-charcoal">{slot}</h4>
-                    <p className="text-xs text-emerald font-bold">{count} Active Sponsored Banners</p>
-                  </div>
-                );
-              })}
+            <h3 className="text-xl font-display font-semibold text-charcoal">Offline Vendor Assistance Leads</h3>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr className="bg-[#F8F6F0] border-b border-gold/10 uppercase tracking-wider text-charcoal/60 font-semibold">
+                    <th className="p-3.5 pl-4">Vendor</th>
+                    <th className="p-3.5">Requested Placement</th>
+                    <th className="p-3.5">Budget</th>
+                    <th className="p-3.5">Notes</th>
+                    <th className="p-3.5">Status</th>
+                    <th className="p-3.5 text-right pr-4">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gold/10">
+                  {requests.map((r) => (
+                    <tr key={r.id} className="hover:bg-[#FBF8F1]">
+                      <td className="p-3.5 pl-4 font-bold text-charcoal">{r.vendorName} ({r.phone})</td>
+                      <td className="p-3.5 text-charcoal font-semibold">{r.requestedPlacement}</td>
+                      <td className="p-3.5 text-emerald font-bold">{r.budget}</td>
+                      <td className="p-3.5 text-charcoal/80 max-w-xs">{r.notes}</td>
+                      <td className="p-3.5"><span className="bg-gold/15 text-charcoal font-bold px-2 py-0.5 rounded">{r.status}</span></td>
+                      <td className="p-3.5 pr-4 text-right">
+                        <Link href={`/admin/marketing/create?vendor=${encodeURIComponent(r.vendorName)}&placement=${encodeURIComponent(r.requestedPlacement)}`}>
+                          <Button className="bg-[#0F4C45] text-white rounded-lg text-xs font-bold uppercase">
+                            Convert to Campaign
+                          </Button>
+                        </Link>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
       )}
 
-      {/* Tab 3: Revenue & Packages */}
+      {/* Tab 5: Revenue & Reports */}
       {activeTab === "revenue" && (
         <div className="space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
@@ -312,15 +514,23 @@ export default function AdminMarketingPage() {
               <p className="text-3xl font-display font-bold text-gold">{AD_PACKAGES.length} Packages</p>
             </div>
           </div>
+
+          <div className="bg-white p-6 rounded-2xl border border-gold/15 shadow-sm space-y-3">
+            <h3 className="font-display font-semibold text-lg text-charcoal">Financial & Ad Performance Export</h3>
+            <p className="text-xs text-charcoal/70">Export full campaign performance reports including impressions, clicks, CTR, and payments.</p>
+            <Button onClick={handleExportCSV} className="bg-[#0F4C45] text-white rounded-xl text-xs font-bold uppercase tracking-wider">
+              Download CSV Report
+            </Button>
+          </div>
         </div>
       )}
 
-      {/* Tab 4: Analytics */}
+      {/* Tab 6: Analytics */}
       {activeTab === "analytics" && (
         <div className="space-y-6">
           <div className="bg-white p-6 rounded-2xl border border-gold/15 shadow-sm space-y-4">
-            <h3 className="text-xl font-display font-semibold text-charcoal">Overall Ad Performance</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <h3 className="text-xl font-display font-semibold text-charcoal">Overall Platform Ad Performance</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="bg-[#FBF8F1] p-4 rounded-xl border border-gold/10">
                 <div className="text-xs text-charcoal/60">Total Platform Impressions</div>
                 <div className="text-2xl font-bold text-charcoal mt-1">{totalImpressions.toLocaleString()}</div>
@@ -340,33 +550,55 @@ export default function AdminMarketingPage() {
         </div>
       )}
 
-      {/* Preview Modal */}
+      {/* Interactive Device Preview Modal */}
       {previewCampaign && (
+        <CampaignPreviewModal campaign={previewCampaign} onClose={() => setPreviewCampaign(null)} />
+      )}
+
+      {/* Internal Notes Modal */}
+      {noteCampaign && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-xl w-full p-6 shadow-2xl border border-gold/20 space-y-4">
+          <form onSubmit={handleAddNote} className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-gold/20 space-y-4">
             <div className="flex justify-between items-center border-b border-gold/10 pb-3">
-              <h3 className="font-display text-xl text-charcoal font-semibold">Preview Creative: {previewCampaign.campaignName}</h3>
-              <button onClick={() => setPreviewCampaign(null)}><X className="w-5 h-5 text-gray-400" /></button>
+              <h3 className="font-display text-xl text-charcoal font-semibold">Admin Notes: {noteCampaign.campaignName}</h3>
+              <button type="button" onClick={() => setNoteCampaign(null)}><X className="w-5 h-5 text-gray-400" /></button>
             </div>
-            
+
             <div className="space-y-3">
-              <div className="relative h-48 w-full rounded-2xl overflow-hidden border border-gold/20">
-                <img src={previewCampaign.desktopBanner} alt={previewCampaign.title} className="w-full h-full object-cover" />
+              <div className="max-h-48 overflow-y-auto space-y-2 p-3 bg-[#FBF8F1] rounded-2xl border border-gold/10 text-xs">
+                {noteCampaign.internalNotesList?.length ? (
+                  noteCampaign.internalNotesList.map((n) => (
+                    <div key={n.id} className="bg-white p-2.5 rounded-xl border border-gold/15 shadow-sm space-y-1">
+                      <div className="flex justify-between text-[10px] text-charcoal/50">
+                        <span className="font-bold text-charcoal">{n.author}</span>
+                        <span>{n.createdAt}</span>
+                      </div>
+                      <p className="text-charcoal">{n.text}</p>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-charcoal/50 italic text-center py-3">No internal admin notes yet.</p>
+                )}
               </div>
-              <div className="bg-[#FBF8F1] p-4 rounded-2xl border border-gold/10 text-xs space-y-1.5">
-                <div><strong>Vendor:</strong> {previewCampaign.vendorName} ({previewCampaign.vendorEmail})</div>
-                <div><strong>Title:</strong> {previewCampaign.title}</div>
-                <div><strong>Description:</strong> {previewCampaign.shortDescription}</div>
-                <div><strong>CTA Link:</strong> {previewCampaign.ctaLink}</div>
+
+              <div>
+                <label className="font-semibold block text-charcoal/70 text-xs mb-1">Add New Internal Note</label>
+                <textarea
+                  required
+                  rows={3}
+                  value={newNoteText}
+                  onChange={(e) => setNewNoteText(e.target.value)}
+                  placeholder="e.g. Vendor requested HD banner update next week..."
+                  className="w-full bg-[#FBF8F1] border border-gold/20 rounded-xl p-2.5 text-xs text-charcoal outline-none"
+                />
               </div>
             </div>
 
-            <div className="flex justify-end pt-2">
-              <Button onClick={() => setPreviewCampaign(null)} className="bg-charcoal text-white rounded-xl">
-                Close Preview
-              </Button>
+            <div className="pt-2 flex justify-end gap-3 border-t border-gold/10">
+              <Button type="button" variant="ghost" onClick={() => setNoteCampaign(null)}>Cancel</Button>
+              <Button type="submit" className="bg-[#0F4C45] text-white rounded-xl text-xs font-bold uppercase">Save Note</Button>
             </div>
-          </div>
+          </form>
         </div>
       )}
 
