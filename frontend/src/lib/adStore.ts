@@ -151,6 +151,78 @@ export type TimelineEvent = {
   notes?: string;
 };
 
+export type TeamAssignment = {
+  marketingExecutive?: string;
+  salesExecutive?: string;
+  graphicDesigner?: string;
+  accountManager?: string;
+  supportManager?: string;
+  assignedDate: string;
+};
+
+export type TaskChecklist = {
+  id: string;
+  label: string;
+  completed: boolean;
+  completedAt?: string;
+};
+
+export type CreativeVariant = {
+  id: string;
+  name: string;
+  desktopBanner: string;
+  mobileBanner: string;
+  title: string;
+  impressions: number;
+  clicks: number;
+  ctr: number;
+  whatsappClicks: number;
+  callClicks: number;
+};
+
+export type InvoiceRecord = {
+  id: string;
+  invoiceNumber: string;
+  campaignId: string;
+  vendorName: string;
+  businessName: string;
+  gstNumber?: string;
+  amount: number;
+  taxAmount: number;
+  totalAmount: number;
+  paymentMode: string;
+  invoiceDate: string;
+  status: "Paid" | "Pending" | "Cancelled";
+};
+
+export type MediaAsset = {
+  id: string;
+  name: string;
+  type: "image" | "video" | "logo" | "document";
+  url: string;
+  size: string;
+  resolution?: string;
+  tags: string[];
+  usageCount: number;
+  uploadDate: string;
+};
+
+export type ContractDocument = {
+  id: string;
+  campaignId: string;
+  vendorName: string;
+  type: "Quotation" | "Proposal" | "Agreement" | "Invoice" | "Receipt" | "GST Invoice" | "Design Files";
+  title: string;
+  fileUrl: string;
+  uploadDate: string;
+};
+
+export type InventorySlot = {
+  placement: string;
+  maxActive: number;
+  overrideLimit?: boolean;
+};
+
 export type Campaign = {
   id: string;
   vendorId: string;
@@ -192,6 +264,10 @@ export type Campaign = {
   notes?: string;
   internalNotesList?: InternalNote[];
   timeline?: TimelineEvent[];
+  teamAssignments?: TeamAssignment;
+  checklist?: TaskChecklist[];
+  abVariants?: CreativeVariant[];
+  invoiceRecord?: InvoiceRecord;
   createdAt: string;
 };
 
@@ -912,5 +988,173 @@ export function createAdPackage(pkg: Partial<AdPackage>): AdPackage {
   saveDynamicPackages(updated);
   return created;
 }
+
+// ----------------------------------------------------
+// ENTERPRISE INVENTORY MANAGEMENT & MEDIA LIBRARY
+// ----------------------------------------------------
+
+export const DEFAULT_INVENTORY: InventorySlot[] = [
+  { placement: "Homepage Hero Banner", maxActive: 3 },
+  { placement: "Homepage Between Categories", maxActive: 5 },
+  { placement: "Category Page Top", maxActive: 2 },
+  { placement: "Search Results", maxActive: 3 },
+  { placement: "Vendor Profile Top", maxActive: 5 },
+  { placement: "Blog Pages", maxActive: 4 },
+  { placement: "Mobile Sticky Banner", maxActive: 3 },
+];
+
+const INVENTORY_STORAGE_KEY = "cloche_ad_inventory_v1";
+const MEDIA_STORAGE_KEY = "cloche_media_assets_v1";
+const CONTRACTS_STORAGE_KEY = "cloche_contracts_v1";
+
+export function getInventorySlots(): InventorySlot[] {
+  if (typeof window === "undefined") return DEFAULT_INVENTORY;
+  try {
+    const raw = localStorage.getItem(INVENTORY_STORAGE_KEY);
+    if (!raw) {
+      localStorage.setItem(INVENTORY_STORAGE_KEY, JSON.stringify(DEFAULT_INVENTORY));
+      return DEFAULT_INVENTORY;
+    }
+    return JSON.parse(raw);
+  } catch (e) {
+    return DEFAULT_INVENTORY;
+  }
+}
+
+export function saveInventorySlots(slots: InventorySlot[]): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(INVENTORY_STORAGE_KEY, JSON.stringify(slots));
+  } catch (e) {}
+}
+
+export function checkPlacementAvailability(placement: string): { isAvailable: boolean; currentActive: number; maxActive: number } {
+  const slots = getInventorySlots();
+  const slot = slots.find((s) => s.placement === placement) || { placement, maxActive: 3 };
+  const activeCount = getActiveCampaignsByPlacement(placement).length;
+  const isAvailable = slot.overrideLimit || activeCount < slot.maxActive;
+  return { isAvailable, currentActive: activeCount, maxActive: slot.maxActive };
+}
+
+export const INITIAL_MEDIA_ASSETS: MediaAsset[] = [
+  {
+    id: "media-01",
+    name: "Royal Zardozi Lehenga Hero Banner",
+    type: "image",
+    url: "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=1600&q=80",
+    size: "1.4 MB",
+    resolution: "1920x600 px",
+    tags: ["Bridal", "Hero", "Zardozi", "Silk"],
+    usageCount: 4,
+    uploadDate: "2026-04-01",
+  },
+  {
+    id: "media-02",
+    name: "Kerala Destination Photography Banner",
+    type: "image",
+    url: "https://images.unsplash.com/photo-1537633552985-df8429e8048b?auto=format&fit=crop&w=1200&q=80",
+    size: "850 KB",
+    resolution: "1200x350 px",
+    tags: ["Photography", "Outdoor", "Candid"],
+    usageCount: 2,
+    uploadDate: "2026-04-10",
+  },
+];
+
+export function getMediaAssets(): MediaAsset[] {
+  if (typeof window === "undefined") return INITIAL_MEDIA_ASSETS;
+  try {
+    const raw = localStorage.getItem(MEDIA_STORAGE_KEY);
+    if (!raw) {
+      localStorage.setItem(MEDIA_STORAGE_KEY, JSON.stringify(INITIAL_MEDIA_ASSETS));
+      return INITIAL_MEDIA_ASSETS;
+    }
+    return JSON.parse(raw);
+  } catch (e) {
+    return INITIAL_MEDIA_ASSETS;
+  }
+}
+
+export function saveMediaAssets(assets: MediaAsset[]): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(MEDIA_STORAGE_KEY, JSON.stringify(assets));
+  } catch (e) {}
+}
+
+export function createMediaAsset(asset: Partial<MediaAsset>): MediaAsset {
+  const existing = getMediaAssets();
+  const created: MediaAsset = {
+    id: `media-${Date.now()}`,
+    name: asset.name || "Uploaded Media Asset",
+    type: asset.type || "image",
+    url: asset.url || "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=800&q=80",
+    size: asset.size || "1.1 MB",
+    resolution: asset.resolution || "1200x600 px",
+    tags: asset.tags || ["General"],
+    usageCount: 1,
+    uploadDate: new Date().toISOString().split("T")[0],
+  };
+  const updated = [created, ...existing];
+  saveMediaAssets(updated);
+  return created;
+}
+
+export const INITIAL_CONTRACTS: ContractDocument[] = [
+  {
+    id: "doc-01",
+    campaignId: "camp-01",
+    vendorName: "Aurelia Brides",
+    type: "Agreement",
+    title: "Official Ad Sponsorship Agreement 2026",
+    fileUrl: "/docs/agreement_aurelia.pdf",
+    uploadDate: "2026-04-01",
+  },
+  {
+    id: "doc-02",
+    campaignId: "camp-01",
+    vendorName: "Aurelia Brides",
+    type: "GST Invoice",
+    title: "Tax Invoice INV-2026-001 (18% GST)",
+    fileUrl: "/docs/invoice_aurelia.pdf",
+    uploadDate: "2026-04-01",
+  },
+];
+
+export function getContractDocuments(): ContractDocument[] {
+  if (typeof window === "undefined") return INITIAL_CONTRACTS;
+  try {
+    const raw = localStorage.getItem(CONTRACTS_STORAGE_KEY);
+    if (!raw) {
+      localStorage.setItem(CONTRACTS_STORAGE_KEY, JSON.stringify(INITIAL_CONTRACTS));
+      return INITIAL_CONTRACTS;
+    }
+    return JSON.parse(raw);
+  } catch (e) {
+    return INITIAL_CONTRACTS;
+  }
+}
+
+export function saveContractDocuments(docs: ContractDocument[]): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(CONTRACTS_STORAGE_KEY, JSON.stringify(docs));
+  } catch (e) {}
+}
+
+export function getAIRecommendations(campaigns: Campaign[]) {
+  const active = campaigns.filter((c) => c.status === "active");
+  const topCampaign = active.sort((a, b) => b.ctr - a.ctr)[0] || campaigns[0];
+  const lowestCampaign = active.sort((a, b) => a.ctr - b.ctr)[0] || campaigns[0];
+
+  return {
+    bestBanner: topCampaign ? `${topCampaign.campaignName} (${topCampaign.ctr}% CTR)` : "N/A",
+    worstBanner: lowestCampaign ? `${lowestCampaign.campaignName} (${lowestCampaign.ctr}% CTR)` : "N/A",
+    bestCategory: "Bridal Wear (5.65% avg CTR)",
+    recommendedPlacement: "Homepage Hero Banner",
+    suggestedAction: "Increase budget for Bridal Wear Category Top slots by 20% to maximize wedding enquiries.",
+  };
+}
+
 
 

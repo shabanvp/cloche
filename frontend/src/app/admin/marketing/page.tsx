@@ -190,6 +190,30 @@ export default function AdminMarketingPage() {
         >
           <Calendar className="w-3.5 h-3.5 text-emerald" /> Follow-Ups ({followUpsCount})
         </Link>
+        <Link
+          href="/admin/marketing/inventory"
+          className="bg-white text-charcoal/70 hover:bg-gold/10 border border-gold/15 px-5 py-2.5 rounded-2xl text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5"
+        >
+          <Layers className="w-3.5 h-3.5 text-gold" /> Inventory
+        </Link>
+        <Link
+          href="/admin/marketing/calendar"
+          className="bg-white text-charcoal/70 hover:bg-gold/10 border border-gold/15 px-5 py-2.5 rounded-2xl text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5"
+        >
+          <Calendar className="w-3.5 h-3.5 text-blue-600" /> Calendar
+        </Link>
+        <Link
+          href="/admin/marketing/media"
+          className="bg-white text-charcoal/70 hover:bg-gold/10 border border-gold/15 px-5 py-2.5 rounded-2xl text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5"
+        >
+          <Sparkles className="w-3.5 h-3.5 text-purple-600" /> Media Library
+        </Link>
+        <Link
+          href="/admin/marketing/contracts"
+          className="bg-white text-charcoal/70 hover:bg-gold/10 border border-gold/15 px-5 py-2.5 rounded-2xl text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5"
+        >
+          <FileText className="w-3.5 h-3.5 text-emerald" /> Contracts
+        </Link>
         <button
           onClick={() => setActiveTab("revenue")}
           className={`px-5 py-2.5 rounded-2xl text-xs font-bold uppercase tracking-wider transition-all ${
