@@ -7,216 +7,392 @@ import { Footer } from "@/components/Footer";
 export const dynamic = 'force-dynamic';
 
 export default function Home() {
+  const popularSearches = [
+    {
+      label: "Photographers",
+      href: "/photographers",
+      img: "https://lh3.googleusercontent.com/aida-public/AB6AXuAhu3icOJFqvCTS0Yc-P5E3dS49T9gfcnLUGMEJUhz1FH0rWgdSyks60a9D_mvFEwxqsDf-7NZqI2xdlVSWq7JNTdhk55a9ApAXK3tSrQ0LuAKMF_ERJTfXOe_plw1o4cWStgv3avsNJmKjj0TMI7Qh58nWN7PXxcshFJWIXmlUuaJM70m2qvh9dYeyCNM8tnlyWufnjAyXgQK3b0GDo5eomlGyLjh1VFgmzxgJx1sy5BxDx8uBwxXCpuwKcZjZkw6S_C_Tyd_KWhRG",
+      alt: "Wedding Photographer"
+    },
+    {
+      label: "Invitations",
+      href: "/invitations",
+      img: "https://lh3.googleusercontent.com/aida-public/AB6AXuCZAPbI_YUAMNRWikML7wsySzfjqEypSebODZuEtNr3ZGtyb6q_i5zWAfnhu5c76vzUNisHAj9nGpYaOro-C8D97o9kwmiYH7F9MtyqUWawQPDlHBNyTreVuBhB6JViI9JhamJ_6-okzLqjL5ZZOiJHQ3NRv3MQoYMaMcZ_L3HGRmxHD6IYa08ijWYMuTk6GUN6O-U1Sd0v-2RdUFoC9DObKocGyGm_zLg5T3q3QLDST-MD3cnfXaPhxA0k8qgUQG6JrbAstOv951YD",
+      alt: "Wedding Invitations"
+    },
+    {
+      label: "Catering",
+      href: "/catering",
+      img: "https://lh3.googleusercontent.com/aida-public/AB6AXuAIttErFBHy9QscHEJk0OBcJyKoRuebpySjvFYxChzwBGdF0_CkESZFpAz7RwTeD47dIGBsebzVOM7njZsd3DIrvBXKh0Fnp8TIns3bKInyycQ5URRN8M-lQ-4gHSayBikcseL_SS7X8HPen8XdGz4b5KuheFjT3QYrN64ogJ0w4iYaaTUIOq0Fqc_uA7ed6IiNT5xz4zF2hQOjD_CNhCdT_4z7AdZ6GDEucyEYoVM_oM9xqSKVyWfhHh-jbFiuepkEs-ayDg8RQRgV",
+      alt: "Wedding Catering"
+    },
+    {
+      label: "Bridal Wear",
+      href: "/categories/bridal-wear",
+      img: "https://lh3.googleusercontent.com/aida-public/AB6AXuAEsY487mYFYvQkZCNfBcXsTzh1p5Yw4tRBQd_WTibQv72oGWZf2uTN8XzzW_Gv54COfSRIcj4brm8yydAp-aU43QT-AnIhikqUubUlu0TlLArULUjbT-lGAJbiYHlcAo85I3afH1s7monPfzLPp-11EVvmfl5CIZS3nyVlGTIZbozNQFrAKpDAFyy_8giP4chciVm0kfKj8XWC_ublaoicYNcafYSjpEXCSMZlZ8MA-RdOPuD-hbUJFoC7URHDwuD1pWjOz1Po3l2D",
+      alt: "Bridal Wear"
+    },
+    {
+      label: "Venues",
+      href: "/venues",
+      img: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?q=80&w=400&auto=format&fit=crop",
+      alt: "Wedding Venues"
+    },
+    {
+      label: "Makeup",
+      href: "/makeup",
+      img: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?q=80&w=400&auto=format&fit=crop",
+      alt: "Bridal Makeup"
+    },
+    {
+      label: "Groom Wear",
+      href: "/categories/groom-wear",
+      img: "https://images.unsplash.com/photo-1594938298603-c8148c4dae35?q=80&w=400&auto=format&fit=crop",
+      alt: "Groom Wear"
+    },
+    {
+      label: "Decor",
+      href: "/categories/decor-planning",
+      img: "https://images.unsplash.com/photo-1519225421980-715cb0215aed?q=80&w=400&auto=format&fit=crop",
+      alt: "Wedding Decor"
+    }
+  ];
+
+  const categories = [
+    {
+      title: "Venues",
+      subtitle: "Banquet Halls, Lawns, Resorts...",
+      href: "/venues",
+      bgColor: "bg-[#E3EAF3]",
+      img: "https://lh3.googleusercontent.com/aida-public/AB6AXuDwImcvhKSNtY87jO7yUWDMGtC2wvA3zoPaGIT3jcrypuyx5VXIDR6QO2_N2252Yn5fh7UP4Hvwwu15tAYkGwVd65vIRmMZtjMrCFWMR8fmdQUy9Lr9E02Dd7ULRUKFoL0rh4BvtIUHiS_LV3mbhjdbd65tgwEGVwbXIHOITSxmU6sOk1GSjoTaNsTiToKmb2IrC4YnTSN-xeFiBq02iS1bts-wz5YLu9d6jMR1jB2AXrfS23xcT9V9zsyr5iEzT4Xxkdo9VgP3trFh",
+      alt: "Wedding Venues"
+    },
+    {
+      title: "Photographers",
+      subtitle: "Wedding & Pre-wedding Photography",
+      href: "/photographers",
+      bgColor: "bg-[#FCEFE3]",
+      img: "https://lh3.googleusercontent.com/aida-public/AB6AXuAXFaF6d056sykk48Tz6L5q9m1bVeLNZLe9rnljhUzM9UeIMi1Px322dGknokkhTOoF8LYbSEKq71TcBIjp9sXQiWXf40yP6gfdIjBlRSZFnKgwSB3nsdN2Ss1hdte3lNz9j_p-SCXGvq0tW5DCYm6bGgqsWLnQnFYgqx_TyxehrfezZ3ci1bLZ3gmFuAfaroY0BgHbhGVP9bHx2WmeeoPm45MQYdogWmzMfGuOY-pDhvXBXeiaravjlgykew9aGeueN_nH4dBq0lJr",
+      alt: "Wedding Photographers"
+    },
+    {
+      title: "Makeup",
+      subtitle: "Bridal Makeup, Hair & Family Styling",
+      href: "/makeup",
+      bgColor: "bg-[#F6E5E5]",
+      img: "https://lh3.googleusercontent.com/aida-public/AB6AXuAEYzOP_1Ub5JM0qYXF-kaJm2njnRsiVDwCImcpFQaRm-QwUwmvdjYzb-ua-KBG67BZvPTxJI0DqCS6VYnthiW-FUrcIpSnXFeQaOvfDkadu6a3WJnHmCZhve8oBlJ2cI5vDhQbq4C3VLHLPbjZMS61WB93IZGpFiCVtuWSbJHdpzT3f3BY8sNllRsxJhp2UmbppTGSyo9wlK_iRiOTMP7g5fQNBm-65h4XJQXdZFi20hbgOkfTDgf_8v7QMhQLKy0Z6iWbzSxOW29p",
+      alt: "Bridal Makeup"
+    },
+    {
+      title: "Bridal Wear",
+      subtitle: "Lehengas, Kanchipuram Saris & Gowns",
+      href: "/categories/bridal-wear",
+      bgColor: "bg-[#EAF3E3]",
+      img: "https://images.unsplash.com/photo-1594223274512-ad4803739b7c?q=80&w=800&auto=format&fit=crop",
+      alt: "Bridal Wear"
+    },
+    {
+      title: "Catering",
+      subtitle: "Traditional Sadya, Buffet & Feasts",
+      href: "/catering",
+      bgColor: "bg-[#F3EAF6]",
+      img: "https://images.unsplash.com/photo-1555244162-803834f70033?q=80&w=800&auto=format&fit=crop",
+      alt: "Catering"
+    },
+    {
+      title: "Decor & Planning",
+      subtitle: "Stage Decor, Florals & Planners",
+      href: "/categories/decor-planning",
+      bgColor: "bg-[#F6F3E5]",
+      img: "https://images.unsplash.com/photo-1519225421980-715cb0215aed?q=80&w=800&auto=format&fit=crop",
+      alt: "Decor and Planning"
+    }
+  ];
+
   return (
     <>
-<main className="pb-20">
-{/* Hero Section */}
-<section className="relative h-[480px] w-full flex flex-col justify-end overflow-hidden">
-<div className="absolute inset-0 bg-cover bg-center" data-alt="A luxury wedding scene featuring a happy couple in elegant traditional Indian attire under a shower of golden confetti. The setting is a grand, whitewashed heritage palace with intricate architecture, bathed in soft afternoon sunlight. The atmosphere is celebratory, upscale, and filled with joy, reflecting a high-end Cloche wedding event." style={{backgroundImage: 'url(https://lh3.googleusercontent.com/aida-public/AB6AXuDkuPHXhU7sXzDUvYbDriFUJ917zikz7COlOrOswDvuY6_7v5cQOlZuew5k-nQKjcfUP1uCWfNAZ_E3pzW0ZhxB3iG_Qgee-9xeWqV3kmcxYZjS4lZH63iptxjO4EQc-c1trOo4OB45RTiLcgN_4gKPeu41g5AiHIMElHe-KXqWqvejj3L13jYUx7jf5JgJ76IE74Db2TjqXh0ocXwWUZwTja1cDHAcysRGBp85vCe6HOhaQ8V2U10qxMCfXK6vEIuyz0bq1Y5eq9PQ)'}}>
-</div>
-<div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
-<div className="relative z-10 p-6 space-y-4">
-<h1 className="text-white text-4xl font-extrabold tracking-tight">Where Every Wedding Begins</h1>
-<p className="text-white/90 text-lg">Find the best wedding vendors with thousands of trusted reviews</p>
-<div className="flex bg-white rounded-lg overflow-hidden shadow-xl mt-6">
-<div className="bg-primary w-16 flex items-center justify-center">
-<span className="material-symbols-outlined text-white">search</span>
-</div>
-<Link href="/search" className="flex-1 px-4 py-4 text-left text-on-surface-variant font-medium flex justify-between items-center group">
-<span>Find Vendors</span>
-<span className="material-symbols-outlined text-primary group-active:translate-x-1 transition-transform">chevron_right</span>
-</Link>
-</div>
-</div>
-</section>
-{/* Popular Searches */}
-<section className="py-8">
-<div className="px-6 mb-4">
-<h2 className="text-xl font-bold text-on-surface">Popular Searches</h2>
-</div>
-<div className="flex overflow-x-auto hide-scrollbar gap-4 px-6">
-{/* Circular Cards */}
-<Link href="/photographers" className="flex-shrink-0 flex flex-col items-center gap-2 group cursor-pointer">
-<div className="w-20 h-20 rounded-xl overflow-hidden shadow-md ring-2 ring-transparent group-hover:ring-secondary transition-all">
-<img className="w-full h-full object-cover" data-alt="Close-up of a professional photographer using a high-end mirrorless camera at a lavish wedding venue. The background is softly blurred with fairy lights and elegant decor. Cinematic lighting, deep greens and gold accents." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAhu3icOJFqvCTS0Yc-P5E3dS49T9gfcnLUGMEJUhz1FH0rWgdSyks60a9D_mvFEwxqsDf-7NZqI2xdlVSWq7JNTdhk55a9ApAXK3tSrQ0LuAKMF_ERJTfXOe_plw1o4cWStgv3avsNJmKjj0TMI7Qh58nWN7PXxcshFJWIXmlUuaJM70m2qvh9dYeyCNM8tnlyWufnjAyXgQK3b0GDo5eomlGyLjh1VFgmzxgJx1sy5BxDx8uBwxXCpuwKcZjZkw6S_C_Tyd_KWhRG"/>
-</div>
-<span className="text-label-md font-label-md text-on-surface">Photographers</span>
-</Link>
-<Link href="/invitations" className="flex-shrink-0 flex flex-col items-center gap-2 group cursor-pointer">
-<div className="w-20 h-20 rounded-xl overflow-hidden shadow-md ring-2 ring-transparent group-hover:ring-secondary transition-all">
-<img className="w-full h-full object-cover" data-alt="Elegant cream and gold wedding invitations laid out on a silk fabric background. Detailed foil embossing and sophisticated typography. The style is classic luxury, clean and high-end." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCZAPbI_YUAMNRWikML7wsySzfjqEypSebODZuEtNr3ZGtyb6q_i5zWAfnhu5c76vzUNisHAj9nGpYaOro-C8D97o9kwmiYH7F9MtyqUWawQPDlHBNyTreVuBhB6JViI9JhamJ_6-okzLqjL5ZZOiJHQ3NRv3MQoYMaMcZ_L3HGRmxHD6IYa08ijWYMuTk6GUN6O-U1Sd0v-2RdUFoC9DObKocGyGm_zLg5T3q3QLDST-MD3cnfXaPhxA0k8qgUQG6JrbAstOv951YD"/>
-</div>
-<span className="text-label-md font-label-md text-on-surface">Invitations</span>
-</Link>
-<Link href="/catering" className="flex-shrink-0 flex flex-col items-center gap-2 group cursor-pointer">
-<div className="w-20 h-20 rounded-xl overflow-hidden shadow-md ring-2 ring-transparent group-hover:ring-secondary transition-all">
-<img className="w-full h-full object-cover" data-alt="A grand multi-tiered white wedding cake adorned with delicate edible gold leaves and ivory roses. Placed on a marble pedestal in a sunlit reception hall. High-key lighting, minimalist and modern." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAIttErFBHy9QscHEJk0OBcJyKoRuebpySjvFYxChzwBGdF0_CkESZFpAz7RwTeD47dIGBsebzVOM7njZsd3DIrvBXKh0Fnp8TIns3bKInyycQ5URRN8M-lQ-4gHSayBikcseL_SS7X8HPen8XdGz4b5KuheFjT3QYrN64ogJ0w4iYaaTUIOq0Fqc_uA7ed6IiNT5xz4zF2hQOjD_CNhCdT_4z7AdZ6GDEucyEYoVM_oM9xqSKVyWfhHh-jbFiuepkEs-ayDg8RQRgV"/>
-</div>
-<span className="text-label-md font-label-md text-on-surface">Catering</span>
-</Link>
-<Link href="/boutiques" className="flex-shrink-0 flex flex-col items-center gap-2 group cursor-pointer">
-<div className="w-20 h-20 rounded-xl overflow-hidden shadow-md ring-2 ring-transparent group-hover:ring-secondary transition-all">
-<img className="w-full h-full object-cover" data-alt="Bespoke bridal lehenga in deep emerald and gold hanging against a minimalist arched window. Cinematic architectural shadows and soft silk textures. Premium high-fashion photography." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAEsY487mYFYvQkZCNfBcXsTzh1p5Yw4tRBQd_WTibQv72oGWZf2uTN8XzzW_Gv54COfSRIcj4brm8yydAp-aU43QT-AnIhikqUubUlu0TlLArULUjbT-lGAJbiYHlcAo85I3afH1s7monPfzLPp-11EVvmfl5CIZS3nyVlGTIZbozNQFrAKpDAFyy_8giP4chciVm0kfKj8XWC_ublaoicYNcafYSjpEXCSMZlZ8MA-RdOPuD-hbUJFoC7URHDwuD1pWjOz1Po3l2D"/>
-</div>
-<span className="text-label-md font-label-md text-on-surface">Bridal Wear</span>
-</Link>
-</div>
-</section>
-{/* Wedding Categories (Split Layout) */}
-<section className="px-4 py-4 space-y-4">
-<h2 className="text-xl font-bold text-on-surface px-2 mb-2">Wedding Categories</h2>
-<Link href="/venues" className="block bg-[#E3EAF3] rounded-2xl overflow-hidden flex h-36 shadow-sm transition-transform active:scale-[0.99]">
-<div className="flex-1 p-5 flex flex-col justify-center">
-<div className="flex items-center gap-1 font-bold text-on-primary-container text-lg">
-                        Venues <span className="material-symbols-outlined">expand_more</span>
-</div>
-<p className="text-on-surface-variant text-sm mt-1">Banquet Halls, Lawns...</p>
-</div>
-<div className="w-1/2 relative">
-<img className="w-full h-full object-cover rounded-l-[40%]" data-alt="Wide shot of an outdoor luxury wedding venue at dusk with symmetrical rows of seating and ambient warm lighting. Deep teal sky and ivory decor. Clean, symmetrical composition." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDwImcvhKSNtY87jO7yUWDMGtC2wvA3zoPaGIT3jcrypuyx5VXIDR6QO2_N2252Yn5fh7UP4Hvwwu15tAYkGwVd65vIRmMZtjMrCFWMR8fmdQUy9Lr9E02Dd7ULRUKFoL0rh4BvtIUHiS_LV3mbhjdbd65tgwEGVwbXIHOITSxmU6sOk1GSjoTaNsTiToKmb2IrC4YnTSN-xeFiBq02iS1bts-wz5YLu9d6jMR1jB2AXrfS23xcT9V9zsyr5iEzT4Xxkdo9VgP3trFh"/>
-</div>
-</Link>
-<Link href="/photographers" className="block bg-[#FCEFE3] rounded-2xl overflow-hidden flex h-36 shadow-sm transition-transform active:scale-[0.99]">
-<div className="flex-1 p-5 flex flex-col justify-center">
-<div className="flex items-center gap-1 font-bold text-on-primary-container text-lg">
-                        Photographers <span className="material-symbols-outlined">expand_more</span>
-</div>
-<p className="text-on-surface-variant text-sm mt-1">Wedding Photographers</p>
-</div>
-<div className="w-1/2 relative">
-<img className="w-full h-full object-cover rounded-l-[40%]" data-alt="A cinematic portrait of a wedding couple laughing together in a garden. The lighting is warm and golden, capturing a candid, high-quality moment. Professional wedding photography aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAXFaF6d056sykk48Tz6L5q9m1bVeLNZLe9rnljhUzM9UeIMi1Px322dGknokkhTOoF8LYbSEKq71TcBIjp9sXQiWXf40yP6gfdIjBlRSZFnKgwSB3nsdN2Ss1hdte3lNz9j_p-SCXGvq0tW5DCYm6bGgqsWLnQnFYgqx_TyxehrfezZ3ci1bLZ3gmFuAfaroY0BgHbhGVP9bHx2WmeeoPm45MQYdogWmzMfGuOY-pDhvXBXeiaravjlgykew9aGeueN_nH4dBq0lJr"/>
-</div>
-</Link>
-<Link href="/makeup" className="block bg-[#F6E5E5] rounded-2xl overflow-hidden flex h-36 shadow-sm transition-transform active:scale-[0.99]">
-<div className="flex-1 p-5 flex flex-col justify-center">
-<div className="flex items-center gap-1 font-bold text-on-primary-container text-lg">
-                        Makeup <span className="material-symbols-outlined">expand_more</span>
-</div>
-<p className="text-on-surface-variant text-sm mt-1">Bridal Makeup, Family...</p>
-</div>
-<div className="w-1/2 relative">
-<img className="w-full h-full object-cover rounded-l-[40%]" data-alt="Extreme close-up of a bride's eyes with exquisite shimmering makeup. Warm tones, professional lighting, focus on detail and luxury beauty standards. High-end cosmetic photography." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAEYzOP_1Ub5JM0qYXF-kaJm2njnRsiVDwCImcpFQaRm-QwUwmvdjYzb-ua-KBG67BZvPTxJI0DqCS6VYnthiW-FUrcIpSnXFeQaOvfDkadu6a3WJnHmCZhve8oBlJ2cI5vDhQbq4C3VLHLPbjZMS61WB93IZGpFiCVtuWSbJHdpzT3f3BY8sNllRsxJhp2UmbppTGSyo9wlK_iRiOTMP7g5fQNBm-65h4XJQXdZFi20hbgOkfTDgf_8v7QMhQLKy0Z6iWbzSxOW29p"/>
-</div>
-</Link>
-<Link href="/categories" className="w-full text-center py-4 text-primary font-bold text-sm flex items-center justify-center gap-1">
-                View All Categories <span className="material-symbols-outlined text-[18px]">chevron_right</span>
-</Link>
-</section>
-{/* In-house Services Grid */}
-<section className="py-8 bg-surface-dim/50">
-<div className="px-6 mb-6">
-<h2 className="text-xl font-bold text-on-surface">CLOCHE Inhouse Services</h2>
-</div>
-<div className="grid grid-cols-2 gap-4 px-4">
-<div className="bg-white p-3 rounded-xl shadow-sm border border-outline-variant/20 group hover:shadow-md transition-all">
-<img className="w-full aspect-[4/3] object-cover rounded-lg mb-3" data-alt="A group of bridesmaids in coordinated pastel silk saris sitting on a plush sofa in a luxury suite. They are smiling and talking, creating a warm, celebratory atmosphere. Sophisticated lifestyle photography." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC983QCwzoBbPjpm9Zznnun6gn-EB-wYrmIhc00lbhmpI-FTxPqwXxP2F7jLxu7rrw8Jtm2xCWGDBK7YmmbngAnZzGGiqUUwkBf2FeTSYvP63hxfYMJQ-4CJJ-Sjrm51rZ5XJi_Gm6t_VTrmx-VkoVxu_utvUK3vFcwoUmJmzuPMG1PCvANSr4DlKywgMBtO1wXbCFP-SlgrTBsmj3sLVh5DeuRTsBxtDEC6YxRhAQSpp-PYQvp5ByYVtnf3ARlIemRmd45PU6wi70i"/>
-<h3 className="font-bold text-on-surface text-center">Wedsta</h3>
-<p className="text-[11px] text-center text-outline leading-tight mt-1">At Home, Family Makeup Services</p>
-</div>
-<div className="bg-white p-3 rounded-xl shadow-sm border border-outline-variant/20 group hover:shadow-md transition-all">
-<img className="w-full aspect-[4/3] object-cover rounded-lg mb-3" data-alt="A luxury wedding planner reviewing digital checklists on a tablet at a beautifully decorated marble table. Beside the tablet are color swatches in champagne gold and emerald. High-end, professional vibe." src="https://lh3.googleusercontent.com/aida-public/AB6AXuABl_Ywl89hmmsujcwC-WF0OMTRRI3bbpHV8YfU9YPIxElnclEVGbDjccF1Bzdmg3ZYCFApqzP2DmEYDCI8SL4JB8bMgKWPuY2gY5CCovLBvR0o63pE2XUdDHZUVK95vEFxvd4A3GqNwRk_uVR7CK_t477O8JMhTM46yu9dXY844AeN4-qHDFE1RhBvA5lXiKe2d2T_GMPVlwudC-KxhD518L0qAMCTsOz9OtI0OT1bL5-OlSIniccN_sSlzFAoRIaLdroWjE3Q7aLM"/>
-<h3 className="font-bold text-on-surface text-center">Genie Services</h3>
-<p className="text-[11px] text-center text-outline leading-tight mt-1">Plan your dream wedding in budget</p>
-</div>
-<div className="bg-white p-3 rounded-xl shadow-sm border border-outline-variant/20 group hover:shadow-md transition-all">
-<img className="w-full aspect-[4/3] object-cover rounded-lg mb-3" data-alt="A grand indoor banquet hall with crystal chandeliers, floral centerpieces, and white tablecloths. The lighting is warm and inviting. Symmetric wide-angle shot." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAqptFpOh387e6OXFJ4fisIHEri1Lsb9UuqUuqjc9GWPDretbefCzIrZDt8dnZYnkN3B7rLYsAlvyWmw46_rl20mhXiD9l8kKFdAvK10IBIWhov6I-S43Ex_0AXH0YM5TpNTogUEsRj85Vmt5ZXphtVZu14grZXrzdRFyS0Gb4nOUVHVQcchDNdacy5i-ENW6n-jFynIo_uGODZX_Bvv2waWo1bxE7Ay8NsSwLLab3efewn6lR2TyoO-ehBK9oUW12BSsTxamHm7TgW"/>
-<h3 className="font-bold text-on-surface text-center">Venue Booking</h3>
-<p className="text-[11px] text-center text-outline leading-tight mt-1">Best Price Guaranteed</p>
-</div>
-</div>
-</section>
-{/* App Banner */}
-<section className="mx-4 my-8 p-6 rounded-3xl bg-primary text-white relative overflow-hidden">
-<div className="relative z-10 space-y-6">
-<h2 className="text-2xl font-bold leading-tight">Download The CLOCHE Mobile App Today!</h2>
-<ul className="space-y-3">
-<li className="flex items-center gap-3">
-<span className="material-symbols-outlined text-secondary">flare</span>
-<span className="text-sm font-medium">Save Wedding Ideas</span>
-</li>
-<li className="flex items-center gap-3">
-<span className="material-symbols-outlined text-secondary">favorite</span>
-<span className="text-sm font-medium">Shortlist Vendors</span>
-</li>
-<li className="flex items-center gap-3">
-<span className="material-symbols-outlined text-secondary">checklist</span>
-<span className="text-sm font-medium">Get Free Wedding Checklist</span>
-</li>
-</ul>
-<button className="bg-secondary text-primary px-8 py-3 rounded-full font-bold text-sm shadow-lg active:scale-95 transition-transform">
-                    Download App
-                </button>
-<div className="flex gap-4 pt-2">
-<span className="material-symbols-outlined text-3xl">apps</span>
-<span className="material-symbols-outlined text-3xl">android</span>
-</div>
-</div>
-{/* Mockup device abstract element */}
-<div className="absolute -right-12 -bottom-12 w-48 h-80 bg-surface/10 rounded-[3rem] rotate-12 border-4 border-white/20"></div>
-</section>
-{/* Featured Vendors */}
-<section className="py-8">
-<div className="px-6 mb-4 flex justify-between items-end">
-<h2 className="text-xl font-bold text-on-surface">Featured Vendors</h2>
-<Link href="/boutiques" className="text-primary text-sm font-bold">View All</Link>
-</div>
-<div className="flex overflow-x-auto hide-scrollbar gap-4 px-6">
-<div className="flex-shrink-0 w-72 bg-white rounded-2xl overflow-hidden shadow-sm border border-outline-variant/10">
-<div className="relative h-44">
-<img className="w-full h-full object-cover" data-alt="Beautifully decorated garden wedding altar with pastel floral arrangements and elegant wooden chairs. Sun-drenched morning light. High-end garden wedding photography." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAEVqgHsiLSkZxXDg9lZQdQ2fTPFR5V8lLcuHmefPBRdMQNLe7DaNIoSBMDs-TSNQGmqfAtssE4J--SOQxWjq7wkGDdxYVBNbm0OTuHdJ3w3xNBTdbMqW78GJjhIvnF-lOipqY-3sm_s6h3uWydOcqo0AS-iQmi6b9dkhBX90G8s7rj70Ezy4-SF50TMXr3WS3XoOGVt9oKy4bGHthPojLDYTly5luPhH83fWUVH7svHPLOX4DXF44G0Dbc6zeguczDCK1Zp2_klw92"/>
-<div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded flex items-center gap-1 shadow-sm">
-<span className="material-symbols-outlined text-yellow-500 text-[14px]" style={{fontVariationSettings: 'FILL 1'}}>star</span>
-<span className="text-[12px] font-bold">5.0</span>
-</div>
-</div>
-<div className="p-4">
-<h3 className="font-bold text-lg">YAAN Udaipur</h3>
-<p className="text-outline text-sm">Wedding Venues, Udaipur</p>
-<p className="text-primary font-bold mt-2">? 2500 <span className="text-[12px] text-outline font-normal">onwards per plate</span></p>
-</div>
-</div>
-<div className="flex-shrink-0 w-72 bg-white rounded-2xl overflow-hidden shadow-sm border border-outline-variant/10">
-<div className="relative h-44">
-<img className="w-full h-full object-cover" data-alt="Stunning close-up bridal portrait showing detailed jewelry and flawless makeup. Soft-focus background. High-fashion wedding beauty editorial." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDDZrXk8w7Jm5zSye-40lOKoE1m_Bo60PY2TvXxl9Fjth9bqLBSC2S2ppFjnymMrhAM8LGBq1odmw-SqU6bDvxSD5u_aLGw0mJbkiLUuCEZJhohjh9H6gsy7m3e5xdRtDgRHpsB4D8gYHfEYTHyeJt7Yu2DEOYq1i39XavHu6kIjbRdP491Z7XnbNqfJMItjqFxsVHuhhlDC3sBL3Rv6opkON-QP18z8KLdAn-EUqXu2KvyWFL-AO7Ob_80mvQ_jdqpQ-_8bj4rGy2i"/>
-<div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded flex items-center gap-1 shadow-sm">
-<span className="material-symbols-outlined text-yellow-500 text-[14px]" style={{fontVariationSettings: 'FILL 1'}}>star</span>
-<span className="text-[12px] font-bold">4.9</span>
-</div>
-</div>
-<div className="p-4">
-<h3 className="font-bold text-lg">ROYAL MAKEUP ART</h3>
-<p className="text-outline text-sm">Bridal Makeup, Delhi</p>
-<p className="text-primary font-bold mt-2">? 20,000 <span className="text-[12px] text-outline font-normal">starting price</span></p>
-</div>
-</div>
-</div>
-</section>
-{/* Blogs/Stories Carousel */}
-<section className="py-8">
-<div className="px-6 mb-4">
-<h2 className="text-xl font-bold text-on-surface">Real Wedding Stories</h2>
-</div>
-<div className="flex overflow-x-auto hide-scrollbar gap-4 px-6">
-<div className="flex-shrink-0 w-80">
-<div className="rounded-2xl overflow-hidden h-52 shadow-md">
-<img className="w-full h-full object-cover" data-alt="Split image showing a traditional wedding ceremony under a golden dome and a modern couple walking through a floral garden. The lighting transitions from warm amber to bright daylight." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDybVNqcPesLD5TJ7kU9ktSMRShli2bgr5sdljfio0SWnaL97ugJeG5NsgA-mLNOMmOWJFMXxIm8Cq0OVUqip0XseKaqm8oRYpFn9rVaXA9cjCD-SDGwxjuRlriALzXa3J-yi7BB4rlT_7lg9HvntbRnwlCgC56Nh2DE8CO_MNWiZsqHJabXtiHyQDUH_uQaCYIdNH0dQzaZIAJhC1V2j2QFn2xmPnNG2cPP8zqQx9aPk6CWxsgx94Gl-KVZ1lik28hVY-SJexudags"/>
-</div>
-<div className="py-4">
-<h3 className="font-bold text-on-surface leading-tight">Gayatri and Ayush</h3>
-<p className="text-sm text-outline mt-1">A Jaipur Wedding That Delivered One Stunning Setup After Another!</p>
-</div>
-</div>
-<div className="flex-shrink-0 w-80">
-<div className="rounded-2xl overflow-hidden h-52 shadow-md">
-<img className="w-full h-full object-cover" data-alt="A scenic beach wedding setup at sunset with a minimalist bamboo mandap and soft drapes. Deep blues and warm oranges of the sky. Peaceful and luxurious atmosphere." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAlIY3Rsu77h9JhRfLXKWhl7uY5PHM8h9xVxmI_mqGehxB9rM5xAhOV97FZ-KIBEAVoSfZ2yUzYqrQP2ekudMlla5kZeNhyCpXH7z_nIIz_SRmWGLg5ZuibsDA6i1wJnbbADnytZPvYR8MVfl8OctX3XWNreNdozLPiqRD4RXQwt9pIBn_maMAoWjVTKO4UNrvIqoe-A9jetFAt-ppdexODCU8-XefMAttsQRTbVnm1eF4Zv_EF_MVTo-_D_MwrpZEoYJcV-oxdRscx"/>
-</div>
-<div className="py-4">
-<h3 className="font-bold text-on-surface leading-tight">The Rise of Asia-First Weddings</h3>
-<p className="text-sm text-outline mt-1">Destination weddings are entering a new era. What was once reserved for lavish...</p>
-</div>
-</div>
-</div>
-</section>
+      <main className="pb-20">
+        
+        {/* Hero Section */}
+        <section className="relative h-[480px] md:h-[520px] w-full flex flex-col justify-end overflow-hidden">
+          <div 
+            className="absolute inset-0 bg-cover bg-center" 
+            style={{backgroundImage: 'url(https://lh3.googleusercontent.com/aida-public/AB6AXuDkuPHXhU7sXzDUvYbDriFUJ917zikz7COlOrOswDvuY6_7v5cQOlZuew5k-nQKjcfUP1uCWfNAZ_E3pzW0ZhxB3iG_Qgee-9xeWqV3kmcxYZjS4lZH63iptxjO4EQc-c1trOo4OB45RTiLcgN_4gKPeu41g5AiHIMElHe-KXqWqvejj3L13jYUx7jf5JgJ76IE74Db2TjqXh0ocXwWUZwTja1cDHAcysRGBp85vCe6HOhaQ8V2U10qxMCfXK6vEIuyz0bq1Y5eq9PQ)'}}
+          ></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent"></div>
+          
+          <div className="relative z-10 max-w-7xl mx-auto w-full p-6 md:p-10 space-y-4">
+            <h1 className="text-white text-4xl md:text-5xl font-extrabold tracking-tight font-display max-w-2xl">
+              Where Every Wedding Begins
+            </h1>
+            <p className="text-white/90 text-lg md:text-xl max-w-xl font-light">
+              Find the best wedding vendors with thousands of trusted reviews
+            </p>
+            
+            <div className="flex bg-white rounded-xl overflow-hidden shadow-2xl mt-6 max-w-xl">
+              <div className="bg-primary w-14 md:w-16 flex items-center justify-center">
+                <span className="material-symbols-outlined text-white text-2xl">search</span>
+              </div>
+              <Link href="/search" className="flex-1 px-4 py-4 text-left text-on-surface-variant font-medium flex justify-between items-center group">
+                <span className="text-sm md:text-base text-gray-700 font-medium">Search for vendors, venues, or boutiques...</span>
+                <span className="material-symbols-outlined text-primary group-hover:translate-x-1 transition-transform">chevron_right</span>
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* Popular Searches */}
+        <section className="py-10 max-w-7xl mx-auto">
+          <div className="px-6 mb-6">
+            <h2 className="text-2xl font-bold text-on-surface font-display">Popular Searches</h2>
+          </div>
+          
+          {/* Responsive Layout: Scrollable on mobile (< md), Full clean grid on Laptop/Desktop (>= md) */}
+          <div className="flex overflow-x-auto hide-scrollbar gap-4 px-6 md:grid md:grid-cols-4 lg:grid-cols-8 md:gap-6 md:overflow-visible">
+            {popularSearches.map((item) => (
+              <Link key={item.label} href={item.href} className="flex-shrink-0 flex flex-col items-center gap-2.5 group cursor-pointer">
+                <div className="w-20 h-20 md:w-24 md:h-24 rounded-2xl overflow-hidden shadow-sm border border-gold/10 ring-2 ring-transparent group-hover:ring-primary group-hover:shadow-md transition-all">
+                  <img className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" src={item.img} alt={item.alt} />
+                </div>
+                <span className="text-xs md:text-sm font-semibold text-on-surface text-center group-hover:text-primary transition-colors">
+                  {item.label}
+                </span>
+              </Link>
+            ))}
+          </div>
+        </section>
+
+        {/* Wedding Categories */}
+        <section className="py-8 max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="flex justify-between items-center px-2 mb-6">
+            <h2 className="text-2xl font-bold text-on-surface font-display">Wedding Categories</h2>
+            <Link href="/categories" className="hidden md:flex items-center gap-1 text-primary font-bold text-sm hover:underline">
+              View All Categories <span className="material-symbols-outlined text-[18px]">chevron_right</span>
+            </Link>
+          </div>
+
+          {/* Stacked on mobile, 2 or 3 columns grid on Laptop */}
+          <div className="space-y-4 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-6">
+            {categories.map((cat) => (
+              <Link 
+                key={cat.title} 
+                href={cat.href} 
+                className={`${cat.bgColor} rounded-2xl overflow-hidden flex h-36 md:h-44 shadow-sm hover:shadow-md transition-all group`}
+              >
+                <div className="flex-1 p-5 md:p-6 flex flex-col justify-center">
+                  <div className="flex items-center gap-1 font-bold text-on-primary-container text-lg md:text-xl font-display group-hover:text-primary transition-colors">
+                    {cat.title} <span className="material-symbols-outlined text-sm md:text-base">expand_more</span>
+                  </div>
+                  <p className="text-on-surface-variant text-xs md:text-sm mt-1.5 line-clamp-2">{cat.subtitle}</p>
+                </div>
+                <div className="w-1/2 relative overflow-hidden">
+                  <img 
+                    className="w-full h-full object-cover rounded-l-[40%] group-hover:scale-105 transition-transform duration-500" 
+                    src={cat.img} 
+                    alt={cat.alt} 
+                  />
+                </div>
+              </Link>
+            ))}
+          </div>
+
+          <Link href="/categories" className="md:hidden w-full text-center py-4 text-primary font-bold text-sm flex items-center justify-center gap-1 mt-4">
+            View All Categories <span className="material-symbols-outlined text-[18px]">chevron_right</span>
+          </Link>
+        </section>
+
+        {/* In-house Services Grid */}
+        <section className="py-12 bg-[#F6F4EE] my-8">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="mb-8 text-center md:text-left">
+              <span className="text-xs font-bold uppercase tracking-widest text-gold block mb-1">Exclusive Experience</span>
+              <h2 className="text-2xl md:text-3xl font-bold text-on-surface font-display">CLOCHE Inhouse Services</h2>
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4 md:gap-8">
+              <div className="bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-gold/10 group hover:shadow-lg transition-all">
+                <div className="relative aspect-[4/3] rounded-xl overflow-hidden mb-4">
+                  <img className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC983QCwzoBbPjpm9Zznnun6gn-EB-wYrmIhc00lbhmpI-FTxPqwXxP2F7jLxu7rrw8Jtm2xCWGDBK7YmmbngAnZzGGiqUUwkBf2FeTSYvP63hxfYMJQ-4CJJ-Sjrm51rZ5XJi_Gm6t_VTrmx-VkoVxu_utvUK3vFcwoUmJmzuPMG1PCvANSr4DlKywgMBtO1wXbCFP-SlgrTBsmj3sLVh5DeuRTsBxtDEC6YxRhAQSpp-PYQvp5ByYVtnf3ARlIemRmd45PU6wi70i" alt="Wedsta" />
+                </div>
+                <h3 className="font-bold text-on-surface text-center text-base md:text-lg font-display">Wedsta</h3>
+                <p className="text-xs md:text-sm text-center text-outline leading-tight mt-1.5">At Home, Family Makeup Services</p>
+              </div>
+
+              <div className="bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-gold/10 group hover:shadow-lg transition-all">
+                <div className="relative aspect-[4/3] rounded-xl overflow-hidden mb-4">
+                  <img className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" src="https://lh3.googleusercontent.com/aida-public/AB6AXuABl_Ywl89hmmsujcwC-WF0OMTRRI3bbpHV8YfU9YPIxElnclEVGbDjccF1Bzdmg3ZYCFApqzP2DmEYDCI8SL4JB8bMgKWPuY2gY5CCovLBvR0o63pE2XUdDHZUVK95vEFxvd4A3GqNwRk_uVR7CK_t477O8JMhTM46yu9dXY844AeN4-qHDFE1RhBvA5lXiKe2d2T_GMPVlwudC-KxhD518L0qAMCTsOz9OtI0OT1bL5-OlSIniccN_sSlzFAoRIaLdroWjE3Q7aLM" alt="Genie Services" />
+                </div>
+                <h3 className="font-bold text-on-surface text-center text-base md:text-lg font-display">Genie Services</h3>
+                <p className="text-xs md:text-sm text-center text-outline leading-tight mt-1.5">Plan your dream wedding in budget</p>
+              </div>
+
+              <div className="bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-gold/10 group hover:shadow-lg transition-all col-span-2 md:col-span-1">
+                <div className="relative aspect-[4/3] rounded-xl overflow-hidden mb-4">
+                  <img className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAqptFpOh387e6OXFJ4fisIHEri1Lsb9UuqUuqjc9GWPDretbefCzIrZDt8dnZYnkN3B7rLYsAlvyWmw46_rl20mhXiD9l8kKFdAvK10IBIWhov6I-S43Ex_0AXH0YM5TpNTogUEsRj85Vmt5ZXphtVZu14grZXrzdRFyS0Gb4nOUVHVQcchDNdacy5i-ENW6n-jFynIo_uGODZX_Bvv2waWo1bxE7Ay8NsSwLLab3efewn6lR2TyoO-ehBK9oUW12BSsTxamHm7TgW" alt="Venue Booking" />
+                </div>
+                <h3 className="font-bold text-on-surface text-center text-base md:text-lg font-display">Venue Booking</h3>
+                <p className="text-xs md:text-sm text-center text-outline leading-tight mt-1.5">Best Price Guaranteed</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* App Banner */}
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 my-12">
+          <div className="p-8 md:p-14 rounded-3xl bg-primary text-white relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8 shadow-xl">
+            <div className="relative z-10 space-y-6 max-w-xl">
+              <span className="bg-gold/20 text-gold px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider inline-block">
+                Mobile Convenience
+              </span>
+              <h2 className="text-3xl md:text-4xl font-bold font-display leading-tight">
+                Download The CLOCHE Mobile App Today!
+              </h2>
+              <ul className="space-y-3">
+                <li className="flex items-center gap-3">
+                  <span className="material-symbols-outlined text-gold">flare</span>
+                  <span className="text-sm md:text-base font-medium">Save & Share Wedding Ideas</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <span className="material-symbols-outlined text-gold">favorite</span>
+                  <span className="text-sm md:text-base font-medium">Shortlist Top Boutiques & Vendors</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <span className="material-symbols-outlined text-gold">checklist</span>
+                  <span className="text-sm md:text-base font-medium">Get Free Interactive Checklist</span>
+                </li>
+              </ul>
+              <Link 
+                href="/download" 
+                className="inline-block bg-white text-primary px-8 py-3.5 rounded-full font-bold text-sm shadow-lg hover:bg-gray-100 transition-all hover:scale-105 active:scale-95"
+              >
+                Download App
+              </Link>
+            </div>
+
+            <div className="relative z-10 hidden lg:flex flex-col items-center justify-center p-8 bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl text-center min-w-[260px]">
+              <span className="material-symbols-outlined text-6xl text-gold mb-2">qr_code_2</span>
+              <p className="font-bold text-sm">Scan to Install App</p>
+              <p className="text-xs text-white/70 mt-1">Available on iOS & Android</p>
+            </div>
+          </div>
+        </section>
+
+        {/* Featured Vendors */}
+        <section className="py-10 max-w-7xl mx-auto">
+          <div className="px-6 mb-6 flex justify-between items-end">
+            <div>
+              <h2 className="text-2xl font-bold text-on-surface font-display">Featured Vendors</h2>
+              <p className="text-xs md:text-sm text-outline mt-1">Handpicked luxury boutiques & wedding experts</p>
+            </div>
+            <Link href="/boutiques" className="text-primary text-sm font-bold hover:underline">View All</Link>
+          </div>
+
+          <div className="flex overflow-x-auto hide-scrollbar gap-4 px-6 md:grid md:grid-cols-3 lg:grid-cols-4 md:gap-6 md:overflow-visible">
+            <Link href="/boutiques" className="flex-shrink-0 w-72 md:w-auto bg-white rounded-2xl overflow-hidden shadow-sm border border-gold/10 group hover:shadow-md transition-all">
+              <div className="relative h-48 overflow-hidden">
+                <img className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAEVqgHsiLSkZxXDg9lZQdQ2fTPFR5V8lLcuHmefPBRdMQNLe7DaNIoSBMDs-TSNQGmqfAtssE4J--SOQxWjq7wkGDdxYVBNbm0OTuHdJ3w3xNBTdbMqW78GJjhIvnF-lOipqY-3sm_s6h3uWydOcqo0AS-iQmi6b9dkhBX90G8s7rj70Ezy4-SF50TMXr3WS3XoOGVt9oKy4bGHthPojLDYTly5luPhH83fWUVH7svHPLOX4DXF44G0Dbc6zeguczDCK1Zp2_klw92" alt="YAAN Udaipur" />
+                <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm">
+                  <span className="material-symbols-outlined text-amber-500 text-[14px]" style={{fontVariationSettings: 'FILL 1'}}>star</span>
+                  <span className="text-[12px] font-bold text-charcoal">5.0</span>
+                </div>
+              </div>
+              <div className="p-5">
+                <h3 className="font-bold text-lg font-display text-charcoal group-hover:text-primary transition-colors">YAAN Udaipur</h3>
+                <p className="text-outline text-xs mt-0.5">Wedding Venues, Udaipur</p>
+                <p className="text-primary font-bold mt-3 text-sm">₹ 2,500 <span className="text-[11px] text-outline font-normal">onwards per plate</span></p>
+              </div>
+            </Link>
+
+            <Link href="/boutiques" className="flex-shrink-0 w-72 md:w-auto bg-white rounded-2xl overflow-hidden shadow-sm border border-gold/10 group hover:shadow-md transition-all">
+              <div className="relative h-48 overflow-hidden">
+                <img className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDDZrXk8w7Jm5zSye-40lOKoE1m_Bo60PY2TvXxl9Fjth9bqLBSC2S2ppFjnymMrhAM8LGBq1odmw-SqU6bDvxSD5u_aLGw0mJbkiLUuCEZJhohjh9H6gsy7m3e5xdRtDgRHpsB4D8gYHfEYTHyeJt7Yu2DEOYq1i39XavHu6kIjbRdP491Z7XnbNqfJMItjqFxsVHuhhlDC3sBL3Rv6opkON-QP18z8KLdAn-EUqXu2KvyWFL-AO7Ob_80mvQ_jdqpQ-_8bj4rGy2i" alt="ROYAL MAKEUP ART" />
+                <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm">
+                  <span className="material-symbols-outlined text-amber-500 text-[14px]" style={{fontVariationSettings: 'FILL 1'}}>star</span>
+                  <span className="text-[12px] font-bold text-charcoal">4.9</span>
+                </div>
+              </div>
+              <div className="p-5">
+                <h3 className="font-bold text-lg font-display text-charcoal group-hover:text-primary transition-colors">ROYAL MAKEUP ART</h3>
+                <p className="text-outline text-xs mt-0.5">Bridal Makeup, Kochi</p>
+                <p className="text-primary font-bold mt-3 text-sm">₹ 20,000 <span className="text-[11px] text-outline font-normal">starting price</span></p>
+              </div>
+            </Link>
+
+            <Link href="/boutiques" className="flex-shrink-0 w-72 md:w-auto bg-white rounded-2xl overflow-hidden shadow-sm border border-gold/10 group hover:shadow-md transition-all">
+              <div className="relative h-48 overflow-hidden">
+                <img className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" src="https://images.unsplash.com/photo-1594223274512-ad4803739b7c?q=80&w=800&auto=format&fit=crop" alt="Label M Boutique" />
+                <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm">
+                  <span className="material-symbols-outlined text-amber-500 text-[14px]" style={{fontVariationSettings: 'FILL 1'}}>star</span>
+                  <span className="text-[12px] font-bold text-charcoal">4.9</span>
+                </div>
+              </div>
+              <div className="p-5">
+                <h3 className="font-bold text-lg font-display text-charcoal group-hover:text-primary transition-colors">Label M Boutique</h3>
+                <p className="text-outline text-xs mt-0.5">Bridal Wear, Kochi</p>
+                <p className="text-primary font-bold mt-3 text-sm">₹ 35,000 <span className="text-[11px] text-outline font-normal">starting price</span></p>
+              </div>
+            </Link>
+
+            <Link href="/boutiques" className="flex-shrink-0 w-72 md:w-auto bg-white rounded-2xl overflow-hidden shadow-sm border border-gold/10 group hover:shadow-md transition-all">
+              <div className="relative h-48 overflow-hidden">
+                <img className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" src="https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=800&auto=format&fit=crop" alt="Memory Lanes Photography" />
+                <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm">
+                  <span className="material-symbols-outlined text-amber-500 text-[14px]" style={{fontVariationSettings: 'FILL 1'}}>star</span>
+                  <span className="text-[12px] font-bold text-charcoal">4.8</span>
+                </div>
+              </div>
+              <div className="p-5">
+                <h3 className="font-bold text-lg font-display text-charcoal group-hover:text-primary transition-colors">Memory Lanes</h3>
+                <p className="text-outline text-xs mt-0.5">Photography, Kozhikode</p>
+                <p className="text-primary font-bold mt-3 text-sm">₹ 50,000 <span className="text-[11px] text-outline font-normal font-sans">per day</span></p>
+              </div>
+            </Link>
+          </div>
+        </section>
+
+        {/* Real Wedding Stories */}
+        <section className="py-10 max-w-7xl mx-auto">
+          <div className="px-6 mb-6 flex justify-between items-end">
+            <div>
+              <h2 className="text-2xl font-bold text-on-surface font-display">Real Wedding Stories</h2>
+              <p className="text-xs md:text-sm text-outline mt-1">Get inspired by beautiful real wedding celebrations in Kerala</p>
+            </div>
+            <Link href="/real-weddings" className="text-primary text-sm font-bold hover:underline">View All Stories</Link>
+          </div>
+
+          <div className="flex overflow-x-auto hide-scrollbar gap-4 px-6 md:grid md:grid-cols-3 md:gap-6 md:overflow-visible">
+            <Link href="/real-weddings" className="flex-shrink-0 w-80 md:w-auto group">
+              <div className="rounded-2xl overflow-hidden h-52 shadow-sm group-hover:shadow-md transition-all">
+                <img className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDybVNqcPesLD5TJ7kU9ktSMRShli2bgr5sdljfio0SWnaL97ugJeG5NsgA-mLNOMmOWJFMXxIm8Cq0OVUqip0XseKaqm8oRYpFn9rVaXA9cjCD-SDGwxjuRlriALzXa3J-yi7BB4rlT_7lg9HvntbRnwlCgC56Nh2DE8CO_MNWiZsqHJabXtiHyQDUH_uQaCYIdNH0dQzaZIAJhC1V2j2QFn2xmPnNG2cPP8zqQx9aPk6CWxsgx94Gl-KVZ1lik28hVY-SJexudags" alt="Gayatri and Ayush" />
+              </div>
+              <div className="py-4">
+                <h3 className="font-bold text-on-surface text-base md:text-lg leading-tight font-display group-hover:text-primary transition-colors">Gayatri and Ayush</h3>
+                <p className="text-xs md:text-sm text-outline mt-1 line-clamp-2">A Jaipur & Kochi Wedding That Delivered One Stunning Setup After Another!</p>
+              </div>
+            </Link>
+
+            <Link href="/real-weddings" className="flex-shrink-0 w-80 md:w-auto group">
+              <div className="rounded-2xl overflow-hidden h-52 shadow-sm group-hover:shadow-md transition-all">
+                <img className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAlIY3Rsu77h9JhRfLXKWhl7uY5PHM8h9xVxmI_mqGehxB9rM5xAhOV97FZ-KIBEAVoSfZ2yUzYqrQP2ekudMlla5kZeNhyCpXH7z_nIIz_SRmWGLg5ZuibsDA6i1wJnbbADnytZPvYR8MVfl8OctX3XWNreNdozLPiqRD4RXQwt9pIBn_maMAoWjVTKO4UNrvIqoe-A9jetFAt-ppdexODCU8-XefMAttsQRTbVnm1eF4Zv_EF_MVTo-_D_MwrpZEoYJcV-oxdRscx" alt="Beach Wedding" />
+              </div>
+              <div className="py-4">
+                <h3 className="font-bold text-on-surface text-base md:text-lg leading-tight font-display group-hover:text-primary transition-colors">The Rise of Coastal Kerala Weddings</h3>
+                <p className="text-xs md:text-sm text-outline mt-1 line-clamp-2">Destination weddings in Kovalam and Bekal are entering a new era of luxury...</p>
+              </div>
+            </Link>
+
+            <Link href="/real-weddings" className="flex-shrink-0 w-80 md:w-auto group">
+              <div className="rounded-2xl overflow-hidden h-52 shadow-sm group-hover:shadow-md transition-all">
+                <img className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=800&auto=format&fit=crop" alt="Backwater Wedding" />
+              </div>
+              <div className="py-4">
+                <h3 className="font-bold text-on-surface text-base md:text-lg leading-tight font-display group-hover:text-primary transition-colors">Anand & Meera's Backwater Celebration</h3>
+                <p className="text-xs md:text-sm text-outline mt-1 line-clamp-2">An elegant Kumarakom houseboat wedding filled with traditional flowers and serene views.</p>
+              </div>
+            </Link>
+          </div>
+        </section>
+
       </main>
       <Footer />
     </>
