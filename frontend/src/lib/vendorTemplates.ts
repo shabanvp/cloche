@@ -1,5 +1,6 @@
 export type CategoryType = 
   | "Wedding Venues"
+  | "Wedding Venue"
   | "Photographers"
   | "Bridal Wear"
   | "Groom Wear"

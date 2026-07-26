@@ -74,9 +74,13 @@ export function VendorSidebar() {
     navItems.splice(1, 0, { label: "Portfolio", icon: ShoppingBag, href: "/vendor/collections" });
   }
 
+  // Category Exclusive Items
+  if (category === "Wedding Venue" || category === "Wedding Venues") {
+    navItems.push({ label: "Customize Venue Store", icon: Palette, href: "/vendor/profile/customize" });
+  }
+
   // Common items at the end
   navItems.push(
-    { label: "Customize Store", icon: Palette, href: "/vendor/profile/customize" },
     { label: "Marketing & Ads", icon: Megaphone, href: "/vendor/marketing" },
     { label: "Analytics", icon: BarChart3, href: "/vendor/analytics" },
     { label: "Subscription", icon: CreditCard, href: "/vendor/subscription" }
