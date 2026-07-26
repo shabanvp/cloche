@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { getAdminAnalytics } from "@/services/api";
+import { cookies } from "next/headers";
 
 export const dynamic = "force-dynamic";
 
@@ -92,8 +93,6 @@ function Panel({
     </section>
   );
 }
-
-import { cookies } from "next/headers";
 
 export default async function AdminOverview() {
   let token = "admin-session-secure-token";
