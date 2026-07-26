@@ -13,7 +13,8 @@ import {
   BarChart3, 
   CreditCard,
   Calendar,
-  Megaphone
+  Megaphone,
+  ShieldCheck
 } from "lucide-react";
 
 const navItems = [
@@ -27,6 +28,7 @@ const navItems = [
   { label: "Appointments", icon: Calendar, href: "/admin/appointments" },
   { label: "Reports", icon: BarChart3, href: "/admin/reports" },
   { label: "Subscriptions", icon: CreditCard, href: "/admin/subscriptions" },
+  { label: "System Control", icon: ShieldCheck, href: "/admin/system" },
 ];
 
 export default function AdminNav() {
