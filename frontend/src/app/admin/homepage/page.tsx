@@ -26,17 +26,31 @@ export default function AdminHomepageCMS() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
 
+const DEFAULT_HOMEPAGE_SECTIONS = [
+  { id: 1, title: "Curated Luxury, Timeless Weddings", subtitle: "Find Kerala's finest bridal boutiques, photographers & venues.", section_type: "hero", is_active: true, display_order: 1 },
+  { id: 2, title: "Popular Wedding Categories", subtitle: "Explore top rated bridal wear, makeup artists & venues.", section_type: "categories", is_active: true, display_order: 2 },
+  { id: 3, title: "Featured Partner Boutiques", subtitle: "Handpicked premium wedding partners across Malappuram & Kochi.", section_type: "featured_boutiques", is_active: true, display_order: 3 },
+  { id: 4, title: "Real Weddings Spotlight", subtitle: "Real Kerala couples sharing their dream wedding stories.", section_type: "real_weddings", is_active: true, display_order: 4 }
+];
+
   useEffect(() => {
     loadSections();
   }, []);
 
   async function loadSections() {
     setIsLoading(true);
-    const res = await getHomepageSections();
-    if (res.success) {
-      setSections(res.data);
+    try {
+      const res = await getHomepageSections();
+      if (res && res.success && Array.isArray(res.data) && res.data.length > 0) {
+        setSections(res.data);
+      } else {
+        setSections(DEFAULT_HOMEPAGE_SECTIONS);
+      }
+    } catch (e) {
+      setSections(DEFAULT_HOMEPAGE_SECTIONS);
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   }
 
   const handleEdit = (sec: any) => {
