@@ -48,7 +48,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h3 className="font-bold text-charcoal mb-1 uppercase tracking-wider text-xs">Headquarters</h3>
-                    <p className="text-charcoal/70 text-sm">Infopark, Kakkanad<br/>Kochi, Kerala 682030</p>
+                    <p className="text-charcoal/70 text-sm">Malappuram, Kerala, India</p>
                   </div>
                 </div>
 
@@ -58,7 +58,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h3 className="font-bold text-charcoal mb-1 uppercase tracking-wider text-xs">Phone Support</h3>
-                    <p className="text-charcoal/70 text-sm">+91 98765 43210<br/>Mon-Sat, 9AM to 6PM</p>
+                    <p className="text-charcoal/70 text-sm">+91 73066 33171<br/>Mon-Sat, 9AM to 6PM</p>
                   </div>
                 </div>
 
@@ -68,7 +68,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h3 className="font-bold text-charcoal mb-1 uppercase tracking-wider text-xs">Email Us</h3>
-                    <p className="text-charcoal/70 text-sm">support@cloche.com<br/>partners@cloche.com</p>
+                    <p className="text-charcoal/70 text-sm">cloche.luxury@gmail.com</p>
                   </div>
                 </div>
               </div>

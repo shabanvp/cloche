@@ -41,6 +41,7 @@ export function Footer() {
           <div>
             <h4 className="font-display text-lg mb-6 text-gold">Discover</h4>
             <ul className="space-y-4 text-sm text-white/80 font-light">
+              <li><Link href="/about" className="hover:text-white transition-colors">About Cloche</Link></li>
               <li><Link href="/boutiques" className="hover:text-white transition-colors">Featured Boutiques</Link></li>
               <li><Link href="/collections" className="hover:text-white transition-colors">Trending Collections</Link></li>
               <li><Link href="/categories" className="hover:text-white transition-colors">Browse Categories</Link></li>
@@ -53,7 +54,6 @@ export function Footer() {
           <div>
             <h4 className="font-display text-lg mb-6 text-gold">For Partners</h4>
             <ul className="space-y-4 text-sm text-white/80 font-light">
-              <li><Link href="/vendor/login" className="hover:text-white transition-colors">Partner Dashboard</Link></li>
               <li><Link href="/vendor/register" className="hover:text-white transition-colors">Register as Vendor</Link></li>
               <li><Link href="/content/vendor-agreement" className="hover:text-white transition-colors">Vendor Agreement</Link></li>
               <li><Link href="/content/pricing" className="hover:text-white transition-colors">Subscription Pricing</Link></li>
@@ -66,15 +66,15 @@ export function Footer() {
             <ul className="space-y-4 text-sm text-white/80 font-light">
               <li className="flex items-start gap-3">
                 <MapPin className="w-4 h-4 mt-0.5 text-gold shrink-0" />
-                <span>Kochi, Kerala, India</span>
+                <span>Malappuram, Kerala, India</span>
               </li>
               <li className="flex items-center gap-3">
                 <Mail className="w-4 h-4 text-gold shrink-0" />
-                <a href="mailto:support@cloche.com" className="hover:text-white transition-colors">support@cloche.com</a>
+                <a href="mailto:cloche.luxury@gmail.com" className="hover:text-white transition-colors">cloche.luxury@gmail.com</a>
               </li>
               <li className="flex items-center gap-3">
                 <Phone className="w-4 h-4 text-gold shrink-0" />
-                <a href="tel:+919876543210" className="hover:text-white transition-colors">+91 98765 43210</a>
+                <a href="tel:+917306633171" className="hover:text-white transition-colors">+91 73066 33171</a>
               </li>
             </ul>
           </div>
