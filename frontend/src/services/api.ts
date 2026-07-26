@@ -8,7 +8,7 @@ export async function getFeaturedBoutiques(): Promise<Boutique[]> {
     const res = await fetch(`${API_BASE_URL}/boutiques?limit=8&cache_bust=${Date.now()}`, {
       next: { revalidate: 3600 } 
     });
-    if (!res.ok) throw new Error("Failed to fetch boutiques");
+    if (!res.ok) return [];
     return res.json();
   } catch (error) {
     console.error(error);
@@ -21,7 +21,7 @@ export async function getTrendingCollections(): Promise<Product[]> {
     const res = await fetch(`${API_BASE_URL}/products?cache_bust=${Date.now()}`, {
       next: { revalidate: 3600 }
     });
-    if (!res.ok) throw new Error("Failed to fetch products");
+    if (!res.ok) return [];
     const data = await res.json();
     return Array.isArray(data) ? data.slice(0, 8) : [];
   } catch (error) {
@@ -35,7 +35,7 @@ export async function getAllProducts(): Promise<Product[]> {
     const res = await fetch(`${API_BASE_URL}/products?cache_bust=${Date.now()}`, {
       next: { revalidate: 3600 }
     });
-    if (!res.ok) throw new Error("Failed to fetch products");
+    if (!res.ok) return [];
     return res.json();
   } catch (error) {
     console.error(error);
@@ -48,7 +48,7 @@ export async function getAllBoutiques(): Promise<Boutique[]> {
     const res = await fetch(`${API_BASE_URL}/boutiques?cache_bust=${Date.now()}`, {
       next: { revalidate: 3600 }
     });
-    if (!res.ok) throw new Error("Failed to fetch boutiques");
+    if (!res.ok) return [];
     return res.json();
   } catch (error) {
     console.error(error);
@@ -62,12 +62,12 @@ export async function getAdminAnalytics(token: string) {
       headers: {
         "x-admin-token": token
       },
-      next: { revalidate: 60 }
+      cache: "no-store"
     });
-    if (!res.ok) throw new Error("Failed to fetch admin analytics");
-    return res.json();
+    if (!res.ok) return null;
+    return await res.json();
   } catch (error) {
-    console.error(error);
+    console.error("getAdminAnalytics error:", error);
     return null;
   }
 }

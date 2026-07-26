@@ -93,8 +93,16 @@ function Panel({
   );
 }
 
+import { cookies } from "next/headers";
+
 export default async function AdminOverview() {
-  const data = await getAdminAnalytics("admin-session-secure-token");
+  let token = "admin-session-secure-token";
+  try {
+    const cookieStore = await cookies();
+    token = cookieStore.get("auth_token")?.value || token;
+  } catch (e) {}
+
+  const data = await getAdminAnalytics(token);
   const metrics = data?.metrics || { totalUsers: 16, totalBoutiques: 13, totalProducts: 23 };
   const recentUsers: RecentUser[] = data?.recentUsers || [];
   const recentBoutiques: RecentBoutique[] = data?.recentBoutiques || [];
