@@ -9,6 +9,9 @@ import { cn } from "@/utils/cn";
 import { Button } from "./Button";
 import { searchProducts, searchBoutiques } from "@/app/actions/search";
 
+import { AdBanner } from "./AdBanner";
+import { getActiveCampaignsByPlacement, trackAdClick } from "@/lib/adStore";
+
 export function SearchClient() {
   const [activeTab, setActiveTab] = useState<"collections" | "boutiques">("collections");
   const [searchQuery, setSearchQuery] = useState("");
@@ -22,6 +25,8 @@ export function SearchClient() {
   const [totalPages, setTotalPages] = useState(1);
   const [totalResults, setTotalResults] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+
+  const sponsoredCampaigns = getActiveCampaignsByPlacement("Search Results").slice(0, 3);
 
   const categories = [
     { label: "All", value: "All" },
@@ -184,6 +189,45 @@ export function SearchClient() {
             {totalResults} results
           </span>
         </div>
+
+        {/* Sponsored Search Vendors Banner / Cards */}
+        {sponsoredCampaigns.length > 0 && (
+          <div className="mb-6 space-y-3">
+            <div className="flex items-center gap-2">
+              <span className="bg-gold text-charcoal text-[10px] font-bold uppercase tracking-widest px-2.5 py-0.5 rounded-full shadow-sm flex items-center gap-1">
+                <Star className="w-3 h-3 fill-charcoal" /> SPONSORED VENDORS
+              </span>
+              <span className="text-xs text-charcoal/50">Featured Partners</span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {sponsoredCampaigns.map((camp) => (
+                <Link
+                  key={camp.id}
+                  href={camp.ctaLink || "/"}
+                  onClick={() => trackAdClick(camp.id, "cta")}
+                  className="bg-white rounded-2xl border border-gold/30 p-4 shadow-sm hover:shadow-md transition-all group flex flex-col justify-between"
+                >
+                  <div className="space-y-2">
+                    <div className="relative h-32 w-full rounded-xl overflow-hidden">
+                      <img src={camp.desktopBanner} alt={camp.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                      <span className="absolute top-2 left-2 bg-[#0F4C45] text-white text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded shadow">
+                        SPONSORED
+                      </span>
+                    </div>
+                    <span className="text-[10px] font-bold uppercase text-gold block">{camp.vendorName}</span>
+                    <h4 className="font-display font-semibold text-charcoal text-sm leading-snug line-clamp-1">{camp.title}</h4>
+                    <p className="text-xs text-charcoal/70 line-clamp-2">{camp.shortDescription}</p>
+                  </div>
+                  <div className="mt-3 pt-2 border-t border-gold/10 flex items-center justify-between text-xs font-bold text-[#0F4C45]">
+                    <span>{camp.ctaText}</span>
+                    <span>→</span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
 
         {activeTab === "collections" ? (
           products.length > 0 ? (

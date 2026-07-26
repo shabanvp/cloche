@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Footer } from "@/components/Footer";
+import { AdBanner } from "@/components/AdBanner";
 
 export const dynamic = 'force-dynamic';
 
@@ -201,6 +202,9 @@ export default function Home() {
           </Link>
         </section>
 
+        {/* Sponsored Homepage Banner */}
+        <AdBanner placement="Homepage Between Categories" />
+
         {/* In-house Services Grid */}
         <section className="py-12 bg-[#F6F4EE] my-8">
           <div className="max-w-7xl mx-auto px-6">
@@ -392,6 +396,9 @@ export default function Home() {
             </Link>
           </div>
         </section>
+
+        {/* Mobile Sticky Sponsored Banner */}
+        <AdBanner placement="Mobile Sticky Banner" />
 
       </main>
       <Footer />

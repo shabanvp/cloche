@@ -12,12 +12,14 @@ import {
   FileText,
   BarChart3, 
   CreditCard,
-  Calendar
+  Calendar,
+  Megaphone
 } from "lucide-react";
 
 const navItems = [
   { label: "Overview", icon: LayoutDashboard, href: "/admin" },
   { label: "Vendors", icon: Users, href: "/admin/vendors" },
+  { label: "Marketing & Ads", icon: Megaphone, href: "/admin/marketing" },
   { label: "Collections", icon: ShoppingBag, href: "/admin/collections" },
   { label: "Homepage CMS", icon: LayoutTemplate, href: "/admin/homepage" },
   { label: "Categories", icon: Tag, href: "/admin/categories" },

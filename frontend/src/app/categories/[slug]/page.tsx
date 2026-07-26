@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { Footer } from "@/components/Footer";
 import { categories, getCategoryBySlug } from "@/lib/categories";
+import { AdBanner } from "@/components/AdBanner";
 
 type CategoryPageProps = {
   params: {
@@ -122,6 +123,9 @@ export default function CategoryPage({ params }: CategoryPageProps) {
               </div>
             </div>
           </section>
+
+          {/* Sponsored Category Ad Banner */}
+          <AdBanner placement="Category Page Top" category={category.title} />
 
           <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <div className="rounded-[28px] border border-white/70 bg-white/80 p-5 shadow-[0_18px_44px_rgba(10,44,40,0.08)]">

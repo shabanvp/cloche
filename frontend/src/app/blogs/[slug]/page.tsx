@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, Clock, Calendar } from "lucide-react";
 import { BottomNavBar } from "@/components/BottomNavBar";
+import { AdBanner } from "@/components/AdBanner";
 
 type BlogPost = {
   id: string;
@@ -100,6 +101,9 @@ export default async function BlogDetailPage({ params }: Props) {
         <p className="mt-6 text-[15px] leading-relaxed" style={{ color: "#4A3F35" }}>
           {post.content}
         </p>
+
+        {/* Native Blog Sponsored Ad */}
+        <AdBanner placement="Blog Pages" className="my-6" />
       </main>
 
       <BottomNavBar activeTab="home" />
