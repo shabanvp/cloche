@@ -18,7 +18,6 @@ import {
 const navItems = [
   { label: "Overview", icon: LayoutDashboard, href: "/admin" },
   { label: "Vendors", icon: Users, href: "/admin/vendors" },
-  { label: "Boutiques", icon: Store, href: "/admin/boutiques" },
   { label: "Collections", icon: ShoppingBag, href: "/admin/collections" },
   { label: "Homepage CMS", icon: LayoutTemplate, href: "/admin/homepage" },
   { label: "Categories", icon: Tag, href: "/admin/categories" },
