@@ -17,7 +17,8 @@ import {
   MapPin,
   Sparkles,
   Shirt,
-  Megaphone
+  Megaphone,
+  Palette
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { logout } from "@/app/actions/auth";
@@ -75,6 +76,7 @@ export function VendorSidebar() {
 
   // Common items at the end
   navItems.push(
+    { label: "Customize Store", icon: Palette, href: "/vendor/profile/customize" },
     { label: "Marketing & Ads", icon: Megaphone, href: "/vendor/marketing" },
     { label: "Analytics", icon: BarChart3, href: "/vendor/analytics" },
     { label: "Subscription", icon: CreditCard, href: "/vendor/subscription" }
