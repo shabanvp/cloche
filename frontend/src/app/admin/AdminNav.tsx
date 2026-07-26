@@ -2,24 +2,42 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { LucideIcon } from "lucide-react";
+import { 
+  LayoutDashboard, 
+  Users, 
+  Store, 
+  ShoppingBag, 
+  LayoutTemplate,
+  Tag,
+  FileText,
+  BarChart3, 
+  CreditCard,
+  Calendar
+} from "lucide-react";
 
-type AdminNavItem = {
-  label: string;
-  href: string;
-  icon: LucideIcon;
-};
+const navItems = [
+  { label: "Overview", icon: LayoutDashboard, href: "/admin" },
+  { label: "Vendors", icon: Users, href: "/admin/vendors" },
+  { label: "Boutiques", icon: Store, href: "/admin/boutiques" },
+  { label: "Collections", icon: ShoppingBag, href: "/admin/collections" },
+  { label: "Homepage CMS", icon: LayoutTemplate, href: "/admin/homepage" },
+  { label: "Categories", icon: Tag, href: "/admin/categories" },
+  { label: "Content", icon: FileText, href: "/admin/content" },
+  { label: "Appointments", icon: Calendar, href: "/admin/appointments" },
+  { label: "Reports", icon: BarChart3, href: "/admin/reports" },
+  { label: "Subscriptions", icon: CreditCard, href: "/admin/subscriptions" },
+];
 
-export default function AdminNav({ items }: { items: AdminNavItem[] }) {
+export default function AdminNav() {
   const pathname = usePathname();
 
   return (
     <nav className="p-4 space-y-2 flex-1 overflow-y-auto">
-      {items.map((item) => {
+      {navItems.map((item) => {
         const Icon = item.icon;
         const isActive =
-          item.href === "/admin/dashboard"
-            ? pathname === "/admin" || pathname.startsWith("/admin/dashboard")
+          item.href === "/admin" || item.href === "/admin/dashboard"
+            ? pathname === "/admin" || pathname === "/admin/dashboard"
             : pathname.startsWith(item.href);
 
         return (

@@ -1,18 +1,5 @@
 import { ReactNode } from "react";
-import { 
-  LayoutDashboard, 
-  Users, 
-  Store, 
-  ShoppingBag, 
-  LayoutTemplate,
-  Tag,
-  FileText,
-  BarChart3, 
-  CreditCard,
-  LogOut,
-  ShieldCheck,
-  Calendar
-} from "lucide-react";
+import { LogOut, ShieldCheck } from "lucide-react";
 import AdminNav from "./AdminNav";
 
 export const metadata = {
@@ -20,19 +7,6 @@ export const metadata = {
 };
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
-  const navItems = [
-    { label: "Overview", icon: LayoutDashboard, href: "/admin/dashboard" },
-    { label: "Vendors", icon: Users, href: "/admin/vendors" },
-    { label: "Boutiques", icon: Store, href: "/admin/boutiques" },
-    { label: "Collections", icon: ShoppingBag, href: "/admin/collections" },
-    { label: "Homepage CMS", icon: LayoutTemplate, href: "/admin/homepage" },
-    { label: "Categories", icon: Tag, href: "/admin/categories" },
-    { label: "Content", icon: FileText, href: "/admin/content" },
-    { label: "Appointments", icon: Calendar, href: "/admin/appointments" },
-    { label: "Reports", icon: BarChart3, href: "/admin/reports" },
-    { label: "Subscriptions", icon: CreditCard, href: "/admin/subscriptions" },
-  ];
-
   return (
     <div className="min-h-screen bg-[#fbf8f1] flex flex-col md:flex-row">
       
@@ -46,7 +20,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           </div>
         </div>
 
-        <AdminNav items={navItems} />
+        <AdminNav />
 
         <div className="p-4 border-t border-white/10">
           <button className="flex items-center gap-3 px-4 py-2 w-full text-left rounded-xl text-sm font-medium text-red-400 hover:bg-white/5 transition-colors">
