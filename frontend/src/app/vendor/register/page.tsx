@@ -514,7 +514,7 @@ export default function VendorRegisterPage() {
           </button>
 
           <p className="text-center text-sm text-charcoal/60 mt-6">
-            Already a partner? <Link href="/login" className="text-emerald font-bold hover:underline">Login here</Link>
+            Already a partner? <Link href="/vendor/login" className="text-emerald font-bold hover:underline">Login here</Link>
           </p>
         </div>
       </form>

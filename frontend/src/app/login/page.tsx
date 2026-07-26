@@ -16,9 +16,15 @@ export default function LoginPage() {
   const [showUnauthorizedMsg, setShowUnauthorizedMsg] = useState(false);
 
   useEffect(() => {
-    setRequestedRole(new URLSearchParams(window.location.search).get("role") === "admin" ? "admin" : "customer");
-
     const params = new URLSearchParams(window.location.search);
+    const roleParam = params.get("role");
+    if (roleParam === "vendor" || roleParam === "partner") {
+      window.location.href = "/vendor/login";
+      return;
+    }
+
+    setRequestedRole(roleParam === "admin" ? "admin" : "customer");
+
     if (params.get("logout") === "success") {
       setShowLogoutMsg(true);
       window.history.replaceState({}, document.title, window.location.pathname);
@@ -139,6 +145,12 @@ export default function LoginPage() {
             {isSubmitting ? "Logging in..." : "Login"}
             <ArrowRight className="h-4 w-4" />
           </button>
+
+          <div className="mt-3 pt-2 text-center">
+            <Link href="/vendor/login" className="text-xs font-semibold text-[#0F4C45] hover:underline">
+              Are you a vendor? Sign in to Vendor Portal →
+            </Link>
+          </div>
         </form>
       </AuthShell>
     </>
