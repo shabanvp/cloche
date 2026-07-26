@@ -10,10 +10,11 @@ const AuthMotion = motion.section;
 type AuthShellProps = {
   activeTab: "login" | "signup";
   subtitle: string;
+  hideTabs?: boolean;
   showSocial?: boolean;
-  footerText: string;
-  footerLink: string;
-  footerLinkLabel: string;
+  footerText?: string;
+  footerLink?: string;
+  footerLinkLabel?: string;
   children: ReactNode;
 };
 
@@ -23,6 +24,7 @@ const tabBase =
 export function AuthShell({
   activeTab,
   subtitle,
+  hideTabs = false,
   showSocial = false,
   footerText,
   footerLink,
@@ -51,24 +53,26 @@ export function AuthShell({
             </p>
           </div>
 
-          <div className="mb-4 flex border-b border-[#DDD3C5]">
-            <Link href="/login" className="relative flex h-10 min-h-9 flex-1 items-center justify-center text-[15px] font-semibold transition-colors">
-              <span className={activeTab === "login" ? "text-[#123f3a]" : "text-[#33312d]/80"}>Login</span>
-              <span
-                className={`absolute bottom-[-1px] h-0.5 w-[82%] rounded-full bg-[#123f3a] transition-transform duration-300 ${
-                  activeTab === "login" ? "scale-x-100" : "scale-x-0"
-                }`}
-              />
-            </Link>
-            <Link href="/signup" className="relative flex h-10 min-h-9 flex-1 items-center justify-center text-[15px] font-semibold transition-colors">
-              <span className={activeTab === "signup" ? "text-[#123f3a]" : "text-[#33312d]/80"}>Sign Up</span>
-              <span
-                className={`absolute bottom-[-1px] h-0.5 w-[82%] rounded-full bg-[#123f3a] transition-transform duration-300 ${
-                  activeTab === "signup" ? "scale-x-100" : "scale-x-0"
-                }`}
-              />
-            </Link>
-          </div>
+          {!hideTabs && (
+            <div className="mb-4 flex border-b border-[#DDD3C5]">
+              <Link href="/login" className="relative flex h-10 min-h-9 flex-1 items-center justify-center text-[15px] font-semibold transition-colors">
+                <span className={activeTab === "login" ? "text-[#123f3a]" : "text-[#33312d]/80"}>Login</span>
+                <span
+                  className={`absolute bottom-[-1px] h-0.5 w-[82%] rounded-full bg-[#123f3a] transition-transform duration-300 ${
+                    activeTab === "login" ? "scale-x-100" : "scale-x-0"
+                  }`}
+                />
+              </Link>
+              <Link href="/signup" className="relative flex h-10 min-h-9 flex-1 items-center justify-center text-[15px] font-semibold transition-colors">
+                <span className={activeTab === "signup" ? "text-[#123f3a]" : "text-[#33312d]/80"}>Sign Up</span>
+                <span
+                  className={`absolute bottom-[-1px] h-0.5 w-[82%] rounded-full bg-[#123f3a] transition-transform duration-300 ${
+                    activeTab === "signup" ? "scale-x-100" : "scale-x-0"
+                  }`}
+                />
+              </Link>
+            </div>
+          )}
 
           <div className="space-y-4">
             <div className="space-y-3">{children}</div>
@@ -107,14 +111,16 @@ export function AuthShell({
               </div>
             )}
 
-            <div className="text-center">
-              <p className="text-[14px] text-[#4B463E]">
-                {footerText}{" "}
-                <Link href={footerLink} className="font-semibold text-[#0F4C45] underline decoration-[#0F4C45]/25 underline-offset-4">
-                  {footerLinkLabel}
-                </Link>
-              </p>
-            </div>
+            {footerText && footerLink && footerLinkLabel && (
+              <div className="text-center">
+                <p className="text-[14px] text-[#4B463E]">
+                  {footerText}{" "}
+                  <Link href={footerLink} className="font-semibold text-[#0F4C45] underline decoration-[#0F4C45]/25 underline-offset-4">
+                    {footerLinkLabel}
+                  </Link>
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>

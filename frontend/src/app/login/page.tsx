@@ -72,10 +72,11 @@ export default function LoginPage() {
       <AuthShell
         activeTab="login"
         subtitle={requestedRole === "admin" ? "Administrative\nPortal" : "Curated Luxury,\nTimeless Weddings"}
-        showSocial
-        footerText="Don't have an account?"
-        footerLink="/signup"
-        footerLinkLabel="Sign up"
+        hideTabs={requestedRole === "admin"}
+        showSocial={requestedRole !== "admin"}
+        footerText={requestedRole === "admin" ? "" : "Don't have an account?"}
+        footerLink={requestedRole === "admin" ? "" : "/signup"}
+        footerLinkLabel={requestedRole === "admin" ? "" : "Sign up"}
       >
         <form className="space-y-3.5" onSubmit={handleSubmit}>
           <div className="space-y-1.5">
@@ -89,7 +90,7 @@ export default function LoginPage() {
                 name="email"
                 type="email"
                 required
-                placeholder="olivia.bennett@gmail.com"
+                placeholder={requestedRole === "admin" ? "admin@cloche.com" : "olivia.bennett@gmail.com"}
                 className="w-full bg-transparent text-[14px] text-[#1E1B16] outline-none placeholder:text-[#A79B8B]"
               />
             </div>
@@ -146,11 +147,13 @@ export default function LoginPage() {
             <ArrowRight className="h-4 w-4" />
           </button>
 
-          <div className="mt-3 pt-2 text-center">
-            <Link href="/vendor/login" className="text-xs font-semibold text-[#0F4C45] hover:underline">
-              Are you a vendor? Sign in to Vendor Portal →
-            </Link>
-          </div>
+          {requestedRole !== "admin" && (
+            <div className="mt-3 pt-2 text-center">
+              <Link href="/vendor/login" className="text-xs font-semibold text-[#0F4C45] hover:underline">
+                Are you a vendor? Sign in to Vendor Portal →
+              </Link>
+            </div>
+          )}
         </form>
       </AuthShell>
     </>
