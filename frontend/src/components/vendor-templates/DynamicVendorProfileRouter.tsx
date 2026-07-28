@@ -13,7 +13,7 @@ interface Props {
   initialConfig?: VendorProfileConfig;
 }
 
-export function DynamicVendorProfileRouter({ vendorId, category = "Wedding Venues", initialConfig }: Props) {
+export function DynamicVendorProfileRouter({ vendorId, category = "Bridal Wear", initialConfig }: Props) {
   const [config, setConfig] = useState<VendorProfileConfig>(
     initialConfig || getVendorProfileConfig(vendorId, category as CategoryType)
   );
@@ -24,14 +24,47 @@ export function DynamicVendorProfileRouter({ vendorId, category = "Wedding Venue
     }
   }, [vendorId, category, initialConfig]);
 
-  switch (config.category) {
-    case "Wedding Venues":
-      return <VenueProfileTemplate config={config} />;
-    case "Photographers":
-      return <PhotographerProfileTemplate config={config} />;
-    case "Bridal Wear":
-      return <BridalWearProfileTemplate config={config} />;
-    default:
-      return <GenericCategoryProfileTemplate config={config} />;
+  const catLower = (config.category || category || "").toString().toLowerCase().trim();
+
+  // 1. Check for Wedding Venues
+  if (
+    catLower.includes("venue") ||
+    catLower.includes("hall") ||
+    catLower.includes("resort") ||
+    catLower.includes("palace") ||
+    catLower === "wedding venues"
+  ) {
+    return <VenueProfileTemplate config={config} />;
   }
+
+  // 2. Check for Photographers & Videographers
+  if (
+    catLower.includes("photographer") ||
+    catLower.includes("photo") ||
+    catLower.includes("video") ||
+    catLower.includes("cinema") ||
+    catLower === "photographers"
+  ) {
+    return <PhotographerProfileTemplate config={config} />;
+  }
+
+  // 3. Check for ALL Bridal Boutique / Bridal Wear / Designer Boutique / Wedding Dresses categories
+  if (
+    catLower.includes("bridal") ||
+    catLower.includes("boutique") ||
+    catLower.includes("dress") ||
+    catLower.includes("lehenga") ||
+    catLower.includes("saree") ||
+    catLower.includes("gown") ||
+    catLower.includes("couture") ||
+    catLower === "bridal wear" ||
+    catLower === "bridal boutique" ||
+    catLower === "designer boutique" ||
+    catLower === "wedding boutique"
+  ) {
+    return <BridalWearProfileTemplate config={config} />;
+  }
+
+  // Default Fallback Template
+  return <GenericCategoryProfileTemplate config={config} />;
 }
