@@ -1,6 +1,7 @@
 import { ReactNode } from "react";
 import { LogOut, ShieldCheck } from "lucide-react";
 import AdminNav from "./AdminNav";
+import { AdminSignOutButton } from "./AdminSignOutButton";
 
 export const metadata = {
   title: "Admin CMS - Cloche",
@@ -23,9 +24,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         <AdminNav />
 
         <div className="p-4 border-t border-white/10">
-          <button className="flex items-center gap-3 px-4 py-2 w-full text-left rounded-xl text-sm font-medium text-red-400 hover:bg-white/5 transition-colors">
-            <LogOut className="w-4 h-4" /> Sign Out
-          </button>
+          <AdminSignOutButton />
         </div>
       </aside>
 
