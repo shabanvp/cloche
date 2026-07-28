@@ -5,11 +5,9 @@ import { usePathname } from "next/navigation";
 import { 
   Bell, Edit3, Smartphone, Menu, X, ChevronDown, Search, User,
   Home, MapPin, Store, BookHeart, FileText, Mail,
-  Heart, Lightbulb, Info, CircleHelp, ArrowRight, Users, MessageCircle, CheckCircle2,
-  LogOut, LayoutDashboard, Calendar, Sparkles
+  Heart, Lightbulb, Info, CircleHelp, ArrowRight, Users, MessageCircle, CheckCircle2
 } from "lucide-react";
-import { useEffect, useState, useRef } from "react";
-import { logout } from "@/app/actions/auth";
+import { useEffect, useState } from "react";
 
 type HeaderProps = {
   session?: { token: string; role?: string } | null;
@@ -18,12 +16,6 @@ type HeaderProps = {
 export function Header({ session }: HeaderProps = {}) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
-  const [isMoreDropdownOpen, setIsMoreDropdownOpen] = useState(false);
-  const [isAccountDropdownOpen, setIsAccountDropdownOpen] = useState(false);
-
-  const moreDropdownRef = useRef<HTMLDivElement>(null);
-  const accountDropdownRef = useRef<HTMLDivElement>(null);
-
   const pathname = usePathname();
   const isAuthRoute = pathname === "/login" || pathname === "/signup";
 
@@ -55,17 +47,18 @@ export function Header({ session }: HeaderProps = {}) {
   }, [isMobileMenuOpen]);
 
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (moreDropdownRef.current && !moreDropdownRef.current.contains(event.target as Node)) {
-        setIsMoreDropdownOpen(false);
-      }
-      if (accountDropdownRef.current && !accountDropdownRef.current.contains(event.target as Node)) {
-        setIsAccountDropdownOpen(false);
-      }
+    if (!isNotificationsOpen) return;
+
+    const closeNotificationsOnScroll = () => {
+      setIsNotificationsOpen(false);
     };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+
+    window.addEventListener("scroll", closeNotificationsOnScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", closeNotificationsOnScroll);
+    };
+  }, [isNotificationsOpen]);
 
   if (isAuthRoute) return null;
 
@@ -76,42 +69,14 @@ export function Header({ session }: HeaderProps = {}) {
     profileLink = "/admin";
   }
 
-  const isVendorSession = session?.role === "vendor" || session?.role === "partner";
-
-  const mainNavItems = [
-    { label: "Home", href: "/" },
-    { label: "Venues", href: "/venues" },
-    { label: "Vendors", href: "/vendors" },
-    { label: "Collections", href: "/collections" },
-    { label: "Real Weddings", href: "/real-weddings" },
-    { label: "Blogs", href: "/blogs" },
-  ];
-
-  const moreCategoryItems = [
-    { label: "Bridal Wear", href: "/categories/bridal-wear" },
-    { label: "Groom Wear", href: "/categories/groom-wear" },
-    { label: "Photography", href: "/photographers" },
-    { label: "Videography", href: "/categories/videography" },
-    { label: "Makeup Artists", href: "/makeup" },
-    { label: "Mehendi Artists", href: "/categories/mehendi" },
-    { label: "Decor & Planning", href: "/categories/decor-planning" },
-    { label: "Jewellery", href: "/categories/jewellery" },
-    { label: "Invitation Designers", href: "/invitations" },
-    { label: "Caterers", href: "/catering" },
-    { label: "Wedding Cakes", href: "/categories/cakes" },
-    { label: "Entertainment", href: "/categories/entertainment" },
-    { label: "Wedding Planners", href: "/categories/wedding-planners" },
-    { label: "Honeymoon", href: "/categories/honeymoon" },
-    { label: "Rental Services", href: "/categories/rentals" },
-    { label: "Gift Stores", href: "/categories/gifts" },
-  ];
-
   const browseLinks = [
     { label: "Home", href: "/", icon: Home },
-    { label: "Venues", href: "/venues", icon: MapPin },
-    { label: "Vendors", href: "/vendors", icon: Users },
+    { label: "Venues", href: "/categories", icon: MapPin },
+    { label: "Vendors", href: "/boutiques", icon: Users },
+    { label: "Boutiques", href: "/boutiques", icon: Store },
     { label: "Collections", href: "/collections", icon: Heart },
     { label: "Real Weddings", href: "/real-weddings", icon: BookHeart },
+    { label: "Inspiration", href: "/inspiration", icon: Lightbulb },
     { label: "Blogs", href: "/blogs", icon: FileText },
   ];
 
@@ -123,6 +88,7 @@ export function Header({ session }: HeaderProps = {}) {
   ];
 
   const closeMobileMenu = () => setIsMobileMenuOpen(false);
+  const isVendorSession = session?.role === "vendor" || session?.role === "partner";
 
   const notifications = session
     ? isVendorSession
@@ -150,20 +116,41 @@ export function Header({ session }: HeaderProps = {}) {
             href: "/dashboard/wishlist",
           },
         ]
-    : [];
+    : [
+        {
+          title: "Sign in for notifications",
+          body: "Log in to see replies, appointment updates, and saved vendor alerts.",
+          href: "/login",
+        },
+      ];
 
   const isActiveLink = (href: string) => {
     if (href === "/") return pathname === "/";
     return pathname === href || pathname.startsWith(`${href}/`);
   };
 
-  const handleLogout = async () => {
-    await logout();
-    if (typeof window !== "undefined") {
-      document.cookie = "auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;";
-      document.cookie = "user_role=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;";
-    }
-    window.location.href = "/?logout=success";
+  const MobileMenuLink = ({ item, index }: {
+    item: { label: string; href: string; icon: React.ElementType };
+    index: number;
+  }) => {
+    const Icon = item.icon;
+    const active = isActiveLink(item.href);
+
+    return (
+      <Link
+        href={item.href}
+        className={`group flex min-h-12 items-center gap-5 rounded-2xl px-3 py-3 transition-all duration-200 ${
+          active
+            ? "bg-[#123f3a] text-[#F7F3EC] shadow-[inset_3px_0_0_#C8A96A]"
+            : "text-[#F7F3EC]/90 hover:bg-white/7 hover:text-[#F7F3EC]"
+        }`}
+        style={{ animationDelay: `${index * 32}ms` }}
+        onClick={closeMobileMenu}
+      >
+        <Icon className="h-5 w-5 shrink-0 text-[#C8A96A] transition-transform duration-200 group-hover:scale-105" strokeWidth={1.7} />
+        <span className="font-sans text-[15px] leading-5 tracking-normal">{item.label}</span>
+      </Link>
+    );
   };
 
   return (
@@ -171,9 +158,9 @@ export function Header({ session }: HeaderProps = {}) {
       {/* Top Bar (Hidden on Mobile) */}
       <div className="hidden md:flex justify-between items-center px-4 sm:px-6 lg:px-10 xl:px-12 py-2 text-xs lg:text-sm bg-[#0B3B2D] text-white border-b border-white/10">
         <div className="flex items-center gap-4">
-          <span className="text-gray-300">India&apos;s Favourite Wedding Marketplace Platform</span>
-          <button className="flex items-center gap-1 bg-white text-gray-900 px-3 py-1 rounded-sm font-medium hover:bg-gray-100 transition-colors text-xs">
-            All Cities <ChevronDown className="w-3.5 h-3.5" />
+          <span className="text-gray-300">India&apos;s Favourite Wedding Planning Platform</span>
+          <button className="flex items-center gap-1 bg-white text-gray-900 px-3 py-1 rounded-sm font-medium hover:bg-gray-100 transition-colors">
+            All Cities <ChevronDown className="w-4 h-4" />
           </button>
         </div>
         <div className="flex items-center gap-6">
@@ -188,7 +175,7 @@ export function Header({ session }: HeaderProps = {}) {
         </div>
       </div>
 
-      {/* Main Nav */}
+      {/* Main Nav - Same dark green header for all pages */}
       <div className="relative flex justify-between items-center px-4 sm:px-6 lg:px-10 xl:px-12 py-2.5 md:py-4 bg-primary text-white">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-3 shrink-0">
@@ -198,139 +185,40 @@ export function Header({ session }: HeaderProps = {}) {
           <span className="block font-display text-[20px] md:text-2xl lg:text-[28px] font-bold tracking-wide mt-0.5 md:mt-1">Cloche</span>
         </Link>
 
-        {/* Desktop Navbar Links */}
-        <nav className="hidden lg:flex items-center gap-6 xl:gap-8 font-medium text-[14px] xl:text-[15px]">
-          {mainNavItems.map((item) => {
-            const active = isActiveLink(item.href);
-            return (
-              <Link
-                key={item.label}
-                href={item.href}
-                className={`py-1 transition-colors relative ${
-                  active
-                    ? "text-[#C8A96A] font-semibold border-b-2 border-[#C8A96A]"
-                    : "hover:text-[#C8A96A] text-white/90"
-                }`}
-              >
-                {item.label}
-              </Link>
-            );
-          })}
-
-          {/* "More ▼" Dropdown */}
-          <div className="relative" ref={moreDropdownRef}>
-            <button
-              onClick={() => setIsMoreDropdownOpen(!isMoreDropdownOpen)}
-              className={`flex items-center gap-1.5 py-1 transition-colors ${
-                moreCategoryItems.some((c) => isActiveLink(c.href))
-                  ? "text-[#C8A96A] font-semibold border-b-2 border-[#C8A96A]"
-                  : "hover:text-[#C8A96A] text-white/90"
-              }`}
-            >
-              <span>More</span>
-              <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isMoreDropdownOpen ? "rotate-180 text-[#C8A96A]" : ""}`} />
-            </button>
-
-            {isMoreDropdownOpen && (
-              <div className="absolute top-full left-0 mt-3 w-64 bg-[#0B3B36] border border-[#C8A96A]/30 rounded-2xl shadow-2xl p-2 z-50 grid grid-cols-1 gap-0.5 animate-in fade-in slide-in-from-top-2 duration-200">
-                {moreCategoryItems.map((cat) => (
-                  <Link
-                    key={cat.label}
-                    href={cat.href}
-                    onClick={() => setIsMoreDropdownOpen(false)}
-                    className="px-3.5 py-2 rounded-xl text-xs font-semibold text-[#F7F3EC]/90 hover:bg-[#12584C] hover:text-[#C8A96A] transition-all flex items-center justify-between"
-                  >
-                    <span>{cat.label}</span>
-                    <ChevronDown className="-rotate-90 w-3 h-3 text-[#C8A96A]/60" />
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
+        {/* Desktop Links */}
+        <nav className="hidden lg:flex items-center gap-5 xl:gap-8 font-semibold text-[14px] xl:text-[15px]">
+          <Link href="/categories" className="hover:text-gold transition-colors">Venues</Link>
+          <Link href="/boutiques" className="hover:text-gold transition-colors">Vendors</Link>
+          <Link href="/inspiration" className="hover:text-gold transition-colors">Photos</Link>
+          <Link href="/real-weddings" className="hover:text-gold transition-colors">Real Weddings</Link>
+          <Link href="/blogs" className="hover:text-gold transition-colors">Blog</Link>
+          <Link href="/e-invites" className="hover:text-gold transition-colors">E-Invites</Link>
+          <Link href="/genie" className="hover:text-gold transition-colors">Genie</Link>
         </nav>
 
-        {/* Action Controls: Search, Notifications & Account */}
-        <div className="flex items-center gap-3 lg:gap-4 shrink-0">
-          
-          {/* Global Search Icon */}
-          <Link
-            href="/search"
-            className="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors"
-            aria-label="Search"
-          >
-            <Search className="w-[17px] h-[17px] lg:w-5 lg:h-5 text-white" />
-          </Link>
-
-          {/* Notification Bell */}
+        {/* Actions */}
+        <div className="flex items-center gap-3 lg:gap-5 shrink-0">
           <button
             type="button"
             className="relative w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors"
             onClick={() => setIsNotificationsOpen((open) => !open)}
             aria-label="Open notifications"
+            aria-expanded={isNotificationsOpen}
           >
             <Bell className="w-[17px] h-[17px] lg:w-5 lg:h-5" />
-            {session && notifications.length > 0 && (
-              <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-[#C8A96A] shadow-[0_0_0_2px_#0F4C45]" />
-            )}
+            <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-[#C8A96A] shadow-[0_0_0_2px_#0F4C45]" />
           </button>
-
-          {/* Account Login / Profile Dropdown */}
+          
           {session ? (
-            <div className="relative" ref={accountDropdownRef}>
-              <button
-                onClick={() => setIsAccountDropdownOpen(!isAccountDropdownOpen)}
-                className="hidden md:flex items-center gap-2 bg-[#12584C] hover:bg-[#186f61] border border-[#1d796b] px-4 py-2 rounded-full font-semibold transition-colors text-xs lg:text-sm"
-              >
-                <User className="w-4 h-4 text-[#C8A96A]" />
-                <span>Account</span>
-                <ChevronDown className="w-3.5 h-3.5 text-white/70" />
-              </button>
-
-              {isAccountDropdownOpen && (
-                <div className="absolute right-0 top-full mt-3 w-56 bg-[#0B3B36] border border-[#C8A96A]/30 rounded-2xl shadow-2xl p-2 z-50 space-y-1 text-xs animate-in fade-in duration-200">
-                  <Link
-                    href={profileLink}
-                    onClick={() => setIsAccountDropdownOpen(false)}
-                    className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-white font-semibold hover:bg-[#12584E]"
-                  >
-                    <LayoutDashboard className="w-4 h-4 text-[#C8A96A]" /> Dashboard
-                  </Link>
-
-                  {!isVendorSession && (
-                    <>
-                      <Link
-                        href="/dashboard/wishlist"
-                        onClick={() => setIsAccountDropdownOpen(false)}
-                        className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-white font-semibold hover:bg-[#12584E]"
-                      >
-                        <Heart className="w-4 h-4 text-red-400" /> Wishlist
-                      </Link>
-                      <Link
-                        href="/dashboard/appointments"
-                        onClick={() => setIsAccountDropdownOpen(false)}
-                        className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-white font-semibold hover:bg-[#12584E]"
-                      >
-                        <Calendar className="w-4 h-4 text-emerald" /> Bookings
-                      </Link>
-                    </>
-                  )}
-
-                  <button
-                    onClick={handleLogout}
-                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-red-300 font-semibold hover:bg-red-950/40 text-left"
-                  >
-                    <LogOut className="w-4 h-4 text-red-400" /> Logout
-                  </button>
-                </div>
-              )}
-            </div>
+            <Link href={profileLink} className="hidden md:flex bg-[#12584C] hover:bg-[#186f61] border border-[#1d796b] px-6 py-2 lg:px-8 lg:py-2.5 rounded-full font-semibold transition-colors text-sm lg:text-[15px]">
+              Profile
+            </Link>
           ) : (
             <Link href="/login" className="hidden md:flex bg-[#12584C] hover:bg-[#186f61] border border-[#1d796b] px-6 py-2 lg:px-8 lg:py-2.5 rounded-full font-semibold transition-colors text-sm lg:text-[15px]">
               Log In
             </Link>
           )}
 
-          {/* Mobile Hamburger Toggle */}
           <button 
             className="lg:hidden text-white hover:text-gold transition-colors"
             onClick={() => {
@@ -342,7 +230,6 @@ export function Header({ session }: HeaderProps = {}) {
           </button>
         </div>
 
-        {/* Notifications Panel */}
         {isNotificationsOpen && (
           <div className="absolute right-4 top-[calc(100%+10px)] z-[70] w-[min(calc(100vw-2rem),360px)] overflow-hidden rounded-2xl border border-[#C8A96A]/30 bg-[#F7F3EC] text-[#082F2C] shadow-[0_22px_60px_rgba(0,0,0,0.22)]">
             <div className="flex items-center justify-between border-b border-[#C8A96A]/20 bg-[#0B3B36] px-4 py-3 text-[#F7F3EC]">
@@ -361,42 +248,51 @@ export function Header({ session }: HeaderProps = {}) {
             </div>
 
             <div className="max-h-[320px] overflow-y-auto p-3">
-              {notifications.length > 0 ? (
-                notifications.map((notification) => (
-                  <Link
-                    key={notification.title}
-                    href={notification.href}
-                    onClick={() => setIsNotificationsOpen(false)}
-                    className="group flex gap-3 rounded-xl px-3 py-3 transition-colors hover:bg-[#0B3B36]/8"
-                  >
-                    <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#0B3B36]/10 text-[#0B3B36]">
-                      {session ? <MessageCircle className="h-4 w-4" /> : <CheckCircle2 className="h-4 w-4" />}
-                    </span>
-                    <span className="min-w-0">
-                      <span className="block font-sans text-sm font-bold text-[#082F2C]">{notification.title}</span>
-                      <span className="mt-1 block font-sans text-xs leading-5 text-[#082F2C]/70">{notification.body}</span>
-                    </span>
-                  </Link>
-                ))
-              ) : (
-                <div className="p-4 text-center text-xs text-[#082F2C]/60 font-medium">
-                  No new notifications right now.
-                </div>
-              )}
+              {notifications.map((notification) => (
+                <Link
+                  key={notification.title}
+                  href={notification.href}
+                  onClick={() => setIsNotificationsOpen(false)}
+                  className="group flex gap-3 rounded-xl px-3 py-3 transition-colors hover:bg-[#0B3B36]/8"
+                >
+                  <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#0B3B36]/10 text-[#0B3B36]">
+                    {session ? <MessageCircle className="h-4 w-4" /> : <CheckCircle2 className="h-4 w-4" />}
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block font-sans text-sm font-bold text-[#082F2C]">{notification.title}</span>
+                    <span className="mt-1 block font-sans text-xs leading-5 text-[#082F2C]/70">{notification.body}</span>
+                  </span>
+                </Link>
+              ))}
+            </div>
+
+            <div className="border-t border-[#C8A96A]/20 px-4 py-3 text-center">
+              <Link
+                href={session ? profileLink : "/login"}
+                onClick={() => setIsNotificationsOpen(false)}
+                className="font-sans text-xs font-bold uppercase tracking-[0.18em] text-[#0B3B36] hover:text-[#C8A96A]"
+              >
+                {session ? "Open account" : "Login to continue"}
+              </Link>
             </div>
           </div>
         )}
       </div>
 
-      {/* Mobile Drawer */}
+      {/* Mobile Sidebar Menu (Drawer) */}
       {isMobileMenuOpen && (
         <div className="lg:hidden fixed inset-0 z-[60] flex justify-end">
+          {/* Overlay */}
           <div 
             className="absolute inset-0 bg-black/65 backdrop-blur-[2px] transition-opacity duration-300" 
             onClick={closeMobileMenu}
           ></div>
           
+          {/* Sidebar */}
           <div className="relative flex h-[100dvh] w-[76vw] max-w-[340px] flex-col overflow-hidden bg-[#0B3B36] text-[#F7F3EC] shadow-[-28px_0_70px_rgba(0,0,0,0.38)] animate-in slide-in-from-right duration-300 ease-in-out">
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_8%,rgba(216,195,154,0.16),transparent_30%),linear-gradient(160deg,rgba(8,47,44,0.16),rgba(8,47,44,0.84))]"></div>
+            <div className="pointer-events-none absolute -right-16 bottom-0 h-36 w-36 rounded-full bg-[#082F2C]/80 blur-2xl"></div>
+
             <button 
               onClick={closeMobileMenu}
               className="absolute right-6 top-[calc(env(safe-area-inset-top)+22px)] z-10 text-[#D8C39A] transition-colors hover:text-[#F7F3EC]"
@@ -427,25 +323,41 @@ export function Header({ session }: HeaderProps = {}) {
               <nav className="space-y-9">
                 <section>
                   <h3 className="mb-4 px-3 font-display text-[15px] font-bold uppercase tracking-[0.08em] text-[#C8A96A]">
-                    Browse Marketplace
+                    Browse
                   </h3>
                   <div className="space-y-1">
-                    {browseLinks.map((item, index) => {
-                      const Icon = item.icon;
-                      return (
-                        <Link
-                          key={item.label}
-                          href={item.href}
-                          onClick={closeMobileMenu}
-                          className="flex items-center gap-4 px-3 py-2.5 rounded-xl text-sm font-medium hover:bg-white/10"
-                        >
-                          <Icon className="w-4 h-4 text-[#C8A96A]" /> {item.label}
-                        </Link>
-                      );
-                    })}
+                    {browseLinks.map((item, index) => (
+                      <MobileMenuLink key={`${item.label}-${item.href}`} item={item} index={index} />
+                    ))}
+                  </div>
+                </section>
+
+                <section>
+                  <h3 className="mb-4 px-3 font-display text-[15px] font-bold uppercase tracking-[0.08em] text-[#C8A96A]">
+                    Company
+                  </h3>
+                  <div className="space-y-1">
+                    {companyLinks.map((item, index) => (
+                      <MobileMenuLink key={`${item.label}-${item.href}`} item={item} index={index + browseLinks.length} />
+                    ))}
                   </div>
                 </section>
               </nav>
+
+              <Link
+                href="/vendor/register"
+                onClick={closeMobileMenu}
+                className="mt-9 flex items-center gap-4 rounded-[22px] border border-[#C8A96A]/55 bg-[#F7F3EC] p-3 text-[#082F2C] shadow-[0_18px_34px_rgba(0,0,0,0.22)] transition-transform duration-200 hover:scale-[1.02]"
+              >
+                <div className="flex h-[66px] w-[66px] shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#D8C39A]/55">
+                  <img src="/logo.png" alt="" className="h-full w-full object-contain scale-[1.55]" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="font-sans text-[18px] font-bold leading-6">List Your Business</p>
+                  <p className="mt-1 font-sans text-[14px] leading-5 text-[#082F2C]/80">Grow with Cloche</p>
+                </div>
+                <ArrowRight className="h-8 w-8 shrink-0 text-[#082F2C]" strokeWidth={1.8} />
+              </Link>
             </div>
           </div>
         </div>
