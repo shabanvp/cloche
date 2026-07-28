@@ -101,7 +101,7 @@ export default function LoginPage() {
               <label className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#3E3A33]" htmlFor="password">
                 Password
               </label>
-              <Link href="/reset-password" className="text-[12px] text-[#4D4A43] transition-colors hover:text-[#0F4C45]">
+              <Link href={`/reset-password?role=${requestedRole}`} className="text-[12px] text-[#4D4A43] transition-colors hover:text-[#0F4C45]">
                 Forgot?
               </Link>
             </div>
