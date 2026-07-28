@@ -5,11 +5,23 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { login } from "@/app/actions/auth";
 
+import { useEffect } from "react";
+
 export default function VendorLoginPage() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [successMsg, setSuccessMsg] = useState("");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("status") === "registered") {
+        setSuccessMsg("Registration successful! Your vendor account is active. Log in below to access your portal.");
+      }
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -45,6 +57,12 @@ export default function VendorLoginPage() {
         </div>
 
         <form className="bg-white rounded-3xl shadow-sm border border-gold/10 p-8 sm:p-10" onSubmit={handleSubmit}>
+
+          {successMsg && (
+            <div className="bg-[#0F4C45] text-white border border-[#C8A96A]/30 px-4 py-3 text-xs rounded-xl mb-6 font-semibold text-center shadow-md">
+              {successMsg}
+            </div>
+          )}
 
           {errorMsg && (
             <div className="bg-red-50 text-red-600 border border-red-200 px-4 py-3 text-sm rounded-xl mb-6 font-medium text-center">

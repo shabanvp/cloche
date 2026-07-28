@@ -321,7 +321,7 @@ export default function VendorRegisterPage() {
       setFieldErrors(mappedError.fieldErrors);
       setErrorMsg(mappedError.generalError);
     } else if (res.success) {
-      alert("Application submitted successfully.\n\nPlease wait for admin approval before logging in.");
+      alert("Application submitted and account created successfully!\n\nYou can now log in directly to access your Vendor Dashboard.");
       router.push("/vendor/login?status=registered");
     } else {
       setErrorMsg("Application submission failed. Please try again.");
