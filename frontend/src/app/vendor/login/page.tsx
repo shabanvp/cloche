@@ -100,9 +100,6 @@ export default function VendorLoginPage() {
             <p className="text-sm text-charcoal/60">
               Don't have a partner account yet? <Link href="/vendor/register" className="text-emerald font-bold hover:underline">Apply here</Link>
             </p>
-            <p className="text-sm text-charcoal/60">
-              Admin user? <Link href="/admin" className="text-emerald font-bold hover:underline">Open Admin Portal</Link>
-            </p>
           </div>
         </form>
       </div>
