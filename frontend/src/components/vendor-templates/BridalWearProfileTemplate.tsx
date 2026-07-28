@@ -1,21 +1,50 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import Link from "next/link";
 import { VendorProfileConfig } from "@/lib/vendorTemplates";
 import { 
   ShoppingBag, Sparkles, MapPin, Phone, MessageSquare, Star, 
   CheckCircle2, Scissors, Calendar, Heart, ShieldCheck, Clock, 
-  Eye, Tag, ChevronRight, HelpCircle, ArrowRight, Layers, Award
+  Eye, Tag, ChevronRight, HelpCircle, ArrowRight, Layers, Award,
+  ArrowLeft, Share2, Bookmark, Check, X, User, Send
 } from "lucide-react";
 import { Button } from "@/components/Button";
+import { logAdminAction } from "@/lib/systemStore";
 
 interface Props {
   config: VendorProfileConfig;
 }
 
 export function BridalWearProfileTemplate({ config }: Props) {
-  const [activeCollectionTab, setActiveCollectionTab] = useState<string>("All");
-  const [isWishlisted, setIsWishlisted] = useState<boolean>(false);
+  const [currentImgIndex, setCurrentImgIndex] = useState(0);
+  const [isWishlisted, setIsWishlisted] = useState(false);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followerCount, setFollowerCount] = useState(128);
+
+  // Modals
+  const [showQuoteModal, setShowQuoteModal] = useState(false);
+  const [showTrialModal, setShowTrialModal] = useState(false);
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [lightboxImg, setLightboxImg] = useState<string | null>(null);
+
+  // Form States
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const [quoteName, setQuoteName] = useState("");
+  const [quotePhone, setQuotePhone] = useState("");
+  const [quoteDate, setQuoteDate] = useState("");
+  const [quoteMessage, setQuoteMessage] = useState("");
+
+  const [reviewAuthor, setReviewAuthor] = useState("");
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewText, setReviewText] = useState("");
+
+  const heroImages = [
+    config.coverImage,
+    ...config.galleryImages,
+    "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=1600&q=80",
+    "https://images.unsplash.com/photo-1594938298596-70f594f74246?auto=format&fit=crop&w=1600&q=80",
+  ].filter(Boolean);
 
   const specs = config.bridalWearSpecs || {
     collectionTypes: ["Zardozi Lehengas", "Banarasi Heritage Sarees", "Customized Bridal Veils", "Reception Gowns"],
@@ -24,372 +53,574 @@ export function BridalWearProfileTemplate({ config }: Props) {
     startingPrice: "₹45,000",
   };
 
-  const sampleOutfits = [
+  const collections = [
     {
-      title: "Royal Velvet Zardozi Lehenga",
-      category: "Lehengas",
-      price: "₹85,000",
-      image: config.galleryImages[0] || "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=800&q=80",
-      sizes: ["S", "M", "L", "Custom Measure"],
+      title: "Signature Lehengas",
+      image: "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=800&q=80",
+      price: "₹80,000 Onwards",
     },
     {
-      title: "Kanchipuram Heritage Silk Saree",
-      category: "Sarees",
-      price: "₹52,000",
-      image: config.galleryImages[1] || "https://images.unsplash.com/photo-1594938298596-70f594f74246?auto=format&fit=crop&w=800&q=80",
-      sizes: ["Free Size"],
+      title: "Pastel Edit",
+      image: "https://images.unsplash.com/photo-1594938298596-70f594f74246?auto=format&fit=crop&w=800&q=80",
+      price: "₹95,000 Onwards",
     },
     {
-      title: "Embroidered Cathedral Bridal Veil",
-      category: "Veils",
-      price: "₹18,000",
+      title: "Red Bridal Collection",
       image: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=80",
-      sizes: ["3 Meter", "5 Meter"],
+      price: "₹1,50,000 Onwards",
+    },
+    {
+      title: "Silk Sarees & Gowns",
+      image: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=800&q=80",
+      price: "₹45,000 Onwards",
     },
   ];
 
-  const storeAmenities = [
-    { title: "Private VIP Fitting Suite", desc: "Exclusive private room for bride & family trial sessions." },
-    { title: "Personal Stylist Consultation", desc: "Dedicated senior designer to guide color & dupatta choices." },
-    { title: "On-Site Master Tailors", desc: "Precision alterations and custom fitting adjustments." },
-    { title: "Express 3-Week Delivery", desc: "Rush order delivery available for destination weddings." },
+  const priceRanges = [
+    { category: "Lehengas", price: "₹80,000", popular: false },
+    { category: "Bridal Couture", price: "₹1,50,000", popular: true },
+    { category: "Sarees", price: "₹45,000", popular: false },
   ];
 
-  const faqs = [
-    { q: "How far in advance should I book my bridal lehenga?", a: "We recommend booking 6 to 8 weeks before your wedding date to allow ample time for custom dyeing, hand zardozi embroidery, and trial fittings." },
-    { q: "Do you offer trial appointments before ordering?", a: "Yes! You can book an in-store trial session with our senior stylists to try sample pieces and select fabrics." },
-    { q: "Can outfits be customized for NRI / international brides?", a: "Absolutetly. We provide virtual video trial calls and international courier shipping worldwide." },
+  const amenities = [
+    { icon: Scissors, label: "In-house Tailoring" },
+    { icon: Layers, label: "Private Trial Room" },
+    { icon: Sparkles, label: "Styling Assistance" },
+    { icon: User, label: "Outstation Brides" },
+    { icon: Scissors, label: "Customization Available" },
   ];
+
+  const [reviewsList, setReviewsList] = useState([
+    {
+      author: "Aisha Khan",
+      date: "2 months ago",
+      rating: 5.0,
+      avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80",
+      text: "The experience was surreal! The team understood my vision and made me feel so special. The lehenga was everything I dreamed of and more.",
+    },
+    {
+      author: "Sneha Reddy",
+      date: "3 months ago",
+      rating: 5.0,
+      avatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=200&q=80",
+      text: "Flawless zardozi work and exceptional trial fitting suite. Highly recommended for luxury bridal lehengas!",
+    },
+  ]);
+
+  const showToast = (msg: string) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(null), 3500);
+  };
+
+  const handleFollowToggle = () => {
+    setIsFollowing((prev) => {
+      const next = !prev;
+      setFollowerCount((c) => (next ? c + 1 : c - 1));
+      showToast(next ? `Now following ${config.businessName}` : `Unfollowed ${config.businessName}`);
+      return next;
+    });
+  };
+
+  const handleShare = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: config.businessName,
+        text: `Check out ${config.businessName} on Cloche Weddings!`,
+        url: window.location.href,
+      });
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+      showToast("Boutique link copied to clipboard!");
+    }
+  };
+
+  const handleQuoteSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    logAdminAction("Customer", "Customer", `Sent quote request to '${config.businessName}'`, "Boutique Enquiries");
+    setShowQuoteModal(false);
+    showToast(`Quote request sent to ${config.businessName}! They will contact you shortly.`);
+    setQuoteName("");
+    setQuotePhone("");
+    setQuoteDate("");
+    setQuoteMessage("");
+  };
+
+  const handleTrialSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    logAdminAction("Customer", "Customer", `Booked trial appointment with '${config.businessName}'`, "Trial Appointments");
+    setShowTrialModal(false);
+    showToast(`Trial appointment booked with ${config.businessName}! Confirmation sent.`);
+  };
+
+  const handleReviewSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!reviewAuthor || !reviewText) return;
+    const newRev = {
+      author: reviewAuthor,
+      date: "Just now",
+      rating: reviewRating,
+      avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=80",
+      text: reviewText,
+    };
+    setReviewsList([newRev, ...reviewsList]);
+    setShowReviewModal(false);
+    showToast("Thank you for your review!");
+    setReviewAuthor("");
+    setReviewText("");
+  };
 
   return (
-    <div className="space-y-12 animate-in fade-in duration-500 pb-20">
+    <div className="min-h-screen bg-[#FBF8F1] text-charcoal pb-28 animate-in fade-in duration-500">
       
-      {/* 1. LUXURY BOUTIQUE HERO SECTION */}
-      {config.visibility.heroBanner && (
-        <div className="relative rounded-3xl overflow-hidden shadow-2xl border border-gold/20 bg-charcoal">
-          {/* Cover Photo */}
-          <div className="relative h-[380px] sm:h-[480px] w-full overflow-hidden">
-            <img src={config.coverImage} alt={config.businessName} className="w-full h-full object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-t from-charcoal via-charcoal/40 to-transparent" />
-          </div>
+      {/* Toast Notification */}
+      {toastMsg && (
+        <div className="fixed top-6 right-6 z-[100] bg-[#0F4C45] text-white px-6 py-3 rounded-2xl shadow-2xl font-bold text-xs flex items-center gap-2 border border-gold/20 animate-in fade-in duration-300">
+          <CheckCircle2 className="w-4 h-4 text-emerald" /> {toastMsg}
+        </div>
+      )}
 
-          {/* Hero Content Overlay */}
-          <div className="relative -mt-24 p-6 sm:p-10 flex flex-col md:flex-row items-start md:items-end justify-between gap-6 text-white z-10">
-            <div className="flex items-start sm:items-center gap-5">
-              {/* Boutique Logo Avatar */}
-              <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden border-2 border-gold bg-white p-1 shadow-2xl shrink-0">
+      {/* 1. HERO CAROUSEL SECTION */}
+      <div className="relative w-full h-[340px] sm:h-[480px] lg:h-[580px] bg-charcoal overflow-hidden group">
+        <img
+          src={heroImages[currentImgIndex]}
+          alt={config.businessName}
+          className="w-full h-full object-cover transition-all duration-700"
+          onClick={() => setLightboxImg(heroImages[currentImgIndex])}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40" />
+
+        {/* Top Controls Overlay */}
+        <div className="absolute top-4 left-4 right-4 flex justify-between items-center z-20">
+          <Link
+            href="/boutiques"
+            className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md text-white flex items-center justify-center hover:bg-black/60 transition-colors shadow"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </Link>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleShare}
+              className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md text-white flex items-center justify-center hover:bg-black/60 transition-colors shadow"
+            >
+              <Share2 className="w-5 h-5" />
+            </button>
+
+            <button
+              onClick={() => {
+                setIsWishlisted(!isWishlisted);
+                showToast(!isWishlisted ? "Saved to your wishlist!" : "Removed from wishlist");
+              }}
+              className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md text-white flex items-center justify-center hover:bg-black/60 transition-colors shadow"
+            >
+              <Heart className={`w-5 h-5 ${isWishlisted ? "fill-red-500 text-red-500" : ""}`} />
+            </button>
+          </div>
+        </div>
+
+        {/* Image Counter Pill */}
+        <div className="absolute bottom-4 right-4 bg-black/60 backdrop-blur-md text-white text-[11px] font-semibold px-3 py-1 rounded-full border border-white/20 z-20 flex items-center gap-1.5">
+          <Layers className="w-3.5 h-3.5 text-gold" />
+          <span>{currentImgIndex + 1}/{heroImages.length}</span>
+        </div>
+      </div>
+
+      {/* 2. FLOATING BOUTIQUE INFORMATION CARD (MATCHING REFERENCE UI) */}
+      <div className="max-w-4xl mx-auto px-4 -mt-16 relative z-30">
+        <div className="bg-white rounded-[28px] p-6 sm:p-8 border border-gold/20 shadow-2xl space-y-4">
+          
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              {/* Boutique Logo Box */}
+              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden border-2 border-gold bg-[#002f22] p-1.5 shadow-xl shrink-0">
                 <img src={config.logo} alt={config.businessName} className="w-full h-full object-cover rounded-xl" />
               </div>
 
-              <div className="space-y-1.5">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="bg-gold text-charcoal font-bold text-[10px] uppercase tracking-widest px-3 py-1 rounded-full flex items-center gap-1 shadow">
-                    <ShoppingBag className="w-3.5 h-3.5" /> BRIDAL COUTURE BOUTIQUE
-                  </span>
-                  <span className="bg-emerald-600 text-white font-semibold text-[10px] uppercase tracking-wider px-2.5 py-0.5 rounded-full flex items-center gap-1">
-                    <ShieldCheck className="w-3 h-3" /> VERIFIED VENDOR
-                  </span>
+              <div>
+                <div className="flex items-center gap-1.5">
+                  <h1 className="font-display text-2xl sm:text-3xl font-bold text-charcoal">{config.businessName}</h1>
+                  <CheckCircle2 className="w-5 h-5 text-gold fill-gold text-white shrink-0" />
                 </div>
 
-                <h1 className="font-display text-3xl sm:text-5xl font-bold leading-tight text-white">{config.businessName}</h1>
-                <p className="text-sm sm:text-base text-white/90 font-sans max-w-xl">{config.tagline}</p>
-                <p className="text-xs text-white/70 flex items-center gap-1 pt-1">
-                  <MapPin className="w-3.5 h-3.5 text-gold shrink-0" /> {config.address}, {config.city}, {config.district}
+                <div className="flex items-center gap-2 text-xs font-semibold text-charcoal/70 mt-1">
+                  <span className="flex items-center gap-1 text-charcoal font-bold">
+                    <Star className="w-3.5 h-3.5 fill-gold text-gold" /> 4.8 ({followerCount})
+                  </span>
+                  <span>•</span>
+                  <span className="text-[#0F4C45] font-bold">Verified</span>
+                </div>
+
+                <p className="text-xs text-charcoal/60 flex items-center gap-1 mt-1">
+                  <MapPin className="w-3.5 h-3.5 text-gold" /> {config.city}, {config.district}
                 </p>
               </div>
             </div>
 
-            {/* Action CTAs */}
-            <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
-              <a
-                href={`https://wa.me/${config.whatsapp.replace(/[^0-9]/g, "")}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex-1 md:flex-initial"
-              >
-                <Button className="w-full bg-[#0F4C45] text-white px-6 py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider shadow-xl flex items-center justify-center gap-2 hover:bg-[#12584E]">
-                  <Calendar className="w-4 h-4 text-gold" /> Book Trial Fitting
-                </Button>
-              </a>
-              <a href={`tel:${config.phone}`} className="flex-1 md:flex-initial">
-                <Button variant="outline" className="w-full border-white/40 text-white hover:bg-white/10 rounded-xl px-6 py-3.5 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2">
-                  <Phone className="w-4 h-4" /> Call Designer
-                </Button>
-              </a>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 2. KEY SPECS & CUSTOMIZATION BADGES */}
-      {config.visibility.amenitiesOrSpecs && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <div className="bg-white p-5 rounded-2xl border border-gold/15 shadow-sm space-y-1">
-            <Scissors className="w-6 h-6 text-[#0F4C45]" />
-            <span className="text-[10px] uppercase font-bold text-charcoal/50 block">Customization</span>
-            <span className="font-display font-bold text-charcoal text-base">
-              {specs.customizationAvailable ? "Bespoke Tailoring" : "Ready-to-wear"}
-            </span>
+            {/* Follow Button */}
+            <button
+              onClick={handleFollowToggle}
+              className={`px-6 py-2.5 rounded-full font-bold text-xs uppercase tracking-wider transition-all shadow-md ${
+                isFollowing
+                  ? "bg-gold text-charcoal hover:bg-gold/90"
+                  : "bg-[#0B3B2D] text-white hover:bg-[#0F4C45]"
+              }`}
+            >
+              {isFollowing ? "Following" : "Follow"}
+            </button>
           </div>
 
-          <div className="bg-white p-5 rounded-2xl border border-gold/15 shadow-sm space-y-1">
-            <Calendar className="w-6 h-6 text-gold" />
-            <span className="text-[10px] uppercase font-bold text-charcoal/50 block">Trial Suite</span>
-            <span className="font-display font-bold text-charcoal text-base">
-              {specs.trialBookingAvailable ? "VIP Private Trial" : "On Request"}
-            </span>
-          </div>
-
-          <div className="bg-white p-5 rounded-2xl border border-gold/15 shadow-sm space-y-1">
-            <Sparkles className="w-6 h-6 text-emerald" />
-            <span className="text-[10px] uppercase font-bold text-charcoal/50 block">Starting Price</span>
-            <span className="font-display font-bold text-emerald text-base">From {specs.startingPrice}</span>
-          </div>
-
-          <div className="bg-white p-5 rounded-2xl border border-gold/15 shadow-sm space-y-1">
-            <Award className="w-6 h-6 text-gold" />
-            <span className="text-[10px] uppercase font-bold text-charcoal/50 block">Craftsmanship</span>
-            <span className="font-display font-bold text-charcoal text-base">Handmade Zardozi</span>
-          </div>
-        </div>
-      )}
-
-      {/* 3. ABOUT THE BOUTIQUE & DESIGNER STORY */}
-      {config.visibility.aboutStory && (
-        <div className="bg-white rounded-3xl p-8 border border-gold/15 shadow-sm space-y-4">
-          <h2 className="font-display text-2xl font-bold text-charcoal border-b border-gold/10 pb-3">
-            About {config.businessName}
-          </h2>
-          <p className="text-sm sm:text-base text-charcoal/80 leading-relaxed font-sans">
-            {config.aboutText}
+          <p className="text-xs sm:text-sm text-charcoal/80 font-sans italic border-t border-gold/10 pt-3">
+            "{config.tagline || "Luxury couture lehengas crafted to perfection."}"
           </p>
-          <div className="flex flex-wrap gap-2 pt-2">
-            {specs.collectionTypes.map((type, i) => (
-              <span key={i} className="bg-gold/15 text-charcoal text-xs font-bold px-3 py-1 rounded-full">
-                ✓ {type}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
 
-      {/* 4. FEATURED COUTURE CATALOG / OUTFIT COLLECTION */}
-      {config.visibility.gallery && (
-        <div className="space-y-6">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div>
-              <h2 className="font-display text-2xl font-bold text-charcoal">Bridal Collections & Outfits</h2>
-              <p className="text-xs text-charcoal/60">Explore handcrafted bridal lehengas, silk sarees, and customized veils.</p>
-            </div>
-
-            <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar">
-              {["All", "Lehengas", "Sarees", "Veils"].map((tab) => (
-                <button
-                  key={tab}
-                  onClick={() => setActiveCollectionTab(tab)}
-                  className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase transition-all ${
-                    activeCollectionTab === tab ? "bg-[#0F4C45] text-white" : "bg-white text-charcoal/70 border border-gold/20"
-                  }`}
-                >
-                  {tab}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-            {sampleOutfits
-              .filter((o) => activeCollectionTab === "All" || o.category === activeCollectionTab)
-              .map((outfit, i) => (
-                <div key={i} className="bg-white rounded-3xl border border-gold/15 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 group flex flex-col justify-between">
-                  <div className="relative h-80 w-full overflow-hidden bg-charcoal">
-                    <img src={outfit.image} alt={outfit.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                    <span className="absolute top-3 left-3 bg-[#0F4C45] text-white text-[9px] font-bold uppercase px-2.5 py-1 rounded-full">
-                      {outfit.category}
-                    </span>
-                    <span className="absolute top-3 right-3 bg-white/90 text-charcoal text-xs font-bold px-3 py-1 rounded-full shadow">
-                      {outfit.price}
-                    </span>
-                  </div>
-
-                  <div className="p-5 space-y-3">
-                    <h3 className="font-display font-bold text-lg text-charcoal">{outfit.title}</h3>
-                    <div className="flex items-center gap-1.5 text-xs text-charcoal/60">
-                      <Layers className="w-3.5 h-3.5 text-gold" />
-                      <span>Sizes: {outfit.sizes.join(", ")}</span>
-                    </div>
-
-                    <a
-                      href={`https://wa.me/${config.whatsapp.replace(/[^0-9]/g, "")}?text=Hi%20${encodeURIComponent(config.businessName)},%20I%20am%20interested%20in%20${encodeURIComponent(outfit.title)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="block w-full text-center bg-[#0F4C45] text-white py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-[#12584E] transition-colors shadow-sm"
-                    >
-                      Inquire / Book Fitting
-                    </a>
-                  </div>
-                </div>
-              ))}
-          </div>
-        </div>
-      )}
-
-      {/* 5. STORE AMENITIES & EXPERIENCE */}
-      <div className="space-y-4">
-        <h2 className="font-display text-2xl font-bold text-charcoal">Boutique Experience & Amenities</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {storeAmenities.map((item, i) => (
-            <div key={i} className="bg-white p-6 rounded-2xl border border-gold/15 shadow-sm space-y-2">
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-5 h-5 text-emerald" />
-                <h3 className="font-display font-bold text-base text-charcoal">{item.title}</h3>
-              </div>
-              <p className="text-xs text-charcoal/70 leading-relaxed pl-7">{item.desc}</p>
-            </div>
-          ))}
         </div>
       </div>
 
-      {/* 6. PRICING & CUSTOM TIERS */}
-      {config.visibility.packages && config.packagesList?.length > 0 && (
-        <div className="space-y-4">
-          <h2 className="font-display text-2xl font-bold text-charcoal">Couture Packages & Pricing</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {config.packagesList.map((pkg, i) => (
-              <div key={i} className="bg-white p-6 rounded-3xl border border-gold/20 shadow-md space-y-4 flex flex-col justify-between">
-                <div className="space-y-2">
-                  <div className="flex justify-between items-start">
-                    <h3 className="font-display font-bold text-xl text-charcoal">{pkg.name}</h3>
-                    <span className="font-display font-bold text-lg text-emerald">{pkg.price}</span>
-                  </div>
-                  <p className="text-xs text-charcoal/70">{pkg.description}</p>
-                  
-                  <ul className="space-y-1.5 pt-2 text-xs text-charcoal/80">
-                    {pkg.features.map((f, j) => (
-                      <li key={j} className="flex items-center gap-2">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-gold shrink-0" /> {f}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+      {/* 3. MAIN CONTENT CONTAINER */}
+      <main className="max-w-4xl mx-auto px-4 mt-8 space-y-10">
+        
+        {/* ABOUT SECTION */}
+        <section className="bg-white rounded-3xl p-6 sm:p-8 border border-gold/15 shadow-sm space-y-3">
+          <h2 className="font-display text-xl font-bold text-charcoal">About</h2>
+          <p className="text-xs sm:text-sm text-charcoal/80 leading-relaxed font-sans">
+            {config.aboutText || `${config.businessName} is a luxury bridal wear label known for its exquisite craftsmanship, intricate detailing and timeless designs. Every piece is a blend of heritage and modern elegance, crafted for your most memorable moments.`}
+          </p>
+        </section>
 
-                <a
-                  href={`https://wa.me/${config.whatsapp.replace(/[^0-9]/g, "")}?text=Hi,%20I%20want%20to%20know%20more%20about%20${encodeURIComponent(pkg.name)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full bg-[#0F4C45] text-white text-center py-3 rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-[#12584E] transition-colors"
-                >
-                  Book Trial Session
-                </a>
+        {/* STATISTICS COUNTER GRID (MATCHING REFERENCE UI) */}
+        <section className="grid grid-cols-3 gap-3 text-center">
+          <div className="bg-white p-5 rounded-2xl border border-gold/15 shadow-sm space-y-1">
+            <Clock className="w-6 h-6 text-[#0F4C45] mx-auto" />
+            <span className="font-display font-bold text-xl sm:text-2xl text-charcoal block">12+</span>
+            <span className="text-[11px] text-charcoal/60 font-semibold uppercase tracking-wider block">Years in Business</span>
+          </div>
+
+          <div className="bg-white p-5 rounded-2xl border border-gold/15 shadow-sm space-y-1">
+            <User className="w-6 h-6 text-gold mx-auto" />
+            <span className="font-display font-bold text-xl sm:text-2xl text-charcoal block">500+</span>
+            <span className="text-[11px] text-charcoal/60 font-semibold uppercase tracking-wider block">Brides Styled</span>
+          </div>
+
+          <div className="bg-white p-5 rounded-2xl border border-gold/15 shadow-sm space-y-1">
+            <Star className="w-6 h-6 text-emerald fill-emerald mx-auto" />
+            <span className="font-display font-bold text-xl sm:text-2xl text-charcoal block">4.8</span>
+            <span className="text-[11px] text-charcoal/60 font-semibold uppercase tracking-wider block">Average Rating</span>
+          </div>
+        </section>
+
+        {/* BRIDAL COLLECTIONS SLIDER */}
+        <section className="space-y-4">
+          <div className="flex justify-between items-center">
+            <h2 className="font-display text-xl font-bold text-charcoal">Bridal Collections</h2>
+            <button onClick={() => setShowTrialModal(true)} className="text-xs font-bold text-[#0F4C45] hover:underline">
+              See All
+            </button>
+          </div>
+
+          <div className="flex gap-4 overflow-x-auto hide-scrollbar pb-2">
+            {collections.map((col, idx) => (
+              <div
+                key={idx}
+                onClick={() => setLightboxImg(col.image)}
+                className="relative min-w-[200px] sm:min-w-[240px] h-72 rounded-2xl overflow-hidden shadow-md group border border-gold/15 shrink-0 cursor-pointer"
+              >
+                <img src={col.image} alt={col.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent p-4 flex flex-col justify-end text-white">
+                  <span className="font-display font-bold text-base">{col.title}</span>
+                  <span className="text-[11px] text-gold font-semibold">{col.price}</span>
+                </div>
               </div>
             ))}
           </div>
-        </div>
-      )}
+        </section>
 
-      {/* 7. CUSTOMER REVIEWS */}
-      {config.visibility.reviews && (
-        <div className="bg-white rounded-3xl p-8 border border-gold/15 shadow-sm space-y-6">
-          <div className="flex justify-between items-center border-b border-gold/10 pb-4">
-            <div>
-              <h2 className="font-display text-2xl font-bold text-charcoal">Verified Bride Reviews</h2>
-              <p className="text-xs text-charcoal/60">Real feedback from brides who wore {config.businessName}.</p>
-            </div>
-            <div className="flex items-center gap-2 bg-gold/15 text-charcoal px-4 py-2 rounded-2xl font-bold text-sm">
-              <Star className="w-4 h-4 fill-gold text-gold" /> 5.0 / 5.0
-            </div>
+        {/* PRICE RANGE (MATCHING REFERENCE UI) */}
+        <section className="space-y-4">
+          <h2 className="font-display text-xl font-bold text-charcoal">Price Range</h2>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {priceRanges.map((pr, idx) => (
+              <div
+                key={idx}
+                className={`relative bg-white p-5 rounded-2xl border text-center space-y-1 shadow-sm ${
+                  pr.popular ? "border-gold border-2 shadow-md" : "border-gold/15"
+                }`}
+              >
+                {pr.popular && (
+                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#0B3B2D] text-white text-[9px] font-bold uppercase tracking-widest px-3 py-0.5 rounded-full shadow">
+                    Most Popular
+                  </span>
+                )}
+                <span className="text-xs font-semibold text-charcoal/60 block">{pr.category}</span>
+                <span className="font-display font-bold text-2xl text-[#0F4C45] block">{pr.price}</span>
+                <span className="text-[10px] text-charcoal/50 uppercase font-semibold block">Onwards</span>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* AMENITIES ICON GRID (MATCHING REFERENCE UI) */}
+        <section className="bg-white rounded-3xl p-6 sm:p-8 border border-gold/15 shadow-sm space-y-4">
+          <h2 className="font-display text-xl font-bold text-charcoal">Amenities</h2>
+
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 text-center">
+            {amenities.map((am, idx) => {
+              const Icon = am.icon;
+              return (
+                <div key={idx} className="p-3 rounded-2xl bg-[#FBF8F1] border border-gold/15 flex flex-col items-center justify-center space-y-1.5">
+                  <Icon className="w-5 h-5 text-[#0F4C45]" />
+                  <span className="text-[11px] font-bold text-charcoal leading-tight">{am.label}</span>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* REVIEWS SECTION */}
+        <section className="space-y-4">
+          <div className="flex justify-between items-center">
+            <h2 className="font-display text-xl font-bold text-charcoal">Bride Reviews</h2>
+            <button onClick={() => setShowReviewModal(true)} className="text-xs font-bold text-[#0F4C45] hover:underline">
+              Write Review
+            </button>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="bg-[#FBF8F1] p-5 rounded-2xl border border-gold/15 space-y-2">
-              <div className="flex items-center gap-1 text-gold">
-                {[...Array(5)].map((_, i) => <Star key={i} className="w-4 h-4 fill-gold" />)}
-              </div>
-              <p className="text-xs text-charcoal/80 italic">"My royal Zardozi lehenga turned out even more beautiful than I imagined! The fitting and dupatta work were absolutely flawless."</p>
-              <span className="text-[11px] font-bold text-charcoal block">— Ananya Nair, Kochi Bride</span>
-            </div>
-
-            <div className="bg-[#FBF8F1] p-5 rounded-2xl border border-gold/15 space-y-2">
-              <div className="flex items-center gap-1 text-gold">
-                {[...Array(5)].map((_, i) => <Star key={i} className="w-4 h-4 fill-gold" />)}
-              </div>
-              <p className="text-xs text-charcoal/80 italic">"Sublime experience. The private trial suite made my mom and sisters feel so special during fitting."</p>
-              <span className="text-[11px] font-bold text-charcoal block">— Devika K., Kozhikode Bride</span>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 8. FAQS */}
-      {config.visibility.awardsOrFAQ && (
-        <div className="bg-white rounded-3xl p-8 border border-gold/15 shadow-sm space-y-4">
-          <h2 className="font-display text-2xl font-bold text-charcoal border-b border-gold/10 pb-3 flex items-center gap-2">
-            <HelpCircle className="w-5 h-5 text-gold" /> Frequently Asked Questions
-          </h2>
           <div className="space-y-4">
-            {faqs.map((faq, i) => (
-              <div key={i} className="space-y-1">
-                <h3 className="font-bold text-sm text-charcoal">{faq.q}</h3>
-                <p className="text-xs text-charcoal/70 leading-relaxed">{faq.a}</p>
+            {reviewsList.map((rev, idx) => (
+              <div key={idx} className="bg-white p-5 rounded-2xl border border-gold/15 shadow-sm space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <img src={rev.avatar} alt={rev.author} className="w-10 h-10 rounded-full object-cover" />
+                    <div>
+                      <span className="font-bold text-sm text-charcoal block">{rev.author}</span>
+                      <span className="text-[10px] text-charcoal/50">{rev.date}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-1 text-gold font-bold text-xs bg-gold/10 px-2.5 py-1 rounded-full">
+                    <Star className="w-3.5 h-3.5 fill-gold text-gold" /> {rev.rating}
+                  </div>
+                </div>
+                <p className="text-xs text-charcoal/80 italic leading-relaxed pt-1">"{rev.text}"</p>
               </div>
             ))}
           </div>
-        </div>
-      )}
+        </section>
 
-      {/* 9. LOCATION & CONTACT STORE FOOTER */}
-      {config.visibility.locationMap && (
-        <div className="bg-[#002f22] text-white rounded-3xl p-8 border border-gold/20 shadow-xl grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-          <div className="space-y-3">
-            <span className="bg-gold text-charcoal text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full">
-              VISIT OUR BOUTIQUE
-            </span>
-            <h2 className="font-display text-3xl font-bold text-white">{config.businessName}</h2>
-            <p className="text-xs text-white/80 leading-relaxed">{config.address}, {config.city}, {config.district}, Kerala</p>
-            <p className="text-xs text-white/70 flex items-center gap-2">
-              <Clock className="w-4 h-4 text-gold" /> Store Hours: 10:00 AM – 8:00 PM (Open 7 Days)
-            </p>
-          </div>
-
-          <div className="flex flex-col gap-3">
+        {/* LOCATION & STORE DETAILS */}
+        <section className="bg-[#002f22] text-white rounded-3xl p-6 sm:p-8 border border-gold/20 shadow-xl space-y-4">
+          <div className="flex justify-between items-start">
+            <div>
+              <span className="bg-gold text-charcoal text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full">
+                VISIT STORE LOCATION
+              </span>
+              <h3 className="font-display text-2xl font-bold text-white mt-2">{config.businessName}</h3>
+              <p className="text-xs text-white/80 mt-1">{config.address}, {config.city}, {config.district}</p>
+            </div>
             <a
-              href={`https://wa.me/${config.whatsapp.replace(/[^0-9]/g, "")}`}
+              href={`https://maps.google.com/?q=${encodeURIComponent(`${config.businessName} ${config.address} ${config.city}`)}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-[#0F4C45] hover:bg-[#12584E] text-white text-center py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider shadow-lg flex items-center justify-center gap-2"
+              className="bg-white/10 hover:bg-white/20 text-white p-3 rounded-2xl text-xs font-bold flex items-center gap-1.5 shrink-0"
             >
-              <MessageSquare className="w-4 h-4 text-emerald" /> WhatsApp Designer Directly
-            </a>
-            <a
-              href={`tel:${config.phone}`}
-              className="bg-white/10 hover:bg-white/20 text-white text-center py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2"
-            >
-              <Phone className="w-4 h-4" /> Call {config.phone}
+              <MapPin className="w-4 h-4 text-gold" /> Directions
             </a>
           </div>
-        </div>
-      )}
+        </section>
 
-      {/* 10. FLOATING STICKY BOTTOM BAR */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-[#0B3B36]/95 backdrop-blur-md border-t border-[#C8A96A]/30 p-3 shadow-2xl">
-        <div className="max-w-6xl mx-auto flex items-center justify-between gap-4 text-white">
-          <div className="hidden sm:block">
-            <span className="font-display font-bold text-sm block">{config.businessName}</span>
-            <span className="text-[10px] text-gold uppercase tracking-wider font-semibold">Bridal Couture & Custom Fittings</span>
-          </div>
+      </main>
 
-          <div className="flex items-center gap-3 w-full sm:w-auto">
-            <a
-              href={`https://wa.me/${config.whatsapp.replace(/[^0-9]/g, "")}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex-1 sm:flex-initial bg-[#0F4C45] hover:bg-[#12584E] text-white px-6 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider shadow-md flex items-center justify-center gap-2"
-            >
-              <Calendar className="w-4 h-4 text-gold" /> Book Trial Appointment
-            </a>
-          </div>
+      {/* 4. STICKY BOTTOM ACTION BAR (MATCHING REFERENCE UI) */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-[#0B3B2D] border-t border-[#C8A96A]/30 p-3 shadow-2xl">
+        <div className="max-w-4xl mx-auto flex items-center justify-between gap-2 text-white">
+          <a
+            href={`tel:${config.phone}`}
+            className="flex-1 bg-[#06241B] hover:bg-[#082F2C] border border-white/20 py-3 rounded-2xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 shadow"
+          >
+            <Phone className="w-4 h-4 text-emerald" /> Call
+          </a>
+
+          <a
+            href={`https://wa.me/${config.whatsapp.replace(/[^0-9]/g, "")}?text=Hi%20${encodeURIComponent(config.businessName)},%20I%20am%20interested%20in%20your%20bridal%20collections.`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex-1 bg-[#06241B] hover:bg-[#082F2C] border border-white/20 py-3 rounded-2xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 shadow"
+          >
+            <MessageSquare className="w-4 h-4 text-emerald" /> WhatsApp
+          </a>
+
+          <button
+            onClick={() => setShowQuoteModal(true)}
+            className="flex-1 bg-[#C8A96A] hover:bg-[#b89859] text-[#082F2C] py-3 rounded-2xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-md"
+          >
+            <Send className="w-4 h-4" /> Get Quote
+          </button>
         </div>
       </div>
+
+      {/* GET QUOTE MODAL */}
+      {showQuoteModal && (
+        <div className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 space-y-4 border border-gold/20 shadow-2xl relative animate-in fade-in duration-200">
+            <button
+              onClick={() => setShowQuoteModal(false)}
+              className="absolute top-4 right-4 w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-charcoal"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            <h3 className="font-display text-2xl font-bold text-charcoal">Get Quote from {config.businessName}</h3>
+            <p className="text-xs text-charcoal/60">Fill in your details to receive personalized pricing and availability.</p>
+
+            <form onSubmit={handleQuoteSubmit} className="space-y-3">
+              <input
+                type="text"
+                required
+                placeholder="Your Full Name"
+                value={quoteName}
+                onChange={(e) => setQuoteName(e.target.value)}
+                className="w-full bg-[#FBF8F1] border border-gold/20 rounded-xl px-4 py-3 text-xs font-medium text-charcoal"
+              />
+              <input
+                type="tel"
+                required
+                placeholder="Mobile Number"
+                value={quotePhone}
+                onChange={(e) => setQuotePhone(e.target.value)}
+                className="w-full bg-[#FBF8F1] border border-gold/20 rounded-xl px-4 py-3 text-xs font-medium text-charcoal"
+              />
+              <input
+                type="date"
+                required
+                value={quoteDate}
+                onChange={(e) => setQuoteDate(e.target.value)}
+                className="w-full bg-[#FBF8F1] border border-gold/20 rounded-xl px-4 py-3 text-xs font-medium text-charcoal"
+              />
+              <textarea
+                rows={3}
+                placeholder="Specific Requirements (e.g., Zardozi Lehenga for Reception)"
+                value={quoteMessage}
+                onChange={(e) => setQuoteMessage(e.target.value)}
+                className="w-full bg-[#FBF8F1] border border-gold/20 rounded-xl px-4 py-3 text-xs font-medium text-charcoal resize-none"
+              />
+
+              <button
+                type="submit"
+                className="w-full bg-[#0B3B2D] text-white py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-[#0F4C45] transition-all shadow-md"
+              >
+                Submit Quote Request
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* BOOK TRIAL APPOINTMENT MODAL */}
+      {showTrialModal && (
+        <div className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 space-y-4 border border-gold/20 shadow-2xl relative animate-in fade-in duration-200">
+            <button
+              onClick={() => setShowTrialModal(false)}
+              className="absolute top-4 right-4 w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-charcoal"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            <h3 className="font-display text-2xl font-bold text-charcoal">Book VIP Trial Appointment</h3>
+            <p className="text-xs text-[#0F4C45] font-semibold">Includes Private Fitting Suite & Senior Stylist Consultation.</p>
+
+            <form onSubmit={handleTrialSubmit} className="space-y-3">
+              <input type="text" required placeholder="Full Name" className="w-full bg-[#FBF8F1] border border-gold/20 rounded-xl px-4 py-3 text-xs font-medium" />
+              <input type="tel" required placeholder="Mobile Number" className="w-full bg-[#FBF8F1] border border-gold/20 rounded-xl px-4 py-3 text-xs font-medium" />
+              <input type="date" required className="w-full bg-[#FBF8F1] border border-gold/20 rounded-xl px-4 py-3 text-xs font-medium" />
+              
+              <select required className="w-full bg-[#FBF8F1] border border-gold/20 rounded-xl px-4 py-3 text-xs font-medium">
+                <option value="">Select Time Slot</option>
+                <option value="11am">11:00 AM – 01:00 PM</option>
+                <option value="2pm">02:00 PM – 04:00 PM</option>
+                <option value="5pm">05:00 PM – 07:00 PM</option>
+              </select>
+
+              <button
+                type="submit"
+                className="w-full bg-[#0F4C45] text-white py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-[#12584E] transition-all shadow-md"
+              >
+                Confirm Trial Booking
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* WRITE REVIEW MODAL */}
+      {showReviewModal && (
+        <div className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 space-y-4 border border-gold/20 shadow-2xl relative animate-in fade-in duration-200">
+            <button
+              onClick={() => setShowReviewModal(false)}
+              className="absolute top-4 right-4 w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-charcoal"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            <h3 className="font-display text-2xl font-bold text-charcoal">Write Bride Review</h3>
+
+            <form onSubmit={handleReviewSubmit} className="space-y-3">
+              <input
+                type="text"
+                required
+                placeholder="Your Name"
+                value={reviewAuthor}
+                onChange={(e) => setReviewAuthor(e.target.value)}
+                className="w-full bg-[#FBF8F1] border border-gold/20 rounded-xl px-4 py-3 text-xs font-medium"
+              />
+              
+              <div className="flex items-center gap-2 py-1">
+                <span className="text-xs font-bold text-charcoal">Rating:</span>
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    type="button"
+                    key={star}
+                    onClick={() => setReviewRating(star)}
+                    className="text-gold"
+                  >
+                    <Star className={`w-5 h-5 ${star <= reviewRating ? "fill-gold" : ""}`} />
+                  </button>
+                ))}
+              </div>
+
+              <textarea
+                rows={3}
+                required
+                placeholder="Share your experience with this boutique..."
+                value={reviewText}
+                onChange={(e) => setReviewText(e.target.value)}
+                className="w-full bg-[#FBF8F1] border border-gold/20 rounded-xl px-4 py-3 text-xs font-medium resize-none"
+              />
+
+              <button
+                type="submit"
+                className="w-full bg-[#0F4C45] text-white py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-[#12584E] transition-all shadow-md"
+              >
+                Submit Review
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* FULLSCREEN LIGHTBOX MODAL */}
+      {lightboxImg && (
+        <div className="fixed inset-0 z-[120] bg-black/90 flex items-center justify-center p-4">
+          <button
+            onClick={() => setLightboxImg(null)}
+            className="absolute top-6 right-6 w-10 h-10 rounded-full bg-white/20 text-white flex items-center justify-center"
+          >
+            <X className="w-6 h-6" />
+          </button>
+          <img src={lightboxImg} alt="Preview" className="max-w-full max-h-[85vh] object-contain rounded-2xl" />
+        </div>
+      )}
 
     </div>
   );
