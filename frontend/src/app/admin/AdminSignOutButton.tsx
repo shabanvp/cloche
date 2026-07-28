@@ -19,9 +19,9 @@ export function AdminSignOutButton() {
         localStorage.removeItem("auth_token");
         localStorage.removeItem("user_role");
       }
-      window.location.href = "/login?role=admin&logout=success";
+      window.location.href = "/?logout=success";
     } catch (e) {
-      window.location.href = "/login?role=admin";
+      window.location.href = "/";
     }
   };
 
