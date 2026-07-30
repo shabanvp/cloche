@@ -219,6 +219,8 @@ export default function VendorRegisterPage() {
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
 
+  const [selectedCategory, setSelectedCategory] = useState("");
+
   const getInputClass = (name: FieldName, extra = "") =>
     `${textInputClass} ${fieldErrors[name] ? errorBorderClass : normalBorderClass} ${extra}`.trim();
 
@@ -321,6 +323,53 @@ export default function VendorRegisterPage() {
       setFieldErrors(mappedError.fieldErrors);
       setErrorMsg(mappedError.generalError);
     } else if (res.success) {
+      const category = textValue(formData, "category");
+      const boutiqueName = textValue(formData, "boutique_name");
+      if (category === "Wedding Venue" && boutiqueName) {
+        const slug = boutiqueName.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-");
+        const startingPrice = textValue(formData, "starting_price") || "₹5,00,000";
+        const capacity = textValue(formData, "capacity") || "300 – 1200 Guests";
+        const spaceType = textValue(formData, "space_type") || "Outdoor & Indoor";
+        const city = textValue(formData, "city") || "Kerala";
+        const district = textValue(formData, "district") || "India";
+        const phone = textValue(formData, "phone") || "+919876543210";
+        const whatsapp = textValue(formData, "whatsapp") || phone;
+
+        const newVenueRecord = {
+          id: slug,
+          slug: slug,
+          name: boutiqueName,
+          location: `${city}, ${district}`,
+          city: city,
+          district: district,
+          startingPrice: startingPrice,
+          capacity: capacity,
+          spaceType: spaceType,
+          contactNumber: phone,
+          whatsapp: whatsapp,
+          description: textValue(formData, "description"),
+          rating: 5.0,
+          reviewsCount: 1,
+          image: coverPreview || logoPreview || "https://images.unsplash.com/photo-1519167758481-83f552bb8c74?auto=format&fit=crop&w=1200&q=80",
+          images: [
+            coverPreview || "https://images.unsplash.com/photo-1519167758481-83f552bb8c74?auto=format&fit=crop&w=800&q=80",
+            logoPreview || "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?auto=format&fit=crop&w=800&q=80",
+            "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=800&q=80",
+            "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=800&q=80",
+          ],
+          tags: ["Wedding Venue", spaceType, "Luxury"],
+          verified: true,
+        };
+
+        try {
+          const raw = localStorage.getItem("cloche_registered_venues");
+          const list = raw ? JSON.parse(raw) : [];
+          const updatedList = [newVenueRecord, ...list.filter((v: any) => v.id !== slug)];
+          localStorage.setItem("cloche_registered_venues", JSON.stringify(updatedList));
+          localStorage.setItem(`cloche_venue_${slug}`, JSON.stringify(newVenueRecord));
+        } catch (e) {}
+      }
+
       alert("Application submitted and account created successfully!\n\nYou can now log in directly to access your Vendor Dashboard.");
       router.push("/vendor/login?status=registered");
     } else {
@@ -363,9 +412,23 @@ export default function VendorRegisterPage() {
           </div>
           <div className="space-y-1">
             <label className="text-xs font-semibold text-charcoal/70 uppercase tracking-wider">Vendor Category *</label>
-            <select name="category" required className={getInputClass("category", "text-charcoal appearance-none")} {...fieldErrorProps("category")}>
+            <select
+              name="category"
+              required
+              value={selectedCategory}
+              onChange={(e) => {
+                setSelectedCategory(e.target.value);
+                clearFieldError("category");
+              }}
+              className={getInputClass("category", "text-charcoal appearance-none")}
+              {...fieldErrorProps("category")}
+            >
               <option value="">Select Category</option>
-              {VENDOR_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+              {VENDOR_CATEGORIES.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
             </select>
             {fieldError("category")}
           </div>
@@ -375,6 +438,35 @@ export default function VendorRegisterPage() {
             {fieldError("gst_number")}
           </div>
         </div>
+
+        {/* Dynamic Venue Specific Registration Fields */}
+        {selectedCategory === "Wedding Venue" && (
+          <>
+            <h3 className="font-display text-xl text-charcoal mb-6 border-b border-gold/10 pb-2">Venue Details & Specifications</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10 bg-emerald/5 p-6 rounded-2xl border border-emerald/10">
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-charcoal/70 uppercase tracking-wider">Starting Price *</label>
+                <input name="starting_price" type="text" className={textInputClass + " " + normalBorderClass} placeholder="E.g. ₹5,00,000" defaultValue="₹5,00,000" />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-charcoal/70 uppercase tracking-wider">Guest Capacity *</label>
+                <input name="capacity" type="text" className={textInputClass + " " + normalBorderClass} placeholder="E.g. 500 – 1200 Guests" defaultValue="300 – 1200 Guests" />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-charcoal/70 uppercase tracking-wider">Space Type *</label>
+                <select name="space_type" className={textInputClass + " " + normalBorderClass}>
+                  <option value="Outdoor & Indoor">Outdoor & Indoor</option>
+                  <option value="Outdoor">Outdoor Lawn</option>
+                  <option value="Indoor">Indoor Banquet</option>
+                </select>
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-charcoal/70 uppercase tracking-wider">WhatsApp Contact Number</label>
+                <input name="whatsapp" type="tel" className={textInputClass + " " + normalBorderClass} placeholder="E.g. 9876543210" />
+              </div>
+            </div>
+          </>
+        )}
 
         <h3 className="font-display text-xl text-charcoal mb-6 border-b border-gold/10 pb-2">Contact & Location</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">

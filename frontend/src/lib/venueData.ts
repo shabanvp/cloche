@@ -446,6 +446,141 @@ export const venues: VenueDetail[] = [
   },
 ];
 
+export function transformRegisteredToVenueDetail(id: string, data: any): VenueDetail {
+  const defaultImages = [
+    data.image || data.coverImage || data.heroImage || "https://images.unsplash.com/photo-1519167758481-83f552bb8c74?auto=format&fit=crop&w=1200&q=80",
+    ...(data.images || data.galleryImages || []),
+  ].filter(Boolean);
+
+  const fallbackImages = [
+    "https://images.unsplash.com/photo-1519167758481-83f552bb8c74?auto=format&fit=crop&w=800&q=80",
+    "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?auto=format&fit=crop&w=800&q=80",
+    "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=800&q=80",
+    "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=800&q=80",
+    "https://images.unsplash.com/photo-1570544820323-66a7e58ce1d8?auto=format&fit=crop&w=800&q=80",
+  ];
+
+  const finalImages = defaultImages.length > 0 ? defaultImages : fallbackImages;
+  const otherVenues = venues.filter((v) => v.id !== id).slice(0, 4);
+
+  return {
+    id: id,
+    name: data.name || data.boutique_name || data.businessName || "Registered Wedding Venue",
+    location: data.location || `${data.city || "Kerala"}, ${data.district || data.state || "India"}`,
+    city: data.city || "Udaipur",
+    rating: data.rating || 4.8,
+    reviews: data.reviewsCount || data.reviews || 15,
+    image: finalImages[0],
+    images: finalImages,
+    totalPhotos: data.totalPhotos || finalImages.length,
+    tags: data.tags || ["Luxury", "Wedding Venue", data.spaceType || "Outdoor & Indoor"],
+    capacity: data.capacity || (data.minGuests ? `${data.minGuests} – ${data.maxGuests || 1000} Guests` : "300 – 1200 Guests"),
+    spaceType: data.spaceType || data.venueType || "Outdoor & Indoor",
+    startingPrice: data.startingPrice ? (String(data.startingPrice).startsWith("₹") ? data.startingPrice : `₹${data.startingPrice}`) : "₹5,00,000",
+    verified: data.verified ?? true,
+    amenities: data.amenities && Array.isArray(data.amenities) && data.amenities.length > 0
+      ? data.amenities.map((a: any) => typeof a === "string" ? { icon: "check_circle", label: a } : { icon: a.icon || "check_circle", label: a.label || a.name })
+      : [
+          { icon: "restaurant", label: "Catering" },
+          { icon: "celebration", label: "Decor" },
+          { icon: "local_parking", label: "Valet Parking" },
+          { icon: "bed", label: "Bridal Suite" },
+          { icon: "music_note", label: "DJ & Sound" },
+          { icon: "liquor", label: "Alcohol" },
+          { icon: "auto_awesome", label: "Fireworks" },
+        ],
+    packages: data.packages && Array.isArray(data.packages) && data.packages.length > 0
+      ? data.packages.map((pkg: any) => ({
+          name: pkg.name || "Special Wedding Package",
+          price: pkg.price ? (String(pkg.price).startsWith("₹") ? pkg.price : `₹${pkg.price}`) : "₹5,00,000",
+          guests: pkg.guests || pkg.description || "500 Guests",
+          tag: pkg.tag || pkg.isPopular ? "Most Loved" : undefined,
+        }))
+      : [
+          { name: "Royal Affair Package", price: data.startingPrice || "₹8,00,000", guests: "500 Guests", tag: "Most Loved" },
+          { name: "Grand Celebration Package", price: "₹12,00,000", guests: "800 Guests" },
+          { name: "Luxury Experience Package", price: "₹18,00,000", guests: "1200 Guests" },
+        ],
+    review: data.review || (data.reviewsList && data.reviewsList[0] ? {
+      couple: data.reviewsList[0].author,
+      date: data.reviewsList[0].date || "Recent",
+      rating: data.reviewsList[0].rating || 5,
+      text: data.reviewsList[0].text,
+      avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=80&q=80",
+    } : {
+      couple: "Ananya & Rohan",
+      date: "May 2025",
+      rating: 5,
+      text: "Hosting our wedding here was a dream come true! Exceptional management, beautiful ambiance, and impeccable service throughout.",
+      avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=80&q=80",
+    }),
+    similar: otherVenues.map((v) => ({
+      id: v.id,
+      name: v.name,
+      city: v.city,
+      rating: v.rating,
+      reviews: v.reviews,
+      image: v.image,
+    })),
+  };
+}
+
+export function getDynamicVenues(): VenueDetail[] {
+  if (typeof window === "undefined") return [];
+  const results: VenueDetail[] = [];
+  try {
+    const raw = localStorage.getItem("cloche_registered_venues");
+    if (raw) {
+      const list = JSON.parse(raw);
+      if (Array.isArray(list)) {
+        list.forEach((item: any) => {
+          const vId = item.id || item.slug || item.boutique_name?.toLowerCase().replace(/\s+/g, "-");
+          if (vId) {
+            results.push(transformRegisteredToVenueDetail(vId, item));
+          }
+        });
+      }
+    }
+  } catch (e) {
+    console.error("Error reading registered venues", e);
+  }
+  return results;
+}
+
+export function getAllVenues(): VenueDetail[] {
+  const dynamic = getDynamicVenues();
+  const existingIds = new Set(venues.map((v) => v.id));
+  const filteredDynamic = dynamic.filter((d) => !existingIds.has(d.id));
+  return [...venues, ...filteredDynamic];
+}
+
 export function getVenueById(id: string): VenueDetail | undefined {
-  return venues.find((v) => v.id === id);
+  // 1. Check predefined list
+  const found = venues.find((v) => v.id === id);
+  if (found) return found;
+
+  // 2. Check local storage / dynamic venues
+  if (typeof window !== "undefined") {
+    const dynamicList = getDynamicVenues();
+    const dynamicFound = dynamicList.find((v) => v.id === id);
+    if (dynamicFound) return dynamicFound;
+
+    try {
+      const singleRaw = localStorage.getItem(`cloche_venue_${id}`);
+      if (singleRaw) {
+        return transformRegisteredToVenueDetail(id, JSON.parse(singleRaw));
+      }
+    } catch (e) {}
+  }
+
+  // 3. Fallback: generate dynamic venue structure from formatted ID name so no route breaks
+  if (id) {
+    const formattedName = id
+      .split("-")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+    return transformRegisteredToVenueDetail(id, { name: formattedName });
+  }
+
+  return undefined;
 }

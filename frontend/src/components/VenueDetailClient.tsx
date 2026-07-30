@@ -17,13 +17,29 @@ import {
   ChevronRight,
   Images,
 } from "lucide-react";
+import { useState, useEffect } from "react";
 import { BottomNavBar } from "@/components/BottomNavBar";
-import { VenueDetail } from "@/lib/venueData";
+import { VenueDetail, getVenueById } from "@/lib/venueData";
 
-export function VenueDetailClient({ venue }: { venue: VenueDetail }) {
+export function VenueDetailClient({ venue: initialVenue }: { venue: VenueDetail }) {
+  const [venue, setVenue] = useState<VenueDetail>(initialVenue);
   const [activeImage, setActiveImage] = useState(0);
   const [wishlisted, setWishlisted] = useState(false);
   const [activePackage, setActivePackage] = useState(0);
+
+  useEffect(() => {
+    if (initialVenue?.id) {
+      const dynamic = getVenueById(initialVenue.id);
+      if (dynamic) {
+        setVenue(dynamic);
+      }
+    }
+  }, [initialVenue]);
+
+  const rawPhone = (venue as any).contactNumber || (venue as any).phone || "+919876543210";
+  const rawWhatsapp = (venue as any).whatsapp || rawPhone;
+  const phoneUrl = `tel:${rawPhone.replace(/[^\d+]/g, "")}`;
+  const whatsappUrl = `https://wa.me/${rawWhatsapp.replace(/\D/g, "")}`;
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: "#F5F0E8" }}>
@@ -222,7 +238,8 @@ export function VenueDetailClient({ venue }: { venue: VenueDetail }) {
             <FileText className="h-4 w-4" />
             Get Quote
           </button>
-          <button
+          <a
+            href={phoneUrl}
             className="flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-[14px] font-semibold transition-transform active:scale-95"
             style={{
               border: "1.5px solid #0F4C45",
@@ -232,8 +249,11 @@ export function VenueDetailClient({ venue }: { venue: VenueDetail }) {
           >
             <Phone className="h-4 w-4" />
             Call
-          </button>
-          <button
+          </a>
+          <a
+            href={whatsappUrl}
+            target="_blank"
+            rel="noopener noreferrer"
             className="flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-[14px] font-semibold transition-transform active:scale-95"
             style={{
               border: "1.5px solid #25D366",
@@ -243,7 +263,7 @@ export function VenueDetailClient({ venue }: { venue: VenueDetail }) {
           >
             <MessageCircle className="h-4 w-4" />
             WhatsApp
-          </button>
+          </a>
         </div>
 
         {/* Photo strip */}
@@ -631,13 +651,14 @@ export function VenueDetailClient({ venue }: { venue: VenueDetail }) {
           </p>
         </div>
         <div className="flex gap-2">
-          <button
+          <a
+            href={phoneUrl}
             className="flex items-center gap-2 rounded-xl px-5 py-3 text-[14px] font-semibold transition-transform active:scale-95"
             style={{ border: "1.5px solid #0F4C45", color: "#0F4C45", background: "#FFFFFF" }}
           >
             <Phone className="h-4 w-4" />
             Call
-          </button>
+          </a>
           <button
             className="flex items-center gap-2 rounded-xl px-5 py-3 text-[14px] font-semibold text-white transition-transform active:scale-95"
             style={{ background: "#0F4C45", boxShadow: "0 4px 14px rgba(15,76,69,0.3)" }}
