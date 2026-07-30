@@ -4,56 +4,21 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { User, Heart, Calendar, Settings, LogOut } from "lucide-react";
-import { logout, getCurrentUser } from "@/app/actions/auth";
-
-export function resolveUserDisplayName(userObj?: any): string {
-  if (userObj) {
-    const full = userObj.full_name || userObj.name || userObj.fullName;
-    if (full && typeof full === "string" && full.trim() && full !== "Cloche User") return full.trim();
-
-    const first = userObj.first_name || userObj.firstName;
-    if (first && typeof first === "string" && first.trim()) return first.trim();
-
-    const username = userObj.username || userObj.userName;
-    if (username && typeof username === "string" && username.trim()) return username.trim();
-
-    if (userObj.email && typeof userObj.email === "string") {
-      const emailName = userObj.email.split("@")[0];
-      if (emailName) return emailName.charAt(0).toUpperCase() + emailName.slice(1);
-    }
-  }
-
-  if (typeof window !== "undefined") {
-    const stored =
-      localStorage.getItem("userName") ||
-      localStorage.getItem("ownerName") ||
-      localStorage.getItem("name") ||
-      localStorage.getItem("user_name");
-    if (stored && stored.trim() && stored !== "Cloche User") {
-      return stored.trim();
-    }
-  }
-
-  return "User";
-}
+import { logout } from "@/app/actions/auth";
+import { fetchAuthenticatedUser, resolveUserDisplayName } from "@/lib/userStore";
 
 export function DashboardSidebar() {
   const pathname = usePathname();
   const isSettingsPage = pathname === "/dashboard/settings";
-  const [userName, setUserName] = useState("User");
-  const [initial, setInitial] = useState("U");
+  const [userName, setUserName] = useState(() => resolveUserDisplayName());
+  const [initial, setInitial] = useState(() => resolveUserDisplayName().charAt(0).toUpperCase());
 
   useEffect(() => {
     async function loadUser() {
-      try {
-        const res = await getCurrentUser();
-        const resolved = resolveUserDisplayName(res?.user);
+      const resolved = await fetchAuthenticatedUser();
+      if (resolved) {
         setUserName(resolved);
         setInitial(resolved.charAt(0).toUpperCase());
-      } catch (e) {
-        const fallback = resolveUserDisplayName();
-        setUserName(fallback);
-        setInitial(fallback.charAt(0).toUpperCase());
       }
     }
     loadUser();

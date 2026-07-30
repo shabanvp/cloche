@@ -5,22 +5,18 @@ import { useState, useEffect } from "react";
 import { Heart, Calendar, ArrowRight, Bell } from "lucide-react";
 import { getWishlistItems } from "@/lib/wishlistStore";
 
-import { getCurrentUser } from "@/app/actions/auth";
-import { resolveUserDisplayName } from "@/components/DashboardSidebar";
+import { fetchAuthenticatedUser, resolveUserDisplayName } from "@/lib/userStore";
 
 export default function DashboardPage() {
-  const [userName, setUserName] = useState("User");
+  const [userName, setUserName] = useState(() => resolveUserDisplayName());
   const [savedCount, setSavedCount] = useState(0);
 
   useEffect(() => {
     // Load authenticated user name from DB with fallbacks
     async function loadUser() {
-      try {
-        const res = await getCurrentUser();
-        const resolved = resolveUserDisplayName(res?.user);
+      const resolved = await fetchAuthenticatedUser();
+      if (resolved) {
         setUserName(resolved);
-      } catch (e) {
-        setUserName(resolveUserDisplayName());
       }
     }
     loadUser();
