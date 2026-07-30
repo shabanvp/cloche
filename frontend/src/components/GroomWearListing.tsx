@@ -17,12 +17,24 @@ import { BottomNavBar } from "@/components/BottomNavBar";
 import { bridalBoutiqueVendors } from "@/lib/bridalAndInvitationData";
 import { groomWearVendors } from "@/lib/groomWearData";
 
+import { toggleWishlistItem, getWishlistItems } from "@/lib/wishlistStore";
+
 const groomKeywords = ["sherwani", "tuxedo", "suit", "blazer", "indo-western", "bandhgala", "groom"];
 
 export function GroomWearListing() {
   const [search, setSearch] = useState("");
   const [activeChip, setActiveChip] = useState("All");
-  const [wishlist, setWishlist] = useState<Set<string>>(new Set());
+  const [wishlist, setWishlist] = useState<Set<string>>(() => new Set());
+
+  useEffect(() => {
+    const updateLocalWishlist = () => {
+      const items = getWishlistItems();
+      setWishlist(new Set(items.map((i) => String(i.id))));
+    };
+    updateLocalWishlist();
+    window.addEventListener("cloche_wishlist_updated", updateLocalWishlist);
+    return () => window.removeEventListener("cloche_wishlist_updated", updateLocalWishlist);
+  }, []);
 
   // Find Posh Wedding Rental boutique
   const poshBoutique = useMemo(() => {
@@ -79,13 +91,19 @@ export function GroomWearListing() {
     );
   }, [search, poshBoutique, poshGroomCollections]);
 
-  const toggleWishlist = (e: React.MouseEvent, id: string) => {
+  const toggleWishlist = (e: React.MouseEvent, item: any) => {
     e.preventDefault();
-    setWishlist((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
+    e.stopPropagation();
+    toggleWishlistItem({
+      id: item.id,
+      name: item.title || item.name,
+      category: "Groom Wear",
+      price: item.price,
+      image: item.image,
+      boutique_name: item.subtitle,
+      location: item.location,
+      rating: item.rating,
+      href: item.href,
     });
   };
 
@@ -268,7 +286,7 @@ export function GroomWearListing() {
                     className="object-cover transition-transform duration-500 group-hover:scale-105"
                   />
                   <button
-                    onClick={(e) => toggleWishlist(e, item.id)}
+                    onClick={(e) => toggleWishlist(e, item)}
                     className="absolute top-2 right-2 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 shadow-sm backdrop-blur-xs transition-transform active:scale-90"
                   >
                     <Heart
