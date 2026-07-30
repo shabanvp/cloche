@@ -1,10 +1,168 @@
-import { redirect } from "next/navigation";
+import type { Metadata } from "next";
+import Link from "next/link";
+import Image from "next/image";
+import { notFound } from "next/navigation";
+import { ArrowLeft, MapPin, Phone, MessageSquare, ShoppingBag } from "lucide-react";
+import { Footer } from "@/components/Footer";
+import { getBoutiqueDetails, getBoutiqueProducts } from "@/services/api";
+import { bridalBoutiqueVendors } from "@/lib/bridalAndInvitationData";
+import { DEFAULT_VENDOR_CONFIGS } from "@/lib/vendorTemplates";
 
 interface Props {
   params: Promise<{ id: string }>;
 }
 
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id } = await params;
+  const boutique = (await getBoutiqueDetails(id)) || bridalBoutiqueVendors.find((b) => b.id === id);
+  const name = (boutique as any)?.boutique_name || (boutique as any)?.name || DEFAULT_VENDOR_CONFIGS[id]?.businessName || "Boutique";
+  
+  return {
+    title: `${name} Collections | Cloche Bridal Wear`,
+    description: `Explore exclusive bridal outfits and collections from ${name}.`,
+  };
+}
+
 export default async function BoutiqueCollectionsPage({ params }: Props) {
   const { id } = await params;
-  redirect(`/collections?boutique=${id}`);
+  
+  // Fetch boutique info
+  const boutiqueApi = await getBoutiqueDetails(id);
+  const mockVendor = bridalBoutiqueVendors.find((b) => b.id === id);
+  const configVendor = DEFAULT_VENDOR_CONFIGS[id];
+
+  const boutiqueName = boutiqueApi?.boutique_name || mockVendor?.name || configVendor?.businessName || "Bridal Boutique";
+  const location = boutiqueApi?.city || mockVendor?.location || configVendor?.city || "Kerala";
+  const backUrl = mockVendor ? `/categories/bridal-wear/${id}` : `/boutiques/${id}`;
+
+  // Fetch boutique's products
+  let products = await getBoutiqueProducts(id);
+  
+  // Fallback to mock products if API returned empty
+  if ((!products || products.length === 0) && mockVendor?.collections) {
+    products = mockVendor.collections.map((col, idx) => ({
+      id: `${id}-col-${idx}`,
+      boutique_id: id,
+      product_name: col.name,
+      category: "Bridal Wear",
+      price: mockVendor.prices[idx]?.price ? parseInt(mockVendor.prices[idx].price.replace(/[^0-9]/g, "")) || 45000 : 45000,
+      image_url: col.image,
+      description: `${boutiqueName} signature design`
+    })) as any[];
+  }
+
+  const whatsappNumber = boutiqueApi?.phone || configVendor?.whatsapp || "+919847055443";
+
+  return (
+    <div className="min-h-screen bg-[#FBF8F1] flex flex-col font-sans text-charcoal">
+      {/* Sticky Header with Back Arrow Button */}
+      <header className="sticky top-0 z-40 bg-[#FBF8F1]/95 backdrop-blur-md border-b border-gold/15 px-4 py-3 sm:px-8">
+        <div className="max-w-[1400px] mx-auto flex items-center justify-between">
+          <Link
+            href={backUrl}
+            className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#0F4C45] hover:text-[#12584E] transition-colors"
+          >
+            <div className="w-9 h-9 rounded-full bg-[#0F4C45]/10 flex items-center justify-center">
+              <ArrowLeft className="w-5 h-5" />
+            </div>
+            <span className="hidden sm:inline">Back to Boutique</span>
+          </Link>
+
+          <span className="font-display font-bold text-sm sm:text-base text-charcoal truncate max-w-xs sm:max-w-md">
+            {boutiqueName}
+          </span>
+
+          <a
+            href={`https://wa.me/${whatsappNumber.replace(/[^0-9]/g, "")}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bg-[#0F4C45] text-white px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 hover:bg-[#12584E] transition-colors shadow-sm"
+          >
+            <MessageSquare className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Inquire</span>
+          </a>
+        </div>
+      </header>
+
+      {/* Main Catalog View */}
+      <main className="flex-grow max-w-[1400px] mx-auto w-full px-5 sm:px-8 py-8 sm:py-12 pb-24 space-y-8">
+        
+        {/* Title Header */}
+        <div className="border-b border-gold/15 pb-6 space-y-2">
+          <div className="flex items-center gap-2 text-xs font-bold text-[#0F4C45] uppercase tracking-widest">
+            <ShoppingBag className="w-4 h-4 text-gold" /> BOUTIQUE CATALOG
+          </div>
+          <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold text-charcoal">
+            {boutiqueName} Collections
+          </h1>
+          <p className="text-xs sm:text-sm text-charcoal/70 flex items-center gap-1">
+            <MapPin className="w-3.5 h-3.5 text-gold shrink-0" /> Explore exclusive bridal outfits and couture handcrafted by {boutiqueName} ({location}).
+          </p>
+        </div>
+
+        {/* Product Grid */}
+        {products.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {products.map((product) => {
+              const priceText = product.price ? (typeof product.price === "number" ? `₹${product.price.toLocaleString("en-IN")}` : product.price) : "On Request";
+              return (
+                <div key={product.id} className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group">
+                  <div className="relative aspect-[3/4] w-full overflow-hidden bg-charcoal">
+                    <Image
+                      src={product.image_url || "https://images.unsplash.com/photo-1594223274512-ad4803739b7c?q=80&w=800&auto=format&fit=crop"}
+                      alt={product.product_name}
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                    <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold text-charcoal shadow-sm">
+                      {priceText}
+                    </div>
+                  </div>
+
+                  <div className="p-4 space-y-2">
+                    <span className="text-[10px] font-bold uppercase tracking-wider bg-gold/15 text-[#0F4C45] px-2.5 py-0.5 rounded-full inline-block">
+                      {product.category || "Bridal Wear"}
+                    </span>
+                    <h3 className="font-display font-bold text-base text-charcoal truncate">
+                      {product.product_name}
+                    </h3>
+                    <p className="text-xs text-charcoal/60 line-clamp-1">
+                      {product.description || `${boutiqueName} signature design`}
+                    </p>
+
+                    <a
+                      href={`https://wa.me/${whatsappNumber.replace(/[^0-9]/g, "")}?text=Hi%20${encodeURIComponent(boutiqueName)},%20I%20am%20interested%20in%20your%20${encodeURIComponent(product.product_name)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block w-full text-center bg-[#0F4C45] text-white py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-[#12584E] transition-colors shadow-sm pt-2"
+                    >
+                      Inquire on WhatsApp
+                    </a>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="py-20 text-center border border-gold/15 rounded-3xl bg-white shadow-sm space-y-3">
+            <ShoppingBag className="w-12 h-12 text-[#0F4C45] mx-auto" />
+            <h3 className="font-display text-2xl font-bold text-charcoal">No Collections Uploaded Yet</h3>
+            <p className="text-xs text-charcoal/70 max-w-md mx-auto">
+              {boutiqueName} has not added catalog items online yet. Contact them directly on WhatsApp to request their private portfolio.
+            </p>
+            <a
+              href={`https://wa.me/${whatsappNumber.replace(/[^0-9]/g, "")}?text=Hi%20${encodeURIComponent(boutiqueName)},%20please%20share%20your%20latest%20bridal%20catalog.`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block bg-[#0F4C45] text-white px-6 py-3 rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-[#12584E] shadow-sm"
+            >
+              Contact {boutiqueName} on WhatsApp
+            </a>
+          </div>
+        )}
+
+      </main>
+
+      <Footer />
+    </div>
+  );
 }
