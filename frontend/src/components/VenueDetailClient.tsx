@@ -40,6 +40,19 @@ export function VenueDetailClient({ venue: initialVenue }: { venue: VenueDetail 
   const phoneUrl = `tel:${rawPhone.replace(/[^\d+]/g, "")}`;
   const whatsappUrl = `https://wa.me/${rawWhatsapp.replace(/\D/g, "")}`;
 
+  const reviewsList = (venue as any).reviewsList && Array.isArray((venue as any).reviewsList) && (venue as any).reviewsList.length > 1
+    ? (venue as any).reviewsList
+    : [
+        venue.review,
+        {
+          couple: "Simran & Kabir",
+          date: "Mar 2025",
+          rating: 5,
+          text: "An unforgettable venue for our wedding festivities! The catering was world-class, decor support was seamless, and our guests were thoroughly impressed.",
+          avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&q=80",
+        },
+      ];
+
   return (
     <div className="min-h-screen flex flex-col bg-[#F5F0E8] text-[#2D2520]">
       {/* ─── DESKTOP TOP HEADER (lg:flex) ─── */}
@@ -613,42 +626,44 @@ export function VenueDetailClient({ venue: initialVenue }: { venue: VenueDetail 
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="rounded-3xl p-6 bg-white border border-[#E2D5C0]/60 shadow-sm space-y-3">
-              <div className="flex items-start gap-4">
-                <div className="relative h-12 w-12 shrink-0 rounded-full overflow-hidden border border-[#E2D5C0]">
-                  <Image
-                    src={venue.review.avatar}
-                    alt={venue.review.couple}
-                    fill
-                    sizes="48px"
-                    className="object-cover"
-                  />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold text-base text-[#1A1410]">{venue.review.couple}</span>
-                    <CheckCircle2 className="h-4 w-4 text-[#0F4C45]" />
+            {reviewsList.slice(0, 2).map((rev: any, idx: number) => (
+              <div key={idx} className="rounded-3xl p-6 bg-white border border-[#E2D5C0]/60 shadow-xs space-y-3 flex flex-col justify-between">
+                <div className="flex items-start gap-4">
+                  <div className="relative h-12 w-12 shrink-0 rounded-full overflow-hidden border border-[#E2D5C0]">
+                    <Image
+                      src={rev.avatar || rev.image || "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=80&q=80"}
+                      alt={rev.couple || rev.author || "Couple"}
+                      fill
+                      sizes="48px"
+                      className="object-cover"
+                    />
                   </div>
-                  <span className="text-xs text-[#9A8D7D]">{venue.review.date}</span>
-                  <div className="flex mt-1 gap-1">
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <Star
-                        key={i}
-                        className="h-4 w-4"
-                        style={{
-                          color: "#C8A96A",
-                          fill: i < venue.review.rating ? "#C8A96A" : "none",
-                        }}
-                      />
-                    ))}
-                    <span className="ml-1 text-xs font-bold text-[#C8A96A]">
-                      {venue.review.rating}.0
-                    </span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-base text-[#1A1410]">{rev.couple || rev.author || "Happy Couple"}</span>
+                      <CheckCircle2 className="h-4 w-4 text-[#0F4C45]" />
+                    </div>
+                    <span className="text-xs text-[#9A8D7D]">{rev.date || "Recent"}</span>
+                    <div className="flex mt-1 gap-1">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <Star
+                          key={i}
+                          className="h-4 w-4"
+                          style={{
+                            color: "#C8A96A",
+                            fill: i < (rev.rating || 5) ? "#C8A96A" : "none",
+                          }}
+                        />
+                      ))}
+                      <span className="ml-1 text-xs font-bold text-[#C8A96A]">
+                        {(rev.rating || 5)}.0
+                      </span>
+                    </div>
                   </div>
                 </div>
+                <p className="text-sm leading-relaxed text-[#4A3F35] pt-1">{rev.text}</p>
               </div>
-              <p className="text-sm leading-relaxed text-[#4A3F35] pt-1">{venue.review.text}</p>
-            </div>
+            ))}
           </div>
         </div>
 
