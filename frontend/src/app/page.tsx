@@ -89,7 +89,7 @@ export default function Home() {
       subtitle: "Lehengas, Kanchipuram Saris & Gowns",
       href: "/categories/bridal-wear",
       bgColor: "bg-[#EAF3E3]",
-      img: "https://images.unsplash.com/photo-1594223274512-ad4803739b7c?q=80&w=800&auto=format&fit=crop",
+      img: "https://images.unsplash.com/photo-1594552072238-b8a33785b261?auto=format&fit=crop&w=800&q=80",
       alt: "Bridal Wear"
     },
     {
