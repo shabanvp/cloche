@@ -126,6 +126,45 @@ export const bridalBoutiqueVendors: BridalBoutiqueVendor[] = [
     ],
     userReviews: [],
   },
+  {
+    id: "posh-wedding-rental",
+    name: "Posh Wedding Rental",
+    subtitle: "Exclusive rental bridal lehengas, sherwanis, tuxedos & couture.",
+    rating: 4.8,
+    reviews: 115,
+    location: "Indiranagar, Bangalore",
+    image: "https://images.unsplash.com/photo-1549417229-aa67d3263c09?auto=format&fit=crop&w=800&q=80",
+    isVerified: true,
+    about: "Posh Wedding Rental offers curated luxury wedding ensembles on rent. From designer bridal lehengas to premium groom sherwanis, tuxedos, and suits, enjoy royal wedding attire for your special day.",
+    yearsInBusiness: 6,
+    bridesDressed: 450,
+    collections: [
+      { name: "Bridal Lehengas", image: "https://images.unsplash.com/photo-1549417229-aa67d3263c09?auto=format&fit=crop&w=600&q=80" },
+      { name: "Designer Sarees & Gowns", image: "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=600&q=80" },
+      { name: "Royal Sherwanis", image: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=600&q=80" },
+      { name: "Tuxedos & Suits", image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=600&q=80" },
+      { name: "Indo-Western & Bandhgalas", image: "https://images.unsplash.com/photo-1593030761757-71fae45fa0e7?auto=format&fit=crop&w=600&q=80" },
+    ],
+    prices: [
+      { category: "Bridal Lehengas (Rental)", price: "₹15,000 / day" },
+      { category: "Groom Sherwanis (Rental)", price: "₹12,000 / day", isPopular: true },
+      { category: "Tuxedos & Suits (Rental)", price: "₹8,000 / day" },
+    ],
+    amenities: [
+      { name: "In-house Alterations", icon: "content_cut" },
+      { name: "Trial Room & Fitting", icon: "checkroom" },
+      { name: "Dry Cleaning Included", icon: "dry_cleaning" },
+      { name: "Styling Assistance", icon: "auto_awesome" },
+    ],
+    userReviews: [
+      {
+        author: "Kavya & Rahul",
+        date: "2 weeks ago",
+        rating: 5.0,
+        text: "Rented both the bridal lehenga and groom sherwani from Posh Wedding Rental! Outfits looked brand new and saved us a fortune.",
+      },
+    ],
+  },
 ];
 
 export type InvitationVendor = {

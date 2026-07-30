@@ -78,7 +78,9 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
 
   // Dynamic Product Catalog Source (Max 5 products for preview carousel)
   const rawProducts = collections && collections.length > 0 ? collections : (boutique as any)?.products;
-  const rawBridalCollections = bridalVendor?.collections;
+  const rawBridalCollections = vendorId === "posh-wedding-rental" && bridalVendor?.collections
+    ? bridalVendor.collections.filter(c => !["Royal Sherwanis", "Tuxedos & Suits", "Indo-Western & Bandhgalas"].includes(c.name))
+    : bridalVendor?.collections;
   const displayedProducts = rawProducts ? rawProducts.slice(0, 5) : [];
 
   // Real Hero Images list
