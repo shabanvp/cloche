@@ -51,7 +51,7 @@ const textInputClass = "w-full bg-surface-dim border rounded-xl px-4 py-3 focus:
 const normalBorderClass = "border-outline/20 focus:border-emerald";
 const errorBorderClass = "border-red-400 focus:border-red-500 bg-red-50/40";
 
-const textValue = (formData: FormData, name: FieldName) => String(formData.get(name) || "").trim();
+const textValue = (formData: FormData, name: string) => String(formData.get(name) || "").trim();
 const digitsOnly = (value: string) => value.replace(/\D/g, "");
 
 const isValidUrl = (value: string) => {
