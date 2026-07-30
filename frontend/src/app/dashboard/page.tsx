@@ -5,20 +5,25 @@ import { useState, useEffect } from "react";
 import { Heart, Calendar, ArrowRight, Bell } from "lucide-react";
 import { getWishlistItems } from "@/lib/wishlistStore";
 
+import { getCurrentUser } from "@/app/actions/auth";
+import { resolveUserDisplayName } from "@/components/DashboardSidebar";
+
 export default function DashboardPage() {
-  const [userName, setUserName] = useState("Cloche User");
+  const [userName, setUserName] = useState("User");
   const [savedCount, setSavedCount] = useState(0);
 
   useEffect(() => {
-    // Load registered user name
-    const storedName =
-      localStorage.getItem("userName") ||
-      localStorage.getItem("ownerName") ||
-      localStorage.getItem("name") ||
-      localStorage.getItem("user_name");
-    if (storedName) {
-      setUserName(storedName);
+    // Load authenticated user name from DB with fallbacks
+    async function loadUser() {
+      try {
+        const res = await getCurrentUser();
+        const resolved = resolveUserDisplayName(res?.user);
+        setUserName(resolved);
+      } catch (e) {
+        setUserName(resolveUserDisplayName());
+      }
     }
+    loadUser();
 
     // Load saved collections count
     const updateCount = () => {
