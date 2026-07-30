@@ -19,9 +19,9 @@ export function BoutiqueProfileClient({
   const [isWishlisted, setIsWishlisted] = useState(false);
 
   return (
-    <div className="min-h-screen flex flex-col pb-24" style={{ background: "#F5F0E8" }}>
+    <div className="min-h-screen flex flex-col pb-24" style={{ background: "#FBF8F1" }}>
       {/* Top Header Bar */}
-      <header className="sticky top-0 z-40 flex items-center justify-between px-4 py-3 bg-[#F5F0E8]/90 backdrop-blur-md border-b border-gold/10">
+      <header className="sticky top-0 z-40 flex items-center justify-between px-4 py-3 bg-[#FBF8F1]/90 backdrop-blur-md border-b border-gold/10">
         <Link
           href="/boutiques"
           className="flex h-9 w-9 items-center justify-center rounded-full bg-[#0F4C45]/10 text-[#0F4C45]"
@@ -35,7 +35,7 @@ export function BoutiqueProfileClient({
       </header>
 
       {/* Dynamic Category Profile Template */}
-      <main className="flex-1 max-w-6xl mx-auto w-full px-4 py-6">
+      <main className="flex-1 w-full">
         <DynamicVendorProfileRouter
           vendorId={String(boutique.id)}
           category={
@@ -46,6 +46,8 @@ export function BoutiqueProfileClient({
               ? "Wedding Venues"
               : "Bridal Wear")
           }
+          boutique={boutique}
+          collections={collections}
         />
       </main>
 

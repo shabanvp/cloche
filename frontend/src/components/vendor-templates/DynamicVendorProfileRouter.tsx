@@ -6,14 +6,26 @@ import { VenueProfileTemplate } from "./VenueProfileTemplate";
 import { PhotographerProfileTemplate } from "./PhotographerProfileTemplate";
 import { BridalWearProfileTemplate } from "./BridalWearProfileTemplate";
 import { GenericCategoryProfileTemplate } from "./GenericCategoryProfileTemplate";
+import { Boutique, Product } from "@/types";
+import { BridalBoutiqueVendor } from "@/lib/bridalAndInvitationData";
 
 interface Props {
   vendorId: string;
   category?: string;
   initialConfig?: VendorProfileConfig;
+  boutique?: Boutique;
+  bridalVendor?: BridalBoutiqueVendor;
+  collections?: Product[];
 }
 
-export function DynamicVendorProfileRouter({ vendorId, category = "Bridal Wear", initialConfig }: Props) {
+export function DynamicVendorProfileRouter({
+  vendorId,
+  category = "Bridal Wear",
+  initialConfig,
+  boutique,
+  bridalVendor,
+  collections,
+}: Props) {
   const [config, setConfig] = useState<VendorProfileConfig>(
     initialConfig || getVendorProfileConfig(vendorId, category as CategoryType)
   );
@@ -62,7 +74,14 @@ export function DynamicVendorProfileRouter({ vendorId, category = "Bridal Wear",
     catLower === "designer boutique" ||
     catLower === "wedding boutique"
   ) {
-    return <BridalWearProfileTemplate config={config} />;
+    return (
+      <BridalWearProfileTemplate
+        config={config}
+        boutique={boutique}
+        bridalVendor={bridalVendor}
+        collections={collections}
+      />
+    );
   }
 
   // Default Fallback Template
