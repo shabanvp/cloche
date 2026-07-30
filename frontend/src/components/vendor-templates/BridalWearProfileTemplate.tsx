@@ -452,20 +452,24 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
                 const title = prod.name || prod.title || "Bridal Outfit";
                 const img = prod.image_url || prod.image || coverImage;
                 const price = prod.price ? (typeof prod.price === "number" ? `₹${prod.price.toLocaleString("en-IN")}` : prod.price) : "On Request";
+                const prodId = prod.id || `${vendorId}-col-${idx}`;
+
                 return (
                   <div
-                    key={prod.id || idx}
+                    key={prodId}
                     className="min-w-[260px] max-w-[280px] sm:min-w-0 sm:max-w-none shrink-0 snap-start bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group"
                   >
-                    <div className="relative h-72 w-full overflow-hidden bg-charcoal cursor-pointer" onClick={() => setLightboxImg(img)}>
+                    <Link href={`/collections/${prodId}`} className="block relative h-72 w-full overflow-hidden bg-charcoal">
                       <img src={img} alt={title} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                       <span className="absolute top-3 right-3 bg-white/90 backdrop-blur-md text-charcoal text-xs font-bold px-3 py-1 rounded-full shadow">
                         {price}
                       </span>
-                    </div>
+                    </Link>
 
                     <div className="p-4 space-y-2">
-                      <h3 className="font-display font-bold text-base text-charcoal truncate">{title}</h3>
+                      <Link href={`/collections/${prodId}`} className="block">
+                        <h3 className="font-display font-bold text-base text-charcoal truncate group-hover:text-[#0F4C45] transition-colors">{title}</h3>
+                      </Link>
                       <p className="text-xs text-charcoal/60 line-clamp-1">{prod.description || `${businessName} collection`}</p>
 
                       <a
@@ -483,18 +487,21 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
             </div>
           ) : rawBridalCollections && rawBridalCollections.length > 0 ? (
             <div className="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar gap-4 pb-2">
-              {rawBridalCollections.slice(0, 5).map((col, idx) => (
-                <div
-                  key={idx}
-                  onClick={() => setLightboxImg(col.image)}
-                  className="relative min-w-[220px] max-w-[240px] shrink-0 snap-start h-72 rounded-2xl overflow-hidden shadow-md group border border-gold/15 cursor-pointer"
-                >
-                  <img src={col.image} alt={col.name} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent p-4 flex flex-col justify-end text-white">
-                    <span className="font-display font-bold text-base">{col.name}</span>
-                  </div>
-                </div>
-              ))}
+              {rawBridalCollections.slice(0, 5).map((col, idx) => {
+                const colId = `${vendorId}-col-${idx}`;
+                return (
+                  <Link
+                    key={idx}
+                    href={`/collections/${colId}`}
+                    className="relative min-w-[220px] max-w-[240px] shrink-0 snap-start h-72 rounded-2xl overflow-hidden shadow-md group border border-gold/15 cursor-pointer block"
+                  >
+                    <img src={col.image} alt={col.name} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent p-4 flex flex-col justify-end text-white">
+                      <span className="font-display font-bold text-base">{col.name}</span>
+                    </div>
+                  </Link>
+                );
+              })}
             </div>
           ) : (
             /* EMPTY STATE WHEN NO PRODUCTS UPLOADED */
