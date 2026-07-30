@@ -438,7 +438,7 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
             </div>
             
             <Link
-              href={`/boutiques/${vendorId}/collections`}
+              href="/collections"
               className="text-xs font-bold text-[#0F4C45] hover:underline flex items-center gap-1 shrink-0"
             >
               View All <ArrowRight className="w-3.5 h-3.5" />
