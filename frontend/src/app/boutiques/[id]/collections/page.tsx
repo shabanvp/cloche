@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
-import { notFound } from "next/navigation";
-import { ArrowLeft, MapPin, Phone, MessageSquare, ShoppingBag } from "lucide-react";
+import { ArrowLeft, MapPin, ShoppingBag } from "lucide-react";
 import { Footer } from "@/components/Footer";
 import { getBoutiqueDetails, getBoutiqueProducts } from "@/services/api";
 import { bridalBoutiqueVendors } from "@/lib/bridalAndInvitationData";
@@ -55,31 +54,22 @@ export default async function BoutiqueCollectionsPage({ params }: Props) {
 
   return (
     <div className="min-h-screen bg-[#FBF8F1] flex flex-col font-sans text-charcoal">
-      {/* Sticky Header with Back Arrow Button */}
+      {/* Sub-Header with Back Arrow Button & Centered Boutique Name */}
       <header className="sticky top-0 z-40 bg-[#FBF8F1]/95 backdrop-blur-md border-b border-gold/15 px-4 py-3 sm:px-8">
         <div className="max-w-[1400px] mx-auto flex items-center justify-between">
           <Link
             href={backUrl}
-            className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#0F4C45] hover:text-[#12584E] transition-colors"
+            className="flex items-center justify-center w-10 h-10 rounded-full bg-[#0F4C45]/10 text-[#0F4C45] hover:bg-[#0F4C45] hover:text-white transition-colors shadow-xs"
+            aria-label="Back to boutique profile"
           >
-            <div className="w-9 h-9 rounded-full bg-[#0F4C45]/10 flex items-center justify-center">
-              <ArrowLeft className="w-5 h-5" />
-            </div>
-            <span className="hidden sm:inline">Back to Boutique</span>
+            <ArrowLeft className="w-5 h-5" />
           </Link>
 
-          <span className="font-display font-bold text-sm sm:text-base text-charcoal truncate max-w-xs sm:max-w-md">
+          <span className="font-display font-bold text-base sm:text-lg text-charcoal text-center tracking-tight truncate max-w-xs sm:max-w-md">
             {boutiqueName}
           </span>
 
-          <a
-            href={`https://wa.me/${whatsappNumber.replace(/[^0-9]/g, "")}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="bg-[#0F4C45] text-white px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 hover:bg-[#12584E] transition-colors shadow-sm"
-          >
-            <MessageSquare className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Inquire</span>
-          </a>
+          <div className="w-10" />
         </div>
       </header>
 
