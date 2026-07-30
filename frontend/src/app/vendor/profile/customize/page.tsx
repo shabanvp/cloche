@@ -10,7 +10,7 @@ import { VenueProfileTemplate } from "@/components/vendor-templates/VenueProfile
 import { 
   Building2, Save, Sparkles, CheckCircle2, History, RotateCcw, AlertTriangle, 
   Image as ImageIcon, Plus, Trash2, ShieldCheck, MapPin, Calendar, Star, MessageSquare, 
-  HelpCircle, Search, Monitor, Smartphone, Check, Lock, X
+  HelpCircle, Search, Monitor, Smartphone, Check, Lock, X, ExternalLink
 } from "lucide-react";
 import { Button } from "@/components/Button";
 
@@ -156,6 +156,13 @@ export default function VendorVenueCmsPage() {
           >
             <History className="w-3.5 h-3.5 text-gold" /> History
           </Button>
+          <Link
+            href={`/venues/${cmsData.id}`}
+            target="_blank"
+            className="bg-white border border-[#0F4C45] text-[#0F4C45] px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider shadow-xs hover:bg-[#0F4C45]/5 flex items-center gap-1.5"
+          >
+            <ExternalLink className="w-3.5 h-3.5" /> View Live Page
+          </Link>
           <Button
             type="button"
             onClick={handlePublish}

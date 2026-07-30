@@ -647,6 +647,35 @@ export function VenueDetailClient({ venue: initialVenue }: { venue: VenueDetail 
           </div>
         </div>
 
+        {/* ─── ABOUT VENUE & FAQS SECTION ─── */}
+        <div className="px-4 lg:px-0">
+          <div className="bg-white rounded-3xl p-6 lg:p-7 border border-[#E2D5C0]/60 shadow-xs space-y-4">
+            <div>
+              <span className="text-xs font-bold text-[#0F4C45] uppercase tracking-wider">About The Venue</span>
+              <h2 className="font-display text-xl lg:text-2xl font-bold text-[#1A1410] mt-0.5">
+                {(venue as any).tagline || venue.name}
+              </h2>
+              <p className="text-sm text-[#4A3F35] leading-relaxed mt-2">
+                {(venue as any).description || `Welcome to ${venue.name}, a premier wedding destination located in ${venue.location}. Featuring grand event spaces, world-class amenities, and exquisite hospitality for your special day.`}
+              </p>
+            </div>
+
+            {(venue as any).faqs && (venue as any).faqs.length > 0 && (
+              <div className="pt-4 border-t border-[#E2D5C0]/50 space-y-3">
+                <h3 className="font-display text-base font-bold text-[#1A1410]">Frequently Asked Questions</h3>
+                <div className="space-y-2.5">
+                  {(venue as any).faqs.map((faq: any, i: number) => (
+                    <div key={i} className="p-3.5 rounded-2xl bg-[#F5F0E8]/60 border border-[#E2D5C0]/40">
+                      <p className="text-xs font-bold text-[#1A1410]">Q: {faq.question}</p>
+                      <p className="text-xs text-[#6B5E52] mt-1">A: {faq.answer}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* ─── AMENITIES SECTION (Responsive Grid) ─── */}
         <div className="px-4 lg:px-0">
           <div className="bg-white lg:rounded-3xl p-5 lg:p-7 rounded-2xl border border-[#E2D5C0]/60 shadow-xs">

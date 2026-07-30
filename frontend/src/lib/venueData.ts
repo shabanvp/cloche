@@ -1,3 +1,5 @@
+import { convertCmsToVenueDetail } from "@/lib/venueCmsStore";
+
 export type Package = {
   name: string;
   price: string;
@@ -555,32 +557,49 @@ export function getAllVenues(): VenueDetail[] {
 }
 
 export function getVenueById(id: string): VenueDetail | undefined {
-  // 1. Check predefined list
-  const found = venues.find((v) => v.id === id);
-  if (found) return found;
+  if (!id) return undefined;
 
-  // 2. Check local storage / dynamic venues
+  // 1. Check published CMS data in localStorage for this specific venue ID
   if (typeof window !== "undefined") {
-    const dynamicList = getDynamicVenues();
-    const dynamicFound = dynamicList.find((v) => v.id === id);
-    if (dynamicFound) return dynamicFound;
-
     try {
+      const cmsRaw = localStorage.getItem(`cloche_venue_cms_${id}`);
+      if (cmsRaw) {
+        const cmsData = JSON.parse(cmsRaw);
+        return convertCmsToVenueDetail(cmsData);
+      }
+
+      // Check single registered venue record
       const singleRaw = localStorage.getItem(`cloche_venue_${id}`);
       if (singleRaw) {
         return transformRegisteredToVenueDetail(id, JSON.parse(singleRaw));
       }
+
+      // Check global CMS key
+      const globalCmsRaw = localStorage.getItem("cloche_venue_cms_data_v1");
+      if (globalCmsRaw) {
+        const globalCms = JSON.parse(globalCmsRaw);
+        if (globalCms.id === id) {
+          return convertCmsToVenueDetail(globalCms);
+        }
+      }
     } catch (e) {}
   }
 
-  // 3. Fallback: generate dynamic venue structure from formatted ID name so no route breaks
-  if (id) {
-    const formattedName = id
-      .split("-")
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(" ");
-    return transformRegisteredToVenueDetail(id, { name: formattedName });
+  // 2. Predefined static list lookup
+  const found = venues.find((v) => v.id === id);
+  if (found) return found;
+
+  // 3. Dynamic list lookup
+  if (typeof window !== "undefined") {
+    const dynamicList = getDynamicVenues();
+    const dynamicFound = dynamicList.find((v) => v.id === id);
+    if (dynamicFound) return dynamicFound;
   }
 
-  return undefined;
+  // 4. Dynamic fallback template for any venue ID
+  const formattedName = id
+    .split("-")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+  return transformRegisteredToVenueDetail(id, { name: formattedName });
 }

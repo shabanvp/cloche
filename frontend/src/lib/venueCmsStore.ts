@@ -229,9 +229,13 @@ export const DEFAULT_VENUE_CMS: VenueCmsData = {
 const VENUE_CMS_KEY = "cloche_venue_cms_data_v1";
 const VENUE_VERSIONS_KEY = "cloche_venue_cms_versions_v1";
 
-export function getVenueCmsData(vendorId: string): VenueCmsData {
+export function getVenueCmsData(venueId?: string): VenueCmsData {
   if (typeof window === "undefined") return DEFAULT_VENUE_CMS;
   try {
+    if (venueId) {
+      const specificRaw = localStorage.getItem(`cloche_venue_cms_${venueId}`);
+      if (specificRaw) return JSON.parse(specificRaw);
+    }
     const raw = localStorage.getItem(VENUE_CMS_KEY);
     if (raw) return JSON.parse(raw);
     localStorage.setItem(VENUE_CMS_KEY, JSON.stringify(DEFAULT_VENUE_CMS));
@@ -247,23 +251,29 @@ export function saveVenueCmsData(data: VenueCmsData, status: "Draft" | "Publishe
     const updated = { ...data, status, lastUpdated: new Date().toISOString() };
     localStorage.setItem(VENUE_CMS_KEY, JSON.stringify(updated));
 
+    if (data.id) {
+      localStorage.setItem(`cloche_venue_cms_${data.id}`, JSON.stringify(updated));
+    }
+
     // Save snapshot in version history if published
     if (status === "Published") {
-      const history = getVenueVersionHistory();
+      const history = getVenueVersionHistory(data.id);
       const snapshot: CmsVersionSnapshot = {
         versionId: `v-${Date.now()}`,
         timestamp: new Date().toLocaleString(),
         data: updated,
       };
-      localStorage.setItem(VENUE_VERSIONS_KEY, JSON.stringify([snapshot, ...history.slice(0, 9)]));
+      const versionKey = data.id ? `cloche_venue_cms_versions_${data.id}` : VENUE_VERSIONS_KEY;
+      localStorage.setItem(versionKey, JSON.stringify([snapshot, ...history.slice(0, 9)]));
     }
   } catch (e) {}
 }
 
-export function getVenueVersionHistory(): CmsVersionSnapshot[] {
+export function getVenueVersionHistory(venueId?: string): CmsVersionSnapshot[] {
   if (typeof window === "undefined") return [];
   try {
-    const raw = localStorage.getItem(VENUE_VERSIONS_KEY);
+    const versionKey = venueId ? `cloche_venue_cms_versions_${venueId}` : VENUE_VERSIONS_KEY;
+    const raw = localStorage.getItem(versionKey);
     return raw ? JSON.parse(raw) : [];
   } catch (e) {
     return [];
@@ -273,4 +283,117 @@ export function getVenueVersionHistory(): CmsVersionSnapshot[] {
 export function restoreVenueVersion(snapshot: CmsVersionSnapshot): VenueCmsData {
   saveVenueCmsData(snapshot.data, "Published");
   return snapshot.data;
+}
+
+/**
+ * Transforms VenueCmsData payload into standard public VenueDetail layout structure.
+ */
+export function convertCmsToVenueDetail(cms: VenueCmsData): any {
+  const heroImages = cms.heroGallery.images && cms.heroGallery.images.length > 0
+    ? cms.heroGallery.images.map((i) => i.url)
+    : cms.gallery.photos && cms.gallery.photos.length > 0
+    ? cms.gallery.photos
+    : [cms.heroGallery.coverImage || "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=1200&q=80"];
+
+  const amenityIconsMap: Record<string, string> = {
+    parking: "local_parking",
+    valet: "directions_car",
+    wifi: "wifi",
+    generator: "bolt",
+    kidsArea: "child_care",
+    garden: "park",
+    swimmingPool: "pool",
+    stage: "theater_comedy",
+    decoration: "celebration",
+    wheelchairAccess: "accessible",
+  };
+
+  const amenityLabelsMap: Record<string, string> = {
+    parking: "Parking",
+    valet: "Valet Parking",
+    wifi: "Free WiFi",
+    generator: "Power Backup",
+    kidsArea: "Kids Area",
+    garden: "Lawn / Garden",
+    swimmingPool: "Swimming Pool",
+    stage: "Stage Setup",
+    decoration: "Decor Service",
+    wheelchairAccess: "Wheelchair Access",
+  };
+
+  const amenitiesList = Object.entries(cms.amenities || {})
+    .filter(([_, val]) => Boolean(val))
+    .map(([key]) => ({
+      icon: amenityIconsMap[key] || "check_circle",
+      label: amenityLabelsMap[key] || key.charAt(0).toUpperCase() + key.slice(1),
+    }));
+
+  if (cms.venueInfo?.bridalSuiteAvailable) {
+    amenitiesList.push({ icon: "bed", label: "Bridal Suite" });
+  }
+
+  const packagesList = (cms.packages || []).map((pkg) => ({
+    name: pkg.name,
+    price: pkg.price,
+    guests: pkg.description || "All Inclusive",
+    tag: pkg.isPopular ? "Most Loved" : undefined,
+  }));
+
+  const primaryReview = cms.reviewsList && cms.reviewsList.length > 0
+    ? {
+        couple: cms.reviewsList[0].author || "Verified Couple",
+        date: cms.reviewsList[0].date || "Recent",
+        rating: cms.reviewsList[0].rating || 5,
+        text: cms.reviewsList[0].text,
+        avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&q=80",
+      }
+    : {
+        couple: "Priya & Arjun",
+        date: "Apr 2025",
+        rating: 5,
+        text: `Hosting our wedding at ${cms.businessProfile.businessName} was an exceptional experience!`,
+        avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=80&q=80",
+      };
+
+  const reviewsCount = (cms.reviewsList || []).length || 1;
+  const avgRating = (cms.reviewsList || []).length > 0
+    ? parseFloat((cms.reviewsList.reduce((acc, r) => acc + (r.rating || 5), 0) / cms.reviewsList.length).toFixed(1))
+    : 4.9;
+
+  return {
+    id: cms.id,
+    name: cms.businessProfile.businessName,
+    tagline: cms.businessProfile.tagline,
+    description: cms.businessProfile.description,
+    location: `${cms.businessProfile.city}, ${cms.businessProfile.district || cms.businessProfile.address}`,
+    city: cms.businessProfile.city,
+    district: cms.businessProfile.district,
+    address: cms.businessProfile.address,
+    contactNumber: cms.businessProfile.contactNumber,
+    whatsapp: cms.businessProfile.whatsapp,
+    email: cms.businessProfile.email,
+    website: cms.businessProfile.website,
+    instagram: cms.businessProfile.instagram,
+    rating: avgRating,
+    reviews: reviewsCount,
+    image: cms.heroGallery.coverImage || heroImages[0],
+    images: heroImages,
+    totalPhotos: heroImages.length,
+    tags: ["Verified Venue", cms.venueInfo.venueType],
+    capacity: `${cms.venueInfo.minGuests} – ${cms.venueInfo.maxGuests} Guests`,
+    spaceType: cms.venueInfo.venueType,
+    startingPrice: cms.venueInfo.startingPrice,
+    verified: cms.businessProfile.isVerified !== false,
+    amenities: amenitiesList,
+    packages: packagesList,
+    review: primaryReview,
+    reviewsList: cms.reviewsList,
+    faqs: cms.faqs,
+    similar: [
+      { id: "palace-estate", name: "The Palace Estate", city: "Udaipur", rating: 4.8, reviews: 138, image: "https://images.unsplash.com/photo-1519167758481-83f552bb8c74?auto=format&fit=crop&w=400&q=80" },
+      { id: "taj-lake-palace", name: "Taj Lake Palace", city: "Udaipur", rating: 4.9, reviews: 94, image: "https://images.unsplash.com/photo-1570544820323-66a7e58ce1d8?auto=format&fit=crop&w=400&q=80" },
+      { id: "leela-palace", name: "Leela Palace", city: "Delhi", rating: 4.7, reviews: 110, image: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=400&q=80" },
+      { id: "six-senses-fort-barwara", name: "Six Senses Fort", city: "Sawai Madhopur", rating: 4.9, reviews: 75, image: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=400&q=80" },
+    ],
+  };
 }
