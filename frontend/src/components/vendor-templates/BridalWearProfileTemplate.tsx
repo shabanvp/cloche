@@ -1,13 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { VendorProfileConfig } from "@/lib/vendorTemplates";
 import { 
   ShoppingBag, Sparkles, MapPin, Phone, MessageSquare, Star, 
   CheckCircle2, Scissors, Calendar, Heart, ShieldCheck, Clock, 
   Eye, Tag, ChevronRight, HelpCircle, ArrowRight, Layers, Award,
-  ArrowLeft, Share2, Bookmark, Check, X, User, Send
+  ArrowLeft, Share2, Bookmark, Check, X, User, Send, Globe, MessageCircle,
+  ExternalLink, Info, CheckCircle
 } from "lucide-react";
 import { Button } from "@/components/Button";
 import { logAdminAction } from "@/lib/systemStore";
@@ -21,6 +22,7 @@ export function BridalWearProfileTemplate({ config }: Props) {
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
   const [followerCount, setFollowerCount] = useState(128);
+  const [activeTab, setActiveTab] = useState<"about" | "collections" | "reviews" | "info">("about");
 
   // Modals
   const [showQuoteModal, setShowQuoteModal] = useState(false);
@@ -38,6 +40,12 @@ export function BridalWearProfileTemplate({ config }: Props) {
   const [reviewAuthor, setReviewAuthor] = useState("");
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewText, setReviewText] = useState("");
+
+  // Section Refs for Scroll & Sticky Tabs
+  const aboutRef = useRef<HTMLDivElement>(null);
+  const collectionsRef = useRef<HTMLDivElement>(null);
+  const reviewsRef = useRef<HTMLDivElement>(null);
+  const infoRef = useRef<HTMLDivElement>(null);
 
   const heroImages = [
     config.coverImage,
@@ -70,7 +78,7 @@ export function BridalWearProfileTemplate({ config }: Props) {
       price: "₹1,50,000 Onwards",
     },
     {
-      title: "Silk Sarees & Gowns",
+      title: "Saree Collection",
       image: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=800&q=80",
       price: "₹45,000 Onwards",
     },
@@ -122,7 +130,7 @@ export function BridalWearProfileTemplate({ config }: Props) {
   };
 
   const handleShare = () => {
-    if (navigator.share) {
+    if (typeof window !== "undefined" && navigator.share) {
       navigator.share({
         title: config.businessName,
         text: `Check out ${config.businessName} on Cloche Weddings!`,
@@ -131,6 +139,18 @@ export function BridalWearProfileTemplate({ config }: Props) {
     } else {
       navigator.clipboard.writeText(window.location.href);
       showToast("Boutique link copied to clipboard!");
+    }
+  };
+
+  const scrollToTab = (tab: "about" | "collections" | "reviews" | "info") => {
+    setActiveTab(tab);
+    const targetRef = 
+      tab === "about" ? aboutRef :
+      tab === "collections" ? collectionsRef :
+      tab === "reviews" ? reviewsRef : infoRef;
+    
+    if (targetRef.current) {
+      targetRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   };
 
@@ -170,7 +190,7 @@ export function BridalWearProfileTemplate({ config }: Props) {
   };
 
   return (
-    <div className="min-h-screen bg-[#FBF8F1] text-charcoal pb-28 animate-in fade-in duration-500">
+    <div className="min-h-screen bg-[#FBF8F1] text-charcoal pb-28 animate-in fade-in duration-500 font-sans">
       
       {/* Toast Notification */}
       {toastMsg && (
@@ -179,15 +199,15 @@ export function BridalWearProfileTemplate({ config }: Props) {
         </div>
       )}
 
-      {/* 1. HERO CAROUSEL SECTION */}
-      <div className="relative w-full h-[340px] sm:h-[480px] lg:h-[580px] bg-charcoal overflow-hidden group">
+      {/* 1. EDGE-TO-EDGE HERO CAROUSEL SECTION */}
+      <div className="relative w-full h-[360px] sm:h-[480px] lg:h-[620px] bg-charcoal overflow-hidden group">
         <img
           src={heroImages[currentImgIndex]}
           alt={config.businessName}
-          className="w-full h-full object-cover transition-all duration-700"
+          className="w-full h-full object-cover transition-all duration-700 cursor-pointer"
           onClick={() => setLightboxImg(heroImages[currentImgIndex])}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/30" />
 
         {/* Top Controls Overlay */}
         <div className="absolute top-4 left-4 right-4 flex justify-between items-center z-20">
@@ -200,13 +220,6 @@ export function BridalWearProfileTemplate({ config }: Props) {
 
           <div className="flex items-center gap-2">
             <button
-              onClick={handleShare}
-              className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md text-white flex items-center justify-center hover:bg-black/60 transition-colors shadow"
-            >
-              <Share2 className="w-5 h-5" />
-            </button>
-
-            <button
               onClick={() => {
                 setIsWishlisted(!isWishlisted);
                 showToast(!isWishlisted ? "Saved to your wishlist!" : "Removed from wishlist");
@@ -218,21 +231,40 @@ export function BridalWearProfileTemplate({ config }: Props) {
           </div>
         </div>
 
+        {/* Next / Prev Slider Buttons */}
+        {heroImages.length > 1 && (
+          <>
+            <button
+              onClick={() => setCurrentImgIndex((prev) => (prev === 0 ? heroImages.length - 1 : prev - 1))}
+              className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/30 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-20"
+            >
+              <ChevronRight className="w-5 h-5 rotate-180" />
+            </button>
+
+            <button
+              onClick={() => setCurrentImgIndex((prev) => (prev === heroImages.length - 1 ? 0 : prev + 1))}
+              className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/30 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-20"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </>
+        )}
+
         {/* Image Counter Pill */}
-        <div className="absolute bottom-4 right-4 bg-black/60 backdrop-blur-md text-white text-[11px] font-semibold px-3 py-1 rounded-full border border-white/20 z-20 flex items-center gap-1.5">
+        <div className="absolute bottom-6 right-4 bg-black/60 backdrop-blur-md text-white text-[11px] font-semibold px-3 py-1 rounded-full border border-white/20 z-20 flex items-center gap-1.5">
           <Layers className="w-3.5 h-3.5 text-gold" />
           <span>{currentImgIndex + 1}/{heroImages.length}</span>
         </div>
       </div>
 
-      {/* 2. FLOATING BOUTIQUE INFORMATION CARD (MATCHING REFERENCE UI) */}
-      <div className="max-w-4xl mx-auto px-4 -mt-16 relative z-30">
-        <div className="bg-white rounded-[28px] p-6 sm:p-8 border border-gold/20 shadow-2xl space-y-4">
+      {/* 2. FLOATING BOUTIQUE PROFILE CARD (EXACTLY MATCHING REFERENCE IMAGE 2) */}
+      <div className="max-w-4xl mx-auto px-4 -mt-16 sm:-mt-20 relative z-30">
+        <div className="bg-white rounded-[24px] p-5 sm:p-7 border border-gold/20 shadow-xl space-y-4">
           
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
-              {/* Boutique Logo Box */}
-              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden border-2 border-gold bg-[#002f22] p-1.5 shadow-xl shrink-0">
+            <div className="flex items-start gap-4">
+              {/* Boutique Logo Avatar */}
+              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden border-2 border-[#002f22] bg-[#002f22] p-1.5 shadow-xl shrink-0">
                 <img src={config.logo} alt={config.businessName} className="w-full h-full object-cover rounded-xl" />
               </div>
 
@@ -259,7 +291,7 @@ export function BridalWearProfileTemplate({ config }: Props) {
             {/* Follow Button */}
             <button
               onClick={handleFollowToggle}
-              className={`px-6 py-2.5 rounded-full font-bold text-xs uppercase tracking-wider transition-all shadow-md ${
+              className={`w-full sm:w-auto px-7 py-2.5 rounded-full font-bold text-xs uppercase tracking-wider transition-all shadow-md ${
                 isFollowing
                   ? "bg-gold text-charcoal hover:bg-gold/90"
                   : "bg-[#0B3B2D] text-white hover:bg-[#0F4C45]"
@@ -276,18 +308,91 @@ export function BridalWearProfileTemplate({ config }: Props) {
         </div>
       </div>
 
-      {/* 3. MAIN CONTENT CONTAINER */}
+      {/* 3. FOUR EQUAL QUICK ACTION BUTTONS (CALL, WHATSAPP, SHARE, WEBSITE) */}
+      <div className="max-w-4xl mx-auto px-4 mt-6">
+        <div className="grid grid-cols-4 gap-2 sm:gap-3 text-center">
+          <a
+            href={`tel:${config.phone}`}
+            className="bg-white p-3 sm:p-4 rounded-2xl border border-gold/15 shadow-sm hover:border-[#0F4C45] transition-all flex flex-col items-center justify-center space-y-1.5 group"
+          >
+            <div className="w-10 h-10 rounded-full bg-[#0F4C45]/10 text-[#0F4C45] flex items-center justify-center group-hover:bg-[#0F4C45] group-hover:text-white transition-colors">
+              <Phone className="w-4 h-4" />
+            </div>
+            <span className="text-[11px] font-bold text-charcoal">Call</span>
+          </a>
+
+          <a
+            href={`https://wa.me/${config.whatsapp.replace(/[^0-9]/g, "")}?text=Hi%20${encodeURIComponent(config.businessName)},%20I%20am%20interested%20in%20your%20bridal%20collections.`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bg-white p-3 sm:p-4 rounded-2xl border border-gold/15 shadow-sm hover:border-emerald transition-all flex flex-col items-center justify-center space-y-1.5 group"
+          >
+            <div className="w-10 h-10 rounded-full bg-emerald/10 text-emerald flex items-center justify-center group-hover:bg-emerald group-hover:text-white transition-colors">
+              <MessageSquare className="w-4 h-4" />
+            </div>
+            <span className="text-[11px] font-bold text-charcoal">WhatsApp</span>
+          </a>
+
+          <button
+            onClick={handleShare}
+            className="bg-white p-3 sm:p-4 rounded-2xl border border-gold/15 shadow-sm hover:border-gold transition-all flex flex-col items-center justify-center space-y-1.5 group"
+          >
+            <div className="w-10 h-10 rounded-full bg-gold/15 text-charcoal flex items-center justify-center group-hover:bg-gold transition-colors">
+              <Share2 className="w-4 h-4" />
+            </div>
+            <span className="text-[11px] font-bold text-charcoal">Share</span>
+          </button>
+
+          <a
+            href={config.website || "https://cloche.luxury"}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bg-white p-3 sm:p-4 rounded-2xl border border-gold/15 shadow-sm hover:border-charcoal transition-all flex flex-col items-center justify-center space-y-1.5 group"
+          >
+            <div className="w-10 h-10 rounded-full bg-charcoal/10 text-charcoal flex items-center justify-center group-hover:bg-charcoal group-hover:text-white transition-colors">
+              <Globe className="w-4 h-4" />
+            </div>
+            <span className="text-[11px] font-bold text-charcoal">Website</span>
+          </a>
+        </div>
+      </div>
+
+      {/* 4. STICKY TAB NAVIGATION */}
+      <div className="sticky top-16 z-40 bg-[#FBF8F1]/95 backdrop-blur-md border-y border-gold/15 mt-6">
+        <div className="max-w-4xl mx-auto px-4 flex items-center justify-around text-xs font-bold uppercase tracking-wider">
+          {[
+            { id: "about", label: "About" },
+            { id: "collections", label: "Collections" },
+            { id: "reviews", label: "Reviews" },
+            { id: "info", label: "Info" },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => scrollToTab(tab.id as any)}
+              className={`py-3.5 px-4 transition-all relative ${
+                activeTab === tab.id
+                  ? "text-[#0F4C45] font-bold border-b-2 border-[#0F4C45]"
+                  : "text-charcoal/60 hover:text-charcoal"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* 5. MAIN CONTENT CONTAINER */}
       <main className="max-w-4xl mx-auto px-4 mt-8 space-y-10">
         
         {/* ABOUT SECTION */}
-        <section className="bg-white rounded-3xl p-6 sm:p-8 border border-gold/15 shadow-sm space-y-3">
+        <section ref={aboutRef} className="bg-white rounded-3xl p-6 sm:p-8 border border-gold/15 shadow-sm space-y-3">
           <h2 className="font-display text-xl font-bold text-charcoal">About</h2>
           <p className="text-xs sm:text-sm text-charcoal/80 leading-relaxed font-sans">
             {config.aboutText || `${config.businessName} is a luxury bridal wear label known for its exquisite craftsmanship, intricate detailing and timeless designs. Every piece is a blend of heritage and modern elegance, crafted for your most memorable moments.`}
           </p>
         </section>
 
-        {/* STATISTICS COUNTER GRID (MATCHING REFERENCE UI) */}
+        {/* STATISTICS COUNTER GRID (MATCHING REFERENCE IMAGE 2) */}
         <section className="grid grid-cols-3 gap-3 text-center">
           <div className="bg-white p-5 rounded-2xl border border-gold/15 shadow-sm space-y-1">
             <Clock className="w-6 h-6 text-[#0F4C45] mx-auto" />
@@ -298,7 +403,7 @@ export function BridalWearProfileTemplate({ config }: Props) {
           <div className="bg-white p-5 rounded-2xl border border-gold/15 shadow-sm space-y-1">
             <User className="w-6 h-6 text-gold mx-auto" />
             <span className="font-display font-bold text-xl sm:text-2xl text-charcoal block">500+</span>
-            <span className="text-[11px] text-charcoal/60 font-semibold uppercase tracking-wider block">Brides Styled</span>
+            <span className="text-[11px] text-charcoal/60 font-semibold uppercase tracking-wider block">Brides Dressed</span>
           </div>
 
           <div className="bg-white p-5 rounded-2xl border border-gold/15 shadow-sm space-y-1">
@@ -308,8 +413,8 @@ export function BridalWearProfileTemplate({ config }: Props) {
           </div>
         </section>
 
-        {/* BRIDAL COLLECTIONS SLIDER */}
-        <section className="space-y-4">
+        {/* BRIDAL COLLECTIONS SLIDER (MATCHING REFERENCE IMAGE 2) */}
+        <section ref={collectionsRef} className="space-y-4">
           <div className="flex justify-between items-center">
             <h2 className="font-display text-xl font-bold text-charcoal">Bridal Collections</h2>
             <button onClick={() => setShowTrialModal(true)} className="text-xs font-bold text-[#0F4C45] hover:underline">
@@ -332,9 +437,16 @@ export function BridalWearProfileTemplate({ config }: Props) {
               </div>
             ))}
           </div>
+
+          {/* Slider Pagination Dots */}
+          <div className="flex justify-center items-center gap-1.5 pt-1">
+            {[...Array(6)].map((_, i) => (
+              <span key={i} className={`w-2 h-2 rounded-full ${i === 0 ? "bg-[#0F4C45]" : "bg-gold/30"}`} />
+            ))}
+          </div>
         </section>
 
-        {/* PRICE RANGE (MATCHING REFERENCE UI) */}
+        {/* PRICE RANGE (MATCHING REFERENCE IMAGE 2) */}
         <section className="space-y-4">
           <h2 className="font-display text-xl font-bold text-charcoal">Price Range</h2>
           
@@ -359,7 +471,7 @@ export function BridalWearProfileTemplate({ config }: Props) {
           </div>
         </section>
 
-        {/* AMENITIES ICON GRID (MATCHING REFERENCE UI) */}
+        {/* AMENITIES ICON GRID (MATCHING REFERENCE IMAGE 2) */}
         <section className="bg-white rounded-3xl p-6 sm:p-8 border border-gold/15 shadow-sm space-y-4">
           <h2 className="font-display text-xl font-bold text-charcoal">Amenities</h2>
 
@@ -376,12 +488,36 @@ export function BridalWearProfileTemplate({ config }: Props) {
           </div>
         </section>
 
-        {/* REVIEWS SECTION */}
-        <section className="space-y-4">
+        {/* PRIMARY FULL-WIDTH CTA BANNER */}
+        <section className="bg-gradient-to-r from-[#0B3B2D] via-[#0F4C45] to-[#0B3B2D] text-white rounded-3xl p-8 border border-gold/20 shadow-2xl text-center space-y-4">
+          <span className="bg-gold text-charcoal font-bold text-[10px] uppercase tracking-widest px-3.5 py-1 rounded-full inline-block">
+            EXCLUSIVE BRIDAL FITTING SUITE
+          </span>
+
+          <h3 className="font-display text-2xl sm:text-3xl font-bold text-white max-w-xl mx-auto">
+            Book a Personal Trial Appointment with {config.businessName}
+          </h3>
+
+          <p className="text-xs sm:text-sm text-white/80 max-w-lg mx-auto leading-relaxed">
+            Experience private trial suites, customized embroidery consultations, and master tailor fittings.
+          </p>
+
+          <div className="pt-2">
+            <Button
+              onClick={() => setShowTrialModal(true)}
+              className="bg-[#C8A96A] hover:bg-[#b89859] text-[#082F2C] px-8 py-3.5 rounded-full font-bold text-xs uppercase tracking-wider shadow-xl transition-all"
+            >
+              Book Trial Appointment Now
+            </Button>
+          </div>
+        </section>
+
+        {/* REVIEWS SECTION (MATCHING REFERENCE IMAGE 2) */}
+        <section ref={reviewsRef} className="space-y-4">
           <div className="flex justify-between items-center">
-            <h2 className="font-display text-xl font-bold text-charcoal">Bride Reviews</h2>
+            <h2 className="font-display text-xl font-bold text-charcoal">Reviews</h2>
             <button onClick={() => setShowReviewModal(true)} className="text-xs font-bold text-[#0F4C45] hover:underline">
-              Write Review
+              See All
             </button>
           </div>
 
@@ -405,32 +541,47 @@ export function BridalWearProfileTemplate({ config }: Props) {
               </div>
             ))}
           </div>
+
+          {/* Review Dots */}
+          <div className="flex justify-center items-center gap-1.5 pt-1">
+            {[...Array(4)].map((_, i) => (
+              <span key={i} className={`w-2 h-2 rounded-full ${i === 0 ? "bg-[#0F4C45]" : "bg-gold/30"}`} />
+            ))}
+          </div>
         </section>
 
-        {/* LOCATION & STORE DETAILS */}
-        <section className="bg-[#002f22] text-white rounded-3xl p-6 sm:p-8 border border-gold/20 shadow-xl space-y-4">
-          <div className="flex justify-between items-start">
+        {/* INFO TAB / LOCATION & CONTACT DETAILS */}
+        <section ref={infoRef} className="bg-[#002f22] text-white rounded-3xl p-6 sm:p-8 border border-gold/20 shadow-xl space-y-4">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-white/10 pb-4">
             <div>
               <span className="bg-gold text-charcoal text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full">
-                VISIT STORE LOCATION
+                STORE LOCATION & INFO
               </span>
               <h3 className="font-display text-2xl font-bold text-white mt-2">{config.businessName}</h3>
               <p className="text-xs text-white/80 mt-1">{config.address}, {config.city}, {config.district}</p>
             </div>
+
             <a
               href={`https://maps.google.com/?q=${encodeURIComponent(`${config.businessName} ${config.address} ${config.city}`)}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-white/10 hover:bg-white/20 text-white p-3 rounded-2xl text-xs font-bold flex items-center gap-1.5 shrink-0"
+              className="bg-white/10 hover:bg-white/20 text-white px-4 py-2.5 rounded-2xl text-xs font-bold flex items-center gap-1.5 shrink-0 border border-white/20"
             >
               <MapPin className="w-4 h-4 text-gold" /> Directions
             </a>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-white/80 pt-2">
+            <div><strong>Store Hours:</strong> 10:00 AM – 8:00 PM (Mon - Sun)</div>
+            <div><strong>Contact Email:</strong> {config.email}</div>
+            <div><strong>Phone Number:</strong> {config.phone}</div>
+            <div><strong>Instagram:</strong> {config.instagram}</div>
           </div>
         </section>
 
       </main>
 
-      {/* 4. STICKY BOTTOM ACTION BAR (MATCHING REFERENCE UI) */}
+      {/* 6. STICKY BOTTOM ACTION BAR (MATCHING REFERENCE IMAGE 2) */}
       <div className="fixed bottom-0 left-0 right-0 z-50 bg-[#0B3B2D] border-t border-[#C8A96A]/30 p-3 shadow-2xl">
         <div className="max-w-4xl mx-auto flex items-center justify-between gap-2 text-white">
           <a
