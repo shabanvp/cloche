@@ -76,9 +76,10 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
   const reviewsRef = useRef<HTMLDivElement>(null);
   const infoRef = useRef<HTMLDivElement>(null);
 
-  // Dynamic Product Catalog Source
+  // Dynamic Product Catalog Source (Max 5 products for preview carousel)
   const rawProducts = collections && collections.length > 0 ? collections : (boutique as any)?.products;
   const rawBridalCollections = bridalVendor?.collections;
+  const displayedProducts = rawProducts ? rawProducts.slice(0, 5) : [];
 
   // Real Hero Images list
   const heroImages = [
@@ -127,8 +128,8 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
         ]
   );
 
-  // Filter similar boutiques excluding current boutique
-  const similarBoutiques = bridalBoutiqueVendors.filter((b) => b.id !== vendorId).slice(0, 3);
+  // Filter max 5 similar boutiques excluding current boutique
+  const similarBoutiques = bridalBoutiqueVendors.filter((b) => b.id !== vendorId).slice(0, 5);
 
   const showToast = (msg: string) => {
     setToastMsg(msg);
@@ -428,39 +429,43 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
           </div>
         </section>
 
-        {/* BRIDAL COLLECTIONS / PRODUCTS SECTION (DYNAMICALLY LOADED FROM DATABASE) */}
+        {/* BRIDAL COLLECTIONS / PRODUCTS SECTION (HORIZONTAL SWIPE CAROUSEL ON MOBILE, GRID ON DESKTOP) */}
         <section ref={collectionsRef} className="space-y-4">
           <div className="flex justify-between items-center">
             <div>
               <h2 className="font-display text-xl font-bold text-charcoal">Bridal Collections & Catalog</h2>
               <p className="text-xs text-charcoal/60">Real collections uploaded by {businessName}.</p>
             </div>
-            <button onClick={() => setShowTrialModal(true)} className="text-xs font-bold text-[#0F4C45] hover:underline">
-              Book Fitting
-            </button>
+            
+            <Link
+              href={`/boutiques/${vendorId}/collections`}
+              className="text-xs font-bold text-[#0F4C45] hover:underline flex items-center gap-1 shrink-0"
+            >
+              View All <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
           </div>
 
-          {/* DYNAMIC PRODUCTS GRID / SLIDER */}
-          {rawProducts && rawProducts.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-              {rawProducts.map((prod: any, idx: number) => {
+          {/* DYNAMIC PRODUCTS CAROUSEL / GRID (SHOW MAX FIRST 5 PRODUCTS) */}
+          {displayedProducts && displayedProducts.length > 0 ? (
+            <div className="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar gap-4 pb-2 sm:grid sm:grid-cols-3 sm:gap-5 sm:overflow-visible">
+              {displayedProducts.map((prod: any, idx: number) => {
                 const title = prod.name || prod.title || "Bridal Outfit";
                 const img = prod.image_url || prod.image || coverImage;
                 const price = prod.price ? (typeof prod.price === "number" ? `₹${prod.price.toLocaleString("en-IN")}` : prod.price) : "On Request";
                 return (
                   <div
                     key={prod.id || idx}
-                    className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group"
+                    className="min-w-[260px] max-w-[280px] sm:min-w-0 sm:max-w-none shrink-0 snap-start bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group"
                   >
                     <div className="relative h-72 w-full overflow-hidden bg-charcoal cursor-pointer" onClick={() => setLightboxImg(img)}>
-                      <img src={img} alt={title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                      <img src={img} alt={title} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                       <span className="absolute top-3 right-3 bg-white/90 backdrop-blur-md text-charcoal text-xs font-bold px-3 py-1 rounded-full shadow">
                         {price}
                       </span>
                     </div>
 
                     <div className="p-4 space-y-2">
-                      <h3 className="font-display font-bold text-base text-charcoal">{title}</h3>
+                      <h3 className="font-display font-bold text-base text-charcoal truncate">{title}</h3>
                       <p className="text-xs text-charcoal/60 line-clamp-1">{prod.description || `${businessName} collection`}</p>
 
                       <a
@@ -477,14 +482,14 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
               })}
             </div>
           ) : rawBridalCollections && rawBridalCollections.length > 0 ? (
-            <div className="flex gap-4 overflow-x-auto hide-scrollbar pb-2">
-              {rawBridalCollections.map((col, idx) => (
+            <div className="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar gap-4 pb-2">
+              {rawBridalCollections.slice(0, 5).map((col, idx) => (
                 <div
                   key={idx}
                   onClick={() => setLightboxImg(col.image)}
-                  className="relative min-w-[200px] sm:min-w-[240px] h-72 rounded-2xl overflow-hidden shadow-md group border border-gold/15 shrink-0 cursor-pointer"
+                  className="relative min-w-[220px] max-w-[240px] shrink-0 snap-start h-72 rounded-2xl overflow-hidden shadow-md group border border-gold/15 cursor-pointer"
                 >
-                  <img src={col.image} alt={col.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  <img src={col.image} alt={col.name} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent p-4 flex flex-col justify-end text-white">
                     <span className="font-display font-bold text-base">{col.name}</span>
                   </div>
@@ -495,9 +500,9 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
             /* EMPTY STATE WHEN NO PRODUCTS UPLOADED */
             <div className="bg-white rounded-3xl p-8 border border-gold/15 text-center space-y-3">
               <ShoppingBag className="w-10 h-10 text-[#0F4C45] mx-auto" />
-              <h3 className="font-display font-bold text-lg text-charcoal">No Bridal Collections Available Yet</h3>
+              <h3 className="font-display font-bold text-lg text-charcoal">No collections available yet.</h3>
               <p className="text-xs text-charcoal/70 max-w-md mx-auto">
-                {businessName} has not added catalog items to their online showcase yet. You can chat with them directly on WhatsApp to request their private portfolio or book a trial appointment.
+                {businessName} has not uploaded catalog items yet. Contact them on WhatsApp to request their private portfolio.
               </p>
               <div className="pt-2 flex justify-center gap-3">
                 <a
@@ -506,7 +511,7 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
                   rel="noopener noreferrer"
                   className="bg-[#0F4C45] text-white px-5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-[#12584E]"
                 >
-                  Request Portfolio on WhatsApp
+                  Contact Boutique
                 </a>
               </div>
             </div>
@@ -639,24 +644,41 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
           </div>
         </section>
 
-        {/* SIMILAR BOUTIQUES RECOMMENDATION SECTION */}
+        {/* SIMILAR BOUTIQUES RECOMMENDATION SECTION (HORIZONTAL CAROUSEL ON MOBILE, MAX 5 BOUTIQUES) */}
         {similarBoutiques.length > 0 && (
           <section className="space-y-4 pt-4 border-t border-gold/15">
-            <h2 className="font-display text-xl font-bold text-charcoal">Similar Bridal Boutiques</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="flex justify-between items-center">
+              <h2 className="font-display text-xl font-bold text-charcoal">Similar Bridal Boutiques</h2>
+              <Link
+                href="/categories/bridal-wear"
+                className="text-xs font-bold text-[#0F4C45] hover:underline flex items-center gap-1 shrink-0"
+              >
+                View All <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+
+            <div className="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar gap-4 pb-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:overflow-visible">
               {similarBoutiques.map((b) => (
-                <Link key={b.id} href={`/categories/bridal-wear/${b.id}`} className="group">
-                  <div className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-sm hover:shadow-md transition-all">
-                    <div className="h-40 w-full overflow-hidden bg-charcoal">
-                      <img src={b.image} alt={b.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                <Link key={b.id} href={`/categories/bridal-wear/${b.id}`} className="group shrink-0 min-w-[240px] max-w-[260px] sm:min-w-0 sm:max-w-none snap-start">
+                  <div className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-sm hover:shadow-md transition-all h-full flex flex-col justify-between">
+                    <div className="h-40 w-full overflow-hidden bg-charcoal relative">
+                      <img src={b.image} alt={b.name} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                      <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-md rounded-full px-2 py-0.5 text-[10px] font-bold text-[#0F4C45] flex items-center gap-0.5 shadow">
+                        <CheckCircle2 className="w-3 h-3 text-gold fill-gold text-white" /> Verified
+                      </div>
                     </div>
-                    <div className="p-4 space-y-1">
-                      <h4 className="font-display font-bold text-base text-charcoal group-hover:text-[#0F4C45] transition-colors">{b.name}</h4>
-                      <p className="text-xs text-charcoal/60 flex items-center gap-1">
-                        <MapPin className="w-3 h-3 text-gold" /> {b.location}
+                    <div className="p-4 space-y-1.5">
+                      <h4 className="font-display font-bold text-base text-charcoal group-hover:text-[#0F4C45] transition-colors truncate">{b.name}</h4>
+                      <p className="text-xs text-charcoal/60 flex items-center gap-1 truncate">
+                        <MapPin className="w-3 h-3 text-gold shrink-0" /> {b.location}
                       </p>
-                      <div className="flex items-center gap-1 text-xs font-bold text-charcoal pt-1">
-                        <Star className="w-3.5 h-3.5 fill-gold text-gold" /> {b.rating} ({b.reviews} reviews)
+                      <div className="flex items-center justify-between pt-1">
+                        <div className="flex items-center gap-1 text-xs font-bold text-charcoal">
+                          <Star className="w-3.5 h-3.5 fill-gold text-gold" /> {b.rating} ({b.reviews})
+                        </div>
+                        <span className="text-[11px] font-bold text-[#0F4C45] flex items-center gap-0.5">
+                          View Profile <ChevronRight className="w-3 h-3" />
+                        </span>
                       </div>
                     </div>
                   </div>
