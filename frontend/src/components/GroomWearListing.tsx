@@ -14,16 +14,28 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { BottomNavBar } from "@/components/BottomNavBar";
+import { bridalBoutiqueVendors } from "@/lib/bridalAndInvitationData";
 import { groomWearVendors } from "@/lib/groomWearData";
+
+const groomKeywords = ["sherwani", "tuxedo", "suit", "blazer", "indo-western", "bandhgala", "groom"];
 
 export function GroomWearListing() {
   const [search, setSearch] = useState("");
   const [activeChip, setActiveChip] = useState("All");
   const [wishlist, setWishlist] = useState<Set<string>>(new Set());
 
-  const poshVendor = useMemo(() => {
-    return groomWearVendors.find((v) => v.id === "posh-wedding-rental");
+  // Find Posh Wedding Rental boutique
+  const poshBoutique = useMemo(() => {
+    return bridalBoutiqueVendors.find((b) => b.id === "posh-wedding-rental");
   }, []);
+
+  // Filter only groom wear collections uploaded by Posh Wedding Rental
+  const poshGroomCollections = useMemo(() => {
+    if (!poshBoutique) return [];
+    return poshBoutique.collections.filter((col) =>
+      groomKeywords.some((kw) => col.name.toLowerCase().includes(kw))
+    );
+  }, [poshBoutique]);
 
   const listingItems = useMemo(() => {
     const regularVendors = groomWearVendors
@@ -41,22 +53,20 @@ export function GroomWearListing() {
         href: `/categories/groom-wear/${v.id}`,
       }));
 
-    const poshCollections = poshVendor
-      ? poshVendor.collections.map((col, idx) => ({
-          id: `posh-collection-${idx}`,
-          title: col.name,
-          subtitle: "Rental Collection by Posh",
-          rating: poshVendor.rating,
-          reviews: poshVendor.reviews,
-          location: poshVendor.location,
-          image: col.image,
-          isVerified: poshVendor.isVerified,
-          price: poshVendor.prices[idx]?.price || "₹10,000 / day",
-          href: `/categories/groom-wear/posh-wedding-rental`,
-        }))
-      : [];
+    const poshCollectionItems = poshGroomCollections.map((col, idx) => ({
+      id: `posh-groom-collection-${idx}`,
+      title: col.name,
+      subtitle: "Posh Wedding Rental",
+      rating: poshBoutique?.rating || 4.8,
+      reviews: poshBoutique?.reviews || 115,
+      location: poshBoutique?.location || "Indiranagar, Bangalore",
+      image: col.image,
+      isVerified: poshBoutique?.isVerified ?? true,
+      price: poshBoutique?.prices[idx + 1]?.price || poshBoutique?.prices[0]?.price || "₹10,000 / day",
+      href: `/categories/groom-wear/posh-wedding-rental`,
+    }));
 
-    const all = [...regularVendors, ...poshCollections];
+    const all = [...regularVendors, ...poshCollectionItems];
 
     if (!search.trim()) return all;
 
@@ -67,7 +77,7 @@ export function GroomWearListing() {
         item.location.toLowerCase().includes(query) ||
         item.subtitle.toLowerCase().includes(query)
     );
-  }, [search, poshVendor]);
+  }, [search, poshBoutique, poshGroomCollections]);
 
   const toggleWishlist = (e: React.MouseEvent, id: string) => {
     e.preventDefault();
@@ -164,24 +174,24 @@ export function GroomWearListing() {
         </div>
 
         {/* Groom Collections (Posh Wedding Rental) */}
-        {poshVendor && (
+        {poshGroomCollections.length > 0 && (
           <div className="mt-2 mb-3">
             <div className="px-4 pt-2 pb-1 flex items-center justify-between">
               <div>
                 <h2 className="font-serif text-[18px] font-bold text-[#1A1410]">
                   Groom Collections
                 </h2>
-                <p className="text-[12px] text-[#7A6E65]">Handcrafted & rental sherwanis, tuxedos & suits</p>
+                <p className="text-[12px] text-[#7A6E65]">Sherwanis, Tuxedos & Suits by Posh Wedding Rental</p>
               </div>
-              <Link href={`/categories/groom-wear/${poshVendor.id}`} className="text-[12px] font-bold text-[#0F4C45]">
+              <Link href="/categories/groom-wear/posh-wedding-rental" className="text-[12px] font-bold text-[#0F4C45]">
                 View All
               </Link>
             </div>
             <div className="flex gap-3 overflow-x-auto px-4 py-2 scrollbar-none">
-              {poshVendor.collections.map((col, idx) => (
+              {poshGroomCollections.map((col, idx) => (
                 <Link
                   key={idx}
-                  href={`/categories/groom-wear/${poshVendor.id}`}
+                  href="/categories/groom-wear/posh-wedding-rental"
                   className="group relative min-w-[140px] sm:min-w-[160px] aspect-[3/4] rounded-2xl overflow-hidden shadow-xs shrink-0 transition-transform active:scale-95 hover:shadow-md"
                 >
                   <Image
@@ -193,7 +203,7 @@ export function GroomWearListing() {
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
                   <div className="absolute bottom-3 left-3 right-3">
                     <span className="text-[10px] font-bold text-[#C8A96A] uppercase tracking-wider block">
-                      Rental Collection
+                      Posh Wedding Rental
                     </span>
                     <span className="text-[13px] font-bold text-white leading-tight block mt-0.5">
                       {col.name}
