@@ -530,17 +530,39 @@ export function transformRegisteredToVenueDetail(id: string, data: any): VenueDe
 export function getDynamicVenues(): VenueDetail[] {
   if (typeof window === "undefined") return [];
   const results: VenueDetail[] = [];
+  const seenIds = new Set<string>();
+
   try {
+    // 1. Read registered venue vendor submissions
     const raw = localStorage.getItem("cloche_registered_venues");
     if (raw) {
       const list = JSON.parse(raw);
       if (Array.isArray(list)) {
         list.forEach((item: any) => {
-          const vId = item.id || item.slug || item.boutique_name?.toLowerCase().replace(/\s+/g, "-");
-          if (vId) {
+          const vId = item.id || item.slug || item.boutique_name?.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+          if (vId && !seenIds.has(vId)) {
+            seenIds.add(vId);
             results.push(transformRegisteredToVenueDetail(vId, item));
           }
         });
+      }
+    }
+
+    // 2. Scan for any published venue CMS entries in localStorage
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith("cloche_venue_cms_") && !key.startsWith("cloche_venue_cms_versions_")) {
+        const vId = key.replace("cloche_venue_cms_", "");
+        if (vId && !seenIds.has(vId) && vId !== "data_v1") {
+          const cmsRaw = localStorage.getItem(key);
+          if (cmsRaw) {
+            const cmsData = JSON.parse(cmsRaw);
+            if (cmsData && cmsData.businessProfile) {
+              seenIds.add(vId);
+              results.push(convertCmsToVenueDetail(cmsData));
+            }
+          }
+        }
       }
     }
   } catch (e) {

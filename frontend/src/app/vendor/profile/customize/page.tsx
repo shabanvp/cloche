@@ -6,11 +6,10 @@ import {
   getVenueCmsData, saveVenueCmsData, getVenueVersionHistory, restoreVenueVersion, 
   VenueCmsData, CmsVersionSnapshot 
 } from "@/lib/venueCmsStore";
-import { VenueProfileTemplate } from "@/components/vendor-templates/VenueProfileTemplate";
 import { 
   Building2, Save, Sparkles, CheckCircle2, History, RotateCcw, AlertTriangle, 
   Image as ImageIcon, Plus, Trash2, ShieldCheck, MapPin, Calendar, Star, MessageSquare, 
-  HelpCircle, Search, Monitor, Smartphone, Check, Lock, X, ExternalLink
+  HelpCircle, Search, Check, Lock, X, ExternalLink
 } from "lucide-react";
 import { Button } from "@/components/Button";
 
@@ -21,7 +20,6 @@ export default function VendorVenueCmsPage() {
 
   const [cmsData, setCmsData] = useState<VenueCmsData>(getVenueCmsData(vendorId));
   const [activeTab, setActiveTab] = useState<"profile" | "hero" | "venueInfo" | "amenities" | "packages" | "availability" | "reviews" | "faqs" | "seo">("profile");
-  const [previewDevice, setPreviewDevice] = useState<"desktop" | "mobile">("mobile");
   
   const [autoSaveStatus, setAutoSaveStatus] = useState<"Saved" | "Saving..." | "Unsaved Changes">("Saved");
   const [versionHistory, setVersionHistory] = useState<CmsVersionSnapshot[]>([]);
@@ -84,51 +82,7 @@ export default function VendorVenueCmsPage() {
     alert(`Restored venue profile to snapshot from ${snapshot.timestamp}`);
   };
 
-  // Convert Venue Cms Data to VenueProfileTemplate Config format for real-time live preview
-  const livePreviewConfig = {
-    id: cmsData.id,
-    vendorId: cmsData.vendorId,
-    category: cmsData.category,
-    businessName: cmsData.businessProfile.businessName,
-    tagline: cmsData.businessProfile.tagline,
-    logo: cmsData.heroGallery.coverImage,
-    coverImage: cmsData.heroGallery.coverImage,
-    aboutText: cmsData.businessProfile.description,
-    phone: cmsData.businessProfile.contactNumber,
-    whatsapp: cmsData.businessProfile.whatsapp,
-    email: cmsData.businessProfile.email,
-    instagram: cmsData.businessProfile.instagram,
-    website: cmsData.businessProfile.website,
-    city: cmsData.businessProfile.city,
-    district: cmsData.businessProfile.district,
-    address: cmsData.businessProfile.address,
-    visibility: {
-      heroBanner: true,
-      gallery: true,
-      packages: true,
-      categoryFields: true,
-      aboutStory: true,
-      amenitiesOrSpecs: true,
-      reviews: true,
-      locationMap: true,
-      contactCTA: true,
-      awardsOrFAQ: true,
-    },
-    venueSpecs: {
-      guestCapacity: `${cmsData.venueInfo.minGuests} to ${cmsData.venueInfo.maxGuests} Guests`,
-      indoorOutdoor: (cmsData.venueInfo.venueType === "Indoor" ? "Indoor Hall" : cmsData.venueInfo.venueType === "Outdoor" ? "Outdoor Lawn" : "Both Indoor & Outdoor") as any,
-      roomsCount: cmsData.venueInfo.roomsCount,
-      parkingCapacity: cmsData.venueInfo.parkingCapacity,
-      cateringOption: (cmsData.venueInfo.foodPolicy === "In-house Catering Only" ? "In-house Catering" : cmsData.venueInfo.foodPolicy === "External Catering Allowed" ? "External Allowed" : "Both") as any,
-    },
-    galleryImages: cmsData.heroGallery.images.map((i) => i.url),
-    packagesList: cmsData.packages.map((p) => ({
-      name: p.name,
-      price: p.price,
-      description: p.description,
-      features: p.includedServices,
-    })),
-  };
+
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-16">
@@ -173,11 +127,11 @@ export default function VendorVenueCmsPage() {
         </div>
       </div>
 
-      {/* Editor & Live Mobile Preview Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      {/* Editor Grid */}
+      <div className="max-w-5xl mx-auto space-y-6">
         
-        {/* Left Column: Venue CMS Editor (7 cols) */}
-        <div className="lg:col-span-7 space-y-6">
+        {/* Venue CMS Editor */}
+        <div className="space-y-6">
           
           {/* Section Navigation Tabs */}
           <div className="flex gap-2 overflow-x-auto pb-2 border-b border-gold/10 hide-scrollbar">
@@ -414,47 +368,6 @@ export default function VendorVenueCmsPage() {
             </div>
           )}
 
-        </div>
-
-        {/* Right Column: Real Public Venue Profile Preview (5 cols) */}
-        <div className="lg:col-span-5 sticky top-6 space-y-4">
-          <div className="flex justify-between items-center bg-white p-3 rounded-2xl border border-gold/15 shadow-sm">
-            <span className="text-xs font-bold uppercase tracking-wider text-charcoal flex items-center gap-1.5">
-              <Monitor className="w-4 h-4 text-gold" /> Real Venue Profile Preview
-            </span>
-            <div className="bg-[#F8F6F0] p-1 rounded-xl flex items-center gap-1">
-              <button
-                type="button"
-                onClick={() => setPreviewDevice("mobile")}
-                className={`p-1.5 rounded-lg text-xs font-bold transition-colors ${
-                  previewDevice === "mobile" ? "bg-[#0F4C45] text-white" : "text-charcoal/70"
-                }`}
-              >
-                Mobile
-              </button>
-              <button
-                type="button"
-                onClick={() => setPreviewDevice("desktop")}
-                className={`p-1.5 rounded-lg text-xs font-bold transition-colors ${
-                  previewDevice === "desktop" ? "bg-[#0F4C45] text-white" : "text-charcoal/70"
-                }`}
-              >
-                Desktop
-              </button>
-            </div>
-          </div>
-
-          <div className="bg-[#F5F0E8] p-4 rounded-3xl border border-gold/20 shadow-xl max-h-[750px] overflow-y-auto">
-            <div className={`mx-auto bg-white rounded-2xl overflow-hidden shadow-2xl ${previewDevice === "mobile" ? "max-w-[340px]" : "w-full"}`}>
-              <div className="p-3 bg-gray-50 border-b border-gray-100 text-[10px] font-mono text-gray-500 flex justify-between">
-                <span>cloche.luxury/venues/{cmsData.vendorId}</span>
-                <span>STATUS: {cmsData.status}</span>
-              </div>
-              <div className="p-3 scale-95 transform-gpu origin-top">
-                <VenueProfileTemplate config={livePreviewConfig} />
-              </div>
-            </div>
-          </div>
         </div>
 
       </div>
