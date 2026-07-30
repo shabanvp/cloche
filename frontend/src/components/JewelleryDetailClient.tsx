@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   ArrowLeft,
   Star,
@@ -11,20 +11,14 @@ import {
   Share2,
   Phone,
   ChevronRight,
-  CheckCircle2,
 } from "lucide-react";
 import { BottomNavBar } from "@/components/BottomNavBar";
 import { Footer } from "@/components/Footer";
 import type { JewelleryVendor } from "@/lib/jewelleryData";
-import { toggleWishlistItem, isItemInWishlist } from "@/lib/wishlistStore";
 
 export function JewelleryDetailClient({ vendor }: { vendor: JewelleryVendor }) {
-  const [isWishlisted, setIsWishlisted] = useState(false);
+  const [saved, setSaved] = useState(false);
   const [activeImage, setActiveImage] = useState(0);
-
-  useEffect(() => {
-    setIsWishlisted(isItemInWishlist(vendor.id));
-  }, [vendor.id]);
 
   const images = vendor.portfolio.length > 0 ? vendor.portfolio : [vendor.image];
 
@@ -52,26 +46,13 @@ export function JewelleryDetailClient({ vendor }: { vendor: JewelleryVendor }) {
             </Link>
             <div className="flex gap-2">
               <button
-                onClick={() => {
-                  const isSaved = toggleWishlistItem({
-                    id: vendor.id,
-                    name: vendor.name,
-                    category: "Jewellery",
-                    price: vendor.priceRange,
-                    image: vendor.image,
-                    boutique_name: vendor.name,
-                    location: vendor.location,
-                    rating: vendor.rating,
-                    href: `/categories/jewellery/${vendor.id}`
-                  });
-                  setIsWishlisted(isSaved);
-                }}
+                onClick={() => setSaved(!saved)}
                 className="flex h-10 w-10 items-center justify-center rounded-full bg-white/90 shadow-sm backdrop-blur-xs transition-transform active:scale-90"
                 aria-label="Save"
               >
                 <Heart
                   className="h-5 w-5"
-                  style={{ color: isWishlisted ? "#E8614A" : "#555", fill: isWishlisted ? "#E8614A" : "none" }}
+                  style={{ color: saved ? "#E8614A" : "#555", fill: saved ? "#E8614A" : "none" }}
                 />
               </button>
               <button

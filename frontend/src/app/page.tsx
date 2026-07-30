@@ -42,13 +42,13 @@ export default function Home() {
     {
       label: "Makeup",
       href: "/makeup",
-      img: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?q=80&w=400&auto=format&fit=crop",
+      img: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=400&q=80",
       alt: "Bridal Makeup"
     },
     {
       label: "Groom Wear",
       href: "/categories/groom-wear",
-      img: "https://images.unsplash.com/photo-1594938298603-c8148c4dae35?q=80&w=400&auto=format&fit=crop",
+      img: "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=400&q=80",
       alt: "Groom Wear"
     },
     {
