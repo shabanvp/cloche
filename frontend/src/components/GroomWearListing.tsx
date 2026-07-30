@@ -21,8 +21,13 @@ export function GroomWearListing() {
   const [activeChip, setActiveChip] = useState("All");
   const [wishlist, setWishlist] = useState<Set<string>>(new Set());
 
+  const poshVendor = useMemo(() => {
+    return groomWearVendors.find((v) => v.id === "posh-wedding-rental");
+  }, []);
+
   const filtered = useMemo(() => {
     return groomWearVendors.filter((v) => {
+      if (v.id === "posh-wedding-rental") return false;
       const matchesSearch =
         v.name.toLowerCase().includes(search.toLowerCase()) ||
         v.location.toLowerCase().includes(search.toLowerCase()) ||
@@ -124,6 +129,48 @@ export function GroomWearListing() {
             />
           </div>
         </div>
+
+        {/* Groom Collections (Posh Wedding Rental) */}
+        {poshVendor && (
+          <div className="mt-2 mb-3">
+            <div className="px-4 pt-2 pb-1 flex items-center justify-between">
+              <div>
+                <h2 className="font-serif text-[18px] font-bold text-[#1A1410]">
+                  Groom Collections
+                </h2>
+                <p className="text-[12px] text-[#7A6E65]">Handcrafted & rental sherwanis, tuxedos & suits</p>
+              </div>
+              <Link href={`/categories/groom-wear/${poshVendor.id}`} className="text-[12px] font-bold text-[#0F4C45]">
+                View All
+              </Link>
+            </div>
+            <div className="flex gap-3 overflow-x-auto px-4 py-2 scrollbar-none">
+              {poshVendor.collections.map((col, idx) => (
+                <Link
+                  key={idx}
+                  href={`/categories/groom-wear/${poshVendor.id}`}
+                  className="group relative min-w-[140px] sm:min-w-[160px] aspect-[3/4] rounded-2xl overflow-hidden shadow-xs shrink-0 transition-transform active:scale-95 hover:shadow-md"
+                >
+                  <Image
+                    src={col.image}
+                    alt={col.name}
+                    fill
+                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                  <div className="absolute bottom-3 left-3 right-3">
+                    <span className="text-[10px] font-bold text-[#C8A96A] uppercase tracking-wider block">
+                      Rental Collection
+                    </span>
+                    <span className="text-[13px] font-bold text-white leading-tight block mt-0.5">
+                      {col.name}
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Top Collections Banner */}
         <div className="px-4 pt-3 pb-1 flex items-center justify-between">
