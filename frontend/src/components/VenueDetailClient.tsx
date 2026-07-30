@@ -483,17 +483,16 @@ export function VenueDetailClient({ venue: initialVenue }: { venue: VenueDetail 
             </button>
           </div>
 
-          <div className="flex lg:grid lg:grid-cols-3 gap-4 lg:gap-6 overflow-x-auto lg:overflow-visible scrollbar-none pb-1 lg:pb-0">
+          <div className="flex lg:grid lg:grid-cols-3 gap-4 lg:gap-6 overflow-x-auto lg:overflow-visible scrollbar-none pb-2 lg:pb-0">
             {venue.packages.map((pkg, i) => (
               <div
                 key={i}
                 onClick={() => setActivePackage(i)}
-                className={`relative shrink-0 lg:shrink-0 rounded-3xl p-6 cursor-pointer transition-all duration-300 transform lg:hover:-translate-y-1 ${
+                className={`relative shrink-0 lg:shrink w-64 lg:w-full rounded-3xl p-6 cursor-pointer transition-all duration-300 transform lg:hover:-translate-y-1 ${
                   activePackage === i
                     ? "bg-[#0F4C45] text-white shadow-xl ring-2 ring-[#C8A96A]"
                     : "bg-white text-[#1A1410] shadow-sm border border-[#E2D5C0]/60 hover:shadow-md"
                 }`}
-                style={{ width: "180px", lgWidth: "100%" } as any}
               >
                 {pkg.tag && (
                   <div
@@ -527,7 +526,7 @@ export function VenueDetailClient({ venue: initialVenue }: { venue: VenueDetail 
 
         {/* ─── AVAILABILITY CALENDAR SECTION (Balanced Center Layout) ─── */}
         <div className="px-4 lg:px-0">
-          <div className="bg-white rounded-3xl p-6 lg:p-8 border border-[#E2D5C0]/60 shadow-sm max-w-4xl mx-auto">
+          <div className="w-full bg-white rounded-3xl p-6 lg:p-8 border border-[#E2D5C0]/60 shadow-xs">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
               <div className="flex items-center gap-3">
                 <h2 className="font-display text-[18px] lg:text-xl font-bold text-[#1A1410]">
