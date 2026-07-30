@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   ArrowLeft,
   Heart,
@@ -17,7 +17,6 @@ import {
   ChevronRight,
   Images,
 } from "lucide-react";
-import { useState, useEffect } from "react";
 import { BottomNavBar } from "@/components/BottomNavBar";
 import { VenueDetail, getVenueById } from "@/lib/venueData";
 
