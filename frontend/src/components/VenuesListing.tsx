@@ -12,7 +12,7 @@ import {
   MapPin,
 } from "lucide-react";
 import { BottomNavBar } from "@/components/BottomNavBar";
-import { getAllVenues, VenueDetail } from "@/lib/venueData";
+import { getAllVenues, VenueDetail, venues } from "@/lib/venueData";
 import { useEffect } from "react";
 
 const FILTERS = ["All", "Outdoor", "Indoor", "Destination", "Luxury"] as const;
