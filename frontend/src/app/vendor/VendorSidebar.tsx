@@ -74,34 +74,41 @@ export function VendorSidebar() {
       (logoUrl.startsWith("data:image/") || logoUrl.startsWith("http://") || logoUrl.startsWith("https://") || logoUrl.startsWith("/"))
   );
 
+  const normCat = (category || "").toLowerCase().trim();
+  const isVenue =
+    normCat.includes("venue") ||
+    normCat.includes("convention") ||
+    normCat.includes("hall") ||
+    name.toLowerCase().includes("venue") ||
+    name.toLowerCase().includes("convention") ||
+    name.toLowerCase().includes("centre") ||
+    name.toLowerCase().includes("hall") ||
+    !category ||
+    category === "Premium Partner";
+
   // Base navigation items for all vendors
   let navItems = [
     { label: "Overview", icon: LayoutDashboard, href: "/vendor" },
     { label: "Profile", icon: Store, href: "/vendor/profile" },
+    { label: isVenue ? "Customize Venue Store" : "Customize Store", icon: Palette, href: "/vendor/profile/customize" },
     { label: "Offers", icon: Tag, href: "/vendor/offers" },
     { label: "Appointments", icon: Calendar, href: "/vendor/appointments" },
     { label: "Enquiries", icon: Inbox, href: "/vendor/enquiries" },
   ];
 
   // Category specific modules
-  if (category === "Bridal Boutique" || category === "Groom Wear") {
+  if (normCat.includes("bridal") || normCat.includes("groom")) {
     navItems.splice(1, 0, { label: "Collections", icon: Shirt, href: "/vendor/collections" });
-  } else if (category === "Photographer" || category === "Videographer") {
-    navItems.splice(1, 0, { label: "Portfolio", icon: Camera, href: "/vendor/collections" }); // reusing collections route for now
-  } else if (category === "Makeup Artist" || category === "Mehendi Artist") {
+  } else if (normCat.includes("photo") || normCat.includes("video")) {
+    navItems.splice(1, 0, { label: "Portfolio", icon: Camera, href: "/vendor/collections" });
+  } else if (normCat.includes("makeup") || normCat.includes("mehendi")) {
     navItems.splice(1, 0, { label: "Bridal Packages", icon: Brush, href: "/vendor/collections" });
-  } else if (category === "Wedding Venue") {
+  } else if (isVenue) {
     navItems.splice(1, 0, { label: "Halls & Pricing", icon: MapPin, href: "/vendor/collections" });
-  } else if (category === "Decorator") {
+  } else if (normCat.includes("decor")) {
     navItems.splice(1, 0, { label: "Themes & Gallery", icon: Sparkles, href: "/vendor/collections" });
   } else {
-    // Default fallback
     navItems.splice(1, 0, { label: "Portfolio", icon: ShoppingBag, href: "/vendor/collections" });
-  }
-
-  // Category Exclusive Items
-  if (category === "Wedding Venue" || category === "Wedding Venues") {
-    navItems.push({ label: "Customize Venue Store", icon: Palette, href: "/vendor/profile/customize" });
   }
 
   // Common items at the end
