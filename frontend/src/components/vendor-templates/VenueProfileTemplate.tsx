@@ -100,15 +100,15 @@ export function VenueProfileTemplate({
   preview = false,
 }: VenueProfileTemplateProps) {
   // Resolve venue data payload
-  const resolvedVenue: VenueDetail = cmsData
+  const resolvedVenue: VenueDetail | undefined = cmsData
     ? convertCmsToVenueDetail(cmsData)
     : initialVenue
     ? initialVenue
     : config
     ? convertConfigToVenueDetail(config)
-    : getVenueById("palace-estate")!;
+    : undefined;
 
-  const [venue, setVenue] = useState<VenueDetail>(resolvedVenue);
+  const [venue, setVenue] = useState<VenueDetail | undefined>(resolvedVenue);
   const [activeImage, setActiveImage] = useState(0);
   const [wishlisted, setWishlisted] = useState(false);
   const [activePackage, setActivePackage] = useState(0);
@@ -140,12 +140,35 @@ export function VenueProfileTemplate({
   const [localReviews, setLocalReviews] = useState<any[]>([]);
 
   useEffect(() => {
-    if (cmsData) {
-      setVenue(convertCmsToVenueDetail(cmsData));
-    } else if (initialVenue) {
-      setVenue(initialVenue);
-    } else if (config) {
-      setVenue(convertConfigToVenueDetail(config));
+    const updateVenueData = () => {
+      if (cmsData) {
+        setVenue(convertCmsToVenueDetail(cmsData));
+      } else {
+        const targetId = initialVenue?.id || (initialVenue as any)?.vendorId || config?.vendorId;
+        if (targetId && typeof window !== "undefined") {
+          const published = getVenueById(targetId);
+          if (published) {
+            setVenue(published);
+            return;
+          }
+        }
+        if (initialVenue) {
+          setVenue(initialVenue);
+        } else if (config) {
+          setVenue(convertConfigToVenueDetail(config));
+        }
+      }
+    };
+
+    updateVenueData();
+
+    if (typeof window !== "undefined") {
+      window.addEventListener("storage", updateVenueData);
+      window.addEventListener("cloche_cms_update", updateVenueData);
+      return () => {
+        window.removeEventListener("storage", updateVenueData);
+        window.removeEventListener("cloche_cms_update", updateVenueData);
+      };
     }
   }, [cmsData, initialVenue, config]);
 
@@ -162,6 +185,25 @@ export function VenueProfileTemplate({
       setNewReviewAuthor(name);
     }
   }, []);
+
+  if (!venue || !venue.name) {
+    return (
+      <div className="max-w-2xl mx-auto my-16 p-8 bg-white rounded-3xl border border-[#E2D5C0] text-center space-y-4 shadow-sm font-sans">
+        <div className="w-16 h-16 rounded-full bg-[#0F4C45]/10 text-[#0F4C45] flex items-center justify-center mx-auto">
+          <Building2 className="w-8 h-8" />
+        </div>
+        <h2 className="font-display font-bold text-2xl text-[#1A1410]">Venue Profile Not Found</h2>
+        <p className="text-sm text-[#7A6E65]">
+          This wedding venue profile is not currently published or available on Cloche.
+        </p>
+        <div className="pt-2">
+          <Link href="/venues" className="bg-[#0F4C45] text-white px-6 py-2.5 rounded-xl font-bold text-xs uppercase inline-block">
+            Explore All Venues
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   const showToast = (msg: string) => {
     setToast(msg);

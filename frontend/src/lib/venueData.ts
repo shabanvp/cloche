@@ -573,36 +573,58 @@ export function getDynamicVenues(): VenueDetail[] {
 
 export function getAllVenues(): VenueDetail[] {
   const dynamic = getDynamicVenues();
-  const existingIds = new Set(venues.map((v) => v.id));
-  const filteredDynamic = dynamic.filter((d) => !existingIds.has(d.id));
-  return [...venues, ...filteredDynamic];
+  const dynamicIds = new Set(dynamic.map((d) => d.id));
+  const filteredStatic = venues.filter((v) => !dynamicIds.has(v.id));
+  return [...dynamic, ...filteredStatic];
 }
 
 export function getVenueById(id: string): VenueDetail | undefined {
   if (!id) return undefined;
 
-  // 1. Check published CMS data in localStorage for this specific venue ID
+  // 1. Check published CMS data in localStorage for this specific venue ID / vendor ID
   if (typeof window !== "undefined") {
     try {
+      // Check specific venue CMS key by ID
       const cmsRaw = localStorage.getItem(`cloche_venue_cms_${id}`);
       if (cmsRaw) {
         const cmsData = JSON.parse(cmsRaw);
-        return convertCmsToVenueDetail(cmsData);
+        if (cmsData && cmsData.businessProfile) {
+          return convertCmsToVenueDetail(cmsData);
+        }
       }
 
-      // Check single registered venue record
-      const singleRaw = localStorage.getItem(`cloche_venue_${id}`);
-      if (singleRaw) {
-        return transformRegisteredToVenueDetail(id, JSON.parse(singleRaw));
+      // Check registered venues list in localStorage
+      const regRaw = localStorage.getItem("cloche_registered_venues");
+      if (regRaw) {
+        const regList = JSON.parse(regRaw);
+        if (Array.isArray(regList)) {
+          const match = regList.find(
+            (v: any) => v.id === id || v.vendorId === id || v.slug === id
+          );
+          if (match) {
+            return match.businessProfile ? convertCmsToVenueDetail(match) : match;
+          }
+        }
       }
 
       // Check global CMS key
       const globalCmsRaw = localStorage.getItem("cloche_venue_cms_data_v1");
       if (globalCmsRaw) {
         const globalCms = JSON.parse(globalCmsRaw);
-        if (globalCms.id === id) {
+        if (
+          globalCms &&
+          (globalCms.id === id ||
+            globalCms.vendorId === id ||
+            (id.includes("hyatt") && globalCms.vendorId === "v-hyatt"))
+        ) {
           return convertCmsToVenueDetail(globalCms);
         }
+      }
+
+      // Check single registered venue record
+      const singleRaw = localStorage.getItem(`cloche_venue_${id}`);
+      if (singleRaw) {
+        return transformRegisteredToVenueDetail(id, JSON.parse(singleRaw));
       }
     } catch (e) {}
   }
@@ -614,14 +636,9 @@ export function getVenueById(id: string): VenueDetail | undefined {
   // 3. Dynamic list lookup
   if (typeof window !== "undefined") {
     const dynamicList = getDynamicVenues();
-    const dynamicFound = dynamicList.find((v) => v.id === id);
+    const dynamicFound = dynamicList.find((v) => v.id === id || (v as any).vendorId === id);
     if (dynamicFound) return dynamicFound;
   }
 
-  // 4. Dynamic fallback template for any venue ID
-  const formattedName = id
-    .split("-")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
-  return transformRegisteredToVenueDetail(id, { name: formattedName });
+  return undefined;
 }

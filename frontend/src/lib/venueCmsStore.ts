@@ -282,6 +282,10 @@ export function saveVenueCmsData(data: VenueCmsData, status: "Draft" | "Publishe
       const versionKey = data.id ? `cloche_venue_cms_versions_${data.id}` : VENUE_VERSIONS_KEY;
       localStorage.setItem(versionKey, JSON.stringify([snapshot, ...history.slice(0, 9)]));
     }
+
+    // Dispatch global events for instant client reactivity across tabs/components
+    window.dispatchEvent(new CustomEvent("cloche_cms_update", { detail: updated }));
+    window.dispatchEvent(new Event("storage"));
   } catch (e) {}
 }
 
