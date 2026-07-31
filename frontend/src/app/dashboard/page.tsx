@@ -1,7 +1,37 @@
+"use client";
+
 import Link from "next/link";
+import { useState, useEffect } from "react";
 import { Heart, Calendar, ArrowRight, Bell } from "lucide-react";
+import { getWishlistItems } from "@/lib/wishlistStore";
+
+import { fetchAuthenticatedUser, resolveUserDisplayName } from "@/lib/userStore";
 
 export default function DashboardPage() {
+  const [userName, setUserName] = useState(() => resolveUserDisplayName());
+  const [savedCount, setSavedCount] = useState(0);
+
+  useEffect(() => {
+    // Load authenticated user name from DB with fallbacks
+    async function loadUser() {
+      const resolved = await fetchAuthenticatedUser();
+      if (resolved) {
+        setUserName(resolved);
+      }
+    }
+    loadUser();
+
+    // Load saved collections count
+    const updateCount = () => {
+      const items = getWishlistItems();
+      setSavedCount(items.length);
+    };
+    updateCount();
+
+    window.addEventListener("cloche_wishlist_updated", updateCount);
+    return () => window.removeEventListener("cloche_wishlist_updated", updateCount);
+  }, []);
+
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       
@@ -9,8 +39,10 @@ export default function DashboardPage() {
       <div className="bg-gradient-to-r from-emerald to-charcoal rounded-2xl p-8 text-white shadow-lg relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full -translate-y-1/2 translate-x-1/3 blur-2xl"></div>
         <div className="relative z-10">
-          <h1 className="text-3xl font-display font-medium mb-2">Welcome back, Cloche User!</h1>
-          <p className="text-white/80 font-light mb-6 max-w-lg">Your wedding planning journey is looking beautiful. You have 1 upcoming appointment and 4 saved items.</p>
+          <h1 className="text-3xl font-display font-medium mb-2">Welcome back, {userName}!</h1>
+          <p className="text-white/80 font-light mb-6 max-w-lg">
+            Your wedding planning journey is looking beautiful. You have 1 upcoming appointment and {savedCount} saved item{savedCount === 1 ? "" : "s"}.
+          </p>
           <div className="flex gap-4">
             <Link href="/dashboard/appointments" className="bg-white text-emerald px-6 py-2 rounded-full text-sm font-semibold hover:bg-gold hover:text-white transition-colors">
               View Appointments
@@ -27,7 +59,7 @@ export default function DashboardPage() {
           </div>
           <div>
             <h3 className="font-display text-lg text-charcoal mb-1">Saved Items</h3>
-            <p className="text-sm text-charcoal/60 mb-3">You have 4 collections saved to your wishlist.</p>
+            <p className="text-sm text-charcoal/60 mb-3">You have {savedCount} collection{savedCount === 1 ? "" : "s"} saved to your wishlist.</p>
             <Link href="/dashboard/wishlist" className="text-emerald text-sm font-medium hover:text-gold flex items-center gap-1 transition-colors">
               View Wishlist <ArrowRight className="w-3 h-3" />
             </Link>

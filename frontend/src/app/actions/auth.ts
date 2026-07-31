@@ -94,3 +94,41 @@ export async function getSession() {
   if (!token) return null;
   return { token, role };
 }
+
+export async function getCurrentUser() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("auth_token")?.value;
+  const userDataCookie = cookieStore.get("user_data")?.value;
+
+  let cachedUser: any = null;
+  if (userDataCookie) {
+    try {
+      cachedUser = JSON.parse(userDataCookie);
+    } catch (e) {}
+  }
+
+  if (token) {
+    try {
+      const res = await fetch(`${API_BASE_URL}/auth/me`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        cache: "no-store",
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && data.user) {
+          return { success: true, user: data.user };
+        }
+      }
+    } catch (err) {
+      // Fallback below
+    }
+  }
+
+  if (cachedUser) {
+    return { success: true, user: cachedUser };
+  }
+
+  return { success: false, user: null };
+}

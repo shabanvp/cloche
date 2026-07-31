@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { getVenueById, venues } from "@/lib/venueData";
 import { VenueDetailClient } from "@/components/VenueDetailClient";
 
+export const dynamicParams = true;
+
 // Generate static params for all venues
 export function generateStaticParams() {
   return venues.map((v) => ({ id: v.id }));

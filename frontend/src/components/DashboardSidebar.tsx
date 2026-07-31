@@ -1,13 +1,28 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { User, Heart, Calendar, Settings, LogOut } from "lucide-react";
 import { logout } from "@/app/actions/auth";
+import { fetchAuthenticatedUser, resolveUserDisplayName } from "@/lib/userStore";
 
 export function DashboardSidebar() {
   const pathname = usePathname();
   const isSettingsPage = pathname === "/dashboard/settings";
+  const [userName, setUserName] = useState(() => resolveUserDisplayName());
+  const [initial, setInitial] = useState(() => resolveUserDisplayName().charAt(0).toUpperCase());
+
+  useEffect(() => {
+    async function loadUser() {
+      const resolved = await fetchAuthenticatedUser();
+      if (resolved) {
+        setUserName(resolved);
+        setInitial(resolved.charAt(0).toUpperCase());
+      }
+    }
+    loadUser();
+  }, []);
 
   return (
     <aside className={`w-full md:w-64 shrink-0 ${isSettingsPage ? "hidden md:block" : ""}`}>
@@ -15,9 +30,9 @@ export function DashboardSidebar() {
         {/* User summary */}
         <div className="p-6 border-b border-gold/10 bg-emerald/5 text-center">
           <div className="w-16 h-16 rounded-full bg-emerald text-white flex items-center justify-center mx-auto mb-3 text-2xl font-display">
-            C
+            {initial}
           </div>
-          <h2 className="font-display text-lg text-charcoal font-medium">Cloche User</h2>
+          <h2 className="font-display text-lg text-charcoal font-medium">{userName}</h2>
           <p className="text-xs text-charcoal/60">Premium Member</p>
         </div>
 

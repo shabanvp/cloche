@@ -1,3 +1,5 @@
+import { convertCmsToVenueDetail } from "@/lib/venueCmsStore";
+
 export type Package = {
   name: string;
   price: string;
@@ -446,6 +448,180 @@ export const venues: VenueDetail[] = [
   },
 ];
 
+export function transformRegisteredToVenueDetail(id: string, data: any): VenueDetail {
+  const defaultImages = [
+    data.image || data.coverImage || data.heroImage || "https://images.unsplash.com/photo-1519167758481-83f552bb8c74?auto=format&fit=crop&w=1200&q=80",
+    ...(data.images || data.galleryImages || []),
+  ].filter(Boolean);
+
+  const fallbackImages = [
+    "https://images.unsplash.com/photo-1519167758481-83f552bb8c74?auto=format&fit=crop&w=800&q=80",
+    "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?auto=format&fit=crop&w=800&q=80",
+    "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=800&q=80",
+    "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=800&q=80",
+    "https://images.unsplash.com/photo-1570544820323-66a7e58ce1d8?auto=format&fit=crop&w=800&q=80",
+  ];
+
+  const finalImages = defaultImages.length > 0 ? defaultImages : fallbackImages;
+  const otherVenues = venues.filter((v) => v.id !== id).slice(0, 4);
+
+  return {
+    id: id,
+    name: data.name || data.boutique_name || data.businessName || "Registered Wedding Venue",
+    location: data.location || `${data.city || "Kerala"}, ${data.district || data.state || "India"}`,
+    city: data.city || "Udaipur",
+    rating: data.rating || 4.8,
+    reviews: data.reviewsCount || data.reviews || 15,
+    image: finalImages[0],
+    images: finalImages,
+    totalPhotos: data.totalPhotos || finalImages.length,
+    tags: data.tags || ["Luxury", "Wedding Venue", data.spaceType || "Outdoor & Indoor"],
+    capacity: data.capacity || (data.minGuests ? `${data.minGuests} – ${data.maxGuests || 1000} Guests` : "300 – 1200 Guests"),
+    spaceType: data.spaceType || data.venueType || "Outdoor & Indoor",
+    startingPrice: data.startingPrice ? (String(data.startingPrice).startsWith("₹") ? data.startingPrice : `₹${data.startingPrice}`) : "₹5,00,000",
+    verified: data.verified ?? true,
+    amenities: data.amenities && Array.isArray(data.amenities) && data.amenities.length > 0
+      ? data.amenities.map((a: any) => typeof a === "string" ? { icon: "check_circle", label: a } : { icon: a.icon || "check_circle", label: a.label || a.name })
+      : [
+          { icon: "restaurant", label: "Catering" },
+          { icon: "celebration", label: "Decor" },
+          { icon: "local_parking", label: "Valet Parking" },
+          { icon: "bed", label: "Bridal Suite" },
+          { icon: "music_note", label: "DJ & Sound" },
+          { icon: "liquor", label: "Alcohol" },
+          { icon: "auto_awesome", label: "Fireworks" },
+        ],
+    packages: data.packages && Array.isArray(data.packages) && data.packages.length > 0
+      ? data.packages.map((pkg: any) => ({
+          name: pkg.name || "Special Wedding Package",
+          price: pkg.price ? (String(pkg.price).startsWith("₹") ? pkg.price : `₹${pkg.price}`) : "₹5,00,000",
+          guests: pkg.guests || pkg.description || "500 Guests",
+          tag: pkg.tag || pkg.isPopular ? "Most Loved" : undefined,
+        }))
+      : [
+          { name: "Royal Affair Package", price: data.startingPrice || "₹8,00,000", guests: "500 Guests", tag: "Most Loved" },
+          { name: "Grand Celebration Package", price: "₹12,00,000", guests: "800 Guests" },
+          { name: "Luxury Experience Package", price: "₹18,00,000", guests: "1200 Guests" },
+        ],
+    review: data.review || (data.reviewsList && data.reviewsList[0] ? {
+      couple: data.reviewsList[0].author,
+      date: data.reviewsList[0].date || "Recent",
+      rating: data.reviewsList[0].rating || 5,
+      text: data.reviewsList[0].text,
+      avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=80&q=80",
+    } : {
+      couple: "Ananya & Rohan",
+      date: "May 2025",
+      rating: 5,
+      text: "Hosting our wedding here was a dream come true! Exceptional management, beautiful ambiance, and impeccable service throughout.",
+      avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=80&q=80",
+    }),
+    similar: otherVenues.map((v) => ({
+      id: v.id,
+      name: v.name,
+      city: v.city,
+      rating: v.rating,
+      reviews: v.reviews,
+      image: v.image,
+    })),
+  };
+}
+
+export function getDynamicVenues(): VenueDetail[] {
+  if (typeof window === "undefined") return [];
+  const results: VenueDetail[] = [];
+  const seenIds = new Set<string>();
+
+  try {
+    // 1. Read registered venue vendor submissions
+    const raw = localStorage.getItem("cloche_registered_venues");
+    if (raw) {
+      const list = JSON.parse(raw);
+      if (Array.isArray(list)) {
+        list.forEach((item: any) => {
+          const vId = item.id || item.slug || item.boutique_name?.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+          if (vId && !seenIds.has(vId)) {
+            seenIds.add(vId);
+            results.push(transformRegisteredToVenueDetail(vId, item));
+          }
+        });
+      }
+    }
+
+    // 2. Scan for any published venue CMS entries in localStorage
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith("cloche_venue_cms_") && !key.startsWith("cloche_venue_cms_versions_")) {
+        const vId = key.replace("cloche_venue_cms_", "");
+        if (vId && !seenIds.has(vId) && vId !== "data_v1") {
+          const cmsRaw = localStorage.getItem(key);
+          if (cmsRaw) {
+            const cmsData = JSON.parse(cmsRaw);
+            if (cmsData && cmsData.businessProfile) {
+              seenIds.add(vId);
+              results.push(convertCmsToVenueDetail(cmsData));
+            }
+          }
+        }
+      }
+    }
+  } catch (e) {
+    console.error("Error reading registered venues", e);
+  }
+  return results;
+}
+
+export function getAllVenues(): VenueDetail[] {
+  const dynamic = getDynamicVenues();
+  const existingIds = new Set(venues.map((v) => v.id));
+  const filteredDynamic = dynamic.filter((d) => !existingIds.has(d.id));
+  return [...venues, ...filteredDynamic];
+}
+
 export function getVenueById(id: string): VenueDetail | undefined {
-  return venues.find((v) => v.id === id);
+  if (!id) return undefined;
+
+  // 1. Check published CMS data in localStorage for this specific venue ID
+  if (typeof window !== "undefined") {
+    try {
+      const cmsRaw = localStorage.getItem(`cloche_venue_cms_${id}`);
+      if (cmsRaw) {
+        const cmsData = JSON.parse(cmsRaw);
+        return convertCmsToVenueDetail(cmsData);
+      }
+
+      // Check single registered venue record
+      const singleRaw = localStorage.getItem(`cloche_venue_${id}`);
+      if (singleRaw) {
+        return transformRegisteredToVenueDetail(id, JSON.parse(singleRaw));
+      }
+
+      // Check global CMS key
+      const globalCmsRaw = localStorage.getItem("cloche_venue_cms_data_v1");
+      if (globalCmsRaw) {
+        const globalCms = JSON.parse(globalCmsRaw);
+        if (globalCms.id === id) {
+          return convertCmsToVenueDetail(globalCms);
+        }
+      }
+    } catch (e) {}
+  }
+
+  // 2. Predefined static list lookup
+  const found = venues.find((v) => v.id === id);
+  if (found) return found;
+
+  // 3. Dynamic list lookup
+  if (typeof window !== "undefined") {
+    const dynamicList = getDynamicVenues();
+    const dynamicFound = dynamicList.find((v) => v.id === id);
+    if (dynamicFound) return dynamicFound;
+  }
+
+  // 4. Dynamic fallback template for any venue ID
+  const formattedName = id
+    .split("-")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+  return transformRegisteredToVenueDetail(id, { name: formattedName });
 }

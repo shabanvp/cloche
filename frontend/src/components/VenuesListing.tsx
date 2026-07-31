@@ -12,7 +12,8 @@ import {
   MapPin,
 } from "lucide-react";
 import { BottomNavBar } from "@/components/BottomNavBar";
-import { venues } from "@/lib/venueData";
+import { getAllVenues, VenueDetail, venues } from "@/lib/venueData";
+import { useEffect } from "react";
 
 const FILTERS = ["All", "Outdoor", "Indoor", "Destination", "Luxury"] as const;
 type Filter = (typeof FILTERS)[number];
@@ -21,9 +22,14 @@ export function VenuesListing() {
   const [search, setSearch] = useState("");
   const [activeFilter, setActiveFilter] = useState<Filter>("All");
   const [wishlist, setWishlist] = useState<Set<string>>(new Set());
+  const [allVenuesList, setAllVenuesList] = useState<VenueDetail[]>(() => venues);
+
+  useEffect(() => {
+    setAllVenuesList(getAllVenues());
+  }, []);
 
   const filtered = useMemo(() => {
-    return venues.filter((venue) => {
+    return allVenuesList.filter((venue) => {
       const matchesSearch =
         venue.name.toLowerCase().includes(search.toLowerCase()) ||
         venue.location.toLowerCase().includes(search.toLowerCase());
@@ -33,7 +39,7 @@ export function VenuesListing() {
 
       return matchesSearch && matchesFilter;
     });
-  }, [search, activeFilter]);
+  }, [search, activeFilter, allVenuesList]);
 
   const toggleWishlist = (e: React.MouseEvent, id: string) => {
     e.preventDefault(); // prevent link navigation when tapping heart
