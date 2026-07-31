@@ -640,5 +640,14 @@ export function getVenueById(id: string): VenueDetail | undefined {
     if (dynamicFound) return dynamicFound;
   }
 
-  return undefined;
+  // 4. Server-Side & Client Fallback: Generate valid venue payload so SSR never 404s before client hydration
+  const formattedName = id
+    .replace(/[-_]+/g, " ")
+    .replace(/\b\w/g, (l) => l.toUpperCase());
+
+  return transformRegisteredToVenueDetail(id, {
+    id,
+    name: formattedName,
+    businessName: formattedName,
+  });
 }
