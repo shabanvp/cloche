@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   ArrowLeft,
   Search,
@@ -57,13 +57,59 @@ interface VendorsListingProps {
   boutiques: Boutique[];
 }
 
-export function VendorsListing({ boutiques }: VendorsListingProps) {
+export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingProps) {
   const [search, setSearch] = useState("");
   const [activeFilter, setActiveFilter] = useState<CategoryFilter>("All");
   const [wishlist, setWishlist] = useState<Set<string | number>>(new Set());
+  const [boutiquesList, setBoutiquesList] = useState<Boutique[]>(initialBoutiques);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const rawVendors = localStorage.getItem("cloche_registered_vendors");
+        const rawBoutiques = localStorage.getItem("cloche_registered_boutiques");
+        const localList: any[] = [];
+        if (rawVendors) localList.push(...JSON.parse(rawVendors));
+        if (rawBoutiques) localList.push(...JSON.parse(rawBoutiques));
+
+        if (localList.length > 0) {
+          const mergedMap = new Map<string, any>();
+
+          localList.forEach((item) => {
+            const itemKey = item.id || item.slug || item.boutique_name;
+            if (itemKey && !mergedMap.has(itemKey)) {
+              const logoSrc = item.logo || item.logo_url || item.profile_logo || item.image_url || item.image || "";
+              mergedMap.set(itemKey, {
+                id: itemKey,
+                boutique_name: item.boutique_name || item.name || "Wedding Vendor",
+                image_url: logoSrc,
+                logo_url: logoSrc,
+                logo: logoSrc,
+                rating: item.rating || 5.0,
+                city: item.city || "Kochi",
+                area: item.district || item.location || "Kerala",
+                tags: item.category || item.tags || "Bridal Boutique",
+              });
+            }
+          });
+
+          initialBoutiques.forEach((item) => {
+            const itemKey = item.id || item.boutique_name;
+            if (itemKey && !mergedMap.has(String(itemKey))) {
+              mergedMap.set(String(itemKey), item);
+            }
+          });
+
+          setBoutiquesList(Array.from(mergedMap.values()));
+          return;
+        }
+      } catch (e) {}
+    }
+    setBoutiquesList(initialBoutiques);
+  }, [initialBoutiques]);
 
   const filtered = useMemo(() => {
-    return boutiques.filter((b) => {
+    return boutiquesList.filter((b) => {
       const category = resolveCategory(b);
       const matchesSearch =
         b.boutique_name.toLowerCase().includes(search.toLowerCase()) ||
@@ -76,7 +122,7 @@ export function VendorsListing({ boutiques }: VendorsListingProps) {
 
       return matchesSearch && matchesFilter;
     });
-  }, [boutiques, search, activeFilter]);
+  }, [boutiquesList, search, activeFilter]);
 
   const toggleWishlist = (e: React.MouseEvent, id: string | number) => {
     e.preventDefault();
@@ -194,6 +240,22 @@ export function VendorsListing({ boutiques }: VendorsListingProps) {
               const category = resolveCategory(boutique);
               const isLast = idx === filtered.length - 1;
 
+              const avatarSrc = (
+                (boutique as any).logo ||
+                (boutique as any).logo_url ||
+                (boutique as any).profile_logo ||
+                boutique.image_url ||
+                ""
+              ).toString();
+
+              const validAvatar = Boolean(
+                avatarSrc &&
+                  typeof avatarSrc === "string" &&
+                  (avatarSrc.startsWith("http") || avatarSrc.startsWith("/") || avatarSrc.startsWith("data:"))
+              )
+                ? avatarSrc
+                : "https://images.unsplash.com/photo-1594938298596-70f594f74246?q=80&w=200&auto=format&fit=crop";
+
               return (
                 <li key={boutique.id}>
                   <Link
@@ -211,14 +273,12 @@ export function VendorsListing({ boutiques }: VendorsListingProps) {
                       }}
                     >
                       <Image
-                        src={
-                          boutique.image_url ||
-                          "https://images.unsplash.com/photo-1594938298596-70f594f74246?q=80&w=200&auto=format&fit=crop"
-                        }
+                        src={validAvatar}
                         alt={boutique.boutique_name}
                         fill
                         sizes="64px"
                         className="object-cover"
+                        unoptimized={validAvatar.startsWith("data:")}
                       />
                     </div>
 

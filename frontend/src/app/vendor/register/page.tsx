@@ -284,9 +284,13 @@ export default function VendorRegisterPage() {
     const file = e.target.files?.[0];
     if (file) {
       clearFieldError(type);
-      const url = URL.createObjectURL(file);
-      if (type === "logo") setLogoPreview(url);
-      else setCoverPreview(url);
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const result = event.target?.result as string;
+        if (type === "logo") setLogoPreview(result);
+        else setCoverPreview(result);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -325,114 +329,133 @@ export default function VendorRegisterPage() {
     } else if (res.success) {
       const category = textValue(formData, "category");
       const boutiqueName = textValue(formData, "boutique_name");
+      const city = textValue(formData, "city") || "Kochi";
+      const district = textValue(formData, "district") || "Ernakulam";
+      const phone = textValue(formData, "phone") || "+919876543210";
+      const whatsapp = textValue(formData, "whatsapp") || phone;
       const isVenueCategory = category.toLowerCase().includes("venue");
 
-      if ((isVenueCategory || category === "Wedding Venue") && boutiqueName) {
+      if (boutiqueName) {
         const slug = boutiqueName.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-");
-        const startingPrice = textValue(formData, "starting_price") || "₹5,00,000";
+        const startingPrice = textValue(formData, "starting_price") || (isVenueCategory ? "₹5,00,000" : "₹50,000");
         const capacity = textValue(formData, "capacity") || "300 – 1200 Guests";
         const spaceType = textValue(formData, "space_type") || "Outdoor & Indoor";
-        const city = textValue(formData, "city") || "Kerala";
-        const district = textValue(formData, "district") || "India";
-        const phone = textValue(formData, "phone") || "+919876543210";
-        const whatsapp = textValue(formData, "whatsapp") || phone;
 
-        const newVenueRecord = {
+        const validLogo = logoPreview && (logoPreview.startsWith("data:") || logoPreview.startsWith("http") || logoPreview.startsWith("/"))
+          ? logoPreview
+          : "https://images.unsplash.com/photo-1594938298596-70f594f74246?q=80&w=200&auto=format&fit=crop";
+
+        const validCover = coverPreview && (coverPreview.startsWith("data:") || coverPreview.startsWith("http") || coverPreview.startsWith("/"))
+          ? coverPreview
+          : "https://images.unsplash.com/photo-1519167758481-83f552bb8c74?auto=format&fit=crop&w=1200&q=80";
+
+        const newVendorRecord = {
           id: slug,
           slug: slug,
+          boutique_name: boutiqueName,
           name: boutiqueName,
+          category: category,
           location: `${city}, ${district}`,
           city: city,
           district: district,
+          contactNumber: phone,
+          phone: phone,
+          whatsapp: whatsapp,
+          logo: validLogo,
+          logo_url: validLogo,
+          profile_logo: validLogo,
+          image_url: validLogo,
+          image: validLogo,
+          coverImage: validCover,
+          description: textValue(formData, "description"),
           startingPrice: startingPrice,
           capacity: capacity,
           spaceType: spaceType,
-          contactNumber: phone,
-          whatsapp: whatsapp,
-          description: textValue(formData, "description"),
           rating: 5.0,
           reviewsCount: 1,
-          image: coverPreview || logoPreview || "https://images.unsplash.com/photo-1519167758481-83f552bb8c74?auto=format&fit=crop&w=1200&q=80",
-          images: [
-            coverPreview || "https://images.unsplash.com/photo-1519167758481-83f552bb8c74?auto=format&fit=crop&w=800&q=80",
-            logoPreview || "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?auto=format&fit=crop&w=800&q=80",
-            "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=800&q=80",
-            "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=800&q=80",
-          ],
-          tags: ["Wedding Venue", spaceType, "Luxury"],
+          tags: [category, "Verified Vendor"],
           verified: true,
         };
 
-        const newCmsPayload = {
-          id: slug,
-          vendorId: slug,
-          category: "Wedding Venue" as const,
-          lastUpdated: new Date().toISOString(),
-          status: "Published" as const,
-          businessProfile: {
-            businessName: boutiqueName,
-            tagline: "Premier Wedding & Event Destination",
-            description: textValue(formData, "description") || `Welcome to ${boutiqueName}, a premier wedding destination located in ${city}, ${district}.`,
-            city: city,
-            district: district,
-            address: `${city}, ${district}`,
-            contactNumber: phone,
-            whatsapp: whatsapp,
-            email: textValue(formData, "email") || "events@venue.com",
-            website: textValue(formData, "website") || "",
-            instagram: textValue(formData, "instagram") || "",
-            isVerified: true,
-          },
-          heroGallery: {
-            coverImage: coverPreview || logoPreview || "https://images.unsplash.com/photo-1519167758481-83f552bb8c74?auto=format&fit=crop&w=1600&q=80",
-            images: [
-              { id: "h1", url: coverPreview || "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=800&q=80", caption: "Grand Entrance" },
-              { id: "h2", url: logoPreview || "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=800&q=80", caption: "Banquet Hall" },
+        if (isVenueCategory || category === "Wedding Venue") {
+          const newCmsPayload = {
+            id: slug,
+            vendorId: slug,
+            category: "Wedding Venue" as const,
+            lastUpdated: new Date().toISOString(),
+            status: "Published" as const,
+            businessProfile: {
+              businessName: boutiqueName,
+              tagline: "Premier Wedding & Event Destination",
+              description: textValue(formData, "description") || `Welcome to ${boutiqueName}, a premier wedding destination located in ${city}, ${district}.`,
+              city: city,
+              district: district,
+              address: `${city}, ${district}`,
+              contactNumber: phone,
+              whatsapp: whatsapp,
+              email: textValue(formData, "email") || "events@venue.com",
+              website: textValue(formData, "website") || "",
+              instagram: textValue(formData, "instagram") || "",
+              isVerified: true,
+            },
+            heroGallery: {
+              coverImage: validCover,
+              images: [
+                { id: "h1", url: validCover, caption: "Grand Entrance" },
+                { id: "h2", url: validLogo, caption: "Banquet Hall" },
+              ],
+            },
+            venueInfo: {
+              startingPrice: startingPrice,
+              minGuests: 200,
+              maxGuests: 1200,
+              venueType: "Indoor + Outdoor" as const,
+              roomsCount: 20,
+              parkingCapacity: "300+ Cars",
+              bridalSuiteAvailable: true,
+              powerBackupAvailable: true,
+              inhouseDecoration: "Allowed" as const,
+              musicPolicy: "DJ Allowed till 10 PM" as const,
+              foodPolicy: "Both Allowed" as const,
+              alcoholPolicy: "Allowed with Permit" as const,
+            },
+            amenities: {
+              parking: true,
+              valet: true,
+              wifi: true,
+              generator: true,
+              kidsArea: true,
+              garden: true,
+              swimmingPool: false,
+              stage: true,
+              decoration: true,
+              wheelchairAccess: true,
+            },
+            packages: [
+              { id: "pkg-1", name: "Royal Wedding Package", price: startingPrice, description: "Full venue rental with banquet setup", isPopular: true },
             ],
-          },
-          venueInfo: {
-            startingPrice: startingPrice,
-            minGuests: 200,
-            maxGuests: 1200,
-            venueType: (spaceType.includes("Indoor") && spaceType.includes("Outdoor") ? "Indoor + Outdoor" : spaceType.includes("Indoor") ? "Indoor" : "Outdoor") as any,
-            roomsCount: 20,
-            parkingCapacity: "300+ Cars",
-            bridalSuiteAvailable: true,
-            powerBackupAvailable: true,
-            inhouseDecoration: "Allowed" as const,
-            musicPolicy: "DJ Allowed till 10 PM" as const,
-            foodPolicy: "Both Allowed" as const,
-            alcoholPolicy: "Allowed with Permit" as const,
-          },
-          amenities: {
-            parking: true,
-            valet: true,
-            wifi: true,
-            generator: true,
-            kidsArea: true,
-            garden: true,
-            swimmingPool: false,
-            stage: true,
-            decoration: true,
-            wheelchairAccess: true,
-          },
-          packages: [
-            { id: "pkg-1", name: "Royal Wedding Package", price: startingPrice, description: "Full venue rental with banquet setup", includedServices: ["Valet Parking", "Bridal Suite", "Stage Decor"], isPopular: true },
-          ],
-          availability: { blockedDates: [] },
-          gallery: { photos: [coverPreview || "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=800&q=80"], videos: [], panoramas360: [] },
-          reviewsList: [{ id: "rev-1", author: "Verified Couple", rating: 5, text: "Magnificent venue and great service!", date: "Recent" }],
-          faqs: [],
-          seo: { metaTitle: boutiqueName, metaDescription: `Book ${boutiqueName} in ${city}`, keywords: "venue, wedding", ogImage: coverPreview || "" },
-        };
+            availability: { blockedDates: [] },
+            gallery: { photos: [validCover], videos: [], panoramas360: [] },
+            reviewsList: [{ id: "rev-1", author: "Verified Couple", rating: 5, text: "Magnificent venue and great service!", date: "Recent" }],
+            faqs: [],
+            seo: { metaTitle: boutiqueName, metaDescription: `Book ${boutiqueName} in ${city}`, keywords: "venue, wedding", ogImage: validCover },
+          };
+          localStorage.setItem(`cloche_venue_cms_${slug}`, JSON.stringify(newCmsPayload));
+        }
 
         try {
-          const raw = localStorage.getItem("cloche_registered_venues");
-          const list = raw ? JSON.parse(raw) : [];
-          const updatedList = [newVenueRecord, ...list.filter((v: any) => v.id !== slug)];
-          localStorage.setItem("cloche_registered_venues", JSON.stringify(updatedList));
-          localStorage.setItem(`cloche_venue_${slug}`, JSON.stringify(newVenueRecord));
-          localStorage.setItem(`cloche_venue_cms_${slug}`, JSON.stringify(newCmsPayload));
+          const rawVendors = localStorage.getItem("cloche_registered_vendors");
+          const vendorList = rawVendors ? JSON.parse(rawVendors) : [];
+          const updatedVendors = [newVendorRecord, ...vendorList.filter((v: any) => v.id !== slug)];
+          localStorage.setItem("cloche_registered_vendors", JSON.stringify(updatedVendors));
+
+          const rawBoutiques = localStorage.getItem("cloche_registered_boutiques");
+          const boutiqueList = rawBoutiques ? JSON.parse(rawBoutiques) : [];
+          const updatedBoutiques = [newVendorRecord, ...boutiqueList.filter((v: any) => v.id !== slug)];
+          localStorage.setItem("cloche_registered_boutiques", JSON.stringify(updatedBoutiques));
+
+          localStorage.setItem(`cloche_venue_${slug}`, JSON.stringify(newVendorRecord));
+          localStorage.setItem(`cloche_vendor_${slug}`, JSON.stringify(newVendorRecord));
         } catch (e) {}
       }
 
