@@ -28,10 +28,29 @@ export function VendorSidebar() {
   const router = useRouter();
   const isAuthPage = pathname === "/vendor/login" || pathname === "/vendor/register";
 
-  const [vendorData, setVendorData] = useState<{ name: string; category: string } | null>(null);
+  const [vendorData, setVendorData] = useState<{ name: string; category: string; logo?: string } | null>(null);
 
   useEffect(() => {
-    // Basic client-side cookie parsing for user_data
+    if (typeof window !== "undefined") {
+      try {
+        const rawVendors = localStorage.getItem("cloche_registered_vendors");
+        const rawVenues = localStorage.getItem("cloche_registered_venues");
+        const list: any[] = [];
+        if (rawVendors) list.push(...JSON.parse(rawVendors));
+        if (rawVenues) list.push(...JSON.parse(rawVenues));
+
+        if (list.length > 0) {
+          const active = list[0];
+          setVendorData({
+            name: active.boutique_name || active.name || active.businessName || "Vendor Dashboard",
+            category: active.category || "Premium Partner",
+            logo: active.logo || active.logo_url || active.profile_logo || active.image || "",
+          });
+          return;
+        }
+      } catch (e) {}
+    }
+
     const cookies = document.cookie.split(';');
     const userDataCookie = cookies.find(c => c.trim().startsWith('user_data='));
     if (userDataCookie) {
@@ -48,6 +67,12 @@ export function VendorSidebar() {
   const category = vendorData?.category || "";
   const name = vendorData?.name || "Vendor Dashboard";
   const initial = name.charAt(0).toUpperCase();
+  const logoUrl = vendorData?.logo || "";
+  const isValidLogo = Boolean(
+    logoUrl &&
+      typeof logoUrl === "string" &&
+      (logoUrl.startsWith("data:image/") || logoUrl.startsWith("http://") || logoUrl.startsWith("https://") || logoUrl.startsWith("/"))
+  );
 
   // Base navigation items for all vendors
   let navItems = [
@@ -98,8 +123,12 @@ export function VendorSidebar() {
       <div className="bg-white rounded-2xl shadow-sm border border-gold/10 overflow-hidden sticky top-24">
         {/* Boutique summary */}
         <div className="p-6 border-b border-gold/10 bg-charcoal text-white text-center">
-          <div className="w-16 h-16 rounded-full bg-ivory text-charcoal flex items-center justify-center mx-auto mb-3 text-2xl font-display shadow-md">
-            {initial}
+          <div className="w-16 h-16 rounded-full bg-ivory text-charcoal flex items-center justify-center mx-auto mb-3 text-2xl font-display shadow-md overflow-hidden relative border-2 border-gold/30">
+            {isValidLogo ? (
+              <img src={logoUrl} alt={name} className="w-full h-full object-cover" />
+            ) : (
+              initial
+            )}
           </div>
           <h2 className="font-display text-lg font-medium">{name}</h2>
           <p className="text-xs text-white/60">{category || "Premium Partner"}</p>

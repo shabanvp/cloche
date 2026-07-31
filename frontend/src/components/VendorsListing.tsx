@@ -72,12 +72,15 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
         if (rawVendors) localList.push(...JSON.parse(rawVendors));
         if (rawBoutiques) localList.push(...JSON.parse(rawBoutiques));
 
-        if (localList.length > 0) {
-          const mergedMap = new Map<string, any>();
+        const mergedMap = new Map<string, any>();
+        const seenNames = new Set<string>();
 
+        if (localList.length > 0) {
           localList.forEach((item) => {
             const itemKey = item.id || item.slug || item.boutique_name;
-            if (itemKey && !mergedMap.has(itemKey)) {
+            const normName = (item.boutique_name || item.name || "").toLowerCase().trim();
+            if (itemKey && normName && !mergedMap.has(itemKey) && !seenNames.has(normName)) {
+              seenNames.add(normName);
               const logoSrc = item.logo || item.logo_url || item.profile_logo || item.image_url || item.image || "";
               mergedMap.set(itemKey, {
                 id: itemKey,
@@ -92,17 +95,19 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
               });
             }
           });
-
-          initialBoutiques.forEach((item) => {
-            const itemKey = item.id || item.boutique_name;
-            if (itemKey && !mergedMap.has(String(itemKey))) {
-              mergedMap.set(String(itemKey), item);
-            }
-          });
-
-          setBoutiquesList(Array.from(mergedMap.values()));
-          return;
         }
+
+        initialBoutiques.forEach((item) => {
+          const itemKey = String(item.id || item.boutique_name);
+          const normName = (item.boutique_name || "").toLowerCase().trim();
+          if (itemKey && normName && !mergedMap.has(itemKey) && !seenNames.has(normName)) {
+            seenNames.add(normName);
+            mergedMap.set(itemKey, item);
+          }
+        });
+
+        setBoutiquesList(Array.from(mergedMap.values()));
+        return;
       } catch (e) {}
     }
     setBoutiquesList(initialBoutiques);
@@ -240,20 +245,22 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
               const category = resolveCategory(boutique);
               const isLast = idx === filtered.length - 1;
 
-              const avatarSrc = (
+              const rawLogo = (
                 (boutique as any).logo ||
                 (boutique as any).logo_url ||
                 (boutique as any).profile_logo ||
                 boutique.image_url ||
                 ""
-              ).toString();
+              ).toString().trim();
 
-              const validAvatar = Boolean(
-                avatarSrc &&
-                  typeof avatarSrc === "string" &&
-                  (avatarSrc.startsWith("http") || avatarSrc.startsWith("/") || avatarSrc.startsWith("data:"))
-              )
-                ? avatarSrc
+              const isValidLogoUrl =
+                rawLogo.startsWith("data:image/") ||
+                rawLogo.startsWith("http://") ||
+                rawLogo.startsWith("https://") ||
+                (rawLogo.startsWith("/") && !rawLogo.startsWith("//"));
+
+              const validAvatar = isValidLogoUrl
+                ? rawLogo
                 : "https://images.unsplash.com/photo-1594938298596-70f594f74246?q=80&w=200&auto=format&fit=crop";
 
               return (

@@ -283,18 +283,120 @@ export default function VendorVenueCmsPage() {
               <div className="bg-white rounded-3xl p-6 border border-gold/15 shadow-sm space-y-4">
                 <h3 className="font-display text-xl text-charcoal font-semibold border-b border-gold/10 pb-3">2. Hero Banner & Cover Image</h3>
 
-                <div className="text-xs">
-                  <label className="font-semibold block text-charcoal/70 mb-1">Cover Image URL</label>
-                  <input
-                    type="text"
-                    value={cmsData.heroGallery.coverImage}
-                    onChange={(e) => handleUpdate((p) => ({ ...p, heroGallery: { ...p.heroGallery, coverImage: e.target.value } }))}
-                    className="w-full bg-[#FBF8F1] border border-gold/20 rounded-xl p-2.5 text-charcoal outline-none"
-                  />
+                <div className="text-xs space-y-2">
+                  <label className="font-semibold block text-charcoal/70">Cover Image URL / File Upload</label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={cmsData.heroGallery.coverImage}
+                      onChange={(e) => handleUpdate((p) => ({ ...p, heroGallery: { ...p.heroGallery, coverImage: e.target.value } }))}
+                      placeholder="Paste cover image URL..."
+                      className="flex-1 bg-[#FBF8F1] border border-gold/20 rounded-xl p-2.5 text-charcoal outline-none"
+                    />
+                    <label className="cursor-pointer bg-[#0F4C45] hover:bg-[#0F4C45]/90 text-white text-xs font-bold px-3 py-2.5 rounded-xl flex items-center gap-1.5 shrink-0 shadow-sm">
+                      <ImageIcon className="w-4 h-4" />
+                      <span>Upload File</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            const reader = new FileReader();
+                            reader.onload = (ev) => {
+                              const res = ev.target?.result as string;
+                              if (res) {
+                                handleUpdate((p) => ({ ...p, heroGallery: { ...p.heroGallery, coverImage: res } }));
+                              }
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        }}
+                      />
+                    </label>
+                  </div>
+                  {cmsData.heroGallery.coverImage && (
+                    <div className="relative w-32 h-20 rounded-xl overflow-hidden border border-gold/20 mt-2">
+                      <img src={cmsData.heroGallery.coverImage} alt="Cover Preview" className="w-full h-full object-cover" />
+                    </div>
+                  )}
                 </div>
 
-                <div className="space-y-3 pt-2">
-                  <h4 className="font-semibold text-xs text-charcoal/70">Hero Slider Images ({cmsData.heroGallery.images.length})</h4>
+                <div className="space-y-3 pt-4 border-t border-gold/10">
+                  <div className="flex justify-between items-center">
+                    <h4 className="font-semibold text-xs text-charcoal/70">Hero Slider Images ({cmsData.heroGallery.images.length})</h4>
+                    <label className="cursor-pointer bg-[#0F4C45] hover:bg-[#0F4C45]/90 text-white text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-1.5 shadow-sm">
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>+ Upload New Image</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            const reader = new FileReader();
+                            reader.onload = (ev) => {
+                              const res = ev.target?.result as string;
+                              if (res) {
+                                const newImg = {
+                                  id: `hero-${Date.now()}`,
+                                  url: res,
+                                  caption: file.name.replace(/\.[^/.]+$/, ""),
+                                };
+                                handleUpdate((p) => ({
+                                  ...p,
+                                  heroGallery: {
+                                    ...p.heroGallery,
+                                    images: [...p.heroGallery.images, newImg],
+                                  },
+                                }));
+                              }
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        }}
+                      />
+                    </label>
+                  </div>
+
+                  {/* Add Image by URL Input */}
+                  <div className="flex items-center gap-2 bg-[#FBF8F1] p-3 rounded-2xl border border-gold/15">
+                    <input
+                      type="text"
+                      id="newHeroUrlInput"
+                      placeholder="Or paste Image URL here..."
+                      className="flex-1 bg-white border border-gold/20 rounded-xl p-2 text-xs text-charcoal outline-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const inputEl = document.getElementById("newHeroUrlInput") as HTMLInputElement;
+                        const urlVal = inputEl?.value?.trim();
+                        if (urlVal) {
+                          const newImg = {
+                            id: `hero-${Date.now()}`,
+                            url: urlVal,
+                            caption: "Venue View",
+                          };
+                          handleUpdate((p) => ({
+                            ...p,
+                            heroGallery: {
+                              ...p.heroGallery,
+                              images: [...p.heroGallery.images, newImg],
+                            },
+                          }));
+                          inputEl.value = "";
+                        }
+                      }}
+                      className="bg-[#0F4C45] hover:bg-[#0F4C45]/90 text-white text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-1 shadow-sm"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>Add URL</span>
+                    </button>
+                  </div>
+
                   {cmsData.heroGallery.images.map((img, index) => (
                     <div key={img.id} className="flex items-center gap-3 bg-[#FBF8F1] p-3 rounded-2xl border border-gold/15">
                       <img src={img.url} alt="Hero" className="w-14 h-14 rounded-xl object-cover" />
@@ -316,6 +418,7 @@ export default function VendorVenueCmsPage() {
                           handleUpdate((p) => ({ ...p, heroGallery: { ...p.heroGallery, images: updated } }));
                         }}
                         className="text-red-500 hover:bg-red-50 p-2 rounded-lg"
+                        title="Delete image"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -418,35 +521,106 @@ export default function VendorVenueCmsPage() {
             {/* Tab 5: Packages */}
             {activeTab === "packages" && (
               <div className="bg-white rounded-3xl p-6 border border-gold/15 shadow-sm space-y-4">
-                <h3 className="font-display text-xl text-charcoal font-semibold border-b border-gold/10 pb-3">5. Rental Packages & Tariffs</h3>
+                <div className="flex justify-between items-center border-b border-gold/10 pb-3">
+                  <h3 className="font-display text-xl text-charcoal font-semibold">5. Rental Packages & Tariffs</h3>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const newPkg = {
+                        id: `pkg-${Date.now()}`,
+                        name: "New Rental Package",
+                        price: "₹2,50,000 / day",
+                        description: "Full venue rental including basic banquet amenities.",
+                        includedServices: ["Valet Parking", "Air Conditioning", "Stage Setup"],
+                        isPopular: false,
+                      };
+                      handleUpdate((p) => ({ ...p, packages: [...p.packages, newPkg] }));
+                    }}
+                    className="bg-[#0F4C45] hover:bg-[#0F4C45]/90 text-white text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-1.5 shadow-sm"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>+ Add New Package</span>
+                  </button>
+                </div>
 
-                <div className="space-y-3">
+                <div className="space-y-4">
                   {cmsData.packages.map((pkg, index) => (
-                    <div key={pkg.id} className="bg-[#FBF8F1] p-4 rounded-2xl border border-gold/15 space-y-2 text-xs">
-                      <div className="flex justify-between items-center">
+                    <div key={pkg.id} className="bg-[#FBF8F1] p-4 rounded-2xl border border-gold/15 space-y-3 text-xs">
+                      <div className="flex justify-between items-center gap-2">
                         <input
                           type="text"
                           value={pkg.name}
+                          placeholder="Package Title (e.g. Grand Banquet Package)..."
                           onChange={(e) => {
                             const updated = [...cmsData.packages];
                             updated[index].name = e.target.value;
                             handleUpdate((p) => ({ ...p, packages: updated }));
                           }}
-                          className="font-bold text-charcoal text-sm bg-white border border-gold/20 rounded-lg p-1.5 flex-1 mr-2"
+                          className="font-bold text-charcoal text-sm bg-white border border-gold/20 rounded-xl p-2 flex-1 outline-none"
                         />
                         <input
                           type="text"
                           value={pkg.price}
+                          placeholder="Tariff Price (e.g. ₹4,50,000 / day)..."
                           onChange={(e) => {
                             const updated = [...cmsData.packages];
                             updated[index].price = e.target.value;
                             handleUpdate((p) => ({ ...p, packages: updated }));
                           }}
-                          className="font-bold text-emerald text-sm bg-white border border-gold/20 rounded-lg p-1.5 text-right w-32"
+                          className="font-bold text-[#0F4C45] text-sm bg-white border border-gold/20 rounded-xl p-2 text-right w-40 outline-none"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const updated = cmsData.packages.filter((_, i) => i !== index);
+                            handleUpdate((p) => ({ ...p, packages: updated }));
+                          }}
+                          className="text-red-500 hover:bg-red-50 p-2 rounded-xl border border-red-200 shrink-0"
+                          title="Delete package"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+
+                      <div>
+                        <label className="font-semibold block text-charcoal/70 mb-1">Package Description & Features</label>
+                        <textarea
+                          rows={2}
+                          value={pkg.description || ""}
+                          placeholder="Include services like valet parking, bridal suite, air conditioning..."
+                          onChange={(e) => {
+                            const updated = [...cmsData.packages];
+                            updated[index].description = e.target.value;
+                            handleUpdate((p) => ({ ...p, packages: updated }));
+                          }}
+                          className="w-full bg-white border border-gold/20 rounded-xl p-2 text-charcoal outline-none"
                         />
                       </div>
                     </div>
                   ))}
+                  {cmsData.packages.length === 0 && (
+                    <div className="text-center py-8 bg-[#FBF8F1] rounded-2xl border border-dashed border-gold/30">
+                      <p className="text-xs text-charcoal/60 mb-3">No rental packages added yet.</p>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newPkg = {
+                            id: `pkg-${Date.now()}`,
+                            name: "Grand Ballroom Package",
+                            price: "₹3,50,000 / day",
+                            description: "Full hall rental with air conditioning and valet parking.",
+                            includedServices: ["Valet Parking", "Bridal Suite", "Air Conditioning"],
+                            isPopular: true,
+                          };
+                          handleUpdate((p) => ({ ...p, packages: [newPkg] }));
+                        }}
+                        className="bg-[#0F4C45] text-white text-xs font-bold px-4 py-2 rounded-xl inline-flex items-center gap-1.5"
+                      >
+                        <Plus className="w-4 h-4" />
+                        <span>Add First Package</span>
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -454,33 +628,85 @@ export default function VendorVenueCmsPage() {
             {/* Tab 6: FAQs */}
             {activeTab === "faqs" && (
               <div className="bg-white rounded-3xl p-6 border border-gold/15 shadow-sm space-y-4">
-                <h3 className="font-display text-xl text-charcoal font-semibold border-b border-gold/10 pb-3">6. Frequently Asked Questions</h3>
+                <div className="flex justify-between items-center border-b border-gold/10 pb-3">
+                  <h3 className="font-display text-xl text-charcoal font-semibold">6. Frequently Asked Questions</h3>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const newFaq = {
+                        id: `faq-${Date.now()}`,
+                        question: "What is your booking cancellation policy?",
+                        answer: "Cancellations made 60 days prior receive a 80% refund of the advance deposit.",
+                      };
+                      handleUpdate((p) => ({ ...p, faqs: [...p.faqs, newFaq] }));
+                    }}
+                    className="bg-[#0F4C45] hover:bg-[#0F4C45]/90 text-white text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-1.5 shadow-sm"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>+ Add New Question</span>
+                  </button>
+                </div>
 
                 <div className="space-y-3">
                   {cmsData.faqs.map((faq, index) => (
                     <div key={faq.id} className="bg-[#FBF8F1] p-3.5 rounded-2xl border border-gold/15 space-y-2 text-xs">
-                      <input
-                        type="text"
-                        value={faq.question}
-                        onChange={(e) => {
-                          const updated = [...cmsData.faqs];
-                          updated[index].question = e.target.value;
-                          handleUpdate((p) => ({ ...p, faqs: updated }));
-                        }}
-                        className="font-bold text-charcoal w-full bg-white border border-gold/20 rounded-lg p-2"
-                      />
+                      <div className="flex justify-between items-center gap-2">
+                        <input
+                          type="text"
+                          value={faq.question}
+                          placeholder="Enter Question..."
+                          onChange={(e) => {
+                            const updated = [...cmsData.faqs];
+                            updated[index].question = e.target.value;
+                            handleUpdate((p) => ({ ...p, faqs: updated }));
+                          }}
+                          className="font-bold text-charcoal w-full bg-white border border-gold/20 rounded-xl p-2 outline-none"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const updated = cmsData.faqs.filter((_, i) => i !== index);
+                            handleUpdate((p) => ({ ...p, faqs: updated }));
+                          }}
+                          className="text-red-500 hover:bg-red-50 p-2 rounded-xl border border-red-200 shrink-0"
+                          title="Delete FAQ"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                       <textarea
                         rows={2}
                         value={faq.answer}
+                        placeholder="Enter Answer..."
                         onChange={(e) => {
                           const updated = [...cmsData.faqs];
                           updated[index].answer = e.target.value;
                           handleUpdate((p) => ({ ...p, faqs: updated }));
                         }}
-                        className="w-full bg-white border border-gold/20 rounded-lg p-2 text-charcoal"
+                        className="w-full bg-white border border-gold/20 rounded-xl p-2 text-charcoal outline-none"
                       />
                     </div>
                   ))}
+                  {cmsData.faqs.length === 0 && (
+                    <div className="text-center py-8 bg-[#FBF8F1] rounded-2xl border border-dashed border-gold/30">
+                      <p className="text-xs text-charcoal/60 mb-3">No frequently asked questions added yet.</p>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newFaq = {
+                            id: `faq-${Date.now()}`,
+                            question: "What is your advance booking deposit requirement?",
+                            answer: "We require a 25% advance deposit to confirm and block your event date.",
+                          };
+                          handleUpdate((p) => ({ ...p, faqs: [newFaq] }));
+                        }}
+                        className="bg-[#0F4C45] text-white text-xs font-bold px-4 py-2 rounded-xl inline-flex items-center gap-1.5"
+                      >
+                        <Plus className="w-4 h-4" />
+                        <span>Add First Question</span>
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             )}

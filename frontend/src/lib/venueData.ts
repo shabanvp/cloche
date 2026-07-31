@@ -544,38 +544,53 @@ export function getDynamicVenues(): VenueDetail[] {
   if (typeof window === "undefined") return [];
   const results: VenueDetail[] = [];
   const seenIds = new Set<string>();
+  const seenNames = new Set<string>();
 
   try {
-    // 1. Read registered venue vendor submissions
+    // 1. Scan for published venue CMS entries in localStorage (highest priority)
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith("cloche_venue_cms_") && !key.startsWith("cloche_venue_cms_versions_")) {
+        const vId = key.replace("cloche_venue_cms_", "");
+        if (vId && vId !== "data_v1") {
+          const cmsRaw = localStorage.getItem(key);
+          if (cmsRaw) {
+            try {
+              const cmsData = JSON.parse(cmsRaw);
+              if (cmsData && cmsData.businessProfile && cmsData.businessProfile.businessName) {
+                const venueDetail = convertCmsToVenueDetail(cmsData);
+                const normName = venueDetail.name.toLowerCase().trim();
+                const normId = venueDetail.id;
+                const normVendorId = (cmsData.vendorId || "").toLowerCase();
+
+                if (!seenNames.has(normName) && !seenIds.has(normId) && (!normVendorId || !seenIds.has(normVendorId))) {
+                  seenNames.add(normName);
+                  seenIds.add(normId);
+                  if (normVendorId) seenIds.add(normVendorId);
+                  results.push(venueDetail);
+                }
+              }
+            } catch (e) {}
+          }
+        }
+      }
+    }
+
+    // 2. Read registered venue vendor submissions
     const raw = localStorage.getItem("cloche_registered_venues");
     if (raw) {
       const list = JSON.parse(raw);
       if (Array.isArray(list)) {
         list.forEach((item: any) => {
           const vId = item.id || item.slug || item.boutique_name?.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-          if (vId && !seenIds.has(vId)) {
+          const vName = (item.name || item.boutique_name || item.businessName || "").toLowerCase().trim();
+
+          if (vId && vName && !seenIds.has(vId) && !seenNames.has(vName)) {
             seenIds.add(vId);
+            seenNames.add(vName);
             results.push(transformRegisteredToVenueDetail(vId, item));
           }
         });
-      }
-    }
-
-    // 2. Scan for any published venue CMS entries in localStorage
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key && key.startsWith("cloche_venue_cms_") && !key.startsWith("cloche_venue_cms_versions_")) {
-        const vId = key.replace("cloche_venue_cms_", "");
-        if (vId && !seenIds.has(vId) && vId !== "data_v1") {
-          const cmsRaw = localStorage.getItem(key);
-          if (cmsRaw) {
-            const cmsData = JSON.parse(cmsRaw);
-            if (cmsData && cmsData.businessProfile) {
-              seenIds.add(vId);
-              results.push(convertCmsToVenueDetail(cmsData));
-            }
-          }
-        }
       }
     }
   } catch (e) {
@@ -587,7 +602,8 @@ export function getDynamicVenues(): VenueDetail[] {
 export function getAllVenues(): VenueDetail[] {
   const dynamic = getDynamicVenues();
   const dynamicIds = new Set(dynamic.map((d) => d.id));
-  const filteredStatic = venues.filter((v) => !dynamicIds.has(v.id));
+  const dynamicNames = new Set(dynamic.map((d) => d.name.toLowerCase().trim()));
+  const filteredStatic = venues.filter((v) => !dynamicIds.has(v.id) && !dynamicNames.has(v.name.toLowerCase().trim()));
   return [...dynamic, ...filteredStatic];
 }
 
