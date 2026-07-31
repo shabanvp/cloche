@@ -254,6 +254,22 @@ export function saveVenueCmsData(data: VenueCmsData, status: "Draft" | "Publishe
     if (data.id) {
       localStorage.setItem(`cloche_venue_cms_${data.id}`, JSON.stringify(updated));
     }
+    if (data.vendorId && data.vendorId !== data.id) {
+      localStorage.setItem(`cloche_venue_cms_${data.vendorId}`, JSON.stringify(updated));
+    }
+
+    // Also update registered venues cache list
+    const venueDetailPayload = convertCmsToVenueDetail(updated);
+    const existingRaw = localStorage.getItem("cloche_registered_venues");
+    let existingList: any[] = existingRaw ? JSON.parse(existingRaw) : [];
+    if (!Array.isArray(existingList)) existingList = [];
+    const existingIndex = existingList.findIndex((v) => v.id === data.id || v.id === data.vendorId);
+    if (existingIndex >= 0) {
+      existingList[existingIndex] = { ...existingList[existingIndex], ...venueDetailPayload };
+    } else {
+      existingList.unshift(venueDetailPayload);
+    }
+    localStorage.setItem("cloche_registered_venues", JSON.stringify(existingList));
 
     // Save snapshot in version history if published
     if (status === "Published") {

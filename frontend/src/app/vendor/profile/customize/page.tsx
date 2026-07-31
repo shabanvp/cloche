@@ -6,24 +6,26 @@ import {
   getVenueCmsData, saveVenueCmsData, getVenueVersionHistory, restoreVenueVersion, 
   VenueCmsData, CmsVersionSnapshot 
 } from "@/lib/venueCmsStore";
+import { VenueProfileTemplate } from "@/components/vendor-templates/VenueProfileTemplate";
 import { 
   Building2, Save, Sparkles, CheckCircle2, History, RotateCcw, AlertTriangle, 
   Image as ImageIcon, Plus, Trash2, ShieldCheck, MapPin, Calendar, Star, MessageSquare, 
-  HelpCircle, Search, Check, Lock, X, ExternalLink
+  HelpCircle, Search, Check, Lock, X, ExternalLink, Eye, LayoutGrid, Columns
 } from "lucide-react";
 import { Button } from "@/components/Button";
 
 export default function VendorVenueCmsPage() {
-  // Mock current logged in vendor category
-  const mockVendorCategory = "Wedding Venue"; // Change to test permission restriction
+  const mockVendorCategory = "Wedding Venue";
   const vendorId = "v-hyatt";
 
   const [cmsData, setCmsData] = useState<VenueCmsData>(getVenueCmsData(vendorId));
   const [activeTab, setActiveTab] = useState<"profile" | "hero" | "venueInfo" | "amenities" | "packages" | "availability" | "reviews" | "faqs" | "seo">("profile");
+  const [viewMode, setViewMode] = useState<"split" | "editor" | "preview">("split");
   
   const [autoSaveStatus, setAutoSaveStatus] = useState<"Saved" | "Saving..." | "Unsaved Changes">("Saved");
   const [versionHistory, setVersionHistory] = useState<CmsVersionSnapshot[]>([]);
   const [isVersionModalOpen, setIsVersionModalOpen] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // New item draft states
   const [newPkgName, setNewPkgName] = useState("");
@@ -33,10 +35,9 @@ export default function VendorVenueCmsPage() {
 
   useEffect(() => {
     setCmsData(getVenueCmsData(vendorId));
-    setVersionHistory(getVenueVersionHistory());
+    setVersionHistory(getVenueVersionHistory(vendorId));
   }, []);
 
-  // Category Guard Verification
   const isVenueVendor = mockVendorCategory === "Wedding Venue" || mockVendorCategory === "Wedding Venues";
 
   if (!isVenueVendor) {
@@ -58,35 +59,44 @@ export default function VendorVenueCmsPage() {
     );
   }
 
-  // Update State & Trigger Auto-Save
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3000);
+  };
+
   const handleUpdate = (updater: (prev: VenueCmsData) => VenueCmsData) => {
     setAutoSaveStatus("Saving...");
     setCmsData((prev) => {
       const updated = updater(prev);
       saveVenueCmsData(updated, "Draft");
-      setTimeout(() => setAutoSaveStatus("Saved"), 600);
+      setTimeout(() => setAutoSaveStatus("Saved"), 400);
       return updated;
     });
   };
 
   const handlePublish = () => {
     saveVenueCmsData(cmsData, "Published");
-    setVersionHistory(getVenueVersionHistory());
-    alert("Venue CMS content published live to Cloche!");
+    setVersionHistory(getVenueVersionHistory(cmsData.id));
+    showToast("Venue Profile Published Live to Cloche!");
   };
 
   const handleRestoreVersion = (snapshot: CmsVersionSnapshot) => {
     const restored = restoreVenueVersion(snapshot);
     setCmsData(restored);
     setIsVersionModalOpen(false);
-    alert(`Restored venue profile to snapshot from ${snapshot.timestamp}`);
+    showToast(`Restored profile snapshot from ${snapshot.timestamp}`);
   };
-
-
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-16">
       
+      {/* Toast Banner */}
+      {toastMessage && (
+        <div className="fixed top-6 right-6 z-[100] bg-[#0F4C45] text-white px-6 py-3 rounded-2xl shadow-2xl font-bold text-xs flex items-center gap-2 border border-gold/30">
+          <CheckCircle2 className="w-4 h-4 text-emerald" /> {toastMessage}
+        </div>
+      )}
+
       {/* Action Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-4 gap-4 border-b border-gold/10">
         <div>
@@ -101,7 +111,36 @@ export default function VendorVenueCmsPage() {
           <h1 className="text-3xl font-display text-charcoal font-semibold mt-1">Wedding Venue Store Customizer</h1>
         </div>
 
+        {/* View Mode & Actions Controls */}
         <div className="flex flex-wrap items-center gap-2">
+          {/* Layout Toggle */}
+          <div className="bg-[#FBF8F1] border border-gold/20 p-1 rounded-xl flex items-center gap-1">
+            <button
+              onClick={() => setViewMode("editor")}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-all ${
+                viewMode === "editor" ? "bg-[#0F4C45] text-white shadow" : "text-charcoal/70 hover:text-charcoal"
+              }`}
+            >
+              <LayoutGrid className="w-3.5 h-3.5" /> Editor
+            </button>
+            <button
+              onClick={() => setViewMode("split")}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-all ${
+                viewMode === "split" ? "bg-[#0F4C45] text-white shadow" : "text-charcoal/70 hover:text-charcoal"
+              }`}
+            >
+              <Columns className="w-3.5 h-3.5" /> Split View
+            </button>
+            <button
+              onClick={() => setViewMode("preview")}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-all ${
+                viewMode === "preview" ? "bg-[#0F4C45] text-white shadow" : "text-charcoal/70 hover:text-charcoal"
+              }`}
+            >
+              <Eye className="w-3.5 h-3.5" /> Live Preview
+            </button>
+          </div>
+
           <Button
             type="button"
             variant="outline"
@@ -110,6 +149,7 @@ export default function VendorVenueCmsPage() {
           >
             <History className="w-3.5 h-3.5 text-gold" /> History
           </Button>
+
           <Link
             href={`/venues/${cmsData.id}`}
             target="_blank"
@@ -117,6 +157,7 @@ export default function VendorVenueCmsPage() {
           >
             <ExternalLink className="w-3.5 h-3.5" /> View Live Page
           </Link>
+
           <Button
             type="button"
             onClick={handlePublish}
@@ -127,248 +168,325 @@ export default function VendorVenueCmsPage() {
         </div>
       </div>
 
-      {/* Editor Grid */}
-      <div className="max-w-5xl mx-auto space-y-6">
+      {/* Main Container Grid depending on View Mode */}
+      <div className={viewMode === "split" ? "grid grid-cols-1 lg:grid-cols-12 gap-8 items-start" : "max-w-5xl mx-auto"}>
         
-        {/* Venue CMS Editor */}
-        <div className="space-y-6">
-          
-          {/* Section Navigation Tabs */}
-          <div className="flex gap-2 overflow-x-auto pb-2 border-b border-gold/10 hide-scrollbar">
-            {[
-              { id: "profile", label: "Profile" },
-              { id: "hero", label: "Hero Gallery" },
-              { id: "venueInfo", label: "Venue Info" },
-              { id: "amenities", label: "Amenities" },
-              { id: "packages", label: "Packages" },
-              { id: "availability", label: "Calendar" },
-              { id: "reviews", label: "Reviews" },
-              { id: "faqs", label: "FAQ" },
-              { id: "seo", label: "SEO" },
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
-                className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider whitespace-nowrap transition-all ${
-                  activeTab === tab.id
-                    ? "bg-[#0F4C45] text-white shadow-md"
-                    : "bg-white text-charcoal/70 hover:bg-gold/10 border border-gold/15"
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-
-          {/* Tab 1: Business Profile */}
-          {activeTab === "profile" && (
-            <div className="bg-white rounded-3xl p-6 border border-gold/15 shadow-sm space-y-4">
-              <h3 className="font-display text-xl text-charcoal font-semibold border-b border-gold/10 pb-3">1. Business Profile & Contact Details</h3>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                <div>
-                  <label className="font-semibold block text-charcoal/70 mb-1">Venue Name</label>
-                  <input
-                    type="text"
-                    value={cmsData.businessProfile.businessName}
-                    onChange={(e) => handleUpdate((p) => ({ ...p, businessProfile: { ...p.businessProfile, businessName: e.target.value } }))}
-                    className="w-full bg-[#FBF8F1] border border-gold/20 rounded-xl p-2.5 font-bold text-charcoal outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="font-semibold block text-charcoal/70 mb-1">Tagline / Subtitle</label>
-                  <input
-                    type="text"
-                    value={cmsData.businessProfile.tagline}
-                    onChange={(e) => handleUpdate((p) => ({ ...p, businessProfile: { ...p.businessProfile, tagline: e.target.value } }))}
-                    className="w-full bg-[#FBF8F1] border border-gold/20 rounded-xl p-2.5 text-charcoal outline-none"
-                  />
-                </div>
-              </div>
-
-              <div className="text-xs">
-                <label className="font-semibold block text-charcoal/70 mb-1">Venue Overview & Story</label>
-                <textarea
-                  rows={4}
-                  value={cmsData.businessProfile.description}
-                  onChange={(e) => handleUpdate((p) => ({ ...p, businessProfile: { ...p.businessProfile, description: e.target.value } }))}
-                  className="w-full bg-[#FBF8F1] border border-gold/20 rounded-xl p-2.5 text-charcoal outline-none leading-relaxed"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                <div>
-                  <label className="font-semibold block text-charcoal/70 mb-1">Contact Phone</label>
-                  <input
-                    type="text"
-                    value={cmsData.businessProfile.contactNumber}
-                    onChange={(e) => handleUpdate((p) => ({ ...p, businessProfile: { ...p.businessProfile, contactNumber: e.target.value } }))}
-                    className="w-full bg-[#FBF8F1] border border-gold/20 rounded-xl p-2.5 text-charcoal outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="font-semibold block text-charcoal/70 mb-1">WhatsApp Concierge</label>
-                  <input
-                    type="text"
-                    value={cmsData.businessProfile.whatsapp}
-                    onChange={(e) => handleUpdate((p) => ({ ...p, businessProfile: { ...p.businessProfile, whatsapp: e.target.value } }))}
-                    className="w-full bg-[#FBF8F1] border border-gold/20 rounded-xl p-2.5 text-charcoal outline-none"
-                  />
-                </div>
-              </div>
+        {/* CMS Form Editor Panel */}
+        {(viewMode === "editor" || viewMode === "split") && (
+          <div className={viewMode === "split" ? "lg:col-span-5 space-y-6" : "space-y-6"}>
+            
+            {/* Section Navigation Tabs */}
+            <div className="flex gap-2 overflow-x-auto pb-2 border-b border-gold/10 hide-scrollbar">
+              {[
+                { id: "profile", label: "Profile" },
+                { id: "hero", label: "Hero Gallery" },
+                { id: "venueInfo", label: "Venue Info" },
+                { id: "amenities", label: "Amenities" },
+                { id: "packages", label: "Packages" },
+                { id: "faqs", label: "FAQ" },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id as any)}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider whitespace-nowrap transition-all ${
+                    activeTab === tab.id
+                      ? "bg-[#0F4C45] text-white shadow-md"
+                      : "bg-white text-charcoal/70 hover:bg-gold/10 border border-gold/15"
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
             </div>
-          )}
 
-          {/* Tab 2: Hero Gallery */}
-          {activeTab === "hero" && (
-            <div className="bg-white rounded-3xl p-6 border border-gold/15 shadow-sm space-y-4">
-              <h3 className="font-display text-xl text-charcoal font-semibold border-b border-gold/10 pb-3">2. Hero Banner & Cover Image</h3>
+            {/* Tab 1: Business Profile */}
+            {activeTab === "profile" && (
+              <div className="bg-white rounded-3xl p-6 border border-gold/15 shadow-sm space-y-4">
+                <h3 className="font-display text-xl text-charcoal font-semibold border-b border-gold/10 pb-3">1. Business Profile & Contact Details</h3>
 
-              <div className="text-xs">
-                <label className="font-semibold block text-charcoal/70 mb-1">Cover Image URL</label>
-                <input
-                  type="text"
-                  value={cmsData.heroGallery.coverImage}
-                  onChange={(e) => handleUpdate((p) => ({ ...p, heroGallery: { ...p.heroGallery, coverImage: e.target.value } }))}
-                  className="w-full bg-[#FBF8F1] border border-gold/20 rounded-xl p-2.5 text-charcoal outline-none"
-                />
-              </div>
-
-              <div className="space-y-3 pt-2">
-                <h4 className="font-semibold text-xs text-charcoal/70">Hero Slider Images ({cmsData.heroGallery.images.length})</h4>
-                {cmsData.heroGallery.images.map((img, index) => (
-                  <div key={img.id} className="flex items-center gap-3 bg-[#FBF8F1] p-3 rounded-2xl border border-gold/15">
-                    <img src={img.url} alt="Hero" className="w-14 h-14 rounded-xl object-cover" />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                  <div>
+                    <label className="font-semibold block text-charcoal/70 mb-1">Venue Name</label>
                     <input
                       type="text"
-                      value={img.caption || ""}
-                      placeholder="Caption..."
-                      onChange={(e) => {
-                        const updated = [...cmsData.heroGallery.images];
-                        updated[index].caption = e.target.value;
-                        handleUpdate((p) => ({ ...p, heroGallery: { ...p.heroGallery, images: updated } }));
-                      }}
-                      className="flex-1 bg-white border border-gold/20 rounded-xl p-2 text-xs text-charcoal outline-none"
+                      value={cmsData.businessProfile.businessName}
+                      onChange={(e) => handleUpdate((p) => ({ ...p, businessProfile: { ...p.businessProfile, businessName: e.target.value } }))}
+                      className="w-full bg-[#FBF8F1] border border-gold/20 rounded-xl p-2.5 font-bold text-charcoal outline-none"
                     />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const updated = cmsData.heroGallery.images.filter((_, i) => i !== index);
-                        handleUpdate((p) => ({ ...p, heroGallery: { ...p.heroGallery, images: updated } }));
-                      }}
-                      className="text-red-500 hover:bg-red-50 p-2 rounded-lg"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
                   </div>
-                ))}
+
+                  <div>
+                    <label className="font-semibold block text-charcoal/70 mb-1">Tagline / Subtitle</label>
+                    <input
+                      type="text"
+                      value={cmsData.businessProfile.tagline}
+                      onChange={(e) => handleUpdate((p) => ({ ...p, businessProfile: { ...p.businessProfile, tagline: e.target.value } }))}
+                      className="w-full bg-[#FBF8F1] border border-gold/20 rounded-xl p-2.5 text-charcoal outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="text-xs">
+                  <label className="font-semibold block text-charcoal/70 mb-1">Venue Overview & Story</label>
+                  <textarea
+                    rows={4}
+                    value={cmsData.businessProfile.description}
+                    onChange={(e) => handleUpdate((p) => ({ ...p, businessProfile: { ...p.businessProfile, description: e.target.value } }))}
+                    className="w-full bg-[#FBF8F1] border border-gold/20 rounded-xl p-2.5 text-charcoal outline-none leading-relaxed"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                  <div>
+                    <label className="font-semibold block text-charcoal/70 mb-1">Contact Phone</label>
+                    <input
+                      type="text"
+                      value={cmsData.businessProfile.contactNumber}
+                      onChange={(e) => handleUpdate((p) => ({ ...p, businessProfile: { ...p.businessProfile, contactNumber: e.target.value } }))}
+                      className="w-full bg-[#FBF8F1] border border-gold/20 rounded-xl p-2.5 text-charcoal outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-semibold block text-charcoal/70 mb-1">WhatsApp Concierge</label>
+                    <input
+                      type="text"
+                      value={cmsData.businessProfile.whatsapp}
+                      onChange={(e) => handleUpdate((p) => ({ ...p, businessProfile: { ...p.businessProfile, whatsapp: e.target.value } }))}
+                      className="w-full bg-[#FBF8F1] border border-gold/20 rounded-xl p-2.5 text-charcoal outline-none"
+                    />
+                  </div>
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Tab 3: Venue Information & Capacity */}
-          {activeTab === "venueInfo" && (
-            <div className="bg-white rounded-3xl p-6 border border-gold/15 shadow-sm space-y-4">
-              <h3 className="font-display text-xl text-charcoal font-semibold border-b border-gold/10 pb-3">3. Venue Capacity & Property Specs</h3>
+            {/* Tab 2: Hero Gallery */}
+            {activeTab === "hero" && (
+              <div className="bg-white rounded-3xl p-6 border border-gold/15 shadow-sm space-y-4">
+                <h3 className="font-display text-xl text-charcoal font-semibold border-b border-gold/10 pb-3">2. Hero Banner & Cover Image</h3>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                <div>
-                  <label className="font-semibold block text-charcoal/70 mb-1">Starting Tariff Price</label>
+                <div className="text-xs">
+                  <label className="font-semibold block text-charcoal/70 mb-1">Cover Image URL</label>
                   <input
                     type="text"
-                    value={cmsData.venueInfo.startingPrice}
-                    onChange={(e) => handleUpdate((p) => ({ ...p, venueInfo: { ...p.venueInfo, startingPrice: e.target.value } }))}
-                    className="w-full bg-[#FBF8F1] border border-gold/20 rounded-xl p-2.5 font-bold text-charcoal outline-none"
+                    value={cmsData.heroGallery.coverImage}
+                    onChange={(e) => handleUpdate((p) => ({ ...p, heroGallery: { ...p.heroGallery, coverImage: e.target.value } }))}
+                    className="w-full bg-[#FBF8F1] border border-gold/20 rounded-xl p-2.5 text-charcoal outline-none"
                   />
                 </div>
 
-                <div>
-                  <label className="font-semibold block text-charcoal/70 mb-1">Venue Layout Type</label>
-                  <select
-                    value={cmsData.venueInfo.venueType}
-                    onChange={(e) => handleUpdate((p) => ({ ...p, venueInfo: { ...p.venueInfo, venueType: e.target.value as any } }))}
-                    className="w-full bg-[#FBF8F1] border border-gold/20 rounded-xl p-2.5 font-bold text-charcoal outline-none"
-                  >
-                    <option value="Indoor + Outdoor">Indoor + Outdoor</option>
-                    <option value="Indoor">Indoor Banquet Hall</option>
-                    <option value="Outdoor">Outdoor Lawn</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
-                <div>
-                  <label className="font-semibold block text-charcoal/70 mb-1">Min Guests</label>
-                  <input
-                    type="number"
-                    value={cmsData.venueInfo.minGuests}
-                    onChange={(e) => handleUpdate((p) => ({ ...p, venueInfo: { ...p.venueInfo, minGuests: Number(e.target.value) } }))}
-                    className="w-full bg-[#FBF8F1] border border-gold/20 rounded-xl p-2.5 text-charcoal outline-none font-bold"
-                  />
-                </div>
-
-                <div>
-                  <label className="font-semibold block text-charcoal/70 mb-1">Max Guests</label>
-                  <input
-                    type="number"
-                    value={cmsData.venueInfo.maxGuests}
-                    onChange={(e) => handleUpdate((p) => ({ ...p, venueInfo: { ...p.venueInfo, maxGuests: Number(e.target.value) } }))}
-                    className="w-full bg-[#FBF8F1] border border-gold/20 rounded-xl p-2.5 text-charcoal outline-none font-bold"
-                  />
-                </div>
-
-                <div>
-                  <label className="font-semibold block text-charcoal/70 mb-1">Guest Rooms</label>
-                  <input
-                    type="number"
-                    value={cmsData.venueInfo.roomsCount}
-                    onChange={(e) => handleUpdate((p) => ({ ...p, venueInfo: { ...p.venueInfo, roomsCount: Number(e.target.value) } }))}
-                    className="w-full bg-[#FBF8F1] border border-gold/20 rounded-xl p-2.5 text-charcoal outline-none font-bold"
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Tab 4: Packages */}
-          {activeTab === "packages" && (
-            <div className="bg-white rounded-3xl p-6 border border-gold/15 shadow-sm space-y-4">
-              <h3 className="font-display text-xl text-charcoal font-semibold border-b border-gold/10 pb-3">4. Rental Packages & Tariffs</h3>
-
-              <div className="space-y-3">
-                {cmsData.packages.map((pkg, index) => (
-                  <div key={pkg.id} className="bg-[#FBF8F1] p-4 rounded-2xl border border-gold/15 space-y-2 text-xs">
-                    <div className="flex justify-between items-center">
+                <div className="space-y-3 pt-2">
+                  <h4 className="font-semibold text-xs text-charcoal/70">Hero Slider Images ({cmsData.heroGallery.images.length})</h4>
+                  {cmsData.heroGallery.images.map((img, index) => (
+                    <div key={img.id} className="flex items-center gap-3 bg-[#FBF8F1] p-3 rounded-2xl border border-gold/15">
+                      <img src={img.url} alt="Hero" className="w-14 h-14 rounded-xl object-cover" />
                       <input
                         type="text"
-                        value={pkg.name}
+                        value={img.caption || ""}
+                        placeholder="Caption..."
                         onChange={(e) => {
-                          const updated = [...cmsData.packages];
-                          updated[index].name = e.target.value;
-                          handleUpdate((p) => ({ ...p, packages: updated }));
+                          const updated = [...cmsData.heroGallery.images];
+                          updated[index].caption = e.target.value;
+                          handleUpdate((p) => ({ ...p, heroGallery: { ...p.heroGallery, images: updated } }));
                         }}
-                        className="font-bold text-charcoal text-sm bg-white border border-gold/20 rounded-lg p-1.5"
+                        className="flex-1 bg-white border border-gold/20 rounded-xl p-2 text-xs text-charcoal outline-none"
                       />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = cmsData.heroGallery.images.filter((_, i) => i !== index);
+                          handleUpdate((p) => ({ ...p, heroGallery: { ...p.heroGallery, images: updated } }));
+                        }}
+                        className="text-red-500 hover:bg-red-50 p-2 rounded-lg"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Tab 3: Venue Information & Capacity */}
+            {activeTab === "venueInfo" && (
+              <div className="bg-white rounded-3xl p-6 border border-gold/15 shadow-sm space-y-4">
+                <h3 className="font-display text-xl text-charcoal font-semibold border-b border-gold/10 pb-3">3. Venue Capacity & Property Specs</h3>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                  <div>
+                    <label className="font-semibold block text-charcoal/70 mb-1">Starting Tariff Price</label>
+                    <input
+                      type="text"
+                      value={cmsData.venueInfo.startingPrice}
+                      onChange={(e) => handleUpdate((p) => ({ ...p, venueInfo: { ...p.venueInfo, startingPrice: e.target.value } }))}
+                      className="w-full bg-[#FBF8F1] border border-gold/20 rounded-xl p-2.5 font-bold text-charcoal outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-semibold block text-charcoal/70 mb-1">Venue Layout Type</label>
+                    <select
+                      value={cmsData.venueInfo.venueType}
+                      onChange={(e) => handleUpdate((p) => ({ ...p, venueInfo: { ...p.venueInfo, venueType: e.target.value as any } }))}
+                      className="w-full bg-[#FBF8F1] border border-gold/20 rounded-xl p-2.5 font-bold text-charcoal outline-none"
+                    >
+                      <option value="Indoor + Outdoor">Indoor + Outdoor</option>
+                      <option value="Indoor">Indoor Banquet Hall</option>
+                      <option value="Outdoor">Outdoor Lawn</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+                  <div>
+                    <label className="font-semibold block text-charcoal/70 mb-1">Min Guests</label>
+                    <input
+                      type="number"
+                      value={cmsData.venueInfo.minGuests}
+                      onChange={(e) => handleUpdate((p) => ({ ...p, venueInfo: { ...p.venueInfo, minGuests: Number(e.target.value) } }))}
+                      className="w-full bg-[#FBF8F1] border border-gold/20 rounded-xl p-2.5 text-charcoal outline-none font-bold"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-semibold block text-charcoal/70 mb-1">Max Guests</label>
+                    <input
+                      type="number"
+                      value={cmsData.venueInfo.maxGuests}
+                      onChange={(e) => handleUpdate((p) => ({ ...p, venueInfo: { ...p.venueInfo, maxGuests: Number(e.target.value) } }))}
+                      className="w-full bg-[#FBF8F1] border border-gold/20 rounded-xl p-2.5 text-charcoal outline-none font-bold"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-semibold block text-charcoal/70 mb-1">Guest Rooms</label>
+                    <input
+                      type="number"
+                      value={cmsData.venueInfo.roomsCount}
+                      onChange={(e) => handleUpdate((p) => ({ ...p, venueInfo: { ...p.venueInfo, roomsCount: Number(e.target.value) } }))}
+                      className="w-full bg-[#FBF8F1] border border-gold/20 rounded-xl p-2.5 text-charcoal outline-none font-bold"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Tab 4: Amenities */}
+            {activeTab === "amenities" && (
+              <div className="bg-white rounded-3xl p-6 border border-gold/15 shadow-sm space-y-4">
+                <h3 className="font-display text-xl text-charcoal font-semibold border-b border-gold/10 pb-3">4. Amenities & Facilities</h3>
+
+                <div className="grid grid-cols-2 gap-3 text-xs">
+                  {Object.entries(cmsData.amenities).map(([key, val]) => (
+                    <label key={key} className="flex items-center gap-2 p-2.5 bg-[#FBF8F1] rounded-xl border border-gold/15 font-semibold text-charcoal cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={Boolean(val)}
+                        onChange={(e) => {
+                          handleUpdate((p) => ({
+                            ...p,
+                            amenities: { ...p.amenities, [key]: e.target.checked }
+                          }));
+                        }}
+                        className="rounded accent-[#0F4C45] w-4 h-4"
+                      />
+                      <span>{key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, " $1")}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Tab 5: Packages */}
+            {activeTab === "packages" && (
+              <div className="bg-white rounded-3xl p-6 border border-gold/15 shadow-sm space-y-4">
+                <h3 className="font-display text-xl text-charcoal font-semibold border-b border-gold/10 pb-3">5. Rental Packages & Tariffs</h3>
+
+                <div className="space-y-3">
+                  {cmsData.packages.map((pkg, index) => (
+                    <div key={pkg.id} className="bg-[#FBF8F1] p-4 rounded-2xl border border-gold/15 space-y-2 text-xs">
+                      <div className="flex justify-between items-center">
+                        <input
+                          type="text"
+                          value={pkg.name}
+                          onChange={(e) => {
+                            const updated = [...cmsData.packages];
+                            updated[index].name = e.target.value;
+                            handleUpdate((p) => ({ ...p, packages: updated }));
+                          }}
+                          className="font-bold text-charcoal text-sm bg-white border border-gold/20 rounded-lg p-1.5 flex-1 mr-2"
+                        />
+                        <input
+                          type="text"
+                          value={pkg.price}
+                          onChange={(e) => {
+                            const updated = [...cmsData.packages];
+                            updated[index].price = e.target.value;
+                            handleUpdate((p) => ({ ...p, packages: updated }));
+                          }}
+                          className="font-bold text-emerald text-sm bg-white border border-gold/20 rounded-lg p-1.5 text-right w-32"
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Tab 6: FAQs */}
+            {activeTab === "faqs" && (
+              <div className="bg-white rounded-3xl p-6 border border-gold/15 shadow-sm space-y-4">
+                <h3 className="font-display text-xl text-charcoal font-semibold border-b border-gold/10 pb-3">6. Frequently Asked Questions</h3>
+
+                <div className="space-y-3">
+                  {cmsData.faqs.map((faq, index) => (
+                    <div key={faq.id} className="bg-[#FBF8F1] p-3.5 rounded-2xl border border-gold/15 space-y-2 text-xs">
                       <input
                         type="text"
-                        value={pkg.price}
+                        value={faq.question}
                         onChange={(e) => {
-                          const updated = [...cmsData.packages];
-                          updated[index].price = e.target.value;
-                          handleUpdate((p) => ({ ...p, packages: updated }));
+                          const updated = [...cmsData.faqs];
+                          updated[index].question = e.target.value;
+                          handleUpdate((p) => ({ ...p, faqs: updated }));
                         }}
-                        className="font-bold text-emerald text-sm bg-white border border-gold/20 rounded-lg p-1.5 text-right w-32"
+                        className="font-bold text-charcoal w-full bg-white border border-gold/20 rounded-lg p-2"
+                      />
+                      <textarea
+                        rows={2}
+                        value={faq.answer}
+                        onChange={(e) => {
+                          const updated = [...cmsData.faqs];
+                          updated[index].answer = e.target.value;
+                          handleUpdate((p) => ({ ...p, faqs: updated }));
+                        }}
+                        className="w-full bg-white border border-gold/20 rounded-lg p-2 text-charcoal"
                       />
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-        </div>
+          </div>
+        )}
+
+        {/* Live Preview Panel — Uses ONE SAME VenueProfileTemplate Component */}
+        {(viewMode === "preview" || viewMode === "split") && (
+          <div className={viewMode === "split" ? "lg:col-span-7 bg-white rounded-3xl p-4 border border-gold/20 shadow-xl overflow-hidden" : "bg-white rounded-3xl p-6 border border-gold/20 shadow-xl"}>
+            <div className="mb-4 pb-2 border-b border-gold/10 flex justify-between items-center px-2">
+              <span className="text-xs font-bold uppercase tracking-wider text-[#0F4C45] flex items-center gap-1.5">
+                <Eye className="w-4 h-4 text-gold" /> Exact Public Profile Preview
+              </span>
+              <span className="text-[10px] text-charcoal/60 bg-[#FBF8F1] px-2.5 py-1 rounded-full border border-gold/15">
+                Single Source of Truth Template
+              </span>
+            </div>
+
+            <div className="rounded-2xl overflow-hidden border border-gold/15 bg-[#F5F0E8] max-h-[850px] overflow-y-auto">
+              <VenueProfileTemplate cmsData={cmsData} preview={true} />
+            </div>
+          </div>
+        )}
 
       </div>
 

@@ -46,7 +46,7 @@ export function DynamicVendorProfileRouter({
     catLower.includes("palace") ||
     catLower === "wedding venues"
   ) {
-    return <VenueProfileTemplate config={config} />;
+    return <VenueProfileTemplate config={config} preview={false} />;
   }
 
   // 2. Check for Photographers & Videographers
