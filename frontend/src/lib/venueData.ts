@@ -449,36 +449,50 @@ export const venues: VenueDetail[] = [
 ];
 
 export function transformRegisteredToVenueDetail(id: string, data: any): VenueDetail {
-  const defaultImages = [
-    data.image || data.coverImage || data.heroImage || "https://images.unsplash.com/photo-1519167758481-83f552bb8c74?auto=format&fit=crop&w=1200&q=80",
-    ...(data.images || data.galleryImages || []),
-  ].filter(Boolean);
+  const rawDefaultImages = [
+    data.image,
+    data.coverImage,
+    data.heroImage,
+    ...(Array.isArray(data.images) ? data.images : []),
+    ...(Array.isArray(data.galleryImages) ? data.galleryImages : []),
+  ].filter((url): url is string => Boolean(url && typeof url === "string" && (url.startsWith("http") || url.startsWith("/") || url.startsWith("data:"))));
 
   const fallbackImages = [
+    "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1200&q=80",
     "https://images.unsplash.com/photo-1519167758481-83f552bb8c74?auto=format&fit=crop&w=800&q=80",
     "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?auto=format&fit=crop&w=800&q=80",
     "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=800&q=80",
-    "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=800&q=80",
-    "https://images.unsplash.com/photo-1570544820323-66a7e58ce1d8?auto=format&fit=crop&w=800&q=80",
   ];
 
-  const finalImages = defaultImages.length > 0 ? defaultImages : fallbackImages;
+  const finalImages = rawDefaultImages.length > 0 ? rawDefaultImages : fallbackImages;
   const otherVenues = venues.filter((v) => v.id !== id).slice(0, 4);
+
+  const formattedFallbackName = id && !/^\d+$/.test(id)
+    ? id.replace(/[-_]+/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())
+    : "Grand Wedding Venue";
+
+  const resolvedName = data.name && !/^\d+$/.test(data.name)
+    ? data.name
+    : data.boutique_name && !/^\d+$/.test(data.boutique_name)
+    ? data.boutique_name
+    : data.businessName && !/^\d+$/.test(data.businessName)
+    ? data.businessName
+    : formattedFallbackName;
 
   return {
     id: id,
-    name: data.name || data.boutique_name || data.businessName || "Registered Wedding Venue",
-    location: data.location || `${data.city || "Kerala"}, ${data.district || data.state || "India"}`,
-    city: data.city || "Udaipur",
-    rating: data.rating || 4.8,
+    name: resolvedName,
+    location: data.location || `${data.city || "Kochi"}, ${data.district || data.state || "Ernakulam"}`,
+    city: data.city || "Kochi",
+    rating: data.rating || 4.9,
     reviews: data.reviewsCount || data.reviews || 15,
     image: finalImages[0],
     images: finalImages,
     totalPhotos: data.totalPhotos || finalImages.length,
     tags: data.tags || ["Luxury", "Wedding Venue", data.spaceType || "Outdoor & Indoor"],
-    capacity: data.capacity || (data.minGuests ? `${data.minGuests} – ${data.maxGuests || 1000} Guests` : "300 – 1200 Guests"),
+    capacity: data.capacity || (data.minGuests ? `${data.minGuests} – ${data.maxGuests || 2000} Guests` : "250 – 2000 Guests"),
     spaceType: data.spaceType || data.venueType || "Outdoor & Indoor",
-    startingPrice: data.startingPrice ? (String(data.startingPrice).startsWith("₹") ? data.startingPrice : `₹${data.startingPrice}`) : "₹5,00,000",
+    startingPrice: data.startingPrice ? (String(data.startingPrice).startsWith("₹") ? data.startingPrice : `₹${data.startingPrice}`) : "₹50,000 / day",
     verified: data.verified ?? true,
     amenities: data.amenities && Array.isArray(data.amenities) && data.amenities.length > 0
       ? data.amenities.map((a: any) => typeof a === "string" ? { icon: "check_circle", label: a } : { icon: a.icon || "check_circle", label: a.label || a.name })
@@ -494,14 +508,13 @@ export function transformRegisteredToVenueDetail(id: string, data: any): VenueDe
     packages: data.packages && Array.isArray(data.packages) && data.packages.length > 0
       ? data.packages.map((pkg: any) => ({
           name: pkg.name || "Special Wedding Package",
-          price: pkg.price ? (String(pkg.price).startsWith("₹") ? pkg.price : `₹${pkg.price}`) : "₹5,00,000",
+          price: pkg.price ? (String(pkg.price).startsWith("₹") ? pkg.price : `₹${pkg.price}`) : "₹50,000 / day",
           guests: pkg.guests || pkg.description || "500 Guests",
           tag: pkg.tag || pkg.isPopular ? "Most Loved" : undefined,
         }))
       : [
-          { name: "Royal Affair Package", price: data.startingPrice || "₹8,00,000", guests: "500 Guests", tag: "Most Loved" },
-          { name: "Grand Celebration Package", price: "₹12,00,000", guests: "800 Guests" },
-          { name: "Luxury Experience Package", price: "₹18,00,000", guests: "1200 Guests" },
+          { name: "Silver Wedding Package", price: data.startingPrice || "₹50,000 / day", guests: "500 Guests", tag: "Most Loved" },
+          { name: "Royal Gold Package", price: "₹1,50,000 / day", guests: "1000 Guests" },
         ],
     review: data.review || (data.reviewsList && data.reviewsList[0] ? {
       couple: data.reviewsList[0].author,
@@ -511,7 +524,7 @@ export function transformRegisteredToVenueDetail(id: string, data: any): VenueDe
       avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=80&q=80",
     } : {
       couple: "Ananya & Rohan",
-      date: "May 2025",
+      date: "Recent",
       rating: 5,
       text: "Hosting our wedding here was a dream come true! Exceptional management, beautiful ambiance, and impeccable service throughout.",
       avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=80&q=80",

@@ -16,9 +16,8 @@ import { Button } from "@/components/Button";
 
 export default function VendorVenueCmsPage() {
   const mockVendorCategory = "Wedding Venue";
-  const vendorId = "v-hyatt";
-
-  const [cmsData, setCmsData] = useState<VenueCmsData>(getVenueCmsData(vendorId));
+  const [vendorId, setVendorId] = useState<string>("v-hyatt");
+  const [cmsData, setCmsData] = useState<VenueCmsData>(() => getVenueCmsData("v-hyatt"));
   const [activeTab, setActiveTab] = useState<"profile" | "hero" | "venueInfo" | "amenities" | "packages" | "availability" | "reviews" | "faqs" | "seo">("profile");
   const [viewMode, setViewMode] = useState<"split" | "editor" | "preview">("split");
   
@@ -34,8 +33,27 @@ export default function VendorVenueCmsPage() {
   const [newFaqA, setNewFaqA] = useState("");
 
   useEffect(() => {
-    setCmsData(getVenueCmsData(vendorId));
-    setVersionHistory(getVenueVersionHistory(vendorId));
+    if (typeof window !== "undefined") {
+      const regRaw = localStorage.getItem("cloche_registered_venues");
+      if (regRaw) {
+        try {
+          const list = JSON.parse(regRaw);
+          if (Array.isArray(list) && list.length > 0) {
+            const latest = list[0];
+            const resolvedId = latest.id || latest.vendorId || latest.slug;
+            if (resolvedId) {
+              setVendorId(resolvedId);
+              const loaded = getVenueCmsData(resolvedId);
+              setCmsData(loaded);
+              setVersionHistory(getVenueVersionHistory(resolvedId));
+              return;
+            }
+          }
+        } catch (e) {}
+      }
+      setCmsData(getVenueCmsData(vendorId));
+      setVersionHistory(getVenueVersionHistory(vendorId));
+    }
   }, []);
 
   const isVenueVendor = mockVendorCategory === "Wedding Venue" || mockVendorCategory === "Wedding Venues";
