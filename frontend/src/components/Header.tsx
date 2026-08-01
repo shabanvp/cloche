@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { 
   Bell, Edit3, Smartphone, Menu, X, ChevronDown, Search, User,
   Home, MapPin, Store, BookHeart, FileText, Mail,
-  Heart, Lightbulb, Info, CircleHelp, ArrowRight, Users, MessageCircle, CheckCircle2
+  Heart, Lightbulb, Info, CircleHelp, ArrowRight, Users, MessageCircle, CheckCircle2, Sparkles
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -73,10 +73,10 @@ export function Header({ session }: HeaderProps = {}) {
     { label: "Home", href: "/", icon: Home },
     { label: "Venues", href: "/venues", icon: MapPin },
     { label: "Vendors", href: "/boutiques", icon: Users },
-    { label: "Boutiques", href: "/boutiques", icon: Store },
+    { label: "Exclusive Deals", href: "/deals", icon: Sparkles },
     { label: "Collections", href: "/collections", icon: Heart },
     { label: "Real Weddings", href: "/real-weddings", icon: BookHeart },
-    { label: "Inspiration", href: "/inspiration", icon: Lightbulb },
+    { label: "Photos & Inspiration", href: "/inspiration", icon: Lightbulb },
     { label: "Blogs", href: "/blogs", icon: FileText },
   ];
 
