@@ -97,20 +97,20 @@ export type VendorProfileConfig = {
 };
 
 export const DEFAULT_VENDOR_CONFIGS: Record<string, VendorProfileConfig> = {
-  "v-hyatt": {
-    id: "cfg-hyatt",
-    vendorId: "v-hyatt",
+  "v-solitaire": {
+    id: "cfg-solitaire",
+    vendorId: "v-solitaire",
     category: "Wedding Venues",
-    businessName: "Grand Hyatt Kochi Bolgatty",
+    businessName: "Grand Solitaire Island Resort",
     tagline: "Luxury Waterfront Island Wedding Destination",
     logo: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=400&q=80",
-    coverImage: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=1600&q=80",
-    aboutText: "Situated on the serene Bolgatty Island, Grand Hyatt Kochi offers 100,000 sq.ft of luxurious indoor & outdoor wedding spaces with backwater views.",
+    coverImage: "https://images.unsplash.com/photo-1519167758481-83f552bb8c74?auto=format&fit=crop&w=1600&q=80",
+    aboutText: "Situated on the serene Bolgatty Island, Grand Solitaire Island Resort offers 100,000 sq.ft of luxurious indoor & outdoor wedding spaces with backwater views.",
     phone: "+91 484 266 1234",
     whatsapp: "+91 98950 11223",
-    email: "events.kochi@hyatt.com",
-    instagram: "@grandhyattkochi",
-    website: "https://hyatt.com",
+    email: "events.kochi@solitaire.com",
+    instagram: "@grandsolitaire",
+    website: "https://solitaire.com",
     city: "Kochi",
     district: "Ernakulam",
     address: "Bolgatty Island, Kochi, Kerala 682050",

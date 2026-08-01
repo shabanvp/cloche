@@ -677,7 +677,7 @@ export default function VendorRegisterPage() {
           <div className="flex items-start gap-3 mb-2">
             <input id="terms" name="terms" type="checkbox" required className="mt-1 w-4 h-4 text-emerald rounded border-outline/30 focus:ring-emerald cursor-pointer" {...fieldErrorProps("terms")} />
             <label className="text-sm text-charcoal/80" htmlFor="terms">
-              I certify that I am an authorized representative of this business and agree to the <Link href="/terms" className="text-emerald font-semibold hover:underline">Terms of Service</Link> and <Link href="/privacy" className="text-emerald font-semibold hover:underline">Privacy Policy</Link>.
+              I certify that I am an authorized representative of this business and agree to the <Link href="/content/terms" target="_blank" className="text-emerald font-semibold hover:underline">Terms of Service</Link> and <Link href="/content/privacy" target="_blank" className="text-emerald font-semibold hover:underline">Privacy Policy</Link>.
             </label>
           </div>
           <div className="mb-6">{fieldError("terms")}</div>

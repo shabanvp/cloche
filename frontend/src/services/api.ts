@@ -121,7 +121,7 @@ export async function getProductDetails(id: string): Promise<Product & { gallery
   // Fallback mock object if product ID is temporary
   return {
     id: id,
-    boutique_id: id.split('-col-')[0] || id.split('-prod-')[0] || "kalki-couture",
+    boutique_id: id.split('-col-')[0] || id.split('-prod-')[0] || "aurora-bridal-couture",
     boutique_name: "Bridal Couture Partner",
     product_name: "Signature Royal Bridal Outfit",
     category: "Bridal Wear",

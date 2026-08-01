@@ -16,8 +16,8 @@ import { Button } from "@/components/Button";
 
 export default function VendorVenueCmsPage() {
   const mockVendorCategory = "Wedding Venue";
-  const [vendorId, setVendorId] = useState<string>("v-hyatt");
-  const [cmsData, setCmsData] = useState<VenueCmsData>(() => getVenueCmsData("v-hyatt"));
+  const [vendorId, setVendorId] = useState<string>("v-solitaire");
+  const [cmsData, setCmsData] = useState<VenueCmsData>(() => getVenueCmsData("v-solitaire"));
   const [activeTab, setActiveTab] = useState<"profile" | "hero" | "venueInfo" | "amenities" | "packages" | "availability" | "reviews" | "faqs" | "seo">("profile");
   const [viewMode, setViewMode] = useState<"split" | "editor" | "preview">("split");
   

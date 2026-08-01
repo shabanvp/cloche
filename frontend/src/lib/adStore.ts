@@ -668,10 +668,10 @@ export const INITIAL_REQUESTS: CampaignRequest[] = [
   },
   {
     id: "req-02",
-    vendorName: "Leela Raviz Kovalam",
+    vendorName: "Seaside Haven Resort",
     contactPerson: "Marketing Head",
     phone: "+91 471 305 1234",
-    email: "weddings.kovalam@theleela.com",
+    email: "weddings.kovalam@seasidehaven.com",
     requestedPlacement: "Featured Category Placement",
     budget: "₹10,000 / month",
     notes: "Beachfront wedding resort sponsorship.",
