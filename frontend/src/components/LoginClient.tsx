@@ -46,13 +46,13 @@ export function LoginClient() {
     const res = await login(formData);
 
     if (res.success) {
-      if (requestedRole === "admin" || res.user?.role === "admin") {
+      if (requestedRole === "admin" || (res as any)?.user?.role === "admin") {
         window.location.href = "/admin";
       } else {
         window.location.href = "/dashboard";
       }
     } else {
-      setErrorMsg(res.message || "Invalid credentials. Please try again.");
+      setErrorMsg(res.error || "Invalid credentials. Please try again.");
       setIsSubmitting(false);
     }
   };
