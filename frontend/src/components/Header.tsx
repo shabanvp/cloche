@@ -187,13 +187,13 @@ export function Header({ session }: HeaderProps = {}) {
 
         {/* Desktop Links */}
         <nav className="hidden lg:flex items-center gap-5 xl:gap-8 font-semibold text-[14px] xl:text-[15px]">
-          <Link href="/venues" className="hover:text-gold transition-colors">Venues</Link>
-          <Link href="/boutiques" className="hover:text-gold transition-colors">Vendors</Link>
-          <Link href="/inspiration" className="hover:text-gold transition-colors">Photos</Link>
-          <Link href="/real-weddings" className="hover:text-gold transition-colors">Real Weddings</Link>
-          <Link href="/blogs" className="hover:text-gold transition-colors">Blog</Link>
-          <Link href="/e-invites" className="hover:text-gold transition-colors">E-Invites</Link>
-          <Link href="/genie" className="hover:text-gold transition-colors">Genie</Link>
+          <Link href="/venues" className={`transition-colors ${isActiveLink("/venues") ? "text-gold font-bold" : "hover:text-gold"}`}>Venues</Link>
+          <Link href="/boutiques" className={`transition-colors ${isActiveLink("/boutiques") ? "text-gold font-bold" : "hover:text-gold"}`}>Vendors</Link>
+          <Link href="/inspiration" className={`transition-colors ${isActiveLink("/inspiration") ? "text-gold font-bold" : "hover:text-gold"}`}>Photos</Link>
+          <Link href="/real-weddings" className={`transition-colors ${isActiveLink("/real-weddings") ? "text-gold font-bold" : "hover:text-gold"}`}>Real Weddings</Link>
+          <Link href="/blogs" className={`transition-colors ${isActiveLink("/blogs") ? "text-gold font-bold" : "hover:text-gold"}`}>Blog</Link>
+          <Link href="/e-invites" className={`transition-colors ${isActiveLink("/e-invites") ? "text-gold font-bold" : "hover:text-gold"}`}>E-Invites</Link>
+          <Link href="/genie" className={`transition-colors ${isActiveLink("/genie") ? "text-gold font-bold" : "hover:text-gold"}`}>Genie</Link>
         </nav>
 
         {/* Actions */}
