@@ -71,7 +71,7 @@ export function Header({ session }: HeaderProps = {}) {
 
   const browseLinks = [
     { label: "Home", href: "/", icon: Home },
-    { label: "Venues", href: "/categories", icon: MapPin },
+    { label: "Venues", href: "/venues", icon: MapPin },
     { label: "Vendors", href: "/boutiques", icon: Users },
     { label: "Boutiques", href: "/boutiques", icon: Store },
     { label: "Collections", href: "/collections", icon: Heart },
@@ -187,7 +187,7 @@ export function Header({ session }: HeaderProps = {}) {
 
         {/* Desktop Links */}
         <nav className="hidden lg:flex items-center gap-5 xl:gap-8 font-semibold text-[14px] xl:text-[15px]">
-          <Link href="/categories" className="hover:text-gold transition-colors">Venues</Link>
+          <Link href="/venues" className="hover:text-gold transition-colors">Venues</Link>
           <Link href="/boutiques" className="hover:text-gold transition-colors">Vendors</Link>
           <Link href="/inspiration" className="hover:text-gold transition-colors">Photos</Link>
           <Link href="/real-weddings" className="hover:text-gold transition-colors">Real Weddings</Link>
