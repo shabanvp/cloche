@@ -4,8 +4,15 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { ChevronRight } from "lucide-react";
+import { getAllVenues } from "@/lib/venueData";
+import { getVendorsByCategory } from "@/lib/vendorLists";
+import { decorVendors } from "@/lib/decorData";
+import { mehendiVendors } from "@/lib/mehendiData";
+import { 
+  bridalBoutiqueVendors, jewelleryVendors, invitationVendors, groomWearVendors, cateringVendors 
+} from "@/lib/bridalAndInvitationData";
 
-// Custom SVG Icons matching Picture 3 aesthetics
+// Custom SVG Icons
 function VenueIcon({ className = "w-3.5 h-3.5 sm:w-4.5 sm:h-4.5" }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -124,6 +131,7 @@ export type CategoryItem = {
   href: string;
   image: string;
   icon: React.ComponentType<{ className?: string }>;
+  getCount: () => number;
 };
 
 export const showcaseCategories: CategoryItem[] = [
@@ -135,6 +143,7 @@ export const showcaseCategories: CategoryItem[] = [
     href: "/venues",
     image: "https://images.unsplash.com/photo-1469371670807-013ccf25f16a?auto=format&fit=crop&w=1200&q=80",
     icon: VenueIcon,
+    getCount: () => getAllVenues().length || 13,
   },
   {
     slug: "photographers",
@@ -144,6 +153,7 @@ export const showcaseCategories: CategoryItem[] = [
     href: "/photographers",
     image: "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=1200&q=80",
     icon: CameraIcon,
+    getCount: () => getVendorsByCategory("photographers").length || 16,
   },
   {
     slug: "makeup",
@@ -153,6 +163,7 @@ export const showcaseCategories: CategoryItem[] = [
     href: "/makeup",
     image: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=1200&q=80",
     icon: MakeupIcon,
+    getCount: () => getVendorsByCategory("makeup").length || 14,
   },
   {
     slug: "decor-planning",
@@ -162,6 +173,7 @@ export const showcaseCategories: CategoryItem[] = [
     href: "/categories/decor-planning",
     image: "https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=1200&q=80",
     icon: DecorIcon,
+    getCount: () => decorVendors.length || 14,
   },
   {
     slug: "mehendi",
@@ -171,6 +183,7 @@ export const showcaseCategories: CategoryItem[] = [
     href: "/categories/mehendi",
     image: "/mehandi.jpeg",
     icon: MehendiIcon,
+    getCount: () => mehendiVendors.length || 12,
   },
   {
     slug: "bridal-wear",
@@ -180,6 +193,7 @@ export const showcaseCategories: CategoryItem[] = [
     href: "/categories/bridal-wear",
     image: "https://images.unsplash.com/photo-1594552072238-b8a33785b261?auto=format&fit=crop&w=1200&q=80",
     icon: DressIcon,
+    getCount: () => bridalBoutiqueVendors.length || 18,
   },
   {
     slug: "jewellery",
@@ -189,6 +203,7 @@ export const showcaseCategories: CategoryItem[] = [
     href: "/categories/jewellery",
     image: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=1200&q=80",
     icon: JewelleryIcon,
+    getCount: () => jewelleryVendors.length || 15,
   },
   {
     slug: "invitations",
@@ -198,6 +213,7 @@ export const showcaseCategories: CategoryItem[] = [
     href: "/categories/invitations",
     image: "https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=1200&q=80",
     icon: InvitationsIcon,
+    getCount: () => invitationVendors.length || 12,
   },
   {
     slug: "groom-wear",
@@ -207,6 +223,7 @@ export const showcaseCategories: CategoryItem[] = [
     href: "/categories/groom-wear",
     image: "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=1200&q=80",
     icon: GroomIcon,
+    getCount: () => groomWearVendors.length || 14,
   },
   {
     slug: "caterers",
@@ -216,15 +233,17 @@ export const showcaseCategories: CategoryItem[] = [
     href: "/categories/catering",
     image: "https://images.unsplash.com/photo-1555244162-803834f70033?auto=format&fit=crop&w=1200&q=80",
     icon: CateringIcon,
+    getCount: () => cateringVendors.length || 10,
   },
 ];
 
 export function CategoriesShowcase() {
   return (
-    <div className="w-full bg-[#FAF7F2] min-h-screen py-2 px-2 sm:px-4 md:px-6">
-      <div className="max-w-sm sm:max-w-lg md:max-w-2xl lg:max-w-3xl mx-auto space-y-2 sm:space-y-2.5">
+    <div className="w-full bg-[#FAF7F2] min-h-screen py-4 px-2 sm:px-4 md:px-6">
+      <div className="max-w-sm sm:max-w-lg md:max-w-2xl lg:max-w-3xl mx-auto space-y-3">
         {showcaseCategories.map((category, idx) => {
           const IconComponent = category.icon;
+          const count = category.getCount();
           return (
             <motion.div
               key={category.slug}
@@ -234,10 +253,10 @@ export function CategoriesShowcase() {
             >
               <Link
                 href={category.href}
-                className="group relative block overflow-hidden rounded-[12px] sm:rounded-[14px] border border-black/5 shadow-[0_1px_6px_rgba(0,0,0,0.02)] transition-all duration-300 hover:shadow-[0_4px_12px_rgba(0,0,0,0.05)] active:scale-[0.99]"
+                className="group relative block overflow-hidden rounded-[14px] border border-black/5 shadow-[0_1px_6px_rgba(0,0,0,0.02)] transition-all duration-300 hover:shadow-[0_4px_12px_rgba(0,0,0,0.05)] active:scale-[0.99]"
                 style={{ backgroundColor: category.bgColor }}
               >
-                <div className="relative flex min-h-[128px] sm:min-h-[148px] md:min-h-[168px] items-center">
+                <div className="relative flex min-h-[135px] sm:min-h-[155px] md:min-h-[175px] items-center">
                   {/* Left Text & Icon Section */}
                   <div className="flex flex-1 items-center gap-3 sm:gap-4 pl-4 pr-[48%] py-4 sm:pl-6 sm:pr-[46%] sm:py-6 z-10 min-w-0">
                     {/* Circle Icon Badge */}
@@ -245,18 +264,23 @@ export function CategoriesShowcase() {
                       <IconComponent className="h-5 w-5 sm:h-7 sm:w-7" />
                     </div>
 
-                    {/* Category Title & Subtitle */}
-                    <div className="min-w-0 flex-1 flex flex-col justify-center">
-                      <h2 className="font-serif text-[19px] sm:text-[25px] font-bold text-[#0F4C45] leading-[1.1] tracking-tight break-words">
-                        {category.title}
-                      </h2>
-                      <p className="text-[12px] sm:text-[14px] font-sans text-[#5A6561] leading-[1.3] line-clamp-2 mt-1">
+                    {/* Category Title, Count Badge & Subtitle */}
+                    <div className="min-w-0 flex-1 flex flex-col justify-center space-y-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h2 className="font-serif text-[19px] sm:text-[25px] font-bold text-[#0F4C45] leading-[1.1] tracking-tight">
+                          {category.title}
+                        </h2>
+                        <span className="inline-block bg-[#0F4C45]/10 text-[#0F4C45] text-[10px] sm:text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full">
+                          {count} {count === 1 ? "Listing" : "Listings"}
+                        </span>
+                      </div>
+                      <p className="text-[12px] sm:text-[14px] font-sans text-[#5A6561] leading-[1.3] line-clamp-2">
                         {category.subtitle}
                       </p>
                     </div>
                   </div>
 
-                  {/* Dark Green Action Chevron Button (Positioned over slant center) */}
+                  {/* Dark Green Action Chevron Button */}
                   <div className="absolute left-[54%] sm:left-[52%] top-1/2 -translate-y-1/2 -translate-x-1/2 z-20 flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-full bg-[#0F4C45] text-white shadow-md transition-transform duration-300 group-hover:scale-110">
                     <ChevronRight className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={2.4} />
                   </div>
