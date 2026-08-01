@@ -32,11 +32,22 @@ export function SearchClient() {
     { label: "All", value: "All" },
     { label: "Bridal Wear", value: "Bridal" },
     { label: "Groom Wear", value: "Groom" },
-    { label: "Couture", value: "Couture" },
-    { label: "Traditional", value: "Traditional" },
-    { label: "Jewellery", value: "Jewellery" },
+    { label: "Photographers", value: "Photography" },
+    { label: "Videographer", value: "Videographer" },
     { label: "Makeup & Hair", value: "Makeup" },
-    { label: "Photography", value: "Photography" }
+    { label: "Decor", value: "Decor" },
+    { label: "Decorator", value: "Decorator" },
+    { label: "Flower Decoration", value: "Flower" },
+    { label: "Wedding Planner", value: "Planner" },
+    { label: "Cake Designer", value: "Cake" },
+    { label: "Entertainment", value: "Entertainment" },
+    { label: "Choreographer", value: "Choreographer" },
+    { label: "Car Rental", value: "Car" },
+    { label: "Rental Services", value: "Rental" },
+    { label: "Gift Store", value: "Gift" },
+    { label: "Honeymoon Planners", value: "Honeymoon" },
+    { label: "Jewellery", value: "Jewellery" },
+    { label: "Catering", value: "Catering" }
   ];
   const districts = [
     "All", "Alappuzha", "Ernakulam", "Idukki", "Kannur", "Kasaragod", "Kollam", 

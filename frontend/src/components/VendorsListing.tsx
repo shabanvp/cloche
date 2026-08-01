@@ -20,15 +20,24 @@ function resolveCategory(boutique: Boutique): string {
   const plan = (boutique.plan || "").toLowerCase();
   const name = boutique.boutique_name.toLowerCase();
 
-  if (tags.includes("photo") || name.includes("photo") || name.includes("frame")) return "Photographer";
-  if (tags.includes("makeup") || name.includes("makeup") || name.includes("beauty")) return "Makeup Artist";
-  if (tags.includes("plan") || name.includes("plan") || name.includes("sutra")) return "Wedding Planner";
-  if (tags.includes("decor") || name.includes("decor") || name.includes("flower") || name.includes("floral")) return "Decorator";
-  if (tags.includes("cinema") || name.includes("cinema") || name.includes("film") || name.includes("video")) return "Cinematographer";
-  if (tags.includes("jewel") || name.includes("jewel") || name.includes("gold")) return "Jewellery";
+  if (tags.includes("videographer") || tags.includes("video") || name.includes("video") || name.includes("film") || name.includes("cinema")) return "Videographer";
+  if (tags.includes("photo") || name.includes("photo") || name.includes("frame") || name.includes("media")) return "Photographer";
+  if (tags.includes("makeup") || name.includes("makeup") || name.includes("beauty") || name.includes("glam")) return "Makeup Artist";
+  if (tags.includes("wedding planner") || tags.includes("planner") || name.includes("sutra") || name.includes("planner")) return "Wedding Planner";
+  if (tags.includes("flower decoration") || tags.includes("floral") || name.includes("flower")) return "Flower Decoration";
+  if (tags.includes("decorator") || tags.includes("decor") || name.includes("decor")) return "Decorator";
+  if (tags.includes("cake designer") || tags.includes("cake") || name.includes("bake")) return "Cake Designer";
+  if (tags.includes("entertainment") || tags.includes("dj") || tags.includes("music") || name.includes("band")) return "Entertainment";
+  if (tags.includes("choreographer") || tags.includes("dance") || name.includes("dance") || name.includes("choreo")) return "Choreographer";
+  if (tags.includes("car rental") || tags.includes("car") || tags.includes("transport") || name.includes("car")) return "Car Rental";
+  if (tags.includes("rental services") || tags.includes("rental") || name.includes("rental") || name.includes("rent")) return "Rental Services";
+  if (tags.includes("gift store") || tags.includes("gift") || tags.includes("favor") || name.includes("gift")) return "Gift Store";
+  if (tags.includes("honeymoon planners") || tags.includes("honeymoon") || tags.includes("travel") || name.includes("tour")) return "Honeymoon Planners";
+  if (tags.includes("groom wear") || tags.includes("groom") || name.includes("sherwani") || name.includes("tuxedo")) return "Groom Wear";
+  if (tags.includes("jewel") || name.includes("jewel") || name.includes("gold") || name.includes("diamond")) return "Jewellery";
   if (tags.includes("catering") || name.includes("cater") || name.includes("food")) return "Catering";
   if (tags.includes("mehendi") || name.includes("mehendi") || name.includes("henna")) return "Mehendi Artist";
-  return "Bridal Boutique";
+  return "Bridal Wear";
 }
 
 const CATEGORY_FILTERS = [
@@ -39,18 +48,43 @@ const CATEGORY_FILTERS = [
   "Planners",
   "Jewellery",
   "Catering",
+  "Bridal Wear",
+  "Groom Wear",
+  "Videographer",
+  "Decorator",
+  "Wedding Planner",
+  "Cake Designer",
+  "Entertainment",
+  "Choreographer",
+  "Car Rental",
+  "Flower Decoration",
+  "Rental Services",
+  "Gift Store",
+  "Honeymoon Planners",
 ] as const;
 type CategoryFilter = (typeof CATEGORY_FILTERS)[number];
 
-// Maps each filter chip label → keyword to match in resolveCategory output
 const FILTER_MATCH: Record<CategoryFilter, string> = {
   All: "",
-  Photographers: "Photographer",
-  Makeup: "Makeup Artist",
-  Decor: "Decorator",
-  Planners: "Wedding Planner",
-  Jewellery: "Jewellery",
-  Catering: "Catering",
+  Photographers: "photo",
+  Makeup: "makeup",
+  Decor: "decor",
+  Planners: "plan",
+  Jewellery: "jewel",
+  Catering: "cater",
+  "Bridal Wear": "bridal",
+  "Groom Wear": "groom",
+  Videographer: "video",
+  Decorator: "decor",
+  "Wedding Planner": "plan",
+  "Cake Designer": "cake",
+  Entertainment: "entertain",
+  Choreographer: "choreo",
+  "Car Rental": "car",
+  "Flower Decoration": "flower",
+  "Rental Services": "rental",
+  "Gift Store": "gift",
+  "Honeymoon Planners": "honeymoon",
 };
 
 interface VendorsListingProps {
@@ -122,8 +156,12 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
         (b.area || "").toLowerCase().includes(search.toLowerCase()) ||
         category.toLowerCase().includes(search.toLowerCase());
 
+      const targetKeyword = FILTER_MATCH[activeFilter].toLowerCase();
       const matchesFilter =
-        activeFilter === "All" || category === FILTER_MATCH[activeFilter];
+        activeFilter === "All" ||
+        category.toLowerCase().includes(targetKeyword) ||
+        (b.tags || "").toLowerCase().includes(targetKeyword) ||
+        b.boutique_name.toLowerCase().includes(targetKeyword);
 
       return matchesSearch && matchesFilter;
     });
