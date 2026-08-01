@@ -134,12 +134,12 @@ export const DEFAULT_VENDOR_CONFIGS: Record<string, VendorProfileConfig> = {
       cateringOption: "In-house Catering",
     },
     galleryImages: [
-      "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1519167758481-83f552bb8c74?auto=format&fit=crop&w=800&q=80",
       "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=800&q=80",
       "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80",
     ],
     packagesList: [
-      { name: "Royal Waterfront Lawn Sponsorship", price: "₹4,50,000 / day", description: "Full outdoor lawn rental with backwater stage setup.", features: ["Up to 1500 Guests", "Valet Parking", "Heliport Access"] },
+      { name: "Royal Waterfront Lawn Package", price: "₹4,50,000 / day", description: "Full outdoor lawn rental with backwater stage setup.", features: ["Up to 1500 Guests", "Valet Parking", "Heliport Access"] },
       { name: "Grand Ballroom Banquet Package", price: "₹2,80,000 / day", description: "Pillarless air-conditioned ballroom with acoustic lighting.", features: ["Up to 800 Guests", "Bridal Suite Included"] }
     ]
   },
@@ -196,8 +196,8 @@ export const DEFAULT_VENDOR_CONFIGS: Record<string, VendorProfileConfig> = {
     logo: "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=400&q=80",
     coverImage: "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=1600&q=80",
     aboutText: "Bespoke bridal wear boutique specializing in custom royal lehengas, Banarasi silk sarees, and customized bridal veils.",
-    phone: "+91 73066 33171",
-    whatsapp: "+91 73066 33171",
+    phone: "+91 96551 25480",
+    whatsapp: "+91 96551 25480",
     email: "aurelia.brides@gmail.com",
     instagram: "@aureliabrides",
     website: "https://aureliabrides.com",
@@ -229,15 +229,119 @@ export const DEFAULT_VENDOR_CONFIGS: Record<string, VendorProfileConfig> = {
     packagesList: [
       { name: "Bespoke Royal Bridal Lehenga Package", price: "₹85,000", description: "Custom hand-embroidered Zardozi lehenga with trial fittings.", features: ["Custom Color Choice", "Double Dupatta Set", "Express 3-Week Delivery"] }
     ]
+  },
+  "kalki-couture": {
+    id: "cfg-kalki",
+    vendorId: "kalki-couture",
+    category: "Bridal Wear",
+    businessName: "Kalki Couture",
+    tagline: "Contemporary Bridal Lehengas & Luxury Indo-Western Couture",
+    logo: "https://images.unsplash.com/photo-1594938298596-70f594f74246?auto=format&fit=crop&w=400&q=80",
+    coverImage: "https://images.unsplash.com/photo-1594938298596-70f594f74246?auto=format&fit=crop&w=1600&q=80",
+    aboutText: "Leading luxury couture brand offering exquisite pastel bridal lehengas, silk shararas, and designer reception gowns.",
+    phone: "+91 98920 44112",
+    whatsapp: "+91 98920 44112",
+    email: "contact@kalkicouture.in",
+    instagram: "@kalkicouture",
+    website: "https://kalkicouture.in",
+    city: "Kochi",
+    district: "Ernakulam",
+    address: "Lulu Mall Avenue, Edappally, Kochi, Kerala",
+    visibility: {
+      heroBanner: true,
+      gallery: true,
+      packages: true,
+      categoryFields: true,
+      aboutStory: true,
+      amenitiesOrSpecs: true,
+      reviews: true,
+      locationMap: true,
+      contactCTA: true,
+      awardsOrFAQ: true,
+    },
+    bridalWearSpecs: {
+      collectionTypes: ["Pastel Bridal Lehengas", "Silk Shararas", "Reception Gowns", "Anarkalis"],
+      customizationAvailable: true,
+      trialBookingAvailable: true,
+      startingPrice: "₹38,000",
+    },
+    galleryImages: [
+      "https://images.unsplash.com/photo-1594938298596-70f594f74246?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=800&q=80",
+    ],
+    packagesList: [
+      { name: "Signature Pastel Bridal Couture Package", price: "₹65,000", description: "Designer lehenga set with custom trial fitting.", features: ["Personal Stylist Consultation", "Custom Blouse Stitching"] }
+    ]
   }
 };
 
 const PROFILE_CONFIG_STORAGE_KEY = "cloche_vendor_profile_configs_v1";
 
+function simpleHash(str: string): number {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = (hash << 5) - hash + str.charCodeAt(i);
+    hash |= 0;
+  }
+  return Math.abs(hash);
+}
+
+function createDefaultConfig(vendorId: string, category: CategoryType): VendorProfileConfig {
+  const cleanId = vendorId.toLowerCase().replace(/[^a-z0-9]/g, "");
+  const formattedName = vendorId
+    .split("-")
+    .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
+
+  const hashVal = simpleHash(vendorId);
+  const phoneSuffix = 100000 + (hashVal % 900000);
+  const vendorPhone = `+91 9847${phoneSuffix}`;
+  const vendorEmail = `contact@${cleanId || "vendor"}.in`;
+
+  return {
+    id: `cfg-${vendorId}`,
+    vendorId,
+    category,
+    businessName: formattedName || "Boutique Partner",
+    tagline: `Exclusive ${category} Specialist`,
+    logo: "https://images.unsplash.com/photo-1519167758481-83f552bb8c74?auto=format&fit=crop&w=400&q=80",
+    coverImage: "https://images.unsplash.com/photo-1519167758481-83f552bb8c74?auto=format&fit=crop&w=1600&q=80",
+    aboutText: `Welcome to ${formattedName}. We provide bespoke ${category.toLowerCase()} services tailored to your wedding vision.`,
+    phone: vendorPhone,
+    whatsapp: vendorPhone,
+    email: vendorEmail,
+    instagram: `@${cleanId}`,
+    website: `https://${cleanId}.in`,
+    city: "Kochi",
+    district: "Ernakulam",
+    address: `${formattedName} Studio, Ernakulam, Kerala`,
+    visibility: {
+      heroBanner: true,
+      gallery: true,
+      packages: true,
+      categoryFields: true,
+      aboutStory: true,
+      amenitiesOrSpecs: true,
+      reviews: true,
+      locationMap: true,
+      contactCTA: true,
+      awardsOrFAQ: true,
+    },
+    galleryImages: [
+      "https://images.unsplash.com/photo-1519167758481-83f552bb8c74?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=800&q=80"
+    ],
+    packagesList: [
+      { name: `Signature ${category} Package`, price: "₹50,000", description: "Comprehensive service package for weddings.", features: ["Direct Booking", "Priority Consultation"] }
+    ]
+  };
+}
+
 export function getVendorProfileConfig(vendorId: string, category: CategoryType = "Wedding Venues"): VendorProfileConfig {
   if (typeof window === "undefined") {
     return DEFAULT_VENDOR_CONFIGS[vendorId] || createDefaultConfig(vendorId, category);
   }
+
   try {
     const raw = localStorage.getItem(PROFILE_CONFIG_STORAGE_KEY);
     if (raw) {
@@ -257,44 +361,4 @@ export function saveVendorProfileConfig(config: VendorProfileConfig): void {
     existing[config.vendorId] = config;
     localStorage.setItem(PROFILE_CONFIG_STORAGE_KEY, JSON.stringify(existing));
   } catch (e) {}
-}
-
-function createDefaultConfig(vendorId: string, category: CategoryType): VendorProfileConfig {
-  return {
-    id: `cfg-${vendorId}`,
-    vendorId,
-    category,
-    businessName: "Cloche Premium Partner",
-    tagline: `Exclusive ${category} Partner on Cloche Weddings`,
-    logo: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=400&q=80",
-    coverImage: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=1600&q=80",
-    aboutText: "Welcome to our official Cloche profile. Explore our collections, packages, and direct booking availability.",
-    phone: "+91 73066 33171",
-    whatsapp: "+91 73066 33171",
-    email: "partner@cloche.com",
-    instagram: "@clocheweddings",
-    website: "https://cloche.luxury",
-    city: "Kochi",
-    district: "Ernakulam",
-    address: "Kochi, Malappuram, Kerala, India",
-    visibility: {
-      heroBanner: true,
-      gallery: true,
-      packages: true,
-      categoryFields: true,
-      aboutStory: true,
-      amenitiesOrSpecs: true,
-      reviews: true,
-      locationMap: true,
-      contactCTA: true,
-      awardsOrFAQ: true,
-    },
-    galleryImages: [
-      "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=800&q=80",
-      "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=800&q=80"
-    ],
-    packagesList: [
-      { name: "Signature Wedding Sponsorship Package", price: "₹75,000", description: "Complete service coverage for luxury weddings.", features: ["Direct Booking", "Priority Consultation"] }
-    ]
-  };
 }

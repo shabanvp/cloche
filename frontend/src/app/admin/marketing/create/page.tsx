@@ -96,7 +96,7 @@ export default function AdminCreateAdvertisementPage() {
 
     const vendorObj = REGISTERED_VENDORS.find((v) => v.id === selectedVendorId);
     const finalVendorName = selectedVendorId === "v-custom" ? customVendorName : vendorObj?.name || "Partner Vendor";
-    const finalVendorEmail = selectedVendorId === "v-custom" ? customVendorEmail : vendorObj?.email || "partner@cloche.com";
+    const finalVendorEmail = selectedVendorId === "v-custom" ? customVendorEmail : vendorObj?.email || "contact@vendor.in";
 
     setTimeout(() => {
       createAdminCampaignRecord({
