@@ -318,11 +318,14 @@ export default function VendorVenueCmsPage() {
                                 loadedCount++;
                                 if (loadedCount === files.length) {
                                   handleUpdate((p) => {
-                                    const updatedImages = [...p.heroGallery.images, ...newAdditions];
+                                    const nonDemo = p.heroGallery.images.filter(
+                                      (i) => !i.id.startsWith("h1") && !i.id.startsWith("h2") && !i.id.startsWith("h3") && !i.url.includes("photo-1519167758481") && !i.url.includes("photo-1542314831") && !i.url.includes("photo-1566073771259")
+                                    );
+                                    const updatedImages = [...nonDemo, ...newAdditions];
                                     return {
                                       ...p,
                                       heroGallery: {
-                                        coverImage: updatedImages[0]?.url || p.heroGallery.coverImage,
+                                        coverImage: updatedImages[0]?.url || "",
                                         images: updatedImages,
                                       },
                                     };
@@ -357,7 +360,10 @@ export default function VendorVenueCmsPage() {
                             caption: "Venue Photo",
                           };
                           handleUpdate((p) => {
-                            const updatedImages = [...p.heroGallery.images, newImg];
+                            const nonDemo = p.heroGallery.images.filter(
+                              (i) => !i.id.startsWith("h1") && !i.id.startsWith("h2") && !i.id.startsWith("h3") && !i.url.includes("photo-1519167758481") && !i.url.includes("photo-1542314831") && !i.url.includes("photo-1566073771259")
+                            );
+                            const updatedImages = [...nonDemo, newImg];
                             return {
                               ...p,
                               heroGallery: {
