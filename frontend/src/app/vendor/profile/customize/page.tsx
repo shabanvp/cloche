@@ -281,80 +281,56 @@ export default function VendorVenueCmsPage() {
             {/* Tab 2: Hero Gallery */}
             {activeTab === "hero" && (
               <div className="bg-white rounded-3xl p-6 border border-gold/15 shadow-sm space-y-4">
-                <h3 className="font-display text-xl text-charcoal font-semibold border-b border-gold/10 pb-3">2. Hero Banner & Cover Image</h3>
-
-                <div className="text-xs space-y-2">
-                  <label className="font-semibold block text-charcoal/70">Cover Image URL / File Upload</label>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="text"
-                      value={cmsData.heroGallery.coverImage}
-                      onChange={(e) => handleUpdate((p) => ({ ...p, heroGallery: { ...p.heroGallery, coverImage: e.target.value } }))}
-                      placeholder="Paste cover image URL..."
-                      className="flex-1 bg-[#FBF8F1] border border-gold/20 rounded-xl p-2.5 text-charcoal outline-none"
-                    />
-                    <label className="cursor-pointer bg-[#0F4C45] hover:bg-[#0F4C45]/90 text-white text-xs font-bold px-3 py-2.5 rounded-xl flex items-center gap-1.5 shrink-0 shadow-sm">
-                      <ImageIcon className="w-4 h-4" />
-                      <span>Upload File</span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) {
-                            const reader = new FileReader();
-                            reader.onload = (ev) => {
-                              const res = ev.target?.result as string;
-                              if (res) {
-                                handleUpdate((p) => ({ ...p, heroGallery: { ...p.heroGallery, coverImage: res } }));
-                              }
-                            };
-                            reader.readAsDataURL(file);
-                          }
-                        }}
-                      />
-                    </label>
-                  </div>
-                  {cmsData.heroGallery.coverImage && (
-                    <div className="relative w-32 h-20 rounded-xl overflow-hidden border border-gold/20 mt-2">
-                      <img src={cmsData.heroGallery.coverImage} alt="Cover Preview" className="w-full h-full object-cover" />
-                    </div>
-                  )}
+                <div className="border-b border-gold/10 pb-3">
+                  <h3 className="font-display text-xl text-charcoal font-semibold">2. Venue Photos & Gallery</h3>
+                  <p className="text-xs text-charcoal/60 mt-1">
+                    Upload high-resolution photos of your venue (lawns, banquets, stage & amenities). The first uploaded photo will automatically be featured as your main venue cover image.
+                  </p>
                 </div>
 
-                <div className="space-y-3 pt-4 border-t border-gold/10">
+                <div className="space-y-4 pt-1">
                   <div className="flex justify-between items-center">
-                    <h4 className="font-semibold text-xs text-charcoal/70">Hero Slider Images ({cmsData.heroGallery.images.length})</h4>
-                    <label className="cursor-pointer bg-[#0F4C45] hover:bg-[#0F4C45]/90 text-white text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-1.5 shadow-sm">
-                      <Plus className="w-3.5 h-3.5" />
-                      <span>+ Upload New Image</span>
+                    <h4 className="font-semibold text-xs text-charcoal/70">Uploaded Venue Photos ({cmsData.heroGallery.images.length})</h4>
+                    <label className="cursor-pointer bg-[#0F4C45] hover:bg-[#0F4C45]/90 text-white text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-1.5 shadow-sm transition-all active:scale-95">
+                      <Plus className="w-4 h-4 text-gold" />
+                      <span>+ Upload Venue Photo</span>
                       <input
                         type="file"
                         accept="image/*"
+                        multiple
                         className="hidden"
                         onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) {
-                            const reader = new FileReader();
-                            reader.onload = (ev) => {
-                              const res = ev.target?.result as string;
-                              if (res) {
-                                const newImg = {
-                                  id: `hero-${Date.now()}`,
-                                  url: res,
-                                  caption: file.name.replace(/\.[^/.]+$/, ""),
-                                };
-                                handleUpdate((p) => ({
-                                  ...p,
-                                  heroGallery: {
-                                    ...p.heroGallery,
-                                    images: [...p.heroGallery.images, newImg],
-                                  },
-                                }));
-                              }
-                            };
-                            reader.readAsDataURL(file);
+                          const files = Array.from(e.target.files || []);
+                          if (files.length > 0) {
+                            let loadedCount = 0;
+                            const newAdditions: { id: string; url: string; caption: string }[] = [];
+                            files.forEach((file) => {
+                              const reader = new FileReader();
+                              reader.onload = (ev) => {
+                                const res = ev.target?.result as string;
+                                if (res) {
+                                  newAdditions.push({
+                                    id: `hero-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+                                    url: res,
+                                    caption: file.name.replace(/\.[^/.]+$/, ""),
+                                  });
+                                }
+                                loadedCount++;
+                                if (loadedCount === files.length) {
+                                  handleUpdate((p) => {
+                                    const updatedImages = [...p.heroGallery.images, ...newAdditions];
+                                    return {
+                                      ...p,
+                                      heroGallery: {
+                                        coverImage: updatedImages[0]?.url || p.heroGallery.coverImage,
+                                        images: updatedImages,
+                                      },
+                                    };
+                                  });
+                                }
+                              };
+                              reader.readAsDataURL(file);
+                            });
                           }
                         }}
                       />
@@ -366,8 +342,8 @@ export default function VendorVenueCmsPage() {
                     <input
                       type="text"
                       id="newHeroUrlInput"
-                      placeholder="Or paste Image URL here..."
-                      className="flex-1 bg-white border border-gold/20 rounded-xl p-2 text-xs text-charcoal outline-none"
+                      placeholder="Or paste Image URL here (e.g. Unsplash or Cloudinary)..."
+                      className="flex-1 bg-white border border-gold/20 rounded-xl p-2.5 text-xs text-charcoal outline-none"
                     />
                     <button
                       type="button"
@@ -378,52 +354,84 @@ export default function VendorVenueCmsPage() {
                           const newImg = {
                             id: `hero-${Date.now()}`,
                             url: urlVal,
-                            caption: "Venue View",
+                            caption: "Venue Photo",
                           };
-                          handleUpdate((p) => ({
-                            ...p,
-                            heroGallery: {
-                              ...p.heroGallery,
-                              images: [...p.heroGallery.images, newImg],
-                            },
-                          }));
+                          handleUpdate((p) => {
+                            const updatedImages = [...p.heroGallery.images, newImg];
+                            return {
+                              ...p,
+                              heroGallery: {
+                                coverImage: updatedImages[0]?.url || urlVal,
+                                images: updatedImages,
+                              },
+                            };
+                          });
                           inputEl.value = "";
                         }
                       }}
-                      className="bg-[#0F4C45] hover:bg-[#0F4C45]/90 text-white text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-1 shadow-sm"
+                      className="bg-[#0F4C45] hover:bg-[#0F4C45]/90 text-white text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-1.5 shadow-sm active:scale-95 transition-all"
                     >
-                      <Plus className="w-3.5 h-3.5" />
+                      <Plus className="w-4 h-4 text-gold" />
                       <span>Add URL</span>
                     </button>
                   </div>
 
-                  {cmsData.heroGallery.images.map((img, index) => (
-                    <div key={img.id} className="flex items-center gap-3 bg-[#FBF8F1] p-3 rounded-2xl border border-gold/15">
-                      <img src={img.url} alt="Hero" className="w-14 h-14 rounded-xl object-cover" />
-                      <input
-                        type="text"
-                        value={img.caption || ""}
-                        placeholder="Caption..."
-                        onChange={(e) => {
-                          const updated = [...cmsData.heroGallery.images];
-                          updated[index].caption = e.target.value;
-                          handleUpdate((p) => ({ ...p, heroGallery: { ...p.heroGallery, images: updated } }));
-                        }}
-                        className="flex-1 bg-white border border-gold/20 rounded-xl p-2 text-xs text-charcoal outline-none"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const updated = cmsData.heroGallery.images.filter((_, i) => i !== index);
-                          handleUpdate((p) => ({ ...p, heroGallery: { ...p.heroGallery, images: updated } }));
-                        }}
-                        className="text-red-500 hover:bg-red-50 p-2 rounded-lg"
-                        title="Delete image"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                  {/* Photos Grid & List */}
+                  {cmsData.heroGallery.images.length === 0 ? (
+                    <div className="text-center py-10 border-2 border-dashed border-gold/20 rounded-2xl p-6 bg-[#FBF8F1]/50 space-y-2">
+                      <ImageIcon className="w-10 h-10 text-gold mx-auto opacity-70" />
+                      <p className="font-display text-base font-bold text-charcoal">No Venue Photos Uploaded Yet</p>
+                      <p className="text-xs text-charcoal/60">Click above to upload photos of your lawns, banquet halls, or stage setups.</p>
                     </div>
-                  ))}
+                  ) : (
+                    <div className="space-y-3 pt-2">
+                      {cmsData.heroGallery.images.map((img, index) => (
+                        <div key={img.id} className="flex items-center gap-3 bg-[#FBF8F1] p-3.5 rounded-2xl border border-gold/15 shadow-2xs">
+                          <div className="relative w-16 h-16 rounded-xl overflow-hidden border border-gold/20 shrink-0 bg-gray-100">
+                            <img src={img.url} alt={`Photo ${index + 1}`} className="w-full h-full object-cover" />
+                            {index === 0 && (
+                              <span className="absolute bottom-0 inset-x-0 bg-[#0F4C45] text-white text-[9px] font-bold text-center py-0.5">
+                                Main Cover
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0 space-y-1">
+                            <input
+                              type="text"
+                              value={img.caption || ""}
+                              placeholder="Photo caption (e.g. Grand Lawn Reception)..."
+                              onChange={(e) => {
+                                const updated = [...cmsData.heroGallery.images];
+                                updated[index].caption = e.target.value;
+                                handleUpdate((p) => ({ ...p, heroGallery: { ...p.heroGallery, images: updated } }));
+                              }}
+                              className="w-full bg-white border border-gold/20 rounded-xl px-3 py-1.5 text-xs text-charcoal outline-none font-medium"
+                            />
+                            <p className="text-[10px] text-charcoal/50">
+                              Photo #{index + 1} {index === 0 ? "— Displayed as primary store banner" : ""}
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const updated = cmsData.heroGallery.images.filter((_, i) => i !== index);
+                              handleUpdate((p) => ({
+                                ...p,
+                                heroGallery: {
+                                  coverImage: updated[0]?.url || "https://images.unsplash.com/photo-1519167758481-83f552bb8c74?auto=format&fit=crop&w=1200&q=80",
+                                  images: updated,
+                                },
+                              }));
+                            }}
+                            className="text-red-500 hover:bg-red-50 p-2.5 rounded-xl transition-colors cursor-pointer"
+                            title="Delete venue photo"
+                          >
+                            <Trash2 className="w-4.5 h-4.5" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             )}
