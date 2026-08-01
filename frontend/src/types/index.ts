@@ -2,7 +2,7 @@ export interface Boutique {
   id: string | number;
   boutique_name: string;
   owner_name?: string;
-  email: string;
+  email?: string;
   phone?: string;
   city?: string;
   district?: string;
@@ -27,4 +27,7 @@ export interface Product {
   tags?: string;
   fabric?: string;
   location?: string;
+  district?: string;
+  boutique_name?: string;
+  boutique_city?: string;
 }
