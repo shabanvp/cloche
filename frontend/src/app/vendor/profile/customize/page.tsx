@@ -10,8 +10,9 @@ import { VenueProfileTemplate } from "@/components/vendor-templates/VenueProfile
 import { 
   Building2, Save, Sparkles, CheckCircle2, History, RotateCcw, AlertTriangle, 
   Image as ImageIcon, Plus, Trash2, ShieldCheck, MapPin, Calendar, Star, MessageSquare, 
-  HelpCircle, Search, Check, Lock, X, ExternalLink, Eye, LayoutGrid, Columns
+  HelpCircle, Search, Check, Lock, X, ExternalLink, Eye, LayoutGrid, Columns, Loader2
 } from "lucide-react";
+import { uploadImageToCloudinary } from "@/lib/cloudinary";
 import { Button } from "@/components/Button";
 
 export default function VendorVenueCmsPage() {
@@ -25,6 +26,7 @@ export default function VendorVenueCmsPage() {
   const [versionHistory, setVersionHistory] = useState<CmsVersionSnapshot[]>([]);
   const [isVersionModalOpen, setIsVersionModalOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
 
   // New item draft states
   const [newPkgName, setNewPkgName] = useState("");
@@ -291,49 +293,58 @@ export default function VendorVenueCmsPage() {
                 <div className="space-y-4 pt-1">
                   <div className="flex justify-between items-center">
                     <h4 className="font-semibold text-xs text-charcoal/70">Uploaded Venue Photos ({cmsData.heroGallery.images.length})</h4>
-                    <label className="cursor-pointer bg-[#0F4C45] hover:bg-[#0F4C45]/90 text-white text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-1.5 shadow-sm transition-all active:scale-95">
-                      <Plus className="w-4 h-4 text-gold" />
-                      <span>+ Upload Venue Photo</span>
+                    <label className={`cursor-pointer bg-[#0F4C45] hover:bg-[#0F4C45]/90 text-white text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-1.5 shadow-sm transition-all active:scale-95 ${isUploadingPhoto ? "opacity-75 cursor-not-allowed" : ""}`}>
+                      {isUploadingPhoto ? (
+                        <Loader2 className="w-4 h-4 text-gold animate-spin" />
+                      ) : (
+                        <Plus className="w-4 h-4 text-gold" />
+                      )}
+                      <span>{isUploadingPhoto ? "Uploading to Cloudinary..." : "+ Upload Venue Photo"}</span>
                       <input
                         type="file"
                         accept="image/*"
                         multiple
+                        disabled={isUploadingPhoto}
                         className="hidden"
-                        onChange={(e) => {
+                        onChange={async (e) => {
                           const files = Array.from(e.target.files || []);
                           if (files.length > 0) {
-                            let loadedCount = 0;
-                            const newAdditions: { id: string; url: string; caption: string }[] = [];
-                            files.forEach((file) => {
-                              const reader = new FileReader();
-                              reader.onload = (ev) => {
-                                const res = ev.target?.result as string;
-                                if (res) {
+                            setIsUploadingPhoto(true);
+                            try {
+                              const newAdditions: { id: string; url: string; caption: string }[] = [];
+                              for (const file of files) {
+                                const cloudinaryUrl = await uploadImageToCloudinary(file);
+                                if (cloudinaryUrl) {
                                   newAdditions.push({
                                     id: `hero-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
-                                    url: res,
+                                    url: cloudinaryUrl,
                                     caption: file.name.replace(/\.[^/.]+$/, ""),
                                   });
                                 }
-                                loadedCount++;
-                                if (loadedCount === files.length) {
-                                  handleUpdate((p) => {
-                                    const nonDemo = p.heroGallery.images.filter(
-                                      (i) => !i.id.startsWith("h1") && !i.id.startsWith("h2") && !i.id.startsWith("h3") && !i.url.includes("photo-1519167758481") && !i.url.includes("photo-1542314831") && !i.url.includes("photo-1566073771259")
-                                    );
-                                    const updatedImages = [...nonDemo, ...newAdditions];
-                                    return {
-                                      ...p,
-                                      heroGallery: {
-                                        coverImage: updatedImages[0]?.url || "",
-                                        images: updatedImages,
-                                      },
-                                    };
-                                  });
-                                }
-                              };
-                              reader.readAsDataURL(file);
-                            });
+                              }
+
+                              if (newAdditions.length > 0) {
+                                handleUpdate((p) => {
+                                  const nonDemo = p.heroGallery.images.filter(
+                                    (i) => !i.id.startsWith("h1") && !i.id.startsWith("h2") && !i.id.startsWith("h3") && !i.url.includes("photo-1519167758481") && !i.url.includes("photo-1542314831") && !i.url.includes("photo-1566073771259")
+                                  );
+                                  const updatedImages = [...nonDemo, ...newAdditions];
+                                  return {
+                                    ...p,
+                                    heroGallery: {
+                                      coverImage: updatedImages[0]?.url || "",
+                                      images: updatedImages,
+                                    },
+                                  };
+                                });
+                                showToast(`Successfully uploaded ${newAdditions.length} photo(s) to Cloudinary!`);
+                              }
+                            } catch (err) {
+                              console.error("Upload failed:", err);
+                              showToast("Failed to upload photo. Please try again.");
+                            } finally {
+                              setIsUploadingPhoto(false);
+                            }
                           }
                         }}
                       />
