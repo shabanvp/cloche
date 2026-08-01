@@ -51,7 +51,9 @@ export function DownloadClient() {
 
               <div className="pt-4 flex flex-col sm:flex-row gap-4">
                 <a
-                  href="#"
+                  href="https://apps.apple.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="bg-charcoal text-white px-6 py-3.5 rounded-2xl flex items-center justify-center gap-3 hover:bg-charcoal/90 transition-all shadow-md"
                 >
                   <Smartphone className="w-6 h-6 text-gold" />
@@ -62,7 +64,9 @@ export function DownloadClient() {
                 </a>
 
                 <a
-                  href="#"
+                  href="https://play.google.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="bg-emerald text-white px-6 py-3.5 rounded-2xl flex items-center justify-center gap-3 hover:bg-emerald-dark transition-all shadow-md"
                 >
                   <Smartphone className="w-6 h-6 text-gold" />

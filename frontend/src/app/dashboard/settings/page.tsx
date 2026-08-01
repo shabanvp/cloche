@@ -1,53 +1,44 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { 
-  ArrowLeft, User, Lock, Mail, Info, 
-  Bell, Globe, CircleDollarSign, Moon, 
-  HelpCircle, FileText, LogOut, ChevronRight 
+  User, 
+  Lock, 
+  Mail, 
+  Info, 
+  Bell, 
+  Globe, 
+  CircleDollarSign, 
+  Moon, 
+  HelpCircle, 
+  FileText, 
+  ChevronRight,
+  LogOut
 } from "lucide-react";
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { logout } from "@/app/actions/auth";
+import { BottomNavBar } from "@/components/BottomNavBar";
 
 export default function SettingsPage() {
-  const router = useRouter();
   const [darkMode, setDarkMode] = useState(false);
-  const [showLogoutMsg, setShowLogoutMsg] = useState(false);
 
-  // Apply dark background to body when dark mode is enabled
-  useEffect(() => {
-    if (darkMode) {
-      document.body.style.backgroundColor = "#111412";
-      document.documentElement.style.backgroundColor = "#111412";
-    } else {
-      document.body.style.backgroundColor = "";
-      document.documentElement.style.backgroundColor = "";
-    }
-    return () => {
-      document.body.style.backgroundColor = "";
-      document.documentElement.style.backgroundColor = "";
-    };
-  }, [darkMode]);
-
-  const bgClass = darkMode ? "bg-[#111412]" : "bg-[#FAF7F2]";
-  const textPrimary = darkMode ? "text-[#E6EBE9]" : "text-[#0F4C45]";
-  const textSecondary = darkMode ? "text-[#8A9590]" : "text-[#5A6561]";
-  const borderClass = darkMode ? "border-white/10" : "border-[#EAE2D5]";
+  // Background and Text Styles depending on Theme
+  const bgClass = darkMode ? "bg-[#1C201F]" : "bg-transparent";
+  const textPrimary = darkMode ? "text-white" : "text-charcoal";
+  const textSecondary = darkMode ? "text-white/60" : "text-charcoal/60";
+  const borderClass = darkMode ? "border-white/10" : "border-[#E5DDD0]";
   const hoverClass = darkMode ? "hover:bg-white/5" : "hover:bg-black/5";
-  const chevronClass = darkMode ? "text-[#D6C4A6]" : "text-[#A38B6B]";
-  const containerBorder = darkMode ? "border-white/5" : "border-black/5";
+  const chevronClass = darkMode ? "text-white/40" : "text-charcoal/40";
 
   return (
-    <div className={`mx-auto w-full max-w-md ${bgClass} min-h-[calc(100vh-100px)] rounded-[24px] shadow-sm border ${containerBorder} overflow-hidden font-sans pb-10 transition-colors duration-300`}>
-      {/* Header */}
-      <div className={`relative flex items-center justify-center p-5 border-b ${borderClass} transition-colors duration-300`}>
-        <Link href="/dashboard" className={`absolute left-5 p-1 ${textPrimary} hover:opacity-70 transition-opacity`}>
-          <ArrowLeft className="w-5 h-5 md:w-6 md:h-6" strokeWidth={1.8} />
-        </Link>
-        <h1 className={`text-lg md:text-xl font-bold ${textPrimary} transition-colors duration-300`}>Settings</h1>
-      </div>
+    <div className={`min-h-screen ${darkMode ? "bg-[#121615]" : "bg-[#FAF7F2]"} pb-24 transition-colors duration-300`}>
+      {/* HEADER */}
+      <header className={`px-5 pt-8 pb-4 sticky top-0 z-10 ${darkMode ? "bg-[#121615]/90" : "bg-[#FAF7F2]/90"} backdrop-blur-md transition-colors duration-300`}>
+        <h1 className={`font-display text-2xl font-bold ${textPrimary} tracking-tight transition-colors duration-300`}>
+          Settings
+        </h1>
+      </header>
 
+      {/* CONTENT */}
       <div className="px-5 py-6 space-y-8">
         
         {/* ACCOUNT SECTION */}
@@ -56,7 +47,7 @@ export default function SettingsPage() {
             Account
           </h2>
           <div className={`${bgClass} flex flex-col transition-colors duration-300`}>
-            <Link href="#" className={`flex items-center justify-between py-4 px-1 border-b ${borderClass} group ${hoverClass} transition-colors duration-300`}>
+            <Link href="/dashboard" className={`flex items-center justify-between py-4 px-1 border-b ${borderClass} group ${hoverClass} transition-colors duration-300`}>
               <div className={`flex items-center gap-4 ${textPrimary} transition-colors duration-300`}>
                 <User className={`w-5 h-5 ${textSecondary} transition-colors duration-300`} strokeWidth={1.5} />
                 <span className="font-medium text-[15px]">Edit Profile</span>
@@ -64,7 +55,7 @@ export default function SettingsPage() {
               <ChevronRight className={`w-4 h-4 ${chevronClass} transition-colors duration-300`} strokeWidth={2} />
             </Link>
             
-            <Link href="#" className={`flex items-center justify-between py-4 px-1 border-b ${borderClass} group ${hoverClass} transition-colors duration-300`}>
+            <Link href="/forgot-password" className={`flex items-center justify-between py-4 px-1 border-b ${borderClass} group ${hoverClass} transition-colors duration-300`}>
               <div className={`flex items-center gap-4 ${textPrimary} transition-colors duration-300`}>
                 <Lock className={`w-5 h-5 ${textSecondary} transition-colors duration-300`} strokeWidth={1.5} />
                 <span className="font-medium text-[15px]">Change Password</span>
@@ -72,7 +63,7 @@ export default function SettingsPage() {
               <ChevronRight className={`w-4 h-4 ${chevronClass} transition-colors duration-300`} strokeWidth={2} />
             </Link>
             
-            <Link href="#" className={`flex items-center justify-between py-4 px-1 border-b ${borderClass} group ${hoverClass} transition-colors duration-300`}>
+            <Link href="/dashboard" className={`flex items-center justify-between py-4 px-1 border-b ${borderClass} group ${hoverClass} transition-colors duration-300`}>
               <div className={`flex items-center gap-4 ${textPrimary} transition-colors duration-300`}>
                 <Mail className={`w-5 h-5 ${textSecondary} transition-colors duration-300`} strokeWidth={1.5} />
                 <span className="font-medium text-[15px]">Email Preferences</span>
@@ -80,7 +71,7 @@ export default function SettingsPage() {
               <ChevronRight className={`w-4 h-4 ${chevronClass} transition-colors duration-300`} strokeWidth={2} />
             </Link>
             
-            <Link href="#" className={`flex items-center justify-between py-4 px-1 border-b ${borderClass} group ${hoverClass} transition-colors duration-300`}>
+            <Link href="/content/privacy" className={`flex items-center justify-between py-4 px-1 border-b ${borderClass} group ${hoverClass} transition-colors duration-300`}>
               <div className={`flex items-center gap-4 ${textPrimary} transition-colors duration-300`}>
                 <Info className={`w-5 h-5 ${textSecondary} transition-colors duration-300`} strokeWidth={1.5} />
                 <span className="font-medium text-[15px]">Privacy</span>
@@ -96,35 +87,21 @@ export default function SettingsPage() {
             App Settings
           </h2>
           <div className={`${bgClass} flex flex-col transition-colors duration-300`}>
-            <Link href="#" className={`flex items-center justify-between py-4 px-1 border-b ${borderClass} group ${hoverClass} transition-colors duration-300`}>
+            <div className={`flex items-center justify-between py-4 px-1 border-b ${borderClass} transition-colors duration-300`}>
               <div className={`flex items-center gap-4 ${textPrimary} transition-colors duration-300`}>
                 <Bell className={`w-5 h-5 ${textSecondary} transition-colors duration-300`} strokeWidth={1.5} />
                 <span className="font-medium text-[15px]">Notifications</span>
               </div>
-              <ChevronRight className={`w-4 h-4 ${chevronClass} transition-colors duration-300`} strokeWidth={2} />
-            </Link>
+              <span className={`${textSecondary} text-[13px]`}>Enabled</span>
+            </div>
             
-            <Link href="#" className={`flex items-center justify-between py-4 px-1 border-b ${borderClass} group ${hoverClass} transition-colors duration-300`}>
+            <div className={`flex items-center justify-between py-4 px-1 border-b ${borderClass} transition-colors duration-300`}>
               <div className={`flex items-center gap-4 ${textPrimary} transition-colors duration-300`}>
                 <Globe className={`w-5 h-5 ${textSecondary} transition-colors duration-300`} strokeWidth={1.5} />
                 <span className="font-medium text-[15px]">Language</span>
               </div>
-              <div className="flex items-center gap-2">
-                <span className={`${textSecondary} text-[15px] transition-colors duration-300`}>English</span>
-                <ChevronRight className={`w-4 h-4 ${chevronClass} transition-colors duration-300`} strokeWidth={2} />
-              </div>
-            </Link>
-            
-            <Link href="#" className={`flex items-center justify-between py-4 px-1 border-b ${borderClass} group ${hoverClass} transition-colors duration-300`}>
-              <div className={`flex items-center gap-4 ${textPrimary} transition-colors duration-300`}>
-                <CircleDollarSign className={`w-5 h-5 ${textSecondary} transition-colors duration-300`} strokeWidth={1.5} />
-                <span className="font-medium text-[15px]">Currency</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className={`${textSecondary} text-[15px] transition-colors duration-300`}>USD ($)</span>
-                <ChevronRight className={`w-4 h-4 ${chevronClass} transition-colors duration-300`} strokeWidth={2} />
-              </div>
-            </Link>
+              <span className={`${textSecondary} text-[13px]`}>English (IN)</span>
+            </div>
 
             <div className={`flex items-center justify-between py-4 px-1 border-b ${borderClass} transition-colors duration-300`}>
               <div className={`flex items-center gap-4 ${textPrimary} transition-colors duration-300`}>
@@ -147,7 +124,7 @@ export default function SettingsPage() {
             Support
           </h2>
           <div className={`${bgClass} flex flex-col transition-colors duration-300`}>
-            <Link href="#" className={`flex items-center justify-between py-4 px-1 border-b ${borderClass} group ${hoverClass} transition-colors duration-300`}>
+            <Link href="/contact" className={`flex items-center justify-between py-4 px-1 border-b ${borderClass} group ${hoverClass} transition-colors duration-300`}>
               <div className={`flex items-center gap-4 ${textPrimary} transition-colors duration-300`}>
                 <HelpCircle className={`w-5 h-5 ${textSecondary} transition-colors duration-300`} strokeWidth={1.5} />
                 <span className="font-medium text-[15px]">Help & Support</span>
@@ -155,36 +132,30 @@ export default function SettingsPage() {
               <ChevronRight className={`w-4 h-4 ${chevronClass} transition-colors duration-300`} strokeWidth={2} />
             </Link>
             
-            <Link href="#" className={`flex items-center justify-between py-4 px-1 border-b ${borderClass} group ${hoverClass} transition-colors duration-300`}>
+            <Link href="/content/terms" className={`flex items-center justify-between py-4 px-1 border-b ${borderClass} group ${hoverClass} transition-colors duration-300`}>
               <div className={`flex items-center gap-4 ${textPrimary} transition-colors duration-300`}>
                 <FileText className={`w-5 h-5 ${textSecondary} transition-colors duration-300`} strokeWidth={1.5} />
-                <span className="font-medium text-[15px]">Terms & Conditions</span>
+                <span className="font-medium text-[15px]">Terms of Service</span>
               </div>
               <ChevronRight className={`w-4 h-4 ${chevronClass} transition-colors duration-300`} strokeWidth={2} />
             </Link>
-
-            <button 
-              onClick={async () => {
-                await logout();
-                router.push('/login?logout=success');
-              }}
-              className="flex items-center justify-between py-4 px-1 group hover:bg-red-500/10 transition-colors w-full"
-            >
-              <div className="flex items-center gap-4 text-[#E56A6A]">
-                <LogOut className="w-5 h-5" strokeWidth={1.5} />
-                <span className="font-medium text-[15px]">Log Out</span>
-              </div>
-            </button>
           </div>
         </section>
 
+        {/* LOGOUT BUTTON */}
+        <div className="pt-4">
+          <Link
+            href="/login"
+            className="w-full flex items-center justify-center gap-2 py-3.5 border border-rose-500/30 text-rose-600 dark:text-rose-400 font-semibold text-sm rounded-xl hover:bg-rose-50 dark:hover:bg-rose-950/20 transition-colors"
+          >
+            <LogOut className="w-4 h-4" />
+            <span>Sign Out</span>
+          </Link>
+        </div>
+
       </div>
-      
-      {/* Hide surrounding layout background visually if possible by making an absolute pseudo-backdrop */}
-      {darkMode && (
-        <div className="fixed inset-0 bg-[#111412] -z-10 transition-colors duration-300" />
-      )}
-      
+
+      <BottomNavBar />
     </div>
   );
 }

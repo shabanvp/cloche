@@ -31,9 +31,30 @@ export function Footer() {
               Curate your perfect wedding, the Kerala way. Discover the finest boutiques, curated collections & trusted experts all in one premium marketplace.
             </p>
             <div className="flex space-x-4 text-gold">
-              <a href="#" className="hover:text-white transition-colors text-sm">Instagram</a>
-              <a href="#" className="hover:text-white transition-colors text-sm">Facebook</a>
-              <a href="#" className="hover:text-white transition-colors text-sm">Twitter</a>
+              <a
+                href="https://instagram.com/clocheweddings"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-white transition-colors text-sm font-medium"
+              >
+                Instagram
+              </a>
+              <a
+                href="https://facebook.com/clocheweddings"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-white transition-colors text-sm font-medium"
+              >
+                Facebook
+              </a>
+              <a
+                href="https://x.com/clocheweddings"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-white transition-colors text-sm font-medium"
+              >
+                Twitter / X
+              </a>
             </div>
           </div>
 

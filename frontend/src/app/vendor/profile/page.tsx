@@ -1,3 +1,5 @@
+
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -43,7 +45,7 @@ export default function VendorProfile() {
           setAddress(active.address || active.location || "MG Road, Kochi");
           setDistrict(active.district || active.city || "Ernakulam");
         }
-      } catch (e) {}
+      } catch (e) { }
     }
   }, []);
 
@@ -113,7 +115,7 @@ export default function VendorProfile() {
 
         setSavedSuccess(true);
         setTimeout(() => setSavedSuccess(false), 3000);
-      } catch (err) {}
+      } catch (err) { }
     }
   };
 
@@ -137,7 +139,7 @@ export default function VendorProfile() {
         <section className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gold/10">
           <h2 className="text-lg font-display text-charcoal mb-4 border-b border-gold/10 pb-3">Branding</h2>
           <div className="flex flex-col md:flex-row gap-8 items-start">
-            
+
             {/* Logo Section */}
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-charcoal/60 mb-2">
