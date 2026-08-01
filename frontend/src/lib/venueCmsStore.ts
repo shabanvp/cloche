@@ -452,18 +452,18 @@ export function convertCmsToVenueDetail(cms: VenueCmsData): any {
   // Collect all uploaded venue photos
   const uploadedHeroPhotos = (cms.heroGallery?.images || []).map((i) => i.url).filter((u): u is string => Boolean(u && typeof u === "string"));
   const additionalGalleryPhotos = (cms.gallery?.photos || []).filter((u): u is string => Boolean(u && typeof u === "string"));
-  const allUploadedVenuePhotos = Array.from(new Set([...uploadedHeroPhotos, ...additionalGalleryPhotos]));
+  const allPhotos = Array.from(new Set([...uploadedHeroPhotos, ...additionalGalleryPhotos]));
 
-  let rawCover = cms.heroGallery?.coverImage;
-  const isLogo = !rawCover || rawCover.toLowerCase().includes("logo") || (rawCover.startsWith("data:image/") && rawCover.length < 5000 && allUploadedVenuePhotos.length > 0);
+  // Filter out default initial demo photos if user has uploaded real custom photos
+  const realUserPhotos = allPhotos.filter(
+    (url) => !url.includes("photo-1519167758481") && !url.includes("photo-1542314831") && !url.includes("photo-1566073771259")
+  );
 
-  if (isLogo || !rawCover) {
-    rawCover = allUploadedVenuePhotos[0] || "https://images.unsplash.com/photo-1519167758481-83f552bb8c74?auto=format&fit=crop&w=1200&q=80";
-  }
-
-  const finalImagesList = allUploadedVenuePhotos.length > 0
-    ? Array.from(new Set([rawCover, ...allUploadedVenuePhotos]))
-    : [rawCover, "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=800&q=80"];
+  const finalImagesList = realUserPhotos.length > 0
+    ? realUserPhotos
+    : allPhotos.length > 0
+    ? allPhotos
+    : ["https://images.unsplash.com/photo-1519167758481-83f552bb8c74?auto=format&fit=crop&w=1200&q=80"];
 
   return {
     id: cms.vendorId || cms.id,
