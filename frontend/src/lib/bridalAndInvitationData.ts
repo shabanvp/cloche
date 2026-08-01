@@ -228,7 +228,7 @@ export const invitationVendors: InvitationVendor[] = [
     userReviews: [
       {
         author: "Ananya & Rohan",
-        date: "Mar 12, 2024",
+        date: "Mar 12, 2026",
         isVerified: true,
         text: "The invitations were beyond stunning! The team was incredibly patient and brought our vision to life.",
       },

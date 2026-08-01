@@ -15,7 +15,7 @@ import { Button } from "@/components/Button";
 const REGISTERED_VENDORS = [
   { id: "v-22", name: "Aurelia Brides", email: "meharoofanasrin20@gmail.com", category: "Bridal Wear", district: "Ernakulam" },
   { id: "v-30", name: "Memory Lanes Photography", email: "info@memorylanes.in", category: "Photographers", district: "Kozhikode" },
-  { id: "v-[#29]", name: "Bohemian Bridal Rental", email: "bohemianbridals2024@gmail.com", category: "Bridal Wear", district: "Kannur" },
+  { id: "v-[#29]", name: "Bohemian Bridal Rental", email: "bohemianbridals@gmail.com", category: "Bridal Wear", district: "Kannur" },
   { id: "v-[#26]", name: "Royal Groom Couture", email: "shabanmuhammed26@gmail.com", category: "Groom Wear", district: "Malappuram" },
   { id: "v-[#15]", name: "Faces by Leena Bhushan", email: "info@facesbyleena.com", category: "Makeup Artists", district: "Kochi" },
   { id: "v-solitaire", name: "Grand Solitaire Island Resort", email: "events.kochi@solitaire.com", category: "Wedding Venues", district: "Ernakulam" },

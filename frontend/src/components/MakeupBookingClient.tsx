@@ -7,7 +7,7 @@ import { VendorDetail } from "@/lib/vendorLists";
 
 export function MakeupBookingClient({ artist }: { artist: VendorDetail }) {
   const [service, setService] = useState("Bridal Makeup");
-  const [date, setDate] = useState("2024-05-25");
+  const [date, setDate] = useState("2026-11-25");
   const [time, setTime] = useState("12:00 PM");
   const [location, setLocation] = useState(artist.location);
   const [notes, setNotes] = useState("");

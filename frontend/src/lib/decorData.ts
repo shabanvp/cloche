@@ -60,7 +60,7 @@ export const decorVendors: DecorVendor[] = [
     userReviews: [
       {
         author: "Ananya & Rohan",
-        date: "Mar 12, 2024",
+        date: "Mar 12, 2026",
         rating: 5.0,
         isVerified: true,
         text: "The Wedding Canvas turned our dream into a reality! The decor, flowers, and ambiance were beyond our expectations.",
@@ -102,7 +102,7 @@ export const decorVendors: DecorVendor[] = [
     userReviews: [
       {
         author: "Priya M.",
-        date: "Feb 20, 2024",
+        date: "Feb 20, 2026",
         rating: 4.8,
         isVerified: true,
         text: "The floral arches were stunning! Everyone was taking photos at the entrance all night.",

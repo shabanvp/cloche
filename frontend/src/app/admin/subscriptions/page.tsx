@@ -45,7 +45,7 @@ const INITIAL_SUBSCRIPTIONS: SubscriptionRecord[] = [
     id: "sub-103",
     boutique_name: "Bohemian Bridal Rental",
     owner_name: "Shifana V",
-    email: "bohemianbridals2024@gmail.com",
+    email: "bohemianbridals@gmail.com",
     plan: "Professional Monthly",
     price: "₹1,999",
     billingCycle: "Monthly",

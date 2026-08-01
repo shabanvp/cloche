@@ -98,7 +98,7 @@ const MOCK_REGISTERED_VENDORS: VendorRecord[] = [
     boutique_name: "Bohemian Bridal Rental",
     owner_name: "Shifana V",
     category: "Bridal Boutiques",
-    email: "bohemianbridals2024@gmail.com",
+    email: "bohemianbridals@gmail.com",
     phone: "+91 94471 88990",
     city: "Taliparamba, Kannur",
     plan: "Professional Monthly",
