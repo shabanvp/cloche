@@ -222,13 +222,13 @@ export default function Home() {
                 <p className="text-xs md:text-sm text-center text-outline leading-tight mt-1.5">At Home, Family Makeup Services</p>
               </div>
 
-              <div className="bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-gold/10 group hover:shadow-lg transition-all">
+              <Link href="/genie" className="bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-gold/10 group hover:shadow-lg transition-all block">
                 <div className="relative aspect-[4/3] rounded-xl overflow-hidden mb-4">
                   <img className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" src="https://lh3.googleusercontent.com/aida-public/AB6AXuABl_Ywl89hmmsujcwC-WF0OMTRRI3bbpHV8YfU9YPIxElnclEVGbDjccF1Bzdmg3ZYCFApqzP2DmEYDCI8SL4JB8bMgKWPuY2gY5CCovLBvR0o63pE2XUdDHZUVK95vEFxvd4A3GqNwRk_uVR7CK_t477O8JMhTM46yu9dXY844AeN4-qHDFE1RhBvA5lXiKe2d2T_GMPVlwudC-KxhD518L0qAMCTsOz9OtI0OT1bL5-OlSIniccN_sSlzFAoRIaLdroWjE3Q7aLM" alt="Genie Services" />
                 </div>
                 <h3 className="font-bold text-on-surface text-center text-base md:text-lg font-display">Genie Services</h3>
                 <p className="text-xs md:text-sm text-center text-outline leading-tight mt-1.5">Plan your dream wedding in budget</p>
-              </div>
+              </Link>
 
               <div className="bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-gold/10 group hover:shadow-lg transition-all col-span-2 md:col-span-1">
                 <div className="relative aspect-[4/3] rounded-xl overflow-hidden mb-4">
