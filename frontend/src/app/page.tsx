@@ -107,6 +107,48 @@ export default function Home() {
       bgColor: "bg-[#F6F3E5]",
       img: "https://images.unsplash.com/photo-1519225421980-715cb0215aed?q=80&w=800&auto=format&fit=crop",
       alt: "Decor and Planning"
+  ];
+
+  const featuredVendors = [
+    {
+      id: "v-solitaire",
+      name: "YAAN Udaipur",
+      category: "Wedding Venues, Udaipur",
+      price: "₹ 2,500",
+      priceLabel: "onwards per plate",
+      rating: "5.0",
+      img: "https://lh3.googleusercontent.com/aida-public/AB6AXuAEVqgHsiLSkZxXDg9lZQdQ2fTPFR5V8lLcuHmefPBRdMQNLe7DaNIoSBMDs-TSNQGmqfAtssE4J--SOQxWjq7wkGDdxYVBNbm0OTuHdJ3w3xNBTdbMqW78GJjhIvnF-lOipqY-3sm_s6h3uWydOcqo0AS-iQmi6b9dkhBX90G8s7rj70Ezy4-SF50TMXr3WS3XoOGVt9oKy4bGHthPojLDYTly5luPhH83fWUVH7svHPLOX4DXF44G0Dbc6zeguczDCK1Zp2_klw92",
+      href: "/boutiques/v-solitaire"
+    },
+    {
+      id: "v-[#15]",
+      name: "ROYAL MAKEUP ART",
+      category: "Bridal Makeup, Kochi",
+      price: "₹ 20,000",
+      priceLabel: "starting price",
+      rating: "4.9",
+      img: "https://lh3.googleusercontent.com/aida-public/AB6AXuDDZrXk8w7Jm5zSye-40lOKoE1m_Bo60PY2TvXxl9Fjth9bqLBSC2S2ppFjnymMrhAM8LGBq1odmw-SqU6bDvxSD5u_aLGw0mJbkiLUuCEZJhohjh9H6gsy7m3e5xdRtDgRHpsB4D8gYHfEYTHyeJt7Yu2DEOYq1i39XavHu6kIjbRdP491Z7XnbNqfJMItjqFxsVHuhhlDC3sBL3Rv6opkON-QP18z8KLdAn-EUqXu2KvyWFL-AO7Ob_80mvQ_jdqpQ-_8bj4rGy2i",
+      href: "/boutiques/v-[#15]"
+    },
+    {
+      id: "v-[#22]",
+      name: "Label M Boutique",
+      category: "Bridal Wear, Kochi",
+      price: "₹ 35,000",
+      priceLabel: "starting price",
+      rating: "4.9",
+      img: "https://images.unsplash.com/photo-1594223274512-ad4803739b7c?q=80&w=800&auto=format&fit=crop",
+      href: "/boutiques/v-[#22]"
+    },
+    {
+      id: "v-30",
+      name: "Memory Lanes",
+      category: "Photography, Kozhikode",
+      price: "₹ 50,000",
+      priceLabel: "per day",
+      rating: "4.8",
+      img: "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=800&auto=format&fit=crop",
+      href: "/boutiques/v-30"
     }
   ];
 
@@ -292,65 +334,26 @@ export default function Home() {
           </div>
 
           <div className="flex overflow-x-auto hide-scrollbar gap-4 px-6 md:grid md:grid-cols-3 lg:grid-cols-4 md:gap-6 md:overflow-visible">
-            <Link href="/boutiques" className="flex-shrink-0 w-72 md:w-auto bg-white rounded-2xl overflow-hidden shadow-sm border border-gold/10 group hover:shadow-md transition-all">
-              <div className="relative h-48 overflow-hidden">
-                <img className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAEVqgHsiLSkZxXDg9lZQdQ2fTPFR5V8lLcuHmefPBRdMQNLe7DaNIoSBMDs-TSNQGmqfAtssE4J--SOQxWjq7wkGDdxYVBNbm0OTuHdJ3w3xNBTdbMqW78GJjhIvnF-lOipqY-3sm_s6h3uWydOcqo0AS-iQmi6b9dkhBX90G8s7rj70Ezy4-SF50TMXr3WS3XoOGVt9oKy4bGHthPojLDYTly5luPhH83fWUVH7svHPLOX4DXF44G0Dbc6zeguczDCK1Zp2_klw92" alt="YAAN Udaipur" />
-                <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm">
-                  <span className="material-symbols-outlined text-amber-500 text-[14px]" style={{fontVariationSettings: 'FILL 1'}}>star</span>
-                  <span className="text-[12px] font-bold text-charcoal">5.0</span>
+            {featuredVendors.map((vendor) => (
+              <Link 
+                key={vendor.id} 
+                href={vendor.href} 
+                className="flex-shrink-0 w-72 md:w-auto bg-white rounded-2xl overflow-hidden shadow-sm border border-gold/10 group hover:shadow-md transition-all"
+              >
+                <div className="relative h-48 overflow-hidden">
+                  <img className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" src={vendor.img} alt={vendor.name} />
+                  <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm">
+                    <span className="material-symbols-outlined text-amber-500 text-[14px]" style={{fontVariationSettings: 'FILL 1'}}>star</span>
+                    <span className="text-[12px] font-bold text-charcoal">{vendor.rating}</span>
+                  </div>
                 </div>
-              </div>
-              <div className="p-5">
-                <h3 className="font-bold text-lg font-display text-charcoal group-hover:text-primary transition-colors">YAAN Udaipur</h3>
-                <p className="text-outline text-xs mt-0.5">Wedding Venues, Udaipur</p>
-                <p className="text-primary font-bold mt-3 text-sm">₹ 2,500 <span className="text-[11px] text-outline font-normal">onwards per plate</span></p>
-              </div>
-            </Link>
-
-            <Link href="/boutiques" className="flex-shrink-0 w-72 md:w-auto bg-white rounded-2xl overflow-hidden shadow-sm border border-gold/10 group hover:shadow-md transition-all">
-              <div className="relative h-48 overflow-hidden">
-                <img className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDDZrXk8w7Jm5zSye-40lOKoE1m_Bo60PY2TvXxl9Fjth9bqLBSC2S2ppFjnymMrhAM8LGBq1odmw-SqU6bDvxSD5u_aLGw0mJbkiLUuCEZJhohjh9H6gsy7m3e5xdRtDgRHpsB4D8gYHfEYTHyeJt7Yu2DEOYq1i39XavHu6kIjbRdP491Z7XnbNqfJMItjqFxsVHuhhlDC3sBL3Rv6opkON-QP18z8KLdAn-EUqXu2KvyWFL-AO7Ob_80mvQ_jdqpQ-_8bj4rGy2i" alt="ROYAL MAKEUP ART" />
-                <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm">
-                  <span className="material-symbols-outlined text-amber-500 text-[14px]" style={{fontVariationSettings: 'FILL 1'}}>star</span>
-                  <span className="text-[12px] font-bold text-charcoal">4.9</span>
+                <div className="p-5">
+                  <h3 className="font-bold text-lg font-display text-charcoal group-hover:text-primary transition-colors">{vendor.name}</h3>
+                  <p className="text-outline text-xs mt-0.5">{vendor.category}</p>
+                  <p className="text-primary font-bold mt-3 text-sm">{vendor.price} <span className="text-[11px] text-outline font-normal">{vendor.priceLabel}</span></p>
                 </div>
-              </div>
-              <div className="p-5">
-                <h3 className="font-bold text-lg font-display text-charcoal group-hover:text-primary transition-colors">ROYAL MAKEUP ART</h3>
-                <p className="text-outline text-xs mt-0.5">Bridal Makeup, Kochi</p>
-                <p className="text-primary font-bold mt-3 text-sm">₹ 20,000 <span className="text-[11px] text-outline font-normal">starting price</span></p>
-              </div>
-            </Link>
-
-            <Link href="/boutiques" className="flex-shrink-0 w-72 md:w-auto bg-white rounded-2xl overflow-hidden shadow-sm border border-gold/10 group hover:shadow-md transition-all">
-              <div className="relative h-48 overflow-hidden">
-                <img className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" src="https://images.unsplash.com/photo-1594223274512-ad4803739b7c?q=80&w=800&auto=format&fit=crop" alt="Label M Boutique" />
-                <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm">
-                  <span className="material-symbols-outlined text-amber-500 text-[14px]" style={{fontVariationSettings: 'FILL 1'}}>star</span>
-                  <span className="text-[12px] font-bold text-charcoal">4.9</span>
-                </div>
-              </div>
-              <div className="p-5">
-                <h3 className="font-bold text-lg font-display text-charcoal group-hover:text-primary transition-colors">Label M Boutique</h3>
-                <p className="text-outline text-xs mt-0.5">Bridal Wear, Kochi</p>
-                <p className="text-primary font-bold mt-3 text-sm">₹ 35,000 <span className="text-[11px] text-outline font-normal">starting price</span></p>
-              </div>
-            </Link>
-
-            <Link href="/boutiques" className="flex-shrink-0 w-72 md:w-auto bg-white rounded-2xl overflow-hidden shadow-sm border border-gold/10 group hover:shadow-md transition-all">
-              <div className="relative h-48 overflow-hidden">
-                <img className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" src="https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=800&auto=format&fit=crop" alt="Memory Lanes Photography" />
-                <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm">
-                  <span className="material-symbols-outlined text-amber-500 text-[14px]" style={{fontVariationSettings: 'FILL 1'}}>star</span>
-                  <span className="text-[12px] font-bold text-charcoal">4.8</span>
-                </div>
-              </div>
-              <div className="p-5">
-                <h3 className="font-bold text-lg font-display text-charcoal group-hover:text-primary transition-colors">Memory Lanes</h3>
-                <p className="text-outline text-xs mt-0.5">Photography, Kozhikode</p>
-                <p className="text-primary font-bold mt-3 text-sm">₹ 50,000 <span className="text-[11px] text-outline font-normal font-sans">per day</span></p>
-              </div>
-            </Link>
+              </Link>
+            ))}
           </div>
         </section>
 
