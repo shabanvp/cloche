@@ -107,6 +107,7 @@ export default function Home() {
       bgColor: "bg-[#F6F3E5]",
       img: "https://images.unsplash.com/photo-1519225421980-715cb0215aed?q=80&w=800&auto=format&fit=crop",
       alt: "Decor and Planning"
+    }
   ];
 
   const featuredVendors = [
