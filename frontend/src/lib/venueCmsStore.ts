@@ -449,6 +449,22 @@ export function convertCmsToVenueDetail(cms: VenueCmsData): any {
         avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=80&q=80",
       };
 
+  // Collect all uploaded venue photos
+  const uploadedHeroPhotos = (cms.heroGallery?.images || []).map((i) => i.url).filter((u): u is string => Boolean(u && typeof u === "string"));
+  const additionalGalleryPhotos = (cms.gallery?.photos || []).filter((u): u is string => Boolean(u && typeof u === "string"));
+  const allUploadedVenuePhotos = Array.from(new Set([...uploadedHeroPhotos, ...additionalGalleryPhotos]));
+
+  let rawCover = cms.heroGallery?.coverImage;
+  const isLogo = !rawCover || rawCover.toLowerCase().includes("logo") || (rawCover.startsWith("data:image/") && rawCover.length < 5000 && allUploadedVenuePhotos.length > 0);
+
+  if (isLogo || !rawCover) {
+    rawCover = allUploadedVenuePhotos[0] || "https://images.unsplash.com/photo-1519167758481-83f552bb8c74?auto=format&fit=crop&w=1200&q=80";
+  }
+
+  const finalImagesList = allUploadedVenuePhotos.length > 0
+    ? Array.from(new Set([rawCover, ...allUploadedVenuePhotos]))
+    : [rawCover, "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=800&q=80"];
+
   return {
     id: cms.vendorId || cms.id,
     name: cms.businessProfile.businessName,
@@ -456,9 +472,9 @@ export function convertCmsToVenueDetail(cms: VenueCmsData): any {
     city: cms.businessProfile.city,
     rating: 4.9,
     reviews: (cms.reviewsList || []).length || 24,
-    image: cms.heroGallery.coverImage,
-    images: (cms.heroGallery.images || []).map((i) => i.url),
-    totalPhotos: (cms.heroGallery.images || []).length + (cms.gallery?.photos || []).length,
+    image: finalImagesList[0],
+    images: finalImagesList,
+    totalPhotos: finalImagesList.length,
     tags: ["Luxury", "Wedding Venue", cms.venueInfo.venueType],
     capacity: `${cms.venueInfo.minGuests} – ${cms.venueInfo.maxGuests} Guests`,
     spaceType: cms.venueInfo.venueType,
