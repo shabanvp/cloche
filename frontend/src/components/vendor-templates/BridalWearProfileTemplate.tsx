@@ -647,7 +647,7 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-white/80 pt-2">
-            <div><strong>Store Hours:</strong> 10:00 AM – 8:00 PM (Mon - Sun)</div>
+            <div><strong>Store Hours:</strong> {config.businessHours || "Mon – Sat: 10:00 AM – 8:00 PM | Sun: 11:00 AM – 5:00 PM"}</div>
             <div><strong>Contact Email:</strong> {email}</div>
             <div><strong>Phone Number:</strong> {phone}</div>
             <div><strong>Instagram:</strong> {instagram}</div>

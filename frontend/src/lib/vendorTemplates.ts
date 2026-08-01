@@ -44,6 +44,7 @@ export type VendorProfileConfig = {
   city: string;
   district: string;
   address: string;
+  businessHours: string;
   mapCoordinates?: string;
   
   // Section Toggles
@@ -114,6 +115,7 @@ export const DEFAULT_VENDOR_CONFIGS: Record<string, VendorProfileConfig> = {
     city: "Kochi",
     district: "Ernakulam",
     address: "Bolgatty Island, Kochi, Kerala 682050",
+    businessHours: "Daily: 24/7 Event Booking & Front Desk",
     visibility: {
       heroBanner: true,
       gallery: true,
@@ -160,6 +162,7 @@ export const DEFAULT_VENDOR_CONFIGS: Record<string, VendorProfileConfig> = {
     city: "Kozhikode",
     district: "Kozhikode",
     address: "Focus Mall Road, Kozhikode, Kerala",
+    businessHours: "Mon – Sat: 9:30 AM – 7:30 PM (Sun Closed)",
     visibility: {
       heroBanner: true,
       gallery: true,
@@ -204,6 +207,7 @@ export const DEFAULT_VENDOR_CONFIGS: Record<string, VendorProfileConfig> = {
     city: "Kochi",
     district: "Ernakulam",
     address: "MG Road, Kochi, Kerala",
+    businessHours: "Mon – Sat: 10:00 AM – 8:00 PM | Sun: 11:00 AM – 5:00 PM",
     visibility: {
       heroBanner: true,
       gallery: true,
@@ -247,6 +251,7 @@ export const DEFAULT_VENDOR_CONFIGS: Record<string, VendorProfileConfig> = {
     city: "Kochi",
     district: "Ernakulam",
     address: "Lulu Mall Avenue, Edappally, Kochi, Kerala",
+    businessHours: "Tue – Sun: 10:30 AM – 8:30 PM (Mon Closed)",
     visibility: {
       heroBanner: true,
       gallery: true,
@@ -298,6 +303,19 @@ function createDefaultConfig(vendorId: string, category: CategoryType): VendorPr
   const vendorPhone = `+91 9847${phoneSuffix}`;
   const vendorEmail = `contact@${cleanId || "vendor"}.in`;
 
+  let defaultHours = "Mon – Sat: 10:00 AM – 8:00 PM";
+  if (category === "Wedding Venues" || category === "Wedding Venue") {
+    defaultHours = "Daily: 9:00 AM – 10:00 PM";
+  } else if (category === "Photographers") {
+    defaultHours = "Mon – Sat: 9:30 AM – 7:30 PM (Sun Closed)";
+  } else if (category === "Makeup Artists" || category === "Mehendi Artists") {
+    defaultHours = "Tue – Sun: 9:00 AM – 7:00 PM (Mon Closed)";
+  } else if (category === "Decor & Planning") {
+    defaultHours = "Mon – Sat: 10:00 AM – 7:00 PM";
+  } else if (category === "Bridal Wear" || category === "Groom Wear") {
+    defaultHours = "Mon – Sat: 10:00 AM – 8:00 PM | Sun: 11:00 AM – 5:00 PM";
+  }
+
   return {
     id: `cfg-${vendorId}`,
     vendorId,
@@ -315,6 +333,7 @@ function createDefaultConfig(vendorId: string, category: CategoryType): VendorPr
     city: "Kochi",
     district: "Ernakulam",
     address: `${formattedName} Studio, Ernakulam, Kerala`,
+    businessHours: defaultHours,
     visibility: {
       heroBanner: true,
       gallery: true,

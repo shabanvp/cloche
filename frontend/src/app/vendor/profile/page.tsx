@@ -14,7 +14,7 @@ export default function VendorProfile() {
   const [instagram, setInstagram] = useState<string>("");
   const [address, setAddress] = useState<string>("");
   const [district, setDistrict] = useState<string>("Ernakulam");
-  const [workingHours, setWorkingHours] = useState<string>("10:00 AM - 08:00 PM (Mon-Sat)");
+  const [workingHours, setWorkingHours] = useState<string>("Mon – Sat: 10:00 AM – 8:00 PM | Sun: 11:00 AM – 5:00 PM");
   const [savedSuccess, setSavedSuccess] = useState(false);
 
   useEffect(() => {
