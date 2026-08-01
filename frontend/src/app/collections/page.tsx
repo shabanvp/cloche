@@ -1,7 +1,22 @@
+import type { Metadata } from "next";
 import { Footer } from "@/components/Footer";
 import { getAllProducts } from "@/services/api";
 import Image from "next/image";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "Bridal Wear & Wedding Collections",
+  description: "Browse designer lehengas, bridal sarees, sherwanis, and wedding jewelry collections on Cloche.",
+  openGraph: {
+    title: "Bridal Wear & Wedding Collections | CLOCHE",
+    description: "Browse designer lehengas, bridal sarees, sherwanis, and wedding jewelry collections on Cloche.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Bridal Wear & Wedding Collections | CLOCHE",
+    description: "Browse designer lehengas, bridal sarees, sherwanis, and wedding jewelry collections on Cloche.",
+  },
+};
 
 export default async function CollectionsPage() {
   const collections = await getAllProducts();

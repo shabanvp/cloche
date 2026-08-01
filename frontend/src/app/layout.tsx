@@ -7,8 +7,24 @@ import { getSession } from "@/app/actions/auth";
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
-  title: "CLOCHE - Your Wedding, Your Way",
-  description: "Find the best wedding vendors with thousands of trusted reviews",
+  title: {
+    default: "CLOCHE - Your Wedding, Your Way",
+    template: "%s | CLOCHE",
+  },
+  description: "Find the best wedding vendors, luxury boutiques, venues, and inspirations with thousands of trusted reviews.",
+  openGraph: {
+    title: "CLOCHE - India's Favourite Wedding Planning Platform",
+    description: "Find the best wedding vendors, luxury boutiques, venues, and inspirations with thousands of trusted reviews.",
+    url: "https://cloche.luxury",
+    siteName: "Cloche Weddings",
+    locale: "en_IN",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "CLOCHE - Your Wedding, Your Way",
+    description: "Find the best wedding vendors, luxury boutiques, venues, and inspirations with thousands of trusted reviews.",
+  },
 };
 
 export const viewport: Viewport = {
