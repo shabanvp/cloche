@@ -15,7 +15,10 @@ export interface Boutique {
   image_url?: string;
   rating?: number;
   description?: string;
+<<<<<<< HEAD
   category?: string;
+=======
+>>>>>>> fe32ad53c593b0e6167cb66d6b107e596b852d39
 }
 
 export interface Product {
