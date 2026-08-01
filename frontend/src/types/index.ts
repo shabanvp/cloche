@@ -14,6 +14,7 @@ export interface Boutique {
   shop_location?: string;
   image_url?: string;
   rating?: number;
+  description?: string;
 }
 
 export interface Product {

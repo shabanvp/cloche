@@ -2,7 +2,9 @@
   "name": "cloche-root",
   "private": true,
   "scripts": {
-    "start": "node cloche-backend/server.js"
+    "build": "npm run build --prefix frontend",
+    "dev": "npm run dev --prefix frontend",
+    "start": "npm run start --prefix frontend"
   },
   "dependencies": {
     "googleapis": "^171.4.0"
