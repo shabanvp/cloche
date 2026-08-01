@@ -122,11 +122,11 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
         }))
       : [
           {
-            author: "Aisha Khan",
-            date: "2 months ago",
+            author: "Nayanthara S.",
+            date: "3 weeks ago",
             rating: 5.0,
-            avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80",
-            text: "The experience was surreal! The team understood my vision and made me feel so special. The lehenga was everything I dreamed of and more.",
+            avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80",
+            text: `Shopping at ${businessName} was an exceptional experience! Their embroidery craftsmanship, custom trial fittings, and warm hospitality made our wedding look unforgettable.`,
           },
         ]
   );

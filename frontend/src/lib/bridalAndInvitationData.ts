@@ -48,7 +48,7 @@ export const bridalBoutiqueVendors: BridalBoutiqueVendor[] = [
     ],
     userReviews: [
       {
-        author: "Aisha Khan",
+        author: "Fathima Rahman",
         date: "2 months ago",
         rating: 5.0,
         text: "The experience was surreal! The team understood my vision and made me feel so special. The lehenga was everything I dreamed of and more.",
@@ -227,7 +227,7 @@ export const invitationVendors: InvitationVendor[] = [
     ],
     userReviews: [
       {
-        author: "Ananya & Rohan",
+        author: "Divya & Akhil",
         date: "Mar 12, 2026",
         isVerified: true,
         text: "The invitations were beyond stunning! The team was incredibly patient and brought our vision to life.",

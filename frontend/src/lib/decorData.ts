@@ -59,7 +59,7 @@ export const decorVendors: DecorVendor[] = [
     ],
     userReviews: [
       {
-        author: "Ananya & Rohan",
+        author: "Kavya & Deepak",
         date: "Mar 12, 2026",
         rating: 5.0,
         isVerified: true,

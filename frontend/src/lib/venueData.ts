@@ -133,11 +133,11 @@ export const venues: VenueDetail[] = [
       { name: "Palace Experience", price: "₹45,00,000", guests: "800 Guests" },
     ],
     review: {
-      couple: "Ananya & Rohan",
-      date: "Mar 2025",
+      couple: "Devika & Siddharth",
+      date: "May 2026",
       rating: 5,
       text: "Sapphire Lake Palace is pure magic. The floating palace setting made our wedding utterly ethereal. World-class service and unforgettable memories.",
-      avatar: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?auto=format&fit=crop&w=80&q=80",
+      avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&q=80",
     },
     similar: [
       { id: "palace-estate", name: "The Palace Estate", city: "Udaipur", rating: 4.8, reviews: 138, image: "https://images.unsplash.com/photo-1519167758481-83f552bb8c74?auto=format&fit=crop&w=400&q=80" },
@@ -609,11 +609,11 @@ export function transformRegisteredToVenueDetail(id: string, data: any): VenueDe
       text: data.reviewsList[0].text,
       avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=80&q=80",
     } : {
-      couple: "Ananya & Rohan",
+      couple: "Fathima & Sameer",
       date: "Recent",
       rating: 5,
       text: "Hosting our wedding here was a dream come true! Exceptional management, beautiful ambiance, and impeccable service throughout.",
-      avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=80&q=80",
+      avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=80&q=80",
     }),
     similar: otherVenues.map((v) => ({
       id: v.id,
