@@ -5,12 +5,10 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { ChevronRight } from "lucide-react";
 import { getAllVenues } from "@/lib/venueData";
-import { getVendorsByCategory } from "@/lib/vendorLists";
+import { photographers, makeupArtists } from "@/lib/vendorLists";
 import { decorVendors } from "@/lib/decorData";
 import { mehendiVendors } from "@/lib/mehendiData";
-import { 
-  bridalBoutiqueVendors, jewelleryVendors, invitationVendors, groomWearVendors, cateringVendors 
-} from "@/lib/bridalAndInvitationData";
+import { bridalBoutiqueVendors, invitationVendors } from "@/lib/bridalAndInvitationData";
 
 // Custom SVG Icons
 function VenueIcon({ className = "w-3.5 h-3.5 sm:w-4.5 sm:h-4.5" }: { className?: string }) {
@@ -153,7 +151,7 @@ export const showcaseCategories: CategoryItem[] = [
     href: "/photographers",
     image: "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=1200&q=80",
     icon: CameraIcon,
-    getCount: () => getVendorsByCategory("photographers").length || 16,
+    getCount: () => photographers.length || 16,
   },
   {
     slug: "makeup",
@@ -163,7 +161,7 @@ export const showcaseCategories: CategoryItem[] = [
     href: "/makeup",
     image: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=1200&q=80",
     icon: MakeupIcon,
-    getCount: () => getVendorsByCategory("makeup").length || 14,
+    getCount: () => makeupArtists.length || 14,
   },
   {
     slug: "decor-planning",
@@ -203,7 +201,7 @@ export const showcaseCategories: CategoryItem[] = [
     href: "/categories/jewellery",
     image: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=1200&q=80",
     icon: JewelleryIcon,
-    getCount: () => jewelleryVendors.length || 15,
+    getCount: () => 15,
   },
   {
     slug: "invitations",
@@ -223,7 +221,7 @@ export const showcaseCategories: CategoryItem[] = [
     href: "/categories/groom-wear",
     image: "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=1200&q=80",
     icon: GroomIcon,
-    getCount: () => groomWearVendors.length || 14,
+    getCount: () => 14,
   },
   {
     slug: "caterers",
@@ -233,7 +231,7 @@ export const showcaseCategories: CategoryItem[] = [
     href: "/categories/catering",
     image: "https://images.unsplash.com/photo-1555244162-803834f70033?auto=format&fit=crop&w=1200&q=80",
     icon: CateringIcon,
-    getCount: () => cateringVendors.length || 10,
+    getCount: () => 10,
   },
 ];
 
