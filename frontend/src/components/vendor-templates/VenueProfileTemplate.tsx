@@ -28,7 +28,6 @@ import {
   Building2,
 } from "lucide-react";
 import { VenueDetail, getVenueById, getAllVenues } from "@/lib/venueData";
-import { makeupArtists } from "@/lib/vendorLists";
 import { VendorProfileConfig } from "@/lib/vendorTemplates";
 import { VenueCmsData, convertCmsToVenueDetail } from "@/lib/venueCmsStore";
 import { toggleWishlistItem, isItemInWishlist } from "@/lib/wishlistStore";
@@ -869,27 +868,27 @@ export function VenueProfileTemplate({
           </div>
         </div>
 
-        {/* OTHER VENUES & VENDORS CARDS SECTION */}
+        {/* OTHER VENUE CARDS SECTION */}
         <div className="px-4 lg:px-0 space-y-5 pt-4">
           <div className="flex items-center justify-between">
             <div>
-              <span className="text-xs font-bold text-[#0F4C45] uppercase tracking-wider">Explore More Options</span>
+              <span className="text-xs font-bold text-[#0F4C45] uppercase tracking-wider">Explore More Venues</span>
               <h2 className="font-display text-[18px] lg:text-2xl font-bold text-[#1A1410] mt-0.5">
-                Other Recommended Venues & Top Vendors
+                Other Recommended Venues
               </h2>
             </div>
             <Link
               href="/venues"
               className="text-xs font-bold text-[#0F4C45] hover:underline flex items-center gap-1 shrink-0 bg-white px-3.5 py-2 rounded-full border border-[#E2D5C0]/60 shadow-2xs hover:bg-[#0F4C45] hover:text-white transition-all"
             >
-              <span>View All</span>
+              <span>View All Venues</span>
               <ChevronRight className="w-3.5 h-3.5" />
             </Link>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
             {/* Other Venue Cards */}
-            {otherVenuesList.slice(0, 3).map((other) => {
+            {otherVenuesList.slice(0, 6).map((other) => {
               const isOtherWishlisted = isItemInWishlist(other.id);
               return (
                 <div
@@ -967,91 +966,6 @@ export function VenueProfileTemplate({
                       className="w-full bg-[#F5F0E8] hover:bg-[#0F4C45] hover:text-white text-[#0F4C45] font-bold text-xs py-2.5 rounded-xl transition-all flex items-center justify-center gap-1 mt-2 text-center"
                     >
                       <span>View Venue Details</span>
-                      <ChevronRight className="w-3.5 h-3.5" />
-                    </Link>
-                  </div>
-                </div>
-              );
-            })}
-
-            {/* Top Vendor Cards */}
-            {makeupArtists.slice(0, 3).map((vendor) => {
-              const isVendorWishlisted = isItemInWishlist(vendor.id);
-              return (
-                <div
-                  key={vendor.id}
-                  className="bg-white rounded-3xl overflow-hidden border border-[#E2D5C0]/80 shadow-xs hover:shadow-xl transition-all duration-300 group flex flex-col justify-between"
-                >
-                  <div className="relative aspect-[16/10] overflow-hidden bg-gray-100">
-                    <img
-                      src={vendor.image}
-                      alt={vendor.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
-                    
-                    <span className="absolute top-3 left-3 bg-[#C8A96A] text-[#1A1410] text-[11px] font-bold px-3 py-1 rounded-full shadow-xs">
-                      {vendor.category}
-                    </span>
-
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        const next = toggleWishlistItem({
-                          id: vendor.id,
-                          name: vendor.name,
-                          category: vendor.category,
-                          price: "Top Rated Vendor",
-                          image: vendor.image,
-                          location: vendor.location,
-                          rating: vendor.rating,
-                          href: `/vendor/${vendor.id}`,
-                        });
-                        showToast(next ? "Saved to Wishlist!" : "Removed from Wishlist");
-                      }}
-                      className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 backdrop-blur-md flex items-center justify-center shadow-sm hover:scale-110 transition-transform cursor-pointer"
-                    >
-                      <Heart
-                        className="w-4 h-4"
-                        style={{
-                          color: isVendorWishlisted ? "#E8614A" : "#8C827A",
-                          fill: isVendorWishlisted ? "#E8614A" : "none",
-                        }}
-                      />
-                    </button>
-
-                    <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-white text-xs">
-                      <div className="flex items-center gap-1 font-bold bg-black/50 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/10">
-                        <Star className="w-3.5 h-3.5 fill-[#C8A96A] text-[#C8A96A]" />
-                        <span>{vendor.rating}</span>
-                        <span className="opacity-80">({vendor.reviews})</span>
-                      </div>
-                      <span className="font-semibold bg-white/25 backdrop-blur-md px-2.5 py-1 rounded-full text-[11px] border border-white/20">
-                        Verified Vendor
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="p-5 space-y-3 flex-1 flex flex-col justify-between">
-                    <div>
-                      <h3 className="font-display font-bold text-base text-[#1A1410] group-hover:text-[#0F4C45] transition-colors line-clamp-1">
-                        {vendor.name}
-                      </h3>
-                      <div className="flex items-center gap-1 text-xs text-[#7A6E65] mt-1">
-                        <MapPin className="w-3.5 h-3.5 text-[#7A6E65] shrink-0" />
-                        <span className="truncate">{vendor.location}</span>
-                      </div>
-                      <p className="text-xs text-[#6B5E52] mt-2 line-clamp-2 italic">
-                        "{vendor.about}"
-                      </p>
-                    </div>
-
-                    <Link
-                      href={`/vendor/${vendor.id}`}
-                      className="w-full bg-[#0F4C45]/10 hover:bg-[#0F4C45] hover:text-white text-[#0F4C45] font-bold text-xs py-2.5 rounded-xl transition-all flex items-center justify-center gap-1 mt-2 text-center"
-                    >
-                      <span>View Vendor Profile</span>
                       <ChevronRight className="w-3.5 h-3.5" />
                     </Link>
                   </div>
