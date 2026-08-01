@@ -221,7 +221,7 @@ export function BridalWearListing() {
               const coverImg = boutique.image_url || (boutique as any).cover_image || "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=800&q=80";
               const locationText = boutique.city ? `${boutique.city}${boutique.district ? `, ${boutique.district}` : ""}` : "Kerala";
               const ratingVal = boutique.rating || 4.9;
-              const reviewsVal = (boutique as any).reviews_count || (boutique as any).reviews || 85;
+              const reviewsVal = (boutique as any).reviews_count || (boutique as any).reviews || (boutique as any).userReviews?.length || 1;
               const desc = (boutique as any).description || (boutique as any).tagline || "Luxury bridal wear and bespoke wedding couture.";
 
               return (

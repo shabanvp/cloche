@@ -559,7 +559,7 @@ export function VenueProfileTemplate({
                 <div className="flex items-center gap-1 bg-[#C8A96A]/10 px-2.5 py-1 rounded-full">
                   <Star className="h-4 w-4 fill-current text-[#C8A96A]" />
                   <span className="text-xs font-bold text-[#1A1410]">{venue.rating}</span>
-                  <span className="text-xs text-[#7A6E65]">({venue.reviews})</span>
+                  <span className="text-xs text-[#7A6E65]">({combinedReviews.length})</span>
                 </div>
               </div>
 
@@ -654,7 +654,7 @@ export function VenueProfileTemplate({
                 <div className="flex items-center gap-1">
                   <Star className="h-4 w-4 fill-current text-[#C8A96A]" />
                   <span className="text-[14px] font-bold text-[#1A1410]">{venue.rating}</span>
-                  <span className="text-[13px] text-[#7A6E65]">({venue.reviews} Reviews)</span>
+                  <span className="text-[13px] text-[#7A6E65]">({combinedReviews.length} Reviews)</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <MapPin className="h-3.5 w-3.5 text-[#7A6E65]" />
