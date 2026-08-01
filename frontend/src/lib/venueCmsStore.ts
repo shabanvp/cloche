@@ -115,23 +115,23 @@ export type CmsVersionSnapshot = {
 // ----------------------------------------------------
 
 export const DEFAULT_VENUE_CMS: VenueCmsData = {
-  id: "venue-cms-hyatt",
-  vendorId: "v-hyatt",
+  id: "venue-cms-solitaire",
+  vendorId: "v-solitaire",
   category: "Wedding Venue",
   lastUpdated: new Date().toISOString(),
   status: "Published",
   businessProfile: {
-    businessName: "Grand Hyatt Kochi Bolgatty",
+    businessName: "Grand Solitaire Island Resort",
     tagline: "Luxury Waterfront Island Wedding Destination",
-    description: "Situated on the serene Bolgatty Island, Grand Hyatt Kochi offers 100,000 sq.ft of luxurious indoor & outdoor wedding spaces with backwater views.",
+    description: "Situated on the serene Bolgatty Island, Grand Solitaire Island Resort offers 100,000 sq.ft of luxurious indoor & outdoor wedding spaces with backwater views.",
     city: "Kochi",
     district: "Ernakulam",
     address: "Bolgatty Island, Kochi, Kerala 682050",
     contactNumber: "+91 484 266 1234",
     whatsapp: "+91 98950 11223",
-    email: "events.kochi@hyatt.com",
-    website: "https://hyatt.com",
-    instagram: "@grandhyattkochi",
+    email: "events.kochi@solitaire.com",
+    website: "https://solitaire.com",
+    instagram: "@grandsolitaire",
     isVerified: true,
   },
   heroGallery: {
@@ -450,62 +450,55 @@ export function convertCmsToVenueDetail(cms: VenueCmsData): any {
   const amenitiesList = Object.entries(cms.amenities || {})
     .filter(([_, val]) => Boolean(val))
     .map(([key]) => ({
-      icon: amenityIconsMap[key] || "check_circle",
-      label: amenityLabelsMap[key] || key.charAt(0).toUpperCase() + key.slice(1),
-    }));
+export function convertCmsToVenueDetail(cms: VenueCmsData): VenueDetail {
+  const amenitiesList = [
+    { icon: "restaurant", label: "Catering" },
+    { icon: "celebration", label: "Decor" },
+    { icon: "local_parking", label: "Valet Parking" },
+    { icon: "bed", label: "Bridal Suite" },
+  ];
 
-  if (cms.venueInfo?.bridalSuiteAvailable) {
-    amenitiesList.push({ icon: "bed", label: "Bridal Suite" });
-  }
+  if (cms.amenities.parking) amenitiesList.push({ icon: "local_parking", label: "Parking" });
+  if (cms.amenities.wifi) amenitiesList.push({ icon: "wifi", label: "Free Wi-Fi" });
+  if (cms.amenities.generator) amenitiesList.push({ icon: "bolt", label: "Power Backup" });
+  if (cms.amenities.garden) amenitiesList.push({ icon: "park", label: "Lawn Garden" });
+  if (cms.amenities.swimmingPool) amenitiesList.push({ icon: "pool", label: "Swimming Pool" });
+  if (cms.amenities.stage) amenitiesList.push({ icon: "living", label: "Stage Setup" });
 
-  const packagesList = (cms.packages || []).map((pkg) => ({
+  const packagesList = cms.packages.map((pkg) => ({
     name: pkg.name,
     price: pkg.price,
-    guests: pkg.description || "All Inclusive",
+    guests: pkg.description || "Package Offer",
     tag: pkg.isPopular ? "Most Loved" : undefined,
   }));
 
-  const primaryReview = cms.reviewsList && cms.reviewsList.length > 0
+  const primaryReview = cms.reviewsList[0]
     ? {
-        couple: cms.reviewsList[0].author || "Verified Couple",
-        date: cms.reviewsList[0].date || "Recent",
-        rating: cms.reviewsList[0].rating || 5,
+        couple: cms.reviewsList[0].author,
+        date: cms.reviewsList[0].date,
+        rating: cms.reviewsList[0].rating,
         text: cms.reviewsList[0].text,
-        avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&q=80",
+        avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=80&q=80",
       }
     : {
-        couple: "Priya & Arjun",
-        date: "Apr 2025",
+        couple: "Verified Guest",
+        date: "Recent",
         rating: 5,
-        text: `Hosting our wedding at ${cms.businessProfile.businessName} was an exceptional experience!`,
+        text: "Magnificent venue and great service!",
         avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=80&q=80",
       };
 
-  const reviewsCount = (cms.reviewsList || []).length || 1;
-  const avgRating = (cms.reviewsList || []).length > 0
-    ? parseFloat((cms.reviewsList.reduce((acc, r) => acc + (r.rating || 5), 0) / cms.reviewsList.length).toFixed(1))
-    : 4.9;
-
   return {
-    id: cms.id,
+    id: cms.vendorId || cms.id,
     name: cms.businessProfile.businessName,
-    tagline: cms.businessProfile.tagline,
-    description: cms.businessProfile.description,
-    location: `${cms.businessProfile.city}, ${cms.businessProfile.district || cms.businessProfile.address}`,
+    location: `${cms.businessProfile.city}, ${cms.businessProfile.district}`,
     city: cms.businessProfile.city,
-    district: cms.businessProfile.district,
-    address: cms.businessProfile.address,
-    contactNumber: cms.businessProfile.contactNumber,
-    whatsapp: cms.businessProfile.whatsapp,
-    email: cms.businessProfile.email,
-    website: cms.businessProfile.website,
-    instagram: cms.businessProfile.instagram,
-    rating: avgRating,
-    reviews: reviewsCount,
-    image: cms.heroGallery.coverImage || heroImages[0],
-    images: heroImages,
-    totalPhotos: heroImages.length,
-    tags: ["Verified Venue", cms.venueInfo.venueType],
+    rating: 4.9,
+    reviews: cms.reviewsList.length || 24,
+    image: cms.heroGallery.coverImage,
+    images: cms.heroGallery.images.map((i) => i.url),
+    totalPhotos: cms.heroGallery.images.length + cms.gallery.photos.length,
+    tags: ["Luxury", "Wedding Venue", cms.venueInfo.venueType],
     capacity: `${cms.venueInfo.minGuests} – ${cms.venueInfo.maxGuests} Guests`,
     spaceType: cms.venueInfo.venueType,
     startingPrice: cms.venueInfo.startingPrice,
@@ -517,9 +510,9 @@ export function convertCmsToVenueDetail(cms: VenueCmsData): any {
     faqs: cms.faqs,
     similar: [
       { id: "palace-estate", name: "The Palace Estate", city: "Udaipur", rating: 4.8, reviews: 138, image: "https://images.unsplash.com/photo-1519167758481-83f552bb8c74?auto=format&fit=crop&w=400&q=80" },
-      { id: "taj-lake-palace", name: "Taj Lake Palace", city: "Udaipur", rating: 4.9, reviews: 94, image: "https://images.unsplash.com/photo-1570544820323-66a7e58ce1d8?auto=format&fit=crop&w=400&q=80" },
-      { id: "leela-palace", name: "Leela Palace", city: "Delhi", rating: 4.7, reviews: 110, image: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=400&q=80" },
-      { id: "six-senses-fort-barwara", name: "Six Senses Fort", city: "Sawai Madhopur", rating: 4.9, reviews: 75, image: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=400&q=80" },
+      { id: "sapphire-lake-palace", name: "Sapphire Lake Palace", city: "Udaipur", rating: 4.9, reviews: 94, image: "https://images.unsplash.com/photo-1570544820323-66a7e58ce1d8?auto=format&fit=crop&w=400&q=80" },
+      { id: "celestia-grand-palace", name: "Celestia Grand Palace", city: "Delhi", rating: 4.7, reviews: 110, image: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=400&q=80" },
+      { id: "moonstone-fort-resort", name: "Moonstone Fort Resort", city: "Sawai Madhopur", rating: 4.9, reviews: 75, image: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=400&q=80" },
     ],
   };
 }

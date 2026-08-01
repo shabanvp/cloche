@@ -59,7 +59,7 @@ const INITIAL_COLLECTIONS: CollectionItem[] = [
     id: "col-4",
     title: "Waterfront Lawn Wedding Package",
     category: "Wedding Venues",
-    boutique_name: "Grand Hyatt Kochi",
+    boutique_name: "Grand Solitaire Island Resort",
     price: "₹4,50,000",
     status: "active",
     featured: true,

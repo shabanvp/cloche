@@ -467,13 +467,13 @@ export function RealWeddingsFeed() {
           <div className="bg-white p-6 rounded-3xl border border-gold/15 shadow-sm space-y-3">
             <h4 className="font-display font-bold text-lg text-charcoal border-b border-gold/10 pb-3">Featured Venues</h4>
             <Link href="/venues" className="block text-xs font-semibold text-[#0F4C45] hover:underline">
-              → Grand Hyatt Kochi Bolgatty (Kochi)
+              → Grand Solitaire Island Resort (Kochi)
             </Link>
             <Link href="/venues" className="block text-xs font-semibold text-[#0F4C45] hover:underline">
-              → Oberoi Udaivilas (Udaipur)
+              → Sapphire Palace Resort (Udaipur)
             </Link>
             <Link href="/venues" className="block text-xs font-semibold text-[#0F4C45] hover:underline">
-              → Taj Exotica (Goa)
+              → Azure Shore Resort (Goa)
             </Link>
           </div>
 

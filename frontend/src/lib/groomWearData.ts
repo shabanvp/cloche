@@ -18,8 +18,8 @@ export type GroomWearVendor = {
 
 export const groomWearVendors: GroomWearVendor[] = [
   {
-    id: "kalki-couture",
-    name: "Kalki Couture",
+    id: "aurora-menswear-couture",
+    name: "Aurora Menswear Couture",
     subtitle: "Luxury groom wear crafted for timeless moments.",
     rating: 4.8,
     reviews: 128,
@@ -28,7 +28,7 @@ export const groomWearVendors: GroomWearVendor[] = [
       "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=800&q=80",
     isVerified: true,
     about:
-      "Kalki Couture offers exquisite groom wear collection that blends heritage with modern luxury. Each piece is crafted with fine fabrics, intricate detailing and unmatched craftsmanship.",
+      "Aurora Menswear Couture offers exquisite groom wear collection that blends heritage with modern luxury. Each piece is crafted with fine fabrics, intricate detailing and unmatched craftsmanship.",
     yearsInBusiness: 12,
     groomsStyled: 1000,
     collections: [

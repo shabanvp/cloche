@@ -18,15 +18,15 @@ export type BridalBoutiqueVendor = {
 
 export const bridalBoutiqueVendors: BridalBoutiqueVendor[] = [
   {
-    id: "kalki-couture",
-    name: "Kalki Couture",
+    id: "aurora-bridal-couture",
+    name: "Aurora Bridal Couture",
     subtitle: "Luxury couture lehengas crafted to perfection.",
     rating: 4.8,
     reviews: 120,
     location: "Bandra, Mumbai",
     image: "https://images.unsplash.com/photo-1549417229-aa67d3263c09?auto=format&fit=crop&w=800&q=80",
     isVerified: true,
-    about: "Kalki Couture is a luxury bridal wear label known for its exquisite craftsmanship, intricate detailing and timeless designs. Every piece is a blend of heritage and modern elegance, crafted for your most memorable moments.",
+    about: "Aurora Bridal Couture is a luxury bridal wear label known for its exquisite craftsmanship, intricate detailing and timeless designs. Every piece is a blend of heritage and modern elegance, crafted for your most memorable moments.",
     yearsInBusiness: 12,
     bridesDressed: 500,
     collections: [
@@ -56,8 +56,8 @@ export const bridalBoutiqueVendors: BridalBoutiqueVendor[] = [
     ],
   },
   {
-    id: "papa-dont-preach",
-    name: "Papa Don't Preach",
+    id: "luna-bridal-house",
+    name: "Luna Bridal House",
     subtitle: "Contemporary silhouettes with a touch of tradition.",
     rating: 4.7,
     reviews: 96,
@@ -80,8 +80,8 @@ export const bridalBoutiqueVendors: BridalBoutiqueVendor[] = [
     userReviews: [],
   },
   {
-    id: "sabyasachi-kolkata",
-    name: "Sabyasachi Kolkata",
+    id: "velvet-bloom-couture",
+    name: "Velvet Bloom Couture",
     subtitle: "Iconic designs for the extraordinary you.",
     rating: 4.9,
     reviews: 212,
@@ -104,8 +104,8 @@ export const bridalBoutiqueVendors: BridalBoutiqueVendor[] = [
     userReviews: [],
   },
   {
-    id: "anita-dongre",
-    name: "Anita Dongre",
+    id: "ivory-thread-studio",
+    name: "Ivory Thread Studio",
     subtitle: "Timeless craftsmanship in every thread.",
     rating: 4.8,
     reviews: 88,

@@ -28,7 +28,7 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
   const [isFollowing, setIsFollowing] = useState(false);
 
   // Dynamic Vendor Properties (Strictly No Shared Hardcoded Fallbacks)
-  const vendorId = String(boutique?.id || bridalVendor?.id || config.vendorId || "kalki-couture");
+  const vendorId = String(boutique?.id || bridalVendor?.id || config.vendorId || "aurora-bridal-couture");
   const businessName = boutique?.boutique_name || bridalVendor?.name || config.businessName;
   const logo = (boutique as any)?.logo_url || (boutique as any)?.logo || boutique?.image_url || config.logo;
   const coverImage = (boutique as any)?.cover_image || boutique?.image_url || bridalVendor?.image || config.coverImage;

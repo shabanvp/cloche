@@ -32,7 +32,7 @@ export default function EInvitesPage() {
   const [brideName, setBrideName] = useState("Ananya");
   const [groomName, setGroomName] = useState("Rahul");
   const [weddingDate, setWeddingDate] = useState("2026-12-18");
-  const [venueLocation, setVenueLocation] = useState("The Leela Palace, Udaipur");
+  const [venueLocation, setVenueLocation] = useState("Celestia Grand Palace, Udaipur");
   const [selectedTheme, setSelectedTheme] = useState<"gold" | "floral" | "palace" | "modern">("gold");
   const [copiedToast, setCopiedToast] = useState(false);
 
@@ -308,7 +308,7 @@ export default function EInvitesPage() {
                   {weddingDate ? new Date(weddingDate).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }) : "December 18, 2026"}
                 </p>
                 <p className="text-[11px] text-white/80 line-clamp-1">
-                  {venueLocation || "The Leela Palace, Udaipur"}
+                  {venueLocation || "Celestia Grand Palace, Udaipur"}
                 </p>
                 <span className="text-[9px] text-white/60 block pt-1 tracking-widest uppercase">
                   CLOCHE LUXURY DIGITAL INVITES

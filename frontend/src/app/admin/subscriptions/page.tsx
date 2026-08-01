@@ -65,9 +65,9 @@ const INITIAL_SUBSCRIPTIONS: SubscriptionRecord[] = [
   },
   {
     id: "sub-105",
-    boutique_name: "Grand Hyatt Kochi",
+    boutique_name: "Grand Solitaire Island Resort",
     owner_name: "Events Team",
-    email: "events.kochi@hyatt.com",
+    email: "events.kochi@solitaire.com",
     plan: "Enterprise Luxury",
     price: "₹49,999",
     billingCycle: "Annual",

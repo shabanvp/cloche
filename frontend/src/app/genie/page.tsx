@@ -72,8 +72,8 @@ export default function GeniePage() {
           type: "venues",
           items: [
             {
-              id: "grand-hyatt-kochi",
-              name: "Grand Hyatt Kochi Bolgatty",
+              id: "grand-solitaire-resort",
+              name: "Grand Solitaire Island Resort",
               location: "Kochi, Kerala",
               price: "₹2,50,000 / day",
               capacity: "300 - 3000 Guests",

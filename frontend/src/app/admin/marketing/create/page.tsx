@@ -18,8 +18,8 @@ const REGISTERED_VENDORS = [
   { id: "v-[#29]", name: "Bohemian Bridal Rental", email: "bohemianbridals2024@gmail.com", category: "Bridal Wear", district: "Kannur" },
   { id: "v-[#26]", name: "Royal Groom Couture", email: "shabanmuhammed26@gmail.com", category: "Groom Wear", district: "Malappuram" },
   { id: "v-[#15]", name: "Faces by Leena Bhushan", email: "info@facesbyleena.com", category: "Makeup Artists", district: "Kochi" },
-  { id: "v-hyatt", name: "Grand Hyatt Kochi", email: "events.kochi@hyatt.com", category: "Wedding Venues", district: "Ernakulam" },
-  { id: "v-leela", name: "Leela Raviz Kovalam", email: "weddings.kovalam@theleela.com", category: "Wedding Venues", district: "Trivandrum" },
+  { id: "v-solitaire", name: "Grand Solitaire Island Resort", email: "events.kochi@solitaire.com", category: "Wedding Venues", district: "Ernakulam" },
+  { id: "v-seaside", name: "Seaside Haven Resort", email: "weddings.kovalam@seasidehaven.com", category: "Wedding Venues", district: "Trivandrum" },
   { id: "v-malabar", name: "Malabar Gold & Diamonds", email: "support@malabargold.com", category: "Jewellery", district: "Kozhikode" },
   { id: "v-custom", name: "+ Enter Custom Offline Vendor", email: "", category: "Bridal Wear", district: "Malappuram" }
 ];
@@ -214,7 +214,7 @@ export default function AdminCreateAdvertisementPage() {
                   <input
                     required
                     type="text"
-                    placeholder="e.g. Sabyasachi Heritage Boutique"
+                    placeholder="e.g. Velvet Bloom Heritage Boutique"
                     value={customVendorName}
                     onChange={(e) => setCustomVendorName(e.target.value)}
                     className="w-full bg-white border border-gold/20 rounded-xl p-2.5 text-charcoal outline-none"
