@@ -6,6 +6,7 @@ import { useState } from "react";
 import { ArrowLeft, MoreHorizontal, Star, MapPin, Phone, MessageSquare, Share2, Heart, CheckCircle2 } from "lucide-react";
 import { BottomNavBar } from "@/components/BottomNavBar";
 import { VendorDetail } from "@/lib/vendorLists";
+import { formatTelUri } from "@/lib/formatters";
 
 const InstagramIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg
@@ -102,7 +103,7 @@ export function PhotographerDetailClient({ photographer }: { photographer: Vendo
           {/* Quick Actions */}
           <div className="mt-6 grid grid-cols-4 gap-2">
             {[
-              { icon: Phone, label: "Call", onClick: () => window.location.href = `tel:${photographer.phone}` },
+              { icon: Phone, label: "Call", onClick: () => window.location.href = formatTelUri(photographer.phone) },
               { icon: MessageSquare, label: "Message", onClick: () => window.open(`https://wa.me/${photographer.phone}`, "_blank") },
               { icon: Share2, label: "Share", onClick: () => {} },
               { icon: InstagramIcon, label: "Instagram", onClick: () => {} },

@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { BottomNavBar } from "@/components/BottomNavBar";
 import { MehendiVendor } from "@/lib/mehendiData";
+import { formatTelUri } from "@/lib/formatters";
 
 export function MehendiDetailClient({ artist }: { artist: MehendiVendor }) {
   const [activeTab, setActiveTab] = useState<"about" | "portfolio" | "packages" | "reviews" | "availability">("about");
@@ -287,7 +288,7 @@ export function MehendiDetailClient({ artist }: { artist: MehendiVendor }) {
       {/* Sticky Bottom Actions Bar (Picture 2 buttons: Call, WhatsApp, Book Now) */}
       <div className="fixed bottom-16 left-0 right-0 z-40 bg-white/95 backdrop-blur-md px-4 py-2.5 border-t border-black/5 shadow-lg flex items-center gap-2">
         <a
-          href={`tel:${artist.id}`}
+          href={formatTelUri((artist as any).phone)}
           className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-[#0F4C45] py-3 text-[13px] font-bold text-white shadow-xs transition-transform active:scale-95"
         >
           <Phone className="h-4 w-4" /> Call

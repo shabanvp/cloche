@@ -13,6 +13,7 @@ import {
   ExternalLink, Info, CheckCircle
 } from "lucide-react";
 import { Button } from "@/components/Button";
+import { formatTelUri } from "@/lib/formatters";
 import { logAdminAction } from "@/lib/systemStore";
 
 interface Props {
@@ -330,7 +331,7 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
       <div className="max-w-4xl mx-auto px-4 mt-6">
         <div className="grid grid-cols-4 gap-2 sm:gap-3 text-center">
           <a
-            href={`tel:${phone}`}
+            href={formatTelUri(phone)}
             className="bg-white p-3 sm:p-4 rounded-2xl border border-gold/15 shadow-sm hover:border-[#0F4C45] transition-all flex flex-col items-center justify-center space-y-1.5 group"
           >
             <div className="w-10 h-10 rounded-full bg-[#0F4C45]/10 text-[#0F4C45] flex items-center justify-center group-hover:bg-[#0F4C45] group-hover:text-white transition-colors">
@@ -703,7 +704,7 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
       <div className="fixed bottom-0 left-0 right-0 z-50 bg-[#0B3B2D] border-t border-[#C8A96A]/30 p-3 shadow-2xl">
         <div className="max-w-4xl mx-auto flex items-center justify-between gap-2 text-white">
           <a
-            href={`tel:${phone}`}
+            href={formatTelUri(phone)}
             className="flex-1 bg-[#06241B] hover:bg-[#082F2C] border border-white/20 py-3 rounded-2xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 shadow"
           >
             <Phone className="w-4 h-4 text-emerald" /> Call

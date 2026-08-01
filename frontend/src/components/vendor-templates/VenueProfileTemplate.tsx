@@ -27,6 +27,7 @@ import {
   ShieldCheck,
   Building2,
 } from "lucide-react";
+import { formatTelUri } from "@/lib/formatters";
 import { VenueDetail, getVenueById, getAllVenues } from "@/lib/venueData";
 import { VendorProfileConfig } from "@/lib/vendorTemplates";
 import { VenueCmsData, convertCmsToVenueDetail } from "@/lib/venueCmsStore";
@@ -321,7 +322,7 @@ export function VenueProfileTemplate({
 
   const rawPhone = (venue as any).contactNumber || (venue as any).phone || "+919876543210";
   const rawWhatsapp = (venue as any).whatsapp || rawPhone;
-  const phoneUrl = `tel:${rawPhone.replace(/[^\d+]/g, "")}`;
+  const phoneUrl = formatTelUri(rawPhone);
   const whatsappUrl = `https://wa.me/${rawWhatsapp.replace(/\D/g, "")}?text=${encodeURIComponent(
     `Hi, I'm interested in booking ${venue.name} through Cloche.`
   )}`;

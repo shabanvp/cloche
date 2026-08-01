@@ -6,6 +6,7 @@ import {
   CheckCircle2, Play, Sparkles 
 } from "lucide-react";
 import { Button } from "@/components/Button";
+import { formatTelUri } from "@/lib/formatters";
 
 interface Props {
   config: VendorProfileConfig;
@@ -44,7 +45,7 @@ export function PhotographerProfileTemplate({ config }: Props) {
                   <MessageSquare className="w-4 h-4 text-emerald" /> Book Shoot Date
                 </Button>
               </a>
-              <a href={`tel:${config.phone}`}>
+              <a href={formatTelUri(config.phone)}>
                 <Button variant="outline" className="border-white text-white hover:bg-white/10 rounded-xl px-6 py-3 font-bold text-xs uppercase tracking-wider">
                   <Phone className="w-4 h-4" /> Call Studio
                 </Button>
