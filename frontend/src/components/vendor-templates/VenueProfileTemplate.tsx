@@ -980,22 +980,58 @@ export function VenueProfileTemplate({
 
       {/* LIGHTBOX MODAL */}
       {isLightboxOpen && (
-        <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4">
-          <button
-            onClick={() => setIsLightboxOpen(false)}
-            className="absolute top-6 right-6 text-white hover:opacity-70 p-2"
-          >
-            <X className="w-6 h-6" />
-          </button>
-          <div className="max-w-4xl w-full text-center space-y-4">
+        <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-md flex flex-col justify-between p-4 sm:p-6">
+          {/* Header Bar */}
+          <div className="flex justify-between items-center text-white z-10">
+            <span className="text-xs font-semibold px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20">
+              Photo {activeImage + 1} of {venue.totalPhotos}
+            </span>
+            <button
+              onClick={() => setIsLightboxOpen(false)}
+              className="text-white hover:bg-white/20 p-2 rounded-full transition-colors cursor-pointer"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </div>
+
+          {/* Main Image View with Prev/Next Controls */}
+          <div className="relative flex-1 flex items-center justify-center my-2 max-h-[75vh]">
+            <button
+              onClick={() => setActiveImage((prev) => (prev > 0 ? prev - 1 : venue.images.length - 1))}
+              className="absolute left-2 sm:left-4 z-20 p-3 rounded-full bg-black/50 text-white hover:bg-black/80 transition-colors backdrop-blur-sm cursor-pointer"
+              title="Previous photo"
+            >
+              <ChevronLeft className="w-6 h-6" />
+            </button>
+
             <img
               src={venue.images[activeImage] || venue.image}
-              alt="Lightbox"
-              className="max-h-[80vh] mx-auto rounded-2xl object-contain shadow-2xl"
+              alt={`${venue.name} Photo ${activeImage + 1}`}
+              className="max-h-[72vh] max-w-full rounded-2xl object-contain shadow-2xl transition-all duration-300"
             />
-            <p className="text-white text-xs font-semibold">
-              Photo {activeImage + 1} of {venue.totalPhotos}
-            </p>
+
+            <button
+              onClick={() => setActiveImage((prev) => (prev < venue.images.length - 1 ? prev + 1 : 0))}
+              className="absolute right-2 sm:right-4 z-20 p-3 rounded-full bg-black/50 text-white hover:bg-black/80 transition-colors backdrop-blur-sm cursor-pointer"
+              title="Next photo"
+            >
+              <ChevronRight className="w-6 h-6" />
+            </button>
+          </div>
+
+          {/* Interactive Lightbox Thumbnail Strip */}
+          <div className="flex gap-2 overflow-x-auto justify-center py-2 max-w-4xl mx-auto hide-scrollbar z-10">
+            {venue.images.map((img, idx) => (
+              <button
+                key={idx}
+                onClick={() => setActiveImage(idx)}
+                className={`relative w-14 h-14 rounded-xl overflow-hidden border-2 shrink-0 transition-all cursor-pointer ${
+                  activeImage === idx ? "border-gold scale-105 shadow-md" : "border-transparent opacity-50 hover:opacity-100"
+                }`}
+              >
+                <img src={img} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-cover" />
+              </button>
+            ))}
           </div>
         </div>
       )}

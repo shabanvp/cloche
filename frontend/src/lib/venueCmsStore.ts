@@ -24,7 +24,7 @@ export type VenueCmsData = {
   // 2. Hero Gallery
   heroGallery: {
     coverImage: string;
-    images: { id: string; url: string; caption?: string }[];
+    images: { id: string; publicId?: string; url: string; caption?: string; isMainCover?: boolean; order?: number }[];
   };
 
   // 3. Venue Information
@@ -56,6 +56,15 @@ export type VenueCmsData = {
     decoration: boolean;
     wheelchairAccess: boolean;
   };
+
+  // Custom Amenities added by vendor
+  customAmenities?: {
+    id: string;
+    name: string;
+    icon?: string;
+    description?: string;
+    isAvailable: boolean;
+  }[];
 
   // 5. Packages
   packages: {
@@ -426,6 +435,18 @@ export function convertCmsToVenueDetail(cms: VenueCmsData): any {
   if (cms.amenities?.swimmingPool) amenitiesList.push({ icon: "pool", label: "Swimming Pool" });
   if (cms.amenities?.stage) amenitiesList.push({ icon: "living", label: "Stage Setup" });
 
+  // Merge Custom Amenities seamlessly into unified amenities list
+  if (Array.isArray(cms.customAmenities)) {
+    cms.customAmenities.forEach((ca) => {
+      if (ca && ca.isAvailable !== false && ca.name) {
+        amenitiesList.push({
+          icon: ca.icon || "check_circle",
+          label: ca.name,
+        });
+      }
+    });
+  }
+
   const packagesList = (cms.packages || []).map((pkg) => ({
     name: pkg.name,
     price: pkg.price,
@@ -449,8 +470,12 @@ export function convertCmsToVenueDetail(cms: VenueCmsData): any {
         avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=80&q=80",
       };
 
-  // Collect all uploaded venue photos
-  const uploadedHeroPhotos = (cms.heroGallery?.images || []).map((i) => i.url).filter((u): u is string => Boolean(u && typeof u === "string"));
+  // Collect all uploaded venue photos from heroGallery and gallery
+  const heroImageObjects = cms.heroGallery?.images || [];
+  const mainCoverObj = heroImageObjects.find((i) => i.isMainCover) || heroImageObjects[0];
+  const coverUrl = cms.heroGallery?.coverImage || mainCoverObj?.url;
+
+  const uploadedHeroPhotos = heroImageObjects.map((i) => i.url).filter((u): u is string => Boolean(u && typeof u === "string"));
   const additionalGalleryPhotos = (cms.gallery?.photos || []).filter((u): u is string => Boolean(u && typeof u === "string"));
   const allPhotos = Array.from(new Set([...uploadedHeroPhotos, ...additionalGalleryPhotos]));
 
@@ -459,11 +484,16 @@ export function convertCmsToVenueDetail(cms: VenueCmsData): any {
     (url) => !url.includes("photo-1519167758481") && !url.includes("photo-1542314831") && !url.includes("photo-1566073771259")
   );
 
-  const finalImagesList = realUserPhotos.length > 0
+  let finalImagesList = realUserPhotos.length > 0
     ? realUserPhotos
     : allPhotos.length > 0
     ? allPhotos
     : ["https://images.unsplash.com/photo-1519167758481-83f552bb8c74?auto=format&fit=crop&w=1200&q=80"];
+
+  // Ensure main cover image is at index 0
+  if (coverUrl && finalImagesList.includes(coverUrl)) {
+    finalImagesList = [coverUrl, ...finalImagesList.filter((u) => u !== coverUrl)];
+  }
 
   return {
     id: cms.vendorId || cms.id,
@@ -481,6 +511,7 @@ export function convertCmsToVenueDetail(cms: VenueCmsData): any {
     startingPrice: cms.venueInfo.startingPrice,
     verified: cms.businessProfile.isVerified !== false,
     amenities: amenitiesList,
+    customAmenities: cms.customAmenities || [],
     packages: packagesList,
     review: primaryReview,
     reviewsList: cms.reviewsList || [],
