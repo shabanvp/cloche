@@ -28,11 +28,13 @@ export function CateringDetailClient({ vendor }: { vendor: CateringVendor }) {
     .toUpperCase();
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#FAF7F2] pb-32 text-[#2D2520]">
-      {/* Top Hero Banner */}
-      <div className="relative w-full aspect-[4/3] sm:aspect-[16/9] bg-gray-900">
-        <Image src={vendor.image} alt={vendor.name} fill priority className="object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/30" />
+    <div className="min-h-screen flex flex-col bg-[#F8F5F0] pb-32 text-[#2D2520] font-sans">
+      {/* Container for Desktop/Laptop Elegance */}
+      <div className="max-w-5xl mx-auto w-full md:px-6 md:pt-6">
+        {/* Top Hero Banner */}
+        <div className="relative w-full aspect-[4/3] sm:aspect-[16/9] md:h-[400px] bg-gray-900 md:rounded-3xl overflow-hidden shadow-lg">
+          <Image src={vendor.image} alt={vendor.name} fill priority className="object-cover object-top sm:object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/30" />
 
         <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 pt-4 pb-2 z-10">
           <Link
@@ -225,6 +227,7 @@ export function CateringDetailClient({ vendor }: { vendor: CateringVendor }) {
           </section>
         )}
       </main>
+    </div>
 
       {/* Sticky Bottom Actions */}
       <div className="fixed bottom-16 left-0 right-0 z-40 bg-white/95 backdrop-blur-md px-4 py-2.5 border-t border-black/5 shadow-lg flex items-center gap-2">

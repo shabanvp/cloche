@@ -39,34 +39,37 @@ export function PhotographerDetailClient({ photographer }: { photographer: Vendo
 
   return (
     <div className="min-h-screen flex flex-col pb-36 bg-[#F8F5F0] text-[#2D2520] font-sans">
-      {/* Cover Image */}
-      <div className="relative w-full h-[260px] sm:h-[340px]">
-        <Image src={photographer.images[0] || photographer.image} alt={photographer.name} fill priority className="object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30" />
+      {/* Container for Desktop/Laptop Elegance */}
+      <div className="max-w-5xl mx-auto w-full md:px-6 md:pt-6">
+        {/* Cover Image */}
+        <div className="relative w-full h-[260px] sm:h-[340px] md:h-[380px] md:rounded-3xl overflow-hidden shadow-lg">
+          <Image src={photographer.images[0] || photographer.image} alt={photographer.name} fill priority className="object-cover object-top sm:object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30" />
 
-        <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 pt-4 pb-2 z-10">
-          <Link
-            href="/photographers"
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-md transition-transform active:scale-95"
-            aria-label="Back to Photographers"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Link>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setIsWishlisted(!isWishlisted)}
+          <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 pt-4 pb-2 z-10">
+            <Link
+              href="/photographers"
               className="flex h-9 w-9 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-md transition-transform active:scale-95"
+              aria-label="Back to Photographers"
             >
-              <Heart className={`h-5 w-5 ${isWishlisted ? "fill-rose-500 text-rose-500" : "text-white"}`} />
-            </button>
-            <button
-              onClick={() => {
-                if (navigator.share) navigator.share({ title: photographer.name, url: window.location.href });
-              }}
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-md"
-            >
-              <Share2 className="h-5 w-5" />
-            </button>
+              <ArrowLeft className="h-5 w-5" />
+            </Link>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setIsWishlisted(!isWishlisted)}
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-md transition-transform active:scale-95"
+              >
+                <Heart className={`h-5 w-5 ${isWishlisted ? "fill-rose-500 text-rose-500" : "text-white"}`} />
+              </button>
+              <button
+                onClick={() => {
+                  if (navigator.share) navigator.share({ title: photographer.name, url: window.location.href });
+                }}
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-md"
+              >
+                <Share2 className="h-5 w-5" />
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -199,6 +202,7 @@ export function PhotographerDetailClient({ photographer }: { photographer: Vendo
           </div>
         )}
       </div>
+    </div>
 
       <BottomNavBar activeTab="vendors" />
     </div>

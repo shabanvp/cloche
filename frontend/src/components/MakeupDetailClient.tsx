@@ -20,165 +20,168 @@ export function MakeupDetailClient({ artist }: { artist: VendorDetail }) {
 
   return (
     <div className="min-h-screen flex flex-col pb-36 bg-[#F8F5F0] text-[#2D2520] font-sans">
-      {/* Cover Image */}
-      <div className="relative w-full h-[260px] sm:h-[340px]">
-        <Image src={artist.images[0] || artist.image} alt={artist.name} fill priority className="object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30" />
+      {/* Container for Desktop/Laptop Elegance */}
+      <div className="max-w-5xl mx-auto w-full md:px-6 md:pt-6">
+        {/* Cover Image */}
+        <div className="relative w-full h-[260px] sm:h-[340px] md:h-[380px] md:rounded-3xl overflow-hidden shadow-lg">
+          <Image src={artist.images[0] || artist.image} alt={artist.name} fill priority className="object-cover object-top sm:object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30" />
 
-        <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 pt-4 pb-2 z-10">
-          <Link
-            href="/makeup"
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-md transition-transform active:scale-95"
-            aria-label="Back to Makeup Artists"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Link>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setIsWishlisted(!isWishlisted)}
+          <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 pt-4 pb-2 z-10">
+            <Link
+              href="/makeup"
               className="flex h-9 w-9 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-md transition-transform active:scale-95"
+              aria-label="Back to Makeup Artists"
             >
-              <Heart className={`h-5 w-5 ${isWishlisted ? "fill-rose-500 text-rose-500" : "text-white"}`} />
-            </button>
-            <button
-              onClick={() => {
-                if (navigator.share) navigator.share({ title: artist.name, url: window.location.href });
-              }}
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-md"
-            >
-              <Share2 className="h-5 w-5" />
-            </button>
+              <ArrowLeft className="h-5 w-5" />
+            </Link>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setIsWishlisted(!isWishlisted)}
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-md transition-transform active:scale-95"
+              >
+                <Heart className={`h-5 w-5 ${isWishlisted ? "fill-rose-500 text-rose-500" : "text-white"}`} />
+              </button>
+              <button
+                onClick={() => {
+                  if (navigator.share) navigator.share({ title: artist.name, url: window.location.href });
+                }}
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-md"
+              >
+                <Share2 className="h-5 w-5" />
+              </button>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Profile Card */}
-      <div className="relative px-4 -mt-12 z-20">
-        <div className="rounded-3xl p-5 relative bg-white border border-[#E8DFC5]/80 shadow-[0_8px_30px_rgba(40,31,18,0.06)] space-y-4">
-          <div className="flex items-start gap-4">
-            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl flex items-center justify-center bg-[#0F4C45] text-[#C8A96A] font-serif font-bold text-xl sm:text-2xl shadow-md border-2 border-white shrink-0 -mt-10">
-              {getInitials(artist.name)}
-            </div>
-
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-1.5">
-                <h1 className="font-serif text-xl sm:text-2xl font-bold text-[#0F4C45] truncate">
-                  {artist.name}
-                </h1>
-                <CheckCircle2 className="h-4 w-4 text-[#C8A96A] shrink-0 fill-[#C8A96A]/20" />
+        {/* Profile Card */}
+        <div className="relative px-4 -mt-12 z-20">
+          <div className="rounded-3xl p-5 relative bg-white border border-[#E8DFC5]/80 shadow-[0_8px_30px_rgba(40,31,18,0.06)] space-y-4">
+            <div className="flex items-start gap-4">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl flex items-center justify-center bg-[#0F4C45] text-[#C8A96A] font-serif font-bold text-xl sm:text-2xl shadow-md border-2 border-white shrink-0 -mt-10">
+                {getInitials(artist.name)}
               </div>
 
-              <p className="text-xs text-[#7A6E65] flex items-center gap-1 mt-0.5 truncate">
-                <MapPin className="h-3.5 w-3.5 text-[#0F4C45] shrink-0" />
-                <span className="truncate">{artist.location}</span>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-1.5">
+                  <h1 className="font-serif text-xl sm:text-2xl font-bold text-[#0F4C45] truncate">
+                    {artist.name}
+                  </h1>
+                  <CheckCircle2 className="h-4 w-4 text-[#C8A96A] shrink-0 fill-[#C8A96A]/20" />
+                </div>
+
+                <p className="text-xs text-[#7A6E65] flex items-center gap-1 mt-0.5 truncate">
+                  <MapPin className="h-3.5 w-3.5 text-[#0F4C45] shrink-0" />
+                  <span className="truncate">{artist.location}</span>
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 text-xs text-[#6B5E52] pt-2 border-t border-[#F2EBE1]">
+              <div className="flex items-center gap-1">
+                <Star className="h-3.5 w-3.5 text-amber-400 fill-amber-400" />
+                <span className="font-bold text-[#1A1410]">{artist.rating}</span>
+                <span>({artist.reviews} reviews)</span>
+              </div>
+              <div className="w-1 h-1 rounded-full bg-[#C8A96A]" />
+              <div>
+                <span className="font-bold text-[#1A1410]">{artist.followers}</span> Followers
+              </div>
+            </div>
+
+            {/* Quick Contact Buttons */}
+            <div className="grid grid-cols-2 gap-2.5 pt-2">
+              <a
+                href={formatTelUri(artist.phone || "+919847055443")}
+                className="flex items-center justify-center gap-2 rounded-xl py-2.5 bg-[#0F4C45] text-white text-xs font-bold shadow-xs hover:bg-[#12584E] transition-colors"
+              >
+                <Phone className="h-3.5 w-3.5" /> Call Artist
+              </a>
+
+              <a
+                href={`https://wa.me/${(artist.phone || "919847055443").replace(/\D/g, "")}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 rounded-xl py-2.5 bg-[#25D366] text-white text-xs font-bold shadow-xs hover:bg-[#20ba59] transition-colors"
+              >
+                <MessageSquare className="h-3.5 w-3.5" /> WhatsApp
+              </a>
+            </div>
+          </div>
+        </div>
+
+        {/* Tabs Header */}
+        <div className="mt-5 px-4">
+          <div className="flex gap-2 border-b border-[#E2D6C7] text-xs font-semibold">
+            {[
+              { id: "about", label: "About" },
+              { id: "portfolio", label: "Portfolio" },
+              { id: "reviews", label: "Reviews" },
+              { id: "info", label: "Contact Info" },
+            ].map((tab) => {
+              const active = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id as any)}
+                  className={`py-2.5 px-3 border-b-2 transition-all cursor-pointer ${
+                    active ? "border-[#0F4C45] text-[#0F4C45] font-bold" : "border-transparent text-[#7A6E65]"
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Tab Content */}
+        <div className="p-4">
+          {activeTab === "about" && (
+            <div className="rounded-2xl p-5 bg-white border border-[#E8DFC5]/80 shadow-2xs space-y-3">
+              <h3 className="font-serif font-bold text-base text-[#0F4C45]">About {artist.name}</h3>
+              <p className="text-xs text-[#5A6561] leading-relaxed">{artist.about}</p>
+            </div>
+          )}
+
+          {activeTab === "portfolio" && (
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+              {artist.images.map((img, i) => (
+                <div key={i} className="relative aspect-[4/3] rounded-xl overflow-hidden bg-[#EFE8DE] shadow-2xs">
+                  <Image src={img} alt={`Portfolio ${i}`} fill className="object-cover" />
+                </div>
+              ))}
+            </div>
+          )}
+
+          {activeTab === "reviews" && (
+            <div className="rounded-2xl p-5 bg-white border border-[#E8DFC5]/80 shadow-2xs space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="font-serif font-bold text-base text-[#0F4C45]">Client Reviews</h3>
+                <div className="flex items-center gap-1 text-xs font-bold text-[#0F4C45]">
+                  <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                  <span>{artist.rating} / 5.0</span>
+                </div>
+              </div>
+              <p className="text-xs text-[#5A6561] leading-relaxed">
+                &quot;Parul and her team did magic for my wedding makeup! HD airbrush finish stayed flawless throughout the evening.&quot;
               </p>
             </div>
-          </div>
+          )}
 
-          <div className="flex items-center gap-3 text-xs text-[#6B5E52] pt-2 border-t border-[#F2EBE1]">
-            <div className="flex items-center gap-1">
-              <Star className="h-3.5 w-3.5 text-amber-400 fill-amber-400" />
-              <span className="font-bold text-[#1A1410]">{artist.rating}</span>
-              <span>({artist.reviews} reviews)</span>
-            </div>
-            <div className="w-1 h-1 rounded-full bg-[#C8A96A]" />
-            <div>
-              <span className="font-bold text-[#1A1410]">{artist.followers}</span> Followers
-            </div>
-          </div>
-
-          {/* Quick Contact Buttons */}
-          <div className="grid grid-cols-2 gap-2.5 pt-2">
-            <a
-              href={formatTelUri(artist.phone || "+919847055443")}
-              className="flex items-center justify-center gap-2 rounded-xl py-2.5 bg-[#0F4C45] text-white text-xs font-bold shadow-xs hover:bg-[#12584E] transition-colors"
-            >
-              <Phone className="h-3.5 w-3.5" /> Call Artist
-            </a>
-
-            <a
-              href={`https://wa.me/${(artist.phone || "919847055443").replace(/\D/g, "")}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 rounded-xl py-2.5 bg-[#25D366] text-white text-xs font-bold shadow-xs hover:bg-[#20ba59] transition-colors"
-            >
-              <MessageSquare className="h-3.5 w-3.5" /> WhatsApp
-            </a>
-          </div>
-        </div>
-      </div>
-
-      {/* Tabs Header */}
-      <div className="mt-5 px-4">
-        <div className="flex gap-2 border-b border-[#E2D6C7] text-xs font-semibold">
-          {[
-            { id: "about", label: "About" },
-            { id: "portfolio", label: "Portfolio" },
-            { id: "reviews", label: "Reviews" },
-            { id: "info", label: "Contact Info" },
-          ].map((tab) => {
-            const active = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
-                className={`py-2.5 px-3 border-b-2 transition-all cursor-pointer ${
-                  active ? "border-[#0F4C45] text-[#0F4C45] font-bold" : "border-transparent text-[#7A6E65]"
-                }`}
-              >
-                {tab.label}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Tab Content */}
-      <div className="p-4">
-        {activeTab === "about" && (
-          <div className="rounded-2xl p-5 bg-white border border-[#E8DFC5]/80 shadow-2xs space-y-3">
-            <h3 className="font-serif font-bold text-base text-[#0F4C45]">About {artist.name}</h3>
-            <p className="text-xs text-[#5A6561] leading-relaxed">{artist.about}</p>
-          </div>
-        )}
-
-        {activeTab === "portfolio" && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-            {artist.images.map((img, i) => (
-              <div key={i} className="relative aspect-[4/3] rounded-xl overflow-hidden bg-[#EFE8DE] shadow-2xs">
-                <Image src={img} alt={`Portfolio ${i}`} fill className="object-cover" />
+          {activeTab === "info" && (
+            <div className="rounded-2xl p-5 bg-white border border-[#E8DFC5]/80 shadow-2xs space-y-3 text-xs">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-[#7A6E65]">Phone Contact</p>
+                <p className="font-medium text-[#2D2520] mt-0.5">{artist.phone || "+91 98470 55443"}</p>
               </div>
-            ))}
-          </div>
-        )}
-
-        {activeTab === "reviews" && (
-          <div className="rounded-2xl p-5 bg-white border border-[#E8DFC5]/80 shadow-2xs space-y-3">
-            <div className="flex items-center justify-between">
-              <h3 className="font-serif font-bold text-base text-[#0F4C45]">Client Reviews</h3>
-              <div className="flex items-center gap-1 text-xs font-bold text-[#0F4C45]">
-                <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                <span>{artist.rating} / 5.0</span>
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-[#7A6E65]">Email Address</p>
+                <p className="font-medium text-[#2D2520] mt-0.5">{artist.email || "info@artist.com"}</p>
               </div>
             </div>
-            <p className="text-xs text-[#5A6561] leading-relaxed">
-              &quot;Parul and her team did magic for my wedding makeup! HD airbrush finish stayed flawless throughout the evening.&quot;
-            </p>
-          </div>
-        )}
-
-        {activeTab === "info" && (
-          <div className="rounded-2xl p-5 bg-white border border-[#E8DFC5]/80 shadow-2xs space-y-3 text-xs">
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-[#7A6E65]">Phone Contact</p>
-              <p className="font-medium text-[#2D2520] mt-0.5">{artist.phone || "+91 98470 55443"}</p>
-            </div>
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-[#7A6E65]">Email Address</p>
-              <p className="font-medium text-[#2D2520] mt-0.5">{artist.email || "info@artist.com"}</p>
-            </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       <BottomNavBar activeTab="vendors" />
