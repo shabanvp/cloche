@@ -261,17 +261,48 @@ function getCouponsStorageKey(vendorId: string): string {
   return `cloche_vendor_coupons_${vendorId || "v-solitaire"}`;
 }
 
+const ALL_VENDOR_KEYS = [
+  "cloche_vendor_offers_global",
+  "cloche_vendor_offers_v-solitaire",
+  "cloche_vendor_offers_shifa-covention-centre",
+  "cloche_vendor_offers_shifa-convention-centre",
+];
+
+function persistOffersToAllKeys(vendorId: string, list: VendorOffer[]) {
+  if (typeof window === "undefined") return;
+  const json = JSON.stringify(list);
+  localStorage.setItem(getOffersStorageKey(vendorId), json);
+  ALL_VENDOR_KEYS.forEach((k) => localStorage.setItem(k, json));
+  window.dispatchEvent(new Event("cloche_offers_updated"));
+  window.dispatchEvent(new Event("storage"));
+}
+
 /**
  * Retrieve all vendor offers for a given vendor
  */
 export function getVendorOffers(vendorId: string = "v-solitaire"): VendorOffer[] {
   if (typeof window === "undefined") return DEFAULT_SAMPLE_OFFERS;
   try {
-    const raw = localStorage.getItem(getOffersStorageKey(vendorId));
-    if (!raw) {
-      localStorage.setItem(getOffersStorageKey(vendorId), JSON.stringify(DEFAULT_SAMPLE_OFFERS));
+    const primaryKey = getOffersStorageKey(vendorId);
+    let raw = localStorage.getItem(primaryKey);
+
+    // If primary key is null, check alternate vendor keys
+    if (raw === null) {
+      for (const altKey of ALL_VENDOR_KEYS) {
+        const altRaw = localStorage.getItem(altKey);
+        if (altRaw !== null) {
+          raw = altRaw;
+          break;
+        }
+      }
+    }
+
+    // If no storage key exists anywhere yet, initialize with default sample offers once
+    if (raw === null) {
+      persistOffersToAllKeys(vendorId, DEFAULT_SAMPLE_OFFERS);
       return DEFAULT_SAMPLE_OFFERS;
     }
+
     const parsed: VendorOffer[] = JSON.parse(raw);
     
     // Auto-update expired statuses based on date
@@ -286,12 +317,12 @@ export function getVendorOffers(vendorId: string = "v-solitaire"): VendorOffer[]
     });
 
     if (modified) {
-      localStorage.setItem(getOffersStorageKey(vendorId), JSON.stringify(updated));
+      persistOffersToAllKeys(vendorId, updated);
     }
     return updated;
   } catch (e) {
     console.error("Error reading vendor offers store:", e);
-    return DEFAULT_SAMPLE_OFFERS;
+    return [];
   }
 }
 
@@ -355,11 +386,7 @@ export function saveVendorOffer(offer: Partial<VendorOffer> & { name: string; ve
     updatedList = [newOfferObj, ...finalOffersList];
   }
 
-  if (typeof window !== "undefined") {
-    localStorage.setItem(getOffersStorageKey(offer.vendorId), JSON.stringify(updatedList));
-    window.dispatchEvent(new Event("cloche_offers_updated"));
-  }
-
+  persistOffersToAllKeys(offer.vendorId, updatedList);
   return newOfferObj;
 }
 
@@ -369,10 +396,7 @@ export function saveVendorOffer(offer: Partial<VendorOffer> & { name: string; ve
 export function deleteVendorOffer(offerId: string, vendorId: string = "v-solitaire"): boolean {
   const existing = getVendorOffers(vendorId);
   const filtered = existing.filter((o) => o.id !== offerId);
-  if (typeof window !== "undefined") {
-    localStorage.setItem(getOffersStorageKey(vendorId), JSON.stringify(filtered));
-    window.dispatchEvent(new Event("cloche_offers_updated"));
-  }
+  persistOffersToAllKeys(vendorId, filtered);
   return true;
 }
 
@@ -382,10 +406,7 @@ export function deleteVendorOffer(offerId: string, vendorId: string = "v-solitai
 export function toggleOfferStatus(offerId: string, status: OfferStatus, vendorId: string = "v-solitaire"): boolean {
   const existing = getVendorOffers(vendorId);
   const updated = existing.map((o) => (o.id === offerId ? { ...o, status, updatedAt: new Date().toISOString() } : o));
-  if (typeof window !== "undefined") {
-    localStorage.setItem(getOffersStorageKey(vendorId), JSON.stringify(updated));
-    window.dispatchEvent(new Event("cloche_offers_updated"));
-  }
+  persistOffersToAllKeys(vendorId, updated);
   return true;
 }
 
@@ -399,10 +420,7 @@ export function toggleFeaturedOffer(offerId: string, vendorId: string = "v-solit
     isFeatured: o.id === offerId ? !o.isFeatured : false,
     updatedAt: new Date().toISOString(),
   }));
-  if (typeof window !== "undefined") {
-    localStorage.setItem(getOffersStorageKey(vendorId), JSON.stringify(updated));
-    window.dispatchEvent(new Event("cloche_offers_updated"));
-  }
+  persistOffersToAllKeys(vendorId, updated);
   return true;
 }
 

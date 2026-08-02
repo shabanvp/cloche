@@ -195,13 +195,22 @@ export function VenueProfileTemplate({
   const [selectedOfferForQuote, setSelectedOfferForQuote] = useState<VendorOffer | null>(null);
 
   useEffect(() => {
-    if (venue?.id) {
-      const offs = getActiveOffersForVenue(venue.id);
-      setActiveOffers(offs);
-      if (offs.length > 0) {
-        // Record impressions for active offers
-        offs.forEach((o) => incrementOfferAnalytics(o.id, "views", 0, venue.id));
+    const syncOffers = () => {
+      if (venue?.id) {
+        const offs = getActiveOffersForVenue(venue.id);
+        setActiveOffers(offs);
       }
+    };
+
+    syncOffers();
+
+    if (typeof window !== "undefined") {
+      window.addEventListener("storage", syncOffers);
+      window.addEventListener("cloche_offers_updated", syncOffers);
+      return () => {
+        window.removeEventListener("storage", syncOffers);
+        window.removeEventListener("cloche_offers_updated", syncOffers);
+      };
     }
   }, [venue?.id]);
 

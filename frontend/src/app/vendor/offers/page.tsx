@@ -372,31 +372,50 @@ export default function VendorOffersPage() {
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {/* Featured Ribbon Banner Snapshot */}
-              <div className="md:col-span-2 bg-gradient-to-r from-[#0F4C45] to-[#12584E] text-white p-6 rounded-3xl space-y-4 relative overflow-hidden shadow-md">
-                <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
-                  <Sparkles className="w-48 h-48 text-gold" />
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="px-3 py-1 rounded-full bg-gold text-[#0F4C45] text-[10px] font-bold uppercase tracking-wider flex items-center gap-1">
-                    <Crown className="w-3 h-3 fill-current" /> Storefront Hero Ribbon
-                  </span>
-                  <span className="text-xs text-white/80">Visible on public venue page</span>
-                </div>
-                <h3 className="font-display text-2xl font-bold">
-                  {offers.find((o) => o.isFeatured)?.name || "Grand Monsoon Wedding Offer (20% OFF)"}
-                </h3>
-                <p className="text-xs text-white/80 max-w-xl">
-                  This offer is currently nominated as your Storefront Featured Ribbon. Customers visiting your venue page see this offer pinned directly inside your hero section.
-                </p>
-                <div className="flex flex-wrap items-center gap-3 pt-2">
-                  <span className="bg-white/15 backdrop-blur-md px-3.5 py-1.5 rounded-xl text-xs font-bold border border-white/20">
-                    Coupon: {offers.find((o) => o.isFeatured)?.couponCode || "MONSOON20"}
-                  </span>
-                  <span className="bg-white/15 backdrop-blur-md px-3.5 py-1.5 rounded-xl text-xs font-bold border border-white/20">
-                    Redemptions: {offers.find((o) => o.isFeatured)?.currentRedemptions || 14} Bookings
-                  </span>
-                </div>
-              </div>
+              {(() => {
+                const featuredOfferItem = offers.find((o) => o.isFeatured) || offers[0];
+                return (
+                  <div className="md:col-span-2 bg-gradient-to-r from-[#0F4C45] to-[#12584E] text-white p-6 rounded-3xl space-y-4 relative overflow-hidden shadow-md">
+                    <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
+                      <Sparkles className="w-48 h-48 text-gold" />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="px-3 py-1 rounded-full bg-gold text-[#0F4C45] text-[10px] font-bold uppercase tracking-wider flex items-center gap-1">
+                        <Crown className="w-3 h-3 fill-current" /> Storefront Hero Ribbon
+                      </span>
+                      <span className="text-xs text-white/80">Visible on public venue page</span>
+                    </div>
+
+                    {featuredOfferItem ? (
+                      <>
+                        <h3 className="font-display text-2xl font-bold">
+                          {featuredOfferItem.name} ({featuredOfferItem.discountType === "percentage" ? `${featuredOfferItem.discountValue}% OFF` : featuredOfferItem.discountValue})
+                        </h3>
+                        <p className="text-xs text-white/80 max-w-xl">
+                          This offer is currently nominated as your Storefront Featured Ribbon. Customers visiting your venue page see this offer pinned directly inside your hero section.
+                        </p>
+                        <div className="flex flex-wrap items-center gap-3 pt-2">
+                          {featuredOfferItem.couponCode && (
+                            <span className="bg-white/15 backdrop-blur-md px-3.5 py-1.5 rounded-xl text-xs font-bold border border-white/20">
+                              Coupon: {featuredOfferItem.couponCode}
+                            </span>
+                          )}
+                          <span className="bg-white/15 backdrop-blur-md px-3.5 py-1.5 rounded-xl text-xs font-bold border border-white/20">
+                            Redemptions: {featuredOfferItem.currentRedemptions} Bookings
+                          </span>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <h3 className="font-display text-xl font-bold">No Active Storefront Ribbon</h3>
+                        <p className="text-xs text-white/80 max-w-xl">
+                          You have no active promotional offers. Click <strong>"+ Launch Discount Offer"</strong> below to create your first promotion.
+                        </p>
+                      </>
+                    )}
+                  </div>
+                );
+              })()}
 
               {/* Quick Actions Card */}
               <div className="bg-[#FBF8F1] p-6 rounded-3xl border border-gold/20 space-y-4 flex flex-col justify-between">
