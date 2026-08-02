@@ -57,24 +57,45 @@ export function MakeupDetailClient({ artist }: { artist: VendorDetail }) {
         {/* Profile Card (Overlapping Bottom-Left Corner of Cover Image) */}
         <div className="relative px-4 -mt-10 sm:-mt-12 md:-mt-12 lg:-mt-14 z-20">
           <div className="rounded-3xl p-5 sm:p-7 relative bg-white border border-[#E8DFC5]/80 shadow-xl space-y-4">
-            <div className="flex items-center gap-4.5">
-              {/* Profile Picture Overlapping Bottom-Left Corner */}
-              <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-[96px] md:h-[96px] lg:w-[104px] lg:h-[104px] rounded-2xl flex items-center justify-center bg-[#0F4C45] text-[#C8A96A] font-serif font-bold text-xl sm:text-2xl shadow-2xl border-4 border-white shrink-0 -mt-10 sm:-mt-12 md:-mt-14">
-                {getInitials(artist.name)}
-              </div>
-
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-1.5">
-                  <h1 className="font-serif text-xl sm:text-2xl font-bold text-[#0F4C45] truncate">
-                    {artist.name}
-                  </h1>
-                  <CheckCircle2 className="h-4 w-4 text-[#C8A96A] shrink-0 fill-[#C8A96A]/20" />
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="flex items-center gap-4.5">
+                {/* Profile Picture Overlapping Bottom-Left Corner */}
+                <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-[96px] md:h-[96px] lg:w-[104px] lg:h-[104px] rounded-2xl flex items-center justify-center bg-[#0F4C45] text-[#C8A96A] font-serif font-bold text-xl sm:text-2xl shadow-2xl border-4 border-white shrink-0 -mt-10 sm:-mt-12 md:-mt-14">
+                  {getInitials(artist.name)}
                 </div>
 
-                <p className="text-xs text-[#7A6E65] flex items-center gap-1 mt-0.5 truncate">
-                  <MapPin className="h-3.5 w-3.5 text-[#0F4C45] shrink-0" />
-                  <span className="truncate">{artist.location}</span>
-                </p>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5">
+                    <h1 className="font-serif text-xl sm:text-2xl font-bold text-[#0F4C45] truncate">
+                      {artist.name}
+                    </h1>
+                    <CheckCircle2 className="h-4 w-4 text-[#C8A96A] shrink-0 fill-[#C8A96A]/20" />
+                  </div>
+
+                  <p className="text-xs text-[#7A6E65] flex items-center gap-1 mt-0.5 truncate">
+                    <MapPin className="h-3.5 w-3.5 text-[#0F4C45] shrink-0" />
+                    <span className="truncate">{artist.location}</span>
+                  </p>
+                </div>
+              </div>
+
+              {/* Calling & Message Section on the Right Side of Desktop Header */}
+              <div className="flex items-center gap-2.5 w-full md:w-auto shrink-0">
+                <a
+                  href={formatTelUri(artist.phone || "+919847055443")}
+                  className="flex-1 md:flex-initial flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 bg-[#0F4C45] text-white text-xs font-bold shadow-xs hover:bg-[#12584E] transition-colors"
+                >
+                  <Phone className="h-3.5 w-3.5" /> Call Artist
+                </a>
+
+                <a
+                  href={`https://wa.me/${(artist.phone || "919847055443").replace(/\D/g, "")}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 md:flex-initial flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 bg-[#25D366] text-white text-xs font-bold shadow-xs hover:bg-[#20ba59] transition-colors"
+                >
+                  <MessageSquare className="h-3.5 w-3.5" /> WhatsApp
+                </a>
               </div>
             </div>
 
@@ -88,25 +109,6 @@ export function MakeupDetailClient({ artist }: { artist: VendorDetail }) {
               <div>
                 <span className="font-bold text-[#1A1410]">{artist.followers}</span> Followers
               </div>
-            </div>
-
-            {/* Quick Contact Buttons */}
-            <div className="grid grid-cols-2 gap-2.5 pt-2">
-              <a
-                href={formatTelUri(artist.phone || "+919847055443")}
-                className="flex items-center justify-center gap-2 rounded-xl py-2.5 bg-[#0F4C45] text-white text-xs font-bold shadow-xs hover:bg-[#12584E] transition-colors"
-              >
-                <Phone className="h-3.5 w-3.5" /> Call Artist
-              </a>
-
-              <a
-                href={`https://wa.me/${(artist.phone || "919847055443").replace(/\D/g, "")}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 rounded-xl py-2.5 bg-[#25D366] text-white text-xs font-bold shadow-xs hover:bg-[#20ba59] transition-colors"
-              >
-                <MessageSquare className="h-3.5 w-3.5" /> WhatsApp
-              </a>
             </div>
           </div>
         </div>

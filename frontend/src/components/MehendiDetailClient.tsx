@@ -84,43 +84,64 @@ export function MehendiDetailClient({ artist }: { artist: MehendiVendor }) {
 
       <main className="flex-1 px-4 pt-3 space-y-4">
         {/* Profile Info Header (Overlapping Bottom-Left Corner of Cover Image) */}
-        <div className="flex items-center gap-4.5 -mt-10 sm:-mt-12 md:-mt-14 relative z-20">
-          <div className="relative h-16 w-16 md:h-[96px] md:w-[96px] lg:h-[104px] lg:w-[104px] shrink-0 rounded-full overflow-hidden border-4 border-white shadow-2xl bg-white">
-            <Image src={artist.image} alt={artist.name} fill className="object-cover" />
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 -mt-10 sm:-mt-12 md:-mt-14 relative z-20">
+          <div className="flex items-center gap-4.5">
+            <div className="relative h-16 w-16 md:h-[96px] md:w-[96px] lg:h-[104px] lg:w-[104px] shrink-0 rounded-full overflow-hidden border-4 border-white shadow-2xl bg-white">
+              <Image src={artist.image} alt={artist.name} fill className="object-cover" />
+            </div>
+
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <h1 className="font-serif text-[22px] font-bold text-[#1A1410] leading-tight">
+                  {artist.name}
+                </h1>
+                <span className="text-[#C8A96A] text-xs">❁</span>
+              </div>
+
+              <p className="text-[13px] text-[#7A6E65] mt-0.5">{artist.subtitle}</p>
+
+              <div className="mt-1.5 flex items-center gap-3 text-[12px]">
+                <div className="flex items-center gap-1 font-bold text-[#1A1410]">
+                  <Star className="h-3.5 w-3.5 fill-[#C8A96A] text-[#C8A96A]" />
+                  <span>{artist.rating}</span>
+                  <span className="text-[#7A6E65] font-normal">({artist.reviews} Reviews)</span>
+                </div>
+                <div className="flex items-center gap-1 text-[#6B5E52]">
+                  <MapPin className="h-3.5 w-3.5 text-[#8C827A]" />
+                  <span>{artist.location}</span>
+                </div>
+              </div>
+
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {artist.chips.map((chip, idx) => (
+                  <span
+                    key={idx}
+                    className="rounded-md bg-[#FAF5EA] px-2.5 py-0.5 text-[11px] font-medium text-[#8F7856] border border-[#E8DFD1]"
+                  >
+                    {chip}
+                  </span>
+                ))}
+              </div>
+            </div>
           </div>
 
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-1.5 flex-wrap">
-              <h1 className="font-serif text-[22px] font-bold text-[#1A1410] leading-tight">
-                {artist.name}
-              </h1>
-              <span className="text-[#C8A96A] text-xs">❁</span>
-            </div>
+          {/* Quick Contact Buttons on Right Side of Desktop Header */}
+          <div className="flex items-center gap-2.5 w-full md:w-auto shrink-0">
+            <a
+              href={formatTelUri((artist as any).phone || "+919847055443")}
+              className="flex-1 md:flex-initial flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 bg-[#0F4C45] text-white text-xs font-bold shadow-xs hover:bg-[#12584E] transition-colors"
+            >
+              <Phone className="h-3.5 w-3.5" /> Call Artist
+            </a>
 
-            <p className="text-[13px] text-[#7A6E65] mt-0.5">{artist.subtitle}</p>
-
-            <div className="mt-1.5 flex items-center gap-3 text-[12px]">
-              <div className="flex items-center gap-1 font-bold text-[#1A1410]">
-                <Star className="h-3.5 w-3.5 fill-[#C8A96A] text-[#C8A96A]" />
-                <span>{artist.rating}</span>
-                <span className="text-[#7A6E65] font-normal">({artist.reviews} Reviews)</span>
-              </div>
-              <div className="flex items-center gap-1 text-[#6B5E52]">
-                <MapPin className="h-3.5 w-3.5 text-[#8C827A]" />
-                <span>{artist.location}</span>
-              </div>
-            </div>
-
-            <div className="mt-2 flex flex-wrap gap-1.5">
-              {artist.chips.map((chip, idx) => (
-                <span
-                  key={idx}
-                  className="rounded-md bg-[#FAF5EA] px-2.5 py-0.5 text-[11px] font-medium text-[#8F7856] border border-[#E8DFD1]"
-                >
-                  {chip}
-                </span>
-              ))}
-            </div>
+            <a
+              href="https://wa.me/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-1 md:flex-initial flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 bg-[#25D366] text-white text-xs font-bold shadow-xs hover:bg-[#20ba59] transition-colors"
+            >
+              <MessageSquare className="h-3.5 w-3.5" /> WhatsApp
+            </a>
           </div>
         </div>
 

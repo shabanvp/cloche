@@ -316,17 +316,35 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
               </div>
             </div>
 
-            {/* Follow Button */}
-            <button
-              onClick={handleFollowToggle}
-              className={`w-full sm:w-auto px-7 py-2.5 rounded-full font-bold text-xs uppercase tracking-wider transition-all shadow-md ${
-                isFollowing
-                  ? "bg-gold text-charcoal hover:bg-gold/90"
-                  : "bg-[#0B3B2D] text-white hover:bg-[#0F4C45]"
-              }`}
-            >
-              {isFollowing ? "Following" : "Follow"}
-            </button>
+            {/* Calling, Message & Follow Actions on the Right Side of Desktop Header */}
+            <div className="flex items-center gap-2.5 w-full sm:w-auto shrink-0">
+              <a
+                href={formatTelUri(phone)}
+                className="flex-1 sm:flex-initial flex items-center justify-center gap-2 rounded-full px-5 py-2.5 bg-[#0B3B2D] text-white text-xs font-bold shadow-md hover:bg-[#0F4C45] transition-colors"
+              >
+                <Phone className="w-3.5 h-3.5" /> Call Store
+              </a>
+
+              <a
+                href={`https://wa.me/${whatsapp.replace(/\D/g, "")}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 sm:flex-initial flex items-center justify-center gap-2 rounded-full px-5 py-2.5 bg-[#25D366] text-white text-xs font-bold shadow-md hover:bg-[#20ba59] transition-colors"
+              >
+                <MessageSquare className="w-3.5 h-3.5" /> WhatsApp
+              </a>
+
+              <button
+                onClick={handleFollowToggle}
+                className={`px-5 py-2.5 rounded-full font-bold text-xs uppercase tracking-wider transition-all shadow-md ${
+                  isFollowing
+                    ? "bg-gold text-charcoal hover:bg-gold/90"
+                    : "bg-charcoal/10 text-charcoal hover:bg-charcoal/20"
+                }`}
+              >
+                {isFollowing ? "Following" : "Follow"}
+              </button>
+            </div>
           </div>
 
           <p className="text-xs sm:text-sm text-charcoal/80 font-sans italic border-t border-gold/10 pt-3">
