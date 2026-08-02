@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { ArrowLeft, MoreHorizontal, Star, MapPin, Phone, MessageSquare, Share2, Heart, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Star, MapPin, Phone, MessageSquare, Share2, Heart, CheckCircle2 } from "lucide-react";
 import { BottomNavBar } from "@/components/BottomNavBar";
 import { VendorDetail } from "@/lib/vendorLists";
 import { formatTelUri } from "@/lib/formatters";
@@ -20,101 +20,121 @@ export function PhotographerDetailClient({ photographer }: { photographer: Vendo
 
   return (
     <div className="min-h-screen flex flex-col pb-36 bg-[#F8F5F0] text-[#2D2520] font-sans">
-      {/* Container for Desktop/Laptop Elegance */}
-      <div className="max-w-4xl mx-auto w-full md:px-4 md:pt-4">
-        {/* Cover Image */}
-        <div className="relative w-full h-[220px] sm:h-[280px] md:h-[320px] lg:h-[340px] md:rounded-3xl overflow-hidden shadow-md">
-          <Image src={photographer.images[0] || photographer.image} alt={photographer.name} fill priority className="object-cover object-center" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
+      {/* ─── VENUE-STYLE 2-COLUMN LAYOUT ON DESKTOP ─── */}
+      <div className="max-w-6xl mx-auto w-full px-4 pt-4 md:pt-6">
+        <div className="flex flex-col md:grid md:grid-cols-12 gap-6 lg:gap-8 items-start">
+          
+          {/* Left Column: Cover Gallery Image */}
+          <div className="w-full md:col-span-7 space-y-4">
+            <div className="relative w-full h-[220px] sm:h-[280px] md:h-[360px] lg:h-[380px] md:rounded-3xl overflow-hidden shadow-md border border-[#E8DFC5]/80 bg-gray-900">
+              <Image src={photographer.images[0] || photographer.image} alt={photographer.name} fill priority className="object-cover object-center" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/20" />
 
-          <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 pt-4 pb-2 z-10">
-            <Link
-              href="/photographers"
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-md transition-transform active:scale-95"
-              aria-label="Back to Photographers"
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </Link>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setIsWishlisted(!isWishlisted)}
-                className="flex h-9 w-9 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-md transition-transform active:scale-95"
-              >
-                <Heart className={`h-5 w-5 ${isWishlisted ? "fill-rose-500 text-rose-500" : "text-white"}`} />
-              </button>
-              <button
-                onClick={() => {
-                  if (navigator.share) navigator.share({ title: photographer.name, url: window.location.href });
-                }}
-                className="flex h-9 w-9 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-md"
-              >
-                <Share2 className="h-5 w-5" />
-              </button>
+              <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-10">
+                <Link
+                  href="/photographers"
+                  className="flex h-9 w-9 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-md transition-transform active:scale-95"
+                >
+                  <ArrowLeft className="h-5 w-5" />
+                </Link>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setIsWishlisted(!isWishlisted)}
+                    className="flex h-9 w-9 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-md transition-transform active:scale-95"
+                  >
+                    <Heart className={`h-5 w-5 ${isWishlisted ? "fill-rose-500 text-rose-500" : "text-white"}`} />
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (navigator.share) navigator.share({ title: photographer.name, url: window.location.href });
+                    }}
+                    className="flex h-9 w-9 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-md"
+                  >
+                    <Share2 className="h-5 w-5" />
+                  </button>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
 
-        {/* Profile Card (Overlapping Bottom-Left Corner of Cover Image) */}
-        <div className="relative px-4 -mt-10 sm:-mt-12 md:-mt-12 lg:-mt-14 z-20">
-          <div className="rounded-3xl p-5 sm:p-7 relative bg-white border border-[#E8DFC5]/80 shadow-xl space-y-4">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <div className="flex items-center gap-4.5">
-                {/* Profile Picture Overlapping Bottom-Left Corner */}
-                <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-[96px] md:h-[96px] lg:w-[104px] lg:h-[104px] rounded-2xl flex items-center justify-center bg-[#0F4C45] text-[#C8A96A] font-serif font-bold text-xl sm:text-2xl shadow-2xl border-4 border-white shrink-0 -mt-10 sm:-mt-12 md:-mt-14">
+            {/* Gallery Thumbnails Strip */}
+            {photographer.images && photographer.images.length > 1 && (
+              <div className="hidden sm:grid grid-cols-4 gap-2.5">
+                {photographer.images.slice(0, 4).map((img, i) => (
+                  <div key={i} className="relative aspect-[4/3] rounded-2xl overflow-hidden border border-[#E2D6C7] bg-[#EFE8DE] shadow-xs">
+                    <Image src={img} alt={`Gallery ${i + 1}`} fill className="object-cover" />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Right Column: Sticky Venue-Style Information & Action Card */}
+          <div className="w-full md:col-span-5 bg-white rounded-3xl p-6 sm:p-7 border border-[#E8DFC5]/80 shadow-md space-y-5 md:sticky md:top-24">
+            
+            {/* Header Row */}
+            <div className="flex items-start justify-between gap-3 border-b border-[#F2EBE1] pb-4">
+              <div className="flex items-center gap-3.5">
+                <div className="w-16 h-16 rounded-2xl flex items-center justify-center bg-[#0F4C45] text-[#C8A96A] font-serif font-bold text-xl shadow-md border-2 border-white shrink-0">
                   {getInitials(photographer.name)}
                 </div>
 
-                <div className="flex-1 min-w-0">
+                <div>
                   <div className="flex items-center gap-1.5">
-                    <h1 className="font-serif text-xl sm:text-2xl font-bold text-[#0F4C45] truncate">
+                    <h1 className="font-serif text-xl sm:text-2xl font-bold text-[#0F4C45]">
                       {photographer.name}
                     </h1>
                     <CheckCircle2 className="h-4 w-4 text-[#C8A96A] shrink-0 fill-[#C8A96A]/20" />
                   </div>
 
-                  <p className="text-xs text-[#7A6E65] flex items-center gap-1 mt-0.5 truncate">
+                  <p className="text-xs text-[#7A6E65] flex items-center gap-1 mt-0.5">
                     <MapPin className="h-3.5 w-3.5 text-[#0F4C45] shrink-0" />
-                    <span className="truncate">{photographer.location}</span>
+                    <span>{photographer.location}</span>
                   </p>
                 </div>
               </div>
 
-              {/* Calling & Message Section on the Right Side of Desktop Header */}
-              <div className="flex items-center gap-2.5 w-full md:w-auto shrink-0">
-                <a
-                  href={formatTelUri(photographer.phone || "+919847055443")}
-                  className="flex-1 md:flex-initial flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 bg-[#0F4C45] text-white text-xs font-bold shadow-xs hover:bg-[#12584E] transition-colors"
-                >
-                  <Phone className="h-3.5 w-3.5" /> Call Studio
-                </a>
-
-                <a
-                  href={`https://wa.me/${(photographer.phone || "919847055443").replace(/\D/g, "")}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex-1 md:flex-initial flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 bg-[#25D366] text-white text-xs font-bold shadow-xs hover:bg-[#20ba59] transition-colors"
-                >
-                  <MessageSquare className="h-3.5 w-3.5" /> WhatsApp
-                </a>
+              <div className="flex items-center gap-1 bg-[#C8A96A]/10 px-2.5 py-1 rounded-full text-xs font-bold text-[#1A1410] shrink-0">
+                <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                <span>{photographer.rating}</span>
+                <span className="text-[#7A6E65] font-normal">({photographer.reviews})</span>
               </div>
             </div>
 
-            <div className="flex items-center gap-3 text-xs text-[#6B5E52] pt-2 border-t border-[#F2EBE1]">
-              <div className="flex items-center gap-1">
-                <Star className="h-3.5 w-3.5 text-amber-400 fill-amber-400" />
-                <span className="font-bold text-[#1A1410]">{photographer.rating}</span>
-                <span>({photographer.reviews} reviews)</span>
-              </div>
-              <div className="w-1 h-1 rounded-full bg-[#C8A96A]" />
+            {/* Followers / Stats Bar */}
+            <div className="p-3.5 rounded-2xl bg-[#F8F5F0] border border-[#E2D6C7]/60 flex items-center justify-between text-xs text-[#6B5E52]">
               <div>
-                <span className="font-bold text-[#1A1410]">{photographer.followers}</span> Followers
+                <span className="text-[10px] uppercase font-bold text-[#7A6E65] block">Category</span>
+                <span className="font-bold text-[#1A1410]">Wedding Photography</span>
               </div>
+              <div className="text-right">
+                <span className="text-[10px] uppercase font-bold text-[#7A6E65] block">Followers</span>
+                <span className="font-bold text-[#1A1410]">{photographer.followers}</span>
+              </div>
+            </div>
+
+            {/* Calling & Messaging Buttons in Right Column Card */}
+            <div className="space-y-2.5 pt-1">
+              <a
+                href={formatTelUri(photographer.phone || "+919847055443")}
+                className="w-full flex items-center justify-center gap-2 rounded-xl py-3 bg-[#0F4C45] text-white text-xs uppercase tracking-wider font-bold shadow-md hover:bg-[#12584E] transition-colors"
+              >
+                <Phone className="h-4 w-4" /> Call Studio Direct
+              </a>
+
+              <a
+                href={`https://wa.me/${(photographer.phone || "919847055443").replace(/\D/g, "")}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full flex items-center justify-center gap-2 rounded-xl py-3 bg-[#25D366] text-white text-xs uppercase tracking-wider font-bold shadow-md hover:bg-[#20ba59] transition-colors"
+              >
+                <MessageSquare className="h-4 w-4" /> Send WhatsApp Message
+              </a>
             </div>
           </div>
         </div>
 
-        {/* Tabs Header */}
-        <div className="mt-5 px-4">
+        {/* Tabs Header & Content below 2-column header */}
+        <div className="mt-8">
           <div className="flex gap-2 border-b border-[#E2D6C7] text-xs font-semibold">
             {[
               { id: "about", label: "About" },
@@ -127,7 +147,7 @@ export function PhotographerDetailClient({ photographer }: { photographer: Vendo
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as any)}
-                  className={`py-2.5 px-3 border-b-2 transition-all cursor-pointer ${
+                  className={`py-2.5 px-4 border-b-2 transition-all cursor-pointer ${
                     active ? "border-[#0F4C45] text-[#0F4C45] font-bold" : "border-transparent text-[#7A6E65]"
                   }`}
                 >
@@ -136,54 +156,53 @@ export function PhotographerDetailClient({ photographer }: { photographer: Vendo
               );
             })}
           </div>
-        </div>
 
-        {/* Tab Content */}
-        <div className="p-4">
-          {activeTab === "about" && (
-            <div className="rounded-2xl p-5 bg-white border border-[#E8DFC5]/80 shadow-2xs space-y-3">
-              <h3 className="font-serif font-bold text-base text-[#0F4C45]">About {photographer.name}</h3>
-              <p className="text-xs text-[#5A6561] leading-relaxed">{photographer.about}</p>
-            </div>
-          )}
+          <div className="pt-4">
+            {activeTab === "about" && (
+              <div className="rounded-2xl p-5 bg-white border border-[#E8DFC5]/80 shadow-2xs space-y-3">
+                <h3 className="font-serif font-bold text-base text-[#0F4C45]">About {photographer.name}</h3>
+                <p className="text-xs text-[#5A6561] leading-relaxed">{photographer.about}</p>
+              </div>
+            )}
 
-          {activeTab === "portfolio" && (
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-              {photographer.images.map((img, i) => (
-                <div key={i} className="relative aspect-[4/3] rounded-xl overflow-hidden bg-[#EFE8DE] shadow-2xs">
-                  <Image src={img} alt={`Portfolio ${i}`} fill className="object-cover" />
+            {activeTab === "portfolio" && (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {photographer.images.map((img, i) => (
+                  <div key={i} className="relative aspect-[4/3] rounded-xl overflow-hidden bg-[#EFE8DE] shadow-2xs">
+                    <Image src={img} alt={`Portfolio ${i}`} fill className="object-cover" />
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {activeTab === "reviews" && (
+              <div className="rounded-2xl p-5 bg-white border border-[#E8DFC5]/80 shadow-2xs space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-serif font-bold text-base text-[#0F4C45]">Client Reviews</h3>
+                  <div className="flex items-center gap-1 text-xs font-bold text-[#0F4C45]">
+                    <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                    <span>{photographer.rating} / 5.0</span>
+                  </div>
                 </div>
-              ))}
-            </div>
-          )}
+                <p className="text-xs text-[#5A6561] leading-relaxed">
+                  &quot;The Wedding Frames captured our special day beyond our expectations! Highly professional, punctual, and magical results.&quot;
+                </p>
+              </div>
+            )}
 
-          {activeTab === "reviews" && (
-            <div className="rounded-2xl p-5 bg-white border border-[#E8DFC5]/80 shadow-2xs space-y-3">
-              <div className="flex items-center justify-between">
-                <h3 className="font-serif font-bold text-base text-[#0F4C45]">Client Reviews</h3>
-                <div className="flex items-center gap-1 text-xs font-bold text-[#0F4C45]">
-                  <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                  <span>{photographer.rating} / 5.0</span>
+            {activeTab === "info" && (
+              <div className="rounded-2xl p-5 bg-white border border-[#E8DFC5]/80 shadow-2xs space-y-3 text-xs">
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-[#7A6E65]">Phone Contact</p>
+                  <p className="font-medium text-[#2D2520] mt-0.5">{photographer.phone || "+91 98470 55443"}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-[#7A6E65]">Email Address</p>
+                  <p className="font-medium text-[#2D2520] mt-0.5">{photographer.email || "hello@studio.com"}</p>
                 </div>
               </div>
-              <p className="text-xs text-[#5A6561] leading-relaxed">
-                &quot;The Wedding Frames captured our special day beyond our expectations! Highly professional, punctual, and magical results.&quot;
-              </p>
-            </div>
-          )}
-
-          {activeTab === "info" && (
-            <div className="rounded-2xl p-5 bg-white border border-[#E8DFC5]/80 shadow-2xs space-y-3 text-xs">
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-[#7A6E65]">Phone Contact</p>
-                <p className="font-medium text-[#2D2520] mt-0.5">{photographer.phone || "+91 98470 55443"}</p>
-              </div>
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-[#7A6E65]">Email Address</p>
-                <p className="font-medium text-[#2D2520] mt-0.5">{photographer.email || "hello@studio.com"}</p>
-              </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
 
