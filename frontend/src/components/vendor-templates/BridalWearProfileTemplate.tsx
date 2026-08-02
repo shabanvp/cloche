@@ -424,7 +424,7 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
 
       {/* 4. STICKY TAB NAVIGATION */}
       <div className="sticky top-16 z-40 bg-[#FBF8F1]/95 backdrop-blur-md border-y border-gold/15 mt-6">
-        <div className="max-w-6xl mx-auto px-4 flex items-center justify-around text-xs font-bold uppercase tracking-wider">
+        <div className="max-w-4xl mx-auto px-4 flex items-center justify-around text-xs font-bold uppercase tracking-wider">
           {[
             { id: "about", label: "About" },
             { id: "collections", label: "Collections" },
@@ -446,12 +446,12 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
         </div>
       </div>
 
-      {/* 5. MAIN CONTENT CONTAINER */}
-      <main className="max-w-6xl mx-auto px-4 mt-8 space-y-10">
+      {/* 5. MAIN CONTENT CONTAINER (Compact & Balanced max-w-4xl) */}
+      <main className="max-w-4xl mx-auto px-4 mt-8 space-y-8">
         
         {/* ABOUT SECTION */}
-        <section ref={aboutRef} className="bg-white rounded-3xl p-6 sm:p-8 border border-gold/15 shadow-sm space-y-3">
-          <h2 className="font-display text-xl font-bold text-charcoal">About</h2>
+        <section ref={aboutRef} className="bg-white rounded-2xl p-5 sm:p-6 border border-gold/15 shadow-sm space-y-2.5">
+          <h2 className="font-display text-lg font-bold text-charcoal">About</h2>
           <p className="text-xs sm:text-sm text-charcoal/80 leading-relaxed font-sans">
             {aboutText}
           </p>
@@ -459,30 +459,30 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
 
         {/* STATISTICS COUNTER GRID */}
         <section className="grid grid-cols-3 gap-3 text-center">
-          <div className="bg-white p-5 rounded-2xl border border-gold/15 shadow-sm space-y-1">
-            <Clock className="w-6 h-6 text-[#0F4C45] mx-auto" />
-            <span className="font-display font-bold text-xl sm:text-2xl text-charcoal block">{yearsInBusiness}+</span>
-            <span className="text-[11px] text-charcoal/60 font-semibold uppercase tracking-wider block">Years in Business</span>
+          <div className="bg-white p-4 sm:p-5 rounded-2xl border border-gold/15 shadow-sm space-y-1">
+            <Clock className="w-5 h-5 text-[#0F4C45] mx-auto" />
+            <span className="font-display font-bold text-lg sm:text-xl text-charcoal block">{yearsInBusiness}+</span>
+            <span className="text-[10px] text-charcoal/60 font-semibold uppercase tracking-wider block">Years in Business</span>
           </div>
 
-          <div className="bg-white p-5 rounded-2xl border border-gold/15 shadow-sm space-y-1">
-            <User className="w-6 h-6 text-gold mx-auto" />
-            <span className="font-display font-bold text-xl sm:text-2xl text-charcoal block">{bridesDressed}+</span>
-            <span className="text-[11px] text-charcoal/60 font-semibold uppercase tracking-wider block">Brides Dressed</span>
+          <div className="bg-white p-4 sm:p-5 rounded-2xl border border-gold/15 shadow-sm space-y-1">
+            <User className="w-5 h-5 text-gold mx-auto" />
+            <span className="font-display font-bold text-lg sm:text-xl text-charcoal block">{bridesDressed}+</span>
+            <span className="text-[10px] text-charcoal/60 font-semibold uppercase tracking-wider block">Brides Dressed</span>
           </div>
 
-          <div className="bg-white p-5 rounded-2xl border border-gold/15 shadow-sm space-y-1">
-            <Star className="w-6 h-6 text-emerald fill-emerald mx-auto" />
-            <span className="font-display font-bold text-xl sm:text-2xl text-charcoal block">{rating}</span>
-            <span className="text-[11px] text-charcoal/60 font-semibold uppercase tracking-wider block">Average Rating</span>
+          <div className="bg-white p-4 sm:p-5 rounded-2xl border border-gold/15 shadow-sm space-y-1">
+            <Star className="w-5 h-5 text-emerald fill-emerald mx-auto" />
+            <span className="font-display font-bold text-lg sm:text-xl text-charcoal block">{rating}</span>
+            <span className="text-[10px] text-charcoal/60 font-semibold uppercase tracking-wider block">Average Rating</span>
           </div>
         </section>
 
-        {/* BRIDAL COLLECTIONS / PRODUCTS SECTION (HORIZONTAL SWIPE CAROUSEL ON MOBILE, GRID ON DESKTOP) */}
+        {/* BRIDAL COLLECTIONS / PRODUCTS SECTION */}
         <section ref={collectionsRef} className="space-y-4">
           <div className="flex justify-between items-center">
             <div>
-              <h2 className="font-display text-xl font-bold text-charcoal">Bridal Collections & Catalog</h2>
+              <h2 className="font-display text-lg font-bold text-charcoal">Bridal Collections & Catalog</h2>
               <p className="text-xs text-charcoal/60">Real collections uploaded by {businessName}.</p>
             </div>
             
@@ -494,7 +494,7 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
             </Link>
           </div>
 
-          {/* DYNAMIC PRODUCTS CAROUSEL / GRID (SHOW MAX FIRST 5 PRODUCTS) */}
+          {/* DYNAMIC PRODUCTS CAROUSEL / GRID */}
           {displayedProducts && displayedProducts.length > 0 ? (
             <div className="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar gap-4 pb-2 sm:grid sm:grid-cols-3 sm:gap-5 sm:overflow-visible">
               {displayedProducts.map((prod: any, idx: number) => {
@@ -508,7 +508,7 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
                     key={prodId}
                     className="min-w-[260px] max-w-[280px] sm:min-w-0 sm:max-w-none shrink-0 snap-start bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group"
                   >
-                    <Link href={`/collections/${prodId}`} className="block relative h-72 w-full overflow-hidden bg-charcoal">
+                    <Link href={`/collections/${prodId}`} className="block relative h-64 w-full overflow-hidden bg-charcoal">
                       <img src={img} alt={title} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                       <span className="absolute top-3 right-3 bg-white/90 backdrop-blur-md text-charcoal text-xs font-bold px-3 py-1 rounded-full shadow">
                         {price}
@@ -542,7 +542,7 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
                   <Link
                     key={idx}
                     href={`/collections/${colId}`}
-                    className="relative min-w-[220px] max-w-[240px] shrink-0 snap-start h-72 rounded-2xl overflow-hidden shadow-md group border border-gold/15 cursor-pointer block"
+                    className="relative min-w-[220px] max-w-[240px] shrink-0 snap-start h-64 rounded-2xl overflow-hidden shadow-md group border border-gold/15 cursor-pointer block"
                   >
                     <img src={col.image} alt={col.name} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent p-4 flex flex-col justify-end text-white">
@@ -554,18 +554,18 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
             </div>
           ) : (
             /* EMPTY STATE WHEN NO PRODUCTS UPLOADED */
-            <div className="bg-white rounded-3xl p-8 border border-gold/15 text-center space-y-3">
-              <ShoppingBag className="w-10 h-10 text-[#0F4C45] mx-auto" />
-              <h3 className="font-display font-bold text-lg text-charcoal">No collections available yet.</h3>
+            <div className="bg-white rounded-2xl p-6 sm:p-7 border border-gold/15 text-center space-y-2.5">
+              <ShoppingBag className="w-8 h-8 text-[#0F4C45] mx-auto" />
+              <h3 className="font-display font-bold text-base text-charcoal">No collections available yet.</h3>
               <p className="text-xs text-charcoal/70 max-w-md mx-auto">
                 {businessName} has not uploaded catalog items yet. Contact them on WhatsApp to request their private portfolio.
               </p>
-              <div className="pt-2 flex justify-center gap-3">
+              <div className="pt-1 flex justify-center gap-3">
                 <a
                   href={`https://wa.me/${whatsapp.replace(/[^0-9]/g, "")}?text=Hi%20${encodeURIComponent(businessName)},%20please%20share%20your%20latest%20bridal%20catalog.`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="bg-[#0F4C45] text-white px-5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-[#12584E]"
+                  className="bg-[#0F4C45] text-white px-4 py-2 rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-[#12584E]"
                 >
                   Contact Boutique
                 </a>
@@ -575,14 +575,14 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
         </section>
 
         {/* PRICE RANGE CARDS */}
-        <section className="space-y-4">
-          <h2 className="font-display text-xl font-bold text-charcoal">Price Range</h2>
+        <section className="space-y-3">
+          <h2 className="font-display text-lg font-bold text-charcoal">Price Range</h2>
           
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
             {priceRanges.map((pr: any, idx: number) => (
               <div
                 key={idx}
-                className={`relative bg-white p-5 rounded-2xl border text-center space-y-1 shadow-sm ${
+                className={`relative bg-white p-4 sm:p-5 rounded-2xl border text-center space-y-1 shadow-sm ${
                   pr.isPopular || pr.popular ? "border-gold border-2 shadow-md" : "border-gold/15"
                 }`}
               >
@@ -592,7 +592,7 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
                   </span>
                 )}
                 <span className="text-xs font-semibold text-charcoal/60 block">{pr.category}</span>
-                <span className="font-display font-bold text-2xl text-[#0F4C45] block">{pr.price}</span>
+                <span className="font-display font-bold text-xl sm:text-2xl text-[#0F4C45] block">{pr.price}</span>
                 <span className="text-[10px] text-charcoal/50 uppercase font-semibold block">Onwards</span>
               </div>
             ))}
@@ -600,15 +600,15 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
         </section>
 
         {/* AMENITIES ICON GRID */}
-        <section className="bg-white rounded-3xl p-6 sm:p-8 border border-gold/15 shadow-sm space-y-4">
-          <h2 className="font-display text-xl font-bold text-charcoal">Amenities</h2>
+        <section className="bg-white rounded-2xl p-5 sm:p-6 border border-gold/15 shadow-sm space-y-3">
+          <h2 className="font-display text-lg font-bold text-charcoal">Amenities</h2>
 
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 text-center">
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-center">
             {amenitiesList.map((am, idx) => {
               const Icon = am.icon;
               return (
-                <div key={idx} className="p-3 rounded-2xl bg-[#FBF8F1] border border-gold/15 flex flex-col items-center justify-center space-y-1.5">
-                  <Icon className="w-5 h-5 text-[#0F4C45]" />
+                <div key={idx} className="p-3 rounded-xl bg-[#FBF8F1] border border-gold/15 flex flex-col items-center justify-center space-y-1.5">
+                  <Icon className="w-4 h-4 text-[#0F4C45]" />
                   <span className="text-[11px] font-bold text-charcoal leading-tight">{am.label}</span>
                 </div>
               );
@@ -617,12 +617,12 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
         </section>
 
         {/* PRIMARY FULL-WIDTH CTA BANNER */}
-        <section className="bg-gradient-to-r from-[#0B3B2D] via-[#0F4C45] to-[#0B3B2D] text-white rounded-3xl p-8 border border-gold/20 shadow-2xl text-center space-y-4">
-          <span className="bg-gold text-charcoal font-bold text-[10px] uppercase tracking-widest px-3.5 py-1 rounded-full inline-block">
+        <section className="bg-gradient-to-r from-[#0B3B2D] via-[#0F4C45] to-[#0B3B2D] text-white rounded-2xl p-6 sm:p-8 border border-gold/20 shadow-xl text-center space-y-3">
+          <span className="bg-gold text-charcoal font-bold text-[10px] uppercase tracking-widest px-3 py-0.5 rounded-full inline-block">
             EXCLUSIVE BRIDAL FITTING SUITE
           </span>
 
-          <h3 className="font-display text-2xl sm:text-3xl font-bold text-white max-w-xl mx-auto">
+          <h3 className="font-display text-xl sm:text-2xl font-bold text-white max-w-xl mx-auto">
             Book a Personal Trial Appointment with {businessName}
           </h3>
 
@@ -630,10 +630,10 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
             Experience private trial suites, customized embroidery consultations, and master tailor fittings.
           </p>
 
-          <div className="pt-2">
+          <div className="pt-1">
             <Button
               onClick={() => setShowTrialModal(true)}
-              className="bg-[#C8A96A] hover:bg-[#b89859] text-[#082F2C] px-8 py-3.5 rounded-full font-bold text-xs uppercase tracking-wider shadow-xl transition-all"
+              className="bg-[#C8A96A] hover:bg-[#b89859] text-[#082F2C] px-7 py-3 rounded-full font-bold text-xs uppercase tracking-wider shadow-lg transition-all"
             >
               Book Trial Appointment Now
             </Button>
@@ -641,22 +641,22 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
         </section>
 
         {/* REVIEWS SECTION */}
-        <section ref={reviewsRef} className="space-y-4">
+        <section ref={reviewsRef} className="space-y-3">
           <div className="flex justify-between items-center">
-            <h2 className="font-display text-xl font-bold text-charcoal">Reviews ({reviewsList.length})</h2>
+            <h2 className="font-display text-lg font-bold text-charcoal">Reviews ({reviewsList.length})</h2>
             <button onClick={() => setShowReviewModal(true)} className="text-xs font-bold text-[#0F4C45] hover:underline">
               Write Review
             </button>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-3">
             {reviewsList.map((rev, idx) => (
-              <div key={idx} className="bg-white p-5 rounded-2xl border border-gold/15 shadow-sm space-y-2">
+              <div key={idx} className="bg-white p-4 sm:p-5 rounded-2xl border border-gold/15 shadow-sm space-y-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <img src={rev.avatar} alt={rev.author} className="w-10 h-10 rounded-full object-cover" />
+                    <img src={rev.avatar} alt={rev.author} className="w-9 h-9 rounded-full object-cover" />
                     <div>
-                      <span className="font-bold text-sm text-charcoal block">{rev.author}</span>
+                      <span className="font-bold text-xs sm:text-sm text-charcoal block">{rev.author}</span>
                       <span className="text-[10px] text-charcoal/50">{rev.date}</span>
                     </div>
                   </div>
@@ -672,13 +672,13 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
         </section>
 
         {/* INFO TAB / LOCATION & CONTACT DETAILS */}
-        <section ref={infoRef} className="bg-[#002f22] text-white rounded-3xl p-6 sm:p-8 border border-gold/20 shadow-xl space-y-4">
+        <section ref={infoRef} className="bg-[#002f22] text-white rounded-2xl p-5 sm:p-7 border border-gold/20 shadow-lg space-y-3">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-white/10 pb-4">
             <div>
-              <span className="bg-gold text-charcoal text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full">
+              <span className="bg-gold text-charcoal text-[10px] font-bold uppercase tracking-widest px-3 py-0.5 rounded-full">
                 STORE LOCATION & INFO
               </span>
-              <h3 className="font-display text-2xl font-bold text-white mt-2">{businessName}</h3>
+              <h3 className="font-display text-xl font-bold text-white mt-2">{businessName}</h3>
               <p className="text-xs text-white/80 mt-1">{address}</p>
             </div>
 
@@ -686,13 +686,13 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
               href={`https://maps.google.com/?q=${encodeURIComponent(`${businessName} ${address}`)}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-white/10 hover:bg-white/20 text-white px-4 py-2.5 rounded-2xl text-xs font-bold flex items-center gap-1.5 shrink-0 border border-white/20"
+              className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shrink-0 border border-white/20"
             >
               <MapPin className="w-4 h-4 text-gold" /> Directions
             </a>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-white/80 pt-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-white/80 pt-1">
             <div><strong>Store Hours:</strong> {config.businessHours || "Mon – Sat: 10:00 AM – 8:00 PM | Sun: 11:00 AM – 5:00 PM"}</div>
             <div><strong>Contact Email:</strong> {email}</div>
             <div><strong>Phone Number:</strong> {phone}</div>
@@ -700,11 +700,11 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
           </div>
         </section>
 
-        {/* SIMILAR BOUTIQUES RECOMMENDATION SECTION (HORIZONTAL CAROUSEL ON MOBILE, MAX 5 BOUTIQUES) */}
+        {/* SIMILAR BOUTIQUES RECOMMENDATION SECTION */}
         {similarBoutiques.length > 0 && (
           <section className="space-y-4 pt-4 border-t border-gold/15">
             <div className="flex justify-between items-center">
-              <h2 className="font-display text-xl font-bold text-charcoal">Similar Bridal Boutiques</h2>
+              <h2 className="font-display text-lg font-bold text-charcoal">Similar Bridal Boutiques</h2>
               <Link
                 href="/categories/bridal-wear"
                 className="text-xs font-bold text-[#0F4C45] hover:underline flex items-center gap-1 shrink-0"
@@ -717,14 +717,14 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
               {similarBoutiques.map((b) => (
                 <Link key={b.id} href={`/categories/bridal-wear/${b.id}`} className="group shrink-0 min-w-[240px] max-w-[260px] sm:min-w-0 sm:max-w-none snap-start">
                   <div className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-sm hover:shadow-md transition-all h-full flex flex-col justify-between">
-                    <div className="h-40 w-full overflow-hidden bg-charcoal relative">
+                    <div className="h-36 w-full overflow-hidden bg-charcoal relative">
                       <img src={b.image} alt={b.name} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                       <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-md rounded-full px-2 py-0.5 text-[10px] font-bold text-[#0F4C45] flex items-center gap-0.5 shadow">
                         <CheckCircle2 className="w-3 h-3 text-gold fill-gold text-white" /> Verified
                       </div>
                     </div>
-                    <div className="p-4 space-y-1.5">
-                      <h4 className="font-display font-bold text-base text-charcoal group-hover:text-[#0F4C45] transition-colors truncate">{b.name}</h4>
+                    <div className="p-3.5 space-y-1">
+                      <h4 className="font-display font-bold text-sm text-charcoal group-hover:text-[#0F4C45] transition-colors truncate">{b.name}</h4>
                       <p className="text-xs text-charcoal/60 flex items-center gap-1 truncate">
                         <MapPin className="w-3 h-3 text-gold shrink-0" /> {b.location}
                       </p>
@@ -746,8 +746,8 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
 
       </main>
 
-      {/* 6. STICKY BOTTOM ACTION BAR */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-[#0B3B2D] border-t border-[#C8A96A]/30 p-3 shadow-2xl">
+      {/* 6. STICKY BOTTOM ACTION BAR (ONLY ON MOBILE) */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-[#0B3B2D] border-t border-[#C8A96A]/30 p-3 shadow-2xl">
         <div className="max-w-4xl mx-auto flex items-center justify-between gap-2 text-white">
           <a
             href={formatTelUri(phone)}
