@@ -3,9 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect, useMemo } from "react";
-import { 
-  Search, Star, CheckCircle2, MapPin, Heart, ChevronRight, Sparkles 
-} from "lucide-react";
+import { Search, Star, CheckCircle2, MapPin, Heart, ChevronRight, Sparkles } from "lucide-react";
 import { BottomNavBar } from "@/components/BottomNavBar";
 import { Footer } from "@/components/Footer";
 import { getAllBoutiques } from "@/services/api";
@@ -13,14 +11,7 @@ import { DEFAULT_VENDOR_CONFIGS } from "@/lib/vendorTemplates";
 import { bridalBoutiqueVendors } from "@/lib/bridalAndInvitationData";
 import { toggleWishlistItem, getWishlistItems } from "@/lib/wishlistStore";
 
-const BRIDAL_CHIPS = [
-  "All",
-  "Lehengas",
-  "Sarees",
-  "Pastel Couture",
-  "Gowns",
-  "Custom Veils",
-];
+const BRIDAL_CHIPS = ["All", "Lehengas", "Sarees", "Pastel Couture", "Gowns", "Veils"];
 
 export function BridalWearListing() {
   const [search, setSearch] = useState("");
@@ -42,7 +33,6 @@ export function BridalWearListing() {
     async function loadData() {
       try {
         const fetched = await getAllBoutiques();
-        
         let localConfigs: any[] = [];
         if (typeof window !== "undefined") {
           try {
@@ -56,9 +46,7 @@ export function BridalWearListing() {
               rating: 4.9,
               reviews: 95,
               image: cfg.coverImage,
-              price: cfg.bridalWearSpecs?.startingPrice || "₹45,000 Onwards",
-              category: cfg.category,
-              isVerified: true,
+              price: cfg.bridalWearSpecs?.startingPrice || "₹45k+",
               collectionTypes: cfg.bridalWearSpecs?.collectionTypes || ["Lehengas", "Sarees"],
             }));
           } catch (e) {}
@@ -72,31 +60,25 @@ export function BridalWearListing() {
           rating: b.rating,
           reviews: b.reviews,
           image: b.image,
-          price: b.prices[0]?.price || "₹45,000 Onwards",
-          category: "Bridal Wear",
-          isVerified: b.isVerified ?? true,
-          collectionTypes: ["Lehengas", "Custom Veils"],
+          price: b.prices[0]?.price || "₹45k+",
+          collectionTypes: ["Lehengas", "Veils"],
         }));
 
         const combined = [...staticList, ...localConfigs, ...fetched.map((f: any) => ({
           id: String(f.id),
           name: f.boutique_name,
-          tagline: f.description || "Luxury Bridal Couture Boutique",
+          tagline: f.description || "Bridal Couture Boutique",
           location: `${f.city || "Kochi"}, ${f.district || "Ernakulam"}`,
           rating: f.rating || 4.9,
           reviews: f.reviews_count || 88,
           image: f.image_url || "https://images.unsplash.com/photo-1594552072238-b8a33785b261?auto=format&fit=crop&w=800&q=80",
-          price: "₹45,000 Onwards",
-          category: "Bridal Wear",
-          isVerified: true,
+          price: "₹45k+",
           collectionTypes: ["Lehengas"],
         }))];
 
         const uniqueMap = new Map();
         combined.forEach((item) => {
-          if (!uniqueMap.has(String(item.id))) {
-            uniqueMap.set(String(item.id), item);
-          }
+          if (!uniqueMap.has(String(item.id))) uniqueMap.set(String(item.id), item);
         });
 
         setBoutiquesList(Array.from(uniqueMap.values()));
@@ -111,10 +93,7 @@ export function BridalWearListing() {
     return boutiquesList.filter((b) => {
       const q = search.toLowerCase().trim();
       const matchesSearch =
-        !q ||
-        b.name.toLowerCase().includes(q) ||
-        b.location.toLowerCase().includes(q) ||
-        b.tagline.toLowerCase().includes(q);
+        !q || b.name.toLowerCase().includes(q) || b.location.toLowerCase().includes(q) || b.tagline.toLowerCase().includes(q);
 
       const matchesChip =
         activeChip === "All" ||
@@ -138,71 +117,72 @@ export function BridalWearListing() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FAF5EF] text-[#2D241E] flex flex-col pb-24 font-sans">
-      {/* Nude Aesthetic Compact Hero */}
-      <section className="w-full bg-[#F3ECE2] border-b border-[#E5D9CC] pt-5 pb-6 px-4 sm:px-6">
-        <div className="max-w-6xl mx-auto space-y-3">
-          <div className="flex flex-wrap items-center justify-between gap-2">
+    <div className="min-h-screen bg-[#FAF3F0] text-[#3D2E2B] flex flex-col pb-24 font-sans">
+      {/* Rose Quartz Nude Header */}
+      <section className="w-full bg-[#F5E5E0] border-b border-[#E8D5CE] py-4 px-4 sm:px-6">
+        <div className="max-w-6xl mx-auto space-y-2.5">
+          <div className="flex items-center justify-between">
             <div>
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#E5D5C5] text-[#4A3E34] text-[10px] font-bold uppercase tracking-wider">
-                <Sparkles className="w-3 h-3 text-[#C8A96A]" />
-                <span>Nude Edition Couture</span>
+              <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#E8D5CE] text-[#7A4E46] text-[9.5px] font-bold uppercase tracking-wider">
+                <Sparkles className="w-2.5 h-2.5 text-[#C8A96A]" />
+                <span>Rose Quartz Nude</span>
               </div>
-              <h1 className="font-serif text-2xl sm:text-3xl font-bold text-[#3B3028] mt-1">
+              <h1 className="font-serif text-xl sm:text-2xl font-bold text-[#4D322C] mt-0.5">
                 Bridal Wear & Boutiques
               </h1>
             </div>
-            <p className="text-xs text-[#7A6B5D] max-w-md hidden sm:block leading-relaxed">
-              Curated lehengas, silk sarees, pastel couture & designer veil suites.
-            </p>
+            <span className="text-[11px] font-bold text-[#7A4E46] bg-white/70 px-2.5 py-1 rounded-full border border-[#E8D5CE]">
+              {filteredBoutiques.length} Boutiques
+            </span>
           </div>
 
-          {/* Search Bar */}
-          <div className="relative flex items-center bg-white rounded-xl p-1 shadow-xs border border-[#E5D9CC]">
-            <Search className="w-4 h-4 text-[#8C7B6C] ml-3 shrink-0" />
-            <input
-              type="text"
-              placeholder="Search boutique name, lehenga style, or city..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-transparent px-2.5 py-1.5 text-xs text-[#2D241E] outline-none placeholder:text-[#A89888]"
-            />
-          </div>
+          {/* Search & Chips Row */}
+          <div className="flex flex-col sm:flex-row gap-2">
+            <div className="relative flex-1 flex items-center bg-white rounded-xl px-2.5 py-1 shadow-xs border border-[#E8D5CE]">
+              <Search className="w-3.5 h-3.5 text-[#A58880] mr-2 shrink-0" />
+              <input
+                type="text"
+                placeholder="Search boutique or city..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full bg-transparent text-xs text-[#3D2E2B] outline-none placeholder:text-[#B59D96]"
+              />
+            </div>
 
-          {/* Nude Filter Chips */}
-          <div className="flex gap-2 overflow-x-auto pt-1 scrollbar-none">
-            {BRIDAL_CHIPS.map((chip) => {
-              const active = activeChip === chip;
-              return (
-                <button
-                  key={chip}
-                  onClick={() => setActiveChip(chip)}
-                  className={`shrink-0 px-3.5 py-1.5 rounded-full text-[11px] font-semibold transition-all cursor-pointer ${
-                    active
-                      ? "bg-[#4A3E34] text-white shadow-xs"
-                      : "bg-white text-[#5C4E43] border border-[#E5D9CC] hover:bg-[#F5ECE2]"
-                  }`}
-                >
-                  {chip}
-                </button>
-              );
-            })}
+            <div className="flex gap-1.5 overflow-x-auto scrollbar-none py-0.5">
+              {BRIDAL_CHIPS.map((chip) => {
+                const active = activeChip === chip;
+                return (
+                  <button
+                    key={chip}
+                    onClick={() => setActiveChip(chip)}
+                    className={`shrink-0 px-3 py-1 rounded-full text-[10.5px] font-semibold transition-all cursor-pointer ${
+                      active
+                        ? "bg-[#7A4E46] text-white shadow-xs"
+                        : "bg-white text-[#68433C] border border-[#E8D5CE] hover:bg-[#F5E5E0]"
+                    }`}
+                  >
+                    {chip}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Compact Cards Grid */}
-      <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 py-6">
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3.5 sm:gap-4">
+      {/* Extra Small Compact Panels Grid */}
+      <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 py-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5 sm:gap-3">
           {filteredBoutiques.map((boutique) => {
             const isSaved = wishlist.has(String(boutique.id));
             return (
               <Link
                 key={boutique.id}
                 href={`/boutiques/${boutique.id}`}
-                className="group bg-white rounded-2xl overflow-hidden border border-[#E8DDD0] shadow-2xs hover:shadow-md transition-all duration-300 flex flex-col justify-between"
+                className="group bg-white rounded-xl overflow-hidden border border-[#EEDCD5] shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_20px_rgba(122,78,70,0.12)] hover:border-[#7A4E46]/40 transition-all duration-300 flex flex-col justify-between"
               >
-                <div className="relative aspect-[4/3] w-full overflow-hidden bg-[#F5ECE2]">
+                <div className="relative aspect-[16/11] w-full overflow-hidden bg-[#F5E5E0]">
                   <Image
                     src={boutique.image}
                     alt={boutique.name}
@@ -210,52 +190,50 @@ export function BridalWearListing() {
                     className="object-cover group-hover:scale-105 transition-transform duration-500"
                   />
 
-                  <div className="absolute top-2 left-2 right-2 flex items-center justify-between z-10">
-                    <span className="bg-[#4A3E34]/85 text-white text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full backdrop-blur-xs">
+                  <div className="absolute top-1.5 left-1.5 right-1.5 flex items-center justify-between z-10">
+                    <span className="bg-[#7A4E46]/90 text-white text-[8.5px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md backdrop-blur-xs">
                       {boutique.price}
                     </span>
 
                     <button
                       onClick={(e) => handleWishlistToggle(e, boutique)}
-                      className={`w-7 h-7 rounded-full flex items-center justify-center backdrop-blur-md transition-transform active:scale-95 ${
-                        isSaved ? "bg-rose-500 text-white shadow-xs" : "bg-white/80 text-[#2D241E] hover:bg-white"
+                      className={`w-6 h-6 rounded-full flex items-center justify-center backdrop-blur-md transition-transform active:scale-95 ${
+                        isSaved ? "bg-rose-500 text-white" : "bg-white/85 text-[#3D2E2B] hover:bg-white"
                       }`}
-                      aria-label="Save boutique"
+                      aria-label="Save"
                     >
-                      <Heart className={`w-3.5 h-3.5 ${isSaved ? "fill-current" : ""}`} />
+                      <Heart className={`w-3 h-3 ${isSaved ? "fill-current" : ""}`} />
                     </button>
                   </div>
 
-                  <div className="absolute bottom-2 left-2 bg-black/60 backdrop-blur-xs px-2 py-0.5 rounded-full flex items-center gap-1 text-white text-[10px] font-medium">
-                    <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
+                  <div className="absolute bottom-1.5 left-1.5 bg-black/60 backdrop-blur-xs px-1.5 py-0.5 rounded-md flex items-center gap-0.5 text-white text-[9px] font-semibold">
+                    <Star className="w-2.5 h-2.5 text-amber-400 fill-amber-400" />
                     <span>{boutique.rating}</span>
                   </div>
                 </div>
 
-                <div className="p-3 space-y-1.5 flex-1 flex flex-col justify-between">
+                <div className="p-2.5 space-y-1 flex-1 flex flex-col justify-between">
                   <div>
                     <div className="flex items-center gap-1">
-                      <h2 className="font-serif font-bold text-sm text-[#2D241E] group-hover:text-[#4A3E34] transition-colors truncate">
+                      <h2 className="font-serif font-bold text-[12.5px] text-[#3D2E2B] group-hover:text-[#7A4E46] transition-colors truncate">
                         {boutique.name}
                       </h2>
-                      {boutique.isVerified && (
-                        <CheckCircle2 className="w-3.5 h-3.5 text-[#C8A96A] shrink-0 fill-[#C8A96A]/10" />
-                      )}
+                      <CheckCircle2 className="w-3 h-3 text-[#C8A96A] shrink-0" />
                     </div>
 
-                    <p className="text-[11px] text-[#7A6B5D] line-clamp-1 leading-normal mt-0.5">
+                    <p className="text-[10px] text-[#8C6D65] line-clamp-1 leading-tight mt-0.5">
                       {boutique.tagline}
                     </p>
                   </div>
 
-                  <div className="pt-2 border-t border-[#F0E6DC] flex items-center justify-between text-[11px]">
-                    <span className="flex items-center gap-0.5 text-[#7A6B5D] truncate max-w-[65%]">
-                      <MapPin className="w-3 h-3 text-[#C8A96A] shrink-0" />
+                  <div className="pt-1.5 border-t border-[#F5EBE6] flex items-center justify-between text-[10px]">
+                    <span className="flex items-center gap-0.5 text-[#8C6D65] truncate max-w-[65%]">
+                      <MapPin className="w-2.5 h-2.5 text-[#7A4E46] shrink-0" />
                       <span className="truncate">{boutique.location}</span>
                     </span>
 
-                    <span className="font-bold text-[#4A3E34] flex items-center gap-0.5 shrink-0 group-hover:underline">
-                      Explore <ChevronRight className="w-3 h-3" />
+                    <span className="font-bold text-[#7A4E46] flex items-center gap-0.5 shrink-0 group-hover:underline">
+                      Explore <ChevronRight className="w-2.5 h-2.5" />
                     </span>
                   </div>
                 </div>
