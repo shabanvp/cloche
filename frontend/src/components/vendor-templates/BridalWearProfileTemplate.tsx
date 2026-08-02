@@ -218,144 +218,163 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
         </div>
       )}
 
-      {/* 1. HERO CAROUSEL SECTION (Visually Aligned with Profile Card) */}
-      <div className="max-w-4xl mx-auto md:px-4 md:pt-4">
-        <div className="relative w-full h-[220px] sm:h-[280px] md:h-[320px] lg:h-[340px] bg-charcoal md:rounded-3xl overflow-hidden group shadow-md">
-          <img
-            src={heroImages[currentImgIndex]}
-            alt={businessName}
-            className="w-full h-full object-cover object-center transition-all duration-700 cursor-pointer"
-            onClick={() => setLightboxImg(heroImages[currentImgIndex])}
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/30" />
-
-        {/* Top Controls Overlay */}
-        <div className="absolute top-4 left-4 right-4 flex justify-between items-center z-20">
-          <button
-            onClick={() => {
-              if (typeof window !== "undefined" && window.history.length > 1) {
-                window.history.back();
-              } else {
-                window.location.href = "/categories/bridal-wear";
-              }
-            }}
-            className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md text-white flex items-center justify-center hover:bg-black/60 transition-colors shadow cursor-pointer"
-            aria-label="Go back"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => {
-                setIsWishlisted(!isWishlisted);
-                showToast(!isWishlisted ? "Saved to your wishlist!" : "Removed from wishlist");
-              }}
-              className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md text-white flex items-center justify-center hover:bg-black/60 transition-colors shadow"
-            >
-              <Heart className={`w-5 h-5 ${isWishlisted ? "fill-red-500 text-red-500" : ""}`} />
-            </button>
-          </div>
-        </div>
-
-        {/* Next / Prev Slider Buttons */}
-        {heroImages.length > 1 && (
-          <>
-            <button
-              onClick={() => setCurrentImgIndex((prev) => (prev === 0 ? heroImages.length - 1 : prev - 1))}
-              className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/30 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-20"
-            >
-              <ChevronRight className="w-5 h-5 rotate-180" />
-            </button>
-
-            <button
-              onClick={() => setCurrentImgIndex((prev) => (prev === heroImages.length - 1 ? 0 : prev + 1))}
-              className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/30 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-20"
-            >
-              <ChevronRight className="w-5 h-5" />
-            </button>
-          </>
-        )}
-
-        {/* Image Counter Pill */}
-        <div className="absolute bottom-6 right-4 bg-black/60 backdrop-blur-md text-white text-[11px] font-semibold px-3 py-1 rounded-full border border-white/20 z-20 flex items-center gap-1.5">
-          <Layers className="w-3.5 h-3.5 text-gold" />
-          <span>{currentImgIndex + 1}/{heroImages.length}</span>
-        </div>
-      </div>
-    </div>
-
-      {/* 2. VENUE-STYLE COMPACT VENDOR PROFILE CARD */}
-      <div className="max-w-4xl mx-auto px-4 -mt-10 sm:-mt-12 md:-mt-12 lg:-mt-14 relative z-30">
-        <div className="bg-white rounded-[24px] p-5 sm:p-7 border border-gold/20 shadow-xl space-y-4">
+      {/* ─── VENUE-STYLE 2-COLUMN LAYOUT ON DESKTOP ─── */}
+      <div className="max-w-6xl mx-auto w-full px-4 pt-4 md:pt-6">
+        <div className="flex flex-col md:grid md:grid-cols-12 gap-6 lg:gap-8 items-start">
           
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
-              {/* Profile Picture Overlapping Bottom-Left Corner of Cover Image */}
-              <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-[96px] md:h-[96px] lg:w-[104px] lg:h-[104px] rounded-2xl overflow-hidden border-4 border-white bg-[#002f22] p-0.5 shadow-2xl shrink-0 -mt-10 sm:-mt-12 md:-mt-14">
-                <img src={logo} alt={businessName} className="w-full h-full object-cover rounded-xl" />
+          {/* Left Column: Cover Gallery Image */}
+          <div className="w-full md:col-span-7 space-y-4">
+            <div className="relative w-full h-[220px] sm:h-[280px] md:h-[360px] lg:h-[380px] bg-charcoal md:rounded-3xl overflow-hidden group shadow-md border border-gold/20">
+              <img
+                src={heroImages[currentImgIndex]}
+                alt={businessName}
+                className="w-full h-full object-cover object-center transition-all duration-700 cursor-pointer"
+                onClick={() => setLightboxImg(heroImages[currentImgIndex])}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/30" />
+
+              {/* Top Controls Overlay */}
+              <div className="absolute top-4 left-4 right-4 flex justify-between items-center z-20">
+                <button
+                  onClick={() => {
+                    if (typeof window !== "undefined" && window.history.length > 1) {
+                      window.history.back();
+                    } else {
+                      window.location.href = "/categories/bridal-wear";
+                    }
+                  }}
+                  className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md text-white flex items-center justify-center hover:bg-black/60 transition-colors shadow cursor-pointer"
+                  aria-label="Go back"
+                >
+                  <ArrowLeft className="w-5 h-5" />
+                </button>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => {
+                      setIsWishlisted(!isWishlisted);
+                      showToast(!isWishlisted ? "Saved to your wishlist!" : "Removed from wishlist");
+                    }}
+                    className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md text-white flex items-center justify-center hover:bg-black/60 transition-colors shadow"
+                  >
+                    <Heart className={`w-5 h-5 ${isWishlisted ? "fill-red-500 text-red-500" : ""}`} />
+                  </button>
+                </div>
               </div>
 
-              <div className="flex flex-col justify-center space-y-1">
-                <div className="flex items-center gap-2">
-                  <h1 className="font-display text-2xl sm:text-3xl font-bold text-charcoal">{businessName}</h1>
-                  <CheckCircle2 className="w-5 h-5 text-gold fill-gold text-white shrink-0" />
-                </div>
+              {/* Next / Prev Slider Buttons */}
+              {heroImages.length > 1 && (
+                <>
+                  <button
+                    onClick={() => setCurrentImgIndex((prev) => (prev === 0 ? heroImages.length - 1 : prev - 1))}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/30 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-20"
+                  >
+                    <ChevronRight className="w-5 h-5 rotate-180" />
+                  </button>
 
-                <div className="flex items-center gap-2 text-xs font-semibold text-charcoal/70">
-                  <span className="flex items-center gap-1 text-charcoal font-bold">
-                    <Star className="w-3.5 h-3.5 fill-gold text-gold" /> {rating} ({reviewsList.length} reviews)
-                  </span>
-                  <span>•</span>
-                  <span className="text-[#0F4C45] font-bold">Verified</span>
-                </div>
+                  <button
+                    onClick={() => setCurrentImgIndex((prev) => (prev === heroImages.length - 1 ? 0 : prev + 1))}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/30 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-20"
+                  >
+                    <ChevronRight className="w-5 h-5" />
+                  </button>
+                </>
+              )}
 
-                <p className="text-xs text-charcoal/60 flex items-center gap-1">
-                  <MapPin className="w-3.5 h-3.5 text-gold" /> {city}{district ? `, ${district}` : ""}
-                </p>
+              {/* Image Counter Pill */}
+              <div className="absolute bottom-4 right-4 bg-black/60 backdrop-blur-md text-white text-[11px] font-semibold px-3 py-1 rounded-full border border-white/20 z-20 flex items-center gap-1.5">
+                <Layers className="w-3.5 h-3.5 text-gold" />
+                <span>{currentImgIndex + 1}/{heroImages.length}</span>
               </div>
             </div>
 
-            {/* Calling, Message & Follow Actions on the Right Side of Desktop Header */}
-            <div className="flex items-center gap-2.5 w-full sm:w-auto shrink-0">
+            {/* Gallery Thumbnails Strip */}
+            {heroImages.length > 1 && (
+              <div className="hidden sm:grid grid-cols-4 gap-2.5">
+                {heroImages.slice(0, 4).map((img, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setCurrentImgIndex(i)}
+                    className={`relative aspect-[4/3] rounded-2xl overflow-hidden border-2 transition-all cursor-pointer ${
+                      currentImgIndex === i ? "border-gold scale-[1.02]" : "border-transparent opacity-80"
+                    }`}
+                  >
+                    <img src={img} alt={`Gallery ${i + 1}`} className="w-full h-full object-cover" />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Right Column: Sticky Venue-Style Information & Action Card */}
+          <div className="w-full md:col-span-5 bg-white rounded-3xl p-6 sm:p-7 border border-gold/20 shadow-md space-y-5 md:sticky md:top-24">
+            
+            {/* Header Row */}
+            <div className="flex items-start justify-between gap-3 border-b border-gold/15 pb-4">
+              <div className="flex items-center gap-3.5">
+                <div className="w-16 h-16 rounded-2xl overflow-hidden border-2 border-[#002f22] bg-[#002f22] p-0.5 shadow-md shrink-0">
+                  <img src={logo} alt={businessName} className="w-full h-full object-cover rounded-xl" />
+                </div>
+
+                <div>
+                  <div className="flex items-center gap-1.5">
+                    <h1 className="font-display text-xl sm:text-2xl font-bold text-charcoal">{businessName}</h1>
+                    <CheckCircle2 className="w-4 h-4 text-gold fill-gold text-white shrink-0" />
+                  </div>
+
+                  <p className="text-xs text-charcoal/60 flex items-center gap-1 mt-0.5">
+                    <MapPin className="w-3.5 h-3.5 text-gold" /> {city}{district ? `, ${district}` : ""}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-1 bg-gold/10 px-2.5 py-1 rounded-full text-xs font-bold text-charcoal shrink-0">
+                <Star className="w-3.5 h-3.5 fill-gold text-gold" />
+                <span>{rating}</span>
+                <span className="text-charcoal/60 font-normal">({reviewsList.length})</span>
+              </div>
+            </div>
+
+            {/* Tagline */}
+            <p className="text-xs sm:text-sm text-charcoal/80 font-sans italic">
+              "{tagline}"
+            </p>
+
+            {/* Calling & Messaging Buttons in Right Column Card */}
+            <div className="space-y-2.5 pt-1">
               <a
                 href={formatTelUri(phone)}
-                className="flex-1 sm:flex-initial flex items-center justify-center gap-2 rounded-full px-5 py-2.5 bg-[#0B3B2D] text-white text-xs font-bold shadow-md hover:bg-[#0F4C45] transition-colors"
+                className="w-full flex items-center justify-center gap-2 rounded-xl py-3 bg-[#0B3B2D] text-white text-xs uppercase tracking-wider font-bold shadow-md hover:bg-[#0F4C45] transition-colors"
               >
-                <Phone className="w-3.5 h-3.5" /> Call Store
+                <Phone className="w-4 h-4" /> Call Store Direct
               </a>
 
               <a
                 href={`https://wa.me/${whatsapp.replace(/\D/g, "")}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex-1 sm:flex-initial flex items-center justify-center gap-2 rounded-full px-5 py-2.5 bg-[#25D366] text-white text-xs font-bold shadow-md hover:bg-[#20ba59] transition-colors"
+                className="w-full flex items-center justify-center gap-2 rounded-xl py-3 bg-[#25D366] text-white text-xs uppercase tracking-wider font-bold shadow-md hover:bg-[#20ba59] transition-colors"
               >
-                <MessageSquare className="w-3.5 h-3.5" /> WhatsApp
+                <MessageSquare className="w-4 h-4" /> Send WhatsApp Message
               </a>
 
               <button
                 onClick={handleFollowToggle}
-                className={`px-5 py-2.5 rounded-full font-bold text-xs uppercase tracking-wider transition-all shadow-md ${
+                className={`w-full py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-sm ${
                   isFollowing
                     ? "bg-gold text-charcoal hover:bg-gold/90"
                     : "bg-charcoal/10 text-charcoal hover:bg-charcoal/20"
                 }`}
               >
-                {isFollowing ? "Following" : "Follow"}
+                {isFollowing ? "Following Store" : "Follow Store"}
               </button>
             </div>
           </div>
-
-          <p className="text-xs sm:text-sm text-charcoal/80 font-sans italic border-t border-gold/10 pt-3">
-            "{tagline}"
-          </p>
-
         </div>
       </div>
 
       {/* 3. FOUR EQUAL QUICK ACTION BUTTONS */}
-      <div className="max-w-4xl mx-auto px-4 mt-6">
+      <div className="max-w-6xl mx-auto px-4 mt-6">
         <div className="grid grid-cols-4 gap-2 sm:gap-3 text-center">
           <a
             href={formatTelUri(phone)}
@@ -405,7 +424,7 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
 
       {/* 4. STICKY TAB NAVIGATION */}
       <div className="sticky top-16 z-40 bg-[#FBF8F1]/95 backdrop-blur-md border-y border-gold/15 mt-6">
-        <div className="max-w-4xl mx-auto px-4 flex items-center justify-around text-xs font-bold uppercase tracking-wider">
+        <div className="max-w-6xl mx-auto px-4 flex items-center justify-around text-xs font-bold uppercase tracking-wider">
           {[
             { id: "about", label: "About" },
             { id: "collections", label: "Collections" },
@@ -428,7 +447,7 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
       </div>
 
       {/* 5. MAIN CONTENT CONTAINER */}
-      <main className="max-w-4xl mx-auto px-4 mt-8 space-y-10">
+      <main className="max-w-6xl mx-auto px-4 mt-8 space-y-10">
         
         {/* ABOUT SECTION */}
         <section ref={aboutRef} className="bg-white rounded-3xl p-6 sm:p-8 border border-gold/15 shadow-sm space-y-3">
