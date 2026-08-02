@@ -179,8 +179,8 @@ export function MehendiDetailClient({ artist }: { artist: MehendiVendor }) {
                 {artist.packages.map((pkg, idx) => (
                   <div key={idx} className="rounded-2xl bg-white p-5 border border-black/5 shadow-xs flex items-center justify-between">
                     <div>
-                      <h3 className="font-serif text-sm font-bold text-[#1A1410]">{pkg.title}</h3>
-                      <p className="text-xs text-[#7A6E65] mt-0.5">{pkg.desc}</p>
+                      <h3 className="font-serif text-sm font-bold text-[#1A1410]">{pkg.name}</h3>
+                      <p className="text-xs text-[#7A6E65] mt-0.5">{pkg.description}</p>
                     </div>
                     <span className="font-serif text-base font-bold text-[#0F4C45]">{pkg.price}</span>
                   </div>
@@ -190,7 +190,7 @@ export function MehendiDetailClient({ artist }: { artist: MehendiVendor }) {
 
             {activeTab === "reviews" && (
               <section className="space-y-3">
-                {artist.reviewsList.map((rev, idx) => (
+                {(artist.userReviews || (artist as any).reviewsList || []).map((rev: any, idx: number) => (
                   <div key={idx} className="rounded-2xl bg-white p-5 border border-black/5 shadow-xs">
                     <div className="flex items-center justify-between">
                       <p className="font-serif text-xs font-bold text-[#1A1410]">{rev.author}</p>
