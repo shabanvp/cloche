@@ -85,7 +85,7 @@ export function MehendiDetailClient({ artist }: { artist: MehendiVendor }) {
       <main className="flex-1 px-4 pt-3 space-y-4">
         {/* Profile Info Header (Picture 2) */}
         <div className="flex items-start gap-3">
-          <div className="relative h-16 w-16 md:h-[76px] md:w-[76px] shrink-0 rounded-full overflow-hidden border-2 border-white shadow-md">
+          <div className="relative h-16 w-16 md:h-[76px] md:w-[76px] lg:h-[80px] lg:w-[80px] shrink-0 rounded-full overflow-hidden border-2 border-white shadow-md">
             <Image src={artist.image} alt={artist.name} fill className="object-cover" />
           </div>
 
