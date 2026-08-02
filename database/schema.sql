@@ -1,43 +1,19 @@
 -- ====================================================================
--- CLOCHE PLATFORM - PRODUCTION SUPABASE POSTGRESQL DATABASE SCHEMA
--- Version: 1.0.3 (Fully Idempotent Execution Script)
+-- CLOCHE PLATFORM - SAFE INCREMENTAL PRODUCTION DATABASE SCHEMA
+-- Version: 2.0.0 (Zero-Data-Loss Incremental Schema Script)
 -- Environment: Production / Staging
--- Single Source of Truth for Web, Mobile, Tablet, Vendor & Admin Dashboards
+-- NEVER DROPS TABLES, NEVER DROPS COLUMNS, NEVER DELETES PRODUCTION DATA
 -- ====================================================================
 
--- Enable Required Extensions
+-- Enable Extensions
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS "pg_trgm";
-
--- --------------------------------------------------------------------
--- 0. CLEANUP INCOMPATIBLE LEGACY TABLES
--- --------------------------------------------------------------------
-DROP TABLE IF EXISTS analytics_events CASCADE;
-DROP TABLE IF EXISTS wishlists CASCADE;
-DROP TABLE IF EXISTS reviews CASCADE;
-DROP TABLE IF EXISTS bookings CASCADE;
-DROP TABLE IF EXISTS advertisements CASCADE;
-DROP TABLE IF EXISTS boutique_products CASCADE;
-DROP TABLE IF EXISTS boutiques CASCADE;
-DROP TABLE IF EXISTS coupon_redemptions CASCADE;
-DROP TABLE IF EXISTS coupons CASCADE;
-DROP TABLE IF EXISTS offers CASCADE;
-DROP TABLE IF EXISTS venue_faqs CASCADE;
-DROP TABLE IF EXISTS venue_custom_amenities CASCADE;
-DROP TABLE IF EXISTS venue_packages CASCADE;
-DROP TABLE IF EXISTS venue_gallery CASCADE;
-DROP TABLE IF EXISTS venue_profiles CASCADE;
-DROP TABLE IF EXISTS vendor_profiles CASCADE;
-DROP TABLE IF EXISTS vendor_accounts CASCADE;
-DROP TABLE IF EXISTS cloche_users CASCADE;
-DROP TABLE IF EXISTS users CASCADE;
-DROP TABLE IF EXISTS roles CASCADE;
 
 -- --------------------------------------------------------------------
 -- 1. AUTHENTICATION & USERS & ROLES
 -- --------------------------------------------------------------------
 
-CREATE TABLE roles (
+CREATE TABLE IF NOT EXISTS roles (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR(50) UNIQUE NOT NULL,
     description TEXT,
@@ -51,7 +27,7 @@ INSERT INTO roles (name, description, permissions) VALUES
 ('customer', 'Verified Couple/Customer exploring and booking venues', '{"customer_dashboard": true}'::jsonb)
 ON CONFLICT (name) DO NOTHING;
 
-CREATE TABLE cloche_users (
+CREATE TABLE IF NOT EXISTS cloche_users (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     auth_id VARCHAR(255) UNIQUE,
     email VARCHAR(255) UNIQUE NOT NULL,
@@ -64,7 +40,7 @@ CREATE TABLE cloche_users (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
-CREATE TABLE vendor_accounts (
+CREATE TABLE IF NOT EXISTS vendor_accounts (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID REFERENCES cloche_users(id) ON DELETE CASCADE,
     vendor_id_slug VARCHAR(100) UNIQUE NOT NULL,
@@ -80,7 +56,7 @@ CREATE TABLE vendor_accounts (
 -- 2. VENDOR PROFILES (ALL CATEGORIES)
 -- --------------------------------------------------------------------
 
-CREATE TABLE vendor_profiles (
+CREATE TABLE IF NOT EXISTS vendor_profiles (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     vendor_id VARCHAR(100) UNIQUE NOT NULL,
     category VARCHAR(100) NOT NULL,
@@ -101,7 +77,7 @@ CREATE TABLE vendor_profiles (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
-CREATE TABLE venue_profiles (
+CREATE TABLE IF NOT EXISTS venue_profiles (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     vendor_id VARCHAR(100) UNIQUE NOT NULL REFERENCES vendor_profiles(vendor_id) ON DELETE CASCADE,
     starting_price VARCHAR(50) DEFAULT '₹2,50,000 / day',
@@ -124,7 +100,7 @@ CREATE TABLE venue_profiles (
 -- 3. VENUE GALLERY, PACKAGES, AMENITIES, FAQS
 -- --------------------------------------------------------------------
 
-CREATE TABLE venue_gallery (
+CREATE TABLE IF NOT EXISTS venue_gallery (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     vendor_id VARCHAR(100) NOT NULL REFERENCES vendor_profiles(vendor_id) ON DELETE CASCADE,
     public_id VARCHAR(255),
@@ -136,7 +112,7 @@ CREATE TABLE venue_gallery (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
-CREATE TABLE venue_packages (
+CREATE TABLE IF NOT EXISTS venue_packages (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     vendor_id VARCHAR(100) NOT NULL REFERENCES vendor_profiles(vendor_id) ON DELETE CASCADE,
     name VARCHAR(255) NOT NULL,
@@ -148,7 +124,7 @@ CREATE TABLE venue_packages (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
-CREATE TABLE venue_custom_amenities (
+CREATE TABLE IF NOT EXISTS venue_custom_amenities (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     vendor_id VARCHAR(100) NOT NULL REFERENCES vendor_profiles(vendor_id) ON DELETE CASCADE,
     name VARCHAR(255) NOT NULL,
@@ -158,7 +134,7 @@ CREATE TABLE venue_custom_amenities (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
-CREATE TABLE venue_faqs (
+CREATE TABLE IF NOT EXISTS venue_faqs (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     vendor_id VARCHAR(100) NOT NULL REFERENCES vendor_profiles(vendor_id) ON DELETE CASCADE,
     question TEXT NOT NULL,
@@ -171,7 +147,7 @@ CREATE TABLE venue_faqs (
 -- 4. OFFERS & COUPONS ENGINE
 -- --------------------------------------------------------------------
 
-CREATE TABLE offers (
+CREATE TABLE IF NOT EXISTS offers (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     offer_slug VARCHAR(100) UNIQUE NOT NULL,
     vendor_id VARCHAR(100) NOT NULL REFERENCES vendor_profiles(vendor_id) ON DELETE CASCADE,
@@ -200,7 +176,7 @@ CREATE TABLE offers (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
-CREATE TABLE coupons (
+CREATE TABLE IF NOT EXISTS coupons (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     vendor_id VARCHAR(100) NOT NULL REFERENCES vendor_profiles(vendor_id) ON DELETE CASCADE,
     code VARCHAR(50) UNIQUE NOT NULL,
@@ -213,7 +189,7 @@ CREATE TABLE coupons (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
-CREATE TABLE coupon_redemptions (
+CREATE TABLE IF NOT EXISTS coupon_redemptions (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     coupon_id UUID REFERENCES coupons(id) ON DELETE CASCADE,
     offer_id UUID REFERENCES offers(id) ON DELETE SET NULL,
@@ -226,7 +202,7 @@ CREATE TABLE coupon_redemptions (
 -- 5. BOUTIQUES, COLLECTIONS & PRODUCTS
 -- --------------------------------------------------------------------
 
-CREATE TABLE boutiques (
+CREATE TABLE IF NOT EXISTS boutiques (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     vendor_id VARCHAR(100) UNIQUE NOT NULL REFERENCES vendor_profiles(vendor_id) ON DELETE CASCADE,
     name VARCHAR(255) NOT NULL,
@@ -238,7 +214,7 @@ CREATE TABLE boutiques (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
-CREATE TABLE boutique_products (
+CREATE TABLE IF NOT EXISTS boutique_products (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     vendor_id VARCHAR(100) NOT NULL REFERENCES vendor_profiles(vendor_id) ON DELETE CASCADE,
     title VARCHAR(255) NOT NULL,
@@ -259,7 +235,7 @@ CREATE TABLE boutique_products (
 -- 6. ADVERTISEMENTS & MARKETING CAMPAIGNS
 -- --------------------------------------------------------------------
 
-CREATE TABLE advertisements (
+CREATE TABLE IF NOT EXISTS advertisements (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     campaign_slug VARCHAR(100) UNIQUE NOT NULL,
     vendor_id VARCHAR(100) NOT NULL REFERENCES vendor_profiles(vendor_id) ON DELETE CASCADE,
@@ -282,7 +258,7 @@ CREATE TABLE advertisements (
 -- 7. BOOKINGS & QUOTES & LEADS
 -- --------------------------------------------------------------------
 
-CREATE TABLE bookings (
+CREATE TABLE IF NOT EXISTS bookings (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     vendor_id VARCHAR(100) NOT NULL REFERENCES vendor_profiles(vendor_id) ON DELETE CASCADE,
     customer_name VARCHAR(255) NOT NULL,
@@ -305,7 +281,7 @@ CREATE TABLE bookings (
 -- 8. REVIEWS & FEEDBACK
 -- --------------------------------------------------------------------
 
-CREATE TABLE reviews (
+CREATE TABLE IF NOT EXISTS reviews (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     vendor_id VARCHAR(100) NOT NULL REFERENCES vendor_profiles(vendor_id) ON DELETE CASCADE,
     author_name VARCHAR(255) NOT NULL,
@@ -322,7 +298,7 @@ CREATE TABLE reviews (
 -- 9. WISHLISTS & ANALYTICS EVENTS
 -- --------------------------------------------------------------------
 
-CREATE TABLE wishlists (
+CREATE TABLE IF NOT EXISTS wishlists (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     customer_email VARCHAR(255) NOT NULL,
     vendor_id VARCHAR(100) NOT NULL REFERENCES vendor_profiles(vendor_id) ON DELETE CASCADE,
@@ -335,7 +311,7 @@ CREATE TABLE wishlists (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
-CREATE TABLE analytics_events (
+CREATE TABLE IF NOT EXISTS analytics_events (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     vendor_id VARCHAR(100) NOT NULL,
     event_type VARCHAR(50) NOT NULL CHECK (event_type IN ('views', 'clicks', 'bookings', 'wishlist')),
@@ -345,9 +321,19 @@ CREATE TABLE analytics_events (
 );
 
 -- --------------------------------------------------------------------
--- 10. INDEXES FOR HIGH-PERFORMANCE QUERYING
+-- 10. SAFE INCREMENTAL COLUMN ADDITIONS (ADD COLUMN IF NOT EXISTS)
 -- --------------------------------------------------------------------
+ALTER TABLE vendor_profiles ADD COLUMN IF NOT EXISTS is_verified BOOLEAN DEFAULT TRUE;
+ALTER TABLE boutiques ADD COLUMN IF NOT EXISTS is_verified BOOLEAN DEFAULT TRUE;
+ALTER TABLE boutiques ADD COLUMN IF NOT EXISTS city VARCHAR(100) DEFAULT 'Kochi';
+ALTER TABLE boutiques ADD COLUMN IF NOT EXISTS rating NUMERIC(3,2) DEFAULT 4.9;
+ALTER TABLE boutiques ADD COLUMN IF NOT EXISTS cover_image TEXT;
+ALTER TABLE offers ADD COLUMN IF NOT EXISTS cta_text VARCHAR(100) DEFAULT 'Claim Offer';
+ALTER TABLE offers ADD COLUMN IF NOT EXISTS mobile_banner_url TEXT;
 
+-- --------------------------------------------------------------------
+-- 11. SAFE INDEX CREATIONS (IF NOT EXISTS)
+-- --------------------------------------------------------------------
 CREATE INDEX IF NOT EXISTS idx_vendor_profiles_category ON vendor_profiles(category);
 CREATE INDEX IF NOT EXISTS idx_vendor_profiles_city ON vendor_profiles(city);
 CREATE INDEX IF NOT EXISTS idx_venue_gallery_vendor ON venue_gallery(vendor_id);
@@ -361,9 +347,8 @@ CREATE INDEX IF NOT EXISTS idx_wishlists_customer ON wishlists(customer_email);
 CREATE INDEX IF NOT EXISTS idx_analytics_vendor_type ON analytics_events(vendor_id, event_type);
 
 -- --------------------------------------------------------------------
--- 11. ROW LEVEL SECURITY (RLS) POLICIES
+-- 12. RLS ENABLING & SAFE POLICY CREATIONS
 -- --------------------------------------------------------------------
-
 ALTER TABLE vendor_profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE venue_gallery ENABLE ROW LEVEL SECURITY;
 ALTER TABLE venue_packages ENABLE ROW LEVEL SECURITY;
@@ -373,35 +358,46 @@ ALTER TABLE advertisements ENABLE ROW LEVEL SECURITY;
 ALTER TABLE bookings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE reviews ENABLE ROW LEVEL SECURITY;
 
--- Clean Up Old RLS Policies If Already Existing
-DROP POLICY IF EXISTS "Public Read Vendor Profiles" ON vendor_profiles;
-DROP POLICY IF EXISTS "Public Read Venue Gallery" ON venue_gallery;
-DROP POLICY IF EXISTS "Public Read Venue Packages" ON venue_packages;
-DROP POLICY IF EXISTS "Public Read Offers" ON offers;
-DROP POLICY IF EXISTS "Public Read Coupons" ON coupons;
-DROP POLICY IF EXISTS "Public Read Reviews" ON reviews;
+DO $$ 
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Read Vendor Profiles') THEN
+        CREATE POLICY "Public Read Vendor Profiles" ON vendor_profiles FOR SELECT USING (true);
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Read Venue Gallery') THEN
+        CREATE POLICY "Public Read Venue Gallery" ON venue_gallery FOR SELECT USING (true);
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Read Venue Packages') THEN
+        CREATE POLICY "Public Read Venue Packages" ON venue_packages FOR SELECT USING (true);
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Read Offers') THEN
+        CREATE POLICY "Public Read Offers" ON offers FOR SELECT USING (true);
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Read Coupons') THEN
+        CREATE POLICY "Public Read Coupons" ON coupons FOR SELECT USING (true);
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Read Reviews') THEN
+        CREATE POLICY "Public Read Reviews" ON reviews FOR SELECT USING (true);
+    END IF;
 
-DROP POLICY IF EXISTS "Vendor Manage Own Profile" ON vendor_profiles;
-DROP POLICY IF EXISTS "Vendor Manage Own Gallery" ON venue_gallery;
-DROP POLICY IF EXISTS "Vendor Manage Own Packages" ON venue_packages;
-DROP POLICY IF EXISTS "Vendor Manage Own Offers" ON offers;
-DROP POLICY IF EXISTS "Vendor Manage Own Coupons" ON coupons;
-DROP POLICY IF EXISTS "Vendor Manage Own Ads" ON advertisements;
-DROP POLICY IF EXISTS "Vendor Manage Own Bookings" ON bookings;
-
--- Create Idempotent Public Read-Only Access Policies
-CREATE POLICY "Public Read Vendor Profiles" ON vendor_profiles FOR SELECT USING (true);
-CREATE POLICY "Public Read Venue Gallery" ON venue_gallery FOR SELECT USING (true);
-CREATE POLICY "Public Read Venue Packages" ON venue_packages FOR SELECT USING (true);
-CREATE POLICY "Public Read Offers" ON offers FOR SELECT USING (true);
-CREATE POLICY "Public Read Coupons" ON coupons FOR SELECT USING (true);
-CREATE POLICY "Public Read Reviews" ON reviews FOR SELECT USING (true);
-
--- Create Idempotent Vendor & Admin Management Policies
-CREATE POLICY "Vendor Manage Own Profile" ON vendor_profiles FOR ALL USING (true);
-CREATE POLICY "Vendor Manage Own Gallery" ON venue_gallery FOR ALL USING (true);
-CREATE POLICY "Vendor Manage Own Packages" ON venue_packages FOR ALL USING (true);
-CREATE POLICY "Vendor Manage Own Offers" ON offers FOR ALL USING (true);
-CREATE POLICY "Vendor Manage Own Coupons" ON coupons FOR ALL USING (true);
-CREATE POLICY "Vendor Manage Own Ads" ON advertisements FOR ALL USING (true);
-CREATE POLICY "Vendor Manage Own Bookings" ON bookings FOR ALL USING (true);
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Vendor Manage Own Profile') THEN
+        CREATE POLICY "Vendor Manage Own Profile" ON vendor_profiles FOR ALL USING (true);
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Vendor Manage Own Gallery') THEN
+        CREATE POLICY "Vendor Manage Own Gallery" ON venue_gallery FOR ALL USING (true);
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Vendor Manage Own Packages') THEN
+        CREATE POLICY "Vendor Manage Own Packages" ON venue_packages FOR ALL USING (true);
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Vendor Manage Own Offers') THEN
+        CREATE POLICY "Vendor Manage Own Offers" ON offers FOR ALL USING (true);
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Vendor Manage Own Coupons') THEN
+        CREATE POLICY "Vendor Manage Own Coupons" ON coupons FOR ALL USING (true);
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Vendor Manage Own Ads') THEN
+        CREATE POLICY "Vendor Manage Own Ads" ON advertisements FOR ALL USING (true);
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Vendor Manage Own Bookings') THEN
+        CREATE POLICY "Vendor Manage Own Bookings" ON bookings FOR ALL USING (true);
+    END IF;
+END $$;
