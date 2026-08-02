@@ -1,6 +1,6 @@
 -- ====================================================================
 -- CLOCHE PLATFORM - PRODUCTION SUPABASE POSTGRESQL DATABASE SCHEMA
--- Version: 1.0.1 (Fail-Safe Fix for Existing Database Tables)
+-- Version: 1.0.2 (Complete Fresh Install Script with Drop Cascades)
 -- Environment: Production / Staging
 -- Single Source of Truth for Web, Mobile, Tablet, Vendor & Admin Dashboards
 -- ====================================================================
@@ -9,16 +9,35 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS "pg_trgm";
 
--- Drop conflicting legacy tables if incompatible schema exists from older setups
+-- --------------------------------------------------------------------
+-- 0. CLEANUP INCOMPATIBLE LEGACY TABLES
+-- --------------------------------------------------------------------
+DROP TABLE IF EXISTS analytics_events CASCADE;
+DROP TABLE IF EXISTS wishlists CASCADE;
+DROP TABLE IF EXISTS reviews CASCADE;
+DROP TABLE IF EXISTS bookings CASCADE;
+DROP TABLE IF EXISTS advertisements CASCADE;
+DROP TABLE IF EXISTS boutique_products CASCADE;
+DROP TABLE IF EXISTS boutiques CASCADE;
+DROP TABLE IF EXISTS coupon_redemptions CASCADE;
+DROP TABLE IF EXISTS coupons CASCADE;
+DROP TABLE IF EXISTS offers CASCADE;
+DROP TABLE IF EXISTS venue_faqs CASCADE;
+DROP TABLE IF EXISTS venue_custom_amenities CASCADE;
+DROP TABLE IF EXISTS venue_packages CASCADE;
+DROP TABLE IF EXISTS venue_gallery CASCADE;
+DROP TABLE IF EXISTS venue_profiles CASCADE;
+DROP TABLE IF EXISTS vendor_profiles CASCADE;
 DROP TABLE IF EXISTS vendor_accounts CASCADE;
-DROP TABLE IF EXISTS users CASCADE;
 DROP TABLE IF EXISTS cloche_users CASCADE;
+DROP TABLE IF EXISTS users CASCADE;
+DROP TABLE IF EXISTS roles CASCADE;
 
 -- --------------------------------------------------------------------
 -- 1. AUTHENTICATION & USERS & ROLES
 -- --------------------------------------------------------------------
 
-CREATE TABLE IF NOT EXISTS roles (
+CREATE TABLE roles (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR(50) UNIQUE NOT NULL,
     description TEXT,
@@ -61,7 +80,7 @@ CREATE TABLE vendor_accounts (
 -- 2. VENDOR PROFILES (ALL CATEGORIES)
 -- --------------------------------------------------------------------
 
-CREATE TABLE IF NOT EXISTS vendor_profiles (
+CREATE TABLE vendor_profiles (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     vendor_id VARCHAR(100) UNIQUE NOT NULL,
     category VARCHAR(100) NOT NULL,
@@ -82,7 +101,7 @@ CREATE TABLE IF NOT EXISTS vendor_profiles (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
-CREATE TABLE IF NOT EXISTS venue_profiles (
+CREATE TABLE venue_profiles (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     vendor_id VARCHAR(100) UNIQUE NOT NULL REFERENCES vendor_profiles(vendor_id) ON DELETE CASCADE,
     starting_price VARCHAR(50) DEFAULT '₹2,50,000 / day',
@@ -105,7 +124,7 @@ CREATE TABLE IF NOT EXISTS venue_profiles (
 -- 3. VENUE GALLERY, PACKAGES, AMENITIES, FAQS
 -- --------------------------------------------------------------------
 
-CREATE TABLE IF NOT EXISTS venue_gallery (
+CREATE TABLE venue_gallery (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     vendor_id VARCHAR(100) NOT NULL REFERENCES vendor_profiles(vendor_id) ON DELETE CASCADE,
     public_id VARCHAR(255),
@@ -117,7 +136,7 @@ CREATE TABLE IF NOT EXISTS venue_gallery (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
-CREATE TABLE IF NOT EXISTS venue_packages (
+CREATE TABLE venue_packages (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     vendor_id VARCHAR(100) NOT NULL REFERENCES vendor_profiles(vendor_id) ON DELETE CASCADE,
     name VARCHAR(255) NOT NULL,
@@ -129,7 +148,7 @@ CREATE TABLE IF NOT EXISTS venue_packages (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
-CREATE TABLE IF NOT EXISTS venue_custom_amenities (
+CREATE TABLE venue_custom_amenities (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     vendor_id VARCHAR(100) NOT NULL REFERENCES vendor_profiles(vendor_id) ON DELETE CASCADE,
     name VARCHAR(255) NOT NULL,
@@ -139,7 +158,7 @@ CREATE TABLE IF NOT EXISTS venue_custom_amenities (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
-CREATE TABLE IF NOT EXISTS venue_faqs (
+CREATE TABLE venue_faqs (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     vendor_id VARCHAR(100) NOT NULL REFERENCES vendor_profiles(vendor_id) ON DELETE CASCADE,
     question TEXT NOT NULL,
@@ -152,7 +171,7 @@ CREATE TABLE IF NOT EXISTS venue_faqs (
 -- 4. OFFERS & COUPONS ENGINE
 -- --------------------------------------------------------------------
 
-CREATE TABLE IF NOT EXISTS offers (
+CREATE TABLE offers (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     offer_slug VARCHAR(100) UNIQUE NOT NULL,
     vendor_id VARCHAR(100) NOT NULL REFERENCES vendor_profiles(vendor_id) ON DELETE CASCADE,
@@ -181,7 +200,7 @@ CREATE TABLE IF NOT EXISTS offers (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
-CREATE TABLE IF NOT EXISTS coupons (
+CREATE TABLE coupons (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     vendor_id VARCHAR(100) NOT NULL REFERENCES vendor_profiles(vendor_id) ON DELETE CASCADE,
     code VARCHAR(50) UNIQUE NOT NULL,
@@ -194,7 +213,7 @@ CREATE TABLE IF NOT EXISTS coupons (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
-CREATE TABLE IF NOT EXISTS coupon_redemptions (
+CREATE TABLE coupon_redemptions (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     coupon_id UUID REFERENCES coupons(id) ON DELETE CASCADE,
     offer_id UUID REFERENCES offers(id) ON DELETE SET NULL,
@@ -207,7 +226,7 @@ CREATE TABLE IF NOT EXISTS coupon_redemptions (
 -- 5. BOUTIQUES, COLLECTIONS & PRODUCTS
 -- --------------------------------------------------------------------
 
-CREATE TABLE IF NOT EXISTS boutiques (
+CREATE TABLE boutiques (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     vendor_id VARCHAR(100) UNIQUE NOT NULL REFERENCES vendor_profiles(vendor_id) ON DELETE CASCADE,
     name VARCHAR(255) NOT NULL,
@@ -218,7 +237,7 @@ CREATE TABLE IF NOT EXISTS boutiques (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
-CREATE TABLE IF NOT EXISTS boutique_products (
+CREATE TABLE boutique_products (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     vendor_id VARCHAR(100) NOT NULL REFERENCES vendor_profiles(vendor_id) ON DELETE CASCADE,
     title VARCHAR(255) NOT NULL,
@@ -239,7 +258,7 @@ CREATE TABLE IF NOT EXISTS boutique_products (
 -- 6. ADVERTISEMENTS & MARKETING CAMPAIGNS
 -- --------------------------------------------------------------------
 
-CREATE TABLE IF NOT EXISTS advertisements (
+CREATE TABLE advertisements (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     campaign_slug VARCHAR(100) UNIQUE NOT NULL,
     vendor_id VARCHAR(100) NOT NULL REFERENCES vendor_profiles(vendor_id) ON DELETE CASCADE,
@@ -262,7 +281,7 @@ CREATE TABLE IF NOT EXISTS advertisements (
 -- 7. BOOKINGS & QUOTES & LEADS
 -- --------------------------------------------------------------------
 
-CREATE TABLE IF NOT EXISTS bookings (
+CREATE TABLE bookings (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     vendor_id VARCHAR(100) NOT NULL REFERENCES vendor_profiles(vendor_id) ON DELETE CASCADE,
     customer_name VARCHAR(255) NOT NULL,
@@ -285,7 +304,7 @@ CREATE TABLE IF NOT EXISTS bookings (
 -- 8. REVIEWS & FEEDBACK
 -- --------------------------------------------------------------------
 
-CREATE TABLE IF NOT EXISTS reviews (
+CREATE TABLE reviews (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     vendor_id VARCHAR(100) NOT NULL REFERENCES vendor_profiles(vendor_id) ON DELETE CASCADE,
     author_name VARCHAR(255) NOT NULL,
@@ -302,7 +321,7 @@ CREATE TABLE IF NOT EXISTS reviews (
 -- 9. WISHLISTS & ANALYTICS EVENTS
 -- --------------------------------------------------------------------
 
-CREATE TABLE IF NOT EXISTS wishlists (
+CREATE TABLE wishlists (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     customer_email VARCHAR(255) NOT NULL,
     vendor_id VARCHAR(100) NOT NULL REFERENCES vendor_profiles(vendor_id) ON DELETE CASCADE,
@@ -315,7 +334,7 @@ CREATE TABLE IF NOT EXISTS wishlists (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
-CREATE TABLE IF NOT EXISTS analytics_events (
+CREATE TABLE analytics_events (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     vendor_id VARCHAR(100) NOT NULL,
     event_type VARCHAR(50) NOT NULL CHECK (event_type IN ('views', 'clicks', 'bookings', 'wishlist')),
@@ -328,17 +347,17 @@ CREATE TABLE IF NOT EXISTS analytics_events (
 -- 10. INDEXES FOR HIGH-PERFORMANCE QUERYING
 -- --------------------------------------------------------------------
 
-CREATE INDEX IF NOT EXISTS idx_vendor_profiles_category ON vendor_profiles(category);
-CREATE INDEX IF NOT EXISTS idx_vendor_profiles_city ON vendor_profiles(city);
-CREATE INDEX IF NOT EXISTS idx_venue_gallery_vendor ON venue_gallery(vendor_id);
-CREATE INDEX IF NOT EXISTS idx_venue_packages_vendor ON venue_packages(vendor_id);
-CREATE INDEX IF NOT EXISTS idx_offers_vendor_status ON offers(vendor_id, status);
-CREATE INDEX IF NOT EXISTS idx_coupons_vendor_code ON coupons(vendor_id, code);
-CREATE INDEX IF NOT EXISTS idx_advertisements_vendor ON advertisements(vendor_id);
-CREATE INDEX IF NOT EXISTS idx_bookings_vendor_status ON bookings(vendor_id, status);
-CREATE INDEX IF NOT EXISTS idx_reviews_vendor ON reviews(vendor_id);
-CREATE INDEX IF NOT EXISTS idx_wishlists_customer ON wishlists(customer_email);
-CREATE INDEX IF NOT EXISTS idx_analytics_vendor_type ON analytics_events(vendor_id, event_type);
+CREATE INDEX idx_vendor_profiles_category ON vendor_profiles(category);
+CREATE INDEX idx_vendor_profiles_city ON vendor_profiles(city);
+CREATE INDEX idx_venue_gallery_vendor ON venue_gallery(vendor_id);
+CREATE INDEX idx_venue_packages_vendor ON venue_packages(vendor_id);
+CREATE INDEX idx_offers_vendor_status ON offers(vendor_id, status);
+CREATE INDEX idx_coupons_vendor_code ON coupons(vendor_id, code);
+CREATE INDEX idx_advertisements_vendor ON advertisements(vendor_id);
+CREATE INDEX idx_bookings_vendor_status ON bookings(vendor_id, status);
+CREATE INDEX idx_reviews_vendor ON reviews(vendor_id);
+CREATE INDEX idx_wishlists_customer ON wishlists(customer_email);
+CREATE INDEX idx_analytics_vendor_type ON analytics_events(vendor_id, event_type);
 
 -- --------------------------------------------------------------------
 -- 11. ROW LEVEL SECURITY (RLS) POLICIES
