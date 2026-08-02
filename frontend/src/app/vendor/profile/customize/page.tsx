@@ -10,7 +10,7 @@ import { VenueProfileTemplate } from "@/components/vendor-templates/VenueProfile
 import { 
   Building2, Save, Sparkles, CheckCircle2, History, RotateCcw, AlertTriangle, 
   Image as ImageIcon, Plus, Trash2, ShieldCheck, MapPin, Calendar, Star, MessageSquare, 
-  HelpCircle, Search, Check, Lock, X, ExternalLink, Eye, LayoutGrid, Columns, Loader2,
+  HelpCircle, Search, Check, Lock, X, ExternalLink, Eye, LayoutGrid, Loader2,
   ChevronUp, ChevronDown, Edit3, AlertCircle, Crown, Wand2
 } from "lucide-react";
 import { uploadImageToCloudinary } from "@/lib/cloudinary";
@@ -21,7 +21,7 @@ export default function VendorVenueCmsPage() {
   const [vendorId, setVendorId] = useState<string>("v-solitaire");
   const [cmsData, setCmsData] = useState<VenueCmsData>(() => getVenueCmsData("v-solitaire"));
   const [activeTab, setActiveTab] = useState<"profile" | "hero" | "venueInfo" | "amenities" | "packages" | "availability" | "reviews" | "faqs" | "seo">("profile");
-  const [viewMode, setViewMode] = useState<"split" | "editor" | "preview">("split");
+  const [viewMode, setViewMode] = useState<"editor" | "preview">("editor");
   
   const [autoSaveStatus, setAutoSaveStatus] = useState<"Saved" | "Saving..." | "Unsaved Changes">("Saved");
   const [versionHistory, setVersionHistory] = useState<CmsVersionSnapshot[]>([]);
@@ -139,27 +139,19 @@ export default function VendorVenueCmsPage() {
           <div className="bg-[#FBF8F1] border border-gold/20 p-1 rounded-xl flex items-center gap-1">
             <button
               onClick={() => setViewMode("editor")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-all ${
-                viewMode === "editor" ? "bg-[#0F4C45] text-white shadow" : "text-charcoal/70 hover:text-charcoal"
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                viewMode === "editor" ? "bg-[#0F4C45] text-white shadow-sm" : "text-charcoal/70 hover:text-charcoal"
               }`}
             >
-              <LayoutGrid className="w-3.5 h-3.5" /> Editor
-            </button>
-            <button
-              onClick={() => setViewMode("split")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-all ${
-                viewMode === "split" ? "bg-[#0F4C45] text-white shadow" : "text-charcoal/70 hover:text-charcoal"
-              }`}
-            >
-              <Columns className="w-3.5 h-3.5" /> Split View
+              <LayoutGrid className="w-3.5 h-3.5 text-gold" /> Editor
             </button>
             <button
               onClick={() => setViewMode("preview")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-all ${
-                viewMode === "preview" ? "bg-[#0F4C45] text-white shadow" : "text-charcoal/70 hover:text-charcoal"
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                viewMode === "preview" ? "bg-[#0F4C45] text-white shadow-sm" : "text-charcoal/70 hover:text-charcoal"
               }`}
             >
-              <Eye className="w-3.5 h-3.5" /> Live Preview
+              <Eye className="w-3.5 h-3.5 text-gold" /> Live Preview
             </button>
           </div>
 
@@ -190,12 +182,12 @@ export default function VendorVenueCmsPage() {
         </div>
       </div>
 
-      {/* Main Container Grid depending on View Mode */}
-      <div className={viewMode === "split" ? "grid grid-cols-1 lg:grid-cols-12 gap-8 items-start" : "max-w-5xl mx-auto"}>
+      {/* Main Container Container depending on View Mode */}
+      <div className="max-w-5xl mx-auto">
         
         {/* CMS Form Editor Panel */}
-        {(viewMode === "editor" || viewMode === "split") && (
-          <div className={viewMode === "split" ? "lg:col-span-5 space-y-6" : "space-y-6"}>
+        {viewMode === "editor" && (
+          <div className="space-y-6">
             
             {/* Section Navigation Tabs */}
             <div className="flex gap-2 overflow-x-auto pb-2 border-b border-gold/10 hide-scrollbar">
@@ -1090,19 +1082,19 @@ export default function VendorVenueCmsPage() {
           </div>
         )}
 
-        {/* Live Preview Panel — Uses ONE SAME VenueProfileTemplate Component */}
-        {(viewMode === "preview" || viewMode === "split") && (
-          <div className={viewMode === "split" ? "lg:col-span-7 bg-white rounded-3xl p-4 border border-gold/20 shadow-xl overflow-hidden" : "bg-white rounded-3xl p-6 border border-gold/20 shadow-xl"}>
-            <div className="mb-4 pb-2 border-b border-gold/10 flex justify-between items-center px-2">
+        {/* Live Preview Panel — Uses VenueProfileTemplate Component */}
+        {viewMode === "preview" && (
+          <div className="bg-white rounded-3xl p-6 border border-gold/20 shadow-xl space-y-4">
+            <div className="mb-2 pb-3 border-b border-gold/10 flex justify-between items-center px-1">
               <span className="text-xs font-bold uppercase tracking-wider text-[#0F4C45] flex items-center gap-1.5">
-                <Eye className="w-4 h-4 text-gold" /> Exact Public Profile Preview
+                <Eye className="w-4 h-4 text-gold" /> Exact Live Public Profile Preview
               </span>
-              <span className="text-[10px] text-charcoal/60 bg-[#FBF8F1] px-2.5 py-1 rounded-full border border-gold/15">
-                Single Source of Truth Template
+              <span className="text-[10px] font-semibold text-charcoal/60 bg-[#FBF8F1] px-3 py-1 rounded-full border border-gold/15">
+                Renders Live Data
               </span>
             </div>
 
-            <div className="rounded-2xl overflow-hidden border border-gold/15 bg-[#F5F0E8] max-h-[850px] overflow-y-auto">
+            <div className="rounded-2xl overflow-hidden border border-gold/15 bg-[#FBF8F1]">
               <VenueProfileTemplate cmsData={cmsData} preview={true} />
             </div>
           </div>
