@@ -77,8 +77,8 @@ export function PhotographerDetailClient({ photographer }: { photographer: Vendo
       {/* Profile Card */}
       <div className="relative px-4 -mt-12 md:-mt-8 lg:-mt-10 z-20">
         <div className="rounded-3xl p-5 relative bg-white border border-[#E8DFC5]/80 shadow-[0_8px_30px_rgba(40,31,18,0.06)] space-y-4">
-          <div className="flex items-start gap-4">
-            <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-[76px] md:h-[76px] lg:w-[80px] lg:h-[80px] rounded-2xl flex items-center justify-center bg-[#0F4C45] text-[#C8A96A] font-serif font-bold text-xl sm:text-2xl shadow-md border-2 border-white shrink-0 -mt-10 md:-mt-7 lg:-mt-8">
+          <div className="flex items-center gap-4">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-[98px] md:h-[98px] lg:w-[104px] lg:h-[104px] rounded-2xl flex items-center justify-center bg-[#0F4C45] text-[#C8A96A] font-serif font-bold text-xl sm:text-2xl shadow-md border-2 border-white shrink-0 -mt-10 md:-mt-6 lg:-mt-7">
               {getInitials(photographer.name)}
             </div>
 
