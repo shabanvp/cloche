@@ -218,13 +218,13 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
         </div>
       )}
 
-      {/* 1. ELEGANT HERO CAROUSEL SECTION (Bounded & Responsive for Desktop) */}
-      <div className="max-w-5xl mx-auto md:px-6 md:pt-6">
-        <div className="relative w-full h-[320px] sm:h-[420px] lg:h-[460px] bg-charcoal md:rounded-3xl overflow-hidden group shadow-xl">
+      {/* 1. ELEGANT HERO CAROUSEL SECTION (Short & Compact on Desktop) */}
+      <div className="max-w-3xl mx-auto md:px-4 md:pt-4">
+        <div className="relative w-full h-[220px] sm:h-[260px] md:h-[280px] lg:h-[300px] bg-charcoal md:rounded-2xl overflow-hidden group shadow-md">
           <img
             src={heroImages[currentImgIndex]}
             alt={businessName}
-            className="w-full h-full object-cover object-top sm:object-cover transition-all duration-700 cursor-pointer"
+            className="w-full h-full object-cover object-center transition-all duration-700 cursor-pointer"
             onClick={() => setLightboxImg(heroImages[currentImgIndex])}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/30" />

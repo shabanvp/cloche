@@ -27,15 +27,15 @@ export function MehendiDetailClient({ artist }: { artist: MehendiVendor }) {
   return (
     <div className="min-h-screen flex flex-col bg-[#F8F5F0] pb-32 text-[#2D2520] font-sans">
       {/* Container for Desktop/Laptop Elegance */}
-      <div className="max-w-5xl mx-auto w-full md:px-6 md:pt-6">
-        {/* Top Hero Banner */}
-        <div className="relative w-full aspect-[4/3] sm:aspect-[16/9] md:h-[400px] bg-gray-900 md:rounded-3xl overflow-hidden shadow-lg">
+      <div className="max-w-3xl mx-auto w-full md:px-4 md:pt-4">
+        {/* Top Hero Banner (Short & Compact on Desktop) */}
+        <div className="relative w-full h-[200px] sm:h-[230px] md:h-[240px] lg:h-[250px] bg-gray-900 md:rounded-2xl overflow-hidden shadow-md">
           <Image
             src={artist.portfolio[0] || artist.image}
             alt={artist.name}
             fill
             priority
-            className="object-cover object-top sm:object-cover"
+            className="object-cover object-center"
           />
         <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/30" />
 

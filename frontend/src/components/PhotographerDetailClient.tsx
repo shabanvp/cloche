@@ -40,11 +40,11 @@ export function PhotographerDetailClient({ photographer }: { photographer: Vendo
   return (
     <div className="min-h-screen flex flex-col pb-36 bg-[#F8F5F0] text-[#2D2520] font-sans">
       {/* Container for Desktop/Laptop Elegance */}
-      <div className="max-w-5xl mx-auto w-full md:px-6 md:pt-6">
-        {/* Cover Image */}
-        <div className="relative w-full h-[260px] sm:h-[340px] md:h-[380px] md:rounded-3xl overflow-hidden shadow-lg">
-          <Image src={photographer.images[0] || photographer.image} alt={photographer.name} fill priority className="object-cover object-top sm:object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30" />
+      <div className="max-w-3xl mx-auto w-full md:px-4 md:pt-4">
+        {/* Cover Image (Short & Compact on Desktop) */}
+        <div className="relative w-full h-[200px] sm:h-[230px] md:h-[240px] lg:h-[250px] md:rounded-2xl overflow-hidden shadow-md">
+          <Image src={photographer.images[0] || photographer.image} alt={photographer.name} fill priority className="object-cover object-center" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/20" />
 
           <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 pt-4 pb-2 z-10">
             <Link
