@@ -67,8 +67,8 @@ export function CateringDetailClient({ vendor }: { vendor: CateringVendor }) {
 
       <main className="flex-1 px-4 pt-4 space-y-5">
         {/* Profile Card Header */}
-        <div className="flex gap-4 items-center relative">
-          <div className="relative h-16 w-16 md:h-[98px] md:w-[98px] lg:h-[104px] lg:w-[104px] shrink-0 rounded-2xl overflow-hidden bg-[#0F4C45] border-2 border-white shadow-md flex items-center justify-center text-white">
+        <div className="flex gap-4.5 items-center relative">
+          <div className="relative h-16 w-16 md:h-[96px] md:w-[96px] lg:h-[104px] lg:w-[104px] shrink-0 rounded-2xl overflow-hidden bg-[#0F4C45] border-2 border-white shadow-md flex items-center justify-center text-white">
             <span className="font-serif text-lg md:text-xl font-bold">{initials}</span>
           </div>
 

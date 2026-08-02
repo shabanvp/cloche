@@ -285,32 +285,32 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
       </div>
     </div>
 
-      {/* 2. COMPACT BOUTIQUE PROFILE CARD (Fit naturally around content on desktop) */}
-      <div className="max-w-3xl mx-auto px-4 -mt-16 sm:-mt-16 md:-mt-10 lg:-mt-12 relative z-30">
+      {/* 2. VENUE-STYLE COMPACT VENDOR PROFILE CARD */}
+      <div className="max-w-4xl mx-auto px-4 -mt-16 sm:-mt-16 md:-mt-10 lg:-mt-12 relative z-30">
         <div className="bg-white rounded-[24px] p-5 sm:p-7 border border-gold/20 shadow-xl space-y-4">
           
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
-              {/* Boutique Logo Avatar (98px–104px on Desktop) */}
-              <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-[98px] md:h-[98px] lg:w-[104px] lg:h-[104px] rounded-2xl overflow-hidden border-2 border-[#002f22] bg-[#002f22] p-1 shadow-xl shrink-0">
+              {/* Venue-style Medium Profile Picture (96px–104px on Desktop) */}
+              <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-[96px] md:h-[96px] lg:w-[104px] lg:h-[104px] rounded-2xl overflow-hidden border-2 border-[#002f22] bg-[#002f22] p-1 shadow-md shrink-0">
                 <img src={logo} alt={businessName} className="w-full h-full object-cover rounded-xl" />
               </div>
 
-              <div className="flex flex-col justify-center">
-                <div className="flex items-center gap-1.5">
+              <div className="flex flex-col justify-center space-y-1">
+                <div className="flex items-center gap-2">
                   <h1 className="font-display text-2xl sm:text-3xl font-bold text-charcoal">{businessName}</h1>
                   <CheckCircle2 className="w-5 h-5 text-gold fill-gold text-white shrink-0" />
                 </div>
 
-                <div className="flex items-center gap-2 text-xs font-semibold text-charcoal/70 mt-1">
+                <div className="flex items-center gap-2 text-xs font-semibold text-charcoal/70">
                   <span className="flex items-center gap-1 text-charcoal font-bold">
-                    <Star className="w-3.5 h-3.5 fill-gold text-gold" /> {rating} ({reviewsList.length})
+                    <Star className="w-3.5 h-3.5 fill-gold text-gold" /> {rating} ({reviewsList.length} reviews)
                   </span>
                   <span>•</span>
                   <span className="text-[#0F4C45] font-bold">Verified</span>
                 </div>
 
-                <p className="text-xs text-charcoal/60 flex items-center gap-1 mt-1">
+                <p className="text-xs text-charcoal/60 flex items-center gap-1">
                   <MapPin className="w-3.5 h-3.5 text-gold" /> {city}{district ? `, ${district}` : ""}
                 </p>
               </div>
