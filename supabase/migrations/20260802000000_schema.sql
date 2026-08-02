@@ -234,6 +234,7 @@ CREATE TABLE boutiques (
     city VARCHAR(100) DEFAULT 'Kochi',
     rating NUMERIC(3,2) DEFAULT 4.9,
     cover_image TEXT,
+    is_verified BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
