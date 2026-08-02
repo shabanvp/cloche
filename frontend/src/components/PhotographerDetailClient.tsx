@@ -8,25 +8,6 @@ import { BottomNavBar } from "@/components/BottomNavBar";
 import { VendorDetail } from "@/lib/vendorLists";
 import { formatTelUri } from "@/lib/formatters";
 
-const InstagramIcon = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    {...props}
-  >
-    <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
-    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
-    <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
-  </svg>
-);
-
 export function PhotographerDetailClient({ photographer }: { photographer: VendorDetail }) {
   const [activeTab, setActiveTab] = useState<"about" | "portfolio" | "reviews" | "info">("about");
   const [isWishlisted, setIsWishlisted] = useState(false);
@@ -82,125 +63,126 @@ export function PhotographerDetailClient({ photographer }: { photographer: Vendo
                 {getInitials(photographer.name)}
               </div>
 
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-1.5">
-                <h1 className="font-serif text-xl sm:text-2xl font-bold text-[#0F4C45] truncate">
-                  {photographer.name}
-                </h1>
-                <CheckCircle2 className="h-4 w-4 text-[#C8A96A] shrink-0 fill-[#C8A96A]/20" />
-              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-1.5">
+                  <h1 className="font-serif text-xl sm:text-2xl font-bold text-[#0F4C45] truncate">
+                    {photographer.name}
+                  </h1>
+                  <CheckCircle2 className="h-4 w-4 text-[#C8A96A] shrink-0 fill-[#C8A96A]/20" />
+                </div>
 
-              <p className="text-xs text-[#7A6E65] flex items-center gap-1 mt-0.5 truncate">
-                <MapPin className="h-3.5 w-3.5 text-[#0F4C45] shrink-0" />
-                <span className="truncate">{photographer.location}</span>
+                <p className="text-xs text-[#7A6E65] flex items-center gap-1 mt-0.5 truncate">
+                  <MapPin className="h-3.5 w-3.5 text-[#0F4C45] shrink-0" />
+                  <span className="truncate">{photographer.location}</span>
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 text-xs text-[#6B5E52] pt-2 border-t border-[#F2EBE1]">
+              <div className="flex items-center gap-1">
+                <Star className="h-3.5 w-3.5 text-amber-400 fill-amber-400" />
+                <span className="font-bold text-[#1A1410]">{photographer.rating}</span>
+                <span>({photographer.reviews} reviews)</span>
+              </div>
+              <div className="w-1 h-1 rounded-full bg-[#C8A96A]" />
+              <div>
+                <span className="font-bold text-[#1A1410]">{photographer.followers}</span> Followers
+              </div>
+            </div>
+
+            {/* Quick Contact Buttons */}
+            <div className="grid grid-cols-2 gap-2.5 pt-2">
+              <a
+                href={formatTelUri(photographer.phone || "+919847055443")}
+                className="flex items-center justify-center gap-2 rounded-xl py-2.5 bg-[#0F4C45] text-white text-xs font-bold shadow-xs hover:bg-[#12584E] transition-colors"
+              >
+                <Phone className="h-3.5 w-3.5" /> Call Studio
+              </a>
+
+              <a
+                href={`https://wa.me/${(photographer.phone || "919847055443").replace(/\D/g, "")}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 rounded-xl py-2.5 bg-[#25D366] text-white text-xs font-bold shadow-xs hover:bg-[#20ba59] transition-colors"
+              >
+                <MessageSquare className="h-3.5 w-3.5" /> WhatsApp
+              </a>
+            </div>
+          </div>
+        </div>
+
+        {/* Tabs Header */}
+        <div className="mt-5 px-4">
+          <div className="flex gap-2 border-b border-[#E2D6C7] text-xs font-semibold">
+            {[
+              { id: "about", label: "About" },
+              { id: "portfolio", label: "Portfolio" },
+              { id: "reviews", label: "Reviews" },
+              { id: "info", label: "Contact Info" },
+            ].map((tab) => {
+              const active = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id as any)}
+                  className={`py-2.5 px-3 border-b-2 transition-all cursor-pointer ${
+                    active ? "border-[#0F4C45] text-[#0F4C45] font-bold" : "border-transparent text-[#7A6E65]"
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Tab Content */}
+        <div className="p-4">
+          {activeTab === "about" && (
+            <div className="rounded-2xl p-5 bg-white border border-[#E8DFC5]/80 shadow-2xs space-y-3">
+              <h3 className="font-serif font-bold text-base text-[#0F4C45]">About {photographer.name}</h3>
+              <p className="text-xs text-[#5A6561] leading-relaxed">{photographer.about}</p>
+            </div>
+          )}
+
+          {activeTab === "portfolio" && (
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+              {photographer.images.map((img, i) => (
+                <div key={i} className="relative aspect-[4/3] rounded-xl overflow-hidden bg-[#EFE8DE] shadow-2xs">
+                  <Image src={img} alt={`Portfolio ${i}`} fill className="object-cover" />
+                </div>
+              ))}
+            </div>
+          )}
+
+          {activeTab === "reviews" && (
+            <div className="rounded-2xl p-5 bg-white border border-[#E8DFC5]/80 shadow-2xs space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="font-serif font-bold text-base text-[#0F4C45]">Client Reviews</h3>
+                <div className="flex items-center gap-1 text-xs font-bold text-[#0F4C45]">
+                  <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                  <span>{photographer.rating} / 5.0</span>
+                </div>
+              </div>
+              <p className="text-xs text-[#5A6561] leading-relaxed">
+                &quot;The Wedding Frames captured our special day beyond our expectations! Highly professional, punctual, and magical results.&quot;
               </p>
             </div>
-          </div>
+          )}
 
-          <div className="flex items-center gap-3 text-xs text-[#6B5E52] pt-2 border-t border-[#F2EBE1]">
-            <div className="flex items-center gap-1">
-              <Star className="h-3.5 w-3.5 text-amber-400 fill-amber-400" />
-              <span className="font-bold text-[#1A1410]">{photographer.rating}</span>
-              <span>({photographer.reviews} reviews)</span>
-            </div>
-            <div className="w-1 h-1 rounded-full bg-[#C8A96A]" />
-            <div>
-              <span className="font-bold text-[#1A1410]">{photographer.followers}</span> Followers
-            </div>
-          </div>
-
-          {/* Quick Contact Buttons */}
-          <div className="grid grid-cols-2 gap-2.5 pt-2">
-            <a
-              href={formatTelUri(photographer.phone || "+919847055443")}
-              className="flex items-center justify-center gap-2 rounded-xl py-2.5 bg-[#0F4C45] text-white text-xs font-bold shadow-xs hover:bg-[#12584E] transition-colors"
-            >
-              <Phone className="h-3.5 w-3.5" /> Call Studio
-            </a>
-
-            <a
-              href={`https://wa.me/${(photographer.phone || "919847055443").replace(/\D/g, "")}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 rounded-xl py-2.5 bg-[#25D366] text-white text-xs font-bold shadow-xs hover:bg-[#20ba59] transition-colors"
-            >
-              <MessageSquare className="h-3.5 w-3.5" /> WhatsApp
-            </a>
-          </div>
-        </div>
-      </div>
-
-      {/* Tabs Header */}
-      <div className="mt-5 px-4">
-        <div className="flex gap-2 border-b border-[#E2D6C7] text-xs font-semibold">
-          {[
-            { id: "about", label: "About" },
-            { id: "portfolio", label: "Portfolio" },
-            { id: "reviews", label: "Reviews" },
-            { id: "info", label: "Contact Info" },
-          ].map((tab) => {
-            const active = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
-                className={`py-2.5 px-3 border-b-2 transition-all cursor-pointer ${
-                  active ? "border-[#0F4C45] text-[#0F4C45] font-bold" : "border-transparent text-[#7A6E65]"
-                }`}
-              >
-                {tab.label}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Tab Content */}
-      <div className="p-4">
-        {activeTab === "about" && (
-          <div className="rounded-2xl p-5 bg-white border border-[#E8DFC5]/80 shadow-2xs space-y-3">
-            <h3 className="font-serif font-bold text-base text-[#0F4C45]">About {photographer.name}</h3>
-            <p className="text-xs text-[#5A6561] leading-relaxed">{photographer.about}</p>
-          </div>
-        )}
-
-        {activeTab === "portfolio" && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-            {photographer.images.map((img, i) => (
-              <div key={i} className="relative aspect-[4/3] rounded-xl overflow-hidden bg-[#EFE8DE] shadow-2xs">
-                <Image src={img} alt={`Portfolio ${i}`} fill className="object-cover" />
+          {activeTab === "info" && (
+            <div className="rounded-2xl p-5 bg-white border border-[#E8DFC5]/80 shadow-2xs space-y-3 text-xs">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-[#7A6E65]">Phone Contact</p>
+                <p className="font-medium text-[#2D2520] mt-0.5">{photographer.phone || "+91 98470 55443"}</p>
               </div>
-            ))}
-          </div>
-        )}
-
-        {activeTab === "reviews" && (
-          <div className="rounded-2xl p-5 bg-white border border-[#E8DFC5]/80 shadow-2xs space-y-3">
-            <div className="flex items-center justify-between">
-              <h3 className="font-serif font-bold text-base text-[#0F4C45]">Client Reviews</h3>
-              <div className="flex items-center gap-1 text-xs font-bold text-[#0F4C45]">
-                <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                <span>{photographer.rating} / 5.0</span>
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-[#7A6E65]">Email Address</p>
+                <p className="font-medium text-[#2D2520] mt-0.5">{photographer.email || "hello@studio.com"}</p>
               </div>
             </div>
-            <p className="text-xs text-[#5A6561] leading-relaxed">
-              &quot;The Wedding Frames captured our special day beyond our expectations! Highly professional, punctual, and magical results.&quot;
-            </p>
-          </div>
-        )}
-
-        {activeTab === "info" && (
-          <div className="rounded-2xl p-5 bg-white border border-[#E8DFC5]/80 shadow-2xs space-y-3 text-xs">
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-[#7A6E65]">Phone Contact</p>
-              <p className="font-medium text-[#2D2520] mt-0.5">{photographer.phone || "+91 98470 55443"}</p>
-            </div>
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-[#7A6E65]">Email Address</p>
-              <p className="font-medium text-[#2D2520] mt-0.5">{photographer.email || "hello@studio.com"}</p>
-            </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       <BottomNavBar activeTab="vendors" />
