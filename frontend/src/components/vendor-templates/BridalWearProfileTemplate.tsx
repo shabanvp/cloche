@@ -286,13 +286,13 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
     </div>
 
       {/* 2. FLOATING BOUTIQUE PROFILE CARD */}
-      <div className="max-w-4xl mx-auto px-4 -mt-16 sm:-mt-20 relative z-30">
+      <div className="max-w-4xl mx-auto px-4 -mt-16 sm:-mt-16 md:-mt-10 lg:-mt-12 relative z-30">
         <div className="bg-white rounded-[24px] p-5 sm:p-7 border border-gold/20 shadow-xl space-y-4">
           
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-start gap-4">
-              {/* Boutique Logo Avatar */}
-              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden border-2 border-[#002f22] bg-[#002f22] p-1.5 shadow-xl shrink-0">
+              {/* Boutique Logo Avatar (Compact 78px on Desktop) */}
+              <div className="w-20 h-20 sm:w-20 sm:h-20 md:w-20 md:h-20 lg:w-[78px] lg:h-[78px] rounded-2xl overflow-hidden border-2 border-[#002f22] bg-[#002f22] p-1.5 shadow-xl shrink-0">
                 <img src={logo} alt={businessName} className="w-full h-full object-cover rounded-xl" />
               </div>
 

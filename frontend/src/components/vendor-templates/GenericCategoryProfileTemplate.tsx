@@ -17,7 +17,7 @@ export function GenericCategoryProfileTemplate({ config }: Props) {
       
       {/* Hero Banner */}
       {config.visibility.heroBanner && (
-        <div className="relative h-[480px] sm:h-[560px] rounded-3xl overflow-hidden shadow-2xl border border-gold/20">
+        <div className="relative h-[240px] sm:h-[320px] md:h-[280px] rounded-3xl overflow-hidden shadow-xl border border-gold/20">
           <img src={config.coverImage} alt={config.businessName} className="w-full h-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-t from-charcoal/95 via-charcoal/40 to-transparent p-6 sm:p-12 flex flex-col justify-end text-white">
             <div className="flex flex-wrap items-center gap-2 mb-3">
