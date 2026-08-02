@@ -20,8 +20,8 @@ export function MakeupDetailClient({ artist }: { artist: VendorDetail }) {
 
   return (
     <div className="min-h-screen flex flex-col pb-36 bg-[#F8F5F0] text-[#2D2520] font-sans">
-      {/* ─── VENUE-STYLE 2-COLUMN LAYOUT ON DESKTOP ─── */}
-      <div className="max-w-6xl mx-auto w-full px-4 pt-4 md:pt-6">
+      {/* ─── VENUE-STYLE COMPACT 2-COLUMN LAYOUT ON DESKTOP ─── */}
+      <div className="max-w-4xl mx-auto w-full px-4 pt-4 md:pt-6">
         <div className="flex flex-col md:grid md:grid-cols-12 gap-6 lg:gap-8 items-start">
           
           {/* Left Column: Cover Gallery Image */}

@@ -218,8 +218,8 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
         </div>
       )}
 
-      {/* ─── VENUE-STYLE 2-COLUMN LAYOUT ON DESKTOP ─── */}
-      <div className="max-w-6xl mx-auto w-full px-4 pt-4 md:pt-6">
+      {/* ─── VENUE-STYLE COMPACT 2-COLUMN LAYOUT ON DESKTOP ─── */}
+      <div className="max-w-4xl mx-auto w-full px-4 pt-4 md:pt-6">
         <div className="flex flex-col md:grid md:grid-cols-12 gap-6 lg:gap-8 items-start">
           
           {/* Left Column: Cover Gallery Image */}
@@ -374,7 +374,7 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
       </div>
 
       {/* 3. FOUR EQUAL QUICK ACTION BUTTONS */}
-      <div className="max-w-6xl mx-auto px-4 mt-6">
+      <div className="max-w-3xl mx-auto px-4 mt-6">
         <div className="grid grid-cols-4 gap-2 sm:gap-3 text-center">
           <a
             href={formatTelUri(phone)}
@@ -424,7 +424,7 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
 
       {/* 4. STICKY TAB NAVIGATION */}
       <div className="sticky top-16 z-40 bg-[#FBF8F1]/95 backdrop-blur-md border-y border-gold/15 mt-6">
-        <div className="max-w-4xl mx-auto px-4 flex items-center justify-around text-xs font-bold uppercase tracking-wider">
+        <div className="max-w-3xl mx-auto px-4 flex items-center justify-around text-xs font-bold uppercase tracking-wider">
           {[
             { id: "about", label: "About" },
             { id: "collections", label: "Collections" },
@@ -446,8 +446,8 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
         </div>
       </div>
 
-      {/* 5. MAIN CONTENT CONTAINER (Compact & Balanced max-w-4xl) */}
-      <main className="max-w-4xl mx-auto px-4 mt-8 space-y-8">
+      {/* 5. MAIN CONTENT CONTAINER (Compact & Focused max-w-3xl) */}
+      <main className="max-w-3xl mx-auto px-4 mt-6 space-y-6">
         
         {/* ABOUT SECTION */}
         <section ref={aboutRef} className="bg-white rounded-2xl p-5 sm:p-6 border border-gold/15 shadow-sm space-y-2.5">
