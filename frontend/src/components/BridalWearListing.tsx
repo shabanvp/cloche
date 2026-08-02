@@ -117,35 +117,35 @@ export function BridalWearListing() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FAF3F0] text-[#3D2E2B] flex flex-col pb-24 font-sans">
-      {/* Rose Quartz Nude Header */}
-      <section className="w-full bg-[#F5E5E0] border-b border-[#E8D5CE] py-4 px-4 sm:px-6">
+    <div className="min-h-screen bg-[#F8F5F0] text-[#2D2520] flex flex-col pb-24 font-sans">
+      {/* Warm #F8F5F0 Header */}
+      <section className="w-full bg-[#EFE8DE] border-b border-[#E2D6C7] py-4 px-4 sm:px-6">
         <div className="max-w-6xl mx-auto space-y-2.5">
           <div className="flex items-center justify-between">
             <div>
-              <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#E8D5CE] text-[#7A4E46] text-[9.5px] font-bold uppercase tracking-wider">
+              <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#E2D6C7] text-[#0F4C45] text-[9.5px] font-bold uppercase tracking-wider">
                 <Sparkles className="w-2.5 h-2.5 text-[#C8A96A]" />
-                <span>Rose Quartz Nude</span>
+                <span>Cloche Signature Nude</span>
               </div>
-              <h1 className="font-serif text-xl sm:text-2xl font-bold text-[#4D322C] mt-0.5">
+              <h1 className="font-serif text-xl sm:text-2xl font-bold text-[#0F4C45] mt-0.5">
                 Bridal Wear & Boutiques
               </h1>
             </div>
-            <span className="text-[11px] font-bold text-[#7A4E46] bg-white/70 px-2.5 py-1 rounded-full border border-[#E8D5CE]">
+            <span className="text-[11px] font-bold text-[#0F4C45] bg-white/70 px-2.5 py-1 rounded-full border border-[#E2D6C7]">
               {filteredBoutiques.length} Boutiques
             </span>
           </div>
 
           {/* Search & Chips Row */}
           <div className="flex flex-col sm:flex-row gap-2">
-            <div className="relative flex-1 flex items-center bg-white rounded-xl px-2.5 py-1 shadow-xs border border-[#E8D5CE]">
-              <Search className="w-3.5 h-3.5 text-[#A58880] mr-2 shrink-0" />
+            <div className="relative flex-1 flex items-center bg-white rounded-xl px-2.5 py-1 shadow-xs border border-[#E2D6C7]">
+              <Search className="w-3.5 h-3.5 text-[#8C827A] mr-2 shrink-0" />
               <input
                 type="text"
                 placeholder="Search boutique or city..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full bg-transparent text-xs text-[#3D2E2B] outline-none placeholder:text-[#B59D96]"
+                className="w-full bg-transparent text-xs text-[#2D2520] outline-none placeholder:text-[#AAA29A]"
               />
             </div>
 
@@ -158,8 +158,8 @@ export function BridalWearListing() {
                     onClick={() => setActiveChip(chip)}
                     className={`shrink-0 px-3 py-1 rounded-full text-[10.5px] font-semibold transition-all cursor-pointer ${
                       active
-                        ? "bg-[#7A4E46] text-white shadow-xs"
-                        : "bg-white text-[#68433C] border border-[#E8D5CE] hover:bg-[#F5E5E0]"
+                        ? "bg-[#0F4C45] text-white shadow-xs"
+                        : "bg-white text-[#4A3F35] border border-[#E2D6C7] hover:bg-[#EFE8DE]"
                     }`}
                   >
                     {chip}
@@ -180,9 +180,9 @@ export function BridalWearListing() {
               <Link
                 key={boutique.id}
                 href={`/boutiques/${boutique.id}`}
-                className="group bg-white rounded-xl overflow-hidden border border-[#EEDCD5] shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_20px_rgba(122,78,70,0.12)] hover:border-[#7A4E46]/40 transition-all duration-300 flex flex-col justify-between"
+                className="group bg-white rounded-xl overflow-hidden border border-[#E8DFC5]/80 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_20px_rgba(15,76,69,0.12)] hover:border-[#0F4C45]/40 transition-all duration-300 flex flex-col justify-between"
               >
-                <div className="relative aspect-[16/11] w-full overflow-hidden bg-[#F5E5E0]">
+                <div className="relative aspect-[16/11] w-full overflow-hidden bg-[#EFE8DE]">
                   <Image
                     src={boutique.image}
                     alt={boutique.name}
@@ -191,14 +191,14 @@ export function BridalWearListing() {
                   />
 
                   <div className="absolute top-1.5 left-1.5 right-1.5 flex items-center justify-between z-10">
-                    <span className="bg-[#7A4E46]/90 text-white text-[8.5px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md backdrop-blur-xs">
+                    <span className="bg-[#0F4C45]/90 text-white text-[8.5px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md backdrop-blur-xs">
                       {boutique.price}
                     </span>
 
                     <button
                       onClick={(e) => handleWishlistToggle(e, boutique)}
                       className={`w-6 h-6 rounded-full flex items-center justify-center backdrop-blur-md transition-transform active:scale-95 ${
-                        isSaved ? "bg-rose-500 text-white" : "bg-white/85 text-[#3D2E2B] hover:bg-white"
+                        isSaved ? "bg-rose-500 text-white" : "bg-white/85 text-[#2D2520] hover:bg-white"
                       }`}
                       aria-label="Save"
                     >
@@ -215,24 +215,24 @@ export function BridalWearListing() {
                 <div className="p-2.5 space-y-1 flex-1 flex flex-col justify-between">
                   <div>
                     <div className="flex items-center gap-1">
-                      <h2 className="font-serif font-bold text-[12.5px] text-[#3D2E2B] group-hover:text-[#7A4E46] transition-colors truncate">
+                      <h2 className="font-serif font-bold text-[12.5px] text-[#2D2520] group-hover:text-[#0F4C45] transition-colors truncate">
                         {boutique.name}
                       </h2>
                       <CheckCircle2 className="w-3 h-3 text-[#C8A96A] shrink-0" />
                     </div>
 
-                    <p className="text-[10px] text-[#8C6D65] line-clamp-1 leading-tight mt-0.5">
+                    <p className="text-[10px] text-[#7A6E65] line-clamp-1 leading-tight mt-0.5">
                       {boutique.tagline}
                     </p>
                   </div>
 
-                  <div className="pt-1.5 border-t border-[#F5EBE6] flex items-center justify-between text-[10px]">
-                    <span className="flex items-center gap-0.5 text-[#8C6D65] truncate max-w-[65%]">
-                      <MapPin className="w-2.5 h-2.5 text-[#7A4E46] shrink-0" />
+                  <div className="pt-1.5 border-t border-[#F2EBE1] flex items-center justify-between text-[10px]">
+                    <span className="flex items-center gap-0.5 text-[#7A6E65] truncate max-w-[65%]">
+                      <MapPin className="w-2.5 h-2.5 text-[#0F4C45] shrink-0" />
                       <span className="truncate">{boutique.location}</span>
                     </span>
 
-                    <span className="font-bold text-[#7A4E46] flex items-center gap-0.5 shrink-0 group-hover:underline">
+                    <span className="font-bold text-[#0F4C45] flex items-center gap-0.5 shrink-0 group-hover:underline">
                       Explore <ChevronRight className="w-2.5 h-2.5" />
                     </span>
                   </div>

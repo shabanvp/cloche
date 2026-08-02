@@ -57,35 +57,35 @@ export function GroomWearListing() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F7F4EF] text-[#2C241D] flex flex-col pb-24 font-sans">
-      {/* Espresso Sand Nude Header */}
-      <section className="w-full bg-[#EAE3D9] border-b border-[#D8CBBF] py-4 px-4 sm:px-6">
+    <div className="min-h-screen bg-[#F8F5F0] text-[#2D2520] flex flex-col pb-24 font-sans">
+      {/* Warm #F8F5F0 Header */}
+      <section className="w-full bg-[#EFE8DE] border-b border-[#E2D6C7] py-4 px-4 sm:px-6">
         <div className="max-w-6xl mx-auto space-y-2.5">
           <div className="flex items-center justify-between">
             <div>
-              <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#D8CBBF] text-[#4A3C31] text-[9.5px] font-bold uppercase tracking-wider">
-                <UserCheck className="w-2.5 h-2.5 text-[#3B2E24]" />
-                <span>Espresso Nude Groom</span>
+              <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#E2D6C7] text-[#0F4C45] text-[9.5px] font-bold uppercase tracking-wider">
+                <UserCheck className="w-2.5 h-2.5 text-[#0F4C45]" />
+                <span>Sartorial Groom Collection</span>
               </div>
-              <h1 className="font-serif text-xl sm:text-2xl font-bold text-[#3B2E24] mt-0.5">
+              <h1 className="font-serif text-xl sm:text-2xl font-bold text-[#0F4C45] mt-0.5">
                 Groom Wear & Couture
               </h1>
             </div>
-            <span className="text-[11px] font-bold text-[#4A3C31] bg-white/70 px-2.5 py-1 rounded-full border border-[#D8CBBF]">
+            <span className="text-[11px] font-bold text-[#0F4C45] bg-white/70 px-2.5 py-1 rounded-full border border-[#E2D6C7]">
               {filteredVendors.length} Designers
             </span>
           </div>
 
           {/* Search & Chips Row */}
           <div className="flex flex-col sm:flex-row gap-2">
-            <div className="relative flex-1 flex items-center bg-white rounded-xl px-2.5 py-1 shadow-xs border border-[#D8CBBF]">
-              <Search className="w-3.5 h-3.5 text-[#8C7A6C] mr-2 shrink-0" />
+            <div className="relative flex-1 flex items-center bg-white rounded-xl px-2.5 py-1 shadow-xs border border-[#E2D6C7]">
+              <Search className="w-3.5 h-3.5 text-[#8C827A] mr-2 shrink-0" />
               <input
                 type="text"
                 placeholder="Search Sherwanis, Tuxedos..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full bg-transparent text-xs text-[#2C241D] outline-none placeholder:text-[#9C8A7B]"
+                className="w-full bg-transparent text-xs text-[#2D2520] outline-none placeholder:text-[#AAA29A]"
               />
             </div>
 
@@ -98,8 +98,8 @@ export function GroomWearListing() {
                     onClick={() => setActiveChip(chip)}
                     className={`shrink-0 px-3 py-1 rounded-full text-[10.5px] font-semibold transition-all cursor-pointer ${
                       active
-                        ? "bg-[#4A3C31] text-white shadow-xs"
-                        : "bg-white text-[#4A3C31] border border-[#D8CBBF] hover:bg-[#EAE3D9]"
+                        ? "bg-[#0F4C45] text-white shadow-xs"
+                        : "bg-white text-[#4A3F35] border border-[#E2D6C7] hover:bg-[#EFE8DE]"
                     }`}
                   >
                     {chip}
@@ -122,9 +122,9 @@ export function GroomWearListing() {
               <Link
                 key={vendor.id}
                 href={`/categories/groom-wear/${vendor.id}`}
-                className="group bg-white rounded-xl overflow-hidden border border-[#E5DACE] shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_20px_rgba(74,60,49,0.12)] hover:border-[#4A3C31]/40 transition-all duration-300 flex flex-col justify-between"
+                className="group bg-white rounded-xl overflow-hidden border border-[#E8DFC5]/80 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_20px_rgba(15,76,69,0.12)] hover:border-[#0F4C45]/40 transition-all duration-300 flex flex-col justify-between"
               >
-                <div className="relative aspect-[16/11] w-full overflow-hidden bg-[#EAE3D9]">
+                <div className="relative aspect-[16/11] w-full overflow-hidden bg-[#EFE8DE]">
                   <Image
                     src={vendor.image}
                     alt={vendor.name}
@@ -133,14 +133,14 @@ export function GroomWearListing() {
                   />
 
                   <div className="absolute top-1.5 left-1.5 right-1.5 flex items-center justify-between z-10">
-                    <span className="bg-[#4A3C31]/90 text-white text-[8.5px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md backdrop-blur-xs">
+                    <span className="bg-[#0F4C45]/90 text-white text-[8.5px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md backdrop-blur-xs">
                       {priceDisplay}
                     </span>
 
                     <button
                       onClick={(e) => handleWishlistToggle(e, vendor)}
                       className={`w-6 h-6 rounded-full flex items-center justify-center backdrop-blur-md transition-transform active:scale-95 ${
-                        isSaved ? "bg-rose-500 text-white" : "bg-white/85 text-[#2C241D] hover:bg-white"
+                        isSaved ? "bg-rose-500 text-white" : "bg-white/85 text-[#2D2520] hover:bg-white"
                       }`}
                       aria-label="Save"
                     >
@@ -157,7 +157,7 @@ export function GroomWearListing() {
                 <div className="p-2.5 space-y-1 flex-1 flex flex-col justify-between">
                   <div>
                     <div className="flex items-center gap-1">
-                      <h2 className="font-serif font-bold text-[12.5px] text-[#2C241D] group-hover:text-[#4A3C31] transition-colors truncate">
+                      <h2 className="font-serif font-bold text-[12.5px] text-[#2D2520] group-hover:text-[#0F4C45] transition-colors truncate">
                         {vendor.name}
                       </h2>
                       {vendor.isVerified && (
@@ -165,18 +165,18 @@ export function GroomWearListing() {
                       )}
                     </div>
 
-                    <p className="text-[10px] text-[#7A6A5C] line-clamp-1 leading-tight mt-0.5">
+                    <p className="text-[10px] text-[#7A6E65] line-clamp-1 leading-tight mt-0.5">
                       {vendor.subtitle}
                     </p>
                   </div>
 
-                  <div className="pt-1.5 border-t border-[#F2EADF] flex items-center justify-between text-[10px]">
-                    <span className="flex items-center gap-0.5 text-[#7A6A5C] truncate max-w-[65%]">
-                      <MapPin className="w-2.5 h-2.5 text-[#4A3C31] shrink-0" />
+                  <div className="pt-1.5 border-t border-[#F2EBE1] flex items-center justify-between text-[10px]">
+                    <span className="flex items-center gap-0.5 text-[#7A6E65] truncate max-w-[65%]">
+                      <MapPin className="w-2.5 h-2.5 text-[#0F4C45] shrink-0" />
                       <span className="truncate">{vendor.location}</span>
                     </span>
 
-                    <span className="font-bold text-[#4A3C31] flex items-center gap-0.5 shrink-0 group-hover:underline">
+                    <span className="font-bold text-[#0F4C45] flex items-center gap-0.5 shrink-0 group-hover:underline">
                       Explore <ChevronRight className="w-2.5 h-2.5" />
                     </span>
                   </div>
