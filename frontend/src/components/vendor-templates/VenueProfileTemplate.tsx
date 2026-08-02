@@ -26,6 +26,13 @@ import {
   Eye,
   ShieldCheck,
   Building2,
+  Tag,
+  Gift,
+  Zap,
+  Copy,
+  Percent,
+  Clock,
+  Crown
 } from "lucide-react";
 import { formatTelUri } from "@/lib/formatters";
 import { VenueDetail, getVenueById, getAllVenues } from "@/lib/venueData";
@@ -33,6 +40,7 @@ import { VendorProfileConfig } from "@/lib/vendorTemplates";
 import { VenueCmsData, convertCmsToVenueDetail } from "@/lib/venueCmsStore";
 import { toggleWishlistItem, isItemInWishlist } from "@/lib/wishlistStore";
 import { getStoredUserName } from "@/lib/userStore";
+import { getActiveOffersForVenue, incrementOfferAnalytics, VendorOffer } from "@/lib/vendorOffersStore";
 
 export interface VenueProfileTemplateProps {
   venue?: VenueDetail;
@@ -115,6 +123,10 @@ export function VenueProfileTemplate({
   const [activePackage, setActivePackage] = useState(0);
   const [toast, setToast] = useState<string | null>(null);
 
+  // Mobile Touch Swipe Gesture State
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+  const [touchEndX, setTouchEndX] = useState<number | null>(null);
+
   // Modal States
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [isAllPhotosModalOpen, setIsAllPhotosModalOpen] = useState(false);
@@ -182,6 +194,92 @@ export function VenueProfileTemplate({
       setOtherVenuesList(filtered);
     }
   }, [venue?.id]);
+
+  const [activeOffers, setActiveOffers] = useState<VendorOffer[]>([]);
+  const [selectedOfferForQuote, setSelectedOfferForQuote] = useState<VendorOffer | null>(null);
+
+  useEffect(() => {
+    const syncOffers = () => {
+      if (venue?.id) {
+        const offs = getActiveOffersForVenue(venue.id);
+        setActiveOffers(offs);
+      }
+    };
+
+    syncOffers();
+
+    if (typeof window !== "undefined") {
+      window.addEventListener("storage", syncOffers);
+      window.addEventListener("cloche_offers_updated", syncOffers);
+      return () => {
+        window.removeEventListener("storage", syncOffers);
+        window.removeEventListener("cloche_offers_updated", syncOffers);
+      };
+    }
+  }, [venue?.id]);
+
+  const featuredOffer = activeOffers.find((o) => o.isFeatured) || activeOffers[0];
+
+  const getPackageOfferDetails = (pkgName: string, originalPriceStr: string) => {
+    if (!activeOffers || activeOffers.length === 0) {
+      return { hasDiscount: false, originalPriceDisplay: originalPriceStr, finalPriceDisplay: originalPriceStr, savingsText: "", discountBadge: "" };
+    }
+
+    const matchingOffer = activeOffers.find(
+      (o) => o.packageIds.includes("all") || o.packageIds.some((p) => p.toLowerCase().includes(pkgName.toLowerCase()))
+    );
+
+    if (!matchingOffer) {
+      return { hasDiscount: false, originalPriceDisplay: originalPriceStr, finalPriceDisplay: originalPriceStr, savingsText: "", discountBadge: "" };
+    }
+
+    const cleanNum = Number(originalPriceStr.replace(/[^0-9]/g, "")) || 0;
+    if (cleanNum <= 0) {
+      return {
+        hasDiscount: true,
+        originalPriceDisplay: originalPriceStr,
+        finalPriceDisplay: originalPriceStr,
+        savingsText: matchingOffer.discountValue,
+        discountBadge: matchingOffer.discountType === "percentage" ? `${matchingOffer.discountValue}% OFF` : matchingOffer.discountValue,
+        offerObj: matchingOffer,
+      };
+    }
+
+    let finalNum = cleanNum;
+    let savingsNum = 0;
+    let badgeText = "";
+
+    if (matchingOffer.discountType === "percentage") {
+      const pct = Number(matchingOffer.discountValue) || 10;
+      savingsNum = Math.round((cleanNum * pct) / 100);
+      finalNum = cleanNum - savingsNum;
+      badgeText = `${pct}% OFF`;
+    } else if (matchingOffer.discountType === "flat") {
+      savingsNum = Number(matchingOffer.discountValue) || 25000;
+      finalNum = Math.max(0, cleanNum - savingsNum);
+      badgeText = `₹${savingsNum.toLocaleString()} OFF`;
+    } else {
+      return {
+        hasDiscount: true,
+        originalPriceDisplay: originalPriceStr,
+        finalPriceDisplay: originalPriceStr,
+        savingsText: `Includes ${matchingOffer.discountValue}`,
+        discountBadge: "FREE BONUS",
+        offerObj: matchingOffer,
+      };
+    }
+
+    const unitSuffix = originalPriceStr.includes("/") ? ` / ${originalPriceStr.split("/")[1].trim()}` : "";
+
+    return {
+      hasDiscount: true,
+      originalPriceDisplay: `₹${cleanNum.toLocaleString()}${unitSuffix}`,
+      finalPriceDisplay: `₹${finalNum.toLocaleString()}${unitSuffix}`,
+      savingsText: `You Save ₹${savingsNum.toLocaleString()}`,
+      discountBadge: badgeText,
+      offerObj: matchingOffer,
+    };
+  };
 
   useEffect(() => {
     if (venue?.id) {
@@ -301,18 +399,42 @@ export function VenueProfileTemplate({
     showToast("Thank you! Your review has been submitted.");
   };
 
+  const galleryImages: string[] = (venue?.images && venue.images.length > 0)
+    ? venue.images
+    : [venue?.image || "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1200&q=80"];
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStartX(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEndX(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStartX || !touchEndX) return;
+    const distance = touchStartX - touchEndX;
+    if (distance > 40) {
+      setActiveImage((prev) => (prev + 1) % galleryImages.length);
+    } else if (distance < -40) {
+      setActiveImage((prev) => (prev - 1 + galleryImages.length) % galleryImages.length);
+    }
+    setTouchStartX(null);
+    setTouchEndX(null);
+  };
+
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       if (!isLightboxOpen) return;
       if (e.key === "Escape") setIsLightboxOpen(false);
       if (e.key === "ArrowRight") {
-        setActiveImage((prev) => (prev + 1) % (venue.images.length || 1));
+        setActiveImage((prev) => (prev + 1) % galleryImages.length);
       }
       if (e.key === "ArrowLeft") {
-        setActiveImage((prev) => (prev - 1 + venue.images.length) % (venue.images.length || 1));
+        setActiveImage((prev) => (prev - 1 + galleryImages.length) % galleryImages.length);
       }
     },
-    [isLightboxOpen, venue.images.length]
+    [isLightboxOpen, galleryImages.length]
   );
 
   useEffect(() => {
@@ -408,17 +530,33 @@ export function VenueProfileTemplate({
       </header>
 
       {/* ─── MOBILE HERO CAROUSEL ─── */}
-      <div className="relative w-full lg:hidden" style={{ height: "280px" }}>
-        <img
-          src={venue.images[activeImage] || venue.image}
-          alt={venue.name}
-          className="w-full h-full object-cover cursor-pointer"
-          onClick={() => setIsLightboxOpen(true)}
-        />
+      <div
+        className="relative w-full lg:hidden overflow-hidden bg-black select-none"
+        style={{ height: "290px" }}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
+        {/* Sliding Touch Track */}
+        <div
+          className="flex h-full w-full transition-transform duration-300 ease-out"
+          style={{ transform: `translateX(-${activeImage * 100}%)` }}
+        >
+          {galleryImages.map((imgUrl, i) => (
+            <div key={i} className="min-w-full h-full relative shrink-0">
+              <img
+                src={imgUrl}
+                alt={`${venue.name} photo ${i + 1}`}
+                className="w-full h-full object-cover cursor-pointer"
+                onClick={() => setIsLightboxOpen(true)}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30 pointer-events-none" />
+            </div>
+          ))}
+        </div>
 
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30 pointer-events-none" />
-
-        <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 pt-12 pb-2">
+        {/* Top Controls */}
+        <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 pt-12 pb-2 z-10">
           <Link
             href="/venues"
             className="flex h-9 w-9 items-center justify-center rounded-full bg-black/40 backdrop-blur-md text-white"
@@ -448,20 +586,46 @@ export function VenueProfileTemplate({
           </div>
         </div>
 
+        {/* Verified Badge */}
         {venue.verified && (
-          <div className="absolute top-14 left-4 flex items-center gap-1.5 rounded-full px-3 py-1 bg-[#0F4C45]/85 backdrop-blur-md text-white text-[11px] font-semibold">
+          <div className="absolute top-14 left-4 z-10 flex items-center gap-1.5 rounded-full px-3 py-1 bg-[#0F4C45]/85 backdrop-blur-md text-white text-[11px] font-semibold">
             <CheckCircle2 className="h-3.5 w-3.5" />
             <span>Verified Venue</span>
           </div>
         )}
 
-        <div className="absolute bottom-4 left-0 right-0 flex flex-col items-center gap-2">
-          <div className="flex gap-1.5">
-            {venue.images.map((_, i) => (
+        {/* Chevron Controls for Quick Tap Navigation */}
+        {galleryImages.length > 1 && (
+          <>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setActiveImage((prev) => (prev - 1 + galleryImages.length) % galleryImages.length);
+              }}
+              className="absolute left-2 top-1/2 -translate-y-1/2 z-10 h-8 w-8 rounded-full bg-black/40 backdrop-blur-md text-white flex items-center justify-center opacity-80 active:scale-95"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setActiveImage((prev) => (prev + 1) % galleryImages.length);
+              }}
+              className="absolute right-2 top-1/2 -translate-y-1/2 z-10 h-8 w-8 rounded-full bg-black/40 backdrop-blur-md text-white flex items-center justify-center opacity-80 active:scale-95"
+            >
+              <ChevronRight className="h-5 w-5" />
+            </button>
+          </>
+        )}
+
+        {/* Pagination Dots */}
+        <div className="absolute bottom-4 left-0 right-0 z-10 flex flex-col items-center gap-2 pointer-events-none">
+          <div className="flex gap-1.5 pointer-events-auto">
+            {galleryImages.map((_, i) => (
               <button
                 key={i}
                 onClick={() => setActiveImage(i)}
-                className="rounded-full transition-all"
+                className="rounded-full transition-all cursor-pointer"
                 style={{
                   width: i === activeImage ? "20px" : "6px",
                   height: "6px",
@@ -472,17 +636,38 @@ export function VenueProfileTemplate({
           </div>
         </div>
 
+        {/* Photo Counter */}
         <button
           onClick={() => setIsLightboxOpen(true)}
-          className="absolute bottom-4 right-4 rounded-full px-2.5 py-1 text-[11px] font-semibold text-white bg-black/50 backdrop-blur-md cursor-pointer"
+          className="absolute bottom-4 right-4 z-10 rounded-full px-2.5 py-1 text-[11px] font-semibold text-white bg-black/50 backdrop-blur-md cursor-pointer"
         >
-          {activeImage + 1}/{venue.totalPhotos}
+          {activeImage + 1}/{galleryImages.length}
         </button>
       </div>
 
       {/* ─── MAIN CONTENT CONTAINER ─── */}
       <div className="flex-1 w-full max-w-7xl mx-auto px-0 lg:px-6 py-0 lg:py-8 pb-32 lg:pb-16 space-y-6 lg:space-y-10">
         
+        {/* FEATURED PROMOTIONAL RIBBON */}
+        {featuredOffer && (
+          <div className="mx-4 lg:mx-0 bg-gradient-to-r from-amber-600 via-amber-500 to-[#0F4C45] text-white px-5 py-3 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-md border border-amber-300/40 animate-in fade-in">
+            <div className="flex items-center gap-2.5 font-bold text-xs">
+              <Crown className="w-5 h-5 text-gold fill-current shrink-0" />
+              <span>LIMITED OFFER: {featuredOffer.name} ({featuredOffer.discountType === "percentage" ? `${featuredOffer.discountValue}% OFF` : featuredOffer.discountValue}) — Valid till {featuredOffer.endDate}</span>
+            </div>
+            <button
+              onClick={() => {
+                setSelectedOfferForQuote(featuredOffer);
+                setIsQuoteModalOpen(true);
+                if (venue?.id) incrementOfferAnalytics(featuredOffer.id, "clicks", 0, venue.id);
+              }}
+              className="bg-white text-[#0F4C45] hover:bg-gold hover:text-[#0F4C45] px-4 py-1.5 rounded-xl text-xs font-bold shrink-0 transition-colors shadow-xs cursor-pointer"
+            >
+              {featuredOffer.ctaText || "Claim Offer"}
+            </button>
+          </div>
+        )}
+
         {/* DESKTOP HERO & ACTION CARD LAYOUT */}
         <div className="hidden lg:grid grid-cols-12 gap-8 items-start">
           {/* Left Column: Gallery */}
@@ -492,7 +677,7 @@ export function VenueProfileTemplate({
               className="relative aspect-[16/10] w-full rounded-3xl overflow-hidden shadow-md border border-[#E2D5C0]/60 group bg-gray-100 cursor-pointer"
             >
               <img
-                src={venue.images[activeImage] || venue.image}
+                src={galleryImages[activeImage] || galleryImages[0]}
                 alt={venue.name}
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-102"
               />
@@ -513,7 +698,7 @@ export function VenueProfileTemplate({
                 className="absolute bottom-4 right-4 rounded-full px-3.5 py-1.5 bg-black/60 backdrop-blur-md text-white text-xs font-semibold hover:bg-black/80 transition-colors flex items-center gap-1.5"
               >
                 <Images className="h-3.5 w-3.5" />
-                <span>Photo {activeImage + 1} of {venue.totalPhotos}</span>
+                <span>Photo {activeImage + 1} of {galleryImages.length}</span>
               </button>
             </div>
 
@@ -524,18 +709,18 @@ export function VenueProfileTemplate({
                 className="relative aspect-[4/3] rounded-2xl overflow-hidden border-2 border-transparent transition-all opacity-90 hover:opacity-100 cursor-pointer group"
               >
                 <img
-                  src={venue.images[0] || venue.image}
+                  src={galleryImages[0]}
                   alt="All photos"
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center text-white group-hover:bg-black/70 transition-colors">
                   <Images className="h-4 w-4 mb-0.5" />
                   <span className="text-[11px] font-bold">View All</span>
-                  <span className="text-[9px] opacity-80">{venue.totalPhotos} Photos</span>
+                  <span className="text-[9px] opacity-80">{galleryImages.length} Photos</span>
                 </div>
               </button>
 
-              {venue.images.slice(1, 5).map((img, i) => (
+              {galleryImages.slice(1, 5).map((img, i) => (
                 <button
                   key={i}
                   onClick={() => setActiveImage(i + 1)}
@@ -819,13 +1004,36 @@ export function VenueProfileTemplate({
                 >
                   {pkg.name}
                 </h3>
-                <p
-                  className={`mt-2 font-bold text-lg lg:text-xl ${
-                    activePackage === i ? "text-[#C8A96A]" : "text-[#0F4C45]"
-                  }`}
-                >
-                  {pkg.price}
-                </p>
+                {(() => {
+                  const offerDetail = getPackageOfferDetails(pkg.name, pkg.price);
+                  return (
+                    <div className="mt-2 space-y-1">
+                      {offerDetail.hasDiscount ? (
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className={`line-through text-xs font-semibold ${activePackage === i ? "text-white/60" : "text-gray-400"}`}>
+                              {offerDetail.originalPriceDisplay}
+                            </span>
+                            <span className="bg-emerald-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                              {offerDetail.discountBadge}
+                            </span>
+                          </div>
+                          <p className={`font-bold text-lg lg:text-xl ${activePackage === i ? "text-[#C8A96A]" : "text-[#0F4C45]"}`}>
+                            {offerDetail.finalPriceDisplay}
+                          </p>
+                          <span className="text-[11px] font-bold text-amber-500 block mt-0.5">
+                            {offerDetail.savingsText}
+                          </span>
+                        </div>
+                      ) : (
+                        <p className={`font-bold text-lg lg:text-xl ${activePackage === i ? "text-[#C8A96A]" : "text-[#0F4C45]"}`}>
+                          {pkg.price}
+                        </p>
+                      )}
+                    </div>
+                  );
+                })()}
+
                 <p
                   className={`mt-1 text-xs lg:text-sm ${
                     activePackage === i ? "text-white/70" : "text-[#7A6E65]"
@@ -837,6 +1045,81 @@ export function VenueProfileTemplate({
             ))}
           </div>
         </div>
+
+        {/* 🎉 SPECIAL OFFERS & PROMOTIONS SECTION */}
+        {activeOffers.length > 0 && (
+          <div className="px-4 lg:px-0">
+            <div className="bg-gradient-to-br from-[#0F4C45]/5 via-white to-amber-500/5 rounded-3xl p-6 lg:p-7 border border-gold/30 shadow-sm space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <span className="text-xs font-bold text-[#0F4C45] uppercase tracking-wider flex items-center gap-1.5">
+                    <Tag className="w-4 h-4 text-gold" /> Exclusive Savings
+                  </span>
+                  <h2 className="font-display text-xl lg:text-2xl font-bold text-[#1A1410] mt-0.5">
+                    🎉 Special Offers & Promotions ({activeOffers.length})
+                  </h2>
+                </div>
+                <span className="text-xs font-semibold text-emerald-800 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
+                  Verified Deals
+                </span>
+              </div>
+
+              <div className="flex lg:grid lg:grid-cols-3 gap-5 overflow-x-auto lg:overflow-visible hide-scrollbar pb-2 lg:pb-0">
+                {activeOffers.map((off) => (
+                  <div key={off.id} className="shrink-0 lg:shrink w-72 lg:w-full bg-white rounded-3xl overflow-hidden border border-gold/25 shadow-md flex flex-col justify-between hover:shadow-xl transition-all">
+                    <div className="relative aspect-[16/9] bg-gray-100 overflow-hidden">
+                      <img src={off.banner || "https://images.unsplash.com/photo-1519167758481-83f552bb8c74?auto=format&fit=crop&w=600&q=80"} alt={off.name} className="w-full h-full object-cover" />
+                      <span className="absolute top-3 left-3 bg-[#0F4C45] text-white text-xs font-bold px-3 py-1 rounded-full shadow-md">
+                        {off.discountType === "percentage" ? `${off.discountValue}% OFF` : off.discountType === "flat" ? `₹${Number(off.discountValue).toLocaleString()} OFF` : off.discountValue}
+                      </span>
+                      {off.isFlashSale && (
+                        <span className="absolute bottom-3 right-3 bg-red-600 text-white text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1 shadow-md animate-pulse">
+                          <Zap className="w-3 h-3 fill-current text-yellow-300" /> Flash Sale
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="p-5 space-y-3 flex-1 flex flex-col justify-between">
+                      <div className="space-y-1.5">
+                        <h3 className="font-display text-base font-bold text-[#1A1410] line-clamp-1">{off.name}</h3>
+                        <p className="text-xs text-[#7A6E65]">Valid for bookings through {off.endDate}</p>
+
+                        {off.couponCode && (
+                          <div className="bg-[#F5F0E8] p-2 rounded-xl border border-[#E2D5C0] flex items-center justify-between text-xs mt-2">
+                            <span className="font-mono font-bold text-[#0F4C45]">{off.couponCode}</span>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigator.clipboard.writeText(off.couponCode || "");
+                                showToast(`Copied code ${off.couponCode}!`);
+                              }}
+                              className="text-[11px] font-bold text-[#0F4C45] hover:underline flex items-center gap-1"
+                            >
+                              <Copy className="w-3 h-3" /> Copy Code
+                            </button>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="pt-2 border-t border-[#E2D5C0]/40 flex items-center gap-2">
+                        <button
+                          onClick={() => {
+                            setSelectedOfferForQuote(off);
+                            setIsQuoteModalOpen(true);
+                            if (venue?.id) incrementOfferAnalytics(off.id, "clicks", 0, venue.id);
+                          }}
+                          className="flex-1 bg-[#0F4C45] hover:bg-[#0A3833] text-white text-xs font-bold py-2.5 rounded-xl uppercase tracking-wider transition-colors text-center cursor-pointer"
+                        >
+                          {off.ctaText || "Claim Offer"}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* REVIEWS SECTION */}
         <div className="px-4 lg:px-0">
@@ -980,22 +1263,58 @@ export function VenueProfileTemplate({
 
       {/* LIGHTBOX MODAL */}
       {isLightboxOpen && (
-        <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4">
-          <button
-            onClick={() => setIsLightboxOpen(false)}
-            className="absolute top-6 right-6 text-white hover:opacity-70 p-2"
-          >
-            <X className="w-6 h-6" />
-          </button>
-          <div className="max-w-4xl w-full text-center space-y-4">
+        <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-md flex flex-col justify-between p-4 sm:p-6">
+          {/* Header Bar */}
+          <div className="flex justify-between items-center text-white z-10">
+            <span className="text-xs font-semibold px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20">
+              Photo {activeImage + 1} of {galleryImages.length}
+            </span>
+            <button
+              onClick={() => setIsLightboxOpen(false)}
+              className="text-white hover:bg-white/20 p-2 rounded-full transition-colors cursor-pointer"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </div>
+
+          {/* Main Image View with Prev/Next Controls */}
+          <div className="relative flex-1 flex items-center justify-center my-2 max-h-[75vh]">
+            <button
+              onClick={() => setActiveImage((prev) => (prev > 0 ? prev - 1 : galleryImages.length - 1))}
+              className="absolute left-2 sm:left-4 z-20 p-3 rounded-full bg-black/50 text-white hover:bg-black/80 transition-colors backdrop-blur-sm cursor-pointer"
+              title="Previous photo"
+            >
+              <ChevronLeft className="w-6 h-6" />
+            </button>
+
             <img
-              src={venue.images[activeImage] || venue.image}
-              alt="Lightbox"
-              className="max-h-[80vh] mx-auto rounded-2xl object-contain shadow-2xl"
+              src={galleryImages[activeImage] || galleryImages[0]}
+              alt={`${venue.name} Photo ${activeImage + 1}`}
+              className="max-h-[72vh] max-w-full rounded-2xl object-contain shadow-2xl transition-all duration-300"
             />
-            <p className="text-white text-xs font-semibold">
-              Photo {activeImage + 1} of {venue.totalPhotos}
-            </p>
+
+            <button
+              onClick={() => setActiveImage((prev) => (prev < galleryImages.length - 1 ? prev + 1 : 0))}
+              className="absolute right-2 sm:right-4 z-20 p-3 rounded-full bg-black/50 text-white hover:bg-black/80 transition-colors backdrop-blur-sm cursor-pointer"
+              title="Next photo"
+            >
+              <ChevronRight className="w-6 h-6" />
+            </button>
+          </div>
+
+          {/* Interactive Lightbox Thumbnail Strip */}
+          <div className="flex gap-2 overflow-x-auto justify-center py-2 max-w-4xl mx-auto hide-scrollbar z-10">
+            {galleryImages.map((img, idx) => (
+              <button
+                key={idx}
+                onClick={() => setActiveImage(idx)}
+                className={`relative w-14 h-14 rounded-xl overflow-hidden border-2 shrink-0 transition-all cursor-pointer ${
+                  activeImage === idx ? "border-gold scale-105 shadow-md" : "border-transparent opacity-50 hover:opacity-100"
+                }`}
+              >
+                <img src={img} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-cover" />
+              </button>
+            ))}
           </div>
         </div>
       )}

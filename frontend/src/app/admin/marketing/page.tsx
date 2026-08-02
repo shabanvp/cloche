@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { 
   Megaphone, Check, X, Pause, Play, Trash2, Eye, ShieldCheck, DollarSign, 
   TrendingUp, Download, Sparkles, Filter, Search, Award, Star, CheckCircle2, AlertCircle, Plus, PhoneCall,
-  RefreshCw, MessageSquare, Calendar, Users, FileText, Layers, Clock
+  RefreshCw, MessageSquare, Calendar, Users, FileText, Layers, Clock, Tag, Crown
 } from "lucide-react";
 import { Button } from "@/components/Button";
 import { 
@@ -14,11 +14,12 @@ import {
   getCampaignRequests, updateCampaignRequestStatus, CampaignRequest,
   renewCampaign, addInternalNoteToCampaign, getCRMLeads, getFollowUps 
 } from "@/lib/adStore";
+import { getVendorOffers, VendorOffer } from "@/lib/vendorOffersStore";
 import { CampaignPreviewModal } from "@/components/CampaignPreviewModal";
 
 export default function AdminMarketingPage() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<"dashboard" | "campaigns" | "drafts" | "requests" | "revenue" | "analytics">("dashboard");
+  const [activeTab, setActiveTab] = useState<"dashboard" | "campaigns" | "drafts" | "requests" | "revenue" | "analytics" | "offers">("dashboard");
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [requests, setRequests] = useState<CampaignRequest[]>([]);
   const [statusFilter, setStatusFilter] = useState("All");
@@ -177,6 +178,14 @@ export default function AdminMarketingPage() {
           }`}
         >
           Campaign Requests ({requests.length})
+        </button>
+        <button
+          onClick={() => setActiveTab("offers")}
+          className={`px-5 py-2.5 rounded-2xl text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 ${
+            activeTab === "offers" ? "bg-[#0F4C45] text-white shadow-md" : "bg-white text-charcoal/70 hover:bg-gold/10"
+          }`}
+        >
+          <Tag className="w-4 h-4 text-gold" /> Vendor Offers & Promotions
         </button>
         <Link
           href="/admin/marketing/leads"
@@ -570,6 +579,73 @@ export default function AdminMarketingPage() {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Tab 7: Vendor Offers */}
+      {activeTab === "offers" && (
+        <div className="bg-white rounded-3xl p-6 border border-gold/15 shadow-sm space-y-4">
+          <div className="flex justify-between items-center border-b border-gold/10 pb-3">
+            <div>
+              <h3 className="font-display text-xl font-bold text-charcoal flex items-center gap-2">
+                <Tag className="w-5 h-5 text-gold" /> Vendor Promotional Offers & Coupon Engine
+              </h3>
+              <p className="text-xs text-charcoal/60 mt-1">
+                Monitor live promotional offers created by vendors across the platform. Feature top deals or disable invalid promotions.
+              </p>
+            </div>
+            <Link
+              href="/vendor/offers"
+              target="_blank"
+              className="bg-[#0F4C45] text-white text-xs font-bold px-4 py-2 rounded-xl flex items-center gap-1.5 shadow-sm"
+            >
+              <span>Manage Vendor Offers</span>
+              <Eye className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+
+          <div className="overflow-x-auto rounded-2xl border border-gold/15 bg-white">
+            <table className="w-full text-left text-xs text-charcoal">
+              <thead className="bg-[#FBF8F1] font-bold text-[10px] text-charcoal/70 uppercase border-b border-gold/15">
+                <tr>
+                  <th className="p-3.5">Vendor / Venue</th>
+                  <th className="p-3.5">Offer Title</th>
+                  <th className="p-3.5">Discount Value</th>
+                  <th className="p-3.5">Coupon Code</th>
+                  <th className="p-3.5">Status</th>
+                  <th className="p-3.5">Redemptions</th>
+                  <th className="p-3.5 text-right">Storefront Ribbon</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gold/10">
+                {getVendorOffers("v-solitaire").map((off) => (
+                  <tr key={off.id}>
+                    <td className="p-3.5 font-bold">Solitaire Wedding Venue</td>
+                    <td className="p-3.5 font-bold text-[#0F4C45]">{off.name}</td>
+                    <td className="p-3.5 font-semibold text-emerald-800">
+                      {off.discountType === "percentage" ? `${off.discountValue}% OFF` : off.discountValue}
+                    </td>
+                    <td className="p-3.5 font-mono text-xs">{off.couponCode || "—"}</td>
+                    <td className="p-3.5">
+                      <span className="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full capitalize">
+                        {off.status}
+                      </span>
+                    </td>
+                    <td className="p-3.5 font-bold">{off.currentRedemptions} / {off.maxRedemptions || "∞"}</td>
+                    <td className="p-3.5 text-right">
+                      {off.isFeatured ? (
+                        <span className="bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1 inline-flex">
+                          <Crown className="w-3 h-3 fill-current text-amber-500" /> Featured Ribbon
+                        </span>
+                      ) : (
+                        <span className="text-[10px] text-charcoal/40">Standard</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       )}
