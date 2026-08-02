@@ -123,6 +123,10 @@ export function VenueProfileTemplate({
   const [activePackage, setActivePackage] = useState(0);
   const [toast, setToast] = useState<string | null>(null);
 
+  // Mobile Touch Swipe Gesture State
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+  const [touchEndX, setTouchEndX] = useState<number | null>(null);
+
   // Modal States
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [isAllPhotosModalOpen, setIsAllPhotosModalOpen] = useState(false);
@@ -395,18 +399,42 @@ export function VenueProfileTemplate({
     showToast("Thank you! Your review has been submitted.");
   };
 
+  const galleryImages: string[] = (venue?.images && venue.images.length > 0)
+    ? venue.images
+    : [venue?.image || "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1200&q=80"];
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStartX(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEndX(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStartX || !touchEndX) return;
+    const distance = touchStartX - touchEndX;
+    if (distance > 40) {
+      setActiveImage((prev) => (prev + 1) % galleryImages.length);
+    } else if (distance < -40) {
+      setActiveImage((prev) => (prev - 1 + galleryImages.length) % galleryImages.length);
+    }
+    setTouchStartX(null);
+    setTouchEndX(null);
+  };
+
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       if (!isLightboxOpen) return;
       if (e.key === "Escape") setIsLightboxOpen(false);
       if (e.key === "ArrowRight") {
-        setActiveImage((prev) => (prev + 1) % (venue.images.length || 1));
+        setActiveImage((prev) => (prev + 1) % galleryImages.length);
       }
       if (e.key === "ArrowLeft") {
-        setActiveImage((prev) => (prev - 1 + venue.images.length) % (venue.images.length || 1));
+        setActiveImage((prev) => (prev - 1 + galleryImages.length) % galleryImages.length);
       }
     },
-    [isLightboxOpen, venue.images.length]
+    [isLightboxOpen, galleryImages.length]
   );
 
   useEffect(() => {
@@ -502,17 +530,33 @@ export function VenueProfileTemplate({
       </header>
 
       {/* ─── MOBILE HERO CAROUSEL ─── */}
-      <div className="relative w-full lg:hidden" style={{ height: "280px" }}>
-        <img
-          src={venue.images[activeImage] || venue.image}
-          alt={venue.name}
-          className="w-full h-full object-cover cursor-pointer"
-          onClick={() => setIsLightboxOpen(true)}
-        />
+      <div
+        className="relative w-full lg:hidden overflow-hidden bg-black select-none"
+        style={{ height: "290px" }}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
+        {/* Sliding Touch Track */}
+        <div
+          className="flex h-full w-full transition-transform duration-300 ease-out"
+          style={{ transform: `translateX(-${activeImage * 100}%)` }}
+        >
+          {galleryImages.map((imgUrl, i) => (
+            <div key={i} className="min-w-full h-full relative shrink-0">
+              <img
+                src={imgUrl}
+                alt={`${venue.name} photo ${i + 1}`}
+                className="w-full h-full object-cover cursor-pointer"
+                onClick={() => setIsLightboxOpen(true)}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30 pointer-events-none" />
+            </div>
+          ))}
+        </div>
 
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30 pointer-events-none" />
-
-        <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 pt-12 pb-2">
+        {/* Top Controls */}
+        <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 pt-12 pb-2 z-10">
           <Link
             href="/venues"
             className="flex h-9 w-9 items-center justify-center rounded-full bg-black/40 backdrop-blur-md text-white"
@@ -542,20 +586,46 @@ export function VenueProfileTemplate({
           </div>
         </div>
 
+        {/* Verified Badge */}
         {venue.verified && (
-          <div className="absolute top-14 left-4 flex items-center gap-1.5 rounded-full px-3 py-1 bg-[#0F4C45]/85 backdrop-blur-md text-white text-[11px] font-semibold">
+          <div className="absolute top-14 left-4 z-10 flex items-center gap-1.5 rounded-full px-3 py-1 bg-[#0F4C45]/85 backdrop-blur-md text-white text-[11px] font-semibold">
             <CheckCircle2 className="h-3.5 w-3.5" />
             <span>Verified Venue</span>
           </div>
         )}
 
-        <div className="absolute bottom-4 left-0 right-0 flex flex-col items-center gap-2">
-          <div className="flex gap-1.5">
-            {venue.images.map((_, i) => (
+        {/* Chevron Controls for Quick Tap Navigation */}
+        {galleryImages.length > 1 && (
+          <>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setActiveImage((prev) => (prev - 1 + galleryImages.length) % galleryImages.length);
+              }}
+              className="absolute left-2 top-1/2 -translate-y-1/2 z-10 h-8 w-8 rounded-full bg-black/40 backdrop-blur-md text-white flex items-center justify-center opacity-80 active:scale-95"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setActiveImage((prev) => (prev + 1) % galleryImages.length);
+              }}
+              className="absolute right-2 top-1/2 -translate-y-1/2 z-10 h-8 w-8 rounded-full bg-black/40 backdrop-blur-md text-white flex items-center justify-center opacity-80 active:scale-95"
+            >
+              <ChevronRight className="h-5 w-5" />
+            </button>
+          </>
+        )}
+
+        {/* Pagination Dots */}
+        <div className="absolute bottom-4 left-0 right-0 z-10 flex flex-col items-center gap-2 pointer-events-none">
+          <div className="flex gap-1.5 pointer-events-auto">
+            {galleryImages.map((_, i) => (
               <button
                 key={i}
                 onClick={() => setActiveImage(i)}
-                className="rounded-full transition-all"
+                className="rounded-full transition-all cursor-pointer"
                 style={{
                   width: i === activeImage ? "20px" : "6px",
                   height: "6px",
@@ -566,11 +636,12 @@ export function VenueProfileTemplate({
           </div>
         </div>
 
+        {/* Photo Counter */}
         <button
           onClick={() => setIsLightboxOpen(true)}
-          className="absolute bottom-4 right-4 rounded-full px-2.5 py-1 text-[11px] font-semibold text-white bg-black/50 backdrop-blur-md cursor-pointer"
+          className="absolute bottom-4 right-4 z-10 rounded-full px-2.5 py-1 text-[11px] font-semibold text-white bg-black/50 backdrop-blur-md cursor-pointer"
         >
-          {activeImage + 1}/{venue.totalPhotos}
+          {activeImage + 1}/{galleryImages.length}
         </button>
       </div>
 
@@ -606,7 +677,7 @@ export function VenueProfileTemplate({
               className="relative aspect-[16/10] w-full rounded-3xl overflow-hidden shadow-md border border-[#E2D5C0]/60 group bg-gray-100 cursor-pointer"
             >
               <img
-                src={venue.images[activeImage] || venue.image}
+                src={galleryImages[activeImage] || galleryImages[0]}
                 alt={venue.name}
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-102"
               />
@@ -627,7 +698,7 @@ export function VenueProfileTemplate({
                 className="absolute bottom-4 right-4 rounded-full px-3.5 py-1.5 bg-black/60 backdrop-blur-md text-white text-xs font-semibold hover:bg-black/80 transition-colors flex items-center gap-1.5"
               >
                 <Images className="h-3.5 w-3.5" />
-                <span>Photo {activeImage + 1} of {venue.totalPhotos}</span>
+                <span>Photo {activeImage + 1} of {galleryImages.length}</span>
               </button>
             </div>
 
@@ -638,18 +709,18 @@ export function VenueProfileTemplate({
                 className="relative aspect-[4/3] rounded-2xl overflow-hidden border-2 border-transparent transition-all opacity-90 hover:opacity-100 cursor-pointer group"
               >
                 <img
-                  src={venue.images[0] || venue.image}
+                  src={galleryImages[0]}
                   alt="All photos"
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center text-white group-hover:bg-black/70 transition-colors">
                   <Images className="h-4 w-4 mb-0.5" />
                   <span className="text-[11px] font-bold">View All</span>
-                  <span className="text-[9px] opacity-80">{venue.totalPhotos} Photos</span>
+                  <span className="text-[9px] opacity-80">{galleryImages.length} Photos</span>
                 </div>
               </button>
 
-              {venue.images.slice(1, 5).map((img, i) => (
+              {galleryImages.slice(1, 5).map((img, i) => (
                 <button
                   key={i}
                   onClick={() => setActiveImage(i + 1)}
@@ -1196,7 +1267,7 @@ export function VenueProfileTemplate({
           {/* Header Bar */}
           <div className="flex justify-between items-center text-white z-10">
             <span className="text-xs font-semibold px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20">
-              Photo {activeImage + 1} of {venue.totalPhotos}
+              Photo {activeImage + 1} of {galleryImages.length}
             </span>
             <button
               onClick={() => setIsLightboxOpen(false)}
@@ -1209,7 +1280,7 @@ export function VenueProfileTemplate({
           {/* Main Image View with Prev/Next Controls */}
           <div className="relative flex-1 flex items-center justify-center my-2 max-h-[75vh]">
             <button
-              onClick={() => setActiveImage((prev) => (prev > 0 ? prev - 1 : venue.images.length - 1))}
+              onClick={() => setActiveImage((prev) => (prev > 0 ? prev - 1 : galleryImages.length - 1))}
               className="absolute left-2 sm:left-4 z-20 p-3 rounded-full bg-black/50 text-white hover:bg-black/80 transition-colors backdrop-blur-sm cursor-pointer"
               title="Previous photo"
             >
@@ -1217,13 +1288,13 @@ export function VenueProfileTemplate({
             </button>
 
             <img
-              src={venue.images[activeImage] || venue.image}
+              src={galleryImages[activeImage] || galleryImages[0]}
               alt={`${venue.name} Photo ${activeImage + 1}`}
               className="max-h-[72vh] max-w-full rounded-2xl object-contain shadow-2xl transition-all duration-300"
             />
 
             <button
-              onClick={() => setActiveImage((prev) => (prev < venue.images.length - 1 ? prev + 1 : 0))}
+              onClick={() => setActiveImage((prev) => (prev < galleryImages.length - 1 ? prev + 1 : 0))}
               className="absolute right-2 sm:right-4 z-20 p-3 rounded-full bg-black/50 text-white hover:bg-black/80 transition-colors backdrop-blur-sm cursor-pointer"
               title="Next photo"
             >
@@ -1233,7 +1304,7 @@ export function VenueProfileTemplate({
 
           {/* Interactive Lightbox Thumbnail Strip */}
           <div className="flex gap-2 overflow-x-auto justify-center py-2 max-w-4xl mx-auto hide-scrollbar z-10">
-            {venue.images.map((img, idx) => (
+            {galleryImages.map((img, idx) => (
               <button
                 key={idx}
                 onClick={() => setActiveImage(idx)}
