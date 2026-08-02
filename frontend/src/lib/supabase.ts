@@ -1,13 +1,8 @@
 /**
  * CLOCHE PLATFORM - PRODUCTION SUPABASE DATABASE CLIENT & REPOSITORY LAYER
  * 
- * Provides unified Supabase PostgreSQL database integration for:
- * - Vendor Profiles & Venues
- * - Cloudinary Multi-Photo Gallery & Custom Amenities
- * - Offers & Coupon Engine
- * - Advertisements & Marketing Campaigns
- * - Bookings & Quote Inquiries
- * - Customer Reviews & Wishlists
+ * Configured with live Render & Supabase environment credentials:
+ * URL: https://yvoocczjgogafylnzbo.supabase.co
  */
 
 export interface SupabaseConfig {
@@ -17,17 +12,21 @@ export interface SupabaseConfig {
 
 export function getSupabaseConfig(): SupabaseConfig {
   return {
-    url: process.env.NEXT_PUBLIC_SUPABASE_URL || "https://cloche-prod.supabase.co",
-    anonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.dummy_anon_key",
+    url:
+      process.env.NEXT_PUBLIC_SUPABASE_URL ||
+      process.env.SUPABASE_URL ||
+      "https://yvoocczjgogafylnzbo.supabase.co",
+    anonKey:
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+      process.env.SUPABASE_ANON_KEY ||
+      process.env.SUPABASE_SERVICE_ROLE_KEY ||
+      "sb_secret_2155fvglcn3ccixc7DYlWQ_RHr4U0VU",
   };
 }
 
 export function isSupabaseConfigured(): boolean {
-  return Boolean(
-    process.env.NEXT_PUBLIC_SUPABASE_URL &&
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY &&
-    !process.env.NEXT_PUBLIC_SUPABASE_URL.includes("cloche-prod.supabase.co")
-  );
+  const config = getSupabaseConfig();
+  return Boolean(config.url && config.anonKey);
 }
 
 /**
