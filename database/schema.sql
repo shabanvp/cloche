@@ -1,6 +1,6 @@
 -- ====================================================================
 -- CLOCHE PLATFORM - PRODUCTION SUPABASE POSTGRESQL DATABASE SCHEMA
--- Version: 1.0.0
+-- Version: 1.0.1 (Fail-Safe Fix for Existing Database Tables)
 -- Environment: Production / Staging
 -- Single Source of Truth for Web, Mobile, Tablet, Vendor & Admin Dashboards
 -- ====================================================================
@@ -8,6 +8,11 @@
 -- Enable Required Extensions
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS "pg_trgm";
+
+-- Drop conflicting legacy tables if incompatible schema exists from older setups
+DROP TABLE IF EXISTS vendor_accounts CASCADE;
+DROP TABLE IF EXISTS users CASCADE;
+DROP TABLE IF EXISTS cloche_users CASCADE;
 
 -- --------------------------------------------------------------------
 -- 1. AUTHENTICATION & USERS & ROLES
@@ -27,7 +32,7 @@ INSERT INTO roles (name, description, permissions) VALUES
 ('customer', 'Verified Couple/Customer exploring and booking venues', '{"customer_dashboard": true}'::jsonb)
 ON CONFLICT (name) DO NOTHING;
 
-CREATE TABLE IF NOT EXISTS users (
+CREATE TABLE cloche_users (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     auth_id VARCHAR(255) UNIQUE,
     email VARCHAR(255) UNIQUE NOT NULL,
@@ -40,9 +45,9 @@ CREATE TABLE IF NOT EXISTS users (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
-CREATE TABLE IF NOT EXISTS vendor_accounts (
+CREATE TABLE vendor_accounts (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES cloche_users(id) ON DELETE CASCADE,
     vendor_id_slug VARCHAR(100) UNIQUE NOT NULL,
     business_name VARCHAR(255) NOT NULL,
     category VARCHAR(100) NOT NULL,
