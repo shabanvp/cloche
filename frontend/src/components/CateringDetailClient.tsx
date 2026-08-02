@@ -12,10 +12,12 @@ import {
   Clock,
   Phone,
   MessageCircle,
+  MessageSquare,
   Mail,
 } from "lucide-react";
 import { BottomNavBar } from "@/components/BottomNavBar";
 import { CateringVendor } from "@/lib/cateringData";
+import { formatTelUri } from "@/lib/formatters";
 
 export function CateringDetailClient({ vendor }: { vendor: CateringVendor }) {
   const [isWishlisted, setIsWishlisted] = useState(false);

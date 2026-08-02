@@ -13,6 +13,7 @@ import {
   ChevronDown,
   Phone,
   MessageCircle,
+  MessageSquare,
   Calendar,
 } from "lucide-react";
 import { BottomNavBar } from "@/components/BottomNavBar";
