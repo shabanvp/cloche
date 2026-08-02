@@ -44,9 +44,12 @@ export function GroomWearListing() {
         v.location.toLowerCase().includes(q) ||
         v.subtitle.toLowerCase().includes(q);
 
+      const searchTarget = activeChip.toLowerCase().replace("royal ", "").replace("collections", "").trim();
       const matchesChip =
         activeChip === "All Styles" ||
-        (v.tags && v.tags.some((t) => t.toLowerCase().includes(activeChip.toLowerCase().replace("royal ", "").replace("collections", ""))));
+        (v.tags && v.tags.some((t) => t.toLowerCase().includes(searchTarget))) ||
+        v.collections.some((c) => c.name.toLowerCase().includes(searchTarget)) ||
+        v.subtitle.toLowerCase().includes(searchTarget);
 
       return matchesSearch && matchesChip;
     });

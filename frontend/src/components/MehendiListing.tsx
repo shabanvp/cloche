@@ -44,9 +44,12 @@ export function MehendiListing() {
         artist.location.toLowerCase().includes(q) ||
         artist.subtitle.toLowerCase().includes(q);
 
+      const targetChip = activeChip.toLowerCase().replace("bridal ", "").replace(" patterns", "").trim();
       const matchesChip =
         activeChip === "All Styles" ||
-        (artist.tags && artist.tags.some((t) => t.toLowerCase().includes(activeChip.toLowerCase().replace("bridal ", "").replace(" patterns", ""))));
+        (artist.chips && artist.chips.some((c) => c.toLowerCase().includes(targetChip))) ||
+        ((artist as any).tags && (artist as any).tags.some((t: string) => t.toLowerCase().includes(targetChip))) ||
+        artist.subtitle.toLowerCase().includes(targetChip);
 
       return matchesSearch && matchesChip;
     });
