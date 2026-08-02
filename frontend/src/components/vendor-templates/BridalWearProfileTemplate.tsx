@@ -218,13 +218,15 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
         </div>
       )}
 
-      {/* ─── VENUE-STYLE COMPACT 2-COLUMN LAYOUT ON DESKTOP ─── */}
-      <div className="max-w-3xl mx-auto w-full px-4 pt-4 md:pt-6">
+      {/* ─── STANDARDIZED CENTERED DESKTOP CONTENT CONTAINER (1240px Max-Width) ─── */}
+      <div className="w-full max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-6 sm:space-y-8">
+        
+        {/* 1. HERO IMAGE GALLERY & BOUTIQUE INFO 2-COLUMN GRID */}
         <div className="flex flex-col md:grid md:grid-cols-12 gap-6 lg:gap-8 items-start">
           
           {/* Left Column: Cover Gallery Image */}
           <div className="w-full md:col-span-7 space-y-4">
-            <div className="relative w-full h-[220px] sm:h-[280px] md:h-[360px] lg:h-[380px] bg-charcoal md:rounded-3xl overflow-hidden group shadow-md border border-gold/20">
+            <div className="relative w-full h-[220px] sm:h-[280px] md:h-[360px] lg:h-[400px] bg-charcoal md:rounded-3xl overflow-hidden group shadow-md border border-gold/20">
               <img
                 src={heroImages[currentImgIndex]}
                 alt={businessName}
@@ -306,7 +308,7 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
             )}
           </div>
 
-          {/* Right Column: Sticky Venue-Style Information & Action Card */}
+          {/* Right Column: Sticky Boutique Information & Action Card */}
           <div className="w-full md:col-span-5 bg-white rounded-3xl p-6 sm:p-7 border border-gold/20 shadow-md space-y-5 md:sticky md:top-24">
             
             {/* Header Row */}
@@ -371,14 +373,12 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
             </div>
           </div>
         </div>
-      </div>
 
-      {/* 3. FOUR EQUAL QUICK ACTION BUTTONS */}
-      <div className="max-w-3xl mx-auto px-4 mt-6">
-        <div className="grid grid-cols-4 gap-2 sm:gap-3 text-center">
+        {/* 2. FOUR EQUAL QUICK ACTION BUTTONS */}
+        <div className="grid grid-cols-4 gap-3 text-center">
           <a
             href={formatTelUri(phone)}
-            className="bg-white p-3 sm:p-4 rounded-2xl border border-gold/15 shadow-sm hover:border-[#0F4C45] transition-all flex flex-col items-center justify-center space-y-1.5 group"
+            className="bg-white p-3.5 sm:p-4 rounded-2xl border border-gold/15 shadow-sm hover:border-[#0F4C45] transition-all flex flex-col items-center justify-center space-y-1.5 group"
           >
             <div className="w-10 h-10 rounded-full bg-[#0F4C45]/10 text-[#0F4C45] flex items-center justify-center group-hover:bg-[#0F4C45] group-hover:text-white transition-colors">
               <Phone className="w-4 h-4" />
@@ -390,7 +390,7 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
             href={`https://wa.me/${whatsapp.replace(/[^0-9]/g, "")}?text=Hi%20${encodeURIComponent(businessName)},%20I%20am%20interested%20in%20your%20bridal%20collections.`}
             target="_blank"
             rel="noopener noreferrer"
-            className="bg-white p-3 sm:p-4 rounded-2xl border border-gold/15 shadow-sm hover:border-emerald transition-all flex flex-col items-center justify-center space-y-1.5 group"
+            className="bg-white p-3.5 sm:p-4 rounded-2xl border border-gold/15 shadow-sm hover:border-emerald transition-all flex flex-col items-center justify-center space-y-1.5 group"
           >
             <div className="w-10 h-10 rounded-full bg-emerald/10 text-emerald flex items-center justify-center group-hover:bg-emerald group-hover:text-white transition-colors">
               <MessageSquare className="w-4 h-4" />
@@ -400,7 +400,7 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
 
           <button
             onClick={handleShare}
-            className="bg-white p-3 sm:p-4 rounded-2xl border border-gold/15 shadow-sm hover:border-gold transition-all flex flex-col items-center justify-center space-y-1.5 group"
+            className="bg-white p-3.5 sm:p-4 rounded-2xl border border-gold/15 shadow-sm hover:border-gold transition-all flex flex-col items-center justify-center space-y-1.5 group"
           >
             <div className="w-10 h-10 rounded-full bg-gold/15 text-charcoal flex items-center justify-center group-hover:bg-gold transition-colors">
               <Share2 className="w-4 h-4" />
@@ -412,7 +412,7 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
             href={website}
             target="_blank"
             rel="noopener noreferrer"
-            className="bg-white p-3 sm:p-4 rounded-2xl border border-gold/15 shadow-sm hover:border-charcoal transition-all flex flex-col items-center justify-center space-y-1.5 group"
+            className="bg-white p-3.5 sm:p-4 rounded-2xl border border-gold/15 shadow-sm hover:border-charcoal transition-all flex flex-col items-center justify-center space-y-1.5 group"
           >
             <div className="w-10 h-10 rounded-full bg-charcoal/10 text-charcoal flex items-center justify-center group-hover:bg-charcoal group-hover:text-white transition-colors">
               <Globe className="w-4 h-4" />
@@ -420,34 +420,33 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
             <span className="text-[11px] font-bold text-charcoal">Website</span>
           </a>
         </div>
-      </div>
 
-      {/* 4. STICKY TAB NAVIGATION */}
-      <div className="sticky top-16 z-40 bg-[#FBF8F1]/95 backdrop-blur-md border-y border-gold/15 mt-6">
-        <div className="max-w-3xl mx-auto px-4 flex items-center justify-around text-xs font-bold uppercase tracking-wider">
-          {[
-            { id: "about", label: "About" },
-            { id: "collections", label: "Collections" },
-            { id: "reviews", label: "Reviews" },
-            { id: "info", label: "Info" },
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => scrollToTab(tab.id as any)}
-              className={`py-3.5 px-4 transition-all relative ${
-                activeTab === tab.id
-                  ? "text-[#0F4C45] font-bold border-b-2 border-[#0F4C45]"
-                  : "text-charcoal/60 hover:text-charcoal"
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
+        {/* 3. STICKY TAB NAVIGATION */}
+        <div className="sticky top-16 z-40 bg-[#FBF8F1]/95 backdrop-blur-md border border-gold/15 rounded-2xl shadow-xs">
+          <div className="flex items-center justify-around text-xs font-bold uppercase tracking-wider px-4">
+            {[
+              { id: "about", label: "About" },
+              { id: "collections", label: "Collections" },
+              { id: "reviews", label: "Reviews" },
+              { id: "info", label: "Info" },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => scrollToTab(tab.id as any)}
+                className={`py-3.5 px-4 transition-all relative ${
+                  activeTab === tab.id
+                    ? "text-[#0F4C45] font-bold border-b-2 border-[#0F4C45]"
+                    : "text-charcoal/60 hover:text-charcoal"
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
 
-      {/* 5. MAIN CONTENT CONTAINER (Compact & Focused max-w-3xl) */}
-      <main className="max-w-3xl mx-auto px-4 mt-6 space-y-6">
+        {/* 4. MAIN CONTENT SECTIONS */}
+        <main className="space-y-8">
         
         {/* ABOUT SECTION */}
         <section ref={aboutRef} className="bg-white rounded-2xl p-5 sm:p-6 border border-gold/15 shadow-sm space-y-2.5">
@@ -745,6 +744,7 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
         )}
 
       </main>
+    </div>
 
       {/* 6. STICKY BOTTOM ACTION BAR (ONLY ON MOBILE) */}
       <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-[#0B3B2D] border-t border-[#C8A96A]/30 p-3 shadow-2xl">
