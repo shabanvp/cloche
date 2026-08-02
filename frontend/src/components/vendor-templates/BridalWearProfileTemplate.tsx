@@ -219,7 +219,7 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
       )}
 
       {/* ─── VENUE-STYLE COMPACT 2-COLUMN LAYOUT ON DESKTOP ─── */}
-      <div className="max-w-4xl mx-auto w-full px-4 pt-4 md:pt-6">
+      <div className="max-w-3xl mx-auto w-full px-4 pt-4 md:pt-6">
         <div className="flex flex-col md:grid md:grid-cols-12 gap-6 lg:gap-8 items-start">
           
           {/* Left Column: Cover Gallery Image */}

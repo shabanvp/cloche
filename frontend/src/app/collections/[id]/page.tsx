@@ -32,7 +32,7 @@ export default async function CollectionPage({ params }: Props) {
       
       {/* Breadcrumbs */}
       <div className="border-b border-gold/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 text-xs font-medium text-charcoal/60 flex items-center gap-2">
+        <div className="max-w-4xl mx-auto px-4 py-3.5 text-xs font-medium text-charcoal/60 flex items-center gap-2">
           <Link href="/" className="hover:text-emerald">Home</Link>
           <ChevronRight className="w-3 h-3" />
           <Link href={`/boutiques/${product.boutique_id}`} className="hover:text-emerald">{product.boutique_name || 'Boutique'}</Link>
@@ -41,7 +41,7 @@ export default async function CollectionPage({ params }: Props) {
         </div>
       </div>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <main className="max-w-4xl mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-20">
           
           {/* Left: Gallery */}

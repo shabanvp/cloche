@@ -55,8 +55,8 @@ export default async function BoutiqueCollectionsPage({ params }: Props) {
   return (
     <div className="min-h-screen bg-[#FBF8F1] flex flex-col font-sans text-charcoal">
       {/* Sub-Header with Back Arrow Button & Centered Boutique Name */}
-      <header className="sticky top-0 z-40 bg-[#FBF8F1]/95 backdrop-blur-md border-b border-gold/15 px-4 py-3 sm:px-8">
-        <div className="max-w-[1400px] mx-auto flex items-center justify-between">
+      <header className="sticky top-0 z-40 bg-[#FBF8F1]/95 backdrop-blur-md border-b border-gold/15 px-4 py-3 sm:px-6">
+        <div className="max-w-4xl mx-auto flex items-center justify-between">
           <Link
             href={backUrl}
             className="flex items-center justify-center w-10 h-10 rounded-full bg-[#0F4C45]/10 text-[#0F4C45] hover:bg-[#0F4C45] hover:text-white transition-colors shadow-xs"
@@ -74,7 +74,7 @@ export default async function BoutiqueCollectionsPage({ params }: Props) {
       </header>
 
       {/* Main Catalog View */}
-      <main className="flex-grow max-w-[1400px] mx-auto w-full px-5 sm:px-8 py-8 sm:py-12 pb-24 space-y-8">
+      <main className="flex-grow max-w-4xl mx-auto w-full px-4 sm:px-6 py-8 pb-24 space-y-8">
         
         {/* Title Header */}
         <div className="border-b border-gold/15 pb-6 space-y-2">
