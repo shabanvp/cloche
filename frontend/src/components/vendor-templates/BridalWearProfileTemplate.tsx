@@ -230,12 +230,19 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
 
         {/* Top Controls Overlay */}
         <div className="absolute top-4 left-4 right-4 flex justify-between items-center z-20">
-          <Link
-            href="/boutiques"
-            className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md text-white flex items-center justify-center hover:bg-black/60 transition-colors shadow"
+          <button
+            onClick={() => {
+              if (typeof window !== "undefined" && window.history.length > 1) {
+                window.history.back();
+              } else {
+                window.location.href = "/categories/bridal-wear";
+              }
+            }}
+            className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md text-white flex items-center justify-center hover:bg-black/60 transition-colors shadow cursor-pointer"
+            aria-label="Go back"
           >
             <ArrowLeft className="w-5 h-5" />
-          </Link>
+          </button>
 
           <div className="flex items-center gap-2">
             <button

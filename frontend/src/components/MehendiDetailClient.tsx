@@ -25,7 +25,7 @@ export function MehendiDetailClient({ artist }: { artist: MehendiVendor }) {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#FAF7F2] pb-32 text-[#2D2520]">
+    <div className="min-h-screen flex flex-col bg-[#F8F5F0] pb-32 text-[#2D2520]">
       {/* Top Hero Banner & Carousel (Picture 2) */}
       <div className="relative w-full aspect-[4/3] sm:aspect-[16/9] bg-gray-900">
         <Image

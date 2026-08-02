@@ -27,12 +27,10 @@ const InstagramIcon = (props: React.SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-
 export function PhotographerDetailClient({ photographer }: { photographer: VendorDetail }) {
   const [activeTab, setActiveTab] = useState<"about" | "portfolio" | "reviews" | "info">("about");
   const [isWishlisted, setIsWishlisted] = useState(false);
 
-  // WF for Wedding Frames, CS for Candid Shutters etc.
   const getInitials = (name: string) => {
     if (name.includes("Wedding Frames")) return "WF";
     if (name.includes("Candid Shutters")) return "CS";
@@ -40,171 +38,166 @@ export function PhotographerDetailClient({ photographer }: { photographer: Vendo
   };
 
   return (
-    <div className="min-h-screen flex flex-col pb-36" style={{ background: "#F5F0E8" }}>
+    <div className="min-h-screen flex flex-col pb-36 bg-[#F8F5F0] text-[#2D2520] font-sans">
       {/* Cover Image */}
-      <div className="relative w-full" style={{ height: "300px" }}>
+      <div className="relative w-full h-[260px] sm:h-[340px]">
         <Image src={photographer.images[0] || photographer.image} alt={photographer.name} fill priority className="object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30" />
 
-        <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 pt-12 pb-2">
-          <Link href="/photographers" className="flex h-9 w-9 items-center justify-center rounded-full" style={{ background: "rgba(0,0,0,0.35)", backdropFilter: "blur(6px)" }}>
-            <ArrowLeft className="h-5 w-5 text-white" />
+        <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 pt-4 pb-2 z-10">
+          <Link
+            href="/photographers"
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-md transition-transform active:scale-95"
+            aria-label="Back to Photographers"
+          >
+            <ArrowLeft className="h-5 w-5" />
           </Link>
           <div className="flex items-center gap-2">
-            <button onClick={() => setIsWishlisted(!isWishlisted)} className="flex h-9 w-9 items-center justify-center rounded-full transition-all active:scale-90" style={{ background: "rgba(0,0,0,0.35)", backdropFilter: "blur(6px)" }}>
-              <Heart className="h-5 w-5" style={{ color: isWishlisted ? "#E8614A" : "#FFFFFF", fill: isWishlisted ? "#E8614A" : "none", strokeWidth: 2 }} />
+            <button
+              onClick={() => setIsWishlisted(!isWishlisted)}
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-md transition-transform active:scale-95"
+            >
+              <Heart className={`h-5 w-5 ${isWishlisted ? "fill-rose-500 text-rose-500" : "text-white"}`} />
             </button>
-            <button className="flex h-9 w-9 items-center justify-center rounded-full" style={{ background: "rgba(0,0,0,0.35)", backdropFilter: "blur(6px)" }}>
-              <MoreHorizontal className="h-5 w-5 text-white" />
+            <button
+              onClick={() => {
+                if (navigator.share) navigator.share({ title: photographer.name, url: window.location.href });
+              }}
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-md"
+            >
+              <Share2 className="h-5 w-5" />
             </button>
           </div>
         </div>
       </div>
 
       {/* Profile Card */}
-      <div className="relative px-4" style={{ marginTop: "-40px" }}>
-        <div className="rounded-3xl p-5 relative" style={{ background: "#FFFBF7", boxShadow: "0 8px 30px rgba(40,31,18,0.06)" }}>
-          {/* Circular initials badge */}
-          <div className="absolute -top-12 left-5 flex items-center justify-center rounded-full shadow-lg border-2 border-white" style={{ width: "80px", height: "80px", background: "#0F322E" }}>
-            <span className="font-display font-bold text-[24px] tracking-wider" style={{ color: "#D1B68C" }}>
+      <div className="relative px-4 -mt-12 z-20">
+        <div className="rounded-3xl p-5 relative bg-white border border-[#E8DFC5]/80 shadow-[0_8px_30px_rgba(40,31,18,0.06)] space-y-4">
+          <div className="flex items-start gap-4">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl flex items-center justify-center bg-[#0F4C45] text-[#C8A96A] font-serif font-bold text-xl sm:text-2xl shadow-md border-2 border-white shrink-0 -mt-10">
               {getInitials(photographer.name)}
-            </span>
-          </div>
-
-          <div className="pt-10">
-            <div className="flex items-center gap-1.5 flex-wrap">
-              <h1 className="font-display text-[22px] font-bold leading-tight" style={{ color: "#1A1410" }}>
-                {photographer.name}
-              </h1>
-              <CheckCircle2 className="h-5 w-5 shrink-0" style={{ color: "#0F4C45" }} />
             </div>
 
-            <p className="mt-1 text-[13px] font-medium" style={{ color: "#7A6E65" }}>
-              {photographer.location}
-            </p>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-1.5">
+                <h1 className="font-serif text-xl sm:text-2xl font-bold text-[#0F4C45] truncate">
+                  {photographer.name}
+                </h1>
+                <CheckCircle2 className="h-4 w-4 text-[#C8A96A] shrink-0 fill-[#C8A96A]/20" />
+              </div>
 
-            <div className="mt-3 flex items-center gap-3 text-[13px]" style={{ color: "#6B5E52" }}>
-              <div className="flex items-center gap-1">
-                <Star className="h-3.5 w-3.5 fill-current" style={{ color: "#C8A96A" }} />
-                <span className="font-bold" style={{ color: "#1A1410" }}>{photographer.rating}</span>
-                <span>({photographer.reviews})</span>
-              </div>
-              <div className="w-1 h-1 rounded-full bg-[#C8A96A]" />
-              <div>
-                <span className="font-bold" style={{ color: "#1A1410" }}>{photographer.followers}</span> Followers
-              </div>
+              <p className="text-xs text-[#7A6E65] flex items-center gap-1 mt-0.5 truncate">
+                <MapPin className="h-3.5 w-3.5 text-[#0F4C45] shrink-0" />
+                <span className="truncate">{photographer.location}</span>
+              </p>
             </div>
-
-            <p className="mt-2.5 text-[14px] font-bold" style={{ color: "#8F7856" }}>
-              {photographer.category}
-            </p>
           </div>
 
-          {/* Quick Actions */}
-          <div className="mt-6 grid grid-cols-4 gap-2">
-            {[
-              { icon: Phone, label: "Call", onClick: () => window.location.href = formatTelUri(photographer.phone) },
-              { icon: MessageSquare, label: "Message", onClick: () => window.open(`https://wa.me/${photographer.phone}`, "_blank") },
-              { icon: Share2, label: "Share", onClick: () => {} },
-              { icon: InstagramIcon, label: "Instagram", onClick: () => {} },
-            ].map((act, i) => (
-              <button key={i} onClick={act.onClick} className="flex flex-col items-center gap-1.5 transition-transform active:scale-95">
-                <div className="flex h-11 w-11 items-center justify-center rounded-full shadow-sm" style={{ background: "rgba(143,120,86,0.08)", border: "1px solid rgba(143,120,86,0.15)" }}>
-                  <act.icon className="h-5 w-5" style={{ color: "#8F7856" }} />
-                </div>
-                <span className="text-[11px] font-semibold" style={{ color: "#6B5E52" }}>{act.label}</span>
-              </button>
-            ))}
+          <div className="flex items-center gap-3 text-xs text-[#6B5E52] pt-2 border-t border-[#F2EBE1]">
+            <div className="flex items-center gap-1">
+              <Star className="h-3.5 w-3.5 text-amber-400 fill-amber-400" />
+              <span className="font-bold text-[#1A1410]">{photographer.rating}</span>
+              <span>({photographer.reviews} reviews)</span>
+            </div>
+            <div className="w-1 h-1 rounded-full bg-[#C8A96A]" />
+            <div>
+              <span className="font-bold text-[#1A1410]">{photographer.followers}</span> Followers
+            </div>
+          </div>
+
+          {/* Quick Contact Buttons */}
+          <div className="grid grid-cols-2 gap-2.5 pt-2">
+            <a
+              href={formatTelUri(photographer.phone || "+919847055443")}
+              className="flex items-center justify-center gap-2 rounded-xl py-2.5 bg-[#0F4C45] text-white text-xs font-bold shadow-xs hover:bg-[#12584E] transition-colors"
+            >
+              <Phone className="h-3.5 w-3.5" /> Call Studio
+            </a>
+
+            <a
+              href={`https://wa.me/${(photographer.phone || "919847055443").replace(/\D/g, "")}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-2 rounded-xl py-2.5 bg-[#25D366] text-white text-xs font-bold shadow-xs hover:bg-[#20ba59] transition-colors"
+            >
+              <MessageSquare className="h-3.5 w-3.5" /> WhatsApp
+            </a>
           </div>
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="mt-6 px-4">
-        <div className="flex border-b justify-between items-center" style={{ borderColor: "#E2D5C0" }}>
-          {(["about", "portfolio", "reviews", "info"] as const).map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className="py-2.5 text-[14px] font-semibold capitalize relative transition-colors"
-              style={{ color: activeTab === tab ? "#0F4C45" : "#7A6E65" }}
-            >
-              {tab}
-              {activeTab === tab && <div className="absolute bottom-0 left-0 right-0 h-0.5 rounded-full" style={{ background: "#0F4C45" }} />}
-            </button>
-          ))}
+      {/* Tabs Header */}
+      <div className="mt-5 px-4">
+        <div className="flex gap-2 border-b border-[#E2D6C7] text-xs font-semibold">
+          {[
+            { id: "about", label: "About" },
+            { id: "portfolio", label: "Portfolio" },
+            { id: "reviews", label: "Reviews" },
+            { id: "info", label: "Contact Info" },
+          ].map((tab) => {
+            const active = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as any)}
+                className={`py-2.5 px-3 border-b-2 transition-all cursor-pointer ${
+                  active ? "border-[#0F4C45] text-[#0F4C45] font-bold" : "border-transparent text-[#7A6E65]"
+                }`}
+              >
+                {tab.label}
+              </button>
+            );
+          })}
         </div>
       </div>
 
       {/* Tab Content */}
-      <div className="mt-4 px-4 flex-1">
+      <div className="p-4">
         {activeTab === "about" && (
-          <div className="space-y-4">
-            <p className="text-[14px] leading-relaxed" style={{ color: "#4A3F35" }}>
-              {photographer.about}
-            </p>
-            <div className="grid grid-cols-2 gap-2 mt-4">
-              {photographer.images.map((img, idx) => (
-                <div key={idx} className="relative aspect-[3/4] w-full rounded-2xl overflow-hidden shadow-sm">
-                  <Image src={img} alt="Portfolio item" fill className="object-cover" />
-                </div>
-              ))}
-            </div>
+          <div className="rounded-2xl p-5 bg-white border border-[#E8DFC5]/80 shadow-2xs space-y-3">
+            <h3 className="font-serif font-bold text-base text-[#0F4C45]">About {photographer.name}</h3>
+            <p className="text-xs text-[#5A6561] leading-relaxed">{photographer.about}</p>
           </div>
         )}
 
         {activeTab === "portfolio" && (
-          <div className="grid grid-cols-2 gap-2">
-            {photographer.images.map((img, idx) => (
-              <div key={idx} className="relative aspect-[3/4] w-full rounded-2xl overflow-hidden shadow-sm">
-                <Image src={img} alt="Portfolio item" fill className="object-cover" />
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+            {photographer.images.map((img, i) => (
+              <div key={i} className="relative aspect-[4/3] rounded-xl overflow-hidden bg-[#EFE8DE] shadow-2xs">
+                <Image src={img} alt={`Portfolio ${i}`} fill className="object-cover" />
               </div>
             ))}
           </div>
         )}
 
         {activeTab === "reviews" && (
-          <div className="space-y-3">
-            <div className="rounded-2xl p-4 bg-white shadow-sm border border-gold/10">
-              <div className="flex justify-between items-center">
-                <span className="font-semibold text-[13px]" style={{ color: "#1A1410" }}>Rohan Malhotra</span>
-                <span className="text-[11px]" style={{ color: "#9A8D7D" }}>3 days ago</span>
+          <div className="rounded-2xl p-5 bg-white border border-[#E8DFC5]/80 shadow-2xs space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="font-serif font-bold text-base text-[#0F4C45]">Client Reviews</h3>
+              <div className="flex items-center gap-1 text-xs font-bold text-[#0F4C45]">
+                <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                <span>{photographer.rating} / 5.0</span>
               </div>
-              <div className="flex mt-1 items-center gap-0.5">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Star key={i} className="h-3 w-3 fill-current" style={{ color: "#C8A96A" }} />
-                ))}
-              </div>
-              <p className="mt-2 text-[12px] leading-relaxed" style={{ color: "#4A3F35" }}>
-                Fabulous clicks! The team is extremely skilled at finding natural candid shots and they are a absolute pleasure to work with. Highly recommended!
-              </p>
             </div>
+            <p className="text-xs text-[#5A6561] leading-relaxed">
+              &quot;The Wedding Frames captured our special day beyond our expectations! Highly professional, punctual, and magical results.&quot;
+            </p>
           </div>
         )}
 
         {activeTab === "info" && (
-          <div className="rounded-2xl p-4 bg-white space-y-4 shadow-sm border border-gold/10">
+          <div className="rounded-2xl p-5 bg-white border border-[#E8DFC5]/80 shadow-2xs space-y-3 text-xs">
             <div>
-              <p className="text-[11px] uppercase tracking-wider" style={{ color: "#9A8D7D" }}>Phone</p>
-              <p className="text-[13px] mt-0.5 font-medium" style={{ color: "#1A1410" }}>{photographer.phone}</p>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-[#7A6E65]">Phone Contact</p>
+              <p className="font-medium text-[#2D2520] mt-0.5">{photographer.phone || "+91 98470 55443"}</p>
             </div>
             <div>
-              <p className="text-[11px] uppercase tracking-wider" style={{ color: "#9A8D7D" }}>Email</p>
-              <p className="text-[13px] mt-0.5 font-medium" style={{ color: "#1A1410" }}>{photographer.email}</p>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-[#7A6E65]">Email Address</p>
+              <p className="font-medium text-[#2D2520] mt-0.5">{photographer.email || "hello@studio.com"}</p>
             </div>
           </div>
         )}
-      </div>
-
-      {/* Sticky Bottom Action */}
-      <div className="fixed bottom-16 left-0 right-0 z-35 px-4 py-3" style={{ background: "rgba(245,240,232,0.95)", backdropFilter: "blur(12px)", borderTop: "1px solid rgba(226,213,192,0.6)" }}>
-        <button
-          className="w-full flex items-center justify-center gap-2 rounded-2xl py-3.5 text-[15px] font-semibold text-white transition-all active:scale-[0.98]"
-          style={{ background: "#0F4C45", boxShadow: "0 6px 20px rgba(15,76,69,0.3)" }}
-        >
-          View Portfolio
-          <span className="material-symbols-outlined text-[16px] animate-pulse">star_rate</span>
-        </button>
       </div>
 
       <BottomNavBar activeTab="vendors" />
