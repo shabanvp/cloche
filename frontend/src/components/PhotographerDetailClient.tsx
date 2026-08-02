@@ -40,11 +40,11 @@ export function PhotographerDetailClient({ photographer }: { photographer: Vendo
   return (
     <div className="min-h-screen flex flex-col pb-36 bg-[#F8F5F0] text-[#2D2520] font-sans">
       {/* Container for Desktop/Laptop Elegance */}
-      <div className="max-w-3xl mx-auto w-full md:px-4 md:pt-4">
-        {/* Cover Image (Short & Compact on Desktop) */}
-        <div className="relative w-full h-[200px] sm:h-[230px] md:h-[240px] lg:h-[250px] md:rounded-2xl overflow-hidden shadow-md">
+      <div className="max-w-4xl mx-auto w-full md:px-4 md:pt-4">
+        {/* Cover Image */}
+        <div className="relative w-full h-[220px] sm:h-[280px] md:h-[320px] lg:h-[340px] md:rounded-3xl overflow-hidden shadow-md">
           <Image src={photographer.images[0] || photographer.image} alt={photographer.name} fill priority className="object-cover object-center" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/20" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
 
           <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 pt-4 pb-2 z-10">
             <Link
@@ -72,16 +72,15 @@ export function PhotographerDetailClient({ photographer }: { photographer: Vendo
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Profile Card */}
-      <div className="relative px-4 -mt-12 md:-mt-8 lg:-mt-10 z-20">
-        <div className="rounded-3xl p-5 sm:p-7 relative bg-white border border-[#E8DFC5]/80 shadow-[0_8px_30px_rgba(40,31,18,0.06)] space-y-4">
-          <div className="flex items-center gap-4.5">
-            {/* Venue-style Medium Profile Picture (96px–104px on Desktop) */}
-            <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-[96px] md:h-[96px] lg:w-[104px] lg:h-[104px] rounded-2xl flex items-center justify-center bg-[#0F4C45] text-[#C8A96A] font-serif font-bold text-xl sm:text-2xl shadow-md border-2 border-white shrink-0 -mt-10 md:-mt-6 lg:-mt-7">
-              {getInitials(photographer.name)}
-            </div>
+        {/* Profile Card (Overlapping Bottom-Left Corner of Cover Image) */}
+        <div className="relative px-4 -mt-10 sm:-mt-12 md:-mt-12 lg:-mt-14 z-20">
+          <div className="rounded-3xl p-5 sm:p-7 relative bg-white border border-[#E8DFC5]/80 shadow-xl space-y-4">
+            <div className="flex items-center gap-4.5">
+              {/* Profile Picture Overlapping Bottom-Left Corner */}
+              <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-[96px] md:h-[96px] lg:w-[104px] lg:h-[104px] rounded-2xl flex items-center justify-center bg-[#0F4C45] text-[#C8A96A] font-serif font-bold text-xl sm:text-2xl shadow-2xl border-4 border-white shrink-0 -mt-10 sm:-mt-12 md:-mt-14">
+                {getInitials(photographer.name)}
+              </div>
 
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1.5">

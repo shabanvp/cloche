@@ -218,9 +218,9 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
         </div>
       )}
 
-      {/* 1. ELEGANT HERO CAROUSEL SECTION (Short & Compact on Desktop) */}
-      <div className="max-w-3xl mx-auto md:px-4 md:pt-4">
-        <div className="relative w-full h-[220px] sm:h-[260px] md:h-[280px] lg:h-[300px] bg-charcoal md:rounded-2xl overflow-hidden group shadow-md">
+      {/* 1. HERO CAROUSEL SECTION (Visually Aligned with Profile Card) */}
+      <div className="max-w-4xl mx-auto md:px-4 md:pt-4">
+        <div className="relative w-full h-[220px] sm:h-[280px] md:h-[320px] lg:h-[340px] bg-charcoal md:rounded-3xl overflow-hidden group shadow-md">
           <img
             src={heroImages[currentImgIndex]}
             alt={businessName}
@@ -286,13 +286,13 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
     </div>
 
       {/* 2. VENUE-STYLE COMPACT VENDOR PROFILE CARD */}
-      <div className="max-w-4xl mx-auto px-4 -mt-16 sm:-mt-16 md:-mt-10 lg:-mt-12 relative z-30">
+      <div className="max-w-4xl mx-auto px-4 -mt-10 sm:-mt-12 md:-mt-12 lg:-mt-14 relative z-30">
         <div className="bg-white rounded-[24px] p-5 sm:p-7 border border-gold/20 shadow-xl space-y-4">
           
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
-              {/* Venue-style Medium Profile Picture (96px–104px on Desktop) */}
-              <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-[96px] md:h-[96px] lg:w-[104px] lg:h-[104px] rounded-2xl overflow-hidden border-2 border-[#002f22] bg-[#002f22] p-1 shadow-md shrink-0">
+              {/* Profile Picture Overlapping Bottom-Left Corner of Cover Image */}
+              <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-[96px] md:h-[96px] lg:w-[104px] lg:h-[104px] rounded-2xl overflow-hidden border-4 border-white bg-[#002f22] p-0.5 shadow-2xl shrink-0 -mt-10 sm:-mt-12 md:-mt-14">
                 <img src={logo} alt={businessName} className="w-full h-full object-cover rounded-xl" />
               </div>
 
@@ -337,7 +337,7 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
       </div>
 
       {/* 3. FOUR EQUAL QUICK ACTION BUTTONS */}
-      <div className="max-w-3xl mx-auto px-4 mt-6">
+      <div className="max-w-4xl mx-auto px-4 mt-6">
         <div className="grid grid-cols-4 gap-2 sm:gap-3 text-center">
           <a
             href={formatTelUri(phone)}

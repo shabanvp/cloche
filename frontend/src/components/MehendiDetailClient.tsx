@@ -27,9 +27,9 @@ export function MehendiDetailClient({ artist }: { artist: MehendiVendor }) {
   return (
     <div className="min-h-screen flex flex-col bg-[#F8F5F0] pb-32 text-[#2D2520] font-sans">
       {/* Container for Desktop/Laptop Elegance */}
-      <div className="max-w-3xl mx-auto w-full md:px-4 md:pt-4">
-        {/* Top Hero Banner (Short & Compact on Desktop) */}
-        <div className="relative w-full h-[200px] sm:h-[230px] md:h-[240px] lg:h-[250px] bg-gray-900 md:rounded-2xl overflow-hidden shadow-md">
+      <div className="max-w-4xl mx-auto w-full md:px-4 md:pt-4">
+        {/* Top Hero Banner */}
+        <div className="relative w-full h-[220px] sm:h-[280px] md:h-[320px] lg:h-[340px] bg-gray-900 md:rounded-3xl overflow-hidden shadow-md">
           <Image
             src={artist.portfolio[0] || artist.image}
             alt={artist.name}
@@ -37,7 +37,7 @@ export function MehendiDetailClient({ artist }: { artist: MehendiVendor }) {
             priority
             className="object-cover object-center"
           />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/30" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
 
         {/* Top Header Floating Buttons */}
         <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 pt-4 pb-2 z-10">
@@ -83,9 +83,9 @@ export function MehendiDetailClient({ artist }: { artist: MehendiVendor }) {
       </div>
 
       <main className="flex-1 px-4 pt-3 space-y-4">
-        {/* Profile Info Header (Picture 2) */}
-        <div className="flex items-center gap-4.5">
-          <div className="relative h-16 w-16 md:h-[96px] md:w-[96px] lg:h-[104px] lg:w-[104px] shrink-0 rounded-full overflow-hidden border-2 border-white shadow-md">
+        {/* Profile Info Header (Overlapping Bottom-Left Corner of Cover Image) */}
+        <div className="flex items-center gap-4.5 -mt-10 sm:-mt-12 md:-mt-14 relative z-20">
+          <div className="relative h-16 w-16 md:h-[96px] md:w-[96px] lg:h-[104px] lg:w-[104px] shrink-0 rounded-full overflow-hidden border-4 border-white shadow-2xl bg-white">
             <Image src={artist.image} alt={artist.name} fill className="object-cover" />
           </div>
 
