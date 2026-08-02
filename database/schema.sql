@@ -1,6 +1,6 @@
 -- ====================================================================
 -- CLOCHE PLATFORM - PRODUCTION SUPABASE POSTGRESQL DATABASE SCHEMA
--- Version: 1.0.2 (Complete Fresh Install Script with Drop Cascades)
+-- Version: 1.0.3 (Fully Idempotent Execution Script)
 -- Environment: Production / Staging
 -- Single Source of Truth for Web, Mobile, Tablet, Vendor & Admin Dashboards
 -- ====================================================================
@@ -347,17 +347,17 @@ CREATE TABLE analytics_events (
 -- 10. INDEXES FOR HIGH-PERFORMANCE QUERYING
 -- --------------------------------------------------------------------
 
-CREATE INDEX idx_vendor_profiles_category ON vendor_profiles(category);
-CREATE INDEX idx_vendor_profiles_city ON vendor_profiles(city);
-CREATE INDEX idx_venue_gallery_vendor ON venue_gallery(vendor_id);
-CREATE INDEX idx_venue_packages_vendor ON venue_packages(vendor_id);
-CREATE INDEX idx_offers_vendor_status ON offers(vendor_id, status);
-CREATE INDEX idx_coupons_vendor_code ON coupons(vendor_id, code);
-CREATE INDEX idx_advertisements_vendor ON advertisements(vendor_id);
-CREATE INDEX idx_bookings_vendor_status ON bookings(vendor_id, status);
-CREATE INDEX idx_reviews_vendor ON reviews(vendor_id);
-CREATE INDEX idx_wishlists_customer ON wishlists(customer_email);
-CREATE INDEX idx_analytics_vendor_type ON analytics_events(vendor_id, event_type);
+CREATE INDEX IF NOT EXISTS idx_vendor_profiles_category ON vendor_profiles(category);
+CREATE INDEX IF NOT EXISTS idx_vendor_profiles_city ON vendor_profiles(city);
+CREATE INDEX IF NOT EXISTS idx_venue_gallery_vendor ON venue_gallery(vendor_id);
+CREATE INDEX IF NOT EXISTS idx_venue_packages_vendor ON venue_packages(vendor_id);
+CREATE INDEX IF NOT EXISTS idx_offers_vendor_status ON offers(vendor_id, status);
+CREATE INDEX IF NOT EXISTS idx_coupons_vendor_code ON coupons(vendor_id, code);
+CREATE INDEX IF NOT EXISTS idx_advertisements_vendor ON advertisements(vendor_id);
+CREATE INDEX IF NOT EXISTS idx_bookings_vendor_status ON bookings(vendor_id, status);
+CREATE INDEX IF NOT EXISTS idx_reviews_vendor ON reviews(vendor_id);
+CREATE INDEX IF NOT EXISTS idx_wishlists_customer ON wishlists(customer_email);
+CREATE INDEX IF NOT EXISTS idx_analytics_vendor_type ON analytics_events(vendor_id, event_type);
 
 -- --------------------------------------------------------------------
 -- 11. ROW LEVEL SECURITY (RLS) POLICIES
@@ -372,7 +372,23 @@ ALTER TABLE advertisements ENABLE ROW LEVEL SECURITY;
 ALTER TABLE bookings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE reviews ENABLE ROW LEVEL SECURITY;
 
--- Public Read-Only Access Policies
+-- Clean Up Old RLS Policies If Already Existing
+DROP POLICY IF EXISTS "Public Read Vendor Profiles" ON vendor_profiles;
+DROP POLICY IF EXISTS "Public Read Venue Gallery" ON venue_gallery;
+DROP POLICY IF EXISTS "Public Read Venue Packages" ON venue_packages;
+DROP POLICY IF EXISTS "Public Read Offers" ON offers;
+DROP POLICY IF EXISTS "Public Read Coupons" ON coupons;
+DROP POLICY IF EXISTS "Public Read Reviews" ON reviews;
+
+DROP POLICY IF EXISTS "Vendor Manage Own Profile" ON vendor_profiles;
+DROP POLICY IF EXISTS "Vendor Manage Own Gallery" ON venue_gallery;
+DROP POLICY IF EXISTS "Vendor Manage Own Packages" ON venue_packages;
+DROP POLICY IF EXISTS "Vendor Manage Own Offers" ON offers;
+DROP POLICY IF EXISTS "Vendor Manage Own Coupons" ON coupons;
+DROP POLICY IF EXISTS "Vendor Manage Own Ads" ON advertisements;
+DROP POLICY IF EXISTS "Vendor Manage Own Bookings" ON bookings;
+
+-- Create Idempotent Public Read-Only Access Policies
 CREATE POLICY "Public Read Vendor Profiles" ON vendor_profiles FOR SELECT USING (true);
 CREATE POLICY "Public Read Venue Gallery" ON venue_gallery FOR SELECT USING (true);
 CREATE POLICY "Public Read Venue Packages" ON venue_packages FOR SELECT USING (true);
@@ -380,7 +396,7 @@ CREATE POLICY "Public Read Offers" ON offers FOR SELECT USING (true);
 CREATE POLICY "Public Read Coupons" ON coupons FOR SELECT USING (true);
 CREATE POLICY "Public Read Reviews" ON reviews FOR SELECT USING (true);
 
--- Vendor & Admin Management Policies
+-- Create Idempotent Vendor & Admin Management Policies
 CREATE POLICY "Vendor Manage Own Profile" ON vendor_profiles FOR ALL USING (true);
 CREATE POLICY "Vendor Manage Own Gallery" ON venue_gallery FOR ALL USING (true);
 CREATE POLICY "Vendor Manage Own Packages" ON venue_packages FOR ALL USING (true);
