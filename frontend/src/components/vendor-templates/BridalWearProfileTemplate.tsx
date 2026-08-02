@@ -283,6 +283,7 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
           <span>{currentImgIndex + 1}/{heroImages.length}</span>
         </div>
       </div>
+    </div>
 
       {/* 2. FLOATING BOUTIQUE PROFILE CARD */}
       <div className="max-w-4xl mx-auto px-4 -mt-16 sm:-mt-20 relative z-30">

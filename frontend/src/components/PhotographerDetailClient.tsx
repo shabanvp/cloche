@@ -202,7 +202,6 @@ export function PhotographerDetailClient({ photographer }: { photographer: Vendo
           </div>
         )}
       </div>
-    </div>
 
       <BottomNavBar activeTab="vendors" />
     </div>
