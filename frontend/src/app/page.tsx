@@ -23,7 +23,7 @@ export default function Home() {
     },
     {
       label: "Catering",
-      href: "/catering",
+      href: "/categories/catering",
       img: "https://lh3.googleusercontent.com/aida-public/AB6AXuAIttErFBHy9QscHEJk0OBcJyKoRuebpySjvFYxChzwBGdF0_CkESZFpAz7RwTeD47dIGBsebzVOM7njZsd3DIrvBXKh0Fnp8TIns3bKInyycQ5URRN8M-lQ-4gHSayBikcseL_SS7X8HPen8XdGz4b5KuheFjT3QYrN64ogJ0w4iYaaTUIOq0Fqc_uA7ed6IiNT5xz4zF2hQOjD_CNhCdT_4z7AdZ6GDEucyEYoVM_oM9xqSKVyWfhHh-jbFiuepkEs-ayDg8RQRgV",
       alt: "Wedding Catering"
     },
@@ -95,7 +95,7 @@ export default function Home() {
     {
       title: "Catering",
       subtitle: "Traditional Sadya, Buffet & Feasts",
-      href: "/catering",
+      href: "/categories/catering",
       bgColor: "bg-[#F3EAF6]",
       img: "https://images.unsplash.com/photo-1555244162-803834f70033?q=80&w=800&auto=format&fit=crop",
       alt: "Catering"

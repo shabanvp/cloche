@@ -102,7 +102,7 @@ export const REAL_WEDDINGS_DATA: RealWeddingStory[] = [
       { category: "Venue", name: "Grand Solitaire Island Resort", link: "/boutiques/v-solitaire" },
       { category: "Photographer", name: "Magic Motion Media", link: "/boutiques/v-30" },
       { category: "Bridal Wear", name: "Seematti Kanchipuram Silks", link: "/categories/bridal-wear" },
-      { category: "Catering", name: "Kerala Sadhya Feasts", link: "/catering" },
+      { category: "Catering", name: "Kerala Sadhya Feasts", link: "/categories/catering" },
     ],
     gallery: [
       { url: "https://images.unsplash.com/photo-1537633552985-df8429e8048b?auto=format&fit=crop&w=800&q=80", category: "Ceremony", caption: "Traditional Kerala Muhurtham Pheras" },
