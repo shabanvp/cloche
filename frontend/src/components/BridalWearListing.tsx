@@ -171,6 +171,7 @@ export function BridalWearListing() {
         </div>
       </section>
 
+<<<<<<< HEAD
       {/* Extra Small Compact Panels Grid */}
       <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 py-4">
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5 sm:gap-3">
@@ -189,6 +190,26 @@ export function BridalWearListing() {
                     fill
                     className="object-cover group-hover:scale-105 transition-transform duration-500"
                   />
+=======
+        {/* Category Filter Chips */}
+        <div className="flex gap-2 overflow-x-auto px-4 py-2 scrollbar-none text-[12px]">
+          {["All", "Lehengas", "Sarees", "Anarkali", "Gowns"].map((chip) => (
+            <button
+              key={chip}
+              type="button"
+              onClick={() => setActiveChip(chip)}
+              aria-label={`Filter by ${chip}`}
+              className={`shrink-0 rounded-full px-4 py-1.5 font-medium transition-all cursor-pointer ${
+                activeChip === chip
+                  ? "bg-[#0F4C45] text-white font-bold"
+                  : "bg-white text-[#4A3F35] border border-black/10 hover:bg-black/5"
+              }`}
+            >
+              {chip}
+            </button>
+          ))}
+        </div>
+>>>>>>> ae9365f0b8619fa32bce99c36c57a834145a7432
 
                   <div className="absolute top-1.5 left-1.5 right-1.5 flex items-center justify-between z-10">
                     <span className="bg-[#0F4C45]/90 text-white text-[8.5px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md backdrop-blur-xs">

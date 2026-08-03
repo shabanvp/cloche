@@ -280,7 +280,7 @@ export function SearchClient() {
                 <Link key={boutique.id} href={`/boutiques/${boutique.id}`} className="group block bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all border border-gold/10">
                   <div className="relative aspect-[4/3] w-full">
                     <Image
-                      src={boutique.image_url || "https://images.unsplash.com/photo-1594938298596-70f594f74246?q=80&w=800&auto=format&fit=crop"}
+                      src={boutique.image_url || "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?q=80&w=800&auto=format&fit=crop"}
                       alt={boutique.boutique_name}
                       fill
                       className="object-cover group-hover:scale-105 transition-transform duration-500"

@@ -57,7 +57,7 @@ export async function FeaturedBoutiques({ title, subtitle }: FeaturedBoutiquesPr
             <div className="overflow-hidden rounded-[8px] border border-[#eadfce] bg-white shadow-[0_10px_24px_rgba(40,31,18,0.08)] transition-all duration-300 group-hover:shadow-[0_16px_32px_rgba(40,31,18,0.14)]">
               <div className="relative aspect-[1/0.96] w-full overflow-hidden bg-[#eee6da]">
                 <Image
-                  src={boutique.image_url || "https://images.unsplash.com/photo-1594938298596-70f594f74246?q=80&w=800&auto=format&fit=crop"}
+                  src={boutique.image_url || "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?q=80&w=800&auto=format&fit=crop"}
                   alt={boutique.boutique_name}
                   fill
                   sizes="100vw"

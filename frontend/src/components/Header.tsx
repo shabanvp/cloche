@@ -159,9 +159,9 @@ export function Header({ session }: HeaderProps = {}) {
       <div className="hidden md:flex justify-between items-center px-4 sm:px-6 lg:px-10 xl:px-12 py-2 text-xs lg:text-sm bg-[#0B3B2D] text-white border-b border-white/10">
         <div className="flex items-center gap-4">
           <span className="text-gray-300">India&apos;s Favourite Wedding Planning Platform</span>
-          <button className="flex items-center gap-1 bg-white text-gray-900 px-3 py-1 rounded-sm font-medium hover:bg-gray-100 transition-colors">
+          <Link href="/venues" className="flex items-center gap-1 bg-white text-gray-900 px-3 py-1 rounded-sm font-medium hover:bg-gray-100 transition-colors" aria-label="Filter venues by all cities">
             All Cities <ChevronDown className="w-4 h-4" />
-          </button>
+          </Link>
         </div>
         <div className="flex items-center gap-6">
           <Link href="/review" className="flex items-center gap-2 hover:text-gold transition-colors">

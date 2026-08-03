@@ -9,11 +9,11 @@
 -- --------------------------------------------------------------------
 
 INSERT INTO vendor_profiles (vendor_id, category, business_name, tagline, description, city, district, address, contact_number, whatsapp, email, website, instagram, cover_image, is_verified) VALUES
-('v-solitaire', 'Venue', 'Grand Solitaire Resort & Convention Centre', 'Kerala’s Premier Waterfront Wedding & Convention Destination', 'Grand Solitaire Resort offers ultra-luxurious waterfront wedding lawns, majestic banquet halls, world-class catering, and dedicated bridal suites in Kochi.', 'Kochi', 'Ernakulam', 'Marine Drive, Kochi, Kerala 682031', '+919876543210', '+919876543210', 'events@grandsolitaire.com', 'https://grandsolitaire.com', '@grandsolitaire', 'https://images.unsplash.com/photo-1519167758481-83f552bb8c74?auto=format&fit=crop&w=1200&q=80', TRUE),
+('v-solitaire', 'Venue', 'Grand Solitaire Resort & Convention Centre', 'Kerala’s Premier Waterfront Wedding & Convention Destination', 'Grand Solitaire Resort offers ultra-luxurious waterfront wedding lawns, majestic banquet halls, world-class catering, and dedicated bridal suites in Kochi.', 'Kochi', 'Ernakulam', 'Marine Drive, Kochi, Kerala 682031', '+919876543210', '+919876543210', 'events@grandsolitaire.com', 'https://grandsolitaire.com', '@grandsolitaire', 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=80', TRUE),
 
 ('shifa-covention-centre', 'Venue', 'Shifa Convention Centre', 'Spacious & Elegant Venue for Grand Celebrations', 'Shifa Convention Centre is a state-of-the-art wedding venue equipped with central air conditioning, lush green lawns, and ample parking space in Kochi.', 'Kochi', 'Ernakulam', 'NH Bypass, Edappally, Kochi, Kerala 682024', '+919847012345', '+919847012345', 'contact@shifaconvention.com', 'https://shifaconvention.com', '@shifaconvention', 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1200&q=80', TRUE),
 
-('palace-estate', 'Venue', 'The Palace Estate', 'Royal Heritage Destination Wedding Resort', 'The Palace Estate offers palatial architecture, royal lawns, and lakefront views designed for high-profile heritage weddings.', 'Udaipur', 'Udaipur', 'Lake Palace Road, Udaipur, Rajasthan 313001', '+919829011223', '+919829011223', 'concierge@palaceestate.in', 'https://palaceestate.in', '@palaceestate', 'https://images.unsplash.com/photo-1519167758481-83f552bb8c74?auto=format&fit=crop&w=1200&q=80', TRUE),
+('palace-estate', 'Venue', 'The Palace Estate', 'Royal Heritage Destination Wedding Resort', 'The Palace Estate offers palatial architecture, royal lawns, and lakefront views designed for high-profile heritage weddings.', 'Udaipur', 'Udaipur', 'Lake Palace Road, Udaipur, Rajasthan 313001', '+919829011223', '+919829011223', 'concierge@palaceestate.in', 'https://palaceestate.in', '@palaceestate', 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=80', TRUE),
 
 ('grand-hyatt-kochi', 'Venue', 'Grand Hyatt Kochi Bolgatty', '5-Star Luxury Waterfront Hotel & International Convention Centre', 'Set on Bolgatty Island, Grand Hyatt Kochi offers 100,000 sq ft of indoor and outdoor event spaces overlooking Vembanad Lake.', 'Kochi', 'Ernakulam', 'Bolgatty Island, Kochi, Kerala 682050', '+914842661234', '+914842661234', 'kochi.grand@hyatt.com', 'https://hyatt.com', '@grandhyattkochi', 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1200&q=80', TRUE),
 
@@ -44,10 +44,10 @@ max_guests = EXCLUDED.max_guests;
 
 INSERT INTO venue_gallery (vendor_id, public_id, secure_url, sort_order, is_cover) VALUES
 ('v-solitaire', 'v_solitaire_cover', 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1200&q=80', 0, TRUE),
-('v-solitaire', 'v_solitaire_1', 'https://images.unsplash.com/photo-1519167758481-83f552bb8c74?auto=format&fit=crop&w=800&q=80', 1, FALSE),
+('v-solitaire', 'v_solitaire_1', 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=80', 1, FALSE),
 ('v-solitaire', 'v_solitaire_2', 'https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?auto=format&fit=crop&w=800&q=80', 2, FALSE),
 ('v-solitaire', 'v_solitaire_3', 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=800&q=80', 3, FALSE),
-('shifa-covention-centre', 'shifa_cover', 'https://images.unsplash.com/photo-1519167758481-83f552bb8c74?auto=format&fit=crop&w=1200&q=80', 0, TRUE),
+('shifa-covention-centre', 'shifa_cover', 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=80', 0, TRUE),
 ('shifa-covention-centre', 'shifa_1', 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=800&q=80', 1, FALSE),
 ('shifa-covention-centre', 'shifa_2', 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=800&q=80', 2, FALSE)
 ON CONFLICT DO NOTHING;
@@ -67,7 +67,7 @@ ON CONFLICT DO NOTHING;
 -- --------------------------------------------------------------------
 
 INSERT INTO offers (offer_slug, vendor_id, name, type, discount_type, discount_value, package_ids, coupon_code, banner_url, status, start_date, end_date, max_redemptions, current_redemptions, cta_text) VALUES
-('solitaire-earlybird-2026', 'v-solitaire', 'Early Bird Booking Offer', 'percentage', 'percentage', '15% OFF', '["all"]'::jsonb, 'SOLITAIRE15', 'https://images.unsplash.com/photo-1519167758481-83f552bb8c74?auto=format&fit=crop&w=1200&q=80', 'active', '2026-01-01', '2026-12-31', 50, 4, 'Claim 15% OFF'),
+('solitaire-earlybird-2026', 'v-solitaire', 'Early Bird Booking Offer', 'percentage', 'percentage', '15% OFF', '["all"]'::jsonb, 'SOLITAIRE15', 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=80', 'active', '2026-01-01', '2026-12-31', 50, 4, 'Claim 15% OFF'),
 ('shifa-monsoon-special', 'shifa-covention-centre', 'Monsoon Season Discount', 'fixed', 'fixed', '₹25,000 Flat OFF', '["all"]'::jsonb, 'SHIFA25K', 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1200&q=80', 'active', '2026-06-01', '2026-09-30', 30, 2, 'Claim ₹25,000 OFF')
 ON CONFLICT (offer_slug) DO UPDATE SET
 name = EXCLUDED.name,

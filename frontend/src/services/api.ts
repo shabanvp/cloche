@@ -111,7 +111,7 @@ export async function getBoutiqueDetails(id: string): Promise<Boutique | null> {
       ? "Wedding Venue, Convention Centre, Banquet Hall"
       : "Bridal Boutique, Wedding Vendor",
     image_url: isVenue
-      ? "https://images.unsplash.com/photo-1519167758481-83f552bb8c74?auto=format&fit=crop&w=1200&q=80"
+      ? "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=80"
       : "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=1200&q=80",
     description: `Welcome to ${formattedName}, a premier wedding destination and luxury service provider on Cloche.`,
   };
@@ -162,7 +162,7 @@ export async function getProductDetails(id: string): Promise<Product & { gallery
     image_url: "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=800&q=80",
     gallery: [
       "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=800&q=80",
-      "https://images.unsplash.com/photo-1594938298596-70f594f74246?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=800&q=80",
     ]
   };
 }

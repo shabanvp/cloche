@@ -240,8 +240,10 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
           return (
             <button
               key={f}
+              type="button"
               onClick={() => setActiveFilter(f)}
-              className="shrink-0 rounded-full px-4 py-1.5 text-[13px] font-semibold transition-all"
+              aria-label={`Filter by ${f}`}
+              className="shrink-0 rounded-full px-4 py-1.5 text-[13px] font-semibold transition-all cursor-pointer"
               style={{
                 background: active ? "#0F4C45" : "#FFFFFF",
                 color: active ? "#FFFFFF" : "#4A3F35",
@@ -299,7 +301,7 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
 
               const validAvatar = isValidLogoUrl
                 ? rawLogo
-                : "https://images.unsplash.com/photo-1594938298596-70f594f74246?q=80&w=200&auto=format&fit=crop";
+                : "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?q=80&w=200&auto=format&fit=crop";
 
               return (
                 <li key={boutique.id}>
