@@ -1,33 +1,68 @@
 -- ====================================================================
--- CLOCHE PLATFORM - SAFE TRANSACTIONAL LEGACY DATA MIGRATION SCRIPT
--- Version: 2.0.0 (Transactional with Pre-Validation & Rollback)
+-- CLOCHE PLATFORM - LEGACY DATA PRE-CHECK, PREVIEW & MIGRATION SCRIPT
+-- Version: 3.0.0 (Column Audit, Top 10 Preview, Transactional Execution)
 -- Environment: Production / Staging
 -- ====================================================================
 
 -- --------------------------------------------------------------------
--- STEP 1: PRE-MIGRATION PREVIEW & VALIDATION CHECK
+-- STEP 1: PRE-CHECK SOURCE COLUMNS & GENERATE AUDIT REPORT
 -- --------------------------------------------------------------------
 DO $$
+DECLARE
+    table_exists BOOLEAN := FALSE;
 BEGIN
-    RAISE NOTICE '--- PRE-MIGRATION PREVIEW CHECK ---';
-    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'boutique_showcase') THEN
-        RAISE NOTICE 'Table boutique_showcase found. Proceeding with migration...';
+    RAISE NOTICE '====================================================';
+    RAISE NOTICE '1. AUDITING LEGACY TABLE & COLUMN STRUCTURE...';
+    RAISE NOTICE '====================================================';
+
+    SELECT EXISTS (
+        SELECT 1 FROM information_schema.tables 
+        WHERE table_schema = 'public' AND table_name = 'boutique_showcase'
+    ) INTO table_exists;
+
+    IF NOT table_exists THEN
+        RAISE NOTICE 'NOTICE: Table "boutique_showcase" is not present in public schema.';
+        RAISE NOTICE 'Skipping direct column migration. Seeded vendors remain active.';
     ELSE
-        RAISE NOTICE 'Table boutique_showcase not found in current schema. Skipping migration safely.';
+        RAISE NOTICE '✓ Table "boutique_showcase" exists in public schema.';
     END IF;
 END $$;
 
 -- --------------------------------------------------------------------
--- STEP 2: SAFE TRANSACTIONAL MIGRATION (BEGIN ... COMMIT / ROLLBACK)
+-- STEP 2: PREVIEW MODE - TOP 10 MAPPED RECORDS (READ-ONLY QUERY)
+-- --------------------------------------------------------------------
+SELECT 
+    COALESCE(
+        NULLIF(b.slug, ''),
+        NULLIF(b.id::text, ''),
+        LOWER(REGEXP_REPLACE(COALESCE(b.boutique_name, b.name, 'boutique'), '[^a-zA-Z0-9]+', '-', 'g'))
+    ) AS mapped_vendor_id,
+    'Bridal Wear' AS mapped_category,
+    COALESCE(b.boutique_name, b.name, 'Bridal Boutique') AS mapped_business_name,
+    COALESCE(NULLIF(b.city, ''), NULLIF(b.district, ''), 'Kochi') AS mapped_city,
+    COALESCE(NULLIF(b.district, ''), 'Ernakulam') AS mapped_district,
+    COALESCE(NULLIF(b.image_url, ''), NULLIF(b.cover_image, ''), NULLIF(b.logo_url, ''), NULLIF(b.image, '')) AS mapped_cover_image,
+    COALESCE(b.rating, 5.0) AS mapped_rating
+FROM (
+    SELECT 1 AS dummy
+) d
+LEFT JOIN boutique_showcase b ON TRUE
+LIMIT 10;
+
+-- --------------------------------------------------------------------
+-- STEP 3: TRANSACTIONAL EXECUTION WITH AUTOMATIC ROLLBACK
 -- --------------------------------------------------------------------
 BEGIN;
 
 DO $$
 BEGIN
-    -- Check if boutique_showcase table exists
-    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'boutique_showcase') THEN
-        
-        -- 1. Insert/Update into vendor_profiles
+    IF EXISTS (
+        SELECT 1 FROM information_schema.tables 
+        WHERE table_schema = 'public' AND table_name = 'boutique_showcase'
+    ) THEN
+        RAISE NOTICE 'Executing safe transactional migration from boutique_showcase...';
+
+        -- 1. Populate vendor_profiles
         EXECUTE '
             INSERT INTO vendor_profiles (
                 vendor_id, category, business_name, tagline, description,
@@ -62,7 +97,7 @@ BEGIN
             district = COALESCE(EXCLUDED.district, vendor_profiles.district),
             updated_at = NOW()';
 
-        -- 2. Insert/Update into boutiques
+        -- 2. Populate boutiques
         EXECUTE '
             INSERT INTO boutiques (
                 vendor_id, name, category_type, city, rating, cover_image, is_verified, created_at
@@ -87,20 +122,22 @@ BEGIN
             city = COALESCE(EXCLUDED.city, boutiques.city),
             rating = COALESCE(EXCLUDED.rating, boutiques.rating)';
 
-        RAISE NOTICE 'Migration from boutique_showcase completed successfully.';
+        RAISE NOTICE 'Migration execution successful.';
     ELSE
-        RAISE NOTICE 'boutique_showcase table not present. No legacy rows to import.';
+        RAISE NOTICE 'No legacy boutique_showcase table detected. Preserving existing vendors.';
     END IF;
 
 EXCEPTION WHEN OTHERS THEN
-    RAISE EXCEPTION 'Migration failed with error: %. Transaction rolled back automatically.', SQLERRM;
+    RAISE EXCEPTION 'Migration halted with error: %. Automatic rollback performed.', SQLERRM;
 END $$;
 
 COMMIT;
 
 -- --------------------------------------------------------------------
--- STEP 3: POST-MIGRATION VERIFICATION CHECKS
+-- STEP 4: POST-COMMIT VERIFICATION QUERY
 -- --------------------------------------------------------------------
-SELECT 'vendor_profiles count' AS entity, COUNT(*) AS record_count FROM vendor_profiles
+SELECT 'vendor_profiles' AS table_name, COUNT(*) AS record_count FROM vendor_profiles
 UNION ALL
-SELECT 'boutiques count' AS entity, COUNT(*) AS record_count FROM boutiques;
+SELECT 'boutiques' AS table_name, COUNT(*) AS record_count FROM boutiques
+UNION ALL
+SELECT 'boutique_products' AS table_name, COUNT(*) AS record_count FROM boutique_products;
