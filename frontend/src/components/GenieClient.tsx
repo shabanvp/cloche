@@ -100,7 +100,7 @@ export function GenieClient() {
               name: "Posh Wedding Rental",
               category: "Bridal & Groom Couture",
               location: "MG Road, Kochi",
-              image: "https://images.unsplash.com/photo-1583391733956-6c78276477e2?auto=format&fit=crop&w=600&q=80",
+              image: "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=600&q=80",
             },
             {
               id: "royal-heritage-boutique",

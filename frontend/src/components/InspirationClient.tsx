@@ -54,7 +54,7 @@ const INSPIRATION_PHOTOS: InspirationPhoto[] = [
     id: "p4",
     title: "Royal Silk Sherwani with Hand-embroidered Stole",
     category: "Groom Wear",
-    image: "https://images.unsplash.com/photo-1583391733956-6c78276477e2?auto=format&fit=crop&w=1200&q=80",
+    image: "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=1200&q=80",
     vendorName: "Kalki Couture",
     vendorLink: "/boutiques",
     likes: 198,

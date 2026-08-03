@@ -342,7 +342,7 @@ export function VendorRegisterClient() {
 
         const validLogo = logoPreview && (logoPreview.startsWith("data:") || logoPreview.startsWith("http") || logoPreview.startsWith("/"))
           ? logoPreview
-          : "https://images.unsplash.com/photo-1594938298596-70f594f74246?q=80&w=200&auto=format&fit=crop";
+          : "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?q=80&w=200&auto=format&fit=crop";
 
         const validCover = coverPreview && (coverPreview.startsWith("data:") || coverPreview.startsWith("http") || coverPreview.startsWith("/"))
           ? coverPreview

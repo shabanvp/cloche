@@ -22,7 +22,7 @@ const blogPosts: BlogPost[] = [
     category: "Planning",
     date: "July 28, 2026",
     readTime: "5 min read",
-    image: "https://images.unsplash.com/photo-1519167758481-83f552bb8c74?auto=format&fit=crop&w=400&q=80",
+    image: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=400&q=80",
   },
   {
     id: "bridal-fashion-trends-2026",
@@ -30,7 +30,7 @@ const blogPosts: BlogPost[] = [
     category: "Fashion",
     date: "July 20, 2026",
     readTime: "4 min read",
-    image: "https://images.unsplash.com/photo-1594938298596-70f594f74246?auto=format&fit=crop&w=400&q=80",
+    image: "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=400&q=80",
   },
   {
     id: "destination-wedding-checklist",
@@ -46,7 +46,7 @@ const blogPosts: BlogPost[] = [
     category: "Tips",
     date: "June 30, 2026",
     readTime: "7 min read",
-    image: "https://images.unsplash.com/photo-1519225495846-f9acbe3b136d?auto=format&fit=crop&w=400&q=80",
+    image: "https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=400&q=80",
   },
 ];
 

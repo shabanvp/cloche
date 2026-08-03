@@ -30,7 +30,7 @@ const blogPosts: BlogPost[] = [
     category: "Fashion",
     date: "July 20, 2026",
     readTime: "4 min read",
-    image: "https://images.unsplash.com/photo-1594938298596-70f594f74246?auto=format&fit=crop&w=1200&q=80",
+    image: "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=1200&q=80",
     content: "In 2026, bridal fashion takes a bold step forward. We see a rise in deep jewel tones, heritage fabrics like Banarasi silks, capes and jackets replacing heavy dupattas, and exquisite customized embroideries showing the couple's story.",
   },
   {
@@ -48,7 +48,7 @@ const blogPosts: BlogPost[] = [
     category: "Tips",
     date: "June 30, 2026",
     readTime: "7 min read",
-    image: "https://images.unsplash.com/photo-1519225495846-f9acbe3b136d?auto=format&fit=crop&w=1200&q=80",
+    image: "https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=1200&q=80",
     content: "Priya and Arjun's palace wedding in Udaipur was the highlight of the season. Featuring majestic floral altars, customized local catering delicacies, and gorgeous royal outfits set against the beautiful background of Lake Pichola.",
   },
 ];
