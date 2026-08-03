@@ -180,8 +180,10 @@ export function BridalWearListing() {
           {["All", "Lehengas", "Sarees", "Anarkali", "Gowns"].map((chip) => (
             <button
               key={chip}
+              type="button"
               onClick={() => setActiveChip(chip)}
-              className={`shrink-0 rounded-full px-4 py-1.5 font-medium transition-all ${
+              aria-label={`Filter by ${chip}`}
+              className={`shrink-0 rounded-full px-4 py-1.5 font-medium transition-all cursor-pointer ${
                 activeChip === chip
                   ? "bg-[#0F4C45] text-white font-bold"
                   : "bg-white text-[#4A3F35] border border-black/10 hover:bg-black/5"

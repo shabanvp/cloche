@@ -240,8 +240,10 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
           return (
             <button
               key={f}
+              type="button"
               onClick={() => setActiveFilter(f)}
-              className="shrink-0 rounded-full px-4 py-1.5 text-[13px] font-semibold transition-all"
+              aria-label={`Filter by ${f}`}
+              className="shrink-0 rounded-full px-4 py-1.5 text-[13px] font-semibold transition-all cursor-pointer"
               style={{
                 background: active ? "#0F4C45" : "#FFFFFF",
                 color: active ? "#FFFFFF" : "#4A3F35",
