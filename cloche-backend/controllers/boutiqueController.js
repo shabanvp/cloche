@@ -100,7 +100,6 @@ const normalizeImageUrl = (value) => {
     const cloudName = String(process.env.CLOUDINARY_CLOUD_NAME || "dycwsnzyd").trim();
     if (raw.includes("uploads/") || raw.startsWith("/uploads/")) return raw;
     return `https://res.cloudinary.com/${cloudName}/image/upload/${raw.replace(/^\/+/, "")}`;
-
 };
 
 /**
@@ -115,7 +114,7 @@ exports.getAllBoutiques = async (req, res) => {
         // Fetch boutiques. We first try with the advanced ranking columns.
         // If these columns don't exist yet, it will throw a PostgreSQL error (500).
         // We'll catch that and retry with a simpler query.
-        let boutiques;
+        let boutiques = [];
         
         try {
             const { data, error } = await supabase
@@ -126,7 +125,7 @@ exports.getAllBoutiques = async (req, res) => {
                 .order("boutique_name", { ascending: true });
                 
             if (error) throw error;
-            boutiques = data;
+            boutiques = data || [];
         } catch (dbErr) {
             console.warn("[BoutiqueController] Advanced ranking failed, falling back to basic sort:", dbErr.message);
             const { data, error } = await supabase
@@ -135,13 +134,11 @@ exports.getAllBoutiques = async (req, res) => {
                 .order("boutique_name", { ascending: true });
                 
             if (error) return res.status(500).json({ message: "Database error", error: error.message });
-            boutiques = data;
+            boutiques = data || [];
         }
 
         // Fetch showcase data for images/location/tags.
-        // Important: if boutique_showcase accidentally has multiple rows per boutique_id,
-        // always pick the latest one (so tags shown on mobile match what the boutique saved).
-        const boutiqueIds = boutiques.map(b => b.id).filter(Boolean);
+        const boutiqueIds = (boutiques || []).map(b => b?.id).filter(Boolean);
         let showcases = [];
 
         if (boutiqueIds.length) {
@@ -184,7 +181,6 @@ exports.getAllBoutiques = async (req, res) => {
         const showcaseMap = {};
         for (const row of showcases) {
             if (!row || !row.boutique_id) continue;
-            // Keep the first row encountered (queries above try to return newest-first).
             if (showcaseMap[row.boutique_id]) continue;
             
             const { id: _showcaseId, ...rest } = row;
@@ -195,7 +191,6 @@ exports.getAllBoutiques = async (req, res) => {
         }
 
         // 🔹 Final Ranking Logic (Premium > Professional > Early)
-        // This ensures the site feels premium even if the database columns are missing.
         const normalizePlan = (plan) => {
             const normalized = String(plan || "").trim().toLowerCase();
             if (["early", "basic", "early partner", "early_partner"].includes(normalized)) return "early_partner";
@@ -204,17 +199,17 @@ exports.getAllBoutiques = async (req, res) => {
         };
         const planWeight = { premium: 3, professional: 2, early_partner: 1 };
         
-        // 🔹 Merge boutique data with showcase data
-        const result = boutiques
-            .filter(b => b.is_verified === true || b.is_verified === "true" || b.is_verified === 1 || b.is_verified === "1")
+        // 🔹 Merge boutique data with showcase data safely
+        const result = (boutiques || [])
+            .filter(b => b && (b.is_verified === true || b.is_verified === "true" || b.is_verified === 1 || b.is_verified === "1"))
             .map(b => ({
-            ...b,
-            ...(showcaseMap[b.id] || {}),
-            image_url: normalizeImageUrl(showcaseMap[b.id]?.image_url || b.image_url || "")
-        }));
+                ...b,
+                ...(showcaseMap[b.id] || {}),
+                image_url: normalizeImageUrl(showcaseMap[b.id]?.image_url || b.image_url || "")
+            }));
 
         const sortedResult = result.sort((a, b) => {
-            // 1. Featured first (if column exists)
+            // 1. Featured first
             if (a.is_featured !== b.is_featured) return b.is_featured ? 1 : -1;
             
             // 2. Plan tier
@@ -225,14 +220,16 @@ exports.getAllBoutiques = async (req, res) => {
             const weightB = planWeight[normalizePlan(b.plan)] || 0;
             if (weightA !== weightB) return weightB - weightA;
             
-            // 3. Score (if column exists)
+            // 3. Score
             if (a.priority_score !== b.priority_score) return (b.priority_score || 0) - (a.priority_score || 0);
 
             // 4. Rating
             if (a.rating !== b.rating) return (b.rating || 0) - (a.rating || 0);
             
-            // 5. Alphabetical
-            return a.boutique_name.localeCompare(b.boutique_name);
+            // 5. Alphabetical (Safe localeCompare)
+            const nameA = String(a?.boutique_name || "");
+            const nameB = String(b?.boutique_name || "");
+            return nameA.localeCompare(nameB);
         });
 
         // Filter by city if provided
@@ -259,7 +256,6 @@ exports.searchBoutiques = async (req, res) => {
 
         // Keyword search
         if (keyword) {
-            // Fetch boutique IDs matching the keyword
             const { data: bData } = await supabase.from('boutiques')
                 .select('id')
                 .or(`boutique_name.ilike.%${keyword}%,city.ilike.%${keyword}%`);
@@ -296,18 +292,17 @@ exports.searchBoutiques = async (req, res) => {
         const { data, count, error } = await query;
         if (error) throw error;
 
-        // Map data to expected format
         const flattened = (data || []).map(row => ({
-            id: row.boutiques.id,
-            boutique_name: row.boutiques.boutique_name,
-            owner_name: row.boutiques.owner_name,
-            city: row.boutiques.city,
-            plan: row.boutiques.plan,
-            district: row.district,
-            area: row.area,
+            id: row.boutiques?.id || row.boutique_id,
+            boutique_name: row.boutiques?.boutique_name || "",
+            owner_name: row.boutiques?.owner_name || "",
+            city: row.boutiques?.city || "",
+            plan: row.boutiques?.plan || "",
+            district: row.district || "",
+            area: row.area || "",
             tags: normalizeTags(row.tags),
             image_url: normalizeImageUrl(row.image_url),
-            rating: row.rating
+            rating: row.rating || 0
         }));
 
         return res.json({
@@ -338,7 +333,6 @@ exports.getBoutiqueDetails = async (req, res) => {
 
         if (error || !boutique) return res.status(404).json({ message: "Boutique not found" });
 
-        // Prefer latest showcase row if duplicates exist
         let showcase = null;
         try {
             const { data, error: scErr } = await supabase
@@ -371,8 +365,8 @@ exports.getBoutiqueDetails = async (req, res) => {
             district: showcase?.district || "",
             area: showcase?.area || "",
             shop_location: showcase?.shop_location || "",
-            image_url: normalizeImageUrl(showcase?.image_url || boutique.image_url || ""),
-            showcase_image: normalizeImageUrl(showcase?.image_url || boutique.image_url || ""),
+            image_url: normalizeImageUrl(showcase?.image_url || boutique?.image_url || ""),
+            showcase_image: normalizeImageUrl(showcase?.image_url || boutique?.image_url || ""),
             rating: showcase?.rating || 0
         });
     } catch (err) {
