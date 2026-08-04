@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { BottomNavBar } from "@/components/BottomNavBar";
 import { MehendiVendor } from "@/lib/mehendiData";
+import { formatTelUri } from "@/lib/formatters";
 
 export function MehendiDetailClient({ artist }: { artist: MehendiVendor }) {
   const [activeTab, setActiveTab] = useState<string>("about");
