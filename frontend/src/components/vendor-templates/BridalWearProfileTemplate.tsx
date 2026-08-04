@@ -1,5 +1,10 @@
 "use client";
-
+import { useState, useRef } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { ArrowLeft, Share2, Heart, Star, MapPin, CheckCircle2, ChevronRight, Layers, Phone, MessageSquare, Globe, Clock, User, ArrowRight, ShoppingBag, Send, X } from "lucide-react";
+import { formatTelUri } from "@/lib/formatters";
+import { Button } from "@/components/ui/button";
 import { VendorProfileLayout, VendorProfileData } from "@/components/VendorProfileLayout";
 import { VendorProfileConfig } from "@/lib/vendorTemplates";
 import { Boutique, Product } from "@/types";
@@ -35,6 +40,35 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
     phone: (boutique as any)?.contact_number || (bridalVendor as any)?.phone || config?.phone || "9876543210"
   };
 
+  const [activeTab, setActiveTab] = useState<"about" | "collections" | "reviews" | "info">("about");
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followerCount, setFollowerCount] = useState(12500);
+  const [isWishlisted, setIsWishlisted] = useState(false);
+  const [toastMsg, setToastMsg] = useState("");
+  const [showQuoteModal, setShowQuoteModal] = useState(false);
+  const [showTrialModal, setShowTrialModal] = useState(false);
+  const [quoteName, setQuoteName] = useState("");
+  const [quotePhone, setQuotePhone] = useState("");
+  const [quoteDate, setQuoteDate] = useState("");
+  const [quoteMessage, setQuoteMessage] = useState("");
+  const [reviewAuthor, setReviewAuthor] = useState("");
+  const [reviewText, setReviewText] = useState("");
+  const [reviewRating, setReviewRating] = useState(5);
+  const [lightboxImg, setLightboxImg] = useState<string | null>(null);
+
+  const aboutRef = useRef<HTMLDivElement>(null);
+  const collectionsRef = useRef<HTMLDivElement>(null);
+  const reviewsRef = useRef<HTMLDivElement>(null);
+  const infoRef = useRef<HTMLDivElement>(null);
+
+  const businessName = name;
+
+  const showToast = (msg: string) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(""), 3000);
+  };
+  
+  const logAdminAction = (a: string, b: string, c: string, d: string) => {};
 
   const handleFollowToggle = () => {
     setIsFollowing((prev) => {
