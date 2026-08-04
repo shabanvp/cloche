@@ -1,144 +1,41 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import Link from "next/link";
+import { VendorProfileLayout, VendorProfileData } from "@/components/VendorProfileLayout";
 import { VendorProfileConfig } from "@/lib/vendorTemplates";
 import { Boutique, Product } from "@/types";
-import { BridalBoutiqueVendor, bridalBoutiqueVendors } from "@/lib/bridalAndInvitationData";
-import { 
-  ShoppingBag, Sparkles, MapPin, Phone, MessageSquare, Star, 
-  CheckCircle2, Scissors, Calendar, Heart, ShieldCheck, Clock, 
-  Eye, Tag, ChevronRight, HelpCircle, ArrowRight, Layers, Award,
-  ArrowLeft, Share2, Bookmark, Check, X, User, Send, Globe, MessageCircle,
-  ExternalLink, Info, CheckCircle
-} from "lucide-react";
-import { Button } from "@/components/Button";
-import { formatTelUri } from "@/lib/formatters";
-import { logAdminAction } from "@/lib/systemStore";
+import { BridalBoutiqueVendor } from "@/lib/bridalAndInvitationData";
 
 interface Props {
-  config: VendorProfileConfig;
+  config?: VendorProfileConfig;
   boutique?: Boutique;
   bridalVendor?: BridalBoutiqueVendor;
   collections?: Product[];
 }
 
 export function BridalWearProfileTemplate({ config, boutique, bridalVendor, collections }: Props) {
-  const [currentImgIndex, setCurrentImgIndex] = useState(0);
-  const [isWishlisted, setIsWishlisted] = useState(false);
-  const [isFollowing, setIsFollowing] = useState(false);
+  const vendorId = String(boutique?.id || bridalVendor?.id || config?.vendorId || "aurora-bridal-couture");
+  const name = boutique?.boutique_name || bridalVendor?.name || config?.businessName || "Aurora Bridal Couture";
+  const location = boutique?.city || bridalVendor?.location || config?.city || "Bandra, Mumbai";
+  const rating = boutique?.rating || bridalVendor?.rating || (config as any)?.rating || 4.8;
+  const reviews = (boutique as any)?.reviews_count || (boutique as any)?.reviews || bridalVendor?.reviews || (config as any)?.reviewsCount || 120;
+  const image = (boutique as any)?.cover_image || (boutique as any)?.logo_url || (boutique as any)?.image_url || (collections && collections[0]?.image_url) || bridalVendor?.image || config?.coverImage || "https://images.unsplash.com/photo-1549417229-aa67d3263c09?auto=format&fit=crop&w=800&q=80";
+  const subtitle = (boutique as any)?.tagline || bridalVendor?.subtitle || config?.tagline || "Luxury couture lehengas crafted to perfection.";
+  const about = (boutique as any)?.description || bridalVendor?.about || config?.aboutText || "Exquisite bridal wear label known for luxury craftsmanship and timeless designs.";
 
-  // Dynamic Vendor Properties (Strictly No Shared Hardcoded Fallbacks)
-  const vendorId = String(boutique?.id || bridalVendor?.id || config.vendorId || "aurora-bridal-couture");
-  const businessName = boutique?.boutique_name || bridalVendor?.name || config.businessName;
-  const logo = (boutique as any)?.logo_url || (boutique as any)?.logo || boutique?.image_url || config.logo;
-  const coverImage = (boutique as any)?.cover_image || boutique?.image_url || bridalVendor?.image || config.coverImage;
-  const tagline = (boutique as any)?.tagline || bridalVendor?.subtitle || config.tagline || "Luxury couture lehengas crafted to perfection.";
-  const aboutText = (boutique as any)?.description || bridalVendor?.about || config.aboutText;
-  
-  const city = boutique?.city || (bridalVendor?.location ? bridalVendor.location.split(",")[0].trim() : config.city);
-  const district = boutique?.district || (bridalVendor?.location ? bridalVendor.location.split(",")[1]?.trim() || config.district : config.district);
-  const address = (boutique as any)?.address || bridalVendor?.location || `${city}, ${district}`;
-
-  const rating = boutique?.rating || bridalVendor?.rating || 4.8;
-  const reviewsCount = (boutique as any)?.reviews_count || bridalVendor?.reviews || 120;
-  const yearsInBusiness = (boutique as any)?.years_in_business || bridalVendor?.yearsInBusiness || 10;
-  const bridesDressed = (boutique as any)?.brides_dressed || bridalVendor?.bridesDressed || 450;
-  
-  const phone = boutique?.phone || config.phone || "+91 98470 55443";
-  const whatsapp = (boutique as any)?.whatsapp || config.whatsapp || "+91 98470 55443";
-  const email = boutique?.email || config.email || "info@boutique.com";
-  const website = (boutique as any)?.website || config.website || "https://cloche.luxury";
-  const instagram = (boutique as any)?.instagram || config.instagram || "@clocheweddings";
-
-  const [followerCount, setFollowerCount] = useState(reviewsCount * 3 + 45);
-  const [activeTab, setActiveTab] = useState<"about" | "collections" | "reviews" | "info">("about");
-
-  // Modals
-  const [showQuoteModal, setShowQuoteModal] = useState(false);
-  const [showTrialModal, setShowTrialModal] = useState(false);
-  const [showReviewModal, setShowReviewModal] = useState(false);
-  const [lightboxImg, setLightboxImg] = useState<string | null>(null);
-
-  // Form States
-  const [toastMsg, setToastMsg] = useState<string | null>(null);
-  const [quoteName, setQuoteName] = useState("");
-  const [quotePhone, setQuotePhone] = useState("");
-  const [quoteDate, setQuoteDate] = useState("");
-  const [quoteMessage, setQuoteMessage] = useState("");
-
-  const [reviewAuthor, setReviewAuthor] = useState("");
-  const [reviewRating, setReviewRating] = useState(5);
-  const [reviewText, setReviewText] = useState("");
-
-  // Section Refs for Scroll & Sticky Tabs
-  const aboutRef = useRef<HTMLDivElement>(null);
-  const collectionsRef = useRef<HTMLDivElement>(null);
-  const reviewsRef = useRef<HTMLDivElement>(null);
-  const infoRef = useRef<HTMLDivElement>(null);
-
-  // Dynamic Product Catalog Source (Max 5 products for preview carousel)
-  const rawProducts = collections && collections.length > 0 ? collections : (boutique as any)?.products;
-  const rawBridalCollections = vendorId === "posh-wedding-rental" && bridalVendor?.collections
-    ? bridalVendor.collections.filter(c => !["Royal Sherwanis", "Tuxedos & Suits", "Indo-Western & Bandhgalas"].includes(c.name))
-    : bridalVendor?.collections;
-  const displayedProducts = rawProducts ? rawProducts.slice(0, 5) : [];
-
-  // Real Hero Images list
-  const heroImages = [
-    coverImage,
-    ...(config.galleryImages || []),
-    ...(rawProducts ? rawProducts.map((p: any) => p.image_url || p.image).filter(Boolean) : []),
-  ].filter((img, idx, self) => img && self.indexOf(img) === idx);
-
-  // Price Tiers Source
-  const priceRanges = bridalVendor?.prices || [
-    { category: "Lehengas", price: "₹80,000", isPopular: false },
-    { category: "Bridal Couture", price: "₹1,50,000", isPopular: true },
-    { category: "Sarees", price: "₹45,000", isPopular: false },
-  ];
-
-  // Amenities
-  const amenitiesList = bridalVendor?.amenities?.length ? bridalVendor.amenities.map(a => ({
-    icon: Scissors,
-    label: a.name
-  })) : [
-    { icon: Scissors, label: "In-house Tailoring" },
-    { icon: Layers, label: "Private Trial Room" },
-    { icon: Sparkles, label: "Styling Assistance" },
-    { icon: User, label: "Outstation Brides" },
-    { icon: Scissors, label: "Customization Available" },
-  ];
-
-  // Real Reviews Source
-  const [reviewsList, setReviewsList] = useState(
-    bridalVendor?.userReviews && bridalVendor.userReviews.length > 0
-      ? bridalVendor.userReviews.map((r, i) => ({
-          author: r.author,
-          date: r.date,
-          rating: r.rating,
-          avatar: `https://images.unsplash.com/photo-${1534528741775 + i * 100}?auto=format&fit=crop&w=200&q=80`,
-          text: r.text,
-        }))
-      : [
-          {
-            author: "Nayanthara S.",
-            date: "3 weeks ago",
-            rating: 5.0,
-            avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80",
-            text: `Shopping at ${businessName} was an exceptional experience! Their embroidery craftsmanship, custom trial fittings, and warm hospitality made our wedding look unforgettable.`,
-          },
-        ]
-  );
-
-  // Filter max 5 similar boutiques excluding current boutique
-  const similarBoutiques = bridalBoutiqueVendors.filter((b) => b.id !== vendorId).slice(0, 5);
-
-  const showToast = (msg: string) => {
-    setToastMsg(msg);
-    setTimeout(() => setToastMsg(null), 3500);
+  const profileData: VendorProfileData = {
+    id: vendorId,
+    name,
+    category: "bridal-wear",
+    location,
+    rating,
+    reviews,
+    image,
+    subtitle,
+    about,
+    phone: (boutique as any)?.contact_number || (bridalVendor as any)?.phone || config?.phone || "9876543210"
   };
 
+<<<<<<< HEAD
   const handleFollowToggle = () => {
     setIsFollowing((prev) => {
       const next = !prev;
@@ -940,4 +837,7 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
 
     </div>
   );
+=======
+  return <VendorProfileLayout vendor={profileData} />;
+>>>>>>> 88fb4f070bdef1007e23182c3f98a33cd05412e1
 }

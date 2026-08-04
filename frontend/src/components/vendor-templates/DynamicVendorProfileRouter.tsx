@@ -1,13 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { getVendorProfileConfig, VendorProfileConfig, CategoryType } from "@/lib/vendorTemplates";
-import { VenueProfileTemplate } from "./VenueProfileTemplate";
-import { PhotographerProfileTemplate } from "./PhotographerProfileTemplate";
-import { BridalWearProfileTemplate } from "./BridalWearProfileTemplate";
-import { GenericCategoryProfileTemplate } from "./GenericCategoryProfileTemplate";
+import { VendorProfileLayout, VendorProfileData } from "@/components/VendorProfileLayout";
 import { Boutique, Product } from "@/types";
 import { BridalBoutiqueVendor } from "@/lib/bridalAndInvitationData";
+import { VendorProfileConfig } from "@/lib/vendorTemplates";
 
 interface Props {
   vendorId: string;
@@ -20,70 +16,33 @@ interface Props {
 
 export function DynamicVendorProfileRouter({
   vendorId,
-  category = "Bridal Wear",
-  initialConfig,
+  category = "bridal-wear",
   boutique,
   bridalVendor,
   collections,
 }: Props) {
-  const [config, setConfig] = useState<VendorProfileConfig>(
-    initialConfig || getVendorProfileConfig(vendorId, category as CategoryType)
-  );
+  const catLower = (category || "").toString().toLowerCase().trim();
 
-  useEffect(() => {
-    if (!initialConfig) {
-      setConfig(getVendorProfileConfig(vendorId, category as CategoryType));
-    }
-  }, [vendorId, category, initialConfig]);
+  const name = boutique?.boutique_name || bridalVendor?.name || "Cloche Vendor Profile";
+  const location = boutique?.city || boutique?.district || bridalVendor?.location || "Delhi NCR";
+  const rating = boutique?.rating || bridalVendor?.rating || 4.9;
+  const reviews = (boutique as any)?.reviews_count || (boutique as any)?.reviews || bridalVendor?.reviews || 120;
+  const image = (boutique as any)?.logo_url || (boutique as any)?.image_url || (collections && collections[0]?.image_url) || bridalVendor?.image || "https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=600&q=80";
+  const subtitle = boutique?.description || bridalVendor?.subtitle || "Exquisite wedding collections & premium services.";
+  const about = boutique?.description || bridalVendor?.about || `${name} is known for delivering timeless wedding experiences and unmatched service.`;
 
-  const catLower = (config.category || category || "").toString().toLowerCase().trim();
+  const profileData: VendorProfileData = {
+    id: vendorId,
+    name,
+    category: catLower,
+    location,
+    rating,
+    reviews,
+    image,
+    subtitle,
+    about,
+    phone: (boutique as any)?.contact_number || (bridalVendor as any)?.phone || "9876543210"
+  };
 
-  // 1. Check for Wedding Venues
-  if (
-    catLower.includes("venue") ||
-    catLower.includes("hall") ||
-    catLower.includes("resort") ||
-    catLower.includes("palace") ||
-    catLower === "wedding venues"
-  ) {
-    return <VenueProfileTemplate config={config} preview={false} />;
-  }
-
-  // 2. Check for Photographers & Videographers
-  if (
-    catLower.includes("photographer") ||
-    catLower.includes("photo") ||
-    catLower.includes("video") ||
-    catLower.includes("cinema") ||
-    catLower === "photographers"
-  ) {
-    return <PhotographerProfileTemplate config={config} />;
-  }
-
-  // 3. Check for ALL Bridal Boutique / Bridal Wear / Designer Boutique / Wedding Dresses categories
-  if (
-    catLower.includes("bridal") ||
-    catLower.includes("boutique") ||
-    catLower.includes("dress") ||
-    catLower.includes("lehenga") ||
-    catLower.includes("saree") ||
-    catLower.includes("gown") ||
-    catLower.includes("couture") ||
-    catLower === "bridal wear" ||
-    catLower === "bridal boutique" ||
-    catLower === "designer boutique" ||
-    catLower === "wedding boutique"
-  ) {
-    return (
-      <BridalWearProfileTemplate
-        config={config}
-        boutique={boutique}
-        bridalVendor={bridalVendor}
-        collections={collections}
-      />
-    );
-  }
-
-  // Default Fallback Template
-  return <GenericCategoryProfileTemplate config={config} />;
+  return <VendorProfileLayout vendor={profileData} />;
 }

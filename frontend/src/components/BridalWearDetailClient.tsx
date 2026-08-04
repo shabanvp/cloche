@@ -1,21 +1,25 @@
 "use client";
 
 import { BridalBoutiqueVendor } from "@/lib/bridalAndInvitationData";
-import { DynamicVendorProfileRouter } from "@/components/vendor-templates/DynamicVendorProfileRouter";
-import { BottomNavBar } from "@/components/BottomNavBar";
+import { VendorProfileLayout } from "@/components/VendorProfileLayout";
 
 export function BridalWearDetailClient({ boutique }: { boutique: BridalBoutiqueVendor }) {
-  return (
-    <div className="min-h-screen flex flex-col bg-[#FBF8F1] pb-24 text-charcoal">
-      <main className="flex-1 w-full">
-        <DynamicVendorProfileRouter
-          vendorId={boutique.id}
-          category="Bridal Wear"
-          bridalVendor={boutique}
-        />
-      </main>
+  const profileData = {
+    id: boutique.id,
+    name: boutique.name,
+    category: "bridal-wear",
+    location: boutique.location,
+    rating: boutique.rating,
+    reviews: boutique.reviews || 95,
+    image: boutique.image || "https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=600&q=80",
+    subtitle: boutique.subtitle || "Luxury bridal lehengas, custom couture, and exquisite wedding outfits.",
+    about: boutique.about,
+    stats: [
+      { icon: "sparkles", value: "500+", label: "Designer Outfits" },
+      { icon: "users", value: "1,200+", label: "Happy Brides" },
+      { icon: "star", value: `${boutique.rating || 4.9}`, label: "Average Rating" }
+    ]
+  };
 
-      <BottomNavBar activeTab="vendors" />
-    </div>
-  );
+  return <VendorProfileLayout vendor={profileData} />;
 }

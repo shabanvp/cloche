@@ -1,5 +1,6 @@
 "use client";
 
+<<<<<<< HEAD
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
@@ -18,10 +19,37 @@ import {
 import { BottomNavBar } from "@/components/BottomNavBar";
 import { CateringVendor } from "@/lib/cateringData";
 import { formatTelUri } from "@/lib/formatters";
+=======
+import { CateringVendor } from "@/lib/cateringData";
+import { VendorProfileLayout } from "@/components/VendorProfileLayout";
+>>>>>>> 88fb4f070bdef1007e23182c3f98a33cd05412e1
 
 export function CateringDetailClient({ vendor }: { vendor: CateringVendor }) {
-  const [isWishlisted, setIsWishlisted] = useState(false);
+  const profileData = {
+    id: vendor.id,
+    name: vendor.name,
+    category: "catering",
+    location: vendor.location,
+    rating: vendor.rating,
+    reviews: vendor.reviews,
+    image: vendor.image,
+    subtitle: vendor.subtitle,
+    about: vendor.about,
+    isVerified: vendor.isVerified,
+    phone: (vendor as any).phone || "9876543210",
+    stats: [
+      { icon: "clock", value: `${vendor.yearsInBusiness || 10}+`, label: "Years in Business" },
+      { icon: "utensils", value: `${vendor.eventsCartered || 500}+`, label: "Events Catered" },
+      { icon: "star", value: `${vendor.rating}`, label: "Average Rating" }
+    ],
+    highlightsTitle: "Menu Highlights",
+    highlights: vendor.menuHighlights || [],
+    prices: vendor.prices || [],
+    services: vendor.services || [],
+    userReviews: vendor.userReviews || []
+  };
 
+<<<<<<< HEAD
   const initials = vendor.name
     .split(" ")
     .map((w) => w[0])
@@ -122,4 +150,7 @@ export function CateringDetailClient({ vendor }: { vendor: CateringVendor }) {
       <BottomNavBar activeTab="vendors" />
     </div>
   );
+=======
+  return <VendorProfileLayout vendor={profileData} />;
+>>>>>>> 88fb4f070bdef1007e23182c3f98a33cd05412e1
 }

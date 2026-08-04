@@ -16,6 +16,25 @@ export type VendorDetail = {
 
 export const makeupArtists: VendorDetail[] = [
   {
+    id: "makeup-riya-sharma",
+    name: "Riya Sharma Makeovers",
+    category: "Signature Luxury Bridal Makeup Artist",
+    location: "Delhi NCR & Destination Worldwide",
+    rating: 4.9,
+    reviews: 328,
+    followers: 458,
+    image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
+    images: [
+      "https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?auto=format&fit=crop&w=800&q=80",
+    ],
+    about: "With over 8 years of luxury bridal experience, Riya Sharma is celebrated across India for creating timeless, radiant, and customized wedding looks. Her core philosophy centers on enhancing each bride's unique natural features using HD airbrush technology, skin prep rituals, and global couture standards.",
+    phone: "9876543210",
+    email: "appointments@riyasharmamakeup.com",
+    website: "https://riyasharmamakeup.com",
+  },
+  {
     id: "makeup-parul-garg",
     name: "Makeup by Parul Garg",
     category: "Bridal Makeup Artist",
