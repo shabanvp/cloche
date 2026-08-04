@@ -15,12 +15,12 @@ export function getSupabaseConfig(): SupabaseConfig {
     url:
       process.env.NEXT_PUBLIC_SUPABASE_URL ||
       process.env.SUPABASE_URL ||
-      "https://yvoocczjgogafylnzbo.supabase.co",
+      "https://fumfjbcixcudjrnezfjl.supabase.co",
     anonKey:
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
       process.env.SUPABASE_ANON_KEY ||
       process.env.SUPABASE_SERVICE_ROLE_KEY ||
-      "sb_secret_2155fvglcn3ccixc7DYlWQ_RHr4U0VU",
+      "sb_secret_UrI6GZ8y25k5U8HheVLKnQ_LRbo08ox",
   };
 }
 

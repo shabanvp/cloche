@@ -12,7 +12,6 @@ BEGIN;
 -- File: database/migrations/20260805000001_config_create_taxonomies.sql
 -- Compatible with PostgreSQL 16 and Supabase SQL Editor
 
-
 -- Enable UUID extension if not present
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
@@ -144,13 +143,13 @@ CREATE TABLE IF NOT EXISTS config_wedding_styles (
 -- File: database/migrations/20260805000002_auth_create_users.sql
 -- Compatible with PostgreSQL 16 and Supabase SQL Editor
 
-
 -- 1. Core Users Table
 CREATE TABLE IF NOT EXISTS users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     email VARCHAR(255) NOT NULL UNIQUE,
     password_hash VARCHAR(255),
     full_name VARCHAR(150) NOT NULL,
+    name VARCHAR(150),
     phone VARCHAR(20) UNIQUE,
     avatar_url TEXT,
     is_active BOOLEAN NOT NULL DEFAULT true,
@@ -193,7 +192,6 @@ CREATE TABLE IF NOT EXISTS oauth_accounts (
 -- File: database/migrations/20260805000003_auth_create_roles_permissions.sql
 -- Compatible with PostgreSQL 16 and Supabase SQL Editor
 
-
 -- 1. Roles Table
 CREATE TABLE IF NOT EXISTS roles (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -235,7 +233,6 @@ CREATE TABLE IF NOT EXISTS role_permissions (
 -- File: database/migrations/20260805000004_media_create_master_table.sql
 -- Compatible with PostgreSQL 16 and Supabase SQL Editor
 
-
 -- 1. Master Media Entity Table
 CREATE TABLE IF NOT EXISTS media (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -270,7 +267,6 @@ CREATE INDEX IF NOT EXISTS idx_media_bucket_path ON media(bucket_name, file_path
 -- File: database/migrations/20260805000005_vendor_create_core_identity.sql
 -- Compatible with PostgreSQL 16 and Supabase SQL Editor
 
-
 -- 1. Vendor Categories Registry Table
 CREATE TABLE IF NOT EXISTS vendor_categories (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -300,10 +296,17 @@ CREATE TABLE IF NOT EXISTS vendors (
     deleted_at TIMESTAMPTZ
 );
 
--- Add Foreign Key from media(vendor_id) to vendors(id)
-ALTER TABLE media 
-    ADD CONSTRAINT fk_media_vendor 
-    FOREIGN KEY (vendor_id) REFERENCES vendors(id) ON DELETE CASCADE;
+-- Add Foreign Key from media(vendor_id) to vendors(id) idempotently
+DO $$ 
+BEGIN 
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint WHERE conname = 'fk_media_vendor'
+    ) THEN 
+        ALTER TABLE media 
+            ADD CONSTRAINT fk_media_vendor 
+            FOREIGN KEY (vendor_id) REFERENCES vendors(id) ON DELETE CASCADE;
+    END IF;
+END $$;
 
 -- Indexes for performance
 CREATE INDEX IF NOT EXISTS idx_vendors_user_id ON vendors(user_id);
@@ -317,7 +320,6 @@ CREATE INDEX IF NOT EXISTS idx_vendors_code ON vendors(vendor_code);
 -- Phase 2B Migration 06: Vendor Profiles & Contact Info
 -- File: database/migrations/20260805000006_vendor_create_profiles.sql
 -- Compatible with PostgreSQL 16 and Supabase SQL Editor
-
 
 -- 1. Editable Vendor Profiles Table (1:1 with vendors)
 CREATE TABLE IF NOT EXISTS vendor_profiles (
@@ -406,7 +408,6 @@ CREATE INDEX IF NOT EXISTS idx_vendor_addresses_vendor ON vendor_addresses(vendo
 -- File: database/migrations/20260805000007_vendor_create_profile_versioning.sql
 -- Compatible with PostgreSQL 16 and Supabase SQL Editor
 
-
 -- 1. Vendor Profile Versions Metadata Table
 CREATE TABLE IF NOT EXISTS vendor_profile_versions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -443,7 +444,6 @@ CREATE INDEX IF NOT EXISTS idx_version_sections_version ON vendor_profile_versio
 -- Phase 2B Migration 08: Category Extension Tables
 -- File: database/migrations/20260805000008_vendor_create_category_extensions.sql
 -- Compatible with PostgreSQL 16 and Supabase SQL Editor
-
 
 -- 1. Venue Details (1:1 with vendors)
 CREATE TABLE IF NOT EXISTS venue_details (
@@ -580,7 +580,6 @@ CREATE INDEX IF NOT EXISTS idx_cat_extension_jsonb ON category_extension_templat
 -- File: database/migrations/20260805000009_vendor_create_services_pricing.sql
 -- Compatible with PostgreSQL 16 and Supabase SQL Editor
 
-
 -- 1. Vendor Gallery Table
 CREATE TABLE IF NOT EXISTS vendor_gallery (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -684,7 +683,6 @@ CREATE INDEX IF NOT EXISTS idx_vendor_documents_vendor ON vendor_documents(vendo
 -- File: database/migrations/20260805000010_customer_create_activity_tables.sql
 -- Compatible with PostgreSQL 16 and Supabase SQL Editor
 
-
 -- 1. User Wishlists Table
 CREATE TABLE IF NOT EXISTS wishlists (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -746,7 +744,6 @@ CREATE INDEX IF NOT EXISTS idx_user_preferences_user ON user_preferences(user_id
 -- File: database/migrations/20260805000011_lead_create_management.sql
 -- Compatible with PostgreSQL 16 and Supabase SQL Editor
 
-
 -- 1. Customer Quote Inquiries / Leads Table
 CREATE TABLE IF NOT EXISTS leads (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -798,7 +795,6 @@ CREATE INDEX IF NOT EXISTS idx_lead_activities_lead ON lead_activities(lead_id);
 -- File: database/migrations/20260805000012_lead_create_quotations.sql
 -- Compatible with PostgreSQL 16 and Supabase SQL Editor
 
-
 -- 1. Vendor Quotations Table
 CREATE TABLE IF NOT EXISTS quotations (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -840,7 +836,6 @@ CREATE INDEX IF NOT EXISTS idx_quotation_items_quotation ON quotation_items(quot
 -- Phase 2B Migration 13: Booking Lifecycle & Timeline
 -- File: database/migrations/20260805000013_booking_create_lifecycle.sql
 -- Compatible with PostgreSQL 16 and Supabase SQL Editor
-
 
 -- 1. Master Event Bookings Table
 CREATE TABLE IF NOT EXISTS bookings (
@@ -909,7 +904,6 @@ CREATE INDEX IF NOT EXISTS idx_booking_payments_booking ON booking_payments(book
 -- File: database/migrations/20260805000014_review_create_feedback.sql
 -- Compatible with PostgreSQL 16 and Supabase SQL Editor
 
-
 -- 1. Customer Ratings & Reviews Table
 CREATE TABLE IF NOT EXISTS reviews (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -956,7 +950,6 @@ CREATE INDEX IF NOT EXISTS idx_vendor_replies_review ON vendor_replies(review_id
 -- Phase 2B Migration 15: Marketing & Promotions Engine
 -- File: database/migrations/20260805000015_marketing_create_promotions.sql
 -- Compatible with PostgreSQL 16 and Supabase SQL Editor
-
 
 -- 1. Featured Vendor Placements Table
 CREATE TABLE IF NOT EXISTS featured_vendors (
@@ -1057,7 +1050,6 @@ CREATE INDEX IF NOT EXISTS idx_qr_codes_vendor ON qr_codes(vendor_id);
 -- File: database/migrations/20260805000016_payment_create_ledger.sql
 -- Compatible with PostgreSQL 16 and Supabase SQL Editor
 
-
 -- 1. Master Payment Transactions Ledger Table
 CREATE TABLE IF NOT EXISTS payment_records (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -1139,7 +1131,6 @@ CREATE INDEX IF NOT EXISTS idx_commission_vendor ON commission_ledger(vendor_id)
 -- File: database/migrations/20260805000017_subscription_create_billing.sql
 -- Compatible with PostgreSQL 16 and Supabase SQL Editor
 
-
 -- 1. Subscription Plans Master Table
 CREATE TABLE IF NOT EXISTS subscription_plans (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -1209,7 +1200,6 @@ CREATE INDEX IF NOT EXISTS idx_sub_txns_subscription ON subscription_transaction
 -- Phase 2B Migration 18: Notification Service Engine
 -- File: database/migrations/20260805000018_notification_create_engine.sql
 -- Compatible with PostgreSQL 16 and Supabase SQL Editor
-
 
 -- 1. Notification Templates Registry Table
 CREATE TABLE IF NOT EXISTS notification_templates (
@@ -1281,7 +1271,6 @@ CREATE INDEX IF NOT EXISTS idx_notif_pref_user ON user_notification_preferences(
 -- File: database/migrations/20260805000019_analytics_create_event_tables.sql
 -- Compatible with PostgreSQL 16 and Supabase SQL Editor
 
-
 -- 1. Vendor Profile Views Analytics Table
 CREATE TABLE IF NOT EXISTS analytics_profile_views (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -1351,7 +1340,6 @@ CREATE INDEX IF NOT EXISTS idx_marketing_metrics_vendor_date ON marketing_metric
 -- File: database/migrations/20260805000020_admin_create_system_logs.sql
 -- Compatible with PostgreSQL 16 and Supabase SQL Editor
 
-
 -- 1. Admin Actions Log Table
 CREATE TABLE IF NOT EXISTS admin_logs (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -1400,7 +1388,6 @@ CREATE INDEX IF NOT EXISTS idx_system_settings_key ON system_settings(setting_ke
 -- File: database/migrations/20260805000021_admin_create_feature_flags.sql
 -- Compatible with PostgreSQL 16 and Supabase SQL Editor
 
-
 -- 1. Feature Flags Registry Table
 CREATE TABLE IF NOT EXISTS feature_flags (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -1423,7 +1410,6 @@ CREATE INDEX IF NOT EXISTS idx_feature_flags_key ON feature_flags(flag_key);
 -- File: database/migrations/20260805000022_indexes_create_global.sql
 -- Compatible with PostgreSQL 16 and Supabase SQL Editor
 
-
 -- 1. Composite B-Tree Indexes for High-Performance Search
 CREATE INDEX IF NOT EXISTS idx_vendor_search_composite ON vendor_profiles(city, rating DESC, review_count DESC);
 CREATE INDEX IF NOT EXISTS idx_vendor_starting_price ON vendor_profiles(starting_price);
@@ -1438,7 +1424,6 @@ CREATE INDEX IF NOT EXISTS idx_media_vendor_type ON media(vendor_id, media_type)
 -- Phase 2B Migration 23: Database Functions & Timestamp Triggers
 -- File: database/migrations/20260805000023_triggers_create_timestamp_functions.sql
 -- Compatible with PostgreSQL 16 and Supabase SQL Editor
-
 
 -- 1. Standard Auto-Updating Timestamp Function
 CREATE OR REPLACE FUNCTION update_timestamp_column()
@@ -1492,7 +1477,6 @@ CREATE TRIGGER trigger_update_media_timestamp
 -- Phase 2B Migration 24: Row-Level Security Policies
 -- File: database/migrations/20260805000024_rls_create_security_policies.sql
 -- Compatible with PostgreSQL 16 and Supabase SQL Editor
-
 
 -- 1. Enable Row-Level Security on Core Tables
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
@@ -1581,7 +1565,6 @@ CREATE POLICY reviews_insert_customer ON reviews
 -- File: database/migrations/20260805000025_seed_insert_default_data.sql
 -- Compatible with PostgreSQL 16 and Supabase SQL Editor
 
-
 -- 1. Seed Roles
 INSERT INTO roles (name, description) VALUES
     ('super_admin', 'Full system access and platform management'),
@@ -1630,3 +1613,6 @@ INSERT INTO system_settings (setting_key, setting_value, description, is_public)
 ON CONFLICT (setting_key) DO NOTHING;
 
 COMMIT;
+
+-- Notify Supabase PostgREST to reload schema cache immediately
+NOTIFY pgrst, 'reload schema';
