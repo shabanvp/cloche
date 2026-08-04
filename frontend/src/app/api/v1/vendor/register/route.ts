@@ -422,14 +422,45 @@ export async function POST(req: Request) {
 
     console.log(`${logPrefix} Verification email status for ${userEmail}: delivered=${emailResult.success}, method=${emailResult.method || "none"}, error=${emailResult.error || "none"}`);
 
+    if (!emailResult.success) {
+      console.error(`${logPrefix} CRITICAL: Email verification failed to deliver to ${userEmail}. Error: ${emailResult.error}`);
+      return NextResponse.json(
+        {
+          success: false,
+          statusCode: 502,
+          error: {
+            code: "EMAIL_DELIVERY_FAILED",
+            message: `Account created for ${userEmail}, but verification email delivery failed: ${emailResult.error || "SMTP credentials missing"}. Please configure GMAIL_APP_PASSWORD or click Resend Verification.`,
+          },
+          data: {
+            vendor: {
+              id: newVendor.id,
+              vendorCode: newVendor.vendor_code,
+              businessName,
+              slug: profileSlug,
+            },
+            user: {
+              id: targetUserId,
+              email: userEmail,
+              isVerified: false,
+            },
+            emailDelivery: {
+              delivered: false,
+              method: emailResult.method || null,
+              error: emailResult.error || null,
+            },
+          },
+        },
+        { status: 502 }
+      );
+    }
+
     return NextResponse.json(
       {
         success: true,
         statusCode: 201,
         requiresVerification: true,
-        message: emailResult.success
-          ? `Vendor registered successfully! A verification email has been sent to ${userEmail}. Please verify your email address to log in.`
-          : `Vendor account created for ${userEmail}, but verification email delivery encountered an issue: ${emailResult.error || "SMTP not configured"}. You can resend the verification email from the login page.`,
+        message: `Vendor registered successfully! A verification link has been sent to ${userEmail}. Please check your Gmail inbox and verify your email address to log in.`,
         data: {
           vendor: {
             id: newVendor.id,
@@ -450,9 +481,9 @@ export async function POST(req: Request) {
             isVerified: false,
           },
           emailDelivery: {
-            delivered: emailResult.success,
+            delivered: true,
             method: emailResult.method || null,
-            error: emailResult.error || null,
+            error: null,
           },
         },
       },

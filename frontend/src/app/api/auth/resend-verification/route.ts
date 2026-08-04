@@ -112,17 +112,35 @@ export async function POST(req: Request) {
 
     console.log(`${logPrefix} Resend email status for ${cleanEmail}: delivered=${emailResult.success}, method=${emailResult.method || "none"}, err=${emailResult.error || "none"}`);
 
+    if (!emailResult.success) {
+      console.error(`${logPrefix} CRITICAL: Failed to resend verification email to ${cleanEmail}. Error: ${emailResult.error}`);
+      return NextResponse.json(
+        {
+          success: false,
+          statusCode: 502,
+          error: {
+            code: "EMAIL_DELIVERY_FAILED",
+            message: `Failed to deliver verification email to ${cleanEmail}: ${emailResult.error || "SMTP credentials unconfigured or invalid"}. Please verify GMAIL_APP_PASSWORD in environment variables.`,
+          },
+          data: {
+            email: cleanEmail,
+            emailSent: false,
+            error: emailResult.error || null,
+          },
+        },
+        { status: 502 }
+      );
+    }
+
     return NextResponse.json(
       {
         success: true,
         statusCode: 200,
-        message: emailResult.success
-          ? `A new verification email has been sent to ${cleanEmail}. Please check your Gmail inbox.`
-          : `Generated a new verification link for ${cleanEmail}, but email delivery encountered an issue: ${emailResult.error || "SMTP not configured"}.`,
+        message: `A new verification link has been sent to ${cleanEmail}. Please check your Gmail inbox.`,
         data: {
           email: cleanEmail,
-          emailSent: emailResult.success,
-          error: emailResult.error || null,
+          emailSent: true,
+          error: null,
         },
       },
       { status: 200 }
