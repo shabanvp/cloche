@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, Share2, Heart, Star, MapPin, CheckCircle2, ChevronRight, Layers, Phone, MessageSquare, Globe, Clock, User, ArrowRight, ShoppingBag, Send, X } from "lucide-react";
 import { formatTelUri } from "@/lib/formatters";
-import { Button } from "@/components/ui/button";
+
 import { VendorProfileLayout, VendorProfileData } from "@/components/VendorProfileLayout";
 import { VendorProfileConfig } from "@/lib/vendorTemplates";
 import { Boutique, Product } from "@/types";
@@ -561,12 +561,12 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
           </p>
 
           <div className="pt-1">
-            <Button
+            <button
               onClick={() => setShowTrialModal(true)}
               className="bg-[#C8A96A] hover:bg-[#b89859] text-[#082F2C] px-7 py-3 rounded-full font-bold text-xs uppercase tracking-wider shadow-lg transition-all"
             >
               Book Trial Appointment Now
-            </Button>
+            </button>
           </div>
         </section>
 
