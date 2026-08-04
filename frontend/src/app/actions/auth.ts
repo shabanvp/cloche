@@ -1,6 +1,8 @@
 "use server";
 
 import { cookies } from "next/headers";
+import { verifyJwtToken, hashPassword, verifyPassword, signJwtToken, hashSessionToken, AUTH_COOKIE_NAME, SESSION_EXPIRY_DAYS } from "@/lib/auth";
+import { getSupabaseConfig } from "@/lib/supabase";
 
 const rawBaseUrl = process.env.NEXT_PUBLIC_API_URL || "https://cloche-backend.onrender.com";
 const API_BASE_URL = rawBaseUrl.endsWith('/api') ? rawBaseUrl : `${rawBaseUrl}/api`;
@@ -11,31 +13,47 @@ export async function login(formData: FormData) {
   const role = (formData.get("role") as string) || "customer";
 
   try {
-    // 1. Try native Next.js API route first
-    const nativeRes = await fetch("http://localhost:3000/api/v1/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-      cache: "no-store",
-    }).catch(() => null);
-
-    if (nativeRes && nativeRes.ok) {
-      const data = await nativeRes.json();
-      if (data.success && data.data?.token) {
-        const cookieStore = await cookies();
-        cookieStore.set("cloche_auth_token", data.data.token, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === "production",
-          sameSite: "lax",
-          path: "/",
-          maxAge: 30 * 24 * 60 * 60,
-        });
-        cookieStore.set("auth_token", data.data.token, { path: "/" });
-        cookieStore.set("user_role", role, { path: "/" });
-        if (data.data.user) {
-          cookieStore.set("user_data", JSON.stringify(data.data.user), { path: "/" });
+    const { url, anonKey } = getSupabaseConfig();
+    
+    // 1. Authenticate against DB if Supabase configured
+    if (url && anonKey) {
+      const userRes = await fetch(
+        `${url}/rest/v1/users?email=eq.${encodeURIComponent(email)}&select=id,email,password_hash,full_name,name,is_active,user_roles(roles(name))`,
+        {
+          headers: { apikey: anonKey, Authorization: `Bearer ${anonKey}` },
+          cache: "no-store",
         }
-        return { success: true };
+      ).catch(() => null);
+
+      if (userRes && userRes.ok) {
+        const users = await userRes.json();
+        if (Array.isArray(users) && users.length > 0) {
+          const user = users[0];
+          if (user.password_hash && verifyPassword(password, user.password_hash)) {
+            const displayName = user.full_name || user.name || email.split("@")[0];
+            let userRoles: string[] = [role];
+            if (Array.isArray(user.user_roles) && user.user_roles.length > 0) {
+              userRoles = user.user_roles.map((ur: any) => ur.roles?.name).filter(Boolean);
+            }
+
+            const token = signJwtToken({
+              userId: user.id,
+              email: user.email,
+              fullName: displayName,
+              roles: userRoles.length > 0 ? userRoles : [role],
+            });
+
+            const cookieStore = await cookies();
+            const userObj = { id: user.id, email: user.email, full_name: displayName, name: displayName, fullName: displayName, roles: userRoles };
+            
+            cookieStore.set(AUTH_COOKIE_NAME, token, { httpOnly: true, path: "/", maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 });
+            cookieStore.set("auth_token", token, { path: "/", maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 });
+            cookieStore.set("user_role", role, { path: "/", maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 });
+            cookieStore.set("user_data", JSON.stringify(userObj), { path: "/", maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 });
+
+            return { success: true, user: userObj };
+          }
+        }
       }
     }
 
@@ -63,21 +81,17 @@ export async function login(formData: FormData) {
     const data = await res.json();
 
     if (!res.ok || !data.success) {
-      return { error: data.message || "Login failed" };
+      return { error: data.message || "Invalid email or password" };
     }
 
     const cookieStore = await cookies();
-    cookieStore.set("auth_token", data.token, {
-      httpOnly: true,
-      secure: false,
-      sameSite: "lax",
-      path: "/",
-      maxAge: 7 * 24 * 60 * 60,
-    });
-    cookieStore.set("cloche_auth_token", data.token, { path: "/" });
-    cookieStore.set("user_role", role, { path: "/" });
+    if (data.token) {
+      cookieStore.set("auth_token", data.token, { path: "/", maxAge: 7 * 24 * 60 * 60 });
+      cookieStore.set(AUTH_COOKIE_NAME, data.token, { path: "/", maxAge: 7 * 24 * 60 * 60 });
+    }
+    cookieStore.set("user_role", role, { path: "/", maxAge: 7 * 24 * 60 * 60 });
     if (data.user) {
-      cookieStore.set("user_data", JSON.stringify(data.user), { path: "/" });
+      cookieStore.set("user_data", JSON.stringify(data.user), { path: "/", maxAge: 7 * 24 * 60 * 60 });
     }
 
     return { success: true };
@@ -94,37 +108,53 @@ export async function signup(formData: FormData) {
     const password = formData.get("password") as string;
     const role = (formData.get("account_type") as string) === "vendor" ? "vendor" : "customer";
 
-    // 1. Try native Next.js API route first
-    const nativeRes = await fetch("http://localhost:3000/api/v1/auth/signup", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        email,
-        password,
-        fullName: name,
-        phone,
-        role,
-      }),
-      cache: "no-store",
-    }).catch(() => null);
+    const { url, anonKey } = getSupabaseConfig();
 
-    if (nativeRes && nativeRes.ok) {
-      const data = await nativeRes.json();
-      if (data.success && data.data?.token) {
-        const cookieStore = await cookies();
-        cookieStore.set("cloche_auth_token", data.data.token, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === "production",
-          sameSite: "lax",
-          path: "/",
-          maxAge: 30 * 24 * 60 * 60,
-        });
-        cookieStore.set("auth_token", data.data.token, { path: "/" });
-        cookieStore.set("user_role", role, { path: "/" });
-        if (data.data.user) {
-          cookieStore.set("user_data", JSON.stringify(data.data.user), { path: "/" });
+    // 1. Insert directly into Supabase database if configured
+    if (url && anonKey) {
+      const passwordHash = hashPassword(password);
+      const userPayload = {
+        email,
+        password_hash: passwordHash,
+        full_name: name,
+        name: name,
+        phone: phone || null,
+        is_active: true,
+        is_verified: false,
+      };
+
+      const insertRes = await fetch(`${url}/rest/v1/users`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: anonKey,
+          Authorization: `Bearer ${anonKey}`,
+          Prefer: "return=representation",
+        },
+        body: JSON.stringify(userPayload),
+      }).catch(() => null);
+
+      if (insertRes && insertRes.ok) {
+        const inserted = await insertRes.json();
+        if (Array.isArray(inserted) && inserted.length > 0) {
+          const newUser = inserted[0];
+          const token = signJwtToken({
+            userId: newUser.id,
+            email: newUser.email,
+            fullName: name,
+            roles: [role],
+          });
+
+          const cookieStore = await cookies();
+          const userObj = { id: newUser.id, email: newUser.email, full_name: name, name: name, fullName: name, roles: [role] };
+          
+          cookieStore.set(AUTH_COOKIE_NAME, token, { httpOnly: true, path: "/", maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 });
+          cookieStore.set("auth_token", token, { path: "/", maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 });
+          cookieStore.set("user_role", role, { path: "/", maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 });
+          cookieStore.set("user_data", JSON.stringify(userObj), { path: "/", maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 });
+
+          return { success: true, user: userObj, token };
         }
-        return { success: true, ...data };
       }
     }
 
@@ -143,11 +173,11 @@ export async function signup(formData: FormData) {
     }
 
     const cookieStore = await cookies();
+    const newUserObj = { full_name: name, name: name, fullName: name, email, role };
     if (data.token) {
       cookieStore.set("auth_token", data.token, { path: "/", maxAge: 30 * 24 * 60 * 60 });
-      cookieStore.set("cloche_auth_token", data.token, { path: "/", maxAge: 30 * 24 * 60 * 60 });
+      cookieStore.set(AUTH_COOKIE_NAME, data.token, { path: "/", maxAge: 30 * 24 * 60 * 60 });
     }
-    const newUserObj = data.user || { full_name: name, name, email, role };
     cookieStore.set("user_data", JSON.stringify(newUserObj), { path: "/", maxAge: 30 * 24 * 60 * 60 });
     cookieStore.set("user_role", role, { path: "/", maxAge: 30 * 24 * 60 * 60 });
 
@@ -160,7 +190,7 @@ export async function signup(formData: FormData) {
 export async function logout() {
   const cookieStore = await cookies();
   cookieStore.delete("auth_token");
-  cookieStore.delete("cloche_auth_token");
+  cookieStore.delete(AUTH_COOKIE_NAME);
   cookieStore.delete("user_role");
   cookieStore.delete("user_data");
   return { success: true };
@@ -168,7 +198,7 @@ export async function logout() {
 
 export async function getSession() {
   const cookieStore = await cookies();
-  const token = cookieStore.get("cloche_auth_token")?.value || cookieStore.get("auth_token")?.value;
+  const token = cookieStore.get(AUTH_COOKIE_NAME)?.value || cookieStore.get("auth_token")?.value;
   const role = cookieStore.get("user_role")?.value;
   
   if (!token) return null;
@@ -177,36 +207,33 @@ export async function getSession() {
 
 export async function getCurrentUser() {
   const cookieStore = await cookies();
-  const token = cookieStore.get("cloche_auth_token")?.value || cookieStore.get("auth_token")?.value;
+  const token = cookieStore.get(AUTH_COOKIE_NAME)?.value || cookieStore.get("auth_token")?.value;
   const userDataCookie = cookieStore.get("user_data")?.value;
 
-  let cachedUser: any = null;
-  if (userDataCookie) {
-    try {
-      cachedUser = JSON.parse(userDataCookie);
-    } catch (e) {}
-  }
-
+  // 1. Verify active JWT token payload (highest priority & truth)
   if (token) {
-    try {
-      const res = await fetch("http://localhost:3000/api/v1/auth/me", {
-        headers: { Authorization: `Bearer ${token}` },
-        cache: "no-store",
-      }).catch(() => null);
-
-      if (res && res.ok) {
-        const data = await res.json();
-        if (data.success && data.data?.user) {
-          return { success: true, user: data.data.user };
-        }
-      }
-    } catch (err) {
-      // Fallback below
+    const payload = verifyJwtToken(token);
+    if (payload && payload.fullName) {
+      const userObj = {
+        id: payload.userId,
+        email: payload.email,
+        full_name: payload.fullName,
+        name: payload.fullName,
+        fullName: payload.fullName,
+        roles: payload.roles,
+      };
+      return { success: true, user: userObj };
     }
   }
 
-  if (cachedUser) {
-    return { success: true, user: cachedUser };
+  // 2. Read user_data cookie fallback
+  if (userDataCookie) {
+    try {
+      const cachedUser = JSON.parse(userDataCookie);
+      if (cachedUser && (cachedUser.full_name || cachedUser.name || cachedUser.fullName)) {
+        return { success: true, user: cachedUser };
+      }
+    } catch (e) {}
   }
 
   return { success: false, user: null };
