@@ -379,22 +379,6 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
   return (
     <div className="min-h-screen flex flex-col bg-[#FAF7F2] pb-32 text-[#2D2520] font-sans">
 
-      {/* Cloche Top Header Bar */}
-      <header className="sticky top-0 z-40 bg-[#0F4C45] text-white px-4 py-3 shadow-md flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2">
-          <span className="font-serif text-xl font-bold tracking-wide text-white">Cloche</span>
-        </Link>
-
-        <div className="flex items-center gap-3">
-          <button className="h-9 w-9 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors">
-            <Bell className="h-4 w-4" />
-          </button>
-          <button className="h-9 w-9 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors">
-            <Menu className="h-5 w-5" />
-          </button>
-        </div>
-      </header>
-
       {/* Top Hero Banner */}
       <div className="relative w-full aspect-[4/3] sm:aspect-[16/9] bg-gray-900 overflow-hidden">
         <Image src={vendor.image} alt={vendor.name} fill priority className="object-cover" />
