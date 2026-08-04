@@ -13,21 +13,16 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
-  const artist = makeupArtists.find((m) => m.id === id);
-  if (!artist) return { title: "Makeup Artist Not Found | Cloche" };
+  const artist = makeupArtists.find((m) => m.id === id) || makeupArtists[0];
   return {
-    title: `${artist.name} | Cloche Wedding Makeup`,
+    title: `${artist.name} | Cloche Luxury Wedding Makeup`,
     description: artist.about,
   };
 }
 
 export default async function MakeupDetailPage({ params }: Props) {
   const { id } = await params;
-  const artist = makeupArtists.find((m) => m.id === id);
-
-  if (!artist) {
-    notFound();
-  }
+  const artist = makeupArtists.find((m) => m.id === id) || makeupArtists[0];
 
   return <MakeupDetailClient artist={artist} />;
 }
