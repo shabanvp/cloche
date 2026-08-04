@@ -10,7 +10,7 @@ export function InvitationsDetailClient({ vendor }: { vendor: InvitationVendor }
     category: "invitations",
     location: vendor.location,
     rating: vendor.rating,
-    reviews: vendor.reviewsCount || 84,
+    reviews: vendor.reviews || 84,
     image: vendor.image || "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=600&q=80",
     subtitle: (vendor as any).tagline || "Luxury wedding invitations, digital e-invites, boxed hampers & custom stationery.",
     about: vendor.about,
