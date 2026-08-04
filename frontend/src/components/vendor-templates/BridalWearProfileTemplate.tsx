@@ -55,7 +55,7 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
   const [reviewText, setReviewText] = useState("");
   const [reviewRating, setReviewRating] = useState(5);
   const [lightboxImg, setLightboxImg] = useState<string | null>(null);
-  const [reviewsList, setReviewsList] = useState<any[]>((boutique as any)?.userReviews || bridalVendor?.userReviews || config?.userReviews || []);
+  const [reviewsList, setReviewsList] = useState<any[]>((boutique as any)?.userReviews || bridalVendor?.userReviews || (config as any)?.userReviews || (config as any)?.reviews || []);
   const [showReviewModal, setShowReviewModal] = useState(false);
 
   const aboutRef = useRef<HTMLDivElement>(null);
