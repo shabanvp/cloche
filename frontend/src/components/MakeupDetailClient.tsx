@@ -881,40 +881,42 @@ export function MakeupDetailClient({ artist }: { artist: VendorDetail }) {
                 <span className="text-xs text-[#D4AF37] font-semibold">6 Services Available</span>
               </div>
 
-              <div className="space-y-3">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {serviceCards.map((service, idx) => (
-                  <div key={idx} className="rounded-2xl p-4 bg-[#FFFDF9] border border-[#EBE5DA] shadow-sm relative overflow-hidden">
+                  <div key={idx} className="rounded-2xl p-4 bg-[#FFFDF9] border border-[#EBE5DA] shadow-sm relative overflow-hidden flex flex-col justify-between">
                     {service.popular && (
                       <div className="absolute top-0 right-0 bg-[#0B5D4F] text-[#D4AF37] text-[10px] font-bold px-3 py-0.5 rounded-bl-xl border-l border-b border-[#D4AF37]/30">
                         MOST REQUESTED
                       </div>
                     )}
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <h3 className="font-serif text-sm font-bold text-[#1C1C17]">
-                          {service.title}
-                        </h3>
-                        <span className="text-[11px] text-[#6E6A61] flex items-center gap-1 mt-0.5">
-                          <Clock className="h-3 w-3 text-[#D4AF37]" />
-                          Duration: {service.duration}
-                        </span>
+                    <div>
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <h3 className="font-serif text-sm font-bold text-[#1C1C17]">
+                            {service.title}
+                          </h3>
+                          <span className="text-[11px] text-[#6E6A61] flex items-center gap-1 mt-0.5">
+                            <Clock className="h-3 w-3 text-[#D4AF37]" />
+                            Duration: {service.duration}
+                          </span>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-base font-bold text-[#0B5D4F]">{service.price}</span>
+                          <span className="block text-[10px] text-[#6E6A61]">onwards</span>
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <span className="text-base font-bold text-[#0B5D4F]">{service.price}</span>
-                        <span className="block text-[10px] text-[#6E6A61]">onwards</span>
-                      </div>
-                    </div>
 
-                    <div className="mt-3 pt-3 border-t border-[#EBE5DA]">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#6E6A61] block mb-1.5">What's Included:</span>
-                      <ul className="grid grid-cols-1 gap-1">
-                        {service.included.map((item, i) => (
-                          <li key={i} className="text-xs text-[#4A4740] flex items-center gap-1.5">
-                            <Check className="h-3.5 w-3.5 text-[#0B5D4F] shrink-0" />
-                            <span>{item}</span>
-                          </li>
-                        ))}
-                      </ul>
+                      <div className="mt-3 pt-3 border-t border-[#EBE5DA]">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[#6E6A61] block mb-1.5">What's Included:</span>
+                        <ul className="grid grid-cols-1 gap-1">
+                          {service.included.map((item, i) => (
+                            <li key={i} className="text-xs text-[#4A4740] flex items-center gap-1.5">
+                              <Check className="h-3.5 w-3.5 text-[#0B5D4F] shrink-0" />
+                              <span>{item}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
                     </div>
 
                     <button
@@ -922,7 +924,7 @@ export function MakeupDetailClient({ artist }: { artist: VendorDetail }) {
                         setQuoteData(prev => ({ ...prev, functions: [service.title] }));
                         setActiveModal("quote");
                       }}
-                      className="mt-3 w-full py-2 rounded-xl bg-[#0B5D4F]/10 hover:bg-[#0B5D4F] text-[#0B5D4F] hover:text-white text-xs font-semibold transition-colors flex items-center justify-center gap-1"
+                      className="mt-4 w-full py-2 rounded-xl bg-[#0B5D4F]/10 hover:bg-[#0B5D4F] text-[#0B5D4F] hover:text-white text-xs font-semibold transition-colors flex items-center justify-center gap-1"
                     >
                       Inquire for {service.title}
                       <ChevronRight className="h-3.5 w-3.5" />
@@ -941,37 +943,39 @@ export function MakeupDetailClient({ artist }: { artist: VendorDetail }) {
                 <p className="text-xs text-[#6E6A61]">Multi-event packages with complimentary bonuses</p>
               </div>
 
-              <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {packagesData.map((pkg, i) => (
                   <div
                     key={i}
-                    className={`rounded-3xl p-5 bg-[#FFFDF9] border shadow-sm relative ${
+                    className={`rounded-3xl p-5 bg-[#FFFDF9] border shadow-sm relative flex flex-col justify-between ${
                       pkg.popular ? "border-2 border-[#D4AF37]" : "border-[#EBE5DA]"
                     }`}
                   >
-                    <div className="flex items-center justify-between">
-                      <span className="px-3 py-0.5 rounded-full bg-[#0B5D4F]/10 text-[#0B5D4F] text-[10px] font-bold uppercase tracking-wider">
-                        {pkg.badge}
-                      </span>
-                      {pkg.originalPrice && (
-                        <span className="text-xs text-[#6E6A61] line-through">{pkg.originalPrice}</span>
-                      )}
-                    </div>
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <span className="px-3 py-0.5 rounded-full bg-[#0B5D4F]/10 text-[#0B5D4F] text-[10px] font-bold uppercase tracking-wider">
+                          {pkg.badge}
+                        </span>
+                        {pkg.originalPrice && (
+                          <span className="text-xs text-[#6E6A61] line-through">{pkg.originalPrice}</span>
+                        )}
+                      </div>
 
-                    <div className="mt-2 flex items-baseline justify-between">
-                      <h3 className="font-serif text-base font-bold text-[#1C1C17]">{pkg.name}</h3>
-                      <span className="font-serif text-xl font-bold text-[#0B5D4F]">{pkg.price}</span>
-                    </div>
+                      <div className="mt-2 flex items-baseline justify-between">
+                        <h3 className="font-serif text-base font-bold text-[#1C1C17]">{pkg.name}</h3>
+                        <span className="font-serif text-xl font-bold text-[#0B5D4F]">{pkg.price}</span>
+                      </div>
 
-                    <p className="text-xs font-medium text-[#D4AF37] mt-0.5">{pkg.functions}</p>
+                      <p className="text-xs font-medium text-[#D4AF37] mt-0.5">{pkg.functions}</p>
 
-                    <div className="mt-3 pt-3 border-t border-[#EBE5DA] space-y-1.5">
-                      {pkg.features.map((feat, fIdx) => (
-                        <div key={fIdx} className="flex items-start gap-2 text-xs text-[#4A4740]">
-                          <CheckCircle2 className="h-4 w-4 text-[#0B5D4F] shrink-0 mt-0.5" />
-                          <span>{feat}</span>
-                        </div>
-                      ))}
+                      <div className="mt-3 pt-3 border-t border-[#EBE5DA] space-y-1.5">
+                        {pkg.features.map((feat, fIdx) => (
+                          <div key={fIdx} className="flex items-start gap-2 text-xs text-[#4A4740]">
+                            <CheckCircle2 className="h-4 w-4 text-[#0B5D4F] shrink-0 mt-0.5" />
+                            <span>{feat}</span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
 
                     <button
