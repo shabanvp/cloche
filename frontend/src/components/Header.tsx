@@ -74,7 +74,6 @@ export function Header({ session }: HeaderProps = {}) {
     { label: "Venues", href: "/venues", icon: MapPin },
     { label: "Vendors", href: "/boutiques", icon: Users },
     { label: "Exclusive Deals", href: "/deals", icon: Sparkles },
-    { label: "Collections", href: "/collections", icon: Heart },
     { label: "Real Weddings", href: "/real-weddings", icon: BookHeart },
     { label: "Photos & Inspiration", href: "/inspiration", icon: Lightbulb },
     { label: "Blogs", href: "/blogs", icon: FileText },
