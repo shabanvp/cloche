@@ -34,8 +34,7 @@ export function SignupClient() {
           localStorage.setItem("userName", nameVal.trim());
         }
       }
-      router.push("/dashboard");
-      router.refresh();
+      router.push("/login?registered=true");
     }
   };
 

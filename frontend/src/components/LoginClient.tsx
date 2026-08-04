@@ -13,6 +13,7 @@ export function LoginClient() {
   const [errorMsg, setErrorMsg] = useState("");
   const [showLogoutMsg, setShowLogoutMsg] = useState(false);
   const [showUnauthorizedMsg, setShowUnauthorizedMsg] = useState(false);
+  const [showRegisteredMsg, setShowRegisteredMsg] = useState(false);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -24,7 +25,11 @@ export function LoginClient() {
 
     setRequestedRole(roleParam === "admin" ? "admin" : "customer");
 
-    if (params.get("logout") === "success") {
+    if (params.get("registered") === "true") {
+      setShowRegisteredMsg(true);
+      window.history.replaceState({}, document.title, window.location.pathname);
+      setTimeout(() => setShowRegisteredMsg(false), 8000);
+    } else if (params.get("logout") === "success") {
       setShowLogoutMsg(true);
       window.history.replaceState({}, document.title, window.location.pathname);
       setTimeout(() => setShowLogoutMsg(false), 5000);
@@ -49,7 +54,7 @@ export function LoginClient() {
       if (requestedRole === "admin" || (res as any)?.user?.role === "admin") {
         window.location.href = "/admin";
       } else {
-        window.location.href = "/dashboard";
+        window.location.href = "/";
       }
     } else {
       setErrorMsg(res.error || "Invalid credentials. Please try again.");
@@ -67,6 +72,13 @@ export function LoginClient() {
       footerLink={requestedRole === "admin" ? "/signup?role=admin" : "/signup"}
       footerLinkLabel="Create one"
     >
+      {showRegisteredMsg && (
+        <div className="flex items-center gap-2 rounded-xl border border-emerald/30 bg-emerald/10 p-3 text-xs font-semibold text-[#0F4C45] animate-in fade-in">
+          <span className="material-symbols-outlined text-[18px]">check_circle</span>
+          <span>Account created successfully! Please log in to continue.</span>
+        </div>
+      )}
+
       {showLogoutMsg && (
         <div className="flex items-center gap-2 rounded-xl border border-emerald/30 bg-emerald/10 p-3 text-xs font-semibold text-[#0F4C45] animate-in fade-in">
           <LogOut className="h-4 w-4 shrink-0 text-[#0F4C45]" />
