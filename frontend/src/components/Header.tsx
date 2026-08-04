@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { 
-  Bell, Edit3, Smartphone, Menu, X, ChevronDown, Search, User,
+  Bell, Edit3, Smartphone, Menu, X, ChevronDown,
   Home, MapPin, Store, BookHeart, FileText, Mail,
-  Heart, Lightbulb, Info, CircleHelp, ArrowRight, Users, MessageCircle, CheckCircle2, Sparkles
+  Lightbulb, Info, CircleHelp, ArrowRight, Users, MessageCircle, CheckCircle2, Sparkles
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
