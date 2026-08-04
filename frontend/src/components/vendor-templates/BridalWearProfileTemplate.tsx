@@ -35,7 +35,7 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
     phone: (boutique as any)?.contact_number || (bridalVendor as any)?.phone || config?.phone || "9876543210"
   };
 
-<<<<<<< HEAD
+
   const handleFollowToggle = () => {
     setIsFollowing((prev) => {
       const next = !prev;
@@ -837,7 +837,4 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
 
     </div>
   );
-=======
-  return <VendorProfileLayout vendor={profileData} />;
->>>>>>> 88fb4f070bdef1007e23182c3f98a33cd05412e1
 }
