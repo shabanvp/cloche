@@ -13,7 +13,7 @@ export function PhotographerProfileTemplate({ config }: Props) {
     name: config.businessName || "Royal Wedding Photography",
     category: "photographer",
     location: config.city || "Mumbai",
-    rating: config.rating || 4.9,
+    rating: (config as any)?.rating || 4.9,
     reviews: config.reviewsCount || 140,
     image: config.coverImage || "https://images.unsplash.com/photo-1537633552985-df8429e8048b?auto=format&fit=crop&w=600&q=80",
     subtitle: config.tagline || "Candid wedding photography, cinematic films, and timeless pre-wedding stories.",
