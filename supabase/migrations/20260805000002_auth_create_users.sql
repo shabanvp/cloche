@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS users (
     email VARCHAR(255) NOT NULL UNIQUE,
     password_hash VARCHAR(255),
     full_name VARCHAR(150) NOT NULL,
+    name VARCHAR(150),
     phone VARCHAR(20) UNIQUE,
     avatar_url TEXT,
     is_active BOOLEAN NOT NULL DEFAULT true,

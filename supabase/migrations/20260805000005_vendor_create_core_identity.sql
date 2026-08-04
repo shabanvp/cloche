@@ -33,10 +33,17 @@ CREATE TABLE IF NOT EXISTS vendors (
     deleted_at TIMESTAMPTZ
 );
 
--- Add Foreign Key from media(vendor_id) to vendors(id)
-ALTER TABLE media 
-    ADD CONSTRAINT fk_media_vendor 
-    FOREIGN KEY (vendor_id) REFERENCES vendors(id) ON DELETE CASCADE;
+-- Add Foreign Key from media(vendor_id) to vendors(id) idempotently
+DO $$ 
+BEGIN 
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint WHERE conname = 'fk_media_vendor'
+    ) THEN 
+        ALTER TABLE media 
+            ADD CONSTRAINT fk_media_vendor 
+            FOREIGN KEY (vendor_id) REFERENCES vendors(id) ON DELETE CASCADE;
+    END IF;
+END $$;
 
 -- Indexes for performance
 CREATE INDEX IF NOT EXISTS idx_vendors_user_id ON vendors(user_id);
