@@ -14,7 +14,7 @@ export function PhotographerProfileTemplate({ config }: Props) {
     category: "photographer",
     location: config.city || "Mumbai",
     rating: (config as any)?.rating || 4.9,
-    reviews: config.reviewsCount || 140,
+    reviews: (config as any)?.reviewsCount || 140,
     image: config.coverImage || "https://images.unsplash.com/photo-1537633552985-df8429e8048b?auto=format&fit=crop&w=600&q=80",
     subtitle: config.tagline || "Candid wedding photography, cinematic films, and timeless pre-wedding stories.",
     about: config.aboutText || "Capturing timeless emotions, royal rituals, and unforgettable moments.",

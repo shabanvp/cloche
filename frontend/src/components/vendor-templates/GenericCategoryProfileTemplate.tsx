@@ -14,7 +14,7 @@ export function GenericCategoryProfileTemplate({ config }: Props) {
     category: config.category?.toLowerCase() || "catering",
     location: config.city || "Mumbai",
     rating: (config as any)?.rating || 4.9,
-    reviews: config.reviewsCount || 100,
+    reviews: (config as any)?.reviewsCount || 100,
     image: config.coverImage || "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=600&q=80",
     subtitle: config.tagline || "Luxury wedding services, bespoke experiences and top-rated vendor excellence.",
     about: config.aboutText || "Known for high-end wedding planning and exceptional quality.",
