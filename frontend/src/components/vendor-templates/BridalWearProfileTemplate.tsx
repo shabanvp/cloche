@@ -18,7 +18,7 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
   const location = boutique?.city || bridalVendor?.location || config?.city || "Bandra, Mumbai";
   const rating = boutique?.rating || bridalVendor?.rating || (config as any)?.rating || 4.8;
   const reviews = (boutique as any)?.reviews_count || (boutique as any)?.reviews || bridalVendor?.reviews || (config as any)?.reviewsCount || 120;
-  const image = (boutique as any)?.cover_image || boutique?.logo_url || (collections && collections[0]?.image_url) || bridalVendor?.image || config?.coverImage || "https://images.unsplash.com/photo-1549417229-aa67d3263c09?auto=format&fit=crop&w=800&q=80";
+  const image = (boutique as any)?.cover_image || (boutique as any)?.logo_url || (boutique as any)?.image_url || (collections && collections[0]?.image_url) || bridalVendor?.image || config?.coverImage || "https://images.unsplash.com/photo-1549417229-aa67d3263c09?auto=format&fit=crop&w=800&q=80";
   const subtitle = (boutique as any)?.tagline || bridalVendor?.subtitle || config?.tagline || "Luxury couture lehengas crafted to perfection.";
   const about = (boutique as any)?.description || bridalVendor?.about || config?.aboutText || "Exquisite bridal wear label known for luxury craftsmanship and timeless designs.";
 
