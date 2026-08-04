@@ -781,17 +781,9 @@
       try {
         const payload = await loadBoutique();
         if (!payload || !payload.boutique) return;
-<<<<<<< HEAD
-        const boutiqueId = String(payload.boutique.id || getBoutiqueId() || "").trim();
+        const boutiqueId = String(payload.boutique.boutique_id || payload.boutique.id || getBoutiqueId() || "").trim();
         const products = await loadProducts(boutiqueId);
         fillBoutique({ ...payload.boutique, id: boutiqueId }, products.length);
-=======
-        
-        const actualBoutiqueId = payload.boutique.boutique_id || payload.boutique.id;
-        const products = await loadProducts(actualBoutiqueId);
-        
-        fillBoutique(payload.boutique, products.length);
->>>>>>> 3c1a4c4 (product add)
         renderProducts(products);
         renderOtherBoutiques(payload.allBoutiques, boutiqueId);
         setText("statusWrap", "");
