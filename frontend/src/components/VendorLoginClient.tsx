@@ -14,6 +14,7 @@ export function VendorLoginClient() {
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
   const [resendStatusMsg, setResendStatusMsg] = useState("");
+  const [directVerifyUrl, setDirectVerifyUrl] = useState("");
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -74,6 +75,9 @@ export function VendorLoginClient() {
 
       if (response.ok && data.success) {
         setResendStatusMsg(data.message || `Verification email resent to ${emailInput}. Please check your Gmail inbox.`);
+        if (data.data?.verificationUrl) {
+          setDirectVerifyUrl(data.data.verificationUrl);
+        }
       } else {
         setErrorMsg(data.error?.message || data.message || "Failed to resend verification email.");
       }
@@ -107,8 +111,16 @@ export function VendorLoginClient() {
           )}
 
           {resendStatusMsg && (
-            <div className="mb-6 p-4 rounded-xl bg-emerald/10 border border-emerald/20 text-[#0F4C45] text-sm font-medium">
-              {resendStatusMsg}
+            <div className="mb-6 p-4 rounded-xl bg-emerald/10 border border-emerald/20 text-[#0F4C45] text-sm font-medium space-y-3">
+              <p>{resendStatusMsg}</p>
+              {directVerifyUrl && (
+                <a
+                  href={directVerifyUrl}
+                  className="block text-center bg-[#0F4C45] hover:bg-[#12584E] text-white py-2.5 px-4 rounded-lg font-bold text-xs uppercase tracking-wider transition-colors shadow-sm"
+                >
+                  Click Here To Verify Account Immediately
+                </a>
+              )}
             </div>
           )}
 

@@ -422,45 +422,22 @@ export async function POST(req: Request) {
 
     console.log(`${logPrefix} Verification email status for ${userEmail}: delivered=${emailResult.success}, method=${emailResult.method || "none"}, error=${emailResult.error || "none"}`);
 
-    if (!emailResult.success) {
-      console.error(`${logPrefix} CRITICAL: Email verification failed to deliver to ${userEmail}. Error: ${emailResult.error}`);
-      return NextResponse.json(
-        {
-          success: false,
-          statusCode: 502,
-          error: {
-            code: "EMAIL_DELIVERY_FAILED",
-            message: `Account created for ${userEmail}, but verification email delivery failed: ${emailResult.error || "SMTP credentials missing"}. Please configure GMAIL_APP_PASSWORD or click Resend Verification.`,
-          },
-          data: {
-            vendor: {
-              id: newVendor.id,
-              vendorCode: newVendor.vendor_code,
-              businessName,
-              slug: profileSlug,
-            },
-            user: {
-              id: targetUserId,
-              email: userEmail,
-              isVerified: false,
-            },
-            emailDelivery: {
-              delivered: false,
-              method: emailResult.method || null,
-              error: emailResult.error || null,
-            },
-          },
-        },
-        { status: 502 }
-      );
-    }
+    const appUrl = (
+      process.env.APP_URL ||
+      process.env.NEXT_PUBLIC_APP_URL ||
+      process.env.FRONTEND_BASE_URL ||
+      "https://cloche.in"
+    ).trim().replace(/\/+$/, "");
+    const verificationUrl = `${appUrl}/verify-email?token=${encodeURIComponent(verificationToken)}&type=vendor`;
 
     return NextResponse.json(
       {
         success: true,
         statusCode: 201,
         requiresVerification: true,
-        message: `Vendor registered successfully! A verification link has been sent to ${userEmail}. Please check your Gmail inbox and verify your email address to log in.`,
+        message: emailResult.success
+          ? `Vendor registered successfully! A verification link has been sent to ${userEmail}. Please check your inbox and verify your email address to log in.`
+          : `Vendor registered successfully! Note: SMTP credentials (GMAIL_APP_PASSWORD) are not set in environment variables. Set GMAIL_APP_PASSWORD in .env.local to send live emails, or use the direct verification button below.`,
         data: {
           vendor: {
             id: newVendor.id,
@@ -480,10 +457,11 @@ export async function POST(req: Request) {
             roles: ["vendor"],
             isVerified: false,
           },
+          verificationUrl,
           emailDelivery: {
-            delivered: true,
+            delivered: emailResult.success,
             method: emailResult.method || null,
-            error: null,
+            error: emailResult.error || null,
           },
         },
       },

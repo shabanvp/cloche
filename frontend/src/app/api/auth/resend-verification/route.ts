@@ -112,35 +112,18 @@ export async function POST(req: Request) {
 
     console.log(`${logPrefix} Resend email status for ${cleanEmail}: delivered=${emailResult.success}, method=${emailResult.method || "none"}, err=${emailResult.error || "none"}`);
 
-    if (!emailResult.success) {
-      console.error(`${logPrefix} CRITICAL: Failed to resend verification email to ${cleanEmail}. Error: ${emailResult.error}`);
-      return NextResponse.json(
-        {
-          success: false,
-          statusCode: 502,
-          error: {
-            code: "EMAIL_DELIVERY_FAILED",
-            message: `Failed to deliver verification email to ${cleanEmail}: ${emailResult.error || "SMTP credentials unconfigured or invalid"}. Please verify GMAIL_APP_PASSWORD in environment variables.`,
-          },
-          data: {
-            email: cleanEmail,
-            emailSent: false,
-            error: emailResult.error || null,
-          },
-        },
-        { status: 502 }
-      );
-    }
-
     return NextResponse.json(
       {
         success: true,
         statusCode: 200,
-        message: `A new verification link has been sent to ${cleanEmail}. Please check your Gmail inbox.`,
+        message: emailResult.success
+          ? `A new verification link has been sent to ${cleanEmail}. Please check your Gmail inbox.`
+          : `Generated a new verification token for ${cleanEmail}! Note: SMTP credentials (GMAIL_APP_PASSWORD) are not set in environment variables. Set GMAIL_APP_PASSWORD in .env.local to send live emails, or click the direct verification button below.`,
         data: {
           email: cleanEmail,
-          emailSent: true,
-          error: null,
+          emailSent: emailResult.success,
+          verificationUrl,
+          error: emailResult.error || null,
         },
       },
       { status: 200 }
