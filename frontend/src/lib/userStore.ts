@@ -36,7 +36,7 @@ export function getStoredUserName(): string {
 
 export function resolveUserDisplayName(userObj?: any): string {
   if (userObj) {
-    const full = userObj.full_name || userObj.name || userObj.fullName || userObj.owner_name || userObj.ownerName;
+    const full = userObj.full_name || userObj.fullName || userObj.name || userObj.owner_name || userObj.ownerName;
     if (full && typeof full === "string" && full.trim() && full !== "Cloche User" && full !== "User") {
       return full.trim();
     }
@@ -76,5 +76,16 @@ export async function fetchAuthenticatedUser(): Promise<string> {
   } catch (e) {
     console.error("fetchAuthenticatedUser error", e);
   }
+
   return resolveUserDisplayName();
+}
+
+export function clearUserSessionCache(): void {
+  if (typeof window !== "undefined") {
+    localStorage.removeItem("userName");
+    localStorage.removeItem("name");
+    localStorage.removeItem("user_name");
+    localStorage.removeItem("userEmail");
+    localStorage.removeItem("email");
+  }
 }
