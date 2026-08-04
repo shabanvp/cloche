@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { hashPassword, signJwtToken, hashSessionToken, AUTH_COOKIE_NAME, SESSION_EXPIRY_DAYS } from "@/lib/auth";
 import { getSupabaseConfig } from "@/lib/supabase";
+import { sendVerificationMail } from "@/lib/email";
 
 export async function POST(req: Request) {
   const logPrefix = "[AUTH_SIGNUP_API]";
@@ -39,34 +40,62 @@ export async function POST(req: Request) {
       );
     }
 
-    // 1. Check for Duplicate User
-    const checkRes = await fetch(`${url}/rest/v1/users?email=eq.${encodeURIComponent(cleanEmail)}&select=id`, {
+    // 1. Check for Duplicate Email
+    const checkEmailRes = await fetch(`${url}/rest/v1/users?email=eq.${encodeURIComponent(cleanEmail)}&select=id`, {
       headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
     });
 
-    if (checkRes.ok) {
-      const existing = await checkRes.json();
-      if (Array.isArray(existing) && existing.length > 0) {
+    if (checkEmailRes.ok) {
+      const existingEmail = await checkEmailRes.json();
+      if (Array.isArray(existingEmail) && existingEmail.length > 0) {
         console.warn(`${logPrefix} Signup rejected: Email already exists -> ${cleanEmail}`);
         return NextResponse.json(
           {
             success: false,
             statusCode: 409,
-            error: { code: "EMAIL_EXISTS", message: "An account with this email address already exists." },
+            error: { code: "EMAIL_EXISTS", message: "An account with this email address already exists. Please log in instead." },
           },
           { status: 409 }
         );
       }
     }
 
-    // 2. Hash Password using PBKDF2 & Insert into users table
+    // 2. Check for Duplicate Phone Number
+    if (cleanPhone) {
+      const cleanDigits = cleanPhone.replace(/\D/g, "");
+      if (cleanDigits) {
+        const checkPhoneRes = await fetch(`${url}/rest/v1/users?phone=ilike.*${encodeURIComponent(cleanDigits)}*&select=id`, {
+          headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
+        });
+
+        if (checkPhoneRes.ok) {
+          const existingPhone = await checkPhoneRes.json();
+          if (Array.isArray(existingPhone) && existingPhone.length > 0) {
+            console.warn(`${logPrefix} Signup rejected: Mobile number already exists -> ${cleanPhone}`);
+            return NextResponse.json(
+              {
+                success: false,
+                statusCode: 409,
+                error: { code: "PHONE_EXISTS", message: "An account with this mobile number already exists. Please log in or use a different phone number." },
+              },
+              { status: 409 }
+            );
+          }
+        }
+      }
+    }
+
+    // 3. Hash Password using PBKDF2 & Generate Verification Token
     const passwordHash = hashPassword(password);
+    const verificationToken = crypto.randomUUID();
+
     const userPayload = {
       email: cleanEmail,
       password_hash: passwordHash,
       full_name: cleanName,
       name: cleanName,
       phone: cleanPhone,
+      verification_token: verificationToken,
       is_active: true,
       is_verified: false,
     };
@@ -105,7 +134,7 @@ export async function POST(req: Request) {
     insertedUserId = newUser.id;
     console.log(`${logPrefix} SUCCESS: User inserted into users table with ID: ${insertedUserId}`);
 
-    // 3. Look up Role in roles table (or insert default role if missing)
+    // 4. Look up Role in roles table (or insert default role if missing)
     let roleId: string | null = null;
     const roleLookupRes = await fetch(`${url}/rest/v1/roles?name=eq.${encodeURIComponent(assignedRole)}&select=id`, {
       headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
@@ -118,7 +147,6 @@ export async function POST(req: Request) {
       }
     }
 
-    // Fallback: Check 'customer' role if assignedRole lookup failed
     if (!roleId && assignedRole !== "customer") {
       const fallbackRoleRes = await fetch(`${url}/rest/v1/roles?name=eq.customer&select=id`, {
         headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
@@ -131,7 +159,6 @@ export async function POST(req: Request) {
       }
     }
 
-    // If role record doesn't exist in roles table, seed it dynamically to ensure foreign key constraint passes
     if (!roleId) {
       console.log(`${logPrefix} Role '${assignedRole}' not found in roles table. Creating role record...`);
       const createRoleRes = await fetch(`${url}/rest/v1/roles`, {
@@ -158,7 +185,6 @@ export async function POST(req: Request) {
 
     if (!roleId) {
       console.error(`${logPrefix} FAILED to resolve or create role '${assignedRole}'. Initiating rollback...`);
-      // Rollback user
       await fetch(`${url}/rest/v1/users?id=eq.${encodeURIComponent(insertedUserId!)}`, {
         method: "DELETE",
         headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
@@ -171,7 +197,7 @@ export async function POST(req: Request) {
 
     insertedRoleId = roleId;
 
-    // 4. Insert into user_roles table
+    // 5. Insert into user_roles table
     console.log(`${logPrefix} Linking user ${insertedUserId} with role ${insertedRoleId} in user_roles table...`);
     const insertUserRoleRes = await fetch(`${url}/rest/v1/user_roles`, {
       method: "POST",
@@ -187,7 +213,6 @@ export async function POST(req: Request) {
     if (!insertUserRoleRes.ok) {
       const roleErrText = await insertUserRoleRes.text();
       console.error(`${logPrefix} FAILED to insert user_roles record: ${roleErrText}. Initiating ROLLBACK...`);
-      // Rollback user
       await fetch(`${url}/rest/v1/users?id=eq.${encodeURIComponent(insertedUserId!)}`, {
         method: "DELETE",
         headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
@@ -199,7 +224,7 @@ export async function POST(req: Request) {
     }
     console.log(`${logPrefix} SUCCESS: Record inserted into user_roles table.`);
 
-    // 5. Issue JWT Token & Create Hashed Session in sessions table
+    // 6. Issue JWT Token & Create Hashed Session in sessions table
     const token = signJwtToken({
       userId: newUser.id,
       email: newUser.email,
@@ -233,7 +258,6 @@ export async function POST(req: Request) {
     if (!insertSessionRes.ok) {
       const sessionErrText = await insertSessionRes.text();
       console.error(`${logPrefix} FAILED to insert session record into sessions table: ${sessionErrText}. Initiating ROLLBACK...`);
-      // Rollback user_roles and users
       await fetch(`${url}/rest/v1/user_roles?user_id=eq.${encodeURIComponent(insertedUserId!)}`, {
         method: "DELETE",
         headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
@@ -250,11 +274,19 @@ export async function POST(req: Request) {
     }
     console.log(`${logPrefix} SUCCESS: Record inserted into sessions table.`);
 
-    // 6. Return Final Verified Signup Response with Cookies
+    // 7. Send Verification Mail to user's Gmail Account (Async)
+    sendVerificationMail({
+      email: cleanEmail,
+      name: cleanName,
+      verificationToken,
+      role: assignedRole,
+    }).catch((e) => console.error(`${logPrefix} Email dispatch notice:`, e));
+
+    // 8. Return Response & Set Cookies
     const responseData = {
       success: true,
       statusCode: 201,
-      message: "User registered successfully",
+      message: "User registered successfully. A verification email has been sent to your Gmail account.",
       user: {
         id: newUser.id,
         email: newUser.email,
@@ -311,13 +343,12 @@ export async function POST(req: Request) {
   } catch (err: any) {
     console.error(`${logPrefix} CRITICAL UNHANDLED ERROR:`, err);
     if (insertedUserId) {
-      // Clean rollback attempt
       try {
-        await fetch(`${url}/rest/v1/user_roles?user_id=eq.${encodeURIComponent(insertedUserId)}`, {
+        await fetch(`${url}/rest/v1/user_roles?user_id=eq.${encodeURIComponent(insertedUserId!)}`, {
           method: "DELETE",
           headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
         });
-        await fetch(`${url}/rest/v1/users?id=eq.${encodeURIComponent(insertedUserId)}`, {
+        await fetch(`${url}/rest/v1/users?id=eq.${encodeURIComponent(insertedUserId!)}`, {
           method: "DELETE",
           headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
         });
