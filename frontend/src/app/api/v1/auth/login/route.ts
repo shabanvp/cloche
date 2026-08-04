@@ -5,7 +5,7 @@ import { getSupabaseConfig } from "@/lib/supabase";
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { email, password } = body;
+    const { email, password, role } = body;
 
     if (!email || !password) {
       return NextResponse.json(
@@ -19,19 +19,21 @@ export async function POST(req: Request) {
     }
 
     const cleanEmail = email.trim().toLowerCase();
-    const { url, anonKey } = getSupabaseConfig();
-    if (!url || !anonKey) {
+    const { url, serviceKey, anonKey } = getSupabaseConfig();
+    const apiKey = serviceKey || anonKey;
+
+    if (!url || !apiKey) {
       return NextResponse.json(
         { success: false, statusCode: 500, error: { code: "CONFIG_ERROR", message: "Database credentials unconfigured." } },
         { status: 500 }
       );
     }
 
-    // 1. Fetch user by email
+    // 1. Fetch user by email including is_verified status and roles
     const userRes = await fetch(
-      `${url}/rest/v1/users?email=eq.${encodeURIComponent(cleanEmail)}&select=id,email,password_hash,full_name,is_active,user_roles(roles(name))`,
+      `${url}/rest/v1/users?email=eq.${encodeURIComponent(cleanEmail)}&select=id,email,password_hash,full_name,is_active,is_verified,user_roles(roles(name))`,
       {
-        headers: { apikey: anonKey, Authorization: `Bearer ${anonKey}` },
+        headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
       }
     );
 
@@ -52,14 +54,30 @@ export async function POST(req: Request) {
 
     const user = users[0];
 
+    // 2. Check if account is active
     if (!user.is_active) {
       return NextResponse.json(
-        { success: false, statusCode: 403, error: { code: "ACCOUNT_DISABLED", message: "This user account has been disabled." } },
+        { success: false, statusCode: 403, error: { code: "ACCOUNT_DISABLED", message: "This account has been disabled." } },
         { status: 403 }
       );
     }
 
-    // 2. Verify password
+    // 3. Enforce Email Verification Check (Must be verified to log in)
+    if (user.is_verified === false) {
+      return NextResponse.json(
+        {
+          success: false,
+          statusCode: 403,
+          error: {
+            code: "EMAIL_NOT_VERIFIED",
+            message: "Please verify your email address before logging in. Check your Gmail inbox for the verification link sent from cloche.luxury@gmail.com.",
+          },
+        },
+        { status: 403 }
+      );
+    }
+
+    // 4. Verify password
     const isPasswordValid = verifyPassword(password, user.password_hash);
     if (!isPasswordValid) {
       return NextResponse.json(
@@ -68,7 +86,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // Extract roles from bridge join
+    // Extract user roles
     let userRoles: string[] = ["customer"];
     if (Array.isArray(user.user_roles) && user.user_roles.length > 0) {
       userRoles = user.user_roles
@@ -76,7 +94,7 @@ export async function POST(req: Request) {
         .filter((rName: any) => typeof rName === "string");
     }
 
-    // 3. Issue JWT & Create Session record
+    // 5. Issue JWT & Create Session record
     const token = signJwtToken({
       userId: user.id,
       email: user.email,
@@ -91,8 +109,8 @@ export async function POST(req: Request) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        apikey: anonKey,
-        Authorization: `Bearer ${anonKey}`,
+        apikey: apiKey,
+        Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
         user_id: user.id,
@@ -101,7 +119,7 @@ export async function POST(req: Request) {
       }),
     });
 
-    // 4. Create Response & Set HTTP-Only Cookie
+    // 6. Return response and set cookies
     const response = NextResponse.json(
       {
         success: true,

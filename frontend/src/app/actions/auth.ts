@@ -30,7 +30,7 @@ export async function login(formData: FormData) {
     // 1. Authenticate against Supabase DB
     if (url && anonKey) {
       const userRes = await fetch(
-        `${url}/rest/v1/users?email=eq.${encodeURIComponent(email)}&select=id,email,password_hash,full_name,name,is_active,user_roles(roles(name))`,
+        `${url}/rest/v1/users?email=eq.${encodeURIComponent(email)}&select=id,email,password_hash,full_name,name,is_active,is_verified,user_roles(roles(name))`,
         {
           headers: { apikey: anonKey, Authorization: `Bearer ${anonKey}` },
           cache: "no-store",
@@ -41,6 +41,9 @@ export async function login(formData: FormData) {
         const users = await userRes.json();
         if (Array.isArray(users) && users.length > 0) {
           const user = users[0];
+          if (user.is_verified === false) {
+            return { error: "Please verify your email address before logging in. Check your Gmail inbox for the verification link sent from cloche.luxury@gmail.com." };
+          }
           if (user.password_hash && verifyPassword(password, user.password_hash)) {
             const displayName = user.full_name || user.name || email.split("@")[0];
             let userRoles: string[] = [role];

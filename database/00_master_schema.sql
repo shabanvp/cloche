@@ -1627,7 +1627,45 @@ INSERT INTO system_settings (setting_key, setting_value, description, is_public)
     ('support_contact', '{"email": "support@cloche.wedding", "phone": "+91 9876543210"}'::jsonb, 'Platform customer support contact info', true)
 ON CONFLICT (setting_key) DO NOTHING;
 
+-- 6. Boutiques Backward Compatibility View for Legacy Backend & PostgREST
+DROP VIEW IF EXISTS public.boutiques CASCADE;
+
+CREATE OR REPLACE VIEW public.boutiques AS
+SELECT 
+    v.id AS id,
+    v.user_id AS user_id,
+    v.vendor_code AS vendor_code,
+    COALESCE(vp.business_name, u.full_name, 'Vendor') AS boutique_name,
+    COALESCE(vp.business_name, u.full_name, 'Vendor') AS name,
+    COALESCE(u.full_name, vp.business_name) AS owner_name,
+    u.email AS email,
+    u.phone AS phone,
+    vc.name AS category,
+    v.category_id AS category_id,
+    COALESCE(vp.city, 'Kochi') AS city,
+    COALESCE(vp.city, 'Ernakulam') AS district,
+    COALESCE(vp.state, 'Kerala') AS state,
+    vp.pincode AS pincode,
+    COALESCE(vp.rating, 5.0) AS rating,
+    COALESCE(vp.review_count, 0) AS review_count,
+    vp.starting_price AS starting_price,
+    COALESCE(vp.slug, LOWER(REPLACE(v.vendor_code, '-', ''))) AS slug,
+    v.status AS status,
+    v.publication_status AS publication_status,
+    'early_partner'::VARCHAR AS plan,
+    true AS is_featured,
+    v.is_verified AS is_verified,
+    v.created_at AS created_at,
+    v.updated_at AS updated_at
+FROM public.vendors v
+LEFT JOIN public.users u ON u.id = v.user_id
+LEFT JOIN public.vendor_profiles vp ON vp.vendor_id = v.id
+LEFT JOIN public.vendor_categories vc ON vc.id = v.category_id;
+
+GRANT SELECT ON public.boutiques TO anon, authenticated, service_role;
+
 COMMIT;
 
 -- Notify Supabase PostgREST to reload schema cache immediately
 NOTIFY pgrst, 'reload schema';
+
