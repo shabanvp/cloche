@@ -16,8 +16,8 @@ export function MehendiDetailClient({ artist }: { artist: MehendiVendor }) {
     about: artist.about,
     phone: (artist as any).phone || "9876543210",
     stats: [
-      { icon: "clock", value: `${artist.experienceYears || 7}+`, label: "Years Experience" },
-      { icon: "sparkles", value: `${artist.bridesServed || 600}+`, label: "Brides Applied" },
+      { icon: "clock", value: `${(artist as any).experienceYears || 7}+`, label: "Years Experience" },
+      { icon: "sparkles", value: `${(artist as any).bridesServed || 600}+`, label: "Brides Applied" },
       { icon: "star", value: `${artist.rating}`, label: "Average Rating" }
     ],
     highlightsTitle: "Mehndi Design Highlights",

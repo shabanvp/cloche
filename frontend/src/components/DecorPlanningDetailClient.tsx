@@ -16,8 +16,8 @@ export function DecorPlanningDetailClient({ vendor }: { vendor: DecorVendor }) {
     about: vendor.about,
     phone: (vendor as any).phone || "9876543210",
     stats: [
-      { icon: "clock", value: `${vendor.yearsInBusiness || 10}+`, label: "Years Experience" },
-      { icon: "sparkles", value: `${vendor.eventsDecorated || 450}+`, label: "Events Designed" },
+      { icon: "clock", value: `${(vendor as any).yearsInBusiness || 10}+`, label: "Years Experience" },
+      { icon: "sparkles", value: `${(vendor as any).eventsDecorated || 450}+`, label: "Events Designed" },
       { icon: "star", value: `${vendor.rating}`, label: "Average Rating" }
     ],
     highlightsTitle: "Decoration Themes & Mandaps",
