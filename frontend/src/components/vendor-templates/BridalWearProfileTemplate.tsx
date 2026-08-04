@@ -58,6 +58,50 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
   const [reviewsList, setReviewsList] = useState<any[]>((boutique as any)?.userReviews || bridalVendor?.userReviews || (config as any)?.userReviews || (config as any)?.reviews || []);
   const [showReviewModal, setShowReviewModal] = useState(false);
 
+  const [currentImgIndex, setCurrentImgIndex] = useState(0);
+
+  const heroImages = Array.from(
+    new Set(
+      [
+        image,
+        ...(collections?.map((c) => c.image_url) || []),
+        ...(bridalVendor?.collections?.map((c) => c.image) || []),
+        ...((boutique as any)?.gallery || (boutique as any)?.images || []),
+        ...((config as any)?.galleryImages || (config as any)?.images || []),
+      ].filter((img): img is string => typeof img === "string" && img.length > 0)
+    )
+  );
+
+  const city = boutique?.city || bridalVendor?.location || config?.city || "Bandra, Mumbai";
+  const district = (boutique as any)?.district || "";
+  const logo = (boutique as any)?.logo_url || (boutique as any)?.image_url || image;
+  const tagline = (boutique as any)?.tagline || bridalVendor?.subtitle || config?.tagline || "Luxury couture lehengas crafted to perfection.";
+  const phone = (boutique as any)?.contact_number || (bridalVendor as any)?.phone || config?.phone || "9876543210";
+  const whatsapp = (boutique as any)?.whatsapp || phone;
+  const website = (boutique as any)?.website || (config as any)?.website || "https://cloche.in";
+  const aboutText = about;
+  const yearsInBusiness = (boutique as any)?.years_in_business || 8;
+  const bridesDressed = (boutique as any)?.brides_dressed || 450;
+  const coverImage = image;
+  const displayedProducts = collections;
+  const rawBridalCollections = bridalVendor?.collections;
+  const priceRanges = (boutique as any)?.price_ranges || (config as any)?.priceRanges || [
+    { category: "Bridal Lehengas", price: "₹45,000", isPopular: true },
+    { category: "Reception Gowns", price: "₹35,000" },
+    { category: "Sarees & Anarkalis", price: "₹18,000" },
+  ];
+  const amenitiesList = [
+    { label: "Private Trial Suite", icon: CheckCircle2 },
+    { label: "Custom Embroidery", icon: CheckCircle2 },
+    { label: "Master Tailor Fitting", icon: CheckCircle2 },
+    { label: "Worldwide Shipping", icon: Globe },
+    { label: "Prior Appointment", icon: Clock },
+  ];
+  const address = (boutique as any)?.address || `${location}, Kerala, India`;
+  const email = (boutique as any)?.email || "contact@aurorabridal.com";
+  const instagram = (boutique as any)?.instagram || "@aurorabridalcouture";
+  const similarBoutiques: any[] = [];
+
   const aboutRef = useRef<HTMLDivElement>(null);
   const collectionsRef = useRef<HTMLDivElement>(null);
   const reviewsRef = useRef<HTMLDivElement>(null);
