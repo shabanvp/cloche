@@ -13,7 +13,7 @@ export function VenueDetailClient({ venue }: { venue: VenueDetail }) {
     reviews: (venue as any).reviewsCount || (venue as any).reviews || 156,
     image: venue.image || "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=600&q=80",
     subtitle: "Grand banquet halls, lush outdoor lawns and 5-star wedding experiences.",
-    about: venue.description || "Royal Orchid Palace is a premier wedding venue known for hosting royal celebrations, grand receptions, and unforgettable wedding ceremonies.",
+    about: (venue as any).description || (venue as any).about || "Royal Orchid Palace is a premier wedding venue known for hosting royal celebrations, grand receptions, and unforgettable wedding ceremonies.",
     phone: venue.phone || "9876543210",
     stats: [
       { icon: "users", value: venue.capacity ? `${venue.capacity}` : "1,500", label: "Max Capacity" },
