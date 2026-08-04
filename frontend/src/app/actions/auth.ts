@@ -1,7 +1,7 @@
 "use server";
 
 import { cookies } from "next/headers";
-import { verifyJwtToken, hashPassword, verifyPassword, signJwtToken, AUTH_COOKIE_NAME, SESSION_EXPIRY_DAYS } from "@/lib/auth";
+import { verifyJwtToken, hashPassword, verifyPassword, signJwtToken, hashSessionToken, AUTH_COOKIE_NAME, SESSION_EXPIRY_DAYS } from "@/lib/auth";
 import { getSupabaseConfig } from "@/lib/supabase";
 
 const rawBaseUrl = process.env.NEXT_PUBLIC_API_URL || "https://cloche-backend.onrender.com";
@@ -124,10 +124,11 @@ export async function signup(formData: FormData) {
     const password = formData.get("password") as string;
     const role = (formData.get("account_type") as string) === "vendor" ? "vendor" : "customer";
 
-    const { url, anonKey } = getSupabaseConfig();
+    const { url, anonKey, serviceKey } = getSupabaseConfig();
 
-    // 1. Insert directly into Supabase database if configured
-    if (url && anonKey) {
+    // 1. Insert into Supabase database if configured
+    if (url && (serviceKey || anonKey)) {
+      const apiKey = serviceKey || anonKey;
       const passwordHash = hashPassword(password);
       const userPayload = {
         email,
@@ -143,8 +144,8 @@ export async function signup(formData: FormData) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          apikey: anonKey,
-          Authorization: `Bearer ${anonKey}`,
+          apikey: apiKey,
+          Authorization: `Bearer ${apiKey}`,
           Prefer: "return=representation",
         },
         body: JSON.stringify(userPayload),
@@ -154,12 +155,66 @@ export async function signup(formData: FormData) {
         const inserted = await insertRes.json();
         if (Array.isArray(inserted) && inserted.length > 0) {
           const newUser = inserted[0];
+          
+          // Role lookup & insertion
+          let roleId: string | null = null;
+          const roleRes = await fetch(`${url}/rest/v1/roles?name=eq.${encodeURIComponent(role)}&select=id`, {
+            headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
+          }).catch(() => null);
+          if (roleRes && roleRes.ok) {
+            const roles = await roleRes.json();
+            if (Array.isArray(roles) && roles.length > 0) roleId = roles[0].id;
+          }
+          if (!roleId) {
+            const customerRoleRes = await fetch(`${url}/rest/v1/roles?name=eq.customer&select=id`, {
+              headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
+            }).catch(() => null);
+            if (customerRoleRes && customerRoleRes.ok) {
+              const customerRoles = await customerRoleRes.json();
+              if (Array.isArray(customerRoles) && customerRoles.length > 0) roleId = customerRoles[0].id;
+            }
+          }
+          if (!roleId) {
+            const newRoleRes = await fetch(`${url}/rest/v1/roles`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json", apikey: apiKey, Authorization: `Bearer ${apiKey}`, Prefer: "return=representation" },
+              body: JSON.stringify({ name: role, description: `${role} role` }),
+            }).catch(() => null);
+            if (newRoleRes && newRoleRes.ok) {
+              const newRoles = await newRoleRes.json();
+              if (Array.isArray(newRoles) && newRoles.length > 0) roleId = newRoles[0].id;
+            }
+          }
+
+          if (roleId) {
+            await fetch(`${url}/rest/v1/user_roles`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json", apikey: apiKey, Authorization: `Bearer ${apiKey}` },
+              body: JSON.stringify({ user_id: newUser.id, role_id: roleId }),
+            }).catch(() => null);
+          }
+
           const token = signJwtToken({
             userId: newUser.id,
             email: newUser.email,
             fullName: name,
             roles: [role],
           });
+
+          // Session creation
+          const tokenHash = hashSessionToken(token);
+          const expiresAt = new Date(Date.now() + SESSION_EXPIRY_DAYS * 24 * 60 * 60 * 1000).toISOString();
+          await fetch(`${url}/rest/v1/sessions`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", apikey: apiKey, Authorization: `Bearer ${apiKey}` },
+            body: JSON.stringify({
+              user_id: newUser.id,
+              token_hash: tokenHash,
+              user_agent: "Next.js Server Action",
+              ip_address: "127.0.0.1",
+              expires_at: expiresAt,
+            }),
+          }).catch(() => null);
 
           const cookieStore = await cookies();
           const userObj = { id: newUser.id, email: newUser.email, full_name: name, name: name, fullName: name, roles: [role] };
