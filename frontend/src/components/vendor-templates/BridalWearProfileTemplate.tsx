@@ -359,6 +359,7 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
           <div className="flex items-center justify-around text-xs font-bold uppercase tracking-wider px-4">
             {[
               { id: "about", label: "About" },
+              { id: "collections", label: "Collections" },
               { id: "reviews", label: "Reviews" },
               { id: "info", label: "Info" },
             ].map((tab) => (
