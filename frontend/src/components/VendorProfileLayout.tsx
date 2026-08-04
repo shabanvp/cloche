@@ -379,12 +379,12 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
     <div className="min-h-screen flex flex-col bg-[#FAF7F2] pb-32 text-[#2D2520] font-sans">
 
       {/* Top Hero Banner */}
-      <div className="relative w-full aspect-[4/3] sm:aspect-[16/9] bg-gray-900 overflow-hidden">
+      <div className="relative w-full aspect-[4/3] sm:aspect-[16/9] md:h-[420px] lg:h-[480px] xl:h-[540px] md:aspect-auto bg-gray-900 overflow-hidden">
         <Image src={vendor.image} alt={vendor.name} fill priority className="object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30" />
 
         {/* Floating Top Buttons */}
-        <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 pt-4 pb-2 z-10">
+        <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 sm:px-8 pt-4 pb-2 z-10 max-w-7xl mx-auto">
           <Link
             href={`/vendors`}
             className="flex h-10 w-10 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-md hover:bg-black/60 transition-colors"
@@ -409,88 +409,88 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
         </div>
 
         {/* Counter Overlay */}
-        <div className="absolute bottom-3 right-3 rounded-full bg-black/60 px-3 py-1 text-xs font-semibold text-white backdrop-blur-sm border border-white/20">
+        <div className="absolute bottom-3 right-3 sm:right-8 rounded-full bg-black/60 px-3 py-1 text-xs font-semibold text-white backdrop-blur-sm border border-white/20">
           1/15
         </div>
       </div>
 
-      <main className="flex-1 px-4 pt-4 space-y-5 max-w-4xl mx-auto w-full">
+      <main className="flex-1 px-4 sm:px-6 md:px-8 pt-4 md:pt-6 space-y-5 md:space-y-6 max-w-5xl lg:max-w-6xl xl:max-w-[1360px] mx-auto w-full">
 
         {/* Profile Card Header */}
-        <div className="flex gap-3.5 items-start relative">
-          <div className="relative h-16 w-16 shrink-0 rounded-2xl overflow-hidden bg-[#0F4C45] border-2 border-white shadow-md flex items-center justify-center text-white">
-            <span className="font-serif text-lg font-bold tracking-wider">{initials}</span>
+        <div className="flex gap-3.5 md:gap-5 items-start relative bg-white md:p-5 md:rounded-2xl md:border md:border-black/5 md:shadow-xs">
+          <div className="relative h-16 w-16 md:h-20 md:w-20 shrink-0 rounded-2xl overflow-hidden bg-[#0F4C45] border-2 border-white shadow-md flex items-center justify-center text-white">
+            <span className="font-serif text-lg md:text-2xl font-bold tracking-wider">{initials}</span>
           </div>
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-1.5 flex-wrap">
-              <h1 className="font-serif text-[22px] font-bold text-[#1A1410] leading-tight">
+              <h1 className="font-serif text-[22px] md:text-[26px] lg:text-[28px] font-bold text-[#1A1410] leading-tight">
                 {vendor.name}
               </h1>
               {vendor.isVerified !== false && (
-                <CheckCircle2 className="h-5 w-5 shrink-0 fill-[#0F4C45] text-white" />
+                <CheckCircle2 className="h-5 w-5 md:h-6 md:w-6 shrink-0 fill-[#0F4C45] text-white" />
               )}
             </div>
 
-            <div className="mt-1 flex items-center gap-2 text-[12px]">
+            <div className="mt-1 flex items-center gap-2 text-[12px] md:text-[13px]">
               <div className="flex items-center gap-1 font-bold text-[#1A1410]">
-                <Star className="h-3.5 w-3.5 fill-[#C8A96A] text-[#C8A96A]" />
+                <Star className="h-3.5 w-3.5 md:h-4 md:w-4 fill-[#C8A96A] text-[#C8A96A]" />
                 <span>{vendor.rating || 4.8}</span>
                 <span className="text-[#7A6E65] font-normal">({vendor.reviews || 128})</span>
               </div>
               <span className="text-[#0F4C45] font-semibold">• Verified {defaults.categoryLabel}</span>
             </div>
 
-            <div className="mt-1 flex items-center gap-1 text-[12px] text-[#6B5E52]">
-              <MapPin className="h-3.5 w-3.5 text-[#8C827A]" />
+            <div className="mt-1 flex items-center gap-1 text-[12px] md:text-[13px] text-[#6B5E52]">
+              <MapPin className="h-3.5 w-3.5 md:h-4 md:w-4 text-[#8C827A]" />
               <span>{vendor.location}</span>
             </div>
           </div>
         </div>
 
         {/* About Section */}
-        <section className="rounded-2xl bg-white p-4 border border-black/5 shadow-xs">
-          <h2 className="font-serif text-[16px] font-bold text-[#1A1410]">About</h2>
-          <p className="mt-2 text-[13px] text-[#5A6561] leading-relaxed">
+        <section className="rounded-2xl bg-white p-4 md:p-6 border border-black/5 shadow-xs">
+          <h2 className="font-serif text-[16px] md:text-[18px] font-bold text-[#1A1410]">About</h2>
+          <p className="mt-2 text-[13px] md:text-[14px] text-[#5A6561] leading-relaxed max-w-4xl">
             {vendor.about || `${vendor.name} is known for creating memorable wedding experiences with a perfect blend of style, presentation, and unmatched hospitality. From intimate gatherings to grand celebrations, we bring your vision to life.`}
           </p>
         </section>
 
         {/* Key Stats Cards (3 Columns) */}
-        <div className="grid grid-cols-3 gap-2 text-center">
+        <div className="grid grid-cols-3 gap-2 md:gap-4 text-center">
           {stats.map((st, i) => (
-            <div key={i} className="p-3 rounded-2xl bg-[#FAF5EA] border border-[#E8DFD1] flex flex-col items-center justify-center">
-              {st.icon === "clock" && <Clock className="h-5 w-5 text-[#0F4C45]" />}
-              {st.icon === "camera" && <Camera className="h-5 w-5 text-[#0F4C45]" />}
-              {st.icon === "users" && <Users className="h-5 w-5 text-[#0F4C45]" />}
-              {st.icon === "building" && <Building className="h-5 w-5 text-[#0F4C45]" />}
-              {st.icon === "star" && <Star className="h-5 w-5 text-[#C8A96A] fill-[#C8A96A]" />}
-              {st.icon === "sparkles" && <Sparkles className="h-5 w-5 text-[#0F4C45]" />}
-              {st.icon === "utensils" && <span className="material-symbols-outlined text-[22px] text-[#0F4C45]">restaurant</span>}
+            <div key={i} className="p-3 md:p-5 rounded-2xl bg-[#FAF5EA] border border-[#E8DFD1] flex flex-col items-center justify-center transition-transform hover:-translate-y-0.5">
+              {st.icon === "clock" && <Clock className="h-5 w-5 md:h-6 md:w-6 text-[#0F4C45]" />}
+              {st.icon === "camera" && <Camera className="h-5 w-5 md:h-6 md:w-6 text-[#0F4C45]" />}
+              {st.icon === "users" && <Users className="h-5 w-5 md:h-6 md:w-6 text-[#0F4C45]" />}
+              {st.icon === "building" && <Building className="h-5 w-5 md:h-6 md:w-6 text-[#0F4C45]" />}
+              {st.icon === "star" && <Star className="h-5 w-5 md:h-6 md:w-6 text-[#C8A96A] fill-[#C8A96A]" />}
+              {st.icon === "sparkles" && <Sparkles className="h-5 w-5 md:h-6 md:w-6 text-[#0F4C45]" />}
+              {st.icon === "utensils" && <span className="material-symbols-outlined text-[22px] md:text-[26px] text-[#0F4C45]">restaurant</span>}
 
-              <span className="font-serif text-[16px] font-bold text-[#1A1410] block mt-1">
+              <span className="font-serif text-[16px] md:text-[20px] font-bold text-[#1A1410] block mt-1">
                 {st.value}
               </span>
-              <span className="text-[11px] text-[#7A6E65] leading-tight mt-0.5">{st.label}</span>
+              <span className="text-[11px] md:text-[13px] text-[#7A6E65] leading-tight mt-0.5">{st.label}</span>
             </div>
           ))}
         </div>
 
         {/* Highlights Carousel (Menu / Work / Portfolio Highlights) */}
-        <section className="rounded-2xl bg-white p-4 border border-black/5 shadow-xs">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="font-serif text-[16px] font-bold text-[#1A1410]">{highlightsTitle}</h2>
-            <button className="text-[12px] font-bold text-[#0F4C45] hover:underline">See All</button>
+        <section className="rounded-2xl bg-white p-4 md:p-6 border border-black/5 shadow-xs">
+          <div className="flex items-center justify-between mb-3 md:mb-4">
+            <h2 className="font-serif text-[16px] md:text-[18px] font-bold text-[#1A1410]">{highlightsTitle}</h2>
+            <button className="text-[12px] md:text-[13px] font-bold text-[#0F4C45] hover:underline">See All</button>
           </div>
-          <div className="flex gap-3 overflow-x-auto hide-scrollbar pb-2">
+          <div className="flex md:grid md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4 overflow-x-auto md:overflow-visible hide-scrollbar pb-2 md:pb-0">
             {highlights.map((item, idx) => (
               <div
                 key={idx}
-                className="relative min-w-[130px] w-36 aspect-[3/4] rounded-xl overflow-hidden shadow-sm shrink-0 group"
+                className="relative min-w-[130px] w-36 md:w-auto aspect-[3/4] rounded-xl overflow-hidden shadow-sm shrink-0 md:shrink group"
               >
                 <Image src={item.image} alt={item.name} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-transparent" />
-                <span className="absolute bottom-2 left-2 right-2 text-[11px] font-bold text-white leading-tight">
+                <span className="absolute bottom-2 left-2 right-2 text-[11px] md:text-[12px] font-bold text-white leading-tight">
                   {item.name}
                 </span>
               </div>
@@ -499,46 +499,46 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
         </section>
 
         {/* Price Range Section (3 Columns) */}
-        <section className="rounded-2xl bg-white p-4 border border-black/5 shadow-xs">
-          <h2 className="font-serif text-[16px] font-bold text-[#1A1410] mb-3">Price Range</h2>
-          <div className="grid grid-cols-3 gap-2 text-center">
+        <section className="rounded-2xl bg-white p-4 md:p-6 border border-black/5 shadow-xs">
+          <h2 className="font-serif text-[16px] md:text-[18px] font-bold text-[#1A1410] mb-3 md:mb-4">Price Range</h2>
+          <div className="grid grid-cols-3 gap-2 md:gap-4 text-center">
             {prices.map((pr, idx) => (
               <div
                 key={idx}
-                className={`relative p-3 rounded-xl border flex flex-col justify-between ${
-                  pr.isPopular ? "bg-[#FAF5EA] border-[#D4B66E] border-2" : "bg-[#FAF7F2] border-black/5"
+                className={`relative p-3 md:p-5 rounded-xl border flex flex-col justify-between ${
+                  pr.isPopular ? "bg-[#FAF5EA] border-[#D4B66E] border-2 shadow-xs" : "bg-[#FAF7F2] border-black/5"
                 }`}
               >
                 {pr.isPopular && (
-                  <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 rounded bg-[#0F4C45] px-2 py-0.5 text-[8px] font-bold text-white uppercase whitespace-nowrap tracking-wider">
+                  <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 rounded bg-[#0F4C45] px-2.5 py-0.5 text-[8px] md:text-[10px] font-bold text-white uppercase whitespace-nowrap tracking-wider shadow-xs">
                     Most Popular
                   </span>
                 )}
                 <div>
-                  <span className="text-[11px] text-[#7A6E65] block font-medium mt-1">{pr.category}</span>
-                  <span className="font-serif text-[15px] font-bold text-[#0F4C45] block mt-1">
+                  <span className="text-[11px] md:text-[13px] text-[#7A6E65] block font-medium mt-1">{pr.category}</span>
+                  <span className="font-serif text-[15px] md:text-[20px] font-bold text-[#0F4C45] block mt-1">
                     {pr.price}
                   </span>
                 </div>
-                <span className="text-[10px] text-[#8C827A] mt-1 block">Onwards</span>
+                <span className="text-[10px] md:text-[12px] text-[#8C827A] mt-1 block">Onwards</span>
               </div>
             ))}
           </div>
         </section>
 
         {/* Services Included Section */}
-        <section className="rounded-2xl bg-white p-4 border border-black/5 shadow-xs">
-          <h2 className="font-serif text-[16px] font-bold text-[#1A1410] mb-3">Services Included</h2>
-          <div className="flex items-center gap-2.5 overflow-x-auto hide-scrollbar pb-1">
+        <section className="rounded-2xl bg-white p-4 md:p-6 border border-black/5 shadow-xs">
+          <h2 className="font-serif text-[16px] md:text-[18px] font-bold text-[#1A1410] mb-3 md:mb-4">Services Included</h2>
+          <div className="flex md:grid md:grid-cols-3 lg:grid-cols-6 items-center gap-2.5 md:gap-4 overflow-x-auto md:overflow-visible hide-scrollbar pb-1 md:pb-0">
             {services.map((svc, idx) => (
               <div
                 key={idx}
-                className="flex flex-col items-center justify-center p-2.5 min-w-[85px] rounded-xl bg-[#FAF7F2] border border-black/5 text-center shrink-0"
+                className="flex flex-col items-center justify-center p-3 md:p-4 min-w-[85px] md:min-w-0 rounded-xl bg-[#FAF7F2] border border-black/5 text-center shrink-0 md:shrink"
               >
-                <span className="material-symbols-outlined text-[22px] text-[#0F4C45]">
+                <span className="material-symbols-outlined text-[22px] md:text-[28px] text-[#0F4C45]">
                   {svc.icon}
                 </span>
-                <span className="mt-1 text-[10px] font-semibold text-[#4A3F35] leading-tight">
+                <span className="mt-1 md:mt-2 text-[10px] md:text-[12px] font-semibold text-[#4A3F35] leading-tight">
                   {svc.name}
                 </span>
               </div>
@@ -548,76 +548,90 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
 
         {/* Reviews Section */}
         {vendor.userReviews && vendor.userReviews.length > 0 ? (
-          <section className="rounded-2xl bg-white p-4 border border-black/5 shadow-xs">
-            <div className="flex items-center justify-between mb-2">
-              <h2 className="font-serif text-[16px] font-bold text-[#1A1410]">Reviews</h2>
-              <button className="text-[12px] font-bold text-[#0F4C45] hover:underline">See All</button>
+          <section className="rounded-2xl bg-white p-4 md:p-6 border border-black/5 shadow-xs">
+            <div className="flex items-center justify-between mb-3 md:mb-4">
+              <h2 className="font-serif text-[16px] md:text-[18px] font-bold text-[#1A1410]">Reviews</h2>
+              <button className="text-[12px] md:text-[13px] font-bold text-[#0F4C45] hover:underline">See All</button>
             </div>
-            <div className="space-y-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
               {vendor.userReviews.map((rev, idx) => (
-                <div key={idx} className="p-3 rounded-xl bg-[#FAF5EA] border border-[#E8DFD1]">
+                <div key={idx} className="p-3.5 md:p-4 rounded-xl bg-[#FAF5EA] border border-[#E8DFD1]">
                   <div className="flex items-center justify-between">
-                    <span className="text-[13px] font-bold text-[#1A1410]">{rev.author}</span>
+                    <span className="text-[13px] md:text-[14px] font-bold text-[#1A1410]">{rev.author}</span>
                     <div className="flex items-center gap-1">
-                      <Star className="h-3 w-3 fill-[#C8A96A] text-[#C8A96A]" />
-                      <span className="text-[11px] font-bold text-[#1A1410]">{rev.rating}</span>
+                      <Star className="h-3.5 w-3.5 fill-[#C8A96A] text-[#C8A96A]" />
+                      <span className="text-[11px] md:text-[12px] font-bold text-[#1A1410]">{rev.rating}</span>
                     </div>
                   </div>
-                  <p className="mt-1 text-[12px] text-[#5A6561] leading-relaxed">{rev.text}</p>
+                  <p className="mt-1.5 text-[12px] md:text-[13px] text-[#5A6561] leading-relaxed">{rev.text}</p>
                 </div>
               ))}
             </div>
           </section>
         ) : (
-          <section className="rounded-2xl bg-white p-4 border border-black/5 shadow-xs">
-            <div className="flex items-center justify-between mb-2">
-              <h2 className="font-serif text-[16px] font-bold text-[#1A1410]">Reviews</h2>
-              <button className="text-[12px] font-bold text-[#0F4C45]">See All</button>
+          <section className="rounded-2xl bg-white p-4 md:p-6 border border-black/5 shadow-xs">
+            <div className="flex items-center justify-between mb-3 md:mb-4">
+              <h2 className="font-serif text-[16px] md:text-[18px] font-bold text-[#1A1410]">Reviews</h2>
+              <button className="text-[12px] md:text-[13px] font-bold text-[#0F4C45] hover:underline">See All</button>
             </div>
-            <div className="p-3 rounded-xl bg-[#FAF5EA] border border-[#E8DFD1]">
-              <div className="flex items-center justify-between">
-                <span className="text-[13px] font-bold text-[#1A1410]">Neha Sharma</span>
-                <div className="flex items-center gap-1">
-                  <Star className="h-3 w-3 fill-[#C8A96A] text-[#C8A96A]" />
-                  <span className="text-[11px] font-bold text-[#1A1410]">5</span>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+              <div className="p-3.5 md:p-4 rounded-xl bg-[#FAF5EA] border border-[#E8DFD1]">
+                <div className="flex items-center justify-between">
+                  <span className="text-[13px] md:text-[14px] font-bold text-[#1A1410]">Neha Sharma</span>
+                  <div className="flex items-center gap-1">
+                    <Star className="h-3.5 w-3.5 fill-[#C8A96A] text-[#C8A96A]" />
+                    <span className="text-[11px] md:text-[12px] font-bold text-[#1A1410]">5</span>
+                  </div>
                 </div>
+                <p className="mt-1.5 text-[12px] md:text-[13px] text-[#5A6561] leading-relaxed">
+                  The service was absolutely amazing! Every detail was executed flawlessly. Highly recommended!
+                </p>
               </div>
-              <p className="mt-1 text-[12px] text-[#5A6561] leading-relaxed">
-                The service was absolutely amazing! Every detail was executed flawlessly. Highly recommended!
-              </p>
+              <div className="p-3.5 md:p-4 rounded-xl bg-[#FAF5EA] border border-[#E8DFD1] hidden md:block">
+                <div className="flex items-center justify-between">
+                  <span className="text-[13px] md:text-[14px] font-bold text-[#1A1410]">Rohan Verma</span>
+                  <div className="flex items-center gap-1">
+                    <Star className="h-3.5 w-3.5 fill-[#C8A96A] text-[#C8A96A]" />
+                    <span className="text-[11px] md:text-[12px] font-bold text-[#1A1410]">5</span>
+                  </div>
+                </div>
+                <p className="mt-1.5 text-[12px] md:text-[13px] text-[#5A6561] leading-relaxed">
+                  Extremely professional team with incredible taste and punctuality. Our guests loved everything!
+                </p>
+              </div>
             </div>
           </section>
         )}
 
         {/* Global Cards of Other Vendors in Same Category */}
-        <section className="rounded-2xl bg-white p-4 border border-black/5 shadow-xs">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="font-serif text-[16px] font-bold text-[#1A1410]">
+        <section className="rounded-2xl bg-white p-4 md:p-6 border border-black/5 shadow-xs">
+          <div className="flex items-center justify-between mb-3 md:mb-4">
+            <h2 className="font-serif text-[16px] md:text-[18px] font-bold text-[#1A1410]">
               Explore Other {defaults.categoryLabel}s
             </h2>
-            <Link href="/vendors" className="text-[12px] font-bold text-[#0F4C45] hover:underline">
+            <Link href="/vendors" className="text-[12px] md:text-[13px] font-bold text-[#0F4C45] hover:underline">
               See All
             </Link>
           </div>
 
-          <div className="flex gap-3 overflow-x-auto hide-scrollbar pb-2">
+          <div className="flex md:grid md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4 overflow-x-auto md:overflow-visible hide-scrollbar pb-2 md:pb-0">
             {similarVendors.map((sim, idx) => (
               <Link
                 key={idx}
                 href="/vendors"
-                className="flex-shrink-0 w-44 rounded-xl overflow-hidden bg-[#FAF7F2] border border-black/5 shadow-2xs hover:border-[#0F4C45] transition-all group"
+                className="flex-shrink-0 w-44 md:w-auto rounded-xl overflow-hidden bg-[#FAF7F2] border border-black/5 shadow-2xs hover:border-[#0F4C45] transition-all group"
               >
-                <div className="relative h-28 w-full">
+                <div className="relative h-28 md:h-36 w-full">
                   <Image src={sim.image} alt={sim.name} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
                 </div>
-                <div className="p-2.5">
-                  <h4 className="text-xs font-bold text-[#1A1410] truncate">{sim.name}</h4>
-                  <div className="flex items-center gap-1 text-[10px] text-[#7A6E65] mt-0.5">
+                <div className="p-2.5 md:p-3">
+                  <h4 className="text-xs md:text-sm font-bold text-[#1A1410] truncate">{sim.name}</h4>
+                  <div className="flex items-center gap-1 text-[10px] md:text-[12px] text-[#7A6E65] mt-0.5">
                     <Star className="h-3 w-3 fill-[#C8A96A] text-[#C8A96A]" />
                     <span>{sim.rating}</span>
                     <span>({sim.reviews || 95})</span>
                   </div>
-                  <span className="block text-[11px] font-bold text-[#0F4C45] mt-1">{sim.price} onwards</span>
+                  <span className="block text-[11px] md:text-[13px] font-bold text-[#0F4C45] mt-1">{sim.price} onwards</span>
                 </div>
               </Link>
             ))}
@@ -627,11 +641,11 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
       </main>
 
       {/* Sticky Bottom Actions & Floating Genie Button */}
-      <div className="fixed bottom-16 left-0 right-0 z-40 bg-white/95 backdrop-blur-md px-4 py-2.5 border-t border-black/5 shadow-lg max-w-4xl mx-auto">
-        <div className="relative flex items-center gap-2">
+      <div className="fixed bottom-16 md:bottom-6 left-0 right-0 md:left-1/2 md:-translate-x-1/2 z-40 bg-white/95 backdrop-blur-md px-4 md:px-6 py-2.5 md:py-3 border-t md:border border-black/10 shadow-lg md:shadow-2xl md:rounded-full w-full md:w-[680px] lg:w-[820px] xl:w-[920px] transition-all">
+        <div className="relative flex items-center gap-2 md:gap-4">
           <a
             href={`tel:${vendor.phone || "9876543210"}`}
-            className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-[#0F4C45] py-3 text-[13px] font-bold text-white hover:bg-[#083833] transition-colors"
+            className="flex-1 flex items-center justify-center gap-1.5 rounded-xl md:rounded-full bg-[#0F4C45] py-3 text-[13px] md:text-[14px] font-bold text-white hover:bg-[#083833] transition-colors"
           >
             <Phone className="h-4 w-4" /> Call
           </a>
@@ -640,14 +654,14 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
             href={`https://wa.me/${vendor.phone || "9876543210"}`}
             target="_blank"
             rel="noreferrer"
-            className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-[#0F4C45] py-3 text-[13px] font-bold text-white hover:bg-[#083833] transition-colors"
+            className="flex-1 flex items-center justify-center gap-1.5 rounded-xl md:rounded-full bg-[#0F4C45] py-3 text-[13px] md:text-[14px] font-bold text-white hover:bg-[#083833] transition-colors"
           >
             <MessageCircle className="h-4 w-4" /> WhatsApp
           </a>
 
           <button
             onClick={() => setActiveModal("quote")}
-            className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-[#C8A96A] py-3 text-[13px] font-bold text-[#0F4C45] hover:bg-yellow-400 transition-colors"
+            className="flex-1 flex items-center justify-center gap-1.5 rounded-xl md:rounded-full bg-[#C8A96A] py-3 text-[13px] md:text-[14px] font-bold text-[#0F4C45] hover:bg-yellow-400 transition-colors"
           >
             <Mail className="h-4 w-4" /> Get Quote
           </button>
@@ -655,7 +669,7 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
           {/* Floating Golden Genie Button */}
           <Link
             href="/genie"
-            className="absolute -top-6 -right-2 h-12 w-12 rounded-full bg-gradient-to-tr from-[#D4AF37] to-[#F3E5AB] text-[#0F4C45] border-2 border-white shadow-xl flex items-center justify-center active:scale-95 transition-transform hover:scale-105"
+            className="absolute -top-6 -right-2 md:-top-3 md:-right-3 h-12 w-12 rounded-full bg-gradient-to-tr from-[#D4AF37] to-[#F3E5AB] text-[#0F4C45] border-2 border-white shadow-xl flex items-center justify-center active:scale-95 transition-transform hover:scale-105"
             aria-label="Cloche Genie Assistant"
           >
             <Sparkles className="h-6 w-6 fill-[#0F4C45] text-[#0F4C45] animate-pulse" />
