@@ -12,9 +12,8 @@ export function BridalWearDetailClient({ boutique }: { boutique: BridalBoutiqueV
     rating: boutique.rating,
     reviews: boutique.reviews || 95,
     image: boutique.image || "https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=600&q=80",
-    subtitle: boutique.tagline || "Luxury bridal lehengas, custom couture, and exquisite wedding outfits.",
+    subtitle: boutique.subtitle || "Luxury bridal lehengas, custom couture, and exquisite wedding outfits.",
     about: boutique.about,
-    phone: boutique.phone || "9876543210",
     stats: [
       { icon: "sparkles", value: "500+", label: "Designer Outfits" },
       { icon: "users", value: "1,200+", label: "Happy Brides" },
