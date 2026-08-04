@@ -14,7 +14,7 @@ export function GroomWearDetailClient({ vendor }: { vendor: GroomWearVendor }) {
     image: vendor.image || "https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=600&q=80",
     subtitle: vendor.subtitle || "Bespoke royal sherwanis, Indo-western suits, and designer groom wear.",
     about: vendor.about,
-    phone: vendor.phone,
+    phone: (vendor as any).phone || "9876543210",
     stats: [
       { icon: "sparkles", value: "400+", label: "Designer Sherwanis" },
       { icon: "users", value: "950+", label: "Grooms Styled" },
