@@ -560,48 +560,8 @@ export function MakeupDetailClient({ artist }: { artist: VendorDetail }) {
         </div>
       )}
 
-      {/* Top Preview Controls Bar (for desktop evaluation / responsive testing) */}
-      <div className="hidden md:flex items-center justify-between px-6 py-2.5 bg-[#0B5D4F] text-white text-xs border-b border-[#D4AF37]/20 sticky top-0 z-40">
-        <div className="flex items-center gap-2 font-serif text-sm tracking-wide">
-          <span className="text-[#D4AF37]">CLOCHE</span>
-          <span className="opacity-40">|</span>
-          <span className="text-[#F8F6F2]/90 font-sans text-xs">Luxury Wedding Marketplace Profile</span>
-        </div>
-
-        <div className="flex items-center gap-4">
-          <button
-            onClick={() => setIsLoading(!isLoading)}
-            className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 hover:bg-white/20 transition-all text-xs"
-          >
-            <RefreshCw className={`h-3.5 w-3.5 ${isLoading ? "animate-spin text-[#D4AF37]" : ""}`} />
-            <span>{isLoading ? "Skeleton Mode Active" : "Simulate Loading Skeleton"}</span>
-          </button>
-
-          <div className="flex items-center bg-black/20 p-0.5 rounded-full border border-white/10">
-            <button
-              onClick={() => setViewMode("mobile")}
-              className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium transition-all ${
-                viewMode === "mobile" ? "bg-[#D4AF37] text-[#0B5D4F]" : "text-white/80 hover:text-white"
-              }`}
-            >
-              <Smartphone className="h-3.5 w-3.5" />
-              Mobile Frame (390px)
-            </button>
-            <button
-              onClick={() => setViewMode("full")}
-              className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium transition-all ${
-                viewMode === "full" ? "bg-[#D4AF37] text-[#0B5D4F]" : "text-white/80 hover:text-white"
-              }`}
-            >
-              <Monitor className="h-3.5 w-3.5" />
-              Full Width View
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Outer Shell Wrapper (Mobile Frame on Desktop if mobile view selected) */}
-      <div className={`mx-auto transition-all duration-300 ${viewMode === "mobile" ? "max-width-390 md:max-w-[420px] md:my-6 md:rounded-[40px] md:shadow-[0_20px_60px_rgba(0,0,0,0.18)] md:border-[10px] md:border-[#1E1E1C] overflow-hidden relative" : "max-w-5xl"}`}>
+      {/* Outer Shell Wrapper */}
+      <div className="mx-auto max-w-5xl transition-all duration-300">
 
         {/* Skeleton Loader State */}
         {isLoading ? (
@@ -1556,7 +1516,7 @@ export function MakeupDetailClient({ artist }: { artist: VendorDetail }) {
 
         {/* STICKY BOTTOM ACTION FLOATING BAR */}
         <div className="fixed bottom-0 left-0 right-0 z-40 bg-[#FFFDF9]/95 backdrop-blur-md border-t border-[#EBE5DA] p-3 shadow-2xl">
-          <div className={`mx-auto flex items-center justify-between gap-2 ${viewMode === "mobile" ? "max-w-[400px]" : "max-w-md"}`}>
+          <div className="mx-auto flex items-center justify-between gap-2 max-w-md">
             <div className="flex flex-col pl-1">
               <span className="text-[10px] text-[#6E6A61] uppercase tracking-wider">Starting Price</span>
               <span className="font-serif text-base font-bold text-[#0B5D4F]">₹25,000</span>
