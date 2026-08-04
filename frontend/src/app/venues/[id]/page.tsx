@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getVenueById, venues } from "@/lib/venueData";
-import { VenueProfileTemplate } from "@/components/vendor-templates/VenueProfileTemplate";
+import { VenueDetailClient } from "@/components/VenueDetailClient";
 
 export const dynamicParams = true;
 
@@ -39,5 +39,5 @@ export default async function VenueDetailPage({
     notFound();
   }
 
-  return <VenueProfileTemplate venue={venue!} preview={false} />;
+  return <VenueDetailClient venue={venue} />;
 }
