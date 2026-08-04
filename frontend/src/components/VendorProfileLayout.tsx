@@ -84,7 +84,6 @@ export interface VendorProfileData {
 
 export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
   const [isWishlisted, setIsWishlisted] = useState(false);
-  const [isFollowing, setIsFollowing] = useState(vendor.isFollowing || false);
   const [activeModal, setActiveModal] = useState<null | "quote" | "share">(null);
 
   // Vendor Name Initials Avatar
@@ -447,23 +446,6 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
               <span>{vendor.location}</span>
             </div>
           </div>
-        </div>
-
-        {/* Subtitle & Follow Row */}
-        <div className="flex items-center justify-between gap-3 bg-white p-3.5 rounded-2xl border border-black/5 shadow-xs">
-          <p className="text-[13px] text-[#5A6561] leading-tight flex-1">
-            {vendor.subtitle || "Exquisite services, impeccable quality and unforgettable wedding experiences."}
-          </p>
-          <button
-            onClick={() => setIsFollowing(!isFollowing)}
-            className={`rounded-xl px-4 py-2 text-[12px] font-bold transition-all ${
-              isFollowing
-                ? "bg-[#FAF5EA] text-[#0F4C45] border border-[#0F4C45]/30"
-                : "bg-[#0F4C45] text-white shadow-xs"
-            }`}
-          >
-            {isFollowing ? "Following" : "Follow"}
-          </button>
         </div>
 
         {/* About Section */}
