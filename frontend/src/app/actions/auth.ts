@@ -1,11 +1,23 @@
 "use server";
 
 import { cookies } from "next/headers";
-import { verifyJwtToken, hashPassword, verifyPassword, signJwtToken, hashSessionToken, AUTH_COOKIE_NAME, SESSION_EXPIRY_DAYS } from "@/lib/auth";
+import { verifyJwtToken, hashPassword, verifyPassword, signJwtToken, AUTH_COOKIE_NAME, SESSION_EXPIRY_DAYS } from "@/lib/auth";
 import { getSupabaseConfig } from "@/lib/supabase";
 
 const rawBaseUrl = process.env.NEXT_PUBLIC_API_URL || "https://cloche-backend.onrender.com";
 const API_BASE_URL = rawBaseUrl.endsWith('/api') ? rawBaseUrl : `${rawBaseUrl}/api`;
+
+function decodeJwtUnsafe(token: string): any {
+  try {
+    const parts = token.split('.');
+    if (parts.length >= 2) {
+      const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+      const jsonStr = Buffer.from(base64, 'base64').toString('utf8');
+      return JSON.parse(jsonStr);
+    }
+  } catch (e) {}
+  return null;
+}
 
 export async function login(formData: FormData) {
   const email = (formData.get("email") as string || "").trim().toLowerCase();
@@ -15,7 +27,7 @@ export async function login(formData: FormData) {
   try {
     const { url, anonKey } = getSupabaseConfig();
     
-    // 1. Authenticate against DB if Supabase configured
+    // 1. Authenticate against Supabase DB
     if (url && anonKey) {
       const userRes = await fetch(
         `${url}/rest/v1/users?email=eq.${encodeURIComponent(email)}&select=id,email,password_hash,full_name,name,is_active,user_roles(roles(name))`,
@@ -85,16 +97,20 @@ export async function login(formData: FormData) {
     }
 
     const cookieStore = await cookies();
+    const fetchedUser = data.user || data.data?.user || { email };
+    if (!fetchedUser.full_name && !fetchedUser.name) {
+      fetchedUser.name = email.split("@")[0];
+      fetchedUser.full_name = email.split("@")[0];
+    }
+
     if (data.token) {
       cookieStore.set("auth_token", data.token, { path: "/", maxAge: 7 * 24 * 60 * 60 });
       cookieStore.set(AUTH_COOKIE_NAME, data.token, { path: "/", maxAge: 7 * 24 * 60 * 60 });
     }
     cookieStore.set("user_role", role, { path: "/", maxAge: 7 * 24 * 60 * 60 });
-    if (data.user) {
-      cookieStore.set("user_data", JSON.stringify(data.user), { path: "/", maxAge: 7 * 24 * 60 * 60 });
-    }
+    cookieStore.set("user_data", JSON.stringify(fetchedUser), { path: "/", maxAge: 7 * 24 * 60 * 60 });
 
-    return { success: true };
+    return { success: true, user: fetchedUser };
   } catch (error: any) {
     return { error: "An unexpected error occurred." };
   }
@@ -173,7 +189,7 @@ export async function signup(formData: FormData) {
     }
 
     const cookieStore = await cookies();
-    const newUserObj = { full_name: name, name: name, fullName: name, email, role };
+    const newUserObj = data.user || data.data?.user || { full_name: name, name: name, fullName: name, email, role };
     if (data.token) {
       cookieStore.set("auth_token", data.token, { path: "/", maxAge: 30 * 24 * 60 * 60 });
       cookieStore.set(AUTH_COOKIE_NAME, data.token, { path: "/", maxAge: 30 * 24 * 60 * 60 });
@@ -181,7 +197,7 @@ export async function signup(formData: FormData) {
     cookieStore.set("user_data", JSON.stringify(newUserObj), { path: "/", maxAge: 30 * 24 * 60 * 60 });
     cookieStore.set("user_role", role, { path: "/", maxAge: 30 * 24 * 60 * 60 });
 
-    return { success: true, ...data };
+    return { success: true, user: newUserObj, ...data };
   } catch (error: any) {
     return { error: "An unexpected error occurred." };
   }
@@ -210,30 +226,109 @@ export async function getCurrentUser() {
   const token = cookieStore.get(AUTH_COOKIE_NAME)?.value || cookieStore.get("auth_token")?.value;
   const userDataCookie = cookieStore.get("user_data")?.value;
 
-  // 1. Verify active JWT token payload (highest priority & truth)
+  let email: string | null = null;
+  let userId: string | null = null;
+
+  // 1. Try local verified JWT token
   if (token) {
-    const payload = verifyJwtToken(token);
-    if (payload && payload.fullName) {
-      const userObj = {
-        id: payload.userId,
-        email: payload.email,
-        full_name: payload.fullName,
-        name: payload.fullName,
-        fullName: payload.fullName,
-        roles: payload.roles,
+    const verified = verifyJwtToken(token);
+    if (verified && verified.fullName) {
+      return {
+        success: true,
+        user: {
+          id: verified.userId,
+          email: verified.email,
+          full_name: verified.fullName,
+          name: verified.fullName,
+          fullName: verified.fullName,
+          roles: verified.roles,
+        },
       };
-      return { success: true, user: userObj };
+    }
+
+    const unverified = decodeJwtUnsafe(token);
+    if (unverified) {
+      email = unverified.email || unverified.sub;
+      userId = unverified.userId || unverified.id || unverified.sub;
+      if (unverified.fullName || unverified.name || unverified.full_name) {
+        const nameVal = unverified.fullName || unverified.name || unverified.full_name;
+        return {
+          success: true,
+          user: {
+            id: userId,
+            email,
+            full_name: nameVal,
+            name: nameVal,
+            fullName: nameVal,
+          },
+        };
+      }
     }
   }
 
-  // 2. Read user_data cookie fallback
+  // 2. Try parsing user_data cookie
   if (userDataCookie) {
     try {
-      const cachedUser = JSON.parse(userDataCookie);
-      if (cachedUser && (cachedUser.full_name || cachedUser.name || cachedUser.fullName)) {
-        return { success: true, user: cachedUser };
+      const parsed = JSON.parse(userDataCookie);
+      const nameVal = parsed.full_name || parsed.fullName || parsed.name || parsed.owner_name;
+      if (nameVal && typeof nameVal === "string" && nameVal.trim() && nameVal !== "User") {
+        return {
+          success: true,
+          user: {
+            ...parsed,
+            full_name: nameVal.trim(),
+            name: nameVal.trim(),
+            fullName: nameVal.trim(),
+          },
+        };
+      }
+      if (parsed.email && parsed.email.includes("@")) {
+        email = parsed.email;
       }
     } catch (e) {}
+  }
+
+  // 3. Query Supabase database directly by email or userId to fetch fresh name
+  const { url, anonKey } = getSupabaseConfig();
+  if (url && anonKey && (email || userId)) {
+    const filter = userId ? `id=eq.${encodeURIComponent(userId)}` : `email=eq.${encodeURIComponent(email!)}`;
+    const dbRes = await fetch(`${url}/rest/v1/users?${filter}&select=id,email,full_name,name`, {
+      headers: { apikey: anonKey, Authorization: `Bearer ${anonKey}` },
+      cache: "no-store",
+    }).catch(() => null);
+
+    if (dbRes && dbRes.ok) {
+      const rows = await dbRes.json();
+      if (Array.isArray(rows) && rows.length > 0) {
+        const u = rows[0];
+        const dbName = u.full_name || u.name || (u.email ? u.email.split("@")[0] : "User");
+        return {
+          success: true,
+          user: {
+            id: u.id,
+            email: u.email,
+            full_name: dbName,
+            name: dbName,
+            fullName: dbName,
+          },
+        };
+      }
+    }
+  }
+
+  // 4. Email fallback
+  if (email && email.includes("@")) {
+    const emailName = email.split("@")[0];
+    const formatted = emailName.charAt(0).toUpperCase() + emailName.slice(1);
+    return {
+      success: true,
+      user: {
+        email,
+        full_name: formatted,
+        name: formatted,
+        fullName: formatted,
+      },
+    };
   }
 
   return { success: false, user: null };
