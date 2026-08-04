@@ -1,0 +1,704 @@
+"use client";
+
+import Image from "next/image";
+import Link from "next/link";
+import { useState } from "react";
+import {
+  ArrowLeft,
+  Heart,
+  Star,
+  CheckCircle2,
+  MapPin,
+  Clock,
+  Phone,
+  MessageCircle,
+  Mail,
+  Bell,
+  Menu,
+  ChevronRight,
+  Share2,
+  Sparkles,
+  Camera,
+  Users,
+  Building,
+  Award,
+  ShieldCheck,
+  Calendar
+} from "lucide-react";
+import { BottomNavBar } from "@/components/BottomNavBar";
+
+export interface VendorProfileData {
+  id: string;
+  name: string;
+  category: "catering" | "venue" | "photographer" | "makeup" | "mehendi" | "decorator" | "bridal-wear" | "jewellery" | string;
+  categoryLabel?: string;
+  location: string;
+  rating: number;
+  reviews: number;
+  image: string;
+  coverImages?: string[];
+  subtitle?: string;
+  about?: string;
+  isVerified?: boolean;
+  isFollowing?: boolean;
+  phone?: string;
+  whatsapp?: string;
+  email?: string;
+  stats?: Array<{
+    icon: string; // lucide or material icon name
+    value: string | number;
+    label: string;
+  }>;
+  highlightsTitle?: string;
+  highlights?: Array<{
+    name: string;
+    image: string;
+  }>;
+  pricesTitle?: string;
+  prices?: Array<{
+    category: string;
+    price: string;
+    isPopular?: boolean;
+  }>;
+  servicesTitle?: string;
+  services?: Array<{
+    name: string;
+    icon: string;
+  }>;
+  userReviews?: Array<{
+    author: string;
+    rating: number;
+    text: string;
+    date?: string;
+  }>;
+  similarVendors?: Array<{
+    id: string;
+    name: string;
+    rating: number;
+    reviews?: number;
+    price: string;
+    location: string;
+    image: string;
+  }>;
+}
+
+export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
+  const [isWishlisted, setIsWishlisted] = useState(false);
+  const [isFollowing, setIsFollowing] = useState(vendor.isFollowing || false);
+  const [activeModal, setActiveModal] = useState<null | "quote" | "share">(null);
+
+  // Vendor Name Initials Avatar
+  const initials = vendor.name
+    .split(" ")
+    .map((w) => w[0])
+    .filter(Boolean)
+    .join("")
+    .slice(0, 2)
+    .toUpperCase() || "CL";
+
+  const catKey = (vendor.category || "").toLowerCase();
+
+  // Category Configuration Engine (Dynamic Mappings)
+  const getCategoryDefaults = () => {
+    if (catKey.includes("venue")) {
+      return {
+        categoryLabel: "Wedding Venue",
+        stats: [
+          { icon: "users", value: "1,500", label: "Max Capacity" },
+          { icon: "building", value: "24", label: "Guest Rooms" },
+          { icon: "star", value: `${vendor.rating || 4.9}`, label: "Average Rating" }
+        ],
+        highlightsTitle: "Venue Spaces & Ambiance",
+        highlights: [
+          { name: "Grand Royal Ballroom", image: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=600&q=80" },
+          { name: "Sunlit Poolside Lawn", image: "https://images.unsplash.com/photo-1545232979-fbfd430335e3?auto=format&fit=crop&w=600&q=80" },
+          { name: "Luxury Bridal Suite", image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=600&q=80" }
+        ],
+        prices: [
+          { category: "Veg Plate", price: "₹1,800" },
+          { category: "Non-Veg Plate", price: "₹2,200", isPopular: true },
+          { category: "Venue Rental", price: "₹3,50,000" }
+        ],
+        services: [
+          { name: "Capacity 1500", icon: "groups" },
+          { name: "Indoor/Outdoor", icon: "deck" },
+          { name: "24 Rooms", icon: "hotel" },
+          { name: "Parking (250 Cars)", icon: "local_parking" },
+          { name: "Decor Policy", icon: "palette" },
+          { name: "Venue Timings", icon: "schedule" }
+        ]
+      };
+    }
+
+    if (catKey.includes("photo")) {
+      return {
+        categoryLabel: "Wedding Photographer",
+        stats: [
+          { icon: "clock", value: "8+", label: "Years Experience" },
+          { icon: "camera", value: "350+", label: "Weddings Covered" },
+          { icon: "star", value: `${vendor.rating || 4.9}`, label: "Average Rating" }
+        ],
+        highlightsTitle: "Portfolio Highlights",
+        highlights: [
+          { name: "Candid Moments", image: "https://images.unsplash.com/photo-1537633552985-df8429e8048b?auto=format&fit=crop&w=600&q=80" },
+          { name: "Cinematic Films", image: "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=600&q=80" },
+          { name: "Pre-Wedding Shoot", image: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=600&q=80" }
+        ],
+        prices: [
+          { category: "Pre-Wedding", price: "₹40,000" },
+          { category: "1-Day Photo", price: "₹85,000", isPopular: true },
+          { category: "Full Package", price: "₹1,80,000" }
+        ],
+        services: [
+          { name: "Candid Photo", icon: "photo_camera" },
+          { name: "Traditional", icon: "camera_alt" },
+          { name: "Cinematic Films", icon: "videocam" },
+          { name: "Drone Shots", icon: "flight" },
+          { name: "Photobook Album", icon: "book" },
+          { name: "45-Day Delivery", icon: "schedule" }
+        ]
+      };
+    }
+
+    if (catKey.includes("makeup")) {
+      return {
+        categoryLabel: "Bridal Makeup Artist",
+        stats: [
+          { icon: "clock", value: "8+", label: "Years Experience" },
+          { icon: "sparkles", value: "850+", label: "Brides Styled" },
+          { icon: "star", value: `${vendor.rating || 4.9}`, label: "Average Rating" }
+        ],
+        highlightsTitle: "Bridal Portfolio & Looks",
+        highlights: [
+          { name: "Royal Sabyasachi Red", image: "https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=600&q=80" },
+          { name: "Dewy Sangeet Glow", image: "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=600&q=80" },
+          { name: "South Indian Muhurtham", image: "https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?auto=format&fit=crop&w=600&q=80" }
+        ],
+        prices: [
+          { category: "Engagement", price: "₹18,000" },
+          { category: "Signature HD", price: "₹25,000", isPopular: true },
+          { category: "Airbrush 4K", price: "₹35,000" }
+        ],
+        services: [
+          { name: "HD Makeup", icon: "brush" },
+          { name: "Airbrush 4K", icon: "auto_fix_high" },
+          { name: "Dior & MAC", icon: "face" },
+          { name: "Trial Available", icon: "verified" },
+          { name: "Hair Styling", icon: "content_cut" },
+          { name: "Saree Draping", icon: "strikethrough_s" }
+        ]
+      };
+    }
+
+    if (catKey.includes("mehendi") || catKey.includes("mehndi")) {
+      return {
+        categoryLabel: "Mehndi Artist",
+        stats: [
+          { icon: "clock", value: "7+", label: "Years Experience" },
+          { icon: "sparkles", value: "600+", label: "Brides Applied" },
+          { icon: "star", value: `${vendor.rating || 4.8}`, label: "Average Rating" }
+        ],
+        highlightsTitle: "Mehndi Design Highlights",
+        highlights: [
+          { name: "Royal Rajasthani Motif", image: "https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=600&q=80" },
+          { name: "Intricate Arabic Pattern", image: "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=600&q=80" },
+          { name: "Personalized Portrait", image: "https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?auto=format&fit=crop&w=600&q=80" }
+        ],
+        prices: [
+          { category: "Guest Package", price: "₹10,000" },
+          { category: "Bridal Basic", price: "₹18,000", isPopular: true },
+          { category: "Royal Bridal", price: "₹30,000" }
+        ],
+        services: [
+          { name: "Bridal Mehndi", icon: "draw" },
+          { name: "Arabic Design", icon: "auto_awesome" },
+          { name: "Portrait Motif", icon: "person" },
+          { name: "Guest Mehndi", icon: "groups" },
+          { name: "Natural Henna", icon: "eco" },
+          { name: "Home Service", icon: "home" }
+        ]
+      };
+    }
+
+    if (catKey.includes("decor")) {
+      return {
+        categoryLabel: "Wedding Decorator",
+        stats: [
+          { icon: "clock", value: "10+", label: "Years Experience" },
+          { icon: "sparkles", value: "450+", label: "Events Designed" },
+          { icon: "star", value: `${vendor.rating || 4.9}`, label: "Average Rating" }
+        ],
+        highlightsTitle: "Decoration Themes & Mandaps",
+        highlights: [
+          { name: "Royal Floral Mandap", image: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=600&q=80" },
+          { name: "Fairy Light Tunnel", image: "https://images.unsplash.com/photo-1545232979-fbfd430335e3?auto=format&fit=crop&w=600&q=80" },
+          { name: "Contemporary Stage", image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=600&q=80" }
+        ],
+        prices: [
+          { category: "Stage Only", price: "₹75,000" },
+          { category: "Mandap & Entry", price: "₹1,80,000", isPopular: true },
+          { category: "Full Venue Decor", price: "₹4,50,000" }
+        ],
+        services: [
+          { name: "Floral Themes", icon: "local_florist" },
+          { name: "Stage Decor", icon: "event_seat" },
+          { name: "Mandap Design", icon: "temple_hindu" },
+          { name: "Lighting Setup", icon: "lightbulb" },
+          { name: "Entry Archway", icon: "door_front" },
+          { name: "Reception Setup", icon: "celebration" }
+        ]
+      };
+    }
+
+    if (catKey.includes("bridal-wear") || catKey.includes("boutique")) {
+      return {
+        categoryLabel: "Bridal Wear Store",
+        stats: [
+          { icon: "sparkles", value: "500+", label: "Designer Outfits" },
+          { icon: "users", value: "1,200+", label: "Happy Brides" },
+          { icon: "star", value: `${vendor.rating || 4.9}`, label: "Average Rating" }
+        ],
+        highlightsTitle: "Couture Collection Highlights",
+        highlights: [
+          { name: "Velvet Crimson Lehenga", image: "https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=600&q=80" },
+          { name: "Pastel Floral Gown", image: "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=600&q=80" },
+          { name: "Silk Kanjeevaram Saree", image: "https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?auto=format&fit=crop&w=600&q=80" }
+        ],
+        prices: [
+          { category: "Light Lehenga", price: "₹45,000" },
+          { category: "Heavy Bridal", price: "₹1,20,000", isPopular: true },
+          { category: "Couture Custom", price: "₹2,50,000" }
+        ],
+        services: [
+          { name: "Designer Collections", icon: "checkroom" },
+          { name: "Rental / Purchase", icon: "shopping_bag" },
+          { name: "Custom Stitching", icon: "content_cut" },
+          { name: "Trial Sessions", icon: "accessibility_new" },
+          { name: "XS to 4XL Sizes", icon: "format_size" },
+          { name: "On-Time Delivery", icon: "local_shipping" }
+        ]
+      };
+    }
+
+    if (catKey.includes("jewel")) {
+      return {
+        categoryLabel: "Bridal Jewellery",
+        stats: [
+          { icon: "sparkles", value: "100%", label: "Certified Jewels" },
+          { icon: "building", value: "800+", label: "Unique Designs" },
+          { icon: "star", value: `${vendor.rating || 4.8}`, label: "Average Rating" }
+        ],
+        highlightsTitle: "Jewellery Highlights",
+        highlights: [
+          { name: "Heritage Polki Choker", image: "https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=600&q=80" },
+          { name: "Temple Gold Necklace", image: "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=600&q=80" },
+          { name: "Diamond Solitaire Set", image: "https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?auto=format&fit=crop&w=600&q=80" }
+        ],
+        prices: [
+          { category: "Silver / Kundan", price: "₹25,000" },
+          { category: "Gold Set", price: "₹85,000", isPopular: true },
+          { category: "Diamond Bridal", price: "₹2,20,000" }
+        ],
+        services: [
+          { name: "Hallmark Gold", icon: "diamond" },
+          { name: "Certified Diamond", icon: "verified" },
+          { name: "Rental Available", icon: "key" },
+          { name: "Bridal Sets", icon: "auto_awesome" },
+          { name: "Custom Fitting", icon: "build" },
+          { name: "Insurance Ready", icon: "security" }
+        ]
+      };
+    }
+
+    // Default Fallback: Catering Master Template
+    return {
+      categoryLabel: "Wedding Caterer",
+      stats: [
+        { icon: "clock", value: "10+", label: "Years in Business" },
+        { icon: "utensils", value: "500+", label: "Events Catered" },
+        { icon: "star", value: `${vendor.rating || 4.8}`, label: "Average Rating" }
+      ],
+      highlightsTitle: "Menu Highlights",
+      highlights: [
+        { name: "North Indian Cuisine", image: "https://images.unsplash.com/photo-1585937421612-70a008356fbe?auto=format&fit=crop&w=600&q=80" },
+        { name: "South Indian Delicacies", image: "https://images.unsplash.com/photo-1610192244261-3f33de3f55e4?auto=format&fit=crop&w=600&q=80" },
+        { name: "Live Counters & Mocktails", image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=600&q=80" }
+      ],
+      prices: [
+        { category: "Budget", price: "₹20,000" },
+        { category: "Premium", price: "₹50,000", isPopular: true },
+        { category: "Luxury", price: "₹1,00,000" }
+      ],
+      services: [
+        { name: "Customized Menu", icon: "restaurant_menu" },
+        { name: "Hygienic Prep", icon: "clean_hands" },
+        { name: "Professional Staff", icon: "badge" },
+        { name: "Live Counters", icon: "local_fire_department" }
+      ]
+    };
+  };
+
+  const defaults = getCategoryDefaults();
+  const highlights = vendor.highlights || defaults.highlights;
+  const prices = vendor.prices || defaults.prices;
+  const services = vendor.services || defaults.services;
+  const stats = vendor.stats || defaults.stats;
+  const highlightsTitle = vendor.highlightsTitle || defaults.highlightsTitle;
+
+  // Global Similar Vendors by Category
+  const defaultSimilarVendors = [
+    {
+      id: "sim-1",
+      name: "Grand Spice Caterers & Banquets",
+      rating: 4.8,
+      reviews: 142,
+      price: "₹22,000",
+      location: vendor.location || "Bandra, Mumbai",
+      image: "https://images.unsplash.com/photo-1555244162-803834f70033?auto=format&fit=crop&w=400&q=80"
+    },
+    {
+      name: "Saffron Gourmet Celebrations",
+      rating: 4.9,
+      reviews: 198,
+      price: "₹35,000",
+      location: vendor.location || "Mumbai",
+      image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=400&q=80"
+    },
+    {
+      name: "Flavors of Royal Kitchen",
+      rating: 4.7,
+      reviews: 95,
+      price: "₹28,000",
+      location: vendor.location || "Juhu, Mumbai",
+      image: "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=400&q=80"
+    }
+  ];
+
+  const similarVendors = vendor.similarVendors || defaultSimilarVendors;
+
+  return (
+    <div className="min-h-screen flex flex-col bg-[#FAF7F2] pb-32 text-[#2D2520] font-sans">
+
+      {/* Cloche Top Header Bar */}
+      <header className="sticky top-0 z-40 bg-[#0F4C45] text-white px-4 py-3 shadow-md flex items-center justify-between">
+        <Link href="/" className="flex items-center gap-2">
+          <span className="font-serif text-xl font-bold tracking-wide text-white">Cloche</span>
+        </Link>
+
+        <div className="flex items-center gap-3">
+          <button className="h-9 w-9 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors">
+            <Bell className="h-4 w-4" />
+          </button>
+          <button className="h-9 w-9 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors">
+            <Menu className="h-5 w-5" />
+          </button>
+        </div>
+      </header>
+
+      {/* Top Hero Banner */}
+      <div className="relative w-full aspect-[4/3] sm:aspect-[16/9] bg-gray-900 overflow-hidden">
+        <Image src={vendor.image} alt={vendor.name} fill priority className="object-cover" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30" />
+
+        {/* Floating Top Buttons */}
+        <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 pt-4 pb-2 z-10">
+          <Link
+            href={`/vendors`}
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-md hover:bg-black/60 transition-colors"
+            aria-label="Back"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Link>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setIsWishlisted(!isWishlisted)}
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-md active:scale-90 transition-transform"
+            >
+              <Heart
+                className="h-5 w-5"
+                style={{
+                  color: isWishlisted ? "#E8614A" : "#FFFFFF",
+                  fill: isWishlisted ? "#E8614A" : "none",
+                }}
+              />
+            </button>
+          </div>
+        </div>
+
+        {/* Counter Overlay */}
+        <div className="absolute bottom-3 right-3 rounded-full bg-black/60 px-3 py-1 text-xs font-semibold text-white backdrop-blur-sm border border-white/20">
+          1/15
+        </div>
+      </div>
+
+      <main className="flex-1 px-4 pt-4 space-y-5 max-w-4xl mx-auto w-full">
+
+        {/* Profile Card Header */}
+        <div className="flex gap-3.5 items-start relative">
+          <div className="relative h-16 w-16 shrink-0 rounded-2xl overflow-hidden bg-[#0F4C45] border-2 border-white shadow-md flex items-center justify-center text-white">
+            <span className="font-serif text-lg font-bold tracking-wider">{initials}</span>
+          </div>
+
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <h1 className="font-serif text-[22px] font-bold text-[#1A1410] leading-tight">
+                {vendor.name}
+              </h1>
+              {vendor.isVerified !== false && (
+                <CheckCircle2 className="h-5 w-5 shrink-0 fill-[#0F4C45] text-white" />
+              )}
+            </div>
+
+            <div className="mt-1 flex items-center gap-2 text-[12px]">
+              <div className="flex items-center gap-1 font-bold text-[#1A1410]">
+                <Star className="h-3.5 w-3.5 fill-[#C8A96A] text-[#C8A96A]" />
+                <span>{vendor.rating || 4.8}</span>
+                <span className="text-[#7A6E65] font-normal">({vendor.reviews || 128})</span>
+              </div>
+              <span className="text-[#0F4C45] font-semibold">• Verified {defaults.categoryLabel}</span>
+            </div>
+
+            <div className="mt-1 flex items-center gap-1 text-[12px] text-[#6B5E52]">
+              <MapPin className="h-3.5 w-3.5 text-[#8C827A]" />
+              <span>{vendor.location}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Subtitle & Follow Row */}
+        <div className="flex items-center justify-between gap-3 bg-white p-3.5 rounded-2xl border border-black/5 shadow-xs">
+          <p className="text-[13px] text-[#5A6561] leading-tight flex-1">
+            {vendor.subtitle || "Exquisite services, impeccable quality and unforgettable wedding experiences."}
+          </p>
+          <button
+            onClick={() => setIsFollowing(!isFollowing)}
+            className={`rounded-xl px-4 py-2 text-[12px] font-bold transition-all ${
+              isFollowing
+                ? "bg-[#FAF5EA] text-[#0F4C45] border border-[#0F4C45]/30"
+                : "bg-[#0F4C45] text-white shadow-xs"
+            }`}
+          >
+            {isFollowing ? "Following" : "Follow"}
+          </button>
+        </div>
+
+        {/* About Section */}
+        <section className="rounded-2xl bg-white p-4 border border-black/5 shadow-xs">
+          <h2 className="font-serif text-[16px] font-bold text-[#1A1410]">About</h2>
+          <p className="mt-2 text-[13px] text-[#5A6561] leading-relaxed">
+            {vendor.about || `${vendor.name} is known for creating memorable wedding experiences with a perfect blend of style, presentation, and unmatched hospitality. From intimate gatherings to grand celebrations, we bring your vision to life.`}
+          </p>
+        </section>
+
+        {/* Key Stats Cards (3 Columns) */}
+        <div className="grid grid-cols-3 gap-2 text-center">
+          {stats.map((st, i) => (
+            <div key={i} className="p-3 rounded-2xl bg-[#FAF5EA] border border-[#E8DFD1] flex flex-col items-center justify-center">
+              {st.icon === "clock" && <Clock className="h-5 w-5 text-[#0F4C45]" />}
+              {st.icon === "camera" && <Camera className="h-5 w-5 text-[#0F4C45]" />}
+              {st.icon === "users" && <Users className="h-5 w-5 text-[#0F4C45]" />}
+              {st.icon === "building" && <Building className="h-5 w-5 text-[#0F4C45]" />}
+              {st.icon === "star" && <Star className="h-5 w-5 text-[#C8A96A] fill-[#C8A96A]" />}
+              {st.icon === "sparkles" && <Sparkles className="h-5 w-5 text-[#0F4C45]" />}
+              {st.icon === "utensils" && <span className="material-symbols-outlined text-[22px] text-[#0F4C45]">restaurant</span>}
+
+              <span className="font-serif text-[16px] font-bold text-[#1A1410] block mt-1">
+                {st.value}
+              </span>
+              <span className="text-[11px] text-[#7A6E65] leading-tight mt-0.5">{st.label}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Highlights Carousel (Menu / Work / Portfolio Highlights) */}
+        <section className="rounded-2xl bg-white p-4 border border-black/5 shadow-xs">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="font-serif text-[16px] font-bold text-[#1A1410]">{highlightsTitle}</h2>
+            <button className="text-[12px] font-bold text-[#0F4C45] hover:underline">See All</button>
+          </div>
+          <div className="flex gap-3 overflow-x-auto hide-scrollbar pb-2">
+            {highlights.map((item, idx) => (
+              <div
+                key={idx}
+                className="relative min-w-[130px] w-36 aspect-[3/4] rounded-xl overflow-hidden shadow-sm shrink-0 group"
+              >
+                <Image src={item.image} alt={item.name} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-transparent" />
+                <span className="absolute bottom-2 left-2 right-2 text-[11px] font-bold text-white leading-tight">
+                  {item.name}
+                </span>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Price Range Section (3 Columns) */}
+        <section className="rounded-2xl bg-white p-4 border border-black/5 shadow-xs">
+          <h2 className="font-serif text-[16px] font-bold text-[#1A1410] mb-3">Price Range</h2>
+          <div className="grid grid-cols-3 gap-2 text-center">
+            {prices.map((pr, idx) => (
+              <div
+                key={idx}
+                className={`relative p-3 rounded-xl border flex flex-col justify-between ${
+                  pr.isPopular ? "bg-[#FAF5EA] border-[#D4B66E] border-2" : "bg-[#FAF7F2] border-black/5"
+                }`}
+              >
+                {pr.isPopular && (
+                  <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 rounded bg-[#0F4C45] px-2 py-0.5 text-[8px] font-bold text-white uppercase whitespace-nowrap tracking-wider">
+                    Most Popular
+                  </span>
+                )}
+                <div>
+                  <span className="text-[11px] text-[#7A6E65] block font-medium mt-1">{pr.category}</span>
+                  <span className="font-serif text-[15px] font-bold text-[#0F4C45] block mt-1">
+                    {pr.price}
+                  </span>
+                </div>
+                <span className="text-[10px] text-[#8C827A] mt-1 block">Onwards</span>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Services Included Section */}
+        <section className="rounded-2xl bg-white p-4 border border-black/5 shadow-xs">
+          <h2 className="font-serif text-[16px] font-bold text-[#1A1410] mb-3">Services Included</h2>
+          <div className="flex items-center gap-2.5 overflow-x-auto hide-scrollbar pb-1">
+            {services.map((svc, idx) => (
+              <div
+                key={idx}
+                className="flex flex-col items-center justify-center p-2.5 min-w-[85px] rounded-xl bg-[#FAF7F2] border border-black/5 text-center shrink-0"
+              >
+                <span className="material-symbols-outlined text-[22px] text-[#0F4C45]">
+                  {svc.icon}
+                </span>
+                <span className="mt-1 text-[10px] font-semibold text-[#4A3F35] leading-tight">
+                  {svc.name}
+                </span>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Reviews Section */}
+        {vendor.userReviews && vendor.userReviews.length > 0 ? (
+          <section className="rounded-2xl bg-white p-4 border border-black/5 shadow-xs">
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="font-serif text-[16px] font-bold text-[#1A1410]">Reviews</h2>
+              <button className="text-[12px] font-bold text-[#0F4C45] hover:underline">See All</button>
+            </div>
+            <div className="space-y-3">
+              {vendor.userReviews.map((rev, idx) => (
+                <div key={idx} className="p-3 rounded-xl bg-[#FAF5EA] border border-[#E8DFD1]">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[13px] font-bold text-[#1A1410]">{rev.author}</span>
+                    <div className="flex items-center gap-1">
+                      <Star className="h-3 w-3 fill-[#C8A96A] text-[#C8A96A]" />
+                      <span className="text-[11px] font-bold text-[#1A1410]">{rev.rating}</span>
+                    </div>
+                  </div>
+                  <p className="mt-1 text-[12px] text-[#5A6561] leading-relaxed">{rev.text}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+        ) : (
+          <section className="rounded-2xl bg-white p-4 border border-black/5 shadow-xs">
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="font-serif text-[16px] font-bold text-[#1A1410]">Reviews</h2>
+              <button className="text-[12px] font-bold text-[#0F4C45]">See All</button>
+            </div>
+            <div className="p-3 rounded-xl bg-[#FAF5EA] border border-[#E8DFD1]">
+              <div className="flex items-center justify-between">
+                <span className="text-[13px] font-bold text-[#1A1410]">Neha Sharma</span>
+                <div className="flex items-center gap-1">
+                  <Star className="h-3 w-3 fill-[#C8A96A] text-[#C8A96A]" />
+                  <span className="text-[11px] font-bold text-[#1A1410]">5</span>
+                </div>
+              </div>
+              <p className="mt-1 text-[12px] text-[#5A6561] leading-relaxed">
+                The service was absolutely amazing! Every detail was executed flawlessly. Highly recommended!
+              </p>
+            </div>
+          </section>
+        )}
+
+        {/* Global Cards of Other Vendors in Same Category */}
+        <section className="rounded-2xl bg-white p-4 border border-black/5 shadow-xs">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="font-serif text-[16px] font-bold text-[#1A1410]">
+              Explore Other {defaults.categoryLabel}s
+            </h2>
+            <Link href="/vendors" className="text-[12px] font-bold text-[#0F4C45] hover:underline">
+              See All
+            </Link>
+          </div>
+
+          <div className="flex gap-3 overflow-x-auto hide-scrollbar pb-2">
+            {similarVendors.map((sim, idx) => (
+              <Link
+                key={idx}
+                href="/vendors"
+                className="flex-shrink-0 w-44 rounded-xl overflow-hidden bg-[#FAF7F2] border border-black/5 shadow-2xs hover:border-[#0F4C45] transition-all group"
+              >
+                <div className="relative h-28 w-full">
+                  <Image src={sim.image} alt={sim.name} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
+                </div>
+                <div className="p-2.5">
+                  <h4 className="text-xs font-bold text-[#1A1410] truncate">{sim.name}</h4>
+                  <div className="flex items-center gap-1 text-[10px] text-[#7A6E65] mt-0.5">
+                    <Star className="h-3 w-3 fill-[#C8A96A] text-[#C8A96A]" />
+                    <span>{sim.rating}</span>
+                    <span>({sim.reviews || 95})</span>
+                  </div>
+                  <span className="block text-[11px] font-bold text-[#0F4C45] mt-1">{sim.price} onwards</span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+
+      </main>
+
+      {/* Sticky Bottom Actions & Floating Genie Button */}
+      <div className="fixed bottom-16 left-0 right-0 z-40 bg-white/95 backdrop-blur-md px-4 py-2.5 border-t border-black/5 shadow-lg max-w-4xl mx-auto">
+        <div className="relative flex items-center gap-2">
+          <a
+            href={`tel:${vendor.phone || "9876543210"}`}
+            className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-[#0F4C45] py-3 text-[13px] font-bold text-white hover:bg-[#083833] transition-colors"
+          >
+            <Phone className="h-4 w-4" /> Call
+          </a>
+
+          <a
+            href={`https://wa.me/${vendor.phone || "9876543210"}`}
+            target="_blank"
+            rel="noreferrer"
+            className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-[#0F4C45] py-3 text-[13px] font-bold text-white hover:bg-[#083833] transition-colors"
+          >
+            <MessageCircle className="h-4 w-4" /> WhatsApp
+          </a>
+
+          <button
+            onClick={() => setActiveModal("quote")}
+            className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-[#C8A96A] py-3 text-[13px] font-bold text-[#0F4C45] hover:bg-yellow-400 transition-colors"
+          >
+            <Mail className="h-4 w-4" /> Get Quote
+          </button>
+
+          {/* Floating Golden Genie Button */}
+          <Link
+            href="/genie"
+            className="absolute -top-6 -right-2 h-12 w-12 rounded-full bg-gradient-to-tr from-[#D4AF37] to-[#F3E5AB] text-[#0F4C45] border-2 border-white shadow-xl flex items-center justify-center active:scale-95 transition-transform hover:scale-105"
+            aria-label="Cloche Genie Assistant"
+          >
+            <Sparkles className="h-6 w-6 fill-[#0F4C45] text-[#0F4C45] animate-pulse" />
+          </Link>
+        </div>
+      </div>
+
+      {/* Cloche Bottom Navigation Bar */}
+      <BottomNavBar activeTab="vendors" />
+    </div>
+  );
+}
