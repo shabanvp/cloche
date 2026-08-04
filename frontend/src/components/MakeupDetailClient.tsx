@@ -12,7 +12,7 @@ export function MakeupDetailClient({ artist }: { artist: VendorDetail }) {
     rating: artist.rating,
     reviews: artist.reviews,
     image: artist.image || (artist.images && artist.images[0]) || "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=600&q=80",
-    subtitle: artist.tagline || "Luxury bridal makeup artist specializing in HD 4K Airbrush & signature glam.",
+    subtitle: (artist as any).tagline || "Luxury bridal makeup artist specializing in HD 4K Airbrush & signature glam.",
     about: artist.about,
     phone: artist.phone,
     email: artist.email,
