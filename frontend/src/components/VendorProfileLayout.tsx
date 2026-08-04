@@ -378,8 +378,8 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
   return (
     <div className="min-h-screen flex flex-col bg-[#FAF7F2] pb-32 text-[#2D2520] font-sans">
 
-      {/* Top Hero Banner */}
-      <div className="relative w-full aspect-[4/3] sm:aspect-[16/9] md:h-[440px] lg:h-[500px] xl:h-[540px] 2xl:h-[560px] max-h-[580px] md:aspect-auto bg-gray-900 overflow-hidden">
+      {/* Top Hero Banner (Mobile & Tablet) */}
+      <div className="lg:hidden relative w-full aspect-[4/3] sm:aspect-[16/9] md:h-[440px] md:aspect-auto bg-gray-900 overflow-hidden">
         <Image src={vendor.image} alt={vendor.name} fill priority className="object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30" />
 
@@ -414,10 +414,154 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
         </div>
       </div>
 
+      {/* Premium Desktop Split Hero Section (1024px+) */}
+      <div className="hidden lg:block w-[min(94vw,1320px)] mx-auto pt-6 px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-12 gap-8 items-start">
+
+          {/* Left Column (Hero Gallery) */}
+          <div className="col-span-7 relative w-full h-[460px] xl:h-[500px] 2xl:h-[540px] max-h-[540px] rounded-2xl overflow-hidden shadow-md bg-gray-900 group">
+            <Image
+              src={vendor.image}
+              alt={vendor.name}
+              fill
+              priority
+              className="object-cover object-center group-hover:scale-105 transition-transform duration-500"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
+
+            {/* Top Floating Controls */}
+            <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-10">
+              <Link
+                href={`/vendors`}
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-md hover:bg-black/60 transition-colors"
+                aria-label="Back"
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </Link>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setIsWishlisted(!isWishlisted)}
+                  className="flex h-10 w-10 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-md active:scale-90 transition-transform"
+                  aria-label="Wishlist"
+                >
+                  <Heart
+                    className="h-5 w-5"
+                    style={{
+                      color: isWishlisted ? "#E8614A" : "#FFFFFF",
+                      fill: isWishlisted ? "#E8614A" : "none",
+                    }}
+                  />
+                </button>
+              </div>
+            </div>
+
+            {/* Bottom Floating Controls */}
+            <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between z-10">
+              <button
+                className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-black/60 backdrop-blur-md text-white text-xs font-bold hover:bg-black/80 transition-colors border border-white/20"
+              >
+                <Camera className="h-3.5 w-3.5" />
+                <span>View All Photos (15)</span>
+              </button>
+
+              <div className="rounded-full bg-black/60 px-3.5 py-1.5 text-xs font-bold text-white backdrop-blur-md border border-white/20">
+                1/15
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column (Sticky Vendor Information Card) */}
+          <div className="col-span-5 sticky top-24 rounded-2xl border border-black/5 bg-white shadow-md p-6 h-[460px] xl:h-[500px] 2xl:h-[540px] flex flex-col justify-between">
+            <div>
+              {/* Category Badge & Verified Initials Header */}
+              <div className="flex items-center justify-between mb-4">
+                <span className="px-3 py-1 rounded-full bg-[#FAF5EA] border border-[#E8DFD1] text-[12px] font-bold text-[#0F4C45] uppercase tracking-wider">
+                  {defaults.categoryLabel}
+                </span>
+                <div className="relative h-12 w-12 rounded-xl overflow-hidden bg-[#0F4C45] border-2 border-white shadow-sm flex items-center justify-center text-white shrink-0">
+                  <span className="font-serif text-sm font-bold tracking-wider">{initials}</span>
+                </div>
+              </div>
+
+              {/* Vendor Title */}
+              <div className="flex items-center gap-2">
+                <h1 className="font-serif text-2xl xl:text-3xl font-bold text-[#1A1410] leading-tight">
+                  {vendor.name}
+                </h1>
+                {vendor.isVerified !== false && (
+                  <CheckCircle2 className="h-6 w-6 shrink-0 fill-[#0F4C45] text-white" />
+                )}
+              </div>
+
+              {/* Rating & Location */}
+              <div className="mt-2 flex items-center gap-3 text-sm">
+                <div className="flex items-center gap-1 font-bold text-[#1A1410]">
+                  <Star className="h-4 w-4 fill-[#C8A96A] text-[#C8A96A]" />
+                  <span>{vendor.rating || 4.8}</span>
+                  <span className="text-[#7A6E65] font-normal">({vendor.reviews || 128} reviews)</span>
+                </div>
+                <span className="text-[#8C827A]">•</span>
+                <div className="flex items-center gap-1 text-[#6B5E52]">
+                  <MapPin className="h-4 w-4 text-[#8C827A]" />
+                  <span className="truncate">{vendor.location}</span>
+                </div>
+              </div>
+
+              {/* Starting Price Display */}
+              <div className="mt-4 p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 flex items-center justify-between">
+                <span className="text-xs text-[#7A6E65] font-medium">Starting Package</span>
+                <span className="font-serif text-lg font-bold text-[#0F4C45]">
+                  {prices[0]?.price || "₹25,000"} <span className="text-xs text-[#7A6E65] font-normal">onwards</span>
+                </span>
+              </div>
+
+              {/* Quick Stats Summary Pills */}
+              <div className="mt-4 grid grid-cols-3 gap-2 text-center">
+                {stats.slice(0, 3).map((st, i) => (
+                  <div key={i} className="p-2.5 rounded-xl bg-[#FAF5EA] border border-[#E8DFD1]">
+                    <span className="font-serif text-sm font-bold text-[#1A1410] block">{st.value}</span>
+                    <span className="text-[10px] text-[#7A6E65] truncate block mt-0.5">{st.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="space-y-2.5 pt-4 border-t border-black/5">
+              <button
+                onClick={() => setActiveModal("quote")}
+                className="w-full py-3.5 rounded-xl bg-[#C8A96A] text-[#0F4C45] font-bold hover:bg-yellow-400 transition-colors flex items-center justify-center gap-2 shadow-xs"
+              >
+                <Mail className="h-4 w-4" /> Get Instant Quote
+              </button>
+
+              <div className="flex gap-2.5">
+                <a
+                  href={`tel:${vendor.phone || "9876543210"}`}
+                  className="flex-1 py-2.5 rounded-xl bg-[#0F4C45] text-white font-bold text-xs hover:bg-[#083833] transition-colors flex items-center justify-center gap-1.5"
+                >
+                  <Phone className="h-3.5 w-3.5" /> Call
+                </a>
+                <a
+                  href={`https://wa.me/${vendor.phone || "9876543210"}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex-1 py-2.5 rounded-xl bg-[#0F4C45] text-white font-bold text-xs hover:bg-[#083833] transition-colors flex items-center justify-center gap-1.5"
+                >
+                  <MessageCircle className="h-3.5 w-3.5" /> WhatsApp
+                </a>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
       <main className="flex-1 px-4 sm:px-6 lg:px-8 pt-4 md:pt-6 space-y-5 md:space-y-6 lg:space-y-8 xl:space-y-10 w-[min(94vw,1300px)] mx-auto">
 
-        {/* Profile Card Header */}
-        <div className="flex gap-4 md:gap-6 items-center relative bg-white p-4 sm:p-5 md:p-6 lg:p-7 rounded-2xl border border-black/5 shadow-xs">
+        {/* Profile Card Header (Mobile & Tablet only) */}
+        <div className="lg:hidden flex gap-4 md:gap-6 items-center relative bg-white p-4 sm:p-5 md:p-6 lg:p-7 rounded-2xl border border-black/5 shadow-xs">
           <div className="relative h-16 w-16 md:h-20 md:w-20 lg:h-22 lg:w-22 shrink-0 rounded-2xl overflow-hidden bg-[#0F4C45] border-2 border-white shadow-md flex items-center justify-center text-white">
             <span className="font-serif text-lg md:text-2xl font-bold tracking-wider">{initials}</span>
           </div>
