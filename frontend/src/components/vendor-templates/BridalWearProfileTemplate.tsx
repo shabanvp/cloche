@@ -55,6 +55,8 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
   const [reviewText, setReviewText] = useState("");
   const [reviewRating, setReviewRating] = useState(5);
   const [lightboxImg, setLightboxImg] = useState<string | null>(null);
+  const [reviewsList, setReviewsList] = useState<any[]>((boutique as any)?.userReviews || bridalVendor?.userReviews || config?.userReviews || []);
+  const [showReviewModal, setShowReviewModal] = useState(false);
 
   const aboutRef = useRef<HTMLDivElement>(null);
   const collectionsRef = useRef<HTMLDivElement>(null);
@@ -357,7 +359,6 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
           <div className="flex items-center justify-around text-xs font-bold uppercase tracking-wider px-4">
             {[
               { id: "about", label: "About" },
-              { id: "collections", label: "Collections" },
               { id: "reviews", label: "Reviews" },
               { id: "info", label: "Info" },
             ].map((tab) => (
