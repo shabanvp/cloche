@@ -558,10 +558,10 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
         </div>
       </div>
 
-      <main className="flex-1 px-4 sm:px-6 lg:px-8 pt-4 md:pt-6 space-y-5 md:space-y-6 lg:space-y-8 xl:space-y-10 w-[min(94vw,1300px)] mx-auto">
+      <main className="flex-1 px-3 sm:px-4 md:px-6 lg:px-8 pt-3 sm:pt-4 md:pt-6 space-y-4 sm:space-y-5 md:space-y-6 lg:space-y-8 xl:space-y-10 w-[min(96vw,1300px)] mx-auto">
 
         {/* Profile Card Header (Mobile & Tablet only) */}
-        <div className="lg:hidden flex gap-4 md:gap-6 items-center relative bg-white p-4 sm:p-5 md:p-6 lg:p-7 rounded-2xl border border-black/5 shadow-xs">
+        <div className="lg:hidden flex gap-3 sm:gap-4 md:gap-6 items-center relative bg-white p-3 sm:p-4 md:p-6 lg:p-7 rounded-2xl border border-black/5 shadow-xs">
           <div className="relative h-16 w-16 md:h-20 md:w-20 lg:h-22 lg:w-22 shrink-0 rounded-2xl overflow-hidden bg-[#0F4C45] border-2 border-white shadow-md flex items-center justify-center text-white">
             <span className="font-serif text-lg md:text-2xl font-bold tracking-wider">{initials}</span>
           </div>
@@ -592,7 +592,7 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
         </div>
 
         {/* About Section */}
-        <section className="rounded-2xl bg-white p-4 sm:p-5 md:p-6 lg:p-8 border border-black/5 shadow-xs">
+        <section className="rounded-2xl bg-white p-3 sm:p-4 md:p-6 lg:p-8 border border-black/5 shadow-xs">
           <h2 className="font-serif text-[clamp(1rem,1.5vw,1.625rem)] font-bold text-[#1A1410]">About</h2>
           <p className="mt-2 text-[clamp(0.8125rem,1vw,1.0625rem)] text-[#5A6561] leading-relaxed max-w-[760px]">
             {vendor.about || `${vendor.name} is known for creating memorable wedding experiences with a perfect blend of style, presentation, and unmatched hospitality. From intimate gatherings to grand celebrations, we bring your vision to life.`}
@@ -600,9 +600,9 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
         </section>
 
         {/* Key Stats Cards (3 Columns) */}
-        <div className="grid grid-cols-3 gap-2 md:gap-4 lg:gap-5 text-center">
+        <div className="grid grid-cols-3 gap-1.5 sm:gap-2 md:gap-4 lg:gap-5 text-center">
           {stats.map((st, i) => (
-            <div key={i} className="p-3 md:p-5 lg:py-6 rounded-2xl bg-[#FAF5EA] border border-[#E8DFD1] flex flex-col items-center justify-center min-h-[90px] md:min-h-[110px] lg:h-[130px] lg:max-h-[140px] transition-transform hover:-translate-y-0.5">
+            <div key={i} className="p-2 sm:p-3 md:p-5 lg:py-6 rounded-2xl bg-[#FAF5EA] border border-[#E8DFD1] flex flex-col items-center justify-center min-h-[85px] sm:min-h-[90px] md:min-h-[110px] lg:h-[130px] lg:max-h-[140px] transition-transform hover:-translate-y-0.5">
               {st.icon === "clock" && <Clock className="h-5 w-5 md:h-6 md:w-6 text-[#0F4C45]" />}
               {st.icon === "camera" && <Camera className="h-5 w-5 md:h-6 md:w-6 text-[#0F4C45]" />}
               {st.icon === "users" && <Users className="h-5 w-5 md:h-6 md:w-6 text-[#0F4C45]" />}
@@ -620,7 +620,7 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
         </div>
 
         {/* Highlights Carousel / Portfolio Grid */}
-        <section className="rounded-2xl bg-white p-4 sm:p-5 md:p-6 lg:p-8 border border-black/5 shadow-xs">
+        <section className="rounded-2xl bg-white p-3 sm:p-4 md:p-6 lg:p-8 border border-black/5 shadow-xs">
           <div className="flex items-center justify-between mb-3 md:mb-5">
             <h2 className="font-serif text-[clamp(1rem,1.5vw,1.625rem)] font-bold text-[#1A1410]">{highlightsTitle}</h2>
             <button className="text-[12px] md:text-[13px] font-bold text-[#0F4C45] hover:underline">See All</button>
@@ -629,7 +629,7 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
             {highlights.map((item, idx) => (
               <div
                 key={idx}
-                className="relative min-w-[140px] w-36 md:w-auto aspect-[4/3] rounded-xl overflow-hidden shadow-sm shrink-0 md:shrink group"
+                className="relative min-w-[170px] w-[55vw] sm:w-48 md:w-auto aspect-[3/4] rounded-xl overflow-hidden shadow-sm shrink-0 md:shrink group"
               >
                 <Image src={item.image} alt={item.name} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-transparent" />
@@ -642,18 +642,18 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
         </section>
 
         {/* Price Range Section (Centered 3 Columns) */}
-        <section className="rounded-2xl bg-white p-4 sm:p-5 md:p-6 lg:p-8 border border-black/5 shadow-xs w-[min(100%,960px)] mx-auto">
+        <section className="rounded-2xl bg-white p-3 sm:p-4 md:p-6 lg:p-8 border border-black/5 shadow-xs w-[min(100%,960px)] mx-auto">
           <h2 className="font-serif text-[clamp(1rem,1.5vw,1.625rem)] font-bold text-[#1A1410] mb-3 md:mb-5">Price Range</h2>
-          <div className="grid grid-cols-3 gap-2 md:gap-4 lg:gap-5 text-center">
+          <div className="grid grid-cols-3 gap-1.5 sm:gap-2 md:gap-4 lg:gap-5 text-center">
             {prices.map((pr, idx) => (
               <div
                 key={idx}
-                className={`relative p-3 md:p-5 rounded-xl border flex flex-col justify-between ${
+                className={`relative p-2 sm:p-3 md:p-5 rounded-xl border flex flex-col justify-between ${
                   pr.isPopular ? "bg-[#FAF5EA] border-[#D4B66E] border-2 shadow-xs" : "bg-[#FAF7F2] border-black/5"
                 }`}
               >
                 {pr.isPopular && (
-                  <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 rounded bg-[#0F4C45] px-2.5 py-0.5 text-[8px] md:text-[10px] font-bold text-white uppercase whitespace-nowrap tracking-wider shadow-xs">
+                  <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 rounded bg-[#0F4C45] px-2 py-0.5 text-[7.5px] sm:text-[8px] md:text-[10px] font-bold text-white uppercase whitespace-nowrap tracking-wider shadow-xs">
                     Most Popular
                   </span>
                 )}
@@ -670,13 +670,13 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
         </section>
 
         {/* Services Included Section */}
-        <section className="rounded-2xl bg-white p-4 sm:p-5 md:p-6 lg:p-8 border border-black/5 shadow-xs">
+        <section className="rounded-2xl bg-white p-3 sm:p-4 md:p-6 lg:p-8 border border-black/5 shadow-xs">
           <h2 className="font-serif text-[clamp(1rem,1.5vw,1.625rem)] font-bold text-[#1A1410] mb-3 md:mb-5">Services Included</h2>
-          <div className="flex md:grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 items-center gap-2.5 md:gap-4 lg:gap-5 overflow-x-auto md:overflow-visible hide-scrollbar pb-1 md:pb-0">
+          <div className="flex md:grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 items-center gap-2 sm:gap-2.5 md:gap-4 lg:gap-5 overflow-x-auto md:overflow-visible hide-scrollbar pb-1 md:pb-0">
             {services.map((svc, idx) => (
               <div
                 key={idx}
-                className="flex flex-col items-center justify-center p-3 md:p-4 min-w-[85px] md:min-w-0 rounded-xl bg-[#FAF7F2] border border-black/5 text-center shrink-0 md:shrink"
+                className="flex flex-col items-center justify-center p-2.5 sm:p-3 md:p-4 min-w-[100px] sm:min-w-[110px] md:min-w-0 rounded-xl bg-[#FAF7F2] border border-black/5 text-center shrink-0 md:shrink"
               >
                 <span className="material-symbols-outlined text-[22px] md:text-[28px] text-[#0F4C45]">
                   {svc.icon}
@@ -691,14 +691,14 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
 
         {/* Reviews Section */}
         {vendor.userReviews && vendor.userReviews.length > 0 ? (
-          <section className="rounded-2xl bg-white p-4 sm:p-5 md:p-6 lg:p-8 border border-black/5 shadow-xs w-[min(100%,880px)] mx-auto">
+          <section className="rounded-2xl bg-white p-3 sm:p-4 md:p-6 lg:p-8 border border-black/5 shadow-xs w-[min(100%,880px)] mx-auto">
             <div className="flex items-center justify-between mb-3 md:mb-5">
               <h2 className="font-serif text-[clamp(1rem,1.5vw,1.625rem)] font-bold text-[#1A1410]">Reviews</h2>
               <button className="text-[12px] md:text-[13px] font-bold text-[#0F4C45] hover:underline">See All</button>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 lg:gap-5">
               {vendor.userReviews.map((rev, idx) => (
-                <div key={idx} className="p-3.5 md:p-4 rounded-xl bg-[#FAF5EA] border border-[#E8DFD1]">
+                <div key={idx} className="p-3 sm:p-4 rounded-xl bg-[#FAF5EA] border border-[#E8DFD1]">
                   <div className="flex items-center justify-between">
                     <span className="text-[13px] md:text-[14px] font-bold text-[#1A1410]">{rev.author}</span>
                     <div className="flex items-center gap-1">
@@ -712,13 +712,13 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
             </div>
           </section>
         ) : (
-          <section className="rounded-2xl bg-white p-4 sm:p-5 md:p-6 lg:p-8 border border-black/5 shadow-xs w-[min(100%,880px)] mx-auto">
+          <section className="rounded-2xl bg-white p-3 sm:p-4 md:p-6 lg:p-8 border border-black/5 shadow-xs w-[min(100%,880px)] mx-auto">
             <div className="flex items-center justify-between mb-3 md:mb-5">
               <h2 className="font-serif text-[clamp(1rem,1.5vw,1.625rem)] font-bold text-[#1A1410]">Reviews</h2>
               <button className="text-[12px] md:text-[13px] font-bold text-[#0F4C45] hover:underline">See All</button>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 lg:gap-5">
-              <div className="p-3.5 md:p-4 rounded-xl bg-[#FAF5EA] border border-[#E8DFD1]">
+              <div className="p-3 sm:p-4 rounded-xl bg-[#FAF5EA] border border-[#E8DFD1]">
                 <div className="flex items-center justify-between">
                   <span className="text-[13px] md:text-[14px] font-bold text-[#1A1410]">Neha Sharma</span>
                   <div className="flex items-center gap-1">
@@ -730,7 +730,7 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
                   The service was absolutely amazing! Every detail was executed flawlessly. Highly recommended!
                 </p>
               </div>
-              <div className="p-3.5 md:p-4 rounded-xl bg-[#FAF5EA] border border-[#E8DFD1] hidden md:block">
+              <div className="p-3 sm:p-4 rounded-xl bg-[#FAF5EA] border border-[#E8DFD1] hidden md:block">
                 <div className="flex items-center justify-between">
                   <span className="text-[13px] md:text-[14px] font-bold text-[#1A1410]">Rohan Verma</span>
                   <div className="flex items-center gap-1">
@@ -747,7 +747,7 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
         )}
 
         {/* Global Cards of Other Vendors in Same Category */}
-        <section className="rounded-2xl bg-white p-4 sm:p-5 md:p-6 lg:p-8 border border-black/5 shadow-xs">
+        <section className="rounded-2xl bg-white p-3 sm:p-4 md:p-6 lg:p-8 border border-black/5 shadow-xs">
           <div className="flex items-center justify-between mb-3 md:mb-5">
             <h2 className="font-serif text-[clamp(1rem,1.5vw,1.625rem)] font-bold text-[#1A1410]">
               Explore Other {defaults.categoryLabel}s
@@ -762,9 +762,9 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
               <Link
                 key={idx}
                 href="/vendors"
-                className="flex-shrink-0 w-44 md:w-auto rounded-xl overflow-hidden bg-[#FAF7F2] border border-black/5 shadow-2xs hover:border-[#0F4C45] transition-all group"
+                className="flex-shrink-0 min-w-[200px] w-[62vw] sm:w-52 md:w-auto rounded-xl overflow-hidden bg-[#FAF7F2] border border-black/5 shadow-2xs hover:border-[#0F4C45] transition-all group"
               >
-                <div className="relative h-28 md:h-36 w-full">
+                <div className="relative h-32 md:h-36 w-full">
                   <Image src={sim.image} alt={sim.name} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
                 </div>
                 <div className="p-2.5 md:p-3">
@@ -784,7 +784,7 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
       </main>
 
       {/* Sticky Bottom Actions & Floating Genie Button */}
-      <div className="fixed bottom-16 md:bottom-6 lg:bottom-8 left-1/2 -translate-x-1/2 z-40 bg-white/95 backdrop-blur-md px-4 md:px-6 py-2.5 md:py-0 border-t md:border border-black/10 shadow-lg md:shadow-2xl md:rounded-full w-[min(92vw,980px)] h-auto md:h-[72px] flex items-center transition-all">
+      <div className="fixed bottom-16 md:bottom-6 lg:bottom-8 left-1/2 -translate-x-1/2 z-40 bg-white/95 backdrop-blur-md px-3 sm:px-4 md:px-6 py-2.5 md:py-0 border-t md:border border-black/10 shadow-lg md:shadow-2xl md:rounded-full w-[calc(100%-1.5rem)] md:w-[min(92vw,980px)] h-auto md:h-[72px] flex items-center transition-all">
         <div className="relative flex-1 flex items-center gap-2 md:gap-4">
           <a
             href={`tel:${vendor.phone || "9876543210"}`}
