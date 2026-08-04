@@ -10,7 +10,7 @@ export function BridalWearDetailClient({ boutique }: { boutique: BridalBoutiqueV
     category: "bridal-wear",
     location: boutique.location,
     rating: boutique.rating,
-    reviews: boutique.reviewsCount || boutique.reviews || 95,
+    reviews: boutique.reviews || 95,
     image: boutique.image || "https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=600&q=80",
     subtitle: boutique.tagline || "Luxury bridal lehengas, custom couture, and exquisite wedding outfits.",
     about: boutique.about,
