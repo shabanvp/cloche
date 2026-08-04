@@ -163,6 +163,7 @@ export async function POST(req: Request) {
 
     const passwordHash = hashPassword(userPassword);
     const verificationToken = crypto.randomUUID();
+    const tokenExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
     let targetUserId: string = "";
 
     if (existingUser) {
@@ -179,6 +180,7 @@ export async function POST(req: Request) {
         },
         body: JSON.stringify({
           verification_token: verificationToken,
+          reset_token_expires_at: tokenExpiresAt,
           is_verified: false,
         }),
       });
@@ -200,6 +202,7 @@ export async function POST(req: Request) {
           name: owner || businessName,
           phone: userPhone || null,
           verification_token: verificationToken,
+          reset_token_expires_at: tokenExpiresAt,
           is_active: true,
           is_verified: false,
         }),
@@ -408,19 +411,25 @@ export async function POST(req: Request) {
       insertedVersionId = newVersions[0].id;
     }
 
-    // Step 7: Dispatch Verification Email via Brevo from cloche.luxury@gmail.com
-    await sendVerificationMail({
+    // Step 7: Dispatch Verification Email via Gmail SMTPS / Brevo API
+    console.log(`${logPrefix} Step 7: Dispatching vendor verification email to ${userEmail}...`);
+    const emailResult = await sendVerificationMail({
       email: userEmail,
       name: businessName,
       verificationToken,
       role: "vendor",
     });
 
+    console.log(`${logPrefix} Verification email status for ${userEmail}: delivered=${emailResult.success}, method=${emailResult.method || "none"}, error=${emailResult.error || "none"}`);
+
     return NextResponse.json(
       {
         success: true,
         statusCode: 201,
-        message: "Vendor registered successfully! A verification email has been sent to your Gmail inbox (from cloche.luxury@gmail.com). Please verify your email to log in.",
+        requiresVerification: true,
+        message: emailResult.success
+          ? `Vendor registered successfully! A verification email has been sent to ${userEmail}. Please verify your email address to log in.`
+          : `Vendor account created for ${userEmail}, but verification email delivery encountered an issue: ${emailResult.error || "SMTP not configured"}. You can resend the verification email from the login page.`,
         data: {
           vendor: {
             id: newVendor.id,
@@ -439,6 +448,11 @@ export async function POST(req: Request) {
             fullName: businessName,
             roles: ["vendor"],
             isVerified: false,
+          },
+          emailDelivery: {
+            delivered: emailResult.success,
+            method: emailResult.method || null,
+            error: emailResult.error || null,
           },
         },
       },
