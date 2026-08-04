@@ -1,43 +1,53 @@
 /**
  * CLOCHE PLATFORM - PRODUCTION SUPABASE DATABASE CLIENT & REPOSITORY LAYER
  * 
- * Configured with live Render & Supabase environment credentials:
- * URL: https://yvoocczjgogafylnzbo.supabase.co
+ * Configured with live Render & Supabase environment credentials
  */
 
 export interface SupabaseConfig {
   url: string;
   anonKey: string;
+  serviceKey: string;
 }
 
 export function getSupabaseConfig(): SupabaseConfig {
+  const url =
+    process.env.NEXT_PUBLIC_SUPABASE_URL ||
+    process.env.SUPABASE_URL ||
+    "https://fumfjbcixcudjrnezfjl.supabase.co";
+
+  const serviceKey =
+    process.env.SUPABASE_SERVICE_ROLE_KEY ||
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+    process.env.SUPABASE_ANON_KEY ||
+    "sb_secret_UrI6GZ8y25k5U8HheVLKnQ_LRbo08ox";
+
+  const anonKey =
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+    process.env.SUPABASE_ANON_KEY ||
+    serviceKey;
+
   return {
-    url:
-      process.env.NEXT_PUBLIC_SUPABASE_URL ||
-      process.env.SUPABASE_URL ||
-      "https://fumfjbcixcudjrnezfjl.supabase.co",
-    anonKey:
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-      process.env.SUPABASE_ANON_KEY ||
-      process.env.SUPABASE_SERVICE_ROLE_KEY ||
-      "sb_secret_UrI6GZ8y25k5U8HheVLKnQ_LRbo08ox",
+    url,
+    anonKey,
+    serviceKey,
   };
 }
 
 export function isSupabaseConfigured(): boolean {
   const config = getSupabaseConfig();
-  return Boolean(config.url && config.anonKey);
+  return Boolean(config.url && (config.serviceKey || config.anonKey));
 }
 
 /**
- * Lightweight Supabase REST API Query Wrapper
+ * Lightweight Supabase REST API Query Wrapper (Using Service Key for Administrative Writes)
  */
 export async function supabaseFetch<T = any>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<{ data: T | null; error: Error | null }> {
-  const { url, anonKey } = getSupabaseConfig();
-  if (!url || !anonKey) {
+  const { url, serviceKey } = getSupabaseConfig();
+  if (!url || !serviceKey) {
     return { data: null, error: new Error("Supabase is not configured yet.") };
   }
 
@@ -46,8 +56,8 @@ export async function supabaseFetch<T = any>(
       ...options,
       headers: {
         "Content-Type": "application/json",
-        apikey: anonKey,
-        Authorization: `Bearer ${anonKey}`,
+        apikey: serviceKey,
+        Authorization: `Bearer ${serviceKey}`,
         ...options.headers,
       },
     });
@@ -68,32 +78,15 @@ export async function supabaseFetch<T = any>(
 // DATABASE REPOSITORY METHOD WRAPPERS
 // ----------------------------------------------------
 
-/**
- * Fetch Vendor Profile from Supabase
- */
 export async function fetchVendorProfileFromDb(vendorId: string) {
   return supabaseFetch(`vendor_profiles?vendor_id=eq.${encodeURIComponent(vendorId)}&select=*`);
 }
 
-/**
- * Fetch Venue Gallery Photos from Supabase
- */
 export async function fetchVenueGalleryFromDb(vendorId: string) {
   return supabaseFetch(`venue_gallery?vendor_id=eq.${encodeURIComponent(vendorId)}&order=sort_order.asc&select=*`);
 }
 
-/**
- * Save Venue Gallery Photo to Supabase
- */
-export async function saveVenueGalleryToDb(photoRecord: {
-  vendor_id: string;
-  public_id?: string;
-  secure_url: string;
-  folder?: string;
-  alt_text?: string;
-  sort_order?: number;
-  is_cover?: boolean;
-}) {
+export async function saveVenueGalleryToDb(photoRecord: Record<string, any>) {
   return supabaseFetch(`venue_gallery`, {
     method: "POST",
     headers: { Prefer: "return=representation" },
@@ -101,16 +94,10 @@ export async function saveVenueGalleryToDb(photoRecord: {
   });
 }
 
-/**
- * Fetch Active Vendor Offers from Supabase
- */
 export async function fetchOffersFromDb(vendorId: string) {
   return supabaseFetch(`offers?vendor_id=eq.${encodeURIComponent(vendorId)}&order=created_at.desc&select=*`);
 }
 
-/**
- * Save or Update Vendor Offer in Supabase
- */
 export async function saveOfferToDb(offerRecord: Record<string, any>) {
   return supabaseFetch(`offers`, {
     method: "POST",
@@ -119,18 +106,12 @@ export async function saveOfferToDb(offerRecord: Record<string, any>) {
   });
 }
 
-/**
- * Delete Vendor Offer from Supabase
- */
 export async function deleteOfferFromDb(offerId: string) {
   return supabaseFetch(`offers?id=eq.${encodeURIComponent(offerId)}`, {
     method: "DELETE",
   });
 }
 
-/**
- * Save Booking / Quote Request to Supabase
- */
 export async function saveBookingToDb(bookingRecord: Record<string, any>) {
   return supabaseFetch(`bookings`, {
     method: "POST",
@@ -139,9 +120,6 @@ export async function saveBookingToDb(bookingRecord: Record<string, any>) {
   });
 }
 
-/**
- * Save Review to Supabase
- */
 export async function saveReviewToDb(reviewRecord: Record<string, any>) {
   return supabaseFetch(`reviews`, {
     method: "POST",
@@ -269,4 +247,3 @@ export async function deleteMakeupAwardFromDb(id: string) {
     method: "DELETE",
   });
 }
-

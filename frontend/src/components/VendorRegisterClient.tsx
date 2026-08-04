@@ -254,6 +254,21 @@ export function VendorRegisterClient() {
     const timeout = window.setTimeout(() => controller.abort(), 60000);
 
     try {
+      // 1. Try Phase 4 Vendor Register API endpoint first
+      const v1Res = await fetch("/api/v1/vendor/register", {
+        method: "POST",
+        body: formData,
+        signal: controller.signal,
+      }).catch(() => null);
+
+      if (v1Res && v1Res.ok) {
+        const v1Data = await v1Res.json();
+        if (v1Data.success) {
+          return { success: true, ...v1Data };
+        }
+      }
+
+      // 2. Fallback to Render API
       const res = await fetch(`${API_BASE_URL}/auth/signup`, {
         method: "POST",
         body: formData,
@@ -267,7 +282,7 @@ export function VendorRegisterClient() {
         return { error: data.message || "Signup failed" };
       }
 
-      return { success: true };
+      return { success: true, ...data };
     } catch (error) {
       if (error instanceof DOMException && error.name === "AbortError") {
         return { error: "Upload timed out. Please try again with smaller images." };
@@ -458,8 +473,8 @@ export function VendorRegisterClient() {
         } catch (e) {}
       }
 
-      alert("Application submitted and account created successfully!\n\nYou can now log in directly to access your Vendor Dashboard.");
-      router.push("/vendor/login?status=registered");
+      alert("Application submitted and account created successfully!\n\nWelcome to Cloche! Proceeding to your onboarding wizard.");
+      router.push("/vendor/onboarding");
     } else {
       setErrorMsg("Application submission failed. Please try again.");
     }
