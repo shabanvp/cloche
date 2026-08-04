@@ -142,6 +142,15 @@ export async function signup(formData: FormData) {
       return { error: data.message || "Signup failed" };
     }
 
+    const cookieStore = await cookies();
+    if (data.token) {
+      cookieStore.set("auth_token", data.token, { path: "/", maxAge: 30 * 24 * 60 * 60 });
+      cookieStore.set("cloche_auth_token", data.token, { path: "/", maxAge: 30 * 24 * 60 * 60 });
+    }
+    const newUserObj = data.user || { full_name: name, name, email, role };
+    cookieStore.set("user_data", JSON.stringify(newUserObj), { path: "/", maxAge: 30 * 24 * 60 * 60 });
+    cookieStore.set("user_role", role, { path: "/", maxAge: 30 * 24 * 60 * 60 });
+
     return { success: true, ...data };
   } catch (error: any) {
     return { error: "An unexpected error occurred." };

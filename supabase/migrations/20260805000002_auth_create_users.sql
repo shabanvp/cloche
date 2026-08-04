@@ -9,8 +9,11 @@ CREATE TABLE IF NOT EXISTS users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     email VARCHAR(255) NOT NULL UNIQUE,
     password_hash VARCHAR(255),
-    full_name VARCHAR(150) NOT NULL,
+    full_name VARCHAR(150),
     name VARCHAR(150),
+    verification_token VARCHAR(255),
+    reset_token VARCHAR(255),
+    reset_token_expires_at TIMESTAMPTZ,
     phone VARCHAR(20) UNIQUE,
     avatar_url TEXT,
     is_active BOOLEAN NOT NULL DEFAULT true,
@@ -20,6 +23,25 @@ CREATE TABLE IF NOT EXISTS users (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     deleted_at TIMESTAMPTZ
 );
+
+-- Trigger Function to Sync name and full_name fields bidirectionally
+CREATE OR REPLACE FUNCTION sync_user_name_fields()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.full_name IS NULL OR NEW.full_name = '' THEN
+        NEW.full_name := COALESCE(NEW.name, '');
+    END IF;
+    IF NEW.name IS NULL OR NEW.name = '' THEN
+        NEW.name := COALESCE(NEW.full_name, '');
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trigger_sync_user_name_fields ON users;
+CREATE TRIGGER trigger_sync_user_name_fields
+    BEFORE INSERT OR UPDATE ON users
+    FOR EACH ROW EXECUTE FUNCTION sync_user_name_fields();
 
 -- 2. Sessions Table
 CREATE TABLE IF NOT EXISTS sessions (
@@ -32,17 +54,10 @@ CREATE TABLE IF NOT EXISTS sessions (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- 3. OAuth Accounts Table
-CREATE TABLE IF NOT EXISTS oauth_accounts (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    provider VARCHAR(50) NOT NULL,
-    provider_user_id VARCHAR(255) NOT NULL,
-    access_token TEXT,
-    refresh_token TEXT,
-    expires_at TIMESTAMPTZ,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    CONSTRAINT uq_oauth_provider_user UNIQUE (provider, provider_user_id)
-);
+-- Indexes for performance
+CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+CREATE INDEX IF NOT EXISTS idx_users_phone ON users(phone);
+CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id);
+CREATE INDEX IF NOT EXISTS idx_sessions_token_hash ON sessions(token_hash);
 
 COMMIT;

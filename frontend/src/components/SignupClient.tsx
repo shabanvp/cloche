@@ -28,7 +28,14 @@ export function SignupClient() {
     if (res.error) {
       setErrorMsg(res.error);
     } else {
-      router.push("/login");
+      if (typeof window !== "undefined") {
+        const nameVal = formData.get("name") as string;
+        if (nameVal) {
+          localStorage.setItem("userName", nameVal.trim());
+        }
+      }
+      router.push("/dashboard");
+      router.refresh();
     }
   };
 
