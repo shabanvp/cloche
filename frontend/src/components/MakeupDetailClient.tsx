@@ -107,6 +107,8 @@ export function MakeupDetailClient({ artist }: { artist: VendorDetail }) {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // Filters & Controls
+  const [showAllServices, setShowAllServices] = useState(false);
+  const [showAllPackages, setShowAllPackages] = useState(false);
   const [portfolioCategory, setPortfolioCategory] = useState<string>("all");
   const [reviewFilter, setReviewFilter] = useState<"latest" | "highest" | "lowest" | "photos">("latest");
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
@@ -778,7 +780,6 @@ export function MakeupDetailClient({ artist }: { artist: VendorDetail }) {
                   { id: "services", label: "Services" },
                   { id: "packages", label: "Packages" },
                   { id: "reviews", label: "Reviews" },
-                  { id: "faqs", label: "FAQs" },
                   { id: "contact", label: "Contact" }
                 ].map(tab => (
                   <button
@@ -878,41 +879,47 @@ export function MakeupDetailClient({ artist }: { artist: VendorDetail }) {
                   </h2>
                   <p className="text-xs text-[#6E6A61]">Customized per function & client skin type</p>
                 </div>
-                <span className="text-xs text-[#D4AF37] font-semibold">6 Services Available</span>
+                <button
+                  onClick={() => setShowAllServices(!showAllServices)}
+                  className="text-xs font-bold text-[#D4AF37] hover:underline flex items-center gap-1 cursor-pointer"
+                >
+                  {showAllServices ? "Show Less" : `View All (${serviceCards.length})`}
+                  <ChevronRight className={`h-3.5 w-3.5 transition-transform ${showAllServices ? "rotate-90" : ""}`} />
+                </button>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {serviceCards.map((service, idx) => (
-                  <div key={idx} className="rounded-2xl p-4 bg-[#FFFDF9] border border-[#EBE5DA] shadow-sm relative overflow-hidden flex flex-col justify-between">
+              <div className="grid grid-cols-3 gap-2 sm:gap-4">
+                {(showAllServices ? serviceCards : serviceCards.slice(0, 3)).map((service, idx) => (
+                  <div key={idx} className="rounded-2xl p-2.5 sm:p-4 bg-[#FFFDF9] border border-[#EBE5DA] shadow-sm relative overflow-hidden flex flex-col justify-between">
                     {service.popular && (
-                      <div className="absolute top-0 right-0 bg-[#0B5D4F] text-[#D4AF37] text-[10px] font-bold px-3 py-0.5 rounded-bl-xl border-l border-b border-[#D4AF37]/30">
+                      <div className="absolute top-0 right-0 bg-[#0B5D4F] text-[#D4AF37] text-[8px] sm:text-[10px] font-bold px-1.5 sm:px-3 py-0.5 rounded-bl-xl border-l border-b border-[#D4AF37]/30">
                         MOST REQUESTED
                       </div>
                     )}
                     <div>
-                      <div className="flex items-start justify-between">
+                      <div className="flex items-start justify-between gap-1">
                         <div>
-                          <h3 className="font-serif text-sm font-bold text-[#1C1C17]">
+                          <h3 className="font-serif text-xs sm:text-sm font-bold text-[#1C1C17] leading-tight">
                             {service.title}
                           </h3>
-                          <span className="text-[11px] text-[#6E6A61] flex items-center gap-1 mt-0.5">
-                            <Clock className="h-3 w-3 text-[#D4AF37]" />
-                            Duration: {service.duration}
+                          <span className="text-[9px] sm:text-[11px] text-[#6E6A61] flex items-center gap-0.5 mt-0.5">
+                            <Clock className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-[#D4AF37]" />
+                            {service.duration}
                           </span>
                         </div>
-                        <div className="text-right">
-                          <span className="text-base font-bold text-[#0B5D4F]">{service.price}</span>
-                          <span className="block text-[10px] text-[#6E6A61]">onwards</span>
+                        <div className="text-right shrink-0">
+                          <span className="text-xs sm:text-base font-bold text-[#0B5D4F]">{service.price}</span>
+                          <span className="block text-[8px] sm:text-[10px] text-[#6E6A61]">onwards</span>
                         </div>
                       </div>
 
-                      <div className="mt-3 pt-3 border-t border-[#EBE5DA]">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-[#6E6A61] block mb-1.5">What's Included:</span>
-                        <ul className="grid grid-cols-1 gap-1">
-                          {service.included.map((item, i) => (
-                            <li key={i} className="text-xs text-[#4A4740] flex items-center gap-1.5">
-                              <Check className="h-3.5 w-3.5 text-[#0B5D4F] shrink-0" />
-                              <span>{item}</span>
+                      <div className="mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-[#EBE5DA]">
+                        <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-[#6E6A61] block mb-1">Includes:</span>
+                        <ul className="grid grid-cols-1 gap-0.5 sm:gap-1">
+                          {service.included.slice(0, 3).map((item, i) => (
+                            <li key={i} className="text-[9px] sm:text-xs text-[#4A4740] flex items-center gap-1 line-clamp-1">
+                              <Check className="h-3 w-3 text-[#0B5D4F] shrink-0" />
+                              <span className="truncate">{item}</span>
                             </li>
                           ))}
                         </ul>
@@ -924,10 +931,10 @@ export function MakeupDetailClient({ artist }: { artist: VendorDetail }) {
                         setQuoteData(prev => ({ ...prev, functions: [service.title] }));
                         setActiveModal("quote");
                       }}
-                      className="mt-4 w-full py-2 rounded-xl bg-[#0B5D4F]/10 hover:bg-[#0B5D4F] text-[#0B5D4F] hover:text-white text-xs font-semibold transition-colors flex items-center justify-center gap-1"
+                      className="mt-3 w-full py-1.5 sm:py-2 rounded-xl bg-[#0B5D4F]/10 hover:bg-[#0B5D4F] text-[#0B5D4F] hover:text-white text-[9px] sm:text-xs font-semibold transition-colors flex items-center justify-center gap-0.5"
                     >
-                      Inquire for {service.title}
-                      <ChevronRight className="h-3.5 w-3.5" />
+                      Inquire
+                      <ChevronRight className="h-3 w-3" />
                     </button>
                   </div>
                 ))}
@@ -936,43 +943,52 @@ export function MakeupDetailClient({ artist }: { artist: VendorDetail }) {
 
             {/* 7. PACKAGES SECTION */}
             <div id="packages" className="px-4 mt-6">
-              <div className="mb-3">
-                <h2 className="font-serif text-lg font-bold text-[#0B5D4F]">
-                  Curated Bridal Packages
-                </h2>
-                <p className="text-xs text-[#6E6A61]">Multi-event packages with complimentary bonuses</p>
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <h2 className="font-serif text-lg font-bold text-[#0B5D4F]">
+                    Curated Bridal Packages
+                  </h2>
+                  <p className="text-xs text-[#6E6A61]">Multi-event packages with complimentary bonuses</p>
+                </div>
+                <button
+                  onClick={() => setShowAllPackages(!showAllPackages)}
+                  className="text-xs font-bold text-[#D4AF37] hover:underline flex items-center gap-1 cursor-pointer"
+                >
+                  {showAllPackages ? "Show Less" : `View All (${packagesData.length})`}
+                  <ChevronRight className={`h-3.5 w-3.5 transition-transform ${showAllPackages ? "rotate-90" : ""}`} />
+                </button>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {packagesData.map((pkg, i) => (
+              <div className="grid grid-cols-3 gap-2 sm:gap-4">
+                {(showAllPackages ? packagesData : packagesData.slice(0, 3)).map((pkg, i) => (
                   <div
                     key={i}
-                    className={`rounded-3xl p-5 bg-[#FFFDF9] border shadow-sm relative flex flex-col justify-between ${
+                    className={`rounded-2xl sm:rounded-3xl p-3 sm:p-5 bg-[#FFFDF9] border shadow-sm relative flex flex-col justify-between ${
                       pkg.popular ? "border-2 border-[#D4AF37]" : "border-[#EBE5DA]"
                     }`}
                   >
                     <div>
                       <div className="flex items-center justify-between">
-                        <span className="px-3 py-0.5 rounded-full bg-[#0B5D4F]/10 text-[#0B5D4F] text-[10px] font-bold uppercase tracking-wider">
+                        <span className="px-2 py-0.5 rounded-full bg-[#0B5D4F]/10 text-[#0B5D4F] text-[8px] sm:text-[10px] font-bold uppercase tracking-wider truncate max-w-[120px]">
                           {pkg.badge}
                         </span>
                         {pkg.originalPrice && (
-                          <span className="text-xs text-[#6E6A61] line-through">{pkg.originalPrice}</span>
+                          <span className="text-[9px] sm:text-xs text-[#6E6A61] line-through">{pkg.originalPrice}</span>
                         )}
                       </div>
 
-                      <div className="mt-2 flex items-baseline justify-between">
-                        <h3 className="font-serif text-base font-bold text-[#1C1C17]">{pkg.name}</h3>
-                        <span className="font-serif text-xl font-bold text-[#0B5D4F]">{pkg.price}</span>
+                      <div className="mt-1.5 flex items-baseline justify-between gap-1">
+                        <h3 className="font-serif text-xs sm:text-base font-bold text-[#1C1C17] leading-tight">{pkg.name}</h3>
+                        <span className="font-serif text-sm sm:text-xl font-bold text-[#0B5D4F] shrink-0">{pkg.price}</span>
                       </div>
 
-                      <p className="text-xs font-medium text-[#D4AF37] mt-0.5">{pkg.functions}</p>
+                      <p className="text-[9px] sm:text-xs font-medium text-[#D4AF37] mt-0.5 line-clamp-1">{pkg.functions}</p>
 
-                      <div className="mt-3 pt-3 border-t border-[#EBE5DA] space-y-1.5">
-                        {pkg.features.map((feat, fIdx) => (
-                          <div key={fIdx} className="flex items-start gap-2 text-xs text-[#4A4740]">
-                            <CheckCircle2 className="h-4 w-4 text-[#0B5D4F] shrink-0 mt-0.5" />
-                            <span>{feat}</span>
+                      <div className="mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-[#EBE5DA] space-y-1">
+                        {pkg.features.slice(0, 3).map((feat, fIdx) => (
+                          <div key={fIdx} className="flex items-start gap-1 text-[9px] sm:text-xs text-[#4A4740]">
+                            <CheckCircle2 className="h-3 w-3 text-[#0B5D4F] shrink-0 mt-0.5" />
+                            <span className="line-clamp-1">{feat}</span>
                           </div>
                         ))}
                       </div>
@@ -980,10 +996,10 @@ export function MakeupDetailClient({ artist }: { artist: VendorDetail }) {
 
                     <button
                       onClick={() => setActiveModal("quote")}
-                      className="mt-4 w-full py-3 rounded-xl bg-[#0B5D4F] text-white text-xs font-bold shadow-md hover:bg-[#08483d] transition-all active:scale-98 flex items-center justify-center gap-1.5"
+                      className="mt-3 w-full py-2 sm:py-3 rounded-xl bg-[#0B5D4F] text-white text-[9px] sm:text-xs font-bold shadow-md hover:bg-[#08483d] transition-all active:scale-98 flex items-center justify-center gap-1"
                     >
-                      Book Package ({pkg.price})
-                      <Sparkles className="h-4 w-4 text-[#D4AF37]" />
+                      Book Package
+                      <Sparkles className="h-3 w-3 text-[#D4AF37]" />
                     </button>
                   </div>
                 ))}
@@ -1262,102 +1278,7 @@ export function MakeupDetailClient({ artist }: { artist: VendorDetail }) {
               </div>
             </div>
 
-            {/* 11. AVAILABILITY CALENDAR */}
-            <div className="px-4 mt-6">
-              <div className="rounded-3xl p-5 bg-[#FFFDF9] border border-[#EBE5DA] shadow-sm">
-                <div className="flex items-center justify-between border-b border-[#EBE5DA] pb-3 mb-3">
-                  <div>
-                    <h2 className="font-serif text-lg font-bold text-[#0B5D4F]">
-                      2026 Season Availability
-                    </h2>
-                    <p className="text-xs text-[#6E6A61]">Select your wedding date to reserve</p>
-                  </div>
-                  <Calendar className="h-5 w-5 text-[#D4AF37]" />
-                </div>
 
-                <div className="flex items-center justify-between text-xs font-semibold text-[#1C1C17] mb-3">
-                  <span>November 2026 Wedding Muhurtham</span>
-                  <span className="text-[#0B5D4F]">Delhi NCR & Outstation</span>
-                </div>
-
-                {/* Calendar Grid */}
-                <div className="grid grid-cols-7 gap-1.5 text-center">
-                  {calendarDates.map((item, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => {
-                        if (item.status !== "booked") {
-                          setSelectedDate(`2026-11-${item.day.split(" ")[0]}`);
-                          setActiveModal("availability");
-                        }
-                      }}
-                      disabled={item.status === "booked"}
-                      className={`p-2 rounded-xl flex flex-col items-center justify-center transition-all ${
-                        item.status === "available"
-                          ? "bg-[#0B5D4F]/10 border border-[#0B5D4F]/30 hover:bg-[#0B5D4F] hover:text-white"
-                          : item.status === "limited"
-                          ? "bg-[#D4AF37]/15 border border-[#D4AF37]/40 text-[#0B5D4F]"
-                          : "bg-neutral-100 border border-neutral-200 text-neutral-400 cursor-not-allowed"
-                      }`}
-                    >
-                      <span className="text-[10px] font-medium">{item.day}</span>
-                      <span className="text-[9px] font-bold capitalize mt-0.5">
-                        {item.status === "available" ? "Open" : item.status === "limited" ? "1 Left" : "Booked"}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-
-                <div className="flex items-center justify-center gap-4 mt-4 text-[10px] text-[#6E6A61] border-t border-[#EBE5DA] pt-3">
-                  <span className="flex items-center gap-1">
-                    <span className="h-2 w-2 rounded-full bg-[#0B5D4F]" />
-                    Slots Available
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <span className="h-2 w-2 rounded-full bg-[#D4AF37]" />
-                    Limited Slot
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <span className="h-2 w-2 rounded-full bg-neutral-300" />
-                    Fully Booked
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* 12. FAQ ACCORDION SECTION */}
-            <div id="faqs" className="px-4 mt-6">
-              <div className="rounded-3xl p-5 bg-[#FFFDF9] border border-[#EBE5DA] shadow-sm">
-                <div className="flex items-center justify-between border-b border-[#EBE5DA] pb-3 mb-3">
-                  <h2 className="font-serif text-lg font-bold text-[#0B5D4F]">
-                    Frequently Asked Questions
-                  </h2>
-                  <HelpCircle className="h-5 w-5 text-[#D4AF37]" />
-                </div>
-
-                <div className="space-y-2">
-                  {faqsList.map((faq, i) => (
-                    <div
-                      key={i}
-                      className="rounded-2xl border border-[#EBE5DA] overflow-hidden bg-[#F8F6F2]"
-                    >
-                      <button
-                        onClick={() => setOpenFaqIndex(openFaqIndex === i ? null : i)}
-                        className="w-full p-3.5 text-left flex items-center justify-between text-xs font-bold text-[#1C1C17] hover:text-[#0B5D4F] transition-colors"
-                      >
-                        <span className="pr-2">{faq.q}</span>
-                        <ChevronDown className={`h-4 w-4 text-[#0B5D4F] transition-transform duration-300 ${openFaqIndex === i ? "rotate-180" : ""}`} />
-                      </button>
-                      {openFaqIndex === i && (
-                        <div className="px-3.5 pb-3.5 text-xs text-[#4A4740] leading-relaxed border-t border-[#EBE5DA]/50 pt-2 bg-[#FFFDF9]">
-                          {faq.a}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
 
             {/* 13. CONTACT & LOCATION SECTION */}
             <div id="contact" className="px-4 mt-6">
