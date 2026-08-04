@@ -149,3 +149,124 @@ export async function saveReviewToDb(reviewRecord: Record<string, any>) {
     body: JSON.stringify(reviewRecord),
   });
 }
+
+// ----------------------------------------------------
+// MAKEUP ARTIST REPOSITORY HELPERS
+// ----------------------------------------------------
+
+export async function fetchMakeupProfileBySlug(slug: string) {
+  return supabaseFetch(`vendors?slug=eq.${encodeURIComponent(slug)}&select=*,makeup_profiles(*)`);
+}
+
+export async function fetchMakeupServicesByVendor(vendorId: string) {
+  return supabaseFetch(`makeup_services?vendor_id=eq.${encodeURIComponent(vendorId)}&order=created_at.asc&select=*`);
+}
+
+export async function fetchMakeupPackagesByVendor(vendorId: string) {
+  return supabaseFetch(`makeup_packages?vendor_id=eq.${encodeURIComponent(vendorId)}&order=created_at.asc&select=*`);
+}
+
+export async function fetchMakeupPortfolioByVendor(vendorId: string) {
+  return supabaseFetch(`makeup_portfolio?vendor_id=eq.${encodeURIComponent(vendorId)}&order=sort_order.asc&select=*`);
+}
+
+export async function fetchMakeupVideosByVendor(vendorId: string) {
+  return supabaseFetch(`makeup_videos?vendor_id=eq.${encodeURIComponent(vendorId)}&select=*`);
+}
+
+export async function fetchMakeupReviewsByVendor(vendorId: string) {
+  return supabaseFetch(`makeup_reviews?vendor_id=eq.${encodeURIComponent(vendorId)}&order=created_at.desc&select=*`);
+}
+
+export async function fetchMakeupFaqsByVendor(vendorId: string) {
+  return supabaseFetch(`makeup_faqs?vendor_id=eq.${encodeURIComponent(vendorId)}&order=sort_order.asc&select=*`);
+}
+
+export async function fetchMakeupAwardsByVendor(vendorId: string) {
+  return supabaseFetch(`makeup_awards?vendor_id=eq.${encodeURIComponent(vendorId)}&select=*`);
+}
+
+export async function saveMakeupServiceToDb(serviceRecord: Record<string, any>) {
+  return supabaseFetch(`makeup_services`, {
+    method: "POST",
+    headers: { Prefer: "resolution=merge-duplicates,return=representation" },
+    body: JSON.stringify(serviceRecord),
+  });
+}
+
+export async function deleteMakeupServiceFromDb(id: string) {
+  return supabaseFetch(`makeup_services?id=eq.${encodeURIComponent(id)}`, {
+    method: "DELETE",
+  });
+}
+
+export async function saveMakeupPackageToDb(packageRecord: Record<string, any>) {
+  return supabaseFetch(`makeup_packages`, {
+    method: "POST",
+    headers: { Prefer: "resolution=merge-duplicates,return=representation" },
+    body: JSON.stringify(packageRecord),
+  });
+}
+
+export async function deleteMakeupPackageFromDb(id: string) {
+  return supabaseFetch(`makeup_packages?id=eq.${encodeURIComponent(id)}`, {
+    method: "DELETE",
+  });
+}
+
+export async function saveMakeupPortfolioToDb(portfolioRecord: Record<string, any>) {
+  return supabaseFetch(`makeup_portfolio`, {
+    method: "POST",
+    headers: { Prefer: "resolution=merge-duplicates,return=representation" },
+    body: JSON.stringify(portfolioRecord),
+  });
+}
+
+export async function deleteMakeupPortfolioFromDb(id: string) {
+  return supabaseFetch(`makeup_portfolio?id=eq.${encodeURIComponent(id)}`, {
+    method: "DELETE",
+  });
+}
+
+export async function saveMakeupVideoToDb(videoRecord: Record<string, any>) {
+  return supabaseFetch(`makeup_videos`, {
+    method: "POST",
+    headers: { Prefer: "resolution=merge-duplicates,return=representation" },
+    body: JSON.stringify(videoRecord),
+  });
+}
+
+export async function deleteMakeupVideoFromDb(id: string) {
+  return supabaseFetch(`makeup_videos?id=eq.${encodeURIComponent(id)}`, {
+    method: "DELETE",
+  });
+}
+
+export async function saveMakeupFaqToDb(faqRecord: Record<string, any>) {
+  return supabaseFetch(`makeup_faqs`, {
+    method: "POST",
+    headers: { Prefer: "resolution=merge-duplicates,return=representation" },
+    body: JSON.stringify(faqRecord),
+  });
+}
+
+export async function deleteMakeupFaqFromDb(id: string) {
+  return supabaseFetch(`makeup_faqs?id=eq.${encodeURIComponent(id)}`, {
+    method: "DELETE",
+  });
+}
+
+export async function saveMakeupAwardToDb(awardRecord: Record<string, any>) {
+  return supabaseFetch(`makeup_awards`, {
+    method: "POST",
+    headers: { Prefer: "resolution=merge-duplicates,return=representation" },
+    body: JSON.stringify(awardRecord),
+  });
+}
+
+export async function deleteMakeupAwardFromDb(id: string) {
+  return supabaseFetch(`makeup_awards?id=eq.${encodeURIComponent(id)}`, {
+    method: "DELETE",
+  });
+}
+

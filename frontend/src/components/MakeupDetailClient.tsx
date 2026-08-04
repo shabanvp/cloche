@@ -129,6 +129,34 @@ export function MakeupDetailClient({ artist }: { artist: VendorDetail }) {
     notes: ""
   });
 
+  // Dynamic Live Data State from Database
+  const [liveData, setLiveData] = useState<{
+    services?: any[];
+    packages?: any[];
+    portfolio?: any[];
+    videos?: any[];
+    reviews?: any[];
+    faqs?: any[];
+    awards?: any[];
+  } | null>(null);
+
+  useEffect(() => {
+    async function loadLiveData() {
+      try {
+        const res = await fetch(`/api/makeup/${artist.id}`);
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success) {
+            setLiveData(json);
+          }
+        }
+      } catch (err) {
+        console.warn("[Cloche Dynamic Fetch] Using client fallback dataset:", err);
+      }
+    }
+    loadLiveData();
+  }, [artist.id]);
+
   // Display Toast message
   const showToast = (msg: string) => {
     setToastMessage(msg);
