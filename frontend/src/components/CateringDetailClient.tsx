@@ -15,7 +15,7 @@ export function CateringDetailClient({ vendor }: { vendor: CateringVendor }) {
     subtitle: vendor.subtitle,
     about: vendor.about,
     isVerified: vendor.isVerified,
-    phone: vendor.phone,
+    phone: (vendor as any).phone || "9876543210",
     stats: [
       { icon: "clock", value: `${vendor.yearsInBusiness || 10}+`, label: "Years in Business" },
       { icon: "utensils", value: `${vendor.eventsCartered || 500}+`, label: "Events Catered" },

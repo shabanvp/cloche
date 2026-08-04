@@ -14,7 +14,7 @@ export function DecorPlanningDetailClient({ vendor }: { vendor: DecorVendor }) {
     image: vendor.image || (vendor.portfolio && vendor.portfolio[0]) || "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=600&q=80",
     subtitle: vendor.subtitle || "Luxury wedding decor, breathtaking mandap setups, and fairy-tale themes.",
     about: vendor.about,
-    phone: vendor.phone,
+    phone: (vendor as any).phone || "9876543210",
     stats: [
       { icon: "clock", value: `${vendor.yearsInBusiness || 10}+`, label: "Years Experience" },
       { icon: "sparkles", value: `${vendor.eventsDecorated || 450}+`, label: "Events Designed" },

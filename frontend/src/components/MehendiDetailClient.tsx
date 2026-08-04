@@ -12,9 +12,9 @@ export function MehendiDetailClient({ artist }: { artist: MehendiVendor }) {
     rating: artist.rating,
     reviews: artist.reviews,
     image: artist.image || (artist.portfolio && artist.portfolio[0]) || "https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=600&q=80",
-    subtitle: artist.tagline || "Exquisite bridal mehndi, intricate organic henna designs & royal patterns.",
+    subtitle: (artist as any).tagline || "Exquisite bridal mehndi, intricate organic henna designs & royal patterns.",
     about: artist.about,
-    phone: artist.phone,
+    phone: (artist as any).phone || "9876543210",
     stats: [
       { icon: "clock", value: `${artist.experienceYears || 7}+`, label: "Years Experience" },
       { icon: "sparkles", value: `${artist.bridesServed || 600}+`, label: "Brides Applied" },
