@@ -168,10 +168,6 @@
             <span class="material-symbols-outlined">storefront</span>
             <span>Boutiques</span>
           </a>
-          <a href="collection.html" class="side-menu-link">
-            <span class="material-symbols-outlined">inventory_2</span>
-            <span>Collections</span>
-          </a>
           ${!partnerLoggedIn ? `
           <a href="messageboutique.html?view=list" class="side-menu-link">
             <span class="material-symbols-outlined">chat_bubble</span>

@@ -1,11 +1,11 @@
-import type { Metadata } from "next";
-import { InvitationsListing } from "@/components/InvitationsListing";
+import { VendorCategoryListing } from "@/components/VendorCategoryListing";
+import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Invitation Designers | Cloche",
-  description: "Find the best wedding invitation designers for your special day.",
+  title: "Wedding Invitations | Cloche Luxury Weddings",
+  description: "Find the perfect invitation for your special day. Luxury traditional, modern, minimal, and e-invites.",
 };
 
 export default function InvitationsPage() {
-  return <InvitationsListing />;
+  return <VendorCategoryListing categorySlug="invitations" />;
 }

@@ -1,5 +1,12 @@
-import { POST as handleResendVerification } from "../../v1/auth/resend-verification/route";
+import { NextResponse } from "next/server";
 
-export async function POST(req: Request) {
-  return handleResendVerification(req);
+export async function POST() {
+  return NextResponse.json(
+    {
+      success: true,
+      statusCode: 200,
+      message: "Email verification is disabled. Accounts are active upon registration.",
+    },
+    { status: 200 }
+  );
 }

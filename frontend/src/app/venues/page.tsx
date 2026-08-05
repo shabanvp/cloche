@@ -1,11 +1,11 @@
-import type { Metadata } from "next";
-import { VenuesListing } from "@/components/VenuesListing";
+import { VendorCategoryListing } from "@/components/VendorCategoryListing";
+import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Wedding Venues | Cloche",
-  description: "Browse premium wedding venues — banquet halls, lawns, heritage palaces, and destination spaces across India.",
+  title: "Venues | Cloche Luxury Weddings",
+  description: "Find the perfect venue for your special day. Explore luxury wedding halls, resorts, banquet venues & palaces.",
 };
 
 export default function VenuesPage() {
-  return <VenuesListing />;
+  return <VendorCategoryListing categorySlug="venues" />;
 }

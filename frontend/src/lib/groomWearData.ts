@@ -13,6 +13,7 @@ export type GroomWearVendor = {
   collections: { name: string; image: string }[];
   prices: { category: string; price: string; isPopular?: boolean }[];
   amenities: { name: string; icon: string }[];
+  tags?: string[];
   userReviews: { author: string; date: string; rating: number; text: string }[];
 };
 

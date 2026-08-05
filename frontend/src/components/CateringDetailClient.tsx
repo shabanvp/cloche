@@ -30,3 +30,4 @@ export function CateringDetailClient({ vendor }: { vendor: CateringVendor }) {
 
   return <VendorProfileLayout vendor={profileData} />;
 }
+

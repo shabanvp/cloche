@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { 
-  Bell, Edit3, Smartphone, Menu, X, ChevronDown, Search, User,
+  Bell, Edit3, Smartphone, Menu, X, ChevronDown,
   Home, MapPin, Store, BookHeart, FileText, Mail,
-  Heart, Lightbulb, Info, CircleHelp, ArrowRight, Users, MessageCircle, CheckCircle2, Sparkles
+  Lightbulb, Info, CircleHelp, ArrowRight, Users, MessageCircle, CheckCircle2, Sparkles
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -74,7 +74,6 @@ export function Header({ session }: HeaderProps = {}) {
     { label: "Venues", href: "/venues", icon: MapPin },
     { label: "Vendors", href: "/boutiques", icon: Users },
     { label: "Exclusive Deals", href: "/deals", icon: Sparkles },
-    { label: "Collections", href: "/collections", icon: Heart },
     { label: "Real Weddings", href: "/real-weddings", icon: BookHeart },
     { label: "Photos & Inspiration", href: "/inspiration", icon: Lightbulb },
     { label: "Blogs", href: "/blogs", icon: FileText },

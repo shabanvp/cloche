@@ -2,24 +2,14 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useMemo, useEffect } from "react";
-import {
-  ArrowLeft,
-  Search,
-  SlidersHorizontal,
-  Star,
-  CheckCircle2,
-  MapPin,
-  Heart,
-  ChevronRight,
-} from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { Search, Star, CheckCircle2, MapPin, Heart, ChevronRight, UserCheck } from "lucide-react";
 import { BottomNavBar } from "@/components/BottomNavBar";
-import { bridalBoutiqueVendors } from "@/lib/bridalAndInvitationData";
+import { Footer } from "@/components/Footer";
 import { groomWearVendors } from "@/lib/groomWearData";
-
 import { toggleWishlistItem, getWishlistItems } from "@/lib/wishlistStore";
 
-const groomKeywords = ["sherwani", "tuxedo", "suit", "blazer", "indo-western", "bandhgala", "groom"];
+const GROOM_CHIPS = ["All", "Sherwanis", "Achkans", "Tuxedos", "Bandhgalas", "Rentals"];
 
 export function GroomWearListing() {
   const [search, setSearch] = useState("");
@@ -36,317 +26,169 @@ export function GroomWearListing() {
     return () => window.removeEventListener("cloche_wishlist_updated", updateLocalWishlist);
   }, []);
 
-  // Find Posh Wedding Rental boutique
-  const poshBoutique = useMemo(() => {
-    return bridalBoutiqueVendors.find((b) => b.id === "posh-wedding-rental");
-  }, []);
+  const filteredVendors = useMemo(() => {
+    return groomWearVendors.filter((v) => {
+      const q = search.toLowerCase().trim();
+      const matchesSearch =
+        !q || v.name.toLowerCase().includes(q) || v.location.toLowerCase().includes(q) || v.subtitle.toLowerCase().includes(q);
 
-  // Filter only groom wear collections uploaded by Posh Wedding Rental
-  const poshGroomCollections = useMemo(() => {
-    if (!poshBoutique) return [];
-    return poshBoutique.collections.filter((col) =>
-      groomKeywords.some((kw) => col.name.toLowerCase().includes(kw))
-    );
-  }, [poshBoutique]);
+      const targetChip = activeChip.toLowerCase().replace("royal ", "").replace("rentals", "").trim();
+      const matchesChip =
+        activeChip === "All" ||
+        (v.tags && v.tags.some((t) => t.toLowerCase().includes(targetChip))) ||
+        v.collections.some((c) => c.name.toLowerCase().includes(targetChip)) ||
+        v.subtitle.toLowerCase().includes(targetChip);
 
-  const listingItems = useMemo(() => {
-    const regularVendors = groomWearVendors
-      .filter((v) => v.id !== "posh-wedding-rental")
-      .map((v) => ({
-        id: v.id,
-        title: v.name,
-        subtitle: v.subtitle,
-        rating: v.rating,
-        reviews: v.reviews,
-        location: v.location,
-        image: v.image,
-        isVerified: v.isVerified,
-        price: v.prices[1]?.price || v.prices[0]?.price,
-        href: `/categories/groom-wear/${v.id}`,
-      }));
+      return matchesSearch && matchesChip;
+    });
+  }, [search, activeChip]);
 
-    const poshCollectionItems = poshGroomCollections.map((col, idx) => ({
-      id: `posh-groom-collection-${idx}`,
-      title: col.name,
-      subtitle: "Posh Wedding Rental",
-      rating: poshBoutique?.rating || 4.8,
-      reviews: poshBoutique?.reviews || 115,
-      location: poshBoutique?.location || "Indiranagar, Bangalore",
-      image: col.image,
-      isVerified: poshBoutique?.isVerified ?? true,
-      price: poshBoutique?.prices[idx + 1]?.price || poshBoutique?.prices[0]?.price || "₹10,000 / day",
-      href: `/categories/groom-wear/posh-wedding-rental`,
-    }));
-
-    const all = [...regularVendors, ...poshCollectionItems];
-
-    if (!search.trim()) return all;
-
-    const query = search.toLowerCase();
-    return all.filter(
-      (item) =>
-        item.title.toLowerCase().includes(query) ||
-        item.location.toLowerCase().includes(query) ||
-        item.subtitle.toLowerCase().includes(query)
-    );
-  }, [search, poshBoutique, poshGroomCollections]);
-
-  const toggleWishlist = (e: React.MouseEvent, item: any) => {
+  const handleWishlistToggle = (e: React.MouseEvent, item: any) => {
     e.preventDefault();
     e.stopPropagation();
     toggleWishlistItem({
       id: item.id,
-      name: item.title || item.name,
+      name: item.name,
       category: "Groom Wear",
-      price: item.price,
       image: item.image,
-      boutique_name: item.subtitle,
       location: item.location,
       rating: item.rating,
-      href: item.href,
     });
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#FAF7F2] pb-24 text-[#2D2520]">
-      <main className="flex-1">
-        {/* Header Row */}
-        <div className="px-4 pt-4 pb-2">
+    <div className="min-h-screen bg-[#F8F5F0] text-[#2D2520] flex flex-col pb-24 font-sans">
+      {/* Warm #F8F5F0 Header */}
+      <section className="w-full bg-[#EFE8DE] border-b border-[#E2D6C7] py-4 px-4 sm:px-6">
+        <div className="max-w-6xl mx-auto space-y-2.5">
           <div className="flex items-center justify-between">
-            <Link
-              href="/categories"
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#EFE9DF] text-[#0F4C45] transition-transform active:scale-95 hover:bg-[#E5DDCF]"
-              aria-label="Back to categories"
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </Link>
-
-            <h1 className="font-serif text-[24px] sm:text-[28px] font-bold text-[#0F4C45] text-center">
-              Groom Wear
-            </h1>
-
-            <button
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#EFE9DF] text-[#0F4C45] transition-transform active:scale-95 hover:bg-[#E5DDCF]"
-              aria-label="Filter options"
-            >
-              <SlidersHorizontal className="h-4 w-4" />
-            </button>
-          </div>
-          <p className="mt-2 text-[13px] sm:text-[14px] text-[#5A6561] text-center leading-snug">
-            Elegant styles for the most memorable day
-          </p>
-        </div>
-
-        {/* Hero Banner */}
-        <div className="mx-4 mt-3 mb-4 relative overflow-hidden rounded-2xl h-[200px] sm:h-[240px]">
-          <Image
-            src="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=80"
-            alt="Groom Wear Collection"
-            fill
-            className="object-cover object-top"
-            priority
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/30 to-transparent" />
-          <div className="absolute inset-0 flex flex-col justify-center px-5">
-            <h2 className="font-serif text-[26px] font-bold text-white leading-tight">
-              Groom Wear
-            </h2>
-            <p className="mt-1 text-[13px] text-white/80 leading-snug">
-              Elegant styles for the<br />most memorable day
-            </p>
-            <button className="mt-3 w-fit rounded-full bg-[#C8A96A] px-5 py-2 text-[12px] font-bold text-[#0F4C45]">
-              Explore Collection
-            </button>
-          </div>
-        </div>
-
-        {/* Category Pills */}
-        <div className="flex gap-2 overflow-x-auto px-4 py-2 scrollbar-none text-[12px]">
-          {["Groom Wear", "Bridal Wear", "Jewellery", "Accessories", "Footwear"].map((chip) => (
-            <button
-              key={chip}
-              onClick={() => setActiveChip(chip)}
-              className={`shrink-0 rounded-full px-4 py-1.5 font-medium transition-all ${
-                activeChip === chip
-                  ? "bg-[#0F4C45] text-white font-bold"
-                  : "bg-white text-[#4A3F35] border border-black/10 hover:bg-black/5"
-              }`}
-            >
-              {chip}
-            </button>
-          ))}
-        </div>
-
-        {/* Search Bar */}
-        <div className="px-4 py-2">
-          <div className="flex items-center gap-2.5 rounded-full bg-white px-4 py-2.5 shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-black/5">
-            <Search className="h-4 w-4 shrink-0 text-[#8C827A]" />
-            <input
-              type="text"
-              placeholder="Search groom wear, sherwanis..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-transparent text-[13px] sm:text-[14px] outline-none placeholder:text-[#AAA29A] text-[#1A1410]"
-            />
-          </div>
-        </div>
-
-        {/* Groom Collections (Posh Wedding Rental) */}
-        {poshGroomCollections.length > 0 && (
-          <div className="mt-2 mb-3">
-            <div className="px-4 pt-2 pb-1 flex items-center justify-between">
-              <div>
-                <h2 className="font-serif text-[18px] font-bold text-[#1A1410]">
-                  Groom Collections
-                </h2>
-                <p className="text-[12px] text-[#7A6E65]">Sherwanis, Tuxedos & Suits by Posh Wedding Rental</p>
+            <div>
+              <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#E2D6C7] text-[#0F4C45] text-[9.5px] font-bold uppercase tracking-wider">
+                <UserCheck className="w-2.5 h-2.5 text-[#0F4C45]" />
+                <span>Sartorial Groom Collection</span>
               </div>
-              <Link href="/categories/groom-wear/posh-wedding-rental" className="text-[12px] font-bold text-[#0F4C45]">
-                View All
-              </Link>
+              <h1 className="font-serif text-xl sm:text-2xl font-bold text-[#0F4C45] mt-0.5">
+                Groom Wear & Couture
+              </h1>
             </div>
-            <div className="flex gap-3 overflow-x-auto px-4 py-2 scrollbar-none">
-              {poshGroomCollections.map((col, idx) => (
-                <Link
-                  key={idx}
-                  href="/categories/groom-wear/posh-wedding-rental"
-                  className="group relative min-w-[140px] sm:min-w-[160px] aspect-[3/4] rounded-2xl overflow-hidden shadow-xs shrink-0 transition-transform active:scale-95 hover:shadow-md"
-                >
-                  <Image
-                    src={col.image}
-                    alt={col.name}
-                    fill
-                    className="object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                  <div className="absolute bottom-3 left-3 right-3">
-                    <span className="text-[10px] font-bold text-[#C8A96A] uppercase tracking-wider block">
-                      Posh Wedding Rental
-                    </span>
-                    <span className="text-[13px] font-bold text-white leading-tight block mt-0.5">
-                      {col.name}
-                    </span>
-                  </div>
-                </Link>
-              ))}
+            <span className="text-[11px] font-bold text-[#0F4C45] bg-white/70 px-2.5 py-1 rounded-full border border-[#E2D6C7]">
+              {filteredVendors.length} Designers
+            </span>
+          </div>
+
+          {/* Search & Chips Row */}
+          <div className="flex flex-col sm:flex-row gap-2">
+            <div className="relative flex-1 flex items-center bg-white rounded-xl px-2.5 py-1 shadow-xs border border-[#E2D6C7]">
+              <Search className="w-3.5 h-3.5 text-[#8C827A] mr-2 shrink-0" />
+              <input
+                type="text"
+                placeholder="Search Sherwanis, Tuxedos..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full bg-transparent text-xs text-[#2D2520] outline-none placeholder:text-[#AAA29A]"
+              />
             </div>
-          </div>
-        )}
 
-        {/* Top Collections Banner */}
-        <div className="px-4 pt-3 pb-1 flex items-center justify-between">
-          <h2 className="font-serif text-[18px] font-bold text-[#1A1410]">Top Collections</h2>
-          <button className="text-[12px] font-bold text-[#0F4C45]">View All</button>
-        </div>
-        <div className="mx-4 mb-4 relative overflow-hidden rounded-2xl bg-[#0F4C45] h-[160px]">
-          <Image
-            src="https://images.unsplash.com/photo-1593030761757-71fae45fa0e7?auto=format&fit=crop&w=1200&q=80"
-            alt="The Groom's Collection"
-            fill
-            className="object-cover opacity-40"
-          />
-          <div className="absolute inset-0 flex flex-col justify-center px-5">
-            <p className="text-[11px] text-[#C8A96A] font-semibold uppercase tracking-wider">
-              Timeless Elegance
-            </p>
-            <h3 className="mt-1 font-serif text-[22px] font-bold text-white leading-tight">
-              The Groom's<br />Collection
-            </h3>
-            <p className="mt-1 text-[12px] text-white/70">Discover signature styles crafted for you</p>
-            <button className="mt-3 w-fit rounded-full bg-[#C8A96A] px-5 py-2 text-[12px] font-bold text-[#0F4C45]">
-              Shop Now
-            </button>
-          </div>
-        </div>
-
-        {/* Popular Groom Outfits List */}
-        <div className="px-4 pt-2 pb-1 flex items-center justify-between">
-          <div>
-            <h2 className="font-serif text-[18px] font-bold text-[#1A1410]">
-              Popular Groom Outfits
-            </h2>
-            <p className="text-[12px] text-[#7A6E65]">Handpicked premium styles for you</p>
-          </div>
-        </div>
-
-        <div className="px-4 space-y-4 mt-2">
-          {listingItems.map((item) => {
-            const isSaved = wishlist.has(item.id);
-            return (
-              <div
-                key={item.id}
-                className="group relative overflow-hidden rounded-2xl bg-white p-3 border border-black/5 shadow-[0_2px_12px_rgba(0,0,0,0.03)] flex flex-col sm:flex-row gap-3 transition-shadow hover:shadow-[0_4px_18px_rgba(0,0,0,0.06)]"
-              >
-                {/* Image */}
-                <div className="relative aspect-[3/4] sm:aspect-square w-full sm:w-[130px] shrink-0 overflow-hidden rounded-xl bg-gray-100">
-                  <Image
-                    src={item.image}
-                    alt={item.title}
-                    fill
-                    className="object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
+            <div className="flex gap-1.5 overflow-x-auto scrollbar-none py-0.5">
+              {GROOM_CHIPS.map((chip) => {
+                const active = activeChip === chip;
+                return (
                   <button
-                    onClick={(e) => toggleWishlist(e, item)}
-                    className="absolute top-2 right-2 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 shadow-sm backdrop-blur-xs transition-transform active:scale-90"
+                    key={chip}
+                    onClick={() => setActiveChip(chip)}
+                    className={`shrink-0 px-3 py-1 rounded-full text-[10.5px] font-semibold transition-all cursor-pointer ${
+                      active
+                        ? "bg-[#0F4C45] text-white shadow-xs"
+                        : "bg-white text-[#4A3F35] border border-[#E2D6C7] hover:bg-[#EFE8DE]"
+                    }`}
                   >
-                    <Heart
-                      className="h-4 w-4"
-                      style={{
-                        color: isSaved ? "#E8614A" : "#8C827A",
-                        fill: isSaved ? "#E8614A" : "none",
-                      }}
-                    />
+                    {chip}
                   </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Extra Small Compact Panels Grid */}
+      <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 py-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5 sm:gap-3">
+          {filteredVendors.map((vendor) => {
+            const isSaved = wishlist.has(String(vendor.id));
+            const priceDisplay = vendor.prices[0]?.price || "₹35k+";
+
+            return (
+              <Link
+                key={vendor.id}
+                href={`/categories/groom-wear/${vendor.id}`}
+                className="group bg-white rounded-xl overflow-hidden border border-[#E8DFC5]/80 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_20px_rgba(15,76,69,0.12)] hover:border-[#0F4C45]/40 transition-all duration-300 flex flex-col justify-between"
+              >
+                <div className="relative aspect-[16/11] w-full overflow-hidden bg-[#EFE8DE]">
+                  <Image
+                    src={vendor.image}
+                    alt={vendor.name}
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+
+                  <div className="absolute top-1.5 left-1.5 right-1.5 flex items-center justify-between z-10">
+                    <span className="bg-[#0F4C45]/90 text-white text-[8.5px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md backdrop-blur-xs">
+                      {priceDisplay}
+                    </span>
+
+                    <button
+                      onClick={(e) => handleWishlistToggle(e, vendor)}
+                      className={`w-6 h-6 rounded-full flex items-center justify-center backdrop-blur-md transition-transform active:scale-95 ${
+                        isSaved ? "bg-rose-500 text-white" : "bg-white/85 text-[#2D2520] hover:bg-white"
+                      }`}
+                      aria-label="Save"
+                    >
+                      <Heart className={`w-3 h-3 ${isSaved ? "fill-current" : ""}`} />
+                    </button>
+                  </div>
+
+                  <div className="absolute bottom-1.5 left-1.5 bg-black/60 backdrop-blur-xs px-1.5 py-0.5 rounded-md flex items-center gap-0.5 text-white text-[9px] font-semibold">
+                    <Star className="w-2.5 h-2.5 text-amber-400 fill-amber-400" />
+                    <span>{vendor.rating}</span>
+                  </div>
                 </div>
 
-                {/* Details */}
-                <div className="flex-1 flex flex-col justify-between py-0.5">
+                <div className="p-2.5 space-y-1 flex-1 flex flex-col justify-between">
                   <div>
-                    <div className="flex items-center gap-1.5">
-                      <h3 className="font-serif text-[17px] font-bold text-[#1A1410] leading-snug">
-                        {item.title}
-                      </h3>
-                      {item.isVerified && (
-                        <CheckCircle2 className="h-4 w-4 shrink-0 fill-[#0F4C45] text-white" />
+                    <div className="flex items-center gap-1">
+                      <h2 className="font-serif font-bold text-[12.5px] text-[#2D2520] group-hover:text-[#0F4C45] transition-colors truncate">
+                        {vendor.name}
+                      </h2>
+                      {vendor.isVerified && (
+                        <CheckCircle2 className="w-3 h-3 text-[#C8A96A] shrink-0" />
                       )}
                     </div>
 
-                    <div className="mt-1 flex items-center gap-2 text-[12px]">
-                      <div className="flex items-center gap-1 font-bold text-[#1A1410]">
-                        <Star className="h-3.5 w-3.5 fill-[#C8A96A] text-[#C8A96A]" />
-                        <span>{item.rating}</span>
-                        <span className="text-[#9A8D7D] font-normal">({item.reviews})</span>
-                      </div>
-                      <span className="text-[#0F4C45] font-medium">• Verified</span>
-                    </div>
-
-                    <div className="mt-1 flex items-center gap-1 text-[12px] text-[#6B5E52]">
-                      <MapPin className="h-3.5 w-3.5 text-[#8C827A]" />
-                      <span>{item.location}</span>
-                    </div>
-
-                    <div className="mt-2 flex items-center gap-1 text-[12px] font-bold text-[#1A1410]">
-                      <span>{item.price}</span>
-                      <span className="text-[#7A6E65] font-normal">Onwards</span>
-                    </div>
+                    <p className="text-[10px] text-[#7A6E65] line-clamp-1 leading-tight mt-0.5">
+                      {vendor.subtitle}
+                    </p>
                   </div>
 
-                  <div className="mt-3 pt-2 border-t border-black/5 flex justify-end">
-                    <Link
-                      href={item.href}
-                      className="flex items-center gap-1 rounded-xl bg-[#0F4C45] px-4 py-2 text-[12px] font-semibold text-white shadow-xs transition-transform active:scale-95 hover:bg-[#155e56]"
-                    >
-                      View Details <ChevronRight className="h-4 w-4" />
-                    </Link>
+                  <div className="pt-1.5 border-t border-[#F2EBE1] flex items-center justify-between text-[10px]">
+                    <span className="flex items-center gap-0.5 text-[#7A6E65] truncate max-w-[65%]">
+                      <MapPin className="w-2.5 h-2.5 text-[#0F4C45] shrink-0" />
+                      <span className="truncate">{vendor.location}</span>
+                    </span>
+
+                    <span className="font-bold text-[#0F4C45] flex items-center gap-0.5 shrink-0 group-hover:underline">
+                      Explore <ChevronRight className="w-2.5 h-2.5" />
+                    </span>
                   </div>
                 </div>
-              </div>
+              </Link>
             );
           })}
         </div>
       </main>
 
-      <BottomNavBar activeTab="vendors" />
+      <Footer />
+      <BottomNavBar />
     </div>
   );
 }

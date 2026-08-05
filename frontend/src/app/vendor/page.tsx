@@ -1,103 +1,172 @@
-import { 
-  ShoppingBag, 
-  Eye, 
-  Calendar, 
-  IndianRupee, 
-  TrendingUp,
-  Inbox
-} from "lucide-react";
+"use client";
 
-export default function VendorOverview() {
-  const stats = [
-    { label: "Total Collections", value: "24", icon: ShoppingBag, color: "bg-emerald/10 text-emerald" },
-    { label: "Total Enquiries", value: "148", icon: Inbox, color: "bg-blue-500/10 text-blue-600" },
-    { label: "Profile Views", value: "3.2k", icon: Eye, color: "bg-purple-500/10 text-purple-600" },
-    { label: "Appointments", value: "12", icon: Calendar, color: "bg-orange-500/10 text-orange-600" },
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { 
+  LayoutDashboard, 
+  Store, 
+  ShoppingBag, 
+  Package, 
+  Calendar, 
+  Inbox, 
+  Tag, 
+  BarChart3, 
+  CreditCard, 
+  Palette, 
+  LogOut, 
+  ChevronRight,
+  ShieldCheck
+} from "lucide-react";
+import { getCategoryMenuTitles } from "@/lib/vendor-navigation";
+import { logout } from "@/app/actions/auth";
+
+export default function VendorProfileMenuPage() {
+  const router = useRouter();
+  const [vendorData, setVendorData] = useState<{
+    name: string;
+    category: string;
+    logo?: string;
+    plan?: string;
+  } | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const rawUserData = localStorage.getItem("cloche_user_data");
+        const rawVendors = localStorage.getItem("cloche_registered_vendors");
+
+        if (rawUserData) {
+          const u = JSON.parse(rawUserData);
+          setVendorData({
+            name: u.full_name || u.name || u.boutique_name || "Vendor Partner",
+            category: u.category || "Bridal Wear",
+            logo: u.logo || u.logo_url || u.image_url,
+            plan: u.plan || "Premium Partner",
+          });
+          return;
+        }
+
+        if (rawVendors) {
+          const list = JSON.parse(rawVendors);
+          if (list.length > 0) {
+            const active = list[0];
+            setVendorData({
+              name: active.boutique_name || active.name || active.businessName || "Vendor Partner",
+              category: active.category || "Bridal Wear",
+              logo: active.logo || active.logo_url || active.image_url,
+              plan: active.plan || "Premium Partner",
+            });
+          }
+        }
+      } catch (e) {}
+    }
+  }, []);
+
+  const name = vendorData?.name || "Vendor Partner";
+  const category = vendorData?.category || "Bridal Wear";
+  const logoUrl = vendorData?.logo || "";
+  const plan = vendorData?.plan || "Premium Partner";
+  const initial = name.charAt(0).toUpperCase();
+
+  const isValidLogo = Boolean(
+    logoUrl &&
+      typeof logoUrl === "string" &&
+      (logoUrl.startsWith("data:image/") || logoUrl.startsWith("http://") || logoUrl.startsWith("https://") || logoUrl.startsWith("/"))
+  );
+
+  const titles = getCategoryMenuTitles(category);
+
+  // Essential navigation items only
+  const navItems = [
+    { label: "Overview", icon: LayoutDashboard, href: "/vendor/overview", desc: "Business summary & recent activity" },
+    { label: "Profile", icon: Store, href: "/vendor/profile", desc: "Business details, contact & working hours" },
+    { label: titles.mediaTitle, icon: ShoppingBag, href: "/vendor/collections", desc: titles.mediaSubtitle },
+    { label: titles.pricingTitle, icon: Package, href: "/vendor/packages", desc: titles.pricingSubtitle },
+    { label: "Appointments", icon: Calendar, href: "/vendor/appointments", desc: "Manage bookings & customer visits" },
+    { label: "Enquiries", icon: Inbox, href: "/vendor/enquiries", desc: "View & respond to customer leads" },
+    { label: "Offers", icon: Tag, href: "/vendor/offers", desc: "Manage promotional discounts & deals" },
+    { label: "Analytics", icon: BarChart3, href: "/vendor/analytics", desc: "Profile views & performance insights" },
+    { label: "Subscription", icon: CreditCard, href: "/vendor/subscription", desc: "Manage current plan & billing" },
+    { label: "Customize Store", icon: Palette, href: "/vendor/customize-store", desc: "Logo, cover image & store branding" },
   ];
 
+  const handleLogout = async () => {
+    await logout();
+    router.push("/vendor/login");
+  };
+
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
-      
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end border-b border-gold/10 pb-4 gap-4">
-        <div>
-          <h1 className="text-3xl font-display text-charcoal">Dashboard Overview</h1>
-          <p className="text-sm text-charcoal/60 mt-1">Welcome back. Here is what's happening with your boutique today.</p>
-        </div>
-        <div className="text-right">
-          <p className="text-xs font-semibold uppercase tracking-wider text-charcoal/40">Current Plan</p>
-          <p className="text-emerald font-medium">Premium Partner</p>
-        </div>
-      </div>
-
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map((stat, i) => (
-          <div key={i} className="bg-white p-6 rounded-2xl border border-gold/10 shadow-sm flex flex-col relative overflow-hidden">
-            <div className={`p-3 rounded-xl w-12 h-12 flex items-center justify-center mb-4 ${stat.color}`}>
-              <stat.icon className="w-6 h-6" />
-            </div>
-            <p className="text-sm font-semibold text-charcoal/60 uppercase tracking-wider">{stat.label}</p>
-            <h3 className="text-3xl font-display text-charcoal mt-1">{stat.value}</h3>
-            <div className="absolute top-6 right-6 flex items-center gap-1 text-emerald text-xs font-medium">
-              <TrendingUp className="w-3 h-3" /> +12%
-            </div>
+    <div className="max-w-md mx-auto animate-in fade-in duration-500 font-sans">
+      <div className="bg-white rounded-3xl shadow-sm border border-gold/15 overflow-hidden">
+        
+        {/* Vendor Profile Header */}
+        <div className="p-8 border-b border-gold/15 bg-[#FAF7F2]/80 text-center relative">
+          <div className="w-24 h-24 rounded-full mx-auto mb-4 flex items-center justify-center overflow-hidden border-2 border-gold/30 bg-white shadow-md">
+            {isValidLogo ? (
+              <img src={logoUrl} alt={name} className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full bg-[#0F4C45] text-white text-3xl font-bold font-serif flex items-center justify-center">
+                {initial}
+              </div>
+            )}
           </div>
-        ))}
-      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Recent Enquiries */}
-        <div className="lg:col-span-2 bg-white rounded-2xl border border-gold/10 shadow-sm p-6">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-lg font-display text-charcoal">Recent Enquiries</h2>
-            <button className="text-sm text-emerald hover:text-gold font-medium transition-colors">View All</button>
+          <h1 className="font-display font-bold text-2xl text-charcoal truncate px-2">{name}</h1>
+          <p className="text-xs font-semibold uppercase tracking-wider text-charcoal/60 mt-1">{category || "Vendor Partner"}</p>
+          
+          <div className="mt-3 flex items-center justify-center gap-1.5">
+            <span className="inline-flex items-center gap-1 bg-[#0F4C45] text-white text-[11px] font-bold uppercase tracking-widest px-3.5 py-1 rounded-full shadow-xs">
+              <ShieldCheck className="w-3.5 h-3.5 text-gold" /> {plan}
+            </span>
           </div>
-          <div className="space-y-4">
-            {[1, 2, 3].map(i => (
-              <div key={i} className="flex items-center justify-between p-4 rounded-xl border border-gray-100 hover:border-gold/30 transition-colors">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-ivory flex items-center justify-center text-charcoal font-medium">
-                    A
+        </div>
+
+        {/* Menu Options List */}
+        <div className="p-4 space-y-1">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="flex items-center justify-between p-3.5 rounded-2xl hover:bg-[#FAF7F2] text-charcoal transition-all group border border-transparent hover:border-gold/15"
+              >
+                <div className="flex items-center gap-3.5">
+                  <div className="w-10 h-10 rounded-xl bg-[#0F4C45]/10 text-[#0F4C45] flex items-center justify-center shrink-0 group-hover:bg-[#0F4C45] group-hover:text-white transition-colors">
+                    <Icon className="w-5 h-5" />
                   </div>
                   <div>
-                    <h4 className="text-sm font-medium text-charcoal">Anjali Menon</h4>
-                    <p className="text-xs text-charcoal/60">Bridal Lehenga Inquiry • 2 hours ago</p>
+                    <h3 className="text-sm font-bold text-charcoal group-hover:text-[#0F4C45] transition-colors">{item.label}</h3>
+                    <p className="text-[11px] text-charcoal/50">{item.desc}</p>
                   </div>
                 </div>
-                <span className="bg-emerald/10 text-emerald px-3 py-1 rounded-full text-xs font-medium">New</span>
+
+                <ChevronRight className="w-4 h-4 text-charcoal/30 group-hover:text-[#0F4C45] group-hover:translate-x-1 transition-all shrink-0" />
+              </Link>
+            );
+          })}
+
+          <div className="pt-3 mt-3 border-t border-gold/10">
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center justify-between p-3.5 rounded-2xl text-red-600 hover:bg-red-50 transition-colors border border-transparent hover:border-red-100 cursor-pointer"
+            >
+              <div className="flex items-center gap-3.5">
+                <div className="w-10 h-10 rounded-xl bg-red-100/60 text-red-600 flex items-center justify-center shrink-0">
+                  <LogOut className="w-5 h-5" />
+                </div>
+                <div className="text-left">
+                  <h3 className="text-sm font-bold">Sign Out</h3>
+                  <p className="text-[11px] text-red-500/80">Log out of your vendor account</p>
+                </div>
               </div>
-            ))}
+              <ChevronRight className="w-4 h-4 text-red-400 shrink-0" />
+            </button>
           </div>
         </div>
 
-        {/* Upcoming Appointments */}
-        <div className="bg-white rounded-2xl border border-gold/10 shadow-sm p-6">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-lg font-display text-charcoal">Upcoming Visits</h2>
-          </div>
-          <div className="space-y-4">
-            <div className="p-4 rounded-xl bg-ivory border border-gold/20 relative overflow-hidden">
-              <div className="absolute left-0 top-0 bottom-0 w-1 bg-emerald"></div>
-              <h4 className="text-sm font-medium text-charcoal">Bridal Consultation</h4>
-              <p className="text-xs text-charcoal/60 mt-1">Today, 2:30 PM</p>
-              <div className="mt-3 flex items-center gap-2">
-                <div className="w-6 h-6 rounded-full bg-charcoal text-white text-[10px] flex items-center justify-center">S</div>
-                <span className="text-xs font-medium text-charcoal">Sneha K.</span>
-              </div>
-            </div>
-            <div className="p-4 rounded-xl bg-gray-50 border border-gray-100 relative overflow-hidden">
-              <div className="absolute left-0 top-0 bottom-0 w-1 bg-charcoal/20"></div>
-              <h4 className="text-sm font-medium text-charcoal">Groom Wear Fitting</h4>
-              <p className="text-xs text-charcoal/60 mt-1">Tomorrow, 10:00 AM</p>
-              <div className="mt-3 flex items-center gap-2">
-                <div className="w-6 h-6 rounded-full bg-charcoal text-white text-[10px] flex items-center justify-center">R</div>
-                <span className="text-xs font-medium text-charcoal">Rahul V.</span>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
-
     </div>
   );
 }
