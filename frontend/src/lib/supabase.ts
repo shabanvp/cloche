@@ -569,5 +569,67 @@ export async function recordEscrowTransactionInDb(escrowTxData: Record<string, a
   });
 }
 
+// ----------------------------------------------------
+// PHASE 9 CUSTOMER PORTAL DISCOVERY HELPERS
+// ----------------------------------------------------
+
+export async function fetchCustomerFavoritesFromDb(customerId: string) {
+  return supabaseFetch(`customer_favorites?customer_id=eq.${encodeURIComponent(customerId)}&select=*,vendors(*)`);
+}
+
+export async function saveFavoriteVendorInDb(customerId: string, vendorId: string) {
+  return supabaseFetch(`customer_favorites`, {
+    method: "POST",
+    headers: { Prefer: "resolution=merge-duplicates,return=representation" },
+    body: JSON.stringify({ customer_id: customerId, vendor_id: vendorId }),
+  });
+}
+
+export async function removeFavoriteVendorInDb(customerId: string, vendorId: string) {
+  return supabaseFetch(`customer_favorites?customer_id=eq.${encodeURIComponent(customerId)}&vendor_id=eq.${encodeURIComponent(vendorId)}`, {
+    method: "DELETE",
+  });
+}
+
+export async function fetchRecentlyViewedFromDb(customerId: string) {
+  return supabaseFetch(`customer_recently_viewed?customer_id=eq.${encodeURIComponent(customerId)}&order=viewed_at.desc&limit=10&select=*,vendors(*)`);
+}
+
+export async function saveRecentlyViewedInDb(customerId: string, vendorId: string) {
+  return supabaseFetch(`customer_recently_viewed`, {
+    method: "POST",
+    headers: { Prefer: "return=representation" },
+    body: JSON.stringify({ customer_id: customerId, vendor_id: vendorId, viewed_at: new Date().toISOString() }),
+  });
+}
+
+export async function fetchComparisonsFromDb(customerId: string) {
+  return supabaseFetch(`vendor_comparisons?customer_id=eq.${encodeURIComponent(customerId)}&select=*,vendor_comparison_items(*,vendors(*))`);
+}
+
+export async function fetchCustomerNotificationsFromDb(customerId: string) {
+  return supabaseFetch(`customer_notifications?customer_id=eq.${encodeURIComponent(customerId)}&order=created_at.desc`);
+}
+
+export async function markCustomerNotificationReadInDb(notificationId: string) {
+  return supabaseFetch(`customer_notifications?id=eq.${encodeURIComponent(notificationId)}`, {
+    method: "PATCH",
+    body: JSON.stringify({ is_read: true }),
+  });
+}
+
+export async function saveCustomerReviewInDb(reviewData: Record<string, any>) {
+  return supabaseFetch(`customer_review_drafts`, {
+    method: "POST",
+    headers: { Prefer: "resolution=merge-duplicates,return=representation" },
+    body: JSON.stringify(reviewData),
+  });
+}
+
+export async function fetchCustomerReviewsFromDb(customerId: string) {
+  return supabaseFetch(`customer_review_drafts?customer_id=eq.${encodeURIComponent(customerId)}&order=created_at.desc&select=*,vendors(*)`);
+}
+
+
 
 
