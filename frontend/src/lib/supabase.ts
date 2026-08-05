@@ -387,3 +387,143 @@ export async function deleteMakeupAwardFromDb(id: string) {
     method: "DELETE",
   });
 }
+
+// ----------------------------------------------------
+// MULTI-CATEGORY SERVICES, PACKAGES & CATALOG HELPERS
+// ----------------------------------------------------
+
+export async function fetchVendorServicesFromDb(vendorId: string) {
+  return supabaseFetch(`vendor_services?vendor_id=eq.${encodeURIComponent(vendorId)}&deleted_at=is.null&order=sort_order.asc,created_at.desc&select=*,vendor_service_images(*)`);
+}
+
+export async function saveVendorServiceToDb(record: Record<string, any>) {
+  return supabaseFetch(`vendor_services`, {
+    method: "POST",
+    headers: { Prefer: "resolution=merge-duplicates,return=representation" },
+    body: JSON.stringify(record),
+  });
+}
+
+export async function softDeleteVendorServiceFromDb(id: string) {
+  return supabaseFetch(`vendor_services?id=eq.${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    body: JSON.stringify({ deleted_at: new Date().toISOString(), is_active: false }),
+  });
+}
+
+export async function fetchVendorPackagesFromDb(vendorId: string) {
+  return supabaseFetch(`vendor_service_packages?vendor_id=eq.${encodeURIComponent(vendorId)}&deleted_at=is.null&order=sort_order.asc,created_at.desc&select=*`);
+}
+
+export async function saveVendorPackageToDb(record: Record<string, any>) {
+  return supabaseFetch(`vendor_service_packages`, {
+    method: "POST",
+    headers: { Prefer: "resolution=merge-duplicates,return=representation" },
+    body: JSON.stringify(record),
+  });
+}
+
+export async function softDeleteVendorPackageFromDb(id: string) {
+  return supabaseFetch(`vendor_service_packages?id=eq.${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    body: JSON.stringify({ deleted_at: new Date().toISOString(), is_active: false }),
+  });
+}
+
+export async function fetchVendorCatalogFromDb(vendorId: string) {
+  return supabaseFetch(`vendor_catalog_items?vendor_id=eq.${encodeURIComponent(vendorId)}&deleted_at=is.null&order=sort_order.asc,created_at.desc&select=*,vendor_catalog_images(*)`);
+}
+
+export async function saveVendorCatalogItemToDb(record: Record<string, any>) {
+  return supabaseFetch(`vendor_catalog_items`, {
+    method: "POST",
+    headers: { Prefer: "resolution=merge-duplicates,return=representation" },
+    body: JSON.stringify(record),
+  });
+}
+
+export async function softDeleteVendorCatalogItemFromDb(id: string) {
+  return supabaseFetch(`vendor_catalog_items?id=eq.${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    body: JSON.stringify({ deleted_at: new Date().toISOString(), is_available: false }),
+  });
+}
+
+// ----------------------------------------------------
+// LEAD CRM PIPELINE, TASKS & QUOTATIONS HELPERS
+// ----------------------------------------------------
+
+export async function fetchVendorLeadsFromDb(vendorId: string, statusFilter?: string) {
+  let query = `leads?vendor_id=eq.${encodeURIComponent(vendorId)}&deleted_at=is.null&order=created_at.desc&select=*,lead_notes(*),lead_tasks(*),lead_activities(*)`;
+  if (statusFilter && statusFilter !== "all") {
+    query = `leads?vendor_id=eq.${encodeURIComponent(vendorId)}&status=eq.${encodeURIComponent(statusFilter)}&deleted_at=is.null&order=created_at.desc&select=*,lead_notes(*),lead_tasks(*),lead_activities(*)`;
+  }
+  return supabaseFetch(query);
+}
+
+export async function saveLeadToDb(record: Record<string, any>) {
+  return supabaseFetch(`leads`, {
+    method: "POST",
+    headers: { Prefer: "resolution=merge-duplicates,return=representation" },
+    body: JSON.stringify(record),
+  });
+}
+
+export async function updateLeadStatusInDb(id: string, status: string) {
+  return supabaseFetch(`leads?id=eq.${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    headers: { Prefer: "return=representation" },
+    body: JSON.stringify({ status, updated_at: new Date().toISOString() }),
+  });
+}
+
+export async function saveLeadNoteToDb(record: Record<string, any>) {
+  return supabaseFetch(`lead_notes`, {
+    method: "POST",
+    headers: { Prefer: "return=representation" },
+    body: JSON.stringify(record),
+  });
+}
+
+export async function saveLeadTaskToDb(record: Record<string, any>) {
+  return supabaseFetch(`lead_tasks`, {
+    method: "POST",
+    headers: { Prefer: "resolution=merge-duplicates,return=representation" },
+    body: JSON.stringify(record),
+  });
+}
+
+export async function saveLeadActivityToDb(leadId: string, activityType: string, description: string, userId?: string) {
+  return supabaseFetch(`lead_activities`, {
+    method: "POST",
+    headers: { Prefer: "return=representation" },
+    body: JSON.stringify({
+      lead_id: leadId,
+      user_id: userId || null,
+      activity_type: activityType,
+      description,
+    }),
+  });
+}
+
+export async function fetchVendorQuotationsFromDb(vendorId: string) {
+  return supabaseFetch(`quotations?vendor_id=eq.${encodeURIComponent(vendorId)}&order=created_at.desc&select=*,quotation_items(*),leads(*)`);
+}
+
+export async function saveQuotationToDb(quotationRecord: Record<string, any>) {
+  return supabaseFetch(`quotations`, {
+    method: "POST",
+    headers: { Prefer: "resolution=merge-duplicates,return=representation" },
+    body: JSON.stringify(quotationRecord),
+  });
+}
+
+export async function saveQuotationItemsToDb(items: Record<string, any>[]) {
+  return supabaseFetch(`quotation_items`, {
+    method: "POST",
+    headers: { Prefer: "return=representation" },
+    body: JSON.stringify(items),
+  });
+}
+
+
