@@ -9,20 +9,15 @@ export function VendorLoginClient() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isResending, setIsResending] = useState(false);
   const [emailInput, setEmailInput] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
-  const [resendStatusMsg, setResendStatusMsg] = useState("");
-  const [directVerifyUrl, setDirectVerifyUrl] = useState("");
 
   useEffect(() => {
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
-      if (params.get("verified") === "true" || params.get("status") === "verified") {
-        setSuccessMsg("Email verified successfully! Your Cloche account is fully activated. You can log in below.");
-      } else if (params.get("status") === "verification_sent" || params.get("status") === "registered") {
-        setSuccessMsg("Account created! A verification link has been sent to your email. Please check your inbox and verify before logging in.");
+      if (params.get("status") === "registered") {
+        setSuccessMsg("Registration successful! Your vendor account is active. Log in below to access your portal.");
       }
       const emailParam = params.get("email");
       if (emailParam) {
@@ -35,13 +30,9 @@ export function VendorLoginClient() {
     e.preventDefault();
     setIsSubmitting(true);
     setErrorMsg("");
-    setResendStatusMsg("");
 
     const formData = new FormData(e.currentTarget);
     formData.append("role", "vendor");
-
-    const emailVal = formData.get("email")?.toString() || "";
-    setEmailInput(emailVal);
 
     const res = await login(formData);
 
@@ -54,44 +45,8 @@ export function VendorLoginClient() {
     }
   };
 
-  const handleResendEmail = async () => {
-    if (!emailInput || !emailInput.includes("@")) {
-      setErrorMsg("Please enter your email address above to resend the verification link.");
-      return;
-    }
-
-    setIsResending(true);
-    setResendStatusMsg("");
-    setErrorMsg("");
-
-    try {
-      const response = await fetch("/api/v1/auth/resend-verification", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: emailInput, role: "vendor" }),
-      });
-
-      const data = await response.json().catch(() => ({}));
-
-      if (response.ok && data.success) {
-        setResendStatusMsg(data.message || `Verification email resent to ${emailInput}. Please check your Gmail inbox.`);
-        if (data.data?.verificationUrl) {
-          setDirectVerifyUrl(data.data.verificationUrl);
-        }
-      } else {
-        setErrorMsg(data.error?.message || data.message || "Failed to resend verification email.");
-      }
-    } catch (err: any) {
-      setErrorMsg("Error sending request: " + (err.message || "Network issue"));
-    } finally {
-      setIsResending(false);
-    }
-  };
-
-  const isVerificationError = errorMsg.toLowerCase().includes("verify") || errorMsg.toLowerCase().includes("verification");
-
   return (
-    <main className="flex-grow flex flex-col items-center justify-center px-4 py-12 sm:px-6 w-full min-h-[calc(100vh-140px)] bg-ivory">
+    <main className="flex-grow flex flex-col items-center justify-center px-4 py-12 sm:px-6 w-full min-h-[calc(100vh-140px)] bg-ivory font-sans">
       <div className="w-full max-w-md mx-auto">
         <div className="text-center mb-8">
           <div className="w-16 h-16 bg-[#0B3B2D] text-white rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-serif shadow-md font-medium border border-gold/30">
@@ -110,33 +65,9 @@ export function VendorLoginClient() {
             </div>
           )}
 
-          {resendStatusMsg && (
-            <div className="mb-6 p-4 rounded-xl bg-emerald/10 border border-emerald/20 text-[#0F4C45] text-sm font-medium space-y-3">
-              <p>{resendStatusMsg}</p>
-              {directVerifyUrl && (
-                <a
-                  href={directVerifyUrl}
-                  className="block text-center bg-[#0F4C45] hover:bg-[#12584E] text-white py-2.5 px-4 rounded-lg font-bold text-xs uppercase tracking-wider transition-colors shadow-sm"
-                >
-                  Click Here To Verify Account Immediately
-                </a>
-              )}
-            </div>
-          )}
-
           {errorMsg && (
-            <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm space-y-3">
-              <p>{errorMsg}</p>
-              {isVerificationError && (
-                <button
-                  type="button"
-                  onClick={handleResendEmail}
-                  disabled={isResending}
-                  className="w-full bg-[#0F4C45] hover:bg-[#12584E] text-white py-2.5 px-4 rounded-lg font-bold text-xs uppercase tracking-wider transition-colors disabled:opacity-50"
-                >
-                  {isResending ? "Resending Email..." : "Resend Verification Email"}
-                </button>
-              )}
+            <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm">
+              {errorMsg}
             </div>
           )}
 
@@ -157,7 +88,7 @@ export function VendorLoginClient() {
             <div className="space-y-2">
               <div className="flex justify-between items-center">
                 <label className="text-xs font-semibold text-charcoal/70 uppercase tracking-wider">Password</label>
-                <Link href="/forgot-password?role=vendor" className="text-xs text-emerald font-semibold hover:underline">Forgot password?</Link>
+                <Link href="/forgot-password?role=vendor" className="text-xs text-[#0F4C45] font-semibold hover:underline">Forgot password?</Link>
               </div>
               <div className="relative">
                 <input

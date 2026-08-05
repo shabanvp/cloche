@@ -62,20 +62,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 3. Enforce Email Verification Check (Must be verified to log in)
-    if (user.is_verified === false) {
-      return NextResponse.json(
-        {
-          success: false,
-          statusCode: 403,
-          error: {
-            code: "EMAIL_NOT_VERIFIED",
-            message: "Please verify your email address before logging in. Check your Gmail inbox for the verification link sent from cloche.luxury@gmail.com.",
-          },
-        },
-        { status: 403 }
-      );
-    }
+
 
     // 4. Verify password
     const isPasswordValid = verifyPassword(password, user.password_hash);

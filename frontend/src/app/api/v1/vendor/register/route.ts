@@ -201,10 +201,8 @@ export async function POST(req: Request) {
           full_name: owner || businessName,
           name: owner || businessName,
           phone: userPhone || null,
-          verification_token: verificationToken,
-          reset_token_expires_at: tokenExpiresAt,
           is_active: true,
-          is_verified: false,
+          is_verified: true,
         }),
       });
 
@@ -315,12 +313,12 @@ export async function POST(req: Request) {
         vendor_code: vendorCode,
         user_id: targetUserId,
         category_id: categoryId,
-        status: "pending",
-        publication_status: "draft",
-        onboarding_stage: "registration_started",
-        profile_completion_percentage: 20,
-        is_verified: false,
-        is_kyc_verified: false,
+        status: "active",
+        publication_status: "published",
+        onboarding_stage: "completed",
+        profile_completion_percentage: 100,
+        is_verified: true,
+        is_kyc_verified: true,
       }),
     });
 
@@ -411,33 +409,29 @@ export async function POST(req: Request) {
       insertedVersionId = newVersions[0].id;
     }
 
-    // Step 7: Dispatch Verification Email via Gmail SMTPS / Brevo API
-    console.log(`${logPrefix} Step 7: Dispatching vendor verification email to ${userEmail}...`);
-    const emailResult = await sendVerificationMail({
-      email: userEmail,
-      name: businessName,
-      verificationToken,
-      role: "vendor",
-    });
-
-    console.log(`${logPrefix} Verification email status for ${userEmail}: delivered=${emailResult.success}, method=${emailResult.method || "none"}, error=${emailResult.error || "none"}`);
-
-    const appUrl = (
-      process.env.APP_URL ||
-      process.env.NEXT_PUBLIC_APP_URL ||
-      process.env.FRONTEND_BASE_URL ||
-      "https://cloche.in"
-    ).trim().replace(/\/+$/, "");
-    const verificationUrl = `${appUrl}/verify-email?token=${encodeURIComponent(verificationToken)}&type=vendor`;
+    // Step 1: Update user record with verified status
+    if (existingUser) {
+      targetUserId = existingUser.id;
+      console.log(`${logPrefix} Reusing existing user record (${targetUserId}) for vendor registration...`);
+      await fetch(`${url}/rest/v1/users?id=eq.${encodeURIComponent(targetUserId)}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: apiKey,
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          is_verified: true,
+          is_active: true,
+        }),
+      });
+    }
 
     return NextResponse.json(
       {
         success: true,
         statusCode: 201,
-        requiresVerification: true,
-        message: emailResult.success
-          ? `Vendor registered successfully! A verification link has been sent to ${userEmail}. Please check your inbox and verify your email address to log in.`
-          : `Vendor registered successfully! Note: SMTP credentials (GMAIL_APP_PASSWORD) are not set in environment variables. Set GMAIL_APP_PASSWORD in .env.local to send live emails, or use the direct verification button below.`,
+        message: "Vendor account registered successfully! You can now log in to your vendor portal.",
         data: {
           vendor: {
             id: newVendor.id,
@@ -445,7 +439,7 @@ export async function POST(req: Request) {
             businessName,
             slug: profileSlug,
             category: catName,
-            status: newVendor.status,
+            status: "active",
             onboardingStage: newVendor.onboarding_stage,
             profileCompletionPercentage: newVendor.profile_completion_percentage,
             profileId: insertedProfileId,
@@ -455,13 +449,7 @@ export async function POST(req: Request) {
             email: userEmail,
             fullName: businessName,
             roles: ["vendor"],
-            isVerified: false,
-          },
-          verificationUrl,
-          emailDelivery: {
-            delivered: emailResult.success,
-            method: emailResult.method || null,
-            error: emailResult.error || null,
+            isVerified: true,
           },
         },
       },

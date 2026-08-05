@@ -475,12 +475,13 @@ export function VendorRegisterClient() {
 
           localStorage.setItem(`cloche_venue_${slug}`, JSON.stringify(newVendorRecord));
           localStorage.setItem(`cloche_vendor_${slug}`, JSON.stringify(newVendorRecord));
-        } catch (e) {}
+        alert("Application submitted and account created successfully!\n\nWelcome to Cloche! You can now log in to your vendor portal.");
         const registeredEmail = textValue(formData, "email") || "";
-        router.push(`/vendor/login?status=verification_sent&email=${encodeURIComponent(registeredEmail)}`);
+        router.push(`/vendor/login?status=registered&email=${encodeURIComponent(registeredEmail)}`);
       } else {
+        alert("Application submitted and account created successfully!\n\nWelcome to Cloche! You can now log in to your vendor portal.");
         const registeredEmail = textValue(formData, "email") || "";
-        router.push(`/vendor/login?status=verification_sent&email=${encodeURIComponent(registeredEmail)}`);
+        router.push(`/vendor/login?status=registered&email=${encodeURIComponent(registeredEmail)}`);
       }
     } else {
       setErrorMsg("Application submission failed. Please try again.");
