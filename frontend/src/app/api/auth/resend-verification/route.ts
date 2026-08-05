@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { NextResponse } from "next/server";
 import { getSupabaseConfig } from "@/lib/supabase";
 import { sendVendorVerificationEmail } from "@/lib/email";
@@ -135,4 +136,10 @@ export async function POST(req: Request) {
       { status: 500 }
     );
   }
+=======
+import { POST as handleResendVerification } from "../../v1/auth/resend-verification/route";
+
+export async function POST(req: Request) {
+  return handleResendVerification(req);
+>>>>>>> 5459a180e0e4596c825ad85553c5c6fc9fb463df
 }

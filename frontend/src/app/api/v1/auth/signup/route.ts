@@ -1,18 +1,13 @@
 import { NextResponse } from "next/server";
-import { hashPassword, signJwtToken, hashSessionToken, AUTH_COOKIE_NAME, SESSION_EXPIRY_DAYS } from "@/lib/auth";
-import { getSupabaseConfig } from "@/lib/supabase";
+import { getSupabaseConfig, signUpWithSupabaseAuth, deleteAdminSupabaseUser } from "@/lib/supabase";
 import { sendVerificationMail } from "@/lib/email";
 
 export async function POST(req: Request) {
   const logPrefix = "[AUTH_SIGNUP_API]";
-  let insertedUserId: string | null = null;
-  let insertedRoleId: string | null = null;
-  const { url, serviceKey, anonKey } = getSupabaseConfig();
-  const apiKey = serviceKey || anonKey;
 
   try {
     const body = await req.json();
-    const { email, password, fullName, phone, role = "customer" } = body;
+    const { email, password, fullName, phone } = body;
 
     if (!email || !password || !fullName) {
       return NextResponse.json(
@@ -28,7 +23,9 @@ export async function POST(req: Request) {
     const cleanEmail = email.trim().toLowerCase();
     const cleanName = fullName.trim();
     const cleanPhone = phone ? phone.trim() : null;
-    const assignedRole = "customer";
+
+    const { url, serviceKey, anonKey } = getSupabaseConfig();
+    const apiKey = serviceKey || anonKey;
 
     if (!url || !apiKey) {
       return NextResponse.json(
@@ -37,124 +34,85 @@ export async function POST(req: Request) {
       );
     }
 
-    // 1. Check if user already exists
-    const checkEmailRes = await fetch(`${url}/rest/v1/users?email=eq.${encodeURIComponent(cleanEmail)}&select=id,is_verified,user_roles(roles(name))`, {
-      headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
-    });
+    // Step 1: Create Supabase Auth user as single source of truth for auth
+    console.log(`${logPrefix} Step 1: Creating Supabase Auth user for ${cleanEmail}...`);
+    const authResult = await signUpWithSupabaseAuth(
+      cleanEmail,
+      password,
+      { full_name: cleanName, role: "customer" },
+      "https://cloche-six.vercel.app/auth/callback"
+    );
 
-    let existingUser: any = null;
-
-    if (checkEmailRes.ok) {
-      const existingUsers = await checkEmailRes.json();
-      if (Array.isArray(existingUsers) && existingUsers.length > 0) {
-        existingUser = existingUsers[0];
-        const roles = Array.isArray(existingUser.user_roles)
-          ? existingUser.user_roles.map((ur: any) => ur.roles?.name)
-          : [];
-
-        if (roles.includes("customer")) {
-          console.warn(`${logPrefix} Signup rejected: Customer account already exists -> ${cleanEmail}`);
-          return NextResponse.json(
-            {
-              success: false,
-              statusCode: 409,
-              error: { code: "EMAIL_EXISTS", message: "A customer account with this email address already exists. Please log in instead." },
-            },
-            { status: 409 }
-          );
-        }
-      }
+    if (authResult.error || !authResult.user) {
+      const errMsg = authResult.error?.message || "User creation failed.";
+      console.warn(`${logPrefix} Supabase Auth signup rejected: ${errMsg}`);
+      return NextResponse.json(
+        {
+          success: false,
+          statusCode: errMsg.toLowerCase().includes("already registered") ? 409 : 400,
+          error: {
+            code: errMsg.toLowerCase().includes("already registered") ? "EMAIL_EXISTS" : "SIGNUP_FAILED",
+            message: errMsg.toLowerCase().includes("already registered")
+              ? "An account with this email address already exists. Please log in instead."
+              : errMsg,
+          },
+        },
+        { status: errMsg.toLowerCase().includes("already registered") ? 409 : 400 }
+      );
     }
 
-    const passwordHash = hashPassword(password);
+    const authUserId = authResult.user.id;
+    console.log(`${logPrefix} Step 1 Success: Supabase Auth user created (${authUserId}).`);
+
+    // Step 2: Execute atomic custom table database insert via RPC function
+    console.log(`${logPrefix} Step 2: Executing register_customer_atomic RPC transaction...`);
+    const rpcRes = await fetch(`${url}/rest/v1/rpc/register_customer_atomic`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        apikey: apiKey,
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        p_supabase_user_id: authUserId,
+        p_email: cleanEmail,
+        p_full_name: cleanName,
+        p_phone: cleanPhone,
+      }),
+    });
+
+    if (!rpcRes.ok) {
+      const errText = await rpcRes.text();
+      console.error(`${logPrefix} RPC transaction failed: ${errText}. Initiating Auth user deletion...`);
+
+      // Clean up Supabase Auth user on custom database failure to prevent orphan accounts
+      await deleteAdminSupabaseUser(authUserId);
+
+      return NextResponse.json(
+        {
+          success: false,
+          statusCode: 500,
+          error: { code: "CUSTOM_DB_INSERT_FAILED", message: `Database setup error: ${errText}` },
+        },
+        { status: 500 }
+      );
+    }
+
+    const rpcData = await rpcRes.json();
+    console.log(`${logPrefix} Step 2 Success: Custom DB records inserted atomically.`, rpcData);
+
+    // Step 3: Dispatch Verification Email via Brevo to ensure 100% delivery to user's Gmail inbox
     const verificationToken = crypto.randomUUID();
-    let targetUserId: string = "";
+    await fetch(`${url}/rest/v1/users?id=eq.${encodeURIComponent(rpcData.user_id || authUserId)}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        apikey: apiKey,
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({ verification_token: verificationToken }),
+    }).catch(() => null);
 
-    if (existingUser) {
-      // Single Gmail dual-role support: Reuse existing user record, update verification token and set to unverified until email clicked
-      targetUserId = existingUser.id;
-      console.log(`${logPrefix} Reusing existing user record (${targetUserId}) for customer account signup...`);
-
-      await fetch(`${url}/rest/v1/users?id=eq.${encodeURIComponent(targetUserId)}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          apikey: apiKey,
-          Authorization: `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
-          full_name: cleanName,
-          name: cleanName,
-          phone: cleanPhone || undefined,
-          verification_token: verificationToken,
-          is_verified: false,
-        }),
-      });
-    } else {
-      // Create new User record
-      const userPayload = {
-        email: cleanEmail,
-        password_hash: passwordHash,
-        full_name: cleanName,
-        name: cleanName,
-        phone: cleanPhone,
-        verification_token: verificationToken,
-        is_active: true,
-        is_verified: false,
-      };
-
-      console.log(`${logPrefix} Inserting new user record into users table...`);
-      const insertUserRes = await fetch(`${url}/rest/v1/users`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          apikey: apiKey,
-          Authorization: `Bearer ${apiKey}`,
-          Prefer: "return=representation",
-        },
-        body: JSON.stringify(userPayload),
-      });
-
-      if (!insertUserRes.ok) {
-        const errText = await insertUserRes.text();
-        return NextResponse.json(
-          { success: false, statusCode: 500, error: { code: "USER_INSERT_FAILED", message: errText } },
-          { status: 500 }
-        );
-      }
-
-      const insertedUsers = await insertUserRes.json();
-      targetUserId = insertedUsers[0].id;
-      insertedUserId = targetUserId;
-    }
-
-    // 2. Resolve Role ID for customer
-    let roleId: string | null = null;
-    const roleLookupRes = await fetch(`${url}/rest/v1/roles?name=eq.customer&select=id`, {
-      headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
-    });
-
-    if (roleLookupRes.ok) {
-      const roles = await roleLookupRes.json();
-      if (Array.isArray(roles) && roles.length > 0) {
-        roleId = roles[0].id;
-      }
-    }
-
-    if (roleId) {
-      await fetch(`${url}/rest/v1/user_roles`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          apikey: apiKey,
-          Authorization: `Bearer ${apiKey}`,
-          Prefer: "resolution=merge-duplicates",
-        },
-        body: JSON.stringify({ user_id: targetUserId, role_id: roleId }),
-      }).catch(() => null);
-    }
-
-    // 3. Dispatch Verification Email via Brevo from cloche.luxury@gmail.com
     await sendVerificationMail({
       email: cleanEmail,
       name: cleanName,
@@ -166,12 +124,15 @@ export async function POST(req: Request) {
       {
         success: true,
         statusCode: 201,
-        message: "Customer account created successfully! Please check your Gmail inbox (from cloche.luxury@gmail.com) and click the verification link to log in.",
-        user: {
-          id: targetUserId,
-          email: cleanEmail,
-          fullName: cleanName,
-          isVerified: false,
+        message: "Account created successfully! A confirmation email has been sent to your email inbox. Please click the link in the email to activate your account.",
+        data: {
+          user: {
+            id: rpcData.user_id || authUserId,
+            supabaseUserId: authUserId,
+            email: cleanEmail,
+            fullName: cleanName,
+            isVerified: false,
+          },
         },
       },
       { status: 201 }

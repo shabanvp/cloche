@@ -13,11 +13,17 @@ export function VendorLoginClient() {
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
 
+  const [resendEmail, setResendEmail] = useState("");
+  const [resendStatus, setResendStatus] = useState<string | null>(null);
+  const [isResending, setIsResending] = useState(false);
+
   useEffect(() => {
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
-      if (params.get("status") === "registered") {
-        setSuccessMsg("Registration successful! Your vendor account is active. Log in below to access your portal.");
+      if (params.get("verified") === "true") {
+        setSuccessMsg("Email verified successfully! Your vendor account is now active. Log in below.");
+      } else if (params.get("registered") === "true" || params.get("status") === "registered") {
+        setSuccessMsg("Account created! A verification link has been sent to your email. Please check your inbox and verify before logging in.");
       }
       const emailParam = params.get("email");
       if (emailParam) {
@@ -25,6 +31,29 @@ export function VendorLoginClient() {
       }
     }
   }, []);
+
+  const handleResendVerification = async () => {
+    if (!resendEmail) return;
+    setIsResending(true);
+    setResendStatus(null);
+    try {
+      const res = await fetch("/api/v1/auth/resend-verification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: resendEmail, role: "vendor" }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setResendStatus(data.message || "Verification link sent! Check your email.");
+      } else {
+        setResendStatus(data.error?.message || "Failed to resend verification email.");
+      }
+    } catch (e) {
+      setResendStatus("Network error. Please try again.");
+    } finally {
+      setIsResending(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -60,14 +89,39 @@ export function VendorLoginClient() {
 
         <form className="bg-white rounded-3xl shadow-sm border border-gold/10 p-8 sm:p-10" onSubmit={handleSubmit}>
           {successMsg && (
+<<<<<<< HEAD
             <div className="mb-6 p-4 rounded-xl bg-emerald/10 border border-emerald/20 text-[#0F4C45] text-sm font-medium">
+=======
+            <div className="mb-6 p-4 rounded-xl bg-emerald/10 border border-emerald/20 text-emerald text-sm font-semibold">
+>>>>>>> 5459a180e0e4596c825ad85553c5c6fc9fb463df
               {successMsg}
             </div>
           )}
 
+          {resendStatus && (
+            <div className="mb-6 p-4 rounded-xl bg-emerald/10 border border-emerald/20 text-emerald text-sm font-semibold">
+              {resendStatus}
+            </div>
+          )}
+
           {errorMsg && (
+<<<<<<< HEAD
             <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm">
               {errorMsg}
+=======
+            <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 text-red-600 text-sm font-semibold space-y-2">
+              <p>{errorMsg}</p>
+              {(errorMsg.toLowerCase().includes("verify") || errorMsg.toLowerCase().includes("verification")) && (
+                <button
+                  type="button"
+                  disabled={isResending}
+                  onClick={handleResendVerification}
+                  className="mt-1 inline-block bg-[#0F4C45] text-white px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-[#135951] transition-all cursor-pointer"
+                >
+                  {isResending ? "Resending Link..." : "Resend Verification Link"}
+                </button>
+              )}
+>>>>>>> 5459a180e0e4596c825ad85553c5c6fc9fb463df
             </div>
           )}
 
@@ -78,8 +132,12 @@ export function VendorLoginClient() {
                 name="email"
                 required
                 type="email"
+<<<<<<< HEAD
                 value={emailInput}
                 onChange={(e) => setEmailInput(e.target.value)}
+=======
+                onChange={(e) => setResendEmail(e.target.value)}
+>>>>>>> 5459a180e0e4596c825ad85553c5c6fc9fb463df
                 className="w-full bg-[#F4F1EA] border border-outline/20 rounded-xl px-4 py-3.5 text-charcoal placeholder:text-charcoal/40 focus:outline-none focus:border-emerald transition-colors text-sm"
                 placeholder="vendor@example.com"
               />

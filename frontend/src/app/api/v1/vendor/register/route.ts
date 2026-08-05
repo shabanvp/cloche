@@ -1,28 +1,9 @@
 import { NextResponse } from "next/server";
-import { hashPassword, signJwtToken, hashSessionToken, AUTH_COOKIE_NAME, SESSION_EXPIRY_DAYS } from "@/lib/auth";
-import { getSupabaseConfig } from "@/lib/supabase";
+import { getSupabaseConfig, signUpWithSupabaseAuth, deleteAdminSupabaseUser } from "@/lib/supabase";
 import { sendVerificationMail } from "@/lib/email";
-
-function generateSlug(text: string): string {
-  const base = text
-    .toLowerCase()
-    .trim()
-    .replace(/[^\w\s-]/g, "")
-    .replace(/[\s_-]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-  const randomSuffix = Math.floor(1000 + Math.random() * 9000);
-  return base ? `${base}-${randomSuffix}` : `vendor-${Date.now()}`;
-}
 
 export async function POST(req: Request) {
   const logPrefix = "[VENDOR_REGISTER_API]";
-  let insertedUserId: string | null = null;
-  let insertedUserRoleId: string | null = null;
-  let insertedSessionId: string | null = null;
-  let insertedVendorId: string | null = null;
-  let insertedProfileId: string | null = null;
-  let insertedVersionId: string | null = null;
-
   const { url, serviceKey, anonKey } = getSupabaseConfig();
   const apiKey = serviceKey || anonKey;
 
@@ -95,74 +76,86 @@ export async function POST(req: Request) {
       );
     }
 
-    // Helper Rollback Function
-    const rollback = async (reason: string) => {
-      console.warn(`${logPrefix} Initiating ROLLBACK due to: ${reason}`);
-      if (insertedVersionId) {
-        await fetch(`${url}/rest/v1/vendor_profile_versions?id=eq.${encodeURIComponent(insertedVersionId)}`, {
-          method: "DELETE",
-          headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
-        }).catch(() => null);
-      }
-      if (insertedProfileId) {
-        await fetch(`${url}/rest/v1/vendor_profiles?id=eq.${encodeURIComponent(insertedProfileId)}`, {
-          method: "DELETE",
-          headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
-        }).catch(() => null);
-      }
-      if (insertedVendorId) {
-        await fetch(`${url}/rest/v1/vendors?id=eq.${encodeURIComponent(insertedVendorId)}`, {
-          method: "DELETE",
-          headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
-        }).catch(() => null);
-      }
-      if (insertedSessionId) {
-        await fetch(`${url}/rest/v1/sessions?id=eq.${encodeURIComponent(insertedSessionId)}`, {
-          method: "DELETE",
-          headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
-        }).catch(() => null);
-      }
-      if (insertedUserRoleId) {
-        await fetch(`${url}/rest/v1/user_roles?id=eq.${encodeURIComponent(insertedUserRoleId)}`, {
-          method: "DELETE",
-          headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
-        }).catch(() => null);
-      }
-      if (insertedUserId) {
-        await fetch(`${url}/rest/v1/users?id=eq.${encodeURIComponent(insertedUserId)}`, {
-          method: "DELETE",
-          headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
-        }).catch(() => null);
-      }
-    };
+    // Step 1: Create Supabase Auth user as single source of truth for auth
+    console.log(`${logPrefix} Step 1: Creating Supabase Auth user for vendor ${userEmail}...`);
+    const authResult = await signUpWithSupabaseAuth(
+      userEmail,
+      userPassword,
+      { full_name: owner || businessName, business_name: businessName, role: "vendor" },
+      "https://cloche-six.vercel.app/auth/callback"
+    );
 
-    // Step 1: Check if user or vendor already exists for this email
-    const checkEmailRes = await fetch(`${url}/rest/v1/users?email=eq.${encodeURIComponent(userEmail)}&select=id,is_verified,vendors(id),user_roles(roles(name))`, {
-      headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
-    });
-
-    let existingUser: any = null;
-
-    if (checkEmailRes.ok) {
-      const existingUsers = await checkEmailRes.json();
-      if (Array.isArray(existingUsers) && existingUsers.length > 0) {
-        existingUser = existingUsers[0];
-        const hasVendorRecord = Array.isArray(existingUser.vendors) && existingUser.vendors.length > 0;
-        const roles = Array.isArray(existingUser.user_roles)
-          ? existingUser.user_roles.map((ur: any) => ur.roles?.name)
-          : [];
-
-        if (hasVendorRecord || roles.includes("vendor")) {
-          return NextResponse.json(
-            { success: false, statusCode: 409, error: { code: "VENDOR_EXISTS", message: "A vendor account with this email address already exists. Please log in to your vendor portal." } },
-            { status: 409 }
-          );
-        }
-      }
+    if (authResult.error || !authResult.user) {
+      const errMsg = authResult.error?.message || "Vendor registration failed.";
+      console.warn(`${logPrefix} Supabase Auth signup rejected: ${errMsg}`);
+      return NextResponse.json(
+        {
+          success: false,
+          statusCode: errMsg.toLowerCase().includes("already registered") ? 409 : 400,
+          error: {
+            code: errMsg.toLowerCase().includes("already registered") ? "VENDOR_EXISTS" : "REGISTRATION_FAILED",
+            message: errMsg.toLowerCase().includes("already registered")
+              ? "A vendor account with this email address already exists. Please log in to your vendor portal."
+              : errMsg,
+          },
+        },
+        { status: errMsg.toLowerCase().includes("already registered") ? 409 : 400 }
+      );
     }
 
-    const passwordHash = hashPassword(userPassword);
+    const authUserId = authResult.user.id;
+    console.log(`${logPrefix} Step 1 Success: Supabase Auth user created (${authUserId}).`);
+
+    // Step 2: Execute atomic custom table database insert via register_vendor_atomic RPC function
+    console.log(`${logPrefix} Step 2: Executing register_vendor_atomic RPC transaction...`);
+    const rpcRes = await fetch(`${url}/rest/v1/rpc/register_vendor_atomic`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        apikey: apiKey,
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        p_supabase_user_id: authUserId,
+        p_email: userEmail,
+        p_owner_name: owner || businessName,
+        p_phone: userPhone,
+        p_business_name: businessName,
+        p_category_name: (category || "").toString().trim() || "Bridal Boutique",
+        p_city: (city || "").toString().trim() || "Kochi",
+        p_state: (state || "").toString().trim() || "Kerala",
+        p_pincode: (pincode || "").toString().trim() || null,
+        p_address: (address || "").toString().trim() || null,
+        p_website: (website || "").toString().trim() || null,
+        p_instagram: (instagram || "").toString().trim() || null,
+        p_description: (description || "").toString().trim() || null,
+        p_gst_number: (gst_number || "").toString().trim() || null,
+      }),
+    });
+
+    if (!rpcRes.ok) {
+      const errText = await rpcRes.text();
+      console.error(`${logPrefix} RPC transaction failed: ${errText}. Initiating Auth user deletion...`);
+
+      // Clean up Supabase Auth user on custom database failure to prevent orphan accounts
+      await deleteAdminSupabaseUser(authUserId);
+
+      return NextResponse.json(
+        {
+          success: false,
+          statusCode: 500,
+          error: { code: "CUSTOM_DB_INSERT_FAILED", message: `Vendor registration database error: ${errText}` },
+        },
+        { status: 500 }
+      );
+    }
+
+    const rpcData = await rpcRes.json();
+    console.log(`${logPrefix} Step 2 Success: Vendor records inserted atomically.`, rpcData);
+
+    // Step 3: Dispatch Verification Email via Brevo to ensure 100% delivery to user's Gmail inbox
     const verificationToken = crypto.randomUUID();
+<<<<<<< HEAD
     const tokenExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
     let targetUserId: string = "";
 
@@ -303,12 +296,16 @@ export async function POST(req: Request) {
     const vendorCode = `VND-2026-${Math.floor(1000 + Math.random() * 9000)}`;
     const vendorInsertRes = await fetch(`${url}/rest/v1/vendors`, {
       method: "POST",
+=======
+    await fetch(`${url}/rest/v1/users?id=eq.${encodeURIComponent(rpcData.user_id)}`, {
+      method: "PATCH",
+>>>>>>> 5459a180e0e4596c825ad85553c5c6fc9fb463df
       headers: {
         "Content-Type": "application/json",
         apikey: apiKey,
         Authorization: `Bearer ${apiKey}`,
-        Prefer: "return=representation",
       },
+<<<<<<< HEAD
       body: JSON.stringify({
         vendor_code: vendorCode,
         user_id: targetUserId,
@@ -426,11 +423,23 @@ export async function POST(req: Request) {
         }),
       });
     }
+=======
+      body: JSON.stringify({ verification_token: verificationToken }),
+    }).catch(() => null);
+
+    await sendVerificationMail({
+      email: userEmail,
+      name: businessName,
+      verificationToken,
+      role: "vendor",
+    });
+>>>>>>> 5459a180e0e4596c825ad85553c5c6fc9fb463df
 
     return NextResponse.json(
       {
         success: true,
         statusCode: 201,
+<<<<<<< HEAD
         message: "Vendor account registered successfully! You can now log in to your vendor portal.",
         data: {
           vendor: {
@@ -443,9 +452,20 @@ export async function POST(req: Request) {
             onboardingStage: newVendor.onboarding_stage,
             profileCompletionPercentage: newVendor.profile_completion_percentage,
             profileId: insertedProfileId,
+=======
+        message: "Vendor registered successfully! A confirmation email has been sent to your email inbox. Please click the link to verify before logging in.",
+        data: {
+          vendor: {
+            id: rpcData.vendor_id,
+            vendorCode: rpcData.vendor_code,
+            businessName: rpcData.business_name,
+            slug: rpcData.slug,
+            profileId: rpcData.profile_id,
+>>>>>>> 5459a180e0e4596c825ad85553c5c6fc9fb463df
           },
           user: {
-            id: targetUserId,
+            id: rpcData.user_id,
+            supabaseUserId: authUserId,
             email: userEmail,
             fullName: businessName,
             roles: ["vendor"],

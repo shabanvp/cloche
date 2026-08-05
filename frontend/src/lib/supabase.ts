@@ -75,6 +75,146 @@ export async function supabaseFetch<T = any>(
 }
 
 // ----------------------------------------------------
+// SUPABASE AUTH GOTRUE API HELPERS
+// ----------------------------------------------------
+
+export async function signUpWithSupabaseAuth(
+  email: string,
+  password: string,
+  dataMetadata: Record<string, any> = {},
+  emailRedirectTo: string = "https://cloche-six.vercel.app/auth/callback"
+): Promise<{ user: any | null; session: any | null; error: Error | null }> {
+  const { url, anonKey } = getSupabaseConfig();
+  if (!url || !anonKey) {
+    return { user: null, session: null, error: new Error("Supabase credentials unconfigured.") };
+  }
+
+  try {
+    const res = await fetch(`${url}/auth/v1/signup`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        apikey: anonKey,
+      },
+      body: JSON.stringify({
+        email,
+        password,
+        data: dataMetadata,
+        gotrue_meta_security: {},
+        options: {
+          emailRedirectTo,
+        },
+      }),
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      return { user: null, session: null, error: new Error(data.msg || data.message || data.error_description || "Supabase Auth signup failed.") };
+    }
+
+    return { user: data.user || data, session: data.session || null, error: null };
+  } catch (err: any) {
+    return { user: null, session: null, error: err };
+  }
+}
+
+export async function signInWithSupabaseAuth(
+  email: string,
+  password: string
+): Promise<{ user: any | null; session: any | null; error: Error | null }> {
+  const { url, anonKey } = getSupabaseConfig();
+  if (!url || !anonKey) {
+    return { user: null, session: null, error: new Error("Supabase credentials unconfigured.") };
+  }
+
+  try {
+    const res = await fetch(`${url}/auth/v1/token?grant_type=password`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        apikey: anonKey,
+      },
+      body: JSON.stringify({
+        email,
+        password,
+      }),
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      return { user: null, session: null, error: new Error(data.error_description || data.msg || data.message || "Invalid login credentials.") };
+    }
+
+    return { user: data.user, session: data, error: null };
+  } catch (err: any) {
+    return { user: null, session: null, error: err };
+  }
+}
+
+export async function deleteAdminSupabaseUser(authUserId: string): Promise<{ success: boolean; error: Error | null }> {
+  const { url, serviceKey } = getSupabaseConfig();
+  if (!url || !serviceKey || !authUserId) {
+    return { success: false, error: new Error("Missing parameters for admin user deletion.") };
+  }
+
+  try {
+    const res = await fetch(`${url}/auth/v1/admin/users/${encodeURIComponent(authUserId)}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        apikey: serviceKey,
+        Authorization: `Bearer ${serviceKey}`,
+      },
+    });
+
+    if (!res.ok) {
+      const errText = await res.text();
+      return { success: false, error: new Error(`Failed to delete Auth user: ${errText}`) };
+    }
+
+    return { success: true, error: null };
+  } catch (err: any) {
+    return { success: false, error: err };
+  }
+}
+
+export async function resendSupabaseAuthEmail(
+  email: string,
+  emailRedirectTo: string = "https://cloche-six.vercel.app/auth/callback"
+): Promise<{ success: boolean; error: Error | null }> {
+  const { url, anonKey } = getSupabaseConfig();
+  if (!url || !anonKey) {
+    return { success: false, error: new Error("Supabase credentials unconfigured.") };
+  }
+
+  try {
+    const res = await fetch(`${url}/auth/v1/resend`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        apikey: anonKey,
+      },
+      body: JSON.stringify({
+        type: "signup",
+        email,
+        options: {
+          emailRedirectTo,
+        },
+      }),
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      return { success: false, error: new Error(data.msg || data.message || data.error_description || "Failed to resend confirmation email.") };
+    }
+
+    return { success: true, error: null };
+  } catch (err: any) {
+    return { success: false, error: err };
+  }
+}
+
+// ----------------------------------------------------
 // DATABASE REPOSITORY METHOD WRAPPERS
 // ----------------------------------------------------
 
