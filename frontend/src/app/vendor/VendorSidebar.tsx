@@ -2,62 +2,65 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 import { 
   LayoutDashboard, 
-  ShoppingBag, 
   Store, 
   Tag, 
   Calendar, 
   Inbox, 
+  LogOut, 
+  Shirt, 
+  Camera, 
+  Brush, 
+  MapPin, 
+  Sparkles, 
+  ShoppingBag, 
   BarChart3, 
   CreditCard,
-  LogOut,
-  Camera,
-  Brush,
-  MapPin,
-  Sparkles,
-  Shirt,
-  Megaphone,
-  Palette
+  Palette,
+  Package,
+  Layers
 } from "lucide-react";
-import { useEffect, useState } from "react";
 import { logout } from "@/app/actions/auth";
+import { getCategoryMenuTitles } from "@/lib/vendor-navigation";
 
 export function VendorSidebar() {
   const pathname = usePathname();
   const router = useRouter();
-  const isAuthPage = pathname === "/vendor/login" || pathname === "/vendor/register";
 
-  const [vendorData, setVendorData] = useState<{ name: string; category: string; logo?: string } | null>(null);
+  const isAuthPage = pathname === "/vendor/login" || pathname === "/vendor/register";
+  const [vendorData, setVendorData] = useState<{ name: string; category: string; logo?: string; plan?: string } | null>(null);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
       try {
+        const list = [];
         const rawVendors = localStorage.getItem("cloche_registered_vendors");
-        const rawVenues = localStorage.getItem("cloche_registered_venues");
-        const list: any[] = [];
-        if (rawVendors) list.push(...JSON.parse(rawVendors));
-        if (rawVenues) list.push(...JSON.parse(rawVenues));
+        const rawUserData = localStorage.getItem("cloche_user_data");
+        
+        if (rawUserData) {
+          const u = JSON.parse(rawUserData);
+          setVendorData({
+            name: u.full_name || u.name || u.boutique_name || "Vendor Dashboard",
+            category: u.category || "Bridal Wear",
+            logo: u.logo || u.logo_url || u.image_url,
+            plan: u.plan || "Premium Partner",
+          });
+          return;
+        }
 
+        if (rawVendors) list.push(...JSON.parse(rawVendors));
+        
         if (list.length > 0) {
           const active = list[0];
           setVendorData({
             name: active.boutique_name || active.name || active.businessName || "Vendor Dashboard",
-            category: active.category || "Premium Partner",
-            logo: active.logo || active.logo_url || active.profile_logo || active.image || "",
+            category: active.category || "Bridal Wear",
+            logo: active.logo || active.logo_url || active.image_url,
+            plan: active.plan || "Premium Partner",
           });
-          return;
         }
-      } catch (e) {}
-    }
-
-    const cookies = document.cookie.split(';');
-    const userDataCookie = cookies.find(c => c.trim().startsWith('user_data='));
-    if (userDataCookie) {
-      try {
-        const decoded = decodeURIComponent(userDataCookie.split('=')[1]);
-        const parsed = JSON.parse(decoded);
-        setVendorData(parsed);
       } catch (e) {}
     }
   }, []);
@@ -68,105 +71,92 @@ export function VendorSidebar() {
   const name = vendorData?.name || "Vendor Dashboard";
   const initial = name.charAt(0).toUpperCase();
   const logoUrl = vendorData?.logo || "";
+  const plan = vendorData?.plan || "Premium Partner";
   const isValidLogo = Boolean(
     logoUrl &&
       typeof logoUrl === "string" &&
       (logoUrl.startsWith("data:image/") || logoUrl.startsWith("http://") || logoUrl.startsWith("https://") || logoUrl.startsWith("/"))
   );
 
-  const normCat = (category || "").toLowerCase().trim();
-  const isVenue =
-    normCat.includes("venue") ||
-    normCat.includes("convention") ||
-    normCat.includes("hall") ||
-    name.toLowerCase().includes("venue") ||
-    name.toLowerCase().includes("convention") ||
-    name.toLowerCase().includes("centre") ||
-    name.toLowerCase().includes("hall") ||
-    !category ||
-    category === "Premium Partner";
+  const titles = getCategoryMenuTitles(category);
 
-  // Base navigation items for all vendors
-  let navItems = [
-    { label: "Overview", icon: LayoutDashboard, href: "/vendor" },
+  // Clean, essential navigation items
+  const navItems = [
+    { label: "Navigation Hub", icon: Layers, href: "/vendor" },
+    { label: "Overview", icon: LayoutDashboard, href: "/vendor/overview" },
     { label: "Profile", icon: Store, href: "/vendor/profile" },
-    { label: isVenue ? "Customize Venue Store" : "Customize Store", icon: Palette, href: "/vendor/profile/customize" },
-    { label: "Offers", icon: Tag, href: "/vendor/offers" },
+    { label: titles.mediaTitle, icon: ShoppingBag, href: "/vendor/collections" },
+    { label: titles.pricingTitle, icon: Package, href: "/vendor/packages" },
     { label: "Appointments", icon: Calendar, href: "/vendor/appointments" },
     { label: "Enquiries", icon: Inbox, href: "/vendor/enquiries" },
-  ];
-
-  // Category specific modules
-  if (normCat.includes("bridal") || normCat.includes("groom")) {
-    navItems.splice(1, 0, { label: "Collections", icon: Shirt, href: "/vendor/collections" });
-  } else if (normCat.includes("photo") || normCat.includes("video")) {
-    navItems.splice(1, 0, { label: "Portfolio", icon: Camera, href: "/vendor/collections" });
-  } else if (normCat.includes("makeup") || normCat.includes("mehendi")) {
-    navItems.splice(1, 0, { label: "Bridal Packages", icon: Brush, href: "/vendor/collections" });
-  } else if (isVenue) {
-    navItems.splice(1, 0, { label: "Halls & Pricing", icon: MapPin, href: "/vendor/collections" });
-  } else if (normCat.includes("decor")) {
-    navItems.splice(1, 0, { label: "Themes & Gallery", icon: Sparkles, href: "/vendor/collections" });
-  } else {
-    navItems.splice(1, 0, { label: "Portfolio", icon: ShoppingBag, href: "/vendor/collections" });
-  }
-
-  // Common items at the end
-  navItems.push(
-    { label: "Marketing & Ads", icon: Megaphone, href: "/vendor/marketing" },
+    { label: "Offers", icon: Tag, href: "/vendor/offers" },
     { label: "Analytics", icon: BarChart3, href: "/vendor/analytics" },
-    { label: "Subscription", icon: CreditCard, href: "/vendor/subscription" }
-  );
+    { label: "Subscription", icon: CreditCard, href: "/vendor/subscription" },
+    { label: "Customize Store", icon: Palette, href: "/vendor/customize-store" },
+  ];
 
   const handleLogout = async () => {
     await logout();
     router.push("/vendor/login");
   };
 
-
-
   return (
-    <aside className="w-full lg:w-72 shrink-0">
+    <aside className="w-full lg:w-72 shrink-0 font-sans">
       <div className="bg-white rounded-2xl shadow-sm border border-gold/10 overflow-hidden sticky top-24">
-        {/* Boutique summary */}
-        <div className="p-6 border-b border-gold/10 bg-charcoal text-white text-center">
-          <div className="w-16 h-16 rounded-full bg-ivory text-charcoal flex items-center justify-center mx-auto mb-3 text-2xl font-display shadow-md overflow-hidden relative border-2 border-gold/30">
+        
+        {/* Vendor Header Profile Info */}
+        <div className="p-6 border-b border-gold/10 bg-[#FAF7F2]/60 text-center">
+          <div className="w-20 h-20 rounded-full mx-auto mb-3 flex items-center justify-center overflow-hidden border-2 border-gold/20 bg-white shadow-sm">
             {isValidLogo ? (
               <img src={logoUrl} alt={name} className="w-full h-full object-cover" />
             ) : (
-              initial
+              <div className="w-full h-full bg-[#0F4C45] text-white text-2xl font-bold font-serif flex items-center justify-center">
+                {initial}
+              </div>
             )}
           </div>
-          <h2 className="font-display text-lg font-medium">{name}</h2>
-          <p className="text-xs text-white/60">{category || "Premium Partner"}</p>
+
+          <h3 className="font-display font-bold text-lg text-charcoal truncate px-2">{name}</h3>
+          <p className="text-xs font-semibold uppercase tracking-wider text-charcoal/60 mt-0.5">{category || "Vendor Partner"}</p>
+          
+          <span className="inline-block bg-[#0F4C45] text-white text-[10px] font-bold uppercase tracking-widest px-3 py-0.5 rounded-full mt-2 shadow-xs">
+            {plan}
+          </span>
         </div>
 
-        {/* Navigation */}
+        {/* Navigation Items */}
         <nav className="p-3 space-y-1">
           {navItems.map((item) => {
+            const isActive = pathname === item.href || (item.href !== "/vendor" && pathname.startsWith(item.href));
             const Icon = item.icon;
-            const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
+
             return (
-              <Link 
+              <Link
                 key={item.href}
-                href={item.href} 
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors ${
-                  isActive 
-                    ? "bg-emerald text-white" 
-                    : "text-charcoal hover:bg-emerald/10 hover:text-emerald"
+                href={item.href}
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold transition-all ${
+                  isActive
+                    ? "bg-[#0F4C45] text-white shadow-sm"
+                    : "text-charcoal/70 hover:bg-[#FAF7F2] hover:text-[#0F4C45]"
                 }`}
               >
-                <Icon className={`w-4 h-4 ${isActive ? "opacity-100" : "opacity-70"}`} /> {item.label}
+                <Icon className={`w-4 h-4 ${isActive ? "text-white" : "text-charcoal/50"}`} />
+                <span className="truncate">{item.label}</span>
               </Link>
-            )
+            );
           })}
+
+          <div className="pt-2 mt-2 border-t border-gold/10">
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold text-red-600 hover:bg-red-50 transition-colors"
+            >
+              <LogOut className="w-4 h-4 text-red-500" />
+              <span>Sign Out</span>
+            </button>
+          </div>
         </nav>
 
-        <div className="p-4 border-t border-gold/10">
-          <button onClick={handleLogout} className="flex items-center gap-3 px-4 py-2 w-full text-left rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 transition-colors">
-            <LogOut className="w-4 h-4" /> Sign Out
-          </button>
-        </div>
       </div>
     </aside>
   );
