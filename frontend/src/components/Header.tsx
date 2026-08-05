@@ -60,6 +60,27 @@ export function Header({ session }: HeaderProps = {}) {
     };
   }, [isNotificationsOpen]);
 
+  const [wishlistCount, setWishlistCount] = useState(0);
+
+  useEffect(() => {
+    const updateCount = () => {
+      try {
+        const { getWishlistItems } = require("@/lib/wishlistStore");
+        setWishlistCount(getWishlistItems().length);
+      } catch (e) {}
+    };
+
+    try {
+      const { syncWishlistWithServer } = require("@/lib/wishlistStore");
+      syncWishlistWithServer().then(updateCount);
+    } catch (e) {
+      updateCount();
+    }
+
+    window.addEventListener("cloche_wishlist_updated", updateCount);
+    return () => window.removeEventListener("cloche_wishlist_updated", updateCount);
+  }, []);
+
   if (isAuthRoute) return null;
 
   let profileLink = "/dashboard";

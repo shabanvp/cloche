@@ -32,6 +32,12 @@ export async function syncWishlistWithServer(): Promise<WishlistItem[]> {
   if (typeof window === "undefined") return [];
   try {
     const res = await fetch("/api/v1/customer/favorites", { cache: "no-store" }).then((r) => r.json());
+    if (res.statusCode === 401) {
+      localStorage.removeItem(WISHLIST_KEY);
+      window.dispatchEvent(new Event("cloche_wishlist_updated"));
+      return [];
+    }
+
     if (res.success && Array.isArray(res.data)) {
       const serverItems: WishlistItem[] = res.data.map((item: any) => ({
         id: item.vendor_id || item.vendors?.id || item.id,

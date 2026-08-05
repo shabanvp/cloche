@@ -646,22 +646,83 @@ export async function resolveUserUuid(customerId: string, email?: string): Promi
 export async function fetchCustomerFavoritesFromDb(customerId: string) {
   const resolvedCustId = await resolveUserUuid(customerId);
   const targetId = resolvedCustId || customerId;
-  return supabaseFetch(`customer_favorites?customer_id=eq.${encodeURIComponent(targetId)}&select=*,vendors(*)`);
+
+  console.log("[fetchCustomerFavoritesFromDb] Fetching for customer_id:", targetId);
+
+  // 1. Try embedded select query
+  const embeddedRes = await supabaseFetch(
+    `customer_favorites?customer_id=eq.${encodeURIComponent(targetId)}&select=*,vendors(*)`
+  );
+
+  if (!embeddedRes.error && Array.isArray(embeddedRes.data)) {
+    console.log("[fetchCustomerFavoritesFromDb] Embedded fetch succeeded, count:", embeddedRes.data.length);
+    return embeddedRes;
+  }
+
+  console.log("[fetchCustomerFavoritesFromDb] Embedded fetch fallback, error:", embeddedRes.error);
+
+  // 2. Fallback to simple select if PostgREST schema relationship is missing
+  const simpleRes = await supabaseFetch(
+    `customer_favorites?customer_id=eq.${encodeURIComponent(targetId)}&select=*`
+  );
+
+  if (!simpleRes.error && Array.isArray(simpleRes.data) && simpleRes.data.length > 0) {
+    const vendorIds = simpleRes.data.map((fav: any) => fav.vendor_id).filter(Boolean);
+    if (vendorIds.length > 0) {
+      const filter = `id=in.(${vendorIds.map((id: string) => encodeURIComponent(id)).join(",")})`;
+      const vendorsRes = await supabaseFetch(`vendors?${filter}&select=*`);
+      const vendorsMap = new Map();
+      if (Array.isArray(vendorsRes.data)) {
+        vendorsRes.data.forEach((v: any) => vendorsMap.set(v.id, v));
+      }
+
+      const merged = simpleRes.data.map((fav: any) => ({
+        ...fav,
+        vendors: vendorsMap.get(fav.vendor_id) || null,
+      }));
+
+      console.log("[fetchCustomerFavoritesFromDb] Fallback fetch merged count:", merged.length);
+      return { data: merged, error: null };
+    }
+  }
+
+  return simpleRes;
 }
 
 export async function saveFavoriteVendorInDb(customerId: string, vendorId: string, userEmail?: string) {
   const resolvedCustId = await resolveUserUuid(customerId, userEmail);
   const resolvedVendId = await resolveVendorUuid(vendorId);
 
+  console.log("[saveFavoriteVendorInDb] Resolved customer_id:", resolvedCustId);
+  console.log("[saveFavoriteVendorInDb] Resolved vendor_id:", resolvedVendId);
+
   if (!resolvedCustId || !resolvedVendId) {
-    return { data: null, error: new Error("Unable to resolve valid Customer or Vendor identity.") };
+    const err = new Error("Unable to resolve valid Customer or Vendor identity.");
+    console.error("[saveFavoriteVendorInDb] Error:", err.message);
+    return { data: null, error: err };
   }
 
-  return supabaseFetch(`customer_favorites`, {
+  // 1. Check if record already exists
+  const existing = await supabaseFetch(
+    `customer_favorites?customer_id=eq.${encodeURIComponent(resolvedCustId)}&vendor_id=eq.${encodeURIComponent(resolvedVendId)}&select=*`
+  );
+
+  if (!existing.error && Array.isArray(existing.data) && existing.data.length > 0) {
+    console.log("[saveFavoriteVendorInDb] Record already exists in DB:", existing.data[0]);
+    return { data: existing.data[0], error: null };
+  }
+
+  // 2. Insert new record
+  const insertRes = await supabaseFetch(`customer_favorites`, {
     method: "POST",
-    headers: { Prefer: "resolution=merge-duplicates,return=representation" },
+    headers: { Prefer: "return=representation" },
     body: JSON.stringify({ customer_id: resolvedCustId, vendor_id: resolvedVendId }),
   });
+
+  console.log("[saveFavoriteVendorInDb] Insert Result:", insertRes.data);
+  console.log("[saveFavoriteVendorInDb] Database Error (if any):", insertRes.error);
+
+  return insertRes;
 }
 
 export async function removeFavoriteVendorInDb(customerId: string, vendorId: string) {
@@ -671,10 +732,15 @@ export async function removeFavoriteVendorInDb(customerId: string, vendorId: str
   const targetCustId = resolvedCustId || customerId;
   const targetVendId = resolvedVendId || vendorId;
 
-  return supabaseFetch(
+  console.log("[removeFavoriteVendorInDb] Removing customer_id:", targetCustId, "vendor_id:", targetVendId);
+
+  const deleteRes = await supabaseFetch(
     `customer_favorites?customer_id=eq.${encodeURIComponent(targetCustId)}&vendor_id=eq.${encodeURIComponent(targetVendId)}`,
     { method: "DELETE" }
   );
+
+  console.log("[removeFavoriteVendorInDb] Delete Result Error:", deleteRes.error);
+  return deleteRes;
 }
 
 export async function fetchRecentlyViewedFromDb(customerId: string) {
