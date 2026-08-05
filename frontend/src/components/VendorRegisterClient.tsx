@@ -463,6 +463,10 @@ export function VendorRegisterClient() {
         }
 
         try {
+          localStorage.setItem("boutique_name", boutiqueName);
+          localStorage.setItem("vendor_name", boutiqueName);
+          localStorage.setItem("cloche_user_data", JSON.stringify(newVendorRecord));
+
           const rawVendors = localStorage.getItem("cloche_registered_vendors");
           const vendorList = rawVendors ? JSON.parse(rawVendors) : [];
           const updatedVendors = [newVendorRecord, ...vendorList.filter((v: any) => v.id !== slug)];

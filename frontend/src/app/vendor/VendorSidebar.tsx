@@ -35,32 +35,57 @@ export function VendorSidebar() {
   useEffect(() => {
     if (typeof window !== "undefined") {
       try {
-        const list = [];
-        const rawVendors = localStorage.getItem("cloche_registered_vendors");
+        const storedName =
+          localStorage.getItem("boutique_name") ||
+          localStorage.getItem("vendor_name") ||
+          localStorage.getItem("businessName") ||
+          localStorage.getItem("user_name");
+
         const rawUserData = localStorage.getItem("cloche_user_data");
-        
+        const rawVendors = localStorage.getItem("cloche_registered_vendors");
+        const rawVenues = localStorage.getItem("cloche_registered_venues");
+
+        let resolvedName = storedName || "";
+        let resolvedCategory = "Bridal Wear";
+        let resolvedLogo = "";
+        let resolvedPlan = "Premium Partner";
+
         if (rawUserData) {
           const u = JSON.parse(rawUserData);
-          setVendorData({
-            name: u.full_name || u.name || u.boutique_name || "Vendor Dashboard",
-            category: u.category || "Bridal Wear",
-            logo: u.logo || u.logo_url || u.image_url,
-            plan: u.plan || "Premium Partner",
-          });
-          return;
+          resolvedName = u.boutique_name || u.businessName || u.name || u.full_name || resolvedName;
+          resolvedCategory = u.category || resolvedCategory;
+          resolvedLogo = u.logo || u.logo_url || u.image_url || resolvedLogo;
+          resolvedPlan = u.plan || resolvedPlan;
+        } else if (rawVendors) {
+          const list = JSON.parse(rawVendors);
+          if (list.length > 0) {
+            const active = list[0];
+            resolvedName = active.boutique_name || active.name || active.businessName || resolvedName;
+            resolvedCategory = active.category || resolvedCategory;
+            resolvedLogo = active.logo || active.logo_url || active.image_url || resolvedLogo;
+            resolvedPlan = active.plan || resolvedPlan;
+          }
+        } else if (rawVenues) {
+          const list = JSON.parse(rawVenues);
+          if (list.length > 0) {
+            const active = list[0];
+            resolvedName = active.boutique_name || active.name || active.businessName || resolvedName;
+            resolvedCategory = active.category || "Wedding Venue";
+            resolvedLogo = active.logo || active.logo_url || active.image_url || resolvedLogo;
+            resolvedPlan = active.plan || resolvedPlan;
+          }
         }
 
-        if (rawVendors) list.push(...JSON.parse(rawVendors));
-        
-        if (list.length > 0) {
-          const active = list[0];
-          setVendorData({
-            name: active.boutique_name || active.name || active.businessName || "Vendor Dashboard",
-            category: active.category || "Bridal Wear",
-            logo: active.logo || active.logo_url || active.image_url,
-            plan: active.plan || "Premium Partner",
-          });
+        if (!resolvedName) {
+          resolvedName = "Cloche Partner Store";
         }
+
+        setVendorData({
+          name: resolvedName,
+          category: resolvedCategory,
+          logo: resolvedLogo,
+          plan: resolvedPlan,
+        });
       } catch (e) {}
     }
   }, []);
