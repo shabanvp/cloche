@@ -1,11 +1,11 @@
-import type { Metadata } from "next";
-import { CateringListing } from "@/components/CateringListing";
+import { VendorCategoryListing } from "@/components/VendorCategoryListing";
+import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Wedding Catering & Food | Cloche",
-  description: "Find the best wedding caterers, traditional sadya, buffets, and food counters in Kerala.",
+  title: "Catering Services | Cloche Luxury Weddings",
+  description: "Delicious wedding feasts, live counters, and gourmet banquet menus.",
 };
 
 export default function CateringPage() {
-  return <CateringListing />;
+  return <VendorCategoryListing categorySlug="catering" />;
 }

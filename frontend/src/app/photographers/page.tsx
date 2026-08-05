@@ -1,11 +1,11 @@
-import type { Metadata } from "next";
-import { PhotographersListing } from "@/components/PhotographersListing";
+import { VendorCategoryListing } from "@/components/VendorCategoryListing";
+import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Wedding Photographers | Cloche",
-  description: "Browse premium wedding photographers for your special day.",
+  title: "Photographers | Cloche Luxury Weddings",
+  description: "Capture timeless moments with top wedding photographers and cinematographers.",
 };
 
 export default function PhotographersPage() {
-  return <PhotographersListing />;
+  return <VendorCategoryListing categorySlug="photographers" />;
 }
