@@ -273,10 +273,14 @@ export function VendorCategoryListing({
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredVendors.map((vendor) => {
               const isLiked = wishlist.has(vendor.id);
-              const cardHref = categoryConfig.slug === "venues" ? `/venues/${vendor.slug || vendor.id}` : `/venues/${vendor.slug || vendor.id}`;
+              const cardHref =
+                categoryConfig.slug === "venues"
+                  ? `/venues/${vendor.slug || vendor.id}`
+                  : categoryConfig.slug === "photographers"
+                  ? `/photographers/${vendor.slug || vendor.id}`
+                  : `/${categoryConfig.slug}/${vendor.slug || vendor.id}`;
               return (
                 <Link
                   key={vendor.id}
