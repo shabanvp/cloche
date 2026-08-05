@@ -27,7 +27,6 @@ export default function VendorLayout({ children }: { children: ReactNode }) {
         <main className="flex-1 py-10 px-4 sm:px-6 lg:px-8 max-w-[1200px] mx-auto w-full">
           {children}
         </main>
-        <Footer />
       </div>
     );
   }
@@ -44,8 +43,6 @@ export default function VendorLayout({ children }: { children: ReactNode }) {
           </div>
         </div>
       </main>
-      
-      <Footer />
     </div>
   );
 }
