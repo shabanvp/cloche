@@ -10,6 +10,7 @@ export default function VendorLayout({ children }: { children: ReactNode }) {
   const isAuthPage = pathname === "/vendor/login" || pathname === "/vendor/register";
   const isNavigationHub = pathname === "/vendor" || pathname === "/vendor/";
   const isStandaloneOverview = pathname === "/vendor/overview" || pathname === "/vendor/overview/";
+  const isStandaloneProfile = pathname === "/vendor/profile" || pathname === "/vendor/profile/";
 
   if (isAuthPage) {
     return (
@@ -21,8 +22,8 @@ export default function VendorLayout({ children }: { children: ReactNode }) {
     );
   }
 
-  // Standalone full-width screens (Navigation Hub & Overview) without sidebar or public footer
-  if (isNavigationHub || isStandaloneOverview) {
+  // Standalone full-width screens (Navigation Hub, Overview, Profile) without sidebar or public footer
+  if (isNavigationHub || isStandaloneOverview || isStandaloneProfile) {
     return (
       <div className="min-h-screen bg-[#FAF7F2] flex flex-col font-sans">
         <main className="flex-1 py-6 px-4 sm:px-6 lg:px-8 max-w-[1200px] mx-auto w-full">
