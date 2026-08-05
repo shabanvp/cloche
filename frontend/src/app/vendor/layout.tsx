@@ -8,6 +8,7 @@ import { VendorSidebar } from "./VendorSidebar";
 export default function VendorLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const isAuthPage = pathname === "/vendor/login" || pathname === "/vendor/register";
+  const isNavigationHub = pathname === "/vendor" || pathname === "/vendor/";
 
   if (isAuthPage) {
     return (
@@ -19,9 +20,22 @@ export default function VendorLayout({ children }: { children: ReactNode }) {
     );
   }
 
+  // Navigation Hub main screen: Render standalone full-width navigation screen without duplicate sidebar
+  if (isNavigationHub) {
+    return (
+      <div className="min-h-screen bg-ivory flex flex-col justify-between font-sans">
+        <main className="flex-1 py-10 px-4 sm:px-6 lg:px-8 max-w-[1200px] mx-auto w-full">
+          {children}
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  // Dedicated Sub-Pages: Render Sidebar on the left and sub-page content on the right
   return (
-    <div className="min-h-screen bg-ivory flex flex-col justify-between">
-      <main className="flex-1 py-12 px-4 sm:px-6 lg:px-8 max-w-[1400px] mx-auto w-full">
+    <div className="min-h-screen bg-ivory flex flex-col justify-between font-sans">
+      <main className="flex-1 py-10 px-4 sm:px-6 lg:px-8 max-w-[1400px] mx-auto w-full">
         <div className="flex flex-col lg:flex-row gap-8">
           <VendorSidebar />
           {/* Main Content Area */}
@@ -35,4 +49,3 @@ export default function VendorLayout({ children }: { children: ReactNode }) {
     </div>
   );
 }
-
