@@ -744,8 +744,15 @@ export function getVenueById(id: string): VenueDetail | undefined {
     } catch (e) {}
   }
 
-  // 2. Predefined static list lookup
-  const found = venues.find((v) => v.id === id);
+  // 2. Predefined static list lookup (flexible ID & slug matching)
+  const normId = id.toLowerCase().trim();
+  const found = venues.find(
+    (v) =>
+      v.id.toLowerCase() === normId ||
+      v.id.toLowerCase() === normId.replace(/^the-/, "") ||
+      normId.includes(v.id.toLowerCase()) ||
+      v.id.toLowerCase().includes(normId)
+  );
   if (found) return found;
 
   // 3. Dynamic list lookup

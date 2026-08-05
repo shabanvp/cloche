@@ -15,6 +15,7 @@ import {
   Filter,
   Layers,
 } from "lucide-react";
+import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import {
   CategoryConfig,
@@ -148,6 +149,9 @@ export function VendorCategoryListing({
 
   return (
     <div className="min-h-screen bg-[#FBF8F1] font-sans text-charcoal flex flex-col justify-between">
+      {/* 1. Reuse existing Website Navbar Header */}
+      <Navbar />
+
       <main className="flex-grow py-6 sm:py-10 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto w-full">
         {/* Breadcrumb Header */}
         <nav className="flex items-center gap-2 text-xs text-charcoal/60 mb-4 font-medium">
@@ -276,10 +280,11 @@ export function VendorCategoryListing({
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredVendors.map((vendor) => {
               const isLiked = wishlist.has(vendor.id);
+              const cardHref = categoryConfig.slug === "venues" ? `/venues/${vendor.slug || vendor.id}` : `/venues/${vendor.slug || vendor.id}`;
               return (
                 <Link
                   key={vendor.id}
-                  href={`/vendors/${vendor.slug}`}
+                  href={cardHref}
                   className="bg-white rounded-2xl border border-gold/15 shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col justify-between group"
                 >
                   <div>
