@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { User, Heart, Calendar, Settings, LogOut } from "lucide-react";
+import { User, Heart, MessageSquare, FileText, Scale, Star, Settings, LogOut } from "lucide-react";
 import { logout } from "@/app/actions/auth";
 import { fetchAuthenticatedUser, resolveUserDisplayName } from "@/lib/userStore";
 
@@ -24,6 +24,16 @@ export function DashboardSidebar() {
     loadUser();
   }, []);
 
+  const navItems = [
+    { href: "/dashboard", label: "My Profile", icon: User },
+    { href: "/dashboard/wishlist", label: "Saved Vendors", icon: Heart },
+    { href: "/dashboard/inquiries", label: "My Inquiries", icon: MessageSquare },
+    { href: "/dashboard/quotations", label: "Quotations", icon: FileText },
+    { href: "/dashboard/compare", label: "Compare Vendors", icon: Scale },
+    { href: "/dashboard/reviews", label: "My Reviews", icon: Star },
+    { href: "/dashboard/settings", label: "Settings", icon: Settings },
+  ];
+
   return (
     <aside className={`w-full md:w-64 shrink-0 ${isSettingsPage ? "hidden md:block" : ""}`}>
       <div className="bg-white rounded-2xl shadow-sm border border-gold/10 overflow-hidden sticky top-24">
@@ -38,21 +48,24 @@ export function DashboardSidebar() {
 
         {/* Navigation */}
         <nav className="p-2 space-y-1">
-          <Link href="/dashboard" className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-charcoal hover:bg-ivory hover:text-emerald transition-colors">
-            <User className="w-4 h-4 text-gold" /> My Profile
-          </Link>
-          <Link href="/dashboard/wishlist" className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-charcoal hover:bg-ivory hover:text-emerald transition-colors">
-            <Heart className="w-4 h-4 text-gold" /> Saved Items
-          </Link>
-          <Link href="/dashboard/appointments" className="flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium text-charcoal hover:bg-ivory hover:text-emerald transition-colors">
-            <div className="flex items-center gap-3">
-              <Calendar className="w-4 h-4 text-gold" /> Appointments
-            </div>
-            <span className="bg-emerald text-white text-[10px] px-2 py-0.5 rounded-full">1</span>
-          </Link>
-          <Link href="/dashboard/settings" className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-charcoal hover:bg-ivory hover:text-emerald transition-colors">
-            <Settings className="w-4 h-4 text-gold" /> Settings
-          </Link>
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = pathname === item.href;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors ${
+                  isActive
+                    ? "bg-emerald text-white shadow-sm font-semibold"
+                    : "text-charcoal hover:bg-ivory hover:text-emerald"
+                }`}
+              >
+                <Icon className={`w-4 h-4 ${isActive ? "text-gold font-bold" : "text-gold"}`} />
+                {item.label}
+              </Link>
+            );
+          })}
         </nav>
 
         <div className="p-4 border-t border-gold/10">
