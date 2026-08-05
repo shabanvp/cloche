@@ -10,6 +10,8 @@ import {
   Heart,
   Star,
   Users,
+  MapPin,
+  CheckCircle2,
 } from "lucide-react";
 import { BottomNavBar } from "@/components/BottomNavBar";
 import { Boutique } from "@/types";
@@ -40,27 +42,41 @@ function resolveCategory(boutique: Boutique): string {
   return "Bridal Wear";
 }
 
+function resolveDetailHref(boutique: Boutique): string {
+  const category = resolveCategory(boutique).toLowerCase();
+  const id = boutique.id;
+  if (category.includes("venue")) return `/venues/${id}`;
+  if (category.includes("photo")) return `/photographers/${id}`;
+  if (category.includes("makeup")) return `/makeup-artists/${id}`;
+  if (category.includes("decor") || category.includes("planner")) return `/decor-planning/${id}`;
+  if (category.includes("cater")) return `/catering/${id}`;
+  if (category.includes("jewel")) return `/jewellery/${id}`;
+  if (category.includes("invitat")) return `/invitations/${id}`;
+  if (category.includes("mehendi")) return `/mehendi-artists/${id}`;
+  if (category.includes("bridal")) return `/bridal-wear/${id}`;
+  if (category.includes("groom")) return `/groom-wear/${id}`;
+  return `/boutiques/${id}`;
+}
+
 const CATEGORY_FILTERS = [
   "All",
   "Photographers",
   "Makeup",
   "Decor",
   "Planners",
-  "Jewellery",
   "Catering",
+  "Mehendi",
   "Bridal Wear",
   "Groom Wear",
+  "Jewellery",
+  "Invitations",
   "Videographer",
   "Decorator",
-  "Wedding Planner",
   "Cake Designer",
   "Entertainment",
   "Choreographer",
   "Car Rental",
   "Flower Decoration",
-  "Rental Services",
-  "Gift Store",
-  "Honeymoon Planners",
 ] as const;
 type CategoryFilter = (typeof CATEGORY_FILTERS)[number];
 
@@ -72,11 +88,11 @@ const FILTER_MATCH: Record<CategoryFilter, string> = {
   Planners: "plan",
   Jewellery: "jewel",
   Catering: "cater",
+  Mehendi: "mehendi",
   "Bridal Wear": "bridal",
   "Groom Wear": "groom",
   Videographer: "video",
   Decorator: "decor",
-  "Wedding Planner": "plan",
   "Cake Designer": "cake",
   Entertainment: "entertain",
   Choreographer: "choreo",
@@ -85,6 +101,7 @@ const FILTER_MATCH: Record<CategoryFilter, string> = {
   "Rental Services": "rental",
   "Gift Store": "gift",
   "Honeymoon Planners": "honeymoon",
+  "Invitations": "invitat",
 };
 
 interface VendorsListingProps {
@@ -131,17 +148,18 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
             const normName = (item.boutique_name || item.name || "").toLowerCase().trim();
             if (itemKey && normName && !mergedMap.has(itemKey) && !seenNames.has(normName)) {
               seenNames.add(normName);
-              const logoSrc = item.logo || item.logo_url || item.profile_logo || item.image_url || item.image || "";
+              const logoSrc = item.coverImage || item.cover || item.logo || item.logo_url || item.profile_logo || item.image_url || item.image || "";
               mergedMap.set(itemKey, {
                 id: itemKey,
                 boutique_name: item.boutique_name || item.name || "Wedding Vendor",
                 image_url: logoSrc,
                 logo_url: logoSrc,
                 logo: logoSrc,
-                rating: item.rating || 5.0,
+                rating: item.rating || 4.8,
                 city: item.city || "Kochi",
                 area: item.district || item.location || "Kerala",
                 tags: item.category || item.tags || "Bridal Boutique",
+                starting_price: item.startingPrice || item.starting_price || "₹50,000",
               });
             }
           });
@@ -156,7 +174,7 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
           }
         });
 
-        // 3. Fallback System Vendors across all categories
+        // Fallback System Vendors across all categories
         const { getAllSystemVendors } = require("@/lib/allSystemVendors");
         const systemVendors = getAllSystemVendors();
         systemVendors.forEach((item: any) => {
@@ -172,8 +190,6 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
         return () => window.removeEventListener("cloche_wishlist_updated", updateWishlistSet);
       } catch (e) {}
     }
-    const { getAllSystemVendors } = require("@/lib/allSystemVendors");
-    setBoutiquesList(getAllSystemVendors());
   }, [initialBoutiques]);
 
   const filtered = useMemo(() => {
@@ -198,6 +214,7 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
 
   const toggleWishlist = (e: React.MouseEvent, boutique: Boutique) => {
     e.preventDefault();
+    e.stopPropagation();
     const { toggleWishlistItem } = require("@/lib/wishlistStore");
     const category = resolveCategory(boutique);
     toggleWishlistItem({
@@ -206,37 +223,31 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
       category,
       city: boutique.city || boutique.area || "Kerala",
       boutique_name: boutique.boutique_name,
-      rating: boutique.rating || 4.9,
-      image: boutique.image_url || (boutique as any).logo_url || (boutique as any).logo,
+      rating: boutique.rating || 4.8,
+      image: boutique.image_url || (boutique as any).coverImage || (boutique as any).logo,
     });
   };
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: "#F5F0E8" }}>
-      {/* ── Header ── */}
-      <header
-        className="sticky top-0 z-40 flex items-center justify-between px-4 py-4"
-        style={{ background: "#F5F0E8" }}
-      >
+    <div className="min-h-screen bg-[#FAF7F2] flex flex-col font-sans">
+      {/* ── Top Header Bar ── */}
+      <header className="flex items-center justify-between px-4 pt-4 pb-2">
         <Link
           href="/"
-          className="flex h-10 w-10 items-center justify-center rounded-full"
-          style={{ background: "rgba(15,76,69,0.08)" }}
-          aria-label="Back"
+          className="flex h-10 w-10 items-center justify-center rounded-full bg-[#EDE7DD] text-charcoal transition-colors hover:bg-[#E2D8C8]"
+          aria-label="Go back to home"
         >
           <ArrowLeft className="h-5 w-5" style={{ color: "#0F4C45" }} />
         </Link>
-
         <h1
-          className="font-display text-[20px] font-bold"
+          className="font-serif text-[24px] font-bold tracking-tight text-center flex-1"
           style={{ color: "#0F4C45" }}
         >
           Vendors
         </h1>
-
         <button
-          className="flex h-10 w-10 items-center justify-center rounded-full"
-          style={{ background: "rgba(15,76,69,0.08)" }}
+          type="button"
+          className="flex h-10 w-10 items-center justify-center rounded-full bg-[#EDE7DD] transition-colors hover:bg-[#E2D8C8]"
           aria-label="Filter vendors"
         >
           <SlidersHorizontal className="h-5 w-5" style={{ color: "#0F4C45" }} />
@@ -246,27 +257,22 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
       {/* ── Search Bar ── */}
       <div className="px-4 pb-3">
         <div
-          className="flex items-center gap-3 rounded-2xl px-4 py-3"
-          style={{
-            background: "#FFFFFF",
-            boxShadow: "0 2px 12px rgba(15,76,69,0.07)",
-          }}
+          className="flex items-center gap-3 rounded-2xl px-4 py-3 bg-white border border-gold/15 shadow-xs"
         >
-          <Search className="h-4 w-4 shrink-0" style={{ color: "#9A8D7D" }} />
+          <Search className="h-4 w-4 shrink-0 text-charcoal/40" />
           <input
             type="text"
             placeholder="Search vendors..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="flex-1 bg-transparent text-[15px] outline-none placeholder:text-[#B5A898]"
-            style={{ color: "#2D2520" }}
+            className="flex-1 bg-transparent text-[15px] outline-none placeholder:text-charcoal/40 text-charcoal"
           />
         </div>
       </div>
 
       {/* ── Filter Chips ── */}
       <div
-        className="flex gap-2 overflow-x-auto px-4 pb-3 scrollbar-none"
+        className="flex gap-2 overflow-x-auto px-4 pb-4 scrollbar-none"
         style={{ WebkitOverflowScrolling: "touch" } as React.CSSProperties}
       >
         {CATEGORY_FILTERS.map((f) => {
@@ -282,7 +288,6 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
                 background: active ? "#0F4C45" : "#FFFFFF",
                 color: active ? "#FFFFFF" : "#4A3F35",
                 border: active ? "none" : "1px solid #E2D5C0",
-                boxShadow: active ? "0 4px 14px rgba(15,76,69,0.22)" : "none",
               }}
             >
               {f}
@@ -291,150 +296,147 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
         })}
       </div>
 
-      {/* ── Vendors List ── */}
-      <div
-        className="flex-1 mx-4 mb-28 rounded-2xl overflow-hidden"
-        style={{
-          background: "#FFFFFF",
-          boxShadow: "0 4px 20px rgba(15,76,69,0.07)",
-        }}
-      >
+      {/* ── Vendors Grid (Matching Reference Image 2) ── */}
+      <div className="flex-1 px-4 mb-28">
         {filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center px-6">
-            <Users className="h-10 w-10 mb-4" style={{ color: "#C8A96A" }} />
-            <p
-              className="font-display text-[20px]"
-              style={{ color: "#0F4C45" }}
-            >
+          <div className="flex flex-col items-center justify-center py-20 text-center px-6 bg-white rounded-2xl border border-gold/15">
+            <Users className="h-10 w-10 mb-4 text-gold" />
+            <p className="font-serif text-[20px] text-[#0F4C45] font-bold">
               No vendors found
             </p>
-            <p className="mt-2 text-sm" style={{ color: "#6B5E52" }}>
+            <p className="mt-2 text-sm text-charcoal/60">
               Try adjusting your search or filters.
             </p>
           </div>
         ) : (
-          <ul>
-            {filtered.map((boutique, idx) => {
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            {filtered.map((boutique) => {
               const isWishlisted = wishlist.has(boutique.id);
               const category = resolveCategory(boutique);
-              const isLast = idx === filtered.length - 1;
+              const detailHref = resolveDetailHref(boutique);
 
               const rawLogo = (
-                (boutique as any).logo ||
+                (boutique as any).coverImage ||
+                (boutique as any).cover ||
+                (boutique as any).image_url ||
                 (boutique as any).logo_url ||
                 (boutique as any).profile_logo ||
-                boutique.image_url ||
+                (boutique as any).logo ||
                 ""
               ).toString().trim();
 
-              const isValidLogoUrl =
+              const isValidCover =
                 rawLogo.startsWith("data:image/") ||
                 rawLogo.startsWith("http://") ||
                 rawLogo.startsWith("https://") ||
                 (rawLogo.startsWith("/") && !rawLogo.startsWith("//"));
 
-              const validAvatar = isValidLogoUrl
+              const validCover = isValidCover
                 ? rawLogo
-                : "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?q=80&w=200&auto=format&fit=crop";
+                : "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=80";
+
+              const locationText = `${boutique.city || "Kochi"}${boutique.area ? `, ${boutique.area}` : ""}`;
+              const startingPrice = boutique.starting_price || (category.includes("Venue") ? "₹1,80,000" : "₹50,000");
+
+              const overlayTag = category.includes("Venue")
+                ? (boutique.id.toString().length % 2 === 0 ? "Outdoor" : "Indoor")
+                : category;
+
+              const specialtyTag = category.includes("Venue")
+                ? "Grand Ballroom"
+                : category.includes("Makeup")
+                ? "Bridal Makeover"
+                : category.includes("Photo")
+                ? "Cinematic Films"
+                : category.includes("Decor")
+                ? "Luxury Wedding Setup"
+                : category.includes("Cater")
+                ? "Royal Feast"
+                : category.includes("Jewel")
+                ? "Kundan & Gold"
+                : "Luxury Partner";
 
               return (
-                <li key={boutique.id}>
-                  <Link
-                    href={`/boutiques/${boutique.id}`}
-                    className="flex items-center gap-4 px-4 py-4 transition-colors active:bg-[#F5F0E8]/60"
-                    style={{ display: "flex" }}
-                  >
-                    {/* Circular avatar */}
-                    <div
-                      className="relative shrink-0 rounded-full overflow-hidden"
-                      style={{
-                        width: "64px",
-                        height: "64px",
-                        border: "2px solid #F0E8D8",
-                      }}
-                    >
-                      <Image
-                        src={validAvatar}
-                        alt={boutique.boutique_name}
-                        fill
-                        sizes="64px"
-                        className="object-cover"
-                        unoptimized={validAvatar.startsWith("data:")}
-                      />
-                    </div>
+                <Link
+                  key={boutique.id}
+                  href={detailHref}
+                  className="bg-white rounded-2xl border border-gold/15 shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col justify-between group"
+                >
+                  {/* Card Image Header */}
+                  <div className="relative aspect-[4/3] w-full overflow-hidden bg-gray-100">
+                    <Image
+                      src={validCover}
+                      alt={boutique.boutique_name}
+                      fill
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      className="object-cover group-hover:scale-105 transition-transform duration-500"
+                      unoptimized={validCover.startsWith("data:")}
+                    />
 
-                    {/* Info */}
-                    <div className="flex-1 min-w-0">
-                      <p
-                        className="font-display text-[16px] font-semibold leading-tight truncate"
-                        style={{ color: "#1A1410" }}
-                      >
-                        {boutique.boutique_name}
-                      </p>
-                      <p
-                        className="mt-0.5 text-[13px]"
-                        style={{ color: "#7A6E65" }}
-                      >
-                        {category}
-                      </p>
-                      <div className="mt-1.5 flex items-center gap-1.5">
-                        <Star
-                          className="h-3.5 w-3.5 fill-current"
-                          style={{ color: "#C8A96A" }}
-                        />
-                        <span
-                          className="text-[13px] font-semibold"
-                          style={{ color: "#1A1410" }}
-                        >
-                          {boutique.rating
-                            ? boutique.rating.toFixed(1)
-                            : "4.8"}
-                        </span>
-                        <span
-                          className="text-[12px]"
-                          style={{ color: "#9A8D7D" }}
-                        >
-                          ({Math.floor(Math.random() * 150 + 50)})
-                        </span>
-                      </div>
-                    </div>
+                    {/* Top Overlay Badge */}
+                    <span className="absolute bottom-3 left-3 bg-white/90 backdrop-blur-xs text-charcoal text-[10px] font-bold px-2.5 py-1 rounded-md shadow-xs">
+                      {overlayTag}
+                    </span>
 
-                    {/* Heart */}
+                    {/* Wishlist Button */}
                     <button
+                      type="button"
                       onClick={(e) => toggleWishlist(e, boutique)}
-                      className="shrink-0 flex h-8 w-8 items-center justify-center rounded-full transition-transform active:scale-90"
-                      aria-label={
-                        isWishlisted
-                          ? "Remove from wishlist"
-                          : "Add to wishlist"
-                      }
+                      className="absolute top-3 right-3 flex h-8 w-8 items-center justify-center rounded-full bg-black/30 text-white backdrop-blur-md transition-transform active:scale-95 z-10"
+                      aria-label={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
                     >
                       <Heart
-                        className="h-5 w-5 transition-colors"
-                        style={{
-                          color: isWishlisted ? "#E8614A" : "#C8A96A",
-                          fill: isWishlisted ? "#E8614A" : "none",
-                          strokeWidth: 1.8,
-                        }}
+                        className={`h-4 w-4 transition-colors ${
+                          isWishlisted ? "fill-red-500 text-red-500" : "text-white fill-none"
+                        }`}
                       />
                     </button>
-                  </Link>
+                  </div>
 
-                  {/* Divider (not on last) */}
-                  {!isLast && (
-                    <div
-                      className="mx-4"
-                      style={{ height: "1px", background: "#F0E8D8" }}
-                    />
-                  )}
-                </li>
+                  {/* Card Content */}
+                  <div className="p-4 space-y-2 flex-1 flex flex-col justify-between">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-1.5">
+                        <h3 className="font-serif font-bold text-base text-charcoal group-hover:text-[#0F4C45] transition-colors truncate">
+                          {boutique.boutique_name}
+                        </h3>
+                        <CheckCircle2 className="h-4 w-4 text-[#0F4C45] shrink-0" />
+                      </div>
+
+                      <div className="flex items-center gap-1 text-xs text-charcoal/70">
+                        <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400 shrink-0" />
+                        <span className="font-bold text-charcoal">
+                          {boutique.rating ? boutique.rating.toFixed(1) : "4.8"}
+                        </span>
+                        <span className="text-charcoal/50">
+                          ({(Math.abs(boutique.boutique_name.length * 17) % 120) + 40})
+                        </span>
+                      </div>
+
+                      <p className="text-xs text-charcoal/60 flex items-center gap-1 truncate pt-0.5">
+                        <MapPin className="h-3.5 w-3.5 text-charcoal/40 shrink-0" />
+                        <span>{locationText}</span>
+                      </p>
+
+                      <p className="text-xs font-semibold text-charcoal pt-1">
+                        Starts from <span className="font-bold text-[#0F4C45]">{startingPrice}</span>
+                      </p>
+                    </div>
+
+                    {/* Pink Specialty Pill */}
+                    <div className="pt-2">
+                      <span className="inline-block bg-rose-50 text-rose-700 text-[10px] font-bold px-2.5 py-1 rounded-md border border-rose-100">
+                        {specialtyTag}
+                      </span>
+                    </div>
+                  </div>
+                </Link>
               );
             })}
-          </ul>
+          </div>
         )}
       </div>
 
-      {/* ── Bottom Nav ── */}
       <BottomNavBar activeTab="vendors" />
     </div>
   );
