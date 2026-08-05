@@ -12,6 +12,7 @@ export default function VendorLayout({ children }: { children: ReactNode }) {
   const isStandaloneOverview = pathname === "/vendor/overview" || pathname === "/vendor/overview/";
   const isStandaloneProfile = pathname === "/vendor/profile" || pathname === "/vendor/profile/";
   const isStandalonePackages = pathname.startsWith("/vendor/packages") || pathname.startsWith("/vendor/collections-pricing");
+  const isStandaloneOffers = pathname.startsWith("/vendor/offers");
 
   if (isAuthPage) {
     return (
@@ -23,8 +24,8 @@ export default function VendorLayout({ children }: { children: ReactNode }) {
     );
   }
 
-  // Standalone full-width screens (Navigation Hub, Overview, Profile, Collections & Pricing) without sidebar or public footer
-  if (isNavigationHub || isStandaloneOverview || isStandaloneProfile || isStandalonePackages) {
+  // Standalone full-width screens (Navigation Hub, Overview, Profile, Collections & Pricing, Offers) without sidebar or public footer
+  if (isNavigationHub || isStandaloneOverview || isStandaloneProfile || isStandalonePackages || isStandaloneOffers) {
     return (
       <div className="min-h-screen bg-[#FAF7F2] flex flex-col font-sans">
         <main className="flex-1 py-6 px-4 sm:px-6 lg:px-8 max-w-[1200px] mx-auto w-full">
