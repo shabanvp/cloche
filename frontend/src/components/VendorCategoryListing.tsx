@@ -169,28 +169,19 @@ export function VendorCategoryListing({
 
   return (
     <div className="min-h-screen bg-[#FBF8F1] font-sans text-charcoal flex flex-col justify-between">
-      <main className="flex-grow py-6 sm:py-10 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto w-full">
-        {/* Breadcrumb Header */}
-        <nav className="flex items-center gap-2 text-xs text-charcoal/60 mb-4 font-medium">
-          <Link href="/" className="hover:text-[#0F4C45] transition-colors">
-            Home
-          </Link>
-          <span>›</span>
-          <span className="text-[#0F4C45] font-bold">{categoryConfig.title}</span>
-        </nav>
-
-        {/* Category Title & Tagline */}
-        <div className="mb-6 space-y-1">
-          <h1 className="text-3xl sm:text-4xl font-display font-bold text-charcoal tracking-tight">
+      <main className="flex-grow pt-3 pb-6 sm:pt-4 sm:pb-8 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto w-full">
+        {/* Category Title & Tagline - Centered & Tight Padding */}
+        <div className="mb-4 text-center space-y-1">
+          <h1 className="text-2xl sm:text-4xl font-display font-bold text-charcoal tracking-tight text-center">
             {categoryConfig.title}
           </h1>
-          <p className="text-sm sm:text-base text-charcoal/70 max-w-xl leading-relaxed">
+          <p className="text-xs sm:text-sm text-charcoal/70 max-w-xl mx-auto text-center leading-relaxed">
             {categoryConfig.subtitle}
           </p>
         </div>
 
         {/* Search Input Bar with Filter Icon */}
-        <div className="relative mb-6">
+        <div className="relative mb-4">
           <div className="relative flex items-center">
             <Search className="absolute left-4 w-5 h-5 text-charcoal/40" />
             <input
@@ -198,7 +189,7 @@ export function VendorCategoryListing({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={categoryConfig.searchPlaceholder}
-              className="w-full bg-white border border-gold/20 rounded-2xl pl-12 pr-14 py-3.5 text-sm sm:text-base text-charcoal placeholder:text-charcoal/40 focus:outline-none focus:border-[#0F4C45] shadow-xs transition-all"
+              className="w-full bg-white border border-gold/20 rounded-2xl pl-12 pr-14 py-3 text-sm sm:text-base text-charcoal placeholder:text-charcoal/40 focus:outline-none focus:border-[#0F4C45] shadow-xs transition-all"
             />
             <button
               onClick={() => setShowFilterDrawer(!showFilterDrawer)}
@@ -211,14 +202,14 @@ export function VendorCategoryListing({
         </div>
 
         {/* Sub-category Filter Badges (Horizontal Scrollable Pill Bar) */}
-        <div className="flex items-center gap-2.5 overflow-x-auto pb-3 mb-6 scrollbar-none">
+        <div className="flex items-center gap-2.5 overflow-x-auto pb-2 mb-4 scrollbar-none">
           {categoryConfig.subFilters.map((filter) => {
             const isSelected = activeSubFilter === filter.value;
             return (
               <button
                 key={filter.value}
                 onClick={() => setActiveSubFilter(filter.value)}
-                className={`px-4 py-2 rounded-full text-xs font-bold transition-all shrink-0 border ${
+                className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 border ${
                   isSelected
                     ? "bg-[#0F4C45] text-white border-[#0F4C45] shadow-sm"
                     : "bg-white text-charcoal/70 border-gold/20 hover:border-[#0F4C45] hover:text-[#0F4C45]"
@@ -231,7 +222,7 @@ export function VendorCategoryListing({
         </div>
 
         {/* Filter & Sort Dropdown Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-3 mb-6 pt-2 border-t border-gold/15">
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-4 pt-2 border-t border-gold/15">
           <div className="flex flex-wrap items-center gap-2.5">
             {/* Location Select */}
             <div className="relative">
