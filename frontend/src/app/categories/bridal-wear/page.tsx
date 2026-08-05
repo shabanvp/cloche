@@ -1,11 +1,11 @@
+import { VendorCategoryListing } from "@/components/VendorCategoryListing";
 import type { Metadata } from "next";
-import { BridalWearListing } from "@/components/BridalWearListing";
 
 export const metadata: Metadata = {
-  title: "Bridal Wear & Boutiques | Cloche",
-  description: "Browse luxury bridal wear, lehengas, sarees, and couture boutiques.",
+  title: "Bridal Wear | Cloche",
+  description: "Explore luxury bridal lehengas, gowns, designer sarees, and bridal boutiques.",
 };
 
-export default function BridalWearPage() {
-  return <BridalWearListing />;
+export default function BridalWearCategoryPage() {
+  return <VendorCategoryListing categorySlug="bridal-wear" />;
 }

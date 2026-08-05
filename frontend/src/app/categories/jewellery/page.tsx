@@ -1,11 +1,11 @@
+import { VendorCategoryListing } from "@/components/VendorCategoryListing";
 import type { Metadata } from "next";
-import { JewelleryListing } from "@/components/JewelleryListing";
 
 export const metadata: Metadata = {
-  title: "Jewellery Vendors | Cloche",
-  description: "Explore premium bridal jewellery vendors – Polki, Kundan, Diamond & Gold collections curated for your wedding.",
+  title: "Jewelry | Cloche",
+  description: "Explore exquisite wedding jewelry, bridal sets, gold, diamond, and polki collections.",
 };
 
-export default function JewelleryPage() {
-  return <JewelleryListing />;
+export default function JewelleryCategoryPage() {
+  return <VendorCategoryListing categorySlug="jewellery" />;
 }
