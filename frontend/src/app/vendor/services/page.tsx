@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 
 interface ServiceItem {
   id: string;
@@ -41,8 +42,9 @@ interface CatalogItem {
   status: string;
 }
 
-export default function VendorServicesPage() {
-  const [activeTab, setActiveTab] = useState<"services" | "packages" | "catalog">("services");
+function VendorServicesContent() {
+  const searchParams = useSearchParams();
+  const activeTab = (searchParams.get("tab") as "services" | "packages" | "catalog") || "services";
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
 
@@ -253,8 +255,8 @@ export default function VendorServicesPage() {
         {/* Navigation Tabs & Search Controls */}
         <div className="bg-white rounded-2xl p-4 shadow-sm border border-[#E5DEC9] flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="flex items-center gap-2 bg-[#FAF7F2] p-1.5 rounded-xl border border-[#E5DEC9]/60">
-            <button
-              onClick={() => setActiveTab("services")}
+            <Link
+              href="/vendor/services?tab=services"
               className={`px-5 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
                 activeTab === "services"
                   ? "bg-[#0F4C45] text-white shadow-md"
@@ -262,9 +264,9 @@ export default function VendorServicesPage() {
               }`}
             >
               Services ({services.length})
-            </button>
-            <button
-              onClick={() => setActiveTab("packages")}
+            </Link>
+            <Link
+              href="/vendor/services?tab=packages"
               className={`px-5 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
                 activeTab === "packages"
                   ? "bg-[#0F4C45] text-white shadow-md"
@@ -272,9 +274,9 @@ export default function VendorServicesPage() {
               }`}
             >
               Packages ({packages.length})
-            </button>
-            <button
-              onClick={() => setActiveTab("catalog")}
+            </Link>
+            <Link
+              href="/vendor/services?tab=catalog"
               className={`px-5 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
                 activeTab === "catalog"
                   ? "bg-[#0F4C45] text-white shadow-md"
@@ -282,7 +284,7 @@ export default function VendorServicesPage() {
               }`}
             >
               Catalog Inventory ({catalog.length})
-            </button>
+            </Link>
           </div>
 
           <div className="relative w-full md:w-72">
@@ -600,5 +602,13 @@ export default function VendorServicesPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function VendorServicesPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-charcoal/60">Loading Services...</div>}>
+      <VendorServicesContent />
+    </Suspense>
   );
 }

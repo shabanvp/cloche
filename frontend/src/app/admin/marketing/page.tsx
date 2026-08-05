@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { 
   Megaphone, Check, X, Pause, Play, Trash2, Eye, ShieldCheck, DollarSign, 
   TrendingUp, Download, Sparkles, Filter, Search, Award, Star, CheckCircle2, AlertCircle, Plus, PhoneCall,
@@ -17,9 +17,10 @@ import {
 import { getVendorOffers, VendorOffer } from "@/lib/vendorOffersStore";
 import { CampaignPreviewModal } from "@/components/CampaignPreviewModal";
 
-export default function AdminMarketingPage() {
+function AdminMarketingContent() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<"dashboard" | "campaigns" | "drafts" | "requests" | "revenue" | "analytics" | "offers">("dashboard");
+  const searchParams = useSearchParams();
+  const activeTab = (searchParams.get("tab") as "dashboard" | "campaigns" | "drafts" | "requests" | "revenue" | "analytics" | "offers") || "dashboard";
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [requests, setRequests] = useState<CampaignRequest[]>([]);
   const [statusFilter, setStatusFilter] = useState("All");
@@ -67,7 +68,7 @@ export default function AdminMarketingPage() {
     if (renewed) {
       refreshData();
       alert(`Campaign renewed successfully as draft "${renewed.campaignName}"!`);
-      setActiveTab("drafts");
+      router.push("/admin/marketing?tab=drafts");
     }
   };
 
@@ -147,46 +148,46 @@ export default function AdminMarketingPage() {
 
       {/* Admin Submenu Tabs */}
       <div className="flex gap-2 overflow-x-auto pb-2 border-b border-gold/10 hide-scrollbar">
-        <button
-          onClick={() => setActiveTab("dashboard")}
+        <Link
+          href="/admin/marketing?tab=dashboard"
           className={`px-5 py-2.5 rounded-2xl text-xs font-bold uppercase tracking-wider transition-all ${
             activeTab === "dashboard" ? "bg-[#0F4C45] text-white shadow-md" : "bg-white text-charcoal/70 hover:bg-gold/10"
           }`}
         >
           Dashboard & Widgets
-        </button>
-        <button
-          onClick={() => setActiveTab("campaigns")}
+        </Link>
+        <Link
+          href="/admin/marketing?tab=campaigns"
           className={`px-5 py-2.5 rounded-2xl text-xs font-bold uppercase tracking-wider transition-all ${
             activeTab === "campaigns" ? "bg-[#0F4C45] text-white shadow-md" : "bg-white text-charcoal/70 hover:bg-gold/10"
           }`}
         >
           All Campaigns ({campaigns.filter((c) => c.status === "pending").length} Pending)
-        </button>
-        <button
-          onClick={() => setActiveTab("drafts")}
+        </Link>
+        <Link
+          href="/admin/marketing?tab=drafts"
           className={`px-5 py-2.5 rounded-2xl text-xs font-bold uppercase tracking-wider transition-all ${
             activeTab === "drafts" ? "bg-[#0F4C45] text-white shadow-md" : "bg-white text-charcoal/70 hover:bg-gold/10"
           }`}
         >
           Draft Campaigns ({campaigns.filter((c) => c.status === "draft").length})
-        </button>
-        <button
-          onClick={() => setActiveTab("requests")}
+        </Link>
+        <Link
+          href="/admin/marketing?tab=requests"
           className={`px-5 py-2.5 rounded-2xl text-xs font-bold uppercase tracking-wider transition-all ${
             activeTab === "requests" ? "bg-[#0F4C45] text-white shadow-md" : "bg-white text-charcoal/70 hover:bg-gold/10"
           }`}
         >
           Campaign Requests ({requests.length})
-        </button>
-        <button
-          onClick={() => setActiveTab("offers")}
+        </Link>
+        <Link
+          href="/admin/marketing?tab=offers"
           className={`px-5 py-2.5 rounded-2xl text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 ${
             activeTab === "offers" ? "bg-[#0F4C45] text-white shadow-md" : "bg-white text-charcoal/70 hover:bg-gold/10"
           }`}
         >
           <Tag className="w-4 h-4 text-gold" /> Vendor Offers & Promotions
-        </button>
+        </Link>
         <Link
           href="/admin/marketing/leads"
           className="bg-white text-charcoal/70 hover:bg-gold/10 border border-gold/15 px-5 py-2.5 rounded-2xl text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5"
@@ -223,22 +224,22 @@ export default function AdminMarketingPage() {
         >
           <FileText className="w-3.5 h-3.5 text-emerald" /> Contracts
         </Link>
-        <button
-          onClick={() => setActiveTab("revenue")}
+        <Link
+          href="/admin/marketing?tab=revenue"
           className={`px-5 py-2.5 rounded-2xl text-xs font-bold uppercase tracking-wider transition-all ${
             activeTab === "revenue" ? "bg-[#0F4C45] text-white shadow-md" : "bg-white text-charcoal/70 hover:bg-gold/10"
           }`}
         >
           Revenue (₹{totalRevenue.toLocaleString()})
-        </button>
-        <button
-          onClick={() => setActiveTab("analytics")}
+        </Link>
+        <Link
+          href="/admin/marketing?tab=analytics"
           className={`px-5 py-2.5 rounded-2xl text-xs font-bold uppercase tracking-wider transition-all ${
             activeTab === "analytics" ? "bg-[#0F4C45] text-white shadow-md" : "bg-white text-charcoal/70 hover:bg-gold/10"
           }`}
         >
           Analytics & CTR
-        </button>
+        </Link>
       </div>
 
       {/* Tab 1: Dashboard Widgets */}
@@ -284,9 +285,9 @@ export default function AdminMarketingPage() {
               <p className="text-3xl font-display font-bold text-charcoal">
                 {campaigns.filter((c) => c.status === "draft").length} Drafts
               </p>
-              <button onClick={() => setActiveTab("drafts")} className="text-xs text-emerald font-semibold hover:underline">
+              <Link href="/admin/marketing?tab=drafts" className="text-xs text-emerald font-semibold hover:underline">
                 View draft queue →
-              </button>
+              </Link>
             </div>
           </div>
 
@@ -703,5 +704,13 @@ export default function AdminMarketingPage() {
       )}
 
     </div>
+  );
+}
+
+export default function AdminMarketingPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-charcoal/60">Loading Marketing Portal...</div>}>
+      <AdminMarketingContent />
+    </Suspense>
   );
 }

@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import {
   Tag,
   Plus,
@@ -73,11 +74,12 @@ const OFFER_TYPE_OPTIONS: { value: OfferType; label: string; description: string
   { value: "anniversary", label: "Anniversary Offer", description: "Special promotion celebrating business milestone" },
 ];
 
-export default function VendorOffersPage() {
+function VendorOffersContent() {
+  const searchParams = useSearchParams();
+  const activeTab = (searchParams.get("tab") as "overview" | "offers" | "coupons" | "flash" | "analytics" | "settings") || "overview";
   const [vendorId, setVendorId] = useState<string>("v-solitaire");
   const [offers, setOffers] = useState<VendorOffer[]>([]);
   const [coupons, setCoupons] = useState<CouponCode[]>([]);
-  const [activeTab, setActiveTab] = useState<"overview" | "offers" | "coupons" | "flash" | "analytics" | "settings">("overview");
 
   // Filter & Search states
   const [searchQuery, setSearchQuery] = useState("");
@@ -351,9 +353,9 @@ export default function VendorOffersPage() {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
             return (
-              <button
+              <Link
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
+                href={`/vendor/offers?tab=${tab.id}`}
                 className={`px-4 py-2.5 rounded-2xl text-xs font-bold flex items-center gap-2 whitespace-nowrap transition-all cursor-pointer ${
                   isActive
                     ? "bg-[#0F4C45] text-white shadow-sm"
@@ -362,7 +364,7 @@ export default function VendorOffersPage() {
               >
                 <Icon className={`w-4 h-4 ${isActive ? "text-gold" : ""}`} />
                 <span>{tab.label}</span>
-              </button>
+              </Link>
             );
           })}
         </div>
@@ -451,12 +453,12 @@ export default function VendorOffersPage() {
             <div className="space-y-3 pt-2">
               <div className="flex justify-between items-center">
                 <h4 className="font-display text-lg font-bold text-charcoal">Active Promotional Offers ({activeOffers.length})</h4>
-                <button
-                  onClick={() => setActiveTab("offers")}
+                <Link
+                  href="/vendor/offers?tab=offers"
                   className="text-xs font-bold text-[#0F4C45] hover:underline flex items-center gap-1"
                 >
                   View All Offers <ChevronRight className="w-3.5 h-3.5" />
-                </button>
+                </Link>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -1436,5 +1438,13 @@ export default function VendorOffersPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function VendorOffersPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-charcoal/60">Loading Offers...</div>}>
+      <VendorOffersContent />
+    </Suspense>
   );
 }

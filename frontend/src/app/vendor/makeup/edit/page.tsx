@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import {
   Sparkles,
   Save,
@@ -31,11 +32,9 @@ import {
   Globe
 } from "lucide-react";
 
-export default function VendorMakeupEditPage() {
-  // Navigation Active Tab
-  const [activeTab, setActiveTab] = useState<
-    "basic" | "about" | "services" | "packages" | "portfolio" | "videos" | "reviews" | "faqs" | "awards" | "contact"
-  >("basic");
+function VendorMakeupEditContent() {
+  const searchParams = useSearchParams();
+  const activeTab = (searchParams.get("tab") as "basic" | "about" | "services" | "packages" | "portfolio" | "videos" | "reviews" | "faqs" | "awards" | "contact") || "basic";
 
   // State Management
   const [loading, setLoading] = useState(false);
@@ -330,9 +329,9 @@ export default function VendorMakeupEditPage() {
             ].map((tab) => {
               const IconComp = tab.icon;
               return (
-                <button
+                <Link
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id as any)}
+                  href={`/vendor/makeup/edit?tab=${tab.id}`}
                   className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl text-xs font-semibold transition-all ${
                     activeTab === tab.id
                       ? "bg-[#0B5D4F] text-white shadow-md"
@@ -344,7 +343,7 @@ export default function VendorMakeupEditPage() {
                     <span>{tab.label}</span>
                   </div>
                   <ChevronRight className="h-4 w-4 opacity-50" />
-                </button>
+                </Link>
               );
             })}
           </div>
@@ -1081,5 +1080,13 @@ export default function VendorMakeupEditPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function VendorMakeupEditPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-charcoal/60">Loading Profile...</div>}>
+      <VendorMakeupEditContent />
+    </Suspense>
   );
 }

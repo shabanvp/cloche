@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   User,
   Lock,
@@ -21,8 +22,9 @@ import {
 import { logout } from "@/app/actions/auth";
 import { BottomNavBar } from "@/components/BottomNavBar";
 
-export default function SettingsPage() {
-  const [activeTab, setActiveTab] = useState<"profile" | "account" | "notifications" | "privacy" | "security">("profile");
+function SettingsContent() {
+  const searchParams = useSearchParams();
+  const activeTab = (searchParams.get("tab") as "profile" | "account" | "notifications" | "privacy" | "security") || "profile";
   const [darkMode, setDarkMode] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -182,18 +184,15 @@ export default function SettingsPage() {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
           return (
-            <button
+            <Link
               key={tab.id}
-              onClick={() => {
-                setActiveTab(tab.id as any);
-                setSaveMessage({ type: "", text: "" });
-              }}
+              href={`/dashboard/settings?tab=${tab.id}`}
               className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold shrink-0 transition-colors ${
                 isActive ? "bg-emerald text-white shadow-sm" : "bg-white dark:bg-white/5 border border-gold/10 text-charcoal/80 dark:text-white/80"
               }`}
             >
               <Icon className="w-3.5 h-3.5" /> {tab.label}
-            </button>
+            </Link>
           );
         })}
       </div>
@@ -461,5 +460,13 @@ export default function SettingsPage() {
 
       <BottomNavBar />
     </div>
+  );
+}
+
+export default function SettingsPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-charcoal/60">Loading Settings...</div>}>
+      <SettingsContent />
+    </Suspense>
   );
 }
