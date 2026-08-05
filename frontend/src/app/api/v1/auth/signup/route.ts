@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSupabaseConfig, signUpWithSupabaseAuth, deleteAdminSupabaseUser } from "@/lib/supabase";
+import { sendVerificationMail } from "@/lib/email";
 
 export async function POST(req: Request) {
   const logPrefix = "[AUTH_SIGNUP_API]";
@@ -33,7 +34,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // Step 1: Create Supabase Auth user as single source of truth for auth & email verification
+    // Step 1: Create Supabase Auth user as single source of truth for auth
     console.log(`${logPrefix} Step 1: Creating Supabase Auth user for ${cleanEmail}...`);
     const authResult = await signUpWithSupabaseAuth(
       cleanEmail,
@@ -99,6 +100,25 @@ export async function POST(req: Request) {
 
     const rpcData = await rpcRes.json();
     console.log(`${logPrefix} Step 2 Success: Custom DB records inserted atomically.`, rpcData);
+
+    // Step 3: Dispatch Verification Email via Brevo to ensure 100% delivery to user's Gmail inbox
+    const verificationToken = crypto.randomUUID();
+    await fetch(`${url}/rest/v1/users?id=eq.${encodeURIComponent(rpcData.user_id || authUserId)}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        apikey: apiKey,
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({ verification_token: verificationToken }),
+    }).catch(() => null);
+
+    await sendVerificationMail({
+      email: cleanEmail,
+      name: cleanName,
+      verificationToken,
+      role: "customer",
+    });
 
     return NextResponse.json(
       {

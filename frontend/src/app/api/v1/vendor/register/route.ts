@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSupabaseConfig, signUpWithSupabaseAuth, deleteAdminSupabaseUser } from "@/lib/supabase";
+import { sendVerificationMail } from "@/lib/email";
 
 export async function POST(req: Request) {
   const logPrefix = "[VENDOR_REGISTER_API]";
@@ -75,7 +76,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // Step 1: Create Supabase Auth user as single source of truth for auth & email verification
+    // Step 1: Create Supabase Auth user as single source of truth for auth
     console.log(`${logPrefix} Step 1: Creating Supabase Auth user for vendor ${userEmail}...`);
     const authResult = await signUpWithSupabaseAuth(
       userEmail,
@@ -151,6 +152,25 @@ export async function POST(req: Request) {
 
     const rpcData = await rpcRes.json();
     console.log(`${logPrefix} Step 2 Success: Vendor records inserted atomically.`, rpcData);
+
+    // Step 3: Dispatch Verification Email via Brevo to ensure 100% delivery to user's Gmail inbox
+    const verificationToken = crypto.randomUUID();
+    await fetch(`${url}/rest/v1/users?id=eq.${encodeURIComponent(rpcData.user_id)}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        apikey: apiKey,
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({ verification_token: verificationToken }),
+    }).catch(() => null);
+
+    await sendVerificationMail({
+      email: userEmail,
+      name: businessName,
+      verificationToken,
+      role: "vendor",
+    });
 
     return NextResponse.json(
       {
