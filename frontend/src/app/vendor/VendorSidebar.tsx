@@ -77,7 +77,7 @@ export function VendorSidebar() {
         }
 
         if (!resolvedName) {
-          resolvedName = "Cloche Partner Store";
+          resolvedName = "Vendor Partner";
         }
 
         setVendorData({

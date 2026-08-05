@@ -37,11 +37,13 @@ export default function VendorProfileMenuPage() {
           localStorage.getItem("boutique_name") ||
           localStorage.getItem("vendor_name") ||
           localStorage.getItem("businessName") ||
+          localStorage.getItem("owner_name") ||
           localStorage.getItem("user_name");
 
         const rawUserData = localStorage.getItem("cloche_user_data");
         const rawVendors = localStorage.getItem("cloche_registered_vendors");
         const rawVenues = localStorage.getItem("cloche_registered_venues");
+        const rawBoutiques = localStorage.getItem("cloche_registered_boutiques");
 
         let resolvedName = storedName || "";
         let resolvedCategory = "Bridal Wear";
@@ -63,6 +65,15 @@ export default function VendorProfileMenuPage() {
             resolvedLogo = active.logo || active.logo_url || active.image_url || resolvedLogo;
             resolvedPlan = active.plan || resolvedPlan;
           }
+        } else if (rawBoutiques) {
+          const list = JSON.parse(rawBoutiques);
+          if (list.length > 0) {
+            const active = list[0];
+            resolvedName = active.boutique_name || active.name || active.businessName || resolvedName;
+            resolvedCategory = active.category || resolvedCategory;
+            resolvedLogo = active.logo || active.logo_url || active.image_url || resolvedLogo;
+            resolvedPlan = active.plan || resolvedPlan;
+          }
         } else if (rawVenues) {
           const list = JSON.parse(rawVenues);
           if (list.length > 0) {
@@ -75,7 +86,7 @@ export default function VendorProfileMenuPage() {
         }
 
         if (!resolvedName) {
-          resolvedName = "Cloche Luxury Partner Store";
+          resolvedName = "Vendor Partner";
         }
 
         setVendorData({
@@ -88,7 +99,7 @@ export default function VendorProfileMenuPage() {
     }
   }, []);
 
-  const name = vendorData?.name || "Cloche Luxury Partner Store";
+  const name = vendorData?.name || "Vendor Partner";
   const category = vendorData?.category || "Bridal Wear";
   const logoUrl = vendorData?.logo || "";
   const plan = vendorData?.plan || "Premium Partner";
