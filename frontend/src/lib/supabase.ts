@@ -592,10 +592,38 @@ export async function removeFavoriteVendorInDb(customerId: string, vendorId: str
 }
 
 export async function fetchRecentlyViewedFromDb(customerId: string) {
-  return supabaseFetch(`customer_recently_viewed?customer_id=eq.${encodeURIComponent(customerId)}&order=viewed_at.desc&limit=10&select=*,vendors(*)`);
+  const { data, error } = await supabaseFetch(
+    `customer_recently_viewed?customer_id=eq.${encodeURIComponent(customerId)}&order=viewed_at.desc&limit=20&select=*,vendors(*)`
+  );
+  if (error || !Array.isArray(data)) return { data: [], error };
+
+  // Filter out duplicates in-memory as additional safeguard
+  const seenVendors = new Set<string>();
+  const uniqueItems = data.filter((item: any) => {
+    const vId = item.vendor_id || item.vendors?.id;
+    if (!vId || seenVendors.has(String(vId))) return false;
+    seenVendors.add(String(vId));
+    return true;
+  });
+
+  return { data: uniqueItems.slice(0, 10), error: null };
 }
 
 export async function saveRecentlyViewedInDb(customerId: string, vendorId: string) {
+  // 1. Check if entry already exists to update viewed_at without duplicating
+  const existing = await supabaseFetch(
+    `customer_recently_viewed?customer_id=eq.${encodeURIComponent(customerId)}&vendor_id=eq.${encodeURIComponent(vendorId)}&select=id`
+  );
+
+  if (existing.data && Array.isArray(existing.data) && existing.data.length > 0) {
+    const rowId = existing.data[0].id;
+    return supabaseFetch(`customer_recently_viewed?id=eq.${encodeURIComponent(rowId)}`, {
+      method: "PATCH",
+      headers: { Prefer: "return=representation" },
+      body: JSON.stringify({ viewed_at: new Date().toISOString() }),
+    });
+  }
+
   return supabaseFetch(`customer_recently_viewed`, {
     method: "POST",
     headers: { Prefer: "return=representation" },
@@ -604,21 +632,117 @@ export async function saveRecentlyViewedInDb(customerId: string, vendorId: strin
 }
 
 export async function fetchComparisonsFromDb(customerId: string) {
-  return supabaseFetch(`vendor_comparisons?customer_id=eq.${encodeURIComponent(customerId)}&select=*,vendor_comparison_items(*,vendors(*))`);
+  let res = await supabaseFetch(`vendor_comparisons?customer_id=eq.${encodeURIComponent(customerId)}&select=*,vendor_comparison_items(*,vendors(*))`);
+  
+  if (!res.data || !Array.isArray(res.data) || res.data.length === 0) {
+    // Create default comparison list for customer
+    const created = await supabaseFetch(`vendor_comparisons`, {
+      method: "POST",
+      headers: { Prefer: "return=representation" },
+      body: JSON.stringify({ customer_id: customerId, comparison_name: "My Vendor Comparison" }),
+    });
+    if (created.data && Array.isArray(created.data) && created.data.length > 0) {
+      return supabaseFetch(`vendor_comparisons?id=eq.${encodeURIComponent(created.data[0].id)}&select=*,vendor_comparison_items(*,vendors(*))`);
+    }
+  }
+  return res;
 }
 
-export async function fetchCustomerNotificationsFromDb(customerId: string) {
-  return supabaseFetch(`customer_notifications?customer_id=eq.${encodeURIComponent(customerId)}&order=created_at.desc`);
+export async function addVendorToComparisonInDb(customerId: string, vendorId: string) {
+  const compRes = await fetchComparisonsFromDb(customerId);
+  if (!compRes.data || compRes.data.length === 0) return { data: null, error: new Error("Comparison list unavailable.") };
+
+  const compId = compRes.data[0].id;
+  const existingItems = compRes.data[0].vendor_comparison_items || [];
+
+  if (existingItems.length >= 4) {
+    return { data: null, error: new Error("Maximum 4 vendors can be added to comparison list.") };
+  }
+
+  return supabaseFetch(`vendor_comparison_items`, {
+    method: "POST",
+    headers: { Prefer: "resolution=merge-duplicates,return=representation" },
+    body: JSON.stringify({ comparison_id: compId, vendor_id: vendorId }),
+  });
 }
 
-export async function markCustomerNotificationReadInDb(notificationId: string) {
-  return supabaseFetch(`customer_notifications?id=eq.${encodeURIComponent(notificationId)}`, {
+export async function removeVendorFromComparisonInDb(customerId: string, vendorId: string) {
+  const compRes = await fetchComparisonsFromDb(customerId);
+  if (!compRes.data || compRes.data.length === 0) return { data: null, error: null };
+
+  const compId = compRes.data[0].id;
+  return supabaseFetch(
+    `vendor_comparison_items?comparison_id=eq.${encodeURIComponent(compId)}&vendor_id=eq.${encodeURIComponent(vendorId)}`,
+    { method: "DELETE" }
+  );
+}
+
+export async function fetchCustomerNotificationsFromDb(customerId: string, category?: string, limit: number = 20, offset: number = 0) {
+  let endpoint = `customer_notifications?customer_id=eq.${encodeURIComponent(customerId)}`;
+  if (category && category !== "all") {
+    endpoint += `&notification_type=eq.${encodeURIComponent(category)}`;
+  }
+  endpoint += `&order=created_at.desc&limit=${limit}&offset=${offset}`;
+
+  return supabaseFetch(endpoint);
+}
+
+export async function markCustomerNotificationReadInDb(notificationId: string, customerId: string) {
+  return supabaseFetch(`customer_notifications?id=eq.${encodeURIComponent(notificationId)}&customer_id=eq.${encodeURIComponent(customerId)}`, {
     method: "PATCH",
     body: JSON.stringify({ is_read: true }),
   });
 }
 
+export async function markAllCustomerNotificationsReadInDb(customerId: string) {
+  return supabaseFetch(`customer_notifications?customer_id=eq.${encodeURIComponent(customerId)}&is_read=eq.false`, {
+    method: "PATCH",
+    body: JSON.stringify({ is_read: true }),
+  });
+}
+
+export async function deleteCustomerNotificationInDb(notificationId: string, customerId: string) {
+  return supabaseFetch(`customer_notifications?id=eq.${encodeURIComponent(notificationId)}&customer_id=eq.${encodeURIComponent(customerId)}`, {
+    method: "DELETE",
+  });
+}
+
+export async function fetchEligibleVendorsForReviewFromDb(customerId: string) {
+  // Fetch vendors from leads (submitted inquiries)
+  const leadsRes = await supabaseFetch(`leads?customer_id=eq.${encodeURIComponent(customerId)}&select=vendor_id,vendors(*)`);
+  // Fetch vendors from quotations
+  const quotesRes = await supabaseFetch(`quotations?select=vendor_id,vendors(*),leads!inner(customer_id)&leads.customer_id=eq.${encodeURIComponent(customerId)}`);
+
+  const vendorMap = new Map<string, any>();
+
+  if (leadsRes.data && Array.isArray(leadsRes.data)) {
+    leadsRes.data.forEach((lead: any) => {
+      if (lead.vendor_id && lead.vendors) {
+        vendorMap.set(String(lead.vendor_id), lead.vendors);
+      }
+    });
+  }
+
+  if (quotesRes.data && Array.isArray(quotesRes.data)) {
+    quotesRes.data.forEach((quote: any) => {
+      if (quote.vendor_id && quote.vendors) {
+        vendorMap.set(String(quote.vendor_id), quote.vendors);
+      }
+    });
+  }
+
+  return Array.from(vendorMap.values());
+}
+
 export async function saveCustomerReviewInDb(reviewData: Record<string, any>) {
+  // Verify interaction before inserting
+  const eligible = await fetchEligibleVendorsForReviewFromDb(reviewData.customer_id);
+  const isEligible = eligible.some((v) => String(v.id) === String(reviewData.vendor_id));
+
+  if (!isEligible && eligible.length > 0) {
+    return { data: null, error: new Error("You can only submit reviews for vendors you have inquired with or received quotations from.") };
+  }
+
   return supabaseFetch(`customer_review_drafts`, {
     method: "POST",
     headers: { Prefer: "resolution=merge-duplicates,return=representation" },
@@ -626,9 +750,50 @@ export async function saveCustomerReviewInDb(reviewData: Record<string, any>) {
   });
 }
 
+export async function deleteCustomerReviewInDb(reviewId: string, customerId: string) {
+  return supabaseFetch(`customer_review_drafts?id=eq.${encodeURIComponent(reviewId)}&customer_id=eq.${encodeURIComponent(customerId)}`, {
+    method: "DELETE",
+  });
+}
+
 export async function fetchCustomerReviewsFromDb(customerId: string) {
   return supabaseFetch(`customer_review_drafts?customer_id=eq.${encodeURIComponent(customerId)}&order=created_at.desc&select=*,vendors(*)`);
 }
+
+export async function updateCustomerUserProfileInDb(userId: string, profileData: Record<string, any>) {
+  // Updates existing users table record directly
+  return supabaseFetch(`users?id=eq.${encodeURIComponent(userId)}`, {
+    method: "PATCH",
+    headers: { Prefer: "return=representation" },
+    body: JSON.stringify({
+      ...profileData,
+      updated_at: new Date().toISOString(),
+    }),
+  });
+}
+
+export async function updateQuotationCustomerStatusInDb(quotationId: string, customerId: string, status: string, notes?: string) {
+  // Update quotation status (e.g. customer_interested, revision_requested, archived)
+  const res = await supabaseFetch(`quotations?id=eq.${encodeURIComponent(quotationId)}`, {
+    method: "PATCH",
+    headers: { Prefer: "return=representation" },
+    body: JSON.stringify({
+      status,
+      updated_at: new Date().toISOString(),
+    }),
+  });
+
+  if (res.data && Array.isArray(res.data) && res.data.length > 0) {
+    const q = res.data[0];
+    if (status === "customer_interested" && q.vendor_id && q.lead_id) {
+      // Record lead activity to alert vendor without creating a booking
+      await saveLeadActivityToDb(q.lead_id, "customer_interested", `Customer marked quotation #${q.quotation_number || quotationId} as Interested.`, customerId);
+    }
+  }
+
+  return res;
+}
+
 
 
 

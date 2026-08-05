@@ -6,15 +6,23 @@ import {
   fetchCustomerReviewsFromDb,
   supabaseFetch,
 } from "@/lib/supabase";
+import { getAuthenticatedCustomerUser } from "@/lib/customerAuth";
 
 export async function GET(req: Request) {
   try {
-    const { searchParams } = new URL(req.url);
-    const customerId = searchParams.get("customer_id") || "c-demo-user";
+    const authUser = await getAuthenticatedCustomerUser(req);
+    if (!authUser) {
+      return NextResponse.json(
+        { success: false, statusCode: 401, error: { code: "UNAUTHORIZED", message: "Customer login required." } },
+        { status: 401 }
+      );
+    }
+
+    const customerId = authUser.userId;
 
     // Fetch favorites
     const { data: favorites } = await fetchCustomerFavoritesFromDb(customerId);
-    // Fetch recently viewed
+    // Fetch recently viewed (deduplicated)
     const { data: recentlyViewed } = await fetchRecentlyViewedFromDb(customerId);
     // Fetch notifications
     const { data: notifications } = await fetchCustomerNotificationsFromDb(customerId);
@@ -23,12 +31,12 @@ export async function GET(req: Request) {
 
     // Fetch submitted inquiries
     const { data: inquiries } = await supabaseFetch(
-      `leads?customer_id=eq.${encodeURIComponent(customerId)}&order=created_at.desc`
+      `leads?customer_id=eq.${encodeURIComponent(customerId)}&deleted_at=is.null&order=created_at.desc&select=*,vendors(*)`
     );
 
     // Fetch received quotations
     const { data: quotations } = await supabaseFetch(
-      `quotations?select=*,quotation_items(*),leads(*)&order=created_at.desc`
+      `quotations?select=*,quotation_items(*),leads!inner(customer_id)&leads.customer_id=eq.${encodeURIComponent(customerId)}&order=created_at.desc`
     );
 
     return NextResponse.json(
@@ -42,6 +50,7 @@ export async function GET(req: Request) {
             quotationsReceivedCount: (quotations || []).length,
             unreadNotificationsCount: (notifications || []).filter((n: any) => !n.is_read).length,
           },
+          user: authUser,
           favorites: favorites || [],
           recentlyViewed: recentlyViewed || [],
           inquiries: inquiries || [],
