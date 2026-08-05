@@ -62,6 +62,33 @@ export function LoginClient() {
     }
   };
 
+  const [resendEmail, setResendEmail] = useState("");
+  const [resendStatus, setResendStatus] = useState<string | null>(null);
+  const [isResending, setIsResending] = useState(false);
+
+  const handleResendVerification = async () => {
+    if (!resendEmail) return;
+    setIsResending(true);
+    setResendStatus(null);
+    try {
+      const res = await fetch("/api/v1/auth/resend-verification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: resendEmail, role: requestedRole }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setResendStatus(data.message || "Verification link sent! Check your email.");
+      } else {
+        setResendStatus(data.error?.message || "Failed to resend verification email.");
+      }
+    } catch (e) {
+      setResendStatus("Network error. Please try again.");
+    } finally {
+      setIsResending(false);
+    }
+  };
+
   return (
     <AuthShell
       activeTab="login"
@@ -73,9 +100,9 @@ export function LoginClient() {
       footerLinkLabel="Create one"
     >
       {showRegisteredMsg && (
-        <div className="flex items-center gap-2 rounded-xl border border-emerald/30 bg-emerald/10 p-3 text-xs font-semibold text-[#0F4C45] animate-in fade-in">
-          <span className="material-symbols-outlined text-[18px]">check_circle</span>
-          <span>Account created successfully! Please log in to continue.</span>
+        <div className="flex items-center gap-2 rounded-xl border border-emerald/30 bg-emerald/10 p-3.5 text-xs font-semibold text-[#0F4C45] animate-in fade-in">
+          <span className="material-symbols-outlined text-[18px]">mark_email_unread</span>
+          <span>Account created! A verification link has been sent to your email. Please check your inbox and verify before logging in.</span>
         </div>
       )}
 
@@ -93,9 +120,25 @@ export function LoginClient() {
         </div>
       )}
 
+      {resendStatus && (
+        <div className="rounded-xl border border-emerald/30 bg-emerald/10 p-3.5 text-xs font-semibold text-[#0F4C45] animate-in fade-in">
+          {resendStatus}
+        </div>
+      )}
+
       {errorMsg && (
-        <div className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs font-semibold text-rose-700 animate-in fade-in">
-          {errorMsg}
+        <div className="rounded-xl border border-rose-200 bg-rose-50 p-3.5 text-xs font-semibold text-rose-700 animate-in fade-in space-y-2">
+          <p>{errorMsg}</p>
+          {(errorMsg.toLowerCase().includes("verify") || errorMsg.toLowerCase().includes("verification")) && (
+            <button
+              type="button"
+              disabled={isResending}
+              onClick={handleResendVerification}
+              className="mt-1 inline-block bg-[#0F4C45] text-white px-3 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-wider hover:bg-[#135951] transition-all cursor-pointer"
+            >
+              {isResending ? "Resending Link..." : "Resend Verification Link"}
+            </button>
+          )}
         </div>
       )}
 
@@ -111,6 +154,7 @@ export function LoginClient() {
               name="email"
               type="email"
               required
+              onChange={(e) => setResendEmail(e.target.value)}
               placeholder={requestedRole === "admin" ? "admin@cloche.com" : "olivia.bennett@gmail.com"}
               className="w-full bg-transparent text-[14px] text-[#1E1B16] outline-none placeholder:text-[#A79B8B]"
             />
