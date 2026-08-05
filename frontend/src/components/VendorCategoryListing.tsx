@@ -15,7 +15,6 @@ import {
   Filter,
   Layers,
 } from "lucide-react";
-import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import {
   CategoryConfig,
@@ -149,9 +148,6 @@ export function VendorCategoryListing({
 
   return (
     <div className="min-h-screen bg-[#FBF8F1] font-sans text-charcoal flex flex-col justify-between">
-      {/* 1. Reuse existing Website Navbar Header */}
-      <Navbar />
-
       <main className="flex-grow py-6 sm:py-10 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto w-full">
         {/* Breadcrumb Header */}
         <nav className="flex items-center gap-2 text-xs text-charcoal/60 mb-4 font-medium">
