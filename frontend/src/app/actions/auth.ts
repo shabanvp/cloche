@@ -25,27 +25,15 @@ export async function login(formData: FormData) {
   const role = (formData.get("role") as string) || "customer";
 
   try {
-    const { url, anonKey } = getSupabaseConfig();
+    const { url, anonKey, serviceKey } = getSupabaseConfig();
+    const apiKey = serviceKey || anonKey;
     
-    const authResult = await signInWithSupabaseAuth(email, password);
-    if (authResult.error || !authResult.user) {
-      return { error: authResult.error?.message || "Invalid email or password." };
-    }
-
-    const authUser = authResult.user;
-    if (!authUser.email_confirmed_at && authUser.confirmed_at === null) {
-      return { error: "Please verify your email address before logging in. Check your inbox for the confirmation link." };
-    }
-
-    let userRoles: string[] = [role];
-    let displayName = authUser.user_metadata?.full_name || email.split("@")[0];
-    let customUserId = authUser.id;
-
-    if (url && anonKey) {
+    // 1. Primary Authentication: Check custom database users table first
+    if (url && apiKey) {
       const userRes = await fetch(
-        `${url}/rest/v1/users?email=eq.${encodeURIComponent(email)}&select=id,email,full_name,name,is_active,user_roles(roles(name))`,
+        `${url}/rest/v1/users?email=eq.${encodeURIComponent(email)}&select=id,email,password_hash,full_name,name,is_active,user_roles(roles(name))`,
         {
-          headers: { apikey: anonKey, Authorization: `Bearer ${anonKey}` },
+          headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
           cache: "no-store",
         }
       ).catch(() => null);
@@ -54,25 +42,64 @@ export async function login(formData: FormData) {
         const users = await userRes.json();
         if (Array.isArray(users) && users.length > 0) {
           const user = users[0];
-          customUserId = user.id;
-          displayName = user.full_name || user.name || displayName;
-          if (Array.isArray(user.user_roles) && user.user_roles.length > 0) {
-            userRoles = user.user_roles.map((ur: any) => ur.roles?.name).filter(Boolean);
+
+          if (user.password_hash && verifyPassword(password, user.password_hash)) {
+            let userRoles: string[] = [role];
+            if (Array.isArray(user.user_roles) && user.user_roles.length > 0) {
+              const rolesList = user.user_roles.map((ur: any) => ur.roles?.name).filter(Boolean);
+              if (rolesList.length > 0) userRoles = rolesList;
+            }
+
+            const displayName = user.full_name || user.name || email.split("@")[0];
+            const token = signJwtToken({
+              userId: user.id,
+              email: user.email,
+              fullName: displayName,
+              roles: userRoles,
+            });
+
+            const cookieStore = await cookies();
+            const userObj = {
+              id: user.id,
+              email: user.email,
+              full_name: displayName,
+              name: displayName,
+              fullName: displayName,
+              roles: userRoles,
+            };
+
+            cookieStore.set(AUTH_COOKIE_NAME, token, { httpOnly: true, path: "/", maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 });
+            cookieStore.set("auth_token", token, { path: "/", maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 });
+            cookieStore.set("user_role", userRoles.includes("vendor") ? "vendor" : role, { path: "/", maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 });
+            cookieStore.set("user_data", JSON.stringify(userObj), { path: "/", maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 });
+
+            return { success: true, user: userObj };
+          } else if (user.password_hash) {
+            return { error: "Invalid email or password." };
           }
         }
       }
     }
 
-    const token = authResult.session?.access_token || authUser.id;
-    const cookieStore = await cookies();
-    const userObj = { id: customUserId, email: authUser.email, full_name: displayName, name: displayName, fullName: displayName, roles: userRoles };
+    // 2. Supabase GoTrue Auth Fallback
+    const authResult = await signInWithSupabaseAuth(email, password);
+    if (!authResult.error && authResult.user) {
+      const authUser = authResult.user;
+      let userRoles: string[] = [role];
+      let displayName = authUser.user_metadata?.full_name || email.split("@")[0];
+      let customUserId = authUser.id;
 
-    cookieStore.set(AUTH_COOKIE_NAME, token, { httpOnly: true, path: "/", maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 });
-    cookieStore.set("auth_token", token, { path: "/", maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 });
-    cookieStore.set("user_role", role, { path: "/", maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 });
-    cookieStore.set("user_data", JSON.stringify(userObj), { path: "/", maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 });
+      const token = authResult.session?.access_token || authUser.id;
+      const cookieStore = await cookies();
+      const userObj = { id: customUserId, email: authUser.email, full_name: displayName, name: displayName, fullName: displayName, roles: userRoles };
 
-    return { success: true, user: userObj };
+      cookieStore.set(AUTH_COOKIE_NAME, token, { httpOnly: true, path: "/", maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 });
+      cookieStore.set("auth_token", token, { path: "/", maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 });
+      cookieStore.set("user_role", role, { path: "/", maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 });
+      cookieStore.set("user_data", JSON.stringify(userObj), { path: "/", maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 });
+
+      return { success: true, user: userObj };
+    }
 
     // 2. Fallback to Render API endpoint
     let endpoint = `${API_BASE_URL}/auth/login-user`;
