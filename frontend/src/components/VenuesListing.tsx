@@ -20,34 +20,87 @@ type Filter = (typeof FILTERS)[number];
 
 export function VenuesListing() {
   const [search, setSearch] = useState("");
-  const [activeFilter, setActiveFilter] = useState<Filter>("All");
-  const [wishlist, setWishlist] = useState<Set<string>>(new Set());
-  const [allVenuesList, setAllVenuesList] = useState<VenueDetail[]>(() => venues);
+  const [activeFilter, setActiveFilter] = useState<Filter | string>("All");
+  const [wishlist, setWishlist] = useState<Set<string>>(() => {
+    if (typeof window !== "undefined") {
+      const { getWishlistItems } = require("@/lib/wishlistStore");
+      return new Set(getWishlistItems().map((i: any) => String(i.id)));
+    }
+    return new Set();
+  });
+  const [allVenuesList, setAllVenuesList] = useState<any[]>(venues);
 
   useEffect(() => {
-    setAllVenuesList(getAllVenues());
+    const updateWishlistSet = () => {
+      const { getWishlistItems } = require("@/lib/wishlistStore");
+      setWishlist(new Set(getWishlistItems().map((i: any) => String(i.id))));
+    };
+
+    if (typeof window !== "undefined") {
+      updateWishlistSet();
+      window.addEventListener("cloche_wishlist_updated", updateWishlistSet);
+
+      try {
+        const rawVendors = localStorage.getItem("cloche_registered_vendors");
+        const rawBoutiques = localStorage.getItem("cloche_registered_boutiques");
+        const localList: any[] = [];
+        if (rawVendors) localList.push(...JSON.parse(rawVendors));
+        if (rawBoutiques) localList.push(...JSON.parse(rawBoutiques));
+
+        if (localList.length > 0) {
+          const venueItems = localList.filter((item: any) => {
+            const cat = (item.category || item.tags || "").toLowerCase();
+            return cat.includes("venue") || cat.includes("hall") || cat.includes("resort") || cat.includes("palace");
+          });
+
+          const formattedLocal: any[] = venueItems.map((item, idx) => ({
+            id: item.id || `local-venue-${idx}`,
+            name: item.boutique_name || item.name || "Wedding Venue",
+            image_url: item.logo || item.image_url || item.image || "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?q=80&w=800&auto=format&fit=crop",
+            location: item.location || (item.city ? `${item.city}, Kerala` : "Kochi, Kerala"),
+            rating: item.rating || 4.9,
+            review_count: item.reviewsCount || 85,
+            price_per_plate: "₹1,200",
+            max_capacity: 1000,
+            venue_type: "Banquet Hall",
+          }));
+
+          setAllVenuesList([...formattedLocal, ...venues]);
+        }
+      } catch (e) {}
+
+      return () => window.removeEventListener("cloche_wishlist_updated", updateWishlistSet);
+    }
   }, []);
 
   const filtered = useMemo(() => {
-    return allVenuesList.filter((venue) => {
+    return allVenuesList.filter((v) => {
       const matchesSearch =
-        venue.name.toLowerCase().includes(search.toLowerCase()) ||
-        venue.location.toLowerCase().includes(search.toLowerCase());
+        v.name.toLowerCase().includes(search.toLowerCase()) ||
+        v.location.toLowerCase().includes(search.toLowerCase()) ||
+        v.venue_type.toLowerCase().includes(search.toLowerCase());
 
       const matchesFilter =
-        activeFilter === "All" || venue.tags.includes(activeFilter);
+        activeFilter === "All" ||
+        v.venue_type.toLowerCase().includes(activeFilter.toLowerCase()) ||
+        v.location.toLowerCase().includes(activeFilter.toLowerCase());
 
       return matchesSearch && matchesFilter;
     });
   }, [search, activeFilter, allVenuesList]);
 
-  const toggleWishlist = (e: React.MouseEvent, id: string) => {
-    e.preventDefault(); // prevent link navigation when tapping heart
-    setWishlist((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
+  const toggleWishlist = (e: React.MouseEvent, venue: any) => {
+    e.preventDefault();
+    const { toggleWishlistItem } = require("@/lib/wishlistStore");
+    toggleWishlistItem({
+      id: venue.id,
+      name: venue.name,
+      category: "Venues",
+      price: venue.price_per_plate,
+      image: venue.image_url,
+      location: venue.location,
+      city: venue.location ? venue.location.split(",")[0] : "Kerala",
+      rating: venue.rating,
     });
   };
 
@@ -192,7 +245,7 @@ export function VenuesListing() {
 
               {/* Wishlist / Heart */}
               <button
-                onClick={(e) => toggleWishlist(e, venue.id)}
+                onClick={(e) => toggleWishlist(e, venue as any)}
                 className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full transition-transform active:scale-90"
                 style={{
                   background: "rgba(255,255,255,0.85)",

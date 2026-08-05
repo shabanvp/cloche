@@ -573,22 +573,108 @@ export async function recordEscrowTransactionInDb(escrowTxData: Record<string, a
 // PHASE 9 CUSTOMER PORTAL DISCOVERY HELPERS
 // ----------------------------------------------------
 
-export async function fetchCustomerFavoritesFromDb(customerId: string) {
-  return supabaseFetch(`customer_favorites?customer_id=eq.${encodeURIComponent(customerId)}&select=*,vendors(*)`);
+export async function resolveVendorUuid(vendorId: string): Promise<string | null> {
+  if (!vendorId) return null;
+  const isUuid = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(String(vendorId));
+  if (isUuid) return String(vendorId);
+
+  try {
+    const existing = await supabaseFetch(
+      `vendors?or=(slug.eq.${encodeURIComponent(String(vendorId))},name.ilike.${encodeURIComponent(String(vendorId))})&select=id`
+    );
+    if (existing.data && Array.isArray(existing.data) && existing.data.length > 0) {
+      return existing.data[0].id;
+    }
+
+    const cleanName = String(vendorId).replace(/^v-/, "").replace(/[-_]/g, " ");
+    const formattedName = cleanName.charAt(0).toUpperCase() + cleanName.slice(1);
+    const created = await supabaseFetch(`vendors`, {
+      method: "POST",
+      headers: { Prefer: "return=representation" },
+      body: JSON.stringify({
+        name: formattedName,
+        slug: String(vendorId).toLowerCase(),
+        category: "Vendor",
+        city: "Kochi",
+        price_range: "Contact for pricing",
+      }),
+    });
+    if (created.data && Array.isArray(created.data) && created.data.length > 0) {
+      return created.data[0].id;
+    }
+  } catch (e) {}
+
+  return null;
 }
 
-export async function saveFavoriteVendorInDb(customerId: string, vendorId: string) {
+export async function resolveUserUuid(customerId: string, email?: string): Promise<string | null> {
+  if (!customerId && !email) return null;
+  if (customerId) {
+    const isUuid = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(String(customerId));
+    if (isUuid) return String(customerId);
+  }
+
+  if (email) {
+    try {
+      const existing = await supabaseFetch(`users?email=eq.${encodeURIComponent(email)}&select=id`);
+      if (existing.data && Array.isArray(existing.data) && existing.data.length > 0) {
+        return existing.data[0].id;
+      }
+    } catch (e) {}
+  }
+
+  try {
+    const userEmail = email || `${customerId.toLowerCase().replace(/[^a-z0-9]/g, "")}@cloche.app`;
+    const created = await supabaseFetch(`users`, {
+      method: "POST",
+      headers: { Prefer: "return=representation" },
+      body: JSON.stringify({
+        email: userEmail,
+        full_name: customerId,
+        name: customerId,
+        is_active: true,
+      }),
+    });
+    if (created.data && Array.isArray(created.data) && created.data.length > 0) {
+      return created.data[0].id;
+    }
+  } catch (e) {}
+
+  return null;
+}
+
+export async function fetchCustomerFavoritesFromDb(customerId: string) {
+  const resolvedCustId = await resolveUserUuid(customerId);
+  const targetId = resolvedCustId || customerId;
+  return supabaseFetch(`customer_favorites?customer_id=eq.${encodeURIComponent(targetId)}&select=*,vendors(*)`);
+}
+
+export async function saveFavoriteVendorInDb(customerId: string, vendorId: string, userEmail?: string) {
+  const resolvedCustId = await resolveUserUuid(customerId, userEmail);
+  const resolvedVendId = await resolveVendorUuid(vendorId);
+
+  if (!resolvedCustId || !resolvedVendId) {
+    return { data: null, error: new Error("Unable to resolve valid Customer or Vendor identity.") };
+  }
+
   return supabaseFetch(`customer_favorites`, {
     method: "POST",
     headers: { Prefer: "resolution=merge-duplicates,return=representation" },
-    body: JSON.stringify({ customer_id: customerId, vendor_id: vendorId }),
+    body: JSON.stringify({ customer_id: resolvedCustId, vendor_id: resolvedVendId }),
   });
 }
 
 export async function removeFavoriteVendorInDb(customerId: string, vendorId: string) {
-  return supabaseFetch(`customer_favorites?customer_id=eq.${encodeURIComponent(customerId)}&vendor_id=eq.${encodeURIComponent(vendorId)}`, {
-    method: "DELETE",
-  });
+  const resolvedCustId = await resolveUserUuid(customerId);
+  const resolvedVendId = await resolveVendorUuid(vendorId);
+
+  const targetCustId = resolvedCustId || customerId;
+  const targetVendId = resolvedVendId || vendorId;
+
+  return supabaseFetch(
+    `customer_favorites?customer_id=eq.${encodeURIComponent(targetCustId)}&vendor_id=eq.${encodeURIComponent(targetVendId)}`,
+    { method: "DELETE" }
+  );
 }
 
 export async function fetchRecentlyViewedFromDb(customerId: string) {

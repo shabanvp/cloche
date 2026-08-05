@@ -59,31 +59,60 @@ export async function syncWishlistWithServer(): Promise<WishlistItem[]> {
 
 export function toggleWishlistItem(item: WishlistItem): boolean {
   if (typeof window === "undefined") return false;
-  const items = getWishlistItems();
-  const exists = items.some((i) => String(i.id) === String(item.id));
-  let updated: WishlistItem[];
+  const initialItems = getWishlistItems();
+  const exists = initialItems.some((i) => String(i.id) === String(item.id));
+  let optimisticItems: WishlistItem[];
 
   if (exists) {
-    updated = items.filter((i) => String(i.id) !== String(item.id));
-    // Background server call
-    fetch(`/api/v1/customer/favorites?vendor_id=${encodeURIComponent(item.id)}`, {
-      method: "DELETE",
-    }).catch(() => null);
+    optimisticItems = initialItems.filter((i) => String(i.id) !== String(item.id));
   } else {
-    updated = [item, ...items];
-    // Background server call
+    optimisticItems = [item, ...initialItems];
+  }
+
+  // 1. Apply Optimistic Update locally
+  try {
+    localStorage.setItem(WISHLIST_KEY, JSON.stringify(optimisticItems));
+    window.dispatchEvent(new Event("cloche_wishlist_updated"));
+  } catch (e) {
+    console.error("Error setting local wishlist", e);
+  }
+
+  // 2. Perform Server Request & Rollback on failure
+  if (exists) {
+    fetch(`/api/v1/customer/favorites?vendor_id=${encodeURIComponent(item.id)}`, { method: "DELETE" })
+      .then((r) => r.json())
+      .then((res) => {
+        if (!res.success) {
+          // Rollback to initialItems
+          localStorage.setItem(WISHLIST_KEY, JSON.stringify(initialItems));
+          window.dispatchEvent(new Event("cloche_wishlist_updated"));
+        }
+      })
+      .catch(() => {
+        localStorage.setItem(WISHLIST_KEY, JSON.stringify(initialItems));
+        window.dispatchEvent(new Event("cloche_wishlist_updated"));
+      });
+  } else {
     fetch("/api/v1/customer/favorites", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ vendor_id: item.id }),
-    }).catch(() => null);
-  }
-
-  try {
-    localStorage.setItem(WISHLIST_KEY, JSON.stringify(updated));
-    window.dispatchEvent(new Event("cloche_wishlist_updated"));
-  } catch (e) {
-    console.error("Error updating wishlist store", e);
+    })
+      .then((r) => r.json())
+      .then((res) => {
+        if (!res.success) {
+          // Rollback optimistic update
+          localStorage.setItem(WISHLIST_KEY, JSON.stringify(initialItems));
+          window.dispatchEvent(new Event("cloche_wishlist_updated"));
+          if (res.statusCode === 401) {
+            alert("Please log in to save vendors to your wishlist.");
+          }
+        }
+      })
+      .catch(() => {
+        localStorage.setItem(WISHLIST_KEY, JSON.stringify(initialItems));
+        window.dispatchEvent(new Event("cloche_wishlist_updated"));
+      });
   }
 
   return !exists;
@@ -91,19 +120,29 @@ export function toggleWishlistItem(item: WishlistItem): boolean {
 
 export function removeWishlistItem(id: string | number): WishlistItem[] {
   if (typeof window === "undefined") return [];
-  const items = getWishlistItems();
-  const updated = items.filter((i) => String(i.id) !== String(id));
-
-  // Background server removal call
-  fetch(`/api/v1/customer/favorites?vendor_id=${encodeURIComponent(id)}`, {
-    method: "DELETE",
-  }).catch(() => null);
+  const initialItems = getWishlistItems();
+  const updatedItems = initialItems.filter((i) => String(i.id) !== String(id));
 
   try {
-    localStorage.setItem(WISHLIST_KEY, JSON.stringify(updated));
+    localStorage.setItem(WISHLIST_KEY, JSON.stringify(updatedItems));
     window.dispatchEvent(new Event("cloche_wishlist_updated"));
   } catch (e) {
     console.error("Error removing wishlist item", e);
   }
-  return updated;
+
+  fetch(`/api/v1/customer/favorites?vendor_id=${encodeURIComponent(id)}`, { method: "DELETE" })
+    .then((r) => r.json())
+    .then((res) => {
+      if (!res.success) {
+        // Rollback
+        localStorage.setItem(WISHLIST_KEY, JSON.stringify(initialItems));
+        window.dispatchEvent(new Event("cloche_wishlist_updated"));
+      }
+    })
+    .catch(() => {
+      localStorage.setItem(WISHLIST_KEY, JSON.stringify(initialItems));
+      window.dispatchEvent(new Event("cloche_wishlist_updated"));
+    });
+
+  return updatedItems;
 }

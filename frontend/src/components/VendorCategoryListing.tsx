@@ -49,7 +49,13 @@ export function VendorCategoryListing({
   const [activeSubFilter, setActiveSubFilter] = useState("all");
   const [selectedLocation, setSelectedLocation] = useState("All Locations");
   const [selectedSort, setSelectedSort] = useState("Popularity");
-  const [wishlist, setWishlist] = useState<Set<string>>(new Set());
+  const [wishlist, setWishlist] = useState<Set<string>>(() => {
+    if (typeof window !== "undefined") {
+      const { getWishlistItems } = require("@/lib/wishlistStore");
+      return new Set(getWishlistItems().map((i: any) => String(i.id)));
+    }
+    return new Set();
+  });
   const [currentPage, setCurrentPage] = useState(1);
   const [showFilterDrawer, setShowFilterDrawer] = useState(false);
 
@@ -57,7 +63,15 @@ export function VendorCategoryListing({
   const [allVendors, setAllVendors] = useState<VendorCategoryItem[]>(categoryConfig.vendors);
 
   useEffect(() => {
+    const updateWishlistSet = () => {
+      const { getWishlistItems } = require("@/lib/wishlistStore");
+      setWishlist(new Set(getWishlistItems().map((i: any) => String(i.id))));
+    };
+
     if (typeof window !== "undefined") {
+      updateWishlistSet();
+      window.addEventListener("cloche_wishlist_updated", updateWishlistSet);
+
       try {
         const rawVendors = localStorage.getItem("cloche_registered_vendors");
         const rawBoutiques = localStorage.getItem("cloche_registered_boutiques");
@@ -88,6 +102,8 @@ export function VendorCategoryListing({
       } catch (e) {
         setAllVendors(categoryConfig.vendors);
       }
+
+      return () => window.removeEventListener("cloche_wishlist_updated", updateWishlistSet);
     }
   }, [categoryConfig]);
 
@@ -97,14 +113,19 @@ export function VendorCategoryListing({
     setCurrentPage(1);
   }, [categorySlug]);
 
-  const toggleWishlist = (id: string, e: React.MouseEvent) => {
+  const toggleWishlist = (vendor: VendorCategoryItem, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setWishlist((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
+    const { toggleWishlistItem } = require("@/lib/wishlistStore");
+    toggleWishlistItem({
+      id: vendor.id,
+      name: vendor.name,
+      category: vendor.specialtyTag || categoryConfig.title,
+      price: vendor.startingPrice,
+      image: vendor.image,
+      location: vendor.location,
+      city: vendor.location ? vendor.location.split(",")[0] : "Kerala",
+      rating: vendor.rating,
     });
   };
 
@@ -301,7 +322,7 @@ export function VendorCategoryListing({
 
                       {/* Wishlist Heart Button */}
                       <button
-                        onClick={(e) => toggleWishlist(vendor.id, e)}
+                        onClick={(e) => toggleWishlist(vendor, e)}
                         className={`absolute top-3 right-3 p-2 rounded-full backdrop-blur-md transition-all shadow-sm ${
                           isLiked
                             ? "bg-red-500 text-white"
