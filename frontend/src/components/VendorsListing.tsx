@@ -77,6 +77,9 @@ const CATEGORY_FILTERS = [
   "Choreographer",
   "Car Rental",
   "Flower Decoration",
+  "Rental Services",
+  "Gift Store",
+  "Honeymoon Planners",
 ] as const;
 type CategoryFilter = (typeof CATEGORY_FILTERS)[number];
 
@@ -86,11 +89,12 @@ const FILTER_MATCH: Record<CategoryFilter, string> = {
   Makeup: "makeup",
   Decor: "decor",
   Planners: "plan",
-  Jewellery: "jewel",
   Catering: "cater",
   Mehendi: "mehendi",
   "Bridal Wear": "bridal",
   "Groom Wear": "groom",
+  Jewellery: "jewel",
+  Invitations: "invitat",
   Videographer: "video",
   Decorator: "decor",
   "Cake Designer": "cake",
@@ -101,7 +105,6 @@ const FILTER_MATCH: Record<CategoryFilter, string> = {
   "Rental Services": "rental",
   "Gift Store": "gift",
   "Honeymoon Planners": "honeymoon",
-  "Invitations": "invitat",
 };
 
 interface VendorsListingProps {
