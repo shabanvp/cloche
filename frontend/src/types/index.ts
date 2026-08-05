@@ -16,6 +16,8 @@ export interface Boutique {
   rating?: number;
   description?: string;
   category?: string;
+  starting_price?: string;
+  startingPrice?: string;
 }
 
 export interface Product {

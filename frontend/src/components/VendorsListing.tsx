@@ -339,7 +339,10 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
                 : "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=80";
 
               const locationText = `${boutique.city || "Kochi"}${boutique.area ? `, ${boutique.area}` : ""}`;
-              const startingPrice = boutique.starting_price || (category.includes("Venue") ? "₹1,80,000" : "₹50,000");
+              const startingPrice =
+                (boutique as any).starting_price ||
+                (boutique as any).startingPrice ||
+                (category.includes("Venue") ? "₹1,80,000" : "₹50,000");
 
               const overlayTag = category.includes("Venue")
                 ? (boutique.id.toString().length % 2 === 0 ? "Outdoor" : "Indoor")
