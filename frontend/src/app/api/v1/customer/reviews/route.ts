@@ -1,11 +1,24 @@
 import { NextResponse } from "next/server";
-import { fetchCustomerReviewsFromDb, saveCustomerReviewInDb, supabaseFetch } from "@/lib/supabase";
+import {
+  fetchCustomerReviewsFromDb,
+  saveCustomerReviewInDb,
+  deleteCustomerReviewInDb,
+  fetchEligibleVendorsForReviewFromDb,
+} from "@/lib/supabase";
+import { getAuthenticatedCustomerUser } from "@/lib/customerAuth";
 
 export async function GET(req: Request) {
   try {
-    const { searchParams } = new URL(req.url);
-    const customerId = searchParams.get("customer_id") || "c-demo-user";
-    const { data, error } = await fetchCustomerReviewsFromDb(customerId);
+    const authUser = await getAuthenticatedCustomerUser(req);
+    if (!authUser) {
+      return NextResponse.json(
+        { success: false, statusCode: 401, error: { code: "UNAUTHORIZED", message: "Customer login required." } },
+        { status: 401 }
+      );
+    }
+
+    const { data: reviews, error } = await fetchCustomerReviewsFromDb(authUser.userId);
+    const eligibleVendors = await fetchEligibleVendorsForReviewFromDb(authUser.userId);
 
     if (error) {
       return NextResponse.json(
@@ -15,7 +28,7 @@ export async function GET(req: Request) {
     }
 
     return NextResponse.json(
-      { success: true, statusCode: 200, data: data || [] },
+      { success: true, statusCode: 200, data: reviews || [], eligibleVendors: eligibleVendors || [] },
       { status: 200 }
     );
   } catch (err: any) {
@@ -28,28 +41,38 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
-    const { customer_id, vendor_id, rating, review } = body;
-
-    if (!customer_id || !vendor_id || !rating || !review) {
+    const authUser = await getAuthenticatedCustomerUser(req);
+    if (!authUser) {
       return NextResponse.json(
-        { success: false, statusCode: 400, error: { code: "VALIDATION_ERROR", message: "All fields are required." } },
+        { success: false, statusCode: 401, error: { code: "UNAUTHORIZED", message: "Customer login required." } },
+        { status: 401 }
+      );
+    }
+
+    const body = await req.json();
+    const { vendor_id, rating, review } = body;
+
+    if (!vendor_id || !rating || !review) {
+      return NextResponse.json(
+        { success: false, statusCode: 400, error: { code: "VALIDATION_ERROR", message: "Vendor ID, rating, and review required." } },
         { status: 400 }
       );
     }
 
-    const { data, error } = await saveCustomerReviewInDb({
-      customer_id,
+    const reviewPayload = {
+      customer_id: authUser.userId,
       vendor_id,
       rating: Number(rating),
-      review: review.trim(),
+      review: String(review).trim(),
       status: "published",
-    });
+    };
+
+    const { data, error } = await saveCustomerReviewInDb(reviewPayload);
 
     if (error) {
       return NextResponse.json(
-        { success: false, statusCode: 500, error: { code: "SAVE_FAILED", message: error.message } },
-        { status: 500 }
+        { success: false, statusCode: 400, error: { code: "REVIEW_FAILED", message: error.message } },
+        { status: 400 }
       );
     }
 
@@ -67,6 +90,14 @@ export async function POST(req: Request) {
 
 export async function DELETE(req: Request) {
   try {
+    const authUser = await getAuthenticatedCustomerUser(req);
+    if (!authUser) {
+      return NextResponse.json(
+        { success: false, statusCode: 401, error: { code: "UNAUTHORIZED", message: "Customer login required." } },
+        { status: 401 }
+      );
+    }
+
     const { searchParams } = new URL(req.url);
     const reviewId = searchParams.get("id");
 
@@ -77,12 +108,10 @@ export async function DELETE(req: Request) {
       );
     }
 
-    await supabaseFetch(`customer_review_drafts?id=eq.${encodeURIComponent(reviewId)}`, {
-      method: "DELETE",
-    });
+    await deleteCustomerReviewInDb(reviewId, authUser.userId);
 
     return NextResponse.json(
-      { success: true, statusCode: 200, message: "Review deleted successfully." },
+      { success: true, statusCode: 200, message: "Review deleted." },
       { status: 200 }
     );
   } catch (err: any) {

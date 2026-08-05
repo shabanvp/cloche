@@ -3,48 +3,53 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { Heart, MessageSquare, FileText, Bell, ArrowRight, Star, Scale, Eye } from "lucide-react";
-import { getWishlistItems } from "@/lib/wishlistStore";
+import { getWishlistItems, syncWishlistWithServer } from "@/lib/wishlistStore";
 import { fetchAuthenticatedUser, resolveUserDisplayName } from "@/lib/userStore";
 
 export default function DashboardPage() {
   const [userName, setUserName] = useState(() => resolveUserDisplayName());
   const [savedCount, setSavedCount] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
   const [dashboardData, setDashboardData] = useState<any>({
-    kpis: { savedVendorsCount: 0, submittedInquiriesCount: 2, quotationsReceivedCount: 1, unreadNotificationsCount: 3 },
-    recentlyViewed: [
-      { id: "v-1", vendor_name: "La Sposa Bridal Boutique", category: "Bridal Wear", city: "Kochi", rating: 4.9 },
-      { id: "v-2", vendor_name: "Lumiere Wedding Photography", category: "Photography", city: "Thiruvananthapuram", rating: 4.8 },
-    ],
+    kpis: { savedVendorsCount: 0, submittedInquiriesCount: 0, quotationsReceivedCount: 0, unreadNotificationsCount: 0 },
+    recentlyViewed: [],
   });
 
   useEffect(() => {
-    async function loadUser() {
+    async function initDashboard() {
       const resolved = await fetchAuthenticatedUser();
       if (resolved) {
         setUserName(resolved);
       }
-    }
-    loadUser();
 
-    // Load saved collections count
+      // Sync wishlist from server & local store
+      const items = await syncWishlistWithServer();
+      setSavedCount(items.length);
+
+      // Fetch dashboard KPIs and recently viewed history from Supabase
+      try {
+        const res = await fetch("/api/v1/customer/dashboard", { cache: "no-store" }).then((r) => r.json());
+        if (res.success && res.data) {
+          setDashboardData(res.data);
+          if (res.data.favorites) {
+            setSavedCount(res.data.favorites.length);
+          }
+        }
+      } catch (e) {
+        console.error("Failed to load dashboard data:", e);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    initDashboard();
+
     const updateCount = () => {
       const items = getWishlistItems();
       setSavedCount(items.length);
     };
-    updateCount();
 
     window.addEventListener("cloche_wishlist_updated", updateCount);
-
-    // Fetch dashboard summary KPIs from backend
-    fetch("/api/v1/customer/dashboard")
-      .then((res) => res.json())
-      .then((res) => {
-        if (res.data) {
-          setDashboardData(res.data);
-        }
-      })
-      .catch(() => null);
-
     return () => window.removeEventListener("cloche_wishlist_updated", updateCount);
   }, []);
 
@@ -57,7 +62,7 @@ export default function DashboardPage() {
         <div className="relative z-10">
           <h1 className="text-3xl font-display font-medium mb-2">Welcome back, {userName}!</h1>
           <p className="text-white/80 font-light mb-6 max-w-lg">
-            Your wedding planning journey is looking beautiful. You have {dashboardData.kpis.submittedInquiriesCount} active inquiries and {dashboardData.kpis.quotationsReceivedCount} quotation proposals received.
+            Your wedding planning journey is active. You have {dashboardData.kpis.submittedInquiriesCount} submitted inquiries and {dashboardData.kpis.quotationsReceivedCount} quotation proposals received.
           </p>
           <div className="flex flex-wrap gap-3">
             <Link href="/dashboard/inquiries" className="bg-white text-emerald px-5 py-2 rounded-full text-xs font-semibold hover:bg-gold hover:text-white transition-colors">
@@ -70,7 +75,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* 4 Enhanced Customer KPI Cards */}
+      {/* 4 Customer KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white p-5 rounded-2xl border border-gold/10 shadow-sm flex flex-col justify-between">
           <div className="flex items-center justify-between mb-2">
@@ -126,7 +131,7 @@ export default function DashboardPage() {
           </div>
           <div>
             <h3 className="font-display text-2xl text-charcoal font-bold">{dashboardData.kpis.unreadNotificationsCount}</h3>
-            <span className="text-xs text-charcoal/60 mt-2 block">Vendor updates</span>
+            <span className="text-xs text-charcoal/60 mt-2 block">Unread updates</span>
           </div>
         </div>
       </div>
@@ -143,23 +148,32 @@ export default function DashboardPage() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {dashboardData.recentlyViewed?.map((vendor: any) => (
-            <div key={vendor.id} className="bg-ivory/50 p-4 rounded-xl border border-gold/10 flex items-center justify-between">
-              <div>
-                <h4 className="font-display text-sm font-semibold text-charcoal">{vendor.vendor_name || "Premium Vendor"}</h4>
-                <p className="text-xs text-charcoal/60">{vendor.category} • {vendor.city}</p>
-                <div className="flex items-center gap-1 mt-1 text-xs text-gold">
-                  <Star className="w-3 h-3 fill-gold text-gold" />
-                  <span>{vendor.rating || 4.9}</span>
+        {dashboardData.recentlyViewed && dashboardData.recentlyViewed.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {dashboardData.recentlyViewed.map((item: any) => {
+              const vendor = item.vendors || item;
+              return (
+                <div key={item.id || vendor.id} className="bg-ivory/50 p-4 rounded-xl border border-gold/10 flex items-center justify-between">
+                  <div>
+                    <h4 className="font-display text-sm font-semibold text-charcoal">{vendor.name || vendor.boutique_name || "Wedding Vendor"}</h4>
+                    <p className="text-xs text-charcoal/60">{vendor.category || "Vendor"} • {vendor.city || "Kerala"}</p>
+                    <div className="flex items-center gap-1 mt-1 text-xs text-gold">
+                      <Star className="w-3 h-3 fill-gold text-gold" />
+                      <span>{vendor.rating || 4.9}</span>
+                    </div>
+                  </div>
+                  <Link href={`/vendors`} className="bg-emerald text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-gold transition-colors">
+                    View Profile
+                  </Link>
                 </div>
-              </div>
-              <Link href={`/vendors`} className="bg-emerald text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-gold transition-colors">
-                View Profile
-              </Link>
-            </div>
-          ))}
-        </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="text-center py-8 text-xs text-charcoal/60">
+            No recently viewed vendors yet. Explore the directory to build your history.
+          </div>
+        )}
       </div>
 
       {/* Planning Checklist */}
@@ -168,12 +182,12 @@ export default function DashboardPage() {
         <div className="space-y-4">
           {[
             { label: "Browse top rated makeup artists and photographers", done: true },
-            { label: "Save favorite vendors to wishlist", done: true },
-            { label: "Send quote inquiries to selected vendors", done: true },
-            { label: "Compare price proposals and packages offline", done: false },
+            { label: "Save favorite vendors to wishlist", done: savedCount > 0 },
+            { label: "Send quote inquiries to selected vendors", done: dashboardData.kpis.submittedInquiriesCount > 0 },
+            { label: "Review price proposals & packages offline", done: dashboardData.kpis.quotationsReceivedCount > 0 },
           ].map((item, i) => (
             <label key={i} className="flex items-center gap-3 cursor-pointer group">
-              <input type="checkbox" defaultChecked={item.done} className="w-5 h-5 accent-emerald rounded border-gray-300" />
+              <input type="checkbox" defaultChecked={item.done} className="w-5 h-5 accent-emerald rounded border-gray-300" readOnly />
               <span className={`text-sm ${item.done ? 'text-charcoal/40 line-through' : 'text-charcoal group-hover:text-emerald'}`}>{item.label}</span>
             </label>
           ))}

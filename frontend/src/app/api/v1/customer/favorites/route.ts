@@ -1,11 +1,18 @@
 import { NextResponse } from "next/server";
 import { fetchCustomerFavoritesFromDb, saveFavoriteVendorInDb, removeFavoriteVendorInDb } from "@/lib/supabase";
+import { getAuthenticatedCustomerUser } from "@/lib/customerAuth";
 
 export async function GET(req: Request) {
   try {
-    const { searchParams } = new URL(req.url);
-    const customerId = searchParams.get("customer_id") || "c-demo-user";
-    const { data, error } = await fetchCustomerFavoritesFromDb(customerId);
+    const authUser = await getAuthenticatedCustomerUser(req);
+    if (!authUser) {
+      return NextResponse.json(
+        { success: false, statusCode: 401, error: { code: "UNAUTHORIZED", message: "Customer login required." } },
+        { status: 401 }
+      );
+    }
+
+    const { data, error } = await fetchCustomerFavoritesFromDb(authUser.userId);
 
     if (error) {
       return NextResponse.json(
@@ -28,17 +35,25 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
-    const { customer_id, vendor_id } = body;
-
-    if (!customer_id || !vendor_id) {
+    const authUser = await getAuthenticatedCustomerUser(req);
+    if (!authUser) {
       return NextResponse.json(
-        { success: false, statusCode: 400, error: { code: "VALIDATION_ERROR", message: "Customer ID and Vendor ID required." } },
+        { success: false, statusCode: 401, error: { code: "UNAUTHORIZED", message: "Customer login required." } },
+        { status: 401 }
+      );
+    }
+
+    const body = await req.json();
+    const { vendor_id } = body;
+
+    if (!vendor_id) {
+      return NextResponse.json(
+        { success: false, statusCode: 400, error: { code: "VALIDATION_ERROR", message: "Vendor ID required." } },
         { status: 400 }
       );
     }
 
-    const { data, error } = await saveFavoriteVendorInDb(customer_id, vendor_id);
+    const { data, error } = await saveFavoriteVendorInDb(authUser.userId, vendor_id);
 
     if (error) {
       return NextResponse.json(
@@ -61,8 +76,15 @@ export async function POST(req: Request) {
 
 export async function DELETE(req: Request) {
   try {
+    const authUser = await getAuthenticatedCustomerUser(req);
+    if (!authUser) {
+      return NextResponse.json(
+        { success: false, statusCode: 401, error: { code: "UNAUTHORIZED", message: "Customer login required." } },
+        { status: 401 }
+      );
+    }
+
     const { searchParams } = new URL(req.url);
-    const customerId = searchParams.get("customer_id") || "c-demo-user";
     const vendorId = searchParams.get("vendor_id");
 
     if (!vendorId) {
@@ -72,7 +94,7 @@ export async function DELETE(req: Request) {
       );
     }
 
-    await removeFavoriteVendorInDb(customerId, vendorId);
+    await removeFavoriteVendorInDb(authUser.userId, vendorId);
 
     return NextResponse.json(
       { success: true, statusCode: 200, message: "Vendor removed from favorites." },
