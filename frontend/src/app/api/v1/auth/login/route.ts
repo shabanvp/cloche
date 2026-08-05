@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
-import { verifyPassword, signJwtToken, hashSessionToken, AUTH_COOKIE_NAME, SESSION_EXPIRY_DAYS } from "@/lib/auth";
-import { getSupabaseConfig } from "@/lib/supabase";
+import { getSupabaseConfig, signInWithSupabaseAuth } from "@/lib/supabase";
+import { AUTH_COOKIE_NAME, SESSION_EXPIRY_DAYS } from "@/lib/auth";
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { email, password, role } = body;
+    const { email, password } = body;
 
     if (!email || !password) {
       return NextResponse.json(
@@ -29,97 +29,63 @@ export async function POST(req: Request) {
       );
     }
 
-    // 1. Fetch user by email including is_verified status and roles
-    const userRes = await fetch(
-      `${url}/rest/v1/users?email=eq.${encodeURIComponent(cleanEmail)}&select=id,email,password_hash,full_name,is_active,is_verified,user_roles(roles(name))`,
-      {
-        headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
-      }
-    );
-
-    if (!userRes.ok) {
+    // Step 1: Authenticate against Supabase Auth (Single Source of Truth)
+    const authResult = await signInWithSupabaseAuth(cleanEmail, password);
+    if (authResult.error || !authResult.user) {
+      const errMsg = authResult.error?.message || "Invalid email or password.";
       return NextResponse.json(
-        { success: false, statusCode: 401, error: { code: "INVALID_CREDENTIALS", message: "Invalid email or password." } },
+        { success: false, statusCode: 401, error: { code: "INVALID_CREDENTIALS", message: errMsg } },
         { status: 401 }
       );
     }
 
-    const users = await userRes.json();
-    if (!Array.isArray(users) || users.length === 0) {
-      return NextResponse.json(
-        { success: false, statusCode: 401, error: { code: "INVALID_CREDENTIALS", message: "Invalid email or password." } },
-        { status: 401 }
-      );
-    }
+    const authUser = authResult.user;
 
-    const user = users[0];
-
-    // 2. Check if account is active
-    if (!user.is_active) {
-      return NextResponse.json(
-        { success: false, statusCode: 403, error: { code: "ACCOUNT_DISABLED", message: "This account has been disabled." } },
-        { status: 403 }
-      );
-    }
-
-    // 3. Enforce Email Verification Check (Must be verified to log in)
-    if (user.is_verified === false) {
+    // Step 2: Check email confirmation status from auth.users (email_confirmed_at)
+    if (!authUser.email_confirmed_at && authUser.confirmed_at === null) {
       return NextResponse.json(
         {
           success: false,
           statusCode: 403,
           error: {
             code: "EMAIL_NOT_VERIFIED",
-            message: "Please verify your email address before logging in. Check your Gmail inbox for the verification link sent from cloche.luxury@gmail.com.",
+            message: "Please verify your email address before logging in. Check your inbox for the confirmation link.",
           },
         },
         { status: 403 }
       );
     }
 
-    // 4. Verify password
-    const isPasswordValid = verifyPassword(password, user.password_hash);
-    if (!isPasswordValid) {
-      return NextResponse.json(
-        { success: false, statusCode: 401, error: { code: "INVALID_CREDENTIALS", message: "Invalid email or password." } },
-        { status: 401 }
-      );
-    }
+    // Step 3: Fetch application profile and RBAC roles from custom database
+    const userRes = await fetch(
+      `${url}/rest/v1/users?email=eq.${encodeURIComponent(cleanEmail)}&select=id,email,full_name,is_active,is_verified,user_roles(roles(name))`,
+      {
+        headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
+      }
+    );
 
-    // Extract user roles
+    let customUserId = authUser.id;
+    let displayName = authUser.user_metadata?.full_name || cleanEmail.split("@")[0];
     let userRoles: string[] = ["customer"];
-    if (Array.isArray(user.user_roles) && user.user_roles.length > 0) {
-      userRoles = user.user_roles
-        .map((ur: any) => ur.roles?.name)
-        .filter((rName: any) => typeof rName === "string");
+
+    if (userRes.ok) {
+      const users = await userRes.json();
+      if (Array.isArray(users) && users.length > 0) {
+        const customUser = users[0];
+        customUserId = customUser.id;
+        displayName = customUser.full_name || displayName;
+
+        if (Array.isArray(customUser.user_roles) && customUser.user_roles.length > 0) {
+          userRoles = customUser.user_roles
+            .map((ur: any) => ur.roles?.name)
+            .filter((rName: any) => typeof rName === "string");
+        }
+      }
     }
 
-    // 5. Issue JWT & Create Session record
-    const token = signJwtToken({
-      userId: user.id,
-      email: user.email,
-      fullName: user.full_name,
-      roles: userRoles.length > 0 ? userRoles : ["customer"],
-    });
+    const sessionToken = authResult.session?.access_token || authUser.id;
 
-    const tokenHash = hashSessionToken(token);
-    const expiresAt = new Date(Date.now() + SESSION_EXPIRY_DAYS * 24 * 60 * 60 * 1000).toISOString();
-
-    await fetch(`${url}/rest/v1/sessions`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        apikey: apiKey,
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        user_id: user.id,
-        token_hash: tokenHash,
-        expires_at: expiresAt,
-      }),
-    });
-
-    // 6. Return response and set cookies
+    // Step 4: Construct Response and set HTTP-Only Session Cookie
     const response = NextResponse.json(
       {
         success: true,
@@ -127,12 +93,13 @@ export async function POST(req: Request) {
         message: "Login successful",
         data: {
           user: {
-            id: user.id,
-            email: user.email,
-            fullName: user.full_name,
+            id: customUserId,
+            supabaseUserId: authUser.id,
+            email: authUser.email,
+            fullName: displayName,
             roles: userRoles.length > 0 ? userRoles : ["customer"],
           },
-          token,
+          token: sessionToken,
         },
       },
       { status: 200 }
@@ -140,12 +107,18 @@ export async function POST(req: Request) {
 
     response.cookies.set({
       name: AUTH_COOKIE_NAME,
-      value: token,
+      value: sessionToken,
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60,
       path: "/",
+    });
+    response.cookies.set({
+      name: "auth_token",
+      value: sessionToken,
+      path: "/",
+      maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60,
     });
 
     return response;
