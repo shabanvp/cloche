@@ -44,15 +44,20 @@ export async function getAllProducts(): Promise<Product[]> {
 }
 
 export async function getAllBoutiques(): Promise<Boutique[]> {
+  const { getAllSystemVendors } = await import("@/lib/allSystemVendors");
   try {
     const res = await fetch(`${API_BASE_URL}/boutiques?cache_bust=${Date.now()}`, {
       next: { revalidate: 3600 }
     });
-    if (!res.ok) return [];
-    return res.json();
+    if (!res.ok) return getAllSystemVendors();
+    const data = await res.json();
+    if (!Array.isArray(data) || data.length === 0) {
+      return getAllSystemVendors();
+    }
+    return data;
   } catch (error) {
     console.error(error);
-    return [];
+    return getAllSystemVendors();
   }
 }
 

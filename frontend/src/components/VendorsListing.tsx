@@ -156,11 +156,24 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
           }
         });
 
+        // 3. Fallback System Vendors across all categories
+        const { getAllSystemVendors } = require("@/lib/allSystemVendors");
+        const systemVendors = getAllSystemVendors();
+        systemVendors.forEach((item: any) => {
+          const itemKey = String(item.id || item.boutique_name);
+          const normName = (item.boutique_name || "").toLowerCase().trim();
+          if (itemKey && normName && !mergedMap.has(itemKey) && !seenNames.has(normName)) {
+            seenNames.add(normName);
+            mergedMap.set(itemKey, item);
+          }
+        });
+
         setBoutiquesList(Array.from(mergedMap.values()));
         return () => window.removeEventListener("cloche_wishlist_updated", updateWishlistSet);
       } catch (e) {}
     }
-    setBoutiquesList(initialBoutiques);
+    const { getAllSystemVendors } = require("@/lib/allSystemVendors");
+    setBoutiquesList(getAllSystemVendors());
   }, [initialBoutiques]);
 
   const filtered = useMemo(() => {
