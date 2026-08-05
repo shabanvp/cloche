@@ -53,7 +53,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const { data, error } = await saveFavoriteVendorInDb(authUser.userId, vendor_id);
+    const { data, error } = await saveFavoriteVendorInDb(authUser.userId, vendor_id, authUser.email);
 
     if (error) {
       return NextResponse.json(
