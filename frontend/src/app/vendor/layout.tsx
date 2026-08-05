@@ -15,6 +15,7 @@ export default function VendorLayout({ children }: { children: ReactNode }) {
   const isStandaloneOffers = pathname.startsWith("/vendor/offers");
   const isStandaloneAnalytics = pathname.startsWith("/vendor/analytics");
   const isStandaloneSubscription = pathname.startsWith("/vendor/subscription") || pathname.startsWith("/vendor/membership");
+  const isStandaloneCustomizeStore = pathname.startsWith("/vendor/customize-store");
 
   if (isAuthPage) {
     return (
@@ -26,8 +27,8 @@ export default function VendorLayout({ children }: { children: ReactNode }) {
     );
   }
 
-  // Standalone full-width screens (Navigation Hub, Overview, Profile, Collections & Pricing, Offers, Analytics, Subscription) without sidebar or public footer
-  if (isNavigationHub || isStandaloneOverview || isStandaloneProfile || isStandalonePackages || isStandaloneOffers || isStandaloneAnalytics || isStandaloneSubscription) {
+  // Standalone full-width screens (Navigation Hub, Overview, Profile, Collections & Pricing, Offers, Analytics, Subscription, Customize Store) without sidebar or public footer
+  if (isNavigationHub || isStandaloneOverview || isStandaloneProfile || isStandalonePackages || isStandaloneOffers || isStandaloneAnalytics || isStandaloneSubscription || isStandaloneCustomizeStore) {
     return (
       <div className="min-h-screen bg-[#FAF7F2] flex flex-col font-sans">
         <main className="flex-1 py-6 px-4 sm:px-6 lg:px-8 max-w-[1200px] mx-auto w-full">
