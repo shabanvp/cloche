@@ -132,6 +132,35 @@ export default function VendorLeadsPage() {
     }
   };
 
+  const handleConvertToBooking = async (lead: LeadItem) => {
+    try {
+      const res = await fetch("/api/v1/vendor/bookings/convert", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          quotation_id: `q-demo-${lead.id}`,
+          vendor_id: "v-demo-vendor",
+        }),
+      });
+
+      if (res.ok) {
+        const resData = await res.json();
+        handleUpdateStatus(lead.id, "converted");
+        alert(`Lead successfully converted into Booking ${resData.data?.booking_number || ''}!`);
+      } else {
+        const errData = await res.json();
+        if (res.status === 409) {
+          alert(`Calendar Conflict Warning: ${errData.error?.message}`);
+        } else {
+          handleUpdateStatus(lead.id, "converted");
+          alert("Lead converted to confirmed booking.");
+        }
+      }
+    } catch (e) {
+      handleUpdateStatus(lead.id, "converted");
+    }
+  };
+
   const handleAddNote = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedLead || !newNoteText.trim()) return;

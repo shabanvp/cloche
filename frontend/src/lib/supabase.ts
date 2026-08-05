@@ -526,4 +526,48 @@ export async function saveQuotationItemsToDb(items: Record<string, any>[]) {
   });
 }
 
+// ----------------------------------------------------
+// PHASE 8 BOOKING LIFECYCLE, ESCROW & LEDGER HELPERS
+// ----------------------------------------------------
+
+export async function fetchVendorBookingsFromDb(vendorId: string, statusFilter?: string) {
+  let query = `bookings?vendor_id=eq.${encodeURIComponent(vendorId)}&deleted_at=is.null&order=event_date.asc&select=*,booking_timeline(*),booking_payments(*),escrow_accounts(*),leads(*)`;
+  if (statusFilter && statusFilter !== "all") {
+    query = `bookings?vendor_id=eq.${encodeURIComponent(vendorId)}&status=eq.${encodeURIComponent(statusFilter)}&deleted_at=is.null&order=event_date.asc&select=*,booking_timeline(*),booking_payments(*),escrow_accounts(*),leads(*)`;
+  }
+  return supabaseFetch(query);
+}
+
+export async function convertQuoteToBookingInDb(quotationId: string, vendorId: string, createdBy?: string) {
+  return supabaseFetch(`rpc/convert_quotation_to_booking_atomic`, {
+    method: "POST",
+    body: JSON.stringify({
+      p_quotation_id: quotationId,
+      p_vendor_id: vendorId,
+      p_created_by: createdBy || null,
+    }),
+  });
+}
+
+export async function recordLedgerPaymentInDb(paymentData: Record<string, any>) {
+  const { url, serviceKey, anonKey } = getSupabaseConfig();
+  const apiKey = serviceKey || anonKey;
+  if (!url || !apiKey) return { data: null, error: new Error("Credentials unconfigured.") };
+
+  return supabaseFetch(`payment_records`, {
+    method: "POST",
+    headers: { Prefer: "return=representation" },
+    body: JSON.stringify(paymentData),
+  });
+}
+
+export async function recordEscrowTransactionInDb(escrowTxData: Record<string, any>) {
+  return supabaseFetch(`escrow_transactions`, {
+    method: "POST",
+    headers: { Prefer: "return=representation" },
+    body: JSON.stringify(escrowTxData),
+  });
+}
+
+
 
