@@ -30,7 +30,7 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { vendor_id, category_id, name, description, base_price, pricing_type, duration, status, is_active, images } = body;
+    const { vendor_id, category_id, name, description, base_price, pricing_type, duration, status, is_active, images, category } = body;
 
     if (!name || base_price === undefined || base_price < 0) {
       return NextResponse.json(
@@ -42,12 +42,13 @@ export async function POST(req: Request) {
     const payload: Record<string, any> = {
       vendor_id: vendor_id || "v-demo-vendor",
       category_id: category_id || null,
+      category: category || "General",
       name: name.trim(),
       description: description ? description.trim() : null,
       base_price: Number(base_price),
-      pricing_type: pricing_type || "starting_from",
+      pricing_type: pricing_type || "fixed",
       duration: duration ? Number(duration) : null,
-      status: status || "published",
+      status: status ? status.toLowerCase() : "published",
       is_active: is_active !== undefined ? Boolean(is_active) : true,
       updated_at: new Date().toISOString(),
     };
@@ -90,7 +91,7 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json(
-      { success: true, statusCode: body.id ? 200 : 201, message: body.id ? "Service updated successfully" : "Service created successfully", data: createdService },
+      { success: true, statusCode: body.id ? 200 : 201, message: body.id ? "Service updated successfully" : "Service saved successfully.", data: createdService },
       { status: body.id ? 200 : 201 }
     );
   } catch (err: any) {
@@ -99,6 +100,10 @@ export async function POST(req: Request) {
       { status: 500 }
     );
   }
+}
+
+export async function PUT(req: Request) {
+  return POST(req);
 }
 
 export async function DELETE(req: Request) {
@@ -123,7 +128,7 @@ export async function DELETE(req: Request) {
     }
 
     return NextResponse.json(
-      { success: true, statusCode: 200, message: "Service soft deleted successfully." },
+      { success: true, statusCode: 200, message: "Service deleted successfully." },
       { status: 200 }
     );
   } catch (err: any) {

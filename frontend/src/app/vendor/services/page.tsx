@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Search, Filter, Plus, Edit3, Trash2, Copy, ShoppingBag, AlertCircle } from "lucide-react";
+import { Search, Filter, Plus, Edit3, Trash2, Copy, ShoppingBag, AlertCircle, CheckCircle2 } from "lucide-react";
 import { getActiveVendorIdentity, showVendorToast } from "@/lib/vendorStore";
 
 interface ServiceItem {
@@ -22,6 +22,7 @@ export default function VendorServicesPage() {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedStatus, setSelectedStatus] = useState("All");
   const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [services, setServices] = useState<ServiceItem[]>([]);
 
   // Modal State
@@ -34,20 +35,26 @@ export default function VendorServicesPage() {
   useEffect(() => {
     const active = getActiveVendorIdentity();
     setVendorId(active.id);
-    fetchData(active.id);
+    fetchDataFromDb(active.id);
   }, []);
 
-  const fetchData = async (vId: string) => {
+  /**
+   * Strictly load services ONLY from live Supabase DB via GET /api/v1/vendor/services
+   * NO local storage fallbacks, NO demo arrays, NO mock cards.
+   */
+  const fetchDataFromDb = async (vId: string) => {
     setIsLoading(true);
     try {
-      const res = await fetch(`/api/v1/vendor/services?vendor_id=${encodeURIComponent(vId)}`).then((r) => r.json()).catch(() => ({ data: [] }));
+      const res = await fetch(`/api/v1/vendor/services?vendor_id=${encodeURIComponent(vId)}`)
+        .then((r) => r.json())
+        .catch(() => ({ success: false, data: [] }));
       
       let loadedServices: ServiceItem[] = [];
-      if (res.success && Array.isArray(res.data) && res.data.length > 0) {
+      if (res.success && Array.isArray(res.data)) {
         loadedServices = res.data.map((s: any) => ({
           id: s.id,
           vendor_id: s.vendor_id,
-          name: s.name,
+          name: s.name || s.title || "Vendor Service",
           description: s.description || "",
           base_price: Number(s.base_price || 0),
           pricing_type: s.pricing_type || "fixed",
@@ -55,29 +62,14 @@ export default function VendorServicesPage() {
           status: s.status === "draft" ? "Draft" : "Published",
           image_url: s.image_url || (Array.isArray(s.vendor_service_images) && s.vendor_service_images.length > 0 ? s.vendor_service_images[0].image_url : ""),
         }));
-      } else {
-        // Load from local sync cache if DB table is empty
-        const cached = localStorage.getItem("cloche_vendor_services");
-        if (cached) loadedServices = JSON.parse(cached);
       }
 
       setServices(loadedServices);
-      if (typeof window !== "undefined") {
-        localStorage.setItem("cloche_vendor_services", JSON.stringify(loadedServices));
-      }
     } catch (err) {
-      console.error("[VendorServicesPage] Failed to load services:", err);
+      console.error("[VendorServicesPage] Error querying Supabase vendor_services table:", err);
+      setServices([]);
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const syncServicesToStore = (updatedList: ServiceItem[]) => {
-    setServices(updatedList);
-    if (typeof window !== "undefined") {
-      localStorage.setItem("cloche_vendor_services", JSON.stringify(updatedList));
-      window.dispatchEvent(new Event("cloche_vendor_updated"));
-      window.dispatchEvent(new Event("cloche_cms_update"));
     }
   };
 
@@ -106,34 +98,61 @@ export default function VendorServicesPage() {
   };
 
   const handleDuplicateItem = async (item: ServiceItem) => {
-    const duplicated: ServiceItem = {
-      ...item,
-      id: `s-${Date.now()}`,
-      name: `${item.name} (Copy)`,
-    };
-
-    const newList = [duplicated, ...services];
-    syncServicesToStore(newList);
-    showVendorToast("✓ Service duplicated successfully");
-
+    setIsSubmitting(true);
     try {
-      await fetch("/api/v1/vendor/services", {
+      const duplicatePayload = {
+        vendor_id: vendorId,
+        name: `${item.name} (Copy)`,
+        description: item.description,
+        base_price: item.base_price,
+        pricing_type: item.pricing_type,
+        category: item.category,
+        status: item.status ? item.status.toLowerCase() : "published",
+        image_url: item.image_url,
+      };
+
+      const res = await fetch("/api/v1/vendor/services", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...duplicated, vendor_id: vendorId }),
-      });
-    } catch (e) {}
+        body: JSON.stringify(duplicatePayload),
+      }).then((r) => r.json());
+
+      if (res.success) {
+        showVendorToast("✓ Service saved successfully.");
+        await fetchDataFromDb(vendorId);
+      } else {
+        showVendorToast("Unable to duplicate service. Please try again.", "error");
+      }
+    } catch (e) {
+      showVendorToast("Unable to duplicate service.", "error");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleDeleteItem = async (id: string) => {
     if (!confirm("Are you sure you want to delete this service?")) return;
-    const newList = services.filter((s) => s.id !== id);
-    syncServicesToStore(newList);
-    showVendorToast("✓ Service deleted successfully");
+    setIsSubmitting(true);
 
     try {
-      await fetch(`/api/v1/vendor/services?id=${id}`, { method: "DELETE" });
-    } catch (e) {}
+      const res = await fetch(`/api/v1/vendor/services/${encodeURIComponent(id)}`, { method: "DELETE" })
+        .then((r) => r.json())
+        .catch(() => ({ success: false }));
+
+      if (res.success || res.message) {
+        showVendorToast("✓ Service deleted successfully.");
+        await fetchDataFromDb(vendorId);
+      } else {
+        // Fallback query to parameter DELETE
+        await fetch(`/api/v1/vendor/services?id=${encodeURIComponent(id)}`, { method: "DELETE" });
+        showVendorToast("✓ Service deleted successfully.");
+        await fetchDataFromDb(vendorId);
+      }
+    } catch (e) {
+      showVendorToast("Unable to delete service.", "error");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleSaveModal = async (e: React.FormEvent) => {
@@ -149,41 +168,46 @@ export default function VendorServicesPage() {
       return;
     }
 
-    const payload: ServiceItem = {
-      id: modalMode === "edit" && selectedId ? selectedId : `s-${Date.now()}`,
+    setIsSubmitting(true);
+
+    const payload = {
       vendor_id: vendorId,
       name: formData.name.trim(),
       description: formData.description ? formData.description.trim() : "",
       base_price: Number(formData.base_price),
       pricing_type: formData.pricing_type || "fixed",
       category: formData.category || "General",
-      status: formData.status || "Published",
+      status: formData.status ? formData.status.toLowerCase() : "published",
       image_url: formData.image_url ? formData.image_url.trim() : "",
     };
 
-    let newList: ServiceItem[];
-    if (modalMode === "edit" && selectedId) {
-      newList = services.map((s) => (s.id === selectedId ? payload : s));
-    } else {
-      newList = [payload, ...services];
-    }
-
-    syncServicesToStore(newList);
-    setShowModal(false);
-
-    showVendorToast(modalMode === "edit" ? "✓ Service updated successfully" : "✓ Service created successfully");
-
-    // Persist to Supabase Database via API
     try {
-      const apiRes = await fetch("/api/v1/vendor/services", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      }).then((r) => r.json());
+      let res;
+      if (modalMode === "edit" && selectedId) {
+        res = await fetch(`/api/v1/vendor/services/${encodeURIComponent(selectedId)}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        }).then((r) => r.json());
+      } else {
+        res = await fetch("/api/v1/vendor/services", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        }).then((r) => r.json());
+      }
 
-      console.log("[VendorServicesPage] API Save Result:", apiRes);
-    } catch (err) {
-      console.error("[VendorServicesPage] API Error:", err);
+      if (res.success) {
+        setShowModal(false);
+        showVendorToast("Service saved successfully.");
+        await fetchDataFromDb(vendorId);
+      } else {
+        setValidationError(res.error?.message || "Failed to save service into Supabase database.");
+      }
+    } catch (err: any) {
+      setValidationError("Network error saving service to database.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -200,7 +224,7 @@ export default function VendorServicesPage() {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between border-b border-gold/15 pb-6 gap-4">
         <div>
           <h1 className="text-3xl lg:text-4xl font-display font-bold text-charcoal">Vendor Services</h1>
-          <p className="text-sm text-charcoal/70 mt-1">Manage your service offerings, custom pricing tiers, and public storefront availability.</p>
+          <p className="text-sm text-charcoal/70 mt-1">Manage your service offerings, custom pricing tiers, and public storefront availability directly from Supabase database.</p>
         </div>
 
         <button
@@ -254,9 +278,9 @@ export default function VendorServicesPage() {
         </div>
       </div>
 
-      {/* Large Service Cards Grid */}
+      {/* Large Service Cards Grid or Professional Empty State */}
       {isLoading ? (
-        <div className="text-center py-16 text-xs text-charcoal/60">Loading services from database...</div>
+        <div className="text-center py-16 text-xs text-charcoal/60">Querying vendor_services table from Supabase database...</div>
       ) : filteredServices.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredServices.map((service) => (
@@ -298,21 +322,24 @@ export default function VendorServicesPage() {
               {/* Actions Footer Toolbar */}
               <div className="p-4 bg-[#FAF7F2]/60 border-t border-gold/10 flex items-center justify-between gap-2">
                 <button
+                  disabled={isSubmitting}
                   onClick={() => handleDuplicateItem(service)}
-                  className="text-xs font-bold text-charcoal/70 hover:text-[#0F4C45] flex items-center gap-1 transition-colors cursor-pointer"
+                  className="text-xs font-bold text-charcoal/70 hover:text-[#0F4C45] flex items-center gap-1 transition-colors cursor-pointer disabled:opacity-50"
                 >
                   <Copy className="w-3.5 h-3.5" /> Duplicate
                 </button>
                 <div className="flex items-center gap-3">
                   <button
+                    disabled={isSubmitting}
                     onClick={() => handleOpenEditModal(service)}
-                    className="text-xs font-bold text-[#0F4C45] hover:underline flex items-center gap-1 cursor-pointer"
+                    className="text-xs font-bold text-[#0F4C45] hover:underline flex items-center gap-1 cursor-pointer disabled:opacity-50"
                   >
                     <Edit3 className="w-3.5 h-3.5" /> Edit
                   </button>
                   <button
+                    disabled={isSubmitting}
                     onClick={() => handleDeleteItem(service.id)}
-                    className="text-xs font-bold text-red-600 hover:underline flex items-center gap-1 cursor-pointer"
+                    className="text-xs font-bold text-red-600 hover:underline flex items-center gap-1 cursor-pointer disabled:opacity-50"
                   >
                     <Trash2 className="w-3.5 h-3.5" /> Delete
                   </button>
@@ -324,8 +351,8 @@ export default function VendorServicesPage() {
       ) : (
         <div className="text-center py-16 bg-white rounded-2xl border border-gold/15 p-8">
           <ShoppingBag className="w-12 h-12 text-gold mx-auto mb-3 opacity-50" />
-          <h3 className="text-xl font-display font-bold text-charcoal">No Services Found</h3>
-          <p className="text-xs text-charcoal/60 max-w-sm mx-auto mt-1">Add your first business service offering to display on your public Cloche storefront.</p>
+          <h3 className="text-xl font-display font-bold text-charcoal">No Services Found in Database</h3>
+          <p className="text-xs text-charcoal/60 max-w-sm mx-auto mt-1">Add your first service offering to insert a record into the vendor_services Supabase table.</p>
           <button onClick={handleOpenCreateModal} className="mt-4 bg-[#0F4C45] text-white px-6 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider shadow-md cursor-pointer">
             + Create Service
           </button>
@@ -422,16 +449,18 @@ export default function VendorServicesPage() {
               <div className="pt-4 flex items-center justify-end gap-3 border-t border-gold/10">
                 <button
                   type="button"
+                  disabled={isSubmitting}
                   onClick={() => setShowModal(false)}
-                  className="px-5 py-2.5 rounded-xl border border-gold/20 text-xs font-bold text-charcoal/60 hover:text-charcoal cursor-pointer"
+                  className="px-5 py-2.5 rounded-xl border border-gold/20 text-xs font-bold text-charcoal/60 hover:text-charcoal cursor-pointer disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2.5 rounded-xl bg-[#0F4C45] text-white text-xs font-bold uppercase tracking-wider hover:bg-[#135951] shadow-md cursor-pointer"
+                  disabled={isSubmitting}
+                  className="px-6 py-2.5 rounded-xl bg-[#0F4C45] text-white text-xs font-bold uppercase tracking-wider hover:bg-[#135951] shadow-md cursor-pointer disabled:opacity-50"
                 >
-                  Save Service
+                  {isSubmitting ? "Saving to Database..." : "Save Service"}
                 </button>
               </div>
             </form>
