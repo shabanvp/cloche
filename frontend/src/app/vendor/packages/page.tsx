@@ -29,6 +29,7 @@ export default function VendorPackagesPage() {
   const [formData, setFormData] = useState<any>({});
   const [featuresInput, setFeaturesInput] = useState("");
   const [validationError, setValidationError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     const active = getActiveVendorIdentity();
@@ -44,39 +45,24 @@ export default function VendorPackagesPage() {
       const res = await fetch(`/api/v1/vendor/packages?vendor_id=${encodeURIComponent(vId)}`).then((r) => r.json()).catch(() => ({ data: [] }));
       
       let loaded: PackageItem[] = [];
-      if (res.success && Array.isArray(res.data) && res.data.length > 0) {
+      if (res.success && Array.isArray(res.data)) {
         loaded = res.data.map((p: any) => ({
           id: p.id,
           vendor_id: p.vendor_id,
           name: p.name,
-          price: p.price ? (String(p.price).startsWith("₹") ? String(p.price) : `₹${Number(p.price).toLocaleString("en-IN")}`) : "₹1,50,000",
-          discount_price: p.discount_price ? (String(p.discount_price).startsWith("₹") ? String(p.discount_price) : `₹${Number(p.discount_price).toLocaleString("en-IN")}`) : undefined,
+          price: p.price !== null && p.price !== undefined ? `₹${Number(p.price).toLocaleString("en-IN")}` : "On Request",
+          discount_price: p.discount_price ? `₹${Number(p.discount_price).toLocaleString("en-IN")}` : undefined,
           description: p.description || "",
           features: Array.isArray(p.features) ? p.features : (typeof p.features === "string" ? p.features.split("\n") : []),
           popular: Boolean(p.is_popular || p.popular),
         }));
-      } else {
-        const cached = localStorage.getItem("cloche_vendor_packages");
-        if (cached) loaded = JSON.parse(cached);
       }
 
       setPackages(loaded);
-      if (typeof window !== "undefined") {
-        localStorage.setItem("cloche_vendor_packages", JSON.stringify(loaded));
-      }
     } catch (e) {
-      console.error("[VendorPackagesPage] Error loading packages:", e);
+      console.error("[VendorPackagesPage] Error loading packages from DB:", e);
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const syncPackagesToStore = (newList: PackageItem[]) => {
-    setPackages(newList);
-    if (typeof window !== "undefined") {
-      localStorage.setItem("cloche_vendor_packages", JSON.stringify(newList));
-      window.dispatchEvent(new Event("cloche_vendor_updated"));
-      window.dispatchEvent(new Event("cloche_cms_update"));
     }
   };
 
@@ -105,38 +91,51 @@ export default function VendorPackagesPage() {
   };
 
   const handleDuplicate = async (pkg: PackageItem) => {
-    const dup: PackageItem = {
-      ...pkg,
-      id: `p-${Date.now()}`,
-      name: `${pkg.name} (Copy)`,
-      popular: false,
-    };
-    const newList = [...packages, dup];
-    syncPackagesToStore(newList);
-    showVendorToast("✓ Package duplicated successfully");
-
+    setIsSubmitting(true);
     try {
-      await fetch("/api/v1/vendor/packages", {
+      const res = await fetch("/api/v1/vendor/packages", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          ...dup,
           vendor_id: vendorId,
-          price: Number(dup.price.replace(/[^0-9]/g, "")) || 0,
+          name: `${pkg.name} (Copy)`,
+          description: pkg.description,
+          price: Number(pkg.price.replace(/[^0-9]/g, "")) || 0,
+          discount_price: pkg.discount_price ? Number(pkg.discount_price.replace(/[^0-9]/g, "")) : null,
+          features: pkg.features,
+          is_popular: false,
         }),
-      });
-    } catch (e) {}
+      }).then((r) => r.json());
+
+      if (res.success) {
+        showVendorToast("✓ Package duplicated successfully");
+        await fetchPackages(vendorId);
+      } else {
+        showVendorToast(res.error?.message || "Failed to duplicate package", "error");
+      }
+    } catch (e) {
+      showVendorToast("Unable to duplicate package.", "error");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to delete this package?")) return;
-    const newList = packages.filter((p) => p.id !== id);
-    syncPackagesToStore(newList);
-    showVendorToast("✓ Package deleted successfully");
-
+    setIsSubmitting(true);
     try {
-      await fetch(`/api/v1/vendor/packages?id=${id}`, { method: "DELETE" });
-    } catch (e) {}
+      const res = await fetch(`/api/v1/vendor/packages?id=${encodeURIComponent(id)}`, { method: "DELETE" }).then((r) => r.json());
+      if (res.success) {
+        showVendorToast("✓ Package deleted successfully");
+        await fetchPackages(vendorId);
+      } else {
+        showVendorToast("Unable to delete package.", "error");
+      }
+    } catch (e) {
+      showVendorToast("Unable to delete package.", "error");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleSaveModal = async (e: React.FormEvent) => {
@@ -152,48 +151,42 @@ export default function VendorPackagesPage() {
       return;
     }
 
-    const priceVal = String(formData.price).startsWith("₹") ? String(formData.price) : `₹${Number(formData.price).toLocaleString("en-IN")}`;
-    const discountVal = formData.discount_price ? (String(formData.discount_price).startsWith("₹") ? String(formData.discount_price) : `₹${Number(formData.discount_price).toLocaleString("en-IN")}`) : undefined;
     const parsedFeatures = featuresInput.split("\n").map((f) => f.trim()).filter(Boolean);
 
-    const payload: PackageItem = {
-      id: modalMode === "edit" && selectedId ? selectedId : `p-${Date.now()}`,
+    setIsSubmitting(true);
+
+    const apiBody: Record<string, any> = {
       vendor_id: vendorId,
       name: formData.name.trim(),
-      price: priceVal,
-      discount_price: discountVal,
       description: formData.description ? formData.description.trim() : "",
+      price: Number(formData.price),
+      discount_price: formData.discount_price ? Number(formData.discount_price) : null,
       features: parsedFeatures,
-      popular: Boolean(formData.popular),
+      is_popular: Boolean(formData.popular),
     };
 
-    let newList: PackageItem[];
     if (modalMode === "edit" && selectedId) {
-      newList = packages.map((p) => (p.id === selectedId ? payload : p));
-    } else {
-      newList = [payload, ...packages];
+      apiBody.id = selectedId;
     }
 
-    syncPackagesToStore(newList);
-    setShowModal(false);
-
-    showVendorToast(modalMode === "edit" ? "✓ Package updated successfully" : "✓ Package created successfully");
-
     try {
-      const apiRes = await fetch("/api/v1/vendor/packages", {
+      const res = await fetch("/api/v1/vendor/packages", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...payload,
-          price: Number(formData.price),
-          discount_price: formData.discount_price ? Number(formData.discount_price) : null,
-          is_popular: payload.popular,
-        }),
+        body: JSON.stringify(apiBody),
       }).then((r) => r.json());
 
-      console.log("[VendorPackagesPage] API Save Result:", apiRes);
-    } catch (err) {
-      console.error("[VendorPackagesPage] API Error:", err);
+      if (res.success) {
+        showVendorToast(modalMode === "edit" ? "✓ Package updated successfully" : "✓ Package created successfully");
+        setShowModal(false);
+        await fetchPackages(vendorId);
+      } else {
+        setValidationError(res.error?.message || "Failed to save package to database.");
+      }
+    } catch (err: any) {
+      setValidationError(err.message || "Server error while saving package.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -215,7 +208,7 @@ export default function VendorPackagesPage() {
 
       {/* Pricing Cards Grid */}
       {isLoading ? (
-        <div className="text-center py-16 text-xs text-charcoal/60">Loading pricing packages from database...</div>
+        <div className="text-center py-16 text-xs text-charcoal/60">Querying vendor_service_packages table from Supabase database...</div>
       ) : packages.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {packages.map((pkg) => (
@@ -265,21 +258,24 @@ export default function VendorPackagesPage() {
               {/* Actions Footer Toolbar */}
               <div className="pt-4 border-t border-gold/10 flex items-center justify-between gap-2">
                 <button
+                  disabled={isSubmitting}
                   onClick={() => handleDuplicate(pkg)}
-                  className="text-xs font-bold text-charcoal/70 hover:text-[#0F4C45] flex items-center gap-1 transition-colors cursor-pointer"
+                  className="text-xs font-bold text-charcoal/70 hover:text-[#0F4C45] flex items-center gap-1 transition-colors cursor-pointer disabled:opacity-50"
                 >
                   <Copy className="w-3.5 h-3.5" /> Duplicate
                 </button>
                 <div className="flex items-center gap-3">
                   <button
+                    disabled={isSubmitting}
                     onClick={() => handleOpenEditModal(pkg)}
-                    className="text-xs font-bold text-[#0F4C45] hover:underline flex items-center gap-1 cursor-pointer"
+                    className="text-xs font-bold text-[#0F4C45] hover:underline flex items-center gap-1 cursor-pointer disabled:opacity-50"
                   >
                     <Edit3 className="w-3.5 h-3.5" /> Edit
                   </button>
                   <button
+                    disabled={isSubmitting}
                     onClick={() => handleDelete(pkg.id)}
-                    className="text-xs font-bold text-red-600 hover:underline flex items-center gap-1 cursor-pointer"
+                    className="text-xs font-bold text-red-600 hover:underline flex items-center gap-1 cursor-pointer disabled:opacity-50"
                   >
                     <Trash2 className="w-3.5 h-3.5" /> Delete
                   </button>
@@ -292,7 +288,7 @@ export default function VendorPackagesPage() {
         <div className="text-center py-16 bg-white rounded-2xl border border-gold/15 p-8">
           <Tag className="w-12 h-12 text-gold mx-auto mb-3 opacity-50" />
           <h3 className="text-xl font-display font-bold text-charcoal">No Packages Found</h3>
-          <p className="text-xs text-charcoal/60 max-w-sm mx-auto mt-1">Create pricing tiers for your studio offerings.</p>
+          <p className="text-xs text-charcoal/60 max-w-sm mx-auto mt-1">Add your first package to insert a record into the vendor_service_packages Supabase table.</p>
           <button onClick={handleOpenCreateModal} className="mt-4 bg-[#0F4C45] text-white px-6 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider shadow-md cursor-pointer">
             + Create Package
           </button>
@@ -398,16 +394,18 @@ export default function VendorPackagesPage() {
               <div className="pt-4 flex items-center justify-end gap-3 border-t border-gold/10">
                 <button
                   type="button"
+                  disabled={isSubmitting}
                   onClick={() => setShowModal(false)}
-                  className="px-5 py-2.5 rounded-xl border border-gold/20 text-xs font-bold text-charcoal/60 hover:text-charcoal cursor-pointer"
+                  className="px-5 py-2.5 rounded-xl border border-gold/20 text-xs font-bold text-charcoal/60 hover:text-charcoal cursor-pointer disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2.5 rounded-xl bg-[#0F4C45] text-white text-xs font-bold uppercase tracking-wider hover:bg-[#135951] shadow-md cursor-pointer"
+                  disabled={isSubmitting}
+                  className="px-6 py-2.5 rounded-xl bg-[#0F4C45] text-white text-xs font-bold uppercase tracking-wider hover:bg-[#135951] shadow-md cursor-pointer disabled:opacity-50"
                 >
-                  Save Package
+                  {isSubmitting ? "Saving..." : "Save Package"}
                 </button>
               </div>
             </form>

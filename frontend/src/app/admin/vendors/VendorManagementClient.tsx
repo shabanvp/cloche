@@ -259,8 +259,7 @@ export function VendorManagementClient({ backendVendors }: VendorManagementProps
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [activeVendor, setActiveVendor] = useState<VendorRecord | null>(null);
   const [vendorList, setVendorList] = useState<VendorRecord[]>(() => {
-    // Combine backend vendors with mock category records
-    const formattedBackend: VendorRecord[] = backendVendors.map((b) => ({
+    return backendVendors.map((b) => ({
       id: b.id,
       boutique_name: b.boutique_name || b.name || "Partner Vendor",
       owner_name: b.owner_name || "Owner",
@@ -274,16 +273,6 @@ export function VendorManagementClient({ backendVendors }: VendorManagementProps
       description: b.about || b.description || "Registered luxury vendor on Cloche marketplace.",
       rating: b.rating || 4.9
     }));
-
-    // Deduplicate by ID / name
-    const combined = [...formattedBackend];
-    MOCK_REGISTERED_VENDORS.forEach((mock) => {
-      if (!combined.some((v) => v.id === mock.id || v.boutique_name.toLowerCase() === mock.boutique_name.toLowerCase())) {
-        combined.push(mock);
-      }
-    });
-
-    return combined;
   });
 
   // Filter vendors based on Category, Status, and Search Query

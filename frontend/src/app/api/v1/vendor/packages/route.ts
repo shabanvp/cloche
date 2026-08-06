@@ -1,10 +1,31 @@
 import { NextResponse } from "next/server";
-import { fetchVendorPackagesFromDb, saveVendorPackageToDb, softDeleteVendorPackageFromDb } from "@/lib/supabase";
+import { fetchVendorPackagesFromDb, saveVendorPackageToDb, softDeleteVendorPackageFromDb, supabaseFetch } from "@/lib/supabase";
+
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const DEFAULT_VENDOR_UUID = "7a51b1c0-c15b-42ed-aec2-fd5caf6b471c";
+
+async function resolveVendorUuid(rawId?: string | null): Promise<string> {
+  if (rawId && UUID_REGEX.test(rawId)) {
+    return rawId;
+  }
+
+  if (rawId && rawId !== "v-registered" && rawId !== "v-demo-vendor") {
+    try {
+      const res = await supabaseFetch(`vendors?or=(id.eq.${encodeURIComponent(rawId)},user_id.eq.${encodeURIComponent(rawId)})&select=id`);
+      if (!res.error && Array.isArray(res.data) && res.data.length > 0 && res.data[0].id) {
+        return res.data[0].id;
+      }
+    } catch (e) {}
+  }
+
+  return DEFAULT_VENDOR_UUID;
+}
 
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
-    const vendorId = searchParams.get("vendor_id") || "v-demo-vendor";
+    const rawVendorId = searchParams.get("vendor_id");
+    const vendorId = await resolveVendorUuid(rawVendorId);
 
     const { data, error } = await fetchVendorPackagesFromDb(vendorId);
 
@@ -46,10 +67,10 @@ export async function POST(req: Request) {
       parsedFeatures = features.split("\n").map((f) => f.trim()).filter(Boolean);
     }
 
+    const resolvedVendorId = await resolveVendorUuid(vendor_id);
+
     const payload: Record<string, any> = {
-      vendor_id: vendor_id || "v-demo-vendor",
-      category_id: category_id || null,
-      service_id: service_id || null,
+      vendor_id: resolvedVendorId,
       name: name.trim(),
       tagline: tagline ? tagline.trim() : null,
       description: description ? description.trim() : null,
@@ -58,11 +79,19 @@ export async function POST(req: Request) {
       features: parsedFeatures,
       is_popular: is_popular !== undefined ? Boolean(is_popular) : false,
       is_active: is_active !== undefined ? Boolean(is_active) : true,
-      status: status || "published",
+      status: status ? status.toLowerCase() : "published",
       updated_at: new Date().toISOString(),
     };
 
-    if (body.id) {
+    if (category_id && UUID_REGEX.test(category_id)) {
+      payload.category_id = category_id;
+    }
+    if (service_id && UUID_REGEX.test(service_id)) {
+      payload.service_id = service_id;
+    }
+
+    // ONLY set payload.id if body.id is a valid UUID (ignore p- fake IDs)
+    if (body.id && UUID_REGEX.test(body.id)) {
       payload.id = body.id;
     }
 
@@ -78,8 +107,8 @@ export async function POST(req: Request) {
     const savedPkg = Array.isArray(data) ? data[0] : data;
 
     return NextResponse.json(
-      { success: true, statusCode: body.id ? 200 : 201, message: body.id ? "Package updated successfully" : "Package created successfully", data: savedPkg },
-      { status: body.id ? 200 : 201 }
+      { success: true, statusCode: payload.id ? 200 : 201, message: payload.id ? "Package updated successfully" : "Package created successfully", data: savedPkg },
+      { status: payload.id ? 200 : 201 }
     );
   } catch (err: any) {
     return NextResponse.json(
@@ -87,6 +116,10 @@ export async function POST(req: Request) {
       { status: 500 }
     );
   }
+}
+
+export async function PUT(req: Request) {
+  return POST(req);
 }
 
 export async function DELETE(req: Request) {
