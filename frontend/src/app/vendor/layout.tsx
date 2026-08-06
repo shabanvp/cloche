@@ -12,7 +12,7 @@ export default function VendorLayout({ children }: { children: ReactNode }) {
 
   if (isAuthPage) {
     return (
-      <div className="min-h-screen bg-ivory flex flex-col justify-between">
+      <div className="min-h-screen bg-[#FAF7F2] flex flex-col justify-between">
         <div className="flex-1 flex flex-col">
           {children}
         </div>
@@ -20,29 +20,33 @@ export default function VendorLayout({ children }: { children: ReactNode }) {
     );
   }
 
-  // Navigation Hub main screen: Render standalone full-width navigation screen without duplicate sidebar
-  if (isNavigationHub) {
-    return (
-      <div className="min-h-screen bg-ivory flex flex-col justify-between font-sans">
-        <main className="flex-1 py-10 px-4 sm:px-6 lg:px-8 max-w-[1200px] mx-auto w-full">
-          {children}
-        </main>
-        <Footer />
-      </div>
-    );
-  }
-
-  // Dedicated Sub-Pages: Render Sidebar on the left and sub-page content on the right
   return (
-    <div className="min-h-screen bg-ivory flex flex-col justify-between font-sans">
-      <main className="flex-1 py-10 px-4 sm:px-6 lg:px-8 max-w-[1400px] mx-auto w-full">
-        <div className="flex flex-col lg:flex-row gap-8">
-          <VendorSidebar />
-          {/* Main Content Area */}
-          <div className="flex-1 min-w-0">
-            {children}
+    <div className="min-h-screen bg-[#FAF7F2] flex flex-col justify-between font-sans">
+      <main className="flex-1 py-6 lg:py-10 px-4 sm:px-6 lg:px-8 max-w-[1600px] mx-auto w-full">
+        {isNavigationHub ? (
+          <>
+            {/* Mobile View (<1024px): Render standalone mobile profile menu screen */}
+            <div className="block lg:hidden">
+              {children}
+            </div>
+
+            {/* Desktop View (>=1024px): Render Sidebar + Overview Dashboard */}
+            <div className="hidden lg:flex flex-row gap-8">
+              <VendorSidebar />
+              <div className="flex-1 min-w-0">
+                {children}
+              </div>
+            </div>
+          </>
+        ) : (
+          /* Dedicated Sub-Pages: Mobile shows stack, Desktop shows 280px Sidebar + Content */
+          <div className="flex flex-col lg:flex-row gap-8">
+            <VendorSidebar />
+            <div className="flex-1 min-w-0">
+              {children}
+            </div>
           </div>
-        </div>
+        )}
       </main>
       
       <Footer />

@@ -1,112 +1,176 @@
-import Link from "next/link";
-import Image from "next/image";
-import { Plus, Search, Edit2, Trash2, Eye } from "lucide-react";
-import { Button } from "@/components/Button";
-import { getAllProducts } from "@/services/api";
+"use client";
 
-export default async function VendorCollections() {
-  // In a real app, this would use the logged-in vendor's ID from session/JWT
-  const allProducts = await getAllProducts();
-  const collections = allProducts.slice(0, 6); // Mocking the vendor's own collections
+import { useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { Plus, UploadCloud, Trash2, Eye, Star, SlidersHorizontal, Image as ImageIcon, CheckCircle2 } from "lucide-react";
+import { Button } from "@/components/Button";
+
+interface GalleryItem {
+  id: string;
+  title: string;
+  category: string;
+  imageUrl: string;
+  isCover: boolean;
+  aspectRatio: string;
+  likesCount: number;
+}
+
+export default function VendorCollections() {
+  const [activeTab, setActiveTab] = useState("All");
+  const [selectedItems, setSelectedItems] = useState<string[]>([]);
+  const [items, setItems] = useState<GalleryItem[]>([
+    { id: "1", title: "Royal Kerala Bridal Heritage", category: "Bridal Wear", imageUrl: "https://images.unsplash.com/photo-1594223274512-ad4803739b7c?q=80&w=800&auto=format&fit=crop", isCover: true, aspectRatio: "aspect-[3/4]", likesCount: 245 },
+    { id: "2", title: "Cinematic Sunset Couple Portrait", category: "Photography", imageUrl: "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=800&auto=format&fit=crop", isCover: false, aspectRatio: "aspect-[4/3]", likesCount: 189 },
+    { id: "3", title: "HD Airbrush Makeover Suite", category: "Makeup", imageUrl: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?q=80&w=800&auto=format&fit=crop", isCover: false, aspectRatio: "aspect-[3/4]", likesCount: 312 },
+    { id: "4", title: "Grand Temple Stage Mandap Decor", category: "Decor & Venues", imageUrl: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?q=80&w=800&auto=format&fit=crop", isCover: false, aspectRatio: "aspect-[16/9]", likesCount: 420 },
+    { id: "5", title: "Handcrafted Zardozi Silk Lehenga", category: "Bridal Wear", imageUrl: "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?q=80&w=800&auto=format&fit=crop", isCover: false, aspectRatio: "aspect-[3/4]", likesCount: 156 },
+    { id: "6", title: "24K Gold Kundan Jewellery Set", category: "Jewellery", imageUrl: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?q=80&w=800&auto=format&fit=crop", isCover: false, aspectRatio: "aspect-[4/3]", likesCount: 290 },
+  ]);
+
+  const toggleSelect = (id: string) => {
+    setSelectedItems((prev) => (prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]));
+  };
+
+  const handleSetCover = (id: string) => {
+    setItems((prev) => prev.map((item) => ({ ...item, isCover: item.id === id })));
+  };
+
+  const handleDeleteSelected = () => {
+    if (selectedItems.length === 0) return;
+    if (!confirm(`Delete ${selectedItems.length} selected photos?`)) return;
+    setItems((prev) => prev.filter((item) => !selectedItems.includes(item.id)));
+    setSelectedItems([]);
+  };
+
+  const filteredItems = items.filter((item) => activeTab === "All" || item.category === activeTab);
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
+    <div className="space-y-8 animate-in fade-in duration-500 font-sans pb-12">
       
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end border-b border-gold/10 pb-4 gap-4">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-gold/15 pb-6 gap-4">
         <div>
-          <h1 className="text-3xl font-display text-charcoal">Collections Management</h1>
-          <p className="text-sm text-charcoal/60 mt-1">Manage your boutique's dresses and catalog.</p>
+          <h1 className="text-3xl lg:text-4xl font-display font-bold text-charcoal">Gallery & Portfolio Showcase</h1>
+          <p className="text-sm text-charcoal/70 mt-1">Manage your studio photo gallery, featured portfolio covers, and client media displays.</p>
         </div>
-        <Link href="/vendor/collections/new">
-          <Button className="bg-emerald text-white rounded-full flex items-center gap-2">
-            <Plus className="w-4 h-4" /> Add Collection
-          </Button>
-        </Link>
+
+        <div className="flex items-center gap-3 shrink-0">
+          {selectedItems.length > 0 && (
+            <button
+              onClick={handleDeleteSelected}
+              className="bg-red-50 text-red-600 hover:bg-red-100 font-bold px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider transition-all flex items-center gap-2 border border-red-200"
+            >
+              <Trash2 className="w-4 h-4" /> Delete ({selectedItems.length})
+            </button>
+          )}
+          <Link href="/vendor/collections/new">
+            <Button className="bg-[#0F4C45] hover:bg-[#135951] text-white px-5 py-2.5 rounded-xl text-xs uppercase tracking-wider font-bold shadow-md flex items-center gap-2">
+              <Plus className="w-4 h-4 text-[#C8A96A]" /> Upload Media
+            </Button>
+          </Link>
+        </div>
       </div>
 
-      {/* Filters & Search */}
-      <div className="flex flex-col sm:flex-row justify-between gap-4 bg-white p-4 rounded-xl border border-gold/10 shadow-sm">
-        <div className="flex gap-2 overflow-x-auto pb-2 sm:pb-0 hide-scrollbar">
-          {["All", "Published", "Drafts", "Archived"].map((tab, i) => (
-            <button key={tab} className={`px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider whitespace-nowrap transition-colors ${i === 0 ? 'bg-charcoal text-white' : 'bg-ivory text-charcoal/70 hover:bg-gray-200'}`}>
+      {/* Drag & Drop Upload Zone */}
+      <div className="border-2 border-dashed border-gold/30 hover:border-[#0F4C45] bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] p-8 rounded-2xl transition-colors text-center flex flex-col items-center justify-center gap-3 cursor-pointer group">
+        <div className="w-14 h-14 rounded-full bg-[#0F4C45]/10 text-[#0F4C45] flex items-center justify-center group-hover:scale-110 transition-transform">
+          <UploadCloud className="w-7 h-7" />
+        </div>
+        <div>
+          <h3 className="font-display font-bold text-base text-charcoal">Drag & Drop High-Res Photos Here</h3>
+          <p className="text-xs text-charcoal/60 mt-1">Supports JPG, PNG, WEBP up to 25MB per photo. Multi-select upload enabled.</p>
+        </div>
+      </div>
+
+      {/* Category Filter Tabs & Toolbar */}
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-white p-4 rounded-2xl border border-gold/15 shadow-xs">
+        <div className="flex items-center gap-2 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0">
+          {["All", "Bridal Wear", "Photography", "Makeup", "Decor & Venues", "Jewellery"].map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider whitespace-nowrap transition-all ${
+                activeTab === tab ? "bg-[#0F4C45] text-white shadow-xs" : "bg-[#FAF7F2] text-charcoal/70 hover:text-[#0F4C45]"
+              }`}
+            >
               {tab}
             </button>
           ))}
         </div>
-        <div className="relative">
-          <input 
-            type="text" 
-            placeholder="Search collections..."
-            className="w-full sm:w-64 bg-ivory border border-gold/20 rounded-full py-1.5 pl-9 pr-4 text-sm focus:outline-none focus:border-emerald"
-          />
-          <Search className="w-4 h-4 text-charcoal/40 absolute left-3 top-1/2 -translate-y-1/2" />
+
+        <div className="text-xs text-charcoal/60 font-semibold shrink-0">
+          Showing <strong>{filteredItems.length}</strong> Gallery Showcase Media
         </div>
       </div>
 
-      {/* Collections Table/Grid */}
-      <div className="bg-white rounded-2xl border border-gold/10 shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-ivory border-b border-gold/10 text-xs uppercase tracking-wider text-charcoal/60 font-semibold">
-                <th className="p-4 pl-6">Collection</th>
-                <th className="p-4">Category</th>
-                <th className="p-4">Price</th>
-                <th className="p-4">Status</th>
-                <th className="p-4 text-right pr-6">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gold/10">
-              {collections.map((item) => (
-                <tr key={item.id} className="hover:bg-emerald/5 transition-colors group">
-                  <td className="p-4 pl-6">
-                    <div className="flex items-center gap-4">
-                      <div className="relative w-12 h-16 rounded-md overflow-hidden bg-gray-100 shrink-0">
-                        <Image 
-                          src={item.image_url || "https://images.unsplash.com/photo-1594223274512-ad4803739b7c?q=80&w=800&auto=format&fit=crop"} 
-                          alt={item.product_name}
-                          fill
-                          className="object-cover"
-                        />
-                      </div>
-                      <div>
-                        <h4 className="font-display font-medium text-charcoal group-hover:text-emerald transition-colors">{item.product_name}</h4>
-                        <p className="text-xs text-charcoal/50 mt-0.5">ID: #{item.id}</p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="p-4">
-                    <span className="text-sm text-charcoal">{item.category}</span>
-                  </td>
-                  <td className="p-4">
-                    <span className="text-sm font-medium text-charcoal">₹{item.price.toLocaleString('en-IN')}</span>
-                  </td>
-                  <td className="p-4">
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald/10 text-emerald">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald"></span> Published
-                    </span>
-                  </td>
-                  <td className="p-4 pr-6 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <Link href={`/collections/${item.id}`} target="_blank">
-                        <Button variant="ghost" size="icon" className="w-8 h-8 rounded-full text-charcoal/60 hover:text-emerald hover:bg-emerald/10">
-                          <Eye className="w-4 h-4" />
-                        </Button>
-                      </Link>
-                      <Button variant="ghost" size="icon" className="w-8 h-8 rounded-full text-charcoal/60 hover:text-gold hover:bg-gold/10">
-                        <Edit2 className="w-4 h-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="w-8 h-8 rounded-full text-charcoal/60 hover:text-red-500 hover:bg-red-50">
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+      {/* Pinterest-Style / Masonry Grid Layout */}
+      <div className="columns-1 sm:columns-2 lg:columns-3 gap-6 space-y-6">
+        {filteredItems.map((item) => {
+          const isSelected = selectedItems.includes(item.id);
+          return (
+            <div
+              key={item.id}
+              className={`break-inside-avoid bg-white rounded-2xl border ${
+                item.isCover ? "border-[#0F4C45] ring-2 ring-[#0F4C45]/20" : "border-gold/15"
+              } overflow-hidden shadow-xs hover:shadow-md transition-all group relative`}
+            >
+              <div className={`relative ${item.aspectRatio} w-full bg-[#FAF7F2]`}>
+                <Image src={item.imageUrl} alt={item.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
+                
+                {/* Select Checkbox Overlay */}
+                <button
+                  onClick={() => toggleSelect(item.id)}
+                  className={`absolute top-3 left-3 w-7 h-7 rounded-full flex items-center justify-center transition-all ${
+                    isSelected ? "bg-[#0F4C45] text-white shadow-md" : "bg-white/80 backdrop-blur-xs text-charcoal/40 hover:bg-white"
+                  }`}
+                >
+                  <CheckCircle2 className="w-4 h-4" />
+                </button>
+
+                {/* Cover Badge */}
+                {item.isCover && (
+                  <span className="absolute top-3 right-3 bg-[#0F4C45] text-[#C8A96A] text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full shadow-xs border border-gold/30">
+                    ★ Main Cover Photo
+                  </span>
+                )}
+
+                {/* Action Hover Controls */}
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4 justify-between">
+                  {!item.isCover && (
+                    <button
+                      onClick={() => handleSetCover(item.id)}
+                      className="bg-white text-[#0F4C45] px-3 py-1.5 rounded-lg text-xs font-bold shadow-xs hover:bg-[#0F4C45] hover:text-white transition-colors"
+                    >
+                      Set as Cover
+                    </button>
+                  )}
+                  <div className="flex items-center gap-2 ml-auto">
+                    <button
+                      onClick={() => setItems((prev) => prev.filter((i) => i.id !== item.id))}
+                      className="p-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors shadow-xs"
+                      title="Delete photo"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-4 flex items-center justify-between">
+                <div>
+                  <h4 className="font-display font-bold text-sm text-charcoal">{item.title}</h4>
+                  <p className="text-[11px] text-charcoal/60 mt-0.5">{item.category}</p>
+                </div>
+                <div className="flex items-center gap-1 text-gold font-bold text-xs">
+                  <Star className="w-3.5 h-3.5 fill-gold text-gold" /> {item.likesCount}
+                </div>
+              </div>
+            </div>
+          );
+        })}
       </div>
+
     </div>
   );
 }

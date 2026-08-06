@@ -1,9 +1,7 @@
-
-
 "use client";
 
 import { useState, useEffect } from "react";
-import { Store, Camera, MapPin, Link as LinkIcon, Phone, CheckCircle2 } from "lucide-react";
+import { Store, Camera, MapPin, Link as LinkIcon, Phone, CheckCircle2, Building2, Clock, Globe, Save } from "lucide-react";
 import { Button } from "@/components/Button";
 
 export default function VendorProfile() {
@@ -14,8 +12,10 @@ export default function VendorProfile() {
   const [description, setDescription] = useState<string>("");
   const [whatsapp, setWhatsapp] = useState<string>("");
   const [instagram, setInstagram] = useState<string>("");
+  const [website, setWebsite] = useState<string>("https://cloche.app/vendor");
   const [address, setAddress] = useState<string>("");
   const [district, setDistrict] = useState<string>("Ernakulam");
+  const [serviceAreas, setServiceAreas] = useState<string>("Kochi, Trivandrum, Kozhikode, Thrissur");
   const [workingHours, setWorkingHours] = useState<string>("Mon – Sat: 10:00 AM – 8:00 PM | Sun: 11:00 AM – 5:00 PM");
   const [savedSuccess, setSavedSuccess] = useState(false);
 
@@ -39,7 +39,7 @@ export default function VendorProfile() {
           setLogo(foundLogo);
           setCoverImage(foundCover);
           setBoutiqueName(active.boutique_name || active.name || active.businessName || "Registered Vendor");
-          setDescription(active.description || active.about || "Premier luxury wedding partner.");
+          setDescription(active.description || active.about || "Premier luxury wedding partner offering bespoke services.");
           setWhatsapp(active.whatsapp || active.phone || active.contactNumber || "+919876543210");
           setInstagram(active.instagram || "@clochevendor");
           setAddress(active.address || active.location || "MG Road, Kochi");
@@ -109,7 +109,6 @@ export default function VendorProfile() {
           localStorage.setItem("cloche_registered_venues", JSON.stringify(updatedVenueList));
         }
 
-        // Notify storage listeners
         window.dispatchEvent(new Event("storage"));
         window.dispatchEvent(new Event("cloche_cms_update"));
 
@@ -120,166 +119,209 @@ export default function VendorProfile() {
   };
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500 max-w-4xl mx-auto">
-      <div className="border-b border-gold/10 pb-4 flex justify-between items-center">
+    <div className="space-y-8 animate-in fade-in duration-500 max-w-6xl mx-auto font-sans pb-24">
+      
+      {/* Header */}
+      <div className="border-b border-gold/15 pb-4 flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-display text-charcoal">Profile Management</h1>
-          <p className="text-sm text-charcoal/60 mt-1">Manage how your boutique appears to customers.</p>
+          <h1 className="text-3xl font-display font-bold text-charcoal">Vendor Profile Management</h1>
+          <p className="text-sm text-charcoal/60 mt-1">Manage your business information, contact details, working hours, and media branding.</p>
         </div>
         {savedSuccess && (
-          <div className="flex items-center gap-1.5 text-xs font-bold text-emerald bg-emerald/10 px-3 py-1.5 rounded-full border border-emerald/20">
-            <CheckCircle2 className="w-4 h-4" />
-            <span>Profile Saved!</span>
+          <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-800 bg-emerald-50 px-4 py-2 rounded-full border border-emerald-200 shadow-xs">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+            <span>Profile Saved Successfully!</span>
           </div>
         )}
       </div>
 
       <form onSubmit={handleSave} className="space-y-8">
-        {/* Branding */}
-        <section className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gold/10">
-          <h2 className="text-lg font-display text-charcoal mb-4 border-b border-gold/10 pb-3">Branding</h2>
-          <div className="flex flex-col md:flex-row gap-8 items-start">
 
-            {/* Logo Section */}
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-charcoal/60 mb-2">
-                Boutique Logo
-              </label>
-              {logo && (logo.startsWith("data:") || logo.startsWith("http") || logo.startsWith("/")) ? (
-                <div className="relative w-32 h-32 rounded-full border-2 border-gold/30 overflow-hidden group shadow-md bg-ivory">
-                  <img src={logo} alt="Logo" className="w-full h-full object-cover" />
-                  <label className="absolute inset-0 bg-black/50 text-white opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center cursor-pointer transition-opacity text-[10px] font-bold">
-                    <Camera className="w-5 h-5 mb-1" />
-                    <span>Change Logo</span>
-                    <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
-                  </label>
-                </div>
-              ) : (
-                <label className="w-32 h-32 rounded-full border-2 border-dashed border-gold/30 flex flex-col items-center justify-center cursor-pointer hover:bg-ivory transition-colors group">
-                  <Camera className="w-6 h-6 text-gold mb-1 opacity-70 group-hover:opacity-100" />
-                  <span className="text-[10px] text-charcoal/60 font-medium">Upload Logo</span>
-                  <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
-                </label>
-              )}
+        {/* Desktop 2-Column Grid Layout (Left: Business Info, Right: Contact Info) */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          
+          {/* Left Column: Business Information */}
+          <section className="bg-white p-6 md:p-8 rounded-2xl shadow-xs border border-gold/15 space-y-6">
+            <div className="flex items-center gap-2 border-b border-gold/10 pb-3">
+              <Building2 className="w-5 h-5 text-[#0F4C45]" />
+              <h2 className="text-lg font-display font-bold text-charcoal">Business Information</h2>
             </div>
 
-            {/* Cover Image Section */}
-            <div className="flex-1 w-full">
-              <label className="block text-xs font-semibold uppercase tracking-wider text-charcoal/60 mb-2">
-                Cover Image (16:9)
-              </label>
-              {coverImage && (coverImage.startsWith("data:") || coverImage.startsWith("http") || coverImage.startsWith("/")) ? (
-                <div className="relative w-full h-36 rounded-xl border-2 border-gold/30 overflow-hidden group shadow-md bg-ivory">
-                  <img src={coverImage} alt="Cover Image" className="w-full h-full object-cover" />
-                  <label className="absolute inset-0 bg-black/50 text-white opacity-0 group-hover:opacity-100 flex items-center justify-center cursor-pointer transition-opacity text-xs font-bold gap-1">
-                    <Camera className="w-5 h-5" />
-                    <span>Change Cover Photo</span>
-                    <input type="file" accept="image/*" className="hidden" onChange={handleCoverUpload} />
-                  </label>
-                </div>
-              ) : (
-                <label className="w-full h-36 rounded-xl border-2 border-dashed border-gold/30 flex flex-col items-center justify-center cursor-pointer hover:bg-ivory transition-colors group">
-                  <Camera className="w-6 h-6 text-gold mb-1 opacity-70 group-hover:opacity-100" />
-                  <span className="text-xs text-charcoal/60 font-medium">Upload Cover Photo (16:9)</span>
-                  <input type="file" accept="image/*" className="hidden" onChange={handleCoverUpload} />
-                </label>
-              )}
-            </div>
-          </div>
-        </section>
-
-        {/* Basic Info */}
-        <section className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gold/10">
-          <h2 className="text-lg font-display text-charcoal mb-4 border-b border-gold/10 pb-3">Basic Information</h2>
-          <div className="grid grid-cols-1 gap-6">
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-charcoal/60 mb-2">Boutique Name</label>
+              <label className="block text-xs font-bold uppercase tracking-wider text-charcoal/60 mb-2">Boutique / Studio Name</label>
               <input
                 type="text"
                 value={boutiqueName}
                 onChange={(e) => setBoutiqueName(e.target.value)}
-                className="w-full bg-ivory border border-gold/20 rounded-xl p-3 text-sm text-charcoal focus:outline-none focus:border-emerald font-semibold"
+                className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl p-3 text-sm text-charcoal focus:outline-none focus:border-[#0F4C45] font-semibold"
               />
             </div>
+
+            {/* Logo & Cover Branding */}
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-charcoal/60 mb-2">Studio Logo</label>
+                {logo && (logo.startsWith("data:") || logo.startsWith("http") || logo.startsWith("/")) ? (
+                  <div className="relative w-28 h-28 rounded-full border-2 border-gold/30 overflow-hidden group shadow-sm bg-[#FAF7F2]">
+                    <img src={logo} alt="Logo" className="w-full h-full object-cover" />
+                    <label className="absolute inset-0 bg-black/50 text-white opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center cursor-pointer transition-opacity text-[10px] font-bold">
+                      <Camera className="w-5 h-5 mb-1" />
+                      <span>Change Logo</span>
+                      <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
+                    </label>
+                  </div>
+                ) : (
+                  <label className="w-28 h-28 rounded-full border-2 border-dashed border-gold/30 flex flex-col items-center justify-center cursor-pointer hover:bg-[#FAF7F2] transition-colors group">
+                    <Camera className="w-6 h-6 text-gold mb-1 opacity-70 group-hover:opacity-100" />
+                    <span className="text-[10px] text-charcoal/60 font-medium">Upload Logo</span>
+                    <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
+                  </label>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-charcoal/60 mb-2">Gallery Cover Photo (16:9)</label>
+                {coverImage && (coverImage.startsWith("data:") || coverImage.startsWith("http") || coverImage.startsWith("/")) ? (
+                  <div className="relative w-full h-36 rounded-xl border-2 border-gold/30 overflow-hidden group shadow-sm bg-[#FAF7F2]">
+                    <img src={coverImage} alt="Cover Image" className="w-full h-full object-cover" />
+                    <label className="absolute inset-0 bg-black/50 text-white opacity-0 group-hover:opacity-100 flex items-center justify-center cursor-pointer transition-opacity text-xs font-bold gap-1">
+                      <Camera className="w-5 h-5" />
+                      <span>Change Cover Photo</span>
+                      <input type="file" accept="image/*" className="hidden" onChange={handleCoverUpload} />
+                    </label>
+                  </div>
+                ) : (
+                  <label className="w-full h-36 rounded-xl border-2 border-dashed border-gold/30 flex flex-col items-center justify-center cursor-pointer hover:bg-[#FAF7F2] transition-colors group">
+                    <Camera className="w-6 h-6 text-gold mb-1 opacity-70 group-hover:opacity-100" />
+                    <span className="text-xs text-charcoal/60 font-medium">Upload Cover Photo (16:9)</span>
+                    <input type="file" accept="image/*" className="hidden" onChange={handleCoverUpload} />
+                  </label>
+                )}
+              </div>
+            </div>
+          </section>
+
+          {/* Right Column: Contact & Address Information */}
+          <section className="bg-white p-6 md:p-8 rounded-2xl shadow-xs border border-gold/15 space-y-6">
+            <div className="flex items-center gap-2 border-b border-gold/10 pb-3">
+              <Phone className="w-5 h-5 text-[#0F4C45]" />
+              <h2 className="text-lg font-display font-bold text-charcoal">Contact & Social Links</h2>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-charcoal/60 mb-2">WhatsApp Contact</label>
+                <div className="relative">
+                  <Phone className="w-4 h-4 text-charcoal/40 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="tel"
+                    value={whatsapp}
+                    onChange={(e) => setWhatsapp(e.target.value)}
+                    className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl p-3 pl-10 text-sm text-charcoal focus:outline-none focus:border-[#0F4C45]"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-charcoal/60 mb-2">Instagram Handle</label>
+                <div className="relative">
+                  <LinkIcon className="w-4 h-4 text-charcoal/40 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    value={instagram}
+                    onChange={(e) => setInstagram(e.target.value)}
+                    className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl p-3 pl-10 text-sm text-charcoal focus:outline-none focus:border-[#0F4C45]"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-charcoal/60 mb-2">Official Website</label>
+                <div className="relative">
+                  <Globe className="w-4 h-4 text-charcoal/40 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="url"
+                    value={website}
+                    onChange={(e) => setWebsite(e.target.value)}
+                    className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl p-3 pl-10 text-sm text-charcoal focus:outline-none focus:border-[#0F4C45]"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-charcoal/60 mb-2">District / City Location</label>
+                <input
+                  type="text"
+                  value={district}
+                  onChange={(e) => setDistrict(e.target.value)}
+                  className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl p-3 text-sm text-charcoal focus:outline-none focus:border-[#0F4C45] font-semibold"
+                />
+              </div>
+            </div>
+          </section>
+
+        </div>
+
+        {/* Full-width Section Below: Description, Working Hours, Address & Service Areas */}
+        <section className="bg-white p-6 md:p-8 rounded-2xl shadow-xs border border-gold/15 space-y-6">
+          <h2 className="text-lg font-display font-bold text-charcoal border-b border-gold/10 pb-3">Additional Details</h2>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-charcoal/60 mb-2">About Boutique</label>
+              <label className="block text-xs font-bold uppercase tracking-wider text-charcoal/60 mb-2">About Your Business</label>
               <textarea
                 rows={4}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="w-full bg-ivory border border-gold/20 rounded-xl p-3 text-sm text-charcoal focus:outline-none focus:border-emerald leading-relaxed"
+                className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl p-3 text-sm text-charcoal focus:outline-none focus:border-[#0F4C45] leading-relaxed"
               />
             </div>
-          </div>
-        </section>
 
-        {/* Contact & Location */}
-        <section className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gold/10">
-          <h2 className="text-lg font-display text-charcoal mb-4 border-b border-gold/10 pb-3">Contact & Location</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-charcoal/60 mb-2">WhatsApp Number</label>
-              <div className="relative">
-                <Phone className="w-4 h-4 text-charcoal/40 absolute left-3 top-1/2 -translate-y-1/2" />
-                <input
-                  type="tel"
-                  value={whatsapp}
-                  onChange={(e) => setWhatsapp(e.target.value)}
-                  className="w-full bg-ivory border border-gold/20 rounded-xl p-3 pl-10 text-sm text-charcoal focus:outline-none focus:border-emerald"
-                />
-              </div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-charcoal/60 mb-2">Complete Address</label>
+              <textarea
+                rows={4}
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl p-3 text-sm text-charcoal focus:outline-none focus:border-[#0F4C45]"
+              />
             </div>
+
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-charcoal/60 mb-2">Social Media Handle</label>
+              <label className="block text-xs font-bold uppercase tracking-wider text-charcoal/60 mb-2">Working Hours</label>
               <div className="relative">
-                <LinkIcon className="w-4 h-4 text-charcoal/40 absolute left-3 top-1/2 -translate-y-1/2" />
+                <Clock className="w-4 h-4 text-charcoal/40 absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
-                  value={instagram}
-                  onChange={(e) => setInstagram(e.target.value)}
-                  className="w-full bg-ivory border border-gold/20 rounded-xl p-3 pl-10 text-sm text-charcoal focus:outline-none focus:border-emerald"
+                  value={workingHours}
+                  onChange={(e) => setWorkingHours(e.target.value)}
+                  className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl p-3 pl-10 text-sm text-charcoal focus:outline-none focus:border-[#0F4C45]"
                 />
               </div>
             </div>
-            <div className="md:col-span-2">
-              <label className="block text-xs font-semibold uppercase tracking-wider text-charcoal/60 mb-2">Complete Address</label>
-              <div className="relative">
-                <MapPin className="w-4 h-4 text-charcoal/40 absolute left-3 top-4" />
-                <textarea
-                  rows={2}
-                  value={address}
-                  onChange={(e) => setAddress(e.target.value)}
-                  className="w-full bg-ivory border border-gold/20 rounded-xl p-3 pl-10 text-sm text-charcoal focus:outline-none focus:border-emerald"
-                />
-              </div>
-            </div>
+
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-charcoal/60 mb-2">District / City</label>
+              <label className="block text-xs font-bold uppercase tracking-wider text-charcoal/60 mb-2">Primary Service Areas</label>
               <input
                 type="text"
-                value={district}
-                onChange={(e) => setDistrict(e.target.value)}
-                className="w-full bg-ivory border border-gold/20 rounded-xl p-3 text-sm text-charcoal focus:outline-none focus:border-emerald font-semibold"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-charcoal/60 mb-2">Working Hours</label>
-              <input
-                type="text"
-                value={workingHours}
-                onChange={(e) => setWorkingHours(e.target.value)}
-                className="w-full bg-ivory border border-gold/20 rounded-xl p-3 text-sm text-charcoal focus:outline-none focus:border-emerald"
+                value={serviceAreas}
+                onChange={(e) => setServiceAreas(e.target.value)}
+                className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl p-3 text-sm text-charcoal focus:outline-none focus:border-[#0F4C45]"
               />
             </div>
           </div>
         </section>
 
-        {/* Actions */}
-        <div className="flex justify-end pt-4 pb-12">
-          <Button type="submit" className="bg-[#0F4C45] hover:bg-[#0F4C45]/90 text-white rounded-full px-8 font-bold shadow-md">
-            Save Profile
+        {/* Sticky Desktop Save Button Footer */}
+        <div className="sticky bottom-6 bg-white/90 backdrop-blur-md p-4 rounded-2xl border border-gold/20 shadow-lg flex items-center justify-between z-20">
+          <div className="text-xs text-charcoal/70 hidden sm:block">
+            Ensure all business details and contact numbers are up to date for customer inquiries.
+          </div>
+          <Button type="submit" className="bg-[#0F4C45] hover:bg-[#135951] text-white rounded-full px-8 py-3 font-bold text-xs uppercase tracking-wider shadow-md flex items-center gap-2 ml-auto cursor-pointer">
+            <Save className="w-4 h-4 text-[#C8A96A]" /> Save Profile Changes
           </Button>
         </div>
+
       </form>
     </div>
   );
