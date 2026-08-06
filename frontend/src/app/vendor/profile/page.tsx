@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Store, Camera, MapPin, Link as LinkIcon, Phone, CheckCircle2, Building2, Clock, Globe, Save } from "lucide-react";
+import { Store, Camera, MapPin, Link as LinkIcon, Phone, CheckCircle2, Building2, Clock, Globe, Save, AlertCircle } from "lucide-react";
 import { Button } from "@/components/Button";
+import { getActiveVendorIdentity, syncVendorProfileWithDatabase, showVendorToast } from "@/lib/vendorStore";
+import { fetchVendorProfileFromDb } from "@/lib/supabase";
 
 export default function VendorProfile() {
   const [vendorId, setVendorId] = useState<string>("");
@@ -11,47 +13,67 @@ export default function VendorProfile() {
   const [boutiqueName, setBoutiqueName] = useState<string>("");
   const [description, setDescription] = useState<string>("");
   const [whatsapp, setWhatsapp] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
   const [instagram, setInstagram] = useState<string>("");
-  const [website, setWebsite] = useState<string>("https://cloche.app/vendor");
+  const [website, setWebsite] = useState<string>("https://cloche.app");
   const [address, setAddress] = useState<string>("");
   const [district, setDistrict] = useState<string>("Ernakulam");
+  const [category, setCategory] = useState<string>("Photography");
   const [serviceAreas, setServiceAreas] = useState<string>("Kochi, Trivandrum, Kozhikode, Thrissur");
   const [workingHours, setWorkingHours] = useState<string>("Mon – Sat: 10:00 AM – 8:00 PM | Sun: 11:00 AM – 5:00 PM");
+  
+  // States & Validation
+  const [isSaving, setIsSaving] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const rawVendors = localStorage.getItem("cloche_registered_vendors");
-        const rawVenues = localStorage.getItem("cloche_registered_venues");
-        const list: any[] = [];
-        if (rawVendors) list.push(...JSON.parse(rawVendors));
-        if (rawVenues) list.push(...JSON.parse(rawVenues));
-
-        if (list.length > 0) {
-          const active = list[0];
-          const resolvedId = active.id || active.slug || active.boutique_name?.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-          setVendorId(resolvedId);
-
-          const foundLogo = active.logo || active.logo_url || active.profile_logo || active.image_url || active.image || "";
-          const foundCover = active.coverImage || active.cover || active.heroImage || active.image || "";
-
-          setLogo(foundLogo);
-          setCoverImage(foundCover);
-          setBoutiqueName(active.boutique_name || active.name || active.businessName || "Registered Vendor");
-          setDescription(active.description || active.about || "Premier luxury wedding partner offering bespoke services.");
-          setWhatsapp(active.whatsapp || active.phone || active.contactNumber || "+919876543210");
-          setInstagram(active.instagram || "@clochevendor");
-          setAddress(active.address || active.location || "MG Road, Kochi");
-          setDistrict(active.district || active.city || "Ernakulam");
-        }
-      } catch (e) { }
-    }
+    loadProfile();
   }, []);
+
+  const loadProfile = async () => {
+    const active = getActiveVendorIdentity();
+    setVendorId(active.id);
+    setBoutiqueName(active.boutique_name || active.name || "");
+    setLogo(active.logo || active.logo_url || "");
+    setCoverImage(active.coverImage || active.cover_image || "");
+    setDescription(active.description || "");
+    setWhatsapp(active.whatsapp || active.phone || "");
+    setEmail(active.email || "");
+    setInstagram(active.instagram || "@clochevendor");
+    setWebsite(active.website || "https://cloche.app");
+    setAddress(active.address || "");
+    setDistrict(active.district || active.city || "Ernakulam");
+    setCategory(active.category || "Photography");
+    setWorkingHours(active.workingHours || active.working_hours || "Mon – Sat: 10:00 AM – 8:00 PM");
+    setServiceAreas(active.serviceAreas || active.service_areas || "Kochi, Trivandrum");
+
+    // Fetch live from Supabase DB to ensure fresh data
+    try {
+      const { data, error } = await fetchVendorProfileFromDb(active.id);
+      if (!error && data) {
+        if (data.boutique_name || data.name) setBoutiqueName(data.boutique_name || data.name);
+        if (data.logo_url || data.logo) setLogo(data.logo_url || data.logo);
+        if (data.cover_image || data.cover) setCoverImage(data.cover_image || data.cover);
+        if (data.description) setDescription(data.description);
+        if (data.phone || data.whatsapp) setWhatsapp(data.phone || data.whatsapp);
+        if (data.email) setEmail(data.email);
+        if (data.address) setAddress(data.address);
+        if (data.district || data.city) setDistrict(data.district || data.city);
+        if (data.category) setCategory(data.category);
+        if (data.working_hours) setWorkingHours(data.working_hours);
+        if (data.service_areas) setServiceAreas(data.service_areas);
+      }
+    } catch (e) {}
+  };
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (file.size > 10 * 1024 * 1024) {
+        setValidationError("Image file size should not exceed 10MB");
+        return;
+      }
       const reader = new FileReader();
       reader.onload = (ev) => {
         const result = ev.target?.result as string;
@@ -64,6 +86,10 @@ export default function VendorProfile() {
   const handleCoverUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (file.size > 15 * 1024 * 1024) {
+        setValidationError("Cover image file size should not exceed 15MB");
+        return;
+      }
       const reader = new FileReader();
       reader.onload = (ev) => {
         const result = ev.target?.result as string;
@@ -73,48 +99,65 @@ export default function VendorProfile() {
     }
   };
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (typeof window !== "undefined") {
-      try {
-        const rawVendors = localStorage.getItem("cloche_registered_vendors");
-        const list = rawVendors ? JSON.parse(rawVendors) : [];
-        const updatedRecord = {
-          id: vendorId || "v-registered",
-          boutique_name: boutiqueName,
-          name: boutiqueName,
-          logo: logo,
-          logo_url: logo,
-          profile_logo: logo,
-          image_url: logo || coverImage,
-          coverImage: coverImage,
-          cover: coverImage,
-          description: description,
-          whatsapp: whatsapp,
-          phone: whatsapp,
-          instagram: instagram,
-          address: address,
-          location: `${address}, ${district}`,
-          district: district,
-        };
+    setValidationError(null);
 
-        const updatedList = [updatedRecord, ...list.filter((v: any) => v.id !== vendorId)];
-        localStorage.setItem("cloche_registered_vendors", JSON.stringify(updatedList));
+    // Form Validation
+    if (!boutiqueName.trim()) {
+      setValidationError("Boutique / Studio Name is required.");
+      return;
+    }
+    if (!whatsapp.trim() || whatsapp.length < 8) {
+      setValidationError("Please enter a valid WhatsApp contact number.");
+      return;
+    }
+    if (!address.trim()) {
+      setValidationError("Complete business address is required.");
+      return;
+    }
 
-        // Also update registered venues if exists
-        const rawVenues = localStorage.getItem("cloche_registered_venues");
-        if (rawVenues) {
-          const venueList = JSON.parse(rawVenues);
-          const updatedVenueList = [updatedRecord, ...venueList.filter((v: any) => v.id !== vendorId)];
-          localStorage.setItem("cloche_registered_venues", JSON.stringify(updatedVenueList));
-        }
+    setIsSaving(true);
+    try {
+      const payload = {
+        id: vendorId || "v-registered",
+        boutique_name: boutiqueName.trim(),
+        name: boutiqueName.trim(),
+        logo: logo,
+        logo_url: logo,
+        coverImage: coverImage,
+        cover_image: coverImage,
+        description: description.trim(),
+        whatsapp: whatsapp.trim(),
+        phone: whatsapp.trim(),
+        email: email.trim(),
+        instagram: instagram.trim(),
+        website: website.trim(),
+        address: address.trim(),
+        district: district.trim(),
+        city: district.trim(),
+        category: category,
+        workingHours: workingHours.trim(),
+        working_hours: workingHours.trim(),
+        serviceAreas: serviceAreas.trim(),
+        service_areas: serviceAreas.trim(),
+      };
 
-        window.dispatchEvent(new Event("storage"));
-        window.dispatchEvent(new Event("cloche_cms_update"));
+      const result = await syncVendorProfileWithDatabase(payload);
 
+      if (result.success) {
         setSavedSuccess(true);
-        setTimeout(() => setSavedSuccess(false), 3000);
-      } catch (err) { }
+        showVendorToast("✓ Profile updated successfully");
+        setTimeout(() => setSavedSuccess(false), 3500);
+      } else {
+        setValidationError("Unable to save profile changes. Please try again.");
+        showVendorToast("Unable to save profile changes. Please try again.", "error");
+      }
+    } catch (err: any) {
+      setValidationError(err.message || "Unable to save changes. Please try again.");
+      showVendorToast("Unable to save changes. Please try again.", "error");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -130,14 +173,21 @@ export default function VendorProfile() {
         {savedSuccess && (
           <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-800 bg-emerald-50 px-4 py-2 rounded-full border border-emerald-200 shadow-xs">
             <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-            <span>Profile Saved Successfully!</span>
+            <span>Profile Saved & Verified!</span>
           </div>
         )}
       </div>
 
+      {validationError && (
+        <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-bold flex items-center gap-2">
+          <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+          <span>{validationError}</span>
+        </div>
+      )}
+
       <form onSubmit={handleSave} className="space-y-8">
 
-        {/* Desktop 2-Column Grid Layout (Left: Business Info, Right: Contact Info) */}
+        {/* Desktop 2-Column Grid Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           
           {/* Left Column: Business Information */}
@@ -148,12 +198,26 @@ export default function VendorProfile() {
             </div>
 
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-charcoal/60 mb-2">Boutique / Studio Name</label>
+              <label className="block text-xs font-bold uppercase tracking-wider text-charcoal/60 mb-2">
+                Boutique / Studio Name <span className="text-red-500">*</span>
+              </label>
               <input
                 type="text"
+                required
                 value={boutiqueName}
                 onChange={(e) => setBoutiqueName(e.target.value)}
                 className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl p-3 text-sm text-charcoal focus:outline-none focus:border-[#0F4C45] font-semibold"
+                placeholder="e.g. Dream Wedding Studio"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-charcoal/60 mb-2">Category</label>
+              <input
+                type="text"
+                readOnly
+                value={category}
+                className="w-full bg-gray-100 border border-gray-200 rounded-xl p-3 text-sm text-charcoal/60 font-semibold cursor-not-allowed"
               />
             </div>
 
@@ -201,7 +265,7 @@ export default function VendorProfile() {
             </div>
           </section>
 
-          {/* Right Column: Contact & Address Information */}
+          {/* Right Column: Contact Information */}
           <section className="bg-white p-6 md:p-8 rounded-2xl shadow-xs border border-gold/15 space-y-6">
             <div className="flex items-center gap-2 border-b border-gold/10 pb-3">
               <Phone className="w-5 h-5 text-[#0F4C45]" />
@@ -210,14 +274,18 @@ export default function VendorProfile() {
 
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-charcoal/60 mb-2">WhatsApp Contact</label>
+                <label className="block text-xs font-bold uppercase tracking-wider text-charcoal/60 mb-2">
+                  WhatsApp / Phone Contact <span className="text-red-500">*</span>
+                </label>
                 <div className="relative">
                   <Phone className="w-4 h-4 text-charcoal/40 absolute left-3.5 top-1/2 -translate-y-1/2" />
                   <input
                     type="tel"
+                    required
                     value={whatsapp}
                     onChange={(e) => setWhatsapp(e.target.value)}
                     className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl p-3 pl-10 text-sm text-charcoal focus:outline-none focus:border-[#0F4C45]"
+                    placeholder="+919876543210"
                   />
                 </div>
               </div>
@@ -231,6 +299,7 @@ export default function VendorProfile() {
                     value={instagram}
                     onChange={(e) => setInstagram(e.target.value)}
                     className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl p-3 pl-10 text-sm text-charcoal focus:outline-none focus:border-[#0F4C45]"
+                    placeholder="@clochevendor"
                   />
                 </div>
               </div>
@@ -244,6 +313,7 @@ export default function VendorProfile() {
                     value={website}
                     onChange={(e) => setWebsite(e.target.value)}
                     className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl p-3 pl-10 text-sm text-charcoal focus:outline-none focus:border-[#0F4C45]"
+                    placeholder="https://cloche.app"
                   />
                 </div>
               </div>
@@ -255,6 +325,7 @@ export default function VendorProfile() {
                   value={district}
                   onChange={(e) => setDistrict(e.target.value)}
                   className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl p-3 text-sm text-charcoal focus:outline-none focus:border-[#0F4C45] font-semibold"
+                  placeholder="Ernakulam / Kochi"
                 />
               </div>
             </div>
@@ -262,9 +333,9 @@ export default function VendorProfile() {
 
         </div>
 
-        {/* Full-width Section Below: Description, Working Hours, Address & Service Areas */}
+        {/* Additional Details */}
         <section className="bg-white p-6 md:p-8 rounded-2xl shadow-xs border border-gold/15 space-y-6">
-          <h2 className="text-lg font-display font-bold text-charcoal border-b border-gold/10 pb-3">Additional Details</h2>
+          <h2 className="text-lg font-display font-bold text-charcoal border-b border-gold/10 pb-3">Additional Business Details</h2>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div>
@@ -274,16 +345,21 @@ export default function VendorProfile() {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl p-3 text-sm text-charcoal focus:outline-none focus:border-[#0F4C45] leading-relaxed"
+                placeholder="Describe your studio specialty, experience, and custom offerings for couples..."
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-charcoal/60 mb-2">Complete Address</label>
+              <label className="block text-xs font-bold uppercase tracking-wider text-charcoal/60 mb-2">
+                Complete Address <span className="text-red-500">*</span>
+              </label>
               <textarea
                 rows={4}
+                required
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
                 className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl p-3 text-sm text-charcoal focus:outline-none focus:border-[#0F4C45]"
+                placeholder="Building Name, MG Road, Kochi"
               />
             </div>
 
@@ -296,6 +372,7 @@ export default function VendorProfile() {
                   value={workingHours}
                   onChange={(e) => setWorkingHours(e.target.value)}
                   className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl p-3 pl-10 text-sm text-charcoal focus:outline-none focus:border-[#0F4C45]"
+                  placeholder="Mon – Sat: 10:00 AM – 8:00 PM"
                 />
               </div>
             </div>
@@ -307,6 +384,7 @@ export default function VendorProfile() {
                 value={serviceAreas}
                 onChange={(e) => setServiceAreas(e.target.value)}
                 className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl p-3 text-sm text-charcoal focus:outline-none focus:border-[#0F4C45]"
+                placeholder="Kochi, Trivandrum, Kozhikode, Thrissur"
               />
             </div>
           </div>
@@ -315,10 +393,14 @@ export default function VendorProfile() {
         {/* Sticky Desktop Save Button Footer */}
         <div className="sticky bottom-6 bg-white/90 backdrop-blur-md p-4 rounded-2xl border border-gold/20 shadow-lg flex items-center justify-between z-20">
           <div className="text-xs text-charcoal/70 hidden sm:block">
-            Ensure all business details and contact numbers are up to date for customer inquiries.
+            Updates will immediately sync with Supabase database and reflect on public storefronts.
           </div>
-          <Button type="submit" className="bg-[#0F4C45] hover:bg-[#135951] text-white rounded-full px-8 py-3 font-bold text-xs uppercase tracking-wider shadow-md flex items-center gap-2 ml-auto cursor-pointer">
-            <Save className="w-4 h-4 text-[#C8A96A]" /> Save Profile Changes
+          <Button 
+            type="submit" 
+            disabled={isSaving}
+            className="bg-[#0F4C45] hover:bg-[#135951] text-white rounded-full px-8 py-3 font-bold text-xs uppercase tracking-wider shadow-md flex items-center gap-2 ml-auto cursor-pointer disabled:opacity-50"
+          >
+            <Save className="w-4 h-4 text-[#C8A96A]" /> {isSaving ? "Saving to Database..." : "Save Profile Changes"}
           </Button>
         </div>
 

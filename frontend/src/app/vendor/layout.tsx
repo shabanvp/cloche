@@ -4,6 +4,7 @@ import { ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import { Footer } from "@/components/Footer";
 import { VendorSidebar } from "./VendorSidebar";
+import { VendorToast } from "@/components/VendorToast";
 
 export default function VendorLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -16,6 +17,7 @@ export default function VendorLayout({ children }: { children: ReactNode }) {
         <div className="flex-1 flex flex-col">
           {children}
         </div>
+        <VendorToast />
       </div>
     );
   }
@@ -50,6 +52,7 @@ export default function VendorLayout({ children }: { children: ReactNode }) {
       </main>
       
       <Footer />
+      <VendorToast />
     </div>
   );
 }

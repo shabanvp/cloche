@@ -218,9 +218,6 @@ export async function resendSupabaseAuthEmail(
 // DATABASE REPOSITORY METHOD WRAPPERS
 // ----------------------------------------------------
 
-export async function fetchVendorProfileFromDb(vendorId: string) {
-  return supabaseFetch(`vendor_profiles?vendor_id=eq.${encodeURIComponent(vendorId)}&select=*`);
-}
 
 export async function fetchVenueGalleryFromDb(vendorId: string) {
   return supabaseFetch(`venue_gallery?vendor_id=eq.${encodeURIComponent(vendorId)}&order=sort_order.asc&select=*`);
@@ -945,6 +942,107 @@ export async function updateQuotationCustomerStatusInDb(quotationId: string, cus
 
   return res;
 }
+
+// ----------------------------------------------------
+// VENDOR PORTAL DIRECT DATABASE PERSISTENCE HELPERS
+// ----------------------------------------------------
+
+export async function fetchVendorProfileFromDb(vendorIdOrUserId: string) {
+  if (!vendorIdOrUserId) return { data: null, error: new Error("Vendor ID is required") };
+
+  // 1. Try fetching by UUID or slug from vendors table
+  const res = await supabaseFetch(
+    `vendors?or=(id.eq.${encodeURIComponent(vendorIdOrUserId)},user_id.eq.${encodeURIComponent(vendorIdOrUserId)},slug.eq.${encodeURIComponent(vendorIdOrUserId)})&select=*`
+  );
+
+  if (!res.error && Array.isArray(res.data) && res.data.length > 0) {
+    return { data: res.data[0], error: null };
+  }
+
+  // 2. Fallback to users table if vendor record doesn't exist yet
+  const userRes = await supabaseFetch(`users?id=eq.${encodeURIComponent(vendorIdOrUserId)}&select=*`);
+  if (!userRes.error && Array.isArray(userRes.data) && userRes.data.length > 0) {
+    const u = userRes.data[0];
+    return {
+      data: {
+        id: u.id,
+        user_id: u.id,
+        name: u.full_name || u.name || "Vendor Partner",
+        boutique_name: u.boutique_name || u.full_name || u.name || "Vendor Partner",
+        email: u.email,
+        phone: u.phone || "+919876543210",
+        category: u.category || "Bridal Wear",
+        city: u.city || "Kochi",
+        district: u.district || "Ernakulam",
+        address: u.address || "MG Road, Kochi",
+        description: u.description || "Premier luxury wedding partner.",
+        profile_completion_percentage: 85,
+      },
+      error: null,
+    };
+  }
+
+  return res;
+}
+
+export async function saveVendorProfileInDb(vendorIdOrUserId: string, profileData: Record<string, any>) {
+  const resolvedVendId = await resolveVendorUuid(vendorIdOrUserId);
+  const targetId = resolvedVendId || vendorIdOrUserId;
+
+  console.log("[saveVendorProfileInDb] Saving for target vendor ID:", targetId, "Payload:", profileData);
+
+  const payload = {
+    id: targetId,
+    name: profileData.boutique_name || profileData.name || "Vendor Partner",
+    boutique_name: profileData.boutique_name || profileData.name || "Vendor Partner",
+    logo: profileData.logo || profileData.logo_url || null,
+    logo_url: profileData.logo || profileData.logo_url || null,
+    cover_image: profileData.coverImage || profileData.cover_image || null,
+    cover: profileData.coverImage || profileData.cover_image || null,
+    description: profileData.description || profileData.about || null,
+    phone: profileData.whatsapp || profileData.phone || null,
+    whatsapp: profileData.whatsapp || profileData.phone || null,
+    email: profileData.email || null,
+    website: profileData.website || null,
+    instagram: profileData.instagram || null,
+    address: profileData.address || null,
+    city: profileData.district || profileData.city || "Kochi",
+    district: profileData.district || profileData.city || "Ernakulam",
+    category: profileData.category || "Bridal Wear",
+    working_hours: profileData.workingHours || profileData.working_hours || null,
+    service_areas: profileData.serviceAreas || profileData.service_areas || null,
+    profile_completion_percentage: profileData.profile_completion_percentage || 90,
+    updated_at: new Date().toISOString(),
+  };
+
+  const insertRes = await supabaseFetch(`vendors`, {
+    method: "POST",
+    headers: { Prefer: "resolution=merge-duplicates,return=representation" },
+    body: JSON.stringify(payload),
+  });
+
+  console.log("[saveVendorProfileInDb] Response:", insertRes.data, "Error:", insertRes.error);
+  return insertRes;
+}
+
+export async function fetchVendorGalleryFromDb(vendorId: string) {
+  return supabaseFetch(`vendor_gallery?vendor_id=eq.${encodeURIComponent(vendorId)}&order=created_at.desc&select=*`);
+}
+
+export async function saveVendorGalleryItemInDb(record: Record<string, any>) {
+  return supabaseFetch(`vendor_gallery`, {
+    method: "POST",
+    headers: { Prefer: "resolution=merge-duplicates,return=representation" },
+    body: JSON.stringify(record),
+  });
+}
+
+export async function deleteVendorGalleryItemInDb(id: string) {
+  return supabaseFetch(`vendor_gallery?id=eq.${encodeURIComponent(id)}`, {
+    method: "DELETE",
+  });
+}
+
 
 
 

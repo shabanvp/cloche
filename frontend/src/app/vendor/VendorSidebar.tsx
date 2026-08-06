@@ -24,53 +24,62 @@ import {
 } from "lucide-react";
 import { logout } from "@/app/actions/auth";
 import { getCategoryMenuTitles } from "@/lib/vendor-navigation";
+import { getActiveVendorIdentity, calculateDynamicProfileCompletion } from "@/lib/vendorStore";
 
 export function VendorSidebar() {
   const pathname = usePathname();
   const router = useRouter();
 
   const isAuthPage = pathname === "/vendor/login" || pathname === "/vendor/register";
-  const [vendorData, setVendorData] = useState<{ name: string; category: string; logo?: string; plan?: string } | null>(null);
+  const [vendorData, setVendorData] = useState<any>(null);
+  const [completionPercentage, setCompletionPercentage] = useState<number>(85);
+
+  const loadVendorProfile = () => {
+    const identity = getActiveVendorIdentity();
+    setVendorData(identity);
+
+    // Calculate dynamic completion
+    let servicesCount = 0;
+    let packagesCount = 0;
+    let galleryCount = 0;
+
+    try {
+      const rawServices = localStorage.getItem("cloche_vendor_services");
+      if (rawServices) servicesCount = JSON.parse(rawServices).length;
+      const rawPackages = localStorage.getItem("cloche_vendor_packages");
+      if (rawPackages) packagesCount = JSON.parse(rawPackages).length;
+      const rawGallery = localStorage.getItem("cloche_vendor_gallery");
+      if (rawGallery) galleryCount = JSON.parse(rawGallery).length;
+    } catch (e) {}
+
+    const calculated = calculateDynamicProfileCompletion(identity, servicesCount, packagesCount, galleryCount);
+    setCompletionPercentage(calculated);
+  };
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const list = [];
-        const rawVendors = localStorage.getItem("cloche_registered_vendors");
-        const rawUserData = localStorage.getItem("cloche_user_data");
-        
-        if (rawUserData) {
-          const u = JSON.parse(rawUserData);
-          setVendorData({
-            name: u.full_name || u.name || u.boutique_name || "Dream Wedding Studio",
-            category: u.category || "Photography",
-            logo: u.logo || u.logo_url || u.image_url,
-            plan: u.plan || "Premium Partner",
-          });
-          return;
-        }
+    loadVendorProfile();
 
-        if (rawVendors) list.push(...JSON.parse(rawVendors));
-        
-        if (list.length > 0) {
-          const active = list[0];
-          setVendorData({
-            name: active.boutique_name || active.name || active.businessName || "Dream Wedding Studio",
-            category: active.category || "Photography",
-            logo: active.logo || active.logo_url || active.image_url,
-            plan: active.plan || "Premium Partner",
-          });
-        }
-      } catch (e) {}
-    }
+    const handleVendorUpdate = () => {
+      loadVendorProfile();
+    };
+
+    window.addEventListener("storage", handleVendorUpdate);
+    window.addEventListener("cloche_vendor_updated", handleVendorUpdate);
+    window.addEventListener("cloche_cms_update", handleVendorUpdate);
+
+    return () => {
+      window.removeEventListener("storage", handleVendorUpdate);
+      window.removeEventListener("cloche_vendor_updated", handleVendorUpdate);
+      window.removeEventListener("cloche_cms_update", handleVendorUpdate);
+    };
   }, []);
 
   if (isAuthPage) return null;
 
   const category = vendorData?.category || "Photography";
-  const name = vendorData?.name || "Dream Wedding Studio";
+  const name = vendorData?.name || vendorData?.boutique_name || "Dream Wedding Studio";
   const initial = name.charAt(0).toUpperCase();
-  const logoUrl = vendorData?.logo || "";
+  const logoUrl = vendorData?.logo || vendorData?.logo_url || "";
   const plan = vendorData?.plan || "Premium Partner";
   const isValidLogo = Boolean(
     logoUrl &&
@@ -129,14 +138,17 @@ export function VendorSidebar() {
             </span>
           </div>
 
-          {/* Profile Completion Bar */}
+          {/* Profile Completion Bar (Calculated Dynamically) */}
           <div className="mt-4 pt-3 border-t border-gold/10">
             <div className="flex items-center justify-between text-[11px] font-bold text-charcoal/70 mb-1.5">
               <span>Profile Completion</span>
-              <span className="text-[#0F4C45]">92%</span>
+              <span className="text-[#0F4C45]">{completionPercentage}%</span>
             </div>
             <div className="w-full bg-gold/20 h-2 rounded-full overflow-hidden">
-              <div className="bg-[#0F4C45] h-full rounded-full w-[92%] transition-all duration-500"></div>
+              <div 
+                className="bg-[#0F4C45] h-full rounded-full transition-all duration-500" 
+                style={{ width: `${completionPercentage}%` }}
+              ></div>
             </div>
           </div>
         </div>

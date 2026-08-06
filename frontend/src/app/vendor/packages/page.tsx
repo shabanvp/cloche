@@ -1,12 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
-import { getCategoryMenuTitles } from "@/lib/vendor-navigation";
-import { Tag, Plus, Check, Edit3, Trash2, Copy, Sparkles, Star } from "lucide-react";
+import { Tag, Plus, Check, Edit3, Trash2, Copy, Star, AlertCircle } from "lucide-react";
+import { getActiveVendorIdentity, showVendorToast } from "@/lib/vendorStore";
 
 interface PackageItem {
   id: string;
+  vendor_id?: string;
   name: string;
   price: string;
   discount_price?: string;
@@ -16,99 +16,185 @@ interface PackageItem {
 }
 
 export default function VendorPackagesPage() {
-  const [vendorCategory, setVendorCategory] = useState("Bridal Wear");
-  const [businessName, setBusinessName] = useState("Your Business");
+  const [vendorId, setVendorId] = useState<string>("");
+  const [vendorCategory, setVendorCategory] = useState("Photography");
+  const [businessName, setBusinessName] = useState("Dream Wedding Studio");
   const [packages, setPackages] = useState<PackageItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Modal State
   const [showModal, setShowModal] = useState(false);
+  const [modalMode, setModalMode] = useState<"create" | "edit">("create");
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [formData, setFormData] = useState<any>({});
   const [featuresInput, setFeaturesInput] = useState("");
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const rawUserData = localStorage.getItem("cloche_user_data");
-        const rawVendors = localStorage.getItem("cloche_registered_vendors");
-        if (rawUserData) {
-          const u = JSON.parse(rawUserData);
-          if (u.category) setVendorCategory(u.category);
-          if (u.name || u.boutique_name || u.full_name) setBusinessName(u.name || u.boutique_name || u.full_name);
-        } else if (rawVendors) {
-          const v = JSON.parse(rawVendors);
-          if (v.length > 0) {
-            if (v[0].category) setVendorCategory(v[0].category);
-            if (v[0].boutique_name || v[0].name) setBusinessName(v[0].boutique_name || v[0].name);
-          }
-        }
-      } catch (e) {}
-    }
-
-    setPackages([
-      {
-        id: "1",
-        name: "Royal Grand Wedding Package",
-        price: "₹5,00,000",
-        discount_price: "₹4,50,000",
-        description: "Complete luxury venue, floral mandap decor, and full bridal makeover suite.",
-        features: ["Banquet Hall (1200 Guests)", "Custom Stage & Entrance Floral Decor", "HD Airbrush Bridal & Groom Makeover", "Full Day Cinematic 4K Shoot & Drone"],
-        popular: true,
-      },
-      {
-        id: "2",
-        name: "Signature Celebration Package",
-        price: "₹2,50,000",
-        discount_price: "₹2,20,000",
-        description: "Comprehensive photography, pre-wedding shoot & engagement styling.",
-        features: ["2 Photographers + 2 Videographers", "Pre-Wedding Teaser Highlight Video", "Premium Leather Photo Album (40 Pages)", "Trial Fitting & Makeup Session"],
-        popular: false,
-      },
-      {
-        id: "3",
-        name: "Essential Elegance Package",
-        price: "₹1,20,000",
-        description: "Curated essential suite tailored for intimate ceremonies and receptions.",
-        features: ["Full Day Event Coverage", "High-Resolution Edited Digital Photos", "Standard Stage Backdrop Setup", "On-site Fitting Assistance"],
-        popular: false,
-      },
-    ]);
+    const active = getActiveVendorIdentity();
+    setVendorId(active.id);
+    setVendorCategory(active.category || "Photography");
+    setBusinessName(active.boutique_name || active.name || "Dream Wedding Studio");
+    fetchPackages(active.id);
   }, []);
 
-  const titles = getCategoryMenuTitles(vendorCategory);
+  const fetchPackages = async (vId: string) => {
+    setIsLoading(true);
+    try {
+      const res = await fetch(`/api/v1/vendor/packages?vendor_id=${encodeURIComponent(vId)}`).then((r) => r.json()).catch(() => ({ data: [] }));
+      
+      let loaded: PackageItem[] = [];
+      if (res.success && Array.isArray(res.data) && res.data.length > 0) {
+        loaded = res.data.map((p: any) => ({
+          id: p.id,
+          vendor_id: p.vendor_id,
+          name: p.name,
+          price: p.price ? (String(p.price).startsWith("₹") ? String(p.price) : `₹${Number(p.price).toLocaleString("en-IN")}`) : "₹1,50,000",
+          discount_price: p.discount_price ? (String(p.discount_price).startsWith("₹") ? String(p.discount_price) : `₹${Number(p.discount_price).toLocaleString("en-IN")}`) : undefined,
+          description: p.description || "",
+          features: Array.isArray(p.features) ? p.features : (typeof p.features === "string" ? p.features.split("\n") : []),
+          popular: Boolean(p.is_popular || p.popular),
+        }));
+      } else {
+        const cached = localStorage.getItem("cloche_vendor_packages");
+        if (cached) loaded = JSON.parse(cached);
+      }
 
-  const handleDuplicate = (pkg: PackageItem) => {
-    const dup = {
-      ...pkg,
-      id: `p-${Date.now()}`,
-      name: `${pkg.name} (Copy)`,
-      popular: false,
-    };
-    setPackages((prev) => [...prev, dup]);
+      setPackages(loaded);
+      if (typeof window !== "undefined") {
+        localStorage.setItem("cloche_vendor_packages", JSON.stringify(loaded));
+      }
+    } catch (e) {
+      console.error("[VendorPackagesPage] Error loading packages:", e);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleDelete = (id: string) => {
-    if (!confirm("Are you sure you want to delete this package?")) return;
-    setPackages((prev) => prev.filter((p) => p.id !== id));
+  const syncPackagesToStore = (newList: PackageItem[]) => {
+    setPackages(newList);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("cloche_vendor_packages", JSON.stringify(newList));
+      window.dispatchEvent(new Event("cloche_vendor_updated"));
+      window.dispatchEvent(new Event("cloche_cms_update"));
+    }
   };
 
   const handleOpenCreateModal = () => {
+    setValidationError(null);
+    setModalMode("create");
+    setSelectedId(null);
     setFormData({ name: "", price: "", discount_price: "", description: "", popular: false });
     setFeaturesInput("");
     setShowModal(true);
   };
 
-  const handleSaveModal = (e: React.FormEvent) => {
-    e.preventDefault();
-    const newPkg: PackageItem = {
+  const handleOpenEditModal = (pkg: PackageItem) => {
+    setValidationError(null);
+    setModalMode("edit");
+    setSelectedId(pkg.id);
+    setFormData({
+      name: pkg.name,
+      price: pkg.price.replace(/[^0-9]/g, ""),
+      discount_price: pkg.discount_price ? pkg.discount_price.replace(/[^0-9]/g, "") : "",
+      description: pkg.description,
+      popular: pkg.popular,
+    });
+    setFeaturesInput(pkg.features ? pkg.features.join("\n") : "");
+    setShowModal(true);
+  };
+
+  const handleDuplicate = async (pkg: PackageItem) => {
+    const dup: PackageItem = {
+      ...pkg,
       id: `p-${Date.now()}`,
-      name: formData.name || "Custom Package",
-      price: formData.price.startsWith("₹") ? formData.price : `₹${Number(formData.price).toLocaleString("en-IN")}`,
-      discount_price: formData.discount_price ? (formData.discount_price.startsWith("₹") ? formData.discount_price : `₹${Number(formData.discount_price).toLocaleString("en-IN")}`) : undefined,
-      description: formData.description,
-      features: featuresInput.split("\n").map((f) => f.trim()).filter(Boolean),
+      name: `${pkg.name} (Copy)`,
+      popular: false,
+    };
+    const newList = [...packages, dup];
+    syncPackagesToStore(newList);
+    showVendorToast("✓ Package duplicated successfully");
+
+    try {
+      await fetch("/api/v1/vendor/packages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...dup,
+          vendor_id: vendorId,
+          price: Number(dup.price.replace(/[^0-9]/g, "")) || 0,
+        }),
+      });
+    } catch (e) {}
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this package?")) return;
+    const newList = packages.filter((p) => p.id !== id);
+    syncPackagesToStore(newList);
+    showVendorToast("✓ Package deleted successfully");
+
+    try {
+      await fetch(`/api/v1/vendor/packages?id=${id}`, { method: "DELETE" });
+    } catch (e) {}
+  };
+
+  const handleSaveModal = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setValidationError(null);
+
+    if (!formData.name || !formData.name.trim()) {
+      setValidationError("Package title is required.");
+      return;
+    }
+    if (formData.price === undefined || formData.price === "" || Number(formData.price) < 0) {
+      setValidationError("Please enter a valid price.");
+      return;
+    }
+
+    const priceVal = String(formData.price).startsWith("₹") ? String(formData.price) : `₹${Number(formData.price).toLocaleString("en-IN")}`;
+    const discountVal = formData.discount_price ? (String(formData.discount_price).startsWith("₹") ? String(formData.discount_price) : `₹${Number(formData.discount_price).toLocaleString("en-IN")}`) : undefined;
+    const parsedFeatures = featuresInput.split("\n").map((f) => f.trim()).filter(Boolean);
+
+    const payload: PackageItem = {
+      id: modalMode === "edit" && selectedId ? selectedId : `p-${Date.now()}`,
+      vendor_id: vendorId,
+      name: formData.name.trim(),
+      price: priceVal,
+      discount_price: discountVal,
+      description: formData.description ? formData.description.trim() : "",
+      features: parsedFeatures,
       popular: Boolean(formData.popular),
     };
 
-    setPackages((prev) => [newPkg, ...prev]);
+    let newList: PackageItem[];
+    if (modalMode === "edit" && selectedId) {
+      newList = packages.map((p) => (p.id === selectedId ? payload : p));
+    } else {
+      newList = [payload, ...packages];
+    }
+
+    syncPackagesToStore(newList);
     setShowModal(false);
+
+    showVendorToast(modalMode === "edit" ? "✓ Package updated successfully" : "✓ Package created successfully");
+
+    try {
+      const apiRes = await fetch("/api/v1/vendor/packages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...payload,
+          price: Number(formData.price),
+          discount_price: formData.discount_price ? Number(formData.discount_price) : null,
+          is_popular: payload.popular,
+        }),
+      }).then((r) => r.json());
+
+      console.log("[VendorPackagesPage] API Save Result:", apiRes);
+    } catch (err) {
+      console.error("[VendorPackagesPage] API Error:", err);
+    }
   };
 
   return (
@@ -116,8 +202,8 @@ export default function VendorPackagesPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-gold/15 pb-6 gap-4">
         <div>
-          <h1 className="text-3xl lg:text-4xl font-display font-bold text-charcoal">{titles.pricingTitle}</h1>
-          <p className="text-sm text-charcoal/70 mt-1">{titles.pricingSubtitle} for {businessName}.</p>
+          <h1 className="text-3xl lg:text-4xl font-display font-bold text-charcoal">Pricing & Packages</h1>
+          <p className="text-sm text-charcoal/70 mt-1">Manage luxury celebration packages, custom features, and public pricing for {businessName}.</p>
         </div>
         <button
           onClick={handleOpenCreateModal}
@@ -128,89 +214,116 @@ export default function VendorPackagesPage() {
       </div>
 
       {/* Pricing Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {packages.map((pkg) => (
-          <div
-            key={pkg.id}
-            className={`bg-white rounded-2xl p-6 lg:p-8 border shadow-xs flex flex-col justify-between relative transition-all hover:shadow-md ${
-              pkg.popular ? "border-[#0F4C45] ring-2 ring-[#0F4C45]/20" : "border-gold/15"
-            }`}
-          >
-            {pkg.popular && (
-              <span className="absolute -top-3.5 right-6 bg-[#0F4C45] text-[#C8A96A] text-[10px] font-bold uppercase tracking-widest px-3.5 py-1 rounded-full shadow-sm flex items-center gap-1 border border-gold/30">
-                <Star className="w-3 h-3 fill-[#C8A96A] text-[#C8A96A]" /> Most Popular
-              </span>
-            )}
-            
-            <div>
-              <div className="flex items-center gap-2 text-[#0F4C45] mb-2">
-                <Tag className="w-4 h-4" />
-                <span className="text-xs font-bold uppercase tracking-wider">{vendorCategory}</span>
-              </div>
+      {isLoading ? (
+        <div className="text-center py-16 text-xs text-charcoal/60">Loading pricing packages from database...</div>
+      ) : packages.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {packages.map((pkg) => (
+            <div
+              key={pkg.id}
+              className={`bg-white rounded-2xl p-6 lg:p-8 border shadow-xs flex flex-col justify-between relative transition-all hover:shadow-md ${
+                pkg.popular ? "border-[#0F4C45] ring-2 ring-[#0F4C45]/20" : "border-gold/15"
+              }`}
+            >
+              {pkg.popular && (
+                <span className="absolute -top-3.5 right-6 bg-[#0F4C45] text-[#C8A96A] text-[10px] font-bold uppercase tracking-widest px-3.5 py-1 rounded-full shadow-sm flex items-center gap-1 border border-gold/30">
+                  <Star className="w-3 h-3 fill-[#C8A96A] text-[#C8A96A]" /> Most Popular
+                </span>
+              )}
               
-              <h3 className="text-2xl font-display font-bold text-charcoal">{pkg.name}</h3>
-              
-              <div className="flex items-baseline gap-2 my-4">
-                <span className="text-3xl font-display font-bold text-[#0F4C45]">{pkg.price}</span>
-                {pkg.discount_price && (
-                  <span className="text-xs text-charcoal/40 line-through font-semibold">{pkg.discount_price}</span>
-                )}
-              </div>
-              
-              <p className="text-xs text-charcoal/70 leading-relaxed mb-6 border-b border-gold/10 pb-4">{pkg.description}</p>
+              <div>
+                <div className="flex items-center gap-2 text-[#0F4C45] mb-2">
+                  <Tag className="w-4 h-4" />
+                  <span className="text-xs font-bold uppercase tracking-wider">{vendorCategory}</span>
+                </div>
+                
+                <h3 className="text-2xl font-display font-bold text-charcoal">{pkg.name}</h3>
+                
+                <div className="flex items-baseline gap-2 my-4">
+                  <span className="text-3xl font-display font-bold text-[#0F4C45]">{pkg.price}</span>
+                  {pkg.discount_price && (
+                    <span className="text-xs text-charcoal/40 line-through font-semibold">{pkg.discount_price}</span>
+                  )}
+                </div>
+                
+                <p className="text-xs text-charcoal/70 leading-relaxed mb-6 border-b border-gold/10 pb-4">{pkg.description}</p>
 
-              {/* Features List */}
-              <div className="space-y-2.5 mb-6">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-charcoal/50">Included Features</span>
-                {pkg.features?.map((feature, idx) => (
-                  <div key={idx} className="flex items-start gap-2.5 text-xs text-charcoal">
-                    <div className="w-4 h-4 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 mt-0.5 border border-emerald-200">
-                      <Check className="w-3 h-3" />
+                {/* Features List */}
+                <div className="space-y-2.5 mb-6">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-charcoal/50">Included Features</span>
+                  {pkg.features?.map((feature, idx) => (
+                    <div key={idx} className="flex items-start gap-2.5 text-xs text-charcoal">
+                      <div className="w-4 h-4 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 mt-0.5 border border-emerald-200">
+                        <Check className="w-3 h-3" />
+                      </div>
+                      <span>{feature}</span>
                     </div>
-                    <span>{feature}</span>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
 
-            {/* Actions Footer Toolbar */}
-            <div className="pt-4 border-t border-gold/10 flex items-center justify-between gap-2">
-              <button
-                onClick={() => handleDuplicate(pkg)}
-                className="text-xs font-bold text-charcoal/70 hover:text-[#0F4C45] flex items-center gap-1 transition-colors"
-              >
-                <Copy className="w-3.5 h-3.5" /> Duplicate
-              </button>
-              <div className="flex items-center gap-3">
-                <button className="text-xs font-bold text-[#0F4C45] hover:underline flex items-center gap-1">
-                  <Edit3 className="w-3.5 h-3.5" /> Edit
-                </button>
+              {/* Actions Footer Toolbar */}
+              <div className="pt-4 border-t border-gold/10 flex items-center justify-between gap-2">
                 <button
-                  onClick={() => handleDelete(pkg.id)}
-                  className="text-xs font-bold text-red-600 hover:underline flex items-center gap-1"
+                  onClick={() => handleDuplicate(pkg)}
+                  className="text-xs font-bold text-charcoal/70 hover:text-[#0F4C45] flex items-center gap-1 transition-colors cursor-pointer"
                 >
-                  <Trash2 className="w-3.5 h-3.5" /> Delete
+                  <Copy className="w-3.5 h-3.5" /> Duplicate
                 </button>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => handleOpenEditModal(pkg)}
+                    className="text-xs font-bold text-[#0F4C45] hover:underline flex items-center gap-1 cursor-pointer"
+                  >
+                    <Edit3 className="w-3.5 h-3.5" /> Edit
+                  </button>
+                  <button
+                    onClick={() => handleDelete(pkg.id)}
+                    className="text-xs font-bold text-red-600 hover:underline flex items-center gap-1 cursor-pointer"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" /> Delete
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-16 bg-white rounded-2xl border border-gold/15 p-8">
+          <Tag className="w-12 h-12 text-gold mx-auto mb-3 opacity-50" />
+          <h3 className="text-xl font-display font-bold text-charcoal">No Packages Found</h3>
+          <p className="text-xs text-charcoal/60 max-w-sm mx-auto mt-1">Create pricing tiers for your studio offerings.</p>
+          <button onClick={handleOpenCreateModal} className="mt-4 bg-[#0F4C45] text-white px-6 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider shadow-md cursor-pointer">
+            + Create Package
+          </button>
+        </div>
+      )}
 
       {/* Modal Dialog */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in font-sans">
           <div className="bg-white rounded-3xl max-w-lg w-full p-6 lg:p-8 shadow-2xl border border-gold/20 relative">
             <div className="flex items-center justify-between mb-6 border-b border-gold/10 pb-4">
-              <h2 className="font-display text-2xl font-bold text-charcoal">Add Pricing Package</h2>
+              <h2 className="font-display text-2xl font-bold text-charcoal">
+                {modalMode === "create" ? "Add Pricing Package" : "Edit Pricing Package"}
+              </h2>
               <button onClick={() => setShowModal(false)} className="text-charcoal/40 hover:text-charcoal text-xl font-bold">
                 ✕
               </button>
             </div>
 
+            {validationError && (
+              <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-bold flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+                <span>{validationError}</span>
+              </div>
+            )}
+
             <form onSubmit={handleSaveModal} className="space-y-4">
               <div>
-                <label className="text-xs font-bold text-charcoal/70 uppercase tracking-wider block mb-1">Package Name</label>
+                <label className="text-xs font-bold text-charcoal/70 uppercase tracking-wider block mb-1">
+                  Package Name <span className="text-red-500">*</span>
+                </label>
                 <input
                   type="text"
                   required
@@ -223,11 +336,13 @@ export default function VendorPackagesPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs font-bold text-charcoal/70 uppercase tracking-wider block mb-1">Regular Price (₹)</label>
+                  <label className="text-xs font-bold text-charcoal/70 uppercase tracking-wider block mb-1">
+                    Regular Price (₹) <span className="text-red-500">*</span>
+                  </label>
                   <input
                     type="number"
                     required
-                    value={formData.price || ""}
+                    value={formData.price !== undefined ? formData.price : ""}
                     onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                     className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-4 py-2.5 text-xs text-charcoal focus:outline-none focus:border-[#0F4C45]"
                     placeholder="250000"
@@ -284,7 +399,7 @@ export default function VendorPackagesPage() {
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="px-5 py-2.5 rounded-xl border border-gold/20 text-xs font-bold text-charcoal/60 hover:text-charcoal"
+                  className="px-5 py-2.5 rounded-xl border border-gold/20 text-xs font-bold text-charcoal/60 hover:text-charcoal cursor-pointer"
                 >
                   Cancel
                 </button>

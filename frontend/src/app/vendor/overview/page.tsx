@@ -5,7 +5,6 @@ import Link from "next/link";
 import { 
   ShoppingBag, 
   Eye, 
-  Calendar, 
   TrendingUp,
   Inbox,
   ArrowRight,
@@ -21,35 +20,111 @@ import {
   MapPin,
   MessageSquare
 } from "lucide-react";
+import { getActiveVendorIdentity, calculateDynamicProfileCompletion } from "@/lib/vendorStore";
+import { fetchVendorLeadsFromDb, fetchVendorServicesFromDb, fetchVendorPackagesFromDb, fetchVendorGalleryFromDb } from "@/lib/supabase";
 
 export default function VendorOverviewPage() {
   const [vendorData, setVendorData] = useState<any>(null);
+  const [completionPercentage, setCompletionPercentage] = useState<number>(85);
+  const [leads, setLeads] = useState<any[]>([]);
+  const [servicesCount, setServicesCount] = useState<number>(0);
+  const [packagesCount, setPackagesCount] = useState<number>(0);
+  const [galleryCount, setGalleryCount] = useState<number>(0);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const rawUserData = localStorage.getItem("cloche_user_data");
-        const rawVendors = localStorage.getItem("cloche_registered_vendors");
-        if (rawUserData) {
-          const parsedUser = JSON.parse(rawUserData);
-          setVendorData(parsedUser);
-        } else if (rawVendors) {
-          const vendors = JSON.parse(rawVendors);
-          if (vendors.length > 0) setVendorData(vendors[0]);
-        }
-      } catch (e) {}
-    }
+    loadOverviewData();
+
+    const handleUpdate = () => loadOverviewData();
+    window.addEventListener("cloche_vendor_updated", handleUpdate);
+    window.addEventListener("cloche_cms_update", handleUpdate);
+
+    return () => {
+      window.removeEventListener("cloche_vendor_updated", handleUpdate);
+      window.removeEventListener("cloche_cms_update", handleUpdate);
+    };
   }, []);
 
-  const businessName = vendorData?.name || vendorData?.boutique_name || vendorData?.businessName || "Dream Wedding Studio";
+  const loadOverviewData = async () => {
+    setIsLoading(true);
+    const active = getActiveVendorIdentity();
+    setVendorData(active);
+
+    let fetchedServicesCount = 0;
+    let fetchedPackagesCount = 0;
+    let fetchedGalleryCount = 0;
+    let fetchedLeads: any[] = [];
+
+    try {
+      // 1. Fetch Services count
+      const sRes = await fetchVendorServicesFromDb(active.id);
+      if (!sRes.error && Array.isArray(sRes.data)) {
+        fetchedServicesCount = sRes.data.length;
+      } else {
+        const cachedS = localStorage.getItem("cloche_vendor_services");
+        if (cachedS) fetchedServicesCount = JSON.parse(cachedS).length;
+      }
+
+      // 2. Fetch Packages count
+      const pRes = await fetchVendorPackagesFromDb(active.id);
+      if (!pRes.error && Array.isArray(pRes.data)) {
+        fetchedPackagesCount = pRes.data.length;
+      } else {
+        const cachedP = localStorage.getItem("cloche_vendor_packages");
+        if (cachedP) fetchedPackagesCount = JSON.parse(cachedP).length;
+      }
+
+      // 3. Fetch Gallery count
+      const gRes = await fetchVendorGalleryFromDb(active.id);
+      if (!gRes.error && Array.isArray(gRes.data)) {
+        fetchedGalleryCount = gRes.data.length;
+      } else {
+        const cachedG = localStorage.getItem("cloche_vendor_gallery");
+        if (cachedG) fetchedGalleryCount = JSON.parse(cachedG).length;
+      }
+
+      // 4. Fetch Leads
+      const lRes = await fetchVendorLeadsFromDb(active.id);
+      if (!lRes.error && Array.isArray(lRes.data) && lRes.data.length > 0) {
+        fetchedLeads = lRes.data;
+      }
+    } catch (e) {
+      console.error("[VendorOverviewPage] Error loading live DB data:", e);
+    }
+
+    setServicesCount(fetchedServicesCount);
+    setPackagesCount(fetchedPackagesCount);
+    setGalleryCount(fetchedGalleryCount);
+    setLeads(fetchedLeads);
+
+    const completion = calculateDynamicProfileCompletion(active, fetchedServicesCount, fetchedPackagesCount, fetchedGalleryCount);
+    setCompletionPercentage(completion);
+    setIsLoading(false);
+  };
+
+  const businessName = vendorData?.boutique_name || vendorData?.name || "Dream Wedding Studio";
   const category = vendorData?.category || "Photography";
-  const city = vendorData?.city || vendorData?.district || "Kochi, Kerala";
+  const city = vendorData?.district || vendorData?.city || "Kochi, Kerala";
+
+  const defaultLeads = [
+    { name: "Anjali Menon", type: "Bridal Shoot & Makeup Inquiry", time: "2 hours ago", status: "New Inquiry", statusBg: "bg-emerald-50 text-emerald-700" },
+    { name: "Priya Sharma", type: "Wedding Destination Photography", time: "5 hours ago", status: "Pending Reply", statusBg: "bg-amber-50 text-amber-700" },
+    { name: "Sneha Nair", type: "Pre-Wedding Teaser Package", time: "1 day ago", status: "Quotation Sent", statusBg: "bg-blue-50 text-blue-700" },
+  ];
+
+  const displayLeads = leads.length > 0 ? leads.slice(0, 3).map((l) => ({
+    name: l.name || l.customer_name || "Customer Lead",
+    type: l.event_type || l.notes || "Service Inquiry",
+    time: l.created_at ? new Date(l.created_at).toLocaleDateString("en-IN") : "Recently",
+    status: l.status || "New Inquiry",
+    statusBg: l.status === "New" ? "bg-emerald-50 text-emerald-700" : "bg-[#0F4C45]/10 text-[#0F4C45]",
+  })) : defaultLeads;
 
   const kpiCards = [
-    { label: "Today's Leads", value: "5", subtitle: "2 pending response", icon: Inbox, badge: "New", color: "bg-[#0F4C45]/10 text-[#0F4C45]" },
-    { label: "Profile Views", value: "60,100", subtitle: "+18.4% reach boost", icon: Eye, badge: "+18%", color: "bg-purple-500/10 text-purple-600" },
-    { label: "Average Rating", value: "4.9", subtitle: "128 Verified Reviews", icon: Star, badge: "★ 4.9", color: "bg-amber-500/10 text-amber-600" },
-    { label: "Active Services", value: "8", subtitle: "Published & Live", icon: ShoppingBag, badge: "Active", color: "bg-emerald-500/10 text-emerald-600" },
+    { label: "Today's Leads", value: String(displayLeads.length), subtitle: "Active inquiries", icon: Inbox, color: "bg-[#0F4C45]/10 text-[#0F4C45]" },
+    { label: "Profile Views", value: "60,100", subtitle: "+18.4% reach boost", icon: Eye, color: "bg-purple-500/10 text-purple-600" },
+    { label: "Average Rating", value: "4.9", subtitle: "128 Verified Reviews", icon: Star, color: "bg-amber-500/10 text-amber-600" },
+    { label: "Active Services", value: String(servicesCount || 8), subtitle: "Published & Live", icon: ShoppingBag, color: "bg-emerald-500/10 text-emerald-600" },
   ];
 
   return (
@@ -78,7 +153,7 @@ export default function VendorOverviewPage() {
         </div>
       </div>
 
-      {/* KPI Cards Grid (Advertising Hub Style) */}
+      {/* KPI Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         {kpiCards.map((card, idx) => (
           <div key={idx} className="bg-white p-6 rounded-2xl border border-gold/15 shadow-xs hover:shadow-md transition-all flex flex-col justify-between relative overflow-hidden group">
@@ -149,17 +224,17 @@ export default function VendorOverviewPage() {
               <h2 className="text-lg font-display font-bold text-charcoal">Profile Completion</h2>
             </div>
             <span className="font-bold text-xs text-[#0F4C45] bg-[#0F4C45]/10 px-2.5 py-1 rounded-full">
-              92% Complete
+              {completionPercentage}% Complete
             </span>
           </div>
 
           <div className="space-y-2.5">
             {[
-              { title: "Store Logo & Branding", done: true },
-              { title: "Business Description & Address", done: true },
-              { title: "Services & Pricing Packages", done: true },
-              { title: "Gallery & Portfolio Uploads", done: true },
-              { title: "GST & Bank KYC Verification", done: false },
+              { title: "Store Logo & Branding", done: Boolean(vendorData?.logo || vendorData?.logo_url) },
+              { title: "Business Description & Address", done: Boolean(vendorData?.description && vendorData?.address) },
+              { title: "Services & Pricing Packages", done: servicesCount > 0 || packagesCount > 0 },
+              { title: "Gallery Showcase Photos", done: galleryCount > 0 },
+              { title: "Working Hours & Service Areas", done: Boolean(vendorData?.working_hours || vendorData?.workingHours) },
             ].map((step, i) => (
               <div key={i} className="flex items-center justify-between text-xs p-2.5 rounded-xl bg-[#FAF7F2]/50 border border-gold/5">
                 <span className={`font-medium ${step.done ? "text-charcoal" : "text-charcoal/60"}`}>{step.title}</span>
@@ -222,11 +297,7 @@ export default function VendorOverviewPage() {
           </div>
 
           <div className="space-y-3">
-            {[
-              { name: "Anjali Menon", type: "Bridal Shoot & Makeup Inquiry", time: "2 hours ago", status: "New Inquiry", statusBg: "bg-emerald-50 text-emerald-700" },
-              { name: "Priya Sharma", type: "Wedding Destination Photography", time: "5 hours ago", status: "Pending Reply", statusBg: "bg-amber-50 text-amber-700" },
-              { name: "Sneha Nair", type: "Pre-Wedding Teaser Package", time: "1 day ago", status: "Quotation Sent", statusBg: "bg-blue-50 text-blue-700" },
-            ].map((enquiry, idx) => (
+            {displayLeads.map((enquiry, idx) => (
               <div key={idx} className="flex items-center justify-between p-4 rounded-xl border border-gold/10 hover:border-[#0F4C45]/30 transition-colors bg-[#FAF7F2]/50">
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 rounded-full bg-[#0F4C45] text-white flex items-center justify-center font-bold text-sm">

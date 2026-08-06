@@ -1,60 +1,61 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
-import { Palette, Upload, Image as ImageIcon, Save, CheckCircle2, Shield, Bell, Lock, AlertTriangle, UserCheck, Building2 } from "lucide-react";
+import { Save, CheckCircle2, Shield, Bell, AlertTriangle, Building2 } from "lucide-react";
 import { Button } from "@/components/Button";
+import { getActiveVendorIdentity, syncVendorProfileWithDatabase, showVendorToast } from "@/lib/vendorStore";
 
 export default function VendorSettingsPage() {
+  const [vendorId, setVendorId] = useState<string>("");
   const [businessName, setBusinessName] = useState("Dream Wedding Studio");
   const [vendorCategory, setVendorCategory] = useState("Photography");
   const [description, setDescription] = useState("Bespoke wedding photography and luxury cinematic storytelling.");
-  const [logoUrl, setLogoUrl] = useState("");
-  const [coverUrl, setCoverUrl] = useState("");
-  
+
   // Notification Toggles
   const [emailLeads, setEmailLeads] = useState(true);
   const [smsAlerts, setSmsAlerts] = useState(true);
-  const [marketingEmails, setMarketingEmails] = useState(false);
 
   // Privacy & Security Toggles
   const [publicProfile, setPublicProfile] = useState(true);
   const [showPhone, setShowPhone] = useState(true);
-  const [twoFactor, setTwoFactor] = useState(false);
 
+  const [isSaving, setIsSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const rawUserData = localStorage.getItem("cloche_user_data");
-        const rawVendors = localStorage.getItem("cloche_registered_vendors");
-        if (rawUserData) {
-          const u = JSON.parse(rawUserData);
-          if (u.name || u.boutique_name) setBusinessName(u.name || u.boutique_name);
-          if (u.category) setVendorCategory(u.category);
-          if (u.description) setDescription(u.description);
-          if (u.logo) setLogoUrl(u.logo);
-          if (u.coverImage) setCoverUrl(u.coverImage);
-        } else if (rawVendors) {
-          const v = JSON.parse(rawVendors);
-          if (v.length > 0) {
-            const first = v[0];
-            if (first.boutique_name || first.name) setBusinessName(first.boutique_name || first.name);
-            if (first.category) setVendorCategory(first.category);
-            if (first.description) setDescription(first.description);
-            if (first.logo) setLogoUrl(first.logo);
-            if (first.coverImage) setCoverUrl(first.coverImage);
-          }
-        }
-      } catch (e) {}
-    }
+    const active = getActiveVendorIdentity();
+    setVendorId(active.id);
+    setBusinessName(active.boutique_name || active.name || "Dream Wedding Studio");
+    setVendorCategory(active.category || "Photography");
+    setDescription(active.description || "Bespoke wedding photography and luxury cinematic storytelling.");
   }, []);
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSaved(true);
-    setTimeout(() => setIsSaved(false), 3000);
+    setIsSaving(true);
+
+    try {
+      const payload = {
+        id: vendorId,
+        boutique_name: businessName.trim(),
+        name: businessName.trim(),
+        category: vendorCategory,
+        description: description.trim(),
+      };
+
+      const result = await syncVendorProfileWithDatabase(payload);
+      if (result.success) {
+        setIsSaved(true);
+        showVendorToast("✓ Settings saved successfully");
+        setTimeout(() => setIsSaved(false), 3500);
+      } else {
+        showVendorToast("Unable to save settings. Please try again.", "error");
+      }
+    } catch (err) {
+      showVendorToast("Unable to save settings. Please try again.", "error");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -202,8 +203,8 @@ export default function VendorSettingsPage() {
             </div>
             <button
               type="button"
-              onClick={() => alert("Deactivation request submitted.")}
-              className="bg-red-600 hover:bg-red-700 text-white px-5 py-2.5 rounded-xl font-bold uppercase tracking-wider shrink-0"
+              onClick={() => showVendorToast("Deactivation request submitted.")}
+              className="bg-red-600 hover:bg-red-700 text-white px-5 py-2.5 rounded-xl font-bold uppercase tracking-wider shrink-0 cursor-pointer"
             >
               Deactivate Store
             </button>
@@ -215,8 +216,12 @@ export default function VendorSettingsPage() {
           <div className="text-xs text-charcoal/70 hidden sm:block font-medium">
             Save updated settings and storefront customization options.
           </div>
-          <Button type="submit" className="bg-[#0F4C45] hover:bg-[#135951] text-white rounded-full px-8 py-3 font-bold text-xs uppercase tracking-wider shadow-md flex items-center gap-2 ml-auto cursor-pointer">
-            <Save className="w-4 h-4 text-[#C8A96A]" /> Save Settings
+          <Button 
+            type="submit" 
+            disabled={isSaving}
+            className="bg-[#0F4C45] hover:bg-[#135951] text-white rounded-full px-8 py-3 font-bold text-xs uppercase tracking-wider shadow-md flex items-center gap-2 ml-auto cursor-pointer disabled:opacity-50"
+          >
+            <Save className="w-4 h-4 text-[#C8A96A]" /> {isSaving ? "Saving Settings..." : "Save Settings"}
           </Button>
         </div>
 

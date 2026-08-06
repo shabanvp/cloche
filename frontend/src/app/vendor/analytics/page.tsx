@@ -2,21 +2,30 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { BarChart3, Eye, Inbox, Calendar, TrendingUp, Users, ShoppingBag, Image as ImageIcon, ArrowUpRight } from "lucide-react";
+import { Eye, Inbox, Calendar, TrendingUp, Users, ShoppingBag, Image as ImageIcon } from "lucide-react";
+import { getActiveVendorIdentity } from "@/lib/vendorStore";
+import { fetchVendorServicesFromDb, fetchVendorLeadsFromDb } from "@/lib/supabase";
 
 export default function VendorAnalyticsPage() {
   const [businessName, setBusinessName] = useState("Dream Wedding Studio");
+  const [servicesCount, setServicesCount] = useState(8);
+  const [leadsCount, setLeadsCount] = useState(148);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const rawUserData = localStorage.getItem("cloche_user_data");
-        if (rawUserData) {
-          const u = JSON.parse(rawUserData);
-          if (u.name || u.boutique_name) setBusinessName(u.name || u.boutique_name);
-        }
-      } catch (e) {}
-    }
+    const active = getActiveVendorIdentity();
+    setBusinessName(active.boutique_name || active.name || "Dream Wedding Studio");
+
+    fetchVendorServicesFromDb(active.id).then((res) => {
+      if (!res.error && Array.isArray(res.data)) {
+        setServicesCount(res.data.length);
+      }
+    });
+
+    fetchVendorLeadsFromDb(active.id).then((res) => {
+      if (!res.error && Array.isArray(res.data)) {
+        setLeadsCount(res.data.length);
+      }
+    });
   }, []);
 
   return (
@@ -47,9 +56,9 @@ export default function VendorAnalyticsPage() {
             <Inbox className="w-5 h-5" />
           </div>
           <p className="text-[10px] font-bold text-charcoal/50 uppercase tracking-widest">Inquiry Conversion</p>
-          <h3 className="text-3xl font-display font-bold text-charcoal">6.46%</h3>
+          <h3 className="text-3xl font-display font-bold text-charcoal">{leadsCount > 0 ? `${leadsCount} Leads` : "6.46%"}</h3>
           <span className="text-xs font-bold text-[#0F4C45] flex items-center gap-1">
-            <TrendingUp className="w-3.5 h-3.5" /> +2.1% above industry average
+            <TrendingUp className="w-3.5 h-3.5" /> Live CRM pipeline
           </span>
         </div>
 
@@ -57,10 +66,10 @@ export default function VendorAnalyticsPage() {
           <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
             <Calendar className="w-5 h-5" />
           </div>
-          <p className="text-[10px] font-bold text-charcoal/50 uppercase tracking-widest">Confirmed Bookings</p>
-          <h3 className="text-3xl font-display font-bold text-charcoal">3,880</h3>
+          <p className="text-[10px] font-bold text-charcoal/50 uppercase tracking-widest">Active Services</p>
+          <h3 className="text-3xl font-display font-bold text-charcoal">{servicesCount}</h3>
           <span className="text-xs font-bold text-[#0F4C45] flex items-center gap-1">
-            <TrendingUp className="w-3.5 h-3.5" /> 48 new this month
+            <TrendingUp className="w-3.5 h-3.5" /> Storefront catalog
           </span>
         </div>
 

@@ -1,11 +1,12 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import Link from "next/link";
-import { Search, Filter, Plus, Edit3, Trash2, Copy, CheckCircle2, Tag, ShoppingBag } from "lucide-react";
+import { Search, Filter, Plus, Edit3, Trash2, Copy, ShoppingBag, AlertCircle } from "lucide-react";
+import { getActiveVendorIdentity, showVendorToast } from "@/lib/vendorStore";
 
 interface ServiceItem {
   id: string;
+  vendor_id?: string;
   name: string;
   description: string;
   base_price: number;
@@ -16,6 +17,7 @@ interface ServiceItem {
 }
 
 export default function VendorServicesPage() {
+  const [vendorId, setVendorId] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedStatus, setSelectedStatus] = useState("All");
@@ -27,33 +29,60 @@ export default function VendorServicesPage() {
   const [modalMode, setModalMode] = useState<"create" | "edit">("create");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [formData, setFormData] = useState<any>({});
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchData();
+    const active = getActiveVendorIdentity();
+    setVendorId(active.id);
+    fetchData(active.id);
   }, []);
 
-  const fetchData = async () => {
+  const fetchData = async (vId: string) => {
     setIsLoading(true);
     try {
-      const res = await fetch("/api/v1/vendor/services").then((r) => r.json()).catch(() => ({ data: [] }));
-      const loadedServices = Array.isArray(res.data) && res.data.length > 0
-        ? res.data
-        : [
-            { id: "s-1", name: "HD Bridal Makeup & Hair Styling", description: "Waterproof HD airbrush makeup with premium lashes, draping & hair extensions", base_price: 25000, pricing_type: "fixed", category: "Bridal Wear", status: "Published", image_url: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?auto=format&fit=crop&w=600&q=80" },
-            { id: "s-2", name: "Pre-Wedding Cinematic Outdoor Shoot", description: "Full day 4K outdoor shoot with drone video and 3-minute teaser highlights", base_price: 65000, pricing_type: "per_event", category: "Photography", status: "Published", image_url: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=600&q=80" },
-            { id: "s-3", name: "Royal Grand Banquet Hall Rental", description: "AC Banquet Hall seating up to 1200 guests with dining & stage setup", base_price: 350000, pricing_type: "per_day", category: "Venues", status: "Published", image_url: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=600&q=80" },
-            { id: "s-4", name: "Floral Mandap Decor Suite", description: "Custom fresh flower mandap decoration with stage lighting & entrance arch", base_price: 120000, pricing_type: "fixed", category: "Decor & Planning", status: "Draft", image_url: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=600&q=80" },
-          ];
+      const res = await fetch(`/api/v1/vendor/services?vendor_id=${encodeURIComponent(vId)}`).then((r) => r.json()).catch(() => ({ data: [] }));
+      
+      let loadedServices: ServiceItem[] = [];
+      if (res.success && Array.isArray(res.data) && res.data.length > 0) {
+        loadedServices = res.data.map((s: any) => ({
+          id: s.id,
+          vendor_id: s.vendor_id,
+          name: s.name,
+          description: s.description || "",
+          base_price: Number(s.base_price || 0),
+          pricing_type: s.pricing_type || "fixed",
+          category: s.category || "General",
+          status: s.status === "draft" ? "Draft" : "Published",
+          image_url: s.image_url || (Array.isArray(s.vendor_service_images) && s.vendor_service_images.length > 0 ? s.vendor_service_images[0].image_url : ""),
+        }));
+      } else {
+        // Load from local sync cache if DB table is empty
+        const cached = localStorage.getItem("cloche_vendor_services");
+        if (cached) loadedServices = JSON.parse(cached);
+      }
 
       setServices(loadedServices);
+      if (typeof window !== "undefined") {
+        localStorage.setItem("cloche_vendor_services", JSON.stringify(loadedServices));
+      }
     } catch (err) {
-      console.error("Failed to load services data:", err);
+      console.error("[VendorServicesPage] Failed to load services:", err);
     } finally {
       setIsLoading(false);
     }
   };
 
+  const syncServicesToStore = (updatedList: ServiceItem[]) => {
+    setServices(updatedList);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("cloche_vendor_services", JSON.stringify(updatedList));
+      window.dispatchEvent(new Event("cloche_vendor_updated"));
+      window.dispatchEvent(new Event("cloche_cms_update"));
+    }
+  };
+
   const handleOpenCreateModal = () => {
+    setValidationError(null);
     setModalMode("create");
     setSelectedId(null);
     setFormData({
@@ -69,41 +98,93 @@ export default function VendorServicesPage() {
   };
 
   const handleOpenEditModal = (item: ServiceItem) => {
+    setValidationError(null);
     setModalMode("edit");
     setSelectedId(item.id);
     setFormData({ ...item });
     setShowModal(true);
   };
 
-  const handleDuplicateItem = (item: ServiceItem) => {
-    const duplicated = {
+  const handleDuplicateItem = async (item: ServiceItem) => {
+    const duplicated: ServiceItem = {
       ...item,
       id: `s-${Date.now()}`,
       name: `${item.name} (Copy)`,
     };
-    setServices((prev) => [duplicated, ...prev]);
+
+    const newList = [duplicated, ...services];
+    syncServicesToStore(newList);
+    showVendorToast("✓ Service duplicated successfully");
+
+    try {
+      await fetch("/api/v1/vendor/services", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...duplicated, vendor_id: vendorId }),
+      });
+    } catch (e) {}
   };
 
   const handleDeleteItem = async (id: string) => {
     if (!confirm("Are you sure you want to delete this service?")) return;
+    const newList = services.filter((s) => s.id !== id);
+    syncServicesToStore(newList);
+    showVendorToast("✓ Service deleted successfully");
+
     try {
       await fetch(`/api/v1/vendor/services?id=${id}`, { method: "DELETE" });
-      setServices((prev) => prev.filter((s) => s.id !== id));
-    } catch (e) {
-      setServices((prev) => prev.filter((s) => s.id !== id));
-    }
+    } catch (e) {}
   };
 
-  const handleSaveModal = (e: React.FormEvent) => {
+  const handleSaveModal = async (e: React.FormEvent) => {
     e.preventDefault();
-    const payload = { ...formData };
-    if (modalMode === "edit" && selectedId) {
-      setServices((prev) => prev.map((s) => (s.id === selectedId ? { ...payload, id: selectedId } : s)));
-    } else {
-      const newItem = { id: `s-${Date.now()}`, ...payload };
-      setServices((prev) => [newItem, ...prev]);
+    setValidationError(null);
+
+    if (!formData.name || !formData.name.trim()) {
+      setValidationError("Service title is required.");
+      return;
     }
+    if (formData.base_price === undefined || formData.base_price === "" || Number(formData.base_price) < 0) {
+      setValidationError("Please enter a valid price (>= 0).");
+      return;
+    }
+
+    const payload: ServiceItem = {
+      id: modalMode === "edit" && selectedId ? selectedId : `s-${Date.now()}`,
+      vendor_id: vendorId,
+      name: formData.name.trim(),
+      description: formData.description ? formData.description.trim() : "",
+      base_price: Number(formData.base_price),
+      pricing_type: formData.pricing_type || "fixed",
+      category: formData.category || "General",
+      status: formData.status || "Published",
+      image_url: formData.image_url ? formData.image_url.trim() : "",
+    };
+
+    let newList: ServiceItem[];
+    if (modalMode === "edit" && selectedId) {
+      newList = services.map((s) => (s.id === selectedId ? payload : s));
+    } else {
+      newList = [payload, ...services];
+    }
+
+    syncServicesToStore(newList);
     setShowModal(false);
+
+    showVendorToast(modalMode === "edit" ? "✓ Service updated successfully" : "✓ Service created successfully");
+
+    // Persist to Supabase Database via API
+    try {
+      const apiRes = await fetch("/api/v1/vendor/services", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      }).then((r) => r.json());
+
+      console.log("[VendorServicesPage] API Save Result:", apiRes);
+    } catch (err) {
+      console.error("[VendorServicesPage] API Error:", err);
+    }
   };
 
   const filteredServices = services.filter((s) => {
@@ -174,7 +255,9 @@ export default function VendorServicesPage() {
       </div>
 
       {/* Large Service Cards Grid */}
-      {filteredServices.length > 0 ? (
+      {isLoading ? (
+        <div className="text-center py-16 text-xs text-charcoal/60">Loading services from database...</div>
+      ) : filteredServices.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredServices.map((service) => (
             <div key={service.id} className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-xs hover:shadow-md transition-all flex flex-col justify-between group">
@@ -216,20 +299,20 @@ export default function VendorServicesPage() {
               <div className="p-4 bg-[#FAF7F2]/60 border-t border-gold/10 flex items-center justify-between gap-2">
                 <button
                   onClick={() => handleDuplicateItem(service)}
-                  className="text-xs font-bold text-charcoal/70 hover:text-[#0F4C45] flex items-center gap-1 transition-colors"
+                  className="text-xs font-bold text-charcoal/70 hover:text-[#0F4C45] flex items-center gap-1 transition-colors cursor-pointer"
                 >
                   <Copy className="w-3.5 h-3.5" /> Duplicate
                 </button>
                 <div className="flex items-center gap-3">
                   <button
                     onClick={() => handleOpenEditModal(service)}
-                    className="text-xs font-bold text-[#0F4C45] hover:underline flex items-center gap-1"
+                    className="text-xs font-bold text-[#0F4C45] hover:underline flex items-center gap-1 cursor-pointer"
                   >
                     <Edit3 className="w-3.5 h-3.5" /> Edit
                   </button>
                   <button
                     onClick={() => handleDeleteItem(service.id)}
-                    className="text-xs font-bold text-red-600 hover:underline flex items-center gap-1"
+                    className="text-xs font-bold text-red-600 hover:underline flex items-center gap-1 cursor-pointer"
                   >
                     <Trash2 className="w-3.5 h-3.5" /> Delete
                   </button>
@@ -243,7 +326,7 @@ export default function VendorServicesPage() {
           <ShoppingBag className="w-12 h-12 text-gold mx-auto mb-3 opacity-50" />
           <h3 className="text-xl font-display font-bold text-charcoal">No Services Found</h3>
           <p className="text-xs text-charcoal/60 max-w-sm mx-auto mt-1">Add your first business service offering to display on your public Cloche storefront.</p>
-          <button onClick={handleOpenCreateModal} className="mt-4 bg-[#0F4C45] text-white px-6 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider shadow-md">
+          <button onClick={handleOpenCreateModal} className="mt-4 bg-[#0F4C45] text-white px-6 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider shadow-md cursor-pointer">
             + Create Service
           </button>
         </div>
@@ -262,9 +345,18 @@ export default function VendorServicesPage() {
               </button>
             </div>
 
+            {validationError && (
+              <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-bold flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+                <span>{validationError}</span>
+              </div>
+            )}
+
             <form onSubmit={handleSaveModal} className="space-y-4">
               <div>
-                <label className="text-xs font-bold text-charcoal/70 uppercase tracking-wider block mb-1">Service Title</label>
+                <label className="text-xs font-bold text-charcoal/70 uppercase tracking-wider block mb-1">
+                  Service Title <span className="text-red-500">*</span>
+                </label>
                 <input
                   type="text"
                   required
@@ -277,11 +369,13 @@ export default function VendorServicesPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs font-bold text-charcoal/70 uppercase tracking-wider block mb-1">Price (₹)</label>
+                  <label className="text-xs font-bold text-charcoal/70 uppercase tracking-wider block mb-1">
+                    Price (₹) <span className="text-red-500">*</span>
+                  </label>
                   <input
                     type="number"
                     required
-                    value={formData.base_price || ""}
+                    value={formData.base_price !== undefined ? formData.base_price : ""}
                     onChange={(e) => setFormData({ ...formData, base_price: e.target.value })}
                     className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-4 py-2.5 text-xs text-charcoal focus:outline-none focus:border-[#0F4C45]"
                     placeholder="25000"
@@ -329,7 +423,7 @@ export default function VendorServicesPage() {
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="px-5 py-2.5 rounded-xl border border-gold/20 text-xs font-bold text-charcoal/60 hover:text-charcoal"
+                  className="px-5 py-2.5 rounded-xl border border-gold/20 text-xs font-bold text-charcoal/60 hover:text-charcoal cursor-pointer"
                 >
                   Cancel
                 </button>
