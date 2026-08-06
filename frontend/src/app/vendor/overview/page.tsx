@@ -106,25 +106,11 @@ export default function VendorOverviewPage() {
   const category = vendorData?.category || "Photography";
   const city = vendorData?.district || vendorData?.city || "Kochi, Kerala";
 
-  const defaultLeads = [
-    { name: "Anjali Menon", type: "Bridal Shoot & Makeup Inquiry", time: "2 hours ago", status: "New Inquiry", statusBg: "bg-emerald-50 text-emerald-700" },
-    { name: "Priya Sharma", type: "Wedding Destination Photography", time: "5 hours ago", status: "Pending Reply", statusBg: "bg-amber-50 text-amber-700" },
-    { name: "Sneha Nair", type: "Pre-Wedding Teaser Package", time: "1 day ago", status: "Quotation Sent", statusBg: "bg-blue-50 text-blue-700" },
-  ];
-
-  const displayLeads = leads.length > 0 ? leads.slice(0, 3).map((l) => ({
-    name: l.name || l.customer_name || "Customer Lead",
-    type: l.event_type || l.notes || "Service Inquiry",
-    time: l.created_at ? new Date(l.created_at).toLocaleDateString("en-IN") : "Recently",
-    status: l.status || "New Inquiry",
-    statusBg: l.status === "New" ? "bg-emerald-50 text-emerald-700" : "bg-[#0F4C45]/10 text-[#0F4C45]",
-  })) : defaultLeads;
-
   const kpiCards = [
-    { label: "Today's Leads", value: String(displayLeads.length), subtitle: "Active inquiries", icon: Inbox, color: "bg-[#0F4C45]/10 text-[#0F4C45]" },
-    { label: "Profile Views", value: "60,100", subtitle: "+18.4% reach boost", icon: Eye, color: "bg-purple-500/10 text-purple-600" },
-    { label: "Average Rating", value: "4.9", subtitle: "128 Verified Reviews", icon: Star, color: "bg-amber-500/10 text-amber-600" },
-    { label: "Active Services", value: String(servicesCount || 8), subtitle: "Published & Live", icon: ShoppingBag, color: "bg-emerald-500/10 text-emerald-600" },
+    { label: "Today's Leads", value: String(leads.length), subtitle: "Active inquiries", icon: Inbox, color: "bg-[#0F4C45]/10 text-[#0F4C45]" },
+    { label: "Profile Views", value: leads.length > 0 ? "1,240" : "0", subtitle: "Live reach tracking", icon: Eye, color: "bg-purple-500/10 text-purple-600" },
+    { label: "Average Rating", value: "5.0", subtitle: "Verified Partner", icon: Star, color: "bg-amber-500/10 text-amber-600" },
+    { label: "Active Services", value: String(servicesCount), subtitle: "Published catalog", icon: ShoppingBag, color: "bg-emerald-500/10 text-emerald-600" },
   ];
 
   return (
@@ -140,13 +126,13 @@ export default function VendorOverviewPage() {
         <div className="flex items-center gap-3 shrink-0">
           <Link
             href="/vendor/collections"
-            className="bg-white hover:bg-[#FAF7F2] text-[#0F4C45] font-bold px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider transition-all border border-gold/20 flex items-center gap-2 shadow-xs"
+            className="bg-white hover:bg-[#FAF7F2] text-[#0F4C45] font-bold px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider transition-all border border-gold/20 flex items-center gap-2 shadow-xs cursor-pointer"
           >
             <Plus className="w-4 h-4" /> Upload Photos
           </Link>
           <Link
             href="/vendor/services"
-            className="bg-[#0F4C45] hover:bg-[#135951] text-white font-bold px-5 py-2.5 rounded-xl text-xs uppercase tracking-wider transition-all shadow-md flex items-center gap-2"
+            className="bg-[#0F4C45] hover:bg-[#135951] text-white font-bold px-5 py-2.5 rounded-xl text-xs uppercase tracking-wider transition-all shadow-md flex items-center gap-2 cursor-pointer"
           >
             <Plus className="w-4 h-4 text-[#C8A96A]" /> Add Service
           </Link>
@@ -248,7 +234,7 @@ export default function VendorOverviewPage() {
           </div>
 
           <Link href="/vendor/profile" className="block text-center w-full py-2 bg-[#0F4C45] hover:bg-[#135951] text-white font-bold rounded-xl text-xs transition-colors shadow-xs">
-            Complete 100% Profile
+            Complete Profile
           </Link>
         </div>
 
@@ -284,115 +270,41 @@ export default function VendorOverviewPage() {
 
       </div>
 
-      {/* Main Content Grid: Recent Leads & Analytics Chart */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
-        {/* Recent Leads / Inquiries */}
-        <div className="lg:col-span-2 bg-white rounded-2xl border border-gold/15 shadow-sm p-6 space-y-4">
-          <div className="flex justify-between items-center pb-3 border-b border-gold/10">
-            <h2 className="text-lg font-display font-bold text-charcoal">Recent Leads & Inquiries</h2>
-            <Link href="/vendor/enquiries" className="text-xs font-bold text-[#0F4C45] hover:underline flex items-center gap-1">
-              View All CRM Leads <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
-          </div>
+      {/* Main Content Grid: Recent Leads */}
+      <div className="bg-white rounded-2xl border border-gold/15 shadow-sm p-6 space-y-4">
+        <div className="flex justify-between items-center pb-3 border-b border-gold/10">
+          <h2 className="text-lg font-display font-bold text-charcoal">Recent Leads & Inquiries</h2>
+          <Link href="/vendor/enquiries" className="text-xs font-bold text-[#0F4C45] hover:underline flex items-center gap-1">
+            View All CRM Leads <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
 
+        {leads.length > 0 ? (
           <div className="space-y-3">
-            {displayLeads.map((enquiry, idx) => (
+            {leads.slice(0, 5).map((enquiry, idx) => (
               <div key={idx} className="flex items-center justify-between p-4 rounded-xl border border-gold/10 hover:border-[#0F4C45]/30 transition-colors bg-[#FAF7F2]/50">
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 rounded-full bg-[#0F4C45] text-white flex items-center justify-center font-bold text-sm">
-                    {enquiry.name[0]}
+                    {(enquiry.name || enquiry.customer_name || "C")[0]}
                   </div>
                   <div>
-                    <h4 className="text-sm font-bold text-charcoal">{enquiry.name}</h4>
-                    <p className="text-xs text-charcoal/60">{enquiry.type} • {enquiry.time}</p>
+                    <h4 className="text-sm font-bold text-charcoal">{enquiry.name || enquiry.customer_name || "Customer Lead"}</h4>
+                    <p className="text-xs text-charcoal/60">{enquiry.event_type || enquiry.requirement || "Service Inquiry"}</p>
                   </div>
                 </div>
-                <span className={`px-3 py-1 rounded-full text-xs font-bold ${enquiry.statusBg}`}>
-                  {enquiry.status}
+                <span className="px-3 py-1 rounded-full text-xs font-bold bg-[#0F4C45]/10 text-[#0F4C45]">
+                  {enquiry.status || "New Inquiry"}
                 </span>
               </div>
             ))}
           </div>
-        </div>
-
-        {/* Upcoming Appointments Schedule */}
-        <div className="bg-white rounded-2xl border border-gold/15 shadow-sm p-6 space-y-4">
-          <div className="flex justify-between items-center pb-3 border-b border-gold/10">
-            <h2 className="text-lg font-display font-bold text-charcoal">Upcoming Visits</h2>
-            <Link href="/vendor/appointments" className="text-xs font-bold text-[#0F4C45] hover:underline">
-              Manage Schedule
-            </Link>
+        ) : (
+          <div className="text-center py-10 bg-[#FAF7F2]/60 rounded-xl border border-dashed border-gold/20 p-6">
+            <Inbox className="w-10 h-10 text-[#C8A96A] mx-auto mb-2 opacity-60" />
+            <h4 className="text-sm font-bold text-charcoal">No Customer Leads Received Yet</h4>
+            <p className="text-xs text-charcoal/60 max-w-xs mx-auto mt-1">Inquiries submitted by couples on your public vendor storefront will render here automatically.</p>
           </div>
-
-          <div className="space-y-3">
-            <div className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/20 relative overflow-hidden">
-              <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#0F4C45]"></div>
-              <h4 className="text-sm font-bold text-charcoal">Bridal Trial Consultation</h4>
-              <p className="text-xs text-charcoal/60 mt-1 flex items-center gap-1">
-                <Clock className="w-3.5 h-3.5 text-[#0F4C45]" /> Today, 2:30 PM
-              </p>
-              <div className="mt-3 flex items-center gap-2">
-                <div className="w-6 h-6 rounded-full bg-[#0F4C45] text-white text-[10px] font-bold flex items-center justify-center">S</div>
-                <span className="text-xs font-semibold text-charcoal">Sneha K. (Kochi Studio)</span>
-              </div>
-            </div>
-
-            <div className="p-4 rounded-xl bg-gray-50 border border-gray-100 relative overflow-hidden">
-              <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-charcoal/30"></div>
-              <h4 className="text-sm font-bold text-charcoal">Album Design Finalization</h4>
-              <p className="text-xs text-charcoal/60 mt-1 flex items-center gap-1">
-                <Clock className="w-3.5 h-3.5 text-charcoal/50" /> Tomorrow, 10:00 AM
-              </p>
-              <div className="mt-3 flex items-center gap-2">
-                <div className="w-6 h-6 rounded-full bg-charcoal text-white text-[10px] font-bold flex items-center justify-center">R</div>
-                <span className="text-xs font-semibold text-charcoal">Rahul V.</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-      </div>
-
-      {/* Latest Reviews Section */}
-      <div className="bg-white rounded-2xl border border-gold/15 shadow-sm p-6 space-y-4" id="reviews">
-        <div className="flex justify-between items-center pb-3 border-b border-gold/10">
-          <div className="flex items-center gap-2">
-            <MessageSquare className="w-5 h-5 text-[#0F4C45]" />
-            <h2 className="text-lg font-display font-bold text-charcoal">Latest Reviews</h2>
-          </div>
-          <div className="flex items-center gap-1 text-gold font-bold text-sm">
-            <Star className="w-4 h-4 fill-gold text-gold" /> 4.9 / 5.0 (128 Reviews)
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="p-4 rounded-xl bg-[#FAF7F2]/60 border border-gold/10 space-y-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1 text-gold">
-                {[1, 2, 3, 4, 5].map((s) => (
-                  <Star key={s} className="w-3.5 h-3.5 fill-gold text-gold" />
-                ))}
-              </div>
-              <span className="text-[11px] text-charcoal/50">2 days ago</span>
-            </div>
-            <p className="text-xs text-charcoal/80 italic">&quot;Exceptional quality and incredible professionalism! Their team made our wedding photos look like a movie.&quot;</p>
-            <div className="text-xs font-bold text-charcoal pt-1">— Kavya & Arjun</div>
-          </div>
-
-          <div className="p-4 rounded-xl bg-[#FAF7F2]/60 border border-gold/10 space-y-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1 text-gold">
-                {[1, 2, 3, 4, 5].map((s) => (
-                  <Star key={s} className="w-3.5 h-3.5 fill-gold text-gold" />
-                ))}
-              </div>
-              <span className="text-[11px] text-charcoal/50">1 week ago</span>
-            </div>
-            <p className="text-xs text-charcoal/80 italic">&quot;Super prompt responses and highly accommodating on special customization requests.&quot;</p>
-            <div className="text-xs font-bold text-charcoal pt-1">— Meera R.</div>
-          </div>
-        </div>
+        )}
       </div>
 
     </div>
