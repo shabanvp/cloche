@@ -1,10 +1,32 @@
 import { NextResponse } from "next/server";
-import { getSupabaseConfig, fetchVendorServicesFromDb, saveVendorServiceToDb, softDeleteVendorServiceFromDb } from "@/lib/supabase";
+import { getSupabaseConfig, fetchVendorServicesFromDb, saveVendorServiceToDb, softDeleteVendorServiceFromDb, supabaseFetch } from "@/lib/supabase";
+
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const DEFAULT_VENDOR_UUID = "7a51b1c0-c15b-42ed-aec2-fd5caf6b471c";
+
+async function resolveVendorUuid(rawId?: string | null): Promise<string> {
+  if (rawId && UUID_REGEX.test(rawId)) {
+    return rawId;
+  }
+
+  // Query vendors table to try resolving by user_id or slug if non-UUID string was passed
+  if (rawId && rawId !== "v-registered" && rawId !== "v-demo-vendor") {
+    try {
+      const res = await supabaseFetch(`vendors?or=(id.eq.${encodeURIComponent(rawId)},user_id.eq.${encodeURIComponent(rawId)})&select=id`);
+      if (!res.error && Array.isArray(res.data) && res.data.length > 0 && res.data[0].id) {
+        return res.data[0].id;
+      }
+    } catch (e) {}
+  }
+
+  return DEFAULT_VENDOR_UUID;
+}
 
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
-    const vendorId = searchParams.get("vendor_id") || "v-demo-vendor";
+    const rawVendorId = searchParams.get("vendor_id");
+    const vendorId = await resolveVendorUuid(rawVendorId);
 
     const { data, error } = await fetchVendorServicesFromDb(vendorId);
 
@@ -39,8 +61,10 @@ export async function POST(req: Request) {
       );
     }
 
+    const resolvedVendorId = await resolveVendorUuid(vendor_id);
+
     const payload: Record<string, any> = {
-      vendor_id: vendor_id || "v-demo-vendor",
+      vendor_id: resolvedVendorId,
       name: name.trim(),
       description: description ? description.trim() : null,
       base_price: Number(base_price),
@@ -50,20 +74,20 @@ export async function POST(req: Request) {
       updated_at: new Date().toISOString(),
     };
 
-    if (category_id) {
+    if (category_id && UUID_REGEX.test(category_id)) {
       payload.category_id = category_id;
     }
     if (duration) {
       payload.duration = Number(duration);
     }
-    if (body.id) {
+    if (body.id && UUID_REGEX.test(body.id)) {
       payload.id = body.id;
     }
 
     let { data, error } = await saveVendorServiceToDb(payload);
 
-    // Fallback attempt without category_id if foreign key or schema cache error occurs
-    if (error && error.message.includes("category")) {
+    // Fallback retry without category_id if foreign key or schema cache error occurs
+    if (error && (error.message.includes("category") || error.message.includes("uuid"))) {
       delete payload.category_id;
       const retryRes = await saveVendorServiceToDb(payload);
       data = retryRes.data;

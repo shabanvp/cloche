@@ -1,6 +1,26 @@
 import { NextResponse } from "next/server";
 import { saveVendorServiceToDb, softDeleteVendorServiceFromDb, supabaseFetch } from "@/lib/supabase";
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const DEFAULT_VENDOR_UUID = "7a51b1c0-c15b-42ed-aec2-fd5caf6b471c";
+
+async function resolveVendorUuid(rawId?: string | null): Promise<string> {
+  if (rawId && UUID_REGEX.test(rawId)) {
+    return rawId;
+  }
+
+  if (rawId && rawId !== "v-registered" && rawId !== "v-demo-vendor") {
+    try {
+      const res = await supabaseFetch(`vendors?or=(id.eq.${encodeURIComponent(rawId)},user_id.eq.${encodeURIComponent(rawId)})&select=id`);
+      if (!res.error && Array.isArray(res.data) && res.data.length > 0 && res.data[0].id) {
+        return res.data[0].id;
+      }
+    } catch (e) {}
+  }
+
+  return DEFAULT_VENDOR_UUID;
+}
+
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
@@ -30,9 +50,10 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     const { id } = await params;
     const body = await req.json();
 
+    const resolvedVendorId = await resolveVendorUuid(body.vendor_id);
+
     const payload: Record<string, any> = {
-      id,
-      vendor_id: body.vendor_id || "v-demo-vendor",
+      vendor_id: resolvedVendorId,
       name: body.name ? body.name.trim() : "Service Title",
       description: body.description ? body.description.trim() : null,
       base_price: Number(body.base_price || 0),
@@ -42,7 +63,10 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       updated_at: new Date().toISOString(),
     };
 
-    if (body.category_id) {
+    if (UUID_REGEX.test(id)) {
+      payload.id = id;
+    }
+    if (body.category_id && UUID_REGEX.test(body.category_id)) {
       payload.category_id = body.category_id;
     }
     if (body.duration) {
@@ -51,7 +75,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
 
     let { data, error } = await saveVendorServiceToDb(payload);
 
-    if (error && error.message.includes("category")) {
+    if (error && (error.message.includes("category") || error.message.includes("uuid"))) {
       delete payload.category_id;
       const retryRes = await saveVendorServiceToDb(payload);
       data = retryRes.data;

@@ -64,7 +64,7 @@ export function calculateDynamicProfileCompletion(
 export function getActiveVendorIdentity(): VendorProfileData {
   if (typeof window === "undefined") {
     return {
-      id: "v-registered",
+      id: "7a51b1c0-c15b-42ed-aec2-fd5caf6b471c",
       name: "Dream Wedding Studio",
       boutique_name: "Dream Wedding Studio",
       category: "Photography",
