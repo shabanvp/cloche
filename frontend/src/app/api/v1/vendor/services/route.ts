@@ -30,7 +30,7 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { vendor_id, category_id, name, description, base_price, pricing_type, duration, status, is_active, images, category } = body;
+    const { vendor_id, category_id, name, description, base_price, pricing_type, duration, status, is_active, images } = body;
 
     if (!name || base_price === undefined || base_price < 0) {
       return NextResponse.json(
@@ -41,23 +41,34 @@ export async function POST(req: Request) {
 
     const payload: Record<string, any> = {
       vendor_id: vendor_id || "v-demo-vendor",
-      category_id: category_id || null,
-      category: category || "General",
       name: name.trim(),
       description: description ? description.trim() : null,
       base_price: Number(base_price),
       pricing_type: pricing_type || "fixed",
-      duration: duration ? Number(duration) : null,
       status: status ? status.toLowerCase() : "published",
       is_active: is_active !== undefined ? Boolean(is_active) : true,
       updated_at: new Date().toISOString(),
     };
 
+    if (category_id) {
+      payload.category_id = category_id;
+    }
+    if (duration) {
+      payload.duration = Number(duration);
+    }
     if (body.id) {
       payload.id = body.id;
     }
 
-    const { data, error } = await saveVendorServiceToDb(payload);
+    let { data, error } = await saveVendorServiceToDb(payload);
+
+    // Fallback attempt without category_id if foreign key or schema cache error occurs
+    if (error && error.message.includes("category")) {
+      delete payload.category_id;
+      const retryRes = await saveVendorServiceToDb(payload);
+      data = retryRes.data;
+      error = retryRes.error;
+    }
 
     if (error) {
       return NextResponse.json(
