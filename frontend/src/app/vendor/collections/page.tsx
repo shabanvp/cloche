@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Plus, UploadCloud, Trash2, CheckCircle2 } from "lucide-react";
 import { getActiveVendorIdentity, showVendorToast } from "@/lib/vendorStore";
 
@@ -14,27 +14,29 @@ interface GalleryItem {
   likesCount: number;
 }
 
+interface GalleryApiItem {
+  id: string;
+  title?: string;
+  caption?: string;
+  image_url: string;
+  is_cover?: boolean;
+}
+
 export default function VendorCollections() {
-  const [vendorId, setVendorId] = useState<string>("");
+  const [vendorId] = useState<string>(() => getActiveVendorIdentity().id);
   const [activeTab, setActiveTab] = useState("All");
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [items, setItems] = useState<GalleryItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
 
-  useEffect(() => {
-    const active = getActiveVendorIdentity();
-    setVendorId(active.id);
-    loadGallery(active.id);
-  }, []);
-
-  const loadGallery = async (vId: string) => {
+  const loadGallery = useCallback(async (vId: string) => {
     setIsLoading(true);
     try {
       const res = await fetch(`/api/v1/vendor/gallery?vendor_id=${encodeURIComponent(vId)}`).then((r) => r.json()).catch(() => ({ data: [] }));
       let loaded: GalleryItem[] = [];
       if (res.success && Array.isArray(res.data)) {
-        loaded = res.data.map((item: any) => ({
+        loaded = res.data.map((item: GalleryApiItem) => ({
           id: item.id,
           title: item.title || item.caption || "Studio Showcase Photo",
           category: "Portfolio",
@@ -51,7 +53,12 @@ export default function VendorCollections() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadGallery(vendorId);
+  }, [loadGallery, vendorId]);
 
   const toggleSelect = (id: string) => {
     setSelectedItems((prev) => (prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]));
@@ -78,7 +85,7 @@ export default function VendorCollections() {
         } else {
           showVendorToast("Unable to update cover photo.", "error");
         }
-      } catch (e) {
+      } catch {
         showVendorToast("Unable to update cover photo.", "error");
       }
     }
@@ -95,7 +102,7 @@ export default function VendorCollections() {
       showVendorToast(`✓ ${selectedItems.length} Photos deleted successfully`);
       setSelectedItems([]);
       await loadGallery(vendorId);
-    } catch (e) {
+    } catch {
       showVendorToast("Unable to delete photos.", "error");
     }
   };
@@ -106,46 +113,58 @@ export default function VendorCollections() {
 
     setIsUploading(true);
     let successCount = 0;
+    let lastError = "";
 
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       const fileName = file.name.replace(/\.[^/.]+$/, "");
 
-      await new Promise<void>((resolve) => {
-        const reader = new FileReader();
-        reader.onload = async (ev) => {
-          const base64Url = ev.target?.result as string;
-          if (base64Url) {
-            try {
-              const res = await fetch("/api/v1/vendor/gallery", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  vendor_id: vendorId,
-                  title: fileName,
-                  image_url: base64Url,
-                  is_cover: items.length === 0 && i === 0,
-                }),
-              }).then((r) => r.json());
+      try {
+        const uploadData = new FormData();
+        uploadData.append("file", file);
+        uploadData.append("folder", "cloche/vendor-gallery");
 
-              if (res.success) {
-                successCount++;
-              }
-            } catch (err) {}
-          }
-          resolve();
-        };
-        reader.readAsDataURL(file);
-      });
+        const uploadRes = await fetch("/api/upload", {
+          method: "POST",
+          body: uploadData,
+        });
+        const uploadResult = await uploadRes.json().catch(() => null);
+
+        if (!uploadRes.ok || !uploadResult?.success || !uploadResult?.url || String(uploadResult.url).startsWith("data:")) {
+          throw new Error(uploadResult?.error || uploadResult?.note || "Image upload failed.");
+        }
+
+        const galleryRes = await fetch("/api/v1/vendor/gallery", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            vendor_id: vendorId,
+            title: fileName,
+            image_url: uploadResult.url,
+            is_cover: items.length === 0 && successCount === 0,
+          }),
+        });
+        const galleryResult = await galleryRes.json().catch(() => null);
+
+        if (!galleryRes.ok || !galleryResult?.success) {
+          throw new Error(galleryResult?.error?.message || "Failed to save photo to database.");
+        }
+
+        successCount++;
+      } catch (err: unknown) {
+        lastError = err instanceof Error ? err.message : "Upload failed.";
+        console.error("[VendorCollections] Gallery upload failed:", err);
+      }
     }
 
     setIsUploading(false);
+    e.target.value = "";
 
     if (successCount > 0) {
       showVendorToast(`✓ ${successCount} Showcase photo(s) saved to database`);
       await loadGallery(vendorId);
     } else {
-      showVendorToast("Failed to upload photos to database.", "error");
+      showVendorToast(lastError || "Failed to upload photos to database.", "error");
     }
   };
 

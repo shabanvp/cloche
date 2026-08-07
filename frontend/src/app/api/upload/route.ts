@@ -12,11 +12,12 @@ export async function POST(request: Request) {
     // Cloudinary Unsigned Upload
     const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "dycwsnzyd";
     const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "cloche_uploads";
+    const folder = (formData.get("folder") as string) || "cloche/makeup";
 
     const cloudFormData = new FormData();
     cloudFormData.append("file", file);
     cloudFormData.append("upload_preset", uploadPreset);
-    cloudFormData.append("folder", "cloche/makeup");
+    cloudFormData.append("folder", folder);
 
     const cloudRes = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
       method: "POST",
@@ -32,17 +33,13 @@ export async function POST(request: Request) {
       });
     }
 
-    // Fallback: Convert to Base64 Data URL if Cloudinary fails or is unconfigured
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-    const base64Url = `data:${file.type};base64,${buffer.toString("base64")}`;
-
-    return NextResponse.json({
-      success: true,
-      url: base64Url,
-      note: "Local base64 fallback",
-    });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message || "Failed to upload image." }, { status: 500 });
+    const errorText = await cloudRes.text();
+    return NextResponse.json(
+      { success: false, error: errorText || "Cloudinary upload failed." },
+      { status: 502 }
+    );
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Failed to upload image.";
+    return NextResponse.json({ success: false, error: message }, { status: 500 });
   }
 }
