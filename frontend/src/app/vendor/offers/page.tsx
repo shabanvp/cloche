@@ -35,7 +35,7 @@ import {
   toggleCouponStatus,
   deleteVendorCoupon,
 } from "@/lib/vendorOffersStore";
-import { getActiveVendorIdentity } from "@/lib/vendorStore";
+import { fetchAuthenticatedVendorFromDb, getActiveVendorIdentity } from "@/lib/vendorStore";
 
 const OFFER_TYPE_OPTIONS: { value: OfferType; label: string; description: string }[] = [
   { value: "percentage", label: "Percentage Discount", description: "Discount by percentage off tariff (e.g. 20% OFF)" },
@@ -48,7 +48,7 @@ const OFFER_TYPE_OPTIONS: { value: OfferType; label: string; description: string
 ];
 
 export default function VendorOffersPage() {
-  const [vendorId, setVendorId] = useState<string>("v-registered");
+  const [vendorId, setVendorId] = useState<string>("");
   const [offers, setOffers] = useState<VendorOffer[]>([]);
   const [coupons, setCoupons] = useState<CouponCode[]>([]);
   const [activeTab, setActiveTab] = useState<"overview" | "offers" | "coupons" | "flash" | "analytics" | "settings">("overview");
@@ -85,10 +85,14 @@ export default function VendorOffersPage() {
   const [coupExpires, setCoupExpires] = useState("2026-12-31");
 
   useEffect(() => {
-    const active = getActiveVendorIdentity();
+    loadVendorData();
+  }, []);
+
+  const loadVendorData = async () => {
+    const active = await fetchAuthenticatedVendorFromDb();
     setVendorId(active.id);
     refreshData(active.id);
-  }, []);
+  };
 
   const refreshData = (vId?: string) => {
     const targetId = vId || vendorId;

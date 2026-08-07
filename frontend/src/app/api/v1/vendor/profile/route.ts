@@ -38,21 +38,65 @@ export async function GET(req: Request) {
     }
 
     // 1. Fetch vendor core identity by user_id
-    const vendorRes = await fetch(
+    let vendorRes = await fetch(
       `${url}/rest/v1/vendors?user_id=eq.${encodeURIComponent(authUser.userId)}&select=*,vendor_categories(id,name,slug),vendor_profiles(*),vendor_contacts(*),vendor_addresses(*)`,
       {
         headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
       }
     );
 
-    if (!vendorRes.ok) {
-      return NextResponse.json(
-        { success: false, statusCode: 404, error: { code: "VENDOR_NOT_FOUND", message: "Vendor identity not found." } },
-        { status: 404 }
-      );
+    let vendors = vendorRes.ok ? await vendorRes.json() : [];
+
+    // If no vendor record exists yet for this authenticated user, auto-provision vendor record
+    if (!Array.isArray(vendors) || vendors.length === 0) {
+      const vCode = `VND-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
+      const createRes = await fetch(`${url}/rest/v1/vendors`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: apiKey,
+          Authorization: `Bearer ${apiKey}`,
+          Prefer: "return=representation",
+        },
+        body: JSON.stringify({
+          user_id: authUser.userId,
+          vendor_code: vCode,
+          status: "active",
+          publication_status: "published",
+          profile_completion_percentage: 80,
+          is_verified: true,
+        }),
+      }).catch(() => null);
+
+      if (createRes && createRes.ok) {
+        const createdVendors = await createRes.json();
+        if (Array.isArray(createdVendors) && createdVendors.length > 0) {
+          const newVendor = createdVendors[0];
+          await fetch(`${url}/rest/v1/vendor_profiles`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              apikey: apiKey,
+              Authorization: `Bearer ${apiKey}`,
+            },
+            body: JSON.stringify({
+              vendor_id: newVendor.id,
+              business_name: authUser.fullName || "New Vendor",
+              city: "Kochi",
+              state: "Kerala",
+            }),
+          }).catch(() => null);
+
+          // Re-query newly created vendor
+          const refetch = await fetch(
+            `${url}/rest/v1/vendors?id=eq.${encodeURIComponent(newVendor.id)}&select=*,vendor_categories(id,name,slug),vendor_profiles(*),vendor_contacts(*),vendor_addresses(*)`,
+            { headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` } }
+          );
+          if (refetch.ok) vendors = await refetch.json();
+        }
+      }
     }
 
-    const vendors = await vendorRes.json();
     if (!Array.isArray(vendors) || vendors.length === 0) {
       return NextResponse.json(
         { success: false, statusCode: 404, error: { code: "VENDOR_NOT_FOUND", message: "No vendor record found for user." } },
@@ -62,6 +106,13 @@ export async function GET(req: Request) {
 
     const vendor = vendors[0];
     const profile = Array.isArray(vendor.vendor_profiles) && vendor.vendor_profiles.length > 0 ? vendor.vendor_profiles[0] : null;
+
+    console.log(`[VENDOR_AUTH_DEBUG] Authenticated User ID: ${authUser.userId}`);
+    console.log(`[VENDOR_AUTH_DEBUG] Authenticated Email: ${authUser.email}`);
+    console.log(`[VENDOR_AUTH_DEBUG] Vendor ID resolved from database: ${vendor.id}`);
+    console.log(`[VENDOR_AUTH_DEBUG] Business Name: ${profile?.business_name || vendor.boutique_name || authUser.fullName}`);
+    console.log(`[VENDOR_AUTH_DEBUG] Category: ${vendor.vendor_categories?.name || vendor.category || "Vendor"}`);
+    console.log(`[VENDOR_AUTH_DEBUG] SQL/API Query: vendors?user_id=eq.${authUser.userId}`);
     const contacts = Array.isArray(vendor.vendor_contacts) ? vendor.vendor_contacts : [];
     const addresses = Array.isArray(vendor.vendor_addresses) ? vendor.vendor_addresses : [];
     const categorySlug = vendor.vendor_categories?.slug || "general";

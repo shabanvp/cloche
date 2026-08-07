@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Tag, Plus, Check, Edit3, Trash2, Copy, Star, AlertCircle } from "lucide-react";
-import { getActiveVendorIdentity, showVendorToast } from "@/lib/vendorStore";
+import { fetchAuthenticatedVendorFromDb, getActiveVendorIdentity, showVendorToast } from "@/lib/vendorStore";
 
 interface PackageItem {
   id: string;
@@ -32,12 +32,16 @@ export default function VendorPackagesPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    const active = getActiveVendorIdentity();
-    setVendorId(active.id);
-    setVendorCategory(active.category || "Photography");
-    setBusinessName(active.boutique_name || active.name || "Dream Wedding Studio");
-    fetchPackages(active.id);
+    loadVendorData();
   }, []);
+
+  const loadVendorData = async () => {
+    const active = await fetchAuthenticatedVendorFromDb();
+    setVendorId(active.id);
+    setVendorCategory(active.category || "Bridal Wear");
+    setBusinessName(active.boutique_name || active.name || "Vendor Partner");
+    fetchPackages(active.id);
+  };
 
   const fetchPackages = async (vId: string) => {
     setIsLoading(true);

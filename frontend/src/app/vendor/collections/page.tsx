@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { Plus, UploadCloud, Trash2, CheckCircle2 } from "lucide-react";
-import { getActiveVendorIdentity, showVendorToast } from "@/lib/vendorStore";
+import { fetchAuthenticatedVendorFromDb, getActiveVendorIdentity, showVendorToast } from "@/lib/vendorStore";
 
 interface GalleryItem {
   id: string;
@@ -50,7 +50,7 @@ function getCategoryPortfolioTabs(cat: string): string[] {
 
 export default function VendorCollections() {
   const [vendorId, setVendorId] = useState<string>("");
-  const [vendorCategory, setVendorCategory] = useState<string>("Photography");
+  const [vendorCategory, setVendorCategory] = useState<string>("Bridal Wear");
   const [activeTab, setActiveTab] = useState("All");
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [items, setItems] = useState<GalleryItem[]>([]);
@@ -60,11 +60,15 @@ export default function VendorCollections() {
   const categoryTabs = useMemo(() => getCategoryPortfolioTabs(vendorCategory), [vendorCategory]);
 
   useEffect(() => {
-    const active = getActiveVendorIdentity();
-    setVendorId(active.id);
-    setVendorCategory(active.category || "Photography");
-    loadGallery(active.id);
+    loadVendorData();
   }, []);
+
+  const loadVendorData = async () => {
+    const active = await fetchAuthenticatedVendorFromDb();
+    setVendorId(active.id);
+    setVendorCategory(active.category || "Bridal Wear");
+    loadGallery(active.id);
+  };
 
   const loadGallery = useCallback(async (vId: string) => {
     setIsLoading(true);

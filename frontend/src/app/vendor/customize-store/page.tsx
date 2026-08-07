@@ -3,13 +3,13 @@
 import { useEffect, useState } from "react";
 import { Save, CheckCircle2, Shield, Bell, AlertTriangle, Building2 } from "lucide-react";
 import { Button } from "@/components/Button";
-import { getActiveVendorIdentity, syncVendorProfileWithDatabase, showVendorToast } from "@/lib/vendorStore";
+import { fetchAuthenticatedVendorFromDb, getActiveVendorIdentity, syncVendorProfileWithDatabase, showVendorToast } from "@/lib/vendorStore";
 
 export default function VendorSettingsPage() {
   const [vendorId, setVendorId] = useState<string>("");
-  const [businessName, setBusinessName] = useState("Dream Wedding Studio");
-  const [vendorCategory, setVendorCategory] = useState("Photography");
-  const [description, setDescription] = useState("Bespoke wedding photography and luxury cinematic storytelling.");
+  const [businessName, setBusinessName] = useState("Vendor Partner");
+  const [vendorCategory, setVendorCategory] = useState("Bridal Wear");
+  const [description, setDescription] = useState("Premier luxury wedding partner offering bespoke services.");
 
   // Notification Toggles
   const [emailLeads, setEmailLeads] = useState(true);
@@ -23,12 +23,16 @@ export default function VendorSettingsPage() {
   const [isSaved, setIsSaved] = useState(false);
 
   useEffect(() => {
-    const active = getActiveVendorIdentity();
-    setVendorId(active.id);
-    setBusinessName(active.boutique_name || active.name || "Dream Wedding Studio");
-    setVendorCategory(active.category || "Photography");
-    setDescription(active.description || "Bespoke wedding photography and luxury cinematic storytelling.");
+    loadVendorData();
   }, []);
+
+  const loadVendorData = async () => {
+    const active = await fetchAuthenticatedVendorFromDb();
+    setVendorId(active.id);
+    setBusinessName(active.boutique_name || active.name || "Vendor Partner");
+    setVendorCategory(active.category || "Bridal Wear");
+    setDescription(active.description || "Premier luxury wedding partner offering bespoke services.");
+  };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();

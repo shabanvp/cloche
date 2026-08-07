@@ -59,6 +59,58 @@ export function calculateDynamicProfileCompletion(
 }
 
 /**
+ * Fetches the authenticated vendor's live database record from Supabase DB via /api/v1/vendor/profile.
+ * NEVER reads from hardcoded fallbacks or stale localStorage objects.
+ */
+export async function fetchAuthenticatedVendorFromDb(): Promise<VendorProfileData> {
+  if (typeof window !== "undefined") {
+    try {
+      const res = await fetch("/api/v1/vendor/profile", {
+        headers: { "Content-Type": "application/json" },
+        cache: "no-store",
+      });
+
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && json.data) {
+          const v = json.data.vendor || {};
+          const p = json.data.profile || {};
+          const c = Array.isArray(json.data.contacts) && json.data.contacts.length > 0 ? json.data.contacts[0] : {};
+          const bName = p.business_name || v.boutique_name || v.name || "Vendor Partner";
+          const cat = v.category?.name || v.category || "Bridal Wear";
+
+          const resolvedVendor: VendorProfileData = {
+            id: v.id || "vendor-active",
+            user_id: v.user_id,
+            name: bName,
+            boutique_name: bName,
+            category: cat,
+            logo: p.logo_url || v.logo_url || "",
+            logo_url: p.logo_url || v.logo_url || "",
+            coverImage: p.cover_image || v.cover_image || "",
+            cover_image: p.cover_image || v.cover_image || "",
+            description: p.about || v.description || "",
+            phone: c.phone || v.phone || "",
+            whatsapp: c.whatsapp || v.whatsapp || "",
+            email: c.email || v.email || "",
+            city: p.city || v.city || "Kochi",
+            district: p.state || v.district || "Ernakulam",
+            profile_completion_percentage: v.profile_completion_percentage || 80,
+          };
+
+          localStorage.setItem("cloche_active_vendor_identity", JSON.stringify(resolvedVendor));
+          return resolvedVendor;
+        }
+      }
+    } catch (err) {
+      console.error("[vendorStore] Failed to fetch authenticated vendor profile from DB:", err);
+    }
+  }
+
+  return getActiveVendorIdentity();
+}
+
+/**
  * Retrieves current active vendor identity from localStorage / auth
  */
 export function getActiveVendorIdentity(): VendorProfileData {

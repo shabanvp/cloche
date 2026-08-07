@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Search, Phone, Mail, Clock, Calendar, MessageSquare, FileText, Send, User } from "lucide-react";
-import { getActiveVendorIdentity, showVendorToast } from "@/lib/vendorStore";
+import { fetchAuthenticatedVendorFromDb, getActiveVendorIdentity, showVendorToast } from "@/lib/vendorStore";
 import { fetchVendorLeadsFromDb, updateLeadStatusInDb, saveLeadNoteToDb } from "@/lib/supabase";
 
 interface LeadItem {
@@ -29,10 +29,14 @@ export default function VendorEnquiries() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const active = getActiveVendorIdentity();
+    loadVendorData();
+  }, []);
+
+  const loadVendorData = async () => {
+    const active = await fetchAuthenticatedVendorFromDb();
     setVendorId(active.id);
     loadLeads(active.id);
-  }, []);
+  };
 
   const loadLeads = async (vId: string) => {
     setIsLoading(true);

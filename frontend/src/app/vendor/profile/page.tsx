@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Store, Camera, MapPin, Link as LinkIcon, Phone, CheckCircle2, Building2, Clock, Globe, Save, AlertCircle } from "lucide-react";
 import { Button } from "@/components/Button";
-import { getActiveVendorIdentity, syncVendorProfileWithDatabase, showVendorToast } from "@/lib/vendorStore";
+import { fetchAuthenticatedVendorFromDb, syncVendorProfileWithDatabase, showVendorToast } from "@/lib/vendorStore";
 import { fetchVendorProfileFromDb } from "@/lib/supabase";
 
 export default function VendorProfile() {
@@ -32,7 +32,7 @@ export default function VendorProfile() {
   }, []);
 
   const loadProfile = async () => {
-    const active = getActiveVendorIdentity();
+    const active = await fetchAuthenticatedVendorFromDb();
     setVendorId(active.id);
     setBoutiqueName(active.boutique_name || active.name || "");
     setLogo(active.logo || active.logo_url || "");

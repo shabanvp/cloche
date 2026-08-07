@@ -3,20 +3,24 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Eye, Inbox, Calendar, TrendingUp, Users, ShoppingBag, BarChart3 } from "lucide-react";
-import { getActiveVendorIdentity } from "@/lib/vendorStore";
+import { fetchAuthenticatedVendorFromDb, getActiveVendorIdentity } from "@/lib/vendorStore";
 import { fetchVendorServicesFromDb, fetchVendorLeadsFromDb } from "@/lib/supabase";
 
 export default function VendorAnalyticsPage() {
-  const [businessName, setBusinessName] = useState("Dream Wedding Studio");
+  const [businessName, setBusinessName] = useState("Vendor Partner");
   const [servicesCount, setServicesCount] = useState(0);
   const [leadsCount, setLeadsCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const active = getActiveVendorIdentity();
-    setBusinessName(active.boutique_name || active.name || "Dream Wedding Studio");
-    loadAnalytics(active.id);
+    loadVendorData();
   }, []);
+
+  const loadVendorData = async () => {
+    const active = await fetchAuthenticatedVendorFromDb();
+    setBusinessName(active.boutique_name || active.name || "Vendor Partner");
+    loadAnalytics(active.id);
+  };
 
   const loadAnalytics = async (vId: string) => {
     setIsLoading(true);

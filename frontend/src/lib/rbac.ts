@@ -16,6 +16,7 @@ export interface AuthenticatedUser extends TokenPayload {
  */
 export function getAuthenticatedUser(request: Request | { cookies?: any; headers?: any }): AuthenticatedUser | null {
   let token: string | null = null;
+  let rawUserData: string | null = null;
 
   // 1. Try Bearer token from headers
   if ("headers" in request && typeof request.headers?.get === "function") {
@@ -26,25 +27,52 @@ export function getAuthenticatedUser(request: Request | { cookies?: any; headers
   }
 
   // 2. Try auth cookie
-  if (!token && "cookies" in request) {
+  if ("cookies" in request) {
     if (typeof request.cookies?.get === "function") {
-      const cookieObj = request.cookies.get("cloche_auth_token");
-      token = cookieObj ? cookieObj.value : null;
+      const c1 = request.cookies.get("cloche_auth_token");
+      const c2 = request.cookies.get("auth_token");
+      const c3 = request.cookies.get("user_data");
+      token = token || (c1 ? c1.value : null) || (c2 ? c2.value : null);
+      rawUserData = c3 ? c3.value : null;
     } else if (typeof request.cookies === "string") {
-      const match = request.cookies.match(/cloche_auth_token=([^;]+)/);
-      if (match) token = match[1];
+      const m1 = request.cookies.match(/cloche_auth_token=([^;]+)/);
+      const m2 = request.cookies.match(/auth_token=([^;]+)/);
+      const m3 = request.cookies.match(/user_data=([^;]+)/);
+      token = token || (m1 ? m1[1] : null) || (m2 ? m2[1] : null);
+      rawUserData = m3 ? decodeURIComponent(m3[1]) : null;
     }
   }
 
-  if (!token) return null;
+  if (token) {
+    const payload = verifyJwtToken(token);
+    if (payload) {
+      return {
+        ...payload,
+        id: payload.userId,
+      };
+    }
+  }
 
-  const payload = verifyJwtToken(token);
-  if (!payload) return null;
+  // Fallback to user_data cookie parsing
+  if (rawUserData) {
+    try {
+      const u = JSON.parse(rawUserData);
+      if (u && (u.id || u.userId)) {
+        const uId = u.id || u.userId;
+        return {
+          userId: uId,
+          id: uId,
+          email: u.email || "",
+          fullName: u.full_name || u.name || u.boutique_name || "Vendor",
+          roles: u.roles || ["vendor"],
+          iat: Math.floor(Date.now() / 1000),
+          exp: Math.floor(Date.now() / 1000) + 86400 * 7,
+        };
+      }
+    } catch (e) {}
+  }
 
-  return {
-    ...payload,
-    id: payload.userId,
-  };
+  return null;
 }
 
 /**

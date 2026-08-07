@@ -24,7 +24,7 @@ import {
 } from "lucide-react";
 import { logout } from "@/app/actions/auth";
 import { getCategoryMenuTitles } from "@/lib/vendor-navigation";
-import { getActiveVendorIdentity, calculateDynamicProfileCompletion } from "@/lib/vendorStore";
+import { fetchAuthenticatedVendorFromDb, getActiveVendorIdentity, calculateDynamicProfileCompletion } from "@/lib/vendorStore";
 
 export function VendorSidebar() {
   const pathname = usePathname();
@@ -34,8 +34,8 @@ export function VendorSidebar() {
   const [vendorData, setVendorData] = useState<any>(null);
   const [completionPercentage, setCompletionPercentage] = useState<number>(85);
 
-  const loadVendorProfile = () => {
-    const identity = getActiveVendorIdentity();
+  const loadVendorProfile = async () => {
+    const identity = await fetchAuthenticatedVendorFromDb();
     setVendorData(identity);
 
     // Calculate dynamic completion

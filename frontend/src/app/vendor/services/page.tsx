@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Search, Filter, Plus, Edit3, Trash2, Copy, ShoppingBag, AlertCircle, CheckCircle2 } from "lucide-react";
-import { getActiveVendorIdentity, showVendorToast } from "@/lib/vendorStore";
+import { fetchAuthenticatedVendorFromDb, getActiveVendorIdentity, showVendorToast } from "@/lib/vendorStore";
 
 interface ServiceItem {
   id: string;
@@ -33,10 +33,14 @@ export default function VendorServicesPage() {
   const [validationError, setValidationError] = useState<string | null>(null);
 
   useEffect(() => {
-    const active = getActiveVendorIdentity();
+    loadVendorData();
+  }, []);
+
+  const loadVendorData = async () => {
+    const active = await fetchAuthenticatedVendorFromDb();
     setVendorId(active.id);
     fetchDataFromDb(active.id);
-  }, []);
+  };
 
   /**
    * Strictly load services ONLY from live Supabase DB via GET /api/v1/vendor/services

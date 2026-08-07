@@ -20,7 +20,7 @@ import {
   MapPin,
   MessageSquare
 } from "lucide-react";
-import { getActiveVendorIdentity, calculateDynamicProfileCompletion } from "@/lib/vendorStore";
+import { fetchAuthenticatedVendorFromDb, getActiveVendorIdentity, calculateDynamicProfileCompletion } from "@/lib/vendorStore";
 import { fetchVendorLeadsFromDb, fetchVendorServicesFromDb, fetchVendorPackagesFromDb, fetchVendorGalleryFromDb } from "@/lib/supabase";
 
 export default function VendorOverviewPage() {
@@ -47,7 +47,7 @@ export default function VendorOverviewPage() {
 
   const loadOverviewData = async () => {
     setIsLoading(true);
-    const active = getActiveVendorIdentity();
+    const active = await fetchAuthenticatedVendorFromDb();
     setVendorData(active);
 
     let fetchedServicesCount = 0;
