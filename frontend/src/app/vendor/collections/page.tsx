@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { Plus, UploadCloud, Trash2, CheckCircle2 } from "lucide-react";
 import { getActiveVendorIdentity, showVendorToast } from "@/lib/vendorStore";
-import { fetchVendorGalleryFromDb, saveVendorGalleryItemInDb, deleteVendorGalleryItemInDb } from "@/lib/supabase";
 
 interface GalleryItem {
   id: string;
@@ -32,9 +31,9 @@ export default function VendorCollections() {
   const loadGallery = async (vId: string) => {
     setIsLoading(true);
     try {
-      const res = await fetchVendorGalleryFromDb(vId);
+      const res = await fetch(`/api/v1/vendor/gallery?vendor_id=${encodeURIComponent(vId)}`).then((r) => r.json()).catch(() => ({ data: [] }));
       let loaded: GalleryItem[] = [];
-      if (!res.error && Array.isArray(res.data)) {
+      if (res.success && Array.isArray(res.data)) {
         loaded = res.data.map((item: any) => ({
           id: item.id,
           title: item.title || item.caption || "Studio Showcase Photo",
@@ -48,7 +47,7 @@ export default function VendorCollections() {
 
       setItems(loaded);
     } catch (e) {
-      console.error("[VendorCollections] Error loading gallery from DB:", e);
+      console.error("[VendorCollections] Error loading gallery:", e);
     } finally {
       setIsLoading(false);
     }
@@ -62,16 +61,23 @@ export default function VendorCollections() {
     const targetItem = items.find((i) => i.id === id);
     if (targetItem) {
       try {
-        await saveVendorGalleryItemInDb({
-          id: targetItem.id,
-          vendor_id: vendorId,
-          title: targetItem.title,
-          category: targetItem.category,
-          image_url: targetItem.imageUrl,
-          is_cover: true,
-        });
-        showVendorToast("✓ Main Cover Photo updated");
-        await loadGallery(vendorId);
+        const res = await fetch("/api/v1/vendor/gallery", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            vendor_id: vendorId,
+            title: targetItem.title,
+            image_url: targetItem.imageUrl,
+            is_cover: true,
+          }),
+        }).then((r) => r.json());
+
+        if (res.success) {
+          showVendorToast("✓ Main Cover Photo updated");
+          await loadGallery(vendorId);
+        } else {
+          showVendorToast("Unable to update cover photo.", "error");
+        }
       } catch (e) {
         showVendorToast("Unable to update cover photo.", "error");
       }
@@ -84,7 +90,7 @@ export default function VendorCollections() {
 
     try {
       for (const id of selectedItems) {
-        await deleteVendorGalleryItemInDb(id);
+        await fetch(`/api/v1/vendor/gallery?id=${encodeURIComponent(id)}`, { method: "DELETE" });
       }
       showVendorToast(`✓ ${selectedItems.length} Photos deleted successfully`);
       setSelectedItems([]);
@@ -110,17 +116,22 @@ export default function VendorCollections() {
         reader.onload = async (ev) => {
           const base64Url = ev.target?.result as string;
           if (base64Url) {
-            const res = await saveVendorGalleryItemInDb({
-              vendor_id: vendorId,
-              title: fileName,
-              category: "Portfolio",
-              image_url: base64Url,
-              is_cover: items.length === 0 && i === 0,
-            });
+            try {
+              const res = await fetch("/api/v1/vendor/gallery", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  vendor_id: vendorId,
+                  title: fileName,
+                  image_url: base64Url,
+                  is_cover: items.length === 0 && i === 0,
+                }),
+              }).then((r) => r.json());
 
-            if (!res.error) {
-              successCount++;
-            }
+              if (res.success) {
+                successCount++;
+              }
+            } catch (err) {}
           }
           resolve();
         };
@@ -131,7 +142,7 @@ export default function VendorCollections() {
     setIsUploading(false);
 
     if (successCount > 0) {
-      showVendorToast(`✓ ${successCount} Showcase photos saved to database`);
+      showVendorToast(`✓ ${successCount} Showcase photo(s) saved to database`);
       await loadGallery(vendorId);
     } else {
       showVendorToast("Failed to upload photos to database.", "error");
