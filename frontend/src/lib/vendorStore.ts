@@ -76,8 +76,12 @@ export async function fetchAuthenticatedVendorFromDb(): Promise<VendorProfileDat
           const v = json.data.vendor || {};
           const p = json.data.profile || {};
           const c = Array.isArray(json.data.contacts) && json.data.contacts.length > 0 ? json.data.contacts[0] : {};
+          // vendor.category is a vendor_categories object: {id, name, slug}
           const bName = p.business_name || v.boutique_name || v.name || "Vendor Partner";
-          const cat = v.category?.name || v.category || "Bridal Wear";
+          const catObj = v.category;
+          const cat = (typeof catObj === "object" && catObj !== null)
+            ? (catObj.name || "Vendor")
+            : (typeof catObj === "string" ? catObj : "Vendor");
 
           const resolvedVendor: VendorProfileData = {
             id: v.id || "vendor-active",
@@ -116,13 +120,13 @@ export async function fetchAuthenticatedVendorFromDb(): Promise<VendorProfileDat
 export function getActiveVendorIdentity(): VendorProfileData {
   if (typeof window === "undefined") {
     return {
-      id: "7a51b1c0-c15b-42ed-aec2-fd5caf6b471c",
-      name: "Dream Wedding Studio",
-      boutique_name: "Dream Wedding Studio",
-      category: "Photography",
-      district: "Ernakulam",
-      city: "Kochi",
-      profile_completion_percentage: 85,
+      id: "",
+      name: "Vendor Partner",
+      boutique_name: "Vendor Partner",
+      category: "",
+      district: "",
+      city: "",
+      profile_completion_percentage: 0,
     };
   }
 

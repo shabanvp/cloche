@@ -38,7 +38,7 @@ export async function GET(req: Request) {
     }
 
     // 1. Fetch vendor core identity by user_id
-    let vendorRes = await fetch(
+    const vendorRes = await fetch(
       `${url}/rest/v1/vendors?user_id=eq.${encodeURIComponent(authUser.userId)}&select=*,vendor_categories(id,name,slug),vendor_profiles(*),vendor_contacts(*),vendor_addresses(*)`,
       {
         headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
@@ -47,59 +47,44 @@ export async function GET(req: Request) {
 
     let vendors = vendorRes.ok ? await vendorRes.json() : [];
 
-    // If no vendor record exists yet for this authenticated user, auto-provision vendor record
+    console.log(`[VENDOR_AUTH_DEBUG] Primary lookup by user_id=${authUser.userId}: found ${Array.isArray(vendors) ? vendors.length : 0} vendors`);
+
+    // Fallback: if no vendor found by user_id, try looking up via email through users table
     if (!Array.isArray(vendors) || vendors.length === 0) {
-      const vCode = `VND-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
-      const createRes = await fetch(`${url}/rest/v1/vendors`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          apikey: apiKey,
-          Authorization: `Bearer ${apiKey}`,
-          Prefer: "return=representation",
-        },
-        body: JSON.stringify({
-          user_id: authUser.userId,
-          vendor_code: vCode,
-          status: "active",
-          publication_status: "published",
-          profile_completion_percentage: 80,
-          is_verified: true,
-        }),
-      }).catch(() => null);
+      console.log(`[VENDOR_AUTH_DEBUG] Fallback: looking up vendor by email=${authUser.email}`);
+      // Find user_id from users table by email
+      const userRes = await fetch(
+        `${url}/rest/v1/users?email=eq.${encodeURIComponent(authUser.email)}&select=id`,
+        { headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` } }
+      ).catch(() => null);
 
-      if (createRes && createRes.ok) {
-        const createdVendors = await createRes.json();
-        if (Array.isArray(createdVendors) && createdVendors.length > 0) {
-          const newVendor = createdVendors[0];
-          await fetch(`${url}/rest/v1/vendor_profiles`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              apikey: apiKey,
-              Authorization: `Bearer ${apiKey}`,
-            },
-            body: JSON.stringify({
-              vendor_id: newVendor.id,
-              business_name: authUser.fullName || "New Vendor",
-              city: "Kochi",
-              state: "Kerala",
-            }),
-          }).catch(() => null);
+      if (userRes && userRes.ok) {
+        const users = await userRes.json();
+        if (Array.isArray(users) && users.length > 0) {
+          const resolvedUserId = users[0].id;
+          console.log(`[VENDOR_AUTH_DEBUG] Resolved user_id from email: ${resolvedUserId}`);
 
-          // Re-query newly created vendor
-          const refetch = await fetch(
-            `${url}/rest/v1/vendors?id=eq.${encodeURIComponent(newVendor.id)}&select=*,vendor_categories(id,name,slug),vendor_profiles(*),vendor_contacts(*),vendor_addresses(*)`,
+          // Retry vendor lookup with resolved user_id
+          const retryRes = await fetch(
+            `${url}/rest/v1/vendors?user_id=eq.${encodeURIComponent(resolvedUserId)}&select=*,vendor_categories(id,name,slug),vendor_profiles(*),vendor_contacts(*),vendor_addresses(*)`,
             { headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` } }
-          );
-          if (refetch.ok) vendors = await refetch.json();
+          ).catch(() => null);
+
+          if (retryRes && retryRes.ok) {
+            const retryVendors = await retryRes.json();
+            if (Array.isArray(retryVendors) && retryVendors.length > 0) {
+              vendors = retryVendors;
+              console.log(`[VENDOR_AUTH_DEBUG] Email fallback succeeded: found vendor for user_id=${resolvedUserId}`);
+            }
+          }
         }
       }
     }
 
     if (!Array.isArray(vendors) || vendors.length === 0) {
+      console.log(`[VENDOR_AUTH_DEBUG] No vendor record found for userId=${authUser.userId} or email=${authUser.email}`);
       return NextResponse.json(
-        { success: false, statusCode: 404, error: { code: "VENDOR_NOT_FOUND", message: "No vendor record found for user." } },
+        { success: false, statusCode: 404, error: { code: "VENDOR_NOT_FOUND", message: "No vendor record found for this account." } },
         { status: 404 }
       );
     }
