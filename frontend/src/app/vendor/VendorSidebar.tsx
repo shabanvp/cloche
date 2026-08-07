@@ -76,11 +76,11 @@ export function VendorSidebar() {
 
   if (isAuthPage) return null;
 
-  const category = vendorData?.category || "Photography";
-  const name = vendorData?.name || vendorData?.boutique_name || "Dream Wedding Studio";
-  const initial = name.charAt(0).toUpperCase();
+  const category = vendorData?.category || "";
+  const name = vendorData?.name || vendorData?.boutique_name || "No vendor profile found";
+  const initial = name ? name.charAt(0).toUpperCase() : "?";
   const logoUrl = vendorData?.logo || vendorData?.logo_url || "";
-  const plan = vendorData?.plan || "Premium Partner";
+  const plan = vendorData?.plan || "Vendor Partner";
   const isValidLogo = Boolean(
     logoUrl &&
       typeof logoUrl === "string" &&

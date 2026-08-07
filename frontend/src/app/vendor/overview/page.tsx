@@ -93,9 +93,9 @@ export default function VendorOverviewPage() {
     setIsLoading(false);
   };
 
-  const businessName = vendorData?.boutique_name || vendorData?.name || "Dream Wedding Studio";
-  const category = vendorData?.category || "Photography";
-  const city = vendorData?.district || vendorData?.city || "Kochi, Kerala";
+  const businessName = vendorData?.boutique_name || vendorData?.name || "No vendor profile found";
+  const category = vendorData?.category || "";
+  const city = vendorData?.district || vendorData?.city || "";
 
   const kpiCards = [
     { label: "Today's Leads", value: String(leads.length), subtitle: "Active inquiries", icon: Inbox, color: "bg-[#0F4C45]/10 text-[#0F4C45]" },

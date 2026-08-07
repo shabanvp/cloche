@@ -17,8 +17,8 @@ interface PackageItem {
 
 export default function VendorPackagesPage() {
   const [vendorId, setVendorId] = useState<string>("");
-  const [vendorCategory, setVendorCategory] = useState("Photography");
-  const [businessName, setBusinessName] = useState("Dream Wedding Studio");
+  const [vendorCategory, setVendorCategory] = useState("");
+  const [businessName, setBusinessName] = useState("");
   const [packages, setPackages] = useState<PackageItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -38,8 +38,8 @@ export default function VendorPackagesPage() {
   const loadVendorData = async () => {
     const active = await fetchAuthenticatedVendorFromDb();
     setVendorId(active.id);
-    setVendorCategory(active.category || "Bridal Wear");
-    setBusinessName(active.boutique_name || active.name || "Vendor Partner");
+    setVendorCategory(active.category || "");
+    setBusinessName(active.boutique_name || active.name || "No vendor profile found");
     fetchPackages(active.id);
   };
 

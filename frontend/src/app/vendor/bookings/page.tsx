@@ -64,62 +64,14 @@ export default function VendorBookingsPage() {
     setIsLoading(true);
     try {
       const res = await fetch(`/api/v1/vendor/bookings?status=${statusFilter}`).then((r) => r.json());
-      if (Array.isArray(res.data) && res.data.length > 0) {
+      if (res.success && Array.isArray(res.data)) {
         setBookings(res.data);
       } else {
-        // Fallback demo bookings
-        setBookings([
-          {
-            id: "b-901",
-            booking_number: "BKG-2026-778901",
-            event_date: "2026-11-20",
-            start_time: "09:00:00",
-            end_time: "22:00:00",
-            total_amount: 500000,
-            advance_amount: 250000,
-            balance_amount: 250000,
-            status: "confirmed",
-            payment_status: "partially_paid",
-            created_at: new Date(Date.now() - 86400000 * 3).toISOString(),
-            leads: { customer_name: "Ananya Nair & Rahul Sharma", customer_phone: "+91 98470 12345", customer_email: "ananya.nair@gmail.com", event_type: "Grand Wedding & Reception", city: "Kochi" },
-            booking_snapshot: { quotation_number: "QTN-2026-5501-R1", customer_name: "Ananya Nair & Rahul Sharma", final_amount: 500000, converted_at: new Date().toISOString() },
-            booking_timeline: [
-              { id: "m-1", milestone_name: "Booking Confirmation & Deposit Held", due_date: "2026-10-20", status: "completed" },
-              { id: "m-2", milestone_name: "Pre-Event Service Planning & Trial", due_date: "2026-11-13", status: "pending" },
-              { id: "m-3", milestone_name: "Event Execution & Delivery", due_date: "2026-11-20", status: "pending" },
-              { id: "m-4", milestone_name: "Final Settlement & Escrow Release", due_date: "2026-11-21", status: "pending" },
-            ],
-            booking_payments: [
-              { id: "p-101", payment_number: "PAY-2026-1109", amount: 250000, payment_type: "advance", status: "completed", transaction_reference: "RZP-88091-CONF", paid_at: new Date(Date.now() - 86400000 * 2).toISOString() },
-            ],
-            escrow_accounts: [{ id: "esc-1", held_amount: 250000, released_amount: 0, status: "held" }],
-          },
-          {
-            id: "b-902",
-            booking_number: "BKG-2026-445612",
-            event_date: "2026-12-05",
-            start_time: "10:00:00",
-            end_time: "18:00:00",
-            total_amount: 85000,
-            advance_amount: 42500,
-            balance_amount: 0,
-            status: "completed",
-            payment_status: "paid",
-            created_at: new Date(Date.now() - 86400000 * 15).toISOString(),
-            leads: { customer_name: "Priya Varma", customer_phone: "+91 97452 33445", customer_email: "priya.varma@boutique.co", event_type: "Bridal Makeover & Mehendi", city: "Kozhikode" },
-            booking_timeline: [
-              { id: "m-10", milestone_name: "Booking Confirmation", due_date: "2026-11-05", status: "completed" },
-              { id: "m-11", milestone_name: "Event Execution", due_date: "2026-12-05", status: "completed" },
-            ],
-            booking_payments: [
-              { id: "p-201", payment_number: "PAY-2026-9041", amount: 85000, payment_type: "final_balance", status: "completed", transaction_reference: "STRIPE-902-FULL", paid_at: new Date(Date.now() - 86400000 * 10).toISOString() },
-            ],
-            escrow_accounts: [{ id: "esc-2", held_amount: 0, released_amount: 85000, status: "fully_released" }],
-          },
-        ]);
+        setBookings([]);
       }
     } catch (e) {
-      console.error("Failed to load bookings:", e);
+      console.error("Failed to load bookings from DB:", e);
+      setBookings([]);
     } finally {
       setIsLoading(false);
     }
