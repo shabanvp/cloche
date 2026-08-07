@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { Plus, UploadCloud, Trash2, CheckCircle2 } from "lucide-react";
 import { getActiveVendorIdentity, showVendorToast } from "@/lib/vendorStore";
 
@@ -22,13 +22,49 @@ interface GalleryApiItem {
   is_cover?: boolean;
 }
 
+function getCategoryPortfolioTabs(cat: string): string[] {
+  const c = (cat || "").toLowerCase();
+  if (c.includes("photo") || c.includes("video")) {
+    return ["All", "Pre-Wedding", "Wedding Ceremony", "Reception", "Candid & Portraits", "Studio Showcase"];
+  }
+  if (c.includes("bridal") || c.includes("boutique")) {
+    return ["All", "Lehengas", "Bridal Sarees", "Gowns & Couture", "Custom Designs", "Studio Showcase"];
+  }
+  if (c.includes("makeup")) {
+    return ["All", "Bridal HD Makeover", "Airbrush Suite", "Engagement Look", "Hair & Draping", "Studio Showcase"];
+  }
+  if (c.includes("groom")) {
+    return ["All", "Sherwanis", "Suits & Tuxedos", "Indo-Western", "Custom Outfits", "Studio Showcase"];
+  }
+  if (c.includes("decor") || c.includes("venue")) {
+    return ["All", "Stage Decor", "Outdoor Setup", "Floral Styling", "Lighting & Ambiance", "Studio Showcase"];
+  }
+  if (c.includes("mehendi")) {
+    return ["All", "Bridal Mehendi", "Arabic Patterns", "Traditional Henna", "Studio Showcase"];
+  }
+  if (c.includes("cater") || c.includes("food")) {
+    return ["All", "Traditional Sadya", "Buffet Counters", "Live Stalls", "Dessert Counter", "Studio Showcase"];
+  }
+  return ["All", "Showcase Photos", "Featured Work", "Client Highlights"];
+}
+
 export default function VendorCollections() {
-  const [vendorId] = useState<string>(() => getActiveVendorIdentity().id);
+  const [vendorId, setVendorId] = useState<string>("");
+  const [vendorCategory, setVendorCategory] = useState<string>("Photography");
   const [activeTab, setActiveTab] = useState("All");
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [items, setItems] = useState<GalleryItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
+
+  const categoryTabs = useMemo(() => getCategoryPortfolioTabs(vendorCategory), [vendorCategory]);
+
+  useEffect(() => {
+    const active = getActiveVendorIdentity();
+    setVendorId(active.id);
+    setVendorCategory(active.category || "Photography");
+    loadGallery(active.id);
+  }, []);
 
   const loadGallery = useCallback(async (vId: string) => {
     setIsLoading(true);
@@ -39,7 +75,7 @@ export default function VendorCollections() {
         loaded = res.data.map((item: GalleryApiItem) => ({
           id: item.id,
           title: item.title || item.caption || "Studio Showcase Photo",
-          category: "Portfolio",
+          category: "Studio Showcase",
           imageUrl: item.image_url,
           isCover: Boolean(item.is_cover),
           aspectRatio: "aspect-[3/4]",
@@ -54,11 +90,6 @@ export default function VendorCollections() {
       setIsLoading(false);
     }
   }, []);
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    loadGallery(vendorId);
-  }, [loadGallery, vendorId]);
 
   const toggleSelect = (id: string) => {
     setSelectedItems((prev) => (prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]));
@@ -85,7 +116,7 @@ export default function VendorCollections() {
         } else {
           showVendorToast("Unable to update cover photo.", "error");
         }
-      } catch {
+      } catch (e) {
         showVendorToast("Unable to update cover photo.", "error");
       }
     }
@@ -102,7 +133,7 @@ export default function VendorCollections() {
       showVendorToast(`✓ ${selectedItems.length} Photos deleted successfully`);
       setSelectedItems([]);
       await loadGallery(vendorId);
-    } catch {
+    } catch (e) {
       showVendorToast("Unable to delete photos.", "error");
     }
   };
@@ -113,58 +144,46 @@ export default function VendorCollections() {
 
     setIsUploading(true);
     let successCount = 0;
-    let lastError = "";
 
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       const fileName = file.name.replace(/\.[^/.]+$/, "");
 
-      try {
-        const uploadData = new FormData();
-        uploadData.append("file", file);
-        uploadData.append("folder", "cloche/vendor-gallery");
+      await new Promise<void>((resolve) => {
+        const reader = new FileReader();
+        reader.onload = async (ev) => {
+          const base64Url = ev.target?.result as string;
+          if (base64Url) {
+            try {
+              const res = await fetch("/api/v1/vendor/gallery", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  vendor_id: vendorId,
+                  title: fileName,
+                  image_url: base64Url,
+                  is_cover: items.length === 0 && i === 0,
+                }),
+              }).then((r) => r.json());
 
-        const uploadRes = await fetch("/api/upload", {
-          method: "POST",
-          body: uploadData,
-        });
-        const uploadResult = await uploadRes.json().catch(() => null);
-
-        if (!uploadRes.ok || !uploadResult?.success || !uploadResult?.url || String(uploadResult.url).startsWith("data:")) {
-          throw new Error(uploadResult?.error || uploadResult?.note || "Image upload failed.");
-        }
-
-        const galleryRes = await fetch("/api/v1/vendor/gallery", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            vendor_id: vendorId,
-            title: fileName,
-            image_url: uploadResult.url,
-            is_cover: items.length === 0 && successCount === 0,
-          }),
-        });
-        const galleryResult = await galleryRes.json().catch(() => null);
-
-        if (!galleryRes.ok || !galleryResult?.success) {
-          throw new Error(galleryResult?.error?.message || "Failed to save photo to database.");
-        }
-
-        successCount++;
-      } catch (err: unknown) {
-        lastError = err instanceof Error ? err.message : "Upload failed.";
-        console.error("[VendorCollections] Gallery upload failed:", err);
-      }
+              if (res.success) {
+                successCount++;
+              }
+            } catch (err) {}
+          }
+          resolve();
+        };
+        reader.readAsDataURL(file);
+      });
     }
 
     setIsUploading(false);
-    e.target.value = "";
 
     if (successCount > 0) {
       showVendorToast(`✓ ${successCount} Showcase photo(s) saved to database`);
       await loadGallery(vendorId);
     } else {
-      showVendorToast(lastError || "Failed to upload photos to database.", "error");
+      showVendorToast("Failed to upload photos to database.", "error");
     }
   };
 
@@ -177,7 +196,7 @@ export default function VendorCollections() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-gold/15 pb-6 gap-4">
         <div>
           <h1 className="text-3xl lg:text-4xl font-display font-bold text-charcoal">Gallery & Portfolio Showcase</h1>
-          <p className="text-sm text-charcoal/70 mt-1">Manage your studio photo gallery, featured portfolio covers, and client media displays.</p>
+          <p className="text-sm text-charcoal/70 mt-1">Manage studio showcase photos and portfolio media for {vendorCategory}.</p>
         </div>
 
         <div className="flex items-center gap-3 shrink-0">
@@ -202,16 +221,16 @@ export default function VendorCollections() {
           <UploadCloud className="w-7 h-7" />
         </div>
         <div>
-          <h3 className="font-display font-bold text-base text-charcoal">Upload Studio Showcase Photos</h3>
+          <h3 className="font-display font-bold text-base text-charcoal">Upload {vendorCategory} Showcase Photos</h3>
           <p className="text-xs text-charcoal/60 mt-1">{isUploading ? "Saving to database..." : "Supports JPG, PNG, WEBP. Multi-select upload enabled."}</p>
         </div>
         <input type="file" multiple accept="image/*" disabled={isUploading} className="hidden" onChange={handleFileUpload} />
       </label>
 
-      {/* Category Filter Tabs & Toolbar */}
+      {/* Dynamic Category Filter Tabs & Toolbar */}
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-white p-4 rounded-2xl border border-gold/15 shadow-xs">
         <div className="flex items-center gap-2 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0">
-          {["All", "Bridal Wear", "Photography", "Makeup", "Decor & Venues", "Jewellery", "Portfolio"].map((tab) => (
+          {categoryTabs.map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -267,7 +286,7 @@ export default function VendorCollections() {
                 <div className="p-4 flex items-center justify-between">
                   <div>
                     <h4 className="font-display font-bold text-sm text-charcoal truncate">{item.title}</h4>
-                    <span className="text-[10px] font-bold text-charcoal/50 uppercase tracking-wider">{item.category}</span>
+                    <span className="text-[10px] font-bold text-charcoal/50 uppercase tracking-wider">{vendorCategory}</span>
                   </div>
                   {!item.isCover && (
                     <button
@@ -286,7 +305,7 @@ export default function VendorCollections() {
         <div className="text-center py-16 bg-white rounded-2xl border border-gold/15 p-8">
           <UploadCloud className="w-12 h-12 text-gold mx-auto mb-3 opacity-50" />
           <h3 className="text-xl font-display font-bold text-charcoal">No Showcase Photos Uploaded</h3>
-          <p className="text-xs text-charcoal/60 max-w-sm mx-auto mt-1">Upload your studio photography to insert media records into the media & vendor_gallery Supabase tables.</p>
+          <p className="text-xs text-charcoal/60 max-w-sm mx-auto mt-1">Upload your {vendorCategory} photography to insert media records into the media & vendor_gallery Supabase tables.</p>
         </div>
       )}
     </div>
