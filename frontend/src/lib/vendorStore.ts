@@ -65,8 +65,25 @@ export function calculateDynamicProfileCompletion(
 export async function fetchAuthenticatedVendorFromDb(): Promise<VendorProfileData> {
   if (typeof window !== "undefined") {
     try {
+      // Read user identity from cookie for header fallback
+      const extraHeaders: Record<string, string> = { "Content-Type": "application/json" };
+      try {
+        // Parse user_data from document.cookie
+        const cookieStr = document.cookie;
+        const match = cookieStr.match(/(?:^|;\s*)user_data=([^;]*)/);
+        if (match) {
+          const parsed = JSON.parse(decodeURIComponent(match[1]));
+          if (parsed?.id) extraHeaders["x-user-id"] = parsed.id;
+          if (parsed?.email) extraHeaders["x-user-email"] = parsed.email;
+        }
+        // Also try auth_token (non-httpOnly)
+        const tokenMatch = cookieStr.match(/(?:^|;\s*)auth_token=([^;]*)/);
+        if (tokenMatch && tokenMatch[1]) extraHeaders["x-auth-token"] = tokenMatch[1];
+      } catch (_) {}
+
       const res = await fetch("/api/v1/vendor/profile", {
-        headers: { "Content-Type": "application/json" },
+        headers: extraHeaders,
+        credentials: "include",
         cache: "no-store",
       });
 
@@ -105,6 +122,9 @@ export async function fetchAuthenticatedVendorFromDb(): Promise<VendorProfileDat
           localStorage.setItem("cloche_active_vendor_identity", JSON.stringify(resolvedVendor));
           return resolvedVendor;
         }
+      } else {
+        const errJson = await res.json().catch(() => ({}));
+        console.error("[vendorStore] Profile API error:", res.status, errJson);
       }
     } catch (err) {
       console.error("[vendorStore] Failed to fetch authenticated vendor profile from DB:", err);

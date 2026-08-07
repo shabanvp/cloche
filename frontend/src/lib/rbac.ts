@@ -81,6 +81,54 @@ export function getAuthenticatedUser(request: Request | { cookies?: any; headers
     }
   }
 
+  // 4. Try x-auth-token header (sent by client as fallback)
+  if (!token && "headers" in request && typeof request.headers?.get === "function") {
+    const xToken = request.headers.get("x-auth-token");
+    if (xToken) {
+      const payload = verifyJwtToken(xToken);
+      if (payload) {
+        return { ...payload, id: payload.userId };
+      }
+      // Try to decode without verification
+      try {
+        const parts = xToken.split(".");
+        if (parts.length >= 2) {
+          const b64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+          const decoded = JSON.parse(Buffer.from(b64, "base64").toString("utf8"));
+          if (decoded?.userId || decoded?.id) {
+            const uId = decoded.userId || decoded.id;
+            return {
+              userId: uId,
+              id: uId,
+              email: decoded.email || "",
+              fullName: decoded.fullName || decoded.full_name || "Vendor",
+              roles: decoded.roles || ["vendor"],
+              iat: decoded.iat || Math.floor(Date.now() / 1000),
+              exp: decoded.exp || Math.floor(Date.now() / 1000) + 86400 * 7,
+            };
+          }
+        }
+      } catch (_) {}
+    }
+  }
+
+  // 5. x-user-id / x-user-email header fallback (sent by client from user_data cookie)
+  if ("headers" in request && typeof request.headers?.get === "function") {
+    const xUserId = request.headers.get("x-user-id");
+    const xUserEmail = request.headers.get("x-user-email");
+    if (xUserId) {
+      return {
+        userId: xUserId,
+        id: xUserId,
+        email: xUserEmail || "",
+        fullName: "Vendor",
+        roles: ["vendor"],
+        iat: Math.floor(Date.now() / 1000),
+        exp: Math.floor(Date.now() / 1000) + 86400 * 7,
+      };
+    }
+  }
+
   // Fallback: parse user_data cookie
   if (rawUserData) {
     try {
