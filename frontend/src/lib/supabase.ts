@@ -54,6 +54,7 @@ export async function supabaseFetch<T = any>(
   try {
     const res = await fetch(`${url}/rest/v1/${endpoint}`, {
       ...options,
+      cache: options.cache || "no-store",
       headers: {
         "Content-Type": "application/json",
         apikey: serviceKey,
@@ -1087,6 +1088,210 @@ export async function fetchVendorProfileFromDb(vendorIdOrUserId: string) {
   return res;
 }
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function firstRow<T = any>(value: any): T | null {
+  return Array.isArray(value) && value.length > 0 ? value[0] : null;
+}
+
+function asArray<T = any>(value: any): T[] {
+  return Array.isArray(value) ? value : [];
+}
+
+function money(value: unknown) {
+  const amount = Number(value || 0);
+  if (!Number.isFinite(amount) || amount <= 0) return "";
+  return `₹${amount.toLocaleString("en-IN", { maximumFractionDigits: 0 })}`;
+}
+
+function mediaUrl(row: any) {
+  return row?.cdn_url || row?.secure_url || row?.file_path || row?.url || "";
+}
+
+async function resolvePublicVendor(identifier: string) {
+  const id = encodeURIComponent(identifier);
+
+  if (UUID_RE.test(identifier)) {
+    const byId = await supabaseFetch(`vendors?id=eq.${id}&deleted_at=is.null&select=*,vendor_categories(name,slug)`);
+    const vendor = firstRow(byId.data);
+    if (vendor) return { vendor, error: null };
+  }
+
+  const byCode = await supabaseFetch(`vendors?vendor_code=eq.${id}&deleted_at=is.null&select=*,vendor_categories(name,slug)`);
+  const codeVendor = firstRow(byCode.data);
+  if (codeVendor) return { vendor: codeVendor, error: null };
+
+  const byProfileSlug = await supabaseFetch(`vendor_profiles?slug=eq.${id}&select=vendor_id`);
+  const profileSlug = firstRow(byProfileSlug.data);
+  if (profileSlug?.vendor_id) {
+    const byVendorId = await supabaseFetch(`vendors?id=eq.${encodeURIComponent(profileSlug.vendor_id)}&deleted_at=is.null&select=*,vendor_categories(name,slug)`);
+    const vendor = firstRow(byVendorId.data);
+    if (vendor) return { vendor, error: null };
+  }
+
+  const legacy = await supabaseFetch(
+    `vendors?or=(slug.eq.${id},name.ilike.${id},boutique_name.ilike.${id})&deleted_at=is.null&select=*`
+  );
+  const legacyVendor = firstRow(legacy.data);
+  if (legacyVendor) return { vendor: legacyVendor, error: null };
+
+  return { vendor: null, error: byProfileSlug.error || byCode.error || null };
+}
+
+export async function fetchPublicVendorProfileFromDb(identifier: string) {
+  if (!identifier) return { data: null, error: new Error("Vendor slug or ID is required.") };
+
+  const resolved = await resolvePublicVendor(identifier);
+  if (!resolved.vendor) {
+    return { data: null, error: resolved.error || new Error("Vendor not found.") };
+  }
+
+  const vendor: any = resolved.vendor;
+  const vendorId = String(vendor.id);
+
+  const [
+    profileRes,
+    contactsRes,
+    addressRes,
+    hoursRes,
+    socialRes,
+    servicesRes,
+    packagesRes,
+    galleryRes,
+    catalogRes,
+    reviewsRes,
+    bookingsRes,
+  ] = await Promise.all([
+    supabaseFetch(`vendor_profiles?vendor_id=eq.${encodeURIComponent(vendorId)}&select=*`),
+    supabaseFetch(`vendor_contacts?vendor_id=eq.${encodeURIComponent(vendorId)}&order=is_primary.desc,created_at.asc&select=*`),
+    supabaseFetch(`vendor_addresses?vendor_id=eq.${encodeURIComponent(vendorId)}&order=created_at.asc&select=*`),
+    supabaseFetch(`vendor_business_hours?vendor_id=eq.${encodeURIComponent(vendorId)}&select=*`),
+    supabaseFetch(`vendor_social_links?vendor_id=eq.${encodeURIComponent(vendorId)}&select=*`),
+    supabaseFetch(`vendor_services?vendor_id=eq.${encodeURIComponent(vendorId)}&deleted_at=is.null&status=eq.published&is_active=eq.true&order=sort_order.asc,created_at.desc&select=*,vendor_service_images(*)`),
+    supabaseFetch(`vendor_service_packages?vendor_id=eq.${encodeURIComponent(vendorId)}&deleted_at=is.null&status=eq.published&is_active=eq.true&order=sort_order.asc,created_at.desc&select=*`),
+    fetchVendorGalleryFromDb(vendorId),
+    supabaseFetch(`vendor_catalog_items?vendor_id=eq.${encodeURIComponent(vendorId)}&deleted_at=is.null&status=eq.published&is_available=eq.true&order=sort_order.asc,created_at.desc&select=*,vendor_catalog_images(*)`),
+    supabaseFetch(`reviews?vendor_id=eq.${encodeURIComponent(vendorId)}&status=eq.published&order=created_at.desc&select=*`),
+    supabaseFetch(`bookings?vendor_id=eq.${encodeURIComponent(vendorId)}&status=eq.completed&select=id`),
+  ]);
+
+  const profile: any = firstRow(profileRes.data) || {};
+  const contact: any = firstRow(contactsRes.data) || {};
+  const address: any = firstRow(addressRes.data) || {};
+  const services = asArray<any>(servicesRes.data);
+  const packages = asArray<any>(packagesRes.data);
+  const gallery = asArray<any>(galleryRes.data);
+  const catalog = asArray<any>(catalogRes.data);
+  const reviews = asArray<any>(reviewsRes.data);
+  const completedProjects = asArray(bookingsRes.data).length;
+
+  const mediaIds = [profile.logo_media_id, profile.cover_media_id].filter(Boolean);
+  const mediaRes = mediaIds.length
+    ? await supabaseFetch(`media?id=in.(${mediaIds.map((m) => encodeURIComponent(String(m))).join(",")})&select=*`)
+    : { data: [], error: null };
+  const mediaById = new Map(asArray<any>(mediaRes.data).map((row) => [String(row.id), row]));
+
+  const logoUrl = mediaUrl(mediaById.get(String(profile.logo_media_id))) || vendor.logo_url || vendor.logo || "";
+  const coverUrl =
+    mediaUrl(mediaById.get(String(profile.cover_media_id))) ||
+    vendor.cover_image ||
+    vendor.cover ||
+    vendor.image_url ||
+    gallery.find((item) => item.is_cover)?.image_url ||
+    "";
+
+  const packagePrices = packages.map((pkg) => Number(pkg.discount_price || pkg.price || 0)).filter((price) => price > 0);
+  const servicePrices = services.map((svc) => Number(svc.base_price || svc.price || 0)).filter((price) => price > 0);
+  const startingAmount =
+    packagePrices.length > 0 ? Math.min(...packagePrices) : servicePrices.length > 0 ? Math.min(...servicePrices) : 0;
+  const averageRating =
+    reviews.length > 0 ? reviews.reduce((sum, review) => sum + Number(review.rating || 0), 0) / reviews.length : Number(profile.rating || vendor.rating || 0);
+  const establishedYear = Number(profile.established_year || vendor.established_year || 0);
+  const yearsInBusiness = establishedYear > 0 ? new Date().getFullYear() - establishedYear : null;
+
+  const socialLinks = asArray<any>(socialRes.data).reduce<Record<string, string>>((acc, row) => {
+    if (row.platform && row.url) acc[String(row.platform)] = String(row.url);
+    return acc;
+  }, {});
+
+  const businessHours = asArray<any>(hoursRes.data).map((row) => ({
+    day: row.day_of_week,
+    value: row.is_closed ? "Closed" : [row.open_time, row.close_time].filter(Boolean).join(" - ") || "Not available",
+  }));
+
+  const fullAddress = [address.address_line1 || vendor.address, address.address_line2, address.city || profile.city || vendor.city, address.state || profile.state, address.pincode]
+    .filter(Boolean)
+    .join(", ");
+
+  return {
+    data: {
+      id: vendorId,
+      slug: profile.slug || vendor.slug || vendor.vendor_code || vendorId,
+      name: profile.business_name || vendor.boutique_name || vendor.name || "Unnamed vendor",
+      category: vendor.vendor_categories?.slug || vendor.category || "",
+      categoryLabel: vendor.vendor_categories?.name || vendor.category || "Vendor",
+      location: [profile.city || vendor.city, profile.state || vendor.district].filter(Boolean).join(", "),
+      rating: Number(averageRating.toFixed(1)),
+      reviews: reviews.length,
+      image: coverUrl,
+      logo: logoUrl,
+      subtitle: profile.tagline || vendor.tagline || "",
+      about: profile.about || vendor.description || "",
+      isVerified: Boolean(vendor.is_verified || vendor.is_kyc_verified),
+      phone: contact.phone || vendor.phone || vendor.contact_number || "",
+      whatsapp: contact.whatsapp || vendor.whatsapp || contact.phone || "",
+      email: contact.email || vendor.email || "",
+      website: vendor.website || socialLinks.website || "",
+      address: fullAddress,
+      googleMaps: address.latitude && address.longitude ? `https://www.google.com/maps?q=${address.latitude},${address.longitude}` : "",
+      socialLinks,
+      businessHours,
+      startingPriceLabel: startingAmount > 0 ? `${money(startingAmount)} onwards` : "No pricing available.",
+      stats: [
+        { icon: "clock", value: yearsInBusiness === null ? "Not available" : String(Math.max(0, yearsInBusiness)), label: "Years in Business" },
+        { icon: "star", value: reviews.length > 0 ? averageRating.toFixed(1) : "Not available", label: "Average Rating" },
+        { icon: "users", value: reviews.length > 0 ? String(reviews.length) : "Not available", label: "Review Count" },
+        { icon: "sparkles", value: completedProjects > 0 ? String(completedProjects) : "Not available", label: "Completed Projects" },
+      ],
+      highlightsTitle: "Gallery",
+      highlights: gallery.map((item) => ({
+        name: item.title || item.caption || "Uploaded work",
+        image: item.image_url,
+      })),
+      services: services.map((svc) => ({
+        name: svc.name,
+        description: svc.description || "",
+        price: money(svc.base_price || svc.price),
+        pricingType: svc.pricing_type || svc.price_unit || "",
+      })),
+      packages: packages.map((pkg) => ({
+        name: pkg.name,
+        tagline: pkg.tagline || "",
+        description: pkg.description || "",
+        price: money(pkg.discount_price || pkg.price),
+        originalPrice: pkg.discount_price ? money(pkg.price) : "",
+        features: Array.isArray(pkg.features) ? pkg.features : [],
+        isPopular: Boolean(pkg.is_popular),
+      })),
+      userReviews: reviews.map((review) => ({
+        author: review.customer_name || "Verified customer",
+        rating: Number(review.rating || 0),
+        text: review.review_text || review.title || "",
+        date: review.created_at || "",
+      })),
+      collections: catalog.map((item) => ({
+        id: item.id,
+        title: item.title,
+        description: item.description || "",
+        image: item.image_url || item.vendor_catalog_images?.[0]?.image_url || "",
+        price: money(item.price),
+      })),
+      amenities: [],
+    },
+    error: null,
+  };
+}
+
 export async function saveVendorProfileInDb(vendorIdOrUserId: string, profileData: Record<string, any>) {
   const resolvedVendId = await resolveVendorUuid(vendorIdOrUserId);
   const targetId = resolvedVendId || vendorIdOrUserId;
@@ -1126,8 +1331,6 @@ export async function saveVendorProfileInDb(vendorIdOrUserId: string, profileDat
   console.log("[saveVendorProfileInDb] Response:", insertRes.data, "Error:", insertRes.error);
   return insertRes;
 }
-
-
 
 
 
