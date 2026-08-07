@@ -1,8 +1,4 @@
-/**
- * CLOCHE PLATFORM - PRODUCTION SUPABASE DATABASE CLIENT & REPOSITORY LAYER
- * 
- * Configured with live Render & Supabase environment credentials
- */
+import { deleteImageFromCloudinary } from "./cloudinary";
 
 export interface SupabaseConfig {
   url: string;
@@ -544,6 +540,17 @@ export async function saveVendorGalleryItemInDb(item: {
 export async function deleteVendorGalleryItemInDb(id: string) {
   const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   if (!UUID_REGEX.test(id)) return { data: null, error: null };
+
+  try {
+    const existingRes = await supabaseFetch(`vendor_gallery?id=eq.${encodeURIComponent(id)}&select=media_id,media(public_id)`);
+    if (!existingRes.error && Array.isArray(existingRes.data) && existingRes.data.length > 0) {
+      const pubId = existingRes.data[0].media?.public_id;
+      if (pubId) {
+        deleteImageFromCloudinary(pubId).catch(() => null);
+      }
+    }
+  } catch (e) {}
+
   return supabaseFetch(`vendor_gallery?id=eq.${encodeURIComponent(id)}`, {
     method: "DELETE",
   });

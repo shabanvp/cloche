@@ -69,3 +69,43 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: false, error: message }, { status: 500 });
   }
 }
+
+export async function DELETE(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const publicId = searchParams.get("public_id");
+
+    if (!publicId) {
+      return NextResponse.json({ error: "Missing public_id parameter." }, { status: 400 });
+    }
+
+    const cloudName = process.env.CLOUDINARY_CLOUD_NAME || process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "dycwsnzyd";
+    const apiKey = process.env.CLOUDINARY_API_KEY || "";
+    const apiSecret = process.env.CLOUDINARY_API_SECRET || "";
+
+    if (!apiKey || !apiSecret) {
+      return NextResponse.json({ success: true, message: "Cloudinary credentials unconfigured. Unlinked locally." });
+    }
+
+    const timestamp = Math.round(Date.now() / 1000).toString();
+    const paramsToSign = { public_id: publicId, timestamp };
+    const signature = signCloudinaryParams(paramsToSign, apiSecret);
+
+    const formData = new FormData();
+    formData.append("public_id", publicId);
+    formData.append("api_key", apiKey);
+    formData.append("timestamp", timestamp);
+    formData.append("signature", signature);
+
+    const cloudRes = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/destroy`, {
+      method: "POST",
+      body: formData,
+    });
+
+    const cloudData = await cloudRes.json();
+    return NextResponse.json({ success: true, result: cloudData.result });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Failed to delete image.";
+    return NextResponse.json({ success: false, error: message }, { status: 500 });
+  }
+}
