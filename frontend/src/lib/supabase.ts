@@ -447,6 +447,86 @@ export async function softDeleteVendorCatalogItemFromDb(id: string) {
 }
 
 // ----------------------------------------------------
+// VENDOR GALLERY & SHOWCASE MEDIA HELPERS
+// ----------------------------------------------------
+
+export async function fetchVendorGalleryFromDb(vendorId: string) {
+  const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  const resolvedId = UUID_REGEX.test(vendorId) ? vendorId : "7a51b1c0-c15b-42ed-aec2-fd5caf6b471c";
+  const { data, error } = await supabaseFetch(`vendor_gallery?vendor_id=eq.${encodeURIComponent(resolvedId)}&order=created_at.desc&select=*,media(*)`);
+  if (!error && Array.isArray(data)) {
+    const formatted = data.map((g: any) => ({
+      id: g.id,
+      vendor_id: g.vendor_id,
+      media_id: g.media_id,
+      title: g.caption || "Studio Showcase Photo",
+      caption: g.caption || "",
+      image_url: g.media?.cdn_url || g.media?.file_path || "https://images.unsplash.com/photo-1519741497674-611481863552",
+      is_cover: Boolean(g.is_cover),
+      sort_order: g.sort_order || 0,
+      created_at: g.created_at
+    }));
+    return { data: formatted, error: null };
+  }
+  return { data: [], error };
+}
+
+export async function saveVendorGalleryItemInDb(item: {
+  id?: string;
+  vendor_id: string;
+  title?: string;
+  category?: string;
+  image_url: string;
+  is_cover?: boolean;
+}) {
+  const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  const resolvedVendorId = UUID_REGEX.test(item.vendor_id) ? item.vendor_id : "7a51b1c0-c15b-42ed-aec2-fd5caf6b471c";
+  
+  // 1. Create row in media table first
+  const mediaRes = await supabaseFetch(`media`, {
+    method: "POST",
+    headers: { Prefer: "return=representation" },
+    body: JSON.stringify({
+      vendor_id: resolvedVendorId,
+      bucket_name: "vendor-gallery",
+      file_path: item.image_url,
+      cdn_url: item.image_url,
+      original_name: item.title ? `${item.title.substring(0, 30)}.jpg` : "showcase_photo.jpg",
+      mime_type: "image/jpeg",
+      file_size_bytes: 102400,
+      media_type: "image"
+    })
+  });
+
+  const mediaRow = Array.isArray(mediaRes.data) ? mediaRes.data[0] : mediaRes.data;
+  if (mediaRes.error || !mediaRow?.id) {
+    return { data: null, error: mediaRes.error || new Error("Failed to insert media row") };
+  }
+
+  // 2. Insert into vendor_gallery table with valid media_id
+  const galleryPayload: Record<string, any> = {
+    vendor_id: resolvedVendorId,
+    media_id: mediaRow.id,
+    caption: item.title || "Studio Showcase Photo",
+    is_cover: Boolean(item.is_cover),
+  };
+
+  return supabaseFetch(`vendor_gallery`, {
+    method: "POST",
+    headers: { Prefer: "return=representation" },
+    body: JSON.stringify(galleryPayload),
+  });
+}
+
+export async function deleteVendorGalleryItemInDb(id: string) {
+  const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (!UUID_REGEX.test(id)) return { data: null, error: null };
+  return supabaseFetch(`vendor_gallery?id=eq.${encodeURIComponent(id)}`, {
+    method: "DELETE",
+  });
+}
+
+// ----------------------------------------------------
 // LEAD CRM PIPELINE, TASKS & QUOTATIONS HELPERS
 // ----------------------------------------------------
 
@@ -1023,24 +1103,6 @@ export async function saveVendorProfileInDb(vendorIdOrUserId: string, profileDat
 
   console.log("[saveVendorProfileInDb] Response:", insertRes.data, "Error:", insertRes.error);
   return insertRes;
-}
-
-export async function fetchVendorGalleryFromDb(vendorId: string) {
-  return supabaseFetch(`vendor_gallery?vendor_id=eq.${encodeURIComponent(vendorId)}&order=created_at.desc&select=*`);
-}
-
-export async function saveVendorGalleryItemInDb(record: Record<string, any>) {
-  return supabaseFetch(`vendor_gallery`, {
-    method: "POST",
-    headers: { Prefer: "resolution=merge-duplicates,return=representation" },
-    body: JSON.stringify(record),
-  });
-}
-
-export async function deleteVendorGalleryItemInDb(id: string) {
-  return supabaseFetch(`vendor_gallery?id=eq.${encodeURIComponent(id)}`, {
-    method: "DELETE",
-  });
 }
 
 
