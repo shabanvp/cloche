@@ -18,7 +18,21 @@ export function getAuthenticatedUser(request: Request | { cookies?: any; headers
   let token: string | null = null;
   let rawUserData: string | null = null;
 
-  // 1. Try Bearer token from headers
+  // Helper: parse a cookie string into a key-value map
+  const parseCookieStr = (cookieStr: string) => {
+    const map: Record<string, string> = {};
+    cookieStr.split(";").forEach((part) => {
+      const idx = part.indexOf("=");
+      if (idx > 0) {
+        const key = part.slice(0, idx).trim();
+        const val = part.slice(idx + 1).trim();
+        map[key] = val;
+      }
+    });
+    return map;
+  };
+
+  // 1. Try Bearer token from Authorization header
   if ("headers" in request && typeof request.headers?.get === "function") {
     const authHeader = request.headers.get("authorization");
     if (authHeader && authHeader.startsWith("Bearer ")) {
@@ -26,23 +40,37 @@ export function getAuthenticatedUser(request: Request | { cookies?: any; headers
     }
   }
 
-  // 2. Try auth cookie
-  if ("cookies" in request) {
-    if (typeof request.cookies?.get === "function") {
-      const c1 = request.cookies.get("cloche_auth_token");
-      const c2 = request.cookies.get("auth_token");
-      const c3 = request.cookies.get("user_data");
-      token = token || (c1 ? c1.value : null) || (c2 ? c2.value : null);
-      rawUserData = c3 ? c3.value : null;
-    } else if (typeof request.cookies === "string") {
-      const m1 = request.cookies.match(/cloche_auth_token=([^;]+)/);
-      const m2 = request.cookies.match(/auth_token=([^;]+)/);
-      const m3 = request.cookies.match(/user_data=([^;]+)/);
-      token = token || (m1 ? m1[1] : null) || (m2 ? m2[1] : null);
-      rawUserData = m3 ? decodeURIComponent(m3[1]) : null;
+  // 2. Try Cookie header string (Next.js App Router: cookies are in req.headers.get("cookie"))
+  let cookieMap: Record<string, string> = {};
+  if ("headers" in request && typeof request.headers?.get === "function") {
+    const cookieHeader = request.headers.get("cookie");
+    if (cookieHeader) {
+      cookieMap = parseCookieStr(cookieHeader);
+      const c1 = cookieMap["cloche_auth_token"];
+      const c2 = cookieMap["auth_token"];
+      const c3 = cookieMap["user_data"];
+      if (!token) token = c1 || c2 || null;
+      if (c3) rawUserData = decodeURIComponent(c3);
     }
   }
 
+  // 3. Try structured .cookies (e.g. NextRequest, middleware context)
+  if (!token && "cookies" in request) {
+    const reqCookies = (request as any).cookies;
+    if (typeof reqCookies?.get === "function") {
+      const c1 = reqCookies.get("cloche_auth_token");
+      const c2 = reqCookies.get("auth_token");
+      const c3 = reqCookies.get("user_data");
+      token = token || (c1 ? c1.value : null) || (c2 ? c2.value : null);
+      if (c3) rawUserData = c3.value;
+    } else if (typeof reqCookies === "string") {
+      const cm = parseCookieStr(reqCookies);
+      token = token || cm["cloche_auth_token"] || cm["auth_token"] || null;
+      if (cm["user_data"]) rawUserData = decodeURIComponent(cm["user_data"]);
+    }
+  }
+
+  // Verify JWT token
   if (token) {
     const payload = verifyJwtToken(token);
     if (payload) {
@@ -53,7 +81,7 @@ export function getAuthenticatedUser(request: Request | { cookies?: any; headers
     }
   }
 
-  // Fallback to user_data cookie parsing
+  // Fallback: parse user_data cookie
   if (rawUserData) {
     try {
       const u = JSON.parse(rawUserData);
