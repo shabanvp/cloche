@@ -482,31 +482,53 @@ export async function saveVendorGalleryItemInDb(item: {
   const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   const resolvedVendorId = UUID_REGEX.test(item.vendor_id) ? item.vendor_id : "7a51b1c0-c15b-42ed-aec2-fd5caf6b471c";
   
-  // 1. Create row in media table first
-  const mediaRes = await supabaseFetch(`media`, {
-    method: "POST",
-    headers: { Prefer: "return=representation" },
-    body: JSON.stringify({
-      vendor_id: resolvedVendorId,
-      bucket_name: "vendor-gallery",
-      file_path: item.image_url,
-      cdn_url: item.image_url,
-      original_name: item.title ? `${item.title.substring(0, 30)}.jpg` : "showcase_photo.jpg",
-      mime_type: "image/jpeg",
-      file_size_bytes: 102400,
-      media_type: "image"
-    })
-  });
+  let mediaId: string | null = null;
 
-  const mediaRow = Array.isArray(mediaRes.data) ? mediaRes.data[0] : mediaRes.data;
-  if (mediaRes.error || !mediaRow?.id) {
-    return { data: null, error: mediaRes.error || new Error("Failed to insert media row") };
+  // 1. Check if media row already exists for file_path
+  try {
+    const existingRes = await supabaseFetch(`media?file_path=eq.${encodeURIComponent(item.image_url)}&select=id`);
+    if (!existingRes.error && Array.isArray(existingRes.data) && existingRes.data.length > 0) {
+      mediaId = existingRes.data[0].id;
+    }
+  } catch (e) {}
+
+  // 2. If not found, insert new media row into media table
+  if (!mediaId) {
+    const mediaRes = await supabaseFetch(`media`, {
+      method: "POST",
+      headers: { Prefer: "return=representation" },
+      body: JSON.stringify({
+        vendor_id: resolvedVendorId,
+        bucket_name: "vendor-gallery",
+        file_path: item.image_url,
+        cdn_url: item.image_url,
+        original_name: item.title ? `${item.title.substring(0, 30)}.jpg` : "showcase_photo.jpg",
+        mime_type: "image/jpeg",
+        file_size_bytes: 102400,
+        media_type: "image"
+      })
+    });
+
+    const mediaRow = Array.isArray(mediaRes.data) ? mediaRes.data[0] : mediaRes.data;
+    if (mediaRow?.id) {
+      mediaId = mediaRow.id;
+    } else {
+      // Retry query if duplicate key race condition occurred
+      const retryRes = await supabaseFetch(`media?file_path=eq.${encodeURIComponent(item.image_url)}&select=id`);
+      if (!retryRes.error && Array.isArray(retryRes.data) && retryRes.data.length > 0) {
+        mediaId = retryRes.data[0].id;
+      }
+    }
   }
 
-  // 2. Insert into vendor_gallery table with valid media_id
+  if (!mediaId) {
+    return { data: null, error: new Error("Unable to resolve media_id for gallery item") };
+  }
+
+  // 3. Insert into vendor_gallery table with resolved media_id
   const galleryPayload: Record<string, any> = {
     vendor_id: resolvedVendorId,
-    media_id: mediaRow.id,
+    media_id: mediaId,
     caption: item.title || "Studio Showcase Photo",
     is_cover: Boolean(item.is_cover),
   };
