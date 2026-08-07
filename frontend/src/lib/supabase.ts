@@ -448,17 +448,22 @@ export async function softDeleteVendorCatalogItemFromDb(id: string) {
 // ----------------------------------------------------
 
 export async function fetchVendorGalleryFromDb(vendorId: string) {
+  if (!vendorId) return { data: [], error: null };
   const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-  const resolvedId = UUID_REGEX.test(vendorId) ? vendorId : "7a51b1c0-c15b-42ed-aec2-fd5caf6b471c";
-  const { data, error } = await supabaseFetch(`vendor_gallery?vendor_id=eq.${encodeURIComponent(resolvedId)}&order=created_at.desc&select=*,media(*)`);
+  if (!UUID_REGEX.test(vendorId)) return { data: [], error: null };
+
+  const start = Date.now();
+  const { data, error } = await supabaseFetch(`vendor_gallery?vendor_id=eq.${encodeURIComponent(vendorId)}&order=created_at.desc&select=*,media(*)`);
+  console.log(`[DB:FETCH] table=vendor_gallery vendor_id=${vendorId} rows=${Array.isArray(data) ? data.length : 0} ms=${Date.now() - start}`);
+
   if (!error && Array.isArray(data)) {
     const formatted = data.map((g: any) => ({
       id: g.id,
       vendor_id: g.vendor_id,
       media_id: g.media_id,
-      title: g.caption || "Studio Showcase Photo",
+      title: g.caption || "Showcase Photo",
       caption: g.caption || "",
-      image_url: g.media?.cdn_url || g.media?.file_path || "https://images.unsplash.com/photo-1519741497674-611481863552",
+      image_url: g.media?.cdn_url || g.media?.file_path || "",
       is_cover: Boolean(g.is_cover),
       sort_order: g.sort_order || 0,
       created_at: g.created_at
@@ -477,7 +482,10 @@ export async function saveVendorGalleryItemInDb(item: {
   is_cover?: boolean;
 }) {
   const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-  const resolvedVendorId = UUID_REGEX.test(item.vendor_id) ? item.vendor_id : "7a51b1c0-c15b-42ed-aec2-fd5caf6b471c";
+  if (!item.vendor_id || !UUID_REGEX.test(item.vendor_id)) {
+    return { data: null, error: new Error("Valid vendor UUID is required.") };
+  }
+  const resolvedVendorId = item.vendor_id;
   
   let mediaId: string | null = null;
 
@@ -491,6 +499,7 @@ export async function saveVendorGalleryItemInDb(item: {
 
   // 2. If not found, insert new media row into media table
   if (!mediaId) {
+    const startMedia = Date.now();
     const mediaRes = await supabaseFetch(`media`, {
       method: "POST",
       headers: { Prefer: "return=representation" },
@@ -506,11 +515,11 @@ export async function saveVendorGalleryItemInDb(item: {
       })
     });
 
+    console.log(`[DB:INSERT] table=media vendor_id=${resolvedVendorId} ms=${Date.now() - startMedia}`);
     const mediaRow = Array.isArray(mediaRes.data) ? mediaRes.data[0] : mediaRes.data;
     if (mediaRow?.id) {
       mediaId = mediaRow.id;
     } else {
-      // Retry query if duplicate key race condition occurred
       const retryRes = await supabaseFetch(`media?file_path=eq.${encodeURIComponent(item.image_url)}&select=id`);
       if (!retryRes.error && Array.isArray(retryRes.data) && retryRes.data.length > 0) {
         mediaId = retryRes.data[0].id;
@@ -523,18 +532,22 @@ export async function saveVendorGalleryItemInDb(item: {
   }
 
   // 3. Insert into vendor_gallery table with resolved media_id
+  const startGallery = Date.now();
   const galleryPayload: Record<string, any> = {
     vendor_id: resolvedVendorId,
     media_id: mediaId,
-    caption: item.title || "Studio Showcase Photo",
+    caption: item.title || "Showcase Photo",
     is_cover: Boolean(item.is_cover),
   };
 
-  return supabaseFetch(`vendor_gallery`, {
+  const res = await supabaseFetch(`vendor_gallery`, {
     method: "POST",
     headers: { Prefer: "return=representation" },
     body: JSON.stringify(galleryPayload),
   });
+
+  console.log(`[DB:INSERT] table=vendor_gallery vendor_id=${resolvedVendorId} ms=${Date.now() - startGallery}`);
+  return res;
 }
 
 export async function deleteVendorGalleryItemInDb(id: string) {
@@ -687,27 +700,10 @@ export async function resolveVendorUuid(vendorId: string): Promise<string | null
 
   try {
     const existing = await supabaseFetch(
-      `vendors?or=(slug.eq.${encodeURIComponent(String(vendorId))},name.ilike.${encodeURIComponent(String(vendorId))})&select=id`
+      `vendors?vendor_code=eq.${encodeURIComponent(String(vendorId))}&select=id`
     );
     if (existing.data && Array.isArray(existing.data) && existing.data.length > 0) {
       return existing.data[0].id;
-    }
-
-    const cleanName = String(vendorId).replace(/^v-/, "").replace(/[-_]/g, " ");
-    const formattedName = cleanName.charAt(0).toUpperCase() + cleanName.slice(1);
-    const created = await supabaseFetch(`vendors`, {
-      method: "POST",
-      headers: { Prefer: "return=representation" },
-      body: JSON.stringify({
-        name: formattedName,
-        slug: String(vendorId).toLowerCase(),
-        category: "Vendor",
-        city: "Kochi",
-        price_range: "Contact for pricing",
-      }),
-    });
-    if (created.data && Array.isArray(created.data) && created.data.length > 0) {
-      return created.data[0].id;
     }
   } catch (e) {}
 
@@ -729,23 +725,6 @@ export async function resolveUserUuid(customerId: string, email?: string): Promi
       }
     } catch (e) {}
   }
-
-  try {
-    const userEmail = email || `${customerId.toLowerCase().replace(/[^a-z0-9]/g, "")}@cloche.app`;
-    const created = await supabaseFetch(`users`, {
-      method: "POST",
-      headers: { Prefer: "return=representation" },
-      body: JSON.stringify({
-        email: userEmail,
-        full_name: customerId,
-        name: customerId,
-        is_active: true,
-      }),
-    });
-    if (created.data && Array.isArray(created.data) && created.data.length > 0) {
-      return created.data[0].id;
-    }
-  } catch (e) {}
 
   return null;
 }
@@ -1060,39 +1039,18 @@ export async function updateQuotationCustomerStatusInDb(quotationId: string, cus
 export async function fetchVendorProfileFromDb(vendorIdOrUserId: string) {
   if (!vendorIdOrUserId) return { data: null, error: new Error("Vendor ID is required") };
 
-  // 1. Try fetching by UUID or slug from vendors table
+  const start = Date.now();
   const res = await supabaseFetch(
-    `vendors?or=(id.eq.${encodeURIComponent(vendorIdOrUserId)},user_id.eq.${encodeURIComponent(vendorIdOrUserId)},slug.eq.${encodeURIComponent(vendorIdOrUserId)})&select=*`
+    `vendors?or=(id.eq.${encodeURIComponent(vendorIdOrUserId)},user_id.eq.${encodeURIComponent(vendorIdOrUserId)},vendor_code.eq.${encodeURIComponent(vendorIdOrUserId)})&select=*,vendor_categories(id,name,slug),vendor_profiles(*),vendor_contacts(*),vendor_addresses(*),vendor_social_links(*)`
   );
+
+  console.log(`[DB:FETCH] table=vendors vendorIdOrUserId=${vendorIdOrUserId} rows=${Array.isArray(res.data) ? res.data.length : 0} ms=${Date.now() - start}`);
 
   if (!res.error && Array.isArray(res.data) && res.data.length > 0) {
     return { data: res.data[0], error: null };
   }
 
-  // 2. Fallback to users table if vendor record doesn't exist yet
-  const userRes = await supabaseFetch(`users?id=eq.${encodeURIComponent(vendorIdOrUserId)}&select=*`);
-  if (!userRes.error && Array.isArray(userRes.data) && userRes.data.length > 0) {
-    const u = userRes.data[0];
-    return {
-      data: {
-        id: u.id,
-        user_id: u.id,
-        name: u.full_name || u.name || "Vendor Partner",
-        boutique_name: u.boutique_name || u.full_name || u.name || "Vendor Partner",
-        email: u.email,
-        phone: u.phone || "+919876543210",
-        category: u.category || "Bridal Wear",
-        city: u.city || "Kochi",
-        district: u.district || "Ernakulam",
-        address: u.address || "MG Road, Kochi",
-        description: u.description || "Premier luxury wedding partner.",
-        profile_completion_percentage: 85,
-      },
-      error: null,
-    };
-  }
-
-  return res;
+  return { data: null, error: new Error("Vendor record not found in database.") };
 }
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -1136,21 +1094,16 @@ async function resolvePublicVendor(identifier: string) {
     if (vendor) return { vendor, error: null };
   }
 
-  const legacy = await supabaseFetch(
-    `vendors?or=(slug.eq.${id},name.ilike.${id},boutique_name.ilike.${id})&deleted_at=is.null&select=*`
-  );
-  const legacyVendor = firstRow(legacy.data);
-  if (legacyVendor) return { vendor: legacyVendor, error: null };
-
   return { vendor: null, error: byProfileSlug.error || byCode.error || null };
 }
 
 export async function fetchPublicVendorProfileFromDb(identifier: string) {
   if (!identifier) return { data: null, error: new Error("Vendor slug or ID is required.") };
 
+  const start = Date.now();
   const resolved = await resolvePublicVendor(identifier);
   if (!resolved.vendor) {
-    return { data: null, error: resolved.error || new Error("Vendor not found.") };
+    return { data: null, error: resolved.error || new Error("Vendor not found in database.") };
   }
 
   const vendor: any = resolved.vendor;
@@ -1182,6 +1135,8 @@ export async function fetchPublicVendorProfileFromDb(identifier: string) {
     supabaseFetch(`bookings?vendor_id=eq.${encodeURIComponent(vendorId)}&status=eq.completed&select=id`),
   ]);
 
+  console.log(`[DB:FETCH] public_vendor_profile vendor_id=${vendorId} ms=${Date.now() - start}`);
+
   const profile: any = firstRow(profileRes.data) || {};
   const contact: any = firstRow(contactsRes.data) || {};
   const address: any = firstRow(addressRes.data) || {};
@@ -1198,12 +1153,9 @@ export async function fetchPublicVendorProfileFromDb(identifier: string) {
     : { data: [], error: null };
   const mediaById = new Map(asArray<any>(mediaRes.data).map((row) => [String(row.id), row]));
 
-  const logoUrl = mediaUrl(mediaById.get(String(profile.logo_media_id))) || vendor.logo_url || vendor.logo || "";
+  const logoUrl = mediaUrl(mediaById.get(String(profile.logo_media_id))) || "";
   const coverUrl =
     mediaUrl(mediaById.get(String(profile.cover_media_id))) ||
-    vendor.cover_image ||
-    vendor.cover ||
-    vendor.image_url ||
     gallery.find((item) => item.is_cover)?.image_url ||
     "";
 
@@ -1212,9 +1164,7 @@ export async function fetchPublicVendorProfileFromDb(identifier: string) {
   const startingAmount =
     packagePrices.length > 0 ? Math.min(...packagePrices) : servicePrices.length > 0 ? Math.min(...servicePrices) : 0;
   const averageRating =
-    reviews.length > 0 ? reviews.reduce((sum, review) => sum + Number(review.rating || 0), 0) / reviews.length : Number(profile.rating || vendor.rating || 0);
-  const establishedYear = Number(profile.established_year || vendor.established_year || 0);
-  const yearsInBusiness = establishedYear > 0 ? new Date().getFullYear() - establishedYear : null;
+    reviews.length > 0 ? reviews.reduce((sum, review) => sum + Number(review.rating || 0), 0) / reviews.length : Number(profile.rating || 0);
 
   const socialLinks = asArray<any>(socialRes.data).reduce<Record<string, string>>((acc, row) => {
     if (row.platform && row.url) acc[String(row.platform)] = String(row.url);
@@ -1226,50 +1176,49 @@ export async function fetchPublicVendorProfileFromDb(identifier: string) {
     value: row.is_closed ? "Closed" : [row.open_time, row.close_time].filter(Boolean).join(" - ") || "Not available",
   }));
 
-  const fullAddress = [address.address_line1 || vendor.address, address.address_line2, address.city || profile.city || vendor.city, address.state || profile.state, address.pincode]
+  const fullAddress = [address.address_line1, address.address_line2, address.city || profile.city, address.state || profile.state, address.pincode]
     .filter(Boolean)
     .join(", ");
 
   return {
     data: {
       id: vendorId,
-      slug: profile.slug || vendor.slug || vendor.vendor_code || vendorId,
-      name: profile.business_name || vendor.boutique_name || vendor.name || "Unnamed vendor",
-      category: vendor.vendor_categories?.slug || vendor.category || "",
-      categoryLabel: vendor.vendor_categories?.name || vendor.category || "Vendor",
-      location: [profile.city || vendor.city, profile.state || vendor.district].filter(Boolean).join(", "),
+      slug: profile.slug || vendor.vendor_code || vendorId,
+      name: profile.business_name || "Unnamed Vendor",
+      category: vendor.vendor_categories?.slug || "",
+      categoryLabel: vendor.vendor_categories?.name || "Vendor",
+      location: [profile.city, profile.state].filter(Boolean).join(", "),
       rating: Number(averageRating.toFixed(1)),
       reviews: reviews.length,
       image: coverUrl,
       logo: logoUrl,
-      subtitle: profile.tagline || vendor.tagline || "",
-      about: profile.about || vendor.description || "",
+      subtitle: profile.tagline || "",
+      about: profile.about || "",
       isVerified: Boolean(vendor.is_verified || vendor.is_kyc_verified),
-      phone: contact.phone || vendor.phone || vendor.contact_number || "",
-      whatsapp: contact.whatsapp || vendor.whatsapp || contact.phone || "",
-      email: contact.email || vendor.email || "",
-      website: vendor.website || socialLinks.website || "",
+      phone: contact.phone || "",
+      whatsapp: contact.whatsapp || contact.phone || "",
+      email: contact.email || "",
+      website: socialLinks.website || "",
       address: fullAddress,
       googleMaps: address.latitude && address.longitude ? `https://www.google.com/maps?q=${address.latitude},${address.longitude}` : "",
       socialLinks,
       businessHours,
-      startingPriceLabel: startingAmount > 0 ? `${money(startingAmount)} onwards` : "No pricing available.",
+      startingPriceLabel: startingAmount > 0 ? `${money(startingAmount)} onwards` : "Contact for pricing",
       stats: [
-        { icon: "clock", value: yearsInBusiness === null ? "Not available" : String(Math.max(0, yearsInBusiness)), label: "Years in Business" },
-        { icon: "star", value: reviews.length > 0 ? averageRating.toFixed(1) : "Not available", label: "Average Rating" },
-        { icon: "users", value: reviews.length > 0 ? String(reviews.length) : "Not available", label: "Review Count" },
-        { icon: "sparkles", value: completedProjects > 0 ? String(completedProjects) : "Not available", label: "Completed Projects" },
+        { icon: "star", value: reviews.length > 0 ? averageRating.toFixed(1) : "N/A", label: "Average Rating" },
+        { icon: "users", value: reviews.length > 0 ? String(reviews.length) : "0", label: "Review Count" },
+        { icon: "sparkles", value: completedProjects > 0 ? String(completedProjects) : "0", label: "Completed Projects" },
       ],
       highlightsTitle: "Gallery",
       highlights: gallery.map((item) => ({
-        name: item.title || item.caption || "Uploaded work",
+        name: item.title || item.caption || "Showcase Photo",
         image: item.image_url,
       })),
       services: services.map((svc) => ({
         name: svc.name,
         description: svc.description || "",
         price: money(svc.base_price || svc.price),
-        pricingType: svc.pricing_type || svc.price_unit || "",
+        pricingType: svc.pricing_type || "",
       })),
       packages: packages.map((pkg) => ({
         name: pkg.name,
@@ -1281,7 +1230,7 @@ export async function fetchPublicVendorProfileFromDb(identifier: string) {
         isPopular: Boolean(pkg.is_popular),
       })),
       userReviews: reviews.map((review) => ({
-        author: review.customer_name || "Verified customer",
+        author: review.customer_name || "Verified Customer",
         rating: Number(review.rating || 0),
         text: review.review_text || review.title || "",
         date: review.created_at || "",
@@ -1299,44 +1248,76 @@ export async function fetchPublicVendorProfileFromDb(identifier: string) {
   };
 }
 
-export async function saveVendorProfileInDb(vendorIdOrUserId: string, profileData: Record<string, any>) {
-  const resolvedVendId = await resolveVendorUuid(vendorIdOrUserId);
-  const targetId = resolvedVendId || vendorIdOrUserId;
+export async function saveVendorProfileInDb(vendorId: string, profileData: Record<string, any>) {
+  if (!vendorId) return { data: null, error: new Error("Vendor ID is required") };
 
-  console.log("[saveVendorProfileInDb] Saving for target vendor ID:", targetId, "Payload:", profileData);
+  const start = Date.now();
 
-  const payload = {
-    id: targetId,
-    name: profileData.boutique_name || profileData.name || "Vendor Partner",
-    boutique_name: profileData.boutique_name || profileData.name || "Vendor Partner",
-    logo: profileData.logo || profileData.logo_url || null,
-    logo_url: profileData.logo || profileData.logo_url || null,
-    cover_image: profileData.coverImage || profileData.cover_image || null,
-    cover: profileData.coverImage || profileData.cover_image || null,
-    description: profileData.description || profileData.about || null,
-    phone: profileData.whatsapp || profileData.phone || null,
-    whatsapp: profileData.whatsapp || profileData.phone || null,
-    email: profileData.email || null,
-    website: profileData.website || null,
-    instagram: profileData.instagram || null,
-    address: profileData.address || null,
-    city: profileData.district || profileData.city || "Kochi",
-    district: profileData.district || profileData.city || "Ernakulam",
-    category: profileData.category || "Bridal Wear",
-    working_hours: profileData.workingHours || profileData.working_hours || null,
-    service_areas: profileData.serviceAreas || profileData.service_areas || null,
-    profile_completion_percentage: profileData.profile_completion_percentage || 90,
+  // 1. Update vendor_profiles table
+  const profilePayload: Record<string, any> = {
+    vendor_id: vendorId,
+    business_name: profileData.business_name || profileData.boutique_name || profileData.name,
+    tagline: profileData.tagline || null,
+    about: profileData.about || profileData.description || null,
+    city: profileData.city || profileData.district || "Kochi",
+    state: profileData.state || "Kerala",
+    pincode: profileData.pincode || null,
     updated_at: new Date().toISOString(),
   };
 
-  const insertRes = await supabaseFetch(`vendors`, {
+  const profileRes = await supabaseFetch(`vendor_profiles`, {
     method: "POST",
     headers: { Prefer: "resolution=merge-duplicates,return=representation" },
-    body: JSON.stringify(payload),
+    body: JSON.stringify(profilePayload),
   });
 
-  console.log("[saveVendorProfileInDb] Response:", insertRes.data, "Error:", insertRes.error);
-  return insertRes;
+  console.log(`[DB:PATCH] table=vendor_profiles vendor_id=${vendorId} ms=${Date.now() - start}`);
+
+  // 2. Upsert primary contact in vendor_contacts table
+  if (profileData.phone || profileData.whatsapp || profileData.email) {
+    const contactPayload = {
+      vendor_id: vendorId,
+      phone: profileData.phone || null,
+      whatsapp: profileData.whatsapp || profileData.phone || null,
+      email: profileData.email || null,
+      is_primary: true,
+      updated_at: new Date().toISOString(),
+    };
+
+    await supabaseFetch(`vendor_contacts`, {
+      method: "POST",
+      headers: { Prefer: "resolution=merge-duplicates,return=representation" },
+      body: JSON.stringify(contactPayload),
+    }).catch(() => null);
+  }
+
+  // 3. Upsert social links in vendor_social_links table
+  if (profileData.instagram) {
+    await supabaseFetch(`vendor_social_links`, {
+      method: "POST",
+      headers: { Prefer: "resolution=merge-duplicates,return=representation" },
+      body: JSON.stringify({ vendor_id: vendorId, platform: "instagram", url: profileData.instagram }),
+    }).catch(() => null);
+  }
+  if (profileData.website) {
+    await supabaseFetch(`vendor_social_links`, {
+      method: "POST",
+      headers: { Prefer: "resolution=merge-duplicates,return=representation" },
+      body: JSON.stringify({ vendor_id: vendorId, platform: "website", url: profileData.website }),
+    }).catch(() => null);
+  }
+
+  // 4. Update completion percentage on vendors table
+  await supabaseFetch(`vendors?id=eq.${encodeURIComponent(vendorId)}`, {
+    method: "PATCH",
+    headers: { Prefer: "return=representation" },
+    body: JSON.stringify({
+      profile_completion_percentage: profileData.profile_completion_percentage || 80,
+      updated_at: new Date().toISOString(),
+    }),
+  }).catch(() => null);
+
+  return profileRes;
 }
 
 

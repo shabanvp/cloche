@@ -93,16 +93,15 @@ export async function fetchAuthenticatedVendorFromDb(): Promise<VendorProfileDat
           const v = json.data.vendor || {};
           const p = json.data.profile || {};
           const c = Array.isArray(json.data.contacts) && json.data.contacts.length > 0 ? json.data.contacts[0] : {};
-          // vendor.category is a vendor_categories object: {id, name, slug}
-          const bName = p.business_name || v.boutique_name || v.name || "Vendor Partner";
+          const bName = p.business_name || v.boutique_name || v.name || "";
           const catObj = v.category;
           const cat = (typeof catObj === "object" && catObj !== null)
-            ? (catObj.name || "Vendor")
-            : (typeof catObj === "string" ? catObj : "Vendor");
+            ? (catObj.name || "")
+            : (typeof catObj === "string" ? catObj : "");
 
           const resolvedVendor: VendorProfileData = {
-            id: v.id || "vendor-active",
-            user_id: v.user_id,
+            id: v.id || "",
+            user_id: v.user_id || "",
             name: bName,
             boutique_name: bName,
             category: cat,
@@ -114,12 +113,14 @@ export async function fetchAuthenticatedVendorFromDb(): Promise<VendorProfileDat
             phone: c.phone || v.phone || "",
             whatsapp: c.whatsapp || v.whatsapp || "",
             email: c.email || v.email || "",
-            city: p.city || v.city || "Kochi",
-            district: p.state || v.district || "Ernakulam",
-            profile_completion_percentage: v.profile_completion_percentage || 80,
+            city: p.city || v.city || "",
+            district: p.state || v.district || "",
+            profile_completion_percentage: v.profile_completion_percentage || 0,
           };
 
-          localStorage.setItem("cloche_active_vendor_identity", JSON.stringify(resolvedVendor));
+          if (typeof window !== "undefined") {
+            localStorage.setItem("cloche_active_vendor_identity", JSON.stringify(resolvedVendor));
+          }
           return resolvedVendor;
         }
       } else {
@@ -135,97 +136,32 @@ export async function fetchAuthenticatedVendorFromDb(): Promise<VendorProfileDat
 }
 
 /**
- * Retrieves current active vendor identity from localStorage / auth
+ * Retrieves current active vendor identity from session storage / auth
  */
 export function getActiveVendorIdentity(): VendorProfileData {
+  const emptyVendor: VendorProfileData = {
+    id: "",
+    name: "",
+    boutique_name: "",
+    category: "",
+    district: "",
+    city: "",
+    profile_completion_percentage: 0,
+  };
+
   if (typeof window === "undefined") {
-    return {
-      id: "",
-      name: "Vendor Partner",
-      boutique_name: "Vendor Partner",
-      category: "",
-      district: "",
-      city: "",
-      profile_completion_percentage: 0,
-    };
+    return emptyVendor;
   }
 
   try {
-    const rawUserData = localStorage.getItem("cloche_user_data");
-    const rawVendors = localStorage.getItem("cloche_registered_vendors");
-
-    if (rawUserData) {
-      const u = JSON.parse(rawUserData);
-      return {
-        id: u.id || u.vendor_id || "v-registered",
-        user_id: u.id,
-        name: u.full_name || u.name || u.boutique_name || "Dream Wedding Studio",
-        boutique_name: u.boutique_name || u.name || u.full_name || "Dream Wedding Studio",
-        logo: u.logo || u.logo_url || u.image_url,
-        logo_url: u.logo || u.logo_url || u.image_url,
-        coverImage: u.coverImage || u.cover || u.heroImage,
-        cover_image: u.coverImage || u.cover || u.heroImage,
-        description: u.description || u.about || "Premier luxury wedding partner offering bespoke services.",
-        phone: u.phone || u.whatsapp || "+919876543210",
-        whatsapp: u.whatsapp || u.phone || "+919876543210",
-        email: u.email || "vendor@cloche.app",
-        website: u.website || "https://cloche.app",
-        instagram: u.instagram || "@clochevendor",
-        address: u.address || u.location || "MG Road, Kochi",
-        city: u.city || u.district || "Kochi",
-        district: u.district || u.city || "Ernakulam",
-        category: u.category || "Photography",
-        workingHours: u.workingHours || u.working_hours || "Mon – Sat: 10:00 AM – 8:00 PM | Sun: 11:00 AM – 5:00 PM",
-        working_hours: u.working_hours || u.workingHours || "Mon – Sat: 10:00 AM – 8:00 PM | Sun: 11:00 AM – 5:00 PM",
-        serviceAreas: u.serviceAreas || u.service_areas || "Kochi, Trivandrum, Kozhikode",
-        service_areas: u.service_areas || u.serviceAreas || "Kochi, Trivandrum, Kozhikode",
-        plan: u.plan || "Premium Partner",
-        profile_completion_percentage: u.profile_completion_percentage || 85,
-      };
-    }
-
-    if (rawVendors) {
-      const list = JSON.parse(rawVendors);
-      if (Array.isArray(list) && list.length > 0) {
-        const v = list[0];
-        return {
-          id: v.id || "v-registered",
-          name: v.boutique_name || v.name || "Dream Wedding Studio",
-          boutique_name: v.boutique_name || v.name || "Dream Wedding Studio",
-          logo: v.logo || v.logo_url || v.image_url,
-          logo_url: v.logo || v.logo_url || v.image_url,
-          coverImage: v.coverImage || v.cover,
-          cover_image: v.coverImage || v.cover,
-          description: v.description || v.about || "Premier luxury wedding partner.",
-          phone: v.phone || v.whatsapp || "+919876543210",
-          whatsapp: v.whatsapp || v.phone || "+919876543210",
-          email: v.email || "vendor@cloche.app",
-          website: v.website || "https://cloche.app",
-          instagram: v.instagram || "@clochevendor",
-          address: v.address || v.location || "MG Road, Kochi",
-          city: v.city || v.district || "Kochi",
-          district: v.district || v.city || "Ernakulam",
-          category: v.category || "Photography",
-          workingHours: v.workingHours || v.working_hours || "Mon – Sat: 10:00 AM – 8:00 PM",
-          working_hours: v.working_hours || v.workingHours || "Mon – Sat: 10:00 AM – 8:00 PM",
-          serviceAreas: v.serviceAreas || v.service_areas || "Kochi, Trivandrum",
-          service_areas: v.service_areas || v.serviceAreas || "Kochi, Trivandrum",
-          plan: v.plan || "Premium Partner",
-          profile_completion_percentage: v.profile_completion_percentage || 85,
-        };
-      }
+    const rawActive = localStorage.getItem("cloche_active_vendor_identity");
+    if (rawActive) {
+      const parsed = JSON.parse(rawActive);
+      if (parsed && parsed.id) return parsed;
     }
   } catch (e) {}
 
-  return {
-    id: "v-registered",
-    name: "Dream Wedding Studio",
-    boutique_name: "Dream Wedding Studio",
-    category: "Photography",
-    district: "Ernakulam",
-    city: "Kochi",
-    profile_completion_percentage: 85,
-  };
+  return emptyVendor;
 }
 
 /**

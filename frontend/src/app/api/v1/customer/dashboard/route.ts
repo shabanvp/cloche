@@ -9,6 +9,7 @@ import {
 import { getAuthenticatedCustomerUser } from "@/lib/customerAuth";
 
 export async function GET(req: Request) {
+  const startTime = Date.now();
   try {
     const authUser = await getAuthenticatedCustomerUser(req);
     if (!authUser) {
@@ -38,6 +39,8 @@ export async function GET(req: Request) {
     const { data: quotations } = await supabaseFetch(
       `quotations?select=*,quotation_items(*),leads!inner(customer_id)&leads.customer_id=eq.${encodeURIComponent(customerId)}&order=created_at.desc`
     );
+
+    console.log(`[DB:FETCH] customer_dashboard customer_id=${customerId} ms=${Date.now() - startTime}`);
 
     return NextResponse.json(
       {

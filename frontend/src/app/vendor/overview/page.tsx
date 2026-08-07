@@ -60,32 +60,23 @@ export default function VendorOverviewPage() {
       const sRes = await fetchVendorServicesFromDb(active.id);
       if (!sRes.error && Array.isArray(sRes.data)) {
         fetchedServicesCount = sRes.data.length;
-      } else {
-        const cachedS = localStorage.getItem("cloche_vendor_services");
-        if (cachedS) fetchedServicesCount = JSON.parse(cachedS).length;
       }
 
       // 2. Fetch Packages count
       const pRes = await fetchVendorPackagesFromDb(active.id);
       if (!pRes.error && Array.isArray(pRes.data)) {
         fetchedPackagesCount = pRes.data.length;
-      } else {
-        const cachedP = localStorage.getItem("cloche_vendor_packages");
-        if (cachedP) fetchedPackagesCount = JSON.parse(cachedP).length;
       }
 
       // 3. Fetch Gallery count
       const gRes = await fetchVendorGalleryFromDb(active.id);
       if (!gRes.error && Array.isArray(gRes.data)) {
         fetchedGalleryCount = gRes.data.length;
-      } else {
-        const cachedG = localStorage.getItem("cloche_vendor_gallery");
-        if (cachedG) fetchedGalleryCount = JSON.parse(cachedG).length;
       }
 
       // 4. Fetch Leads
       const lRes = await fetchVendorLeadsFromDb(active.id);
-      if (!lRes.error && Array.isArray(lRes.data) && lRes.data.length > 0) {
+      if (!lRes.error && Array.isArray(lRes.data)) {
         fetchedLeads = lRes.data;
       }
     } catch (e) {

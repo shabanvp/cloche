@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 export function middleware(request: NextRequest) {
-  const token = request.cookies.get('auth_token')?.value;
+  const token = request.cookies.get('cloche_auth_token')?.value || request.cookies.get('auth_token')?.value;
   const role = request.cookies.get('user_role')?.value;
   const path = request.nextUrl.pathname;
 
@@ -32,7 +32,7 @@ export function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL('/', request.url));
     }
 
-    if (isAdminRoute && role !== 'admin') {
+    if (isAdminRoute && role !== 'admin' && role !== 'super_admin') {
       return NextResponse.redirect(new URL('/', request.url));
     }
   }

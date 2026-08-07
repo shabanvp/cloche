@@ -119,14 +119,39 @@ export default function VendorProfile() {
 
     setIsSaving(true);
     try {
+      let finalLogoUrl = logo;
+      let finalCoverUrl = coverImage;
+
+      // Upload logo to Cloudinary if base64 data URL
+      if (logo && logo.startsWith("data:image/")) {
+        try {
+          const { uploadImageToCloudinary } = await import("@/lib/cloudinary");
+          finalLogoUrl = await uploadImageToCloudinary(logo, "cloche/vendors/logos");
+          setLogo(finalLogoUrl);
+        } catch (err) {
+          console.warn("[VendorProfile] Logo Cloudinary upload warning:", err);
+        }
+      }
+
+      // Upload cover to Cloudinary if base64 data URL
+      if (coverImage && coverImage.startsWith("data:image/")) {
+        try {
+          const { uploadImageToCloudinary } = await import("@/lib/cloudinary");
+          finalCoverUrl = await uploadImageToCloudinary(coverImage, "cloche/vendors/covers");
+          setCoverImage(finalCoverUrl);
+        } catch (err) {
+          console.warn("[VendorProfile] Cover Cloudinary upload warning:", err);
+        }
+      }
+
       const payload = {
-        id: vendorId || "v-registered",
+        id: vendorId,
         boutique_name: boutiqueName.trim(),
         name: boutiqueName.trim(),
-        logo: logo,
-        logo_url: logo,
-        coverImage: coverImage,
-        cover_image: coverImage,
+        logo: finalLogoUrl,
+        logo_url: finalLogoUrl,
+        coverImage: finalCoverUrl,
+        cover_image: finalCoverUrl,
         description: description.trim(),
         whatsapp: whatsapp.trim(),
         phone: whatsapp.trim(),
