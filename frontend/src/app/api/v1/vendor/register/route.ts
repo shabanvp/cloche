@@ -445,6 +445,7 @@ export async function POST(req: Request) {
     }
 
     if (finalLogoUrl) {
+      const uniqueLogoPath = `cloche/vendors/logos/${newVendor.id}/${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
       const mediaRes = await fetch(`${url}/rest/v1/media`, {
         method: "POST",
         headers: {
@@ -458,7 +459,7 @@ export async function POST(req: Request) {
           vendor_id: newVendor.id,
           media_type: "image",
           bucket_name: "cloudinary",
-          file_path: `cloche/vendors/logos/${newVendor.id}`,
+          file_path: uniqueLogoPath,
           mime_type: "image/jpeg",
           file_size_bytes: 1024,
           cdn_url: finalLogoUrl,
@@ -469,10 +470,14 @@ export async function POST(req: Request) {
       if (mediaRes && mediaRes.ok) {
         const mData = await mediaRes.json();
         if (Array.isArray(mData) && mData.length > 0) logoMediaId = mData[0].id;
+      } else if (mediaRes) {
+        const errText = await mediaRes.text().catch(() => "");
+        console.warn(`${logPrefix} Registration logo media insert status ${mediaRes.status}:`, errText);
       }
     }
 
     if (finalCoverUrl) {
+      const uniqueCoverPath = `cloche/vendors/covers/${newVendor.id}/${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
       const mediaRes = await fetch(`${url}/rest/v1/media`, {
         method: "POST",
         headers: {
@@ -486,7 +491,7 @@ export async function POST(req: Request) {
           vendor_id: newVendor.id,
           media_type: "image",
           bucket_name: "cloudinary",
-          file_path: `cloche/vendors/covers/${newVendor.id}`,
+          file_path: uniqueCoverPath,
           mime_type: "image/jpeg",
           file_size_bytes: 1024,
           cdn_url: finalCoverUrl,
@@ -497,6 +502,9 @@ export async function POST(req: Request) {
       if (mediaRes && mediaRes.ok) {
         const mData = await mediaRes.json();
         if (Array.isArray(mData) && mData.length > 0) coverMediaId = mData[0].id;
+      } else if (mediaRes) {
+        const errText = await mediaRes.text().catch(() => "");
+        console.warn(`${logPrefix} Registration cover media insert status ${mediaRes.status}:`, errText);
       }
     }
 

@@ -219,6 +219,7 @@ export async function PUT(req: Request) {
     if (profile?.logo || profile?.logo_url) {
       const logoUrl = profile.logo || profile.logo_url;
       if (isHostedUrl(logoUrl)) {
+        const uniqueLogoPath = `cloche/vendors/logos/${vendorId}/${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
         const mediaRes = await fetch(`${url}/rest/v1/media`, {
           method: "POST",
           headers: {
@@ -232,7 +233,7 @@ export async function PUT(req: Request) {
             vendor_id: vendorId,
             media_type: "image",
             bucket_name: "cloudinary",
-            file_path: `cloche/vendors/logos/${vendorId}`,
+            file_path: uniqueLogoPath,
             mime_type: "image/jpeg",
             file_size_bytes: 1024,
             cdn_url: logoUrl,
@@ -243,6 +244,9 @@ export async function PUT(req: Request) {
         if (mediaRes && mediaRes.ok) {
           const mData = await mediaRes.json();
           if (Array.isArray(mData) && mData.length > 0) logoMediaId = mData[0].id;
+        } else if (mediaRes) {
+          const errText = await mediaRes.text().catch(() => "");
+          console.warn(`[IMAGE_FLOW] Logo media insert status ${mediaRes.status}:`, errText);
         }
       }
     }
@@ -250,6 +254,7 @@ export async function PUT(req: Request) {
     if (profile?.coverImage || profile?.cover_image) {
       const coverUrl = profile.coverImage || profile.cover_image;
       if (isHostedUrl(coverUrl)) {
+        const uniqueCoverPath = `cloche/vendors/covers/${vendorId}/${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
         const mediaRes = await fetch(`${url}/rest/v1/media`, {
           method: "POST",
           headers: {
@@ -263,7 +268,7 @@ export async function PUT(req: Request) {
             vendor_id: vendorId,
             media_type: "image",
             bucket_name: "cloudinary",
-            file_path: `cloche/vendors/covers/${vendorId}`,
+            file_path: uniqueCoverPath,
             mime_type: "image/jpeg",
             file_size_bytes: 1024,
             cdn_url: coverUrl,
@@ -274,6 +279,9 @@ export async function PUT(req: Request) {
         if (mediaRes && mediaRes.ok) {
           const mData = await mediaRes.json();
           if (Array.isArray(mData) && mData.length > 0) coverMediaId = mData[0].id;
+        } else if (mediaRes) {
+          const errText = await mediaRes.text().catch(() => "");
+          console.warn(`[IMAGE_FLOW] Cover media insert status ${mediaRes.status}:`, errText);
         }
       }
     }
