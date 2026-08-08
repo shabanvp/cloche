@@ -31,7 +31,7 @@ export function VendorSidebar() {
   const router = useRouter();
 
   const isAuthPage = pathname === "/vendor/login" || pathname === "/vendor/register";
-  const [vendorData, setVendorData] = useState<any>(() => getActiveVendorIdentity());
+  const [vendorData, setVendorData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [completionPercentage, setCompletionPercentage] = useState<number | null>(null);
 

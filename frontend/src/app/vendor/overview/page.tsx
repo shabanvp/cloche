@@ -23,7 +23,7 @@ import {
 import { fetchAuthenticatedVendorFromDb, getActiveVendorIdentity, calculateDynamicProfileCompletion } from "@/lib/vendorStore";
 
 export default function VendorOverviewPage() {
-  const [vendorData, setVendorData] = useState<any>(() => getActiveVendorIdentity());
+  const [vendorData, setVendorData] = useState<any>(null);
   const [completionPercentage, setCompletionPercentage] = useState<number | null>(null);
   const [leads, setLeads] = useState<any[]>([]);
   const [servicesCount, setServicesCount] = useState<number>(0);
