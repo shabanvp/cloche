@@ -232,13 +232,6 @@ export function VendorCategoryListing({
           })}
         </div>
 
-        {/* Vendor Count Bar */}
-        <div className="mb-4 pb-2 border-b border-gold/15">
-          <div className="text-xs font-bold text-charcoal/60">
-            Showing 1-{filteredVendors.length} of {filteredVendors.length} {categoryConfig.title.toLowerCase()}
-          </div>
-        </div>
-
         {/* Vendor Cards Listing Grid */}
         {filteredVendors.length === 0 ? (
           <div className="bg-white rounded-3xl p-12 text-center border border-gold/15 shadow-sm space-y-4 my-8">

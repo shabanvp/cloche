@@ -351,13 +351,6 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
           })}
         </div>
 
-        {/* Vendor Count Bar */}
-        <div className="mb-4 pb-3 border-b border-gold/15">
-          <span className="text-xs font-bold text-charcoal/60">
-            Showing 1-{filtered.length} of {filtered.length} {activeFilter === "All" ? "vendors" : activeFilter.toLowerCase()}
-          </span>
-        </div>
-
         {/* Vendor Cards Listing Grid */}
         {filtered.length === 0 ? (
           <div className="bg-white rounded-3xl p-12 text-center border border-gold/15 shadow-sm space-y-3 my-8">
