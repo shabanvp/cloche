@@ -351,29 +351,8 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
           })}
         </div>
 
-        {/* Location & Sort Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-3 mb-5 pb-3 border-b border-gold/15">
-          <div className="flex items-center gap-2">
-            <select
-              className="bg-white border border-gold/20 rounded-xl px-3 py-1.5 text-xs font-bold text-charcoal focus:outline-none focus:border-[#0F4C45] shadow-2xs cursor-pointer"
-              defaultValue="All Locations"
-            >
-              <option value="All Locations">All Locations</option>
-              <option value="Kochi">Kochi</option>
-              <option value="Thrissur">Thrissur</option>
-              <option value="Trivandrum">Trivandrum</option>
-              <option value="Kozhikode">Kozhikode</option>
-            </select>
-            <select
-              className="bg-white border border-gold/20 rounded-xl px-3 py-1.5 text-xs font-bold text-charcoal focus:outline-none focus:border-[#0F4C45] shadow-2xs cursor-pointer"
-              defaultValue="Popularity"
-            >
-              <option value="Popularity">Popularity</option>
-              <option value="Rating">Top Rated</option>
-              <option value="PriceLow">Price: Low to High</option>
-              <option value="PriceHigh">Price: High to Low</option>
-            </select>
-          </div>
+        {/* Vendor Count Bar */}
+        <div className="mb-4 pb-3 border-b border-gold/15">
           <span className="text-xs font-bold text-charcoal/60">
             Showing 1-{filtered.length} of {filtered.length} {activeFilter === "All" ? "vendors" : activeFilter.toLowerCase()}
           </span>

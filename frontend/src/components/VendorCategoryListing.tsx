@@ -232,43 +232,8 @@ export function VendorCategoryListing({
           })}
         </div>
 
-        {/* Filter & Sort Dropdown Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-3 mb-4 pt-2 border-t border-gold/15">
-          <div className="flex flex-wrap items-center gap-2.5">
-            {/* Location Select */}
-            <div className="relative">
-              <select
-                value={selectedLocation}
-                onChange={(e) => setSelectedLocation(e.target.value)}
-                className="appearance-none bg-white border border-gold/20 rounded-xl px-4 py-2 pr-8 text-xs font-bold text-charcoal focus:outline-none focus:border-[#0F4C45] shadow-2xs cursor-pointer"
-              >
-                {categoryConfig.locationOptions.map((loc) => (
-                  <option key={loc} value={loc}>
-                    {loc}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown className="w-3.5 h-3.5 absolute right-2.5 top-1/2 -translate-y-1/2 text-charcoal/50 pointer-events-none" />
-            </div>
-
-            {/* Sort Select */}
-            <div className="relative">
-              <select
-                value={selectedSort}
-                onChange={(e) => setSelectedSort(e.target.value)}
-                className="appearance-none bg-white border border-gold/20 rounded-xl px-4 py-2 pr-8 text-xs font-bold text-charcoal focus:outline-none focus:border-[#0F4C45] shadow-2xs cursor-pointer"
-              >
-                {categoryConfig.sortOptions.map((sort) => (
-                  <option key={sort} value={sort}>
-                    {sort}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown className="w-3.5 h-3.5 absolute right-2.5 top-1/2 -translate-y-1/2 text-charcoal/50 pointer-events-none" />
-            </div>
-          </div>
-
-          {/* Results Count */}
+        {/* Vendor Count Bar */}
+        <div className="mb-4 pb-2 border-b border-gold/15">
           <div className="text-xs font-bold text-charcoal/60">
             Showing 1-{filteredVendors.length} of {filteredVendors.length} {categoryConfig.title.toLowerCase()}
           </div>
