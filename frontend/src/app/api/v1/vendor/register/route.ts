@@ -13,6 +13,30 @@ function generateSlug(text: string): string {
   return base ? `${base}-${randomSuffix}` : `vendor-${Date.now()}`;
 }
 
+const PRIMARY_CATEGORIES = [
+  "Bridal Boutique",
+  "Groom Wear",
+  "Wedding Venue",
+  "Photographer",
+  "Videographer",
+  "Makeup Artist",
+  "Mehendi Artist",
+  "Wedding Planner",
+  "Decorator",
+  "Caterer",
+  "Jewellery Store",
+  "Invitation Designer",
+  "Cake Designer",
+  "Entertainment",
+  "Choreographer",
+  "Car Rental",
+  "Flower Decoration",
+  "Rental Services",
+  "Gift Store",
+  "Honeymoon Planner",
+  "Other",
+];
+
 export async function GET() {
   const { url, serviceKey, anonKey } = getSupabaseConfig();
   const apiKey = serviceKey || anonKey;
@@ -23,8 +47,18 @@ export async function GET() {
         headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
       });
       if (res.ok) {
-        const categories = await res.json();
-        return NextResponse.json({ success: true, statusCode: 200, data: categories });
+        const categories: Array<{ id: string; name: string; slug: string }> = await res.json();
+        const primarySet = new Set(PRIMARY_CATEGORIES);
+        const filtered = categories.filter((c) => primarySet.has(c.name));
+
+        const seen = new Set<string>();
+        const uniquePrimary = filtered.filter((c) => {
+          if (seen.has(c.name)) return false;
+          seen.add(c.name);
+          return true;
+        });
+
+        return NextResponse.json({ success: true, statusCode: 200, data: uniquePrimary });
       }
     }
   } catch (err: any) {}
