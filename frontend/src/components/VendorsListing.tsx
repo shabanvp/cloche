@@ -425,18 +425,8 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
                 >
                   {/* Card Image Header */}
                   <div className="relative aspect-[4/3] w-full overflow-hidden bg-[#FAF7F2]">
-                    {hasCover ? (
-                      /* Cover / Showcase Background */
-                      <Image
-                        src={coverUrl}
-                        alt={boutique.boutique_name || "Vendor Cover"}
-                        fill
-                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                        className="object-cover group-hover:scale-105 transition-transform duration-500 brightness-95"
-                        unoptimized={coverUrl.startsWith("data:")}
-                      />
-                    ) : hasLogo ? (
-                      /* Logo as Primary Background if no cover */
+                    {hasLogo ? (
+                      /* Main Registered Vendor Logo Picture */
                       <div className="w-full h-full flex items-center justify-center p-4 bg-[#FAF7F2]">
                         <div className="relative w-full h-full">
                           <Image
@@ -449,6 +439,16 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
                           />
                         </div>
                       </div>
+                    ) : hasCover ? (
+                      /* Fallback Cover / Showcase Picture */
+                      <Image
+                        src={coverUrl}
+                        alt={boutique.boutique_name || "Vendor Cover"}
+                        fill
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                        className="object-cover group-hover:scale-105 transition-transform duration-500 brightness-95"
+                        unoptimized={coverUrl.startsWith("data:")}
+                      />
                     ) : (
                       /* Fallback Initial Avatar */
                       <div className="w-full h-full flex items-center justify-center bg-[#0F4C45]">
