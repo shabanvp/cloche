@@ -425,8 +425,18 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
                 >
                   {/* Card Image Header */}
                   <div className="relative aspect-[4/3] w-full overflow-hidden bg-[#FAF7F2]">
-                    {hasLogo ? (
-                      /* Main Registered Vendor Logo Picture */
+                    {hasCover ? (
+                      /* Cover / Showcase Background */
+                      <Image
+                        src={coverUrl}
+                        alt={boutique.boutique_name || "Vendor Cover"}
+                        fill
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                        className="object-cover group-hover:scale-105 transition-transform duration-500 brightness-95"
+                        unoptimized={coverUrl.startsWith("data:")}
+                      />
+                    ) : hasLogo ? (
+                      /* Logo as Primary Background if no cover */
                       <div className="w-full h-full flex items-center justify-center p-4 bg-[#FAF7F2]">
                         <div className="relative w-full h-full">
                           <Image
@@ -439,16 +449,6 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
                           />
                         </div>
                       </div>
-                    ) : hasCover ? (
-                      /* Fallback Cover / Showcase Picture */
-                      <Image
-                        src={coverUrl}
-                        alt={boutique.boutique_name || "Vendor Cover"}
-                        fill
-                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                        className="object-cover group-hover:scale-105 transition-transform duration-500 brightness-95"
-                        unoptimized={coverUrl.startsWith("data:")}
-                      />
                     ) : (
                       /* Fallback Initial Avatar */
                       <div className="w-full h-full flex items-center justify-center bg-[#0F4C45]">
@@ -458,8 +458,22 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
                       </div>
                     )}
 
-                    {/* Top Overlay Category Badge */}
-                    <span className="absolute bottom-3 left-3 bg-white/90 backdrop-blur-xs text-charcoal text-[10px] font-bold px-2.5 py-1 rounded-md shadow-xs z-10">
+                    {/* Prominent Square Logo Layout Box */}
+                    {hasLogo && (
+                      <div className="absolute top-3 left-3 w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-white border-2 border-gold/30 shadow-lg overflow-hidden flex items-center justify-center p-1.5 z-20 group-hover:scale-105 transition-transform duration-300">
+                        <Image
+                          src={logoUrl}
+                          alt={`${boutique.boutique_name || "Vendor"} Logo`}
+                          width={64}
+                          height={64}
+                          className="w-full h-full object-contain rounded-xl"
+                          unoptimized={logoUrl.startsWith("data:")}
+                        />
+                      </div>
+                    )}
+
+                    {/* Bottom Overlay Category Badge */}
+                    <span className="absolute bottom-3 left-3 bg-white/95 backdrop-blur-xs text-charcoal text-[10px] font-bold px-2.5 py-1 rounded-md shadow-xs z-10">
                       {overlayTag}
                     </span>
 
@@ -472,7 +486,7 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
                     >
                       <Heart
                         className={`h-4 w-4 transition-colors ${
-                          isWishlisted ? "fill-red-500 text-red-500" : "text-[#0F4C45] fill-none"
+                          isWishlisted ? "fill-red-500 text-red-500" : "text-white fill-none"
                         }`}
                       />
                     </button>
