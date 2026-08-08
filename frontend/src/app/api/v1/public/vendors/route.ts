@@ -51,7 +51,8 @@ export async function GET(req: Request) {
       const gallery = Array.isArray(v.vendor_gallery) ? v.vendor_gallery : [];
       const services = Array.isArray(v.vendor_services) ? v.vendor_services : [];
 
-      const coverImg = gallery.find((g: any) => g.media?.cdn_url)?.media?.cdn_url || "";
+      const logoImg = profile.logo_media?.cdn_url || profile.logo_url || "";
+      const coverImg = profile.cover_media?.cdn_url || profile.cover_image || gallery.find((g: any) => g.media?.cdn_url)?.media?.cdn_url || "";
       const startingPrice = services.length > 0 ? Math.min(...services.map((s: any) => Number(s.base_price || 0)).filter((p: number) => p > 0)) : (profile.starting_price || 0);
 
       return {
@@ -66,6 +67,8 @@ export async function GET(req: Request) {
         rating: Number(profile.rating || 5.0),
         reviewCount: Number(profile.review_count || 0),
         startingPrice: startingPrice > 0 ? `₹${startingPrice.toLocaleString("en-IN")}` : "Contact for pricing",
+        logo: logoImg,
+        logoUrl: logoImg,
         coverImage: coverImg,
         about: profile.about || "",
         tagline: profile.tagline || "",

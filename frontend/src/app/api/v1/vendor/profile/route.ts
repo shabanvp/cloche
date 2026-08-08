@@ -54,10 +54,36 @@ export async function GET(req: Request) {
     const categorySlug = category?.slug || vendor.category || "general";
     const extensionTable = getCategoryTable(categorySlug);
 
+    let logoUrl = rawProfile.logo_media?.cdn_url || rawProfile.logo_url || "";
+    let coverUrl = rawProfile.cover_media?.cdn_url || rawProfile.cover_image || "";
+
+    if ((!logoUrl || !coverUrl) && vendor.id) {
+      const mediaRes = await fetch(`${url}/rest/v1/media?vendor_id=eq.${encodeURIComponent(vendor.id)}&order=created_at.desc`, {
+        headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
+      }).catch(() => null);
+
+      if (mediaRes && mediaRes.ok) {
+        const mediaList = await mediaRes.json();
+        if (Array.isArray(mediaList)) {
+          if (!logoUrl) {
+            const logoRow = mediaList.find((m: any) => m.file_path?.includes("logos") || m.media_type === "logo");
+            if (logoRow?.cdn_url) logoUrl = logoRow.cdn_url;
+          }
+          if (!coverUrl) {
+            const coverRow = mediaList.find((m: any) => m.file_path?.includes("covers") || m.media_type === "cover");
+            if (coverRow?.cdn_url) coverUrl = coverRow.cdn_url;
+          }
+        }
+      }
+    }
+
+    console.log(`[IMAGE_FLOW] GET profile: Fetched logo URL for vendor ${vendor.id}:`, logoUrl);
+    console.log(`[IMAGE_FLOW] GET profile: Fetched cover URL for vendor ${vendor.id}:`, coverUrl);
+
     const profile = {
       ...rawProfile,
-      logo_url: rawProfile.logo_media?.cdn_url || rawProfile.logo_url || "",
-      cover_image: rawProfile.cover_media?.cdn_url || rawProfile.cover_image || "",
+      logo_url: logoUrl,
+      cover_image: coverUrl,
     };
 
     // 2. Fetch category specific details
@@ -256,7 +282,9 @@ export async function PUT(req: Request) {
       if (coverMediaId) profilePayload.cover_media_id = coverMediaId;
       if (profile.gstNumber || profile.gst_number) profilePayload.gst_number = profile.gstNumber || profile.gst_number;
 
-      await fetch(`${url}/rest/v1/vendor_profiles?vendor_id=eq.${encodeURIComponent(vendorId)}`, {
+      console.log(`[IMAGE_FLOW] PUT profile write: vendor_id=${vendorId}, logoMediaId=${logoMediaId}, coverMediaId=${coverMediaId}`);
+
+      const patchRes = await fetch(`${url}/rest/v1/vendor_profiles?vendor_id=eq.${encodeURIComponent(vendorId)}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -265,6 +293,7 @@ export async function PUT(req: Request) {
         },
         body: JSON.stringify(profilePayload),
       });
+      console.log(`[IMAGE_FLOW] PUT profile patch status:`, patchRes.status);
     }
 
     // 3. Upsert contact, address, and social details for the authenticated vendor

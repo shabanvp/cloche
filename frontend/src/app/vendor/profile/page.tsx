@@ -68,17 +68,27 @@ export default function VendorProfile() {
         setValidationError("Image file size should not exceed 10MB");
         return;
       }
-      const previewUrl = URL.createObjectURL(file);
-      setLogo(previewUrl);
 
       try {
         const { uploadImageToCloudinaryDetailed } = await import("@/lib/cloudinary");
+        console.log("[IMAGE_FLOW] Uploading logo file to Cloudinary...");
         const res = await uploadImageToCloudinaryDetailed(file, "cloche/vendors/logos");
+        console.log("[IMAGE_FLOW] Cloudinary upload response (logo):", res);
+
         if (res.secure_url && res.secure_url.startsWith("http")) {
           setLogo(res.secure_url);
+          console.log("[IMAGE_FLOW] Persisting logo Cloudinary URL to database...");
+          const dbResult = await syncVendorProfileWithDatabase({
+            id: vendorId,
+            boutique_name: boutiqueName || "Vendor",
+            logo: res.secure_url,
+            logo_url: res.secure_url,
+          });
+          console.log("[IMAGE_FLOW] Database write result (logo):", dbResult);
+          showVendorToast("✓ Studio Logo saved!");
         }
       } catch (err) {
-        console.warn("[VendorProfile] Logo Cloudinary upload warning:", err);
+        console.error("[IMAGE_FLOW] Logo Cloudinary upload/save error:", err);
       }
     }
   };
@@ -90,17 +100,27 @@ export default function VendorProfile() {
         setValidationError("Cover image file size should not exceed 15MB");
         return;
       }
-      const previewUrl = URL.createObjectURL(file);
-      setCoverImage(previewUrl);
 
       try {
         const { uploadImageToCloudinaryDetailed } = await import("@/lib/cloudinary");
+        console.log("[IMAGE_FLOW] Uploading cover image file to Cloudinary...");
         const res = await uploadImageToCloudinaryDetailed(file, "cloche/vendors/covers");
+        console.log("[IMAGE_FLOW] Cloudinary upload response (cover):", res);
+
         if (res.secure_url && res.secure_url.startsWith("http")) {
           setCoverImage(res.secure_url);
+          console.log("[IMAGE_FLOW] Persisting cover Cloudinary URL to database...");
+          const dbResult = await syncVendorProfileWithDatabase({
+            id: vendorId,
+            boutique_name: boutiqueName || "Vendor",
+            coverImage: res.secure_url,
+            cover_image: res.secure_url,
+          });
+          console.log("[IMAGE_FLOW] Database write result (cover):", dbResult);
+          showVendorToast("✓ Cover Photo saved!");
         }
       } catch (err) {
-        console.warn("[VendorProfile] Cover Cloudinary upload warning:", err);
+        console.error("[IMAGE_FLOW] Cover Cloudinary upload/save error:", err);
       }
     }
   };
