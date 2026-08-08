@@ -20,7 +20,7 @@ import { Boutique } from "@/types";
 function resolveCategory(boutique: Boutique): string {
   const tags = (boutique.tags || "").toLowerCase();
   const plan = (boutique.plan || "").toLowerCase();
-  const name = boutique.boutique_name.toLowerCase();
+  const name = (boutique.boutique_name || "").toLowerCase();
 
   if (tags.includes("videographer") || tags.includes("video") || name.includes("video") || name.includes("film") || name.includes("cinema")) return "Videographer";
   if (tags.includes("photo") || name.includes("photo") || name.includes("frame") || name.includes("media")) return "Photographer";
@@ -138,46 +138,66 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
       try {
         const rawVendors = localStorage.getItem("cloche_registered_vendors");
         const rawBoutiques = localStorage.getItem("cloche_registered_boutiques");
+        const rawUserData = localStorage.getItem("cloche_user_data");
         const localList: any[] = [];
+        if (rawUserData) localList.push(JSON.parse(rawUserData));
         if (rawVendors) localList.push(...JSON.parse(rawVendors));
         if (rawBoutiques) localList.push(...JSON.parse(rawBoutiques));
 
         const mergedMap = new Map<string, any>();
         const seenNames = new Set<string>();
 
+        // 1. Database fetched boutiques (initialBoutiques) get top priority for real DB profile images
+        initialBoutiques.forEach((item) => {
+          const itemKey = String(item.id || item.boutique_name);
+          const normName = (item.boutique_name || "").toLowerCase().trim();
+          if (itemKey && normName) {
+            seenNames.add(normName);
+            const logoSrc = item.logo_url || item.logo || (item as any).profile_logo || item.image_url || (item as any).cover_url || (item as any).coverImage || "";
+            mergedMap.set(itemKey, {
+              ...item,
+              logo_url: logoSrc,
+              logo: logoSrc,
+              profile_logo: logoSrc,
+              image_url: item.image_url || logoSrc,
+            });
+          }
+        });
+
+        // 2. Local storage registered vendors
         if (localList.length > 0) {
           localList.forEach((item) => {
-            const itemKey = item.id || item.slug || item.boutique_name;
+            const itemKey = String(item.id || item.slug || item.boutique_name);
             const normName = (item.boutique_name || item.name || "").toLowerCase().trim();
-            if (itemKey && normName && !mergedMap.has(itemKey) && !seenNames.has(normName)) {
-              seenNames.add(normName);
-              const logoSrc = item.coverImage || item.cover || item.logo || item.logo_url || item.profile_logo || item.image_url || item.image || "";
-              mergedMap.set(itemKey, {
-                id: itemKey,
-                boutique_name: item.boutique_name || item.name || "Wedding Vendor",
-                image_url: logoSrc,
-                logo_url: logoSrc,
-                logo: logoSrc,
-                rating: item.rating || 4.8,
-                city: item.city || "Kochi",
-                area: item.district || item.location || "Kerala",
-                tags: item.category || item.tags || "Bridal Boutique",
-                starting_price: item.startingPrice || item.starting_price || "₹50,000",
-              });
+            if (itemKey && normName) {
+              const existing = mergedMap.get(itemKey);
+              const logoSrc = item.logo_url || item.logo || item.profile_logo || item.image_url || item.image || item.coverImage || item.cover || "";
+              if (!existing) {
+                seenNames.add(normName);
+                mergedMap.set(itemKey, {
+                  id: itemKey,
+                  boutique_name: item.boutique_name || item.name || "Wedding Vendor",
+                  image_url: logoSrc,
+                  logo_url: logoSrc,
+                  profile_logo: logoSrc,
+                  logo: logoSrc,
+                  rating: item.rating || 4.8,
+                  city: item.city || "Kochi",
+                  area: item.district || item.location || "Kerala",
+                  tags: item.category || item.tags || "Bridal Boutique",
+                  starting_price: item.startingPrice || item.starting_price || "₹50,000",
+                });
+              } else if (logoSrc) {
+                existing.logo_url = existing.logo_url || logoSrc;
+                existing.logo = existing.logo || logoSrc;
+                existing.profile_logo = existing.profile_logo || logoSrc;
+                existing.image_url = existing.image_url || logoSrc;
+              }
             }
           });
         }
 
-        initialBoutiques.forEach((item) => {
-          const itemKey = String(item.id || item.boutique_name);
-          const normName = (item.boutique_name || "").toLowerCase().trim();
-          if (itemKey && normName && !mergedMap.has(itemKey) && !seenNames.has(normName)) {
-            seenNames.add(normName);
-            mergedMap.set(itemKey, item);
-          }
-        });
-
-        // Fallback System Vendors across all categories
+        // 3. Fallback System Vendors across all categories
         const { getAllSystemVendors } = require("@/lib/allSystemVendors");
         const systemVendors = getAllSystemVendors();
         systemVendors.forEach((item: any) => {
@@ -199,7 +219,7 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
     return boutiquesList.filter((b) => {
       const category = resolveCategory(b);
       const matchesSearch =
-        b.boutique_name.toLowerCase().includes(search.toLowerCase()) ||
+        (b.boutique_name || "").toLowerCase().includes(search.toLowerCase()) ||
         (b.city || "").toLowerCase().includes(search.toLowerCase()) ||
         (b.area || "").toLowerCase().includes(search.toLowerCase()) ||
         category.toLowerCase().includes(search.toLowerCase());
@@ -209,7 +229,7 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
         activeFilter === "All" ||
         category.toLowerCase().includes(targetKeyword) ||
         (b.tags || "").toLowerCase().includes(targetKeyword) ||
-        b.boutique_name.toLowerCase().includes(targetKeyword);
+        (b.boutique_name || "").toLowerCase().includes(targetKeyword);
 
       return matchesSearch && matchesFilter;
     });
@@ -227,7 +247,7 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
       city: boutique.city || boutique.area || "Kerala",
       boutique_name: boutique.boutique_name,
       rating: boutique.rating || 4.8,
-      image: boutique.image_url || (boutique as any).coverImage || (boutique as any).logo,
+      image: boutique.logo_url || boutique.image_url || (boutique as any).coverImage || (boutique as any).logo,
     });
   };
 
@@ -299,7 +319,7 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
         })}
       </div>
 
-      {/* ── Vendors Grid (Matching Reference Image 2) ── */}
+      {/* ── Vendors Grid ── */}
       <div className="flex-1 px-4 mb-28">
         {filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center px-6 bg-white rounded-2xl border border-gold/15">
@@ -319,12 +339,16 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
               const detailHref = resolveDetailHref(boutique);
 
               const rawLogo = (
+                boutique.logo_url ||
+                boutique.logo ||
+                (boutique as any).profile_logo ||
+                (boutique as any).profile_pic ||
+                (boutique as any).avatar ||
+                boutique.image_url ||
                 (boutique as any).coverImage ||
                 (boutique as any).cover ||
-                (boutique as any).image_url ||
-                (boutique as any).logo_url ||
-                (boutique as any).profile_logo ||
-                (boutique as any).logo ||
+                (boutique as any).cover_url ||
+                (boutique as any).image ||
                 ""
               ).toString().trim();
 
@@ -333,10 +357,6 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
                 rawLogo.startsWith("http://") ||
                 rawLogo.startsWith("https://") ||
                 (rawLogo.startsWith("/") && !rawLogo.startsWith("//"));
-
-              const validCover = isValidCover
-                ? rawLogo
-                : "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=80";
 
               const locationText = `${boutique.city || "Kochi"}${boutique.area ? `, ${boutique.area}` : ""}`;
               const startingPrice =
@@ -369,18 +389,26 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
                   className="bg-white rounded-2xl border border-gold/15 shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col justify-between group"
                 >
                   {/* Card Image Header */}
-                  <div className="relative aspect-[4/3] w-full overflow-hidden bg-gray-100">
-                    <Image
-                      src={validCover}
-                      alt={boutique.boutique_name}
-                      fill
-                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                      className="object-cover group-hover:scale-105 transition-transform duration-500"
-                      unoptimized={validCover.startsWith("data:")}
-                    />
+                  <div className="relative aspect-[4/3] w-full overflow-hidden bg-[#0F4C45]">
+                    {isValidCover ? (
+                      <Image
+                        src={rawLogo}
+                        alt={boutique.boutique_name || "Vendor"}
+                        fill
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                        className="object-cover group-hover:scale-105 transition-transform duration-500"
+                        unoptimized={rawLogo.startsWith("data:")}
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-[#0F4C45]">
+                        <span className="font-serif text-5xl font-bold text-white tracking-wider">
+                          {boutique.boutique_name ? boutique.boutique_name.charAt(0).toUpperCase() : "V"}
+                        </span>
+                      </div>
+                    )}
 
                     {/* Top Overlay Badge */}
-                    <span className="absolute bottom-3 left-3 bg-white/90 backdrop-blur-xs text-charcoal text-[10px] font-bold px-2.5 py-1 rounded-md shadow-xs">
+                    <span className="absolute bottom-3 left-3 bg-white/90 backdrop-blur-xs text-charcoal text-[10px] font-bold px-2.5 py-1 rounded-md shadow-xs z-10">
                       {overlayTag}
                     </span>
 
@@ -415,7 +443,7 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
                           {boutique.rating ? boutique.rating.toFixed(1) : "4.8"}
                         </span>
                         <span className="text-charcoal/50">
-                          ({(Math.abs(boutique.boutique_name.length * 17) % 120) + 40})
+                          ({(Math.abs((boutique.boutique_name || "").length * 17) % 120) + 40})
                         </span>
                       </div>
 
@@ -429,7 +457,7 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
                       </p>
                     </div>
 
-                    {/* Pink Specialty Pill */}
+                    {/* Specialty Pill */}
                     <div className="pt-2">
                       <span className="inline-block bg-rose-50 text-rose-700 text-[10px] font-bold px-2.5 py-1 rounded-md border border-rose-100">
                         {specialtyTag}

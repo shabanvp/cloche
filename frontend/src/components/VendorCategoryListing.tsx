@@ -301,13 +301,36 @@ export function VendorCategoryListing({
                   className="bg-white rounded-2xl border border-gold/15 shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col justify-between group"
                 >
                   <div>
-                    {/* Image Area with Badge & Wishlist */}
-                    <div className="relative aspect-[4/3] w-full overflow-hidden bg-ivory">
-                      <img
-                        src={vendor.image}
-                        alt={vendor.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      />
+                    <div className="relative aspect-[4/3] w-full overflow-hidden bg-[#0F4C45]">
+                      {(() => {
+                        const rawLogo = (
+                          (vendor as any).logo_url ||
+                          (vendor as any).logo ||
+                          (vendor as any).profile_logo ||
+                          vendor.image ||
+                          (vendor as any).image_url ||
+                          ""
+                        ).toString().trim();
+                        const isValid =
+                          rawLogo.startsWith("data:image/") ||
+                          rawLogo.startsWith("http://") ||
+                          rawLogo.startsWith("https://") ||
+                          (rawLogo.startsWith("/") && !rawLogo.startsWith("//"));
+
+                        return isValid ? (
+                          <img
+                            src={rawLogo}
+                            alt={vendor.name}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-[#0F4C45]">
+                            <span className="font-serif text-5xl font-bold text-white tracking-wider">
+                              {vendor.name ? vendor.name.charAt(0).toUpperCase() : "V"}
+                            </span>
+                          </div>
+                        );
+                      })()}
 
                       {/* Optional Overlay Badge (Indoor, Outdoor, Verified, Destination) */}
                       {vendor.badge && (
