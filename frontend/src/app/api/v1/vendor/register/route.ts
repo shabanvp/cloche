@@ -254,11 +254,36 @@ export async function POST(req: Request) {
       }
     }
 
-    // Step 3: Lookup vendor category_id with robust matching
+    // Step 3: Lookup vendor category_id using deterministic 1-to-1 mapping dictionary
     let categoryId: string | null = null;
     const catName = category ? category.toString().trim() : "Bridal Boutique";
 
-    // Fetch all categories to ensure accurate matching without false fallback
+    // Deterministic 1-to-1 Category Target Specification
+    const DETERMINISTIC_MAP: Record<string, { primary: string; aliases: string[]; slugs: string[] }> = {
+      "Bridal Boutique":     { primary: "Bridal Boutique",    aliases: ["Bridal Wear & Lehengas", "Bridal Wear"],                slugs: ["bridal-boutique", "bridal-wear"] },
+      "Groom Wear":          { primary: "Groom Wear",         aliases: ["Bridal Wear & Lehengas", "Groom Wear"],                 slugs: ["groom-wear", "bridal-wear"] },
+      "Wedding Venue":       { primary: "Wedding Venue",      aliases: ["Wedding Venues", "Venues"],                             slugs: ["wedding-venue", "venues"] },
+      "Photographer":        { primary: "Photographer",       aliases: ["Wedding Photographers", "Photographers"],              slugs: ["photographer", "photographers"] },
+      "Videographer":        { primary: "Videographer",       aliases: ["Wedding Photographers", "Videographers"],              slugs: ["videographer", "photographers"] },
+      "Makeup Artist":       { primary: "Makeup Artist",      aliases: ["Bridal Makeup & Hair", "Makeup"],                      slugs: ["makeup-artist", "makeup"] },
+      "Mehendi Artist":      { primary: "Mehendi Artist",     aliases: ["Mehndi Artists", "Mehendi"],                            slugs: ["mehendi-artist", "mehndi"] },
+      "Wedding Planner":     { primary: "Wedding Planner",    aliases: ["Wedding Planners", "Planners"],                         slugs: ["wedding-planner", "planners"] },
+      "Decorator":           { primary: "Decorator",          aliases: ["Wedding Decorators", "Decorators"],                     slugs: ["decorator", "decorators"] },
+      "Caterer":             { primary: "Caterer",            aliases: ["Catering Services", "Catering"],                        slugs: ["caterer", "catering"] },
+      "Jewellery Store":     { primary: "Jewellery Store",    aliases: ["Jewellery & Accessories", "Jewellery"],                slugs: ["jewellery-store", "jewellery"] },
+      "Invitation Designer": { primary: "Invitation Designer",aliases: ["Invitation & Cards", "Invitations"],                    slugs: ["invitation-designer", "invitations"] },
+      "Cake Designer":       { primary: "Cake Designer",      aliases: ["Catering Services", "Cakes"],                           slugs: ["cake-designer", "catering"] },
+      "Entertainment":       { primary: "Entertainment",      aliases: ["Wedding Entertainment", "DJs & Live Bands"],            slugs: ["entertainment", "djs-bands"] },
+      "Choreographer":       { primary: "Choreographer",      aliases: ["Wedding Entertainment", "Choreographers"],             slugs: ["choreographer", "entertainment"] },
+      "Car Rental":          { primary: "Car Rental",         aliases: ["Car Rental", "Transport"],                              slugs: ["car-rental"] },
+      "Flower Decoration":   { primary: "Flower Decoration",  aliases: ["Wedding Decorators", "Decorators"],                     slugs: ["flower-decoration", "decorators"] },
+      "Rental Services":     { primary: "Rental Services",    aliases: ["Rental Services"],                                      slugs: ["rental-services"] },
+      "Gift Store":          { primary: "Gift Store",         aliases: ["Gift Store"],                                           slugs: ["gift-store"] },
+      "Honeymoon Planner":   { primary: "Honeymoon Planner",  aliases: ["Honeymoon Planner", "Wedding Planners"],                slugs: ["honeymoon-planner", "planners"] },
+      "Other":               { primary: "Other",              aliases: ["Other"],                                                slugs: ["other"] },
+    };
+
+    // Fetch category options from database
     const catLookupRes = await fetch(`${url}/rest/v1/vendor_categories?select=id,name,slug`, {
       headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
     });
@@ -266,68 +291,57 @@ export async function POST(req: Request) {
     if (catLookupRes.ok) {
       const categories: Array<{ id: string; name: string; slug: string }> = await catLookupRes.json();
       if (Array.isArray(categories) && categories.length > 0) {
-        const raw = catName.toLowerCase();
-        const slugifiedInput = raw.replace(/[^\w\s-]/g, "").replace(/[\s_-]+/g, "-");
+        let matched: { id: string; name: string; slug: string } | undefined = undefined;
+        const config = DETERMINISTIC_MAP[catName];
 
-        // 1. Exact name match
-        let matched = categories.find(c => (c.name || "").toLowerCase() === raw);
+        if (config) {
+          // 1. Exact Primary match
+          matched = categories.find(c => (c.name || "").toLowerCase() === config.primary.toLowerCase());
 
-        // 2. Exact slug match
-        if (!matched) {
-          matched = categories.find(c => (c.slug || "").toLowerCase() === slugifiedInput);
-        }
+          // 2. Exact Aliases match in priority order
+          if (!matched) {
+            for (const alias of config.aliases) {
+              matched = categories.find(c => (c.name || "").toLowerCase() === alias.toLowerCase());
+              if (matched) break;
+            }
+          }
 
-        // 3. Semantic / Keyword matching
-        if (!matched) {
-          const rules = [
-            { keywords: ['makeup', 'cosmetic'], test: (c: any) => /makeup/i.test(c.name || '') || /makeup/i.test(c.slug || '') },
-            { keywords: ['mehendi', 'mehndi', 'henna'], test: (c: any) => /meh?ndi/i.test(c.name || '') || /meh?ndi/i.test(c.slug || '') },
-            { keywords: ['photo', 'picture', 'camera'], test: (c: any) => /photo/i.test(c.name || '') || /photo/i.test(c.slug || '') },
-            { keywords: ['video', 'film', 'cinema'], test: (c: any) => /video|cinema|film/i.test(c.name || '') || /video|cinema|film/i.test(c.slug || '') },
-            { keywords: ['bridal', 'boutique', 'lehenga', 'gown', 'wear'], test: (c: any) => /bridal|wear|boutique|lehenga/i.test(c.name || '') || /bridal|wear|boutique/i.test(c.slug || '') },
-            { keywords: ['groom', 'sherwani', 'suit'], test: (c: any) => /groom|wear|bridal/i.test(c.name || '') || /groom|wear/i.test(c.slug || '') },
-            { keywords: ['venue', 'hall', 'resort', 'farmhouse'], test: (c: any) => /venue/i.test(c.name || '') || /venue/i.test(c.slug || '') },
-            { keywords: ['flower', 'flor'], test: (c: any) => /flower|decor/i.test(c.name || '') || /flower|decor/i.test(c.slug || '') },
-            { keywords: ['decor', 'stage', 'mandap'], test: (c: any) => /decor/i.test(c.name || '') || /decor/i.test(c.slug || '') },
-            { keywords: ['cater', 'food'], test: (c: any) => /cater/i.test(c.name || '') || /cater/i.test(c.slug || '') },
-            { keywords: ['jewel', 'gold', 'diamond'], test: (c: any) => /jewel/i.test(c.name || '') || /jewel/i.test(c.slug || '') },
-            { keywords: ['invit', 'card', 'stationery'], test: (c: any) => /invit|card/i.test(c.name || '') || /invit/i.test(c.slug || '') },
-            { keywords: ['plan', 'coord'], test: (c: any) => /plan/i.test(c.name || '') || /plan/i.test(c.slug || '') },
-            { keywords: ['entertain', 'music', 'dj', 'dhol', 'band', 'choreo'], test: (c: any) => /entertain|music|dj|band|choreo/i.test(c.name || '') || /entertain|music|dj/i.test(c.slug || '') },
-            { keywords: ['car', 'rent', 'transport', 'vehicle'], test: (c: any) => /rent|car|transport/i.test(c.name || '') || /rent|car/i.test(c.slug || '') },
-            { keywords: ['cake', 'baker', 'dessert'], test: (c: any) => /cake|baker|cater/i.test(c.name || '') || /cake/i.test(c.slug || '') },
-            { keywords: ['gift', 'favour'], test: (c: any) => /gift|other/i.test(c.name || '') || /gift/i.test(c.slug || '') },
-            { keywords: ['honeymoon', 'travel'], test: (c: any) => /honeymoon|travel|plan/i.test(c.name || '') || /honeymoon/i.test(c.slug || '') },
-          ];
-
-          for (const rule of rules) {
-            if (rule.keywords.some(k => raw.includes(k))) {
-              const found = categories.find(rule.test);
-              if (found) {
-                matched = found;
-                break;
-              }
+          // 3. Exact Slugs match in priority order
+          if (!matched) {
+            for (const slug of config.slugs) {
+              matched = categories.find(c => (c.slug || "").toLowerCase() === slug.toLowerCase());
+              if (matched) break;
             }
           }
         }
 
-        // 4. Substring match
+        // 4. Exact direct string match for unmapped categories
         if (!matched) {
-          matched = categories.find(c => {
-            const cName = (c.name || "").toLowerCase();
-            const cSlug = (c.slug || "").toLowerCase();
-            return cName.includes(raw) || raw.includes(cName) || cSlug.includes(raw) || raw.includes(cSlug);
-          });
+          const rawLower = catName.toLowerCase();
+          matched = categories.find(c => (c.name || "").toLowerCase() === rawLower) ||
+                    categories.find(c => (c.slug || "").toLowerCase() === rawLower.replace(/\s+/g, '-'));
         }
 
-        // 5. Fallback: "Other" or first category
+        // 5. Ultimate Fallback: "Other" or first row
         if (!matched) {
-          matched = categories.find(c => (c.name || "").toLowerCase().includes("other") || (c.slug || "").toLowerCase().includes("other")) || categories[0];
+          matched = categories.find(c => (c.name || "").toLowerCase() === "other" || (c.slug || "").toLowerCase() === "other") || categories[0];
         }
 
         if (matched) {
           categoryId = matched.id;
-          console.log(`${logPrefix} Successfully matched category "${catName}" -> "${matched.name}" (ID: ${categoryId})`);
+          console.log(`${logPrefix} Deterministically resolved "${catName}" -> "${matched.name}" (ID: ${categoryId})`);
+        }
+      }
+    }
+
+    if (!categoryId) {
+      const fallbackCatRes = await fetch(`${url}/rest/v1/vendor_categories?limit=1&select=id`, {
+        headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
+      });
+      if (fallbackCatRes.ok) {
+        const fallbacks = await fallbackCatRes.json();
+        if (Array.isArray(fallbacks) && fallbacks.length > 0) {
+          categoryId = fallbacks[0].id;
         }
       }
     }
