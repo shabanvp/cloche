@@ -45,74 +45,6 @@ export default function VendorProfileMenuPage() {
   };
 
   useEffect(() => {
-<<<<<<< HEAD
-    if (typeof window !== "undefined") {
-      try {
-        const storedName =
-          localStorage.getItem("boutique_name") ||
-          localStorage.getItem("vendor_name") ||
-          localStorage.getItem("businessName") ||
-          localStorage.getItem("owner_name") ||
-          localStorage.getItem("user_name");
-
-        const rawUserData = localStorage.getItem("cloche_user_data");
-        const rawVendors = localStorage.getItem("cloche_registered_vendors");
-        const rawVenues = localStorage.getItem("cloche_registered_venues");
-        const rawBoutiques = localStorage.getItem("cloche_registered_boutiques");
-
-        let resolvedName = storedName || "";
-        let resolvedCategory = "Bridal Wear";
-        let resolvedLogo = "";
-        let resolvedPlan = "Premium Partner";
-
-        if (rawUserData) {
-          const u = JSON.parse(rawUserData);
-          resolvedName = u.boutique_name || u.businessName || u.name || u.full_name || resolvedName;
-          resolvedCategory = u.category || resolvedCategory;
-          resolvedLogo = u.logo || u.logo_url || u.image_url || resolvedLogo;
-          resolvedPlan = u.plan || resolvedPlan;
-        } else if (rawVendors) {
-          const list = JSON.parse(rawVendors);
-          if (list.length > 0) {
-            const active = list[0];
-            resolvedName = active.boutique_name || active.name || active.businessName || resolvedName;
-            resolvedCategory = active.category || resolvedCategory;
-            resolvedLogo = active.logo || active.logo_url || active.image_url || resolvedLogo;
-            resolvedPlan = active.plan || resolvedPlan;
-          }
-        } else if (rawBoutiques) {
-          const list = JSON.parse(rawBoutiques);
-          if (list.length > 0) {
-            const active = list[0];
-            resolvedName = active.boutique_name || active.name || active.businessName || resolvedName;
-            resolvedCategory = active.category || resolvedCategory;
-            resolvedLogo = active.logo || active.logo_url || active.image_url || resolvedLogo;
-            resolvedPlan = active.plan || resolvedPlan;
-          }
-        } else if (rawVenues) {
-          const list = JSON.parse(rawVenues);
-          if (list.length > 0) {
-            const active = list[0];
-            resolvedName = active.boutique_name || active.name || active.businessName || resolvedName;
-            resolvedCategory = active.category || "Wedding Venue";
-            resolvedLogo = active.logo || active.logo_url || active.image_url || resolvedLogo;
-            resolvedPlan = active.plan || resolvedPlan;
-          }
-        }
-
-        if (!resolvedName) {
-          resolvedName = "Vendor Partner";
-        }
-
-        setVendorData({
-          name: resolvedName,
-          category: resolvedCategory,
-          logo: resolvedLogo,
-          plan: resolvedPlan,
-        });
-      } catch (e) {}
-    }
-=======
     loadVendorData();
 
     const handleUpdate = () => loadVendorData();
@@ -123,7 +55,6 @@ export default function VendorProfileMenuPage() {
       window.removeEventListener("cloche_vendor_updated", handleUpdate);
       window.removeEventListener("cloche_cms_update", handleUpdate);
     };
->>>>>>> 3023f2cd567a8ea45f66e0f949275c92824e98d3
   }, []);
 
   const hasVendorRecord = Boolean(vendorData && vendorData.id);

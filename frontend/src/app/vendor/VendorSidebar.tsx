@@ -7,8 +7,6 @@ import {
   LayoutDashboard, 
   Store, 
   Tag, 
-  Calendar, 
-  Inbox, 
   LogOut, 
   ShoppingBag, 
   BarChart3, 
@@ -20,7 +18,8 @@ import {
   Sparkles,
   MessageSquare,
   HelpCircle,
-  FolderKanban
+  FolderKanban,
+  Inbox
 } from "lucide-react";
 import { logout } from "@/app/actions/auth";
 import { getCategoryMenuTitles } from "@/lib/vendor-navigation";
@@ -69,63 +68,6 @@ export function VendorSidebar() {
   };
 
   useEffect(() => {
-<<<<<<< HEAD
-    if (typeof window !== "undefined") {
-      try {
-        const storedName =
-          localStorage.getItem("boutique_name") ||
-          localStorage.getItem("vendor_name") ||
-          localStorage.getItem("businessName") ||
-          localStorage.getItem("user_name");
-
-        const rawUserData = localStorage.getItem("cloche_user_data");
-        const rawVendors = localStorage.getItem("cloche_registered_vendors");
-        const rawVenues = localStorage.getItem("cloche_registered_venues");
-
-        let resolvedName = storedName || "";
-        let resolvedCategory = "Bridal Wear";
-        let resolvedLogo = "";
-        let resolvedPlan = "Premium Partner";
-
-        if (rawUserData) {
-          const u = JSON.parse(rawUserData);
-          resolvedName = u.boutique_name || u.businessName || u.name || u.full_name || resolvedName;
-          resolvedCategory = u.category || resolvedCategory;
-          resolvedLogo = u.logo || u.logo_url || u.image_url || resolvedLogo;
-          resolvedPlan = u.plan || resolvedPlan;
-        } else if (rawVendors) {
-          const list = JSON.parse(rawVendors);
-          if (list.length > 0) {
-            const active = list[0];
-            resolvedName = active.boutique_name || active.name || active.businessName || resolvedName;
-            resolvedCategory = active.category || resolvedCategory;
-            resolvedLogo = active.logo || active.logo_url || active.image_url || resolvedLogo;
-            resolvedPlan = active.plan || resolvedPlan;
-          }
-        } else if (rawVenues) {
-          const list = JSON.parse(rawVenues);
-          if (list.length > 0) {
-            const active = list[0];
-            resolvedName = active.boutique_name || active.name || active.businessName || resolvedName;
-            resolvedCategory = active.category || "Wedding Venue";
-            resolvedLogo = active.logo || active.logo_url || active.image_url || resolvedLogo;
-            resolvedPlan = active.plan || resolvedPlan;
-          }
-        }
-
-        if (!resolvedName) {
-          resolvedName = "Vendor Partner";
-        }
-
-        setVendorData({
-          name: resolvedName,
-          category: resolvedCategory,
-          logo: resolvedLogo,
-          plan: resolvedPlan,
-        });
-      } catch (e) {}
-    }
-=======
     loadVendorProfile();
 
     const handleVendorUpdate = () => {
@@ -141,7 +83,6 @@ export function VendorSidebar() {
       window.removeEventListener("cloche_vendor_updated", handleVendorUpdate);
       window.removeEventListener("cloche_cms_update", handleVendorUpdate);
     };
->>>>>>> 3023f2cd567a8ea45f66e0f949275c92824e98d3
   }, []);
 
   if (isAuthPage) return null;

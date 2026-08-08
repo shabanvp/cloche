@@ -1,14 +1,10 @@
 "use client";
 
-<<<<<<< HEAD
 import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-=======
-import React, { useState, useEffect } from "react";
-import { Search, Filter, Plus, Edit3, Trash2, Copy, ShoppingBag, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Search, Filter, Plus, Edit3, Trash2, Copy, ShoppingBag, AlertCircle } from "lucide-react";
 import { fetchAuthenticatedVendorFromDb, getActiveVendorIdentity, showVendorToast } from "@/lib/vendorStore";
->>>>>>> 3023f2cd567a8ea45f66e0f949275c92824e98d3
 
 interface ServiceItem {
   id: string;
@@ -22,14 +18,10 @@ interface ServiceItem {
   image_url?: string;
 }
 
-<<<<<<< HEAD
 function VendorServicesContent() {
   const searchParams = useSearchParams();
   const activeTab = (searchParams.get("tab") as "services" | "packages" | "catalog") || "services";
-=======
-export default function VendorServicesPage() {
   const [vendorId, setVendorId] = useState<string>("");
->>>>>>> 3023f2cd567a8ea45f66e0f949275c92824e98d3
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedStatus, setSelectedStatus] = useState("All");
@@ -61,10 +53,6 @@ export default function VendorServicesPage() {
     }
   };
 
-  /**
-   * Strictly load services ONLY from live Supabase DB via GET /api/v1/vendor/services
-   * NO local storage fallbacks, NO demo arrays, NO mock cards.
-   */
   const fetchDataFromDb = async (vId: string) => {
     setIsLoading(true);
     try {
@@ -166,7 +154,6 @@ export default function VendorServicesPage() {
         showVendorToast("✓ Service deleted successfully.");
         await fetchDataFromDb(vendorId);
       } else {
-        // Fallback query to parameter DELETE
         await fetch(`/api/v1/vendor/services?id=${encodeURIComponent(id)}`, { method: "DELETE" });
         showVendorToast("✓ Service deleted successfully.");
         await fetchDataFromDb(vendorId);
@@ -225,7 +212,7 @@ export default function VendorServicesPage() {
         showVendorToast("Service saved successfully.");
         await fetchDataFromDb(vendorId);
       } else {
-        setValidationError(res.error?.message || "Failed to save service into Supabase database.");
+        setValidationError(res.error?.message || "Failed to save service into database.");
       }
     } catch (err: any) {
       setValidationError("Network error saving service to database.");
@@ -242,101 +229,12 @@ export default function VendorServicesPage() {
   });
 
   return (
-<<<<<<< HEAD
-    <div className="min-h-screen bg-[#FAF7F2] text-[#2D2926]">
-      {/* Top Banner Header */}
-      <header className="bg-[#0F4C45] text-white py-10 px-6 sm:px-12 shadow-lg">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-          <div>
-            <div className="flex items-center gap-3 mb-2">
-              <span className="text-xs uppercase tracking-widest text-[#C5A880] font-semibold bg-[#0F4C45]/80 px-3 py-1 rounded-full border border-[#C5A880]/30">
-                Phase 6 Engine
-              </span>
-              <span className="text-xs text-white/70">Multi-Category Services & Catalog</span>
-            </div>
-            <h1 className="font-serif text-3xl sm:text-4xl font-bold tracking-tight text-[#FAF7F2]">
-              Services & Catalog Management
-            </h1>
-            <p className="text-sm text-white/80 mt-1 max-w-xl">
-              Manage your service offerings, tiered pricing packages, and physical inventory catalog across all 11 vendor categories.
-            </p>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <Link
-              href="/vendor/profile/customize"
-              className="bg-white/10 hover:bg-white/20 text-white px-4 py-2.5 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all border border-white/20"
-            >
-              Category Schema
-            </Link>
-            <button
-              onClick={handleOpenCreateModal}
-              className="bg-[#C5A880] hover:bg-[#b09268] text-[#0F4C45] font-bold px-5 py-2.5 rounded-xl text-xs uppercase tracking-wider transition-all shadow-md flex items-center gap-2 cursor-pointer"
-            >
-              <span className="material-symbols-outlined text-[18px]">add</span>
-              Add {activeTab === "services" ? "Service" : activeTab === "packages" ? "Package" : "Product"}
-            </button>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Container */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-        {/* Navigation Tabs & Search Controls */}
-        <div className="bg-white rounded-2xl p-4 shadow-sm border border-[#E5DEC9] flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div className="flex items-center gap-2 bg-[#FAF7F2] p-1.5 rounded-xl border border-[#E5DEC9]/60">
-            <Link
-              href="/vendor/services?tab=services"
-              className={`px-5 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
-                activeTab === "services"
-                  ? "bg-[#0F4C45] text-white shadow-md"
-                  : "text-[#7A7570] hover:text-[#0F4C45]"
-              }`}
-            >
-              Services ({services.length})
-            </Link>
-            <Link
-              href="/vendor/services?tab=packages"
-              className={`px-5 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
-                activeTab === "packages"
-                  ? "bg-[#0F4C45] text-white shadow-md"
-                  : "text-[#7A7570] hover:text-[#0F4C45]"
-              }`}
-            >
-              Packages ({packages.length})
-            </Link>
-            <Link
-              href="/vendor/services?tab=catalog"
-              className={`px-5 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
-                activeTab === "catalog"
-                  ? "bg-[#0F4C45] text-white shadow-md"
-                  : "text-[#7A7570] hover:text-[#0F4C45]"
-              }`}
-            >
-              Catalog Inventory ({catalog.length})
-            </Link>
-          </div>
-
-          <div className="relative w-full md:w-72">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={`Search ${activeTab}...`}
-              className="w-full pl-10 pr-4 py-2.5 bg-[#FAF7F2] border border-[#E5DEC9] rounded-xl text-xs text-[#2D2926] placeholder:text-[#A79B8B] focus:outline-none focus:border-[#0F4C45]"
-            />
-            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-[#8E7D62]">
-              search
-            </span>
-          </div>
-=======
     <div className="space-y-8 animate-in fade-in duration-500 font-sans pb-12">
       {/* Page Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between border-b border-gold/15 pb-6 gap-4">
         <div>
           <h1 className="text-3xl lg:text-4xl font-display font-bold text-charcoal">Vendor Services</h1>
-          <p className="text-sm text-charcoal/70 mt-1">Manage your service offerings, custom pricing tiers, and public storefront availability directly from Supabase database.</p>
->>>>>>> 3023f2cd567a8ea45f66e0f949275c92824e98d3
+          <p className="text-sm text-charcoal/70 mt-1">Manage your service offerings, custom pricing tiers, and public storefront availability.</p>
         </div>
 
         <button
@@ -392,7 +290,7 @@ export default function VendorServicesPage() {
 
       {/* Large Service Cards Grid or Professional Empty State */}
       {isLoading ? (
-        <div className="text-center py-16 text-xs text-charcoal/60">Querying vendor_services table from Supabase database...</div>
+        <div className="text-center py-16 text-xs text-charcoal/60">Loading services...</div>
       ) : filteredServices.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredServices.map((service) => (
@@ -463,8 +361,8 @@ export default function VendorServicesPage() {
       ) : (
         <div className="text-center py-16 bg-white rounded-2xl border border-gold/15 p-8">
           <ShoppingBag className="w-12 h-12 text-gold mx-auto mb-3 opacity-50" />
-          <h3 className="text-xl font-display font-bold text-charcoal">No Services Found in Database</h3>
-          <p className="text-xs text-charcoal/60 max-w-sm mx-auto mt-1">Add your first service offering to insert a record into the vendor_services Supabase table.</p>
+          <h3 className="text-xl font-display font-bold text-charcoal">No Services Found</h3>
+          <p className="text-xs text-charcoal/60 max-w-sm mx-auto mt-1">Add your first service offering to present to users.</p>
           <button onClick={handleOpenCreateModal} className="mt-4 bg-[#0F4C45] text-white px-6 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider shadow-md cursor-pointer">
             + Create Service
           </button>
@@ -572,7 +470,7 @@ export default function VendorServicesPage() {
                   disabled={isSubmitting}
                   className="px-6 py-2.5 rounded-xl bg-[#0F4C45] text-white text-xs font-bold uppercase tracking-wider hover:bg-[#135951] shadow-md cursor-pointer disabled:opacity-50"
                 >
-                  {isSubmitting ? "Saving to Database..." : "Save Service"}
+                  {isSubmitting ? "Saving..." : "Save Service"}
                 </button>
               </div>
             </form>

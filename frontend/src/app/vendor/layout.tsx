@@ -20,7 +20,7 @@ export default function VendorLayout({ children }: { children: ReactNode }) {
 
   if (isAuthPage) {
     return (
-      <div className="min-h-screen bg-[#FAF7F2] flex flex-col justify-between">
+      <div className="min-h-screen bg-[#FAF7F2] flex flex-col justify-between font-sans">
         <div className="flex-1 flex flex-col">
           {children}
         </div>
@@ -29,63 +29,31 @@ export default function VendorLayout({ children }: { children: ReactNode }) {
     );
   }
 
-<<<<<<< HEAD
-  // Standalone full-width screens (Navigation Hub, Overview, Profile, Collections & Pricing, Offers, Analytics, Subscription, Customize Store) without sidebar or public footer
+  // Standalone full-width screens (Navigation Hub, Overview, Profile, Collections, Offers, Analytics, Subscription, Customize Store)
   if (isNavigationHub || isStandaloneOverview || isStandaloneProfile || isStandalonePackages || isStandaloneOffers || isStandaloneAnalytics || isStandaloneSubscription || isStandaloneCustomizeStore) {
     return (
-      <div className="min-h-screen bg-[#FAF7F2] flex flex-col font-sans">
+      <div className="min-h-screen bg-[#FAF7F2] flex flex-col font-sans justify-between">
         <main className="flex-1 py-6 px-4 sm:px-6 lg:px-8 max-w-[1200px] mx-auto w-full">
           {children}
         </main>
+        <VendorToast />
       </div>
     );
   }
 
   // Dedicated Management Sub-Pages: Render Sidebar on the left and sub-page content on the right
   return (
-    <div className="min-h-screen bg-[#FAF7F2] flex flex-col font-sans">
-      <main className="flex-1 py-6 px-4 sm:px-6 lg:px-8 max-w-[1400px] mx-auto w-full">
-        <div className="flex flex-col lg:flex-row gap-8">
-          <VendorSidebar />
-          {/* Main Content Area */}
-          <div className="flex-1 min-w-0">
-            {children}
-=======
-  return (
     <div className="min-h-screen bg-[#FAF7F2] flex flex-col justify-between font-sans">
       <main className="flex-1 py-6 lg:py-10 px-4 sm:px-6 lg:px-8 max-w-[1600px] mx-auto w-full">
-        {isNavigationHub ? (
-          <>
-            {/* Mobile View (<1024px): Render standalone mobile profile menu screen */}
-            <div className="block lg:hidden">
-              {children}
-            </div>
-
-            {/* Desktop View (>=1024px): Render Sidebar + Overview Dashboard */}
-            <div className="hidden lg:flex flex-row gap-8">
-              <VendorSidebar />
-              <div className="flex-1 min-w-0">
-                {children}
-              </div>
-            </div>
-          </>
-        ) : (
-          /* Dedicated Sub-Pages: Mobile shows stack, Desktop shows 280px Sidebar + Content */
-          <div className="flex flex-col lg:flex-row gap-8">
-            <VendorSidebar />
-            <div className="flex-1 min-w-0">
-              {children}
-            </div>
->>>>>>> 3023f2cd567a8ea45f66e0f949275c92824e98d3
+        <div className="flex flex-col lg:flex-row gap-8">
+          <VendorSidebar />
+          <div className="flex-1 min-w-0">
+            {children}
           </div>
-        )}
+        </div>
       </main>
-<<<<<<< HEAD
-=======
-      
       <Footer />
       <VendorToast />
->>>>>>> 3023f2cd567a8ea45f66e0f949275c92824e98d3
     </div>
   );
 }
