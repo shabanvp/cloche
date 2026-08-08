@@ -254,6 +254,7 @@ export async function PUT(req: Request) {
 
       if (logoMediaId) profilePayload.logo_media_id = logoMediaId;
       if (coverMediaId) profilePayload.cover_media_id = coverMediaId;
+      if (profile.gstNumber || profile.gst_number) profilePayload.gst_number = profile.gstNumber || profile.gst_number;
 
       await fetch(`${url}/rest/v1/vendor_profiles?vendor_id=eq.${encodeURIComponent(vendorId)}`, {
         method: "PATCH",

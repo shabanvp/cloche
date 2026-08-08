@@ -482,6 +482,7 @@ export async function POST(req: Request) {
         pincode: pincode || null,
         logo_media_id: logoMediaId,
         cover_media_id: coverMediaId,
+        gst_number: (body.gst_number || null)?.toString().trim() || null,
         rating: 0.0,
         review_count: 0,
         starting_price: null,
