@@ -31,29 +31,41 @@ export function VendorSidebar() {
   const router = useRouter();
 
   const isAuthPage = pathname === "/vendor/login" || pathname === "/vendor/register";
-  const [vendorData, setVendorData] = useState<any>(null);
-  const [completionPercentage, setCompletionPercentage] = useState<number>(85);
+  const [vendorData, setVendorData] = useState<any>(() => getActiveVendorIdentity());
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [completionPercentage, setCompletionPercentage] = useState<number | null>(null);
 
   const loadVendorProfile = async () => {
-    const identity = await fetchAuthenticatedVendorFromDb();
-    setVendorData(identity);
-
-    // Calculate dynamic completion
-    let servicesCount = 0;
-    let packagesCount = 0;
-    let galleryCount = 0;
+    const cached = getActiveVendorIdentity();
+    if (cached && cached.id) {
+      setVendorData(cached);
+      setCompletionPercentage(cached.profile_completion_percentage || null);
+    }
 
     try {
-      const rawServices = localStorage.getItem("cloche_vendor_services");
-      if (rawServices) servicesCount = JSON.parse(rawServices).length;
-      const rawPackages = localStorage.getItem("cloche_vendor_packages");
-      if (rawPackages) packagesCount = JSON.parse(rawPackages).length;
-      const rawGallery = localStorage.getItem("cloche_vendor_gallery");
-      if (rawGallery) galleryCount = JSON.parse(rawGallery).length;
-    } catch (e) {}
+      const identity = await fetchAuthenticatedVendorFromDb();
+      if (identity && identity.id) {
+        setVendorData(identity);
 
-    const calculated = calculateDynamicProfileCompletion(identity, servicesCount, packagesCount, galleryCount);
-    setCompletionPercentage(calculated);
+        let servicesCount = 0;
+        let packagesCount = 0;
+        let galleryCount = 0;
+
+        try {
+          const rawServices = localStorage.getItem("cloche_vendor_services");
+          if (rawServices) servicesCount = JSON.parse(rawServices).length;
+          const rawPackages = localStorage.getItem("cloche_vendor_packages");
+          if (rawPackages) packagesCount = JSON.parse(rawPackages).length;
+          const rawGallery = localStorage.getItem("cloche_vendor_gallery");
+          if (rawGallery) galleryCount = JSON.parse(rawGallery).length;
+        } catch (e) {}
+
+        const calculated = calculateDynamicProfileCompletion(identity, servicesCount, packagesCount, galleryCount);
+        setCompletionPercentage(calculated);
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -76,8 +88,11 @@ export function VendorSidebar() {
 
   if (isAuthPage) return null;
 
+  const hasVendorRecord = Boolean(vendorData && vendorData.id);
   const category = vendorData?.category || "";
-  const name = vendorData?.name || vendorData?.boutique_name || "No vendor profile found";
+  const name = hasVendorRecord
+    ? (vendorData?.name || vendorData?.boutique_name || "Vendor Partner")
+    : (isLoading ? "" : "No vendor profile found");
   const initial = name ? name.charAt(0).toUpperCase() : "?";
   const logoUrl = vendorData?.logo || vendorData?.logo_url || "";
   const plan = vendorData?.plan || "Vendor Partner";
@@ -118,39 +133,53 @@ export function VendorSidebar() {
         
         {/* Vendor Header Profile Info */}
         <div className="p-6 border-b border-gold/15 bg-[#FAF7F2]/80 text-center relative">
-          <div className="w-20 h-20 rounded-full mx-auto mb-3 flex items-center justify-center overflow-hidden border-2 border-gold/30 bg-white shadow-md">
-            {isValidLogo ? (
-              <img src={logoUrl} alt={name} className="w-full h-full object-cover" />
-            ) : (
-              <div className="w-full h-full bg-[#0F4C45] text-white text-2xl font-bold font-serif flex items-center justify-center">
-                {initial}
+          {isLoading && !hasVendorRecord ? (
+            /* Loading Skeleton State */
+            <div className="animate-pulse flex flex-col items-center">
+              <div className="w-20 h-20 rounded-full bg-gold/20 mb-3" />
+              <div className="h-5 w-32 bg-gold/20 rounded mb-2" />
+              <div className="h-3 w-20 bg-gold/15 rounded mb-4" />
+              <div className="w-full bg-gold/15 h-2 rounded-full mt-2" />
+            </div>
+          ) : (
+            <>
+              <div className="w-20 h-20 rounded-full mx-auto mb-3 flex items-center justify-center overflow-hidden border-2 border-gold/30 bg-white shadow-md">
+                {isValidLogo ? (
+                  <img src={logoUrl} alt={name} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full bg-[#0F4C45] text-white text-2xl font-bold font-serif flex items-center justify-center">
+                    {initial}
+                  </div>
+                )}
               </div>
-            )}
-          </div>
 
-          <h3 className="font-display font-bold text-lg text-charcoal truncate px-2">{name}</h3>
-          <p className="text-xs font-semibold uppercase tracking-wider text-charcoal/60 mt-0.5">{category}</p>
-          
-          {/* Premium Badge */}
-          <div className="mt-2.5 flex items-center justify-center gap-1">
-            <span className="inline-flex items-center gap-1 bg-[#0F4C45] text-[#C8A96A] text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full shadow-xs">
-              <Star className="w-3 h-3 fill-[#C8A96A] text-[#C8A96A]" /> {plan}
-            </span>
-          </div>
+              <h3 className="font-display font-bold text-lg text-charcoal truncate px-2">{name}</h3>
+              {category && <p className="text-xs font-semibold uppercase tracking-wider text-charcoal/60 mt-0.5">{category}</p>}
+              
+              {/* Premium Badge */}
+              <div className="mt-2.5 flex items-center justify-center gap-1">
+                <span className="inline-flex items-center gap-1 bg-[#0F4C45] text-[#C8A96A] text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full shadow-xs">
+                  <Star className="w-3 h-3 fill-[#C8A96A] text-[#C8A96A]" /> {plan}
+                </span>
+              </div>
 
-          {/* Profile Completion Bar (Calculated Dynamically) */}
-          <div className="mt-4 pt-3 border-t border-gold/10">
-            <div className="flex items-center justify-between text-[11px] font-bold text-charcoal/70 mb-1.5">
-              <span>Profile Completion</span>
-              <span className="text-[#0F4C45]">{completionPercentage}%</span>
-            </div>
-            <div className="w-full bg-gold/20 h-2 rounded-full overflow-hidden">
-              <div 
-                className="bg-[#0F4C45] h-full rounded-full transition-all duration-500" 
-                style={{ width: `${completionPercentage}%` }}
-              ></div>
-            </div>
-          </div>
+              {/* Profile Completion Bar */}
+              {completionPercentage !== null && (
+                <div className="mt-4 pt-3 border-t border-gold/10">
+                  <div className="flex items-center justify-between text-[11px] font-bold text-charcoal/70 mb-1.5">
+                    <span>Profile Completion</span>
+                    <span className="text-[#0F4C45]">{completionPercentage}%</span>
+                  </div>
+                  <div className="w-full bg-gold/20 h-2 rounded-full overflow-hidden">
+                    <div 
+                      className="bg-[#0F4C45] h-full rounded-full transition-all duration-500" 
+                      style={{ width: `${completionPercentage}%` }}
+                    ></div>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
         </div>
 
         {/* Navigation Items */}

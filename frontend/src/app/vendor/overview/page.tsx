@@ -20,11 +20,11 @@ import {
   MapPin,
   MessageSquare
 } from "lucide-react";
-import { fetchAuthenticatedVendorFromDb, calculateDynamicProfileCompletion } from "@/lib/vendorStore";
+import { fetchAuthenticatedVendorFromDb, getActiveVendorIdentity, calculateDynamicProfileCompletion } from "@/lib/vendorStore";
 
 export default function VendorOverviewPage() {
-  const [vendorData, setVendorData] = useState<any>(null);
-  const [completionPercentage, setCompletionPercentage] = useState<number>(85);
+  const [vendorData, setVendorData] = useState<any>(() => getActiveVendorIdentity());
+  const [completionPercentage, setCompletionPercentage] = useState<number | null>(null);
   const [leads, setLeads] = useState<any[]>([]);
   const [servicesCount, setServicesCount] = useState<number>(0);
   const [packagesCount, setPackagesCount] = useState<number>(0);
@@ -45,8 +45,18 @@ export default function VendorOverviewPage() {
   }, []);
 
   const loadOverviewData = async () => {
+    const cached = getActiveVendorIdentity();
+    if (cached && cached.id) {
+      setVendorData(cached);
+      setCompletionPercentage(cached.profile_completion_percentage || null);
+    }
+
     setIsLoading(true);
-    const active = await fetchAuthenticatedVendorFromDb();
+    let active = cached;
+    try {
+      const live = await fetchAuthenticatedVendorFromDb();
+      if (live && live.id) active = live;
+    } catch (_) {}
     setVendorData(active);
 
     let fetchedServicesCount = 0;
@@ -60,39 +70,48 @@ export default function VendorOverviewPage() {
       if (sRes.success && Array.isArray(sRes.data)) {
         fetchedServicesCount = sRes.data.length;
       }
+    } catch (e) {}
 
+    try {
       // 2. Fetch Packages count
       const pRes = await fetch("/api/v1/vendor/packages").then((r) => r.json());
       if (pRes.success && Array.isArray(pRes.data)) {
         fetchedPackagesCount = pRes.data.length;
       }
+    } catch (e) {}
 
+    try {
       // 3. Fetch Gallery count
       const gRes = await fetch("/api/v1/vendor/gallery").then((r) => r.json());
       if (gRes.success && Array.isArray(gRes.data)) {
         fetchedGalleryCount = gRes.data.length;
       }
+    } catch (e) {}
 
-      // 4. Fetch Leads
+    try {
+      // 4. Fetch Leads count
       const lRes = await fetch("/api/v1/vendor/leads").then((r) => r.json());
       if (lRes.success && Array.isArray(lRes.data)) {
         fetchedLeads = lRes.data;
       }
-    } catch (e) {
-      console.error("[VendorOverviewPage] Error loading live DB data:", e);
-    }
+    } catch (e) {}
 
     setServicesCount(fetchedServicesCount);
     setPackagesCount(fetchedPackagesCount);
     setGalleryCount(fetchedGalleryCount);
     setLeads(fetchedLeads);
 
-    const completion = calculateDynamicProfileCompletion(active, fetchedServicesCount, fetchedPackagesCount, fetchedGalleryCount);
-    setCompletionPercentage(completion);
+    if (active && active.id) {
+      const completion = calculateDynamicProfileCompletion(active, fetchedServicesCount, fetchedPackagesCount, fetchedGalleryCount);
+      setCompletionPercentage(completion);
+    }
     setIsLoading(false);
   };
 
-  const businessName = vendorData?.boutique_name || vendorData?.name || "No vendor profile found";
+  const hasVendorRecord = Boolean(vendorData && vendorData.id);
+  const businessName = hasVendorRecord
+    ? (vendorData?.boutique_name || vendorData?.name || "Vendor Partner")
+    : (isLoading ? "" : "No vendor profile found");
   const category = vendorData?.category || "";
   const city = vendorData?.district || vendorData?.city || "";
 

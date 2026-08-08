@@ -23,39 +23,14 @@ export async function requireAuthenticatedVendor(req: Request): Promise<VendorAu
     };
   }
 
-  let resolvedUserId = user.userId;
+  // Single fast OR query to resolve vendor ID without sequential roundtrips
+  const filter = user.email
+    ? `or=(user_id.eq.${encodeURIComponent(user.userId)},id.eq.${encodeURIComponent(user.userId)},email.eq.${encodeURIComponent(user.email)})`
+    : `or=(user_id.eq.${encodeURIComponent(user.userId)},id.eq.${encodeURIComponent(user.userId)})`;
 
-  if (user.email) {
-    const userRes = await supabaseFetch(`users?email=eq.${encodeURIComponent(user.email)}&select=id`);
-    if (!userRes.error && Array.isArray(userRes.data) && userRes.data[0]?.id) {
-      resolvedUserId = userRes.data[0].id;
-    }
-  }
-
-  let vendorRes = await supabaseFetch(
-    `vendors?user_id=eq.${encodeURIComponent(resolvedUserId)}&deleted_at=is.null&select=id`
+  const vendorRes = await supabaseFetch(
+    `vendors?${filter}&deleted_at=is.null&select=id&limit=1`
   );
-
-  if (!vendorRes.error && (!Array.isArray(vendorRes.data) || vendorRes.data.length === 0)) {
-    vendorRes = await supabaseFetch(
-      `vendors?user_id=eq.${encodeURIComponent(user.userId)}&deleted_at=is.null&select=id`
-    );
-  }
-
-  if (!vendorRes.error && (!Array.isArray(vendorRes.data) || vendorRes.data.length === 0) && user.email) {
-    const emailVendorRes = await supabaseFetch(
-      `vendors?email=eq.${encodeURIComponent(user.email)}&deleted_at=is.null&select=id`
-    );
-    if (!emailVendorRes.error) {
-      vendorRes = emailVendorRes;
-    }
-  }
-
-  if (!vendorRes.error && (!Array.isArray(vendorRes.data) || vendorRes.data.length === 0)) {
-    vendorRes = await supabaseFetch(
-      `vendors?id=eq.${encodeURIComponent(user.userId)}&deleted_at=is.null&select=id`
-    );
-  }
 
   if (vendorRes.error) {
     return {

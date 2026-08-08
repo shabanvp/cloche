@@ -36,11 +36,20 @@ export default function VendorPackagesPage() {
   }, []);
 
   const loadVendorData = async () => {
+    const cached = getActiveVendorIdentity();
+    if (cached && cached.id) {
+      setVendorId(cached.id);
+      setVendorCategory(cached.category || "");
+      setBusinessName(cached.boutique_name || cached.name || "");
+      fetchPackages(cached.id);
+    }
     const active = await fetchAuthenticatedVendorFromDb();
-    setVendorId(active.id);
-    setVendorCategory(active.category || "");
-    setBusinessName(active.boutique_name || active.name || "No vendor profile found");
-    fetchPackages(active.id);
+    if (active && active.id && (!cached || active.id !== cached.id)) {
+      setVendorId(active.id);
+      setVendorCategory(active.category || "");
+      setBusinessName(active.boutique_name || active.name || "");
+      fetchPackages(active.id);
+    }
   };
 
   const fetchPackages = async (vId: string) => {

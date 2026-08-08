@@ -32,9 +32,10 @@ export async function GET(req: Request) {
       );
     }
 
-    const vendorRes = await fetch(`${url}/rest/v1/vendors?id=eq.${encodeURIComponent(auth.vendorId)}&select=*`, {
-      headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
-    });
+    const vendorRes = await fetch(
+      `${url}/rest/v1/vendors?id=eq.${encodeURIComponent(auth.vendorId)}&select=*,vendor_profiles(*),vendor_contacts(*),vendor_addresses(*),vendor_categories(id,name,slug),vendor_social_links(*)`,
+      { headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` } }
+    );
 
     const vendors = vendorRes.ok ? await vendorRes.json() : [];
     if (!Array.isArray(vendors) || vendors.length === 0) {
@@ -45,33 +46,11 @@ export async function GET(req: Request) {
     }
 
     const vendor = vendors[0];
-    const [profileRes, contactsRes, addressesRes, categoryRes, socialRes] = await Promise.all([
-      fetch(`${url}/rest/v1/vendor_profiles?vendor_id=eq.${encodeURIComponent(vendor.id)}&select=*`, {
-        headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
-      }).catch(() => null),
-      fetch(`${url}/rest/v1/vendor_contacts?vendor_id=eq.${encodeURIComponent(vendor.id)}&order=is_primary.desc,created_at.asc&select=*`, {
-        headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
-      }).catch(() => null),
-      fetch(`${url}/rest/v1/vendor_addresses?vendor_id=eq.${encodeURIComponent(vendor.id)}&order=created_at.asc&select=*`, {
-        headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
-      }).catch(() => null),
-      vendor.category_id
-        ? fetch(`${url}/rest/v1/vendor_categories?id=eq.${encodeURIComponent(vendor.category_id)}&select=id,name,slug`, {
-            headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
-          }).catch(() => null)
-        : Promise.resolve(null),
-      fetch(`${url}/rest/v1/vendor_social_links?vendor_id=eq.${encodeURIComponent(vendor.id)}&select=*`, {
-        headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
-      }).catch(() => null),
-    ]);
-
-    const profileRows = profileRes && profileRes.ok ? await profileRes.json() : [];
-    const contacts = contactsRes && contactsRes.ok ? await contactsRes.json() : [];
-    const addresses = addressesRes && addressesRes.ok ? await addressesRes.json() : [];
-    const categories = categoryRes && categoryRes.ok ? await categoryRes.json() : [];
-    const socialLinks = socialRes && socialRes.ok ? await socialRes.json() : [];
-    const profile = Array.isArray(profileRows) && profileRows.length > 0 ? profileRows[0] : null;
-    const category = Array.isArray(categories) && categories.length > 0 ? categories[0] : null;
+    const profile = Array.isArray(vendor.vendor_profiles) && vendor.vendor_profiles.length > 0 ? vendor.vendor_profiles[0] : null;
+    const contacts = Array.isArray(vendor.vendor_contacts) ? vendor.vendor_contacts : [];
+    const addresses = Array.isArray(vendor.vendor_addresses) ? vendor.vendor_addresses : [];
+    const category = vendor.vendor_categories || null;
+    const socialLinks = Array.isArray(vendor.vendor_social_links) ? vendor.vendor_social_links : [];
     const categorySlug = category?.slug || vendor.category || "general";
     const extensionTable = getCategoryTable(categorySlug);
 

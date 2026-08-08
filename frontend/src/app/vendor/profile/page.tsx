@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Store, Camera, MapPin, Link as LinkIcon, Phone, CheckCircle2, Building2, Clock, Globe, Save, AlertCircle } from "lucide-react";
 import { Button } from "@/components/Button";
-import { fetchAuthenticatedVendorFromDb, syncVendorProfileWithDatabase, showVendorToast } from "@/lib/vendorStore";
+import { fetchAuthenticatedVendorFromDb, getActiveVendorIdentity, syncVendorProfileWithDatabase, showVendorToast } from "@/lib/vendorStore";
 
 export default function VendorProfile() {
   const [vendorId, setVendorId] = useState<string>("");
@@ -30,22 +30,33 @@ export default function VendorProfile() {
     loadProfile();
   }, []);
 
+  const populateFields = (active: any) => {
+    if (!active) return;
+    if (active.id) setVendorId(active.id);
+    if (active.boutique_name || active.name) setBoutiqueName(active.boutique_name || active.name);
+    if (active.logo || active.logo_url) setLogo(active.logo || active.logo_url);
+    if (active.coverImage || active.cover_image) setCoverImage(active.coverImage || active.cover_image);
+    if (active.description) setDescription(active.description);
+    if (active.whatsapp || active.phone) setWhatsapp(active.whatsapp || active.phone);
+    if (active.email) setEmail(active.email);
+    if (active.instagram) setInstagram(active.instagram);
+    if (active.website) setWebsite(active.website);
+    if (active.address) setAddress(active.address);
+    if (active.district || active.city) setDistrict(active.district || active.city);
+    if (active.category) setCategory(active.category);
+    if (active.workingHours || active.working_hours) setWorkingHours(active.workingHours || active.working_hours);
+    if (active.serviceAreas || active.service_areas) setServiceAreas(active.serviceAreas || active.service_areas);
+  };
+
   const loadProfile = async () => {
+    const cached = getActiveVendorIdentity();
+    if (cached && cached.id) {
+      populateFields(cached);
+    }
     const active = await fetchAuthenticatedVendorFromDb();
-    setVendorId(active.id || "");
-    setBoutiqueName(active.boutique_name || active.name || "");
-    setLogo(active.logo || active.logo_url || "");
-    setCoverImage(active.coverImage || active.cover_image || "");
-    setDescription(active.description || "");
-    setWhatsapp(active.whatsapp || active.phone || "");
-    setEmail(active.email || "");
-    setInstagram(active.instagram || "");
-    setWebsite(active.website || "");
-    setAddress(active.address || "");
-    setDistrict(active.district || active.city || "");
-    setCategory(active.category || "");
-    setWorkingHours(active.workingHours || active.working_hours || "");
-    setServiceAreas(active.serviceAreas || active.service_areas || "");
+    if (active && active.id) {
+      populateFields(active);
+    }
   };
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {

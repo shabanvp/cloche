@@ -37,9 +37,16 @@ export default function VendorServicesPage() {
   }, []);
 
   const loadVendorData = async () => {
+    const cached = getActiveVendorIdentity();
+    if (cached && cached.id) {
+      setVendorId(cached.id);
+      fetchDataFromDb(cached.id);
+    }
     const active = await fetchAuthenticatedVendorFromDb();
-    setVendorId(active.id);
-    fetchDataFromDb(active.id);
+    if (active && active.id && (!cached || active.id !== cached.id)) {
+      setVendorId(active.id);
+      fetchDataFromDb(active.id);
+    }
   };
 
   /**
