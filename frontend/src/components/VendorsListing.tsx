@@ -131,7 +131,17 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
             const normName = (item.boutique_name || item.name || "").toLowerCase().trim();
             if (itemKey && normName && !mergedMap.has(itemKey) && !seenNames.has(normName)) {
               seenNames.add(normName);
-              const logoSrc = item.logo || item.logo_url || item.profile_logo || item.image_url || item.image || "";
+              const logoSrc =
+                item.coverImage ||
+                item.cover_image ||
+                item.cover_url ||
+                item.logoUrl ||
+                item.logo ||
+                item.logo_url ||
+                item.profile_logo ||
+                item.image_url ||
+                item.image ||
+                "";
               mergedMap.set(itemKey, {
                 id: itemKey,
                 boutique_name: item.boutique_name || item.name || "Wedding Vendor",
@@ -300,10 +310,16 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
               const category = resolveCategory(boutique);
 
               const rawLogo = (
+                (boutique as any).coverImage ||
+                (boutique as any).cover_image ||
+                (boutique as any).cover_url ||
+                (boutique as any).coverMediaUrl ||
+                (boutique as any).logoUrl ||
                 (boutique as any).logo ||
                 (boutique as any).logo_url ||
                 (boutique as any).profile_logo ||
                 boutique.image_url ||
+                (boutique as any).image ||
                 ""
               ).toString().trim();
 
