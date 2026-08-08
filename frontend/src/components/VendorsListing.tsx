@@ -278,16 +278,10 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
         })}
       </div>
 
-      {/* ── Vendors List ── */}
-      <div
-        className="flex-1 mx-4 mb-28 rounded-2xl overflow-hidden"
-        style={{
-          background: "#FFFFFF",
-          boxShadow: "0 4px 20px rgba(15,76,69,0.07)",
-        }}
-      >
+      {/* ── Vendors Grid ── */}
+      <div className="flex-1 mx-4 mb-28">
         {filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center px-6">
+          <div className="flex flex-col items-center justify-center py-20 text-center px-6 rounded-2xl bg-white border border-[#F0E8D8] shadow-xs">
             <Users className="h-10 w-10 mb-4" style={{ color: "#C8A96A" }} />
             <p
               className="font-display text-[20px]"
@@ -300,11 +294,10 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
             </p>
           </div>
         ) : (
-          <ul>
-            {filtered.map((boutique, idx) => {
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
+            {filtered.map((boutique) => {
               const isWishlisted = wishlist.has(boutique.id);
               const category = resolveCategory(boutique);
-              const isLast = idx === filtered.length - 1;
 
               const rawLogo = (
                 (boutique as any).logo ||
@@ -325,104 +318,84 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
               const displayRating = boutique.rating ? boutique.rating.toFixed(1) : "New";
 
               return (
-                <li key={boutique.id}>
-                  <Link
-                    href={`/boutiques/${boutique.id}`}
-                    className="flex items-center gap-4 px-4 py-4 transition-colors active:bg-[#F5F0E8]/60"
-                    style={{ display: "flex" }}
+                <div
+                  key={boutique.id}
+                  className="group relative flex flex-col rounded-2xl overflow-hidden bg-white border border-[#F0E8D8] shadow-xs hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
+                >
+                  {/* Wishlist Heart Button Overlay */}
+                  <button
+                    onClick={(e) => toggleWishlist(e, boutique)}
+                    className="absolute top-2.5 right-2.5 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/85 backdrop-blur-md shadow-xs transition-transform active:scale-90 hover:bg-white"
+                    aria-label={
+                      isWishlisted
+                        ? "Remove from wishlist"
+                        : "Add to wishlist"
+                    }
                   >
-                    {/* Circular avatar */}
-                    <div
-                      className="relative shrink-0 rounded-full overflow-hidden flex items-center justify-center"
+                    <Heart
+                      className="h-4.5 w-4.5 transition-colors"
                       style={{
-                        width: "64px",
-                        height: "64px",
-                        border: "2px solid #F0E8D8",
-                        background: isValidLogoUrl ? "transparent" : "#0F4C45",
+                        color: isWishlisted ? "#E8614A" : "#1A1410",
+                        fill: isWishlisted ? "#E8614A" : "none",
+                        strokeWidth: 2,
                       }}
-                    >
+                    />
+                  </button>
+
+                  <Link href={`/boutiques/${boutique.id}`} className="flex flex-col flex-1">
+                    {/* Photo / Initial Banner Container */}
+                    <div className="relative aspect-[4/3] w-full overflow-hidden bg-[#0F4C45]">
                       {isValidLogoUrl ? (
                         <Image
                           src={rawLogo}
                           alt={boutique.boutique_name}
                           fill
-                          sizes="64px"
-                          className="object-cover"
+                          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                          className="object-cover group-hover:scale-105 transition-transform duration-500"
                           unoptimized={rawLogo.startsWith("data:")}
                         />
                       ) : (
-                        <span className="font-display text-[22px] font-bold" style={{ color: "#F0E8D8" }}>
-                          {initialLetter}
-                        </span>
+                        <div className="flex h-full w-full items-center justify-center bg-[#0F4C45] text-[#F0E8D8]">
+                          <span className="font-display text-3xl sm:text-4xl font-bold tracking-wider">
+                            {initialLetter}
+                          </span>
+                        </div>
                       )}
                     </div>
 
-                    {/* Info */}
-                    <div className="flex-1 min-w-0">
-                      <p
-                        className="font-display text-[16px] font-semibold leading-tight truncate"
-                        style={{ color: "#1A1410" }}
-                      >
+                    {/* Card Content Info */}
+                    <div className="flex flex-col flex-1 p-3 sm:p-4">
+                      <h3 className="font-display text-[15px] sm:text-[17px] font-bold text-[#1A1410] leading-tight truncate group-hover:text-[#0F4C45] transition-colors">
                         {boutique.boutique_name}
-                      </p>
-                      <p
-                        className="mt-0.5 text-[13px]"
-                        style={{ color: "#7A6E65" }}
-                      >
+                      </h3>
+                      <p className="mt-0.5 text-[12px] sm:text-[13px] text-[#7A6E65] truncate">
                         {category}
                       </p>
-                      <div className="mt-1.5 flex items-center gap-1.5">
-                        <Star
-                          className="h-3.5 w-3.5 fill-current"
-                          style={{ color: "#C8A96A" }}
-                        />
-                        <span
-                          className="text-[13px] font-semibold"
-                          style={{ color: "#1A1410" }}
-                        >
-                          {displayRating}
-                        </span>
-                        <span
-                          className="text-[12px]"
-                          style={{ color: "#9A8D7D" }}
-                        >
-                          {reviewCountVal > 0 ? `(${reviewCountVal})` : "(New)"}
-                        </span>
+
+                      <div className="mt-auto pt-2.5 flex items-center justify-between">
+                        <div className="flex items-center gap-1.5">
+                          <Star
+                            className="h-3.5 w-3.5 fill-[#C8A96A] text-[#C8A96A]"
+                          />
+                          <span className="text-[13px] font-bold text-[#1A1410]">
+                            {displayRating}
+                          </span>
+                          <span className="text-[12px] text-[#9A8D7D]">
+                            {reviewCountVal > 0 ? `(${reviewCountVal})` : "(New)"}
+                          </span>
+                        </div>
+                        {boutique.district && (
+                          <span className="text-[11px] font-medium text-[#7A6E65] truncate max-w-[80px]">
+                            {boutique.district}
+                          </span>
+                        )}
                       </div>
                     </div>
-
-                    {/* Heart */}
-                    <button
-                      onClick={(e) => toggleWishlist(e, boutique)}
-                      className="shrink-0 flex h-8 w-8 items-center justify-center rounded-full transition-transform active:scale-90"
-                      aria-label={
-                        isWishlisted
-                          ? "Remove from wishlist"
-                          : "Add to wishlist"
-                      }
-                    >
-                      <Heart
-                        className="h-5 w-5 transition-colors"
-                        style={{
-                          color: isWishlisted ? "#E8614A" : "#C8A96A",
-                          fill: isWishlisted ? "#E8614A" : "none",
-                          strokeWidth: 1.8,
-                        }}
-                      />
-                    </button>
                   </Link>
-
-                  {/* Divider (not on last) */}
-                  {!isLast && (
-                    <div
-                      className="mx-4"
-                      style={{ height: "1px", background: "#F0E8D8" }}
-                    />
-                  )}
-                </li>
+                </div>
               );
             })}
-          </ul>
+          </div>
         )}
       </div>
 
