@@ -240,8 +240,9 @@ export async function saveOfferToDb(offerRecord: Record<string, any>) {
   });
 }
 
-export async function deleteOfferFromDb(offerId: string) {
-  return supabaseFetch(`offers?id=eq.${encodeURIComponent(offerId)}`, {
+export async function deleteOfferFromDb(offerId: string, vendorId?: string) {
+  const vendorFilter = vendorId ? `&vendor_id=eq.${encodeURIComponent(vendorId)}` : "";
+  return supabaseFetch(`offers?id=eq.${encodeURIComponent(offerId)}${vendorFilter}`, {
     method: "DELETE",
   });
 }
@@ -306,8 +307,9 @@ export async function saveMakeupServiceToDb(serviceRecord: Record<string, any>) 
   });
 }
 
-export async function deleteMakeupServiceFromDb(id: string) {
-  return supabaseFetch(`makeup_services?id=eq.${encodeURIComponent(id)}`, {
+export async function deleteMakeupServiceFromDb(id: string, vendorId?: string) {
+  const vendorFilter = vendorId ? `&vendor_id=eq.${encodeURIComponent(vendorId)}` : "";
+  return supabaseFetch(`makeup_services?id=eq.${encodeURIComponent(id)}${vendorFilter}`, {
     method: "DELETE",
   });
 }
@@ -320,8 +322,9 @@ export async function saveMakeupPackageToDb(packageRecord: Record<string, any>) 
   });
 }
 
-export async function deleteMakeupPackageFromDb(id: string) {
-  return supabaseFetch(`makeup_packages?id=eq.${encodeURIComponent(id)}`, {
+export async function deleteMakeupPackageFromDb(id: string, vendorId?: string) {
+  const vendorFilter = vendorId ? `&vendor_id=eq.${encodeURIComponent(vendorId)}` : "";
+  return supabaseFetch(`makeup_packages?id=eq.${encodeURIComponent(id)}${vendorFilter}`, {
     method: "DELETE",
   });
 }
@@ -334,8 +337,9 @@ export async function saveMakeupPortfolioToDb(portfolioRecord: Record<string, an
   });
 }
 
-export async function deleteMakeupPortfolioFromDb(id: string) {
-  return supabaseFetch(`makeup_portfolio?id=eq.${encodeURIComponent(id)}`, {
+export async function deleteMakeupPortfolioFromDb(id: string, vendorId?: string) {
+  const vendorFilter = vendorId ? `&vendor_id=eq.${encodeURIComponent(vendorId)}` : "";
+  return supabaseFetch(`makeup_portfolio?id=eq.${encodeURIComponent(id)}${vendorFilter}`, {
     method: "DELETE",
   });
 }
@@ -348,8 +352,9 @@ export async function saveMakeupVideoToDb(videoRecord: Record<string, any>) {
   });
 }
 
-export async function deleteMakeupVideoFromDb(id: string) {
-  return supabaseFetch(`makeup_videos?id=eq.${encodeURIComponent(id)}`, {
+export async function deleteMakeupVideoFromDb(id: string, vendorId?: string) {
+  const vendorFilter = vendorId ? `&vendor_id=eq.${encodeURIComponent(vendorId)}` : "";
+  return supabaseFetch(`makeup_videos?id=eq.${encodeURIComponent(id)}${vendorFilter}`, {
     method: "DELETE",
   });
 }
@@ -362,8 +367,9 @@ export async function saveMakeupFaqToDb(faqRecord: Record<string, any>) {
   });
 }
 
-export async function deleteMakeupFaqFromDb(id: string) {
-  return supabaseFetch(`makeup_faqs?id=eq.${encodeURIComponent(id)}`, {
+export async function deleteMakeupFaqFromDb(id: string, vendorId?: string) {
+  const vendorFilter = vendorId ? `&vendor_id=eq.${encodeURIComponent(vendorId)}` : "";
+  return supabaseFetch(`makeup_faqs?id=eq.${encodeURIComponent(id)}${vendorFilter}`, {
     method: "DELETE",
   });
 }
@@ -376,8 +382,9 @@ export async function saveMakeupAwardToDb(awardRecord: Record<string, any>) {
   });
 }
 
-export async function deleteMakeupAwardFromDb(id: string) {
-  return supabaseFetch(`makeup_awards?id=eq.${encodeURIComponent(id)}`, {
+export async function deleteMakeupAwardFromDb(id: string, vendorId?: string) {
+  const vendorFilter = vendorId ? `&vendor_id=eq.${encodeURIComponent(vendorId)}` : "";
+  return supabaseFetch(`makeup_awards?id=eq.${encodeURIComponent(id)}${vendorFilter}`, {
     method: "DELETE",
   });
 }
@@ -398,8 +405,9 @@ export async function saveVendorServiceToDb(record: Record<string, any>) {
   });
 }
 
-export async function softDeleteVendorServiceFromDb(id: string) {
-  return supabaseFetch(`vendor_services?id=eq.${encodeURIComponent(id)}`, {
+export async function softDeleteVendorServiceFromDb(id: string, vendorId?: string) {
+  const vendorFilter = vendorId ? `&vendor_id=eq.${encodeURIComponent(vendorId)}` : "";
+  return supabaseFetch(`vendor_services?id=eq.${encodeURIComponent(id)}${vendorFilter}`, {
     method: "PATCH",
     body: JSON.stringify({ deleted_at: new Date().toISOString(), is_active: false }),
   });
@@ -417,8 +425,9 @@ export async function saveVendorPackageToDb(record: Record<string, any>) {
   });
 }
 
-export async function softDeleteVendorPackageFromDb(id: string) {
-  return supabaseFetch(`vendor_service_packages?id=eq.${encodeURIComponent(id)}`, {
+export async function softDeleteVendorPackageFromDb(id: string, vendorId?: string) {
+  const vendorFilter = vendorId ? `&vendor_id=eq.${encodeURIComponent(vendorId)}` : "";
+  return supabaseFetch(`vendor_service_packages?id=eq.${encodeURIComponent(id)}${vendorFilter}`, {
     method: "PATCH",
     body: JSON.stringify({ deleted_at: new Date().toISOString(), is_active: false }),
   });
@@ -436,8 +445,9 @@ export async function saveVendorCatalogItemToDb(record: Record<string, any>) {
   });
 }
 
-export async function softDeleteVendorCatalogItemFromDb(id: string) {
-  return supabaseFetch(`vendor_catalog_items?id=eq.${encodeURIComponent(id)}`, {
+export async function softDeleteVendorCatalogItemFromDb(id: string, vendorId?: string) {
+  const vendorFilter = vendorId ? `&vendor_id=eq.${encodeURIComponent(vendorId)}` : "";
+  return supabaseFetch(`vendor_catalog_items?id=eq.${encodeURIComponent(id)}${vendorFilter}`, {
     method: "PATCH",
     body: JSON.stringify({ deleted_at: new Date().toISOString(), is_available: false }),
   });
@@ -550,12 +560,13 @@ export async function saveVendorGalleryItemInDb(item: {
   return res;
 }
 
-export async function deleteVendorGalleryItemInDb(id: string) {
+export async function deleteVendorGalleryItemInDb(id: string, vendorId?: string) {
   const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   if (!UUID_REGEX.test(id)) return { data: null, error: null };
+  const vendorFilter = vendorId ? `&vendor_id=eq.${encodeURIComponent(vendorId)}` : "";
 
   try {
-    const existingRes = await supabaseFetch(`vendor_gallery?id=eq.${encodeURIComponent(id)}&select=media_id,media(public_id)`);
+    const existingRes = await supabaseFetch(`vendor_gallery?id=eq.${encodeURIComponent(id)}${vendorFilter}&select=media_id,media(public_id)`);
     if (!existingRes.error && Array.isArray(existingRes.data) && existingRes.data.length > 0) {
       const pubId = existingRes.data[0].media?.public_id;
       if (pubId) {
@@ -564,7 +575,7 @@ export async function deleteVendorGalleryItemInDb(id: string) {
     }
   } catch (e) {}
 
-  return supabaseFetch(`vendor_gallery?id=eq.${encodeURIComponent(id)}`, {
+  return supabaseFetch(`vendor_gallery?id=eq.${encodeURIComponent(id)}${vendorFilter}`, {
     method: "DELETE",
   });
 }
@@ -589,8 +600,9 @@ export async function saveLeadToDb(record: Record<string, any>) {
   });
 }
 
-export async function updateLeadStatusInDb(id: string, status: string) {
-  return supabaseFetch(`leads?id=eq.${encodeURIComponent(id)}`, {
+export async function updateLeadStatusInDb(id: string, status: string, vendorId?: string) {
+  const vendorFilter = vendorId ? `&vendor_id=eq.${encodeURIComponent(vendorId)}` : "";
+  return supabaseFetch(`leads?id=eq.${encodeURIComponent(id)}${vendorFilter}`, {
     method: "PATCH",
     headers: { Prefer: "return=representation" },
     body: JSON.stringify({ status, updated_at: new Date().toISOString() }),

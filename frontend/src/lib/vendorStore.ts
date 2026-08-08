@@ -1,7 +1,5 @@
 "use client";
 
-import { fetchVendorProfileFromDb, saveVendorProfileInDb } from "./supabase";
-
 export interface VendorProfileData {
   id: string;
   user_id?: string;
@@ -189,20 +187,45 @@ export async function syncVendorProfileWithDatabase(updatedFields: Partial<Vendo
   const completion = calculateDynamicProfileCompletion(merged);
   merged.profile_completion_percentage = completion;
 
-  // 2. Persist to Supabase Database
+  // 2. Persist to Supabase Database through the authenticated vendor API
   try {
-    const dbRes = await saveVendorProfileInDb(merged.id, merged);
-    console.log("[syncVendorProfileWithDatabase] Supabase DB Save Result:", dbRes);
+    const dbRes = await fetch("/api/v1/vendor/profile", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({
+        profile: {
+          businessName: merged.boutique_name || merged.name,
+          about: merged.description,
+          city: merged.city || merged.district,
+          state: merged.district,
+          startingPrice: (updatedFields as any).startingPrice,
+          instagram: merged.instagram,
+          website: merged.website,
+        },
+        contact: {
+          phone: merged.phone || merged.whatsapp,
+          whatsapp: merged.whatsapp || merged.phone,
+          email: merged.email,
+          instagram: merged.instagram,
+          website: merged.website,
+        },
+        address: {
+          address: merged.address,
+          city: merged.city || merged.district,
+          state: merged.district,
+        },
+        categoryDetails: {},
+        changeSummary: "Vendor profile updated",
+      }),
+    });
 
-    // Verification: Fetch back from DB to verify saved == retrieved
-    const verifyRes = await fetchVendorProfileFromDb(merged.id);
-    if (!verifyRes.error && verifyRes.data) {
-      console.log("[syncVendorProfileWithDatabase] Verification Passed. DB Record:", verifyRes.data);
-    } else {
-      console.warn("[syncVendorProfileWithDatabase] Verification Warning (using local merge):", verifyRes.error);
+    if (!dbRes.ok) {
+      const errJson = await dbRes.json().catch(() => ({}));
+      console.warn("[syncVendorProfileWithDatabase] Profile API warning:", errJson);
     }
   } catch (err: any) {
-    console.error("[syncVendorProfileWithDatabase] Supabase DB Save Error:", err);
+    console.error("[syncVendorProfileWithDatabase] Profile API save error:", err);
   }
 
   // 3. Update local caches for single-source-of-truth across components & pages

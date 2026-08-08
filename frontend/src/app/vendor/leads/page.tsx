@@ -87,12 +87,21 @@ export default function VendorLeadsPage() {
 
   const handleConvertToBooking = async (lead: LeadItem) => {
     try {
+      const quotesRes = await fetch("/api/v1/vendor/quotations").then((r) => r.json());
+      const quotation = Array.isArray(quotesRes.data)
+        ? quotesRes.data.find((q: any) => String(q.lead_id) === String(lead.id))
+        : null;
+
+      if (!quotation?.id) {
+        alert("Create a quotation for this lead before converting it into a booking.");
+        return;
+      }
+
       const res = await fetch("/api/v1/vendor/bookings/convert", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          quotation_id: `q-demo-${lead.id}`,
-          vendor_id: "v-demo-vendor",
+          quotation_id: quotation.id,
         }),
       });
 

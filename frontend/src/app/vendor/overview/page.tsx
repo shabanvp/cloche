@@ -20,8 +20,7 @@ import {
   MapPin,
   MessageSquare
 } from "lucide-react";
-import { fetchAuthenticatedVendorFromDb, getActiveVendorIdentity, calculateDynamicProfileCompletion } from "@/lib/vendorStore";
-import { fetchVendorLeadsFromDb, fetchVendorServicesFromDb, fetchVendorPackagesFromDb, fetchVendorGalleryFromDb } from "@/lib/supabase";
+import { fetchAuthenticatedVendorFromDb, calculateDynamicProfileCompletion } from "@/lib/vendorStore";
 
 export default function VendorOverviewPage() {
   const [vendorData, setVendorData] = useState<any>(null);
@@ -57,26 +56,26 @@ export default function VendorOverviewPage() {
 
     try {
       // 1. Fetch Services count
-      const sRes = await fetchVendorServicesFromDb(active.id);
-      if (!sRes.error && Array.isArray(sRes.data)) {
+      const sRes = await fetch("/api/v1/vendor/services").then((r) => r.json());
+      if (sRes.success && Array.isArray(sRes.data)) {
         fetchedServicesCount = sRes.data.length;
       }
 
       // 2. Fetch Packages count
-      const pRes = await fetchVendorPackagesFromDb(active.id);
-      if (!pRes.error && Array.isArray(pRes.data)) {
+      const pRes = await fetch("/api/v1/vendor/packages").then((r) => r.json());
+      if (pRes.success && Array.isArray(pRes.data)) {
         fetchedPackagesCount = pRes.data.length;
       }
 
       // 3. Fetch Gallery count
-      const gRes = await fetchVendorGalleryFromDb(active.id);
-      if (!gRes.error && Array.isArray(gRes.data)) {
+      const gRes = await fetch("/api/v1/vendor/gallery").then((r) => r.json());
+      if (gRes.success && Array.isArray(gRes.data)) {
         fetchedGalleryCount = gRes.data.length;
       }
 
       // 4. Fetch Leads
-      const lRes = await fetchVendorLeadsFromDb(active.id);
-      if (!lRes.error && Array.isArray(lRes.data)) {
+      const lRes = await fetch("/api/v1/vendor/leads").then((r) => r.json());
+      if (lRes.success && Array.isArray(lRes.data)) {
         fetchedLeads = lRes.data;
       }
     } catch (e) {

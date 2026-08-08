@@ -1,30 +1,15 @@
 import { NextResponse } from "next/server";
 import { saveVendorServiceToDb, softDeleteVendorServiceFromDb, supabaseFetch } from "@/lib/supabase";
+import { requireAuthenticatedVendor, vendorOwnsRecord } from "@/lib/vendorAuth";
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const DEFAULT_VENDOR_UUID = "7a51b1c0-c15b-42ed-aec2-fd5caf6b471c";
-
-async function resolveVendorUuid(rawId?: string | null): Promise<string> {
-  if (rawId && UUID_REGEX.test(rawId)) {
-    return rawId;
-  }
-
-  if (rawId && rawId !== "v-registered" && rawId !== "v-demo-vendor") {
-    try {
-      const res = await supabaseFetch(`vendors?or=(id.eq.${encodeURIComponent(rawId)},user_id.eq.${encodeURIComponent(rawId)})&select=id`);
-      if (!res.error && Array.isArray(res.data) && res.data.length > 0 && res.data[0].id) {
-        return res.data[0].id;
-      }
-    } catch (e) {}
-  }
-
-  return DEFAULT_VENDOR_UUID;
-}
 
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const auth = await requireAuthenticatedVendor(req);
+    if (auth.response) return auth.response;
     const { id } = await params;
-    const { data, error } = await supabaseFetch(`vendor_services?id=eq.${encodeURIComponent(id)}&select=*,vendor_service_images(*)`);
+    const { data, error } = await supabaseFetch(`vendor_services?id=eq.${encodeURIComponent(id)}&vendor_id=eq.${encodeURIComponent(auth.vendorId)}&select=*,vendor_service_images(*)`);
 
     if (error || !data || data.length === 0) {
       return NextResponse.json(
@@ -47,10 +32,18 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const auth = await requireAuthenticatedVendor(req);
+    if (auth.response) return auth.response;
     const { id } = await params;
     const body = await req.json();
 
-    const resolvedVendorId = await resolveVendorUuid(body.vendor_id);
+    const resolvedVendorId = auth.vendorId;
+    if (!(await vendorOwnsRecord("vendor_services", id, resolvedVendorId))) {
+      return NextResponse.json(
+        { success: false, statusCode: 404, error: { code: "NOT_FOUND", message: "Service not found." } },
+        { status: 404 }
+      );
+    }
 
     const payload: Record<string, any> = {
       vendor_id: resolvedVendorId,
@@ -103,8 +96,10 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
 
 export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const auth = await requireAuthenticatedVendor(req);
+    if (auth.response) return auth.response;
     const { id } = await params;
-    const { error } = await softDeleteVendorServiceFromDb(id);
+    const { error } = await softDeleteVendorServiceFromDb(id, auth.vendorId);
 
     if (error) {
       return NextResponse.json(

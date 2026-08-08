@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
 import { fetchVendorGalleryFromDb, saveVendorGalleryItemInDb, deleteVendorGalleryItemInDb } from "@/lib/supabase";
+import { requireAuthenticatedVendor } from "@/lib/vendorAuth";
 
 export async function GET(req: Request) {
   try {
-    const { searchParams } = new URL(req.url);
-    const vendorId = searchParams.get("vendor_id") || "7a51b1c0-c15b-42ed-aec2-fd5caf6b471c";
+    const auth = await requireAuthenticatedVendor(req);
+    if (auth.response) return auth.response;
+    const vendorId = auth.vendorId;
 
     const { data, error } = await fetchVendorGalleryFromDb(vendorId);
 
@@ -29,8 +31,10 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
+    const auth = await requireAuthenticatedVendor(req);
+    if (auth.response) return auth.response;
     const body = await req.json();
-    const { vendor_id, title, image_url, is_cover } = body;
+    const { title, image_url, is_cover } = body;
 
     if (!image_url) {
       return NextResponse.json(
@@ -40,7 +44,7 @@ export async function POST(req: Request) {
     }
 
     const res = await saveVendorGalleryItemInDb({
-      vendor_id: vendor_id || "7a51b1c0-c15b-42ed-aec2-fd5caf6b471c",
+      vendor_id: auth.vendorId,
       title: title || "Studio Showcase Photo",
       image_url: image_url,
       is_cover: Boolean(is_cover),
@@ -77,7 +81,10 @@ export async function DELETE(req: Request) {
       );
     }
 
-    const { error } = await deleteVendorGalleryItemInDb(id);
+    const auth = await requireAuthenticatedVendor(req);
+    if (auth.response) return auth.response;
+
+    const { error } = await deleteVendorGalleryItemInDb(id, auth.vendorId);
 
     if (error) {
       return NextResponse.json(

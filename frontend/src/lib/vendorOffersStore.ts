@@ -1,7 +1,5 @@
 "use client";
 
-import { fetchOffersFromDb, saveOfferToDb, deleteOfferFromDb as deleteOfferFromSupabase } from "./supabase";
-
 export type OfferType =
   | "percentage"
   | "flat"
@@ -119,6 +117,54 @@ export function getVendorOffers(vendorId: string = "v-registered"): VendorOffer[
   }
 }
 
+function mapDbOffer(row: any): VendorOffer {
+  return {
+    id: String(row.id),
+    vendorId: String(row.vendor_id),
+    name: row.name || "Offer",
+    type: row.offer_type || "percentage",
+    discountType: row.discount_type || "percentage",
+    discountValue: String(row.discount_value || "0"),
+    packageIds: Array.isArray(row.package_ids) ? row.package_ids : ["all"],
+    couponCode: row.coupon_code || "",
+    banner: row.banner_url || "",
+    mobileBanner: row.mobile_banner_url || row.banner_url || "",
+    squareBanner: row.square_banner_url || row.banner_url || "",
+    status: row.status || "active",
+    startDate: row.start_date || new Date().toISOString().split("T")[0],
+    endDate: row.end_date || new Date().toISOString().split("T")[0],
+    bookingWindow: row.booking_window || "",
+    maxRedemptions: Number(row.max_redemptions || 0),
+    currentRedemptions: Number(row.current_redemptions || 0),
+    perCustomerLimit: Number(row.per_customer_limit || 0),
+    minBookingAmount: Number(row.min_booking_amount || 0),
+    minGuests: Number(row.min_guests || 0),
+    applicableDays: Array.isArray(row.applicable_days) ? row.applicable_days : [],
+    blackoutDates: Array.isArray(row.blackout_dates) ? row.blackout_dates : [],
+    ctaText: row.cta_text || "Claim Offer",
+    isFeatured: Boolean(row.is_featured),
+    isFlashSale: Boolean(row.is_flash_sale),
+    flashSaleEndsAt: row.flash_sale_ends_at || undefined,
+    termsAndConditions: row.terms_and_conditions || "",
+    analytics: row.analytics || { views: 0, clicks: 0, bookings: 0, revenue: 0 },
+    createdAt: row.created_at || new Date().toISOString(),
+    updatedAt: row.updated_at || row.created_at || new Date().toISOString(),
+  };
+}
+
+export async function loadVendorOffersFromDb(vendorId: string): Promise<VendorOffer[]> {
+  if (typeof window === "undefined") return [];
+  try {
+    const res = await fetch("/api/v1/vendor/offers").then((r) => r.json());
+    if (!res.success || !Array.isArray(res.data)) return getVendorOffers(vendorId);
+    const offers = res.data.map(mapDbOffer);
+    persistOffersToStorage(vendorId, offers);
+    return offers;
+  } catch (e) {
+    return getVendorOffers(vendorId);
+  }
+}
+
 /**
  * Save or update a vendor offer in DB & storage
  */
@@ -182,9 +228,11 @@ export function saveVendorOffer(offer: Partial<VendorOffer> & { name: string; ve
 
   // Sync to Supabase DB
   try {
-    saveOfferToDb({
+    fetch("/api/v1/vendor/offers", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
       id: newOfferObj.id,
-      vendor_id: newOfferObj.vendorId,
       name: newOfferObj.name,
       offer_type: newOfferObj.type,
       discount_type: newOfferObj.discountType,
@@ -196,7 +244,8 @@ export function saveVendorOffer(offer: Partial<VendorOffer> & { name: string; ve
       end_date: newOfferObj.endDate,
       is_featured: newOfferObj.isFeatured,
       is_flash_sale: newOfferObj.isFlashSale,
-    });
+      }),
+    }).catch(() => null);
   } catch (e) {}
 
   return newOfferObj;
@@ -210,7 +259,7 @@ export function deleteVendorOffer(offerId: string, vendorId: string = "v-registe
   const filtered = existing.filter((o) => o.id !== offerId);
   persistOffersToStorage(vendorId, filtered);
   try {
-    deleteOfferFromSupabase(offerId);
+    fetch(`/api/v1/vendor/offers?id=${encodeURIComponent(offerId)}`, { method: "DELETE" }).catch(() => null);
   } catch (e) {}
   return true;
 }
@@ -222,6 +271,13 @@ export function toggleOfferStatus(offerId: string, status: OfferStatus, vendorId
   const existing = getVendorOffers(vendorId);
   const updated = existing.map((o) => (o.id === offerId ? { ...o, status, updatedAt: new Date().toISOString() } : o));
   persistOffersToStorage(vendorId, updated);
+  try {
+    fetch("/api/v1/vendor/offers", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: offerId, status }),
+    }).catch(() => null);
+  } catch (e) {}
   return true;
 }
 
@@ -236,6 +292,14 @@ export function toggleFeaturedOffer(offerId: string, vendorId: string = "v-regis
     updatedAt: new Date().toISOString(),
   }));
   persistOffersToStorage(vendorId, updated);
+  const target = updated.find((o) => o.id === offerId);
+  try {
+    fetch("/api/v1/vendor/offers", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: offerId, is_featured: Boolean(target?.isFeatured) }),
+    }).catch(() => null);
+  } catch (e) {}
   return true;
 }
 

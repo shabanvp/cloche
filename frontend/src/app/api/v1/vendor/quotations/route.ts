@@ -7,11 +7,13 @@ import {
   saveLeadActivityToDb,
 } from "@/lib/supabase";
 import { notificationService } from "@/lib/notifications";
+import { requireAuthenticatedVendor, vendorOwnsLead } from "@/lib/vendorAuth";
 
 export async function GET(req: Request) {
   try {
-    const { searchParams } = new URL(req.url);
-    const vendorId = searchParams.get("vendor_id") || "v-demo-vendor";
+    const auth = await requireAuthenticatedVendor(req);
+    if (auth.response) return auth.response;
+    const vendorId = auth.vendorId;
 
     const { data, error } = await fetchVendorQuotationsFromDb(vendorId);
 
@@ -38,10 +40,11 @@ export async function POST(req: Request) {
   const logPrefix = "[QUOTATION_API]";
 
   try {
+    const auth = await requireAuthenticatedVendor(req);
+    if (auth.response) return auth.response;
     const body = await req.json();
     const {
       lead_id,
-      vendor_id,
       quotation_number,
       revision_number,
       subtotal,
@@ -61,6 +64,13 @@ export async function POST(req: Request) {
       );
     }
 
+    if (!(await vendorOwnsLead(lead_id, auth.vendorId))) {
+      return NextResponse.json(
+        { success: false, statusCode: 404, error: { code: "NOT_FOUND", message: "Lead not found." } },
+        { status: 404 }
+      );
+    }
+
     const calcSubtotal = Number(subtotal) || items.reduce((acc, item) => acc + (Number(item.quantity || 1) * Number(item.unit_price || 0)), 0);
     const calcDiscount = Number(discount_amount || 0);
     const afterDiscount = Math.max(0, calcSubtotal - calcDiscount);
@@ -73,7 +83,7 @@ export async function POST(req: Request) {
 
     const payload = {
       lead_id,
-      vendor_id: vendor_id || "v-demo-vendor",
+      vendor_id: auth.vendorId,
       quotation_number: `${autoQuoteNum}-R${revNum}`,
       revision_number: revNum,
       subtotal: calcSubtotal,
@@ -131,7 +141,7 @@ export async function POST(req: Request) {
       await saveQuotationItemsToDb(lineItemRecords).catch(() => null);
 
       // Auto Update Lead Status to 'quotation_sent'
-      await updateLeadStatusInDb(lead_id, "quotation_sent").catch(() => null);
+      await updateLeadStatusInDb(lead_id, "quotation_sent", auth.vendorId).catch(() => null);
 
       // Automatically Log Activity Timeline
       await saveLeadActivityToDb(

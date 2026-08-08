@@ -3,8 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Eye, Inbox, Calendar, TrendingUp, Users, ShoppingBag, BarChart3 } from "lucide-react";
-import { fetchAuthenticatedVendorFromDb, getActiveVendorIdentity } from "@/lib/vendorStore";
-import { fetchVendorServicesFromDb, fetchVendorLeadsFromDb } from "@/lib/supabase";
+import { fetchAuthenticatedVendorFromDb } from "@/lib/vendorStore";
 
 export default function VendorAnalyticsPage() {
   const [businessName, setBusinessName] = useState("Vendor Partner");
@@ -25,16 +24,13 @@ export default function VendorAnalyticsPage() {
   const loadAnalytics = async (vId: string) => {
     setIsLoading(true);
     try {
-      const sRes = await fetchVendorServicesFromDb(vId);
-      if (!sRes.error && Array.isArray(sRes.data)) {
+      const sRes = await fetch("/api/v1/vendor/services").then((r) => r.json());
+      if (sRes.success && Array.isArray(sRes.data)) {
         setServicesCount(sRes.data.length);
-      } else {
-        const cached = localStorage.getItem("cloche_vendor_services");
-        if (cached) setServicesCount(JSON.parse(cached).length);
       }
 
-      const lRes = await fetchVendorLeadsFromDb(vId);
-      if (!lRes.error && Array.isArray(lRes.data)) {
+      const lRes = await fetch("/api/v1/vendor/leads").then((r) => r.json());
+      if (lRes.success && Array.isArray(lRes.data)) {
         setLeadsCount(lRes.data.length);
       }
     } catch (e) {

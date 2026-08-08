@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Search, Phone, Mail, Clock, Calendar, MessageSquare, FileText, Send, User } from "lucide-react";
-import { fetchAuthenticatedVendorFromDb, getActiveVendorIdentity, showVendorToast } from "@/lib/vendorStore";
-import { fetchVendorLeadsFromDb, updateLeadStatusInDb, saveLeadNoteToDb } from "@/lib/supabase";
+import { fetchAuthenticatedVendorFromDb, showVendorToast } from "@/lib/vendorStore";
 
 interface LeadItem {
   id: string;
@@ -23,7 +22,7 @@ export default function VendorEnquiries() {
   const [selectedLeadId, setSelectedLeadId] = useState<string>("101");
   const [activeTab, setActiveTab] = useState<"details" | "notes" | "timeline" | "quotation" | "messages">("details");
   const [noteText, setNoteText] = useState("");
-  const [savedNotes, setSavedNotes] = useState<string[]>(["Called customer on Aug 4th. Expressed interest in bridal collection."]);
+  const [savedNotes, setSavedNotes] = useState<string[]>([]);
   const [quotationAmount, setQuotationAmount] = useState("125000");
   const [enquiries, setEnquiries] = useState<LeadItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -41,49 +40,21 @@ export default function VendorEnquiries() {
   const loadLeads = async (vId: string) => {
     setIsLoading(true);
     try {
-      const res = await fetchVendorLeadsFromDb(vId);
-      let loaded: LeadItem[] = [];
-      if (!res.error && Array.isArray(res.data) && res.data.length > 0) {
-        loaded = res.data.map((l: any) => ({
-          id: String(l.id),
-          name: l.name || l.customer_name || "Client Lead",
-          phone: l.phone || l.customer_phone || "+919876543210",
-          email: l.email || l.customer_email || "client@example.com",
-          date: l.created_at ? new Date(l.created_at).toLocaleDateString("en-IN") : "Today",
-          type: l.event_type || l.service_type || "Bridal Shoot & Makeover Suite",
-          status: l.status || "New Inquiry",
-          notes: l.notes || l.requirement || "Customer looking for wedding vendor services.",
-          eventDate: l.event_date || "15 Oct 2026",
-          budget: l.budget || "₹1,50,000",
-        }));
-      } else {
-        loaded = [
-          {
-            id: "101",
-            name: "Anjali Menon",
-            phone: "+91 9876543210",
-            email: "anjali@example.com",
-            date: "Today, 10:30 AM",
-            type: "Bridal Shoot & Makeover Suite",
-            status: "New Inquiry",
-            eventDate: "15 Oct 2026",
-            budget: "₹1,50,000 - ₹2,00,000",
-            notes: "Looking for full bridal HD airbrush makeup, saree draping, and cinematic photography for 500 guests."
-          },
-          {
-            id: "102",
-            name: "Priya Sharma",
-            phone: "+91 9123456780",
-            email: "priya@example.com",
-            date: "Yesterday, 4:15 PM",
-            type: "Outdoor Destination Photography",
-            status: "Pending Reply",
-            eventDate: "20 Nov 2026",
-            budget: "₹2,50,000",
-            notes: "Interested in full-day 4K video shoot with drone highlights at Kumarakom Lake Resort."
-          },
-        ];
-      }
+      const res = await fetch("/api/v1/vendor/leads").then((r) => r.json());
+      const loaded: LeadItem[] = res.success && Array.isArray(res.data)
+        ? res.data.map((l: any) => ({
+            id: String(l.id),
+            name: l.name || l.customer_name || "Client Lead",
+            phone: l.phone || l.customer_phone || "",
+            email: l.email || l.customer_email || "",
+            date: l.created_at ? new Date(l.created_at).toLocaleDateString("en-IN") : "",
+            type: l.event_type || l.service_type || "",
+            status: l.status || "New Inquiry",
+            notes: l.notes || l.requirement || "",
+            eventDate: l.event_date || "",
+            budget: l.budget || "",
+          }))
+        : [];
       setEnquiries(loaded);
       if (loaded.length > 0) setSelectedLeadId(loaded[0].id);
     } catch (e) {
@@ -92,7 +63,6 @@ export default function VendorEnquiries() {
       setIsLoading(false);
     }
   };
-
   const activeLead = enquiries.find((e) => e.id === selectedLeadId) || enquiries[0];
 
   const handleAddNote = async () => {
@@ -103,9 +73,13 @@ export default function VendorEnquiries() {
 
     if (activeLead) {
       try {
-        await saveLeadNoteToDb({
-          lead_id: activeLead.id,
-          note_text: noteText.trim(),
+        await fetch("/api/v1/vendor/leads/notes", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            lead_id: activeLead.id,
+            note_text: noteText.trim(),
+          }),
         });
       } catch (e) {}
     }
@@ -124,7 +98,11 @@ export default function VendorEnquiries() {
     showVendorToast(`✓ Lead status updated to "${newStatus}"`);
 
     try {
-      await updateLeadStatusInDb(activeLead.id, newStatus);
+      await fetch(`/api/v1/vendor/leads/${encodeURIComponent(activeLead.id)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      });
     } catch (e) {}
   };
 

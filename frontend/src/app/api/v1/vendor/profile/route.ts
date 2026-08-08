@@ -235,7 +235,71 @@ export async function PUT(req: Request) {
       });
     }
 
-    // 3. Upsert Category Specific Extension Details
+    // 3. Upsert contact, address, and social details for the authenticated vendor
+    if (contact && typeof contact === "object") {
+      await fetch(`${url}/rest/v1/vendor_contacts`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: apiKey,
+          Authorization: `Bearer ${apiKey}`,
+          Prefer: "resolution=merge-duplicates",
+        },
+        body: JSON.stringify({
+          vendor_id: vendorId,
+          phone: contact.phone || null,
+          whatsapp: contact.whatsapp || contact.phone || null,
+          email: contact.email || null,
+          is_primary: true,
+          updated_at: new Date().toISOString(),
+        }),
+      }).catch(() => null);
+    }
+
+    if (address && typeof address === "object") {
+      await fetch(`${url}/rest/v1/vendor_addresses`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: apiKey,
+          Authorization: `Bearer ${apiKey}`,
+          Prefer: "resolution=merge-duplicates",
+        },
+        body: JSON.stringify({
+          vendor_id: vendorId,
+          address_line1: address.addressLine1 || address.address || null,
+          city: address.city || profile?.city || null,
+          state: address.state || profile?.state || null,
+          pincode: address.pincode || null,
+          updated_at: new Date().toISOString(),
+        }),
+      }).catch(() => null);
+    }
+
+    const socialLinks = [
+      { platform: "instagram", url: profile?.instagram || contact?.instagram },
+      { platform: "website", url: profile?.website || contact?.website },
+    ].filter((link) => link.url);
+
+    for (const link of socialLinks) {
+      await fetch(`${url}/rest/v1/vendor_social_links`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: apiKey,
+          Authorization: `Bearer ${apiKey}`,
+          Prefer: "resolution=merge-duplicates",
+        },
+        body: JSON.stringify({
+          vendor_id: vendorId,
+          platform: link.platform,
+          url: link.url,
+          updated_at: new Date().toISOString(),
+        }),
+      }).catch(() => null);
+    }
+
+    // 4. Upsert Category Specific Extension Details
     if (categoryDetails && typeof categoryDetails === "object") {
       const extPayload = {
         vendor_id: vendorId,
@@ -255,7 +319,7 @@ export async function PUT(req: Request) {
       });
     }
 
-    // 4. Create Draft Version Metadata in vendor_profile_versions
+    // 5. Create Draft Version Metadata in vendor_profile_versions
     const nextVersionNum = Math.floor(Date.now() / 1000);
     const verRes = await fetch(`${url}/rest/v1/vendor_profile_versions`, {
       method: "POST",
@@ -282,7 +346,7 @@ export async function PUT(req: Request) {
       }
     }
 
-    // 5. Store Version Sections Payload
+    // 6. Store Version Sections Payload
     if (versionId) {
       await fetch(`${url}/rest/v1/vendor_profile_version_sections`, {
         method: "POST",
@@ -300,7 +364,7 @@ export async function PUT(req: Request) {
       });
     }
 
-    // 6. Recalculate Profile Completion Percentage
+    // 7. Recalculate Profile Completion Percentage
     let completion = 60;
     if (profile?.business_name || profile?.businessName) completion += 10;
     if (profile?.about || profile?.description) completion += 10;

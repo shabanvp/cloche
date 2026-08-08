@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { Store, Camera, MapPin, Link as LinkIcon, Phone, CheckCircle2, Building2, Clock, Globe, Save, AlertCircle } from "lucide-react";
 import { Button } from "@/components/Button";
 import { fetchAuthenticatedVendorFromDb, syncVendorProfileWithDatabase, showVendorToast } from "@/lib/vendorStore";
-import { fetchVendorProfileFromDb } from "@/lib/supabase";
 
 export default function VendorProfile() {
   const [vendorId, setVendorId] = useState<string>("");
@@ -47,24 +46,6 @@ export default function VendorProfile() {
     setCategory(active.category || "Photography");
     setWorkingHours(active.workingHours || active.working_hours || "Mon – Sat: 10:00 AM – 8:00 PM");
     setServiceAreas(active.serviceAreas || active.service_areas || "Kochi, Trivandrum");
-
-    // Fetch live from Supabase DB to ensure fresh data
-    try {
-      const { data, error } = await fetchVendorProfileFromDb(active.id);
-      if (!error && data) {
-        if (data.boutique_name || data.name) setBoutiqueName(data.boutique_name || data.name);
-        if (data.logo_url || data.logo) setLogo(data.logo_url || data.logo);
-        if (data.cover_image || data.cover) setCoverImage(data.cover_image || data.cover);
-        if (data.description) setDescription(data.description);
-        if (data.phone || data.whatsapp) setWhatsapp(data.phone || data.whatsapp);
-        if (data.email) setEmail(data.email);
-        if (data.address) setAddress(data.address);
-        if (data.district || data.city) setDistrict(data.district || data.city);
-        if (data.category) setCategory(data.category);
-        if (data.working_hours) setWorkingHours(data.working_hours);
-        if (data.service_areas) setServiceAreas(data.service_areas);
-      }
-    } catch (e) {}
   };
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {

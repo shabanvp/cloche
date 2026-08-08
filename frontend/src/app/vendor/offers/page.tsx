@@ -26,6 +26,7 @@ import {
   OfferStatus,
   CouponCode,
   getVendorOffers,
+  loadVendorOffersFromDb,
   saveVendorOffer,
   deleteVendorOffer,
   toggleOfferStatus,
@@ -94,9 +95,11 @@ export default function VendorOffersPage() {
     refreshData(active.id);
   };
 
-  const refreshData = (vId?: string) => {
+  const refreshData = async (vId?: string) => {
     const targetId = vId || vendorId;
     setOffers(getVendorOffers(targetId));
+    const dbOffers = await loadVendorOffersFromDb(targetId);
+    setOffers(dbOffers);
     setCoupons(getVendorCoupons(targetId));
   };
 

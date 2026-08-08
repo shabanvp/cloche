@@ -1,60 +1,21 @@
 import { NextResponse } from "next/server";
 import { supabaseFetch } from "@/lib/supabase";
+import { requireAuthenticatedVendor } from "@/lib/vendorAuth";
 
 // GET /api/vendor/makeup/profile?vendor_id=... or slug=...
 export async function GET(request: Request) {
   try {
-    const { searchParams } = new URL(request.url);
-    const vendorId = searchParams.get("vendor_id");
-    const slug = searchParams.get("slug");
+    const auth = await requireAuthenticatedVendor(request);
+    if (auth.response) return auth.response;
+    const vendorId = auth.vendorId;
 
     let query = "vendors?select=*,makeup_profiles(*)";
-    if (vendorId) {
-      query += `&id=eq.${encodeURIComponent(vendorId)}`;
-    } else if (slug) {
-      query += `&slug=eq.${encodeURIComponent(slug)}`;
-    }
+    query += `&id=eq.${encodeURIComponent(vendorId)}`;
 
     const { data, error } = await supabaseFetch(query);
 
     if (error || !data || data.length === 0) {
-      // Fallback default vendor data if not found in database yet
-      return NextResponse.json({
-        success: true,
-        data: {
-          id: vendorId || "makeup-riya-sharma",
-          slug: slug || "makeup-riya-sharma",
-          business_name: "Riya Sharma Makeovers",
-          owner_name: "Riya Sharma",
-          email: "appointments@riyasharmamakeup.com",
-          phone: "9876543210",
-          whatsapp: "9876543210",
-          city: "Delhi NCR",
-          state: "Delhi",
-          country: "India",
-          verified: true,
-          status: "active",
-          cover_image: "https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=800&q=80",
-          logo: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
-          makeup_profiles: [
-            {
-              about: "With over 8 years of luxury bridal experience, Riya Sharma is celebrated across India for creating timeless, radiant, and customized wedding looks.",
-              philosophy: "Enhancing each bride's unique natural features using HD airbrush technology, skin prep rituals, and global couture standards.",
-              experience_years: 8,
-              response_time: "Within 2 Hours",
-              team_size: 6,
-              languages: ["English", "Hindi", "Punjabi"],
-              cities_served: ["Delhi NCR", "Mumbai", "Jaipur", "Udaipur", "Goa", "Dubai"],
-              destination_wedding: true,
-              products_used: ["Charlotte Tilbury", "MAC", "Dior", "NARS", "Tom Ford", "Huda Beauty"],
-              starting_price: 25000,
-              instagram: "https://instagram.com",
-              website: "https://riyasharmamakeup.com",
-              studio_address: "DLF Phase 5, Golf Course Road, Gurgaon / South Delhi Studio"
-            }
-          ]
-        }
-      });
+      return NextResponse.json({ success: false, error: "Vendor profile not found." }, { status: 404 });
     }
 
     return NextResponse.json({ success: true, data: data[0] });
@@ -66,9 +27,10 @@ export async function GET(request: Request) {
 // POST / PUT /api/vendor/makeup/profile - Create or Update Vendor & Profile
 export async function POST(request: Request) {
   try {
+    const auth = await requireAuthenticatedVendor(request);
+    if (auth.response) return auth.response;
     const body = await request.json();
     const {
-      vendor_id,
       slug,
       business_name,
       owner_name,
@@ -109,7 +71,7 @@ export async function POST(request: Request) {
 
     // 1. Save or Update Vendor record
     const vendorRecord = {
-      ...(vendor_id ? { id: vendor_id } : {}),
+      id: auth.vendorId,
       business_name,
       owner_name: owner_name || business_name,
       slug: vendorSlug,
@@ -131,7 +93,7 @@ export async function POST(request: Request) {
       body: JSON.stringify(vendorRecord)
     });
 
-    const targetVendorId = vData && vData.length > 0 ? vData[0].id : vendor_id;
+    const targetVendorId = auth.vendorId;
 
     // 2. Save or Update Makeup Profile metadata record
     if (targetVendorId) {
@@ -179,12 +141,10 @@ export async function PUT(request: Request) {
 // DELETE /api/vendor/makeup/profile
 export async function DELETE(request: Request) {
   try {
+    const auth = await requireAuthenticatedVendor(request);
+    if (auth.response) return auth.response;
     const { searchParams } = new URL(request.url);
-    const vendorId = searchParams.get("vendor_id");
-
-    if (!vendorId) {
-      return NextResponse.json({ error: "Vendor ID required." }, { status: 400 });
-    }
+    const vendorId = auth.vendorId;
 
     await supabaseFetch(`vendors?id=eq.${encodeURIComponent(vendorId)}`, { method: "DELETE" });
 

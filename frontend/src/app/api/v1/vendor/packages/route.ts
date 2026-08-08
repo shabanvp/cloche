@@ -1,31 +1,14 @@
 import { NextResponse } from "next/server";
-import { fetchVendorPackagesFromDb, saveVendorPackageToDb, softDeleteVendorPackageFromDb, supabaseFetch } from "@/lib/supabase";
+import { fetchVendorPackagesFromDb, saveVendorPackageToDb, softDeleteVendorPackageFromDb } from "@/lib/supabase";
+import { requireAuthenticatedVendor, vendorOwnsRecord } from "@/lib/vendorAuth";
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const DEFAULT_VENDOR_UUID = "7a51b1c0-c15b-42ed-aec2-fd5caf6b471c";
-
-async function resolveVendorUuid(rawId?: string | null): Promise<string> {
-  if (rawId && UUID_REGEX.test(rawId)) {
-    return rawId;
-  }
-
-  if (rawId && rawId !== "v-registered" && rawId !== "v-demo-vendor") {
-    try {
-      const res = await supabaseFetch(`vendors?or=(id.eq.${encodeURIComponent(rawId)},user_id.eq.${encodeURIComponent(rawId)})&select=id`);
-      if (!res.error && Array.isArray(res.data) && res.data.length > 0 && res.data[0].id) {
-        return res.data[0].id;
-      }
-    } catch (e) {}
-  }
-
-  return DEFAULT_VENDOR_UUID;
-}
 
 export async function GET(req: Request) {
   try {
-    const { searchParams } = new URL(req.url);
-    const rawVendorId = searchParams.get("vendor_id");
-    const vendorId = await resolveVendorUuid(rawVendorId);
+    const auth = await requireAuthenticatedVendor(req);
+    if (auth.response) return auth.response;
+    const vendorId = auth.vendorId;
 
     const { data, error } = await fetchVendorPackagesFromDb(vendorId);
 
@@ -50,8 +33,10 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
+    const auth = await requireAuthenticatedVendor(req);
+    if (auth.response) return auth.response;
     const body = await req.json();
-    const { vendor_id, category_id, service_id, name, tagline, description, price, discount_price, features, is_popular, is_active, status } = body;
+    const { category_id, service_id, name, tagline, description, price, discount_price, features, is_popular, is_active, status } = body;
 
     if (!name || price === undefined || price < 0) {
       return NextResponse.json(
@@ -67,7 +52,13 @@ export async function POST(req: Request) {
       parsedFeatures = features.split("\n").map((f) => f.trim()).filter(Boolean);
     }
 
-    const resolvedVendorId = await resolveVendorUuid(vendor_id);
+    const resolvedVendorId = auth.vendorId;
+    if (body.id && UUID_REGEX.test(body.id) && !(await vendorOwnsRecord("vendor_service_packages", body.id, resolvedVendorId))) {
+      return NextResponse.json(
+        { success: false, statusCode: 404, error: { code: "NOT_FOUND", message: "Package not found." } },
+        { status: 404 }
+      );
+    }
 
     const payload: Record<string, any> = {
       vendor_id: resolvedVendorId,
@@ -134,7 +125,10 @@ export async function DELETE(req: Request) {
       );
     }
 
-    const { error } = await softDeleteVendorPackageFromDb(id);
+    const auth = await requireAuthenticatedVendor(req);
+    if (auth.response) return auth.response;
+
+    const { error } = await softDeleteVendorPackageFromDb(id, auth.vendorId);
 
     if (error) {
       return NextResponse.json(
