@@ -73,7 +73,7 @@ export async function POST(request: Request) {
     const vendorRecord = {
       id: auth.vendorId,
       business_name,
-      owner_name: owner_name || business_name,
+      owner_name: owner_name || "",
       slug: vendorSlug,
       email: email || "vendor@cloche.luxury",
       phone,

@@ -45,7 +45,7 @@ export async function syncWishlistWithServer(): Promise<WishlistItem[]> {
         category: item.vendors?.category || item.category || "Vendor",
         price: item.vendors?.price_range || item.price || "Contact for pricing",
         image: item.vendors?.cover_image || item.vendors?.image || item.image || "https://images.unsplash.com/photo-1594223274512-ad4803739b7c?q=80&w=800&auto=format&fit=crop",
-        boutique_name: item.vendors?.city || item.vendors?.location || item.city || "Kerala",
+        boutique_name: item.vendors?.business_name || item.vendors?.boutique_name || item.vendors?.name || item.boutique_name || "Wedding Partner",
         location: item.vendors?.city || item.location || "Kerala",
         city: item.vendors?.city || item.city || "Kerala",
         rating: item.vendors?.rating || item.rating || 4.9,

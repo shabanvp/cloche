@@ -31,7 +31,7 @@ export async function GET(req: Request) {
       return {
         id: v.id,
         vendorCode: v.vendor_code,
-        boutique: profile.business_name || userObj.full_name || "Vendor Partner",
+        boutique: profile.business_name || "Vendor Partner",
         ownerName: userObj.full_name || "N/A",
         email: userObj.email || "",
         phone: userObj.phone || "",

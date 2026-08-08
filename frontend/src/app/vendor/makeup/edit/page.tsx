@@ -118,7 +118,7 @@ export default function VendorMakeupEditPage() {
             ...current,
             vendor_id: vendor.id || "",
             business_name: vendor.business_name || vendor.name || "",
-            owner_name: vendor.owner_name || vendor.business_name || "",
+            owner_name: vendor.owner_name || "",
             slug: vendor.slug || "",
             email: vendor.email || "",
             phone: vendor.phone || "",
