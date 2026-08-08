@@ -354,9 +354,11 @@ export function VendorRegisterClient() {
 
     if (logoFile instanceof File && logoFile.size > 0) {
       try {
-        const { uploadImageToCloudinary } = await import("@/lib/cloudinary");
-        const logoUrl = await uploadImageToCloudinary(logoFile, "cloche/vendors/logos");
-        if (logoUrl) formData.set("logo_url", logoUrl);
+        const { uploadImageToCloudinaryDetailed } = await import("@/lib/cloudinary");
+        const res = await uploadImageToCloudinaryDetailed(logoFile, "cloche/vendors/logos");
+        if (res.secure_url && res.secure_url.startsWith("http")) {
+          formData.set("logo_url", res.secure_url);
+        }
       } catch (err) {
         console.warn("[VendorRegister] Logo Cloudinary upload failed:", err);
       }
@@ -364,9 +366,11 @@ export function VendorRegisterClient() {
 
     if (coverFile instanceof File && coverFile.size > 0) {
       try {
-        const { uploadImageToCloudinary } = await import("@/lib/cloudinary");
-        const coverUrl = await uploadImageToCloudinary(coverFile, "cloche/vendors/covers");
-        if (coverUrl) formData.set("cover_image", coverUrl);
+        const { uploadImageToCloudinaryDetailed } = await import("@/lib/cloudinary");
+        const res = await uploadImageToCloudinaryDetailed(coverFile, "cloche/vendors/covers");
+        if (res.secure_url && res.secure_url.startsWith("http")) {
+          formData.set("cover_image", res.secure_url);
+        }
       } catch (err) {
         console.warn("[VendorRegister] Cover Cloudinary upload failed:", err);
       }

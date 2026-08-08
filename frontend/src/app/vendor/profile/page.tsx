@@ -70,13 +70,10 @@ export default function VendorProfile() {
       setLogo(previewUrl);
 
       try {
-        const formData = new FormData();
-        formData.append("file", file);
-        formData.append("folder", "cloche/vendors/logos");
-        const res = await fetch("/api/upload", { method: "POST", body: formData });
-        const data = await res.json();
-        if (data.url || data.secure_url) {
-          setLogo(data.url || data.secure_url);
+        const { uploadImageToCloudinaryDetailed } = await import("@/lib/cloudinary");
+        const res = await uploadImageToCloudinaryDetailed(file, "cloche/vendors/logos");
+        if (res.secure_url && res.secure_url.startsWith("http")) {
+          setLogo(res.secure_url);
         }
       } catch (err) {
         console.warn("[VendorProfile] Logo Cloudinary upload warning:", err);
@@ -95,13 +92,10 @@ export default function VendorProfile() {
       setCoverImage(previewUrl);
 
       try {
-        const formData = new FormData();
-        formData.append("file", file);
-        formData.append("folder", "cloche/vendors/covers");
-        const res = await fetch("/api/upload", { method: "POST", body: formData });
-        const data = await res.json();
-        if (data.url || data.secure_url) {
-          setCoverImage(data.url || data.secure_url);
+        const { uploadImageToCloudinaryDetailed } = await import("@/lib/cloudinary");
+        const res = await uploadImageToCloudinaryDetailed(file, "cloche/vendors/covers");
+        if (res.secure_url && res.secure_url.startsWith("http")) {
+          setCoverImage(res.secure_url);
         }
       } catch (err) {
         console.warn("[VendorProfile] Cover Cloudinary upload warning:", err);
@@ -129,22 +123,28 @@ export default function VendorProfile() {
       let finalCoverUrl = coverImage;
 
       // Upload logo to Cloudinary if base64/blob data URL
-      if (logo && (logo.startsWith("data:image/") || logo.startsWith("blob:"))) {
+      if (logo && (logo.startsWith("data:") || logo.startsWith("blob:"))) {
         try {
-          const { uploadImageToCloudinary } = await import("@/lib/cloudinary");
-          finalLogoUrl = await uploadImageToCloudinary(logo, "cloche/vendors/logos");
-          setLogo(finalLogoUrl);
+          const { uploadImageToCloudinaryDetailed } = await import("@/lib/cloudinary");
+          const res = await uploadImageToCloudinaryDetailed(logo, "cloche/vendors/logos");
+          if (res.secure_url && res.secure_url.startsWith("http")) {
+            finalLogoUrl = res.secure_url;
+            setLogo(finalLogoUrl);
+          }
         } catch (err) {
           console.warn("[VendorProfile] Logo Cloudinary upload warning:", err);
         }
       }
 
       // Upload cover to Cloudinary if base64/blob data URL
-      if (coverImage && (coverImage.startsWith("data:image/") || coverImage.startsWith("blob:"))) {
+      if (coverImage && (coverImage.startsWith("data:") || coverImage.startsWith("blob:"))) {
         try {
-          const { uploadImageToCloudinary } = await import("@/lib/cloudinary");
-          finalCoverUrl = await uploadImageToCloudinary(coverImage, "cloche/vendors/covers");
-          setCoverImage(finalCoverUrl);
+          const { uploadImageToCloudinaryDetailed } = await import("@/lib/cloudinary");
+          const res = await uploadImageToCloudinaryDetailed(coverImage, "cloche/vendors/covers");
+          if (res.secure_url && res.secure_url.startsWith("http")) {
+            finalCoverUrl = res.secure_url;
+            setCoverImage(finalCoverUrl);
+          }
         } catch (err) {
           console.warn("[VendorProfile] Cover Cloudinary upload warning:", err);
         }

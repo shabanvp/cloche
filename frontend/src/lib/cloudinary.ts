@@ -22,15 +22,26 @@ export async function uploadImageToCloudinaryDetailed(
   file: File | string,
   folder = "cloche/uploads"
 ): Promise<CloudinaryUploadResult> {
+  let uploadTarget: File | Blob | string = file;
+
   if (typeof file === "string") {
     if (file.startsWith("http://") || file.startsWith("https://")) {
       return { secure_url: file };
+    }
+    if (file.startsWith("blob:")) {
+      try {
+        const res = await fetch(file);
+        uploadTarget = await res.blob();
+      } catch (err) {
+        console.warn("[Cloudinary] Failed to fetch blob data URL:", err);
+      }
     }
   }
 
   const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "dycwsnzyd";
   const presets = [
-    process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "cloche_uploads",
+    process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "cloche_upload",
+    "cloche_upload",
     "cloche_uploads",
     "ml_default",
     "unsigned_preset",
@@ -42,7 +53,7 @@ export async function uploadImageToCloudinaryDetailed(
     if (!preset) continue;
     try {
       const formData = new FormData();
-      formData.append("file", file);
+      formData.append("file", uploadTarget);
       formData.append("upload_preset", preset);
       formData.append("folder", folder);
 
