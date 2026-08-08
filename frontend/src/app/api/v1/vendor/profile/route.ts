@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { getAuthenticatedUser } from "@/lib/rbac";
 import { getSupabaseConfig } from "@/lib/supabase";
+import { requireAuthenticatedVendor } from "@/lib/vendorAuth";
 
 function getCategoryTable(categorySlug: string): string {
   const slug = (categorySlug || "").toLowerCase();
@@ -19,13 +19,8 @@ function getCategoryTable(categorySlug: string): string {
 
 export async function GET(req: Request) {
   try {
-    const authUser = getAuthenticatedUser(req as any);
-    if (!authUser) {
-      return NextResponse.json(
-        { success: false, statusCode: 401, error: { code: "UNAUTHORIZED", message: "Vendor authentication required." } },
-        { status: 401 }
-      );
-    }
+    const auth = await requireAuthenticatedVendor(req);
+    if (auth.response) return auth.response;
 
     const { url, serviceKey, anonKey } = getSupabaseConfig();
     const apiKey = serviceKey || anonKey;
@@ -37,52 +32,12 @@ export async function GET(req: Request) {
       );
     }
 
-    // 1. Fetch vendor core identity by user_id
-    const vendorRes = await fetch(
-      `${url}/rest/v1/vendors?user_id=eq.${encodeURIComponent(authUser.userId)}&select=*,vendor_categories(id,name,slug),vendor_profiles(*),vendor_contacts(*),vendor_addresses(*)`,
-      {
-        headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
-      }
-    );
+    const vendorRes = await fetch(`${url}/rest/v1/vendors?id=eq.${encodeURIComponent(auth.vendorId)}&select=*`, {
+      headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
+    });
 
-    let vendors = vendorRes.ok ? await vendorRes.json() : [];
-
-    console.log(`[VENDOR_AUTH_DEBUG] Primary lookup by user_id=${authUser.userId}: found ${Array.isArray(vendors) ? vendors.length : 0} vendors`);
-
-    // Fallback: if no vendor found by user_id, try looking up via email through users table
+    const vendors = vendorRes.ok ? await vendorRes.json() : [];
     if (!Array.isArray(vendors) || vendors.length === 0) {
-      console.log(`[VENDOR_AUTH_DEBUG] Fallback: looking up vendor by email=${authUser.email}`);
-      // Find user_id from users table by email
-      const userRes = await fetch(
-        `${url}/rest/v1/users?email=eq.${encodeURIComponent(authUser.email)}&select=id`,
-        { headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` } }
-      ).catch(() => null);
-
-      if (userRes && userRes.ok) {
-        const users = await userRes.json();
-        if (Array.isArray(users) && users.length > 0) {
-          const resolvedUserId = users[0].id;
-          console.log(`[VENDOR_AUTH_DEBUG] Resolved user_id from email: ${resolvedUserId}`);
-
-          // Retry vendor lookup with resolved user_id
-          const retryRes = await fetch(
-            `${url}/rest/v1/vendors?user_id=eq.${encodeURIComponent(resolvedUserId)}&select=*,vendor_categories(id,name,slug),vendor_profiles(*),vendor_contacts(*),vendor_addresses(*)`,
-            { headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` } }
-          ).catch(() => null);
-
-          if (retryRes && retryRes.ok) {
-            const retryVendors = await retryRes.json();
-            if (Array.isArray(retryVendors) && retryVendors.length > 0) {
-              vendors = retryVendors;
-              console.log(`[VENDOR_AUTH_DEBUG] Email fallback succeeded: found vendor for user_id=${resolvedUserId}`);
-            }
-          }
-        }
-      }
-    }
-
-    if (!Array.isArray(vendors) || vendors.length === 0) {
-      console.log(`[VENDOR_AUTH_DEBUG] No vendor record found for userId=${authUser.userId} or email=${authUser.email}`);
       return NextResponse.json(
         { success: false, statusCode: 404, error: { code: "VENDOR_NOT_FOUND", message: "No vendor record found for this account." } },
         { status: 404 }
@@ -90,17 +45,30 @@ export async function GET(req: Request) {
     }
 
     const vendor = vendors[0];
-    const profile = Array.isArray(vendor.vendor_profiles) && vendor.vendor_profiles.length > 0 ? vendor.vendor_profiles[0] : null;
+    const [profileRes, contactsRes, addressesRes, categoryRes] = await Promise.all([
+      fetch(`${url}/rest/v1/vendor_profiles?vendor_id=eq.${encodeURIComponent(vendor.id)}&select=*`, {
+        headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
+      }).catch(() => null),
+      fetch(`${url}/rest/v1/vendor_contacts?vendor_id=eq.${encodeURIComponent(vendor.id)}&order=is_primary.desc,created_at.asc&select=*`, {
+        headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
+      }).catch(() => null),
+      fetch(`${url}/rest/v1/vendor_addresses?vendor_id=eq.${encodeURIComponent(vendor.id)}&order=created_at.asc&select=*`, {
+        headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
+      }).catch(() => null),
+      vendor.category_id
+        ? fetch(`${url}/rest/v1/vendor_categories?id=eq.${encodeURIComponent(vendor.category_id)}&select=id,name,slug`, {
+            headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
+          }).catch(() => null)
+        : Promise.resolve(null),
+    ]);
 
-    console.log(`[VENDOR_AUTH_DEBUG] Authenticated User ID: ${authUser.userId}`);
-    console.log(`[VENDOR_AUTH_DEBUG] Authenticated Email: ${authUser.email}`);
-    console.log(`[VENDOR_AUTH_DEBUG] Vendor ID resolved from database: ${vendor.id}`);
-    console.log(`[VENDOR_AUTH_DEBUG] Business Name: ${profile?.business_name || vendor.boutique_name || authUser.fullName}`);
-    console.log(`[VENDOR_AUTH_DEBUG] Category: ${vendor.vendor_categories?.name || vendor.category || "Vendor"}`);
-    console.log(`[VENDOR_AUTH_DEBUG] SQL/API Query: vendors?user_id=eq.${authUser.userId}`);
-    const contacts = Array.isArray(vendor.vendor_contacts) ? vendor.vendor_contacts : [];
-    const addresses = Array.isArray(vendor.vendor_addresses) ? vendor.vendor_addresses : [];
-    const categorySlug = vendor.vendor_categories?.slug || "general";
+    const profileRows = profileRes && profileRes.ok ? await profileRes.json() : [];
+    const contacts = contactsRes && contactsRes.ok ? await contactsRes.json() : [];
+    const addresses = addressesRes && addressesRes.ok ? await addressesRes.json() : [];
+    const categories = categoryRes && categoryRes.ok ? await categoryRes.json() : [];
+    const profile = Array.isArray(profileRows) && profileRows.length > 0 ? profileRows[0] : null;
+    const category = Array.isArray(categories) && categories.length > 0 ? categories[0] : null;
+    const categorySlug = category?.slug || vendor.category || "general";
     const extensionTable = getCategoryTable(categorySlug);
 
     // 2. Fetch category specific details
@@ -137,13 +105,15 @@ export async function GET(req: Request) {
           vendor: {
             id: vendor.id,
             vendorCode: vendor.vendor_code,
+            boutique_name: profile?.business_name || vendor.boutique_name || vendor.name || auth.user.fullName || "",
+            name: profile?.business_name || vendor.name || vendor.boutique_name || auth.user.fullName || "",
             status: vendor.status,
             publicationStatus: vendor.publication_status,
             onboardingStage: vendor.onboarding_stage,
             profileCompletionPercentage: vendor.profile_completion_percentage,
             isVerified: vendor.is_verified,
             isKycVerified: vendor.is_kyc_verified,
-            category: vendor.vendor_categories,
+            category,
           },
           profile,
           contacts,
@@ -165,13 +135,8 @@ export async function GET(req: Request) {
 
 export async function PUT(req: Request) {
   try {
-    const authUser = getAuthenticatedUser(req as any);
-    if (!authUser) {
-      return NextResponse.json(
-        { success: false, statusCode: 401, error: { code: "UNAUTHORIZED", message: "Vendor authentication required." } },
-        { status: 401 }
-      );
-    }
+    const auth = await requireAuthenticatedVendor(req);
+    if (auth.response) return auth.response;
 
     const { url, serviceKey, anonKey } = getSupabaseConfig();
     const apiKey = serviceKey || anonKey;
@@ -186,8 +151,8 @@ export async function PUT(req: Request) {
     const body = await req.json();
     const { profile, contact, address, categoryDetails, changeSummary } = body;
 
-    // 1. Fetch vendor core record
-    const vendorRes = await fetch(`${url}/rest/v1/vendors?user_id=eq.${encodeURIComponent(authUser.userId)}&select=id,publication_status,vendor_categories(slug)`, {
+    // 1. Fetch authenticated vendor core record
+    const vendorRes = await fetch(`${url}/rest/v1/vendors?id=eq.${encodeURIComponent(auth.vendorId)}&select=id,publication_status,category_id`, {
       headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
     });
 
@@ -208,7 +173,18 @@ export async function PUT(req: Request) {
 
     const vendor = vendors[0];
     const vendorId = vendor.id;
-    const categorySlug = vendor.vendor_categories?.slug || "general";
+    let categorySlug = "general";
+    if (vendor.category_id) {
+      const categoryRes = await fetch(`${url}/rest/v1/vendor_categories?id=eq.${encodeURIComponent(vendor.category_id)}&select=slug`, {
+        headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
+      }).catch(() => null);
+      if (categoryRes && categoryRes.ok) {
+        const categories = await categoryRes.json();
+        if (Array.isArray(categories) && categories[0]?.slug) {
+          categorySlug = categories[0].slug;
+        }
+      }
+    }
     const extensionTable = getCategoryTable(categorySlug);
 
     // 2. Update Vendor Profile in vendor_profiles table
@@ -334,7 +310,7 @@ export async function PUT(req: Request) {
         version_number: nextVersionNum,
         status: "draft",
         change_summary: changeSummary || "Updated business & category attributes",
-        created_by: authUser.userId,
+        created_by: auth.user.userId,
       }),
     });
 

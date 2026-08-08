@@ -32,9 +32,30 @@ export async function requireAuthenticatedVendor(req: Request): Promise<VendorAu
     }
   }
 
-  const vendorRes = await supabaseFetch(
+  let vendorRes = await supabaseFetch(
     `vendors?user_id=eq.${encodeURIComponent(resolvedUserId)}&deleted_at=is.null&select=id`
   );
+
+  if (!vendorRes.error && (!Array.isArray(vendorRes.data) || vendorRes.data.length === 0)) {
+    vendorRes = await supabaseFetch(
+      `vendors?user_id=eq.${encodeURIComponent(user.userId)}&deleted_at=is.null&select=id`
+    );
+  }
+
+  if (!vendorRes.error && (!Array.isArray(vendorRes.data) || vendorRes.data.length === 0) && user.email) {
+    const emailVendorRes = await supabaseFetch(
+      `vendors?email=eq.${encodeURIComponent(user.email)}&deleted_at=is.null&select=id`
+    );
+    if (!emailVendorRes.error) {
+      vendorRes = emailVendorRes;
+    }
+  }
+
+  if (!vendorRes.error && (!Array.isArray(vendorRes.data) || vendorRes.data.length === 0)) {
+    vendorRes = await supabaseFetch(
+      `vendors?id=eq.${encodeURIComponent(user.userId)}&deleted_at=is.null&select=id`
+    );
+  }
 
   if (vendorRes.error) {
     return {
