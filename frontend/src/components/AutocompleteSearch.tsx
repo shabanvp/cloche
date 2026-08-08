@@ -341,14 +341,21 @@ export function AutocompleteSearch({
                                     alt={item.name}
                                     className="w-full h-full object-cover"
                                     onError={(e) => {
-                                      (e.target as HTMLElement).style.display = "none";
+                                      const target = e.target as HTMLElement;
+                                      target.style.display = "none";
+                                      if (target.parentElement) {
+                                        const fallback = target.parentElement.querySelector(".fallback-avatar");
+                                        if (fallback) (fallback as HTMLElement).style.display = "flex";
+                                      }
                                     }}
                                   />
-                                ) : (
-                                  <span className="font-serif font-bold text-white text-base">
-                                    {item.name.charAt(0).toUpperCase()}
-                                  </span>
-                                )}
+                                ) : null}
+                                <span
+                                  className="fallback-avatar font-serif font-bold text-white text-base flex items-center justify-center"
+                                  style={{ display: item.logo ? "none" : "flex" }}
+                                >
+                                  {item.name.charAt(0).toUpperCase()}
+                                </span>
                               </div>
 
                               {/* Entity Details */}
