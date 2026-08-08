@@ -110,6 +110,8 @@ export async function POST(req: Request) {
         instagram: formData.get("instagram"),
         description: formData.get("description"),
         gst_number: formData.get("gst_number"),
+        logo: formData.get("logo"),
+        cover: formData.get("cover"),
       };
     } else {
       body = await req.json();
@@ -398,13 +400,51 @@ export async function POST(req: Request) {
     const newVendor = newVendors[0];
     insertedVendorId = newVendor.id;
 
-    // Step 5: Handle Image Uploads to Media Table
+    // Step 5: Upload Registration Images to Cloudinary & Save to Media Table
     let logoMediaId: string | null = null;
     let coverMediaId: string | null = null;
-    const logoUrlResolved = (logo_url || logo || "").toString().trim();
-    const coverUrlResolved = (cover_image || cover || "").toString().trim();
+    let finalLogoUrl = "";
+    let finalCoverUrl = "";
 
-    if (logoUrlResolved) {
+    const logoInput = logo || logo_url || body.logo;
+    if (logoInput) {
+      if (typeof logoInput === "string" && logoInput.startsWith("http")) {
+        finalLogoUrl = logoInput;
+      } else if (typeof logoInput === "object" && logoInput !== null && "arrayBuffer" in logoInput && (logoInput as any).size > 0) {
+        try {
+          const { uploadImageToCloudinaryDetailed } = await import("@/lib/cloudinary");
+          console.log(`${logPrefix} Uploading registration logo file to Cloudinary...`);
+          const res = await uploadImageToCloudinaryDetailed(logoInput as any, "cloche/vendors/logos");
+          if (res.secure_url && res.secure_url.startsWith("http")) {
+            finalLogoUrl = res.secure_url;
+            console.log(`${logPrefix} Registration logo Cloudinary URL: ${finalLogoUrl}`);
+          }
+        } catch (err) {
+          console.error(`${logPrefix} Registration logo Cloudinary upload error:`, err);
+        }
+      }
+    }
+
+    const coverInput = cover || cover_image || body.cover;
+    if (coverInput) {
+      if (typeof coverInput === "string" && coverInput.startsWith("http")) {
+        finalCoverUrl = coverInput;
+      } else if (typeof coverInput === "object" && coverInput !== null && "arrayBuffer" in coverInput && (coverInput as any).size > 0) {
+        try {
+          const { uploadImageToCloudinaryDetailed } = await import("@/lib/cloudinary");
+          console.log(`${logPrefix} Uploading registration cover file to Cloudinary...`);
+          const res = await uploadImageToCloudinaryDetailed(coverInput as any, "cloche/vendors/covers");
+          if (res.secure_url && res.secure_url.startsWith("http")) {
+            finalCoverUrl = res.secure_url;
+            console.log(`${logPrefix} Registration cover Cloudinary URL: ${finalCoverUrl}`);
+          }
+        } catch (err) {
+          console.error(`${logPrefix} Registration cover Cloudinary upload error:`, err);
+        }
+      }
+    }
+
+    if (finalLogoUrl) {
       const mediaRes = await fetch(`${url}/rest/v1/media`, {
         method: "POST",
         headers: {
@@ -421,7 +461,7 @@ export async function POST(req: Request) {
           file_path: `cloche/vendors/logos/${newVendor.id}`,
           mime_type: "image/jpeg",
           file_size_bytes: 1024,
-          cdn_url: logoUrlResolved,
+          cdn_url: finalLogoUrl,
           original_name: "logo.jpg",
         }),
       }).catch(() => null);
@@ -432,7 +472,7 @@ export async function POST(req: Request) {
       }
     }
 
-    if (coverUrlResolved) {
+    if (finalCoverUrl) {
       const mediaRes = await fetch(`${url}/rest/v1/media`, {
         method: "POST",
         headers: {
@@ -449,7 +489,7 @@ export async function POST(req: Request) {
           file_path: `cloche/vendors/covers/${newVendor.id}`,
           mime_type: "image/jpeg",
           file_size_bytes: 1024,
-          cdn_url: coverUrlResolved,
+          cdn_url: finalCoverUrl,
           original_name: "cover.jpg",
         }),
       }).catch(() => null);
