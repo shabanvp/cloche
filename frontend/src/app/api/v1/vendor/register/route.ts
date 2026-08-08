@@ -254,17 +254,81 @@ export async function POST(req: Request) {
       }
     }
 
-    // Step 3: Lookup vendor category_id
+    // Step 3: Lookup vendor category_id with robust matching
     let categoryId: string | null = null;
     const catName = category ? category.toString().trim() : "Bridal Boutique";
-    const catLookupRes = await fetch(`${url}/rest/v1/vendor_categories?name=ilike.*${encodeURIComponent(catName)}*&select=id`, {
+
+    // Fetch all categories to ensure accurate matching without false fallback
+    const catLookupRes = await fetch(`${url}/rest/v1/vendor_categories?select=id,name,slug`, {
       headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
     });
 
     if (catLookupRes.ok) {
-      const cats = await catLookupRes.json();
-      if (Array.isArray(cats) && cats.length > 0) {
-        categoryId = cats[0].id;
+      const categories: Array<{ id: string; name: string; slug: string }> = await catLookupRes.json();
+      if (Array.isArray(categories) && categories.length > 0) {
+        const raw = catName.toLowerCase();
+        const slugifiedInput = raw.replace(/[^\w\s-]/g, "").replace(/[\s_-]+/g, "-");
+
+        // 1. Exact name match
+        let matched = categories.find(c => (c.name || "").toLowerCase() === raw);
+
+        // 2. Exact slug match
+        if (!matched) {
+          matched = categories.find(c => (c.slug || "").toLowerCase() === slugifiedInput);
+        }
+
+        // 3. Semantic / Keyword matching
+        if (!matched) {
+          const rules = [
+            { keywords: ['makeup', 'cosmetic'], test: (c: any) => /makeup/i.test(c.name || '') || /makeup/i.test(c.slug || '') },
+            { keywords: ['mehendi', 'mehndi', 'henna'], test: (c: any) => /meh?ndi/i.test(c.name || '') || /meh?ndi/i.test(c.slug || '') },
+            { keywords: ['photo', 'picture', 'camera'], test: (c: any) => /photo/i.test(c.name || '') || /photo/i.test(c.slug || '') },
+            { keywords: ['video', 'film', 'cinema'], test: (c: any) => /video|cinema|film/i.test(c.name || '') || /video|cinema|film/i.test(c.slug || '') },
+            { keywords: ['bridal', 'boutique', 'lehenga', 'gown', 'wear'], test: (c: any) => /bridal|wear|boutique|lehenga/i.test(c.name || '') || /bridal|wear|boutique/i.test(c.slug || '') },
+            { keywords: ['groom', 'sherwani', 'suit'], test: (c: any) => /groom|wear|bridal/i.test(c.name || '') || /groom|wear/i.test(c.slug || '') },
+            { keywords: ['venue', 'hall', 'resort', 'farmhouse'], test: (c: any) => /venue/i.test(c.name || '') || /venue/i.test(c.slug || '') },
+            { keywords: ['flower', 'flor'], test: (c: any) => /flower|decor/i.test(c.name || '') || /flower|decor/i.test(c.slug || '') },
+            { keywords: ['decor', 'stage', 'mandap'], test: (c: any) => /decor/i.test(c.name || '') || /decor/i.test(c.slug || '') },
+            { keywords: ['cater', 'food'], test: (c: any) => /cater/i.test(c.name || '') || /cater/i.test(c.slug || '') },
+            { keywords: ['jewel', 'gold', 'diamond'], test: (c: any) => /jewel/i.test(c.name || '') || /jewel/i.test(c.slug || '') },
+            { keywords: ['invit', 'card', 'stationery'], test: (c: any) => /invit|card/i.test(c.name || '') || /invit/i.test(c.slug || '') },
+            { keywords: ['plan', 'coord'], test: (c: any) => /plan/i.test(c.name || '') || /plan/i.test(c.slug || '') },
+            { keywords: ['entertain', 'music', 'dj', 'dhol', 'band', 'choreo'], test: (c: any) => /entertain|music|dj|band|choreo/i.test(c.name || '') || /entertain|music|dj/i.test(c.slug || '') },
+            { keywords: ['car', 'rent', 'transport', 'vehicle'], test: (c: any) => /rent|car|transport/i.test(c.name || '') || /rent|car/i.test(c.slug || '') },
+            { keywords: ['cake', 'baker', 'dessert'], test: (c: any) => /cake|baker|cater/i.test(c.name || '') || /cake/i.test(c.slug || '') },
+            { keywords: ['gift', 'favour'], test: (c: any) => /gift|other/i.test(c.name || '') || /gift/i.test(c.slug || '') },
+            { keywords: ['honeymoon', 'travel'], test: (c: any) => /honeymoon|travel|plan/i.test(c.name || '') || /honeymoon/i.test(c.slug || '') },
+          ];
+
+          for (const rule of rules) {
+            if (rule.keywords.some(k => raw.includes(k))) {
+              const found = categories.find(rule.test);
+              if (found) {
+                matched = found;
+                break;
+              }
+            }
+          }
+        }
+
+        // 4. Substring match
+        if (!matched) {
+          matched = categories.find(c => {
+            const cName = (c.name || "").toLowerCase();
+            const cSlug = (c.slug || "").toLowerCase();
+            return cName.includes(raw) || raw.includes(cName) || cSlug.includes(raw) || raw.includes(cSlug);
+          });
+        }
+
+        // 5. Fallback: "Other" or first category
+        if (!matched) {
+          matched = categories.find(c => (c.name || "").toLowerCase().includes("other") || (c.slug || "").toLowerCase().includes("other")) || categories[0];
+        }
+
+        if (matched) {
+          categoryId = matched.id;
+          console.log(`${logPrefix} Successfully matched category "${catName}" -> "${matched.name}" (ID: ${categoryId})`);
+        }
       }
     }
 
