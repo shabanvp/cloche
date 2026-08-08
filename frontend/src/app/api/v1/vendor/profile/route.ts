@@ -211,65 +211,70 @@ export async function PUT(req: Request) {
     }
     const extensionTable = getCategoryTable(categorySlug);
 
-    // Handle logo & cover media inserts
+    // Handle logo & cover media inserts with strict URL validation
     let logoMediaId: string | null = null;
     let coverMediaId: string | null = null;
+    const isHostedUrl = (urlStr: any) => typeof urlStr === "string" && (urlStr.startsWith("http://") || urlStr.startsWith("https://"));
 
     if (profile?.logo || profile?.logo_url) {
       const logoUrl = profile.logo || profile.logo_url;
-      const mediaRes = await fetch(`${url}/rest/v1/media`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          apikey: apiKey,
-          Authorization: `Bearer ${apiKey}`,
-          Prefer: "return=representation",
-        },
-        body: JSON.stringify({
-          user_id: vendor.user_id,
-          vendor_id: vendorId,
-          media_type: "image",
-          bucket_name: "cloudinary",
-          file_path: `cloche/vendors/logos/${vendorId}`,
-          mime_type: "image/jpeg",
-          file_size_bytes: 1024,
-          cdn_url: logoUrl,
-          original_name: "logo.jpg",
-        }),
-      }).catch(() => null);
+      if (isHostedUrl(logoUrl)) {
+        const mediaRes = await fetch(`${url}/rest/v1/media`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            apikey: apiKey,
+            Authorization: `Bearer ${apiKey}`,
+            Prefer: "return=representation",
+          },
+          body: JSON.stringify({
+            user_id: vendor.user_id,
+            vendor_id: vendorId,
+            media_type: "image",
+            bucket_name: "cloudinary",
+            file_path: `cloche/vendors/logos/${vendorId}`,
+            mime_type: "image/jpeg",
+            file_size_bytes: 1024,
+            cdn_url: logoUrl,
+            original_name: "logo.jpg",
+          }),
+        }).catch(() => null);
 
-      if (mediaRes && mediaRes.ok) {
-        const mData = await mediaRes.json();
-        if (Array.isArray(mData) && mData.length > 0) logoMediaId = mData[0].id;
+        if (mediaRes && mediaRes.ok) {
+          const mData = await mediaRes.json();
+          if (Array.isArray(mData) && mData.length > 0) logoMediaId = mData[0].id;
+        }
       }
     }
 
     if (profile?.coverImage || profile?.cover_image) {
       const coverUrl = profile.coverImage || profile.cover_image;
-      const mediaRes = await fetch(`${url}/rest/v1/media`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          apikey: apiKey,
-          Authorization: `Bearer ${apiKey}`,
-          Prefer: "return=representation",
-        },
-        body: JSON.stringify({
-          user_id: vendor.user_id,
-          vendor_id: vendorId,
-          media_type: "image",
-          bucket_name: "cloudinary",
-          file_path: `cloche/vendors/covers/${vendorId}`,
-          mime_type: "image/jpeg",
-          file_size_bytes: 1024,
-          cdn_url: coverUrl,
-          original_name: "cover.jpg",
-        }),
-      }).catch(() => null);
+      if (isHostedUrl(coverUrl)) {
+        const mediaRes = await fetch(`${url}/rest/v1/media`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            apikey: apiKey,
+            Authorization: `Bearer ${apiKey}`,
+            Prefer: "return=representation",
+          },
+          body: JSON.stringify({
+            user_id: vendor.user_id,
+            vendor_id: vendorId,
+            media_type: "image",
+            bucket_name: "cloudinary",
+            file_path: `cloche/vendors/covers/${vendorId}`,
+            mime_type: "image/jpeg",
+            file_size_bytes: 1024,
+            cdn_url: coverUrl,
+            original_name: "cover.jpg",
+          }),
+        }).catch(() => null);
 
-      if (mediaRes && mediaRes.ok) {
-        const mData = await mediaRes.json();
-        if (Array.isArray(mData) && mData.length > 0) coverMediaId = mData[0].id;
+        if (mediaRes && mediaRes.ok) {
+          const mData = await mediaRes.json();
+          if (Array.isArray(mData) && mData.length > 0) coverMediaId = mData[0].id;
+        }
       }
     }
 
