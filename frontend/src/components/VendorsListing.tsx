@@ -298,8 +298,8 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
     <div className="min-h-screen bg-[#FAF7F2] font-sans pb-24 md:pb-12 text-charcoal">
       {/* Search Header */}
       <header className="sticky top-0 z-30 bg-[#FAF7F2]/95 backdrop-blur-md border-b border-gold/15 px-4 py-3 sm:px-6">
-        <div className="max-w-6xl mx-auto flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3 flex-1">
+        <div className="max-w-6xl mx-auto flex items-center justify-start gap-3">
+          <div className="flex items-center gap-3 w-full md:w-auto">
             <Link
               href="/"
               className="flex h-9 w-9 items-center justify-center rounded-full bg-white border border-gold/20 text-charcoal hover:bg-gold/10 transition-colors shadow-2xs shrink-0"
@@ -307,7 +307,7 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
             >
               <ArrowLeft className="h-4 w-4" />
             </Link>
-            <div className="relative flex-1 max-w-md">
+            <div className="relative flex-1 md:flex-initial md:w-80 lg:w-96">
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-charcoal/40" />
               <input
                 type="search"
@@ -320,7 +320,7 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
           </div>
           <button
             type="button"
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-white border border-gold/20 text-charcoal hover:bg-gold/10 transition-colors shadow-2xs shrink-0 md:hidden"
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-white border border-gold/20 text-charcoal hover:bg-gold/10 transition-colors shadow-2xs shrink-0 md:hidden ml-auto"
             aria-label="Filters"
           >
             <SlidersHorizontal className="h-4 w-4 text-[#0F4C45]" />
