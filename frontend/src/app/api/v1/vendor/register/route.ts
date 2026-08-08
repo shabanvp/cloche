@@ -13,6 +13,28 @@ function generateSlug(text: string): string {
   return base ? `${base}-${randomSuffix}` : `vendor-${Date.now()}`;
 }
 
+export async function GET() {
+  const { url, serviceKey, anonKey } = getSupabaseConfig();
+  const apiKey = serviceKey || anonKey;
+
+  try {
+    if (url && apiKey) {
+      const res = await fetch(`${url}/rest/v1/vendor_categories?is_active=eq.true&select=id,name,slug&order=name.asc`, {
+        headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
+      });
+      if (res.ok) {
+        const categories = await res.json();
+        return NextResponse.json({ success: true, statusCode: 200, data: categories });
+      }
+    }
+  } catch (err: any) {}
+
+  return NextResponse.json(
+    { success: false, statusCode: 500, error: { code: "SERVER_ERROR", message: "Failed to fetch vendor categories." } },
+    { status: 500 }
+  );
+}
+
 export async function POST(req: Request) {
   const logPrefix = "[VENDOR_REGISTER_API]";
   let insertedUserId: string | null = null;
@@ -40,7 +62,8 @@ export async function POST(req: Request) {
       body = {
         boutique_name: formData.get("boutique_name") || formData.get("business_name") || formData.get("name"),
         owner_name: formData.get("owner_name") || formData.get("fullName"),
-        category: formData.get("category") || formData.get("category_id"),
+        category: formData.get("category_id") || formData.get("category"),
+        category_id: formData.get("category_id") || formData.get("category"),
         email: formData.get("email"),
         phone: formData.get("phone"),
         password: formData.get("password"),
@@ -62,6 +85,7 @@ export async function POST(req: Request) {
       boutique_name,
       owner_name,
       category,
+      category_id,
       email,
       phone,
       password,
@@ -254,96 +278,46 @@ export async function POST(req: Request) {
       }
     }
 
-    // Step 3: Lookup vendor category_id using deterministic 1-to-1 mapping dictionary
+    // Step 3: Exact lookup of vendor category_id from vendor_categories (NO dictionaries, NO fallback)
+    const submittedCategory = (category_id || category || "").toString().trim();
+
+    if (!submittedCategory) {
+      return NextResponse.json(
+        { success: false, statusCode: 400, error: { code: "INVALID_CATEGORY", message: "Vendor category is required." } },
+        { status: 400 }
+      );
+    }
+
     let categoryId: string | null = null;
-    const catName = category ? category.toString().trim() : "Bridal Boutique";
+    let categoryName: string = "";
 
-    // Deterministic 1-to-1 Category Target Specification
-    const DETERMINISTIC_MAP: Record<string, { primary: string; aliases: string[]; slugs: string[] }> = {
-      "Bridal Boutique":     { primary: "Bridal Boutique",    aliases: ["Bridal Wear & Lehengas", "Bridal Wear"],                slugs: ["bridal-boutique", "bridal-wear"] },
-      "Groom Wear":          { primary: "Groom Wear",         aliases: ["Bridal Wear & Lehengas", "Groom Wear"],                 slugs: ["groom-wear", "bridal-wear"] },
-      "Wedding Venue":       { primary: "Wedding Venue",      aliases: ["Wedding Venues", "Venues"],                             slugs: ["wedding-venue", "venues"] },
-      "Photographer":        { primary: "Photographer",       aliases: ["Wedding Photographers", "Photographers"],              slugs: ["photographer", "photographers"] },
-      "Videographer":        { primary: "Videographer",       aliases: ["Wedding Photographers", "Videographers"],              slugs: ["videographer", "photographers"] },
-      "Makeup Artist":       { primary: "Makeup Artist",      aliases: ["Bridal Makeup & Hair", "Makeup"],                      slugs: ["makeup-artist", "makeup"] },
-      "Mehendi Artist":      { primary: "Mehendi Artist",     aliases: ["Mehndi Artists", "Mehendi"],                            slugs: ["mehendi-artist", "mehndi"] },
-      "Wedding Planner":     { primary: "Wedding Planner",    aliases: ["Wedding Planners", "Planners"],                         slugs: ["wedding-planner", "planners"] },
-      "Decorator":           { primary: "Decorator",          aliases: ["Wedding Decorators", "Decorators"],                     slugs: ["decorator", "decorators"] },
-      "Caterer":             { primary: "Caterer",            aliases: ["Catering Services", "Catering"],                        slugs: ["caterer", "catering"] },
-      "Jewellery Store":     { primary: "Jewellery Store",    aliases: ["Jewellery & Accessories", "Jewellery"],                slugs: ["jewellery-store", "jewellery"] },
-      "Invitation Designer": { primary: "Invitation Designer",aliases: ["Invitation & Cards", "Invitations"],                    slugs: ["invitation-designer", "invitations"] },
-      "Cake Designer":       { primary: "Cake Designer",      aliases: ["Catering Services", "Cakes"],                           slugs: ["cake-designer", "catering"] },
-      "Entertainment":       { primary: "Entertainment",      aliases: ["Wedding Entertainment", "DJs & Live Bands"],            slugs: ["entertainment", "djs-bands"] },
-      "Choreographer":       { primary: "Choreographer",      aliases: ["Wedding Entertainment", "Choreographers"],             slugs: ["choreographer", "entertainment"] },
-      "Car Rental":          { primary: "Car Rental",         aliases: ["Car Rental", "Transport"],                              slugs: ["car-rental"] },
-      "Flower Decoration":   { primary: "Flower Decoration",  aliases: ["Wedding Decorators", "Decorators"],                     slugs: ["flower-decoration", "decorators"] },
-      "Rental Services":     { primary: "Rental Services",    aliases: ["Rental Services"],                                      slugs: ["rental-services"] },
-      "Gift Store":          { primary: "Gift Store",         aliases: ["Gift Store"],                                           slugs: ["gift-store"] },
-      "Honeymoon Planner":   { primary: "Honeymoon Planner",  aliases: ["Honeymoon Planner", "Wedding Planners"],                slugs: ["honeymoon-planner", "planners"] },
-      "Other":               { primary: "Other",              aliases: ["Other"],                                                slugs: ["other"] },
-    };
+    // Query vendor_categories directly by id, slug, or name (exact match)
+    const catRes = await fetch(
+      `${url}/rest/v1/vendor_categories?or=(id.eq.${encodeURIComponent(submittedCategory)},slug.eq.${encodeURIComponent(submittedCategory)},name.eq.${encodeURIComponent(submittedCategory)})&select=id,name,slug&limit=1`,
+      { headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` } }
+    );
 
-    // Fetch category options from database
-    const catLookupRes = await fetch(`${url}/rest/v1/vendor_categories?select=id,name,slug`, {
-      headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
-    });
-
-    if (catLookupRes.ok) {
-      const categories: Array<{ id: string; name: string; slug: string }> = await catLookupRes.json();
-      if (Array.isArray(categories) && categories.length > 0) {
-        let matched: { id: string; name: string; slug: string } | undefined = undefined;
-        const config = DETERMINISTIC_MAP[catName];
-
-        if (config) {
-          // 1. Exact Primary match
-          matched = categories.find(c => (c.name || "").toLowerCase() === config.primary.toLowerCase());
-
-          // 2. Exact Aliases match in priority order
-          if (!matched) {
-            for (const alias of config.aliases) {
-              matched = categories.find(c => (c.name || "").toLowerCase() === alias.toLowerCase());
-              if (matched) break;
-            }
-          }
-
-          // 3. Exact Slugs match in priority order
-          if (!matched) {
-            for (const slug of config.slugs) {
-              matched = categories.find(c => (c.slug || "").toLowerCase() === slug.toLowerCase());
-              if (matched) break;
-            }
-          }
-        }
-
-        // 4. Exact direct string match for unmapped categories
-        if (!matched) {
-          const rawLower = catName.toLowerCase();
-          matched = categories.find(c => (c.name || "").toLowerCase() === rawLower) ||
-                    categories.find(c => (c.slug || "").toLowerCase() === rawLower.replace(/\s+/g, '-'));
-        }
-
-        // 5. Ultimate Fallback: "Other" or first row
-        if (!matched) {
-          matched = categories.find(c => (c.name || "").toLowerCase() === "other" || (c.slug || "").toLowerCase() === "other") || categories[0];
-        }
-
-        if (matched) {
-          categoryId = matched.id;
-          console.log(`${logPrefix} Deterministically resolved "${catName}" -> "${matched.name}" (ID: ${categoryId})`);
-        }
+    if (catRes.ok) {
+      const cats = await catRes.json();
+      if (Array.isArray(cats) && cats.length > 0) {
+        categoryId = cats[0].id;
+        categoryName = cats[0].name;
       }
     }
 
+    // Return HTTP 400 if the submitted category does not exist in vendor_categories
     if (!categoryId) {
-      const fallbackCatRes = await fetch(`${url}/rest/v1/vendor_categories?limit=1&select=id`, {
-        headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
-      });
-      if (fallbackCatRes.ok) {
-        const fallbacks = await fallbackCatRes.json();
-        if (Array.isArray(fallbacks) && fallbacks.length > 0) {
-          categoryId = fallbacks[0].id;
-        }
-      }
+      return NextResponse.json(
+        {
+          success: false,
+          statusCode: 400,
+          error: {
+            code: "INVALID_CATEGORY",
+            message: `Selected vendor category "${submittedCategory}" does not exist in database.`,
+          },
+        },
+        { status: 400 }
+      );
     }
 
     if (!categoryId) {

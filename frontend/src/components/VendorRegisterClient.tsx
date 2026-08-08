@@ -217,8 +217,19 @@ export function VendorRegisterClient() {
   const [errorMsg, setErrorMsg] = useState("");
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
-  const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState("");
+  const [dbCategories, setDbCategories] = useState<Array<{ id: string; name: string; slug: string }>>([]);
+
+  useEffect(() => {
+    fetch("/api/v1/vendor/register")
+      .then((res) => res.json())
+      .then((res) => {
+        if (res.success && Array.isArray(res.data) && res.data.length > 0) {
+          setDbCategories(res.data);
+        }
+      })
+      .catch(() => null);
+  }, []);
 
   const getInputClass = (name: FieldName, extra = "") =>
     `${textInputClass} ${fieldErrors[name] ? errorBorderClass : normalBorderClass} ${extra}`.trim();
@@ -533,11 +544,17 @@ export function VendorRegisterClient() {
               {...fieldErrorProps("category")}
             >
               <option value="">Select Category</option>
-              {VENDOR_CATEGORIES.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
+              {dbCategories.length > 0
+                ? dbCategories.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))
+                : VENDOR_CATEGORIES.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
             </select>
             {fieldError("category")}
           </div>
