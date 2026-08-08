@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Upload } from "lucide-react";
 
 type FieldName =
@@ -217,6 +217,7 @@ export function VendorRegisterClient() {
   const [errorMsg, setErrorMsg] = useState("");
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState("");
   const [dbCategories, setDbCategories] = useState<Array<{ id: string; name: string; slug: string }>>([]);
 

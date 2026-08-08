@@ -63,10 +63,8 @@ export function calculateDynamicProfileCompletion(
 export async function fetchAuthenticatedVendorFromDb(): Promise<VendorProfileData> {
   if (typeof window !== "undefined") {
     try {
-      // Read user identity from cookie for header fallback
       const extraHeaders: Record<string, string> = { "Content-Type": "application/json" };
       try {
-        // Parse user_data from document.cookie
         const cookieStr = document.cookie;
         const match = cookieStr.match(/(?:^|;\s*)user_data=([^;]*)/);
         if (match) {
@@ -74,7 +72,6 @@ export async function fetchAuthenticatedVendorFromDb(): Promise<VendorProfileDat
           if (parsed?.id) extraHeaders["x-user-id"] = parsed.id;
           if (parsed?.email) extraHeaders["x-user-email"] = parsed.email;
         }
-        // Also try auth_token (non-httpOnly)
         const tokenMatch = cookieStr.match(/(?:^|;\s*)auth_token=([^;]*)/);
         if (tokenMatch && tokenMatch[1]) extraHeaders["x-auth-token"] = tokenMatch[1];
       } catch (_) {}
@@ -91,9 +88,15 @@ export async function fetchAuthenticatedVendorFromDb(): Promise<VendorProfileDat
           const v = json.data.vendor || {};
           const p = json.data.profile || {};
           const c = Array.isArray(json.data.contacts) && json.data.contacts.length > 0 ? json.data.contacts[0] : {};
+          const a = Array.isArray(json.data.addresses) && json.data.addresses.length > 0 ? json.data.addresses[0] : {};
+          const s = Array.isArray(json.data.socialLinks) ? json.data.socialLinks : [];
+
+          const instaLink = s.find((item: any) => item.platform === "instagram")?.url || "";
+          const webLink = s.find((item: any) => item.platform === "website")?.url || "";
+
           const bName = p.business_name || v.boutique_name || v.name || "";
           const catObj = v.category;
-          const cat = (typeof catObj === "object" && catObj !== null)
+          const catName = (typeof catObj === "object" && catObj !== null)
             ? (catObj.name || "")
             : (typeof catObj === "string" ? catObj : "");
 
@@ -102,17 +105,24 @@ export async function fetchAuthenticatedVendorFromDb(): Promise<VendorProfileDat
             user_id: v.user_id || "",
             name: bName,
             boutique_name: bName,
-            category: cat,
+            category: catName,
             logo: p.logo_url || v.logo_url || "",
             logo_url: p.logo_url || v.logo_url || "",
             coverImage: p.cover_image || v.cover_image || "",
             cover_image: p.cover_image || v.cover_image || "",
             description: p.about || v.description || "",
             phone: c.phone || v.phone || "",
-            whatsapp: c.whatsapp || v.whatsapp || "",
+            whatsapp: c.whatsapp || v.whatsapp || c.phone || "",
             email: c.email || v.email || "",
-            city: p.city || v.city || "",
-            district: p.state || v.district || "",
+            city: p.city || a.city || v.city || "",
+            district: p.state || a.state || v.district || "",
+            address: a.address_line1 || p.address || "",
+            instagram: instaLink,
+            website: webLink,
+            workingHours: v.working_hours || "",
+            working_hours: v.working_hours || "",
+            serviceAreas: v.service_areas || "",
+            service_areas: v.service_areas || "",
             profile_completion_percentage: v.profile_completion_percentage || 0,
           };
 

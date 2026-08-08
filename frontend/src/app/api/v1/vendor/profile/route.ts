@@ -45,7 +45,7 @@ export async function GET(req: Request) {
     }
 
     const vendor = vendors[0];
-    const [profileRes, contactsRes, addressesRes, categoryRes] = await Promise.all([
+    const [profileRes, contactsRes, addressesRes, categoryRes, socialRes] = await Promise.all([
       fetch(`${url}/rest/v1/vendor_profiles?vendor_id=eq.${encodeURIComponent(vendor.id)}&select=*`, {
         headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
       }).catch(() => null),
@@ -60,12 +60,16 @@ export async function GET(req: Request) {
             headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
           }).catch(() => null)
         : Promise.resolve(null),
+      fetch(`${url}/rest/v1/vendor_social_links?vendor_id=eq.${encodeURIComponent(vendor.id)}&select=*`, {
+        headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
+      }).catch(() => null),
     ]);
 
     const profileRows = profileRes && profileRes.ok ? await profileRes.json() : [];
     const contacts = contactsRes && contactsRes.ok ? await contactsRes.json() : [];
     const addresses = addressesRes && addressesRes.ok ? await addressesRes.json() : [];
     const categories = categoryRes && categoryRes.ok ? await categoryRes.json() : [];
+    const socialLinks = socialRes && socialRes.ok ? await socialRes.json() : [];
     const profile = Array.isArray(profileRows) && profileRows.length > 0 ? profileRows[0] : null;
     const category = Array.isArray(categories) && categories.length > 0 ? categories[0] : null;
     const categorySlug = category?.slug || vendor.category || "general";
@@ -118,6 +122,7 @@ export async function GET(req: Request) {
           profile,
           contacts,
           addresses,
+          socialLinks,
           categoryExtensionTable: extensionTable,
           categoryDetails,
           versions,

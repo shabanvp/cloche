@@ -454,7 +454,7 @@ export async function POST(req: Request) {
             vendorCode: newVendor.vendor_code,
             businessName,
             slug: profileSlug,
-            category: catName,
+            category: categoryName,
             status: "active",
             onboardingStage: newVendor.onboarding_stage,
             profileCompletionPercentage: newVendor.profile_completion_percentage,

@@ -14,13 +14,13 @@ export default function VendorProfile() {
   const [whatsapp, setWhatsapp] = useState<string>("");
   const [email, setEmail] = useState<string>("");
   const [instagram, setInstagram] = useState<string>("");
-  const [website, setWebsite] = useState<string>("https://cloche.app");
+  const [website, setWebsite] = useState<string>("");
   const [address, setAddress] = useState<string>("");
-  const [district, setDistrict] = useState<string>("Ernakulam");
-  const [category, setCategory] = useState<string>("Photography");
-  const [serviceAreas, setServiceAreas] = useState<string>("Kochi, Trivandrum, Kozhikode, Thrissur");
-  const [workingHours, setWorkingHours] = useState<string>("Mon – Sat: 10:00 AM – 8:00 PM | Sun: 11:00 AM – 5:00 PM");
-  
+  const [district, setDistrict] = useState<string>("");
+  const [category, setCategory] = useState<string>("");
+  const [serviceAreas, setServiceAreas] = useState<string>("");
+  const [workingHours, setWorkingHours] = useState<string>("");
+
   // States & Validation
   const [isSaving, setIsSaving] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
@@ -32,51 +32,69 @@ export default function VendorProfile() {
 
   const loadProfile = async () => {
     const active = await fetchAuthenticatedVendorFromDb();
-    setVendorId(active.id);
+    setVendorId(active.id || "");
     setBoutiqueName(active.boutique_name || active.name || "");
     setLogo(active.logo || active.logo_url || "");
     setCoverImage(active.coverImage || active.cover_image || "");
     setDescription(active.description || "");
     setWhatsapp(active.whatsapp || active.phone || "");
     setEmail(active.email || "");
-    setInstagram(active.instagram || "@clochevendor");
-    setWebsite(active.website || "https://cloche.app");
+    setInstagram(active.instagram || "");
+    setWebsite(active.website || "");
     setAddress(active.address || "");
-    setDistrict(active.district || active.city || "Ernakulam");
-    setCategory(active.category || "Photography");
-    setWorkingHours(active.workingHours || active.working_hours || "Mon – Sat: 10:00 AM – 8:00 PM");
-    setServiceAreas(active.serviceAreas || active.service_areas || "Kochi, Trivandrum");
+    setDistrict(active.district || active.city || "");
+    setCategory(active.category || "");
+    setWorkingHours(active.workingHours || active.working_hours || "");
+    setServiceAreas(active.serviceAreas || active.service_areas || "");
   };
 
-  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 10 * 1024 * 1024) {
         setValidationError("Image file size should not exceed 10MB");
         return;
       }
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        const result = ev.target?.result as string;
-        if (result) setLogo(result);
-      };
-      reader.readAsDataURL(file);
+      const previewUrl = URL.createObjectURL(file);
+      setLogo(previewUrl);
+
+      try {
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("folder", "cloche/vendors/logos");
+        const res = await fetch("/api/upload", { method: "POST", body: formData });
+        const data = await res.json();
+        if (data.url || data.secure_url) {
+          setLogo(data.url || data.secure_url);
+        }
+      } catch (err) {
+        console.warn("[VendorProfile] Logo Cloudinary upload warning:", err);
+      }
     }
   };
 
-  const handleCoverUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 15 * 1024 * 1024) {
         setValidationError("Cover image file size should not exceed 15MB");
         return;
       }
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        const result = ev.target?.result as string;
-        if (result) setCoverImage(result);
-      };
-      reader.readAsDataURL(file);
+      const previewUrl = URL.createObjectURL(file);
+      setCoverImage(previewUrl);
+
+      try {
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("folder", "cloche/vendors/covers");
+        const res = await fetch("/api/upload", { method: "POST", body: formData });
+        const data = await res.json();
+        if (data.url || data.secure_url) {
+          setCoverImage(data.url || data.secure_url);
+        }
+      } catch (err) {
+        console.warn("[VendorProfile] Cover Cloudinary upload warning:", err);
+      }
     }
   };
 
@@ -93,18 +111,14 @@ export default function VendorProfile() {
       setValidationError("Please enter a valid WhatsApp contact number.");
       return;
     }
-    if (!address.trim()) {
-      setValidationError("Complete business address is required.");
-      return;
-    }
 
     setIsSaving(true);
     try {
       let finalLogoUrl = logo;
       let finalCoverUrl = coverImage;
 
-      // Upload logo to Cloudinary if base64 data URL
-      if (logo && logo.startsWith("data:image/")) {
+      // Upload logo to Cloudinary if base64/blob data URL
+      if (logo && (logo.startsWith("data:image/") || logo.startsWith("blob:"))) {
         try {
           const { uploadImageToCloudinary } = await import("@/lib/cloudinary");
           finalLogoUrl = await uploadImageToCloudinary(logo, "cloche/vendors/logos");
@@ -114,8 +128,8 @@ export default function VendorProfile() {
         }
       }
 
-      // Upload cover to Cloudinary if base64 data URL
-      if (coverImage && coverImage.startsWith("data:image/")) {
+      // Upload cover to Cloudinary if base64/blob data URL
+      if (coverImage && (coverImage.startsWith("data:image/") || coverImage.startsWith("blob:"))) {
         try {
           const { uploadImageToCloudinary } = await import("@/lib/cloudinary");
           finalCoverUrl = await uploadImageToCloudinary(coverImage, "cloche/vendors/covers");
@@ -305,7 +319,7 @@ export default function VendorProfile() {
                     value={instagram}
                     onChange={(e) => setInstagram(e.target.value)}
                     className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl p-3 pl-10 text-sm text-charcoal focus:outline-none focus:border-[#0F4C45]"
-                    placeholder="@clochevendor"
+                    placeholder="@yourstudio"
                   />
                 </div>
               </div>
@@ -319,7 +333,7 @@ export default function VendorProfile() {
                     value={website}
                     onChange={(e) => setWebsite(e.target.value)}
                     className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl p-3 pl-10 text-sm text-charcoal focus:outline-none focus:border-[#0F4C45]"
-                    placeholder="https://cloche.app"
+                    placeholder="https://yourwebsite.com"
                   />
                 </div>
               </div>
@@ -331,7 +345,7 @@ export default function VendorProfile() {
                   value={district}
                   onChange={(e) => setDistrict(e.target.value)}
                   className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl p-3 text-sm text-charcoal focus:outline-none focus:border-[#0F4C45] font-semibold"
-                  placeholder="Ernakulam / Kochi"
+                  placeholder="City / Location"
                 />
               </div>
             </div>
