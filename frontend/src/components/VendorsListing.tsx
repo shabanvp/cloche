@@ -20,7 +20,7 @@ import { Boutique } from "@/types";
 function resolveCategory(boutique: Boutique): string {
   const tags = (boutique.tags || "").toLowerCase();
   const plan = (boutique.plan || "").toLowerCase();
-  const name = (boutique.boutique_name || "").toLowerCase();
+  const name = (boutique.boutique_name || (boutique as any).name || "").toLowerCase();
 
   if (tags.includes("videographer") || tags.includes("video") || name.includes("video") || name.includes("film") || name.includes("cinema")) return "Videographer";
   if (tags.includes("photo") || name.includes("photo") || name.includes("frame") || name.includes("media")) return "Photographer";
@@ -185,15 +185,17 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
             }
           } catch (e) {}
 
-          // 1. Database fetched boutiques get top priority for real DB logo images ONLY
+          // 1. Database fetched boutiques get top priority
           dbItems.forEach((item) => {
-            const itemKey = String(item.id || item.boutique_name);
-            const normName = (item.boutique_name || "").toLowerCase().trim();
+            const bName = item.boutique_name || (item as any).name || (item as any).businessName || "Wedding Vendor";
+            const itemKey = String(item.id || (item as any).slug || bName);
+            const normName = bName.toLowerCase().trim();
             if (itemKey && normName) {
               seenNames.add(normName);
-              const logoSrc = item.logo_url || item.logo || (item as any).profile_logo || "";
+              const logoSrc = item.logo_url || item.logo || (item as any).profile_logo || (item as any).image_url || "";
               mergedMap.set(itemKey, {
                 ...item,
+                boutique_name: bName,
                 logo_url: logoSrc,
                 logo: logoSrc,
                 profile_logo: logoSrc,
@@ -204,16 +206,17 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
           // 2. Local storage registered vendors
           if (localList.length > 0) {
             localList.forEach((item) => {
-              const itemKey = String(item.id || item.slug || item.boutique_name);
-              const normName = (item.boutique_name || item.name || "").toLowerCase().trim();
+              const bName = item.boutique_name || item.name || item.businessName || "Wedding Vendor";
+              const itemKey = String(item.id || item.slug || bName);
+              const normName = bName.toLowerCase().trim();
               if (itemKey && normName) {
                 const existing = mergedMap.get(itemKey);
-                const logoSrc = item.logo_url || item.logo || item.profile_logo || item.image || "";
+                const logoSrc = item.logo_url || item.logo || item.profile_logo || item.image || item.image_url || "";
                 if (!existing) {
                   seenNames.add(normName);
                   mergedMap.set(itemKey, {
                     id: itemKey,
-                    boutique_name: item.boutique_name || item.name || "Wedding Vendor",
+                    boutique_name: bName,
                     logo_url: logoSrc,
                     profile_logo: logoSrc,
                     logo: logoSrc,
@@ -270,7 +273,7 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
       if (matchTerm) {
         result = result.filter((b) => {
           const tags = (b.tags || "").toLowerCase();
-          const name = (b.boutique_name || "").toLowerCase();
+          const name = (b.boutique_name || (b as any).name || "").toLowerCase();
           const category = resolveCategory(b).toLowerCase();
           return tags.includes(matchTerm) || name.includes(matchTerm) || category.includes(matchTerm);
         });
@@ -279,13 +282,13 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
 
     if (search.trim()) {
       const q = search.toLowerCase().trim();
-      result = result.filter(
-        (b) =>
-          b.boutique_name.toLowerCase().includes(q) ||
-          (b.city && b.city.toLowerCase().includes(q)) ||
-          (b.area && b.area.toLowerCase().includes(q)) ||
-          (b.tags && b.tags.toLowerCase().includes(q))
-      );
+      result = result.filter((b) => {
+        const name = (b.boutique_name || (b as any).name || "").toLowerCase();
+        const city = (b.city || "").toLowerCase();
+        const area = (b.area || "").toLowerCase();
+        const tags = (b.tags || "").toLowerCase();
+        return name.includes(q) || city.includes(q) || area.includes(q) || tags.includes(q);
+      });
     }
 
     return result;
@@ -402,6 +405,8 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
                 (boutique as any).profile_logo ||
                 (boutique as any).profile_pic ||
                 (boutique as any).avatar ||
+                (boutique as any).image_url ||
+                (boutique as any).image ||
                 ""
               ).toString().trim();
 
@@ -415,6 +420,7 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
                  (displayImage.startsWith("/") && !displayImage.startsWith("//")))
               );
 
+              const bName = boutique.boutique_name || (boutique as any).name || "Wedding Vendor";
               const locationText = `${boutique.city || "Kochi"}${boutique.area ? `, ${boutique.area}` : ""}`;
               const startingPrice =
                 (boutique as any).starting_price ||
@@ -436,7 +442,7 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
                     {isValidImage ? (
                       <Image
                         src={displayImage}
-                        alt={boutique.boutique_name || "Vendor"}
+                        alt={bName}
                         fill
                         priority={isPriority}
                         loading={isPriority ? "eager" : "lazy"}
@@ -447,7 +453,7 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
                     ) : (
                       <div className="w-full h-full flex items-center justify-center bg-[#0F4C45]">
                         <span className="font-serif text-5xl font-bold text-white tracking-wider">
-                          {boutique.boutique_name ? boutique.boutique_name.charAt(0).toUpperCase() : "V"}
+                          {bName ? bName.charAt(0).toUpperCase() : "V"}
                         </span>
                       </div>
                     )}
@@ -477,7 +483,7 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
                     <div className="space-y-1">
                       <div className="flex items-center gap-1.5">
                         <h3 className="font-serif font-bold text-base text-charcoal group-hover:text-[#0F4C45] transition-colors truncate">
-                          {boutique.boutique_name}
+                          {bName}
                         </h3>
                         <CheckCircle2 className="h-4 w-4 text-[#0F4C45] shrink-0" />
                       </div>
@@ -488,7 +494,7 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
                           {boutique.rating ? boutique.rating.toFixed(1) : "4.8"}
                         </span>
                         <span className="text-charcoal/50">
-                          ({(Math.abs((boutique.boutique_name || "").length * 17) % 120) + 40})
+                          ({(Math.abs(bName.length * 17) % 120) + 40})
                         </span>
                       </div>
 

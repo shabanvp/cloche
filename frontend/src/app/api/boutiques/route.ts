@@ -27,12 +27,10 @@ function normalizeImageUrl(value: any): string {
 
 export async function GET() {
   try {
-    // 1. Fetch ONLY logo media from Supabase media table
+    // 1. Fetch ONLY logo media from Supabase media table (Do NOT query boutique_showcase or cover media)
     const logoMediaMap = new Map<string, string>();
     try {
-      const { data: mediaRows } = await supabaseFetch(
-        "media?select=vendor_id,user_id,cdn_url,file_path,original_name,bucket_name,media_type&order=created_at.desc"
-      );
+      const { data: mediaRows } = await supabaseFetch("media?select=*&order=created_at.desc");
       if (Array.isArray(mediaRows)) {
         mediaRows.forEach((m: any) => {
           const url = m.cdn_url || m.file_path;
@@ -46,7 +44,7 @@ export async function GET() {
           ).toLowerCase();
 
           if (pathLower.includes("logo")) {
-            const targets = [m.vendor_id, m.user_id].filter(Boolean);
+            const targets = [m.vendor_id, m.user_id, m.boutique_id].filter(Boolean);
             targets.forEach((targetId) => {
               const idStr = String(targetId);
               if (!logoMediaMap.has(idStr)) {
@@ -61,10 +59,8 @@ export async function GET() {
     const resultList: any[] = [];
     const seenIds = new Set<string>();
 
-    // 2. Query Supabase 'boutiques' table - ONLY fetch essential listing fields & logo_url (NO cover image queries)
-    const { data: boutiques, error: bErr } = await supabaseFetch(
-      "boutiques?select=id,boutique_name,name,city,area,district,category,tags,rating,starting_price,plan,is_verified,logo_url,logo,profile_logo&order=created_at.desc"
-    );
+    // 2. Query Supabase 'boutiques' table directly using select=* to prevent PostgREST column missing errors
+    const { data: boutiques, error: bErr } = await supabaseFetch("boutiques?select=*&order=created_at.desc");
 
     if (!bErr && Array.isArray(boutiques) && boutiques.length > 0) {
       boutiques.forEach((b: any) => {
@@ -86,6 +82,7 @@ export async function GET() {
           logo_url: logoPic,
           logo: logoPic,
           profile_logo: logoPic,
+          image_url: logoPic,
           city: b.city || "Kochi",
           area: b.area || b.district || "Kerala",
           category: b.category || b.tags || "Bridal Wear",
@@ -98,9 +95,9 @@ export async function GET() {
       });
     }
 
-    // 3. Query Supabase 'vendors' & 'vendor_profiles' for registered vendor accounts - ONLY logo fields
+    // 3. Query Supabase 'vendors' & 'vendor_profiles' for registered vendor accounts using select=*
     const { data: vendors, error: vErr } = await supabaseFetch(
-      "vendors?select=id,boutique_name,name,category,city,district,is_verified,plan,vendor_profiles(business_name,city,state,starting_price,logo_url),vendor_addresses(city,state),vendor_categories(name)"
+      "vendors?select=*,vendor_profiles(*),vendor_addresses(*)"
     );
 
     if (!vErr && Array.isArray(vendors) && vendors.length > 0) {
@@ -110,7 +107,7 @@ export async function GET() {
 
         const p = Array.isArray(v.vendor_profiles) && v.vendor_profiles.length > 0 ? v.vendor_profiles[0] : {};
         const a = Array.isArray(v.vendor_addresses) && v.vendor_addresses.length > 0 ? v.vendor_addresses[0] : {};
-        const cat = v.vendor_categories?.name || v.category || "Bridal Wear";
+        const cat = v.category || "Bridal Wear";
         const bName = p.business_name || v.boutique_name || v.name;
 
         if (bName) {
@@ -131,6 +128,7 @@ export async function GET() {
             logo_url: logoPic,
             logo: logoPic,
             profile_logo: logoPic,
+            image_url: logoPic,
             city: a.city || p.city || v.city || "Kochi",
             area: a.state || p.state || v.district || "Kerala",
             category: cat,
