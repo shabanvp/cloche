@@ -6,29 +6,34 @@ generator client {
   provider = "prisma-client-js"
 }
 
+// ─── Authentication Models (Module 1 — already migrated) ─────────────
+
 model User {
-  id                   String    @id @default(uuid()) @db.Uuid
-  email                String    @unique
-  passwordHash         String?   @map("password_hash")
-  fullName             String?   @map("full_name")
-  name                 String?
-  phone                String?
-  isActive             Boolean   @default(true) @map("is_active")
-  isVerified           Boolean   @default(false) @map("is_verified")
-  avatarUrl            String?   @map("avatar_url")
-  verificationToken    String?   @map("verification_token")
-  resetTokenExpiresAt  DateTime? @map("reset_token_expires_at")
-  emailVerifiedAt      DateTime? @map("email_verified_at")
-  city                 String?
-  weddingDate          DateTime? @map("wedding_date")
-  preferences          Json?
-  createdAt            DateTime  @default(now()) @map("created_at")
-  updatedAt            DateTime  @updatedAt @map("updated_at")
+  id                  String    @id @default(uuid()) @db.Uuid
+  email               String    @unique
+  passwordHash        String?   @map("password_hash")
+  fullName            String?   @map("full_name")
+  name                String?
+  phone               String?   @unique
+  isActive            Boolean   @default(true) @map("is_active")
+  isVerified          Boolean   @default(false) @map("is_verified")
+  avatarUrl           String?   @map("avatar_url")
+  verificationToken   String?   @map("verification_token")
+  resetToken          String?   @map("reset_token")
+  resetTokenExpiresAt DateTime? @map("reset_token_expires_at")
+  emailVerifiedAt     DateTime? @map("email_verified_at")
+  city                String?
+  weddingDate         DateTime? @map("wedding_date")
+  preferences         Json?
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
 
   userRoles UserRole[]
   sessions  Session[]
+  vendors   Vendor[]
 
   @@index([verificationToken])
+  @@index([resetToken])
   @@map("users")
 }
 
@@ -69,4 +74,72 @@ model Session {
 
   @@index([tokenHash])
   @@map("sessions")
+}
+
+// ─── Vendor Core Models (Module 2) ────────────────────────────────────
+
+model VendorCategory {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  iconName    String?  @map("icon_name")
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  vendors     Vendor[]
+
+  @@map("vendor_categories")
+}
+
+model Vendor {
+  id                          String    @id @default(uuid()) @db.Uuid
+  vendorCode                  String    @unique @map("vendor_code")
+  userId                      String    @map("user_id") @db.Uuid
+  categoryId                  String    @map("category_id") @db.Uuid
+  status                      String    @default("pending") @map("status")
+  publicationStatus           String    @default("draft") @map("publication_status")
+  onboardingStage             String    @default("registration_started") @map("onboarding_stage")
+  profileCompletionPercentage Int       @default(10) @map("profile_completion_percentage")
+  isVerified                  Boolean   @default(false) @map("is_verified")
+  isKycVerified               Boolean   @default(false) @map("is_kyc_verified")
+  createdAt                   DateTime  @default(now()) @map("created_at")
+  updatedAt                   DateTime  @updatedAt @map("updated_at")
+  deletedAt                   DateTime? @map("deleted_at")
+
+  user     User           @relation(fields: [userId], references: [id], onDelete: Restrict)
+  category VendorCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  profile  VendorProfile?
+
+  @@index([userId])
+  @@index([categoryId, status])
+  @@index([vendorCode])
+  @@map("vendors")
+}
+
+model VendorProfile {
+  id            String    @id @default(uuid()) @db.Uuid
+  vendorId      String    @unique @map("vendor_id") @db.Uuid
+  businessName  String    @map("business_name")
+  slug          String    @unique
+  tagline       String?
+  about         String?   @db.Text
+  city          String
+  state         String
+  pincode       String?
+  rating        Decimal   @default(0.00) @db.Decimal(3, 2)
+  reviewCount   Int       @default(0) @map("review_count")
+  startingPrice Decimal?  @map("starting_price") @db.Decimal(12, 2)
+  seoTitle      String?   @map("seo_title")
+  seoDescription String?  @map("seo_description") @db.Text
+  seoKeywords   String?   @map("seo_keywords")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  vendor        Vendor    @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+
+  @@index([slug])
+  @@index([city, rating(sort: Desc)])
+  @@map("vendor_profiles")
 }
