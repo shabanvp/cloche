@@ -112,6 +112,12 @@ export async function GET(req: Request) {
       if (Array.isArray(verRows)) versions = verRows;
     }
 
+    const primaryContactName = contacts[0]?.contact_name || auth.user.fullName || "";
+    const resolvedContacts = contacts.map((c: any) => ({
+      ...c,
+      contact_name: c.contact_name || primaryContactName,
+    }));
+
     return NextResponse.json(
       {
         success: true,
@@ -122,6 +128,8 @@ export async function GET(req: Request) {
             vendorCode: vendor.vendor_code,
             boutique_name: profile?.business_name || vendor.boutique_name || vendor.name || auth.user.fullName || "",
             name: profile?.business_name || vendor.name || vendor.boutique_name || auth.user.fullName || "",
+            owner_name: primaryContactName,
+            ownerName: primaryContactName,
             status: vendor.status,
             publicationStatus: vendor.publication_status,
             onboardingStage: vendor.onboarding_stage,
@@ -131,7 +139,7 @@ export async function GET(req: Request) {
             category,
           },
           profile,
-          contacts,
+          contacts: resolvedContacts.length > 0 ? resolvedContacts : [{ contact_name: primaryContactName }],
           addresses,
           socialLinks,
           categoryExtensionTable: extensionTable,

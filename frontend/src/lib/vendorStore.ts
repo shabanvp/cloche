@@ -109,13 +109,15 @@ export async function fetchAuthenticatedVendorFromDb(): Promise<VendorProfileDat
               ? (catObj.name || "")
               : (typeof catObj === "string" ? catObj : "");
 
+            const ownerNameVal = c.contact_name || v.owner_name || v.ownerName || p.owner_name || "";
+
             const resolvedVendor: VendorProfileData = {
               id: v.id || "",
               user_id: v.user_id || "",
               name: bName,
               boutique_name: bName,
-              owner_name: c.contact_name || v.owner_name || "",
-              ownerName: c.contact_name || v.owner_name || "",
+              owner_name: ownerNameVal,
+              ownerName: ownerNameVal,
               category: catName,
               logo: p.logo_url || v.logo_url || "",
               logo_url: p.logo_url || v.logo_url || "",
