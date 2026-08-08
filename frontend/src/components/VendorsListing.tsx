@@ -111,6 +111,19 @@ interface VendorsListingProps {
   boutiques: Boutique[];
 }
 
+function normalizeImageUrl(value: any): string {
+  if (!value) return "";
+  const raw = String(value).trim();
+  if (!raw) return "";
+
+  if (/^https?:\/\//i.test(raw) || /^data:image\//i.test(raw)) return raw;
+  if (raw.startsWith("/") && !raw.startsWith("//")) return raw;
+
+  const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "dycwsnzyd";
+  const cleanPath = raw.replace(/^\/+/, "");
+  return `https://res.cloudinary.com/${cloudName}/image/upload/${cleanPath}`;
+}
+
 export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingProps) {
   const [search, setSearch] = useState("");
   const [activeFilter, setActiveFilter] = useState<CategoryFilter>("All");
@@ -358,11 +371,15 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
                 ""
               ).toString().trim();
 
-              const isValidCover =
-                rawLogo.startsWith("data:image/") ||
-                rawLogo.startsWith("http://") ||
-                rawLogo.startsWith("https://") ||
-                (rawLogo.startsWith("/") && !rawLogo.startsWith("//"));
+              const logoUrl = normalizeImageUrl(rawLogo);
+
+              const isValidCover = Boolean(
+                logoUrl &&
+                (logoUrl.startsWith("data:image/") ||
+                 logoUrl.startsWith("http://") ||
+                 logoUrl.startsWith("https://") ||
+                 (logoUrl.startsWith("/") && !logoUrl.startsWith("//")))
+              );
 
               const locationText = `${boutique.city || "Kochi"}${boutique.area ? `, ${boutique.area}` : ""}`;
               const startingPrice =
@@ -398,12 +415,12 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
                   <div className="relative aspect-[4/3] w-full overflow-hidden bg-[#0F4C45]">
                     {isValidCover ? (
                       <Image
-                        src={rawLogo}
+                        src={logoUrl}
                         alt={boutique.boutique_name || "Vendor"}
                         fill
                         sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                         className="object-cover group-hover:scale-105 transition-transform duration-500"
-                        unoptimized={rawLogo.startsWith("data:")}
+                        unoptimized={logoUrl.startsWith("data:")}
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center bg-[#0F4C45]">
