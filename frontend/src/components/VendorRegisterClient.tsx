@@ -349,6 +349,29 @@ export function VendorRegisterClient() {
       return;
     }
 
+    const logoFile = formData.get("logo");
+    const coverFile = formData.get("cover");
+
+    if (logoFile instanceof File && logoFile.size > 0) {
+      try {
+        const { uploadImageToCloudinary } = await import("@/lib/cloudinary");
+        const logoUrl = await uploadImageToCloudinary(logoFile, "cloche/vendors/logos");
+        if (logoUrl) formData.set("logo_url", logoUrl);
+      } catch (err) {
+        console.warn("[VendorRegister] Logo Cloudinary upload failed:", err);
+      }
+    }
+
+    if (coverFile instanceof File && coverFile.size > 0) {
+      try {
+        const { uploadImageToCloudinary } = await import("@/lib/cloudinary");
+        const coverUrl = await uploadImageToCloudinary(coverFile, "cloche/vendors/covers");
+        if (coverUrl) formData.set("cover_image", coverUrl);
+      } catch (err) {
+        console.warn("[VendorRegister] Cover Cloudinary upload failed:", err);
+      }
+    }
+
     const res = await submitSignup(formData);
 
     setIsSubmitting(false);

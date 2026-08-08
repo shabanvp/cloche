@@ -253,6 +253,8 @@ export async function syncVendorProfileWithDatabase(updatedFields: Partial<Vendo
           startingPrice: (updatedFields as any).startingPrice,
           instagram: merged.instagram,
           website: merged.website,
+          logo: merged.logo || merged.logo_url,
+          coverImage: merged.coverImage || merged.cover_image,
         },
         contact: {
           phone: merged.phone || merged.whatsapp,

@@ -33,7 +33,7 @@ export async function GET(req: Request) {
     }
 
     const vendorRes = await fetch(
-      `${url}/rest/v1/vendors?id=eq.${encodeURIComponent(auth.vendorId)}&select=*,vendor_profiles(*),vendor_contacts(*),vendor_addresses(*),vendor_categories(id,name,slug),vendor_social_links(*)`,
+      `${url}/rest/v1/vendors?id=eq.${encodeURIComponent(auth.vendorId)}&select=*,vendor_profiles(*,logo_media:media!logo_media_id(cdn_url),cover_media:media!cover_media_id(cdn_url)),vendor_contacts(*),vendor_addresses(*),vendor_categories(id,name,slug),vendor_social_links(*)`,
       { headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` } }
     );
 
@@ -46,13 +46,19 @@ export async function GET(req: Request) {
     }
 
     const vendor = vendors[0];
-    const profile = Array.isArray(vendor.vendor_profiles) && vendor.vendor_profiles.length > 0 ? vendor.vendor_profiles[0] : null;
+    const rawProfile = Array.isArray(vendor.vendor_profiles) && vendor.vendor_profiles.length > 0 ? vendor.vendor_profiles[0] : {};
     const contacts = Array.isArray(vendor.vendor_contacts) ? vendor.vendor_contacts : [];
     const addresses = Array.isArray(vendor.vendor_addresses) ? vendor.vendor_addresses : [];
     const category = vendor.vendor_categories || null;
     const socialLinks = Array.isArray(vendor.vendor_social_links) ? vendor.vendor_social_links : [];
     const categorySlug = category?.slug || vendor.category || "general";
     const extensionTable = getCategoryTable(categorySlug);
+
+    const profile = {
+      ...rawProfile,
+      logo_url: rawProfile.logo_media?.cdn_url || rawProfile.logo_url || "",
+      cover_image: rawProfile.cover_media?.cdn_url || rawProfile.cover_image || "",
+    };
 
     // 2. Fetch category specific details
     let categoryDetails: any = null;
@@ -136,7 +142,7 @@ export async function PUT(req: Request) {
     const { profile, contact, address, categoryDetails, changeSummary } = body;
 
     // 1. Fetch authenticated vendor core record
-    const vendorRes = await fetch(`${url}/rest/v1/vendors?id=eq.${encodeURIComponent(auth.vendorId)}&select=id,publication_status,category_id`, {
+    const vendorRes = await fetch(`${url}/rest/v1/vendors?id=eq.${encodeURIComponent(auth.vendorId)}&select=id,user_id,publication_status,category_id`, {
       headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
     });
 
@@ -171,9 +177,71 @@ export async function PUT(req: Request) {
     }
     const extensionTable = getCategoryTable(categorySlug);
 
+    // Handle logo & cover media inserts
+    let logoMediaId: string | null = null;
+    let coverMediaId: string | null = null;
+
+    if (profile?.logo || profile?.logo_url) {
+      const logoUrl = profile.logo || profile.logo_url;
+      const mediaRes = await fetch(`${url}/rest/v1/media`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: apiKey,
+          Authorization: `Bearer ${apiKey}`,
+          Prefer: "return=representation",
+        },
+        body: JSON.stringify({
+          user_id: vendor.user_id,
+          vendor_id: vendorId,
+          media_type: "image",
+          bucket_name: "cloudinary",
+          file_path: `cloche/vendors/logos/${vendorId}`,
+          mime_type: "image/jpeg",
+          file_size_bytes: 1024,
+          cdn_url: logoUrl,
+          original_name: "logo.jpg",
+        }),
+      }).catch(() => null);
+
+      if (mediaRes && mediaRes.ok) {
+        const mData = await mediaRes.json();
+        if (Array.isArray(mData) && mData.length > 0) logoMediaId = mData[0].id;
+      }
+    }
+
+    if (profile?.coverImage || profile?.cover_image) {
+      const coverUrl = profile.coverImage || profile.cover_image;
+      const mediaRes = await fetch(`${url}/rest/v1/media`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: apiKey,
+          Authorization: `Bearer ${apiKey}`,
+          Prefer: "return=representation",
+        },
+        body: JSON.stringify({
+          user_id: vendor.user_id,
+          vendor_id: vendorId,
+          media_type: "image",
+          bucket_name: "cloudinary",
+          file_path: `cloche/vendors/covers/${vendorId}`,
+          mime_type: "image/jpeg",
+          file_size_bytes: 1024,
+          cdn_url: coverUrl,
+          original_name: "cover.jpg",
+        }),
+      }).catch(() => null);
+
+      if (mediaRes && mediaRes.ok) {
+        const mData = await mediaRes.json();
+        if (Array.isArray(mData) && mData.length > 0) coverMediaId = mData[0].id;
+      }
+    }
+
     // 2. Update Vendor Profile in vendor_profiles table
     if (profile && typeof profile === "object") {
-      const profilePayload = {
+      const profilePayload: Record<string, any> = {
         business_name: profile.businessName || profile.business_name,
         tagline: profile.tagline || null,
         about: profile.about || profile.description || null,
@@ -183,6 +251,9 @@ export async function PUT(req: Request) {
         starting_price: profile.startingPrice || profile.starting_price || null,
         updated_at: new Date().toISOString(),
       };
+
+      if (logoMediaId) profilePayload.logo_media_id = logoMediaId;
+      if (coverMediaId) profilePayload.cover_media_id = coverMediaId;
 
       await fetch(`${url}/rest/v1/vendor_profiles?vendor_id=eq.${encodeURIComponent(vendorId)}`, {
         method: "PATCH",

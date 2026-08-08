@@ -123,11 +123,19 @@ export async function POST(req: Request) {
       email,
       phone,
       password,
+      address,
       city,
       district,
       state,
       pincode,
+      website,
+      instagram,
+      facebook,
       description,
+      logo_url,
+      cover_image,
+      logo,
+      cover,
     } = body;
 
     const businessName = (boutique_name || "").toString().trim();
@@ -312,7 +320,7 @@ export async function POST(req: Request) {
       }
     }
 
-    // Step 3: Exact lookup of vendor category_id from vendor_categories (NO dictionaries, NO fallback)
+    // Step 3: Exact lookup of vendor category_id from vendor_categories
     const submittedCategory = (category_id || category || "").toString().trim();
 
     if (!submittedCategory) {
@@ -325,7 +333,6 @@ export async function POST(req: Request) {
     let categoryId: string | null = null;
     let categoryName: string = "";
 
-    // Query vendor_categories directly by id, slug, or name (exact match)
     const catRes = await fetch(
       `${url}/rest/v1/vendor_categories?or=(id.eq.${encodeURIComponent(submittedCategory)},slug.eq.${encodeURIComponent(submittedCategory)},name.eq.${encodeURIComponent(submittedCategory)})&select=id,name,slug&limit=1`,
       { headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` } }
@@ -339,7 +346,6 @@ export async function POST(req: Request) {
       }
     }
 
-    // Return HTTP 400 if the submitted category does not exist in vendor_categories
     if (!categoryId) {
       return NextResponse.json(
         {
@@ -352,18 +358,6 @@ export async function POST(req: Request) {
         },
         { status: 400 }
       );
-    }
-
-    if (!categoryId) {
-      const fallbackCatRes = await fetch(`${url}/rest/v1/vendor_categories?limit=1&select=id`, {
-        headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
-      });
-      if (fallbackCatRes.ok) {
-        const fallbacks = await fallbackCatRes.json();
-        if (Array.isArray(fallbacks) && fallbacks.length > 0) {
-          categoryId = fallbacks[0].id;
-        }
-      }
     }
 
     // Step 4: Create Core Vendor Record in vendors table
@@ -404,8 +398,70 @@ export async function POST(req: Request) {
     const newVendor = newVendors[0];
     insertedVendorId = newVendor.id;
 
-    // Step 5: Create Vendor Profile in vendor_profiles table
-    console.log(`${logPrefix} Step 5: Inserting vendor_profiles record...`);
+    // Step 5: Handle Image Uploads to Media Table
+    let logoMediaId: string | null = null;
+    let coverMediaId: string | null = null;
+    const logoUrlResolved = (logo_url || logo || "").toString().trim();
+    const coverUrlResolved = (cover_image || cover || "").toString().trim();
+
+    if (logoUrlResolved) {
+      const mediaRes = await fetch(`${url}/rest/v1/media`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: apiKey,
+          Authorization: `Bearer ${apiKey}`,
+          Prefer: "return=representation",
+        },
+        body: JSON.stringify({
+          user_id: targetUserId,
+          vendor_id: newVendor.id,
+          media_type: "image",
+          bucket_name: "cloudinary",
+          file_path: `cloche/vendors/logos/${newVendor.id}`,
+          mime_type: "image/jpeg",
+          file_size_bytes: 1024,
+          cdn_url: logoUrlResolved,
+          original_name: "logo.jpg",
+        }),
+      }).catch(() => null);
+
+      if (mediaRes && mediaRes.ok) {
+        const mData = await mediaRes.json();
+        if (Array.isArray(mData) && mData.length > 0) logoMediaId = mData[0].id;
+      }
+    }
+
+    if (coverUrlResolved) {
+      const mediaRes = await fetch(`${url}/rest/v1/media`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: apiKey,
+          Authorization: `Bearer ${apiKey}`,
+          Prefer: "return=representation",
+        },
+        body: JSON.stringify({
+          user_id: targetUserId,
+          vendor_id: newVendor.id,
+          media_type: "image",
+          bucket_name: "cloudinary",
+          file_path: `cloche/vendors/covers/${newVendor.id}`,
+          mime_type: "image/jpeg",
+          file_size_bytes: 1024,
+          cdn_url: coverUrlResolved,
+          original_name: "cover.jpg",
+        }),
+      }).catch(() => null);
+
+      if (mediaRes && mediaRes.ok) {
+        const mData = await mediaRes.json();
+        if (Array.isArray(mData) && mData.length > 0) coverMediaId = mData[0].id;
+      }
+    }
+
+    // Step 6: Create Vendor Profile in vendor_profiles table
+    console.log(`${logPrefix} Step 6: Inserting vendor_profiles record...`);
     const profileSlug = generateSlug(businessName);
     const profileInsertRes = await fetch(`${url}/rest/v1/vendor_profiles`, {
       method: "POST",
@@ -421,9 +477,11 @@ export async function POST(req: Request) {
         slug: profileSlug,
         tagline: body.tagline || null,
         about: description || null,
-        city: city || "Kochi",
-        state: state || "Kerala",
+        city: city || district || "Kochi",
+        state: state || district || "Kerala",
         pincode: pincode || null,
+        logo_media_id: logoMediaId,
+        cover_media_id: coverMediaId,
         rating: 0.0,
         review_count: 0,
         starting_price: null,
@@ -443,8 +501,68 @@ export async function POST(req: Request) {
     const newProfiles = await profileInsertRes.json();
     insertedProfileId = newProfiles[0].id;
 
-    // Step 6: Create Initial Vendor Profile Version in vendor_profile_versions
-    console.log(`${logPrefix} Step 6: Inserting initial active version in vendor_profile_versions...`);
+    // Step 7: Insert Contact in vendor_contacts
+    await fetch(`${url}/rest/v1/vendor_contacts`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        apikey: apiKey,
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        vendor_id: newVendor.id,
+        contact_name: owner || businessName,
+        phone: userPhone || null,
+        whatsapp: userPhone || null,
+        email: userEmail,
+        is_primary: true,
+      }),
+    }).catch(() => null);
+
+    // Step 8: Insert Address in vendor_addresses
+    if (address || city || district || state || pincode) {
+      await fetch(`${url}/rest/v1/vendor_addresses`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: apiKey,
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          vendor_id: newVendor.id,
+          address_line1: (address || "").toString().trim() || `${city || district || "City"}, ${state || "Kerala"}`,
+          city: (city || district || "Kochi").toString().trim(),
+          state: (state || district || "Kerala").toString().trim(),
+          pincode: (pincode || "").toString().trim() || null,
+        }),
+      }).catch(() => null);
+    }
+
+    // Step 9: Insert Social Links in vendor_social_links
+    const socialLinksToInsert = [
+      { platform: "website", url: (website || "").toString().trim() },
+      { platform: "instagram", url: (instagram || "").toString().trim() },
+      { platform: "facebook", url: (facebook || "").toString().trim() },
+    ].filter((item) => item.url);
+
+    for (const item of socialLinksToInsert) {
+      await fetch(`${url}/rest/v1/vendor_social_links`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: apiKey,
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          vendor_id: newVendor.id,
+          platform: item.platform,
+          url: item.url,
+        }),
+      }).catch(() => null);
+    }
+
+    // Step 10: Create Initial Vendor Profile Version in vendor_profile_versions
+    console.log(`${logPrefix} Step 10: Inserting initial active version in vendor_profile_versions...`);
     const versionInsertRes = await fetch(`${url}/rest/v1/vendor_profile_versions`, {
       method: "POST",
       headers: {
