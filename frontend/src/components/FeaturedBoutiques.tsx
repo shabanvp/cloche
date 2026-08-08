@@ -52,35 +52,48 @@ export async function FeaturedBoutiques({ title, subtitle }: FeaturedBoutiquesPr
       </div>
 
       <div className="grid grid-cols-1 gap-5 md:grid-cols-2 md:gap-7 lg:grid-cols-4 lg:gap-7 xl:gap-8">
-        {displayBoutiques.map((boutique, index) => (
-          <Link key={boutique.id} href={`/boutiques/${boutique.id}`} className="group block">
-            <div className="overflow-hidden rounded-[8px] border border-[#eadfce] bg-white shadow-[0_10px_24px_rgba(40,31,18,0.08)] transition-all duration-300 group-hover:shadow-[0_16px_32px_rgba(40,31,18,0.14)]">
-              <div className="relative aspect-[1/0.96] w-full overflow-hidden bg-[#eee6da]">
-                <Image
-                  src={boutique.image_url || "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?q=80&w=800&auto=format&fit=crop"}
-                  alt={boutique.boutique_name}
-                  fill
-                  sizes="100vw"
-                  className="object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-              </div>
-              
-              <div className="p-4 pt-3 sm:p-5 sm:pt-4">
-                <h3 className="mb-1 sm:mb-2 truncate font-display text-[20px] font-semibold leading-tight text-charcoal">
-                  {boutique.boutique_name}
-                </h3>
-                <p className="mb-3 sm:mb-5 text-[15px] sm:text-[13px] text-charcoal/62">{CARD_CATEGORIES[index] || "Bridal Wear"}</p>
-                <div className="flex items-center justify-between text-[15px] sm:text-[13px] text-charcoal/75">
-                  <span className="min-w-0 truncate">{boutique.city || boutique.district || "Kochi"}</span>
-                  <div className="flex items-center gap-1.5 font-medium text-charcoal">
-                    <Star className="h-3.5 w-3.5 fill-gold text-gold" />
-                    <span>{boutique.rating ? boutique.rating.toFixed(1) : "4.8"}</span>
+        {displayBoutiques.map((boutique, index) => {
+          const imageSrc =
+            (boutique as any).coverImage ||
+            (boutique as any).cover_image ||
+            (boutique as any).cover_url ||
+            (boutique as any).logoUrl ||
+            (boutique as any).logo ||
+            (boutique as any).logo_url ||
+            (boutique as any).profile_logo ||
+            boutique.image_url ||
+            "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?q=80&w=800&auto=format&fit=crop";
+
+          return (
+            <Link key={boutique.id} href={`/boutiques/${boutique.id}`} className="group block">
+              <div className="overflow-hidden rounded-[8px] border border-[#eadfce] bg-white shadow-[0_10px_24px_rgba(40,31,18,0.08)] transition-all duration-300 group-hover:shadow-[0_16px_32px_rgba(40,31,18,0.14)]">
+                <div className="relative aspect-[1/0.96] w-full overflow-hidden bg-[#eee6da]">
+                  <Image
+                    src={imageSrc}
+                    alt={boutique.boutique_name}
+                    fill
+                    sizes="100vw"
+                    className="object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                </div>
+                
+                <div className="p-4 pt-3 sm:p-5 sm:pt-4">
+                  <h3 className="mb-1 sm:mb-2 truncate font-display text-[20px] font-semibold leading-tight text-charcoal">
+                    {boutique.boutique_name}
+                  </h3>
+                  <p className="mb-3 sm:mb-5 text-[15px] sm:text-[13px] text-charcoal/62">{CARD_CATEGORIES[index] || "Bridal Wear"}</p>
+                  <div className="flex items-center justify-between text-[15px] sm:text-[13px] text-charcoal/75">
+                    <span className="min-w-0 truncate">{boutique.city || boutique.district || "Kochi"}</span>
+                    <div className="flex items-center gap-1.5 font-medium text-charcoal">
+                      <Star className="h-3.5 w-3.5 fill-gold text-gold" />
+                      <span>{boutique.rating ? boutique.rating.toFixed(1) : "4.8"}</span>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </Link>
-        ))}
+            </Link>
+          );
+        })}
       </div>
       <Link
         href="/boutiques"
