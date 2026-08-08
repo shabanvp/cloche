@@ -144,22 +144,23 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
         if (rawVendors) localList.push(...JSON.parse(rawVendors));
         if (rawBoutiques) localList.push(...JSON.parse(rawBoutiques));
 
-        // Client-side fetch backup if initialBoutiques is empty
+        // Client-side fetch backup to ensure all DB vendors are retrieved
         const loadRealDbVendors = async () => {
           const mergedMap = new Map<string, any>();
           const seenNames = new Set<string>();
-          let dbItems = initialBoutiques;
-          if (!dbItems || dbItems.length === 0) {
-            try {
-              const res = await fetch("/api/boutiques?cache_bust=" + Date.now());
-              if (res.ok) {
-                const data = await res.json();
-                if (Array.isArray(data) && data.length > 0) {
-                  dbItems = data;
-                }
+          let dbItems = initialBoutiques || [];
+
+          try {
+            const res = await fetch("/api/boutiques?cache_bust=" + Date.now());
+            if (res.ok) {
+              const data = await res.json();
+              if (Array.isArray(data) && data.length > 0) {
+                // Combine server-side initialBoutiques and client-side fetched database vendors
+                const combined = [...dbItems, ...data];
+                dbItems = combined;
               }
-            } catch (e) {}
-          }
+            }
+          } catch (e) {}
 
           // 1. Database fetched boutiques get top priority for real DB profile images
           dbItems.forEach((item) => {
