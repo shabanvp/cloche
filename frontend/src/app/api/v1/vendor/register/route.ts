@@ -463,7 +463,29 @@ export async function POST(req: Request) {
     // Step 6: Create Vendor Profile in vendor_profiles table
     console.log(`${logPrefix} Step 6: Inserting vendor_profiles record...`);
     const profileSlug = generateSlug(businessName);
-    const profileInsertRes = await fetch(`${url}/rest/v1/vendor_profiles`, {
+    const resolvedGstNumber = (body.gst_number || null)?.toString().trim() || null;
+
+    const baseProfilePayload: Record<string, any> = {
+      vendor_id: newVendor.id,
+      business_name: businessName,
+      slug: profileSlug,
+      tagline: body.tagline || null,
+      about: description || null,
+      city: city || district || "Kochi",
+      state: state || district || "Kerala",
+      pincode: pincode || null,
+      logo_media_id: logoMediaId,
+      cover_media_id: coverMediaId,
+      rating: 0.0,
+      review_count: 0,
+      starting_price: null,
+    };
+
+    if (resolvedGstNumber) {
+      baseProfilePayload.gst_number = resolvedGstNumber;
+    }
+
+    let profileInsertRes = await fetch(`${url}/rest/v1/vendor_profiles`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -471,23 +493,26 @@ export async function POST(req: Request) {
         Authorization: `Bearer ${apiKey}`,
         Prefer: "return=representation",
       },
-      body: JSON.stringify({
-        vendor_id: newVendor.id,
-        business_name: businessName,
-        slug: profileSlug,
-        tagline: body.tagline || null,
-        about: description || null,
-        city: city || district || "Kochi",
-        state: state || district || "Kerala",
-        pincode: pincode || null,
-        logo_media_id: logoMediaId,
-        cover_media_id: coverMediaId,
-        gst_number: (body.gst_number || null)?.toString().trim() || null,
-        rating: 0.0,
-        review_count: 0,
-        starting_price: null,
-      }),
+      body: JSON.stringify(baseProfilePayload),
     });
+
+    if (!profileInsertRes.ok && resolvedGstNumber) {
+      const errText = await profileInsertRes.clone().text();
+      if (errText.includes("PGRST204") || errText.includes("gst_number")) {
+        console.warn(`${logPrefix} Retrying vendor_profiles insert without gst_number column...`);
+        delete baseProfilePayload.gst_number;
+        profileInsertRes = await fetch(`${url}/rest/v1/vendor_profiles`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            apikey: apiKey,
+            Authorization: `Bearer ${apiKey}`,
+            Prefer: "return=representation",
+          },
+          body: JSON.stringify(baseProfilePayload),
+        });
+      }
+    }
 
     if (!profileInsertRes.ok) {
       const errText = await profileInsertRes.text();

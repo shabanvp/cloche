@@ -301,6 +301,23 @@ export async function PUT(req: Request) {
         },
         body: JSON.stringify(profilePayload),
       });
+
+      if (!patchRes.ok && profilePayload.gst_number) {
+        const errText = await patchRes.clone().text();
+        if (errText.includes("PGRST204") || errText.includes("gst_number")) {
+          console.warn("[IMAGE_FLOW] Retrying vendor_profiles PATCH without gst_number column...");
+          delete profilePayload.gst_number;
+          await fetch(`${url}/rest/v1/vendor_profiles?vendor_id=eq.${encodeURIComponent(vendorId)}`, {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+              apikey: apiKey,
+              Authorization: `Bearer ${apiKey}`,
+            },
+            body: JSON.stringify(profilePayload),
+          });
+        }
+      }
       console.log(`[IMAGE_FLOW] PUT profile patch status:`, patchRes.status);
     }
 
