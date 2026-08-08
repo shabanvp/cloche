@@ -86,7 +86,7 @@ export function VendorCategoryListing({
             slug: item.slug || item.id || `partner-${idx}`,
             image: item.logo || item.image_url || item.image || categoryConfig.vendors[0]?.image || "",
             rating: item.rating || 4.9,
-            reviewsCount: item.reviewsCount || item.review_count || 120,
+            reviewsCount: Number(item.reviewsCount ?? item.review_count ?? 0),
             location: item.location || (item.city ? `${item.city}, Kerala` : "Kochi, Kerala"),
             startingPrice: item.startingPrice || item.starting_price || "₹50,000",
             badge: "Verified",

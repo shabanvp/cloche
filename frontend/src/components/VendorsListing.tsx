@@ -320,9 +320,9 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
                 rawLogo.startsWith("https://") ||
                 (rawLogo.startsWith("/") && !rawLogo.startsWith("//"));
 
-              const validAvatar = isValidLogoUrl
-                ? rawLogo
-                : "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?q=80&w=200&auto=format&fit=crop";
+              const initialLetter = (boutique.boutique_name || "W").charAt(0).toUpperCase();
+              const reviewCountVal = Number((boutique as any).reviewCount ?? (boutique as any).reviewsCount ?? (boutique as any).review_count ?? 0);
+              const displayRating = boutique.rating ? boutique.rating.toFixed(1) : "New";
 
               return (
                 <li key={boutique.id}>
@@ -333,21 +333,28 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
                   >
                     {/* Circular avatar */}
                     <div
-                      className="relative shrink-0 rounded-full overflow-hidden"
+                      className="relative shrink-0 rounded-full overflow-hidden flex items-center justify-center"
                       style={{
                         width: "64px",
                         height: "64px",
                         border: "2px solid #F0E8D8",
+                        background: isValidLogoUrl ? "transparent" : "#0F4C45",
                       }}
                     >
-                      <Image
-                        src={validAvatar}
-                        alt={boutique.boutique_name}
-                        fill
-                        sizes="64px"
-                        className="object-cover"
-                        unoptimized={validAvatar.startsWith("data:")}
-                      />
+                      {isValidLogoUrl ? (
+                        <Image
+                          src={rawLogo}
+                          alt={boutique.boutique_name}
+                          fill
+                          sizes="64px"
+                          className="object-cover"
+                          unoptimized={rawLogo.startsWith("data:")}
+                        />
+                      ) : (
+                        <span className="font-display text-[22px] font-bold" style={{ color: "#F0E8D8" }}>
+                          {initialLetter}
+                        </span>
+                      )}
                     </div>
 
                     {/* Info */}
@@ -373,15 +380,13 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
                           className="text-[13px] font-semibold"
                           style={{ color: "#1A1410" }}
                         >
-                          {boutique.rating
-                            ? boutique.rating.toFixed(1)
-                            : "4.8"}
+                          {displayRating}
                         </span>
                         <span
                           className="text-[12px]"
                           style={{ color: "#9A8D7D" }}
                         >
-                          ({Math.floor(Math.random() * 150 + 50)})
+                          {reviewCountVal > 0 ? `(${reviewCountVal})` : "(New)"}
                         </span>
                       </div>
                     </div>
