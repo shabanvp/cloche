@@ -357,40 +357,28 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
               const category = resolveCategory(boutique);
               const detailHref = resolveDetailHref(boutique);
 
-              const rawLogo = (
+              const rawImage = (
                 boutique.logo_url ||
                 boutique.logo ||
                 (boutique as any).profile_logo ||
                 (boutique as any).profile_pic ||
                 (boutique as any).avatar ||
-                ""
-              ).toString().trim();
-
-              const rawCover = (
+                boutique.image_url ||
                 boutique.cover_url ||
                 (boutique as any).coverImage ||
-                boutique.image_url ||
                 (boutique as any).cover ||
+                (boutique as any).image ||
                 ""
               ).toString().trim();
 
-              const logoUrl = normalizeImageUrl(rawLogo);
-              const coverUrl = normalizeImageUrl(rawCover);
+              const displayImage = normalizeImageUrl(rawImage);
 
-              const hasLogo = Boolean(
-                logoUrl &&
-                (logoUrl.startsWith("data:image/") ||
-                 logoUrl.startsWith("http://") ||
-                 logoUrl.startsWith("https://") ||
-                 (logoUrl.startsWith("/") && !logoUrl.startsWith("//")))
-              );
-
-              const hasCover = Boolean(
-                coverUrl &&
-                (coverUrl.startsWith("data:image/") ||
-                 coverUrl.startsWith("http://") ||
-                 coverUrl.startsWith("https://") ||
-                 (coverUrl.startsWith("/") && !coverUrl.startsWith("//")))
+              const isValidImage = Boolean(
+                displayImage &&
+                (displayImage.startsWith("data:image/") ||
+                 displayImage.startsWith("http://") ||
+                 displayImage.startsWith("https://") ||
+                 (displayImage.startsWith("/") && !displayImage.startsWith("//")))
               );
 
               const locationText = `${boutique.city || "Kochi"}${boutique.area ? `, ${boutique.area}` : ""}`;
@@ -423,52 +411,22 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
                   href={detailHref}
                   className="bg-white rounded-2xl border border-gold/15 shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col justify-between group"
                 >
-                  {/* Card Image Header */}
-                  <div className="relative aspect-[4/3] w-full overflow-hidden bg-[#FAF7F2]">
-                    {hasLogo ? (
-                      /* Main Registered Vendor Logo Picture */
-                      <div className="w-full h-full flex items-center justify-center p-4 bg-[#FAF7F2]">
-                        <div className="relative w-full h-full">
-                          <Image
-                            src={logoUrl}
-                            alt={boutique.boutique_name || "Vendor Logo"}
-                            fill
-                            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                            className="object-contain group-hover:scale-105 transition-transform duration-500"
-                            unoptimized={logoUrl.startsWith("data:")}
-                          />
-                        </div>
-                      </div>
-                    ) : hasCover ? (
-                      /* Fallback Cover / Showcase Picture */
+                  {/* Card Image Header - Single Main Image Container */}
+                  <div className="relative aspect-[4/3] w-full overflow-hidden bg-[#0F4C45]">
+                    {isValidImage ? (
                       <Image
-                        src={coverUrl}
-                        alt={boutique.boutique_name || "Vendor Cover"}
+                        src={displayImage}
+                        alt={boutique.boutique_name || "Vendor"}
                         fill
                         sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                        className="object-cover group-hover:scale-105 transition-transform duration-500 brightness-95"
-                        unoptimized={coverUrl.startsWith("data:")}
+                        className="object-cover group-hover:scale-105 transition-transform duration-500"
+                        unoptimized={displayImage.startsWith("data:")}
                       />
                     ) : (
-                      /* Fallback Initial Avatar */
                       <div className="w-full h-full flex items-center justify-center bg-[#0F4C45]">
                         <span className="font-serif text-5xl font-bold text-white tracking-wider">
                           {boutique.boutique_name ? boutique.boutique_name.charAt(0).toUpperCase() : "V"}
                         </span>
-                      </div>
-                    )}
-
-                    {/* Prominent Square Logo Layout Box */}
-                    {hasLogo && (
-                      <div className="absolute top-3 left-3 w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-white border-2 border-gold/30 shadow-lg overflow-hidden flex items-center justify-center p-1.5 z-20 group-hover:scale-105 transition-transform duration-300">
-                        <Image
-                          src={logoUrl}
-                          alt={`${boutique.boutique_name || "Vendor"} Logo`}
-                          width={64}
-                          height={64}
-                          className="w-full h-full object-contain rounded-xl"
-                          unoptimized={logoUrl.startsWith("data:")}
-                        />
                       </div>
                     )}
 
