@@ -5,6 +5,8 @@ export interface VendorProfileData {
   user_id?: string;
   name: string;
   boutique_name: string;
+  owner_name?: string;
+  ownerName?: string;
   logo?: string;
   logo_url?: string;
   coverImage?: string;
@@ -112,6 +114,8 @@ export async function fetchAuthenticatedVendorFromDb(): Promise<VendorProfileDat
               user_id: v.user_id || "",
               name: bName,
               boutique_name: bName,
+              owner_name: c.contact_name || v.owner_name || "",
+              ownerName: c.contact_name || v.owner_name || "",
               category: catName,
               logo: p.logo_url || v.logo_url || "",
               logo_url: p.logo_url || v.logo_url || "",
@@ -257,6 +261,7 @@ export async function syncVendorProfileWithDatabase(updatedFields: Partial<Vendo
           coverImage: merged.coverImage || merged.cover_image,
         },
         contact: {
+          contact_name: merged.owner_name || merged.ownerName,
           phone: merged.phone || merged.whatsapp,
           whatsapp: merged.whatsapp || merged.phone,
           email: merged.email,

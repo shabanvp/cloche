@@ -269,6 +269,17 @@ export async function PUT(req: Request) {
 
     // 3. Upsert contact, address, and social details for the authenticated vendor
     if (contact && typeof contact === "object") {
+      const contactPayload: Record<string, any> = {
+        vendor_id: vendorId,
+        phone: contact.phone || null,
+        whatsapp: contact.whatsapp || contact.phone || null,
+        email: contact.email || null,
+        is_primary: true,
+        updated_at: new Date().toISOString(),
+      };
+      const ownerVal = contact.contact_name || contact.contactName || contact.owner_name || contact.ownerName;
+      if (ownerVal) contactPayload.contact_name = ownerVal;
+
       await fetch(`${url}/rest/v1/vendor_contacts`, {
         method: "POST",
         headers: {
@@ -277,15 +288,20 @@ export async function PUT(req: Request) {
           Authorization: `Bearer ${apiKey}`,
           Prefer: "resolution=merge-duplicates",
         },
-        body: JSON.stringify({
-          vendor_id: vendorId,
-          phone: contact.phone || null,
-          whatsapp: contact.whatsapp || contact.phone || null,
-          email: contact.email || null,
-          is_primary: true,
-          updated_at: new Date().toISOString(),
-        }),
+        body: JSON.stringify(contactPayload),
       }).catch(() => null);
+
+      if (ownerVal) {
+        await fetch(`${url}/rest/v1/vendor_contacts?vendor_id=eq.${encodeURIComponent(vendorId)}`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            apikey: apiKey,
+            Authorization: `Bearer ${apiKey}`,
+          },
+          body: JSON.stringify({ contact_name: ownerVal }),
+        }).catch(() => null);
+      }
     }
 
     if (address && typeof address === "object") {

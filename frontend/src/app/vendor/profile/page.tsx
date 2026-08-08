@@ -10,6 +10,7 @@ export default function VendorProfile() {
   const [logo, setLogo] = useState<string>("");
   const [coverImage, setCoverImage] = useState<string>("");
   const [boutiqueName, setBoutiqueName] = useState<string>("");
+  const [ownerName, setOwnerName] = useState<string>("");
   const [description, setDescription] = useState<string>("");
   const [whatsapp, setWhatsapp] = useState<string>("");
   const [email, setEmail] = useState<string>("");
@@ -34,6 +35,7 @@ export default function VendorProfile() {
     if (!active) return;
     if (active.id) setVendorId(active.id);
     if (active.boutique_name || active.name) setBoutiqueName(active.boutique_name || active.name);
+    if (active.owner_name || active.ownerName) setOwnerName(active.owner_name || active.ownerName);
     if (active.logo || active.logo_url) setLogo(active.logo || active.logo_url);
     if (active.coverImage || active.cover_image) setCoverImage(active.coverImage || active.cover_image);
     if (active.description) setDescription(active.description);
@@ -154,6 +156,8 @@ export default function VendorProfile() {
         id: vendorId,
         boutique_name: boutiqueName.trim(),
         name: boutiqueName.trim(),
+        owner_name: ownerName.trim(),
+        ownerName: ownerName.trim(),
         logo: finalLogoUrl,
         logo_url: finalLogoUrl,
         coverImage: finalCoverUrl,
@@ -230,7 +234,7 @@ export default function VendorProfile() {
 
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-charcoal/60 mb-2">
-                Boutique / Studio Name <span className="text-red-500">*</span>
+                Business Name <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
@@ -239,6 +243,20 @@ export default function VendorProfile() {
                 onChange={(e) => setBoutiqueName(e.target.value)}
                 className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl p-3 text-sm text-charcoal focus:outline-none focus:border-[#0F4C45] font-semibold"
                 placeholder="e.g. Dream Wedding Studio"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-charcoal/60 mb-2">
+                Owner Name <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                required
+                value={ownerName}
+                onChange={(e) => setOwnerName(e.target.value)}
+                className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl p-3 text-sm text-charcoal focus:outline-none focus:border-[#0F4C45] font-semibold"
+                placeholder="e.g. John Doe"
               />
             </div>
 
