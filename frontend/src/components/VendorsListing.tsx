@@ -363,22 +363,34 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
                 (boutique as any).profile_logo ||
                 (boutique as any).profile_pic ||
                 (boutique as any).avatar ||
-                boutique.image_url ||
+                ""
+              ).toString().trim();
+
+              const rawCover = (
+                boutique.cover_url ||
                 (boutique as any).coverImage ||
+                boutique.image_url ||
                 (boutique as any).cover ||
-                (boutique as any).cover_url ||
-                (boutique as any).image ||
                 ""
               ).toString().trim();
 
               const logoUrl = normalizeImageUrl(rawLogo);
+              const coverUrl = normalizeImageUrl(rawCover);
 
-              const isValidCover = Boolean(
+              const hasLogo = Boolean(
                 logoUrl &&
                 (logoUrl.startsWith("data:image/") ||
                  logoUrl.startsWith("http://") ||
                  logoUrl.startsWith("https://") ||
                  (logoUrl.startsWith("/") && !logoUrl.startsWith("//")))
+              );
+
+              const hasCover = Boolean(
+                coverUrl &&
+                (coverUrl.startsWith("data:image/") ||
+                 coverUrl.startsWith("http://") ||
+                 coverUrl.startsWith("https://") ||
+                 (coverUrl.startsWith("/") && !coverUrl.startsWith("//")))
               );
 
               const locationText = `${boutique.city || "Kochi"}${boutique.area ? `, ${boutique.area}` : ""}`;
@@ -413,16 +425,31 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
                 >
                   {/* Card Image Header */}
                   <div className="relative aspect-[4/3] w-full overflow-hidden bg-[#0F4C45]">
-                    {isValidCover ? (
+                    {hasCover ? (
+                      /* Cover / Showcase Background */
                       <Image
-                        src={logoUrl}
-                        alt={boutique.boutique_name || "Vendor"}
+                        src={coverUrl}
+                        alt={boutique.boutique_name || "Vendor Cover"}
                         fill
                         sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                        className="object-cover group-hover:scale-105 transition-transform duration-500"
-                        unoptimized={logoUrl.startsWith("data:")}
+                        className="object-cover group-hover:scale-105 transition-transform duration-500 brightness-95"
+                        unoptimized={coverUrl.startsWith("data:")}
                       />
+                    ) : hasLogo ? (
+                      /* Primary Vendor Logo Display */
+                      <div className="w-full h-full flex items-center justify-center bg-[#FAF7F2] p-6">
+                        <div className="relative w-full h-full max-w-[180px] max-h-[140px]">
+                          <Image
+                            src={logoUrl}
+                            alt={boutique.boutique_name || "Vendor Logo"}
+                            fill
+                            className="object-contain drop-shadow-md group-hover:scale-105 transition-transform duration-500"
+                            unoptimized={logoUrl.startsWith("data:")}
+                          />
+                        </div>
+                      </div>
                     ) : (
+                      /* Fallback Initial Avatar */
                       <div className="w-full h-full flex items-center justify-center bg-[#0F4C45]">
                         <span className="font-serif text-5xl font-bold text-white tracking-wider">
                           {boutique.boutique_name ? boutique.boutique_name.charAt(0).toUpperCase() : "V"}
@@ -430,7 +457,21 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
                       </div>
                     )}
 
-                    {/* Top Overlay Badge */}
+                    {/* Overlaid Registered Vendor LOGO Avatar Badge */}
+                    {hasLogo && (
+                      <div className="absolute top-3 left-3 w-14 h-14 rounded-2xl bg-white border-2 border-gold/30 shadow-lg overflow-hidden flex items-center justify-center p-1 z-10 group-hover:scale-105 transition-transform">
+                        <Image
+                          src={logoUrl}
+                          alt={`${boutique.boutique_name || "Vendor"} Logo`}
+                          width={52}
+                          height={52}
+                          className="w-full h-full object-contain rounded-xl"
+                          unoptimized={logoUrl.startsWith("data:")}
+                        />
+                      </div>
+                    )}
+
+                    {/* Top Overlay Category Badge */}
                     <span className="absolute bottom-3 left-3 bg-white/90 backdrop-blur-xs text-charcoal text-[10px] font-bold px-2.5 py-1 rounded-md shadow-xs z-10">
                       {overlayTag}
                     </span>
