@@ -17,76 +17,52 @@ export type ApplicationRecord = {
   partnerId?: string | number;
 };
 
-const INITIAL_PENDING_APPLICATIONS: ApplicationRecord[] = [
-  {
-    id: "app-101",
-    boutique: "IHA Designs",
-    email: "contactbrandyy@gmail.com",
-    origin: "Ernakulam, Kerala",
-    date: "19/4/2026",
-    status: "pending",
-    partnerId: "PARTNER-101",
-  },
-  {
-    id: "app-102",
-    boutique: "hayat Wedding Venue",
-    email: "shaban@hayat.com",
-    origin: "North Paravur",
-    date: "22/4/2026",
-    status: "pending",
-    partnerId: "31",
-  },
-  {
-    id: "app-103",
-    boutique: "cloche Events",
-    email: "shabanmuhammed@gmail.com",
-    origin: "Perinthalmanna",
-    date: "25/4/2026",
-    status: "pending",
-    partnerId: "30",
-  },
-];
-
-const PARTNERSHIPS_STORAGE_KEY = "cloche_admin_partnerships_v1";
-
 export function AdminOverviewClient({ metrics, initialBoutiques }: { metrics: any; initialBoutiques: any[] }) {
   const [applications, setApplications] = useState<ApplicationRecord[]>([]);
   const [actionNotice, setActionNotice] = useState<string | null>(null);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const raw = localStorage.getItem(PARTNERSHIPS_STORAGE_KEY);
-        if (raw) {
-          setApplications(JSON.parse(raw));
-        } else {
-          localStorage.setItem(PARTNERSHIPS_STORAGE_KEY, JSON.stringify(INITIAL_PENDING_APPLICATIONS));
-          setApplications(INITIAL_PENDING_APPLICATIONS);
-        }
-      } catch (e) {
-        setApplications(INITIAL_PENDING_APPLICATIONS);
-      }
+    if (Array.isArray(initialBoutiques) && initialBoutiques.length > 0) {
+      const mapped: ApplicationRecord[] = initialBoutiques.map((b: any) => ({
+        id: b.id,
+        boutique: b.boutique_name || b.name || "Vendor Application",
+        email: b.email || "",
+        origin: [b.city, b.state].filter(Boolean).join(", ") || "Kerala",
+        date: b.created_at ? new Date(b.created_at).toLocaleDateString("en-IN") : new Date().toLocaleDateString("en-IN"),
+        status: b.status === "active" ? "approved" : b.status === "rejected" ? "rejected" : "pending",
+        partnerId: b.vendor_code || b.id,
+      }));
+      setApplications(mapped);
+    } else {
+      setApplications([]);
     }
-  }, []);
+  }, [initialBoutiques]);
 
-  const saveApplications = (updated: ApplicationRecord[]) => {
-    setApplications(updated);
-    if (typeof window !== "undefined") {
-      localStorage.setItem(PARTNERSHIPS_STORAGE_KEY, JSON.stringify(updated));
-    }
-  };
-
-  const handleApprove = (app: ApplicationRecord) => {
+  const handleApprove = async (app: ApplicationRecord) => {
     const updated = applications.map((a) => (a.id === app.id ? { ...a, status: "approved" as const } : a));
-    saveApplications(updated);
+    setApplications(updated);
+    try {
+      await fetch("/api/v1/admin/vendors", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ vendorId: app.id, action: "approve" }),
+      });
+    } catch (e) {}
     logAdminAction("Super Admin", "Super Admin", `Approved partnership application for '${app.boutique}'`, "Vendor Partnerships");
     setActionNotice(`Partnership '${app.boutique}' APPROVED successfully!`);
     setTimeout(() => setActionNotice(null), 3000);
   };
 
-  const handleReject = (app: ApplicationRecord) => {
+  const handleReject = async (app: ApplicationRecord) => {
     const updated = applications.map((a) => (a.id === app.id ? { ...a, status: "rejected" as const } : a));
-    saveApplications(updated);
+    setApplications(updated);
+    try {
+      await fetch("/api/v1/admin/vendors", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ vendorId: app.id, action: "reject" }),
+      });
+    } catch (e) {}
     logAdminAction("Super Admin", "Super Admin", `Rejected partnership application for '${app.boutique}'`, "Vendor Partnerships");
     setActionNotice(`Partnership '${app.boutique}' REJECTED.`);
     setTimeout(() => setActionNotice(null), 3000);

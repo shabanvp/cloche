@@ -13,6 +13,62 @@ function generateSlug(text: string): string {
   return base ? `${base}-${randomSuffix}` : `vendor-${Date.now()}`;
 }
 
+const PRIMARY_CATEGORIES = [
+  "Bridal Boutique",
+  "Groom Wear",
+  "Wedding Venue",
+  "Photographer",
+  "Videographer",
+  "Makeup Artist",
+  "Mehendi Artist",
+  "Wedding Planner",
+  "Decorator",
+  "Caterer",
+  "Jewellery Store",
+  "Invitation Designer",
+  "Cake Designer",
+  "Entertainment",
+  "Choreographer",
+  "Car Rental",
+  "Flower Decoration",
+  "Rental Services",
+  "Gift Store",
+  "Honeymoon Planner",
+  "Other",
+];
+
+export async function GET() {
+  const { url, serviceKey, anonKey } = getSupabaseConfig();
+  const apiKey = serviceKey || anonKey;
+
+  try {
+    if (url && apiKey) {
+      const res = await fetch(`${url}/rest/v1/vendor_categories?is_active=eq.true&select=id,name,slug&order=name.asc`, {
+        headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
+      });
+      if (res.ok) {
+        const categories: Array<{ id: string; name: string; slug: string }> = await res.json();
+        const primarySet = new Set(PRIMARY_CATEGORIES);
+        const filtered = categories.filter((c) => primarySet.has(c.name));
+
+        const seen = new Set<string>();
+        const uniquePrimary = filtered.filter((c) => {
+          if (seen.has(c.name)) return false;
+          seen.add(c.name);
+          return true;
+        });
+
+        return NextResponse.json({ success: true, statusCode: 200, data: uniquePrimary });
+      }
+    }
+  } catch (err: any) {}
+
+  return NextResponse.json(
+    { success: false, statusCode: 500, error: { code: "SERVER_ERROR", message: "Failed to fetch vendor categories." } },
+    { status: 500 }
+  );
+}
+
 export async function POST(req: Request) {
   const logPrefix = "[VENDOR_REGISTER_API]";
   let insertedUserId: string | null = null;
@@ -40,7 +96,8 @@ export async function POST(req: Request) {
       body = {
         boutique_name: formData.get("boutique_name") || formData.get("business_name") || formData.get("name"),
         owner_name: formData.get("owner_name") || formData.get("fullName"),
-        category: formData.get("category") || formData.get("category_id"),
+        category: formData.get("category_id") || formData.get("category"),
+        category_id: formData.get("category_id") || formData.get("category"),
         email: formData.get("email"),
         phone: formData.get("phone"),
         password: formData.get("password"),
@@ -53,6 +110,8 @@ export async function POST(req: Request) {
         instagram: formData.get("instagram"),
         description: formData.get("description"),
         gst_number: formData.get("gst_number"),
+        logo: formData.get("logo"),
+        cover: formData.get("cover"),
       };
     } else {
       body = await req.json();
@@ -62,14 +121,23 @@ export async function POST(req: Request) {
       boutique_name,
       owner_name,
       category,
+      category_id,
       email,
       phone,
       password,
+      address,
       city,
       district,
       state,
       pincode,
+      website,
+      instagram,
+      facebook,
       description,
+      logo_url,
+      cover_image,
+      logo,
+      cover,
     } = body;
 
     const businessName = (boutique_name || "").toString().trim();
@@ -254,30 +322,44 @@ export async function POST(req: Request) {
       }
     }
 
-    // Step 3: Lookup vendor category_id
-    let categoryId: string | null = null;
-    const catName = category ? category.toString().trim() : "Bridal Boutique";
-    const catLookupRes = await fetch(`${url}/rest/v1/vendor_categories?name=ilike.*${encodeURIComponent(catName)}*&select=id`, {
-      headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
-    });
+    // Step 3: Exact lookup of vendor category_id from vendor_categories
+    const submittedCategory = (category_id || category || "").toString().trim();
 
-    if (catLookupRes.ok) {
-      const cats = await catLookupRes.json();
+    if (!submittedCategory) {
+      return NextResponse.json(
+        { success: false, statusCode: 400, error: { code: "INVALID_CATEGORY", message: "Vendor category is required." } },
+        { status: 400 }
+      );
+    }
+
+    let categoryId: string | null = null;
+    let categoryName: string = "";
+
+    const catRes = await fetch(
+      `${url}/rest/v1/vendor_categories?or=(id.eq.${encodeURIComponent(submittedCategory)},slug.eq.${encodeURIComponent(submittedCategory)},name.eq.${encodeURIComponent(submittedCategory)})&select=id,name,slug&limit=1`,
+      { headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` } }
+    );
+
+    if (catRes.ok) {
+      const cats = await catRes.json();
       if (Array.isArray(cats) && cats.length > 0) {
         categoryId = cats[0].id;
+        categoryName = cats[0].name;
       }
     }
 
     if (!categoryId) {
-      const fallbackCatRes = await fetch(`${url}/rest/v1/vendor_categories?limit=1&select=id`, {
-        headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
-      });
-      if (fallbackCatRes.ok) {
-        const fallbacks = await fallbackCatRes.json();
-        if (Array.isArray(fallbacks) && fallbacks.length > 0) {
-          categoryId = fallbacks[0].id;
-        }
-      }
+      return NextResponse.json(
+        {
+          success: false,
+          statusCode: 400,
+          error: {
+            code: "INVALID_CATEGORY",
+            message: `Selected vendor category "${submittedCategory}" does not exist in database.`,
+          },
+        },
+        { status: 400 }
+      );
     }
 
     // Step 4: Create Core Vendor Record in vendors table
@@ -318,10 +400,140 @@ export async function POST(req: Request) {
     const newVendor = newVendors[0];
     insertedVendorId = newVendor.id;
 
-    // Step 5: Create Vendor Profile in vendor_profiles table
-    console.log(`${logPrefix} Step 5: Inserting vendor_profiles record...`);
+    // Step 5: Upload Registration Images to Cloudinary & Save to Media Table
+    let logoMediaId: string | null = null;
+    let coverMediaId: string | null = null;
+    let finalLogoUrl = "";
+    let finalCoverUrl = "";
+
+    const logoInput = logo || logo_url || body.logo;
+    if (logoInput) {
+      if (typeof logoInput === "string" && logoInput.startsWith("http")) {
+        finalLogoUrl = logoInput;
+      } else if (typeof logoInput === "object" && logoInput !== null && "arrayBuffer" in logoInput && (logoInput as any).size > 0) {
+        try {
+          const { uploadImageToCloudinaryDetailed } = await import("@/lib/cloudinary");
+          console.log(`${logPrefix} Uploading registration logo file to Cloudinary...`);
+          const res = await uploadImageToCloudinaryDetailed(logoInput as any, "cloche/vendors/logos");
+          if (res.secure_url && res.secure_url.startsWith("http")) {
+            finalLogoUrl = res.secure_url;
+            console.log(`${logPrefix} Registration logo Cloudinary URL: ${finalLogoUrl}`);
+          }
+        } catch (err) {
+          console.error(`${logPrefix} Registration logo Cloudinary upload error:`, err);
+        }
+      }
+    }
+
+    const coverInput = cover || cover_image || body.cover;
+    if (coverInput) {
+      if (typeof coverInput === "string" && coverInput.startsWith("http")) {
+        finalCoverUrl = coverInput;
+      } else if (typeof coverInput === "object" && coverInput !== null && "arrayBuffer" in coverInput && (coverInput as any).size > 0) {
+        try {
+          const { uploadImageToCloudinaryDetailed } = await import("@/lib/cloudinary");
+          console.log(`${logPrefix} Uploading registration cover file to Cloudinary...`);
+          const res = await uploadImageToCloudinaryDetailed(coverInput as any, "cloche/vendors/covers");
+          if (res.secure_url && res.secure_url.startsWith("http")) {
+            finalCoverUrl = res.secure_url;
+            console.log(`${logPrefix} Registration cover Cloudinary URL: ${finalCoverUrl}`);
+          }
+        } catch (err) {
+          console.error(`${logPrefix} Registration cover Cloudinary upload error:`, err);
+        }
+      }
+    }
+
+    if (finalLogoUrl) {
+      const uniqueLogoPath = `cloche/vendors/logos/${newVendor.id}/${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+      const mediaRes = await fetch(`${url}/rest/v1/media`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: apiKey,
+          Authorization: `Bearer ${apiKey}`,
+          Prefer: "return=representation",
+        },
+        body: JSON.stringify({
+          user_id: targetUserId,
+          vendor_id: newVendor.id,
+          media_type: "image",
+          bucket_name: "cloudinary",
+          file_path: uniqueLogoPath,
+          mime_type: "image/jpeg",
+          file_size_bytes: 1024,
+          cdn_url: finalLogoUrl,
+          original_name: "logo.jpg",
+        }),
+      }).catch(() => null);
+
+      if (mediaRes && mediaRes.ok) {
+        const mData = await mediaRes.json();
+        if (Array.isArray(mData) && mData.length > 0) logoMediaId = mData[0].id;
+      } else if (mediaRes) {
+        const errText = await mediaRes.text().catch(() => "");
+        console.warn(`${logPrefix} Registration logo media insert status ${mediaRes.status}:`, errText);
+      }
+    }
+
+    if (finalCoverUrl) {
+      const uniqueCoverPath = `cloche/vendors/covers/${newVendor.id}/${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+      const mediaRes = await fetch(`${url}/rest/v1/media`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: apiKey,
+          Authorization: `Bearer ${apiKey}`,
+          Prefer: "return=representation",
+        },
+        body: JSON.stringify({
+          user_id: targetUserId,
+          vendor_id: newVendor.id,
+          media_type: "image",
+          bucket_name: "cloudinary",
+          file_path: uniqueCoverPath,
+          mime_type: "image/jpeg",
+          file_size_bytes: 1024,
+          cdn_url: finalCoverUrl,
+          original_name: "cover.jpg",
+        }),
+      }).catch(() => null);
+
+      if (mediaRes && mediaRes.ok) {
+        const mData = await mediaRes.json();
+        if (Array.isArray(mData) && mData.length > 0) coverMediaId = mData[0].id;
+      } else if (mediaRes) {
+        const errText = await mediaRes.text().catch(() => "");
+        console.warn(`${logPrefix} Registration cover media insert status ${mediaRes.status}:`, errText);
+      }
+    }
+
+    // Step 6: Create Vendor Profile in vendor_profiles table
+    console.log(`${logPrefix} Step 6: Inserting vendor_profiles record...`);
     const profileSlug = generateSlug(businessName);
-    const profileInsertRes = await fetch(`${url}/rest/v1/vendor_profiles`, {
+    const resolvedGstNumber = (body.gst_number || null)?.toString().trim() || null;
+
+    const baseProfilePayload: Record<string, any> = {
+      vendor_id: newVendor.id,
+      business_name: businessName,
+      slug: profileSlug,
+      tagline: body.tagline || null,
+      about: description || null,
+      city: city || district || "Kochi",
+      state: state || district || "Kerala",
+      pincode: pincode || null,
+      logo_media_id: logoMediaId,
+      cover_media_id: coverMediaId,
+      rating: 0.0,
+      review_count: 0,
+      starting_price: null,
+    };
+
+    if (resolvedGstNumber) {
+      baseProfilePayload.gst_number = resolvedGstNumber;
+    }
+
+    let profileInsertRes = await fetch(`${url}/rest/v1/vendor_profiles`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -329,20 +541,26 @@ export async function POST(req: Request) {
         Authorization: `Bearer ${apiKey}`,
         Prefer: "return=representation",
       },
-      body: JSON.stringify({
-        vendor_id: newVendor.id,
-        business_name: businessName,
-        slug: profileSlug,
-        tagline: body.tagline || null,
-        about: description || null,
-        city: city || "Kochi",
-        state: state || "Kerala",
-        pincode: pincode || null,
-        rating: 0.0,
-        review_count: 0,
-        starting_price: null,
-      }),
+      body: JSON.stringify(baseProfilePayload),
     });
+
+    if (!profileInsertRes.ok && resolvedGstNumber) {
+      const errText = await profileInsertRes.clone().text();
+      if (errText.includes("PGRST204") || errText.includes("gst_number")) {
+        console.warn(`${logPrefix} Retrying vendor_profiles insert without gst_number column...`);
+        delete baseProfilePayload.gst_number;
+        profileInsertRes = await fetch(`${url}/rest/v1/vendor_profiles`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            apikey: apiKey,
+            Authorization: `Bearer ${apiKey}`,
+            Prefer: "return=representation",
+          },
+          body: JSON.stringify(baseProfilePayload),
+        });
+      }
+    }
 
     if (!profileInsertRes.ok) {
       const errText = await profileInsertRes.text();
@@ -357,8 +575,68 @@ export async function POST(req: Request) {
     const newProfiles = await profileInsertRes.json();
     insertedProfileId = newProfiles[0].id;
 
-    // Step 6: Create Initial Vendor Profile Version in vendor_profile_versions
-    console.log(`${logPrefix} Step 6: Inserting initial active version in vendor_profile_versions...`);
+    // Step 7: Insert Contact in vendor_contacts
+    await fetch(`${url}/rest/v1/vendor_contacts`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        apikey: apiKey,
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        vendor_id: newVendor.id,
+        contact_name: owner || businessName,
+        phone: userPhone || null,
+        whatsapp: userPhone || null,
+        email: userEmail,
+        is_primary: true,
+      }),
+    }).catch(() => null);
+
+    // Step 8: Insert Address in vendor_addresses
+    if (address || city || district || state || pincode) {
+      await fetch(`${url}/rest/v1/vendor_addresses`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: apiKey,
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          vendor_id: newVendor.id,
+          address_line1: (address || "").toString().trim() || `${city || district || "City"}, ${state || "Kerala"}`,
+          city: (city || district || "Kochi").toString().trim(),
+          state: (state || district || "Kerala").toString().trim(),
+          pincode: (pincode || "").toString().trim() || null,
+        }),
+      }).catch(() => null);
+    }
+
+    // Step 9: Insert Social Links in vendor_social_links
+    const socialLinksToInsert = [
+      { platform: "website", url: (website || "").toString().trim() },
+      { platform: "instagram", url: (instagram || "").toString().trim() },
+      { platform: "facebook", url: (facebook || "").toString().trim() },
+    ].filter((item) => item.url);
+
+    for (const item of socialLinksToInsert) {
+      await fetch(`${url}/rest/v1/vendor_social_links`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: apiKey,
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          vendor_id: newVendor.id,
+          platform: item.platform,
+          url: item.url,
+        }),
+      }).catch(() => null);
+    }
+
+    // Step 10: Create Initial Vendor Profile Version in vendor_profile_versions
+    console.log(`${logPrefix} Step 10: Inserting initial active version in vendor_profile_versions...`);
     const versionInsertRes = await fetch(`${url}/rest/v1/vendor_profile_versions`, {
       method: "POST",
       headers: {
@@ -402,7 +680,7 @@ export async function POST(req: Request) {
             vendorCode: newVendor.vendor_code,
             businessName,
             slug: profileSlug,
-            category: catName,
+            category: categoryName,
             status: "active",
             onboardingStage: newVendor.onboarding_stage,
             profileCompletionPercentage: newVendor.profile_completion_percentage,

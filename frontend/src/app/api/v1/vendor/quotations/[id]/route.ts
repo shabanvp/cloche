@@ -1,11 +1,14 @@
 import { NextResponse } from "next/server";
 import { saveQuotationToDb, updateLeadStatusInDb, saveLeadActivityToDb, supabaseFetch } from "@/lib/supabase";
+import { requireAuthenticatedVendor, vendorOwnsRecord } from "@/lib/vendorAuth";
 
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const auth = await requireAuthenticatedVendor(req);
+    if (auth.response) return auth.response;
     const { id } = await params;
     const { data, error } = await supabaseFetch(
-      `quotations?id=eq.${encodeURIComponent(id)}&select=*,quotation_items(*),leads(*)`
+      `quotations?id=eq.${encodeURIComponent(id)}&vendor_id=eq.${encodeURIComponent(auth.vendorId)}&select=*,quotation_items(*),leads(*)`
     );
 
     if (error || !data || data.length === 0) {
@@ -29,6 +32,8 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const auth = await requireAuthenticatedVendor(req);
+    if (auth.response) return auth.response;
     const { id } = await params;
     const body = await req.json();
     const { status, note } = body;
@@ -40,8 +45,16 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       );
     }
 
+    if (!(await vendorOwnsRecord("quotations", id, auth.vendorId))) {
+      return NextResponse.json(
+        { success: false, statusCode: 404, error: { code: "NOT_FOUND", message: "Quotation not found." } },
+        { status: 404 }
+      );
+    }
+
     const patchPayload: Record<string, any> = {
       id,
+      vendor_id: auth.vendorId,
       status,
       updated_at: new Date().toISOString(),
     };
@@ -65,10 +78,10 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 
     if (updatedQuotation?.lead_id) {
       if (status === "accepted") {
-        await updateLeadStatusInDb(updatedQuotation.lead_id, "accepted").catch(() => null);
+        await updateLeadStatusInDb(updatedQuotation.lead_id, "accepted", auth.vendorId).catch(() => null);
         await saveLeadActivityToDb(updatedQuotation.lead_id, "quote_accepted", `Quotation accepted by customer!`).catch(() => null);
       } else if (status === "declined" || status === "rejected") {
-        await updateLeadStatusInDb(updatedQuotation.lead_id, "lost").catch(() => null);
+        await updateLeadStatusInDb(updatedQuotation.lead_id, "lost", auth.vendorId).catch(() => null);
         await saveLeadActivityToDb(updatedQuotation.lead_id, "quote_rejected", `Quotation declined by customer. Note: ${note || 'None'}`).catch(() => null);
       }
     }

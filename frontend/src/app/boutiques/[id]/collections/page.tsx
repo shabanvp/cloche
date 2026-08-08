@@ -4,8 +4,6 @@ import Image from "next/image";
 import { ArrowLeft, MapPin, ShoppingBag } from "lucide-react";
 import { Footer } from "@/components/Footer";
 import { getBoutiqueDetails, getBoutiqueProducts } from "@/services/api";
-import { bridalBoutiqueVendors } from "@/lib/bridalAndInvitationData";
-import { DEFAULT_VENDOR_CONFIGS } from "@/lib/vendorTemplates";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -13,8 +11,8 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
-  const boutique = (await getBoutiqueDetails(id)) || bridalBoutiqueVendors.find((b) => b.id === id);
-  const name = (boutique as any)?.boutique_name || (boutique as any)?.name || DEFAULT_VENDOR_CONFIGS[id]?.businessName || "Boutique";
+  const boutique = await getBoutiqueDetails(id);
+  const name = (boutique as any)?.boutique_name || (boutique as any)?.name || "Bridal Boutique";
   
   return {
     title: `${name} Collections | Cloche Bridal Wear`,
@@ -25,32 +23,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function BoutiqueCollectionsPage({ params }: Props) {
   const { id } = await params;
   
-  // Fetch boutique info
+  // Fetch boutique info from Supabase DB
   const boutiqueApi = await getBoutiqueDetails(id);
-  const mockVendor = bridalBoutiqueVendors.find((b) => b.id === id);
-  const configVendor = DEFAULT_VENDOR_CONFIGS[id];
 
-  const boutiqueName = boutiqueApi?.boutique_name || mockVendor?.name || configVendor?.businessName || "Bridal Boutique";
-  const location = boutiqueApi?.city || mockVendor?.location || configVendor?.city || "Kerala";
-  const backUrl = mockVendor ? `/categories/bridal-wear/${id}` : `/boutiques/${id}`;
+  const boutiqueName = (boutiqueApi as any)?.boutique_name || (boutiqueApi as any)?.name || "Bridal Boutique";
+  const location = (boutiqueApi as any)?.city || (boutiqueApi as any)?.district || "Kerala";
+  const backUrl = `/boutiques/${id}`;
 
-  // Fetch boutique's products
-  let products = await getBoutiqueProducts(id);
-  
-  // Fallback to mock products if API returned empty
-  if ((!products || products.length === 0) && mockVendor?.collections) {
-    products = mockVendor.collections.map((col, idx) => ({
-      id: `${id}-col-${idx}`,
-      boutique_id: id,
-      product_name: col.name,
-      category: "Bridal Wear",
-      price: mockVendor.prices[idx]?.price ? parseInt(mockVendor.prices[idx].price.replace(/[^0-9]/g, "")) || 45000 : 45000,
-      image_url: col.image,
-      description: `${boutiqueName} signature design`
-    })) as any[];
-  }
-
-  const whatsappNumber = boutiqueApi?.phone || configVendor?.whatsapp || "+919847055443";
+  // Fetch boutique's products live from Supabase DB
+  const products = (await getBoutiqueProducts(id)) || [];
+  const whatsappNumber = (boutiqueApi as any)?.phone || (boutiqueApi as any)?.whatsapp || "+919847055443";
 
   return (
     <div className="min-h-screen bg-[#FBF8F1] flex flex-col font-sans text-charcoal">

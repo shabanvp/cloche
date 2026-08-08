@@ -25,15 +25,15 @@ export interface VendorOffer {
   name: string;
   type: OfferType;
   discountType: DiscountType;
-  discountValue: string; // e.g. "20" for 20%, "50000" for ₹50,000, or "Free Deluxe Bridal Suite"
-  packageIds: string[]; // ["all"] or array of specific package IDs/names
+  discountValue: string;
+  packageIds: string[];
   couponCode?: string;
   banner?: string;
   mobileBanner?: string;
   squareBanner?: string;
   status: OfferStatus;
-  startDate: string; // ISO date string (YYYY-MM-DD)
-  endDate: string; // ISO date string (YYYY-MM-DD)
+  startDate: string;
+  endDate: string;
   bookingWindow?: string;
   maxRedemptions?: number;
   currentRedemptions: number;
@@ -45,7 +45,7 @@ export interface VendorOffer {
   ctaText: "Book Now" | "Claim Offer" | "Contact Vendor" | "Get Quote" | "Use Coupon";
   isFeatured: boolean;
   isFlashSale: boolean;
-  flashSaleEndsAt?: string; // YYYY-MM-DDTHH:mm
+  flashSaleEndsAt?: string;
   termsAndConditions?: string;
   analytics: {
     views: number;
@@ -61,7 +61,7 @@ export interface CouponCode {
   id: string;
   vendorId: string;
   code: string;
-  discountDisplay: string; // e.g. "10% OFF", "₹25,000 OFF"
+  discountDisplay: string;
   minBookingValue?: number;
   maxUses?: number;
   currentUses: number;
@@ -69,245 +69,37 @@ export interface CouponCode {
   expiresAt: string;
 }
 
-// Sample pre-populated offers for initial experience
-const DEFAULT_SAMPLE_OFFERS: VendorOffer[] = [
-  {
-    id: "off-001",
-    vendorId: "v-solitaire",
-    name: "Grand Monsoon Wedding Offer",
-    type: "percentage",
-    discountType: "percentage",
-    discountValue: "20",
-    packageIds: ["all"],
-    couponCode: "MONSOON20",
-    banner: "https://images.unsplash.com/photo-1519167758481-83f552bb8c74?auto=format&fit=crop&w=1200&q=80",
-    status: "active",
-    startDate: "2026-08-01",
-    endDate: "2026-09-30",
-    bookingWindow: "Aug 1 – Sep 30, 2026",
-    maxRedemptions: 50,
-    currentRedemptions: 14,
-    perCustomerLimit: 1,
-    minBookingAmount: 150000,
-    minGuests: 250,
-    applicableDays: ["weekdays", "weekend"],
-    ctaText: "Claim Offer",
-    isFeatured: true,
-    isFlashSale: false,
-    termsAndConditions: "Applicable on direct bookings for August & September 2026. Cannot be combined with other ongoing promotions.",
-    analytics: {
-      views: 1240,
-      clicks: 480,
-      bookings: 14,
-      revenue: 4200000,
-    },
-    createdAt: "2026-08-01T10:00:00Z",
-    updatedAt: "2026-08-01T10:00:00Z",
-  },
-  {
-    id: "off-002",
-    vendorId: "v-solitaire",
-    name: "Luxury Early Bird Package Deal",
-    type: "flat",
-    discountType: "flat",
-    discountValue: "50000",
-    packageIds: ["Royal Gold Package", "Royal Banquet Package"],
-    couponCode: "EARLYBIRD50K",
-    banner: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1200&q=80",
-    status: "active",
-    startDate: "2026-08-01",
-    endDate: "2026-10-15",
-    bookingWindow: "Book 60 days in advance",
-    maxRedemptions: 20,
-    currentRedemptions: 8,
-    perCustomerLimit: 1,
-    minBookingAmount: 300000,
-    minGuests: 500,
-    applicableDays: ["weekdays", "weekend"],
-    ctaText: "Book Now",
-    isFeatured: false,
-    isFlashSale: true,
-    flashSaleEndsAt: "2026-08-15T23:59:59",
-    termsAndConditions: "Valid when booking at least 60 days in advance of wedding date. Subject to hall availability.",
-    analytics: {
-      views: 890,
-      clicks: 310,
-      bookings: 8,
-      revenue: 2800000,
-    },
-    createdAt: "2026-08-01T11:00:00Z",
-    updatedAt: "2026-08-01T11:00:00Z",
-  },
-  {
-    id: "off-003",
-    vendorId: "v-solitaire",
-    name: "Complimentary Bridal Suite & Decor Add-on",
-    type: "free_upgrade",
-    discountType: "complimentary",
-    discountValue: "Free Deluxe Bridal Suite & Floral Stage Upgrade",
-    packageIds: ["Silver Wedding Package"],
-    couponCode: "BRIDALVIPTREAT",
-    banner: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1200&q=80",
-    status: "active",
-    startDate: "2026-08-05",
-    endDate: "2026-11-30",
-    bookingWindow: "Valid for 2026 bookings",
-    maxRedemptions: 15,
-    currentRedemptions: 5,
-    perCustomerLimit: 1,
-    minBookingAmount: 100000,
-    minGuests: 200,
-    applicableDays: ["weekdays"],
-    ctaText: "Get Quote",
-    isFeatured: false,
-    isFlashSale: false,
-    termsAndConditions: "Includes complimentary 24-hour stay in Deluxe Bridal Suite plus customized floral stage entrance decor.",
-    analytics: {
-      views: 640,
-      clicks: 215,
-      bookings: 5,
-      revenue: 1250000,
-    },
-    createdAt: "2026-08-02T08:00:00Z",
-    updatedAt: "2026-08-02T08:00:00Z",
-  },
-  {
-    id: "off-004",
-    vendorId: "v-solitaire",
-    name: "Weekday Celebration Discount",
-    type: "percentage",
-    discountType: "percentage",
-    discountValue: "15",
-    packageIds: ["all"],
-    couponCode: "WEEKDAY15",
-    banner: "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=1200&q=80",
-    status: "scheduled",
-    startDate: "2026-09-01",
-    endDate: "2026-12-15",
-    bookingWindow: "Mon – Thu Event Dates",
-    maxRedemptions: 30,
-    currentRedemptions: 0,
-    perCustomerLimit: 1,
-    minBookingAmount: 75000,
-    minGuests: 150,
-    applicableDays: ["weekdays"],
-    ctaText: "Book Now",
-    isFeatured: false,
-    isFlashSale: false,
-    termsAndConditions: "Valid exclusively for Monday through Thursday event dates.",
-    analytics: {
-      views: 120,
-      clicks: 35,
-      bookings: 0,
-      revenue: 0,
-    },
-    createdAt: "2026-08-02T09:00:00Z",
-    updatedAt: "2026-08-02T09:00:00Z",
-  },
-];
-
-const DEFAULT_SAMPLE_COUPONS: CouponCode[] = [
-  {
-    id: "coup-1",
-    vendorId: "v-solitaire",
-    code: "WELCOME10",
-    discountDisplay: "10% OFF",
-    minBookingValue: 50000,
-    maxUses: 100,
-    currentUses: 32,
-    status: "active",
-    expiresAt: "2026-12-31",
-  },
-  {
-    id: "coup-2",
-    vendorId: "v-solitaire",
-    code: "LUXURY25",
-    discountDisplay: "₹25,000 OFF",
-    minBookingValue: 200000,
-    maxUses: 30,
-    currentUses: 11,
-    status: "active",
-    expiresAt: "2026-10-31",
-  },
-  {
-    id: "coup-3",
-    vendorId: "v-solitaire",
-    code: "BIGDAY50",
-    discountDisplay: "₹50,000 OFF",
-    minBookingValue: 400000,
-    maxUses: 15,
-    currentUses: 6,
-    status: "active",
-    expiresAt: "2026-09-30",
-  },
-  {
-    id: "coup-4",
-    vendorId: "v-solitaire",
-    code: "EARLYBIRD",
-    discountDisplay: "15% OFF",
-    minBookingValue: 150000,
-    maxUses: 50,
-    currentUses: 18,
-    status: "active",
-    expiresAt: "2026-11-15",
-  },
-];
-
 function getOffersStorageKey(vendorId: string): string {
-  return `cloche_vendor_offers_${vendorId || "v-solitaire"}`;
+  return `cloche_vendor_offers_${vendorId || "v-registered"}`;
 }
 
 function getCouponsStorageKey(vendorId: string): string {
-  return `cloche_vendor_coupons_${vendorId || "v-solitaire"}`;
+  return `cloche_vendor_coupons_${vendorId || "v-registered"}`;
 }
 
-const ALL_VENDOR_KEYS = [
-  "cloche_vendor_offers_global",
-  "cloche_vendor_offers_v-solitaire",
-  "cloche_vendor_offers_shifa-covention-centre",
-  "cloche_vendor_offers_shifa-convention-centre",
-];
-
-function persistOffersToAllKeys(vendorId: string, list: VendorOffer[]) {
+function persistOffersToStorage(vendorId: string, list: VendorOffer[]) {
   if (typeof window === "undefined") return;
   const json = JSON.stringify(list);
   localStorage.setItem(getOffersStorageKey(vendorId), json);
-  ALL_VENDOR_KEYS.forEach((k) => localStorage.setItem(k, json));
   window.dispatchEvent(new Event("cloche_offers_updated"));
+  window.dispatchEvent(new Event("cloche_vendor_updated"));
+  window.dispatchEvent(new Event("cloche_cms_update"));
   window.dispatchEvent(new Event("storage"));
 }
 
 /**
- * Retrieve all vendor offers for a given vendor
+ * Retrieve all vendor offers from DB & cache
  */
-export function getVendorOffers(vendorId: string = "v-solitaire"): VendorOffer[] {
-  if (typeof window === "undefined") return DEFAULT_SAMPLE_OFFERS;
+export function getVendorOffers(vendorId: string = "v-registered"): VendorOffer[] {
+  if (typeof window === "undefined") return [];
   try {
-    const primaryKey = getOffersStorageKey(vendorId);
-    let raw = localStorage.getItem(primaryKey);
-
-    // If primary key is null, check alternate vendor keys
-    if (raw === null) {
-      for (const altKey of ALL_VENDOR_KEYS) {
-        const altRaw = localStorage.getItem(altKey);
-        if (altRaw !== null) {
-          raw = altRaw;
-          break;
-        }
-      }
-    }
-
-    // If no storage key exists anywhere yet, initialize with default sample offers once
-    if (raw === null) {
-      persistOffersToAllKeys(vendorId, DEFAULT_SAMPLE_OFFERS);
-      return DEFAULT_SAMPLE_OFFERS;
-    }
-
-    const parsed: VendorOffer[] = JSON.parse(raw);
+    const raw = localStorage.getItem(getOffersStorageKey(vendorId));
+    if (!raw) return [];
     
-    // Auto-update expired statuses based on date
+    const parsed: VendorOffer[] = JSON.parse(raw);
     const today = new Date().toISOString().split("T")[0];
     let modified = false;
+
     const updated = parsed.map((off) => {
       if (off.status === "active" && off.endDate < today) {
         modified = true;
@@ -317,17 +109,64 @@ export function getVendorOffers(vendorId: string = "v-solitaire"): VendorOffer[]
     });
 
     if (modified) {
-      persistOffersToAllKeys(vendorId, updated);
+      persistOffersToStorage(vendorId, updated);
     }
     return updated;
   } catch (e) {
-    console.error("Error reading vendor offers store:", e);
     return [];
   }
 }
 
+function mapDbOffer(row: any): VendorOffer {
+  return {
+    id: String(row.id),
+    vendorId: String(row.vendor_id),
+    name: row.name || "Offer",
+    type: row.offer_type || "percentage",
+    discountType: row.discount_type || "percentage",
+    discountValue: String(row.discount_value || "0"),
+    packageIds: Array.isArray(row.package_ids) ? row.package_ids : ["all"],
+    couponCode: row.coupon_code || "",
+    banner: row.banner_url || "",
+    mobileBanner: row.mobile_banner_url || row.banner_url || "",
+    squareBanner: row.square_banner_url || row.banner_url || "",
+    status: row.status || "active",
+    startDate: row.start_date || new Date().toISOString().split("T")[0],
+    endDate: row.end_date || new Date().toISOString().split("T")[0],
+    bookingWindow: row.booking_window || "",
+    maxRedemptions: Number(row.max_redemptions || 0),
+    currentRedemptions: Number(row.current_redemptions || 0),
+    perCustomerLimit: Number(row.per_customer_limit || 0),
+    minBookingAmount: Number(row.min_booking_amount || 0),
+    minGuests: Number(row.min_guests || 0),
+    applicableDays: Array.isArray(row.applicable_days) ? row.applicable_days : [],
+    blackoutDates: Array.isArray(row.blackout_dates) ? row.blackout_dates : [],
+    ctaText: row.cta_text || "Claim Offer",
+    isFeatured: Boolean(row.is_featured),
+    isFlashSale: Boolean(row.is_flash_sale),
+    flashSaleEndsAt: row.flash_sale_ends_at || undefined,
+    termsAndConditions: row.terms_and_conditions || "",
+    analytics: row.analytics || { views: 0, clicks: 0, bookings: 0, revenue: 0 },
+    createdAt: row.created_at || new Date().toISOString(),
+    updatedAt: row.updated_at || row.created_at || new Date().toISOString(),
+  };
+}
+
+export async function loadVendorOffersFromDb(vendorId: string): Promise<VendorOffer[]> {
+  if (typeof window === "undefined") return [];
+  try {
+    const res = await fetch("/api/v1/vendor/offers").then((r) => r.json());
+    if (!res.success || !Array.isArray(res.data)) return getVendorOffers(vendorId);
+    const offers = res.data.map(mapDbOffer);
+    persistOffersToStorage(vendorId, offers);
+    return offers;
+  } catch (e) {
+    return getVendorOffers(vendorId);
+  }
+}
+
 /**
- * Save or update a vendor offer
+ * Save or update a vendor offer in DB & storage
  */
 export function saveVendorOffer(offer: Partial<VendorOffer> & { name: string; vendorId: string }): VendorOffer {
   const existing = getVendorOffers(offer.vendorId);
@@ -335,10 +174,9 @@ export function saveVendorOffer(offer: Partial<VendorOffer> & { name: string; ve
   
   let targetId = offer.id;
   if (!targetId) {
-    targetId = `off-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
+    targetId = `off-${Date.now()}`;
   }
 
-  // If this offer is marked featured, un-feature all other offers for this vendor
   let finalOffersList = existing;
   if (offer.isFeatured) {
     finalOffersList = existing.map((o) => ({ ...o, isFeatured: false }));
@@ -346,7 +184,7 @@ export function saveVendorOffer(offer: Partial<VendorOffer> & { name: string; ve
 
   const newOfferObj: VendorOffer = {
     id: targetId,
-    vendorId: offer.vendorId || "v-solitaire",
+    vendorId: offer.vendorId || "v-registered",
     name: offer.name,
     type: offer.type || "percentage",
     discountType: offer.discountType || "percentage",
@@ -386,81 +224,89 @@ export function saveVendorOffer(offer: Partial<VendorOffer> & { name: string; ve
     updatedList = [newOfferObj, ...finalOffersList];
   }
 
-  persistOffersToAllKeys(offer.vendorId, updatedList);
+  persistOffersToStorage(offer.vendorId, updatedList);
+
+  // Sync to Supabase DB
+  try {
+    fetch("/api/v1/vendor/offers", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+      id: newOfferObj.id,
+      name: newOfferObj.name,
+      offer_type: newOfferObj.type,
+      discount_type: newOfferObj.discountType,
+      discount_value: newOfferObj.discountValue,
+      coupon_code: newOfferObj.couponCode,
+      banner_url: newOfferObj.banner,
+      status: newOfferObj.status,
+      start_date: newOfferObj.startDate,
+      end_date: newOfferObj.endDate,
+      is_featured: newOfferObj.isFeatured,
+      is_flash_sale: newOfferObj.isFlashSale,
+      }),
+    }).catch(() => null);
+  } catch (e) {}
+
   return newOfferObj;
 }
 
 /**
  * Delete a vendor offer
  */
-export function deleteVendorOffer(offerId: string, vendorId: string = "v-solitaire"): boolean {
+export function deleteVendorOffer(offerId: string, vendorId: string = "v-registered"): boolean {
   const existing = getVendorOffers(vendorId);
   const filtered = existing.filter((o) => o.id !== offerId);
-  persistOffersToAllKeys(vendorId, filtered);
+  persistOffersToStorage(vendorId, filtered);
+  try {
+    fetch(`/api/v1/vendor/offers?id=${encodeURIComponent(offerId)}`, { method: "DELETE" }).catch(() => null);
+  } catch (e) {}
   return true;
 }
 
 /**
- * Toggle status of a vendor offer (active, paused, expired, etc.)
+ * Toggle status of a vendor offer
  */
-export function toggleOfferStatus(offerId: string, status: OfferStatus, vendorId: string = "v-solitaire"): boolean {
+export function toggleOfferStatus(offerId: string, status: OfferStatus, vendorId: string = "v-registered"): boolean {
   const existing = getVendorOffers(vendorId);
   const updated = existing.map((o) => (o.id === offerId ? { ...o, status, updatedAt: new Date().toISOString() } : o));
-  persistOffersToAllKeys(vendorId, updated);
+  persistOffersToStorage(vendorId, updated);
+  try {
+    fetch("/api/v1/vendor/offers", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: offerId, status }),
+    }).catch(() => null);
+  } catch (e) {}
   return true;
 }
 
 /**
- * Set an offer as Featured (un-features all others for this vendor)
+ * Set an offer as Featured
  */
-export function toggleFeaturedOffer(offerId: string, vendorId: string = "v-solitaire"): boolean {
+export function toggleFeaturedOffer(offerId: string, vendorId: string = "v-registered"): boolean {
   const existing = getVendorOffers(vendorId);
   const updated = existing.map((o) => ({
     ...o,
     isFeatured: o.id === offerId ? !o.isFeatured : false,
     updatedAt: new Date().toISOString(),
   }));
-  persistOffersToAllKeys(vendorId, updated);
+  persistOffersToStorage(vendorId, updated);
+  const target = updated.find((o) => o.id === offerId);
+  try {
+    fetch("/api/v1/vendor/offers", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: offerId, is_featured: Boolean(target?.isFeatured) }),
+    }).catch(() => null);
+  } catch (e) {}
   return true;
-}
-
-/**
- * Record offer analytics view/click/booking
- */
-export function incrementOfferAnalytics(
-  offerId: string,
-  metric: "views" | "clicks" | "bookings",
-  revenueAmount: number = 0,
-  vendorId: string = "v-solitaire"
-): void {
-  const existing = getVendorOffers(vendorId);
-  const updated = existing.map((o) => {
-    if (o.id === offerId) {
-      const analytics = { ...o.analytics };
-      if (metric === "views") analytics.views += 1;
-      if (metric === "clicks") analytics.clicks += 1;
-      if (metric === "bookings") {
-        analytics.bookings += 1;
-        analytics.revenue += revenueAmount;
-      }
-      return {
-        ...o,
-        currentRedemptions: metric === "bookings" ? o.currentRedemptions + 1 : o.currentRedemptions,
-        analytics,
-      };
-    }
-    return o;
-  });
-
-  if (typeof window !== "undefined") {
-    localStorage.setItem(getOffersStorageKey(vendorId), JSON.stringify(updated));
-  }
 }
 
 /**
  * Retrieve active offers for public profile display
  */
-export function getActiveOffersForVenue(vendorId: string = "v-solitaire"): VendorOffer[] {
+export function getActiveOffersForVenue(vendorId: string = "v-registered"): VendorOffer[] {
   const offers = getVendorOffers(vendorId);
   return offers.filter((o) => o.status === "active");
 }
@@ -468,17 +314,14 @@ export function getActiveOffersForVenue(vendorId: string = "v-solitaire"): Vendo
 /**
  * Coupon management helper methods
  */
-export function getVendorCoupons(vendorId: string = "v-solitaire"): CouponCode[] {
-  if (typeof window === "undefined") return DEFAULT_SAMPLE_COUPONS;
+export function getVendorCoupons(vendorId: string = "v-registered"): CouponCode[] {
+  if (typeof window === "undefined") return [];
   try {
     const raw = localStorage.getItem(getCouponsStorageKey(vendorId));
-    if (!raw) {
-      localStorage.setItem(getCouponsStorageKey(vendorId), JSON.stringify(DEFAULT_SAMPLE_COUPONS));
-      return DEFAULT_SAMPLE_COUPONS;
-    }
+    if (!raw) return [];
     return JSON.parse(raw);
   } catch (e) {
-    return DEFAULT_SAMPLE_COUPONS;
+    return [];
   }
 }
 
@@ -487,7 +330,7 @@ export function saveVendorCoupon(coupon: Partial<CouponCode> & { code: string; v
   const targetId = coupon.id || `coup-${Date.now()}`;
   const newCoup: CouponCode = {
     id: targetId,
-    vendorId: coupon.vendorId || "v-solitaire",
+    vendorId: coupon.vendorId || "v-registered",
     code: coupon.code.toUpperCase().replace(/[^A-Z0-9]/g, ""),
     discountDisplay: coupon.discountDisplay || "10% OFF",
     minBookingValue: coupon.minBookingValue || 50000,
@@ -512,7 +355,7 @@ export function saveVendorCoupon(coupon: Partial<CouponCode> & { code: string; v
   return newCoup;
 }
 
-export function toggleCouponStatus(couponId: string, status: "active" | "paused" | "expired", vendorId: string = "v-solitaire"): void {
+export function toggleCouponStatus(couponId: string, status: "active" | "paused" | "expired", vendorId: string = "v-registered"): void {
   const existing = getVendorCoupons(vendorId);
   const updated = existing.map((c) => (c.id === couponId ? { ...c, status } : c));
   if (typeof window !== "undefined") {
@@ -520,7 +363,7 @@ export function toggleCouponStatus(couponId: string, status: "active" | "paused"
   }
 }
 
-export function deleteVendorCoupon(couponId: string, vendorId: string = "v-solitaire"): void {
+export function deleteVendorCoupon(couponId: string, vendorId: string = "v-registered"): void {
   const existing = getVendorCoupons(vendorId);
   const filtered = existing.filter((c) => c.id !== couponId);
   if (typeof window !== "undefined") {

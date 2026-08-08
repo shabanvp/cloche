@@ -63,7 +63,10 @@ export interface VendorProfileData {
   servicesTitle?: string;
   services?: Array<{
     name: string;
-    icon: string;
+    icon?: string;
+    description?: string;
+    price?: string;
+    pricingType?: string;
   }>;
   userReviews?: Array<{
     author: string;

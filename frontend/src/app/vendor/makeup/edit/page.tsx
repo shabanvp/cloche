@@ -44,124 +44,43 @@ function VendorMakeupEditContent() {
 
   // Vendor Basic Info & Makeup Profile
   const [profileData, setProfileData] = useState({
-    vendor_id: "makeup-riya-sharma",
-    business_name: "Riya Sharma Makeovers",
-    owner_name: "Riya Sharma",
-    slug: "makeup-riya-sharma",
-    email: "appointments@riyasharmamakeup.com",
-    phone: "9876543210",
-    whatsapp: "9876543210",
-    city: "Delhi NCR",
-    state: "Delhi",
+    vendor_id: "",
+    business_name: "",
+    owner_name: "",
+    slug: "",
+    email: "",
+    phone: "",
+    whatsapp: "",
+    city: "",
+    state: "",
     country: "India",
-    cover_image: "https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=800&q=80",
-    logo: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
-    about: "With over 8 years of luxury bridal experience, Riya Sharma is celebrated across India for creating timeless, radiant, and customized wedding looks.",
-    philosophy: "Enhancing each bride's unique natural features using HD airbrush technology, skin prep rituals, and global couture standards.",
-    experience_years: 8,
-    response_time: "Within 2 Hours",
-    team_size: 6,
-    languages: "English, Hindi, Punjabi",
-    cities_served: "Delhi NCR, Mumbai, Jaipur, Udaipur, Goa, Dubai",
-    destination_wedding: true,
-    products_used: "Charlotte Tilbury, MAC, Dior, NARS, Tom Ford, Huda Beauty",
-    starting_price: 25000,
-    instagram: "https://instagram.com/riyasharmamakeup",
-    facebook: "https://facebook.com/riyasharmamakeup",
-    youtube: "https://youtube.com/riyasharmamakeup",
-    website: "https://riyasharmamakeup.com",
-    studio_address: "DLF Phase 5, Golf Course Road, Gurgaon / South Delhi Studio"
+    cover_image: "",
+    logo: "",
+    about: "",
+    philosophy: "",
+    experience_years: 0,
+    response_time: "",
+    team_size: 0,
+    languages: "",
+    cities_served: "",
+    destination_wedding: false,
+    products_used: "",
+    starting_price: 0,
+    instagram: "",
+    facebook: "",
+    youtube: "",
+    website: "",
+    studio_address: ""
   });
 
   // Normalized Child Lists
-  const [services, setServices] = useState([
-    {
-      id: "s1",
-      service_name: "Bridal HD Signature Makeup",
-      price: 25000,
-      duration: "3.0 Hours",
-      description: "HD skin prep, custom false lashes, hair styling, lehenga/dupatta draping.",
-      active: true
-    },
-    {
-      id: "s2",
-      service_name: "4K Airbrush Deluxe Experience",
-      price: 35000,
-      duration: "3.5 Hours",
-      description: "Waterproof 24-hr airbrush base, premium contouring, floral hair setting.",
-      active: true
-    }
-  ]);
-
-  const [packages, setPackages] = useState([
-    {
-      id: "pk1",
-      package_name: "Gold Royal Package",
-      price: 75000,
-      description: "3 Main Functions (Haldi + Sangeet + Wedding)",
-      includes: "1 Airbrush + 2 HD makeups + 2 Free Bridesmaid sessions",
-      travel: "Travel charges extra for outstation",
-      assistant: "2 Senior Assistants included",
-      trial: "Free trial included",
-      hair: "Designer Hair Bun & Floral Setting",
-      draping: "Lehenga & Dupatta Draping"
-    }
-  ]);
-
-  const [portfolio, setPortfolio] = useState([
-    {
-      id: "pf1",
-      category: "Bridal",
-      image_url: "https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=800&q=80",
-      caption: "Royal Crimson Sabyasachi Bride"
-    },
-    {
-      id: "pf2",
-      category: "Engagement",
-      image_url: "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=800&q=80",
-      caption: "Golden Hour Dewy Sangeet Glow"
-    }
-  ]);
-
-  const [videos, setVideos] = useState([
-    {
-      id: "v1",
-      title: "Real Bride Transformation: Red Sabyasachi Look",
-      video_url: "https://youtube.com/watch?v=demo",
-      thumbnail: "https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=600&q=80",
-      views_count: "185K",
-      likes_count: "14.2K"
-    }
-  ]);
-
-  const [faqs, setFaqs] = useState([
-    {
-      id: "f1",
-      question: "Do you travel for destination weddings?",
-      answer: "Yes! We travel worldwide for destination weddings in Udaipur, Jaipur, Goa, Dubai, etc."
-    }
-  ]);
-
-  const [awards, setAwards] = useState([
-    {
-      id: "a1",
-      title: "Vogue Wedding Award Winner 2024",
-      organization: "Vogue India",
-      year: "2024"
-    }
-  ]);
-
-  const [reviews, setReviews] = useState([
-    {
-      id: "r1",
-      customer_name: "Ananya Sengupta",
-      rating: 5,
-      review: "Riya and her team gave me the most ethereal, dewy glass-skin bridal look!",
-      wedding_date: "March 2026",
-      vendor_reply: "Thank you so much Ananya! ❤️"
-    }
-  ]);
-
+  const [services, setServices] = useState<any[]>([]);
+  const [packages, setPackages] = useState<any[]>([]);
+  const [portfolio, setPortfolio] = useState<any[]>([]);
+  const [videos, setVideos] = useState<any[]>([]);
+  const [faqs, setFaqs] = useState<any[]>([]);
+  const [awards, setAwards] = useState<any[]>([]);
+  const [reviews, setReviews] = useState<any[]>([]);
   // Temporary Form inputs for adding items
   const [newService, setNewService] = useState({ service_name: "", price: "", duration: "3 Hours", description: "" });
   const [newPackage, setNewPackage] = useState({ package_name: "", price: "", description: "", includes: "", hair: "", draping: "" });
@@ -175,6 +94,73 @@ function VendorMakeupEditContent() {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3500);
   };
+
+  useEffect(() => {
+    const loadMakeupData = async () => {
+      setLoading(true);
+      try {
+        const [profileRes, servicesRes, packagesRes, portfolioRes, videosRes, faqsRes, awardsRes, reviewsRes] = await Promise.all([
+          fetch("/api/vendor/makeup/profile").then((r) => r.json()).catch(() => null),
+          fetch("/api/vendor/makeup/services").then((r) => r.json()).catch(() => null),
+          fetch("/api/vendor/makeup/packages").then((r) => r.json()).catch(() => null),
+          fetch("/api/vendor/makeup/portfolio").then((r) => r.json()).catch(() => null),
+          fetch("/api/vendor/makeup/videos").then((r) => r.json()).catch(() => null),
+          fetch("/api/vendor/makeup/faqs").then((r) => r.json()).catch(() => null),
+          fetch("/api/vendor/makeup/awards").then((r) => r.json()).catch(() => null),
+          fetch("/api/vendor/makeup/reviews").then((r) => r.json()).catch(() => null),
+        ]);
+
+        if (profileRes?.success && profileRes.data) {
+          const vendor = profileRes.data;
+          const makeupProfile = Array.isArray(vendor.makeup_profiles) && vendor.makeup_profiles.length > 0 ? vendor.makeup_profiles[0] : {};
+          setProfileData((current) => ({
+            ...current,
+            vendor_id: vendor.id || "",
+            business_name: vendor.business_name || vendor.name || "",
+            owner_name: vendor.owner_name || "",
+            slug: vendor.slug || "",
+            email: vendor.email || "",
+            phone: vendor.phone || "",
+            whatsapp: vendor.whatsapp || vendor.phone || "",
+            city: vendor.city || "",
+            state: vendor.state || "",
+            country: vendor.country || "India",
+            cover_image: vendor.cover_image || "",
+            logo: vendor.logo || "",
+            about: makeupProfile.about || "",
+            philosophy: makeupProfile.philosophy || "",
+            experience_years: Number(makeupProfile.experience_years || 0),
+            response_time: makeupProfile.response_time || "",
+            team_size: Number(makeupProfile.team_size || 0),
+            languages: Array.isArray(makeupProfile.languages) ? makeupProfile.languages.join(", ") : makeupProfile.languages || "",
+            cities_served: Array.isArray(makeupProfile.cities_served) ? makeupProfile.cities_served.join(", ") : makeupProfile.cities_served || "",
+            destination_wedding: Boolean(makeupProfile.destination_wedding),
+            products_used: Array.isArray(makeupProfile.products_used) ? makeupProfile.products_used.join(", ") : makeupProfile.products_used || "",
+            starting_price: Number(makeupProfile.starting_price || 0),
+            instagram: makeupProfile.instagram || "",
+            facebook: makeupProfile.facebook || "",
+            youtube: makeupProfile.youtube || "",
+            website: makeupProfile.website || "",
+            studio_address: makeupProfile.studio_address || "",
+          }));
+        }
+
+        setServices(Array.isArray(servicesRes?.data) ? servicesRes.data : []);
+        setPackages(Array.isArray(packagesRes?.data) ? packagesRes.data : []);
+        setPortfolio(Array.isArray(portfolioRes?.data) ? portfolioRes.data : []);
+        setVideos(Array.isArray(videosRes?.data) ? videosRes.data : []);
+        setFaqs(Array.isArray(faqsRes?.data) ? faqsRes.data : []);
+        setAwards(Array.isArray(awardsRes?.data) ? awardsRes.data : []);
+        setReviews(Array.isArray(reviewsRes?.data) ? reviewsRes.data : []);
+      } catch (err) {
+        showToast("Failed to load makeup profile data.", "error");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadMakeupData();
+  }, []);
 
   // Image Upload Handler
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, targetField: string) => {

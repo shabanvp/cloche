@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Upload } from "lucide-react";
 
 type FieldName =
@@ -219,6 +219,18 @@ export function VendorRegisterClient() {
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState("");
+  const [dbCategories, setDbCategories] = useState<Array<{ id: string; name: string; slug: string }>>([]);
+
+  useEffect(() => {
+    fetch("/api/v1/vendor/register")
+      .then((res) => res.json())
+      .then((res) => {
+        if (res.success && Array.isArray(res.data) && res.data.length > 0) {
+          setDbCategories(res.data);
+        }
+      })
+      .catch(() => null);
+  }, []);
 
   const getInputClass = (name: FieldName, extra = "") =>
     `${textInputClass} ${fieldErrors[name] ? errorBorderClass : normalBorderClass} ${extra}`.trim();
@@ -335,6 +347,33 @@ export function VendorRegisterClient() {
       const firstError = Object.keys(validationErrors)[0];
       e.currentTarget.querySelector<HTMLElement>(`[name="${firstError}"], #${firstError}`)?.focus();
       return;
+    }
+
+    const logoFile = formData.get("logo");
+    const coverFile = formData.get("cover");
+
+    if (logoFile instanceof File && logoFile.size > 0) {
+      try {
+        const { uploadImageToCloudinaryDetailed } = await import("@/lib/cloudinary");
+        const res = await uploadImageToCloudinaryDetailed(logoFile, "cloche/vendors/logos");
+        if (res.secure_url && res.secure_url.startsWith("http")) {
+          formData.set("logo_url", res.secure_url);
+        }
+      } catch (err) {
+        console.warn("[VendorRegister] Logo Cloudinary upload failed:", err);
+      }
+    }
+
+    if (coverFile instanceof File && coverFile.size > 0) {
+      try {
+        const { uploadImageToCloudinaryDetailed } = await import("@/lib/cloudinary");
+        const res = await uploadImageToCloudinaryDetailed(coverFile, "cloche/vendors/covers");
+        if (res.secure_url && res.secure_url.startsWith("http")) {
+          formData.set("cover_image", res.secure_url);
+        }
+      } catch (err) {
+        console.warn("[VendorRegister] Cover Cloudinary upload failed:", err);
+      }
     }
 
     const res = await submitSignup(formData);
@@ -537,11 +576,17 @@ export function VendorRegisterClient() {
               {...fieldErrorProps("category")}
             >
               <option value="">Select Category</option>
-              {VENDOR_CATEGORIES.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
+              {dbCategories.length > 0
+                ? dbCategories.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))
+                : VENDOR_CATEGORIES.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
             </select>
             {fieldError("category")}
           </div>

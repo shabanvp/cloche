@@ -1,10 +1,13 @@
 import { NextResponse } from "next/server";
 import { saveVendorCatalogItemToDb, softDeleteVendorCatalogItemFromDb, supabaseFetch } from "@/lib/supabase";
+import { requireAuthenticatedVendor, vendorOwnsRecord } from "@/lib/vendorAuth";
 
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const auth = await requireAuthenticatedVendor(req);
+    if (auth.response) return auth.response;
     const { id } = await params;
-    const { data, error } = await supabaseFetch(`vendor_catalog_items?id=eq.${encodeURIComponent(id)}&select=*,vendor_catalog_images(*)`);
+    const { data, error } = await supabaseFetch(`vendor_catalog_items?id=eq.${encodeURIComponent(id)}&vendor_id=eq.${encodeURIComponent(auth.vendorId)}&select=*,vendor_catalog_images(*)`);
 
     if (error || !data || data.length === 0) {
       return NextResponse.json(
@@ -27,12 +30,22 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const auth = await requireAuthenticatedVendor(req);
+    if (auth.response) return auth.response;
     const { id } = await params;
     const body = await req.json();
+
+    if (!(await vendorOwnsRecord("vendor_catalog_items", id, auth.vendorId))) {
+      return NextResponse.json(
+        { success: false, statusCode: 404, error: { code: "NOT_FOUND", message: "Catalog item not found." } },
+        { status: 404 }
+      );
+    }
 
     const payload = {
       id,
       ...body,
+      vendor_id: auth.vendorId,
       updated_at: new Date().toISOString(),
     };
 
@@ -59,8 +72,10 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
 
 export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const auth = await requireAuthenticatedVendor(req);
+    if (auth.response) return auth.response;
     const { id } = await params;
-    const { error } = await softDeleteVendorCatalogItemFromDb(id);
+    const { error } = await softDeleteVendorCatalogItemFromDb(id, auth.vendorId);
 
     if (error) {
       return NextResponse.json(

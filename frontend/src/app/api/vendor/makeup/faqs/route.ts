@@ -1,11 +1,13 @@
 import { NextResponse } from "next/server";
 import { supabaseFetch } from "@/lib/supabase";
+import { requireAuthenticatedVendor, vendorOwnsRecord } from "@/lib/vendorAuth";
 
 // GET /api/vendor/makeup/faqs?vendor_id=...
 export async function GET(request: Request) {
   try {
-    const { searchParams } = new URL(request.url);
-    const vendorId = searchParams.get("vendor_id") || "makeup-riya-sharma";
+    const auth = await requireAuthenticatedVendor(request);
+    if (auth.response) return auth.response;
+    const vendorId = auth.vendorId;
 
     const { data } = await supabaseFetch(
       `makeup_faqs?vendor_id=eq.${encodeURIComponent(vendorId)}&order=sort_order.asc&select=*`
@@ -20,16 +22,22 @@ export async function GET(request: Request) {
 // POST /api/vendor/makeup/faqs
 export async function POST(request: Request) {
   try {
+    const auth = await requireAuthenticatedVendor(request);
+    if (auth.response) return auth.response;
     const body = await request.json();
-    const { id, vendor_id, question, answer, sort_order } = body;
+    const { id, question, answer, sort_order } = body;
 
     if (!question || !answer) {
       return NextResponse.json({ error: "Question and Answer are required." }, { status: 400 });
     }
 
+    if (id && !(await vendorOwnsRecord("makeup_faqs", id, auth.vendorId))) {
+      return NextResponse.json({ error: "FAQ not found." }, { status: 404 });
+    }
+
     const faqRecord = {
       ...(id ? { id } : {}),
-      vendor_id: vendor_id || "makeup-riya-sharma",
+      vendor_id: auth.vendorId,
       question,
       answer,
       sort_order: sort_order ? Number(sort_order) : 0
@@ -58,6 +66,8 @@ export async function PUT(request: Request) {
 // DELETE /api/vendor/makeup/faqs?id=...
 export async function DELETE(request: Request) {
   try {
+    const auth = await requireAuthenticatedVendor(request);
+    if (auth.response) return auth.response;
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
 
@@ -65,7 +75,7 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: "FAQ ID is required." }, { status: 400 });
     }
 
-    await supabaseFetch(`makeup_faqs?id=eq.${encodeURIComponent(id)}`, { method: "DELETE" });
+    await supabaseFetch(`makeup_faqs?id=eq.${encodeURIComponent(id)}&vendor_id=eq.${encodeURIComponent(auth.vendorId)}`, { method: "DELETE" });
 
     return NextResponse.json({ success: true, message: "FAQ deleted successfully." });
   } catch (err: any) {

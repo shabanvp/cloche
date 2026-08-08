@@ -1,10 +1,14 @@
 import { NextResponse } from "next/server";
 import { fetchVendorPackagesFromDb, saveVendorPackageToDb, softDeleteVendorPackageFromDb } from "@/lib/supabase";
+import { requireAuthenticatedVendor, vendorOwnsRecord } from "@/lib/vendorAuth";
+
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export async function GET(req: Request) {
   try {
-    const { searchParams } = new URL(req.url);
-    const vendorId = searchParams.get("vendor_id") || "v-demo-vendor";
+    const auth = await requireAuthenticatedVendor(req);
+    if (auth.response) return auth.response;
+    const vendorId = auth.vendorId;
 
     const { data, error } = await fetchVendorPackagesFromDb(vendorId);
 
@@ -29,8 +33,10 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
+    const auth = await requireAuthenticatedVendor(req);
+    if (auth.response) return auth.response;
     const body = await req.json();
-    const { vendor_id, category_id, service_id, name, tagline, description, price, discount_price, features, is_popular, is_active, status } = body;
+    const { category_id, service_id, name, tagline, description, price, discount_price, features, is_popular, is_active, status } = body;
 
     if (!name || price === undefined || price < 0) {
       return NextResponse.json(
@@ -46,10 +52,16 @@ export async function POST(req: Request) {
       parsedFeatures = features.split("\n").map((f) => f.trim()).filter(Boolean);
     }
 
+    const resolvedVendorId = auth.vendorId;
+    if (body.id && UUID_REGEX.test(body.id) && !(await vendorOwnsRecord("vendor_service_packages", body.id, resolvedVendorId))) {
+      return NextResponse.json(
+        { success: false, statusCode: 404, error: { code: "NOT_FOUND", message: "Package not found." } },
+        { status: 404 }
+      );
+    }
+
     const payload: Record<string, any> = {
-      vendor_id: vendor_id || "v-demo-vendor",
-      category_id: category_id || null,
-      service_id: service_id || null,
+      vendor_id: resolvedVendorId,
       name: name.trim(),
       tagline: tagline ? tagline.trim() : null,
       description: description ? description.trim() : null,
@@ -58,11 +70,19 @@ export async function POST(req: Request) {
       features: parsedFeatures,
       is_popular: is_popular !== undefined ? Boolean(is_popular) : false,
       is_active: is_active !== undefined ? Boolean(is_active) : true,
-      status: status || "published",
+      status: status ? status.toLowerCase() : "published",
       updated_at: new Date().toISOString(),
     };
 
-    if (body.id) {
+    if (category_id && UUID_REGEX.test(category_id)) {
+      payload.category_id = category_id;
+    }
+    if (service_id && UUID_REGEX.test(service_id)) {
+      payload.service_id = service_id;
+    }
+
+    // ONLY set payload.id if body.id is a valid UUID (ignore p- fake IDs)
+    if (body.id && UUID_REGEX.test(body.id)) {
       payload.id = body.id;
     }
 
@@ -78,8 +98,8 @@ export async function POST(req: Request) {
     const savedPkg = Array.isArray(data) ? data[0] : data;
 
     return NextResponse.json(
-      { success: true, statusCode: body.id ? 200 : 201, message: body.id ? "Package updated successfully" : "Package created successfully", data: savedPkg },
-      { status: body.id ? 200 : 201 }
+      { success: true, statusCode: payload.id ? 200 : 201, message: payload.id ? "Package updated successfully" : "Package created successfully", data: savedPkg },
+      { status: payload.id ? 200 : 201 }
     );
   } catch (err: any) {
     return NextResponse.json(
@@ -87,6 +107,10 @@ export async function POST(req: Request) {
       { status: 500 }
     );
   }
+}
+
+export async function PUT(req: Request) {
+  return POST(req);
 }
 
 export async function DELETE(req: Request) {
@@ -101,7 +125,10 @@ export async function DELETE(req: Request) {
       );
     }
 
-    const { error } = await softDeleteVendorPackageFromDb(id);
+    const auth = await requireAuthenticatedVendor(req);
+    if (auth.response) return auth.response;
+
+    const { error } = await softDeleteVendorPackageFromDb(id, auth.vendorId);
 
     if (error) {
       return NextResponse.json(

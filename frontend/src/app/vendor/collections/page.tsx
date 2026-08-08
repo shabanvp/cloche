@@ -1,112 +1,317 @@
-import Link from "next/link";
-import Image from "next/image";
-import { Plus, Search, Edit2, Trash2, Eye } from "lucide-react";
-import { Button } from "@/components/Button";
-import { getAllProducts } from "@/services/api";
+"use client";
 
-export default async function VendorCollections() {
-  // In a real app, this would use the logged-in vendor's ID from session/JWT
-  const allProducts = await getAllProducts();
-  const collections = allProducts.slice(0, 6); // Mocking the vendor's own collections
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { Plus, UploadCloud, Trash2, CheckCircle2 } from "lucide-react";
+import { fetchAuthenticatedVendorFromDb, getActiveVendorIdentity, showVendorToast } from "@/lib/vendorStore";
+
+interface GalleryItem {
+  id: string;
+  title: string;
+  category: string;
+  imageUrl: string;
+  isCover: boolean;
+  aspectRatio: string;
+  likesCount: number;
+}
+
+interface GalleryApiItem {
+  id: string;
+  title?: string;
+  caption?: string;
+  image_url: string;
+  is_cover?: boolean;
+}
+
+function getCategoryPortfolioTabs(cat: string): string[] {
+  const c = (cat || "").toLowerCase();
+  if (c.includes("photo") || c.includes("video")) {
+    return ["All", "Pre-Wedding", "Wedding Ceremony", "Reception", "Candid & Portraits", "Studio Showcase"];
+  }
+  if (c.includes("bridal") || c.includes("boutique")) {
+    return ["All", "Lehengas", "Bridal Sarees", "Gowns & Couture", "Custom Designs", "Studio Showcase"];
+  }
+  if (c.includes("makeup")) {
+    return ["All", "Bridal HD Makeover", "Airbrush Suite", "Engagement Look", "Hair & Draping", "Studio Showcase"];
+  }
+  if (c.includes("groom")) {
+    return ["All", "Sherwanis", "Suits & Tuxedos", "Indo-Western", "Custom Outfits", "Studio Showcase"];
+  }
+  if (c.includes("decor") || c.includes("venue")) {
+    return ["All", "Stage Decor", "Outdoor Setup", "Floral Styling", "Lighting & Ambiance", "Studio Showcase"];
+  }
+  if (c.includes("mehendi")) {
+    return ["All", "Bridal Mehendi", "Arabic Patterns", "Traditional Henna", "Studio Showcase"];
+  }
+  if (c.includes("cater") || c.includes("food")) {
+    return ["All", "Traditional Sadya", "Buffet Counters", "Live Stalls", "Dessert Counter", "Studio Showcase"];
+  }
+  return ["All", "Showcase Photos", "Featured Work", "Client Highlights"];
+}
+
+export default function VendorCollections() {
+  const [vendorId, setVendorId] = useState<string>("");
+  const [vendorCategory, setVendorCategory] = useState<string>("Bridal Wear");
+  const [activeTab, setActiveTab] = useState("All");
+  const [selectedItems, setSelectedItems] = useState<string[]>([]);
+  const [items, setItems] = useState<GalleryItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isUploading, setIsUploading] = useState(false);
+
+  const categoryTabs = useMemo(() => getCategoryPortfolioTabs(vendorCategory), [vendorCategory]);
+
+  useEffect(() => {
+    loadVendorData();
+  }, []);
+
+  const loadVendorData = async () => {
+    const active = await fetchAuthenticatedVendorFromDb();
+    setVendorId(active.id);
+    setVendorCategory(active.category || "Bridal Wear");
+    loadGallery(active.id);
+  };
+
+  const loadGallery = useCallback(async (vId: string) => {
+    setIsLoading(true);
+    try {
+      const res = await fetch(`/api/v1/vendor/gallery?vendor_id=${encodeURIComponent(vId)}`).then((r) => r.json()).catch(() => ({ data: [] }));
+      let loaded: GalleryItem[] = [];
+      if (res.success && Array.isArray(res.data)) {
+        loaded = res.data.map((item: GalleryApiItem) => ({
+          id: item.id,
+          title: item.title || item.caption || "Studio Showcase Photo",
+          category: "Studio Showcase",
+          imageUrl: item.image_url,
+          isCover: Boolean(item.is_cover),
+          aspectRatio: "aspect-[3/4]",
+          likesCount: 120,
+        }));
+      }
+
+      setItems(loaded);
+    } catch (e) {
+      console.error("[VendorCollections] Error loading gallery:", e);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const toggleSelect = (id: string) => {
+    setSelectedItems((prev) => (prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]));
+  };
+
+  const handleSetCover = async (id: string) => {
+    const targetItem = items.find((i) => i.id === id);
+    if (targetItem) {
+      try {
+        const res = await fetch("/api/v1/vendor/gallery", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            vendor_id: vendorId,
+            title: targetItem.title,
+            image_url: targetItem.imageUrl,
+            is_cover: true,
+          }),
+        }).then((r) => r.json());
+
+        if (res.success) {
+          showVendorToast("✓ Main Cover Photo updated");
+          await loadGallery(vendorId);
+        } else {
+          showVendorToast("Unable to update cover photo.", "error");
+        }
+      } catch (e) {
+        showVendorToast("Unable to update cover photo.", "error");
+      }
+    }
+  };
+
+  const handleDeleteSelected = async () => {
+    if (selectedItems.length === 0) return;
+    if (!confirm(`Delete ${selectedItems.length} selected photos?`)) return;
+
+    try {
+      for (const id of selectedItems) {
+        await fetch(`/api/v1/vendor/gallery?id=${encodeURIComponent(id)}`, { method: "DELETE" });
+      }
+      showVendorToast(`✓ ${selectedItems.length} Photos deleted successfully`);
+      setSelectedItems([]);
+      await loadGallery(vendorId);
+    } catch (e) {
+      showVendorToast("Unable to delete photos.", "error");
+    }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setIsUploading(true);
+    let successCount = 0;
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const fileName = file.name.replace(/\.[^/.]+$/, "");
+
+      await new Promise<void>((resolve) => {
+        const reader = new FileReader();
+        reader.onload = async (ev) => {
+          const base64Url = ev.target?.result as string;
+          if (base64Url) {
+            try {
+              const res = await fetch("/api/v1/vendor/gallery", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  vendor_id: vendorId,
+                  title: fileName,
+                  image_url: base64Url,
+                  is_cover: items.length === 0 && i === 0,
+                }),
+              }).then((r) => r.json());
+
+              if (res.success) {
+                successCount++;
+              }
+            } catch (err) {}
+          }
+          resolve();
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    setIsUploading(false);
+
+    if (successCount > 0) {
+      showVendorToast(`✓ ${successCount} Showcase photo(s) saved to database`);
+      await loadGallery(vendorId);
+    } else {
+      showVendorToast("Failed to upload photos to database.", "error");
+    }
+  };
+
+  const filteredItems = items.filter((item) => activeTab === "All" || item.category === activeTab);
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
+    <div className="space-y-8 animate-in fade-in duration-500 font-sans pb-12">
       
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end border-b border-gold/10 pb-4 gap-4">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-gold/15 pb-6 gap-4">
         <div>
-          <h1 className="text-3xl font-display text-charcoal">Collections Management</h1>
-          <p className="text-sm text-charcoal/60 mt-1">Manage your boutique's dresses and catalog.</p>
+          <h1 className="text-3xl lg:text-4xl font-display font-bold text-charcoal">Gallery & Portfolio Showcase</h1>
+          <p className="text-sm text-charcoal/70 mt-1">Manage studio showcase photos and portfolio media for {vendorCategory}.</p>
         </div>
-        <Link href="/vendor/collections/new">
-          <Button className="bg-emerald text-white rounded-full flex items-center gap-2">
-            <Plus className="w-4 h-4" /> Add Collection
-          </Button>
-        </Link>
+
+        <div className="flex items-center gap-3 shrink-0">
+          {selectedItems.length > 0 && (
+            <button
+              onClick={handleDeleteSelected}
+              className="bg-red-50 text-red-600 hover:bg-red-100 font-bold px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider transition-all flex items-center gap-2 border border-red-200 cursor-pointer"
+            >
+              <Trash2 className="w-4 h-4" /> Delete ({selectedItems.length})
+            </button>
+          )}
+          <label className="bg-[#0F4C45] hover:bg-[#135951] text-white px-5 py-2.5 rounded-xl text-xs uppercase tracking-wider font-bold shadow-md flex items-center gap-2 cursor-pointer">
+            <Plus className="w-4 h-4 text-[#C8A96A]" /> {isUploading ? "Uploading..." : "Upload Media"}
+            <input type="file" multiple accept="image/*" disabled={isUploading} className="hidden" onChange={handleFileUpload} />
+          </label>
+        </div>
       </div>
 
-      {/* Filters & Search */}
-      <div className="flex flex-col sm:flex-row justify-between gap-4 bg-white p-4 rounded-xl border border-gold/10 shadow-sm">
-        <div className="flex gap-2 overflow-x-auto pb-2 sm:pb-0 hide-scrollbar">
-          {["All", "Published", "Drafts", "Archived"].map((tab, i) => (
-            <button key={tab} className={`px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider whitespace-nowrap transition-colors ${i === 0 ? 'bg-charcoal text-white' : 'bg-ivory text-charcoal/70 hover:bg-gray-200'}`}>
+      {/* Drag & Drop Upload Zone */}
+      <label className="border-2 border-dashed border-gold/30 hover:border-[#0F4C45] bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] p-8 rounded-2xl transition-colors text-center flex flex-col items-center justify-center gap-3 cursor-pointer group block">
+        <div className="w-14 h-14 rounded-full bg-[#0F4C45]/10 text-[#0F4C45] flex items-center justify-center group-hover:scale-110 transition-transform mx-auto">
+          <UploadCloud className="w-7 h-7" />
+        </div>
+        <div>
+          <h3 className="font-display font-bold text-base text-charcoal">Upload {vendorCategory} Showcase Photos</h3>
+          <p className="text-xs text-charcoal/60 mt-1">{isUploading ? "Saving to database..." : "Supports JPG, PNG, WEBP. Multi-select upload enabled."}</p>
+        </div>
+        <input type="file" multiple accept="image/*" disabled={isUploading} className="hidden" onChange={handleFileUpload} />
+      </label>
+
+      {/* Dynamic Category Filter Tabs & Toolbar */}
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-white p-4 rounded-2xl border border-gold/15 shadow-xs">
+        <div className="flex items-center gap-2 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0">
+          {categoryTabs.map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider whitespace-nowrap transition-all cursor-pointer ${
+                activeTab === tab ? "bg-[#0F4C45] text-white shadow-xs" : "bg-[#FAF7F2] text-charcoal/70 hover:text-[#0F4C45]"
+              }`}
+            >
               {tab}
             </button>
           ))}
         </div>
-        <div className="relative">
-          <input 
-            type="text" 
-            placeholder="Search collections..."
-            className="w-full sm:w-64 bg-ivory border border-gold/20 rounded-full py-1.5 pl-9 pr-4 text-sm focus:outline-none focus:border-emerald"
-          />
-          <Search className="w-4 h-4 text-charcoal/40 absolute left-3 top-1/2 -translate-y-1/2" />
+
+        <div className="text-xs text-charcoal/60 font-semibold shrink-0">
+          Showing <strong>{filteredItems.length}</strong> Showcase Photos
         </div>
       </div>
 
-      {/* Collections Table/Grid */}
-      <div className="bg-white rounded-2xl border border-gold/10 shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-ivory border-b border-gold/10 text-xs uppercase tracking-wider text-charcoal/60 font-semibold">
-                <th className="p-4 pl-6">Collection</th>
-                <th className="p-4">Category</th>
-                <th className="p-4">Price</th>
-                <th className="p-4">Status</th>
-                <th className="p-4 text-right pr-6">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gold/10">
-              {collections.map((item) => (
-                <tr key={item.id} className="hover:bg-emerald/5 transition-colors group">
-                  <td className="p-4 pl-6">
-                    <div className="flex items-center gap-4">
-                      <div className="relative w-12 h-16 rounded-md overflow-hidden bg-gray-100 shrink-0">
-                        <Image 
-                          src={item.image_url || "https://images.unsplash.com/photo-1594223274512-ad4803739b7c?q=80&w=800&auto=format&fit=crop"} 
-                          alt={item.product_name}
-                          fill
-                          className="object-cover"
-                        />
-                      </div>
-                      <div>
-                        <h4 className="font-display font-medium text-charcoal group-hover:text-emerald transition-colors">{item.product_name}</h4>
-                        <p className="text-xs text-charcoal/50 mt-0.5">ID: #{item.id}</p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="p-4">
-                    <span className="text-sm text-charcoal">{item.category}</span>
-                  </td>
-                  <td className="p-4">
-                    <span className="text-sm font-medium text-charcoal">₹{item.price.toLocaleString('en-IN')}</span>
-                  </td>
-                  <td className="p-4">
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald/10 text-emerald">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald"></span> Published
+      {/* Masonry Grid Layout */}
+      {isLoading ? (
+        <div className="text-center py-16 text-xs text-charcoal/60">Querying vendor_gallery table from Supabase database...</div>
+      ) : filteredItems.length > 0 ? (
+        <div className="columns-1 sm:columns-2 lg:columns-3 gap-6 space-y-6">
+          {filteredItems.map((item) => {
+            const isSelected = selectedItems.includes(item.id);
+            return (
+              <div
+                key={item.id}
+                className={`break-inside-avoid bg-white rounded-2xl border ${
+                  item.isCover ? "border-[#0F4C45] ring-2 ring-[#0F4C45]/20" : "border-gold/15"
+                } overflow-hidden shadow-xs hover:shadow-md transition-all group relative`}
+              >
+                <div className={`relative ${item.aspectRatio} w-full bg-[#FAF7F2]`}>
+                  <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  
+                  {/* Select Checkbox Overlay */}
+                  <button
+                    onClick={() => toggleSelect(item.id)}
+                    className={`absolute top-3 left-3 w-7 h-7 rounded-full flex items-center justify-center transition-all cursor-pointer ${
+                      isSelected ? "bg-[#0F4C45] text-white shadow-md" : "bg-white/80 backdrop-blur-xs text-charcoal/40 hover:bg-white"
+                    }`}
+                  >
+                    <CheckCircle2 className="w-4 h-4" />
+                  </button>
+
+                  {/* Cover Badge */}
+                  {item.isCover && (
+                    <span className="absolute top-3 right-3 bg-[#0F4C45] text-[#C8A96A] text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full shadow-md border border-gold/30">
+                      ★ Main Cover Photo
                     </span>
-                  </td>
-                  <td className="p-4 pr-6 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <Link href={`/collections/${item.id}`} target="_blank">
-                        <Button variant="ghost" size="icon" className="w-8 h-8 rounded-full text-charcoal/60 hover:text-emerald hover:bg-emerald/10">
-                          <Eye className="w-4 h-4" />
-                        </Button>
-                      </Link>
-                      <Button variant="ghost" size="icon" className="w-8 h-8 rounded-full text-charcoal/60 hover:text-gold hover:bg-gold/10">
-                        <Edit2 className="w-4 h-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="w-8 h-8 rounded-full text-charcoal/60 hover:text-red-500 hover:bg-red-50">
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                  )}
+                </div>
+
+                <div className="p-4 flex items-center justify-between">
+                  <div>
+                    <h4 className="font-display font-bold text-sm text-charcoal truncate">{item.title}</h4>
+                    <span className="text-[10px] font-bold text-charcoal/50 uppercase tracking-wider">{vendorCategory}</span>
+                  </div>
+                  {!item.isCover && (
+                    <button
+                      onClick={() => handleSetCover(item.id)}
+                      className="text-xs font-bold text-[#0F4C45] hover:underline cursor-pointer"
+                    >
+                      Set Cover
+                    </button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
         </div>
-      </div>
+      ) : (
+        <div className="text-center py-16 bg-white rounded-2xl border border-gold/15 p-8">
+          <UploadCloud className="w-12 h-12 text-gold mx-auto mb-3 opacity-50" />
+          <h3 className="text-xl font-display font-bold text-charcoal">No Showcase Photos Uploaded</h3>
+          <p className="text-xs text-charcoal/60 max-w-sm mx-auto mt-1">Upload your {vendorCategory} photography to insert media records into the media & vendor_gallery Supabase tables.</p>
+        </div>
+      )}
     </div>
   );
 }

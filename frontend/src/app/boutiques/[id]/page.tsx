@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getBoutiqueDetails, getBoutiqueProducts } from "@/services/api";
+import { fetchPublicVendorProfileFromDb } from "@/lib/supabase";
 import { BoutiqueProfileClient } from "@/components/BoutiqueProfileClient";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -9,25 +12,23 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
-  const boutique = await getBoutiqueDetails(id);
-  if (!boutique) {
-    return { title: "Boutique Not Found | Cloche" };
+  const { data: profile } = await fetchPublicVendorProfileFromDb(id);
+  if (!profile) {
+    return { title: "Vendor Not Found | Cloche" };
   }
   return {
-    title: `${boutique.boutique_name} | Cloche Wedding Vendors`,
-    description: `Explore the wedding collections and reviews for ${boutique.boutique_name} in ${boutique.city || boutique.district}.`,
+    title: `${profile.name} | Cloche Wedding Vendors`,
+    description: profile.about || `View ${profile.name}'s live vendor profile on Cloche.`,
   };
 }
 
 export default async function BoutiqueProfilePage({ params }: Props) {
   const { id } = await params;
-  const boutique = await getBoutiqueDetails(id);
+  const { data: profile } = await fetchPublicVendorProfileFromDb(id);
 
-  if (!boutique) {
+  if (!profile) {
     notFound();
   }
 
-  const collections = await getBoutiqueProducts(id);
-
-  return <BoutiqueProfileClient boutique={boutique} collections={collections} />;
+  return <BoutiqueProfileClient profile={profile} />;
 }

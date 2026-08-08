@@ -56,61 +56,14 @@ export default function VendorLeadsPage() {
     setIsLoading(true);
     try {
       const res = await fetch(`/api/v1/vendor/leads?status=${statusFilter}`).then((r) => r.json());
-      if (Array.isArray(res.data) && res.data.length > 0) {
+      if (Array.isArray(res.data)) {
         setLeads(res.data);
       } else {
-        // Fallback demo CRM leads
-        setLeads([
-          {
-            id: "l-101",
-            customer_name: "Ananya Nair & Rahul Sharma",
-            customer_phone: "+91 98470 12345",
-            customer_email: "ananya.nair@gmail.com",
-            event_type: "Grand Wedding & Reception",
-            event_date: "2026-11-20",
-            city: "Kochi, Kerala",
-            guest_count: 650,
-            estimated_budget: 750000,
-            message: "Looking for complete wedding venue rental, floral stage decor, and buffet catering for 650 guests.",
-            status: "new",
-            created_at: new Date(Date.now() - 3600000 * 4).toISOString(),
-            lead_notes: [{ id: "n-1", author_name: "Manager", note_text: "Customer preferred evening callback after 6 PM.", created_at: new Date().toISOString() }],
-            lead_activities: [{ id: "a-1", activity_type: "lead_created", description: "Inquiry received via Cloche Platform.", created_at: new Date().toISOString() }],
-          },
-          {
-            id: "l-102",
-            customer_name: "Dr. Siddharth Menon",
-            customer_phone: "+91 94471 98765",
-            customer_email: "siddharth.menon@hospital.org",
-            event_type: "Engagement & Sangeet",
-            event_date: "2026-10-15",
-            city: "Thiruvananthapuram",
-            guest_count: 300,
-            estimated_budget: 350000,
-            message: "Interested in booking outdoor garden space and HD photography + cinematic teaser package.",
-            status: "contacted",
-            created_at: new Date(Date.now() - 3600000 * 28).toISOString(),
-            lead_activities: [{ id: "a-2", activity_type: "status_changed", description: "Called customer and discussed package requirements.", created_at: new Date().toISOString() }],
-          },
-          {
-            id: "l-103",
-            customer_name: "Priya Varma",
-            customer_phone: "+91 97452 33445",
-            customer_email: "priya.varma@boutique.co",
-            event_type: "Bridal Makeover & Mehendi",
-            event_date: "2026-12-05",
-            city: "Kozhikode",
-            guest_count: 150,
-            estimated_budget: 85000,
-            message: "Require HD Airbrush makeup for bride and 4 family members.",
-            status: "quotation_sent",
-            created_at: new Date(Date.now() - 3600000 * 72).toISOString(),
-            lead_activities: [{ id: "a-3", activity_type: "quotation_sent", description: "Quotation QTN-2026-88019-R1 sent to customer.", created_at: new Date().toISOString() }],
-          },
-        ]);
+        setLeads([]);
       }
     } catch (e) {
       console.error("Failed to load leads:", e);
+      setLeads([]);
     } finally {
       setIsLoading(false);
     }
@@ -134,12 +87,21 @@ export default function VendorLeadsPage() {
 
   const handleConvertToBooking = async (lead: LeadItem) => {
     try {
+      const quotesRes = await fetch("/api/v1/vendor/quotations").then((r) => r.json());
+      const quotation = Array.isArray(quotesRes.data)
+        ? quotesRes.data.find((q: any) => String(q.lead_id) === String(lead.id))
+        : null;
+
+      if (!quotation?.id) {
+        alert("Create a quotation for this lead before converting it into a booking.");
+        return;
+      }
+
       const res = await fetch("/api/v1/vendor/bookings/convert", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          quotation_id: `q-demo-${lead.id}`,
-          vendor_id: "v-demo-vendor",
+          quotation_id: quotation.id,
         }),
       });
 

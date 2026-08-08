@@ -1,14 +1,16 @@
 import { NextResponse } from "next/server";
 import { recordLedgerPaymentInDb, recordEscrowTransactionInDb, supabaseFetch } from "@/lib/supabase";
+import { requireAuthenticatedVendor, vendorOwnsRecord } from "@/lib/vendorAuth";
 
 export async function POST(req: Request) {
   const logPrefix = "[IDEMPOTENT_PAYMENT_API]";
 
   try {
+    const auth = await requireAuthenticatedVendor(req);
+    if (auth.response) return auth.response;
     const body = await req.json();
     const {
       booking_id,
-      vendor_id,
       user_id,
       amount,
       payment_type,
@@ -24,6 +26,13 @@ export async function POST(req: Request) {
       );
     }
 
+    if (!(await vendorOwnsRecord("bookings", booking_id, auth.vendorId))) {
+      return NextResponse.json(
+        { success: false, statusCode: 404, error: { code: "NOT_FOUND", message: "Booking not found." } },
+        { status: 404 }
+      );
+    }
+
     const ik = idempotency_key || `IK-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
     const txnId = transaction_reference || `TXN-${Math.floor(100000 + Math.random() * 900000)}`;
 
@@ -33,8 +42,8 @@ export async function POST(req: Request) {
     const { data: pData, error: pError } = await recordLedgerPaymentInDb({
       transaction_id: txnId,
       idempotency_key: ik,
-      user_id: user_id || "00000000-0000-0000-0000-000000000000",
-      vendor_id: vendor_id || null,
+      user_id: user_id || auth.user.userId,
+      vendor_id: auth.vendorId,
       booking_id,
       amount: Number(amount),
       currency: "INR",
@@ -69,13 +78,13 @@ export async function POST(req: Request) {
     }).catch(() => null);
 
     // Step 3: Fetch booking and update balance & payment status
-    const bRes = await supabaseFetch(`bookings?id=eq.${encodeURIComponent(booking_id)}&select=*,escrow_accounts(*)`);
+    const bRes = await supabaseFetch(`bookings?id=eq.${encodeURIComponent(booking_id)}&vendor_id=eq.${encodeURIComponent(auth.vendorId)}&select=*,escrow_accounts(*)`);
     if (!bRes.error && Array.isArray(bRes.data) && bRes.data.length > 0) {
       const bObj = bRes.data[0];
       const newBalance = Math.max(0, Number(bObj.balance_amount || 0) - Number(amount));
       const newPayStatus = newBalance === 0 ? "paid" : "partially_paid";
 
-      await supabaseFetch(`bookings?id=eq.${encodeURIComponent(booking_id)}`, {
+      await supabaseFetch(`bookings?id=eq.${encodeURIComponent(booking_id)}&vendor_id=eq.${encodeURIComponent(auth.vendorId)}`, {
         method: "PATCH",
         body: JSON.stringify({ balance_amount: newBalance, payment_status: newPayStatus, updated_at: new Date().toISOString() }),
       }).catch(() => null);

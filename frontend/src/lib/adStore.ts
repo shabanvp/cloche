@@ -484,18 +484,16 @@ export const INITIAL_CAMPAIGNS: Campaign[] = [
 const LOCAL_STORAGE_KEY = "cloche_ad_campaigns_db_v1";
 
 export function getStoredCampaigns(): Campaign[] {
-  if (typeof window === "undefined") return INITIAL_CAMPAIGNS;
+  if (typeof window === "undefined") return [];
   try {
     const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
-    if (!raw) {
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(INITIAL_CAMPAIGNS));
-      return INITIAL_CAMPAIGNS;
-    }
+    if (!raw) return [];
     return JSON.parse(raw);
   } catch (e) {
-    return INITIAL_CAMPAIGNS;
+    return [];
   }
 }
+
 
 export function saveStoredCampaigns(campaigns: Campaign[]): void {
   if (typeof window === "undefined") return;

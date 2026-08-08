@@ -1,23 +1,33 @@
 import { NextResponse } from "next/server";
 import { convertQuoteToBookingInDb } from "@/lib/supabase";
 import { notificationService } from "@/lib/notifications";
+import { requireAuthenticatedVendor, vendorOwnsRecord } from "@/lib/vendorAuth";
 
 export async function POST(req: Request) {
   const logPrefix = "[QUOTE_TO_BOOKING_CONVERT_API]";
 
   try {
+    const auth = await requireAuthenticatedVendor(req);
+    if (auth.response) return auth.response;
     const body = await req.json();
-    const { quotation_id, vendor_id, user_id } = body;
+    const { quotation_id, user_id } = body;
 
-    if (!quotation_id || !vendor_id) {
+    if (!quotation_id) {
       return NextResponse.json(
-        { success: false, statusCode: 400, error: { code: "VALIDATION_ERROR", message: "Quotation ID and Vendor ID are required." } },
+        { success: false, statusCode: 400, error: { code: "VALIDATION_ERROR", message: "Quotation ID is required." } },
         { status: 400 }
       );
     }
 
-    console.log(`${logPrefix} Converting quotation ${quotation_id} for vendor ${vendor_id}...`);
-    const { data, error } = await convertQuoteToBookingInDb(quotation_id, vendor_id, user_id);
+    if (!(await vendorOwnsRecord("quotations", quotation_id, auth.vendorId))) {
+      return NextResponse.json(
+        { success: false, statusCode: 404, error: { code: "NOT_FOUND", message: "Quotation not found." } },
+        { status: 404 }
+      );
+    }
+
+    console.log(`${logPrefix} Converting quotation ${quotation_id} for vendor ${auth.vendorId}...`);
+    const { data, error } = await convertQuoteToBookingInDb(quotation_id, auth.vendorId, user_id || auth.user.userId);
 
     if (error) {
       const errMsg = error.message || "Quote-to-booking conversion failed.";
@@ -41,7 +51,7 @@ export async function POST(req: Request) {
         bookingId: conversionResult.booking_id,
         bookingNumber: conversionResult.booking_number,
         quotationId: quotation_id,
-        vendorId: vendor_id,
+        vendorId: auth.vendorId,
       },
     }).catch(() => null);
 

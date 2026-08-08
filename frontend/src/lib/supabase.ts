@@ -1,8 +1,4 @@
-/**
- * CLOCHE PLATFORM - PRODUCTION SUPABASE DATABASE CLIENT & REPOSITORY LAYER
- * 
- * Configured with live Render & Supabase environment credentials
- */
+import { deleteImageFromCloudinary } from "./cloudinary";
 
 export interface SupabaseConfig {
   url: string;
@@ -54,6 +50,7 @@ export async function supabaseFetch<T = any>(
   try {
     const res = await fetch(`${url}/rest/v1/${endpoint}`, {
       ...options,
+      cache: options.cache || "no-store",
       headers: {
         "Content-Type": "application/json",
         apikey: serviceKey,
@@ -218,9 +215,6 @@ export async function resendSupabaseAuthEmail(
 // DATABASE REPOSITORY METHOD WRAPPERS
 // ----------------------------------------------------
 
-export async function fetchVendorProfileFromDb(vendorId: string) {
-  return supabaseFetch(`vendor_profiles?vendor_id=eq.${encodeURIComponent(vendorId)}&select=*`);
-}
 
 export async function fetchVenueGalleryFromDb(vendorId: string) {
   return supabaseFetch(`venue_gallery?vendor_id=eq.${encodeURIComponent(vendorId)}&order=sort_order.asc&select=*`);
@@ -246,8 +240,9 @@ export async function saveOfferToDb(offerRecord: Record<string, any>) {
   });
 }
 
-export async function deleteOfferFromDb(offerId: string) {
-  return supabaseFetch(`offers?id=eq.${encodeURIComponent(offerId)}`, {
+export async function deleteOfferFromDb(offerId: string, vendorId?: string) {
+  const vendorFilter = vendorId ? `&vendor_id=eq.${encodeURIComponent(vendorId)}` : "";
+  return supabaseFetch(`offers?id=eq.${encodeURIComponent(offerId)}${vendorFilter}`, {
     method: "DELETE",
   });
 }
@@ -312,8 +307,9 @@ export async function saveMakeupServiceToDb(serviceRecord: Record<string, any>) 
   });
 }
 
-export async function deleteMakeupServiceFromDb(id: string) {
-  return supabaseFetch(`makeup_services?id=eq.${encodeURIComponent(id)}`, {
+export async function deleteMakeupServiceFromDb(id: string, vendorId?: string) {
+  const vendorFilter = vendorId ? `&vendor_id=eq.${encodeURIComponent(vendorId)}` : "";
+  return supabaseFetch(`makeup_services?id=eq.${encodeURIComponent(id)}${vendorFilter}`, {
     method: "DELETE",
   });
 }
@@ -326,8 +322,9 @@ export async function saveMakeupPackageToDb(packageRecord: Record<string, any>) 
   });
 }
 
-export async function deleteMakeupPackageFromDb(id: string) {
-  return supabaseFetch(`makeup_packages?id=eq.${encodeURIComponent(id)}`, {
+export async function deleteMakeupPackageFromDb(id: string, vendorId?: string) {
+  const vendorFilter = vendorId ? `&vendor_id=eq.${encodeURIComponent(vendorId)}` : "";
+  return supabaseFetch(`makeup_packages?id=eq.${encodeURIComponent(id)}${vendorFilter}`, {
     method: "DELETE",
   });
 }
@@ -340,8 +337,9 @@ export async function saveMakeupPortfolioToDb(portfolioRecord: Record<string, an
   });
 }
 
-export async function deleteMakeupPortfolioFromDb(id: string) {
-  return supabaseFetch(`makeup_portfolio?id=eq.${encodeURIComponent(id)}`, {
+export async function deleteMakeupPortfolioFromDb(id: string, vendorId?: string) {
+  const vendorFilter = vendorId ? `&vendor_id=eq.${encodeURIComponent(vendorId)}` : "";
+  return supabaseFetch(`makeup_portfolio?id=eq.${encodeURIComponent(id)}${vendorFilter}`, {
     method: "DELETE",
   });
 }
@@ -354,8 +352,9 @@ export async function saveMakeupVideoToDb(videoRecord: Record<string, any>) {
   });
 }
 
-export async function deleteMakeupVideoFromDb(id: string) {
-  return supabaseFetch(`makeup_videos?id=eq.${encodeURIComponent(id)}`, {
+export async function deleteMakeupVideoFromDb(id: string, vendorId?: string) {
+  const vendorFilter = vendorId ? `&vendor_id=eq.${encodeURIComponent(vendorId)}` : "";
+  return supabaseFetch(`makeup_videos?id=eq.${encodeURIComponent(id)}${vendorFilter}`, {
     method: "DELETE",
   });
 }
@@ -368,8 +367,9 @@ export async function saveMakeupFaqToDb(faqRecord: Record<string, any>) {
   });
 }
 
-export async function deleteMakeupFaqFromDb(id: string) {
-  return supabaseFetch(`makeup_faqs?id=eq.${encodeURIComponent(id)}`, {
+export async function deleteMakeupFaqFromDb(id: string, vendorId?: string) {
+  const vendorFilter = vendorId ? `&vendor_id=eq.${encodeURIComponent(vendorId)}` : "";
+  return supabaseFetch(`makeup_faqs?id=eq.${encodeURIComponent(id)}${vendorFilter}`, {
     method: "DELETE",
   });
 }
@@ -382,8 +382,9 @@ export async function saveMakeupAwardToDb(awardRecord: Record<string, any>) {
   });
 }
 
-export async function deleteMakeupAwardFromDb(id: string) {
-  return supabaseFetch(`makeup_awards?id=eq.${encodeURIComponent(id)}`, {
+export async function deleteMakeupAwardFromDb(id: string, vendorId?: string) {
+  const vendorFilter = vendorId ? `&vendor_id=eq.${encodeURIComponent(vendorId)}` : "";
+  return supabaseFetch(`makeup_awards?id=eq.${encodeURIComponent(id)}${vendorFilter}`, {
     method: "DELETE",
   });
 }
@@ -404,8 +405,9 @@ export async function saveVendorServiceToDb(record: Record<string, any>) {
   });
 }
 
-export async function softDeleteVendorServiceFromDb(id: string) {
-  return supabaseFetch(`vendor_services?id=eq.${encodeURIComponent(id)}`, {
+export async function softDeleteVendorServiceFromDb(id: string, vendorId?: string) {
+  const vendorFilter = vendorId ? `&vendor_id=eq.${encodeURIComponent(vendorId)}` : "";
+  return supabaseFetch(`vendor_services?id=eq.${encodeURIComponent(id)}${vendorFilter}`, {
     method: "PATCH",
     body: JSON.stringify({ deleted_at: new Date().toISOString(), is_active: false }),
   });
@@ -423,8 +425,9 @@ export async function saveVendorPackageToDb(record: Record<string, any>) {
   });
 }
 
-export async function softDeleteVendorPackageFromDb(id: string) {
-  return supabaseFetch(`vendor_service_packages?id=eq.${encodeURIComponent(id)}`, {
+export async function softDeleteVendorPackageFromDb(id: string, vendorId?: string) {
+  const vendorFilter = vendorId ? `&vendor_id=eq.${encodeURIComponent(vendorId)}` : "";
+  return supabaseFetch(`vendor_service_packages?id=eq.${encodeURIComponent(id)}${vendorFilter}`, {
     method: "PATCH",
     body: JSON.stringify({ deleted_at: new Date().toISOString(), is_active: false }),
   });
@@ -442,10 +445,138 @@ export async function saveVendorCatalogItemToDb(record: Record<string, any>) {
   });
 }
 
-export async function softDeleteVendorCatalogItemFromDb(id: string) {
-  return supabaseFetch(`vendor_catalog_items?id=eq.${encodeURIComponent(id)}`, {
+export async function softDeleteVendorCatalogItemFromDb(id: string, vendorId?: string) {
+  const vendorFilter = vendorId ? `&vendor_id=eq.${encodeURIComponent(vendorId)}` : "";
+  return supabaseFetch(`vendor_catalog_items?id=eq.${encodeURIComponent(id)}${vendorFilter}`, {
     method: "PATCH",
     body: JSON.stringify({ deleted_at: new Date().toISOString(), is_available: false }),
+  });
+}
+
+// ----------------------------------------------------
+// VENDOR GALLERY & SHOWCASE MEDIA HELPERS
+// ----------------------------------------------------
+
+export async function fetchVendorGalleryFromDb(vendorId: string) {
+  if (!vendorId) return { data: [], error: null };
+  const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (!UUID_REGEX.test(vendorId)) return { data: [], error: null };
+
+  const start = Date.now();
+  const { data, error } = await supabaseFetch(`vendor_gallery?vendor_id=eq.${encodeURIComponent(vendorId)}&order=created_at.desc&select=*,media(*)`);
+  console.log(`[DB:FETCH] table=vendor_gallery vendor_id=${vendorId} rows=${Array.isArray(data) ? data.length : 0} ms=${Date.now() - start}`);
+
+  if (!error && Array.isArray(data)) {
+    const formatted = data.map((g: any) => ({
+      id: g.id,
+      vendor_id: g.vendor_id,
+      media_id: g.media_id,
+      title: g.caption || "Showcase Photo",
+      caption: g.caption || "",
+      image_url: g.media?.cdn_url || g.media?.file_path || "",
+      is_cover: Boolean(g.is_cover),
+      sort_order: g.sort_order || 0,
+      created_at: g.created_at
+    }));
+    return { data: formatted, error: null };
+  }
+  return { data: [], error };
+}
+
+export async function saveVendorGalleryItemInDb(item: {
+  id?: string;
+  vendor_id: string;
+  title?: string;
+  category?: string;
+  image_url: string;
+  is_cover?: boolean;
+}) {
+  const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (!item.vendor_id || !UUID_REGEX.test(item.vendor_id)) {
+    return { data: null, error: new Error("Valid vendor UUID is required.") };
+  }
+  const resolvedVendorId = item.vendor_id;
+  
+  let mediaId: string | null = null;
+
+  // 1. Check if media row already exists for file_path
+  try {
+    const existingRes = await supabaseFetch(`media?file_path=eq.${encodeURIComponent(item.image_url)}&select=id`);
+    if (!existingRes.error && Array.isArray(existingRes.data) && existingRes.data.length > 0) {
+      mediaId = existingRes.data[0].id;
+    }
+  } catch (e) {}
+
+  // 2. If not found, insert new media row into media table
+  if (!mediaId) {
+    const startMedia = Date.now();
+    const mediaRes = await supabaseFetch(`media`, {
+      method: "POST",
+      headers: { Prefer: "return=representation" },
+      body: JSON.stringify({
+        vendor_id: resolvedVendorId,
+        bucket_name: "vendor-gallery",
+        file_path: item.image_url,
+        cdn_url: item.image_url,
+        original_name: item.title ? `${item.title.substring(0, 30)}.jpg` : "showcase_photo.jpg",
+        mime_type: "image/jpeg",
+        file_size_bytes: 102400,
+        media_type: "image"
+      })
+    });
+
+    console.log(`[DB:INSERT] table=media vendor_id=${resolvedVendorId} ms=${Date.now() - startMedia}`);
+    const mediaRow = Array.isArray(mediaRes.data) ? mediaRes.data[0] : mediaRes.data;
+    if (mediaRow?.id) {
+      mediaId = mediaRow.id;
+    } else {
+      const retryRes = await supabaseFetch(`media?file_path=eq.${encodeURIComponent(item.image_url)}&select=id`);
+      if (!retryRes.error && Array.isArray(retryRes.data) && retryRes.data.length > 0) {
+        mediaId = retryRes.data[0].id;
+      }
+    }
+  }
+
+  if (!mediaId) {
+    return { data: null, error: new Error("Unable to resolve media_id for gallery item") };
+  }
+
+  // 3. Insert into vendor_gallery table with resolved media_id
+  const startGallery = Date.now();
+  const galleryPayload: Record<string, any> = {
+    vendor_id: resolvedVendorId,
+    media_id: mediaId,
+    caption: item.title || "Showcase Photo",
+    is_cover: Boolean(item.is_cover),
+  };
+
+  const res = await supabaseFetch(`vendor_gallery`, {
+    method: "POST",
+    headers: { Prefer: "return=representation" },
+    body: JSON.stringify(galleryPayload),
+  });
+
+  console.log(`[DB:INSERT] table=vendor_gallery vendor_id=${resolvedVendorId} ms=${Date.now() - startGallery}`);
+  return res;
+}
+
+export async function deleteVendorGalleryItemInDb(id: string, vendorId?: string) {
+  const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (!UUID_REGEX.test(id)) return { data: null, error: null };
+  const vendorFilter = vendorId ? `&vendor_id=eq.${encodeURIComponent(vendorId)}` : "";
+
+  try {
+    const existingRes = await supabaseFetch(`vendor_gallery?id=eq.${encodeURIComponent(id)}${vendorFilter}&select=media_id,media(public_id)`);
+    if (!existingRes.error && Array.isArray(existingRes.data) && existingRes.data.length > 0) {
+      const pubId = existingRes.data[0].media?.public_id;
+      if (pubId) {
+        deleteImageFromCloudinary(pubId).catch(() => null);
+      }
+    }
+  } catch (e) {}
+
+  return supabaseFetch(`vendor_gallery?id=eq.${encodeURIComponent(id)}${vendorFilter}`, {
+    method: "DELETE",
   });
 }
 
@@ -469,8 +600,9 @@ export async function saveLeadToDb(record: Record<string, any>) {
   });
 }
 
-export async function updateLeadStatusInDb(id: string, status: string) {
-  return supabaseFetch(`leads?id=eq.${encodeURIComponent(id)}`, {
+export async function updateLeadStatusInDb(id: string, status: string, vendorId?: string) {
+  const vendorFilter = vendorId ? `&vendor_id=eq.${encodeURIComponent(vendorId)}` : "";
+  return supabaseFetch(`leads?id=eq.${encodeURIComponent(id)}${vendorFilter}`, {
     method: "PATCH",
     headers: { Prefer: "return=representation" },
     body: JSON.stringify({ status, updated_at: new Date().toISOString() }),
@@ -580,27 +712,10 @@ export async function resolveVendorUuid(vendorId: string): Promise<string | null
 
   try {
     const existing = await supabaseFetch(
-      `vendors?or=(slug.eq.${encodeURIComponent(String(vendorId))},name.ilike.${encodeURIComponent(String(vendorId))})&select=id`
+      `vendors?vendor_code=eq.${encodeURIComponent(String(vendorId))}&select=id`
     );
     if (existing.data && Array.isArray(existing.data) && existing.data.length > 0) {
       return existing.data[0].id;
-    }
-
-    const cleanName = String(vendorId).replace(/^v-/, "").replace(/[-_]/g, " ");
-    const formattedName = cleanName.charAt(0).toUpperCase() + cleanName.slice(1);
-    const created = await supabaseFetch(`vendors`, {
-      method: "POST",
-      headers: { Prefer: "return=representation" },
-      body: JSON.stringify({
-        name: formattedName,
-        slug: String(vendorId).toLowerCase(),
-        category: "Vendor",
-        city: "Kochi",
-        price_range: "Contact for pricing",
-      }),
-    });
-    if (created.data && Array.isArray(created.data) && created.data.length > 0) {
-      return created.data[0].id;
     }
   } catch (e) {}
 
@@ -622,23 +737,6 @@ export async function resolveUserUuid(customerId: string, email?: string): Promi
       }
     } catch (e) {}
   }
-
-  try {
-    const userEmail = email || `${customerId.toLowerCase().replace(/[^a-z0-9]/g, "")}@cloche.app`;
-    const created = await supabaseFetch(`users`, {
-      method: "POST",
-      headers: { Prefer: "return=representation" },
-      body: JSON.stringify({
-        email: userEmail,
-        full_name: customerId,
-        name: customerId,
-        is_active: true,
-      }),
-    });
-    if (created.data && Array.isArray(created.data) && created.data.length > 0) {
-      return created.data[0].id;
-    }
-  } catch (e) {}
 
   return null;
 }
@@ -946,6 +1044,293 @@ export async function updateQuotationCustomerStatusInDb(quotationId: string, cus
   return res;
 }
 
+// ----------------------------------------------------
+// VENDOR PORTAL DIRECT DATABASE PERSISTENCE HELPERS
+// ----------------------------------------------------
+
+export async function fetchVendorProfileFromDb(vendorIdOrUserId: string) {
+  if (!vendorIdOrUserId) return { data: null, error: new Error("Vendor ID is required") };
+
+  const start = Date.now();
+  const res = await supabaseFetch(
+    `vendors?or=(id.eq.${encodeURIComponent(vendorIdOrUserId)},user_id.eq.${encodeURIComponent(vendorIdOrUserId)},vendor_code.eq.${encodeURIComponent(vendorIdOrUserId)})&select=*,vendor_categories(id,name,slug),vendor_profiles(*),vendor_contacts(*),vendor_addresses(*),vendor_social_links(*)`
+  );
+
+  console.log(`[DB:FETCH] table=vendors vendorIdOrUserId=${vendorIdOrUserId} rows=${Array.isArray(res.data) ? res.data.length : 0} ms=${Date.now() - start}`);
+
+  if (!res.error && Array.isArray(res.data) && res.data.length > 0) {
+    return { data: res.data[0], error: null };
+  }
+
+  return { data: null, error: new Error("Vendor record not found in database.") };
+}
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function firstRow<T = any>(value: any): T | null {
+  return Array.isArray(value) && value.length > 0 ? value[0] : null;
+}
+
+function asArray<T = any>(value: any): T[] {
+  return Array.isArray(value) ? value : [];
+}
+
+function money(value: unknown) {
+  const amount = Number(value || 0);
+  if (!Number.isFinite(amount) || amount <= 0) return "";
+  return `₹${amount.toLocaleString("en-IN", { maximumFractionDigits: 0 })}`;
+}
+
+function mediaUrl(row: any) {
+  return row?.cdn_url || row?.secure_url || row?.file_path || row?.url || "";
+}
+
+async function resolvePublicVendor(identifier: string) {
+  const id = encodeURIComponent(identifier);
+
+  if (UUID_RE.test(identifier)) {
+    const byId = await supabaseFetch(`vendors?id=eq.${id}&deleted_at=is.null&select=*,vendor_categories(name,slug)`);
+    const vendor = firstRow(byId.data);
+    if (vendor) return { vendor, error: null };
+  }
+
+  const byCode = await supabaseFetch(`vendors?vendor_code=eq.${id}&deleted_at=is.null&select=*,vendor_categories(name,slug)`);
+  const codeVendor = firstRow(byCode.data);
+  if (codeVendor) return { vendor: codeVendor, error: null };
+
+  const byProfileSlug = await supabaseFetch(`vendor_profiles?slug=eq.${id}&select=vendor_id`);
+  const profileSlug = firstRow(byProfileSlug.data);
+  if (profileSlug?.vendor_id) {
+    const byVendorId = await supabaseFetch(`vendors?id=eq.${encodeURIComponent(profileSlug.vendor_id)}&deleted_at=is.null&select=*,vendor_categories(name,slug)`);
+    const vendor = firstRow(byVendorId.data);
+    if (vendor) return { vendor, error: null };
+  }
+
+  return { vendor: null, error: byProfileSlug.error || byCode.error || null };
+}
+
+export async function fetchPublicVendorProfileFromDb(identifier: string) {
+  if (!identifier) return { data: null, error: new Error("Vendor slug or ID is required.") };
+
+  const start = Date.now();
+  const resolved = await resolvePublicVendor(identifier);
+  if (!resolved.vendor) {
+    return { data: null, error: resolved.error || new Error("Vendor not found in database.") };
+  }
+
+  const vendor: any = resolved.vendor;
+  const vendorId = String(vendor.id);
+
+  const [
+    profileRes,
+    contactsRes,
+    addressRes,
+    hoursRes,
+    socialRes,
+    servicesRes,
+    packagesRes,
+    galleryRes,
+    catalogRes,
+    reviewsRes,
+    bookingsRes,
+  ] = await Promise.all([
+    supabaseFetch(`vendor_profiles?vendor_id=eq.${encodeURIComponent(vendorId)}&select=*`),
+    supabaseFetch(`vendor_contacts?vendor_id=eq.${encodeURIComponent(vendorId)}&order=is_primary.desc,created_at.asc&select=*`),
+    supabaseFetch(`vendor_addresses?vendor_id=eq.${encodeURIComponent(vendorId)}&order=created_at.asc&select=*`),
+    supabaseFetch(`vendor_business_hours?vendor_id=eq.${encodeURIComponent(vendorId)}&select=*`),
+    supabaseFetch(`vendor_social_links?vendor_id=eq.${encodeURIComponent(vendorId)}&select=*`),
+    supabaseFetch(`vendor_services?vendor_id=eq.${encodeURIComponent(vendorId)}&deleted_at=is.null&status=eq.published&is_active=eq.true&order=sort_order.asc,created_at.desc&select=*,vendor_service_images(*)`),
+    supabaseFetch(`vendor_service_packages?vendor_id=eq.${encodeURIComponent(vendorId)}&deleted_at=is.null&status=eq.published&is_active=eq.true&order=sort_order.asc,created_at.desc&select=*`),
+    fetchVendorGalleryFromDb(vendorId),
+    supabaseFetch(`vendor_catalog_items?vendor_id=eq.${encodeURIComponent(vendorId)}&deleted_at=is.null&status=eq.published&is_available=eq.true&order=sort_order.asc,created_at.desc&select=*,vendor_catalog_images(*)`),
+    supabaseFetch(`reviews?vendor_id=eq.${encodeURIComponent(vendorId)}&status=eq.published&order=created_at.desc&select=*`),
+    supabaseFetch(`bookings?vendor_id=eq.${encodeURIComponent(vendorId)}&status=eq.completed&select=id`),
+  ]);
+
+  console.log(`[DB:FETCH] public_vendor_profile vendor_id=${vendorId} ms=${Date.now() - start}`);
+
+  const profile: any = firstRow(profileRes.data) || {};
+  const contact: any = firstRow(contactsRes.data) || {};
+  const address: any = firstRow(addressRes.data) || {};
+  const services = asArray<any>(servicesRes.data);
+  const packages = asArray<any>(packagesRes.data);
+  const gallery = asArray<any>(galleryRes.data);
+  const catalog = asArray<any>(catalogRes.data);
+  const reviews = asArray<any>(reviewsRes.data);
+  const completedProjects = asArray(bookingsRes.data).length;
+
+  const mediaIds = [profile.logo_media_id, profile.cover_media_id].filter(Boolean);
+  const mediaRes = mediaIds.length
+    ? await supabaseFetch(`media?id=in.(${mediaIds.map((m) => encodeURIComponent(String(m))).join(",")})&select=*`)
+    : { data: [], error: null };
+  const mediaById = new Map(asArray<any>(mediaRes.data).map((row) => [String(row.id), row]));
+
+  const logoUrl = mediaUrl(mediaById.get(String(profile.logo_media_id))) || "";
+  const coverUrl =
+    mediaUrl(mediaById.get(String(profile.cover_media_id))) ||
+    gallery.find((item) => item.is_cover)?.image_url ||
+    "";
+
+  const packagePrices = packages.map((pkg) => Number(pkg.discount_price || pkg.price || 0)).filter((price) => price > 0);
+  const servicePrices = services.map((svc) => Number(svc.base_price || svc.price || 0)).filter((price) => price > 0);
+  const startingAmount =
+    packagePrices.length > 0 ? Math.min(...packagePrices) : servicePrices.length > 0 ? Math.min(...servicePrices) : 0;
+  const averageRating =
+    reviews.length > 0 ? reviews.reduce((sum, review) => sum + Number(review.rating || 0), 0) / reviews.length : Number(profile.rating || 0);
+
+  const socialLinks = asArray<any>(socialRes.data).reduce<Record<string, string>>((acc, row) => {
+    if (row.platform && row.url) acc[String(row.platform)] = String(row.url);
+    return acc;
+  }, {});
+
+  const businessHours = asArray<any>(hoursRes.data).map((row) => ({
+    day: row.day_of_week,
+    value: row.is_closed ? "Closed" : [row.open_time, row.close_time].filter(Boolean).join(" - ") || "Not available",
+  }));
+
+  const fullAddress = [address.address_line1, address.address_line2, address.city || profile.city, address.state || profile.state, address.pincode]
+    .filter(Boolean)
+    .join(", ");
+
+  return {
+    data: {
+      id: vendorId,
+      slug: profile.slug || vendor.vendor_code || vendorId,
+      name: profile.business_name || "Unnamed Vendor",
+      category: vendor.vendor_categories?.slug || "",
+      categoryLabel: vendor.vendor_categories?.name || "Vendor",
+      location: [profile.city, profile.state].filter(Boolean).join(", "),
+      rating: Number(averageRating.toFixed(1)),
+      reviews: reviews.length,
+      image: coverUrl,
+      logo: logoUrl,
+      subtitle: profile.tagline || "",
+      about: profile.about || "",
+      isVerified: Boolean(vendor.is_verified || vendor.is_kyc_verified),
+      phone: contact.phone || "",
+      whatsapp: contact.whatsapp || contact.phone || "",
+      email: contact.email || "",
+      website: socialLinks.website || "",
+      address: fullAddress,
+      googleMaps: address.latitude && address.longitude ? `https://www.google.com/maps?q=${address.latitude},${address.longitude}` : "",
+      socialLinks,
+      businessHours,
+      startingPriceLabel: startingAmount > 0 ? `${money(startingAmount)} onwards` : "Contact for pricing",
+      stats: [
+        { icon: "star", value: reviews.length > 0 ? averageRating.toFixed(1) : "N/A", label: "Average Rating" },
+        { icon: "users", value: reviews.length > 0 ? String(reviews.length) : "0", label: "Review Count" },
+        { icon: "sparkles", value: completedProjects > 0 ? String(completedProjects) : "0", label: "Completed Projects" },
+      ],
+      highlightsTitle: "Gallery",
+      highlights: gallery.map((item) => ({
+        name: item.title || item.caption || "Showcase Photo",
+        image: item.image_url,
+      })),
+      services: services.map((svc) => ({
+        name: svc.name,
+        description: svc.description || "",
+        price: money(svc.base_price || svc.price),
+        pricingType: svc.pricing_type || "",
+      })),
+      packages: packages.map((pkg) => ({
+        name: pkg.name,
+        tagline: pkg.tagline || "",
+        description: pkg.description || "",
+        price: money(pkg.discount_price || pkg.price),
+        originalPrice: pkg.discount_price ? money(pkg.price) : "",
+        features: Array.isArray(pkg.features) ? pkg.features : [],
+        isPopular: Boolean(pkg.is_popular),
+      })),
+      userReviews: reviews.map((review) => ({
+        author: review.customer_name || "Verified Customer",
+        rating: Number(review.rating || 0),
+        text: review.review_text || review.title || "",
+        date: review.created_at || "",
+      })),
+      collections: catalog.map((item) => ({
+        id: item.id,
+        title: item.title,
+        description: item.description || "",
+        image: item.image_url || item.vendor_catalog_images?.[0]?.image_url || "",
+        price: money(item.price),
+      })),
+      amenities: [],
+    },
+    error: null,
+  };
+}
+
+export async function saveVendorProfileInDb(vendorId: string, profileData: Record<string, any>) {
+  if (!vendorId) return { data: null, error: new Error("Vendor ID is required") };
+
+  const start = Date.now();
+
+  // 1. Update vendor_profiles table
+  const profilePayload: Record<string, any> = {
+    vendor_id: vendorId,
+    business_name: profileData.business_name || profileData.boutique_name || profileData.name,
+    tagline: profileData.tagline || null,
+    about: profileData.about || profileData.description || null,
+    city: profileData.city || profileData.district || "Kochi",
+    state: profileData.state || "Kerala",
+    pincode: profileData.pincode || null,
+    updated_at: new Date().toISOString(),
+  };
+
+  const profileRes = await supabaseFetch(`vendor_profiles`, {
+    method: "POST",
+    headers: { Prefer: "resolution=merge-duplicates,return=representation" },
+    body: JSON.stringify(profilePayload),
+  });
+
+  console.log(`[DB:PATCH] table=vendor_profiles vendor_id=${vendorId} ms=${Date.now() - start}`);
+
+  // 2. Upsert primary contact in vendor_contacts table
+  if (profileData.phone || profileData.whatsapp || profileData.email) {
+    const contactPayload = {
+      vendor_id: vendorId,
+      phone: profileData.phone || null,
+      whatsapp: profileData.whatsapp || profileData.phone || null,
+      email: profileData.email || null,
+      is_primary: true,
+      updated_at: new Date().toISOString(),
+    };
+
+    await supabaseFetch(`vendor_contacts`, {
+      method: "POST",
+      headers: { Prefer: "resolution=merge-duplicates,return=representation" },
+      body: JSON.stringify(contactPayload),
+    }).catch(() => null);
+  }
+
+  // 3. Upsert social links in vendor_social_links table
+  if (profileData.instagram) {
+    await supabaseFetch(`vendor_social_links`, {
+      method: "POST",
+      headers: { Prefer: "resolution=merge-duplicates,return=representation" },
+      body: JSON.stringify({ vendor_id: vendorId, platform: "instagram", url: profileData.instagram }),
+    }).catch(() => null);
+  }
+  if (profileData.website) {
+    await supabaseFetch(`vendor_social_links`, {
+      method: "POST",
+      headers: { Prefer: "resolution=merge-duplicates,return=representation" },
+      body: JSON.stringify({ vendor_id: vendorId, platform: "website", url: profileData.website }),
+    }).catch(() => null);
+  }
+
+  // 4. Update completion percentage on vendors table
+  await supabaseFetch(`vendors?id=eq.${encodeURIComponent(vendorId)}`, {
+    method: "PATCH",
+    headers: { Prefer: "return=representation" },
+    body: JSON.stringify({
+      profile_completion_percentage: profileData.profile_completion_percentage || 80,
+      updated_at: new Date().toISOString(),
+    }),
+  }).catch(() => null);
+
+  return profileRes;
+}
 
 
 

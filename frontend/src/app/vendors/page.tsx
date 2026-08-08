@@ -1,11 +1,14 @@
-import { VendorCategoryListing } from "@/components/VendorCategoryListing";
-import { Metadata } from "next";
+import { VendorsListing } from "@/components/VendorsListing";
+import { getAllBoutiques } from "@/services/api";
+import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Vendors & Boutiques | Cloche Luxury Weddings",
   description: "Browse premium wedding vendors, boutiques, planners, makeup artists, photographers, and decorators.",
 };
 
-export default function VendorsDirectoryPage() {
-  return <VendorCategoryListing categorySlug="venues" />;
+export default async function VendorsDirectoryPage() {
+  const boutiques = await getAllBoutiques();
+
+  return <VendorsListing boutiques={boutiques} />;
 }

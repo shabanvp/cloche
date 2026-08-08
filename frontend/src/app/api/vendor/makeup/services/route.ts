@@ -1,11 +1,13 @@
 import { NextResponse } from "next/server";
 import { supabaseFetch } from "@/lib/supabase";
+import { requireAuthenticatedVendor, vendorOwnsRecord } from "@/lib/vendorAuth";
 
 // GET /api/vendor/makeup/services?vendor_id=...
 export async function GET(request: Request) {
   try {
-    const { searchParams } = new URL(request.url);
-    const vendorId = searchParams.get("vendor_id") || "makeup-riya-sharma";
+    const auth = await requireAuthenticatedVendor(request);
+    if (auth.response) return auth.response;
+    const vendorId = auth.vendorId;
 
     const { data, error } = await supabaseFetch(
       `makeup_services?vendor_id=eq.${encodeURIComponent(vendorId)}&order=created_at.asc&select=*`
@@ -20,8 +22,10 @@ export async function GET(request: Request) {
 // POST /api/vendor/makeup/services
 export async function POST(request: Request) {
   try {
+    const auth = await requireAuthenticatedVendor(request);
+    if (auth.response) return auth.response;
     const body = await request.json();
-    const { id, vendor_id, service_name, description, duration, price, image, active } = body;
+    const { id, service_name, description, duration, price, image, active } = body;
 
     if (!service_name) {
       return NextResponse.json({ error: "Service name is required." }, { status: 400 });
@@ -30,9 +34,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Price must be a valid number." }, { status: 400 });
     }
 
+    if (id && !(await vendorOwnsRecord("makeup_services", id, auth.vendorId))) {
+      return NextResponse.json({ error: "Service not found." }, { status: 404 });
+    }
+
     const serviceRecord = {
       ...(id ? { id } : {}),
-      vendor_id: vendor_id || "makeup-riya-sharma",
+      vendor_id: auth.vendorId,
       service_name,
       description: description || "",
       duration: duration || "3 Hours",
@@ -65,6 +73,8 @@ export async function PUT(request: Request) {
 // DELETE /api/vendor/makeup/services?id=...
 export async function DELETE(request: Request) {
   try {
+    const auth = await requireAuthenticatedVendor(request);
+    if (auth.response) return auth.response;
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
 
@@ -72,7 +82,7 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: "Service ID is required." }, { status: 400 });
     }
 
-    await supabaseFetch(`makeup_services?id=eq.${encodeURIComponent(id)}`, {
+    await supabaseFetch(`makeup_services?id=eq.${encodeURIComponent(id)}&vendor_id=eq.${encodeURIComponent(auth.vendorId)}`, {
       method: "DELETE"
     });
 

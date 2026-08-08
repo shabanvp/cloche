@@ -1,218 +1,248 @@
 "use client";
 
+<<<<<<< HEAD
 import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+=======
+import React, { useState, useEffect } from "react";
+import { Search, Filter, Plus, Edit3, Trash2, Copy, ShoppingBag, AlertCircle, CheckCircle2 } from "lucide-react";
+import { fetchAuthenticatedVendorFromDb, getActiveVendorIdentity, showVendorToast } from "@/lib/vendorStore";
+>>>>>>> 3023f2cd567a8ea45f66e0f949275c92824e98d3
 
 interface ServiceItem {
   id: string;
+  vendor_id?: string;
   name: string;
   description: string;
   base_price: number;
   pricing_type: string;
-  duration?: number;
+  category?: string;
   status: string;
-  is_active: boolean;
-  vendor_service_images?: { image_url: string }[];
-}
-
-interface PackageItem {
-  id: string;
-  name: string;
-  tagline?: string;
-  description: string;
-  price: number;
-  discount_price?: number;
-  features: string[];
-  is_popular: boolean;
-  status: string;
-  is_active: boolean;
-}
-
-interface CatalogItem {
-  id: string;
-  title: string;
-  description: string;
   image_url?: string;
-  price: number;
-  price_unit: string;
-  sku: string;
-  stock_quantity: number;
-  is_available: boolean;
-  status: string;
 }
 
+<<<<<<< HEAD
 function VendorServicesContent() {
   const searchParams = useSearchParams();
   const activeTab = (searchParams.get("tab") as "services" | "packages" | "catalog") || "services";
+=======
+export default function VendorServicesPage() {
+  const [vendorId, setVendorId] = useState<string>("");
+>>>>>>> 3023f2cd567a8ea45f66e0f949275c92824e98d3
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [selectedStatus, setSelectedStatus] = useState("All");
   const [isLoading, setIsLoading] = useState(true);
-
-  // Items State
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [services, setServices] = useState<ServiceItem[]>([]);
-  const [packages, setPackages] = useState<PackageItem[]>([]);
-  const [catalog, setCatalog] = useState<CatalogItem[]>([]);
 
   // Modal State
   const [showModal, setShowModal] = useState(false);
   const [modalMode, setModalMode] = useState<"create" | "edit">("create");
   const [selectedId, setSelectedId] = useState<string | null>(null);
-
-  // Form Fields
   const [formData, setFormData] = useState<any>({});
-  const [featuresText, setFeaturesText] = useState("");
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchData();
+    loadVendorData();
   }, []);
 
-  const fetchData = async () => {
+  const loadVendorData = async () => {
+    const cached = getActiveVendorIdentity();
+    if (cached && cached.id) {
+      setVendorId(cached.id);
+      fetchDataFromDb(cached.id);
+    }
+    const active = await fetchAuthenticatedVendorFromDb();
+    if (active && active.id && (!cached || active.id !== cached.id)) {
+      setVendorId(active.id);
+      fetchDataFromDb(active.id);
+    }
+  };
+
+  /**
+   * Strictly load services ONLY from live Supabase DB via GET /api/v1/vendor/services
+   * NO local storage fallbacks, NO demo arrays, NO mock cards.
+   */
+  const fetchDataFromDb = async (vId: string) => {
     setIsLoading(true);
     try {
-      const [servicesRes, packagesRes, catalogRes] = await Promise.all([
-        fetch("/api/v1/vendor/services").then((r) => r.json()).catch(() => ({ data: [] })),
-        fetch("/api/v1/vendor/packages").then((r) => r.json()).catch(() => ({ data: [] })),
-        fetch("/api/v1/vendor/catalog").then((r) => r.json()).catch(() => ({ data: [] })),
-      ]);
-
-      const loadedServices = Array.isArray(servicesRes.data) && servicesRes.data.length > 0
-        ? servicesRes.data
-        : [
-            { id: "s-1", name: "HD Bridal Makeup & Hair Styling", description: "Waterproof HD airbrush makeup with premium lashes & hair extensions", base_price: 25000, pricing_type: "fixed", duration: 180, status: "published", is_active: true },
-            { id: "s-2", name: "Pre-Wedding Cinematic Shoot", description: "Full day 4K outdoor shoot with drone video and teaser highlights", base_price: 65000, pricing_type: "per_event", duration: 480, status: "published", is_active: true },
-            { id: "s-3", name: "Royal Grand Banquet Hall Rental", description: "AC Banquet Hall seating up to 1200 guests with dining & stage setup", base_price: 350000, pricing_type: "per_day", status: "published", is_active: true },
-          ];
-
-      const loadedPackages = Array.isArray(packagesRes.data) && packagesRes.data.length > 0
-        ? packagesRes.data
-        : [
-            { id: "p-1", name: "Royal Luxury Wedding Package", tagline: "Complete Venue & Decor Suite", description: "Includes banquet rental, stage floral decor, sound & lighting setup", price: 500000, discount_price: 450000, features: ["Banquet Hall (1200 Guests)", "Custom Stage Decor", "Power Backup & Valet", "Bridal Dressing Suite"], is_popular: true, status: "published", is_active: true },
-            { id: "p-2", name: "Bridal Signature Makeover Package", tagline: "Engagement + Wedding Day", description: "Full bridal makeover suite with pre-bride skincare treatment", price: 45000, discount_price: 39999, features: ["HD Airbrush Makeup", "Saree Draping & Hair", "Mom & Sister Makeup", "Trial Session Included"], is_popular: false, status: "published", is_active: true },
-          ];
-
-      const loadedCatalog = Array.isArray(catalogRes.data) && catalogRes.data.length > 0
-        ? catalogRes.data
-        : [
-            { id: "c-1", title: "Handcrafted Zardozi Velvet Lehenga", description: "Deep maroon velvet bridal lehenga with heavy antique gold zari work", price: 125000, price_unit: "piece", sku: "BLH-2026-88", stock_quantity: 3, is_available: true, status: "published", image_url: "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=600&q=80" },
-            { id: "c-2", title: "Royal Kundan & Pearl Necklace Set", description: "24K Gold plated Kundan choker necklace with matching earrings", price: 35000, price_unit: "set", sku: "JWL-904", stock_quantity: 5, is_available: true, status: "published", image_url: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=600&q=80" },
-            { id: "c-3", title: "Luxury Acrylic Wax-Sealed E-Invitations", description: "Custom engraved acrylic invitations with wax seal and box", price: 350, price_unit: "card", sku: "INV-501", stock_quantity: 500, is_available: true, status: "published", image_url: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=600&q=80" },
-          ];
+      const res = await fetch(`/api/v1/vendor/services?vendor_id=${encodeURIComponent(vId)}`)
+        .then((r) => r.json())
+        .catch(() => ({ success: false, data: [] }));
+      
+      let loadedServices: ServiceItem[] = [];
+      if (res.success && Array.isArray(res.data)) {
+        loadedServices = res.data.map((s: any) => ({
+          id: s.id,
+          vendor_id: s.vendor_id,
+          name: s.name || s.title || "Vendor Service",
+          description: s.description || "",
+          base_price: Number(s.base_price || 0),
+          pricing_type: s.pricing_type || "fixed",
+          category: s.category || "General",
+          status: s.status === "draft" ? "Draft" : "Published",
+          image_url: s.image_url || (Array.isArray(s.vendor_service_images) && s.vendor_service_images.length > 0 ? s.vendor_service_images[0].image_url : ""),
+        }));
+      }
 
       setServices(loadedServices);
-      setPackages(loadedPackages);
-      setCatalog(loadedCatalog);
     } catch (err) {
-      console.error("Failed to load services data:", err);
+      console.error("[VendorServicesPage] Error querying Supabase vendor_services table:", err);
+      setServices([]);
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleOpenCreateModal = () => {
+    setValidationError(null);
     setModalMode("create");
     setSelectedId(null);
     setFormData({
       name: "",
-      title: "",
       description: "",
       base_price: "",
-      price: "",
-      discount_price: "",
-      pricing_type: "starting_from",
-      price_unit: "item",
-      sku: `SKU-${Math.floor(10000 + Math.random() * 90000)}`,
-      stock_quantity: 1,
+      pricing_type: "fixed",
+      category: "Photography",
+      status: "Published",
       image_url: "",
-      is_popular: false,
-      is_available: true,
-      status: "published",
     });
-    setFeaturesText("");
     setShowModal(true);
   };
 
-  const handleOpenEditModal = (item: any) => {
+  const handleOpenEditModal = (item: ServiceItem) => {
+    setValidationError(null);
     setModalMode("edit");
     setSelectedId(item.id);
-    setFormData({ ...item, name: item.name || item.title || "" });
-    if (item.features) {
-      setFeaturesText(Array.isArray(item.features) ? item.features.join("\n") : item.features);
-    } else {
-      setFeaturesText("");
-    }
+    setFormData({ ...item });
     setShowModal(true);
   };
 
-  const handleSaveModal = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const endpoint =
-      activeTab === "services"
-        ? "/api/v1/vendor/services"
-        : activeTab === "packages"
-        ? "/api/v1/vendor/packages"
-        : "/api/v1/vendor/catalog";
-
-    const payload: any = { ...formData };
-    if (activeTab === "packages") {
-      payload.features = featuresText.split("\n").map((f) => f.trim()).filter(Boolean);
-    }
-
+  const handleDuplicateItem = async (item: ServiceItem) => {
+    setIsSubmitting(true);
     try {
-      const res = await fetch(endpoint, {
+      const duplicatePayload = {
+        vendor_id: vendorId,
+        name: `${item.name} (Copy)`,
+        description: item.description,
+        base_price: item.base_price,
+        pricing_type: item.pricing_type,
+        category: item.category,
+        status: item.status ? item.status.toLowerCase() : "published",
+        image_url: item.image_url,
+      };
+
+      const res = await fetch("/api/v1/vendor/services", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+        body: JSON.stringify(duplicatePayload),
+      }).then((r) => r.json());
 
-      if (res.ok) {
-        await fetchData();
-        setShowModal(false);
+      if (res.success) {
+        showVendorToast("✓ Service saved successfully.");
+        await fetchDataFromDb(vendorId);
       } else {
-        alert("Failed to save item. Updating local view.");
-        if (activeTab === "services") {
-          const newItem = { id: selectedId || `s-${Date.now()}`, ...payload };
-          setServices((prev) => (selectedId ? prev.map((s) => (s.id === selectedId ? newItem : s)) : [newItem, ...prev]));
-        } else if (activeTab === "packages") {
-          const newItem = { id: selectedId || `p-${Date.now()}`, ...payload, features: payload.features || [] };
-          setPackages((prev) => (selectedId ? prev.map((p) => (p.id === selectedId ? newItem : p)) : [newItem, ...prev]));
-        } else {
-          const newItem = { id: selectedId || `c-${Date.now()}`, ...payload, title: payload.name || payload.title };
-          setCatalog((prev) => (selectedId ? prev.map((c) => (c.id === selectedId ? newItem : c)) : [newItem, ...prev]));
-        }
-        setShowModal(false);
+        showVendorToast("Unable to duplicate service. Please try again.", "error");
       }
-    } catch (err) {
-      setShowModal(false);
+    } catch (e) {
+      showVendorToast("Unable to duplicate service.", "error");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleDeleteItem = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this item?")) return;
-
-    const endpoint =
-      activeTab === "services"
-        ? `/api/v1/vendor/services?id=${id}`
-        : activeTab === "packages"
-        ? `/api/v1/vendor/packages?id=${id}`
-        : `/api/v1/vendor/catalog?id=${id}`;
+    if (!confirm("Are you sure you want to delete this service?")) return;
+    setIsSubmitting(true);
 
     try {
-      await fetch(endpoint, { method: "DELETE" });
-      if (activeTab === "services") setServices((prev) => prev.filter((s) => s.id !== id));
-      if (activeTab === "packages") setPackages((prev) => prev.filter((p) => p.id !== id));
-      if (activeTab === "catalog") setCatalog((prev) => prev.filter((c) => c.id !== id));
+      const res = await fetch(`/api/v1/vendor/services/${encodeURIComponent(id)}`, { method: "DELETE" })
+        .then((r) => r.json())
+        .catch(() => ({ success: false }));
+
+      if (res.success || res.message) {
+        showVendorToast("✓ Service deleted successfully.");
+        await fetchDataFromDb(vendorId);
+      } else {
+        // Fallback query to parameter DELETE
+        await fetch(`/api/v1/vendor/services?id=${encodeURIComponent(id)}`, { method: "DELETE" });
+        showVendorToast("✓ Service deleted successfully.");
+        await fetchDataFromDb(vendorId);
+      }
     } catch (e) {
-      if (activeTab === "services") setServices((prev) => prev.filter((s) => s.id !== id));
-      if (activeTab === "packages") setPackages((prev) => prev.filter((p) => p.id !== id));
-      if (activeTab === "catalog") setCatalog((prev) => prev.filter((c) => c.id !== id));
+      showVendorToast("Unable to delete service.", "error");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const filteredServices = services.filter((s) => s.name.toLowerCase().includes(searchQuery.toLowerCase()));
-  const filteredPackages = packages.filter((p) => p.name.toLowerCase().includes(searchQuery.toLowerCase()));
-  const filteredCatalog = catalog.filter((c) => c.title.toLowerCase().includes(searchQuery.toLowerCase()));
+  const handleSaveModal = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setValidationError(null);
+
+    if (!formData.name || !formData.name.trim()) {
+      setValidationError("Service title is required.");
+      return;
+    }
+    if (formData.base_price === undefined || formData.base_price === "" || Number(formData.base_price) < 0) {
+      setValidationError("Please enter a valid price (>= 0).");
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    const payload = {
+      vendor_id: vendorId,
+      name: formData.name.trim(),
+      description: formData.description ? formData.description.trim() : "",
+      base_price: Number(formData.base_price),
+      pricing_type: formData.pricing_type || "fixed",
+      category: formData.category || "General",
+      status: formData.status ? formData.status.toLowerCase() : "published",
+      image_url: formData.image_url ? formData.image_url.trim() : "",
+    };
+
+    try {
+      let res;
+      if (modalMode === "edit" && selectedId) {
+        res = await fetch(`/api/v1/vendor/services/${encodeURIComponent(selectedId)}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        }).then((r) => r.json());
+      } else {
+        res = await fetch("/api/v1/vendor/services", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        }).then((r) => r.json());
+      }
+
+      if (res.success) {
+        setShowModal(false);
+        showVendorToast("Service saved successfully.");
+        await fetchDataFromDb(vendorId);
+      } else {
+        setValidationError(res.error?.message || "Failed to save service into Supabase database.");
+      }
+    } catch (err: any) {
+      setValidationError("Network error saving service to database.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const filteredServices = services.filter((s) => {
+    const matchesSearch = s.name.toLowerCase().includes(searchQuery.toLowerCase()) || s.description.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = selectedCategory === "All" || s.category === selectedCategory;
+    const matchesStatus = selectedStatus === "All" || s.status.toLowerCase() === selectedStatus.toLowerCase();
+    return matchesSearch && matchesCategory && matchesStatus;
+  });
 
   return (
+<<<<<<< HEAD
     <div className="min-h-screen bg-[#FAF7F2] text-[#2D2926]">
       {/* Top Banner Header */}
       <header className="bg-[#0F4C45] text-white py-10 px-6 sm:px-12 shadow-lg">
@@ -299,302 +329,250 @@ function VendorServicesContent() {
               search
             </span>
           </div>
+=======
+    <div className="space-y-8 animate-in fade-in duration-500 font-sans pb-12">
+      {/* Page Header */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between border-b border-gold/15 pb-6 gap-4">
+        <div>
+          <h1 className="text-3xl lg:text-4xl font-display font-bold text-charcoal">Vendor Services</h1>
+          <p className="text-sm text-charcoal/70 mt-1">Manage your service offerings, custom pricing tiers, and public storefront availability directly from Supabase database.</p>
+>>>>>>> 3023f2cd567a8ea45f66e0f949275c92824e98d3
         </div>
 
-        {/* Tab 1: Services List */}
-        {activeTab === "services" && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredServices.map((service) => (
-              <div key={service.id} className="bg-white rounded-2xl p-6 shadow-sm border border-[#E5DEC9] hover:shadow-md transition-all flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center justify-between gap-2 mb-3">
-                    <span className="text-[10px] uppercase font-bold tracking-widest bg-emerald-50 text-emerald-800 px-2.5 py-1 rounded-full border border-emerald-200">
-                      {service.pricing_type.replace("_", " ")}
-                    </span>
-                    <span className="text-xs font-bold text-[#0F4C45]">
-                      ₹{service.base_price.toLocaleString("en-IN")}
-                    </span>
-                  </div>
-                  <h3 className="font-serif text-lg font-bold text-[#0F4C45] mb-2">{service.name}</h3>
-                  <p className="text-xs text-[#4A4540] line-clamp-3 leading-relaxed mb-4">{service.description}</p>
-                </div>
+        <button
+          onClick={handleOpenCreateModal}
+          className="bg-[#0F4C45] hover:bg-[#135951] text-white font-bold px-5 py-2.5 rounded-xl text-xs uppercase tracking-wider transition-all shadow-md flex items-center gap-2 shrink-0 cursor-pointer"
+        >
+          <Plus className="w-4 h-4 text-[#C8A96A]" /> Add Service
+        </button>
+      </div>
 
-                <div className="pt-4 border-t border-[#FAF7F2] flex items-center justify-between">
-                  <span className="text-[11px] text-[#7A7570] flex items-center gap-1">
-                    <span className="material-symbols-outlined text-[14px] text-emerald-600">check_circle</span> Published
-                  </span>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => handleOpenEditModal(service)}
-                      className="text-xs text-[#0F4C45] font-semibold hover:underline px-2 py-1"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDeleteItem(service.id)}
-                      className="text-xs text-rose-600 font-semibold hover:underline px-2 py-1"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
+      {/* Toolbar: Search, Category Filter, Status Filter */}
+      <div className="bg-white p-4 rounded-2xl border border-gold/15 shadow-xs flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div className="relative w-full md:w-80">
+          <Search className="w-4 h-4 text-gold absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search services by title or description..."
+            className="w-full pl-10 pr-4 py-2.5 bg-[#FAF7F2] border border-gold/20 rounded-xl text-xs text-charcoal focus:outline-none focus:border-[#0F4C45]"
+          />
+        </div>
+
+        <div className="flex items-center gap-3 w-full md:w-auto">
+          <div className="flex items-center gap-2 flex-1 md:flex-initial">
+            <Filter className="w-4 h-4 text-gold shrink-0" />
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="bg-[#FAF7F2] border border-gold/20 rounded-xl px-3 py-2 text-xs text-charcoal focus:outline-none"
+            >
+              <option value="All">Category: All</option>
+              <option value="Photography">Photography</option>
+              <option value="Bridal Wear">Bridal Wear</option>
+              <option value="Venues">Venues</option>
+              <option value="Decor & Planning">Decor & Planning</option>
+            </select>
           </div>
-        )}
 
-        {/* Tab 2: Packages List */}
-        {activeTab === "packages" && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredPackages.map((pkg) => (
-              <div
-                key={pkg.id}
-                className={`bg-white rounded-2xl p-6 shadow-sm border ${
-                  pkg.is_popular ? "border-[#C5A880] ring-2 ring-[#C5A880]/20" : "border-[#E5DEC9]"
-                } hover:shadow-md transition-all flex flex-col justify-between relative`}
-              >
-                {pkg.is_popular && (
-                  <span className="absolute -top-3 right-6 bg-[#C5A880] text-[#0F4C45] text-[10px] uppercase tracking-widest font-extrabold px-3 py-1 rounded-full shadow-sm">
-                    Most Popular
-                  </span>
-                )}
-                <div>
-                  <h3 className="font-serif text-xl font-bold text-[#0F4C45] mb-1">{pkg.name}</h3>
-                  {pkg.tagline && <p className="text-xs text-[#8E7D62] italic mb-3">{pkg.tagline}</p>}
-                  <div className="flex items-baseline gap-2 mb-4">
-                    <span className="font-serif text-2xl font-bold text-[#0F4C45]">
-                      ₹{pkg.price.toLocaleString("en-IN")}
-                    </span>
-                    {pkg.discount_price && (
-                      <span className="text-xs text-[#7A7570] line-through">
-                        ₹{pkg.discount_price.toLocaleString("en-IN")}
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-xs text-[#4A4540] mb-4">{pkg.description}</p>
-                  <ul className="space-y-2 mb-6">
-                    {pkg.features?.map((feat, idx) => (
-                      <li key={idx} className="text-xs text-[#2D2926] flex items-center gap-2">
-                        <span className="material-symbols-outlined text-[16px] text-emerald-600">check</span>
-                        <span>{feat}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                <div className="pt-4 border-t border-[#FAF7F2] flex items-center justify-between">
-                  <span className="text-[11px] text-emerald-800 font-semibold bg-emerald-50 px-2 py-0.5 rounded">Active Package</span>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => handleOpenEditModal(pkg)}
-                      className="text-xs text-[#0F4C45] font-semibold hover:underline px-2 py-1"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDeleteItem(pkg.id)}
-                      className="text-xs text-rose-600 font-semibold hover:underline px-2 py-1"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
+          <div className="flex items-center gap-2 flex-1 md:flex-initial">
+            <select
+              value={selectedStatus}
+              onChange={(e) => setSelectedStatus(e.target.value)}
+              className="bg-[#FAF7F2] border border-gold/20 rounded-xl px-3 py-2 text-xs text-charcoal focus:outline-none"
+            >
+              <option value="All">Status: All</option>
+              <option value="Published">Published</option>
+              <option value="Draft">Draft</option>
+            </select>
           </div>
-        )}
+        </div>
+      </div>
 
-        {/* Tab 3: Catalog Inventory Grid */}
-        {activeTab === "catalog" && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredCatalog.map((item) => (
-              <div key={item.id} className="bg-white rounded-2xl overflow-hidden shadow-sm border border-[#E5DEC9] hover:shadow-md transition-all flex flex-col justify-between">
-                <div>
-                  {item.image_url ? (
-                    <img src={item.image_url} alt={item.title} className="w-full h-48 object-cover" />
+      {/* Large Service Cards Grid or Professional Empty State */}
+      {isLoading ? (
+        <div className="text-center py-16 text-xs text-charcoal/60">Querying vendor_services table from Supabase database...</div>
+      ) : filteredServices.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredServices.map((service) => (
+            <div key={service.id} className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-xs hover:shadow-md transition-all flex flex-col justify-between group">
+              <div>
+                {/* Service Card Cover Image */}
+                <div className="relative h-44 w-full bg-[#FAF7F2] overflow-hidden">
+                  {service.image_url ? (
+                    <img src={service.image_url} alt={service.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                   ) : (
-                    <div className="w-full h-48 bg-[#FAF7F2] flex items-center justify-center text-[#8E7D62]">
-                      <span className="material-symbols-outlined text-4xl">inventory_2</span>
+                    <div className="w-full h-full flex items-center justify-center text-[#0F4C45]">
+                      <ShoppingBag className="w-10 h-10 opacity-30" />
                     </div>
                   )}
-                  <div className="p-6">
-                    <div className="flex items-center justify-between gap-2 mb-2">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#8E7D62]">
-                        SKU: {item.sku}
-                      </span>
-                      <span className="text-xs font-bold text-[#0F4C45]">
-                        ₹{item.price.toLocaleString("en-IN")} / {item.price_unit}
-                      </span>
-                    </div>
-                    <h3 className="font-serif text-lg font-bold text-[#0F4C45] mb-2">{item.title}</h3>
-                    <p className="text-xs text-[#4A4540] line-clamp-2 leading-relaxed mb-3">{item.description}</p>
-                    <div className="flex items-center gap-4 text-xs text-[#7A7570]">
-                      <span>Stock: <strong>{item.stock_quantity} units</strong></span>
-                    </div>
-                  </div>
+                  <span className={`absolute top-3 right-3 text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full shadow-xs ${
+                    service.status === "Published" ? "bg-emerald-500 text-white" : "bg-amber-500 text-white"
+                  }`}>
+                    {service.status}
+                  </span>
+                  {service.category && (
+                    <span className="absolute bottom-3 left-3 bg-black/60 backdrop-blur-xs text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded">
+                      {service.category}
+                    </span>
+                  )}
                 </div>
 
-                <div className="p-6 pt-0 flex items-center justify-between">
-                  <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-full ${item.is_available ? "bg-emerald-50 text-emerald-800" : "bg-amber-50 text-amber-800"}`}>
-                    {item.is_available ? "In Stock" : "Out of Stock"}
-                  </span>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => handleOpenEditModal(item)}
-                      className="text-xs text-[#0F4C45] font-semibold hover:underline px-2 py-1"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDeleteItem(item.id)}
-                      className="text-xs text-rose-600 font-semibold hover:underline px-2 py-1"
-                    >
-                      Delete
-                    </button>
+                <div className="p-5 space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <h3 className="font-display font-bold text-lg text-charcoal truncate">{service.name}</h3>
+                  </div>
+                  <p className="text-xs text-charcoal/70 line-clamp-2 leading-relaxed">{service.description}</p>
+                  <div className="pt-2 flex items-baseline gap-1 text-[#0F4C45]">
+                    <span className="text-2xl font-display font-bold">₹{Number(service.base_price).toLocaleString("en-IN")}</span>
+                    <span className="text-xs text-charcoal/50">/ {service.pricing_type.replace("_", " ")}</span>
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
-        )}
-      </main>
+
+              {/* Actions Footer Toolbar */}
+              <div className="p-4 bg-[#FAF7F2]/60 border-t border-gold/10 flex items-center justify-between gap-2">
+                <button
+                  disabled={isSubmitting}
+                  onClick={() => handleDuplicateItem(service)}
+                  className="text-xs font-bold text-charcoal/70 hover:text-[#0F4C45] flex items-center gap-1 transition-colors cursor-pointer disabled:opacity-50"
+                >
+                  <Copy className="w-3.5 h-3.5" /> Duplicate
+                </button>
+                <div className="flex items-center gap-3">
+                  <button
+                    disabled={isSubmitting}
+                    onClick={() => handleOpenEditModal(service)}
+                    className="text-xs font-bold text-[#0F4C45] hover:underline flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                  >
+                    <Edit3 className="w-3.5 h-3.5" /> Edit
+                  </button>
+                  <button
+                    disabled={isSubmitting}
+                    onClick={() => handleDeleteItem(service.id)}
+                    className="text-xs font-bold text-red-600 hover:underline flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" /> Delete
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-16 bg-white rounded-2xl border border-gold/15 p-8">
+          <ShoppingBag className="w-12 h-12 text-gold mx-auto mb-3 opacity-50" />
+          <h3 className="text-xl font-display font-bold text-charcoal">No Services Found in Database</h3>
+          <p className="text-xs text-charcoal/60 max-w-sm mx-auto mt-1">Add your first service offering to insert a record into the vendor_services Supabase table.</p>
+          <button onClick={handleOpenCreateModal} className="mt-4 bg-[#0F4C45] text-white px-6 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider shadow-md cursor-pointer">
+            + Create Service
+          </button>
+        </div>
+      )}
 
       {/* Modal Dialog */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-8 shadow-2xl border border-[#E5DEC9] relative max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-6 border-b border-[#FAF7F2] pb-4">
-              <h2 className="font-serif text-2xl font-bold text-[#0F4C45]">
-                {modalMode === "create" ? "Add New" : "Edit"} {activeTab === "services" ? "Service" : activeTab === "packages" ? "Package" : "Catalog Item"}
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in font-sans">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 lg:p-8 shadow-2xl border border-gold/20 relative">
+            <div className="flex items-center justify-between mb-6 border-b border-gold/10 pb-4">
+              <h2 className="font-display text-2xl font-bold text-charcoal">
+                {modalMode === "create" ? "Add New Service" : "Edit Service"}
               </h2>
-              <button onClick={() => setShowModal(false)} className="text-[#7A7570] hover:text-[#2D2926] text-xl font-bold">
+              <button onClick={() => setShowModal(false)} className="text-charcoal/40 hover:text-charcoal text-xl font-bold">
                 ✕
               </button>
             </div>
 
+            {validationError && (
+              <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-bold flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+                <span>{validationError}</span>
+              </div>
+            )}
+
             <form onSubmit={handleSaveModal} className="space-y-4">
               <div>
-                <label className="text-xs font-bold text-[#0F4C45] uppercase tracking-wider block mb-1">
-                  Title / Name
+                <label className="text-xs font-bold text-charcoal/70 uppercase tracking-wider block mb-1">
+                  Service Title <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
                   required
-                  value={formData.name || formData.title || ""}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value, title: e.target.value })}
-                  className="w-full bg-[#FAF7F2] border border-[#E5DEC9] rounded-xl px-4 py-2.5 text-xs text-[#2D2926] focus:outline-none focus:border-[#0F4C45]"
-                  placeholder="e.g. Royal Wedding Hall Rental / HD Makeup"
+                  value={formData.name || ""}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-4 py-2.5 text-xs text-charcoal focus:outline-none focus:border-[#0F4C45]"
+                  placeholder="e.g. HD Airbrush Bridal Makeover Suite"
                 />
               </div>
 
-              {activeTab === "packages" && (
-                <div>
-                  <label className="text-xs font-bold text-[#0F4C45] uppercase tracking-wider block mb-1">Tagline</label>
-                  <input
-                    type="text"
-                    value={formData.tagline || ""}
-                    onChange={(e) => setFormData({ ...formData, tagline: e.target.value })}
-                    className="w-full bg-[#FAF7F2] border border-[#E5DEC9] rounded-xl px-4 py-2.5 text-xs text-[#2D2926] focus:outline-none focus:border-[#0F4C45]"
-                    placeholder="e.g. Complete Luxury Suite"
-                  />
-                </div>
-              )}
-
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs font-bold text-[#0F4C45] uppercase tracking-wider block mb-1">Price (₹)</label>
+                  <label className="text-xs font-bold text-charcoal/70 uppercase tracking-wider block mb-1">
+                    Price (₹) <span className="text-red-500">*</span>
+                  </label>
                   <input
                     type="number"
                     required
-                    value={formData.base_price || formData.price || ""}
-                    onChange={(e) => setFormData({ ...formData, base_price: e.target.value, price: e.target.value })}
-                    className="w-full bg-[#FAF7F2] border border-[#E5DEC9] rounded-xl px-4 py-2.5 text-xs text-[#2D2926] focus:outline-none focus:border-[#0F4C45]"
-                    placeholder="50000"
+                    value={formData.base_price !== undefined ? formData.base_price : ""}
+                    onChange={(e) => setFormData({ ...formData, base_price: e.target.value })}
+                    className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-4 py-2.5 text-xs text-charcoal focus:outline-none focus:border-[#0F4C45]"
+                    placeholder="25000"
                   />
                 </div>
 
-                {activeTab === "services" && (
-                  <div>
-                    <label className="text-xs font-bold text-[#0F4C45] uppercase tracking-wider block mb-1">Pricing Type</label>
-                    <select
-                      value={formData.pricing_type || "starting_from"}
-                      onChange={(e) => setFormData({ ...formData, pricing_type: e.target.value })}
-                      className="w-full bg-[#FAF7F2] border border-[#E5DEC9] rounded-xl px-4 py-2.5 text-xs text-[#2D2926] focus:outline-none focus:border-[#0F4C45]"
-                    >
-                      <option value="fixed">Fixed Price</option>
-                      <option value="starting_from">Starting From</option>
-                      <option value="per_event">Per Event</option>
-                      <option value="per_day">Per Day</option>
-                      <option value="per_hour">Per Hour</option>
-                      <option value="per_plate">Per Plate</option>
-                      <option value="per_person">Per Person</option>
-                    </select>
-                  </div>
-                )}
-
-                {activeTab === "catalog" && (
-                  <div>
-                    <label className="text-xs font-bold text-[#0F4C45] uppercase tracking-wider block mb-1">Stock Quantity</label>
-                    <input
-                      type="number"
-                      value={formData.stock_quantity || 1}
-                      onChange={(e) => setFormData({ ...formData, stock_quantity: e.target.value })}
-                      className="w-full bg-[#FAF7F2] border border-[#E5DEC9] rounded-xl px-4 py-2.5 text-xs text-[#2D2926] focus:outline-none focus:border-[#0F4C45]"
-                    />
-                  </div>
-                )}
+                <div>
+                  <label className="text-xs font-bold text-charcoal/70 uppercase tracking-wider block mb-1">Pricing Model</label>
+                  <select
+                    value={formData.pricing_type || "fixed"}
+                    onChange={(e) => setFormData({ ...formData, pricing_type: e.target.value })}
+                    className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-3 py-2.5 text-xs text-charcoal focus:outline-none focus:border-[#0F4C45]"
+                  >
+                    <option value="fixed">Fixed Price</option>
+                    <option value="per_event">Per Event</option>
+                    <option value="per_day">Per Day</option>
+                    <option value="per_plate">Per Plate</option>
+                  </select>
+                </div>
               </div>
 
-              {activeTab === "packages" && (
-                <div>
-                  <label className="text-xs font-bold text-[#0F4C45] uppercase tracking-wider block mb-1">Features (One per line)</label>
-                  <textarea
-                    rows={4}
-                    value={featuresText}
-                    onChange={(e) => setFeaturesText(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#E5DEC9] rounded-xl p-3 text-xs text-[#2D2926] focus:outline-none focus:border-[#0F4C45]"
-                    placeholder="2 Photographers&#10;Drone Coverage&#10;Photo Album"
-                  />
-                </div>
-              )}
-
               <div>
-                <label className="text-xs font-bold text-[#0F4C45] uppercase tracking-wider block mb-1">Description</label>
+                <label className="text-xs font-bold text-charcoal/70 uppercase tracking-wider block mb-1">Service Description</label>
                 <textarea
                   rows={3}
                   value={formData.description || ""}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full bg-[#FAF7F2] border border-[#E5DEC9] rounded-xl p-3 text-xs text-[#2D2926] focus:outline-none focus:border-[#0F4C45]"
-                  placeholder="Provide detailed description..."
+                  className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl p-3 text-xs text-charcoal focus:outline-none focus:border-[#0F4C45]"
+                  placeholder="Provide comprehensive details of what's included..."
                 />
               </div>
 
-              {activeTab === "catalog" && (
-                <div>
-                  <label className="text-xs font-bold text-[#0F4C45] uppercase tracking-wider block mb-1">Image URL</label>
-                  <input
-                    type="url"
-                    value={formData.image_url || ""}
-                    onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                    className="w-full bg-[#FAF7F2] border border-[#E5DEC9] rounded-xl px-4 py-2.5 text-xs text-[#2D2926] focus:outline-none focus:border-[#0F4C45]"
-                    placeholder="https://images.unsplash.com/..."
-                  />
-                </div>
-              )}
+              <div>
+                <label className="text-xs font-bold text-charcoal/70 uppercase tracking-wider block mb-1">Image URL</label>
+                <input
+                  type="url"
+                  value={formData.image_url || ""}
+                  onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+                  className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-4 py-2.5 text-xs text-charcoal focus:outline-none focus:border-[#0F4C45]"
+                  placeholder="https://images.unsplash.com/..."
+                />
+              </div>
 
-              <div className="pt-4 flex items-center justify-end gap-3 border-t border-[#FAF7F2]">
+              <div className="pt-4 flex items-center justify-end gap-3 border-t border-gold/10">
                 <button
                   type="button"
+                  disabled={isSubmitting}
                   onClick={() => setShowModal(false)}
-                  className="px-5 py-2.5 rounded-xl border border-[#E5DEC9] text-xs font-bold text-[#7A7570] hover:text-[#2D2926]"
+                  className="px-5 py-2.5 rounded-xl border border-gold/20 text-xs font-bold text-charcoal/60 hover:text-charcoal cursor-pointer disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2.5 rounded-xl bg-[#0F4C45] text-white text-xs font-bold uppercase tracking-wider hover:bg-[#135951] shadow-md cursor-pointer"
+                  disabled={isSubmitting}
+                  className="px-6 py-2.5 rounded-xl bg-[#0F4C45] text-white text-xs font-bold uppercase tracking-wider hover:bg-[#135951] shadow-md cursor-pointer disabled:opacity-50"
                 >
-                  Save Item
+                  {isSubmitting ? "Saving to Database..." : "Save Service"}
                 </button>
               </div>
             </form>

@@ -20,17 +20,32 @@ import {
 } from "lucide-react";
 import { getCategoryMenuTitles } from "@/lib/vendor-navigation";
 import { logout } from "@/app/actions/auth";
+import { fetchAuthenticatedVendorFromDb, getActiveVendorIdentity, clearActiveVendorIdentity } from "@/lib/vendorStore";
+import VendorOverviewPage from "./overview/page";
 
 export default function VendorProfileMenuPage() {
   const router = useRouter();
-  const [vendorData, setVendorData] = useState<{
-    name: string;
-    category: string;
-    logo?: string;
-    plan?: string;
-  } | null>(null);
+  const [vendorData, setVendorData] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const loadVendorData = async () => {
+    const cached = getActiveVendorIdentity();
+    if (cached && cached.id) {
+      setVendorData(cached);
+    }
+
+    try {
+      const active = await fetchAuthenticatedVendorFromDb();
+      if (active && active.id) {
+        setVendorData(active);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
+<<<<<<< HEAD
     if (typeof window !== "undefined") {
       try {
         const storedName =
@@ -97,13 +112,28 @@ export default function VendorProfileMenuPage() {
         });
       } catch (e) {}
     }
+=======
+    loadVendorData();
+
+    const handleUpdate = () => loadVendorData();
+    window.addEventListener("cloche_vendor_updated", handleUpdate);
+    window.addEventListener("cloche_cms_update", handleUpdate);
+
+    return () => {
+      window.removeEventListener("cloche_vendor_updated", handleUpdate);
+      window.removeEventListener("cloche_cms_update", handleUpdate);
+    };
+>>>>>>> 3023f2cd567a8ea45f66e0f949275c92824e98d3
   }, []);
 
-  const name = vendorData?.name || "Vendor Partner";
-  const category = vendorData?.category || "Bridal Wear";
-  const logoUrl = vendorData?.logo || "";
-  const plan = vendorData?.plan || "Premium Partner";
-  const initial = name.charAt(0).toUpperCase();
+  const hasVendorRecord = Boolean(vendorData && vendorData.id);
+  const name = hasVendorRecord
+    ? (vendorData?.name || vendorData?.boutique_name || "Vendor Partner")
+    : (isLoading ? "" : "No vendor profile found");
+  const category = vendorData?.category || "";
+  const logoUrl = vendorData?.logo || vendorData?.logo_url || "";
+  const plan = vendorData?.plan || "Vendor Partner";
+  const initial = name ? name.charAt(0).toUpperCase() : "?";
 
   const isValidLogo = Boolean(
     logoUrl &&
@@ -128,81 +158,88 @@ export default function VendorProfileMenuPage() {
   ];
 
   const handleLogout = async () => {
+    clearActiveVendorIdentity();
     await logout();
     router.push("/vendor/login");
   };
 
   return (
-    <div className="max-w-md mx-auto animate-in fade-in duration-500 font-sans">
-      <div className="bg-white rounded-3xl shadow-sm border border-gold/15 overflow-hidden">
-        
-        {/* Vendor Profile Header */}
-        <div className="p-8 border-b border-gold/15 bg-[#FAF7F2]/80 text-center relative">
-          <div className="w-24 h-24 rounded-full mx-auto mb-4 flex items-center justify-center overflow-hidden border-2 border-gold/30 bg-white shadow-md">
-            {isValidLogo ? (
-              <img src={logoUrl} alt={name} className="w-full h-full object-cover" />
-            ) : (
-              <div className="w-full h-full bg-[#0F4C45] text-white text-3xl font-bold font-serif flex items-center justify-center">
-                {initial}
-              </div>
-            )}
+    <>
+      {/* Mobile View (<1024px): Preserved Mobile Profile Navigation Screen */}
+      <div className="block lg:hidden max-w-md mx-auto animate-in fade-in duration-500 font-sans">
+        <div className="bg-white rounded-3xl shadow-sm border border-gold/15 overflow-hidden">
+          {/* Vendor Profile Header */}
+          <div className="p-8 border-b border-gold/15 bg-[#FAF7F2]/80 text-center relative">
+            <div className="w-24 h-24 rounded-full mx-auto mb-4 flex items-center justify-center overflow-hidden border-2 border-gold/30 bg-white shadow-md">
+              {isValidLogo ? (
+                <img src={logoUrl} alt={name} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full bg-[#0F4C45] text-white text-3xl font-bold font-serif flex items-center justify-center">
+                  {initial}
+                </div>
+              )}
+            </div>
+
+            <h1 className="font-display font-bold text-2xl text-charcoal truncate px-2">{name}</h1>
+            <p className="text-xs font-semibold uppercase tracking-wider text-charcoal/60 mt-1">{category || "Vendor Partner"}</p>
+            
+            <div className="mt-3 flex items-center justify-center gap-1.5">
+              <span className="inline-flex items-center gap-1 bg-[#0F4C45] text-white text-[11px] font-bold uppercase tracking-widest px-3.5 py-1 rounded-full shadow-xs">
+                <ShieldCheck className="w-3.5 h-3.5 text-gold" /> {plan}
+              </span>
+            </div>
           </div>
 
-          <h1 className="font-display font-bold text-2xl text-charcoal truncate px-2">{name}</h1>
-          <p className="text-xs font-semibold uppercase tracking-wider text-charcoal/60 mt-1">{category || "Vendor Partner"}</p>
-          
-          <div className="mt-3 flex items-center justify-center gap-1.5">
-            <span className="inline-flex items-center gap-1 bg-[#0F4C45] text-white text-[11px] font-bold uppercase tracking-widest px-3.5 py-1 rounded-full shadow-xs">
-              <ShieldCheck className="w-3.5 h-3.5 text-gold" /> {plan}
-            </span>
-          </div>
-        </div>
+          {/* Menu Options List */}
+          <div className="p-4 space-y-1">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="flex items-center justify-between p-3.5 rounded-2xl hover:bg-[#FAF7F2] text-charcoal transition-all group border border-transparent hover:border-gold/15"
+                >
+                  <div className="flex items-center gap-3.5">
+                    <div className="w-10 h-10 rounded-xl bg-[#0F4C45]/10 text-[#0F4C45] flex items-center justify-center shrink-0 group-hover:bg-[#0F4C45] group-hover:text-white transition-colors">
+                      <Icon className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-bold text-charcoal group-hover:text-[#0F4C45] transition-colors">{item.label}</h3>
+                      <p className="text-[11px] text-charcoal/50">{item.desc}</p>
+                    </div>
+                  </div>
 
-        {/* Menu Options List */}
-        <div className="p-4 space-y-1">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="flex items-center justify-between p-3.5 rounded-2xl hover:bg-[#FAF7F2] text-charcoal transition-all group border border-transparent hover:border-gold/15"
+                  <ChevronRight className="w-4 h-4 text-charcoal/30 group-hover:text-[#0F4C45] group-hover:translate-x-1 transition-all shrink-0" />
+                </Link>
+              );
+            })}
+
+            <div className="pt-3 mt-3 border-t border-gold/10">
+              <button
+                onClick={handleLogout}
+                className="w-full flex items-center justify-between p-3.5 rounded-2xl text-red-600 hover:bg-red-50 transition-colors border border-transparent hover:border-red-100 cursor-pointer"
               >
                 <div className="flex items-center gap-3.5">
-                  <div className="w-10 h-10 rounded-xl bg-[#0F4C45]/10 text-[#0F4C45] flex items-center justify-center shrink-0 group-hover:bg-[#0F4C45] group-hover:text-white transition-colors">
-                    <Icon className="w-5 h-5" />
+                  <div className="w-10 h-10 rounded-xl bg-red-100/60 text-red-600 flex items-center justify-center shrink-0">
+                    <LogOut className="w-5 h-5" />
                   </div>
-                  <div>
-                    <h3 className="text-sm font-bold text-charcoal group-hover:text-[#0F4C45] transition-colors">{item.label}</h3>
-                    <p className="text-[11px] text-charcoal/50">{item.desc}</p>
+                  <div className="text-left">
+                    <h3 className="text-sm font-bold">Sign Out</h3>
+                    <p className="text-[11px] text-red-500/80">Log out of your vendor account</p>
                   </div>
                 </div>
-
-                <ChevronRight className="w-4 h-4 text-charcoal/30 group-hover:text-[#0F4C45] group-hover:translate-x-1 transition-all shrink-0" />
-              </Link>
-            );
-          })}
-
-          <div className="pt-3 mt-3 border-t border-gold/10">
-            <button
-              onClick={handleLogout}
-              className="w-full flex items-center justify-between p-3.5 rounded-2xl text-red-600 hover:bg-red-50 transition-colors border border-transparent hover:border-red-100 cursor-pointer"
-            >
-              <div className="flex items-center gap-3.5">
-                <div className="w-10 h-10 rounded-xl bg-red-100/60 text-red-600 flex items-center justify-center shrink-0">
-                  <LogOut className="w-5 h-5" />
-                </div>
-                <div className="text-left">
-                  <h3 className="text-sm font-bold">Sign Out</h3>
-                  <p className="text-[11px] text-red-500/80">Log out of your vendor account</p>
-                </div>
-              </div>
-              <ChevronRight className="w-4 h-4 text-red-400 shrink-0" />
-            </button>
+                <ChevronRight className="w-4 h-4 text-red-400 shrink-0" />
+              </button>
+            </div>
           </div>
         </div>
-
       </div>
-    </div>
+
+      {/* Desktop View (>=1024px): SaaS Overview Dashboard */}
+      <div className="hidden lg:block">
+        <VendorOverviewPage />
+      </div>
+    </>
   );
 }

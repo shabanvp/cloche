@@ -1,10 +1,13 @@
 import { NextResponse } from "next/server";
 import { fetchVendorBookingsFromDb, supabaseFetch } from "@/lib/supabase";
+import { requireAuthenticatedVendor } from "@/lib/vendorAuth";
 
 export async function GET(req: Request) {
   try {
+    const auth = await requireAuthenticatedVendor(req);
+    if (auth.response) return auth.response;
     const { searchParams } = new URL(req.url);
-    const vendorId = searchParams.get("vendor_id") || "v-demo-vendor";
+    const vendorId = auth.vendorId;
     const status = searchParams.get("status") || "all";
 
     const { data, error } = await fetchVendorBookingsFromDb(vendorId, status);

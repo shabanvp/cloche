@@ -6,7 +6,7 @@ const API_BASE_URL = rawBaseUrl.endsWith('/api') ? rawBaseUrl : `${rawBaseUrl}/a
 export async function getFeaturedBoutiques(): Promise<Boutique[]> {
   try {
     const res = await fetch(`${API_BASE_URL}/boutiques?limit=8&cache_bust=${Date.now()}`, {
-      next: { revalidate: 3600 } 
+      cache: "no-store",
     });
     if (!res.ok) return [];
     return res.json();
@@ -19,7 +19,7 @@ export async function getFeaturedBoutiques(): Promise<Boutique[]> {
 export async function getTrendingCollections(): Promise<Product[]> {
   try {
     const res = await fetch(`${API_BASE_URL}/products?cache_bust=${Date.now()}`, {
-      next: { revalidate: 3600 }
+      cache: "no-store",
     });
     if (!res.ok) return [];
     const data = await res.json();
@@ -33,7 +33,7 @@ export async function getTrendingCollections(): Promise<Product[]> {
 export async function getAllProducts(): Promise<Product[]> {
   try {
     const res = await fetch(`${API_BASE_URL}/products?cache_bust=${Date.now()}`, {
-      next: { revalidate: 3600 }
+      cache: "no-store",
     });
     if (!res.ok) return [];
     return res.json();
@@ -47,7 +47,7 @@ export async function getAllBoutiques(): Promise<Boutique[]> {
   const { getAllSystemVendors } = await import("@/lib/allSystemVendors");
   try {
     const res = await fetch(`${API_BASE_URL}/boutiques?cache_bust=${Date.now()}`, {
-      next: { revalidate: 3600 }
+      cache: "no-store",
     });
     if (!res.ok) return getAllSystemVendors();
     const data = await res.json();
@@ -80,7 +80,7 @@ export async function getAdminAnalytics(token: string) {
 export async function getBoutiqueDetails(id: string): Promise<Boutique | null> {
   try {
     const res = await fetch(`${API_BASE_URL}/boutiques/${id}?cache_bust=${Date.now()}`, {
-      next: { revalidate: 3600 }
+      cache: "no-store",
     });
     if (res.ok) {
       const data = await res.json();
@@ -90,42 +90,13 @@ export async function getBoutiqueDetails(id: string): Promise<Boutique | null> {
     console.error("getBoutiqueDetails fetch error:", error);
   }
 
-  // Graceful fallback for dynamic vendor / boutique IDs so user never encounters 404
-  const decodedId = decodeURIComponent(id || "wedding-vendor");
-  const formattedName = decodedId
-    .replace(/[-_]+/g, " ")
-    .replace(/\b\w/g, (char) => char.toUpperCase());
-
-  const isVenue =
-    decodedId.toLowerCase().includes("venue") ||
-    decodedId.toLowerCase().includes("centre") ||
-    decodedId.toLowerCase().includes("center") ||
-    decodedId.toLowerCase().includes("hall") ||
-    decodedId.toLowerCase().includes("palace") ||
-    decodedId.toLowerCase().includes("resort");
-
-  return {
-    id: id,
-    boutique_name: formattedName,
-    city: "Kannur",
-    district: "Taliparamba",
-    rating: 5.0,
-    plan: "premium",
-    is_featured: true,
-    tags: isVenue
-      ? "Wedding Venue, Convention Centre, Banquet Hall"
-      : "Bridal Boutique, Wedding Vendor",
-    image_url: isVenue
-      ? "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=80"
-      : "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=1200&q=80",
-    description: `Welcome to ${formattedName}, a premier wedding destination and luxury service provider on Cloche.`,
-  };
+  return null;
 }
 
 export async function getBoutiqueProducts(boutiqueId: string): Promise<Product[]> {
   try {
     const res = await fetch(`${API_BASE_URL}/products/boutique/${boutiqueId}?cache_bust=${Date.now()}`, {
-      next: { revalidate: 3600 }
+      cache: "no-store",
     });
     if (!res.ok) return [];
     return res.json();
@@ -138,7 +109,7 @@ export async function getBoutiqueProducts(boutiqueId: string): Promise<Product[]
 export async function getProductDetails(id: string): Promise<Product & { gallery?: string[], boutique_name?: string, boutique_city?: string, store_location?: string } | null> {
   try {
     const res = await fetch(`${API_BASE_URL}/products/${id}?cache_bust=${Date.now()}`, {
-      next: { revalidate: 3600 }
+      cache: "no-store",
     });
     if (res.ok) {
       const data = await res.json();
@@ -148,26 +119,11 @@ export async function getProductDetails(id: string): Promise<Product & { gallery
     console.error("getProductDetails fetch error:", error);
   }
 
-  // Fallback to searching all products
   try {
     const allProds = await getAllProducts();
     const found = allProds.find(p => String(p.id) === String(id));
-    if (found) return found as any;
-  } catch (e) {}
+    if (found) return found;
+  } catch {}
 
-  // Fallback mock object if product ID is temporary
-  return {
-    id: id,
-    boutique_id: id.split('-col-')[0] || id.split('-prod-')[0] || "aurora-bridal-couture",
-    boutique_name: "Bridal Couture Partner",
-    product_name: "Signature Royal Bridal Outfit",
-    category: "Bridal Wear",
-    price: 45000,
-    description: "Bespoke handcrafted bridal wear ensemble featuring intricate hand zardozi and silk embroidery.",
-    image_url: "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=800&q=80",
-    gallery: [
-      "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=800&q=80",
-      "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=800&q=80",
-    ]
-  };
+  return null;
 }

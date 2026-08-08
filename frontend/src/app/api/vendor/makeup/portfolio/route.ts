@@ -1,11 +1,13 @@
 import { NextResponse } from "next/server";
 import { supabaseFetch } from "@/lib/supabase";
+import { requireAuthenticatedVendor, vendorOwnsRecord } from "@/lib/vendorAuth";
 
 // GET /api/vendor/makeup/portfolio?vendor_id=...
 export async function GET(request: Request) {
   try {
-    const { searchParams } = new URL(request.url);
-    const vendorId = searchParams.get("vendor_id") || "makeup-riya-sharma";
+    const auth = await requireAuthenticatedVendor(request);
+    if (auth.response) return auth.response;
+    const vendorId = auth.vendorId;
 
     const { data } = await supabaseFetch(
       `makeup_portfolio?vendor_id=eq.${encodeURIComponent(vendorId)}&order=sort_order.asc&select=*`
@@ -20,16 +22,22 @@ export async function GET(request: Request) {
 // POST /api/vendor/makeup/portfolio
 export async function POST(request: Request) {
   try {
+    const auth = await requireAuthenticatedVendor(request);
+    if (auth.response) return auth.response;
     const body = await request.json();
-    const { id, vendor_id, category, image_url, caption, sort_order } = body;
+    const { id, category, image_url, caption, sort_order } = body;
 
     if (!image_url) {
       return NextResponse.json({ error: "Portfolio image URL is required." }, { status: 400 });
     }
 
+    if (id && !(await vendorOwnsRecord("makeup_portfolio", id, auth.vendorId))) {
+      return NextResponse.json({ error: "Portfolio item not found." }, { status: 404 });
+    }
+
     const portfolioRecord = {
       ...(id ? { id } : {}),
-      vendor_id: vendor_id || "makeup-riya-sharma",
+      vendor_id: auth.vendorId,
       category: category || "Bridal",
       image_url,
       caption: caption || "",
@@ -59,6 +67,8 @@ export async function PUT(request: Request) {
 // DELETE /api/vendor/makeup/portfolio?id=...
 export async function DELETE(request: Request) {
   try {
+    const auth = await requireAuthenticatedVendor(request);
+    if (auth.response) return auth.response;
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
 
@@ -66,7 +76,7 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: "Portfolio ID is required." }, { status: 400 });
     }
 
-    await supabaseFetch(`makeup_portfolio?id=eq.${encodeURIComponent(id)}`, { method: "DELETE" });
+    await supabaseFetch(`makeup_portfolio?id=eq.${encodeURIComponent(id)}&vendor_id=eq.${encodeURIComponent(auth.vendorId)}`, { method: "DELETE" });
 
     return NextResponse.json({ success: true, message: "Portfolio photo deleted successfully." });
   } catch (err: any) {

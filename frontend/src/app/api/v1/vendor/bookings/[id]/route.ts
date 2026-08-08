@@ -1,11 +1,14 @@
 import { NextResponse } from "next/server";
 import { supabaseFetch } from "@/lib/supabase";
+import { requireAuthenticatedVendor, vendorOwnsRecord } from "@/lib/vendorAuth";
 
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const auth = await requireAuthenticatedVendor(req);
+    if (auth.response) return auth.response;
     const { id } = await params;
     const { data, error } = await supabaseFetch(
-      `bookings?id=eq.${encodeURIComponent(id)}&select=*,booking_timeline(*),booking_payments(*),escrow_accounts(*),leads(*)`
+      `bookings?id=eq.${encodeURIComponent(id)}&vendor_id=eq.${encodeURIComponent(auth.vendorId)}&select=*,booking_timeline(*),booking_payments(*),escrow_accounts(*),leads(*)`
     );
 
     if (error || !data || data.length === 0) {
@@ -29,13 +32,22 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const auth = await requireAuthenticatedVendor(req);
+    if (auth.response) return auth.response;
     const { id } = await params;
     const body = await req.json();
 
-    const { data, error } = await supabaseFetch(`bookings?id=eq.${encodeURIComponent(id)}`, {
+    if (!(await vendorOwnsRecord("bookings", id, auth.vendorId))) {
+      return NextResponse.json(
+        { success: false, statusCode: 404, error: { code: "NOT_FOUND", message: "Booking not found." } },
+        { status: 404 }
+      );
+    }
+
+    const { data, error } = await supabaseFetch(`bookings?id=eq.${encodeURIComponent(id)}&vendor_id=eq.${encodeURIComponent(auth.vendorId)}`, {
       method: "PATCH",
       headers: { Prefer: "return=representation" },
-      body: JSON.stringify({ ...body, updated_at: new Date().toISOString() }),
+      body: JSON.stringify({ ...body, vendor_id: auth.vendorId, updated_at: new Date().toISOString() }),
     });
 
     if (error) {

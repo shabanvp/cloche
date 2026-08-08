@@ -1,11 +1,14 @@
 import { NextResponse } from "next/server";
 import { updateLeadStatusInDb, saveLeadActivityToDb, supabaseFetch } from "@/lib/supabase";
+import { requireAuthenticatedVendor, vendorOwnsLead } from "@/lib/vendorAuth";
 
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const auth = await requireAuthenticatedVendor(req);
+    if (auth.response) return auth.response;
     const { id } = await params;
     const { data, error } = await supabaseFetch(
-      `leads?id=eq.${encodeURIComponent(id)}&select=*,lead_notes(*),lead_tasks(*),lead_activities(*),quotations(*)`
+      `leads?id=eq.${encodeURIComponent(id)}&vendor_id=eq.${encodeURIComponent(auth.vendorId)}&select=*,lead_notes(*),lead_tasks(*),lead_activities(*),quotations(*)`
     );
 
     if (error || !data || data.length === 0) {
@@ -29,6 +32,8 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const auth = await requireAuthenticatedVendor(req);
+    if (auth.response) return auth.response;
     const { id } = await params;
     const body = await req.json();
     const { status, note } = body;
@@ -40,7 +45,14 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       );
     }
 
-    const { data, error } = await updateLeadStatusInDb(id, status);
+    if (!(await vendorOwnsLead(id, auth.vendorId))) {
+      return NextResponse.json(
+        { success: false, statusCode: 404, error: { code: "NOT_FOUND", message: "Lead not found." } },
+        { status: 404 }
+      );
+    }
+
+    const { data, error } = await updateLeadStatusInDb(id, status, auth.vendorId);
 
     if (error) {
       return NextResponse.json(

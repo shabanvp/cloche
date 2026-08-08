@@ -84,9 +84,20 @@ export function VendorCategoryListing({
             id: item.id || `local-${idx}`,
             name: item.boutique_name || item.name || item.businessName || "Wedding Partner",
             slug: item.slug || item.id || `partner-${idx}`,
-            image: item.logo || item.image_url || item.image || categoryConfig.vendors[0]?.image || "",
+            image:
+              item.coverImage ||
+              item.cover_image ||
+              item.cover_url ||
+              item.logoUrl ||
+              item.logo ||
+              item.logo_url ||
+              item.profile_logo ||
+              item.image_url ||
+              item.image ||
+              categoryConfig.vendors[0]?.image ||
+              "",
             rating: item.rating || 4.9,
-            reviewsCount: item.reviewsCount || item.review_count || 120,
+            reviewsCount: Number(item.reviewsCount ?? item.review_count ?? 0),
             location: item.location || (item.city ? `${item.city}, Kerala` : "Kochi, Kerala"),
             startingPrice: item.startingPrice || item.starting_price || "₹50,000",
             badge: "Verified",

@@ -1,8 +1,11 @@
 import { NextResponse } from "next/server";
 import { saveLeadNoteToDb, saveLeadActivityToDb } from "@/lib/supabase";
+import { requireAuthenticatedVendor, vendorOwnsLead } from "@/lib/vendorAuth";
 
 export async function POST(req: Request) {
   try {
+    const auth = await requireAuthenticatedVendor(req);
+    if (auth.response) return auth.response;
     const body = await req.json();
     const { lead_id, author_name, note_text } = body;
 
@@ -10,6 +13,13 @@ export async function POST(req: Request) {
       return NextResponse.json(
         { success: false, statusCode: 400, error: { code: "VALIDATION_ERROR", message: "Lead ID and note text are required." } },
         { status: 400 }
+      );
+    }
+
+    if (!(await vendorOwnsLead(lead_id, auth.vendorId))) {
+      return NextResponse.json(
+        { success: false, statusCode: 404, error: { code: "NOT_FOUND", message: "Lead not found." } },
+        { status: 404 }
       );
     }
 

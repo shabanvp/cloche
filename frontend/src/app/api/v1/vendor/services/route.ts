@@ -1,10 +1,14 @@
 import { NextResponse } from "next/server";
 import { getSupabaseConfig, fetchVendorServicesFromDb, saveVendorServiceToDb, softDeleteVendorServiceFromDb } from "@/lib/supabase";
+import { requireAuthenticatedVendor, vendorOwnsRecord } from "@/lib/vendorAuth";
+
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export async function GET(req: Request) {
   try {
-    const { searchParams } = new URL(req.url);
-    const vendorId = searchParams.get("vendor_id") || "v-demo-vendor";
+    const auth = await requireAuthenticatedVendor(req);
+    if (auth.response) return auth.response;
+    const vendorId = auth.vendorId;
 
     const { data, error } = await fetchVendorServicesFromDb(vendorId);
 
@@ -29,8 +33,10 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
+    const auth = await requireAuthenticatedVendor(req);
+    if (auth.response) return auth.response;
     const body = await req.json();
-    const { vendor_id, category_id, name, description, base_price, pricing_type, duration, status, is_active, images } = body;
+    const { category_id, name, description, base_price, pricing_type, duration, status, is_active, images } = body;
 
     if (!name || base_price === undefined || base_price < 0) {
       return NextResponse.json(
@@ -39,24 +45,44 @@ export async function POST(req: Request) {
       );
     }
 
+    const resolvedVendorId = auth.vendorId;
+    if (body.id && UUID_REGEX.test(body.id) && !(await vendorOwnsRecord("vendor_services", body.id, resolvedVendorId))) {
+      return NextResponse.json(
+        { success: false, statusCode: 404, error: { code: "NOT_FOUND", message: "Service not found." } },
+        { status: 404 }
+      );
+    }
+
     const payload: Record<string, any> = {
-      vendor_id: vendor_id || "v-demo-vendor",
-      category_id: category_id || null,
+      vendor_id: resolvedVendorId,
       name: name.trim(),
       description: description ? description.trim() : null,
       base_price: Number(base_price),
-      pricing_type: pricing_type || "starting_from",
-      duration: duration ? Number(duration) : null,
-      status: status || "published",
+      pricing_type: pricing_type || "fixed",
+      status: status ? status.toLowerCase() : "published",
       is_active: is_active !== undefined ? Boolean(is_active) : true,
       updated_at: new Date().toISOString(),
     };
 
-    if (body.id) {
+    if (category_id && UUID_REGEX.test(category_id)) {
+      payload.category_id = category_id;
+    }
+    if (duration) {
+      payload.duration = Number(duration);
+    }
+    if (body.id && UUID_REGEX.test(body.id)) {
       payload.id = body.id;
     }
 
-    const { data, error } = await saveVendorServiceToDb(payload);
+    let { data, error } = await saveVendorServiceToDb(payload);
+
+    // Fallback retry without category_id if foreign key or schema cache error occurs
+    if (error && (error.message.includes("category") || error.message.includes("uuid"))) {
+      delete payload.category_id;
+      const retryRes = await saveVendorServiceToDb(payload);
+      data = retryRes.data;
+      error = retryRes.error;
+    }
 
     if (error) {
       return NextResponse.json(
@@ -90,7 +116,7 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json(
-      { success: true, statusCode: body.id ? 200 : 201, message: body.id ? "Service updated successfully" : "Service created successfully", data: createdService },
+      { success: true, statusCode: body.id ? 200 : 201, message: body.id ? "Service updated successfully" : "Service saved successfully.", data: createdService },
       { status: body.id ? 200 : 201 }
     );
   } catch (err: any) {
@@ -99,6 +125,10 @@ export async function POST(req: Request) {
       { status: 500 }
     );
   }
+}
+
+export async function PUT(req: Request) {
+  return POST(req);
 }
 
 export async function DELETE(req: Request) {
@@ -113,7 +143,10 @@ export async function DELETE(req: Request) {
       );
     }
 
-    const { error } = await softDeleteVendorServiceFromDb(id);
+    const auth = await requireAuthenticatedVendor(req);
+    if (auth.response) return auth.response;
+
+    const { error } = await softDeleteVendorServiceFromDb(id, auth.vendorId);
 
     if (error) {
       return NextResponse.json(
@@ -123,7 +156,7 @@ export async function DELETE(req: Request) {
     }
 
     return NextResponse.json(
-      { success: true, statusCode: 200, message: "Service soft deleted successfully." },
+      { success: true, statusCode: 200, message: "Service deleted successfully." },
       { status: 200 }
     );
   } catch (err: any) {
