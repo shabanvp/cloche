@@ -424,17 +424,21 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
                   className="bg-white rounded-2xl border border-gold/15 shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col justify-between group"
                 >
                   {/* Card Image Header */}
-                  <div className="relative aspect-[4/3] w-full overflow-hidden bg-[#0F4C45]">
+                  <div className="relative aspect-[4/3] w-full overflow-hidden bg-[#FAF7F2]">
                     {hasLogo ? (
                       /* Main Registered Vendor Logo Picture */
-                      <Image
-                        src={logoUrl}
-                        alt={boutique.boutique_name || "Vendor Logo"}
-                        fill
-                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                        className="object-cover group-hover:scale-105 transition-transform duration-500"
-                        unoptimized={logoUrl.startsWith("data:")}
-                      />
+                      <div className="w-full h-full flex items-center justify-center p-4 bg-[#FAF7F2]">
+                        <div className="relative w-full h-full">
+                          <Image
+                            src={logoUrl}
+                            alt={boutique.boutique_name || "Vendor Logo"}
+                            fill
+                            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                            className="object-contain group-hover:scale-105 transition-transform duration-500"
+                            unoptimized={logoUrl.startsWith("data:")}
+                          />
+                        </div>
+                      </div>
                     ) : hasCover ? (
                       /* Fallback Cover / Showcase Picture */
                       <Image
@@ -454,20 +458,6 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
                       </div>
                     )}
 
-                    {/* Overlaid Registered Vendor LOGO Avatar Badge */}
-                    {hasLogo && (
-                      <div className="absolute top-3 left-3 w-14 h-14 rounded-2xl bg-white border-2 border-gold/30 shadow-lg overflow-hidden flex items-center justify-center p-1 z-10 group-hover:scale-105 transition-transform">
-                        <Image
-                          src={logoUrl}
-                          alt={`${boutique.boutique_name || "Vendor"} Logo`}
-                          width={52}
-                          height={52}
-                          className="w-full h-full object-contain rounded-xl"
-                          unoptimized={logoUrl.startsWith("data:")}
-                        />
-                      </div>
-                    )}
-
                     {/* Top Overlay Category Badge */}
                     <span className="absolute bottom-3 left-3 bg-white/90 backdrop-blur-xs text-charcoal text-[10px] font-bold px-2.5 py-1 rounded-md shadow-xs z-10">
                       {overlayTag}
@@ -482,7 +472,7 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
                     >
                       <Heart
                         className={`h-4 w-4 transition-colors ${
-                          isWishlisted ? "fill-red-500 text-red-500" : "text-white fill-none"
+                          isWishlisted ? "fill-red-500 text-red-500" : "text-[#0F4C45] fill-none"
                         }`}
                       />
                     </button>
