@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSupabaseConfig, signInWithSupabaseAuth } from "@/lib/supabase";
-import { AUTH_COOKIE_NAME, SESSION_EXPIRY_DAYS, signJwtToken, verifyPassword } from "@/lib/auth";
+import { AUTH_COOKIE_NAME, SESSION_EXPIRY_DAYS, signJwtToken, verifyPassword, hashSessionToken } from "@/lib/auth";
+import { prisma } from "@/lib/database";
 
 export async function POST(req: Request) {
   const startTime = Date.now();
@@ -30,56 +31,53 @@ export async function POST(req: Request) {
       );
     }
 
-    // Step 1: Authenticate against Supabase Auth or custom user database lookup
-    const authResult = await signInWithSupabaseAuth(cleanEmail, password);
-    let authUser = authResult.user;
-    let customUserId = authUser?.id;
-
-    // Fetch custom user profile and roles
+    // Step 1: Query users table in PostgreSQL via Prisma
     const fetchStart = Date.now();
-    const userRes = await fetch(
-      `${url}/rest/v1/users?email=eq.${encodeURIComponent(cleanEmail)}&select=id,email,password_hash,full_name,is_active,user_roles(roles(name))`,
-      {
-        headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
-      }
-    );
-
-    let displayName = cleanEmail.split("@")[0];
-    let userRoles: string[] = ["customer"];
-    let customUser: any = null;
-
-    if (userRes.ok) {
-      const users = await userRes.json();
-      console.log(`[DB:FETCH] table=users email=${cleanEmail} rows=${Array.isArray(users) ? users.length : 0} ms=${Date.now() - fetchStart}`);
-      if (Array.isArray(users) && users.length > 0) {
-        customUser = users[0];
-        customUserId = customUser.id;
-        displayName = customUser.full_name || displayName;
-
-        if (Array.isArray(customUser.user_roles) && customUser.user_roles.length > 0) {
-          userRoles = customUser.user_roles
-            .map((ur: any) => ur.roles?.name)
-            .filter((rName: any) => typeof rName === "string");
+    const dbUser = await prisma.user.findUnique({
+      where: { email: cleanEmail },
+      include: {
+        userRoles: {
+          include: {
+            role: true
+          }
         }
       }
-    }
+    });
 
-    // If Supabase Auth failed, check custom password hash from users table
-    if (authResult.error && customUser?.password_hash) {
-      const isValidPassword = verifyPassword(password, customUser.password_hash);
-      if (!isValidPassword) {
+    console.log(`[DB:FETCH] table=users email=${cleanEmail} found=${!!dbUser} ms=${Date.now() - fetchStart}`);
+
+    let customUserId: string | null = null;
+    let displayName = cleanEmail.split("@")[0];
+    let userRoles: string[] = ["customer"];
+
+    if (dbUser) {
+      if (dbUser.passwordHash && verifyPassword(password, dbUser.passwordHash)) {
+        customUserId = dbUser.id;
+        displayName = dbUser.fullName || dbUser.name || displayName;
+        if (dbUser.userRoles && dbUser.userRoles.length > 0) {
+          userRoles = dbUser.userRoles.map(ur => ur.role?.name).filter((name): name is string => typeof name === "string");
+        }
+      } else if (dbUser.passwordHash) {
         console.warn(`[AUTH:FAIL] Invalid credentials for email=${cleanEmail}`);
         return NextResponse.json(
           { success: false, statusCode: 401, error: { code: "INVALID_CREDENTIALS", message: "Invalid email or password." } },
           { status: 401 }
         );
       }
-    } else if (authResult.error && !customUser) {
-      console.warn(`[AUTH:FAIL] User not found for email=${cleanEmail}`);
-      return NextResponse.json(
-        { success: false, statusCode: 401, error: { code: "INVALID_CREDENTIALS", message: "Invalid email or password." } },
-        { status: 401 }
-      );
+    }
+
+    // Step 2: Fallback to Supabase GoTrue Auth for backward compatibility (if user not in PostgreSQL yet)
+    if (!customUserId) {
+      const authResult = await signInWithSupabaseAuth(cleanEmail, password);
+      if (authResult.error || !authResult.user) {
+        console.warn(`[AUTH:FAIL] User not found or invalid credentials for email=${cleanEmail}`);
+        return NextResponse.json(
+          { success: false, statusCode: 401, error: { code: "INVALID_CREDENTIALS", message: "Invalid email or password." } },
+          { status: 401 }
+        );
+      }
+      customUserId = authResult.user.id;
+      displayName = authResult.user.user_metadata?.full_name || displayName;
     }
 
     if (!customUserId) {
@@ -95,6 +93,21 @@ export async function POST(req: Request) {
       email: cleanEmail,
       fullName: displayName,
       roles: userRoles.length > 0 ? userRoles : ["customer"],
+    });
+
+    // Create session in PostgreSQL
+    const tokenHash = hashSessionToken(jwtToken);
+    const expiresAt = new Date(Date.now() + SESSION_EXPIRY_DAYS * 24 * 60 * 60 * 1000);
+    await prisma.session.create({
+      data: {
+        userId: customUserId,
+        tokenHash,
+        userAgent: "Next.js API Route (Login)",
+        ipAddress: "127.0.0.1",
+        expiresAt,
+      }
+    }).catch((err) => {
+      console.error("[LOGIN_ROUTE:SESSION_CREATE_ERROR]", err);
     });
 
     const primaryRole = userRoles.includes("super_admin")

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAuthenticatedUser } from "@/lib/rbac";
 import { getSupabaseConfig } from "@/lib/supabase";
+import { prisma } from "@/lib/database";
 
 export async function GET(req: Request) {
   try {
@@ -29,43 +30,43 @@ export async function GET(req: Request) {
       );
     }
 
-    // Fetch fresh user profile from DB
-    const userRes = await fetch(
-      `${url}/rest/v1/users?id=eq.${encodeURIComponent(authUser.userId)}&select=id,email,full_name,phone,avatar_url,is_verified,created_at,user_roles(roles(name))`,
-      {
-        headers: { apikey: anonKey, Authorization: `Bearer ${anonKey}` },
-      }
-    );
-
-    if (userRes.ok) {
-      const users = await userRes.json();
-      if (Array.isArray(users) && users.length > 0) {
-        const u = users[0];
-        let roles = authUser.roles;
-        if (Array.isArray(u.user_roles) && u.user_roles.length > 0) {
-          roles = u.user_roles.map((ur: any) => ur.roles?.name).filter(Boolean);
+    // Fetch fresh user profile from PostgreSQL DB via Prisma
+    const user = await prisma.user.findUnique({
+      where: { id: authUser.userId },
+      include: {
+        userRoles: {
+          include: {
+            role: true
+          }
         }
+      }
+    });
 
-        return NextResponse.json(
-          {
-            success: true,
-            statusCode: 200,
-            data: {
-              user: {
-                id: u.id,
-                email: u.email,
-                fullName: u.full_name,
-                phone: u.phone,
-                avatarUrl: u.avatar_url,
-                isVerified: u.is_verified,
-                roles: roles.length > 0 ? roles : ["customer"],
-                createdAt: u.created_at,
-              },
+    if (user) {
+      let roles = authUser.roles;
+      if (user.userRoles && user.userRoles.length > 0) {
+        roles = user.userRoles.map(ur => ur.role?.name).filter((name): name is string => typeof name === "string");
+      }
+
+      return NextResponse.json(
+        {
+          success: true,
+          statusCode: 200,
+          data: {
+            user: {
+              id: user.id,
+              email: user.email,
+              fullName: user.fullName || user.name,
+              phone: user.phone,
+              avatarUrl: user.avatarUrl,
+              isVerified: user.isVerified,
+              roles: roles.length > 0 ? roles : ["customer"],
+              createdAt: user.createdAt,
             },
           },
-          { status: 200 }
-        );
-      }
+        },
+        { status: 200 }
+      );
     }
 
     return NextResponse.json(

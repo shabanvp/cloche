@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
-import { getSupabaseConfig, signUpWithSupabaseAuth, deleteAdminSupabaseUser } from "@/lib/supabase";
+import { hashPassword } from "@/lib/auth";
+import { prisma } from "@/lib/database";
 import { sendVerificationMail } from "@/lib/email";
+import crypto from "crypto";
 
 export async function POST(req: Request) {
   const logPrefix = "[AUTH_SIGNUP_API]";
@@ -24,100 +26,68 @@ export async function POST(req: Request) {
     const cleanName = fullName.trim();
     const cleanPhone = phone ? phone.trim() : null;
 
-    const { url, serviceKey, anonKey } = getSupabaseConfig();
-    const apiKey = serviceKey || anonKey;
-
-    if (!url || !apiKey) {
-      return NextResponse.json(
-        { success: false, statusCode: 500, error: { code: "CONFIG_ERROR", message: "Database credentials unconfigured." } },
-        { status: 500 }
-      );
-    }
-
-    // Step 1: Create Supabase Auth user as single source of truth for auth
-    console.log(`${logPrefix} Step 1: Creating Supabase Auth user for ${cleanEmail}...`);
-    const authResult = await signUpWithSupabaseAuth(
-      cleanEmail,
-      password,
-      { full_name: cleanName, role: "customer" },
-      "https://cloche-six.vercel.app/auth/callback"
-    );
-
-    if (authResult.error || !authResult.user) {
-      const errMsg = authResult.error?.message || "User creation failed.";
-      console.warn(`${logPrefix} Supabase Auth signup rejected: ${errMsg}`);
-      return NextResponse.json(
-        {
-          success: false,
-          statusCode: errMsg.toLowerCase().includes("already registered") ? 409 : 400,
-          error: {
-            code: errMsg.toLowerCase().includes("already registered") ? "EMAIL_EXISTS" : "SIGNUP_FAILED",
-            message: errMsg.toLowerCase().includes("already registered")
-              ? "An account with this email address already exists. Please log in instead."
-              : errMsg,
-          },
-        },
-        { status: errMsg.toLowerCase().includes("already registered") ? 409 : 400 }
-      );
-    }
-
-    const authUserId = authResult.user.id;
-    console.log(`${logPrefix} Step 1 Success: Supabase Auth user created (${authUserId}).`);
-
-    // Step 2: Execute atomic custom table database insert via RPC function
-    console.log(`${logPrefix} Step 2: Executing register_customer_atomic RPC transaction...`);
-    const rpcRes = await fetch(`${url}/rest/v1/rpc/register_customer_atomic`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        apikey: apiKey,
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        p_supabase_user_id: authUserId,
-        p_email: cleanEmail,
-        p_full_name: cleanName,
-        p_phone: cleanPhone,
-      }),
+    // Check if user already exists
+    const existingUser = await prisma.user.findUnique({
+      where: { email: cleanEmail }
     });
 
-    if (!rpcRes.ok) {
-      const errText = await rpcRes.text();
-      console.error(`${logPrefix} RPC transaction failed: ${errText}. Initiating Auth user deletion...`);
-
-      // Clean up Supabase Auth user on custom database failure to prevent orphan accounts
-      await deleteAdminSupabaseUser(authUserId);
-
+    if (existingUser) {
       return NextResponse.json(
         {
           success: false,
-          statusCode: 500,
-          error: { code: "CUSTOM_DB_INSERT_FAILED", message: `Database setup error: ${errText}` },
+          statusCode: 409,
+          error: {
+            code: "EMAIL_EXISTS",
+            message: "An account with this email address already exists. Please log in instead.",
+          },
         },
-        { status: 500 }
+        { status: 409 }
       );
     }
 
-    const rpcData = await rpcRes.json();
-    console.log(`${logPrefix} Step 2 Success: Custom DB records inserted atomically.`, rpcData);
+    // Step 1: Find or create the customer role
+    let customerRole = await prisma.role.findUnique({
+      where: { name: "customer" }
+    });
+    if (!customerRole) {
+      customerRole = await prisma.role.create({
+        data: { name: "customer", description: "Customer role for couples booking vendors" }
+      });
+    }
 
-    // Step 3: Dispatch Verification Email via Brevo to ensure 100% delivery to user's Gmail inbox
+    const passwordHash = hashPassword(password);
     const verificationToken = crypto.randomUUID();
-    await fetch(`${url}/rest/v1/users?id=eq.${encodeURIComponent(rpcData.user_id || authUserId)}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        apikey: apiKey,
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({ verification_token: verificationToken }),
-    }).catch(() => null);
 
+    // Step 2: Create user in PostgreSQL database via Prisma
+    console.log(`${logPrefix} Step 2: Creating user record in PostgreSQL...`);
+    const newUser = await prisma.user.create({
+      data: {
+        email: cleanEmail,
+        passwordHash,
+        fullName: cleanName,
+        name: cleanName,
+        phone: cleanPhone,
+        isActive: true,
+        isVerified: false,
+        verificationToken,
+        userRoles: {
+          create: {
+            roleId: customerRole.id
+          }
+        }
+      }
+    });
+
+    console.log(`${logPrefix} Step 2 Success: User created in PostgreSQL (${newUser.id}).`);
+
+    // Step 3: Dispatch Verification Email
     await sendVerificationMail({
       email: cleanEmail,
       name: cleanName,
       verificationToken,
       role: "customer",
+    }).catch((err) => {
+      console.error(`${logPrefix} Failed to send verification mail:`, err);
     });
 
     return NextResponse.json(
@@ -127,8 +97,7 @@ export async function POST(req: Request) {
         message: "Account created successfully! A confirmation email has been sent to your email inbox. Please click the link in the email to activate your account.",
         data: {
           user: {
-            id: rpcData.user_id || authUserId,
-            supabaseUserId: authUserId,
+            id: newUser.id,
             email: cleanEmail,
             fullName: cleanName,
             isVerified: false,

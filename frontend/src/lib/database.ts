@@ -7,6 +7,45 @@
  * Independent of Supabase configuration.
  */
 
+import { PrismaClient } from "@prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
+import { Pool } from "pg";
+
+const globalForPrisma = global as unknown as { prisma: PrismaClient | undefined; pool: Pool | undefined };
+
+const connectionString = process.env.DATABASE_URL;
+
+let prisma: PrismaClient;
+let pool: Pool;
+
+if (process.env.NODE_ENV === "production") {
+  if (!connectionString) {
+    throw new Error("DATABASE_URL is not set.");
+  }
+  pool = new Pool({
+    connectionString,
+    ssl: { rejectUnauthorized: false }
+  });
+  const adapter = new PrismaPg(pool);
+  prisma = new PrismaClient({ adapter });
+} else {
+  if (!globalForPrisma.prisma) {
+    if (!connectionString) {
+      throw new Error("DATABASE_URL is not set.");
+    }
+    globalForPrisma.pool = new Pool({
+      connectionString,
+      ssl: { rejectUnauthorized: false }
+    });
+    const adapter = new PrismaPg(globalForPrisma.pool);
+    globalForPrisma.prisma = new PrismaClient({ adapter });
+  }
+  prisma = globalForPrisma.prisma;
+  pool = globalForPrisma.pool!;
+}
+
+export { prisma, pool };
+
 export interface DatabaseConfig {
   connectionString: string | null;
   isConfigured: boolean;
