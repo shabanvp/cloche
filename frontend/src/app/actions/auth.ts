@@ -4,7 +4,6 @@ import { cookies } from "next/headers";
 import { verifyJwtToken, hashPassword, verifyPassword, signJwtToken, hashSessionToken, AUTH_COOKIE_NAME, SESSION_EXPIRY_DAYS } from "@/lib/auth";
 import { getSupabaseConfig, signInWithSupabaseAuth } from "@/lib/supabase";
 import { prisma } from "@/lib/database";
-import type { UserRole, Role } from "@prisma/client";
 const rawBaseUrl = process.env.NEXT_PUBLIC_API_URL || "https://cloche-backend.onrender.com";
 const API_BASE_URL = rawBaseUrl.endsWith('/api') ? rawBaseUrl : `${rawBaseUrl}/api`;
 
@@ -42,7 +41,7 @@ export async function login(formData: FormData) {
       if (user.passwordHash && verifyPassword(password, user.passwordHash)) {
         let userRoles: string[] = [role];
         if (user.userRoles && user.userRoles.length > 0) {
-          const rolesList = user.userRoles.map((ur: UserRole & { role: Role | null }) => ur.role?.name).filter((name): name is string => typeof name === "string");
+          const rolesList = (user.userRoles as Array<{ role: { name: string } | null }>).map(ur => ur.role?.name).filter((name): name is string => typeof name === "string");
           if (rolesList.length > 0) userRoles = rolesList;
         }
 
