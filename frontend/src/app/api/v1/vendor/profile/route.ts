@@ -46,7 +46,21 @@ export async function GET(req: Request) {
     }
 
     const vendor = vendors[0];
-    const rawProfile = Array.isArray(vendor.vendor_profiles) && vendor.vendor_profiles.length > 0 ? vendor.vendor_profiles[0] : {};
+    let rawProfile = Array.isArray(vendor.vendor_profiles) && vendor.vendor_profiles.length > 0 ? vendor.vendor_profiles[0] : null;
+
+    if ((!rawProfile || !rawProfile.business_name) && vendor.id) {
+      const pDirectRes = await fetch(`${url}/rest/v1/vendor_profiles?vendor_id=eq.${encodeURIComponent(vendor.id)}&select=*`, {
+        headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` }
+      }).catch(() => null);
+      if (pDirectRes && pDirectRes.ok) {
+        const pRows = await pDirectRes.json();
+        if (Array.isArray(pRows) && pRows.length > 0) {
+          rawProfile = pRows[0];
+        }
+      }
+    }
+    if (!rawProfile) rawProfile = {};
+
     const contacts = Array.isArray(vendor.vendor_contacts) ? vendor.vendor_contacts : [];
     const addresses = Array.isArray(vendor.vendor_addresses) ? vendor.vendor_addresses : [];
     const category = vendor.vendor_categories || null;
@@ -126,8 +140,8 @@ export async function GET(req: Request) {
           vendor: {
             id: vendor.id,
             vendorCode: vendor.vendor_code,
-            boutique_name: profile?.business_name || vendor.boutique_name || vendor.name || auth.user.fullName || "",
-            name: profile?.business_name || vendor.name || vendor.boutique_name || auth.user.fullName || "",
+            boutique_name: profile?.business_name || vendor.boutique_name || vendor.name || "",
+            name: profile?.business_name || vendor.name || vendor.boutique_name || "",
             owner_name: primaryContactName,
             ownerName: primaryContactName,
             status: vendor.status,
