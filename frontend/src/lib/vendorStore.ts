@@ -156,6 +156,20 @@ export async function fetchAuthenticatedVendorFromDb(): Promise<VendorProfileDat
 }
 
 /**
+ * Clears cached active vendor identity and user session caches on logout.
+ */
+export function clearActiveVendorIdentity() {
+  if (typeof window !== "undefined") {
+    try {
+      localStorage.removeItem("cloche_active_vendor_identity");
+      localStorage.removeItem("cloche_user_data");
+      localStorage.removeItem("cloche_registered_vendors");
+      sessionStorage.clear();
+    } catch (e) {}
+  }
+}
+
+/**
  * Retrieves current active vendor identity from session storage / auth
  */
 export function getActiveVendorIdentity(): VendorProfileData {
@@ -177,7 +191,22 @@ export function getActiveVendorIdentity(): VendorProfileData {
     const rawActive = localStorage.getItem("cloche_active_vendor_identity");
     if (rawActive) {
       const parsed = JSON.parse(rawActive);
-      if (parsed && parsed.id) return parsed;
+      if (parsed && parsed.id) {
+        // Validate cached identity belongs to currently authenticated user session
+        const cookieStr = document.cookie;
+        const match = cookieStr.match(/(?:^|;\s*)user_data=([^;]*)/);
+        if (match) {
+          try {
+            const u = JSON.parse(decodeURIComponent(match[1]));
+            if (u?.id && parsed.user_id && u.id !== parsed.user_id && u.id !== parsed.id) {
+              // User session mismatch! Purge stale cache
+              clearActiveVendorIdentity();
+              return emptyVendor;
+            }
+          } catch (_) {}
+        }
+        return parsed;
+      }
     }
   } catch (e) {}
 

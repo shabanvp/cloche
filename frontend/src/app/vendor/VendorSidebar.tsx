@@ -24,7 +24,7 @@ import {
 } from "lucide-react";
 import { logout } from "@/app/actions/auth";
 import { getCategoryMenuTitles } from "@/lib/vendor-navigation";
-import { fetchAuthenticatedVendorFromDb, getActiveVendorIdentity, calculateDynamicProfileCompletion } from "@/lib/vendorStore";
+import { fetchAuthenticatedVendorFromDb, getActiveVendorIdentity, clearActiveVendorIdentity, calculateDynamicProfileCompletion } from "@/lib/vendorStore";
 
 export function VendorSidebar() {
   const pathname = usePathname();
@@ -123,6 +123,7 @@ export function VendorSidebar() {
   ];
 
   const handleLogout = async () => {
+    clearActiveVendorIdentity();
     await logout();
     router.push("/vendor/login");
   };

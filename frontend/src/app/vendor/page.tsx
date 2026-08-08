@@ -20,55 +20,51 @@ import {
 } from "lucide-react";
 import { getCategoryMenuTitles } from "@/lib/vendor-navigation";
 import { logout } from "@/app/actions/auth";
+import { fetchAuthenticatedVendorFromDb, getActiveVendorIdentity, clearActiveVendorIdentity } from "@/lib/vendorStore";
 import VendorOverviewPage from "./overview/page";
 
 export default function VendorProfileMenuPage() {
   const router = useRouter();
-  const [vendorData, setVendorData] = useState<{
-    name: string;
-    category: string;
-    logo?: string;
-    plan?: string;
-  } | null>(null);
+  const [vendorData, setVendorData] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const loadVendorData = async () => {
+    const cached = getActiveVendorIdentity();
+    if (cached && cached.id) {
+      setVendorData(cached);
+    }
+
+    try {
+      const active = await fetchAuthenticatedVendorFromDb();
+      if (active && active.id) {
+        setVendorData(active);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const rawUserData = localStorage.getItem("cloche_user_data");
-        const rawVendors = localStorage.getItem("cloche_registered_vendors");
+    loadVendorData();
 
-        if (rawUserData) {
-          const u = JSON.parse(rawUserData);
-          setVendorData({
-            name: u.full_name || u.name || u.boutique_name || "Vendor Partner",
-            category: u.category || "Bridal Wear",
-            logo: u.logo || u.logo_url || u.image_url,
-            plan: u.plan || "Premium Partner",
-          });
-          return;
-        }
+    const handleUpdate = () => loadVendorData();
+    window.addEventListener("cloche_vendor_updated", handleUpdate);
+    window.addEventListener("cloche_cms_update", handleUpdate);
 
-        if (rawVendors) {
-          const list = JSON.parse(rawVendors);
-          if (list.length > 0) {
-            const active = list[0];
-            setVendorData({
-              name: active.boutique_name || active.name || active.businessName || "Vendor Partner",
-              category: active.category || "Bridal Wear",
-              logo: active.logo || active.logo_url || active.image_url,
-              plan: active.plan || "Premium Partner",
-            });
-          }
-        }
-      } catch (e) {}
-    }
+    return () => {
+      window.removeEventListener("cloche_vendor_updated", handleUpdate);
+      window.removeEventListener("cloche_cms_update", handleUpdate);
+    };
   }, []);
 
-  const name = vendorData?.name || "Vendor Partner";
-  const category = vendorData?.category || "Bridal Wear";
-  const logoUrl = vendorData?.logo || "";
-  const plan = vendorData?.plan || "Premium Partner";
-  const initial = name.charAt(0).toUpperCase();
+  const hasVendorRecord = Boolean(vendorData && vendorData.id);
+  const name = hasVendorRecord
+    ? (vendorData?.name || vendorData?.boutique_name || "Vendor Partner")
+    : (isLoading ? "" : "No vendor profile found");
+  const category = vendorData?.category || "";
+  const logoUrl = vendorData?.logo || vendorData?.logo_url || "";
+  const plan = vendorData?.plan || "Vendor Partner";
+  const initial = name ? name.charAt(0).toUpperCase() : "?";
 
   const isValidLogo = Boolean(
     logoUrl &&
@@ -93,6 +89,7 @@ export default function VendorProfileMenuPage() {
   ];
 
   const handleLogout = async () => {
+    clearActiveVendorIdentity();
     await logout();
     router.push("/vendor/login");
   };
