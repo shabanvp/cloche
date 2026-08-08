@@ -6,66 +6,33 @@ function normalizeImageUrl(value: any): string {
   const raw = String(value).trim();
   if (!raw) return "";
 
-  if (/^https?:\/\//i.test(raw) || /^data:image\//i.test(raw)) return raw;
-  if (raw.startsWith("/") && !raw.startsWith("//")) return raw;
+  let fullUrl = raw;
+  if (!/^https?:\/\//i.test(raw) && !/^data:image\//i.test(raw)) {
+    if (raw.startsWith("/") && !raw.startsWith("//")) {
+      fullUrl = raw;
+    } else {
+      const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "dycwsnzyd";
+      const cleanPath = raw.replace(/^\/+/, "");
+      fullUrl = `https://res.cloudinary.com/${cloudName}/image/upload/${cleanPath}`;
+    }
+  }
 
-  const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "dycwsnzyd";
-  const cleanPath = raw.replace(/^\/+/, "");
-  return `https://res.cloudinary.com/${cloudName}/image/upload/${cleanPath}`;
+  // Inject Cloudinary auto-formatting and resizing parameters (w_600, f_auto, q_auto)
+  if (fullUrl.includes("res.cloudinary.com") && fullUrl.includes("/image/upload/") && !fullUrl.includes("w_")) {
+    fullUrl = fullUrl.replace("/image/upload/", "/image/upload/w_600,c_limit,f_auto,q_auto/");
+  }
+
+  return fullUrl;
 }
 
 export async function GET() {
   try {
-    const rawBaseUrl = process.env.NEXT_PUBLIC_API_URL || "https://cloche-backend.onrender.com";
-    const API_BASE_URL = rawBaseUrl.endsWith("/api") ? rawBaseUrl : `${rawBaseUrl}/api`;
-
-    // 1. First attempt fetching from backend API
-    try {
-      const backendRes = await fetch(`${API_BASE_URL}/boutiques?cache_bust=${Date.now()}`, {
-        cache: "no-store",
-      });
-      if (backendRes.ok) {
-        const data = await backendRes.json();
-        if (Array.isArray(data) && data.length > 0) {
-          const normalizedBackend = data.map((b: any) => {
-            const logoRaw = b.logo_url || b.logo || b.profile_logo || "";
-            const coverRaw = b.cover_url || b.coverImage || b.image_url || "";
-            const normLogo = normalizeImageUrl(logoRaw);
-            const normCover = normalizeImageUrl(coverRaw);
-            return {
-              ...b,
-              logo_url: normLogo,
-              logo: normLogo,
-              profile_logo: normLogo,
-              cover_url: normCover,
-              image_url: normLogo || normCover,
-            };
-          });
-          return NextResponse.json(normalizedBackend);
-        }
-      }
-    } catch (e) {
-      console.warn("[/api/boutiques] Backend API fetch failed, querying Supabase directly:", (e as any)?.message);
-    }
-
-    // 2. Fetch showcase data for cover/showcase images ONLY
-    const showcaseMap = new Map<string, string>();
-    try {
-      const { data: showcases } = await supabaseFetch("boutique_showcase?select=*");
-      if (Array.isArray(showcases)) {
-        showcases.forEach((s: any) => {
-          if (s.boutique_id && s.image_url && !showcaseMap.has(s.boutique_id)) {
-            showcaseMap.set(s.boutique_id, normalizeImageUrl(s.image_url));
-          }
-        });
-      }
-    } catch (e) {}
-
-    // 3. Fetch media table data - strictly separate logo vs cover/showcase media
+    // 1. Fetch ONLY logo media from Supabase media table
     const logoMediaMap = new Map<string, string>();
-    const coverMediaMap = new Map<string, string>();
     try {
-      const { data: mediaRows } = await supabaseFetch("media?select=*&order=created_at.desc");
+      const { data: mediaRows } = await supabaseFetch(
+        "media?select=vendor_id,user_id,cdn_url,file_path,original_name,bucket_name,media_type&order=created_at.desc"
+      );
       if (Array.isArray(mediaRows)) {
         mediaRows.forEach((m: any) => {
           const url = m.cdn_url || m.file_path;
@@ -78,17 +45,14 @@ export async function GET() {
             (m.media_type || "")
           ).toLowerCase();
 
-          const isLogo = pathLower.includes("logo");
-          const isCoverOrShowcase = pathLower.includes("cover") || pathLower.includes("showcase");
-
-          const targetId = m.vendor_id || m.user_id;
-
-          if (targetId) {
-            if (isLogo && !logoMediaMap.has(targetId)) {
-              logoMediaMap.set(targetId, normalizeImageUrl(url));
-            } else if (isCoverOrShowcase && !coverMediaMap.has(targetId)) {
-              coverMediaMap.set(targetId, normalizeImageUrl(url));
-            }
+          if (pathLower.includes("logo")) {
+            const targets = [m.vendor_id, m.user_id].filter(Boolean);
+            targets.forEach((targetId) => {
+              const idStr = String(targetId);
+              if (!logoMediaMap.has(idStr)) {
+                logoMediaMap.set(idStr, normalizeImageUrl(url));
+              }
+            });
           }
         });
       }
@@ -97,30 +61,21 @@ export async function GET() {
     const resultList: any[] = [];
     const seenIds = new Set<string>();
 
-    // 4. Query Supabase 'boutiques' table directly
-    const { data: boutiques, error: bErr } = await supabaseFetch("boutiques?select=*&order=created_at.desc");
+    // 2. Query Supabase 'boutiques' table - ONLY fetch essential listing fields & logo_url (NO cover image queries)
+    const { data: boutiques, error: bErr } = await supabaseFetch(
+      "boutiques?select=id,boutique_name,name,city,area,district,category,tags,rating,starting_price,plan,is_verified,logo_url,logo,profile_logo&order=created_at.desc"
+    );
 
     if (!bErr && Array.isArray(boutiques) && boutiques.length > 0) {
       boutiques.forEach((b: any) => {
-        // Strictly resolve true logo picture (DO NOT fallback to showcase or cover images!)
         const rawLogoPic =
           b.logo_url ||
           b.logo ||
           b.profile_logo ||
-          logoMediaMap.get(b.id) ||
-          "";
-
-        const rawCoverPic =
-          b.cover_url ||
-          b.coverImage ||
-          showcaseMap.get(b.id) ||
-          coverMediaMap.get(b.id) ||
-          b.image_url ||
+          logoMediaMap.get(String(b.id)) ||
           "";
 
         const logoPic = normalizeImageUrl(rawLogoPic);
-        const coverPic = normalizeImageUrl(rawCoverPic);
-
         const bId = String(b.id);
         seenIds.add(bId);
 
@@ -131,8 +86,6 @@ export async function GET() {
           logo_url: logoPic,
           logo: logoPic,
           profile_logo: logoPic,
-          cover_url: coverPic,
-          image_url: logoPic || coverPic,
           city: b.city || "Kochi",
           area: b.area || b.district || "Kerala",
           category: b.category || b.tags || "Bridal Wear",
@@ -145,9 +98,9 @@ export async function GET() {
       });
     }
 
-    // 5. Query Supabase 'vendors' & 'vendor_profiles' tables directly for registered vendor accounts
+    // 3. Query Supabase 'vendors' & 'vendor_profiles' for registered vendor accounts - ONLY logo fields
     const { data: vendors, error: vErr } = await supabaseFetch(
-      "vendors?select=*,vendor_profiles(*),vendor_addresses(*),vendor_categories(*)"
+      "vendors?select=id,boutique_name,name,category,city,district,is_verified,plan,vendor_profiles(business_name,city,state,starting_price,logo_url),vendor_addresses(city,state),vendor_categories(name)"
     );
 
     if (!vErr && Array.isArray(vendors) && vendors.length > 0) {
@@ -161,11 +114,15 @@ export async function GET() {
         const bName = p.business_name || v.boutique_name || v.name;
 
         if (bName) {
-          const rawLogoPic = p.logo_url || v.logo_url || v.logo || logoMediaMap.get(v.id) || logoMediaMap.get(v.user_id) || "";
-          const rawCoverPic = p.cover_image || v.cover_url || coverMediaMap.get(v.id) || coverMediaMap.get(v.user_id) || "";
+          const rawLogoPic =
+            p.logo_url ||
+            v.logo_url ||
+            v.logo ||
+            logoMediaMap.get(vId) ||
+            (v.user_id ? logoMediaMap.get(String(v.user_id)) : "") ||
+            "";
 
           const logoPic = normalizeImageUrl(rawLogoPic);
-          const coverPic = normalizeImageUrl(rawCoverPic);
 
           resultList.push({
             id: v.id,
@@ -174,8 +131,6 @@ export async function GET() {
             logo_url: logoPic,
             logo: logoPic,
             profile_logo: logoPic,
-            cover_url: coverPic,
-            image_url: logoPic || coverPic,
             city: a.city || p.city || v.city || "Kochi",
             area: a.state || p.state || v.district || "Kerala",
             category: cat,
@@ -189,7 +144,11 @@ export async function GET() {
       });
     }
 
-    return NextResponse.json(resultList);
+    return NextResponse.json(resultList, {
+      headers: {
+        "Cache-Control": "public, max-age=60, s-maxage=300, stale-while-revalidate=600",
+      },
+    });
   } catch (err: any) {
     console.error("[/api/boutiques] Error fetching database vendors:", err);
     return NextResponse.json([], { status: 500 });

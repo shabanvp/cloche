@@ -45,8 +45,8 @@ export async function getAllProducts(): Promise<Product[]> {
 
 export async function getAllBoutiques(): Promise<Boutique[]> {
   try {
-    const res = await fetch(`${API_BASE_URL}/boutiques?cache_bust=${Date.now()}`, {
-      cache: "no-store",
+    const res = await fetch(`${API_BASE_URL}/boutiques`, {
+      next: { revalidate: 60 },
     });
     if (res.ok) {
       const data = await res.json();
@@ -56,13 +56,15 @@ export async function getAllBoutiques(): Promise<Boutique[]> {
     console.error("getAllBoutiques backend fetch error:", error);
   }
 
-  // Direct Supabase database fallback for server-side rendering
+  // Direct Supabase database fallback for server-side rendering - query ONLY logo fields
   try {
     const { supabaseFetch } = await import("@/lib/supabase");
-    const { data, error } = await supabaseFetch("boutiques?select=*&order=created_at.desc");
+    const { data, error } = await supabaseFetch(
+      "boutiques?select=id,boutique_name,name,city,area,district,category,tags,rating,starting_price,plan,is_verified,logo_url,logo,profile_logo&order=created_at.desc"
+    );
     if (!error && Array.isArray(data) && data.length > 0) {
       return data.map((b: any) => {
-        const logo = b.logo_url || b.logo || b.profile_logo || b.image_url || b.cover_url || b.coverImage || "";
+        const logo = b.logo_url || b.logo || b.profile_logo || "";
         return {
           ...b,
           id: b.id,
@@ -70,8 +72,6 @@ export async function getAllBoutiques(): Promise<Boutique[]> {
           logo_url: logo,
           logo: logo,
           profile_logo: logo,
-          image_url: b.image_url || logo,
-          cover_url: b.cover_url || logo,
           city: b.city || "Kochi",
           area: b.area || b.district || "Kerala",
           tags: b.tags || b.category || "Bridal Wear",

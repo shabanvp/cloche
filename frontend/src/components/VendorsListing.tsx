@@ -116,12 +116,23 @@ function normalizeImageUrl(value: any): string {
   const raw = String(value).trim();
   if (!raw) return "";
 
-  if (/^https?:\/\//i.test(raw) || /^data:image\//i.test(raw)) return raw;
-  if (raw.startsWith("/") && !raw.startsWith("//")) return raw;
+  let fullUrl = raw;
+  if (!/^https?:\/\//i.test(raw) && !/^data:image\//i.test(raw)) {
+    if (raw.startsWith("/") && !raw.startsWith("//")) {
+      fullUrl = raw;
+    } else {
+      const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "dycwsnzyd";
+      const cleanPath = raw.replace(/^\/+/, "");
+      fullUrl = `https://res.cloudinary.com/${cloudName}/image/upload/${cleanPath}`;
+    }
+  }
 
-  const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "dycwsnzyd";
-  const cleanPath = raw.replace(/^\/+/, "");
-  return `https://res.cloudinary.com/${cloudName}/image/upload/${cleanPath}`;
+  // Inject Cloudinary auto-formatting and resizing parameters (w_600, f_auto, q_auto)
+  if (fullUrl.includes("res.cloudinary.com") && fullUrl.includes("/image/upload/") && !fullUrl.includes("w_")) {
+    fullUrl = fullUrl.replace("/image/upload/", "/image/upload/w_600,c_limit,f_auto,q_auto/");
+  }
+
+  return fullUrl;
 }
 
 export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingProps) {
@@ -157,37 +168,35 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
         if (rawVendors) localList.push(...JSON.parse(rawVendors));
         if (rawBoutiques) localList.push(...JSON.parse(rawBoutiques));
 
-        // Client-side fetch backup to ensure all DB vendors are retrieved
+        // Client-side fetch backup (uses HTTP caching)
         const loadRealDbVendors = async () => {
           const mergedMap = new Map<string, any>();
           const seenNames = new Set<string>();
           let dbItems = initialBoutiques || [];
 
           try {
-            const res = await fetch("/api/boutiques?cache_bust=" + Date.now());
+            const res = await fetch("/api/boutiques");
             if (res.ok) {
               const data = await res.json();
               if (Array.isArray(data) && data.length > 0) {
-                // Combine server-side initialBoutiques and client-side fetched database vendors
                 const combined = [...dbItems, ...data];
                 dbItems = combined;
               }
             }
           } catch (e) {}
 
-          // 1. Database fetched boutiques get top priority for real DB profile images
+          // 1. Database fetched boutiques get top priority for real DB logo images ONLY
           dbItems.forEach((item) => {
             const itemKey = String(item.id || item.boutique_name);
             const normName = (item.boutique_name || "").toLowerCase().trim();
             if (itemKey && normName) {
               seenNames.add(normName);
-              const logoSrc = item.logo_url || item.logo || (item as any).profile_logo || item.image_url || (item as any).cover_url || (item as any).coverImage || "";
+              const logoSrc = item.logo_url || item.logo || (item as any).profile_logo || "";
               mergedMap.set(itemKey, {
                 ...item,
                 logo_url: logoSrc,
                 logo: logoSrc,
                 profile_logo: logoSrc,
-                image_url: item.image_url || logoSrc,
               });
             }
           });
@@ -199,13 +208,12 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
               const normName = (item.boutique_name || item.name || "").toLowerCase().trim();
               if (itemKey && normName) {
                 const existing = mergedMap.get(itemKey);
-                const logoSrc = item.logo_url || item.logo || item.profile_logo || item.image_url || item.image || item.coverImage || item.cover || "";
+                const logoSrc = item.logo_url || item.logo || item.profile_logo || item.image || "";
                 if (!existing) {
                   seenNames.add(normName);
                   mergedMap.set(itemKey, {
                     id: itemKey,
                     boutique_name: item.boutique_name || item.name || "Wedding Vendor",
-                    image_url: logoSrc,
                     logo_url: logoSrc,
                     profile_logo: logoSrc,
                     logo: logoSrc,
@@ -218,160 +226,186 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
                 } else if (logoSrc) {
                   existing.logo_url = existing.logo_url || logoSrc;
                   existing.logo = existing.logo || logoSrc;
-                  existing.profile_logo = existing.profile_logo || logoSrc;
-                  existing.image_url = existing.image_url || logoSrc;
                 }
               }
             });
           }
 
-          setBoutiquesList(Array.from(mergedMap.values()));
+          const finalList = Array.from(mergedMap.values());
+          if (finalList.length > 0) {
+            setBoutiquesList(finalList);
+          }
         };
 
         loadRealDbVendors();
-        return () => window.removeEventListener("cloche_wishlist_updated", updateWishlistSet);
-      } catch (e) {}
+      } catch (e) {
+        console.error("Local vendor sync error:", e);
+      }
+
+      return () => window.removeEventListener("cloche_wishlist_updated", updateWishlistSet);
     }
   }, [initialBoutiques]);
-
-  const filtered = useMemo(() => {
-    return boutiquesList.filter((b) => {
-      const category = resolveCategory(b);
-      const matchesSearch =
-        (b.boutique_name || "").toLowerCase().includes(search.toLowerCase()) ||
-        (b.city || "").toLowerCase().includes(search.toLowerCase()) ||
-        (b.area || "").toLowerCase().includes(search.toLowerCase()) ||
-        category.toLowerCase().includes(search.toLowerCase());
-
-      const targetKeyword = FILTER_MATCH[activeFilter].toLowerCase();
-      const matchesFilter =
-        activeFilter === "All" ||
-        category.toLowerCase().includes(targetKeyword) ||
-        (b.tags || "").toLowerCase().includes(targetKeyword) ||
-        (b.boutique_name || "").toLowerCase().includes(targetKeyword);
-
-      return matchesSearch && matchesFilter;
-    });
-  }, [boutiquesList, search, activeFilter]);
 
   const toggleWishlist = (e: React.MouseEvent, boutique: Boutique) => {
     e.preventDefault();
     e.stopPropagation();
     const { toggleWishlistItem } = require("@/lib/wishlistStore");
-    const category = resolveCategory(boutique);
     toggleWishlistItem({
       id: boutique.id,
       name: boutique.boutique_name,
-      category,
-      city: boutique.city || boutique.area || "Kerala",
-      boutique_name: boutique.boutique_name,
+      category: resolveCategory(boutique),
+      price: boutique.starting_price || "₹50,000",
+      image: boutique.logo_url || boutique.logo || boutique.image_url,
+      location: boutique.city || boutique.area || "Kochi, Kerala",
+      city: boutique.city || "Kochi",
       rating: boutique.rating || 4.8,
-      image: boutique.logo_url || boutique.image_url || (boutique as any).coverImage || (boutique as any).logo,
     });
   };
 
+  const filtered = useMemo(() => {
+    let result = boutiquesList;
+
+    if (activeFilter !== "All") {
+      const matchTerm = FILTER_MATCH[activeFilter];
+      if (matchTerm) {
+        result = result.filter((b) => {
+          const tags = (b.tags || "").toLowerCase();
+          const name = (b.boutique_name || "").toLowerCase();
+          const category = resolveCategory(b).toLowerCase();
+          return tags.includes(matchTerm) || name.includes(matchTerm) || category.includes(matchTerm);
+        });
+      }
+    }
+
+    if (search.trim()) {
+      const q = search.toLowerCase().trim();
+      result = result.filter(
+        (b) =>
+          b.boutique_name.toLowerCase().includes(q) ||
+          (b.city && b.city.toLowerCase().includes(q)) ||
+          (b.area && b.area.toLowerCase().includes(q)) ||
+          (b.tags && b.tags.toLowerCase().includes(q))
+      );
+    }
+
+    return result;
+  }, [boutiquesList, activeFilter, search]);
+
   return (
-    <div className="min-h-screen bg-[#FAF7F2] flex flex-col font-sans">
-      {/* ── Top Header Bar ── */}
-      <header className="flex items-center justify-between px-4 pt-4 pb-2">
-        <Link
-          href="/"
-          className="flex h-10 w-10 items-center justify-center rounded-full bg-[#EDE7DD] text-charcoal transition-colors hover:bg-[#E2D8C8]"
-          aria-label="Go back to home"
-        >
-          <ArrowLeft className="h-5 w-5" style={{ color: "#0F4C45" }} />
-        </Link>
-        <h1
-          className="font-serif text-[24px] font-bold tracking-tight text-center flex-1"
-          style={{ color: "#0F4C45" }}
-        >
-          Vendors
-        </h1>
-        <button
-          type="button"
-          className="flex h-10 w-10 items-center justify-center rounded-full bg-[#EDE7DD] transition-colors hover:bg-[#E2D8C8]"
-          aria-label="Filter vendors"
-        >
-          <SlidersHorizontal className="h-5 w-5" style={{ color: "#0F4C45" }} />
-        </button>
+    <div className="min-h-screen bg-[#FAF7F2] font-sans pb-24 md:pb-12 text-charcoal">
+      {/* Search Header */}
+      <header className="sticky top-0 z-30 bg-[#FAF7F2]/95 backdrop-blur-md border-b border-gold/15 px-4 py-3 sm:px-6">
+        <div className="max-w-6xl mx-auto flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 flex-1">
+            <Link
+              href="/"
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-white border border-gold/20 text-charcoal hover:bg-gold/10 transition-colors shadow-2xs shrink-0"
+              aria-label="Back to home"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Link>
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-charcoal/40" />
+              <input
+                type="search"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search vendors..."
+                className="w-full bg-white border border-gold/20 rounded-full pl-9 pr-4 py-2 text-xs sm:text-sm text-charcoal placeholder:text-charcoal/40 focus:outline-none focus:border-[#0F4C45] focus:ring-1 focus:ring-[#0F4C45]/20 transition-all shadow-2xs"
+              />
+            </div>
+          </div>
+          <button
+            type="button"
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-white border border-gold/20 text-charcoal hover:bg-gold/10 transition-colors shadow-2xs shrink-0 md:hidden"
+            aria-label="Filters"
+          >
+            <SlidersHorizontal className="h-4 w-4 text-[#0F4C45]" />
+          </button>
+        </div>
       </header>
 
-      {/* ── Search Bar ── */}
-      <div className="px-4 pb-3">
-        <div
-          className="flex items-center gap-3 rounded-2xl px-4 py-3 bg-white border border-gold/15 shadow-xs"
-        >
-          <Search className="h-4 w-4 shrink-0 text-charcoal/40" />
-          <input
-            type="text"
-            placeholder="Search vendors..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="flex-1 bg-transparent text-[15px] outline-none placeholder:text-charcoal/40 text-charcoal"
-          />
+      {/* Main Content */}
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 pt-4 sm:pt-6">
+        {/* Category Pills Bar */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-3 mb-4 scrollbar-none">
+          {CATEGORY_FILTERS.map((cat) => {
+            const isSelected = activeFilter === cat;
+            return (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => setActiveFilter(cat)}
+                className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 border ${
+                  isSelected
+                    ? "bg-[#0F4C45] text-white border-[#0F4C45] shadow-xs"
+                    : "bg-white text-charcoal/70 border-gold/20 hover:border-[#0F4C45] hover:text-[#0F4C45]"
+                }`}
+              >
+                {cat}
+              </button>
+            );
+          })}
         </div>
-      </div>
 
-      {/* ── Filter Chips ── */}
-      <div
-        className="flex gap-2 overflow-x-auto px-4 pb-4 scrollbar-none"
-        style={{ WebkitOverflowScrolling: "touch" } as React.CSSProperties}
-      >
-        {CATEGORY_FILTERS.map((f) => {
-          const active = activeFilter === f;
-          return (
-            <button
-              key={f}
-              type="button"
-              onClick={() => setActiveFilter(f)}
-              aria-label={`Filter by ${f}`}
-              className="shrink-0 rounded-full px-4 py-1.5 text-[13px] font-semibold transition-all cursor-pointer"
-              style={{
-                background: active ? "#0F4C45" : "#FFFFFF",
-                color: active ? "#FFFFFF" : "#4A3F35",
-                border: active ? "none" : "1px solid #E2D5C0",
-              }}
+        {/* Location & Sort Bar */}
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-5 pb-3 border-b border-gold/15">
+          <div className="flex items-center gap-2">
+            <select
+              className="bg-white border border-gold/20 rounded-xl px-3 py-1.5 text-xs font-bold text-charcoal focus:outline-none focus:border-[#0F4C45] shadow-2xs cursor-pointer"
+              defaultValue="All Locations"
             >
-              {f}
-            </button>
-          );
-        })}
-      </div>
+              <option value="All Locations">All Locations</option>
+              <option value="Kochi">Kochi</option>
+              <option value="Thrissur">Thrissur</option>
+              <option value="Trivandrum">Trivandrum</option>
+              <option value="Kozhikode">Kozhikode</option>
+            </select>
+            <select
+              className="bg-white border border-gold/20 rounded-xl px-3 py-1.5 text-xs font-bold text-charcoal focus:outline-none focus:border-[#0F4C45] shadow-2xs cursor-pointer"
+              defaultValue="Popularity"
+            >
+              <option value="Popularity">Popularity</option>
+              <option value="Rating">Top Rated</option>
+              <option value="PriceLow">Price: Low to High</option>
+              <option value="PriceHigh">Price: High to Low</option>
+            </select>
+          </div>
+          <span className="text-xs font-bold text-charcoal/60">
+            Showing 1-{filtered.length} of {filtered.length} {activeFilter === "All" ? "vendors" : activeFilter.toLowerCase()}
+          </span>
+        </div>
 
-      {/* ── Vendors Grid ── */}
-      <div className="flex-1 px-4 mb-28">
+        {/* Vendor Cards Listing Grid */}
         {filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center px-6 bg-white rounded-2xl border border-gold/15">
-            <Users className="h-10 w-10 mb-4 text-gold" />
-            <p className="font-serif text-[20px] text-[#0F4C45] font-bold">
-              No vendors found
-            </p>
-            <p className="mt-2 text-sm text-charcoal/60">
+          <div className="bg-white rounded-3xl p-12 text-center border border-gold/15 shadow-sm space-y-3 my-8">
+            <div className="w-14 h-14 bg-[#0F4C45]/10 text-[#0F4C45] rounded-full flex items-center justify-center mx-auto">
+              <Users className="w-7 h-7" />
+            </div>
+            <h3 className="text-lg font-serif font-bold text-charcoal">No Vendors Found</h3>
+            <p className="text-xs text-charcoal/60 max-w-sm mx-auto">
               Try adjusting your search or filters.
             </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-            {filtered.map((boutique) => {
+            {filtered.map((boutique, index) => {
               const isWishlisted = wishlist.has(boutique.id);
               const category = resolveCategory(boutique);
               const detailHref = resolveDetailHref(boutique);
+              const isPriority = index < 4;
 
-              const rawImage = (
+              // Strictly resolve LOGO image ONLY (Do NOT request or load cover images)
+              const rawLogo = (
                 boutique.logo_url ||
                 boutique.logo ||
                 (boutique as any).profile_logo ||
                 (boutique as any).profile_pic ||
                 (boutique as any).avatar ||
-                boutique.image_url ||
-                boutique.cover_url ||
-                (boutique as any).coverImage ||
-                (boutique as any).cover ||
-                (boutique as any).image ||
                 ""
               ).toString().trim();
 
-              const displayImage = normalizeImageUrl(rawImage);
+              const displayImage = normalizeImageUrl(rawLogo);
 
               const isValidImage = Boolean(
                 displayImage &&
@@ -391,33 +425,21 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
                 ? (boutique.id.toString().length % 2 === 0 ? "Outdoor" : "Indoor")
                 : category;
 
-              const specialtyTag = category.includes("Venue")
-                ? "Grand Ballroom"
-                : category.includes("Makeup")
-                ? "Bridal Makeover"
-                : category.includes("Photo")
-                ? "Cinematic Films"
-                : category.includes("Decor")
-                ? "Luxury Wedding Setup"
-                : category.includes("Cater")
-                ? "Royal Feast"
-                : category.includes("Jewel")
-                ? "Kundan & Gold"
-                : "Luxury Partner";
-
               return (
                 <Link
                   key={boutique.id}
                   href={detailHref}
                   className="bg-white rounded-2xl border border-gold/15 shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col justify-between group"
                 >
-                  {/* Card Image Header - Single Main Image Container */}
+                  {/* Card Image Header - Single Main Image Container displaying Vendor LOGO */}
                   <div className="relative aspect-[4/3] w-full overflow-hidden bg-[#0F4C45]">
                     {isValidImage ? (
                       <Image
                         src={displayImage}
                         alt={boutique.boutique_name || "Vendor"}
                         fill
+                        priority={isPriority}
+                        loading={isPriority ? "eager" : "lazy"}
                         sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                         className="object-cover group-hover:scale-105 transition-transform duration-500"
                         unoptimized={displayImage.startsWith("data:")}
@@ -474,16 +496,15 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
                         <MapPin className="h-3.5 w-3.5 text-charcoal/40 shrink-0" />
                         <span>{locationText}</span>
                       </p>
-
-                      <p className="text-xs font-semibold text-charcoal pt-1">
-                        Starts from <span className="font-bold text-[#0F4C45]">{startingPrice}</span>
-                      </p>
                     </div>
 
-                    {/* Specialty Pill */}
-                    <div className="pt-2">
-                      <span className="inline-block bg-rose-50 text-rose-700 text-[10px] font-bold px-2.5 py-1 rounded-md border border-rose-100">
-                        {specialtyTag}
+                    <div className="pt-2 border-t border-gold/10 flex items-center justify-between">
+                      <div>
+                        <span className="text-[10px] text-charcoal/50 block">Starts from</span>
+                        <span className="text-sm font-bold text-[#0F4C45]">{startingPrice}</span>
+                      </div>
+                      <span className="text-xs font-bold text-[#0F4C45] group-hover:translate-x-0.5 transition-transform flex items-center gap-1">
+                        View Profile &rarr;
                       </span>
                     </div>
                   </div>
@@ -492,7 +513,7 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
             })}
           </div>
         )}
-      </div>
+      </main>
 
       <BottomNavBar activeTab="vendors" />
     </div>
