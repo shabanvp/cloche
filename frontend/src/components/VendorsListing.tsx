@@ -14,6 +14,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { BottomNavBar } from "@/components/BottomNavBar";
+import { AutocompleteSearch } from "@/components/AutocompleteSearch";
 import { Boutique } from "@/types";
 
 // Map tags / plan keywords to display category labels
@@ -306,16 +307,7 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
           >
             <ArrowLeft className="h-4 w-4" />
           </Link>
-          <div className="relative w-full max-w-sm sm:max-w-md md:w-[420px] lg:w-[480px]">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-charcoal/40" />
-            <input
-              type="search"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search vendors..."
-              className="w-full bg-white border border-gold/20 rounded-full pl-9 pr-4 py-2 text-xs sm:text-sm text-charcoal placeholder:text-charcoal/40 focus:outline-none focus:border-[#0F4C45] focus:ring-1 focus:ring-[#0F4C45]/20 transition-all shadow-2xs"
-            />
-          </div>
+          <AutocompleteSearch placeholder="Search vendors..." className="w-full max-w-sm sm:max-w-md md:w-[420px] lg:w-[480px]" />
           <button
             type="button"
             className="flex h-9 w-9 items-center justify-center rounded-full bg-white border border-gold/20 text-charcoal hover:bg-gold/10 transition-colors shadow-2xs shrink-0 md:hidden ml-auto"

@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Footer } from "@/components/Footer";
 import { AdBanner } from "@/components/AdBanner";
+import { AutocompleteSearch } from "@/components/AutocompleteSearch";
 
 export const dynamic = 'force-dynamic';
 
@@ -173,14 +174,8 @@ export default function Home() {
               Find the best wedding vendors with thousands of trusted reviews
             </p>
             
-            <div className="flex bg-white rounded-xl overflow-hidden shadow-2xl mt-6 max-w-xl">
-              <div className="bg-primary w-14 md:w-16 flex items-center justify-center">
-                <span className="material-symbols-outlined text-white text-2xl">search</span>
-              </div>
-              <Link href="/search" className="flex-1 px-4 py-4 text-left text-on-surface-variant font-medium flex justify-between items-center group">
-                <span className="text-sm md:text-base text-gray-700 font-medium">Search for vendors, venues, or boutiques...</span>
-                <span className="material-symbols-outlined text-primary group-hover:translate-x-1 transition-transform">chevron_right</span>
-              </Link>
+            <div className="mt-6 max-w-xl">
+              <AutocompleteSearch placeholder="Search for vendors, venues, or boutiques..." />
             </div>
           </div>
         </section>
