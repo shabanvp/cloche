@@ -144,72 +144,77 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
         if (rawVendors) localList.push(...JSON.parse(rawVendors));
         if (rawBoutiques) localList.push(...JSON.parse(rawBoutiques));
 
-        const mergedMap = new Map<string, any>();
-        const seenNames = new Set<string>();
-
-        // 1. Database fetched boutiques (initialBoutiques) get top priority for real DB profile images
-        initialBoutiques.forEach((item) => {
-          const itemKey = String(item.id || item.boutique_name);
-          const normName = (item.boutique_name || "").toLowerCase().trim();
-          if (itemKey && normName) {
-            seenNames.add(normName);
-            const logoSrc = item.logo_url || item.logo || (item as any).profile_logo || item.image_url || (item as any).cover_url || (item as any).coverImage || "";
-            mergedMap.set(itemKey, {
-              ...item,
-              logo_url: logoSrc,
-              logo: logoSrc,
-              profile_logo: logoSrc,
-              image_url: item.image_url || logoSrc,
-            });
-          }
-        });
-
-        // 2. Local storage registered vendors
-        if (localList.length > 0) {
-          localList.forEach((item) => {
-            const itemKey = String(item.id || item.slug || item.boutique_name);
-            const normName = (item.boutique_name || item.name || "").toLowerCase().trim();
-            if (itemKey && normName) {
-              const existing = mergedMap.get(itemKey);
-              const logoSrc = item.logo_url || item.logo || item.profile_logo || item.image_url || item.image || item.coverImage || item.cover || "";
-              if (!existing) {
-                seenNames.add(normName);
-                mergedMap.set(itemKey, {
-                  id: itemKey,
-                  boutique_name: item.boutique_name || item.name || "Wedding Vendor",
-                  image_url: logoSrc,
-                  logo_url: logoSrc,
-                  profile_logo: logoSrc,
-                  logo: logoSrc,
-                  rating: item.rating || 4.8,
-                  city: item.city || "Kochi",
-                  area: item.district || item.location || "Kerala",
-                  tags: item.category || item.tags || "Bridal Boutique",
-                  starting_price: item.startingPrice || item.starting_price || "₹50,000",
-                });
-              } else if (logoSrc) {
-                existing.logo_url = existing.logo_url || logoSrc;
-                existing.logo = existing.logo || logoSrc;
-                existing.profile_logo = existing.profile_logo || logoSrc;
-                existing.image_url = existing.image_url || logoSrc;
+        // Client-side fetch backup if initialBoutiques is empty
+        const loadRealDbVendors = async () => {
+          const mergedMap = new Map<string, any>();
+          const seenNames = new Set<string>();
+          let dbItems = initialBoutiques;
+          if (!dbItems || dbItems.length === 0) {
+            try {
+              const res = await fetch("/api/boutiques?cache_bust=" + Date.now());
+              if (res.ok) {
+                const data = await res.json();
+                if (Array.isArray(data) && data.length > 0) {
+                  dbItems = data;
+                }
               }
+            } catch (e) {}
+          }
+
+          // 1. Database fetched boutiques get top priority for real DB profile images
+          dbItems.forEach((item) => {
+            const itemKey = String(item.id || item.boutique_name);
+            const normName = (item.boutique_name || "").toLowerCase().trim();
+            if (itemKey && normName) {
+              seenNames.add(normName);
+              const logoSrc = item.logo_url || item.logo || (item as any).profile_logo || item.image_url || (item as any).cover_url || (item as any).coverImage || "";
+              mergedMap.set(itemKey, {
+                ...item,
+                logo_url: logoSrc,
+                logo: logoSrc,
+                profile_logo: logoSrc,
+                image_url: item.image_url || logoSrc,
+              });
             }
           });
-        }
 
-        // 3. Fallback System Vendors across all categories
-        const { getAllSystemVendors } = require("@/lib/allSystemVendors");
-        const systemVendors = getAllSystemVendors();
-        systemVendors.forEach((item: any) => {
-          const itemKey = String(item.id || item.boutique_name);
-          const normName = (item.boutique_name || "").toLowerCase().trim();
-          if (itemKey && normName && !mergedMap.has(itemKey) && !seenNames.has(normName)) {
-            seenNames.add(normName);
-            mergedMap.set(itemKey, item);
+          // 2. Local storage registered vendors
+          if (localList.length > 0) {
+            localList.forEach((item) => {
+              const itemKey = String(item.id || item.slug || item.boutique_name);
+              const normName = (item.boutique_name || item.name || "").toLowerCase().trim();
+              if (itemKey && normName) {
+                const existing = mergedMap.get(itemKey);
+                const logoSrc = item.logo_url || item.logo || item.profile_logo || item.image_url || item.image || item.coverImage || item.cover || "";
+                if (!existing) {
+                  seenNames.add(normName);
+                  mergedMap.set(itemKey, {
+                    id: itemKey,
+                    boutique_name: item.boutique_name || item.name || "Wedding Vendor",
+                    image_url: logoSrc,
+                    logo_url: logoSrc,
+                    profile_logo: logoSrc,
+                    logo: logoSrc,
+                    rating: item.rating || 4.8,
+                    city: item.city || "Kochi",
+                    area: item.district || item.location || "Kerala",
+                    tags: item.category || item.tags || "Bridal Boutique",
+                    starting_price: item.startingPrice || item.starting_price || "₹50,000",
+                  });
+                } else if (logoSrc) {
+                  existing.logo_url = existing.logo_url || logoSrc;
+                  existing.logo = existing.logo || logoSrc;
+                  existing.profile_logo = existing.profile_logo || logoSrc;
+                  existing.image_url = existing.image_url || logoSrc;
+                }
+              }
+            });
           }
-        });
 
-        setBoutiquesList(Array.from(mergedMap.values()));
+          setBoutiquesList(Array.from(mergedMap.values()));
+        };
+
+        loadRealDbVendors();
         return () => window.removeEventListener("cloche_wishlist_updated", updateWishlistSet);
       } catch (e) {}
     }
