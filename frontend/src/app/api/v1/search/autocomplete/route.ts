@@ -17,10 +17,6 @@ function normalizeImageUrl(value: any): string {
     }
   }
 
-  if (fullUrl.includes("res.cloudinary.com") && fullUrl.includes("/image/upload/") && !fullUrl.includes("w_")) {
-    fullUrl = fullUrl.replace("/image/upload/", "/image/upload/w_200,c_limit,f_auto,q_auto/");
-  }
-
   return fullUrl;
 }
 
@@ -46,97 +42,75 @@ export async function GET(req: Request) {
     const query = (searchParams.get("q") || "").trim().toLowerCase();
 
     if (!query) {
-      return NextResponse.json({ success: true, results: [], groups: {} });
+      return NextResponse.json({ success: true, results: [], groups: {}, totalMatches: 0 });
     }
-
-    // 1. Fetch logo media map
-    const logoMediaMap = new Map<string, string>();
-    try {
-      const { data: mediaRows } = await supabaseFetch("media?select=*&order=created_at.desc");
-      if (Array.isArray(mediaRows)) {
-        mediaRows.forEach((m: any) => {
-          const url = m.cdn_url || m.file_path;
-          if (!url) return;
-          const pathLower = (
-            (m.file_path || "") + " " +
-            (m.original_name || "") + " " +
-            (m.bucket_name || "") + " " +
-            (m.media_type || "")
-          ).toLowerCase();
-
-          if (pathLower.includes("logo")) {
-            const targets = [m.vendor_id, m.user_id, m.boutique_id].filter(Boolean);
-            targets.forEach((t) => {
-              const tStr = String(t);
-              if (!logoMediaMap.has(tStr)) {
-                logoMediaMap.set(tStr, normalizeImageUrl(url));
-              }
-            });
-          }
-        });
-      }
-    } catch (e) {}
 
     const itemsMap = new Map<string, any>();
 
-    // 2. Query Supabase 'boutiques' table
-    const { data: boutiques } = await supabaseFetch("boutiques?select=*&order=created_at.desc");
+    // 1. Query Supabase 'boutiques' table
+    try {
+      const { data: boutiques } = await supabaseFetch("boutiques?select=*&order=created_at.desc");
+      if (Array.isArray(boutiques)) {
+        boutiques.forEach((b: any) => {
+          const bName = (b.boutique_name || b.name || b.business_name || b.title || "").trim();
+          if (!bName) return;
 
-    if (Array.isArray(boutiques)) {
-      boutiques.forEach((b: any) => {
-        const bName = (b.boutique_name || b.name || "").trim();
-        if (!bName) return;
+          const category = b.category || b.tags || "Bridal Wear";
+          const city = b.city || b.area || b.district || b.location || "Kochi";
+          const rawLogo = b.logo_url || b.logo || b.profile_logo || b.cover_image || "";
+          const logo = normalizeImageUrl(rawLogo);
+          const href = resolveDetailHref(b.id, category);
 
-        const category = b.category || b.tags || "Bridal Wear";
-        const city = b.city || b.area || b.district || "Kochi";
-        const rawLogo = b.logo_url || b.logo || b.profile_logo || logoMediaMap.get(String(b.id)) || "";
-        const logo = normalizeImageUrl(rawLogo);
-        const href = resolveDetailHref(b.id, category);
-
-        itemsMap.set(String(b.id), {
-          id: b.id,
-          name: bName,
-          category: category,
-          city: city,
-          logo: logo,
-          href: href,
+          itemsMap.set(`boutique-${b.id}`, {
+            id: b.id,
+            name: bName,
+            category: category,
+            city: city,
+            logo: logo,
+            href: href,
+          });
         });
-      });
+      }
+    } catch (e) {
+      console.error("[AUTOCOMPLETE_API] Boutiques fetch error:", e);
     }
 
-    // 3. Query Supabase 'vendors' & 'vendor_profiles' tables
-    const { data: vendors } = await supabaseFetch("vendors?select=*,vendor_profiles(*),vendor_addresses(*)");
+    // 2. Query Supabase 'vendors' & 'vendor_profiles' tables
+    try {
+      const { data: vendors } = await supabaseFetch("vendors?select=*,vendor_categories(id,name,slug),vendor_profiles(*)");
+      if (Array.isArray(vendors)) {
+        vendors.forEach((v: any) => {
+          const p = Array.isArray(v.vendor_profiles) && v.vendor_profiles.length > 0 ? v.vendor_profiles[0] : {};
+          const catObj = v.vendor_categories || {};
+          const bName = (p.business_name || v.boutique_name || v.name || p.name || "").trim();
+          if (!bName) return;
 
-    if (Array.isArray(vendors)) {
-      vendors.forEach((v: any) => {
-        const p = Array.isArray(v.vendor_profiles) && v.vendor_profiles.length > 0 ? v.vendor_profiles[0] : {};
-        const a = Array.isArray(v.vendor_addresses) && v.vendor_addresses.length > 0 ? v.vendor_addresses[0] : {};
-        const bName = (p.business_name || v.boutique_name || v.name || "").trim();
-        if (!bName) return;
+          const vKey = `vendor-${v.id}`;
+          if (itemsMap.has(vKey)) return;
 
-        const vKey = String(v.id);
-        if (itemsMap.has(vKey)) return;
+          const category = catObj.name || p.category || v.category || "Wedding Vendor";
+          const city = p.city || v.city || "Kochi";
+          const rawLogo = p.logo_url || v.logo_url || v.logo || p.cover_image || "";
+          const logo = normalizeImageUrl(rawLogo);
+          const href = resolveDetailHref(p.slug || v.vendor_code || v.id, category);
 
-        const category = v.category || p.category || "Bridal Wear";
-        const city = a.city || p.city || v.city || "Kochi";
-        const rawLogo = p.logo_url || v.logo_url || v.logo || logoMediaMap.get(vKey) || (v.user_id ? logoMediaMap.get(String(v.user_id)) : "") || "";
-        const logo = normalizeImageUrl(rawLogo);
-        const href = resolveDetailHref(p.slug || v.id, category);
-
-        itemsMap.set(vKey, {
-          id: v.id,
-          name: bName,
-          category: category,
-          city: city,
-          logo: logo,
-          href: href,
+          itemsMap.set(vKey, {
+            id: v.id,
+            name: bName,
+            category: category,
+            city: city,
+            logo: logo,
+            href: href,
+          });
         });
-      });
+      }
+    } catch (e) {
+      console.error("[AUTOCOMPLETE_API] Vendors fetch error:", e);
     }
 
     const allItems = Array.from(itemsMap.values());
 
-    // 4. Intelligent Ranking Logic
+    // 3. Partial / Contains Substring Matching & Ranking
     const scoredResults = allItems.map((item) => {
       const nameLower = item.name.toLowerCase();
       const catLower = item.category.toLowerCase();
@@ -144,23 +118,29 @@ export async function GET(req: Request) {
 
       let score = 0;
 
+      // Exact name match
       if (nameLower === query) score += 100;
+      // Prefix name match
       else if (nameLower.startsWith(query)) score += 80;
+      // Partial / Contains name match
       else if (nameLower.includes(query)) score += 60;
 
+      // Partial / Contains category match
       if (catLower.includes(query)) score += 40;
+
+      // Partial / Contains city match
       if (cityLower.includes(query)) score += 30;
 
       return { item, score };
     });
 
-    const filteredAndSorted = scoredResults
-      .filter((res) => res.score > 0)
+    const matchingItems = scoredResults.filter((res) => res.score > 0);
+    const filteredAndSorted = matchingItems
       .sort((a, b) => b.score - a.score)
       .slice(0, 8)
       .map((res) => res.item);
 
-    // 5. Group Results into Venues, Boutiques, Vendors & Studios
+    // 4. Group Results
     const groups: { [key: string]: any[] } = {
       Venues: [],
       Boutiques: [],
@@ -171,14 +151,21 @@ export async function GET(req: Request) {
       const catLower = item.category.toLowerCase();
       if (catLower.includes("venue")) {
         groups.Venues.push(item);
-      } else if (catLower.includes("boutique") || catLower.includes("bridal") || catLower.includes("groom") || catLower.includes("jewel") || catLower.includes("store")) {
+      } else if (
+        catLower.includes("boutique") ||
+        catLower.includes("bridal") ||
+        catLower.includes("groom") ||
+        catLower.includes("jewel") ||
+        catLower.includes("store") ||
+        catLower.includes("wear")
+      ) {
         groups.Boutiques.push(item);
       } else {
         groups["Vendors & Studios"].push(item);
       }
     });
 
-    // Remove empty groups
+    // Remove empty groups completely
     Object.keys(groups).forEach((key) => {
       if (groups[key].length === 0) delete groups[key];
     });
@@ -187,10 +174,10 @@ export async function GET(req: Request) {
       success: true,
       results: filteredAndSorted,
       groups: groups,
-      totalMatches: scoredResults.filter((res) => res.score > 0).length,
+      totalMatches: matchingItems.length,
     });
   } catch (err: any) {
-    console.error("[AUTOCOMPLETE_API] Error:", err);
-    return NextResponse.json({ success: false, results: [], groups: {}, totalMatches: 0 }, { status: 500 });
+    console.error("[AUTOCOMPLETE_API] Critical Error:", err);
+    return NextResponse.json({ success: false, error: err.message, results: [], groups: {}, totalMatches: 0 }, { status: 500 });
   }
 }

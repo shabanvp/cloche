@@ -2,8 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
-import { Search, Loader2, ChevronRight, Store, MapPin, Sparkles, Building2, Camera, ArrowRight } from "lucide-react";
+import { Search, Loader2, ChevronRight, Store, MapPin, Sparkles, Building2, Camera, ArrowRight, AlertCircle } from "lucide-react";
 
 interface SearchResultItem {
   id: string | number;
@@ -59,8 +58,8 @@ export function AutocompleteSearch({
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResultItem[]>([]);
   const [groupedResults, setGroupedResults] = useState<GroupedResults>({});
-  const [totalMatches, setTotalMatches] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  const [hasError, setHasError] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState<number>(-1);
 
@@ -88,23 +87,27 @@ export function AutocompleteSearch({
     if (!trimmed) {
       setResults([]);
       setGroupedResults({});
-      setTotalMatches(0);
+      setHasError(false);
       setIsLoading(false);
       return;
     }
 
     setIsLoading(true);
+    setHasError(false);
+
     const timer = setTimeout(async () => {
       try {
         const res = await fetch(`/api/v1/search/autocomplete?q=${encodeURIComponent(trimmed)}`);
         let apiResults: SearchResultItem[] = [];
-        let apiTotal = 0;
 
-        if (res.ok) {
+        if (!res.ok) {
+          setHasError(true);
+        } else {
           const data = await res.json();
           if (data.success && Array.isArray(data.results)) {
             apiResults = data.results;
-            apiTotal = data.totalMatches || data.results.length;
+          } else if (data.success === false) {
+            setHasError(true);
           }
         }
 
@@ -173,7 +176,8 @@ export function AutocompleteSearch({
             catLower.includes("bridal") ||
             catLower.includes("groom") ||
             catLower.includes("jewel") ||
-            catLower.includes("store")
+            catLower.includes("store") ||
+            catLower.includes("wear")
           ) {
             groups.Boutiques.push(item);
           } else {
@@ -182,15 +186,15 @@ export function AutocompleteSearch({
         });
 
         Object.keys(groups).forEach((key) => {
-          if (groups[key].length === 0) delete groups[key];
+          if (!groups[key] || groups[key].length === 0) delete groups[key];
         });
 
         setResults(finalResults);
         setGroupedResults(groups);
-        setTotalMatches(apiTotal || finalResults.length);
         setSelectedIndex(-1);
       } catch (err) {
         console.error("Autocomplete search error:", err);
+        setHasError(true);
       } finally {
         setIsLoading(false);
       }
@@ -249,8 +253,7 @@ export function AutocompleteSearch({
     }
   };
 
-  // Linear index calculation for keyboard navigation across grouped results
-  let globalItemIndex = -1;
+  let globalItemCounter = -1;
 
   return (
     <div ref={containerRef} className={`relative w-full ${className}`}>
@@ -291,74 +294,83 @@ export function AutocompleteSearch({
                   <Loader2 className="w-4 h-4 text-[#0F4C45] animate-spin" />
                   Searching Cloche marketplace...
                 </div>
+              ) : hasError ? (
+                <div className="px-6 py-6 text-center text-xs sm:text-sm text-amber-700 flex flex-col items-center justify-center gap-1.5">
+                  <AlertCircle className="w-5 h-5 text-amber-600" />
+                  <span className="font-bold">Something went wrong, please try again.</span>
+                </div>
               ) : results.length > 0 ? (
                 <div className="max-h-[420px] overflow-y-auto divide-y divide-gold/10">
-                  {Object.entries(groupedResults).map(([groupTitle, items]) => (
-                    <div key={groupTitle} className="py-1">
-                      {/* Group Section Header */}
-                      <div className="px-4 py-1.5 text-[11px] font-bold tracking-wider text-[#0F4C45] uppercase bg-[#FAF7F2] flex items-center gap-1.5">
-                        {groupTitle === "Venues" ? (
-                          <Building2 className="w-3.5 h-3.5 text-[#0F4C45]" />
-                        ) : groupTitle === "Boutiques" ? (
-                          <Store className="w-3.5 h-3.5 text-[#0F4C45]" />
-                        ) : (
-                          <Camera className="w-3.5 h-3.5 text-[#0F4C45]" />
-                        )}
-                        {groupTitle}
+                  {Object.entries(groupedResults).map(([groupTitle, items]) => {
+                    if (!Array.isArray(items) || items.length === 0) return null;
+
+                    return (
+                      <div key={groupTitle} className="py-1">
+                        {/* Group Section Header */}
+                        <div className="px-4 py-1.5 text-[11px] font-bold tracking-wider text-[#0F4C45] uppercase bg-[#FAF7F2] flex items-center gap-1.5">
+                          {groupTitle === "Venues" ? (
+                            <Building2 className="w-3.5 h-3.5 text-[#0F4C45]" />
+                          ) : groupTitle === "Boutiques" ? (
+                            <Store className="w-3.5 h-3.5 text-[#0F4C45]" />
+                          ) : (
+                            <Camera className="w-3.5 h-3.5 text-[#0F4C45]" />
+                          )}
+                          {groupTitle} ({items.length})
+                        </div>
+
+                        {/* Group Items */}
+                        {items.map((item) => {
+                          globalItemCounter += 1;
+                          const currentIndex = globalItemCounter;
+                          const isHighlighted = currentIndex === selectedIndex;
+
+                          return (
+                            <div
+                              key={item.id}
+                              onClick={() => handleSelectResult(item)}
+                              onMouseEnter={() => setSelectedIndex(currentIndex)}
+                              className={`flex items-center gap-3.5 px-4 py-3 cursor-pointer transition-colors ${
+                                isHighlighted ? "bg-[#FAF7F2]" : "hover:bg-[#FAF7F2]/60"
+                              }`}
+                            >
+                              {/* Thumbnail Image / Logo */}
+                              <div className="w-11 h-11 rounded-xl bg-[#0F4C45] shrink-0 border border-gold/15 relative overflow-hidden flex items-center justify-center shadow-2xs">
+                                {item.logo ? (
+                                  <img
+                                    src={item.logo}
+                                    alt={item.name}
+                                    className="w-full h-full object-cover"
+                                    onError={(e) => {
+                                      (e.target as HTMLElement).style.display = "none";
+                                    }}
+                                  />
+                                ) : (
+                                  <span className="font-serif font-bold text-white text-base">
+                                    {item.name.charAt(0).toUpperCase()}
+                                  </span>
+                                )}
+                              </div>
+
+                              {/* Entity Details */}
+                              <div className="flex-1 min-w-0">
+                                <h4 className="font-bold text-sm text-charcoal truncate flex items-center gap-1.5">
+                                  {item.name}
+                                </h4>
+                                <p className="text-xs text-charcoal/60 truncate flex items-center gap-1 mt-0.5">
+                                  <span>{item.category}</span>
+                                  <span className="text-gold">•</span>
+                                  <MapPin className="w-3 h-3 text-gold shrink-0" />
+                                  <span>{item.city}</span>
+                                </p>
+                              </div>
+
+                              <ChevronRight className="w-4 h-4 text-charcoal/30 shrink-0" />
+                            </div>
+                          );
+                        })}
                       </div>
-
-                      {/* Group Items */}
-                      {items.map((item) => {
-                        globalItemIndex += 1;
-                        const currentIndex = globalItemIndex;
-                        const isHighlighted = currentIndex === selectedIndex;
-
-                        return (
-                          <div
-                            key={item.id}
-                            onClick={() => handleSelectResult(item)}
-                            onMouseEnter={() => setSelectedIndex(currentIndex)}
-                            className={`flex items-center gap-3.5 px-4 py-3 cursor-pointer transition-colors ${
-                              isHighlighted ? "bg-[#FAF7F2]" : "hover:bg-[#FAF7F2]/60"
-                            }`}
-                          >
-                            {/* Thumbnail Image / Logo */}
-                            <div className="w-11 h-11 rounded-xl bg-[#0F4C45] shrink-0 border border-gold/15 relative overflow-hidden flex items-center justify-center shadow-2xs">
-                              {item.logo ? (
-                                <Image
-                                  src={item.logo}
-                                  alt={item.name}
-                                  fill
-                                  sizes="44px"
-                                  className="object-cover"
-                                  unoptimized={item.logo.startsWith("data:")}
-                                />
-                              ) : (
-                                <span className="font-serif font-bold text-white text-base">
-                                  {item.name.charAt(0).toUpperCase()}
-                                </span>
-                              )}
-                            </div>
-
-                            {/* Entity Details */}
-                            <div className="flex-1 min-w-0">
-                              <h4 className="font-bold text-sm text-charcoal truncate flex items-center gap-1.5">
-                                {item.name}
-                              </h4>
-                              <p className="text-xs text-charcoal/60 truncate flex items-center gap-1 mt-0.5">
-                                <span>{item.category}</span>
-                                <span className="text-gold">•</span>
-                                <MapPin className="w-3 h-3 text-gold shrink-0" />
-                                <span>{item.city}</span>
-                              </p>
-                            </div>
-
-                            <ChevronRight className="w-4 h-4 text-charcoal/30 shrink-0" />
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ))}
+                    );
+                  })}
 
                   {/* See All Results Link */}
                   <div
@@ -372,7 +384,7 @@ export function AutocompleteSearch({
               ) : (
                 <div className="px-6 py-8 text-center space-y-1.5">
                   <p className="font-bold text-sm text-charcoal">
-                    No matches for "{query.trim()}"
+                    No results found for "{query.trim()}"
                   </p>
                   <p className="text-xs text-charcoal/60">
                     Try searching for a different vendor, venue, or boutique name.
