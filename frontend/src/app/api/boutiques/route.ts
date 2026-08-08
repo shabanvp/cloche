@@ -32,13 +32,14 @@ export async function GET() {
             const coverRaw = b.cover_url || b.coverImage || b.image_url || "";
             const normLogo = normalizeImageUrl(logoRaw);
             const normCover = normalizeImageUrl(coverRaw);
+            const primaryPic = normLogo || normCover;
             return {
               ...b,
               logo_url: normLogo,
               logo: normLogo,
               profile_logo: normLogo,
               cover_url: normCover,
-              image_url: normCover || normLogo,
+              image_url: primaryPic,
             };
           });
           return NextResponse.json(normalizedBackend);
@@ -116,6 +117,7 @@ export async function GET() {
 
         const logoPic = normalizeImageUrl(rawLogoPic);
         const coverPic = normalizeImageUrl(rawCoverPic);
+        const primaryPic = logoPic || coverPic;
 
         const bId = String(b.id);
         seenIds.add(bId);
@@ -128,7 +130,7 @@ export async function GET() {
           logo: logoPic,
           profile_logo: logoPic,
           cover_url: coverPic,
-          image_url: coverPic || logoPic,
+          image_url: primaryPic,
           city: b.city || "Kochi",
           area: b.area || b.district || "Kerala",
           category: b.category || b.tags || "Bridal Wear",
@@ -162,6 +164,7 @@ export async function GET() {
 
           const logoPic = normalizeImageUrl(rawLogoPic);
           const coverPic = normalizeImageUrl(rawCoverPic);
+          const primaryPic = logoPic || coverPic;
 
           resultList.push({
             id: v.id,
@@ -171,7 +174,7 @@ export async function GET() {
             logo: logoPic,
             profile_logo: logoPic,
             cover_url: coverPic,
-            image_url: coverPic || logoPic,
+            image_url: primaryPic,
             city: a.city || p.city || v.city || "Kochi",
             area: a.state || p.state || v.district || "Kerala",
             category: cat,

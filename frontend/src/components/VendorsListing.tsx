@@ -425,8 +425,18 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
                 >
                   {/* Card Image Header */}
                   <div className="relative aspect-[4/3] w-full overflow-hidden bg-[#0F4C45]">
-                    {hasCover ? (
-                      /* Cover / Showcase Background */
+                    {hasLogo ? (
+                      /* Main Registered Vendor Logo Picture */
+                      <Image
+                        src={logoUrl}
+                        alt={boutique.boutique_name || "Vendor Logo"}
+                        fill
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                        className="object-cover group-hover:scale-105 transition-transform duration-500"
+                        unoptimized={logoUrl.startsWith("data:")}
+                      />
+                    ) : hasCover ? (
+                      /* Fallback Cover / Showcase Picture */
                       <Image
                         src={coverUrl}
                         alt={boutique.boutique_name || "Vendor Cover"}
@@ -435,19 +445,6 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
                         className="object-cover group-hover:scale-105 transition-transform duration-500 brightness-95"
                         unoptimized={coverUrl.startsWith("data:")}
                       />
-                    ) : hasLogo ? (
-                      /* Primary Vendor Logo Display */
-                      <div className="w-full h-full flex items-center justify-center bg-[#FAF7F2] p-6">
-                        <div className="relative w-full h-full max-w-[180px] max-h-[140px]">
-                          <Image
-                            src={logoUrl}
-                            alt={boutique.boutique_name || "Vendor Logo"}
-                            fill
-                            className="object-contain drop-shadow-md group-hover:scale-105 transition-transform duration-500"
-                            unoptimized={logoUrl.startsWith("data:")}
-                          />
-                        </div>
-                      </div>
                     ) : (
                       /* Fallback Initial Avatar */
                       <div className="w-full h-full flex items-center justify-center bg-[#0F4C45]">
