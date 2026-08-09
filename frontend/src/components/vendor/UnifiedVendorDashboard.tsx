@@ -28,8 +28,7 @@ import { AnalyticsSection } from "./sections/AnalyticsSection";
 import { SubscriptionSection } from "./sections/SubscriptionSection";
 import { CustomizeStoreSection } from "./sections/CustomizeStoreSection";
 import { VendorMediaModule } from "./sections/VendorMediaModule";
-import { VendorPricingModule } from "./sections/VendorPricingModule";
-import { getActiveVendorIdentity, fetchAuthenticatedVendorFromDb, clearActiveVendorIdentity } from "@/lib/vendorStore";
+import { VendorCoverHeader } from "./VendorCoverHeader";
 
 interface UnifiedVendorDashboardProps {
   categoryKey?: string;
@@ -114,14 +113,7 @@ export function UnifiedVendorDashboard({ categoryKey = "photographers" }: Unifie
   return (
     <div className="min-h-screen bg-[#F8F6F2] font-sans antialiased pb-36 md:pb-16">
       {/* 1. Cover Image Background Header */}
-      <div className="relative h-48 sm:h-60 lg:h-68 w-full bg-[#0F4C45] overflow-hidden">
-        <img 
-          src={coverUrl} 
-          alt="Cover" 
-          className="w-full h-full object-cover opacity-85"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/25 to-transparent" />
-      </div>
+      <VendorCoverHeader coverUrl={coverUrl} altText={vendorName} />
 
       {/* Main Container */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative -mt-16 sm:-mt-20 z-10 space-y-6">

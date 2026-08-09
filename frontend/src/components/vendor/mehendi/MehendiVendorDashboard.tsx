@@ -31,6 +31,7 @@ import { MehendiAnalyticsSection } from "./sections/MehendiAnalyticsSection";
 import { MehendiSubscriptionSection } from "./sections/MehendiSubscriptionSection";
 import { MehendiCustomizeStoreSection } from "./sections/MehendiCustomizeStoreSection";
 import { getActiveVendorIdentity, fetchAuthenticatedVendorFromDb, clearActiveVendorIdentity } from "@/lib/vendorStore";
+import { VendorCoverHeader } from "../VendorCoverHeader";
 
 export function MehendiVendorDashboard() {
   const router = useRouter();
@@ -108,14 +109,7 @@ export function MehendiVendorDashboard() {
   return (
     <div className="min-h-screen bg-[#F8F6F2] font-sans antialiased pb-36 md:pb-16">
       {/* 1. Cover Image Background Header */}
-      <div className="relative h-48 sm:h-60 lg:h-68 w-full bg-[#0d3b30] overflow-hidden">
-        <img 
-          src={coverUrl} 
-          alt="Cover Header" 
-          className="w-full h-full object-cover opacity-85"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/25 to-transparent" />
-      </div>
+      <VendorCoverHeader coverUrl={coverUrl} altText={businessName} />
 
       {/* Main Container */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative -mt-16 sm:-mt-20 z-10 space-y-6">
