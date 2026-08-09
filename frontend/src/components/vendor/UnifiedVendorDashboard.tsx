@@ -90,7 +90,7 @@ export function UnifiedVendorDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8F6F2] font-sans antialiased pb-12">
+    <div className="min-h-screen bg-[#F8F6F2] font-sans antialiased pb-36 md:pb-16">
       {/* Cover Header */}
       <div className="relative h-48 sm:h-60 lg:h-68 w-full bg-[#0F4C45] overflow-hidden">
         <img 
@@ -165,7 +165,7 @@ export function UnifiedVendorDashboard() {
               );
             })}
 
-            <div className="pt-3 mt-3 border-t border-gold/10">
+            <div className="pt-3 mt-3 border-t border-gold/10 pb-4">
               <button
                 onClick={handleSignOut}
                 className="w-full flex items-center justify-between p-4 rounded-2xl text-red-600 hover:bg-red-50 transition-colors border border-transparent hover:border-red-100 cursor-pointer group"
