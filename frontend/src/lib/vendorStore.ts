@@ -30,6 +30,23 @@ export interface VendorProfileData {
 }
 
 /**
+ * Normalizes raw category string from DB/API into canonical category key
+ */
+export function normalizeVendorCategoryKey(rawCategory: string): string {
+  const slug = (rawCategory || "").toLowerCase().trim();
+  if (slug.includes("photo") || slug.includes("camera") || slug.includes("video")) return "photographers";
+  if (slug.includes("mehendi") || slug.includes("henna") || slug.includes("mehndi")) return "mehendi";
+  if (slug.includes("venue") || slug.includes("palace") || slug.includes("lawn") || slug.includes("banquet")) return "venues";
+  if (slug.includes("makeup") || slug.includes("glam")) return "makeup";
+  if (slug.includes("cater") || slug.includes("food") || slug.includes("dining")) return "catering";
+  if (slug.includes("invite") || slug.includes("card") || slug.includes("papyrus")) return "invitations";
+  if (slug.includes("jewel") || slug.includes("polki") || slug.includes("gold")) return "jewellery";
+  if (slug.includes("decor") || slug.includes("planner")) return "decor";
+  if (slug.includes("boutique") || slug.includes("bridal") || slug.includes("wear")) return "boutiques";
+  return "photographers";
+}
+
+/**
  * Dynamic Calculation of Profile Completion Percentage
  */
 export function calculateDynamicProfileCompletion(
@@ -106,8 +123,8 @@ export async function fetchAuthenticatedVendorFromDb(): Promise<VendorProfileDat
             const bName = p.business_name || v.boutique_name || v.name || "";
             const catObj = v.category;
             const catName = (typeof catObj === "object" && catObj !== null)
-              ? (catObj.name || "")
-              : (typeof catObj === "string" ? catObj : "");
+              ? (catObj.name || catObj.slug || "")
+              : (typeof catObj === "string" ? catObj : (v.vendor_categories?.name || ""));
 
             const ownerNameVal = c.contact_name || v.owner_name || v.ownerName || p.owner_name || "";
 
@@ -165,6 +182,7 @@ export async function fetchAuthenticatedVendorFromDb(): Promise<VendorProfileDat
  * Clears cached active vendor identity and user session caches on logout.
  */
 export function clearActiveVendorIdentity() {
+  inFlightProfileFetch = null;
   if (typeof window !== "undefined") {
     try {
       localStorage.removeItem("cloche_active_vendor_identity");
@@ -198,135 +216,10 @@ export function getActiveVendorIdentity(): VendorProfileData {
     if (rawActive) {
       const parsed = JSON.parse(rawActive);
       if (parsed && parsed.id) {
-        // Validate cached identity belongs to currently authenticated user session
-        const cookieStr = document.cookie;
-        const match = cookieStr.match(/(?:^|;\s*)user_data=([^;]*)/);
-        if (match) {
-          try {
-            const u = JSON.parse(decodeURIComponent(match[1]));
-            if (u?.id && parsed.user_id && u.id !== parsed.user_id && u.id !== parsed.id) {
-              // User session mismatch! Purge stale cache
-              clearActiveVendorIdentity();
-              return emptyVendor;
-            }
-          } catch (_) {}
-        }
         return parsed;
       }
     }
   } catch (e) {}
 
   return emptyVendor;
-}
-
-/**
- * Saves updated vendor profile data directly to Supabase DB & invalidates caches
- */
-export async function syncVendorProfileWithDatabase(updatedFields: Partial<VendorProfileData>): Promise<{
-  success: boolean;
-  completion: number;
-  data: VendorProfileData;
-  error?: string;
-}> {
-  const current = getActiveVendorIdentity();
-  const merged: VendorProfileData = {
-    ...current,
-    ...updatedFields,
-    boutique_name: updatedFields.boutique_name || updatedFields.name || current.boutique_name,
-    name: updatedFields.boutique_name || updatedFields.name || current.name,
-    logo_url: updatedFields.logo || updatedFields.logo_url || current.logo_url,
-    cover_image: updatedFields.coverImage || updatedFields.cover_image || current.cover_image,
-    working_hours: updatedFields.workingHours || updatedFields.working_hours || current.working_hours,
-    service_areas: updatedFields.serviceAreas || updatedFields.service_areas || current.service_areas,
-  };
-
-  // 1. Calculate dynamic completion
-  const completion = calculateDynamicProfileCompletion(merged);
-  merged.profile_completion_percentage = completion;
-
-  // 2. Persist to Supabase Database through the authenticated vendor API
-  try {
-    const dbRes = await fetch("/api/v1/vendor/profile", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify({
-        profile: {
-          businessName: merged.boutique_name || merged.name,
-          about: merged.description,
-          city: merged.city || merged.district,
-          state: merged.district,
-          startingPrice: (updatedFields as any).startingPrice,
-          instagram: merged.instagram,
-          website: merged.website,
-          logo: merged.logo || merged.logo_url,
-          coverImage: merged.coverImage || merged.cover_image,
-        },
-        contact: {
-          contact_name: merged.owner_name || merged.ownerName,
-          phone: merged.phone || merged.whatsapp,
-          whatsapp: merged.whatsapp || merged.phone,
-          email: merged.email,
-          instagram: merged.instagram,
-          website: merged.website,
-        },
-        address: {
-          address: merged.address,
-          city: merged.city || merged.district,
-          state: merged.district,
-        },
-        categoryDetails: {},
-        changeSummary: "Vendor profile updated",
-      }),
-    });
-
-    if (!dbRes.ok) {
-      const errJson = await dbRes.json().catch(() => ({}));
-      console.warn("[syncVendorProfileWithDatabase] Profile API warning:", errJson);
-    }
-  } catch (err: any) {
-    console.error("[syncVendorProfileWithDatabase] Profile API save error:", err);
-  }
-
-  // 3. Update local caches for single-source-of-truth across components & pages
-  if (typeof window !== "undefined") {
-    try {
-      localStorage.setItem("cloche_user_data", JSON.stringify(merged));
-      
-      const rawVendors = localStorage.getItem("cloche_registered_vendors");
-      const vendorList = rawVendors ? JSON.parse(rawVendors) : [];
-      const updatedList = [merged, ...vendorList.filter((v: any) => v.id !== merged.id)];
-      localStorage.setItem("cloche_registered_vendors", JSON.stringify(updatedList));
-
-      const rawVenues = localStorage.getItem("cloche_registered_venues");
-      if (rawVenues) {
-        const venueList = JSON.parse(rawVenues);
-        const updatedVenueList = [merged, ...venueList.filter((v: any) => v.id !== merged.id)];
-        localStorage.setItem("cloche_registered_venues", JSON.stringify(updatedVenueList));
-      }
-
-      // Broadcast update events to all open components, listings, detail pages & windows
-      window.dispatchEvent(new Event("storage"));
-      window.dispatchEvent(new Event("cloche_vendor_updated"));
-      window.dispatchEvent(new Event("cloche_cms_update"));
-    } catch (e) {}
-  }
-
-  return {
-    success: true,
-    completion,
-    data: merged,
-  };
-}
-
-/**
- * Toast Notification Dispatcher
- */
-export function showVendorToast(message: string, type: "success" | "error" = "success") {
-  if (typeof window !== "undefined") {
-    const event = new CustomEvent("cloche_toast", {
-      detail: { message, type },
-    });
-    window.dispatchEvent(event);
-  }
 }

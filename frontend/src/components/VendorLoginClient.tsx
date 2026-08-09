@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { login } from "@/app/actions/auth";
-import { Palette, Camera, ArrowRight } from "lucide-react";
+import { clearActiveVendorIdentity } from "@/lib/vendorStore";
 
 export function VendorLoginClient() {
   const router = useRouter();
@@ -32,6 +32,9 @@ export function VendorLoginClient() {
     setIsSubmitting(true);
     setErrorMsg("");
 
+    // Clear any stale cached identity before authenticating new user
+    clearActiveVendorIdentity();
+
     const formData = new FormData(e.currentTarget);
     formData.append("role", "vendor");
 
@@ -42,13 +45,8 @@ export function VendorLoginClient() {
     if (res?.error) {
       setErrorMsg(res.error);
     } else {
-      if (emailInput.toLowerCase().includes("mehendi") || emailInput.toLowerCase().includes("henna")) {
-        router.push("/vendor/mehendi");
-      } else if (emailInput.toLowerCase().includes("photo") || emailInput.toLowerCase().includes("camera")) {
-        router.push("/vendor/photographer");
-      } else {
-        router.push("/vendor");
-      }
+      // Automatically redirect to the unified vendor portal root where category is dynamically resolved
+      router.push("/vendor");
     }
   };
 
@@ -65,53 +63,7 @@ export function VendorLoginClient() {
           </p>
         </div>
 
-        {/* Quick Launch Cards for Finalized Dashboard Templates */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div className="bg-[#0d3b30] text-white rounded-2xl p-4 shadow-sm border border-gold/20 flex flex-col justify-between space-y-3">
-            <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-[#C8A96A]/20 text-[#C8A96A] flex items-center justify-center shrink-0 border border-[#C8A96A]/30">
-                <Palette className="w-4 h-4" />
-              </div>
-              <div>
-                <span className="text-[9px] font-extrabold uppercase tracking-widest text-[#C8A96A] block">
-                  Mehendi Portal
-                </span>
-                <h3 className="font-serif font-bold text-xs text-white">Mehendi Artist</h3>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => router.push("/vendor/mehendi")}
-              className="bg-[#C8A96A] hover:bg-[#b89859] text-charcoal font-bold text-[11px] py-1.5 px-3 rounded-lg transition-all flex items-center justify-center gap-1 cursor-pointer w-full"
-            >
-              Launch <ArrowRight className="w-3 h-3" />
-            </button>
-          </div>
-
-          <div className="bg-[#0F4C45] text-white rounded-2xl p-4 shadow-sm border border-gold/20 flex flex-col justify-between space-y-3">
-            <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-[#C8A96A]/20 text-[#C8A96A] flex items-center justify-center shrink-0 border border-[#C8A96A]/30">
-                <Camera className="w-4 h-4" />
-              </div>
-              <div>
-                <span className="text-[9px] font-extrabold uppercase tracking-widest text-[#C8A96A] block">
-                  Photo Portal
-                </span>
-                <h3 className="font-serif font-bold text-xs text-white">Photographer</h3>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => router.push("/vendor/photographer")}
-              className="bg-[#C8A96A] hover:bg-[#b89859] text-charcoal font-bold text-[11px] py-1.5 px-3 rounded-lg transition-all flex items-center justify-center gap-1 cursor-pointer w-full"
-            >
-              Launch <ArrowRight className="w-3 h-3" />
-            </button>
-          </div>
-        </div>
-
+        {/* Clean Email + Password Login Form (No manual portal buttons above) */}
         <form className="bg-white rounded-3xl shadow-sm border border-gold/10 p-8 sm:p-10" onSubmit={handleSubmit}>
           {successMsg && (
             <div className="mb-6 p-4 rounded-xl bg-emerald/10 border border-emerald/20 text-[#0F4C45] text-sm font-medium">
@@ -165,7 +117,7 @@ export function VendorLoginClient() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full bg-[#0d3b30] text-white rounded-xl py-4 font-semibold text-sm hover:bg-[#072B27] transition-colors shadow-sm tracking-wide disabled:opacity-50 mt-2"
+              className="w-full bg-[#0d3b30] text-white rounded-xl py-4 font-semibold text-sm hover:bg-[#072B27] transition-colors shadow-sm tracking-wide disabled:opacity-50 mt-2 cursor-pointer"
             >
               {isSubmitting ? "Logging in..." : "Log In to Portal"}
             </button>

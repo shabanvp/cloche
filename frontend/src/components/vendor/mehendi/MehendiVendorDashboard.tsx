@@ -30,7 +30,7 @@ import { MehendiOffersSection } from "./sections/MehendiOffersSection";
 import { MehendiAnalyticsSection } from "./sections/MehendiAnalyticsSection";
 import { MehendiSubscriptionSection } from "./sections/MehendiSubscriptionSection";
 import { MehendiCustomizeStoreSection } from "./sections/MehendiCustomizeStoreSection";
-import { getActiveVendorIdentity, fetchAuthenticatedVendorFromDb } from "@/lib/vendorStore";
+import { getActiveVendorIdentity, fetchAuthenticatedVendorFromDb, clearActiveVendorIdentity } from "@/lib/vendorStore";
 
 export function MehendiVendorDashboard() {
   const router = useRouter();
@@ -74,6 +74,7 @@ export function MehendiVendorDashboard() {
   ];
 
   const handleSignOut = () => {
+    clearActiveVendorIdentity();
     router.push("/vendor/login");
   };
 

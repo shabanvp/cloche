@@ -29,7 +29,7 @@ import { SubscriptionSection } from "./sections/SubscriptionSection";
 import { CustomizeStoreSection } from "./sections/CustomizeStoreSection";
 import { VendorMediaModule } from "./sections/VendorMediaModule";
 import { VendorPricingModule } from "./sections/VendorPricingModule";
-import { getActiveVendorIdentity, fetchAuthenticatedVendorFromDb } from "@/lib/vendorStore";
+import { getActiveVendorIdentity, fetchAuthenticatedVendorFromDb, clearActiveVendorIdentity } from "@/lib/vendorStore";
 
 interface UnifiedVendorDashboardProps {
   categoryKey?: string;
@@ -80,6 +80,7 @@ export function UnifiedVendorDashboard({ categoryKey = "photographers" }: Unifie
   ];
 
   const handleSignOut = () => {
+    clearActiveVendorIdentity();
     router.push("/vendor/login");
   };
 
