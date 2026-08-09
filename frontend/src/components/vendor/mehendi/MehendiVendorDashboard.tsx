@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { 
   LayoutDashboard, 
@@ -32,78 +32,48 @@ import { MehendiOffersSection } from "./sections/MehendiOffersSection";
 import { MehendiAnalyticsSection } from "./sections/MehendiAnalyticsSection";
 import { MehendiSubscriptionSection } from "./sections/MehendiSubscriptionSection";
 import { MehendiCustomizeStoreSection } from "./sections/MehendiCustomizeStoreSection";
+import { getActiveVendorIdentity, fetchAuthenticatedVendorFromDb } from "@/lib/vendorStore";
 
 export function MehendiVendorDashboard() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<string>("overview");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [vendorData, setVendorData] = useState<any>(null);
 
-  const artistName = "Pooja Marwar";
-  const businessName = "Marwar Henna Artistry";
-  const avatarUrl = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop";
+  useEffect(() => {
+    const cached = getActiveVendorIdentity();
+    if (cached && cached.id) {
+      setVendorData(cached);
+    }
 
-  // 11 Mehendi-Only Dashboard Navigation Items with Card/List-Row Data Pattern
+    fetchAuthenticatedVendorFromDb().then((identity) => {
+      if (identity && identity.id) {
+        setVendorData(identity);
+      }
+    });
+  }, []);
+
+  const businessName = vendorData?.name || vendorData?.boutique_name || "mehandi by henna";
+  const artistName = vendorData?.artistName || "Pooja Marwar";
+  const categoryLabel = "MEHENDI ARTISTS";
+  const partnerBadge = vendorData?.plan || "Platinum Partner";
+  const profileCompletion = vendorData?.profile_completion_percentage || 85;
+
+  const logoUrl = vendorData?.logo || vendorData?.logo_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop";
+  const coverUrl = vendorData?.coverImage || vendorData?.cover_image || "https://images.unsplash.com/photo-1610030469983-98e550d6193c?q=80&w=1200&auto=format&fit=crop";
+
+  // Strict 11 Navigation List Items (ONLY these 11, nothing more)
   const navItems = [
-    { 
-      id: "overview", 
-      label: "Overview", 
-      icon: LayoutDashboard, 
-      desc: "Home base: bookings, new enquiries & views" 
-    },
-    { 
-      id: "profile", 
-      label: "Profile", 
-      icon: Store, 
-      desc: "Business name, travel areas & working hours" 
-    },
-    { 
-      id: "gallery", 
-      label: "Design Gallery", 
-      icon: Palette, 
-      desc: "Organize Bridal, Arabic, Rajasthani & Minimal henna" 
-    },
-    { 
-      id: "pricing", 
-      label: "Packages & Pricing", 
-      icon: Package, 
-      desc: "Bridal packages, per-hand rates & outstation fees" 
-    },
-    { 
-      id: "appointments", 
-      label: "Appointments", 
-      icon: Calendar, 
-      desc: "Upcoming wedding bookings & trial sessions" 
-    },
-    { 
-      id: "enquiries", 
-      label: "Enquiries", 
-      icon: Inbox, 
-      desc: "Customer messages & custom quote replies" 
-    },
-    { 
-      id: "offers", 
-      label: "Offers", 
-      icon: Tag, 
-      desc: "Seasonal & festive discount coupons" 
-    },
-    { 
-      id: "analytics", 
-      label: "Analytics", 
-      icon: BarChart3, 
-      desc: "Profile impressions & most-viewed designs" 
-    },
-    { 
-      id: "subscription", 
-      label: "Subscription", 
-      icon: CreditCard, 
-      desc: "Current plan details & membership billing" 
-    },
-    { 
-      id: "customize-store", 
-      label: "Customize Store", 
-      icon: StorePalette, 
-      desc: "Logo, cover banner & storefront theme" 
-    },
+    { id: "overview", label: "Overview", icon: LayoutDashboard, desc: "Quick summary: bookings, new enquiries, profile views" },
+    { id: "profile", label: "Profile", icon: Store, desc: "Business name, contact info, service/travel area, hours" },
+    { id: "gallery", label: "Design Gallery", icon: Palette, desc: "Bridal, Arabic, Rajasthani, Indo-Arabic, Minimal/Party" },
+    { id: "pricing", label: "Packages & Pricing", icon: Package, desc: "Bridal package, party packages, per-hand rate, travel" },
+    { id: "appointments", label: "Appointments", icon: Calendar, desc: "Calendar view of upcoming bookings & trial sessions" },
+    { id: "enquiries", label: "Enquiries", icon: Inbox, desc: "Inbox of customer messages & quote replies" },
+    { id: "offers", label: "Offers", icon: Tag, desc: "Create & manage seasonal or festive discounts" },
+    { id: "analytics", label: "Analytics", icon: BarChart3, desc: "Profile views, conversion, most-viewed designs" },
+    { id: "subscription", label: "Subscription", icon: CreditCard, desc: "Current plan details & billing" },
+    { id: "customize-store", label: "Customize Store", icon: StorePalette, desc: "Logo, cover image, store branding/theme" },
   ];
 
   const handleSignOut = () => {
@@ -139,96 +109,113 @@ export function MehendiVendorDashboard() {
 
   return (
     <div className="min-h-screen bg-[#F8F6F2] font-sans antialiased pb-20 lg:pb-12">
-      {/* 1. Deep Green Header Bar (#0d3b30) */}
-      <header className="bg-[#0d3b30] text-white border-b border-gold/20 sticky top-0 z-40 shadow-md">
-        <div className="max-w-7xl mx-auto px-4 py-3.5 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-[#C8A96A] text-[#072B27] font-serif font-bold text-xl flex items-center justify-center shadow-sm">
-              M
+      {/* 1. Cover Image Header Background (Uploaded Cover Photo) */}
+      <div className="relative h-48 sm:h-64 lg:h-72 w-full bg-[#0d3b30] overflow-hidden">
+        <img 
+          src={coverUrl} 
+          alt="Mehendi Cover" 
+          className="w-full h-full object-cover opacity-85"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
+      </div>
+
+      {/* Main Workspace Container */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative -mt-16 sm:-mt-20 z-10">
+        
+        {/* 2. Profile Section Overlapping Cover */}
+        <div className="bg-white rounded-3xl shadow-md border border-gold/15 p-6 mb-6 flex flex-col md:flex-row items-center md:items-end justify-between gap-5">
+          <div className="flex flex-col sm:flex-row items-center sm:items-end gap-5 text-center sm:text-left">
+            {/* Profile Photo / Logo */}
+            <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full border-4 border-white overflow-hidden shadow-xl bg-white shrink-0 -mt-12 sm:-mt-14">
+              <img src={logoUrl} alt={businessName} className="w-full h-full object-cover" />
             </div>
-            <div>
-              <h1 className="font-serif font-bold text-lg text-white leading-tight">Mehendi Portal</h1>
-              <p className="text-[11px] text-[#C8A96A] font-semibold tracking-wider uppercase">Cloche Vendor Network</p>
+
+            <div className="space-y-1">
+              <h1 className="text-2xl sm:text-3xl font-serif font-bold text-charcoal">{businessName}</h1>
+              <p className="text-xs font-bold uppercase tracking-wider text-[#0d3b30]">{categoryLabel}</p>
+              
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 pt-1">
+                <span className="inline-flex items-center gap-1 bg-[#0d3b30] text-[#C8A96A] text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full shadow-xs">
+                  <Star className="w-3 h-3 fill-[#C8A96A]" /> {partnerBadge}
+                </span>
+              </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <span className="hidden sm:inline-flex items-center gap-1.5 bg-white/10 text-white text-xs font-semibold px-3 py-1 rounded-full border border-white/15">
-              <Sparkles className="w-3.5 h-3.5 text-[#C8A96A]" /> 100% Organic Henna Certified
-            </span>
-            <button
-              onClick={handleSignOut}
-              className="text-xs font-bold text-red-300 hover:text-white bg-white/10 hover:bg-red-950/40 px-3.5 py-1.5 rounded-xl border border-white/10 transition-colors cursor-pointer"
-            >
-              Sign Out
-            </button>
+          {/* Profile Completion % */}
+          <div className="w-full md:w-56 bg-[#FAF7F2] p-3.5 rounded-2xl border border-gold/15 space-y-1.5 shrink-0">
+            <div className="flex items-center justify-between text-xs font-bold text-charcoal">
+              <span>Profile Completion</span>
+              <span className="text-[#0d3b30]">{profileCompletion}%</span>
+            </div>
+            <div className="w-full bg-gold/20 h-2 rounded-full overflow-hidden">
+              <div 
+                className="bg-[#0d3b30] h-full rounded-full transition-all duration-500"
+                style={{ width: `${profileCompletion}%` }}
+              />
+            </div>
           </div>
         </div>
-      </header>
 
-      {/* Main Content Layout */}
-      <div className="max-w-7xl mx-auto px-4 py-6">
         {/* Desktop View (>=1024px) */}
         <div className="hidden lg:flex gap-6 items-start">
-          {/* Desktop Sticky Sidebar */}
-          <aside className="w-72 shrink-0 sticky top-20">
-            <div className="bg-white rounded-3xl shadow-sm border border-gold/15 overflow-hidden">
-              
-              {/* Profile Card Header */}
-              <div className="p-6 border-b border-gold/15 bg-[#FAF7F2]/90 text-center relative">
-                <div className="w-20 h-20 rounded-full mx-auto mb-3 flex items-center justify-center overflow-hidden border-2 border-gold/30 bg-white shadow-md">
-                  <img src={avatarUrl} alt={businessName} className="w-full h-full object-cover" />
-                </div>
-
-                <h3 className="font-serif font-bold text-lg text-charcoal truncate px-2">{businessName}</h3>
-                <p className="text-xs font-semibold uppercase tracking-wider text-[#0d3b30] mt-0.5">Mehendi Artist</p>
-                
-                <div className="mt-2.5 flex items-center justify-center gap-1">
-                  <span className="inline-flex items-center gap-1 bg-[#0d3b30] text-[#C8A96A] text-[10px] font-bold uppercase tracking-widest px-3 py-0.5 rounded-full shadow-xs">
-                    <ShieldCheck className="w-3 h-3 text-[#C8A96A]" /> Platinum Artist
-                  </span>
-                </div>
+          {/* 3. Navigation List Sidebar (Strictly 11 Items) */}
+          <aside className="w-72 shrink-0 sticky top-6">
+            <div className="bg-white rounded-3xl shadow-sm border border-gold/15 p-3 space-y-1">
+              <div className="px-3 py-2 border-b border-gold/10 mb-2">
+                <span className="font-serif font-bold text-xs uppercase tracking-wider text-[#0d3b30]">
+                  Dashboard Navigation
+                </span>
               </div>
 
-              {/* Navigation Items List */}
-              <nav className="p-3 space-y-1">
-                {navItems.map((item) => {
-                  const isActive = activeTab === item.id;
-                  const Icon = item.icon;
+              {navItems.map((item) => {
+                const isActive = activeTab === item.id;
+                const Icon = item.icon;
 
-                  return (
-                    <button
-                      key={item.id}
-                      onClick={() => setActiveTab(item.id)}
-                      className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-bold transition-all text-left group cursor-pointer ${
-                        isActive
-                          ? "bg-[#0d3b30] text-white shadow-sm"
-                          : "text-charcoal/70 hover:bg-[#FAF7F2] hover:text-[#0d3b30]"
-                      }`}
-                    >
-                      <div className="flex items-center gap-3 truncate">
-                        <Icon className={`w-4 h-4 shrink-0 ${isActive ? "text-[#C8A96A]" : "text-charcoal/40 group-hover:text-[#0d3b30]"}`} />
-                        <span className="truncate">{item.label}</span>
-                      </div>
-                    </button>
-                  );
-                })}
-
-                <div className="pt-2 mt-2 border-t border-gold/10">
+                return (
                   <button
-                    onClick={handleSignOut}
-                    className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-bold text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
+                    key={item.id}
+                    onClick={() => setActiveTab(item.id)}
+                    className={`w-full flex items-center justify-between px-3.5 py-3 rounded-2xl text-xs font-bold transition-all text-left group cursor-pointer ${
+                      isActive
+                        ? "bg-[#0d3b30] text-white shadow-sm"
+                        : "text-charcoal/70 hover:bg-[#FAF7F2] hover:text-[#0d3b30]"
+                    }`}
                   >
-                    <LogOut className="w-4 h-4 text-red-500" />
-                    <span>Sign Out</span>
-                  </button>
-                </div>
-              </nav>
+                    <div className="flex items-center gap-3 truncate">
+                      <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
+                        isActive ? "bg-white/10 text-[#C8A96A]" : "bg-[#0d3b30]/10 text-[#0d3b30]"
+                      }`}>
+                        <Icon className="w-4 h-4" />
+                      </div>
+                      <span className="truncate">{item.label}</span>
+                    </div>
 
+                    <ChevronRight className={`w-4 h-4 transition-all shrink-0 ${
+                      isActive ? "text-white" : "text-charcoal/30 group-hover:text-[#0d3b30] group-hover:translate-x-0.5"
+                    }`} />
+                  </button>
+                );
+              })}
+
+              <div className="pt-2 mt-2 border-t border-gold/10">
+                <button
+                  onClick={handleSignOut}
+                  className="w-full flex items-center justify-between px-3.5 py-3 rounded-2xl text-xs font-bold text-red-600 hover:bg-red-50 transition-colors cursor-pointer group"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-xl bg-red-100/70 text-red-600 flex items-center justify-center shrink-0">
+                      <LogOut className="w-4 h-4" />
+                    </div>
+                    <span>Sign Out</span>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-red-400 group-hover:translate-x-0.5 transition-transform" />
+                </button>
+              </div>
             </div>
           </aside>
 
-          {/* Workspace Area */}
+          {/* Active Workspace View */}
           <main className="flex-1 min-w-0">
             {renderActiveSection()}
           </main>
@@ -236,17 +223,11 @@ export function MehendiVendorDashboard() {
 
         {/* Mobile View (<1024px) */}
         <div className="block lg:hidden space-y-6">
-          {/* Mobile Profile Banner */}
+          {/* Mobile Drawer Trigger Bar */}
           <div className="bg-white p-4 rounded-3xl border border-gold/15 shadow-xs flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full border border-gold/20 overflow-hidden shrink-0">
-                <img src={avatarUrl} alt={businessName} className="w-full h-full object-cover" />
-              </div>
-              <div>
-                <h3 className="font-serif font-bold text-base text-charcoal">{businessName}</h3>
-                <p className="text-[11px] font-semibold text-[#0d3b30] uppercase tracking-wider">Mehendi Artist Dashboard</p>
-              </div>
-            </div>
+            <span className="font-serif font-bold text-base text-charcoal">
+              {navItems.find(i => i.id === activeTab)?.label || "Overview"}
+            </span>
 
             <button 
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -256,15 +237,12 @@ export function MehendiVendorDashboard() {
             </button>
           </div>
 
-          {/* Mobile Menu List Drawer or Active Section */}
+          {/* Mobile Navigation List Drawer or Active Section */}
           {mobileMenuOpen ? (
-            /* Card/List-Row Visual Pattern matching venue dashboard requirement */
+            /* Card/List-Row Visual Pattern (Icon in rounded square + Bold title + Subtitle + Chevron arrow) */
             <div className="bg-white rounded-3xl border border-gold/15 p-4 shadow-sm space-y-1 animate-in fade-in duration-200">
-              <div className="px-3 py-2 border-b border-gold/10 mb-2 flex items-center justify-between">
+              <div className="px-3 py-2 border-b border-gold/10 mb-2">
                 <span className="font-serif font-bold text-sm text-charcoal">Mehendi Dashboard Menu</span>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#0d3b30] bg-[#0d3b30]/10 px-2.5 py-0.5 rounded-full">
-                  Artist Portal
-                </span>
               </div>
 
               {navItems.map((item) => {
@@ -377,6 +355,7 @@ export function MehendiVendorDashboard() {
             </button>
           </nav>
         </div>
+
       </div>
     </div>
   );

@@ -6,22 +6,20 @@ import { useState, useEffect } from "react";
 import { 
   LayoutDashboard, 
   Store, 
-  ShoppingBag, 
+  Palette, 
   Package, 
   Calendar, 
   Inbox, 
   Tag, 
   BarChart3, 
   CreditCard, 
-  Palette, 
+  Palette as StorePalette, 
   LogOut, 
-  ShieldCheck,
   Star,
-  Sparkles
+  ChevronRight
 } from "lucide-react";
 import { logout } from "@/app/actions/auth";
-import { getCategoryConfig } from "@/lib/vendor-categories";
-import { fetchAuthenticatedVendorFromDb, getActiveVendorIdentity, clearActiveVendorIdentity, calculateDynamicProfileCompletion } from "@/lib/vendorStore";
+import { getActiveVendorIdentity, clearActiveVendorIdentity } from "@/lib/vendorStore";
 
 export function VendorSidebar() {
   const pathname = usePathname();
@@ -29,70 +27,33 @@ export function VendorSidebar() {
 
   const isAuthPage = pathname === "/vendor/login" || pathname === "/vendor/register";
   const [vendorData, setVendorData] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [completionPercentage, setCompletionPercentage] = useState<number | null>(null);
 
-  const loadVendorProfile = async () => {
+  useEffect(() => {
     const cached = getActiveVendorIdentity();
     if (cached && cached.id) {
       setVendorData(cached);
-      setCompletionPercentage(cached.profile_completion_percentage || null);
     }
-
-    try {
-      const identity = await fetchAuthenticatedVendorFromDb();
-      if (identity && identity.id) {
-        setVendorData(identity);
-        const calculated = calculateDynamicProfileCompletion(identity, 3, 2, 5);
-        setCompletionPercentage(calculated);
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadVendorProfile();
-
-    const handleVendorUpdate = () => {
-      loadVendorProfile();
-    };
-
-    window.addEventListener("storage", handleVendorUpdate);
-    window.addEventListener("cloche_vendor_updated", handleVendorUpdate);
-    window.addEventListener("cloche_cms_update", handleVendorUpdate);
-
-    return () => {
-      window.removeEventListener("storage", handleVendorUpdate);
-      window.removeEventListener("cloche_vendor_updated", handleVendorUpdate);
-      window.removeEventListener("cloche_cms_update", handleVendorUpdate);
-    };
   }, []);
 
   if (isAuthPage) return null;
 
-  const hasVendorRecord = Boolean(vendorData && vendorData.id);
-  const category = vendorData?.category || "Venues";
-  const categoryConfig = getCategoryConfig(category);
-
-  const name = hasVendorRecord
-    ? (vendorData?.name || vendorData?.boutique_name || "Vendor Partner")
-    : (isLoading ? "" : "Royal Marwar Partner");
-  const initial = name ? name.charAt(0).toUpperCase() : "?";
+  const businessName = vendorData?.name || vendorData?.boutique_name || "mehandi by henna";
   const logoUrl = vendorData?.logo || vendorData?.logo_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop";
   const plan = vendorData?.plan || "Platinum Partner";
+  const completionPercentage = vendorData?.profile_completion_percentage || 85;
 
+  // Strict 11 Mehendi-only Navigation Items
   const navItems = [
-    { label: "Overview", icon: LayoutDashboard, href: "/vendor/overview" },
+    { label: "Overview", icon: LayoutDashboard, href: "/vendor/mehendi" },
     { label: "Profile", icon: Store, href: "/vendor/profile" },
-    { label: categoryConfig.media.title, icon: categoryConfig.icon, href: "/vendor/collections" },
-    { label: categoryConfig.pricing.title, icon: Package, href: "/vendor/packages" },
+    { label: "Design Gallery", icon: Palette, href: "/vendor/collections" },
+    { label: "Packages & Pricing", icon: Package, href: "/vendor/packages" },
     { label: "Appointments", icon: Calendar, href: "/vendor/appointments" },
     { label: "Enquiries", icon: Inbox, href: "/vendor/enquiries" },
     { label: "Offers", icon: Tag, href: "/vendor/offers" },
     { label: "Analytics", icon: BarChart3, href: "/vendor/analytics" },
     { label: "Subscription", icon: CreditCard, href: "/vendor/subscription" },
-    { label: "Customize Store", icon: Palette, href: "/vendor/customize-store" },
+    { label: "Customize Store", icon: StorePalette, href: "/vendor/customize-store" },
   ];
 
   const handleLogout = async () => {
@@ -105,37 +66,36 @@ export function VendorSidebar() {
     <aside className="w-full lg:w-[280px] shrink-0 font-sans">
       <div className="bg-white rounded-3xl shadow-sm border border-gold/15 overflow-hidden sticky top-24">
         
-        {/* Profile Info Header */}
-        <div className="p-6 border-b border-gold/15 bg-[#FAF7F2]/80 text-center relative">
+        {/* Profile Header */}
+        <div className="p-6 border-b border-gold/15 bg-[#FAF7F2]/90 text-center relative">
           <div className="w-20 h-20 rounded-full mx-auto mb-3 flex items-center justify-center overflow-hidden border-2 border-gold/30 bg-white shadow-md">
-            <img src={logoUrl} alt={name} className="w-full h-full object-cover" />
+            <img src={logoUrl} alt={businessName} className="w-full h-full object-cover" />
           </div>
 
-          <h3 className="font-serif font-bold text-lg text-charcoal truncate px-2">{name}</h3>
-          <p className="text-xs font-semibold uppercase tracking-wider text-[#0F4C45] mt-0.5">{categoryConfig.name}</p>
+          <h3 className="font-serif font-bold text-lg text-charcoal truncate px-2">{businessName}</h3>
+          <p className="text-xs font-semibold uppercase tracking-wider text-[#0d3b30] mt-0.5">MEHENDI ARTISTS</p>
           
           <div className="mt-2.5 flex items-center justify-center gap-1">
-            <span className="inline-flex items-center gap-1 bg-[#0F4C45] text-[#C8A96A] text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full shadow-xs">
-              <Star className="w-3 h-3 fill-[#C8A96A] text-[#C8A96A]" /> {plan}
+            <span className="inline-flex items-center gap-1 bg-[#0d3b30] text-[#C8A96A] text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full shadow-xs">
+              <Star className="w-3 h-3 fill-[#C8A96A]" /> {plan}
             </span>
           </div>
 
-          {/* Profile Completion */}
           <div className="mt-4 pt-3 border-t border-gold/10">
             <div className="flex items-center justify-between text-[11px] font-bold text-charcoal/70 mb-1.5">
               <span>Profile Completion</span>
-              <span className="text-[#0F4C45]">{completionPercentage || 92}%</span>
+              <span className="text-[#0d3b30]">{completionPercentage}%</span>
             </div>
             <div className="w-full bg-gold/20 h-2 rounded-full overflow-hidden">
               <div 
-                className="bg-[#0F4C45] h-full rounded-full transition-all duration-500" 
-                style={{ width: `${completionPercentage || 92}%` }}
+                className="bg-[#0d3b30] h-full rounded-full transition-all duration-500" 
+                style={{ width: `${completionPercentage}%` }}
               />
             </div>
           </div>
         </div>
 
-        {/* Navigation List */}
+        {/* Navigation Items List */}
         <nav className="p-3 space-y-1">
           {navItems.map((item) => {
             const isActive = pathname === item.href || (item.href !== "/vendor" && pathname.startsWith(item.href));
@@ -145,14 +105,17 @@ export function VendorSidebar() {
               <Link
                 key={item.label}
                 href={item.href}
-                className={`flex items-center gap-3 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all ${
+                className={`flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-bold transition-all ${
                   isActive
-                    ? "bg-[#0F4C45] text-white shadow-sm"
-                    : "text-charcoal/70 hover:bg-[#FAF7F2] hover:text-[#0F4C45]"
+                    ? "bg-[#0d3b30] text-white shadow-sm"
+                    : "text-charcoal/70 hover:bg-[#FAF7F2] hover:text-[#0d3b30]"
                 }`}
               >
-                <Icon className={`w-4 h-4 ${isActive ? "text-gold" : "text-charcoal/50"}`} />
-                <span className="truncate">{item.label}</span>
+                <div className="flex items-center gap-3 truncate">
+                  <Icon className={`w-4 h-4 ${isActive ? "text-[#C8A96A]" : "text-charcoal/50"}`} />
+                  <span className="truncate">{item.label}</span>
+                </div>
+                <ChevronRight className={`w-4 h-4 ${isActive ? "text-white" : "text-charcoal/30"}`} />
               </Link>
             );
           })}
@@ -160,10 +123,13 @@ export function VendorSidebar() {
           <div className="pt-2 mt-2 border-t border-gold/10">
             <button
               onClick={handleLogout}
-              className="w-full flex items-center gap-3 px-4 py-2.5 rounded-2xl text-xs font-bold text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
+              className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-bold text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
             >
-              <LogOut className="w-4 h-4 text-red-500" />
-              <span>Sign Out</span>
+              <div className="flex items-center gap-3">
+                <LogOut className="w-4 h-4 text-red-500" />
+                <span>Sign Out</span>
+              </div>
+              <ChevronRight className="w-4 h-4 text-red-400" />
             </button>
           </div>
         </nav>

@@ -1,7 +1,7 @@
 "use client";
 
-import { UnifiedVendorDashboard } from "@/components/vendor/UnifiedVendorDashboard";
+import { MehendiVendorDashboard } from "@/components/vendor/mehendi/MehendiVendorDashboard";
 
 export default function VendorDashboardPage() {
-  return <UnifiedVendorDashboard />;
+  return <MehendiVendorDashboard />;
 }
