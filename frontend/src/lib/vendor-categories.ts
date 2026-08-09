@@ -782,19 +782,19 @@ export const VENDOR_CATEGORIES: Record<string, VendorCategoryConfig> = {
 
   invitations: {
     id: "invitations",
-    name: "Invitations",
+    name: "INVITATIONS",
     badge: "Cards & Digital",
     icon: Mail,
     media: {
       title: "Design Catalog",
-      subtitle: "Templates, digital video samples & luxury print samples",
+      subtitle: "Traditional, Modern/Minimal, Digital/E-Invite, Royal/Premium & Regional templates",
       itemTypeLabel: "Invitation Design",
       tags: ["All", "Boxed Royal Acrylic", "Eco-Friendly Seed Paper", "Animated Video Invite", "Gold Foil Minimalist"],
       emptyPrompt: "No invitation samples in catalog. Upload digital invite videos and physical card photos!"
     },
     pricing: {
-      title: "Pricing",
-      subtitle: "Per-card rates, bulk discount tiers & customization fees",
+      title: "Pricing & Customization",
+      subtitle: "Per-card rates, digital vs. print pricing, customization tiers & bulk order discounts",
       itemTypeLabel: "Pricing Tier",
       pricingFields: ["Per Card Base Price", "Bulk Order Discount (500+)", "Wax Seal / Gold Foil Extra", "Digital Video Invite Fee"],
       emptyPrompt: "No pricing structure configured. Add unit card prices and volume discount tiers."
