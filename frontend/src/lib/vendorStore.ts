@@ -47,6 +47,38 @@ export function normalizeVendorCategoryKey(rawCategory: string): string {
 }
 
 /**
+ * Helper to display toast notifications across vendor pages.
+ */
+export function showVendorToast(message: string, type: "success" | "error" | "info" = "success") {
+  if (typeof window !== "undefined") {
+    console.log(`[VendorToast ${type}]:`, message);
+    try {
+      const event = new CustomEvent("vendor_toast", { detail: { message, type } });
+      window.dispatchEvent(event);
+    } catch (_) {}
+  }
+}
+
+/**
+ * Helper to sync updated vendor profile fields with database.
+ */
+export async function syncVendorProfileWithDatabase(profileData: Partial<VendorProfileData>): Promise<boolean> {
+  if (typeof window !== "undefined") {
+    try {
+      const res = await fetch("/api/v1/vendor/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(profileData),
+      });
+      return res.ok;
+    } catch (e) {
+      console.error("[vendorStore] Sync error:", e);
+    }
+  }
+  return false;
+}
+
+/**
  * Dynamic Calculation of Profile Completion Percentage
  */
 export function calculateDynamicProfileCompletion(
