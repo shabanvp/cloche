@@ -105,7 +105,7 @@ export default function MyReviewsPage() {
             <div key={rev.id} className="bg-white p-5 rounded-2xl border border-gold/10 shadow-sm space-y-2 relative">
               <div className="flex items-center justify-between">
                 <h3 className="font-display text-base font-semibold text-charcoal">
-                  {rev.vendors?.name || rev.vendors?.boutique_name || rev.vendor_name || "Vendor Review"}
+                  {rev.vendors?.vendor_profiles?.business_name || rev.vendors?.name || rev.vendors?.boutique_name || rev.vendor_name || "Vendor Review"}
                 </h3>
                 <div className="flex items-center gap-1 text-gold">
                   {[...Array(5)].map((_, i) => (
@@ -114,7 +114,8 @@ export default function MyReviewsPage() {
                 </div>
               </div>
 
-              <p className="text-xs text-charcoal/80 leading-relaxed">{rev.review}</p>
+              {rev.title && <h4 className="text-xs font-bold text-charcoal">{rev.title}</h4>}
+              <p className="text-xs text-charcoal/80 leading-relaxed">{rev.review_text || rev.review}</p>
               <span className="text-[10px] text-charcoal/50 block pt-1">
                 Published on {new Date(rev.created_at || Date.now()).toLocaleDateString()}
               </span>

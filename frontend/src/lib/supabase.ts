@@ -984,30 +984,141 @@ export async function fetchEligibleVendorsForReviewFromDb(customerId: string) {
   return Array.from(vendorMap.values());
 }
 
-export async function saveCustomerReviewInDb(reviewData: Record<string, any>) {
-  // Verify interaction before inserting
-  const eligible = await fetchEligibleVendorsForReviewFromDb(reviewData.customer_id);
-  const isEligible = eligible.some((v) => String(v.id) === String(reviewData.vendor_id));
+export async function recalculateVendorRatingInDb(vendorId: string) {
+  try {
+    // 1. Fetch all published reviews for this vendor
+    const res = await supabaseFetch(
+      `reviews?vendor_id=eq.${encodeURIComponent(vendorId)}&status=eq.published&select=rating`
+    );
 
-  if (!isEligible && eligible.length > 0) {
-    return { data: null, error: new Error("You can only submit reviews for vendors you have inquired with or received quotations from.") };
+    const reviews = Array.isArray(res.data) ? res.data : [];
+    const count = reviews.length;
+    let avgRating = 0;
+
+    if (count > 0) {
+      const sum = reviews.reduce((acc: number, r: any) => acc + Number(r.rating || 0), 0);
+      avgRating = Math.round((sum / count) * 10) / 10;
+    }
+
+    // 2. Update vendor_profiles rating and review_count denormalized columns
+    await supabaseFetch(`vendor_profiles?vendor_id=eq.${encodeURIComponent(vendorId)}`, {
+      method: "PATCH",
+      headers: { Prefer: "return=representation" },
+      body: JSON.stringify({
+        rating: avgRating,
+        review_count: count,
+        updated_at: new Date().toISOString(),
+      }),
+    });
+
+    return { success: true, rating: avgRating, review_count: count };
+  } catch (err: any) {
+    console.error("Error recalculating vendor rating:", err);
+    return { success: false, error: err.message };
+  }
+}
+
+export async function saveCustomerReviewInDb(reviewData: Record<string, any>) {
+  const { customer_id, vendor_id, rating, review, title } = reviewData;
+
+  // 1. Check if customer already reviewed this vendor
+  const existing = await supabaseFetch(
+    `reviews?customer_id=eq.${encodeURIComponent(customer_id)}&vendor_id=eq.${encodeURIComponent(vendor_id)}&select=id`
+  );
+
+  if (existing.data && Array.isArray(existing.data) && existing.data.length > 0) {
+    return {
+      data: null,
+      error: new Error("You have already submitted a review for this vendor. You can edit or delete your existing review from your dashboard."),
+    };
   }
 
-  return supabaseFetch(`customer_review_drafts`, {
+  // 2. Insert into official reviews table
+  const insertPayload = {
+    customer_id,
+    vendor_id,
+    rating: Math.max(1, Math.min(5, Math.round(Number(rating)))),
+    title: title || "",
+    review_text: String(review).trim(),
+    status: "published",
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  };
+
+  const res = await supabaseFetch(`reviews`, {
     method: "POST",
-    headers: { Prefer: "resolution=merge-duplicates,return=representation" },
-    body: JSON.stringify(reviewData),
+    headers: { Prefer: "return=representation" },
+    body: JSON.stringify(insertPayload),
   });
+
+  if (res.error) {
+    // Catch unique constraint if hit concurrently
+    if (res.error.message?.includes("uq_reviews_vendor_customer") || res.error.message?.includes("duplicate key")) {
+      return {
+        data: null,
+        error: new Error("You have already submitted a review for this vendor. You can edit or delete your existing review from your dashboard."),
+      };
+    }
+    return res;
+  }
+
+  // 3. Trigger recalculation of vendor rating & review count
+  await recalculateVendorRatingInDb(vendor_id);
+
+  return res;
 }
 
 export async function deleteCustomerReviewInDb(reviewId: string, customerId: string) {
-  return supabaseFetch(`customer_review_drafts?id=eq.${encodeURIComponent(reviewId)}&customer_id=eq.${encodeURIComponent(customerId)}`, {
-    method: "DELETE",
-  });
+  // 1. Fetch review to get vendor_id
+  const getRes = await supabaseFetch(
+    `reviews?id=eq.${encodeURIComponent(reviewId)}&customer_id=eq.${encodeURIComponent(customerId)}&select=id,vendor_id`
+  );
+
+  const review = Array.isArray(getRes.data) && getRes.data.length > 0 ? getRes.data[0] : null;
+
+  // 2. Delete from reviews table
+  const deleteRes = await supabaseFetch(
+    `reviews?id=eq.${encodeURIComponent(reviewId)}&customer_id=eq.${encodeURIComponent(customerId)}`,
+    { method: "DELETE" }
+  );
+
+  // 3. Recalculate vendor rating if deleted
+  if (review?.vendor_id) {
+    await recalculateVendorRatingInDb(review.vendor_id);
+  }
+
+  return deleteRes;
 }
 
 export async function fetchCustomerReviewsFromDb(customerId: string) {
-  return supabaseFetch(`customer_review_drafts?customer_id=eq.${encodeURIComponent(customerId)}&order=created_at.desc&select=*,vendors(*)`);
+  return supabaseFetch(
+    `reviews?customer_id=eq.${encodeURIComponent(customerId)}&order=created_at.desc&select=id,rating,title,review_text,status,created_at,vendor_id,vendors(id,vendor_code,vendor_profiles(business_name,city))`
+  );
+}
+
+export async function updateReviewStatusByAdminInDb(reviewId: string, status: "published" | "flagged" | "hidden") {
+  // 1. Fetch review to get vendor_id
+  const getRes = await supabaseFetch(
+    `reviews?id=eq.${encodeURIComponent(reviewId)}&select=id,vendor_id`
+  );
+  const review = Array.isArray(getRes.data) && getRes.data.length > 0 ? getRes.data[0] : null;
+
+  // 2. Update status
+  const updateRes = await supabaseFetch(`reviews?id=eq.${encodeURIComponent(reviewId)}`, {
+    method: "PATCH",
+    headers: { Prefer: "return=representation" },
+    body: JSON.stringify({
+      status,
+      updated_at: new Date().toISOString(),
+    }),
+  });
+
+  // 3. Recalculate vendor rating (hidden reviews excluded from average)
+  if (review?.vendor_id) {
+    await recalculateVendorRatingInDb(review.vendor_id);
+  }
+
+  return updateRes;
 }
 
 export async function updateCustomerUserProfileInDb(userId: string, profileData: Record<string, any>) {
