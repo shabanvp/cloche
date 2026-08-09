@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Footer } from "@/components/Footer";
 import { AdBanner } from "@/components/AdBanner";
+import { AutocompleteSearch } from "@/components/AutocompleteSearch";
 
 export const dynamic = 'force-dynamic';
 
@@ -158,12 +159,14 @@ export default function Home() {
       <main className="pb-20">
         
         {/* Hero Section */}
-        <section className="relative h-[480px] md:h-[520px] w-full flex flex-col justify-end overflow-hidden">
-          <div 
-            className="absolute inset-0 bg-cover bg-center" 
-            style={{backgroundImage: 'url(https://lh3.googleusercontent.com/aida-public/AB6AXuDkuPHXhU7sXzDUvYbDriFUJ917zikz7COlOrOswDvuY6_7v5cQOlZuew5k-nQKjcfUP1uCWfNAZ_E3pzW0ZhxB3iG_Qgee-9xeWqV3kmcxYZjS4lZH63iptxjO4EQc-c1trOo4OB45RTiLcgN_4gKPeu41g5AiHIMElHe-KXqWqvejj3L13jYUx7jf5JgJ76IE74Db2TjqXh0ocXwWUZwTja1cDHAcysRGBp85vCe6HOhaQ8V2U10qxMCfXK6vEIuyz0bq1Y5eq9PQ)'}}
-          ></div>
-          <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent"></div>
+        <section className="relative h-[480px] md:h-[520px] w-full flex flex-col justify-end">
+          <div className="absolute inset-0 overflow-hidden rounded-b-3xl">
+            <div 
+              className="absolute inset-0 bg-cover bg-center" 
+              style={{backgroundImage: 'url(https://lh3.googleusercontent.com/aida-public/AB6AXuDkuPHXhU7sXzDUvYbDriFUJ917zikz7COlOrOswDvuY6_7v5cQOlZuew5k-nQKjcfUP1uCWfNAZ_E3pzW0ZhxB3iG_Qgee-9xeWqV3kmcxYZjS4lZH63iptxjO4EQc-c1trOo4OB45RTiLcgN_4gKPeu41g5AiHIMElHe-KXqWqvejj3L13jYUx7jf5JgJ76IE74Db2TjqXh0ocXwWUZwTja1cDHAcysRGBp85vCe6HOhaQ8V2U10qxMCfXK6vEIuyz0bq1Y5eq9PQ)'}}
+            ></div>
+            <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent"></div>
+          </div>
           
           <div className="relative z-10 max-w-7xl mx-auto w-full p-6 md:p-10 space-y-4">
             <h1 className="text-white text-4xl md:text-5xl font-extrabold tracking-tight font-display max-w-2xl">
@@ -173,14 +176,8 @@ export default function Home() {
               Find the best wedding vendors with thousands of trusted reviews
             </p>
             
-            <div className="flex bg-white rounded-xl overflow-hidden shadow-2xl mt-6 max-w-xl">
-              <div className="bg-primary w-14 md:w-16 flex items-center justify-center">
-                <span className="material-symbols-outlined text-white text-2xl">search</span>
-              </div>
-              <Link href="/search" className="flex-1 px-4 py-4 text-left text-on-surface-variant font-medium flex justify-between items-center group">
-                <span className="text-sm md:text-base text-gray-700 font-medium">Search for vendors, venues, or boutiques...</span>
-                <span className="material-symbols-outlined text-primary group-hover:translate-x-1 transition-transform">chevron_right</span>
-              </Link>
+            <div className="mt-6 max-w-xl">
+              <AutocompleteSearch placeholder="Search for vendors, venues, or boutiques..." />
             </div>
           </div>
         </section>

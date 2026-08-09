@@ -96,10 +96,10 @@ export function VendorCategoryListing({
               item.image ||
               categoryConfig.vendors[0]?.image ||
               "",
-            rating: item.rating || 4.9,
-            reviewsCount: Number(item.reviewsCount ?? item.review_count ?? 0),
-            location: item.location || (item.city ? `${item.city}, Kerala` : "Kochi, Kerala"),
-            startingPrice: item.startingPrice || item.starting_price || "₹50,000",
+            rating: Number(item.rating || 0),
+            reviewsCount: Number(item.reviewsCount ?? item.review_count ?? item.reviewCount ?? 0),
+            location: item.location || (item.city ? (item.city.toLowerCase() === "kerala" ? "Kerala" : `${item.city}, Kerala`) : "Kerala"),
+            startingPrice: item.startingPrice || item.starting_price || "Contact for pricing",
             badge: "Verified",
             verified: true,
             specialtyTag: item.category || categoryConfig.title,
@@ -115,30 +115,39 @@ export function VendorCategoryListing({
           .then((r) => r.json())
           .then((res) => {
             if (res.success && Array.isArray(res.data) && res.data.length > 0) {
-              const apiVendors: VendorCategoryItem[] = res.data.map((item: any, idx: number) => ({
-                id: item.id || item.slug || `api-${idx}`,
-                name: item.name || "Wedding Partner",
-                slug: item.slug || item.id || `partner-${idx}`,
-                image:
-                  item.coverImage ||
-                  item.cover_image ||
-                  item.cover_url ||
-                  item.logoUrl ||
-                  item.logo ||
-                  item.logo_url ||
-                  item.profile_logo ||
-                  item.image_url ||
-                  item.image ||
-                  "",
-                rating: Number(item.rating || 5.0),
-                reviewsCount: Number(item.reviewCount ?? item.reviewsCount ?? 0),
-                location: item.city ? `${item.city}, ${item.state || "Kerala"}` : "Kochi, Kerala",
-                startingPrice: item.startingPrice || "Contact for pricing",
-                badge: "Verified",
-                verified: Boolean(item.isVerified),
-                specialtyTag: item.category || categoryConfig.title,
-                subCategory: "all",
-              }));
+              const apiVendors: VendorCategoryItem[] = res.data.map((item: any, idx: number) => {
+                const locCity = (item.city || "").trim();
+                const locState = (item.state || "").trim();
+                const formattedLoc =
+                  locCity && locState && locCity.toLowerCase() !== locState.toLowerCase()
+                    ? `${locCity}, ${locState}`
+                    : locCity || locState || "Kerala";
+
+                return {
+                  id: item.id || item.slug || `api-${idx}`,
+                  name: item.name || "Wedding Partner",
+                  slug: item.slug || item.id || `partner-${idx}`,
+                  image:
+                    item.coverImage ||
+                    item.cover_image ||
+                    item.cover_url ||
+                    item.logoUrl ||
+                    item.logo ||
+                    item.logo_url ||
+                    item.profile_logo ||
+                    item.image_url ||
+                    item.image ||
+                    "",
+                  rating: Number(item.rating || 0),
+                  reviewsCount: Number(item.reviewCount ?? item.reviewsCount ?? 0),
+                  location: formattedLoc,
+                  startingPrice: item.startingPrice || "Contact for pricing",
+                  badge: "Verified",
+                  verified: Boolean(item.isVerified),
+                  specialtyTag: item.category || categoryConfig.title,
+                  subCategory: "all",
+                };
+              });
 
               setAllVendors((prev) => {
                 const existingMap = new Map<string, VendorCategoryItem>();
@@ -221,28 +230,19 @@ export function VendorCategoryListing({
 
   return (
     <div className="min-h-screen bg-[#FBF8F1] font-sans text-charcoal flex flex-col justify-between">
-      <main className="flex-grow py-6 sm:py-10 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto w-full">
-        {/* Breadcrumb Header */}
-        <nav className="flex items-center gap-2 text-xs text-charcoal/60 mb-4 font-medium">
-          <Link href="/" className="hover:text-[#0F4C45] transition-colors">
-            Home
-          </Link>
-          <span>›</span>
-          <span className="text-[#0F4C45] font-bold">{categoryConfig.title}</span>
-        </nav>
-
-        {/* Category Title & Tagline */}
-        <div className="mb-6 space-y-1">
-          <h1 className="text-3xl sm:text-4xl font-display font-bold text-charcoal tracking-tight">
+      <main className="flex-grow pt-3 pb-6 sm:pt-4 sm:pb-8 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto w-full">
+        {/* Category Title & Tagline - Centered & Tight Padding */}
+        <div className="mb-4 text-center space-y-1">
+          <h1 className="text-2xl sm:text-4xl font-display font-bold text-charcoal tracking-tight text-center">
             {categoryConfig.title}
           </h1>
-          <p className="text-sm sm:text-base text-charcoal/70 max-w-xl leading-relaxed">
+          <p className="text-xs sm:text-sm text-charcoal/70 max-w-xl mx-auto text-center leading-relaxed">
             {categoryConfig.subtitle}
           </p>
         </div>
 
         {/* Search Input Bar with Filter Icon */}
-        <div className="relative mb-6">
+        <div className="relative mb-4">
           <div className="relative flex items-center">
             <Search className="absolute left-4 w-5 h-5 text-charcoal/40" />
             <input
@@ -250,7 +250,7 @@ export function VendorCategoryListing({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={categoryConfig.searchPlaceholder}
-              className="w-full bg-white border border-gold/20 rounded-2xl pl-12 pr-14 py-3.5 text-sm sm:text-base text-charcoal placeholder:text-charcoal/40 focus:outline-none focus:border-[#0F4C45] shadow-xs transition-all"
+              className="w-full bg-white border border-gold/20 rounded-2xl pl-12 pr-14 py-3 text-sm sm:text-base text-charcoal placeholder:text-charcoal/40 focus:outline-none focus:border-[#0F4C45] shadow-xs transition-all"
             />
             <button
               onClick={() => setShowFilterDrawer(!showFilterDrawer)}
@@ -263,14 +263,14 @@ export function VendorCategoryListing({
         </div>
 
         {/* Sub-category Filter Badges (Horizontal Scrollable Pill Bar) */}
-        <div className="flex items-center gap-2.5 overflow-x-auto pb-3 mb-6 scrollbar-none">
+        <div className="flex items-center gap-2.5 overflow-x-auto pb-2 mb-4 scrollbar-none">
           {categoryConfig.subFilters.map((filter) => {
             const isSelected = activeSubFilter === filter.value;
             return (
               <button
                 key={filter.value}
                 onClick={() => setActiveSubFilter(filter.value)}
-                className={`px-4 py-2 rounded-full text-xs font-bold transition-all shrink-0 border ${
+                className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 border ${
                   isSelected
                     ? "bg-[#0F4C45] text-white border-[#0F4C45] shadow-sm"
                     : "bg-white text-charcoal/70 border-gold/20 hover:border-[#0F4C45] hover:text-[#0F4C45]"
@@ -280,48 +280,6 @@ export function VendorCategoryListing({
               </button>
             );
           })}
-        </div>
-
-        {/* Filter & Sort Dropdown Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-3 mb-6 pt-2 border-t border-gold/15">
-          <div className="flex flex-wrap items-center gap-2.5">
-            {/* Location Select */}
-            <div className="relative">
-              <select
-                value={selectedLocation}
-                onChange={(e) => setSelectedLocation(e.target.value)}
-                className="appearance-none bg-white border border-gold/20 rounded-xl px-4 py-2 pr-8 text-xs font-bold text-charcoal focus:outline-none focus:border-[#0F4C45] shadow-2xs cursor-pointer"
-              >
-                {categoryConfig.locationOptions.map((loc) => (
-                  <option key={loc} value={loc}>
-                    {loc}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown className="w-3.5 h-3.5 absolute right-2.5 top-1/2 -translate-y-1/2 text-charcoal/50 pointer-events-none" />
-            </div>
-
-            {/* Sort Select */}
-            <div className="relative">
-              <select
-                value={selectedSort}
-                onChange={(e) => setSelectedSort(e.target.value)}
-                className="appearance-none bg-white border border-gold/20 rounded-xl px-4 py-2 pr-8 text-xs font-bold text-charcoal focus:outline-none focus:border-[#0F4C45] shadow-2xs cursor-pointer"
-              >
-                {categoryConfig.sortOptions.map((sort) => (
-                  <option key={sort} value={sort}>
-                    {sort}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown className="w-3.5 h-3.5 absolute right-2.5 top-1/2 -translate-y-1/2 text-charcoal/50 pointer-events-none" />
-            </div>
-          </div>
-
-          {/* Results Count */}
-          <div className="text-xs font-bold text-charcoal/60">
-            Showing 1-{filteredVendors.length} of {filteredVendors.length} {categoryConfig.title.toLowerCase()}
-          </div>
         </div>
 
         {/* Vendor Cards Listing Grid */}
@@ -349,7 +307,7 @@ export function VendorCategoryListing({
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredVendors.map((vendor) => {
               const isLiked = wishlist.has(vendor.id);
-              const cardHref = categoryConfig.slug === "venues" ? `/venues/${vendor.slug || vendor.id}` : `/boutiques/${vendor.id || vendor.slug}`;
+              const cardHref = `/boutiques/${vendor.id || vendor.slug}`;
               return (
                 <Link
                   key={vendor.id}
@@ -357,13 +315,36 @@ export function VendorCategoryListing({
                   className="bg-white rounded-2xl border border-gold/15 shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col justify-between group"
                 >
                   <div>
-                    {/* Image Area with Badge & Wishlist */}
-                    <div className="relative aspect-[4/3] w-full overflow-hidden bg-ivory">
-                      <img
-                        src={vendor.image}
-                        alt={vendor.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      />
+                    <div className="relative aspect-[4/3] w-full overflow-hidden bg-[#0F4C45]">
+                      {(() => {
+                        const rawLogo = (
+                          (vendor as any).logo_url ||
+                          (vendor as any).logo ||
+                          (vendor as any).profile_logo ||
+                          vendor.image ||
+                          (vendor as any).image_url ||
+                          ""
+                        ).toString().trim();
+                        const isValid =
+                          rawLogo.startsWith("data:image/") ||
+                          rawLogo.startsWith("http://") ||
+                          rawLogo.startsWith("https://") ||
+                          (rawLogo.startsWith("/") && !rawLogo.startsWith("//"));
+
+                        return isValid ? (
+                          <img
+                            src={rawLogo}
+                            alt={vendor.name}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-[#0F4C45]">
+                            <span className="font-serif text-5xl font-bold text-white tracking-wider">
+                              {vendor.name ? vendor.name.charAt(0).toUpperCase() : "V"}
+                            </span>
+                          </div>
+                        );
+                      })()}
 
                       {/* Optional Overlay Badge (Indoor, Outdoor, Verified, Destination) */}
                       {vendor.badge && (

@@ -1,12 +1,11 @@
+import { VendorCategoryListing } from "@/components/VendorCategoryListing";
 import type { Metadata } from "next";
-import { GroomWearListing } from "@/components/GroomWearListing";
 
 export const metadata: Metadata = {
-  title: "Groom Wear | Sherwanis, Achkans & Suits | Cloche",
-  description:
-    "Browse premium groom wear, sherwanis, bandhgalas, achkans and bespoke suits for your wedding day.",
+  title: "Groom Wear | Cloche",
+  description: "Browse premium groom wear, sherwanis, bandhgalas, achkans and bespoke suits for your wedding day.",
 };
 
-export default function GroomWearPage() {
-  return <GroomWearListing />;
+export default function GroomWearCategoryPage() {
+  return <VendorCategoryListing categorySlug="groom-wear" />;
 }

@@ -1,7 +1,9 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { Search, Filter, Plus, Edit3, Trash2, Copy, ShoppingBag, AlertCircle, CheckCircle2 } from "lucide-react";
+import React, { useState, useEffect, Suspense } from "react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { Search, Filter, Plus, Edit3, Trash2, Copy, ShoppingBag, AlertCircle } from "lucide-react";
 import { fetchAuthenticatedVendorFromDb, getActiveVendorIdentity, showVendorToast } from "@/lib/vendorStore";
 
 interface ServiceItem {
@@ -16,7 +18,9 @@ interface ServiceItem {
   image_url?: string;
 }
 
-export default function VendorServicesPage() {
+function VendorServicesContent() {
+  const searchParams = useSearchParams();
+  const activeTab = (searchParams.get("tab") as "services" | "packages" | "catalog") || "services";
   const [vendorId, setVendorId] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
@@ -49,10 +53,6 @@ export default function VendorServicesPage() {
     }
   };
 
-  /**
-   * Strictly load services ONLY from live Supabase DB via GET /api/v1/vendor/services
-   * NO local storage fallbacks, NO demo arrays, NO mock cards.
-   */
   const fetchDataFromDb = async (vId: string) => {
     setIsLoading(true);
     try {
@@ -154,7 +154,6 @@ export default function VendorServicesPage() {
         showVendorToast("✓ Service deleted successfully.");
         await fetchDataFromDb(vendorId);
       } else {
-        // Fallback query to parameter DELETE
         await fetch(`/api/v1/vendor/services?id=${encodeURIComponent(id)}`, { method: "DELETE" });
         showVendorToast("✓ Service deleted successfully.");
         await fetchDataFromDb(vendorId);
@@ -213,7 +212,7 @@ export default function VendorServicesPage() {
         showVendorToast("Service saved successfully.");
         await fetchDataFromDb(vendorId);
       } else {
-        setValidationError(res.error?.message || "Failed to save service into Supabase database.");
+        setValidationError(res.error?.message || "Failed to save service into database.");
       }
     } catch (err: any) {
       setValidationError("Network error saving service to database.");
@@ -235,7 +234,7 @@ export default function VendorServicesPage() {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between border-b border-gold/15 pb-6 gap-4">
         <div>
           <h1 className="text-3xl lg:text-4xl font-display font-bold text-charcoal">Vendor Services</h1>
-          <p className="text-sm text-charcoal/70 mt-1">Manage your service offerings, custom pricing tiers, and public storefront availability directly from Supabase database.</p>
+          <p className="text-sm text-charcoal/70 mt-1">Manage your service offerings, custom pricing tiers, and public storefront availability.</p>
         </div>
 
         <button
@@ -291,7 +290,7 @@ export default function VendorServicesPage() {
 
       {/* Large Service Cards Grid or Professional Empty State */}
       {isLoading ? (
-        <div className="text-center py-16 text-xs text-charcoal/60">Querying vendor_services table from Supabase database...</div>
+        <div className="text-center py-16 text-xs text-charcoal/60">Loading services...</div>
       ) : filteredServices.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredServices.map((service) => (
@@ -362,8 +361,8 @@ export default function VendorServicesPage() {
       ) : (
         <div className="text-center py-16 bg-white rounded-2xl border border-gold/15 p-8">
           <ShoppingBag className="w-12 h-12 text-gold mx-auto mb-3 opacity-50" />
-          <h3 className="text-xl font-display font-bold text-charcoal">No Services Found in Database</h3>
-          <p className="text-xs text-charcoal/60 max-w-sm mx-auto mt-1">Add your first service offering to insert a record into the vendor_services Supabase table.</p>
+          <h3 className="text-xl font-display font-bold text-charcoal">No Services Found</h3>
+          <p className="text-xs text-charcoal/60 max-w-sm mx-auto mt-1">Add your first service offering to present to users.</p>
           <button onClick={handleOpenCreateModal} className="mt-4 bg-[#0F4C45] text-white px-6 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider shadow-md cursor-pointer">
             + Create Service
           </button>
@@ -471,7 +470,7 @@ export default function VendorServicesPage() {
                   disabled={isSubmitting}
                   className="px-6 py-2.5 rounded-xl bg-[#0F4C45] text-white text-xs font-bold uppercase tracking-wider hover:bg-[#135951] shadow-md cursor-pointer disabled:opacity-50"
                 >
-                  {isSubmitting ? "Saving to Database..." : "Save Service"}
+                  {isSubmitting ? "Saving..." : "Save Service"}
                 </button>
               </div>
             </form>
@@ -479,5 +478,13 @@ export default function VendorServicesPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function VendorServicesPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-charcoal/60">Loading Services...</div>}>
+      <VendorServicesContent />
+    </Suspense>
   );
 }

@@ -81,11 +81,88 @@ export function Header({ session }: HeaderProps = {}) {
     return () => window.removeEventListener("cloche_wishlist_updated", updateCount);
   }, []);
 
+  const [vendorState, setVendorState] = useState<{
+    name: string;
+    category: string;
+    logo: string;
+    isVendor: boolean;
+  }>({
+    name: "",
+    category: "",
+    logo: "",
+    isVendor: false,
+  });
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const storedName =
+          localStorage.getItem("boutique_name") ||
+          localStorage.getItem("vendor_name") ||
+          localStorage.getItem("businessName") ||
+          localStorage.getItem("owner_name") ||
+          localStorage.getItem("user_name");
+
+        const rawUserData = localStorage.getItem("cloche_user_data");
+        const rawVendors = localStorage.getItem("cloche_registered_vendors");
+        const rawVenues = localStorage.getItem("cloche_registered_venues");
+
+        let resolvedName = storedName || "";
+        let resolvedCategory = "";
+        let resolvedLogo = "";
+        let isVendorUser = false;
+
+        if (rawUserData) {
+          const u = JSON.parse(rawUserData);
+          resolvedName = u.boutique_name || u.businessName || u.name || u.full_name || resolvedName;
+          resolvedCategory = u.category || resolvedCategory;
+          resolvedLogo = u.logo || u.logo_url || u.profile_logo || u.image_url || u.image || resolvedLogo;
+          if (u.role === "vendor" || u.account_type === "partner" || u.boutique_name || u.category) {
+            isVendorUser = true;
+          }
+        }
+
+        if (!resolvedName && rawVendors) {
+          const list = JSON.parse(rawVendors);
+          if (list.length > 0) {
+            const active = list[0];
+            resolvedName = active.boutique_name || active.name || active.businessName || "";
+            resolvedCategory = active.category || "Bridal Wear";
+            resolvedLogo = active.logo || active.logo_url || active.profile_logo || active.image_url || "";
+            isVendorUser = true;
+          }
+        }
+
+        if (!resolvedName && rawVenues) {
+          const list = JSON.parse(rawVenues);
+          if (list.length > 0) {
+            const active = list[0];
+            resolvedName = active.boutique_name || active.name || active.businessName || "";
+            resolvedCategory = active.category || "Wedding Venue";
+            resolvedLogo = active.logo || active.logo_url || active.profile_logo || active.image_url || "";
+            isVendorUser = true;
+          }
+        }
+
+        if (session?.role === "vendor" || session?.role === "partner") {
+          isVendorUser = true;
+        }
+
+        setVendorState({
+          name: resolvedName,
+          category: resolvedCategory || "Bridal Wear",
+          logo: resolvedLogo,
+          isVendor: isVendorUser || Boolean(resolvedName),
+        });
+      } catch (e) {}
+    }
+  }, [session]);
+
   if (isAuthRoute) return null;
 
   let profileLink = "/dashboard";
-  if (session?.role === "vendor" || session?.role === "partner") {
-    profileLink = "/vendor/profile";
+  if (vendorState.isVendor || session?.role === "vendor" || session?.role === "partner") {
+    profileLink = "/vendor";
   } else if (session?.role === "admin") {
     profileLink = "/admin";
   }
@@ -323,19 +400,35 @@ export function Header({ session }: HeaderProps = {}) {
 
             <div className="relative z-[1] flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain px-5 pb-[calc(env(safe-area-inset-bottom)+24px)] pt-[calc(env(safe-area-inset-top)+70px)]">
               <Link
-                href={session ? profileLink : "/login"}
+                href={vendorState.isVendor || isVendorSession ? "/vendor" : session ? profileLink : "/login"}
                 onClick={closeMobileMenu}
-                className="mb-8 flex items-center gap-4 rounded-2xl p-1 transition-colors hover:bg-white/7"
+                className="mb-8 flex items-center gap-4 rounded-2xl p-2 transition-colors hover:bg-white/10"
               >
-                <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#D8C39A]/60 bg-[#F7F3EC] shadow-[0_12px_22px_rgba(0,0,0,0.2)]">
-                  <img src="/logo.png" alt="" className="h-full w-full object-contain scale-[1.35]" />
+                <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#D8C39A]/60 bg-[#0F4C45] text-white shadow-[0_12px_22px_rgba(0,0,0,0.2)]">
+                  {vendorState.logo && (vendorState.logo.startsWith("data:") || vendorState.logo.startsWith("http") || vendorState.logo.startsWith("/")) ? (
+                    <img src={vendorState.logo} alt={vendorState.name} className="h-full w-full object-cover" />
+                  ) : vendorState.isVendor && vendorState.name ? (
+                    <span className="font-serif text-2xl font-bold text-white">{vendorState.name.charAt(0).toUpperCase()}</span>
+                  ) : session ? (
+                    <span className="font-serif text-2xl font-bold text-white">U</span>
+                  ) : (
+                    <img src="/logo.png" alt="Cloche" className="h-full w-full object-contain scale-[1.35]" />
+                  )}
                 </div>
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1">
                   <h2 className="truncate font-display text-[18px] font-bold leading-6 text-[#F7F3EC]">
-                    {session ? "My Profile" : "Cloche Guest"}
+                    {vendorState.isVendor && vendorState.name
+                      ? vendorState.name
+                      : session
+                      ? "My Profile"
+                      : "Cloche Guest"}
                   </h2>
                   <p className="mt-0.5 truncate font-sans text-[13px] leading-5 text-[#D8C39A]">
-                    {session ? "View Profile" : "Sign In / Sign Up"}
+                    {vendorState.isVendor
+                      ? vendorState.category || "Bridal Wear"
+                      : session
+                      ? "View Profile"
+                      : "Sign In / Sign Up"}
                   </p>
                 </div>
               </Link>

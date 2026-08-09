@@ -13,9 +13,17 @@ export interface Boutique {
   tags?: string;
   shop_location?: string;
   image_url?: string;
+  logo_url?: string;
+  logo?: string;
+  profile_logo?: string;
+  cover_url?: string;
+  coverImage?: string;
   rating?: number;
   description?: string;
   category?: string;
+  starting_price?: string;
+  startingPrice?: string;
+  verified?: boolean;
 }
 
 export interface Product {

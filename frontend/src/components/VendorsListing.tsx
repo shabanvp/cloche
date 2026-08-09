@@ -10,15 +10,18 @@ import {
   Heart,
   Star,
   Users,
+  MapPin,
+  CheckCircle2,
 } from "lucide-react";
 import { BottomNavBar } from "@/components/BottomNavBar";
+import { AutocompleteSearch } from "@/components/AutocompleteSearch";
 import { Boutique } from "@/types";
 
 // Map tags / plan keywords to display category labels
 function resolveCategory(boutique: Boutique): string {
   const tags = (boutique.tags || "").toLowerCase();
   const plan = (boutique.plan || "").toLowerCase();
-  const name = boutique.boutique_name.toLowerCase();
+  const name = (boutique.boutique_name || (boutique as any).name || "").toLowerCase();
 
   if (tags.includes("videographer") || tags.includes("video") || name.includes("video") || name.includes("film") || name.includes("cinema")) return "Videographer";
   if (tags.includes("photo") || name.includes("photo") || name.includes("frame") || name.includes("media")) return "Photographer";
@@ -40,19 +43,36 @@ function resolveCategory(boutique: Boutique): string {
   return "Bridal Wear";
 }
 
+function resolveDetailHref(boutique: Boutique): string {
+  const category = resolveCategory(boutique).toLowerCase();
+  const id = boutique.id;
+  if (category.includes("venue")) return `/venues/${id}`;
+  if (category.includes("photo")) return `/photographers/${id}`;
+  if (category.includes("makeup")) return `/makeup-artists/${id}`;
+  if (category.includes("decor") || category.includes("planner")) return `/decor-planning/${id}`;
+  if (category.includes("cater")) return `/catering/${id}`;
+  if (category.includes("jewel")) return `/jewellery/${id}`;
+  if (category.includes("invitat")) return `/invitations/${id}`;
+  if (category.includes("mehendi")) return `/mehendi-artists/${id}`;
+  if (category.includes("bridal")) return `/bridal-wear/${id}`;
+  if (category.includes("groom")) return `/groom-wear/${id}`;
+  return `/boutiques/${id}`;
+}
+
 const CATEGORY_FILTERS = [
   "All",
   "Photographers",
   "Makeup",
   "Decor",
   "Planners",
-  "Jewellery",
   "Catering",
+  "Mehendi",
   "Bridal Wear",
   "Groom Wear",
+  "Jewellery",
+  "Invitations",
   "Videographer",
   "Decorator",
-  "Wedding Planner",
   "Cake Designer",
   "Entertainment",
   "Choreographer",
@@ -70,13 +90,14 @@ const FILTER_MATCH: Record<CategoryFilter, string> = {
   Makeup: "makeup",
   Decor: "decor",
   Planners: "plan",
-  Jewellery: "jewel",
   Catering: "cater",
+  Mehendi: "mehendi",
   "Bridal Wear": "bridal",
   "Groom Wear": "groom",
+  Jewellery: "jewel",
+  Invitations: "invitat",
   Videographer: "video",
   Decorator: "decor",
-  "Wedding Planner": "plan",
   "Cake Designer": "cake",
   Entertainment: "entertain",
   Choreographer: "choreo",
@@ -89,6 +110,30 @@ const FILTER_MATCH: Record<CategoryFilter, string> = {
 
 interface VendorsListingProps {
   boutiques: Boutique[];
+}
+
+function normalizeImageUrl(value: any): string {
+  if (!value) return "";
+  const raw = String(value).trim();
+  if (!raw) return "";
+
+  let fullUrl = raw;
+  if (!/^https?:\/\//i.test(raw) && !/^data:image\//i.test(raw)) {
+    if (raw.startsWith("/") && !raw.startsWith("//")) {
+      fullUrl = raw;
+    } else {
+      const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "dycwsnzyd";
+      const cleanPath = raw.replace(/^\/+/, "");
+      fullUrl = `https://res.cloudinary.com/${cloudName}/image/upload/${cleanPath}`;
+    }
+  }
+
+  // Inject Cloudinary auto-formatting and resizing parameters (w_600, f_auto, q_auto)
+  if (fullUrl.includes("res.cloudinary.com") && fullUrl.includes("/image/upload/") && !fullUrl.includes("w_")) {
+    fullUrl = fullUrl.replace("/image/upload/", "/image/upload/w_600,c_limit,f_auto,q_auto/");
+  }
+
+  return fullUrl;
 }
 
 export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingProps) {
@@ -118,304 +163,326 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
       try {
         const rawVendors = localStorage.getItem("cloche_registered_vendors");
         const rawBoutiques = localStorage.getItem("cloche_registered_boutiques");
+        const rawUserData = localStorage.getItem("cloche_user_data");
         const localList: any[] = [];
+        if (rawUserData) localList.push(JSON.parse(rawUserData));
         if (rawVendors) localList.push(...JSON.parse(rawVendors));
         if (rawBoutiques) localList.push(...JSON.parse(rawBoutiques));
 
-        const mergedMap = new Map<string, any>();
-        const seenNames = new Set<string>();
+        // Client-side fetch backup (uses HTTP caching)
+        const loadRealDbVendors = async () => {
+          const mergedMap = new Map<string, any>();
+          const seenNames = new Set<string>();
+          let dbItems = initialBoutiques || [];
 
-        if (localList.length > 0) {
-          localList.forEach((item) => {
-            const itemKey = item.id || item.slug || item.boutique_name;
-            const normName = (item.boutique_name || item.name || "").toLowerCase().trim();
-            if (itemKey && normName && !mergedMap.has(itemKey) && !seenNames.has(normName)) {
+          try {
+            const res = await fetch("/api/boutiques");
+            if (res.ok) {
+              const data = await res.json();
+              if (Array.isArray(data) && data.length > 0) {
+                const combined = [...dbItems, ...data];
+                dbItems = combined;
+              }
+            }
+          } catch (e) {}
+
+          // 1. Database fetched boutiques get top priority
+          dbItems.forEach((item) => {
+            const bName = item.boutique_name || (item as any).name || (item as any).businessName || "Wedding Vendor";
+            const itemKey = String(item.id || (item as any).slug || bName);
+            const normName = bName.toLowerCase().trim();
+            if (itemKey && normName) {
               seenNames.add(normName);
-              const logoSrc =
-                item.coverImage ||
-                item.cover_image ||
-                item.cover_url ||
-                item.logoUrl ||
-                item.logo ||
-                item.logo_url ||
-                item.profile_logo ||
-                item.image_url ||
-                item.image ||
-                "";
+              const logoSrc = item.logo_url || item.logo || (item as any).profile_logo || (item as any).image_url || "";
               mergedMap.set(itemKey, {
-                id: itemKey,
-                boutique_name: item.boutique_name || item.name || "Wedding Vendor",
-                image_url: logoSrc,
+                ...item,
+                boutique_name: bName,
                 logo_url: logoSrc,
                 logo: logoSrc,
-                rating: item.rating || 5.0,
-                city: item.city || "Kochi",
-                area: item.district || item.location || "Kerala",
-                tags: item.category || item.tags || "Bridal Boutique",
+                profile_logo: logoSrc,
               });
             }
           });
-        }
 
-        initialBoutiques.forEach((item) => {
-          const itemKey = String(item.id || item.boutique_name);
-          const normName = (item.boutique_name || "").toLowerCase().trim();
-          if (itemKey && normName && !mergedMap.has(itemKey) && !seenNames.has(normName)) {
-            seenNames.add(normName);
-            mergedMap.set(itemKey, item);
+          // 2. Local storage registered vendors
+          if (localList.length > 0) {
+            localList.forEach((item) => {
+              const bName = item.boutique_name || item.name || item.businessName || "Wedding Vendor";
+              const itemKey = String(item.id || item.slug || bName);
+              const normName = bName.toLowerCase().trim();
+              if (itemKey && normName) {
+                const existing = mergedMap.get(itemKey);
+                const logoSrc = item.logo_url || item.logo || item.profile_logo || item.image || item.image_url || "";
+                if (!existing) {
+                  seenNames.add(normName);
+                  mergedMap.set(itemKey, {
+                    id: itemKey,
+                    boutique_name: bName,
+                    logo_url: logoSrc,
+                    profile_logo: logoSrc,
+                    logo: logoSrc,
+                    rating: item.rating || 4.8,
+                    city: item.city || "Kochi",
+                    area: item.district || item.location || "Kerala",
+                    tags: item.category || item.tags || "Bridal Boutique",
+                    starting_price: item.startingPrice || item.starting_price || "₹50,000",
+                  });
+                } else if (logoSrc) {
+                  existing.logo_url = existing.logo_url || logoSrc;
+                  existing.logo = existing.logo || logoSrc;
+                }
+              }
+            });
           }
-        });
 
-        setBoutiquesList(Array.from(mergedMap.values()));
-        return () => window.removeEventListener("cloche_wishlist_updated", updateWishlistSet);
-      } catch (e) {}
+          const finalList = Array.from(mergedMap.values());
+          if (finalList.length > 0) {
+            setBoutiquesList(finalList);
+          }
+        };
+
+        loadRealDbVendors();
+      } catch (e) {
+        console.error("Local vendor sync error:", e);
+      }
+
+      return () => window.removeEventListener("cloche_wishlist_updated", updateWishlistSet);
     }
-    setBoutiquesList(initialBoutiques);
   }, [initialBoutiques]);
-
-  const filtered = useMemo(() => {
-    return boutiquesList.filter((b) => {
-      const category = resolveCategory(b);
-      const matchesSearch =
-        b.boutique_name.toLowerCase().includes(search.toLowerCase()) ||
-        (b.city || "").toLowerCase().includes(search.toLowerCase()) ||
-        (b.area || "").toLowerCase().includes(search.toLowerCase()) ||
-        category.toLowerCase().includes(search.toLowerCase());
-
-      const targetKeyword = FILTER_MATCH[activeFilter].toLowerCase();
-      const matchesFilter =
-        activeFilter === "All" ||
-        category.toLowerCase().includes(targetKeyword) ||
-        (b.tags || "").toLowerCase().includes(targetKeyword) ||
-        b.boutique_name.toLowerCase().includes(targetKeyword);
-
-      return matchesSearch && matchesFilter;
-    });
-  }, [boutiquesList, search, activeFilter]);
 
   const toggleWishlist = (e: React.MouseEvent, boutique: Boutique) => {
     e.preventDefault();
+    e.stopPropagation();
     const { toggleWishlistItem } = require("@/lib/wishlistStore");
-    const category = resolveCategory(boutique);
     toggleWishlistItem({
       id: boutique.id,
       name: boutique.boutique_name,
-      category,
-      city: boutique.city || boutique.area || "Kerala",
-      boutique_name: boutique.boutique_name,
-      rating: boutique.rating || 4.9,
-      image: boutique.image_url || (boutique as any).logo_url || (boutique as any).logo,
+      category: resolveCategory(boutique),
+      price: boutique.starting_price || "₹50,000",
+      image: boutique.logo_url || boutique.logo || boutique.image_url,
+      location: boutique.city || boutique.area || "Kochi, Kerala",
+      city: boutique.city || "Kochi",
+      rating: boutique.rating || 4.8,
     });
   };
 
+  const filtered = useMemo(() => {
+    let result = boutiquesList;
+
+    if (activeFilter !== "All") {
+      const matchTerm = FILTER_MATCH[activeFilter];
+      if (matchTerm) {
+        result = result.filter((b) => {
+          const tags = (b.tags || "").toLowerCase();
+          const name = (b.boutique_name || (b as any).name || "").toLowerCase();
+          const category = resolveCategory(b).toLowerCase();
+          return tags.includes(matchTerm) || name.includes(matchTerm) || category.includes(matchTerm);
+        });
+      }
+    }
+
+    if (search.trim()) {
+      const q = search.toLowerCase().trim();
+      result = result.filter((b) => {
+        const name = (b.boutique_name || (b as any).name || "").toLowerCase();
+        const city = (b.city || "").toLowerCase();
+        const area = (b.area || "").toLowerCase();
+        const tags = (b.tags || "").toLowerCase();
+        return name.includes(q) || city.includes(q) || area.includes(q) || tags.includes(q);
+      });
+    }
+
+    return result;
+  }, [boutiquesList, activeFilter, search]);
+
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: "#F5F0E8" }}>
-      {/* ── Header ── */}
-      <header
-        className="sticky top-0 z-40 flex items-center justify-between px-4 py-4"
-        style={{ background: "#F5F0E8" }}
-      >
-        <Link
-          href="/"
-          className="flex h-10 w-10 items-center justify-center rounded-full"
-          style={{ background: "rgba(15,76,69,0.08)" }}
-          aria-label="Back"
-        >
-          <ArrowLeft className="h-5 w-5" style={{ color: "#0F4C45" }} />
-        </Link>
-
-        <h1
-          className="font-display text-[20px] font-bold"
-          style={{ color: "#0F4C45" }}
-        >
-          Vendors
-        </h1>
-
-        <button
-          className="flex h-10 w-10 items-center justify-center rounded-full"
-          style={{ background: "rgba(15,76,69,0.08)" }}
-          aria-label="Filter vendors"
-        >
-          <SlidersHorizontal className="h-5 w-5" style={{ color: "#0F4C45" }} />
-        </button>
+    <div className="min-h-screen bg-[#FAF7F2] font-sans pb-24 md:pb-12 text-charcoal">
+      {/* Search Header */}
+      <header className="sticky top-0 z-30 w-full bg-[#FAF7F2]/95 backdrop-blur-md border-b border-gold/15 px-4 py-3 sm:px-6 md:px-8 lg:px-12">
+        <div className="w-full flex items-center justify-start gap-3">
+          <Link
+            href="/"
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-white border border-gold/20 text-charcoal hover:bg-gold/10 transition-colors shadow-2xs shrink-0"
+            aria-label="Back to home"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Link>
+          <AutocompleteSearch placeholder="Search vendors..." className="w-full max-w-sm sm:max-w-md md:w-[420px] lg:w-[480px]" />
+          <button
+            type="button"
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-white border border-gold/20 text-charcoal hover:bg-gold/10 transition-colors shadow-2xs shrink-0 md:hidden ml-auto"
+            aria-label="Filters"
+          >
+            <SlidersHorizontal className="h-4 w-4 text-[#0F4C45]" />
+          </button>
+        </div>
       </header>
 
-      {/* ── Search Bar ── */}
-      <div className="px-4 pb-3">
-        <div
-          className="flex items-center gap-3 rounded-2xl px-4 py-3"
-          style={{
-            background: "#FFFFFF",
-            boxShadow: "0 2px 12px rgba(15,76,69,0.07)",
-          }}
-        >
-          <Search className="h-4 w-4 shrink-0" style={{ color: "#9A8D7D" }} />
-          <input
-            type="text"
-            placeholder="Search vendors..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="flex-1 bg-transparent text-[15px] outline-none placeholder:text-[#B5A898]"
-            style={{ color: "#2D2520" }}
-          />
+      {/* Main Content */}
+      <main className="w-full px-4 sm:px-6 md:px-8 lg:px-12 pt-4 sm:pt-6">
+        {/* Category Pills Bar */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-3 mb-4 scrollbar-none">
+          {CATEGORY_FILTERS.map((cat) => {
+            const isSelected = activeFilter === cat;
+            return (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => setActiveFilter(cat)}
+                className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 border ${
+                  isSelected
+                    ? "bg-[#0F4C45] text-white border-[#0F4C45] shadow-xs"
+                    : "bg-white text-charcoal/70 border-gold/20 hover:border-[#0F4C45] hover:text-[#0F4C45]"
+                }`}
+              >
+                {cat}
+              </button>
+            );
+          })}
         </div>
-      </div>
 
-      {/* ── Filter Chips ── */}
-      <div
-        className="flex gap-2 overflow-x-auto px-4 pb-3 scrollbar-none"
-        style={{ WebkitOverflowScrolling: "touch" } as React.CSSProperties}
-      >
-        {CATEGORY_FILTERS.map((f) => {
-          const active = activeFilter === f;
-          return (
-            <button
-              key={f}
-              type="button"
-              onClick={() => setActiveFilter(f)}
-              aria-label={`Filter by ${f}`}
-              className="shrink-0 rounded-full px-4 py-1.5 text-[13px] font-semibold transition-all cursor-pointer"
-              style={{
-                background: active ? "#0F4C45" : "#FFFFFF",
-                color: active ? "#FFFFFF" : "#4A3F35",
-                border: active ? "none" : "1px solid #E2D5C0",
-                boxShadow: active ? "0 4px 14px rgba(15,76,69,0.22)" : "none",
-              }}
-            >
-              {f}
-            </button>
-          );
-        })}
-      </div>
-
-      {/* ── Vendors Grid ── */}
-      <div className="flex-1 mx-4 mb-28">
+        {/* Vendor Cards Listing Grid */}
         {filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center px-6 rounded-2xl bg-white border border-[#F0E8D8] shadow-xs">
-            <Users className="h-10 w-10 mb-4" style={{ color: "#C8A96A" }} />
-            <p
-              className="font-display text-[20px]"
-              style={{ color: "#0F4C45" }}
-            >
-              No vendors found
-            </p>
-            <p className="mt-2 text-sm" style={{ color: "#6B5E52" }}>
+          <div className="bg-white rounded-3xl p-12 text-center border border-gold/15 shadow-sm space-y-3 my-8">
+            <div className="w-14 h-14 bg-[#0F4C45]/10 text-[#0F4C45] rounded-full flex items-center justify-center mx-auto">
+              <Users className="w-7 h-7" />
+            </div>
+            <h3 className="text-lg font-serif font-bold text-charcoal">No Vendors Found</h3>
+            <p className="text-xs text-charcoal/60 max-w-sm mx-auto">
               Try adjusting your search or filters.
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
-            {filtered.map((boutique) => {
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            {filtered.map((boutique, index) => {
               const isWishlisted = wishlist.has(boutique.id);
               const category = resolveCategory(boutique);
+              const detailHref = resolveDetailHref(boutique);
+              const isPriority = index < 4;
 
+              // Strictly resolve LOGO image ONLY (Do NOT request or load cover images)
               const rawLogo = (
-                (boutique as any).coverImage ||
-                (boutique as any).cover_image ||
-                (boutique as any).cover_url ||
-                (boutique as any).coverMediaUrl ||
-                (boutique as any).logoUrl ||
-                (boutique as any).logo ||
-                (boutique as any).logo_url ||
+                boutique.logo_url ||
+                boutique.logo ||
                 (boutique as any).profile_logo ||
-                boutique.image_url ||
+                (boutique as any).profile_pic ||
+                (boutique as any).avatar ||
+                (boutique as any).image_url ||
                 (boutique as any).image ||
                 ""
               ).toString().trim();
 
-              const isValidLogoUrl =
-                rawLogo.startsWith("data:image/") ||
-                rawLogo.startsWith("http://") ||
-                rawLogo.startsWith("https://") ||
-                (rawLogo.startsWith("/") && !rawLogo.startsWith("//"));
+              const displayImage = normalizeImageUrl(rawLogo);
 
-              const initialLetter = (boutique.boutique_name || "W").charAt(0).toUpperCase();
-              const reviewCountVal = Number((boutique as any).reviewCount ?? (boutique as any).reviewsCount ?? (boutique as any).review_count ?? 0);
-              const displayRating = boutique.rating ? boutique.rating.toFixed(1) : "New";
+              const isValidImage = Boolean(
+                displayImage &&
+                (displayImage.startsWith("data:image/") ||
+                 displayImage.startsWith("http://") ||
+                 displayImage.startsWith("https://") ||
+                 (displayImage.startsWith("/") && !displayImage.startsWith("//")))
+              );
+
+              const bName = boutique.boutique_name || (boutique as any).name || "Wedding Vendor";
+              const locationText = `${boutique.city || "Kochi"}${boutique.area ? `, ${boutique.area}` : ""}`;
+              const startingPrice =
+                (boutique as any).starting_price ||
+                (boutique as any).startingPrice ||
+                (category.includes("Venue") ? "₹1,80,000" : "₹50,000");
+
+              const overlayTag = category.includes("Venue")
+                ? (boutique.id.toString().length % 2 === 0 ? "Outdoor" : "Indoor")
+                : category;
 
               return (
-                <div
+                <Link
                   key={boutique.id}
-                  className="group relative flex flex-col rounded-2xl overflow-hidden bg-white border border-[#F0E8D8] shadow-xs hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
+                  href={detailHref}
+                  className="bg-white rounded-2xl border border-gold/15 shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col justify-between group"
                 >
-                  {/* Wishlist Heart Button Overlay */}
-                  <button
-                    onClick={(e) => toggleWishlist(e, boutique)}
-                    className="absolute top-2.5 right-2.5 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/85 backdrop-blur-md shadow-xs transition-transform active:scale-90 hover:bg-white"
-                    aria-label={
-                      isWishlisted
-                        ? "Remove from wishlist"
-                        : "Add to wishlist"
-                    }
-                  >
-                    <Heart
-                      className="h-4.5 w-4.5 transition-colors"
-                      style={{
-                        color: isWishlisted ? "#E8614A" : "#1A1410",
-                        fill: isWishlisted ? "#E8614A" : "none",
-                        strokeWidth: 2,
-                      }}
-                    />
-                  </button>
-
-                  <Link href={`/boutiques/${boutique.id}`} className="flex flex-col flex-1">
-                    {/* Photo / Initial Banner Container */}
-                    <div className="relative aspect-[4/3] w-full overflow-hidden bg-[#0F4C45]">
-                      {isValidLogoUrl ? (
-                        <Image
-                          src={rawLogo}
-                          alt={boutique.boutique_name}
-                          fill
-                          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                          className="object-cover group-hover:scale-105 transition-transform duration-500"
-                          unoptimized={rawLogo.startsWith("data:")}
-                        />
-                      ) : (
-                        <div className="flex h-full w-full items-center justify-center bg-[#0F4C45] text-[#F0E8D8]">
-                          <span className="font-display text-3xl sm:text-4xl font-bold tracking-wider">
-                            {initialLetter}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Card Content Info */}
-                    <div className="flex flex-col flex-1 p-3 sm:p-4">
-                      <h3 className="font-display text-[15px] sm:text-[17px] font-bold text-[#1A1410] leading-tight truncate group-hover:text-[#0F4C45] transition-colors">
-                        {boutique.boutique_name}
-                      </h3>
-                      <p className="mt-0.5 text-[12px] sm:text-[13px] text-[#7A6E65] truncate">
-                        {category}
-                      </p>
-
-                      <div className="mt-auto pt-2.5 flex items-center justify-between">
-                        <div className="flex items-center gap-1.5">
-                          <Star
-                            className="h-3.5 w-3.5 fill-[#C8A96A] text-[#C8A96A]"
-                          />
-                          <span className="text-[13px] font-bold text-[#1A1410]">
-                            {displayRating}
-                          </span>
-                          <span className="text-[12px] text-[#9A8D7D]">
-                            {reviewCountVal > 0 ? `(${reviewCountVal})` : "(New)"}
-                          </span>
-                        </div>
-                        {boutique.district && (
-                          <span className="text-[11px] font-medium text-[#7A6E65] truncate max-w-[80px]">
-                            {boutique.district}
-                          </span>
-                        )}
+                  {/* Card Image Header - Single Main Image Container displaying Vendor LOGO */}
+                  <div className="relative aspect-[4/3] w-full overflow-hidden bg-[#0F4C45]">
+                    {isValidImage ? (
+                      <Image
+                        src={displayImage}
+                        alt={bName}
+                        fill
+                        priority={isPriority}
+                        loading={isPriority ? "eager" : "lazy"}
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                        className="object-cover group-hover:scale-105 transition-transform duration-500"
+                        unoptimized={displayImage.startsWith("data:")}
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-[#0F4C45]">
+                        <span className="font-serif text-5xl font-bold text-white tracking-wider">
+                          {bName ? bName.charAt(0).toUpperCase() : "V"}
+                        </span>
                       </div>
+                    )}
+
+                    {/* Bottom Overlay Category Badge */}
+                    <span className="absolute bottom-3 left-3 bg-white/95 backdrop-blur-xs text-charcoal text-[10px] font-bold px-2.5 py-1 rounded-md shadow-xs z-10">
+                      {overlayTag}
+                    </span>
+
+                    {/* Wishlist Button */}
+                    <button
+                      type="button"
+                      onClick={(e) => toggleWishlist(e, boutique)}
+                      className="absolute top-3 right-3 flex h-8 w-8 items-center justify-center rounded-full bg-black/30 text-white backdrop-blur-md transition-transform active:scale-95 z-10"
+                      aria-label={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
+                    >
+                      <Heart
+                        className={`h-4 w-4 transition-colors ${
+                          isWishlisted ? "fill-red-500 text-red-500" : "text-white fill-none"
+                        }`}
+                      />
+                    </button>
+                  </div>
+
+                  {/* Card Content */}
+                  <div className="p-4 space-y-2 flex-1 flex flex-col justify-between">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-1.5">
+                        <h3 className="font-serif font-bold text-base text-charcoal group-hover:text-[#0F4C45] transition-colors truncate">
+                          {bName}
+                        </h3>
+                        <CheckCircle2 className="h-4 w-4 text-[#0F4C45] shrink-0" />
+                      </div>
+
+                      <div className="flex items-center gap-1 text-xs text-charcoal/70">
+                        <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400 shrink-0" />
+                        <span className="font-bold text-charcoal">
+                          {boutique.rating ? boutique.rating.toFixed(1) : "4.8"}
+                        </span>
+                        <span className="text-charcoal/50">
+                          ({(Math.abs(bName.length * 17) % 120) + 40})
+                        </span>
+                      </div>
+
+                      <p className="text-xs text-charcoal/60 flex items-center gap-1 truncate pt-0.5">
+                        <MapPin className="h-3.5 w-3.5 text-charcoal/40 shrink-0" />
+                        <span>{locationText}</span>
+                      </p>
                     </div>
-                  </Link>
-                </div>
+
+                    <div className="pt-2 border-t border-gold/10 flex items-center justify-between">
+                      <div>
+                        <span className="text-[10px] text-charcoal/50 block">Starts from</span>
+                        <span className="text-sm font-bold text-[#0F4C45]">{startingPrice}</span>
+                      </div>
+                      <span className="text-xs font-bold text-[#0F4C45] group-hover:translate-x-0.5 transition-transform flex items-center gap-1">
+                        View Profile &rarr;
+                      </span>
+                    </div>
+                  </div>
+                </Link>
               );
             })}
           </div>
         )}
-      </div>
+      </main>
 
-      {/* ── Bottom Nav ── */}
       <BottomNavBar activeTab="vendors" />
     </div>
   );

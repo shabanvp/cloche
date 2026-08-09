@@ -1,15 +1,19 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Save, CheckCircle2, Shield, Bell, AlertTriangle, Building2 } from "lucide-react";
+import Link from "next/link";
+import { ArrowLeft, Save, CheckCircle2, Shield, Bell, AlertTriangle, Building2, Upload, Image as ImageIcon } from "lucide-react";
 import { Button } from "@/components/Button";
 import { fetchAuthenticatedVendorFromDb, getActiveVendorIdentity, syncVendorProfileWithDatabase, showVendorToast } from "@/lib/vendorStore";
+import { BottomNavBar } from "@/components/BottomNavBar";
 
 export default function VendorSettingsPage() {
   const [vendorId, setVendorId] = useState<string>("");
   const [businessName, setBusinessName] = useState("Vendor Partner");
   const [vendorCategory, setVendorCategory] = useState("Bridal Wear");
   const [description, setDescription] = useState("Premier luxury wedding partner offering bespoke services.");
+  const [logoUrl, setLogoUrl] = useState<string>("");
+  const [coverUrl, setCoverUrl] = useState<string>("");
 
   // Notification Toggles
   const [emailLeads, setEmailLeads] = useState(true);
@@ -28,10 +32,46 @@ export default function VendorSettingsPage() {
 
   const loadVendorData = async () => {
     const active = await fetchAuthenticatedVendorFromDb();
-    setVendorId(active.id);
-    setBusinessName(active.boutique_name || active.name || "Vendor Partner");
-    setVendorCategory(active.category || "Bridal Wear");
-    setDescription(active.description || "Premier luxury wedding partner offering bespoke services.");
+    if (active && active.id) {
+      setVendorId(active.id);
+      setBusinessName(active.boutique_name || active.name || "Vendor Partner");
+      setVendorCategory(active.category || "Bridal Wear");
+      setDescription(active.description || "Premier luxury wedding partner offering bespoke services.");
+      setLogoUrl(active.logo || active.logo_url || "");
+      setCoverUrl(active.coverImage || active.cover_image || "");
+    }
+  };
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      try {
+        const { uploadImageToCloudinaryDetailed } = await import("@/lib/cloudinary");
+        const res = await uploadImageToCloudinaryDetailed(file, "cloche/vendors/logos");
+        if (res.secure_url && res.secure_url.startsWith("http")) {
+          setLogoUrl(res.secure_url);
+          showVendorToast("✓ Logo updated successfully");
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+  };
+
+  const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      try {
+        const { uploadImageToCloudinaryDetailed } = await import("@/lib/cloudinary");
+        const res = await uploadImageToCloudinaryDetailed(file, "cloche/vendors/covers");
+        if (res.secure_url && res.secure_url.startsWith("http")) {
+          setCoverUrl(res.secure_url);
+          showVendorToast("✓ Cover photo updated successfully");
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -45,6 +85,10 @@ export default function VendorSettingsPage() {
         name: businessName.trim(),
         category: vendorCategory,
         description: description.trim(),
+        logo: logoUrl,
+        logo_url: logoUrl,
+        coverImage: coverUrl,
+        cover_image: coverUrl,
       };
 
       const result = await syncVendorProfileWithDatabase(payload);
@@ -64,10 +108,15 @@ export default function VendorSettingsPage() {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500 max-w-5xl mx-auto font-sans pb-24">
-      
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-gold/15 pb-6 gap-4">
         <div>
+          <Link
+            href="/vendor"
+            className="text-xs font-semibold text-[#0F4C45] hover:underline flex items-center gap-1 mb-2"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" /> Back to Navigation Hub
+          </Link>
           <h1 className="text-3xl lg:text-4xl font-display font-bold text-charcoal">Vendor Settings & Customization</h1>
           <p className="text-sm text-charcoal/70 mt-1">Configure business settings, storefront branding, notifications, security, and account preferences.</p>
         </div>
@@ -86,7 +135,7 @@ export default function VendorSettingsPage() {
         <section className="bg-white p-6 md:p-8 rounded-2xl border border-gold/15 shadow-xs space-y-6">
           <div className="flex items-center gap-2 border-b border-gold/10 pb-3">
             <Building2 className="w-5 h-5 text-[#0F4C45]" />
-            <h2 className="text-lg font-display font-bold text-charcoal">Business Settings</h2>
+            <h2 className="text-lg font-display font-bold text-charcoal">Business Settings & Media</h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -118,6 +167,48 @@ export default function VendorSettingsPage() {
                 onChange={(e) => setDescription(e.target.value)}
                 className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl p-3 text-sm text-charcoal leading-relaxed focus:outline-none focus:border-[#0F4C45]"
               />
+            </div>
+
+            {/* Logo Upload */}
+            <div className="space-y-2">
+              <label className="text-xs font-bold uppercase tracking-wider text-charcoal/60 block">Studio Logo</label>
+              <div className="flex items-center gap-4 bg-[#FAF7F2] p-4 rounded-2xl border border-gold/15">
+                <div className="w-16 h-16 rounded-2xl bg-white border border-gold/20 flex items-center justify-center overflow-hidden shrink-0">
+                  {logoUrl ? (
+                    <img src={logoUrl} alt="Logo" className="w-full h-full object-cover" />
+                  ) : (
+                    <ImageIcon className="w-6 h-6 text-charcoal/30" />
+                  )}
+                </div>
+                <div>
+                  <label className="bg-[#0F4C45] hover:bg-[#135951] text-white text-xs font-bold px-4 py-2 rounded-xl flex items-center gap-1.5 cursor-pointer shadow-xs transition-colors inline-flex">
+                    <Upload className="w-3.5 h-3.5" />
+                    <span>Upload Logo</span>
+                    <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            {/* Cover Upload */}
+            <div className="space-y-2">
+              <label className="text-xs font-bold uppercase tracking-wider text-charcoal/60 block">Cover Image</label>
+              <div className="flex items-center gap-4 bg-[#FAF7F2] p-4 rounded-2xl border border-gold/15">
+                <div className="w-24 h-16 rounded-xl bg-white border border-gold/20 flex items-center justify-center overflow-hidden shrink-0">
+                  {coverUrl ? (
+                    <img src={coverUrl} alt="Cover" className="w-full h-full object-cover" />
+                  ) : (
+                    <ImageIcon className="w-6 h-6 text-charcoal/30" />
+                  )}
+                </div>
+                <div>
+                  <label className="bg-[#0F4C45] hover:bg-[#135951] text-white text-xs font-bold px-4 py-2 rounded-xl flex items-center gap-1.5 cursor-pointer shadow-xs transition-colors inline-flex">
+                    <Upload className="w-3.5 h-3.5" />
+                    <span>Upload Cover</span>
+                    <input type="file" accept="image/*" className="hidden" onChange={handleCoverUpload} />
+                  </label>
+                </div>
+              </div>
             </div>
           </div>
         </section>
@@ -215,21 +306,20 @@ export default function VendorSettingsPage() {
           </div>
         </section>
 
-        {/* Sticky Desktop Save Button Bar */}
-        <div className="sticky bottom-6 bg-white/90 backdrop-blur-md p-4 rounded-2xl border border-gold/20 shadow-lg flex items-center justify-between z-20">
-          <div className="text-xs text-charcoal/70 hidden sm:block font-medium">
-            Save updated settings and storefront customization options.
-          </div>
+        {/* Save Button Bar */}
+        <div className="flex justify-end z-20">
           <Button 
             type="submit" 
             disabled={isSaving}
-            className="bg-[#0F4C45] hover:bg-[#135951] text-white rounded-full px-8 py-3 font-bold text-xs uppercase tracking-wider shadow-md flex items-center gap-2 ml-auto cursor-pointer disabled:opacity-50"
+            className="bg-[#0F4C45] hover:bg-[#135951] text-white rounded-full px-8 py-3 font-bold text-xs uppercase tracking-wider shadow-md flex items-center gap-2 cursor-pointer disabled:opacity-50"
           >
             <Save className="w-4 h-4 text-[#C8A96A]" /> {isSaving ? "Saving Settings..." : "Save Settings"}
           </Button>
         </div>
 
       </form>
+
+      <BottomNavBar activeTab="vendors" />
     </div>
   );
 }

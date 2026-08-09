@@ -119,7 +119,7 @@ exports.getAllBoutiques = async (req, res) => {
         try {
             const { data, error } = await supabase
                 .from("boutiques")
-                .select("id, boutique_name, owner_name, email, phone, city, category, is_verified, created_at, plan, is_featured, priority_score")
+                .select("id, boutique_name, owner_name, email, phone, city, category, is_verified, created_at, plan, is_featured, priority_score, logo_url, cover_url, image_url")
                 .order("is_featured", { ascending: false })
                 .order("priority_score", { ascending: false })
                 .order("boutique_name", { ascending: true });
@@ -130,7 +130,7 @@ exports.getAllBoutiques = async (req, res) => {
             console.warn("[BoutiqueController] Advanced ranking failed, falling back to basic sort:", dbErr.message);
             const { data, error } = await supabase
                 .from("boutiques")
-                .select("id, boutique_name, owner_name, email, phone, city, category, is_verified, created_at, plan")
+                .select("id, boutique_name, owner_name, email, phone, city, category, is_verified, created_at, plan, logo_url, cover_url, image_url")
                 .order("boutique_name", { ascending: true });
                 
             if (error) return res.status(500).json({ message: "Database error", error: error.message });
@@ -202,11 +202,19 @@ exports.getAllBoutiques = async (req, res) => {
         // 🔹 Merge boutique data with showcase data safely
         const result = (boutiques || [])
             .filter(b => b && (b.is_verified === true || b.is_verified === "true" || b.is_verified === 1 || b.is_verified === "1"))
-            .map(b => ({
-                ...b,
-                ...(showcaseMap[b.id] || {}),
-                image_url: normalizeImageUrl(showcaseMap[b.id]?.image_url || b.image_url || "")
-            }));
+            .map(b => {
+                const logoPic = b.logo_url || b.logo || b.profile_logo || b.image_url || showcaseMap[b.id]?.image_url || b.cover_url || "";
+                const imagePic = showcaseMap[b.id]?.image_url || b.cover_url || b.image_url || b.logo_url || b.logo || "";
+                return {
+                    ...b,
+                    ...(showcaseMap[b.id] || {}),
+                    logo_url: normalizeImageUrl(logoPic),
+                    profile_logo: normalizeImageUrl(logoPic),
+                    logo: normalizeImageUrl(logoPic),
+                    image_url: normalizeImageUrl(imagePic),
+                    cover_url: normalizeImageUrl(b.cover_url || showcaseMap[b.id]?.image_url || "")
+                };
+            });
 
         const sortedResult = result.sort((a, b) => {
             // 1. Featured first
@@ -359,13 +367,20 @@ exports.getBoutiqueDetails = async (req, res) => {
             } catch (_) { }
         }
 
+        const logoPic = boutique?.logo_url || boutique?.logo || boutique?.profile_logo || boutique?.image_url || showcase?.image_url || boutique?.cover_url || "";
+        const imagePic = showcase?.image_url || boutique?.image_url || boutique?.cover_url || boutique?.logo_url || "";
+
         return res.json({
             ...boutique,
             tags: normalizeTags(showcase?.tags),
             district: showcase?.district || "",
             area: showcase?.area || "",
             shop_location: showcase?.shop_location || "",
-            image_url: normalizeImageUrl(showcase?.image_url || boutique?.image_url || ""),
+            logo_url: normalizeImageUrl(logoPic),
+            logo: normalizeImageUrl(logoPic),
+            profile_logo: normalizeImageUrl(logoPic),
+            image_url: normalizeImageUrl(imagePic),
+            cover_url: normalizeImageUrl(boutique?.cover_url || showcase?.image_url || ""),
             showcase_image: normalizeImageUrl(showcase?.image_url || boutique?.image_url || ""),
             rating: showcase?.rating || 0
         });

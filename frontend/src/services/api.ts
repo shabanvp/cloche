@@ -45,15 +45,45 @@ export async function getAllProducts(): Promise<Product[]> {
 
 export async function getAllBoutiques(): Promise<Boutique[]> {
   try {
-    const res = await fetch(`${API_BASE_URL}/boutiques?cache_bust=${Date.now()}`, {
-      cache: "no-store",
+    const res = await fetch(`${API_BASE_URL}/boutiques`, {
+      next: { revalidate: 60 },
     });
-    if (!res.ok) return [];
-    return res.json();
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data) && data.length > 0) return data;
+    }
   } catch (error) {
-    console.error(error);
-    return [];
+    console.error("getAllBoutiques backend fetch error:", error);
   }
+
+  // Direct Supabase database fallback for server-side rendering
+  try {
+    const { supabaseFetch } = await import("@/lib/supabase");
+    const { data, error } = await supabaseFetch("boutiques?select=*&order=created_at.desc");
+    if (!error && Array.isArray(data) && data.length > 0) {
+      return data.map((b: any) => {
+        const logo = b.logo_url || b.logo || b.profile_logo || "";
+        return {
+          ...b,
+          id: b.id,
+          boutique_name: b.boutique_name || b.name || "Wedding Vendor",
+          logo_url: logo,
+          logo: logo,
+          profile_logo: logo,
+          image_url: logo,
+          city: b.city || "Kochi",
+          area: b.area || b.district || "Kerala",
+          tags: b.tags || b.category || "Bridal Wear",
+          rating: b.rating ? Number(b.rating) : 4.8,
+          starting_price: b.starting_price || b.startingPrice || "₹50,000",
+        };
+      });
+    }
+  } catch (dbErr) {
+    console.error("getAllBoutiques Supabase fetch error:", dbErr);
+  }
+
+  return [];
 }
 
 export async function getAdminAnalytics(token: string) {

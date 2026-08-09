@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Eye, Inbox, Calendar, TrendingUp, Users, ShoppingBag, BarChart3 } from "lucide-react";
+import { ArrowLeft, Eye, Inbox, Calendar, TrendingUp, Users, ShoppingBag, BarChart3 } from "lucide-react";
 import { fetchAuthenticatedVendorFromDb } from "@/lib/vendorStore";
+import { BottomNavBar } from "@/components/BottomNavBar";
 
 export default function VendorAnalyticsPage() {
   const [businessName, setBusinessName] = useState("Vendor Partner");
@@ -24,12 +25,12 @@ export default function VendorAnalyticsPage() {
   const loadAnalytics = async (vId: string) => {
     setIsLoading(true);
     try {
-      const sRes = await fetch("/api/v1/vendor/services").then((r) => r.json());
+      const sRes = await fetch(`/api/v1/vendor/services?vendor_id=${encodeURIComponent(vId)}`).then((r) => r.json()).catch(() => ({ data: [] }));
       if (sRes.success && Array.isArray(sRes.data)) {
         setServicesCount(sRes.data.length);
       }
 
-      const lRes = await fetch("/api/v1/vendor/leads").then((r) => r.json());
+      const lRes = await fetch("/api/v1/vendor/leads").then((r) => r.json()).catch(() => ({ data: [] }));
       if (lRes.success && Array.isArray(lRes.data)) {
         setLeadsCount(lRes.data.length);
       }
@@ -47,6 +48,12 @@ export default function VendorAnalyticsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-gold/15 pb-6 gap-4">
         <div>
+          <Link
+            href="/vendor"
+            className="text-xs font-semibold text-[#0F4C45] hover:underline flex items-center gap-1 mb-2"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" /> Back to Navigation Hub
+          </Link>
           <h1 className="text-3xl lg:text-4xl font-display font-bold text-charcoal">Analytics & Growth Performance</h1>
           <p className="text-sm text-charcoal/70 mt-1">Live performance insights, inquiry conversion rates, top services, and gallery engagement for {businessName}.</p>
         </div>
@@ -167,6 +174,8 @@ export default function VendorAnalyticsPage() {
           </p>
         </div>
       )}
+
+      <BottomNavBar activeTab="vendors" />
     </div>
   );
 }

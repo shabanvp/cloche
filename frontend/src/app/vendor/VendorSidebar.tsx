@@ -7,8 +7,6 @@ import {
   LayoutDashboard, 
   Store, 
   Tag, 
-  Calendar, 
-  Inbox, 
   LogOut, 
   ShoppingBag, 
   BarChart3, 
@@ -20,7 +18,8 @@ import {
   Sparkles,
   MessageSquare,
   HelpCircle,
-  FolderKanban
+  FolderKanban,
+  Inbox
 } from "lucide-react";
 import { logout } from "@/app/actions/auth";
 import { getCategoryMenuTitles } from "@/lib/vendor-navigation";

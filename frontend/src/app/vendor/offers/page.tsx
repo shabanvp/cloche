@@ -1,7 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
+import Link from "next/link";
 import {
+  ArrowLeft,
   Tag,
   Plus,
   Search,
@@ -16,8 +18,6 @@ import {
   Copy,
   Edit3,
   Trash2,
-  PauseCircle,
-  PlayCircle,
   Sparkles,
 } from "lucide-react";
 import {
@@ -29,26 +29,14 @@ import {
   loadVendorOffersFromDb,
   saveVendorOffer,
   deleteVendorOffer,
-  toggleOfferStatus,
-  toggleFeaturedOffer,
   getVendorCoupons,
   saveVendorCoupon,
-  toggleCouponStatus,
   deleteVendorCoupon,
 } from "@/lib/vendorOffersStore";
-import { fetchAuthenticatedVendorFromDb, getActiveVendorIdentity } from "@/lib/vendorStore";
+import { fetchAuthenticatedVendorFromDb } from "@/lib/vendorStore";
+import { BottomNavBar } from "@/components/BottomNavBar";
 
-const OFFER_TYPE_OPTIONS: { value: OfferType; label: string; description: string }[] = [
-  { value: "percentage", label: "Percentage Discount", description: "Discount by percentage off tariff (e.g. 20% OFF)" },
-  { value: "flat", label: "Flat Discount", description: "Fixed cash discount off total price (e.g. ₹50,000 OFF)" },
-  { value: "free_upgrade", label: "Free Upgrade", description: "Complimentary room or hall upgrade (e.g. Free Deluxe Suite)" },
-  { value: "free_addon", label: "Free Add-on", description: "Complimentary service included (e.g. Free Stage Decor)" },
-  { value: "early_bird", label: "Early Bird Deal", description: "Special tariff for booking 60+ days in advance" },
-  { value: "limited_time", label: "Limited Time Deal", description: "Flash promotion valid for a short booking window" },
-  { value: "coupon", label: "Coupon Offer", description: "Promo code required to unlock special discount" },
-];
-
-export default function VendorOffersPage() {
+function VendorOffersContent() {
   const [vendorId, setVendorId] = useState<string>("");
   const [offers, setOffers] = useState<VendorOffer[]>([]);
   const [coupons, setCoupons] = useState<CouponCode[]>([]);
@@ -91,12 +79,15 @@ export default function VendorOffersPage() {
 
   const loadVendorData = async () => {
     const active = await fetchAuthenticatedVendorFromDb();
-    setVendorId(active.id);
-    refreshData(active.id);
+    if (active && active.id) {
+      setVendorId(active.id);
+      refreshData(active.id);
+    }
   };
 
   const refreshData = async (vId?: string) => {
     const targetId = vId || vendorId;
+    if (!targetId) return;
     setOffers(getVendorOffers(targetId));
     const dbOffers = await loadVendorOffersFromDb(targetId);
     setOffers(dbOffers);
@@ -215,7 +206,7 @@ export default function VendorOffersPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FAF7F2] p-4 sm:p-8 space-y-8 font-sans pb-16">
+    <div className="min-h-screen bg-[#FAF7F2] p-4 sm:p-8 space-y-8 font-sans pb-28">
       
       {/* Toast Notification */}
       {toastMessage && (
@@ -228,6 +219,12 @@ export default function VendorOffersPage() {
       {/* HEADER BAR */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-2xl border border-gold/15 shadow-xs">
         <div className="space-y-1">
+          <Link
+            href="/vendor"
+            className="text-xs font-semibold text-[#0F4C45] hover:underline flex items-center gap-1 mb-2"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" /> Back to Navigation Hub
+          </Link>
           <div className="flex items-center gap-2">
             <span className="px-3 py-1 rounded-full bg-[#0F4C45]/10 text-[#0F4C45] text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
               <Tag className="w-3.5 h-3.5 text-gold" /> Offers & Promotions Engine
@@ -691,6 +688,15 @@ export default function VendorOffersPage() {
         </div>
       )}
 
+      <BottomNavBar activeTab="vendors" />
     </div>
+  );
+}
+
+export default function VendorOffersPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-charcoal/50 font-sans">Loading offers...</div>}>
+      <VendorOffersContent />
+    </Suspense>
   );
 }

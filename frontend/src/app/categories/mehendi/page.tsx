@@ -1,11 +1,11 @@
+import { VendorCategoryListing } from "@/components/VendorCategoryListing";
 import type { Metadata } from "next";
-import { MehendiListing } from "@/components/MehendiListing";
 
 export const metadata: Metadata = {
-  title: "Bridal Mehendi Artists | Cloche",
-  description: "Browse premium bridal mehendi artists and henna designers.",
+  title: "Mehendi Artists | Cloche",
+  description: "Explore bridal mehendi artists, traditional henna designers, and Arabic pattern specialists.",
 };
 
-export default function MehendiPage() {
-  return <MehendiListing />;
+export default function MehendiCategoryPage() {
+  return <VendorCategoryListing categorySlug="mehendi-artists" />;
 }
