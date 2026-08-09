@@ -46,8 +46,18 @@ export async function GET(req: Request) {
     }
 
     let items = res.data.map((v: any) => {
-      const profile = Array.isArray(v.vendor_profiles) && v.vendor_profiles.length > 0 ? v.vendor_profiles[0] : {};
-      const contact = Array.isArray(v.vendor_contacts) && v.vendor_contacts.length > 0 ? v.vendor_contacts[0] : {};
+      const profile =
+        Array.isArray(v.vendor_profiles) && v.vendor_profiles.length > 0
+          ? v.vendor_profiles[0]
+          : v.vendor_profiles && typeof v.vendor_profiles === "object"
+          ? v.vendor_profiles
+          : {};
+      const contact =
+        Array.isArray(v.vendor_contacts) && v.vendor_contacts.length > 0
+          ? v.vendor_contacts[0]
+          : v.vendor_contacts && typeof v.vendor_contacts === "object"
+          ? v.vendor_contacts
+          : {};
       const gallery = Array.isArray(v.vendor_gallery) ? v.vendor_gallery : [];
       const services = Array.isArray(v.vendor_services) ? v.vendor_services : [];
 
