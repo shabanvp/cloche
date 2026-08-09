@@ -383,8 +383,14 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
     <div className="min-h-screen flex flex-col bg-[#FAF7F2] pb-32 text-[#2D2520] font-sans">
 
       {/* Top Hero Banner (Mobile & Tablet) */}
-      <div className="lg:hidden relative w-full aspect-[4/3] sm:aspect-[16/9] md:h-[440px] md:aspect-auto bg-gray-900 overflow-hidden">
-        <Image src={vendor.image} alt={vendor.name} fill priority className="object-cover" />
+      <div className="lg:hidden relative w-full aspect-[4/3] sm:aspect-[16/9] md:h-[440px] md:aspect-auto bg-[#0F4C45] overflow-hidden">
+        {vendor.image ? (
+          <Image src={vendor.image} alt={vendor.name} fill priority className="object-cover" />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[#0F4C45] to-[#1a6b5e]">
+            <span className="font-serif text-8xl font-bold text-white/60 tracking-wider select-none">{initials}</span>
+          </div>
+        )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30" />
 
         {/* Floating Top Buttons */}
@@ -423,14 +429,20 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
         <div className="grid grid-cols-12 gap-8 items-start">
 
           {/* Left Column (Hero Gallery) */}
-          <div className="col-span-7 relative w-full h-[460px] xl:h-[500px] 2xl:h-[540px] max-h-[540px] rounded-2xl overflow-hidden shadow-md bg-gray-900 group">
-            <Image
-              src={vendor.image}
-              alt={vendor.name}
-              fill
-              priority
-              className="object-cover object-center group-hover:scale-105 transition-transform duration-500"
-            />
+          <div className="col-span-7 relative w-full h-[460px] xl:h-[500px] 2xl:h-[540px] max-h-[540px] rounded-2xl overflow-hidden shadow-md bg-[#0F4C45] group">
+            {vendor.image ? (
+              <Image
+                src={vendor.image}
+                alt={vendor.name}
+                fill
+                priority
+                className="object-cover object-center group-hover:scale-105 transition-transform duration-500"
+              />
+            ) : (
+              <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[#0F4C45] to-[#1a6b5e]">
+                <span className="font-serif text-9xl font-bold text-white/60 tracking-wider select-none">{initials}</span>
+              </div>
+            )}
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
 
             {/* Top Floating Controls */}
