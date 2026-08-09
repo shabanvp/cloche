@@ -55,7 +55,6 @@ export function MehendiVendorDashboard() {
   const artistName = vendorData?.artistName || "Pooja Marwar";
   const categoryLabel = "MEHENDI ARTISTS";
   const partnerBadge = vendorData?.plan || "Platinum Partner";
-  const profileCompletion = vendorData?.profile_completion_percentage || 85;
 
   const logoUrl = vendorData?.logo || vendorData?.logo_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop";
   const coverUrl = vendorData?.coverImage || vendorData?.cover_image || "https://images.unsplash.com/photo-1610030469983-98e550d6193c?q=80&w=1200&auto=format&fit=crop";
@@ -121,7 +120,7 @@ export function MehendiVendorDashboard() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative -mt-16 sm:-mt-20 z-10 space-y-6">
         
         {/* 2. Profile Card Overlapping Cover */}
-        <div className="bg-white rounded-3xl shadow-sm border border-gold/15 p-6 sm:p-8 flex flex-col md:flex-row items-center md:items-end justify-between gap-5">
+        <div className="bg-white rounded-3xl shadow-sm border border-gold/15 p-6 sm:p-8">
           <div className="flex flex-col sm:flex-row items-center sm:items-end gap-5 text-center sm:text-left">
             {/* Profile Photo / Logo */}
             <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full border-4 border-white overflow-hidden shadow-xl bg-white shrink-0 -mt-14 sm:-mt-16">
@@ -137,20 +136,6 @@ export function MehendiVendorDashboard() {
                   <Star className="w-3 h-3 fill-[#C8A96A]" /> {partnerBadge}
                 </span>
               </div>
-            </div>
-          </div>
-
-          {/* Profile Completion Bar */}
-          <div className="w-full md:w-56 bg-[#FAF7F2] p-3.5 rounded-2xl border border-gold/15 space-y-1.5 shrink-0">
-            <div className="flex items-center justify-between text-xs font-bold text-charcoal">
-              <span>Profile Completion</span>
-              <span className="text-[#0d3b30]">{profileCompletion}%</span>
-            </div>
-            <div className="w-full bg-gold/20 h-2 rounded-full overflow-hidden">
-              <div 
-                className="bg-[#0d3b30] h-full rounded-full transition-all duration-500"
-                style={{ width: `${profileCompletion}%` }}
-              />
             </div>
           </div>
         </div>

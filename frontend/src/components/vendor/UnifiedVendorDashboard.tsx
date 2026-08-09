@@ -103,7 +103,7 @@ export function UnifiedVendorDashboard() {
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative -mt-16 sm:-mt-20 z-10 space-y-6">
         {/* Profile Card Header */}
-        <div className="bg-white rounded-3xl shadow-sm border border-gold/15 p-6 sm:p-8 flex flex-col md:flex-row items-center md:items-end justify-between gap-5">
+        <div className="bg-white rounded-3xl shadow-sm border border-gold/15 p-6 sm:p-8">
           <div className="flex flex-col sm:flex-row items-center sm:items-end gap-5 text-center sm:text-left">
             <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full border-4 border-white overflow-hidden shadow-xl bg-white shrink-0 -mt-14 sm:-mt-16">
               <img src={logoUrl} alt={vendorName} className="w-full h-full object-cover" />
@@ -118,16 +118,6 @@ export function UnifiedVendorDashboard() {
                   <Star className="w-3 h-3 fill-[#C8A96A]" /> Platinum Partner
                 </span>
               </div>
-            </div>
-          </div>
-
-          <div className="w-full md:w-56 bg-[#FAF7F2] p-3.5 rounded-2xl border border-gold/15 space-y-1.5 shrink-0">
-            <div className="flex items-center justify-between text-xs font-bold text-charcoal">
-              <span>Profile Completion</span>
-              <span className="text-[#0F4C45]">85%</span>
-            </div>
-            <div className="w-full bg-gold/20 h-2 rounded-full overflow-hidden">
-              <div className="bg-[#0F4C45] h-full rounded-full w-[85%]" />
             </div>
           </div>
         </div>
