@@ -13,8 +13,18 @@ import {
   PackageCheck
 } from "lucide-react";
 
+export interface MehendiPackage {
+  id: string;
+  name: string;
+  price: string;
+  unit?: string;
+  features: string[];
+  popular?: boolean;
+  badge?: string;
+}
+
 export function MehendiPricingSection() {
-  const [packages, setPackages] = useState([
+  const [packages, setPackages] = useState<MehendiPackage[]>([
     {
       id: "mp-1",
       name: "Royal Full Length Bridal Package",
@@ -94,12 +104,13 @@ export function MehendiPricingSection() {
     e.preventDefault();
     if (!newPkgName || !newPkgPrice) return;
 
-    const item = {
+    const item: MehendiPackage = {
       id: `mp-${Date.now()}`,
       name: newPkgName,
       price: newPkgPrice.startsWith("₹") ? newPkgPrice : `₹${newPkgPrice}`,
       unit: newPkgUnit,
       features: newFeatures,
+      popular: false,
       badge: "Custom Rates"
     };
 

@@ -12,13 +12,22 @@ import {
   Tag
 } from "lucide-react";
 
+export interface MehendiGalleryItem {
+  id: string;
+  title: string;
+  category: string;
+  image: string;
+  details: string;
+  views?: string;
+}
+
 export function MehendiGallerySection() {
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   const categories = ["All", "Bridal", "Arabic", "Rajasthani", "Indo-Arabic", "Minimal/Party"];
 
-  const [designs, setDesigns] = useState([
+  const [designs, setDesigns] = useState<MehendiGalleryItem[]>([
     {
       id: "mh-1",
       title: "Royal Portrait Dulha-Dulhan Motif",
@@ -67,7 +76,7 @@ export function MehendiGallerySection() {
     e.preventDefault();
     if (!newTitle) return;
 
-    const item = {
+    const item: MehendiGalleryItem = {
       id: `mh-${Date.now()}`,
       title: newTitle,
       category: newCategory,
