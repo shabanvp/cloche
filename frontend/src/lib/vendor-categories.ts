@@ -1,773 +1,545 @@
-/**
- * Cloche Vendor Categories Configuration & Seed Data Dictionary
- */
+import { 
+  Building2, 
+  Camera, 
+  Sparkles, 
+  Palette as PaletteIcon, 
+  Wand2, 
+  UtensilsCrossed, 
+  Mail, 
+  Gem,
+  LucideIcon
+} from "lucide-react";
 
-export interface VendorCategoryItem {
+export interface VendorCategoryConfig {
   id: string;
   name: string;
-  slug: string;
-  image: string;
-  rating: number;
-  reviewsCount: number;
-  location: string;
-  startingPrice: string;
-  priceSuffix?: string;
-  badge?: string; // "Indoor" | "Outdoor" | "Destination" | "Verified"
-  verified?: boolean;
-  specialtyTag?: string; // "Bridal Specialist" | "HD & Airbrush Makeup" | "Luxury Collection"
-  subCategory: string;
+  badge: string;
+  icon: LucideIcon;
+  media: {
+    title: string;
+    subtitle: string;
+    itemTypeLabel: string;
+    tags: string[];
+    emptyPrompt: string;
+  };
+  pricing: {
+    title: string;
+    subtitle: string;
+    itemTypeLabel: string;
+    pricingFields: string[];
+    emptyPrompt: string;
+  };
+  sampleMedia: Array<{
+    id: string;
+    title: string;
+    category: string;
+    image: string;
+    capacity?: string;
+    details?: string;
+  }>;
+  samplePricing: Array<{
+    id: string;
+    name: string;
+    price: string;
+    unit?: string;
+    features: string[];
+    popular?: boolean;
+    badge?: string;
+  }>;
 }
 
-export interface CategoryConfig {
-  slug: string;
-  title: string;
-  subtitle: string;
-  searchPlaceholder: string;
-  priceSuffix?: string;
-  subFilters: { label: string; value: string; iconName?: string }[];
-  locationOptions: string[];
-  sortOptions: string[];
-  vendors: VendorCategoryItem[];
-}
-
-export const VENDOR_CATEGORIES_DATA: Record<string, CategoryConfig> = {
+export const VENDOR_CATEGORIES: Record<string, VendorCategoryConfig> = {
   venues: {
-    slug: "venues",
-    title: "Venues",
-    subtitle: "Find the perfect venue for your special day",
-    searchPlaceholder: "Search venues, locations...",
-    priceSuffix: "",
-    subFilters: [
-      { label: "All", value: "all" },
-      { label: "Indoor", value: "indoor" },
-      { label: "Outdoor", value: "outdoor" },
-      { label: "Destination", value: "destination" },
+    id: "venues",
+    name: "Venues",
+    badge: "Banquet & Lawns",
+    icon: Building2,
+    media: {
+      title: "Gallery & Halls",
+      subtitle: "Showcase banquet halls, lawns & outdoor spaces",
+      itemTypeLabel: "Hall / Space",
+      tags: ["All", "Banquet Hall", "Grand Lawn", "Poolside Terrace", "Courtyard"],
+      emptyPrompt: "No halls or spaces added yet. Showcase your banquet halls and outdoor venues to attract couples!"
+    },
+    pricing: {
+      title: "Halls & Pricing",
+      subtitle: "Configure hall rental rates, guest capacity & slot fees",
+      itemTypeLabel: "Space Pricing Slot",
+      pricingFields: ["Hall Rental Fee", "Guest Capacity Range", "Morning/Evening Slot Fee", "Security Deposit"],
+      emptyPrompt: "No pricing slots configured. Add rental fees and guest capacity for your venue spaces."
+    },
+    sampleMedia: [
+      {
+        id: "v-1",
+        title: "Grand Royal Ballroom",
+        category: "Banquet Hall",
+        image: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?q=80&w=800&auto=format&fit=crop",
+        capacity: "500 - 1200 Guests",
+        details: "Centralized AC, Luxury Crystal Chandeliers, Attached Bridal Suite"
+      },
+      {
+        id: "v-2",
+        title: "Emerald Palm Lawn",
+        category: "Grand Lawn",
+        image: "https://images.unsplash.com/photo-1545232979-fbf34fd36666?q=80&w=800&auto=format&fit=crop",
+        capacity: "800 - 2500 Guests",
+        details: "Lush Greenery, Covered Live Catering Area, Valet Parking"
+      },
+      {
+        id: "v-3",
+        title: "Sunset Poolside Deck",
+        category: "Poolside Terrace",
+        image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=800&auto=format&fit=crop",
+        capacity: "150 - 400 Guests",
+        details: "Ideal for Haldi, Cocktail & Mehendi Ceremonies"
+      }
     ],
-    locationOptions: ["All Locations", "Kochi, Kerala", "Udaipur, Rajasthan", "New Delhi, India", "Chennai, Tamil Nadu", "Goa, India"],
-    sortOptions: ["Popularity", "Rating: High to Low", "Price: Low to High", "Price: High to Low"],
-    vendors: [
+    samplePricing: [
       {
-        id: "ven-1",
-        name: "The Palace Estate",
-        slug: "the-palace-estate",
-        image: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=800&q=80",
-        rating: 4.8,
-        reviewsCount: 138,
-        location: "Udaipur, Rajasthan",
-        startingPrice: "₹2,50,000",
-        badge: "Indoor",
-        verified: true,
-        specialtyTag: "Royal Palace",
-        subCategory: "indoor",
+        id: "vp-1",
+        name: "Grand Ballroom Evening Slot",
+        price: "₹2,50,000",
+        unit: "per slot (6 hrs)",
+        features: ["Upto 1,000 guest capacity", "AC included for 6 hours", "Basic stage lighting", "2 Deluxe Green Rooms"],
+        popular: true,
+        badge: "Most Popular"
       },
       {
-        id: "ven-2",
-        name: "Sapphire Lake Palace",
-        slug: "sapphire-lake-palace",
-        image: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=800&q=80",
-        rating: 4.9,
-        reviewsCount: 94,
-        location: "Udaipur, Rajasthan",
-        startingPrice: "₹2,80,000",
-        badge: "Outdoor",
-        verified: true,
-        specialtyTag: "Lakefront Resort",
-        subCategory: "outdoor",
-      },
-      {
-        id: "ven-3",
-        name: "Celestia Grand Palace",
-        slug: "celestia-grand-palace",
-        image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80",
-        rating: 4.7,
-        reviewsCount: 110,
-        location: "New Delhi, India",
-        startingPrice: "₹1,80,000",
-        badge: "Indoor",
-        verified: true,
-        specialtyTag: "Luxury Banquet",
-        subCategory: "indoor",
-      },
-      {
-        id: "ven-4",
-        name: "Moonstone Fort Resort",
-        slug: "moonstone-fort-resort",
-        image: "https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=800&q=80",
-        rating: 4.8,
-        reviewsCount: 81,
-        location: "Sawai Madhopur, Rajasthan",
-        startingPrice: "₹2,20,000",
-        badge: "Outdoor",
-        verified: true,
-        specialtyTag: "Heritage Fort",
-        subCategory: "outdoor",
-      },
-      {
-        id: "ven-5",
-        name: "Royal Orchid Heritage Estate",
-        slug: "royal-orchid-heritage",
-        image: "https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=800&q=80",
-        rating: 4.9,
-        reviewsCount: 82,
-        location: "Jodhpur, Rajasthan",
-        startingPrice: "₹2,40,000",
-        badge: "Indoor",
-        verified: true,
-        specialtyTag: "Grand Heritage",
-        subCategory: "indoor",
-      },
-      {
-        id: "ven-6",
-        name: "Golden Crest Manor",
-        slug: "golden-crest-manor",
-        image: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80",
-        rating: 4.6,
-        reviewsCount: 156,
-        location: "Chennai, Tamil Nadu",
-        startingPrice: "₹1,60,000",
-        badge: "Outdoor",
-        verified: true,
-        specialtyTag: "Oceanview Lawn",
-        subCategory: "outdoor",
-      },
-      {
-        id: "ven-7",
-        name: "Amber Crown Retreat",
-        slug: "amber-crown-retreat",
-        image: "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=800&q=80",
-        rating: 4.8,
-        reviewsCount: 73,
-        location: "Agra, Uttar Pradesh",
-        startingPrice: "₹1,90,000",
-        badge: "Destination",
-        verified: true,
-        specialtyTag: "Destination Luxury",
-        subCategory: "destination",
-      },
-      {
-        id: "ven-8",
-        name: "Shifa Convention Centre",
-        slug: "shifa-convention-centre",
-        image: "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?auto=format&fit=crop&w=800&q=80",
-        rating: 5.0,
-        reviewsCount: 188,
-        location: "Taliparamba, Kannur, Kerala",
-        startingPrice: "₹1,70,000",
-        badge: "Outdoor",
-        verified: true,
-        specialtyTag: "Lawn & Convention",
-        subCategory: "outdoor",
-      },
-    ],
-  },
-
-  "mehendi-artists": {
-    slug: "mehendi-artists",
-    title: "Mehendi Artists",
-    subtitle: "Discover talented mehendi artists for your special celebrations",
-    searchPlaceholder: "Search mehendi artists...",
-    priceSuffix: "",
-    subFilters: [
-      { label: "All", value: "all" },
-      { label: "Bridal", value: "bridal" },
-      { label: "Arabic", value: "arabic" },
-      { label: "Traditional", value: "traditional" },
-      { label: "Indo-Arabic", value: "indo-arabic" },
-    ],
-    locationOptions: ["All Locations", "Kochi, Kerala", "Calicut, Kerala", "Trivandrum, Kerala", "Mumbai, Maharashtra"],
-    sortOptions: ["Popularity", "Rating: High to Low", "Price: Low to High"],
-    vendors: [
-      {
-        id: "meh-1",
-        name: "Henna by Ayesha",
-        slug: "henna-by-ayesha",
-        image: "https://images.unsplash.com/photo-1561084869-7023c915f013?auto=format&fit=crop&w=800&q=80",
-        rating: 4.9,
-        reviewsCount: 172,
-        location: "Kochi, Kerala",
-        startingPrice: "₹8,000",
-        verified: true,
-        specialtyTag: "Bridal Specialist",
-        subCategory: "bridal",
-      },
-      {
-        id: "meh-2",
-        name: "Mehendi Magic",
-        slug: "mehendi-magic",
-        image: "https://images.unsplash.com/photo-1561084869-7023c915f013?auto=format&fit=crop&w=800&q=80",
-        rating: 4.8,
-        reviewsCount: 136,
-        location: "Kochi, Kerala",
-        startingPrice: "₹7,000",
-        verified: true,
-        specialtyTag: "Intricate Designs",
-        subCategory: "traditional",
-      },
-      {
-        id: "meh-3",
-        name: "The Henna Artistry",
-        slug: "the-henna-artistry",
-        image: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=800&q=80",
-        rating: 4.7,
-        reviewsCount: 114,
-        location: "Kochi, Kerala",
-        startingPrice: "₹6,000",
-        verified: true,
-        specialtyTag: "Arabic & Indo-Arabic",
-        subCategory: "arabic",
-      },
-      {
-        id: "meh-4",
-        name: "Mehendi by Sana",
-        slug: "mehendi-by-sana",
-        image: "https://images.unsplash.com/photo-1596704017254-9b121068fb31?auto=format&fit=crop&w=800&q=80",
-        rating: 4.8,
-        reviewsCount: 96,
-        location: "Kochi, Kerala",
-        startingPrice: "₹7,500",
-        verified: true,
-        specialtyTag: "Traditional & Modern",
-        subCategory: "traditional",
-      },
-    ],
-  },
-
-  "makeup-artists": {
-    slug: "makeup-artists",
-    title: "Makeup Artists",
-    subtitle: "Discover professional makeup artists to look and feel your best",
-    searchPlaceholder: "Search makeup artists...",
-    priceSuffix: "",
-    subFilters: [
-      { label: "All", value: "all" },
-      { label: "Bridal", value: "bridal" },
-      { label: "HD Makeup", value: "hd-makeup" },
-      { label: "Airbrush", value: "airbrush" },
-      { label: "Engagement", value: "engagement" },
-    ],
-    locationOptions: ["All Locations", "Kochi, Kerala", "Bangalore, Karnataka", "Chennai, Tamil Nadu", "Hyderabad, Telangana"],
-    sortOptions: ["Popularity", "Rating: High to Low", "Price: Low to High"],
-    vendors: [
-      {
-        id: "mak-1",
-        name: "Glam by Riya",
-        slug: "glam-by-riya",
-        image: "https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=800&q=80",
-        rating: 4.9,
-        reviewsCount: 186,
-        location: "Kochi, Kerala",
-        startingPrice: "₹18,000",
-        badge: "Verified",
-        verified: true,
-        specialtyTag: "HD & Airbrush Makeup",
-        subCategory: "airbrush",
-      },
-      {
-        id: "mak-2",
-        name: "Makeup by Neha",
-        slug: "makeup-by-neha",
-        image: "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=800&q=80",
-        rating: 4.8,
-        reviewsCount: 152,
-        location: "Kochi, Kerala",
-        startingPrice: "₹15,000",
-        badge: "Verified",
-        verified: true,
-        specialtyTag: "Bridal Specialist",
-        subCategory: "bridal",
-      },
-      {
-        id: "mak-3",
-        name: "Face Stories by Liya",
-        slug: "face-stories-by-liya",
-        image: "https://images.unsplash.com/photo-1516975080664-ed2fc6a32937?auto=format&fit=crop&w=800&q=80",
-        rating: 4.7,
-        reviewsCount: 128,
-        location: "Kochi, Kerala",
-        startingPrice: "₹16,000",
-        badge: "Verified",
-        verified: true,
-        specialtyTag: "Natural & Flawless",
-        subCategory: "hd-makeup",
-      },
-      {
-        id: "mak-4",
-        name: "The Blush Studio",
-        slug: "the-blush-studio",
-        image: "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=crop&w=800&q=80",
-        rating: 4.8,
-        reviewsCount: 98,
-        location: "Kochi, Kerala",
-        startingPrice: "₹20,000",
-        badge: "Verified",
-        verified: true,
-        specialtyTag: "Luxury Bridal Looks",
-        subCategory: "bridal",
-      },
-    ],
-  },
-
-  invitations: {
-    slug: "invitations",
-    title: "Wedding Invitations",
-    subtitle: "Find the perfect invitation for your special day",
-    searchPlaceholder: "Search invitations, designers...",
-    priceSuffix: " / card",
-    subFilters: [
-      { label: "All", value: "all" },
-      { label: "Traditional", value: "traditional" },
-      { label: "Modern", value: "modern" },
-      { label: "Minimal", value: "minimal" },
-      { label: "Luxury", value: "luxury" },
-      { label: "E-Invite", value: "e-invite" },
-    ],
-    locationOptions: ["All Locations", "Kochi, Kerala", "Mumbai, Maharashtra", "Delhi NCR", "Bangalore, Karnataka"],
-    sortOptions: ["Popularity", "Rating: High to Low", "Price: Low to High"],
-    vendors: [
-      {
-        id: "inv-1",
-        name: "The Paper Tales",
-        slug: "the-paper-tales",
-        image: "https://images.unsplash.com/photo-1513519245088-0e12902e5a38?auto=format&fit=crop&w=800&q=80",
-        rating: 4.9,
-        reviewsCount: 128,
-        location: "Kochi, Kerala",
-        startingPrice: "₹45",
-        priceSuffix: " / card",
-        verified: true,
-        specialtyTag: "Luxury • Traditional",
-        subCategory: "luxury",
-      },
-      {
-        id: "inv-2",
-        name: "Invite Luxe",
-        slug: "invite-luxe",
-        image: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=800&q=80",
-        rating: 4.8,
-        reviewsCount: 96,
-        location: "Kochi, Kerala",
-        startingPrice: "₹55",
-        priceSuffix: " / card",
-        verified: true,
-        specialtyTag: "Luxury • Modern",
-        subCategory: "modern",
-      },
-      {
-        id: "inv-3",
-        name: "Studio Élan",
-        slug: "studio-elan",
-        image: "https://images.unsplash.com/photo-1530103862676-de8c9debad1d?auto=format&fit=crop&w=800&q=80",
-        rating: 4.7,
-        reviewsCount: 80,
-        location: "Kochi, Kerala",
-        startingPrice: "₹35",
-        priceSuffix: " / card",
-        verified: true,
-        specialtyTag: "Minimal • Floral",
-        subCategory: "minimal",
-      },
-      {
-        id: "inv-4",
-        name: "The Minimal Story",
-        slug: "the-minimal-story",
-        image: "https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=800&q=80",
-        rating: 4.6,
-        reviewsCount: 72,
-        location: "Kochi, Kerala",
-        startingPrice: "₹30",
-        priceSuffix: " / card",
-        verified: true,
-        specialtyTag: "Minimal • Modern",
-        subCategory: "minimal",
-      },
-    ],
-  },
-
-  jewellery: {
-    slug: "jewellery",
-    title: "Jewelry",
-    subtitle: "Discover exquisite jewelry for every occasion",
-    searchPlaceholder: "Search jewelry vendors...",
-    priceSuffix: "",
-    subFilters: [
-      { label: "All", value: "all" },
-      { label: "Bridal", value: "bridal" },
-      { label: "Diamond", value: "diamond" },
-      { label: "Gold", value: "gold" },
-      { label: "Polki", value: "polki" },
-      { label: "Antique", value: "antique" },
-    ],
-    locationOptions: ["All Locations", "Kochi, Kerala", "Thrissur, Kerala", "Coimbatore, Tamil Nadu", "Mumbai, Maharashtra"],
-    sortOptions: ["Popularity", "Rating: High to Low", "Price: Low to High"],
-    vendors: [
-      {
-        id: "jwl-1",
-        name: "Aabhushan Jewels",
-        slug: "aabhushan-jewels",
-        image: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=800&q=80",
-        rating: 4.9,
-        reviewsCount: 128,
-        location: "Kochi, Kerala",
-        startingPrice: "₹1,50,000",
-        verified: true,
-        specialtyTag: "Bridal Specialist",
-        subCategory: "bridal",
-      },
-      {
-        id: "jwl-2",
-        name: "Manubhai Jewellers",
-        slug: "manubhai-jewellers",
-        image: "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=800&q=80",
-        rating: 4.8,
-        reviewsCount: 94,
-        location: "Kochi, Kerala",
-        startingPrice: "₹75,000",
-        verified: true,
-        specialtyTag: "Traditional & Antique",
-        subCategory: "antique",
-      },
-      {
-        id: "jwl-3",
-        name: "GRT Jewellers",
-        slug: "grt-jewellers",
-        image: "https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=800&q=80",
-        rating: 4.7,
-        reviewsCount: 156,
-        location: "Kochi, Kerala",
-        startingPrice: "₹50,000",
-        verified: true,
-        specialtyTag: "Gold & Diamond",
-        subCategory: "diamond",
-      },
-      {
-        id: "jwl-4",
-        name: "Tanishq Exclusive",
-        slug: "tanishq-exclusive",
-        image: "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&w=800&q=80",
-        rating: 4.8,
-        reviewsCount: 203,
-        location: "Kochi, Kerala",
-        startingPrice: "₹1,00,000",
-        verified: true,
-        specialtyTag: "Luxury Collection",
-        subCategory: "gold",
-      },
-    ],
-  },
-
-  "bridal-wear": {
-    slug: "bridal-wear",
-    title: "Bridal Wear",
-    subtitle: "Explore luxury bridal lehengas, gowns, and designer sarees",
-    searchPlaceholder: "Search bridal boutiques, designers...",
-    priceSuffix: "",
-    subFilters: [
-      { label: "All", value: "all" },
-      { label: "Lehengas", value: "lehenga" },
-      { label: "Sarees", value: "saree" },
-      { label: "Gowns", value: "gown" },
-      { label: "Indo-Western", value: "indo-western" },
-    ],
-    locationOptions: ["All Locations", "Kochi, Kerala", "Chennai, Tamil Nadu", "Mumbai, Maharashtra", "Delhi NCR"],
-    sortOptions: ["Popularity", "Rating: High to Low", "Price: Low to High"],
-    vendors: [
-      {
-        id: "bw-1",
-        name: "Seematti Silks",
-        slug: "seematti-silks",
-        image: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80",
-        rating: 4.9,
-        reviewsCount: 310,
-        location: "Kochi, Kerala",
-        startingPrice: "₹45,000",
-        verified: true,
-        specialtyTag: "Kanchipuram Silk Specialist",
-        subCategory: "saree",
-      },
-      {
-        id: "bw-2",
-        name: "Milan Design House",
-        slug: "milan-design-house",
-        image: "https://images.unsplash.com/photo-1594552072238-b8a33785b261?auto=format&fit=crop&w=800&q=80",
-        rating: 4.8,
-        reviewsCount: 215,
-        location: "Kochi, Kerala",
-        startingPrice: "₹65,000",
-        verified: true,
-        specialtyTag: "Custom Bridal Lehengas",
-        subCategory: "lehenga",
-      },
-      {
-        id: "bw-3",
-        name: "Kalyan Silks Heritage",
-        slug: "kalyan-silks-heritage",
-        image: "https://images.unsplash.com/photo-1583391733956-6c78276477e2?auto=format&fit=crop&w=800&q=80",
-        rating: 4.7,
-        reviewsCount: 180,
-        location: "Kochi, Kerala",
-        startingPrice: "₹35,000",
-        verified: true,
-        specialtyTag: "Bridal Gowns & Sarees",
-        subCategory: "gown",
-      },
-    ],
-  },
-
-  "groom-wear": {
-    slug: "groom-wear",
-    title: "Groom Wear",
-    subtitle: "Discover royal sherwanis, tuxedos, and designer suits for grooms",
-    searchPlaceholder: "Search groom boutiques, designers...",
-    priceSuffix: "",
-    subFilters: [
-      { label: "All", value: "all" },
-      { label: "Sherwanis", value: "sherwani" },
-      { label: "Suits", value: "suit" },
-      { label: "Kurta Sets", value: "kurta" },
-      { label: "Tuxedos", value: "tuxedo" },
-    ],
-    locationOptions: ["All Locations", "Kochi, Kerala", "Bangalore, Karnataka", "Mumbai, Maharashtra"],
-    sortOptions: ["Popularity", "Rating: High to Low", "Price: Low to High"],
-    vendors: [
-      {
-        id: "gw-1",
-        name: "Raymond Fine Tailoring",
-        slug: "raymond-fine-tailoring",
-        image: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=800&q=80",
-        rating: 4.8,
-        reviewsCount: 142,
-        location: "Kochi, Kerala",
-        startingPrice: "₹35,000",
-        verified: true,
-        specialtyTag: "Custom Tuxedos & Suits",
-        subCategory: "suit",
-      },
-      {
-        id: "gw-2",
-        name: "Manyavar Groom Studio",
-        slug: "manyavar-groom-studio",
-        image: "https://images.unsplash.com/photo-1593030761757-71fae45fa0e7?auto=format&fit=crop&w=800&q=80",
-        rating: 4.9,
-        reviewsCount: 220,
-        location: "Kochi, Kerala",
-        startingPrice: "₹28,000",
-        verified: true,
-        specialtyTag: "Royal Sherwanis",
-        subCategory: "sherwani",
-      },
-    ],
-  },
-
-  catering: {
-    slug: "catering",
-    title: "Catering Services",
-    subtitle: "Delicious wedding feasts, live counters, and gourmet banquet menus",
-    searchPlaceholder: "Search caterers, menus...",
-    priceSuffix: " / plate",
-    subFilters: [
-      { label: "All", value: "all" },
-      { label: "Traditional", value: "traditional" },
-      { label: "Buffet", value: "buffet" },
-      { label: "Live Counters", value: "live" },
-      { label: "Continental", value: "continental" },
-    ],
-    locationOptions: ["All Locations", "Kochi, Kerala", "Trivandrum, Kerala", "Calicut, Kerala"],
-    sortOptions: ["Popularity", "Rating: High to Low", "Price: Low to High"],
-    vendors: [
-      {
-        id: "cat-1",
-        name: "Vinayaka Catering",
-        slug: "vinayaka-catering",
-        image: "https://images.unsplash.com/photo-1555244162-803834f70033?auto=format&fit=crop&w=800&q=80",
-        rating: 4.9,
-        reviewsCount: 290,
-        location: "Kochi, Kerala",
-        startingPrice: "₹650",
-        priceSuffix: " / plate",
-        verified: true,
-        specialtyTag: "Kerala Sadhya & Feast",
-        subCategory: "traditional",
-      },
-      {
-        id: "cat-2",
-        name: "Gourmet Banquet Caterers",
-        slug: "gourmet-banquet-caterers",
-        image: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=800&q=80",
-        rating: 4.8,
-        reviewsCount: 165,
-        location: "Kochi, Kerala",
-        startingPrice: "₹850",
-        priceSuffix: " / plate",
-        verified: true,
-        specialtyTag: "Multicuisine & Live Counters",
-        subCategory: "buffet",
-      },
-    ],
-  },
-
-  "decor-planning": {
-    slug: "decor-planning",
-    title: "Decor & Planners",
-    subtitle: "Find the perfect decor & planner for your dream event",
-    searchPlaceholder: "Search decor & planners...",
-    priceSuffix: "",
-    subFilters: [
-      { label: "All", value: "all" },
-      { label: "Wedding", value: "wedding" },
-      { label: "Engagement", value: "engagement" },
-      { label: "Mehendi", value: "mehendi" },
-      { label: "Birthday", value: "birthday" },
-      { label: "Corporate", value: "corporate" },
-    ],
-    locationOptions: ["All Locations", "Kochi, Kerala", "Mumbai, Maharashtra", "Goa, India", "Bangalore, Karnataka"],
-    sortOptions: ["Popularity", "Rating: High to Low", "Price: Low to High"],
-    vendors: [
-      {
-        id: "dec-1",
-        name: "Dream Events & Co.",
-        slug: "dream-events-co",
-        image: "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=800&q=80",
-        rating: 4.9,
-        reviewsCount: 129,
-        location: "Kochi, Kerala",
-        startingPrice: "₹1,50,000",
-        badge: "Verified",
-        verified: true,
-        specialtyTag: "Luxury Weddings",
-        subCategory: "wedding",
-      },
-      {
-        id: "dec-2",
-        name: "The Wedding Canvas",
-        slug: "the-wedding-canvas",
-        image: "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=800&q=80",
-        rating: 4.8,
-        reviewsCount: 96,
-        location: "Kochi, Kerala",
-        startingPrice: "₹1,25,000",
-        badge: "Verified",
-        verified: true,
-        specialtyTag: "Elegant & Timeless",
-        subCategory: "wedding",
-      },
-      {
-        id: "dec-3",
-        name: "Magical Moments",
-        slug: "magical-moments",
-        image: "https://images.unsplash.com/photo-1545232979-fbfd430335e3?auto=format&fit=crop&w=800&q=80",
-        rating: 4.7,
-        reviewsCount: 84,
-        location: "Kochi, Kerala",
-        startingPrice: "₹90,000",
-        badge: "Verified",
-        verified: true,
-        specialtyTag: "Modern & Minimal",
-        subCategory: "wedding",
-      },
-      {
-        id: "dec-4",
-        name: "Bellezza Decor",
-        slug: "bellezza-decor",
-        image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80",
-        rating: 4.6,
-        reviewsCount: 72,
-        location: "Kochi, Kerala",
-        startingPrice: "₹1,10,000",
-        badge: "Verified",
-        verified: true,
-        specialtyTag: "Destination Weddings",
-        subCategory: "wedding",
-      },
-      {
-        id: "dec-5",
-        name: "Petals & Promise",
-        slug: "petals-and-promise",
-        image: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=800&q=80",
-        rating: 4.8,
-        reviewsCount: 62,
-        location: "Kochi, Kerala",
-        startingPrice: "₹85,000",
-        badge: "Verified",
-        verified: true,
-        specialtyTag: "Traditional & Classic",
-        subCategory: "wedding",
-      },
-    ],
+        id: "vp-2",
+        name: "Emerald Lawn Full Day Rental",
+        price: "₹4,00,000",
+        unit: "full day (12 hrs)",
+        features: ["Upto 2,500 guest capacity", "Full lawn access + Gazebo", "Power backup generator", "Dedicated valet team"],
+        badge: "Best Value"
+      }
+    ]
   },
 
   photographers: {
-    slug: "photographers",
-    title: "Photographers",
-    subtitle: "Capture every moment of your beautiful journey",
-    searchPlaceholder: "Search photographers...",
-    priceSuffix: "",
-    subFilters: [
-      { label: "All", value: "all" },
-      { label: "Candid", value: "candid" },
-      { label: "Traditional", value: "traditional" },
-      { label: "Cinematic", value: "cinematic" },
-      { label: "Luxury", value: "luxury" },
-      { label: "Destination", value: "destination" },
+    id: "photographers",
+    name: "Photographers",
+    badge: "Photo & Video",
+    icon: Camera,
+    media: {
+      title: "Portfolio",
+      subtitle: "Albums grouped by wedding, pre-wedding & engagement",
+      itemTypeLabel: "Photo Album",
+      tags: ["All", "Wedding Day", "Pre-Wedding Shoot", "Engagement", "Traditional Rituals"],
+      emptyPrompt: "No albums added to portfolio yet. Upload high-res photo albums to display your artistic style!"
+    },
+    pricing: {
+      title: "Packages & Pricing",
+      subtitle: "Coverage hours, deliverables & add-ons like drone & prints",
+      itemTypeLabel: "Photography Package",
+      pricingFields: ["Coverage Hours", "Team Size", "Deliverable Photos & Teaser", "Drone / Album Add-ons"],
+      emptyPrompt: "No packages created yet. Create photo and video packages for wedding couples."
+    },
+    sampleMedia: [
+      {
+        id: "ph-1",
+        title: "Royal Jaipur Palace Wedding",
+        category: "Wedding Day",
+        image: "https://images.unsplash.com/photo-1583939003579-730e3918a45a?q=80&w=800&auto=format&fit=crop",
+        details: "120 Color Graded Photos • 4K Cinematic Teaser Film"
+      },
+      {
+        id: "ph-2",
+        title: "Udaipur Sunset Pre-Wedding",
+        category: "Pre-Wedding Shoot",
+        image: "https://images.unsplash.com/photo-1606800052052-a08af7148866?q=80&w=800&auto=format&fit=crop",
+        details: "Lake Pichola Boat & Fort Shoot • 45 Edited Portraits"
+      },
+      {
+        id: "ph-3",
+        title: "Rings & Rituals Engagement",
+        category: "Engagement",
+        image: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?q=80&w=800&auto=format&fit=crop",
+        details: "Candid Moments • Family Group Portraits"
+      }
     ],
-    locationOptions: ["All Locations", "Kochi, Kerala", "Kozhikode, Kerala", "Thrissur, Kerala", "Goa, India", "Bangalore, Karnataka"],
-    sortOptions: ["Popularity", "Rating: High to Low", "Price: Low to High"],
-    vendors: [
+    samplePricing: [
       {
-        id: "pho-1",
-        name: "Pixel Stories",
-        slug: "pixel-stories",
-        image: "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=800&q=80",
-        rating: 4.9,
-        reviewsCount: 248,
-        location: "Kochi, Kerala",
-        startingPrice: "₹35,000",
-        badge: "Verified",
-        verified: true,
-        specialtyTag: "Candid • Cinematic • Drone",
-        subCategory: "candid",
+        id: "php-1",
+        name: "Bridal Signature Package",
+        price: "₹1,20,000",
+        unit: "per day (2 days)",
+        features: ["2 Senior Candid Photographers", "1 Traditional Cinematographer", "4K 3-Min Teaser + Full Film", "350 Hard Cover Flush Mount Album"],
+        popular: true,
+        badge: "Best Seller"
       },
       {
-        id: "pho-2",
-        name: "The Wedding Frame",
-        slug: "the-wedding-frame",
-        image: "https://images.unsplash.com/photo-1606800052052-a08af7148866?auto=format&fit=crop&w=800&q=80",
-        rating: 4.8,
-        reviewsCount: 187,
-        location: "Kozhikode, Kerala",
-        startingPrice: "₹30,000",
-        badge: "Verified",
-        verified: true,
-        specialtyTag: "Candid • Traditional • Cinematic",
-        subCategory: "candid",
-      },
-      {
-        id: "pho-3",
-        name: "Memories by Rahul",
-        slug: "memories-by-rahul",
-        image: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=800&q=80",
-        rating: 4.9,
-        reviewsCount: 203,
-        location: "Thrissur, Kerala",
-        startingPrice: "₹40,000",
-        badge: "Verified",
-        verified: true,
-        specialtyTag: "Candid • Cinematic • Drone",
-        subCategory: "candid",
-      },
-      {
-        id: "pho-4",
-        name: "Weva Photography",
-        slug: "weva-photography",
-        image: "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=800&q=80",
-        rating: 4.9,
-        reviewsCount: 340,
-        location: "Kochi, Kerala",
-        startingPrice: "₹75,000",
-        badge: "Verified",
-        verified: true,
-        specialtyTag: "Candid & Cinematic",
-        subCategory: "cinematic",
-      },
-    ],
+        id: "php-2",
+        name: "Pre-Wedding Destination Shoot",
+        price: "₹65,000",
+        unit: "1-day shoot",
+        features: ["Full Day Outdoor Shoot", "Drone Aerial Photography", "40 Fine-Art Retouched Images", "Instagram Reels Edit"],
+        badge: "Trending"
+      }
+    ]
   },
+
+  makeup: {
+    id: "makeup",
+    name: "Makeup Artists",
+    badge: "Bridal & Beauty",
+    icon: Sparkles,
+    media: {
+      title: "Portfolio",
+      subtitle: "Before/after shots & bridal look categories",
+      itemTypeLabel: "Look Transformation",
+      tags: ["All", "HD Bridal Makeup", "Airbrush Glam", "Reception Sangeet", "Party Makeup"],
+      emptyPrompt: "No look transformations in gallery. Upload before & after transformations to win brides!"
+    },
+    pricing: {
+      title: "Packages & Pricing",
+      subtitle: "Bridal, party & trial rates + outstation travel charges",
+      itemTypeLabel: "Makeup Package",
+      pricingFields: ["Bridal HD/Airbrush Fee", "Pre-Bridal Trial Charge", "Party Makeup Rate", "Travel / Outstation Fee"],
+      emptyPrompt: "No beauty packages defined. Set your bridal, sangeet, and trial rates."
+    },
+    sampleMedia: [
+      {
+        id: "mk-1",
+        title: "Royal Red Bridal Transformation",
+        category: "HD Bridal Makeup",
+        image: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?q=80&w=800&auto=format&fit=crop",
+        details: "Airbrush Base • Dewy Finish • Customized Lashes & Hair Styling"
+      },
+      {
+        id: "mk-2",
+        title: "Pastel Sangeet Glow",
+        category: "Reception Sangeet",
+        image: "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?q=80&w=800&auto=format&fit=crop",
+        details: "Smokey Eye • Hollywood Waves Hairstyling • Draping Included"
+      }
+    ],
+    samplePricing: [
+      {
+        id: "mkp-1",
+        name: "Luxury HD Bridal Look",
+        price: "₹35,000",
+        unit: "per function",
+        features: ["Premium HD Makeup Products", "Intricate Bridal Hairstyling", "Outfit Draping & Lash Extensions", "Complimentary Touch-Up Kit"],
+        popular: true,
+        badge: "Bride Choice"
+      },
+      {
+        id: "mkp-2",
+        name: "Bridal + 2 Party Makeup Combo",
+        price: "₹55,000",
+        unit: "package",
+        features: ["1 HD Bridal Makeup", "2 Guest / Relative Party Makeups", "Hair Accessories Included", "Venue Travel within City"],
+        badge: "Combo Discount"
+      }
+    ]
+  },
+
+  mehendi: {
+    id: "mehendi",
+    name: "Mehendi Artists",
+    badge: "Henna Art",
+    icon: PaletteIcon,
+    media: {
+      title: "Design Gallery",
+      subtitle: "Arabic, Rajasthani & Indo-Arabic style categories",
+      itemTypeLabel: "Henna Design",
+      tags: ["All", "Rajasthani Bridal", "Arabic Style", "Indo-Arabic Figure", "Minimalist Modern"],
+      emptyPrompt: "No mehendi designs uploaded. Showcase your intricate henna patterns and bridal portraits!"
+    },
+    pricing: {
+      title: "Packages & Pricing",
+      subtitle: "Bridal, per-guest & per-hand pricing structures",
+      itemTypeLabel: "Mehendi Package",
+      pricingFields: ["Full Bridal Package Rate", "Per-Hand Rate", "Per-Guest Hour Rate", "Organic Stain Guarantee"],
+      emptyPrompt: "No pricing packages created yet. Define per-hand, bridal, and guest group rates."
+    },
+    sampleMedia: [
+      {
+        id: "mh-1",
+        title: "Portrait Bridal Dulha-Dulhan Pattern",
+        category: "Rajasthani Bridal",
+        image: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?q=80&w=800&auto=format&fit=crop",
+        details: "Elbow Length • Custom Portrait Figures • Organic Rajasthani Henna"
+      },
+      {
+        id: "mh-2",
+        title: "Bold Flowing Arabic Vines",
+        category: "Arabic Style",
+        image: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=800&auto=format&fit=crop",
+        details: "Fast Application • Deep Dark Stain • Modern Geometric Accents"
+      }
+    ],
+    samplePricing: [
+      {
+        id: "mhp-1",
+        name: "Royal Full Length Bridal Henna",
+        price: "₹18,000",
+        unit: "full bridal",
+        features: ["Both hands till elbow", "Feet application till calf", "Customized Baraat & Portrait Motif", "Chemical-Free Organic Henna Cones"],
+        popular: true,
+        badge: "Top Choice"
+      },
+      {
+        id: "mhp-2",
+        name: "Guest Mehendi Party Team (10 Guests)",
+        price: "₹15,000",
+        unit: "group booking",
+        features: ["2 Assistant Artists for 4 hours", "Arabic & Floral Palms for 10 Guests", "Fast 15-min per guest application"],
+        badge: "Group Saver"
+      }
+    ]
+  },
+
+  planners: {
+    id: "planners",
+    name: "Event Planners & Decorators",
+    badge: "Decor & Management",
+    icon: Wand2,
+    media: {
+      title: "Theme Portfolio",
+      subtitle: "Past events & bespoke wedding themes executed",
+      itemTypeLabel: "Theme Concept",
+      tags: ["All", "Royal Marwar Stage", "Boho Chic Mandap", "Floral Tunnel Entrance", "Sangeet Glam Stage"],
+      emptyPrompt: "No themes in portfolio. Upload images of past setups, mandaps, and stage designs!"
+    },
+    pricing: {
+      title: "Packages & Pricing",
+      subtitle: "Full planning vs decor-only & vendor network management",
+      itemTypeLabel: "Event Package",
+      pricingFields: ["Decor Setup Cost", "End-to-End Planning Fee", "Lighting & Truss Setup", "Vendor Coordination Fee"],
+      emptyPrompt: "No planning/decor packages listed. Set up options for decor-only or full planning."
+    },
+    sampleMedia: [
+      {
+        id: "pl-1",
+        title: "Pastel Royal Mandap under Stars",
+        category: "Boho Chic Mandap",
+        image: "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=800&auto=format&fit=crop",
+        details: "Real Fresh Exotic Flowers • Fairy Light Canopy • Custom Seating"
+      },
+      {
+        id: "pl-2",
+        title: "Mirror & Marigold Sangeet Arena",
+        category: "Sangeet Glam Stage",
+        image: "https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?q=80&w=800&auto=format&fit=crop",
+        details: "LED Screen Background • Intelligent Moving Head Lights • DJ Setup"
+      }
+    ],
+    samplePricing: [
+      {
+        id: "plp-1",
+        name: "Complete Wedding Planning & Execution",
+        price: "₹3,50,000",
+        unit: "management fee",
+        features: ["End-to-end 3-day wedding management", "Vendor negotiation & contract management", "RSVP & Guest Hospitality Desk", "On-site Event Managers (6 personnel)"],
+        popular: true,
+        badge: "Full Service"
+      },
+      {
+        id: "plp-2",
+        name: "Bespoke Royal Mandap & Entrance Decor",
+        price: "₹2,20,000",
+        unit: "per event",
+        features: ["Fresh Flower Dome Mandap", "Grand Entrance Pathway & Arch", "Stage Backdrops & Couple Sofa", "Ambient Mood Lighting"],
+        badge: "Decor Only"
+      }
+    ]
+  },
+
+  caterers: {
+    id: "caterers",
+    name: "Caterers",
+    badge: "Food & Beverage",
+    icon: UtensilsCrossed,
+    media: {
+      title: "Menu Management",
+      subtitle: "Cuisines offered, veg, non-veg & Jain food items",
+      itemTypeLabel: "Menu Category / Counter",
+      tags: ["All", "North Indian Buffet", "Live Street Food Counters", "Royal Mughlai", "Jain Special", "Gourmet Desserts"],
+      emptyPrompt: "No menu items or live counters added. Highlight signature cuisines and live food stalls!"
+    },
+    pricing: {
+      title: "Packages & Pricing",
+      subtitle: "Per-plate rates & tasting appointment schedule rules",
+      itemTypeLabel: "Catering Menu Package",
+      pricingFields: ["Per-Plate Rate (Veg)", "Per-Plate Rate (Non-Veg)", "Live Counters Included", "Tasting Session Charge"],
+      emptyPrompt: "No catering pricing packages added. Set per-plate charges and minimum guest counts."
+    },
+    sampleMedia: [
+      {
+        id: "ct-1",
+        title: "Royal Rajasthani & Marwari Thali spread",
+        category: "North Indian Buffet",
+        image: "https://images.unsplash.com/photo-1555244162-803834f70033?q=80&w=800&auto=format&fit=crop",
+        details: "14 Starters • 18 Main Course Dishes • Pure Desi Ghee Prep"
+      },
+      {
+        id: "ct-2",
+        title: "Artisanal Live Chaat & Wood-Fired Pizza",
+        category: "Live Street Food Counters",
+        image: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=800&auto=format&fit=crop",
+        details: "Customized Live Chef Stations • Clean & Hygienic Uniformed Staff"
+      }
+    ],
+    samplePricing: [
+      {
+        id: "ctp-1",
+        name: "Royal Diamond Feast (Pure Veg / Jain)",
+        price: "₹1,450",
+        unit: "per plate (Min 300 guests)",
+        features: ["8 Welcome Drinks & Mocktails", "12 Starter Dishes", "4 Live Food Counters", "5 Premium Desserts + Ice Cream Bar"],
+        popular: true,
+        badge: "Most Ordered"
+      },
+      {
+        id: "ctp-2",
+        name: "Gourmet International & Mughlai Buffet",
+        price: "₹1,850",
+        unit: "per plate (Min 250 guests)",
+        features: ["Veg & Non-Veg Multi-Cuisine", "Live Sushi & Wood-Fired Pizza Station", "Mughlai Handi Biryani Special", "Includes Uniformed Service Staff & Cutlery"],
+        badge: "Premium Luxury"
+      }
+    ]
+  },
+
+  invitations: {
+    id: "invitations",
+    name: "Invitations",
+    badge: "Cards & Digital",
+    icon: Mail,
+    media: {
+      title: "Design Catalog",
+      subtitle: "Templates, digital video samples & luxury print samples",
+      itemTypeLabel: "Invitation Design",
+      tags: ["All", "Boxed Royal Acrylic", "Eco-Friendly Seed Paper", "Animated Video Invite", "Gold Foil Minimalist"],
+      emptyPrompt: "No invitation samples in catalog. Upload digital invite videos and physical card photos!"
+    },
+    pricing: {
+      title: "Pricing",
+      subtitle: "Per-card rates, bulk discount tiers & customization fees",
+      itemTypeLabel: "Pricing Tier",
+      pricingFields: ["Per Card Base Price", "Bulk Order Discount (500+)", "Wax Seal / Gold Foil Extra", "Digital Video Invite Fee"],
+      emptyPrompt: "No pricing structure configured. Add unit card prices and volume discount tiers."
+    },
+    sampleMedia: [
+      {
+        id: "inv-1",
+        title: "Luxury Rigid Box with Brass Latch & Sweets Container",
+        category: "Boxed Royal Acrylic",
+        image: "https://images.unsplash.com/photo-1513519245088-0e12902e5a38?q=80&w=800&auto=format&fit=crop",
+        details: "Velvet Insert • Custom Monogram Wax Seal • Metallic Gold Leafing"
+      },
+      {
+        id: "inv-2",
+        title: "Cinematic 3D Palace Wedding E-Invite Video",
+        category: "Animated Video Invite",
+        image: "https://images.unsplash.com/photo-1549465220-1a8b9238cd48?q=80&w=800&auto=format&fit=crop",
+        details: "WhatsApp Ready • Music Included • RSVP Link Integrated"
+      }
+    ],
+    samplePricing: [
+      {
+        id: "invp-1",
+        name: "Royal Acrylic Box Card Set",
+        price: "₹380",
+        unit: "per card (Min 200 units)",
+        features: ["Acrylic main card with gold foil", "3 Inserts (Haldi, Mehendi, Wedding)", "Customized Box Case", "Includes outer delivery box"],
+        popular: true,
+        badge: "Trending"
+      },
+      {
+        id: "invp-2",
+        name: "Custom Animated WhatsApp Video Package",
+        price: "₹12,000",
+        unit: "flat fee",
+        features: ["60-sec 4K Video Invitation", "Custom Couple Illustration", "3 Rounds of Revisions", "Matching Save-the-Date PDF"],
+        badge: "Digital Special"
+      }
+    ]
+  },
+
+  jewellery: {
+    id: "jewellery",
+    name: "Jewellery",
+    badge: "Bridal Ornaments",
+    icon: Gem,
+    media: {
+      title: "Collection Catalog",
+      subtitle: "Bridal sets & luxury accessories by category",
+      itemTypeLabel: "Jewellery Piece / Set",
+      tags: ["All", "Kundan Bridal Choker", "Polki & Emerald Set", "Temple Gold Neckpieces", "Mathapatti & Nath"],
+      emptyPrompt: "No jewellery collections cataloged. Upload photos of bridal Kundan, Polki, and Gold sets!"
+    },
+    pricing: {
+      title: "Pricing",
+      subtitle: "Rental vs purchase options & security deposit terms",
+      itemTypeLabel: "Collection Price Tag",
+      pricingFields: ["Purchase Price", "3-Day Rental Charge", "Security Deposit Amount", "Custom Fitting Charge"],
+      emptyPrompt: "No pricing tags added yet. Add rental fees, deposit requirements, and purchase rates."
+    },
+    sampleMedia: [
+      {
+        id: "jw-1",
+        title: "Royal Uncut Polki & Colombian Emerald Bridal Set",
+        category: "Polki & Emerald Set",
+        image: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?q=80&w=800&auto=format&fit=crop",
+        details: "Includes Choker, Long Haar, Jhumkas, Mathapatti & Haathphool"
+      },
+      {
+        id: "jw-2",
+        title: "22K Antique Temple Gold Heritage Necklace",
+        category: "Temple Gold Neckpieces",
+        image: "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?q=80&w=800&auto=format&fit=crop",
+        details: "Handcrafted Nakshi Work • Certified Hallmarked Gold"
+      }
+    ],
+    samplePricing: [
+      {
+        id: "jwp-1",
+        name: "Polki Heritage Bridal Set (3-Day Rental)",
+        price: "₹28,000",
+        unit: "3-day rental",
+        features: ["Full 7-piece bridal set", "Sanitized & Polished prior to event", "Security Deposit: ₹50,000 (Refundable)", "Free fitting alteration"],
+        popular: true,
+        badge: "Rental Special"
+      },
+      {
+        id: "jwp-2",
+        name: "Custom Made Kundan Choker Purchase",
+        price: "₹2,45,000",
+        unit: "direct purchase",
+        features: ["Hallmarked 22K Gold Base", "Certified Uncut Diamonds", "Lifetime Cleaning Guarantee", "Insured Delivery"],
+        badge: "Buy Fine Jewellery"
+      }
+    ]
+  }
 };
+
+export function getCategoryConfig(categoryKey: string): VendorCategoryConfig {
+  const normalizedKey = (categoryKey || "").toLowerCase().trim();
+  
+  if (normalizedKey.includes("photo") || normalizedKey.includes("video") || normalizedKey.includes("film")) {
+    return VENDOR_CATEGORIES.photographers;
+  }
+  if (normalizedKey.includes("makeup") || normalizedKey.includes("beauty")) {
+    return VENDOR_CATEGORIES.makeup;
+  }
+  if (normalizedKey.includes("mehendi") || normalizedKey.includes("henna")) {
+    return VENDOR_CATEGORIES.mehendi;
+  }
+  if (normalizedKey.includes("planner") || normalizedKey.includes("decor") || normalizedKey.includes("event")) {
+    return VENDOR_CATEGORIES.planners;
+  }
+  if (normalizedKey.includes("cater") || normalizedKey.includes("food")) {
+    return VENDOR_CATEGORIES.caterers;
+  }
+  if (normalizedKey.includes("invitation") || normalizedKey.includes("card")) {
+    return VENDOR_CATEGORIES.invitations;
+  }
+  if (normalizedKey.includes("jewel") || normalizedKey.includes("ornament")) {
+    return VENDOR_CATEGORIES.jewellery;
+  }
+  
+  // Default to venues
+  return VENDOR_CATEGORIES.venues;
+}
