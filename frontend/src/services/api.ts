@@ -73,9 +73,9 @@ export async function getAllBoutiques(): Promise<Boutique[]> {
           image_url: logo,
           city: b.city || "Kochi",
           area: b.area || b.district || "Kerala",
-          tags: b.tags || b.category || "Bridal Wear",
-          rating: b.rating ? Number(b.rating) : 4.8,
-          starting_price: b.starting_price || b.startingPrice || "₹50,000",
+          rating: Number(b.rating ?? 0),
+          review_count: Number(b.review_count ?? b.reviewCount ?? 0),
+          starting_price: b.starting_price || b.startingPrice || "Contact for pricing",
         };
       });
     }
