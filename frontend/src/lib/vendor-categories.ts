@@ -558,19 +558,19 @@ export const VENDOR_CATEGORIES: Record<string, VendorCategoryConfig> = {
 
   makeup: {
     id: "makeup",
-    name: "Makeup Artists",
+    name: "MAKEUP ARTISTS",
     badge: "Bridal & Beauty",
     icon: Sparkles,
     media: {
       title: "Portfolio",
-      subtitle: "Before/after shots & bridal look categories",
+      subtitle: "Bridal, Party, Engagement, HD/Airbrush, Reception looks",
       itemTypeLabel: "Look Transformation",
       tags: ["All", "HD Bridal Makeup", "Airbrush Glam", "Reception Sangeet", "Party Makeup"],
       emptyPrompt: "No look transformations in gallery. Upload before & after transformations to win brides!"
     },
     pricing: {
       title: "Packages & Pricing",
-      subtitle: "Bridal, party & trial rates + outstation travel charges",
+      subtitle: "Bridal package, party/guest rates, trial session charges & travel/outstation fees",
       itemTypeLabel: "Makeup Package",
       pricingFields: ["Bridal HD/Airbrush Fee", "Pre-Bridal Trial Charge", "Party Makeup Rate", "Travel / Outstation Fee"],
       emptyPrompt: "No beauty packages defined. Set your bridal, sangeet, and trial rates."
