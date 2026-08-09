@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { 
   LayoutDashboard, 
@@ -29,33 +29,54 @@ import { SubscriptionSection } from "./sections/SubscriptionSection";
 import { CustomizeStoreSection } from "./sections/CustomizeStoreSection";
 import { VendorMediaModule } from "./sections/VendorMediaModule";
 import { VendorPricingModule } from "./sections/VendorPricingModule";
+import { getActiveVendorIdentity, fetchAuthenticatedVendorFromDb } from "@/lib/vendorStore";
 
-export function UnifiedVendorDashboard() {
+interface UnifiedVendorDashboardProps {
+  categoryKey?: string;
+}
+
+export function UnifiedVendorDashboard({ categoryKey = "photographers" }: UnifiedVendorDashboardProps) {
   const router = useRouter();
   
-  const [activeCategoryKey, setActiveCategoryKey] = useState<string>("venues");
+  const [activeCategoryKey] = useState<string>(categoryKey);
   const [activeTab, setActiveTab] = useState<string | null>(null);
+  const [vendorData, setVendorData] = useState<any>(null);
 
-  const categoryConfig: VendorCategoryConfig = VENDOR_CATEGORIES[activeCategoryKey] || VENDOR_CATEGORIES.venues;
+  useEffect(() => {
+    const cached = getActiveVendorIdentity();
+    if (cached && cached.id) {
+      setVendorData(cached);
+    }
+
+    fetchAuthenticatedVendorFromDb().then((identity) => {
+      if (identity && identity.id) {
+        setVendorData(identity);
+      }
+    });
+  }, []);
+
+  const categoryConfig: VendorCategoryConfig = VENDOR_CATEGORIES[activeCategoryKey] || VENDOR_CATEGORIES.photographers;
 
   const mediaTabId = categoryConfig.media.title.toLowerCase().replace(/[^a-z]/g, "");
   const pricingTabId = categoryConfig.pricing.title.toLowerCase().replace(/[^a-z]/g, "");
 
-  const vendorName = "Royal Marwar Partner";
-  const logoUrl = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop";
-  const coverUrl = "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=1200&auto=format&fit=crop";
+  const vendorName = vendorData?.name || vendorData?.boutique_name || "Stories by Candid";
+  const logoUrl = vendorData?.logo || vendorData?.logo_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop";
+  const coverUrl = vendorData?.coverImage || vendorData?.cover_image || categoryConfig.sampleMedia?.[0]?.image || "https://images.unsplash.com/photo-1583939003579-730e3918a45a?q=80&w=1200&auto=format&fit=crop";
+  const partnerBadge = vendorData?.plan || "Platinum Partner";
 
+  // Reusable 11 Navigation items matching exact requested structure
   const navItems = [
-    { id: "overview", label: "Overview", icon: LayoutDashboard, desc: "Business summary, recent activity & performance insights" },
-    { id: "profile", label: "Profile", icon: Store, desc: "Business details, contact info & working hours" },
+    { id: "overview", label: "Overview", icon: LayoutDashboard, desc: "Business summary, weekly bookings & performance insights" },
+    { id: "profile", label: "Profile", icon: Store, desc: "Business details, contact info, service area & working hours" },
     { id: mediaTabId, label: categoryConfig.media.title, icon: categoryConfig.icon, desc: categoryConfig.media.subtitle },
     { id: pricingTabId, label: categoryConfig.pricing.title, icon: Package, desc: categoryConfig.pricing.subtitle },
-    { id: "appointments", label: "Appointments", icon: Calendar, desc: "Manage bookings, customer visits & schedules" },
-    { id: "enquiries", label: "Enquiries", icon: Inbox, desc: "View & respond to customer leads & quotes" },
-    { id: "offers", label: "Offers", icon: Tag, desc: "Manage promotional discounts & deals" },
-    { id: "analytics", label: "Analytics", icon: BarChart3, desc: "Profile views & performance insights" },
-    { id: "subscription", label: "Subscription", icon: CreditCard, desc: "Manage current plan & membership billing" },
-    { id: "customize-store", label: "Customize Store", icon: StorePalette, desc: "Logo, cover image & store branding theme" },
+    { id: "appointments", label: "Appointments", icon: Calendar, desc: "Calendar view of upcoming shoots & consultation meetings" },
+    { id: "enquiries", label: "Enquiries", icon: Inbox, desc: "Inbox of customer messages, couple leads & quote replies" },
+    { id: "offers", label: "Offers", icon: Tag, desc: "Create & manage seasonal or festive discount packages" },
+    { id: "analytics", label: "Analytics", icon: BarChart3, desc: "Profile views, conversion rate & most-viewed portfolio pieces" },
+    { id: "subscription", label: "Subscription", icon: CreditCard, desc: "Current plan details & membership billing" },
+    { id: "customize-store", label: "Customize Store", icon: StorePalette, desc: "Logo, cover image, store branding theme & live preview" },
   ];
 
   const handleSignOut = () => {
@@ -91,7 +112,7 @@ export function UnifiedVendorDashboard() {
 
   return (
     <div className="min-h-screen bg-[#F8F6F2] font-sans antialiased pb-36 md:pb-16">
-      {/* Cover Header */}
+      {/* 1. Cover Image Background Header */}
       <div className="relative h-48 sm:h-60 lg:h-68 w-full bg-[#0F4C45] overflow-hidden">
         <img 
           src={coverUrl} 
@@ -101,8 +122,10 @@ export function UnifiedVendorDashboard() {
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/25 to-transparent" />
       </div>
 
+      {/* Main Container */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative -mt-16 sm:-mt-20 z-10 space-y-6">
-        {/* Profile Card Header */}
+        
+        {/* 2. Profile Card Overlapping Cover */}
         <div className="bg-white rounded-3xl shadow-sm border border-gold/15 p-6 sm:p-8">
           <div className="flex flex-col sm:flex-row items-center sm:items-end gap-5 text-center sm:text-left">
             <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full border-4 border-white overflow-hidden shadow-xl bg-white shrink-0 -mt-14 sm:-mt-16">
@@ -115,16 +138,16 @@ export function UnifiedVendorDashboard() {
               
               <div className="flex items-center justify-center sm:justify-start pt-1">
                 <span className="inline-flex items-center gap-1.5 bg-[#0F4C45] text-[#C8A96A] text-[10px] font-bold uppercase tracking-widest px-3.5 py-1 rounded-full shadow-xs">
-                  <Star className="w-3 h-3 fill-[#C8A96A]" /> Platinum Partner
+                  <Star className="w-3 h-3 fill-[#C8A96A]" /> {partnerBadge}
                 </span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Post-Login Landing Screen vs 1-Click Dedicated View */}
+        {/* 3. Post-Login Landing View vs 1-Click Dedicated Page */}
         {activeTab === null ? (
-          /* SINGLE DASHBOARD LANDING PAGE (Cover + Profile Card + Descriptive Menu List) */
+          /* REUSABLE DASHBOARD LANDING PAGE (Cover + Profile Card + Descriptive Menu List) */
           <div className="bg-white rounded-3xl border border-gold/15 p-4 sm:p-6 shadow-sm space-y-2 animate-in fade-in duration-200">
             <div className="px-3 py-2 border-b border-gold/10 mb-2">
               <span className="font-serif font-bold text-xs uppercase tracking-widest text-[#0F4C45]">

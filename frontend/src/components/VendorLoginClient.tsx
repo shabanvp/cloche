@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { login } from "@/app/actions/auth";
-import { Palette, Sparkles, ArrowRight } from "lucide-react";
+import { Palette, Camera, ArrowRight } from "lucide-react";
 
 export function VendorLoginClient() {
   const router = useRouter();
@@ -42,9 +42,10 @@ export function VendorLoginClient() {
     if (res?.error) {
       setErrorMsg(res.error);
     } else {
-      // Check if email belongs to mehendi artist demo or redirect to appropriate portal
       if (emailInput.toLowerCase().includes("mehendi") || emailInput.toLowerCase().includes("henna")) {
         router.push("/vendor/mehendi");
+      } else if (emailInput.toLowerCase().includes("photo") || emailInput.toLowerCase().includes("camera")) {
+        router.push("/vendor/photographer");
       } else {
         router.push("/vendor");
       }
@@ -64,27 +65,51 @@ export function VendorLoginClient() {
           </p>
         </div>
 
-        {/* Dedicated Mehendi Artist Quick Portal Access Card */}
-        <div className="bg-[#0d3b30] text-white rounded-3xl p-5 shadow-sm border border-gold/20 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-2xl bg-[#C8A96A]/20 text-[#C8A96A] flex items-center justify-center shrink-0 border border-[#C8A96A]/30">
-              <Palette className="w-5 h-5" />
+        {/* Quick Launch Cards for Finalized Dashboard Templates */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="bg-[#0d3b30] text-white rounded-2xl p-4 shadow-sm border border-gold/20 flex flex-col justify-between space-y-3">
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-xl bg-[#C8A96A]/20 text-[#C8A96A] flex items-center justify-center shrink-0 border border-[#C8A96A]/30">
+                <Palette className="w-4 h-4" />
+              </div>
+              <div>
+                <span className="text-[9px] font-extrabold uppercase tracking-widest text-[#C8A96A] block">
+                  Mehendi Portal
+                </span>
+                <h3 className="font-serif font-bold text-xs text-white">Mehendi Artist</h3>
+              </div>
             </div>
-            <div>
-              <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#C8A96A] bg-white/10 px-2 py-0.5 rounded">
-                Exclusive Vendor Portal
-              </span>
-              <h3 className="font-serif font-bold text-sm text-white mt-0.5">Mehendi Artist Dashboard</h3>
-            </div>
+
+            <button
+              type="button"
+              onClick={() => router.push("/vendor/mehendi")}
+              className="bg-[#C8A96A] hover:bg-[#b89859] text-charcoal font-bold text-[11px] py-1.5 px-3 rounded-lg transition-all flex items-center justify-center gap-1 cursor-pointer w-full"
+            >
+              Launch <ArrowRight className="w-3 h-3" />
+            </button>
           </div>
 
-          <button
-            type="button"
-            onClick={() => router.push("/vendor/mehendi")}
-            className="bg-[#C8A96A] hover:bg-[#b89859] text-charcoal font-bold text-xs px-3.5 py-2 rounded-xl transition-all flex items-center gap-1 shrink-0 cursor-pointer shadow-xs"
-          >
-            Launch <ArrowRight className="w-3.5 h-3.5" />
-          </button>
+          <div className="bg-[#0F4C45] text-white rounded-2xl p-4 shadow-sm border border-gold/20 flex flex-col justify-between space-y-3">
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-xl bg-[#C8A96A]/20 text-[#C8A96A] flex items-center justify-center shrink-0 border border-[#C8A96A]/30">
+                <Camera className="w-4 h-4" />
+              </div>
+              <div>
+                <span className="text-[9px] font-extrabold uppercase tracking-widest text-[#C8A96A] block">
+                  Photo Portal
+                </span>
+                <h3 className="font-serif font-bold text-xs text-white">Photographer</h3>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => router.push("/vendor/photographer")}
+              className="bg-[#C8A96A] hover:bg-[#b89859] text-charcoal font-bold text-[11px] py-1.5 px-3 rounded-lg transition-all flex items-center justify-center gap-1 cursor-pointer w-full"
+            >
+              Launch <ArrowRight className="w-3 h-3" />
+            </button>
+          </div>
         </div>
 
         <form className="bg-white rounded-3xl shadow-sm border border-gold/10 p-8 sm:p-10" onSubmit={handleSubmit}>
@@ -110,7 +135,7 @@ export function VendorLoginClient() {
                 value={emailInput}
                 onChange={(e) => setEmailInput(e.target.value)}
                 className="w-full bg-[#F4F1EA] border border-outline/20 rounded-xl px-4 py-3.5 text-charcoal placeholder:text-charcoal/40 focus:outline-none focus:border-emerald transition-colors text-sm"
-                placeholder="mehendi@artist.com"
+                placeholder="vendor@example.com"
               />
             </div>
 
