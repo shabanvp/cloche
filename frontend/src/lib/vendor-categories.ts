@@ -34,7 +34,9 @@ export interface CategoryConfig {
   title: string;
   subtitle: string;
   heroImage: string;
-  subCategories: Array<{ id: string; name: string }>;
+  searchPlaceholder: string;
+  subFilters: Array<{ label: string; value: string }>;
+  subCategories?: Array<{ id: string; name: string }>;
   vendors: VendorCategoryItem[];
 }
 
@@ -44,6 +46,14 @@ export const VENDOR_CATEGORIES_DATA: Record<string, CategoryConfig> = {
     title: "Wedding Venues",
     subtitle: "Explore luxury banquet halls, royal palaces, grand lawns & beachside resorts",
     heroImage: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?q=80&w=1200&auto=format&fit=crop",
+    searchPlaceholder: "Search venues by name, city, or venue type...",
+    subFilters: [
+      { label: "All", value: "all" },
+      { label: "Banquet Halls", value: "banquet" },
+      { label: "Grand Lawns", value: "lawn" },
+      { label: "Palaces", value: "palace" },
+      { label: "Resorts", value: "resort" }
+    ],
     subCategories: [
       { id: "all", name: "All Venues" },
       { id: "banquet", name: "Banquet Halls" },
@@ -87,6 +97,13 @@ export const VENDOR_CATEGORIES_DATA: Record<string, CategoryConfig> = {
     title: "Wedding Photographers",
     subtitle: "Capture timeless candid moments, cinematic wedding films & pre-wedding shoots",
     heroImage: "https://images.unsplash.com/photo-1583939003579-730e3918a45a?q=80&w=1200&auto=format&fit=crop",
+    searchPlaceholder: "Search photographers by name, style, or city...",
+    subFilters: [
+      { label: "All", value: "all" },
+      { label: "Candid", value: "candid" },
+      { label: "Cinematic", value: "cinematic" },
+      { label: "Pre-Wedding", value: "pre-wedding" }
+    ],
     subCategories: [
       { id: "all", name: "All Photographers" },
       { id: "candid", name: "Candid Photography" },
@@ -115,6 +132,13 @@ export const VENDOR_CATEGORIES_DATA: Record<string, CategoryConfig> = {
     title: "Bridal Makeup Artists",
     subtitle: "Transform your wedding look with expert HD & airbrush makeup artists",
     heroImage: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?q=80&w=1200&auto=format&fit=crop",
+    searchPlaceholder: "Search makeup artists by name, service, or city...",
+    subFilters: [
+      { label: "All", value: "all" },
+      { label: "HD Bridal", value: "hd" },
+      { label: "Airbrush Glam", value: "airbrush" },
+      { label: "Party Makeup", value: "party" }
+    ],
     subCategories: [
       { id: "all", name: "All Artists" },
       { id: "hd", name: "HD Bridal" },
@@ -143,6 +167,12 @@ export const VENDOR_CATEGORIES_DATA: Record<string, CategoryConfig> = {
     title: "Mehendi Artists",
     subtitle: "Bespoke bridal henna designs, Rajasthani figure portraits & Arabic patterns",
     heroImage: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?q=80&w=1200&auto=format&fit=crop",
+    searchPlaceholder: "Search mehendi artists by name or design style...",
+    subFilters: [
+      { label: "All", value: "all" },
+      { label: "Rajasthani", value: "rajasthani" },
+      { label: "Arabic", value: "arabic" }
+    ],
     subCategories: [
       { id: "all", name: "All Designs" },
       { id: "rajasthani", name: "Rajasthani Bridal" },
@@ -170,6 +200,12 @@ export const VENDOR_CATEGORIES_DATA: Record<string, CategoryConfig> = {
     title: "Event Planners & Decorators",
     subtitle: "End-to-end wedding execution, royal mandap decors & theme management",
     heroImage: "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=1200&auto=format&fit=crop",
+    searchPlaceholder: "Search wedding planners and decor specialists...",
+    subFilters: [
+      { label: "All", value: "all" },
+      { label: "Full Planning", value: "full" },
+      { label: "Decor Only", value: "decor" }
+    ],
     subCategories: [
       { id: "all", name: "All Planners" },
       { id: "full", name: "Full Planning" },
@@ -197,6 +233,12 @@ export const VENDOR_CATEGORIES_DATA: Record<string, CategoryConfig> = {
     title: "Wedding Caterers",
     subtitle: "Gourmet multi-cuisine feasts, live food stalls & royal thali buffets",
     heroImage: "https://images.unsplash.com/photo-1555244162-803834f70033?q=80&w=1200&auto=format&fit=crop",
+    searchPlaceholder: "Search caterers by cuisine, food counters...",
+    subFilters: [
+      { label: "All", value: "all" },
+      { label: "Pure Veg & Jain", value: "veg" },
+      { label: "Multi-Cuisine", value: "multi" }
+    ],
     subCategories: [
       { id: "all", name: "All Caterers" },
       { id: "veg", name: "Pure Veg & Jain" },
@@ -224,6 +266,12 @@ export const VENDOR_CATEGORIES_DATA: Record<string, CategoryConfig> = {
     title: "Wedding Invitations",
     subtitle: "Luxury boxed card suites, digital video e-invites & custom seed paper",
     heroImage: "https://images.unsplash.com/photo-1513519245088-0e12902e5a38?q=80&w=1200&auto=format&fit=crop",
+    searchPlaceholder: "Search invitation designers, templates...",
+    subFilters: [
+      { label: "All", value: "all" },
+      { label: "Boxed Cards", value: "boxed" },
+      { label: "Digital Video", value: "digital" }
+    ],
     subCategories: [
       { id: "all", name: "All Invitations" },
       { id: "boxed", name: "Boxed Cards" },
@@ -251,6 +299,12 @@ export const VENDOR_CATEGORIES_DATA: Record<string, CategoryConfig> = {
     title: "Bridal Jewellery",
     subtitle: "Luxury Kundan chokers, uncut Polki sets, heritage gold & bridal rentals",
     heroImage: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?q=80&w=1200&auto=format&fit=crop",
+    searchPlaceholder: "Search bridal jewellery sets, Kundan, Polki...",
+    subFilters: [
+      { label: "All", value: "all" },
+      { label: "Polki & Kundan", value: "polki" },
+      { label: "Bridal Rental", value: "rental" }
+    ],
     subCategories: [
       { id: "all", name: "All Jewellery" },
       { id: "polki", name: "Polki & Kundan" },
@@ -270,6 +324,39 @@ export const VENDOR_CATEGORIES_DATA: Record<string, CategoryConfig> = {
         verified: true,
         specialtyTag: "Kundan & Diamond",
         subCategory: "polki"
+      }
+    ]
+  },
+  boutiques: {
+    slug: "boutiques",
+    title: "Bridal Boutiques & Wear",
+    subtitle: "Designer lehengas, sherwanis, sarees & bespoke bridal couture",
+    heroImage: "https://images.unsplash.com/photo-1594552072238-b8a33785b261?q=80&w=1200&auto=format&fit=crop",
+    searchPlaceholder: "Search bridal boutiques, designer lehengas...",
+    subFilters: [
+      { label: "All", value: "all" },
+      { label: "Bridal Lehengas", value: "lehenga" },
+      { label: "Groom Wear", value: "groom" }
+    ],
+    subCategories: [
+      { id: "all", name: "All Apparel" },
+      { id: "lehenga", name: "Bridal Lehengas" },
+      { id: "groom", name: "Groom Wear" }
+    ],
+    vendors: [
+      {
+        id: "boutique-1",
+        name: "Samsara Bridal Couture",
+        slug: "samsara-bridal-couture",
+        image: "https://images.unsplash.com/photo-1594552072238-b8a33785b261?q=80&w=800&auto=format&fit=crop",
+        rating: 4.9,
+        reviewsCount: 41,
+        location: "Kochi, Kerala",
+        startingPrice: "₹45,000 / outfit",
+        badge: "Haute Couture",
+        verified: true,
+        specialtyTag: "Hand Embroidered Lehenga",
+        subCategory: "lehenga"
       }
     ]
   }
