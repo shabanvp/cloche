@@ -38,10 +38,10 @@ export function normalizeVendorCategoryKey(rawCategory: string): string {
   if (slug.includes("mehendi") || slug.includes("henna") || slug.includes("mehndi")) return "mehendi";
   if (slug.includes("venue") || slug.includes("palace") || slug.includes("lawn") || slug.includes("banquet")) return "venues";
   if (slug.includes("makeup") || slug.includes("glam")) return "makeup";
-  if (slug.includes("cater") || slug.includes("food") || slug.includes("dining")) return "catering";
+  if (slug.includes("cater") || slug.includes("food") || slug.includes("dining")) return "caterers";
   if (slug.includes("invite") || slug.includes("card") || slug.includes("papyrus")) return "invitations";
   if (slug.includes("jewel") || slug.includes("polki") || slug.includes("gold")) return "jewellery";
-  if (slug.includes("decor") || slug.includes("planner")) return "decor";
+  if (slug.includes("decor") || slug.includes("planner")) return "planners";
   if (slug.includes("boutique") || slug.includes("bridal") || slug.includes("wear")) return "boutiques";
   return "photographers";
 }

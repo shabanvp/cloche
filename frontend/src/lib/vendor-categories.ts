@@ -429,19 +429,19 @@ export interface VendorCategoryConfig {
 export const VENDOR_CATEGORIES: Record<string, VendorCategoryConfig> = {
   venues: {
     id: "venues",
-    name: "Venues",
+    name: "VENUES",
     badge: "Banquet & Lawns",
     icon: Building2,
     media: {
       title: "Gallery & Halls",
-      subtitle: "Showcase banquet halls, lawns & outdoor spaces",
+      subtitle: "Banquet halls, lawns, outdoor spaces & indoor/AC halls",
       itemTypeLabel: "Hall / Space",
       tags: ["All", "Banquet Hall", "Grand Lawn", "Poolside Terrace", "Courtyard"],
       emptyPrompt: "No halls or spaces added yet. Showcase your banquet halls and outdoor venues to attract couples!"
     },
     pricing: {
       title: "Halls & Pricing",
-      subtitle: "Configure hall rental rates, guest capacity & slot fees",
+      subtitle: "Rental rates, guest capacity & slot fees (day/evening)",
       itemTypeLabel: "Space Pricing Slot",
       pricingFields: ["Hall Rental Fee", "Guest Capacity Range", "Morning/Evening Slot Fee", "Security Deposit"],
       emptyPrompt: "No pricing slots configured. Add rental fees and guest capacity for your venue spaces."
@@ -670,19 +670,19 @@ export const VENDOR_CATEGORIES: Record<string, VendorCategoryConfig> = {
 
   planners: {
     id: "planners",
-    name: "Event Planners & Decorators",
+    name: "EVENT PLANNERS & DECORATORS",
     badge: "Decor & Management",
     icon: Wand2,
     media: {
       title: "Theme Portfolio",
-      subtitle: "Past events & bespoke wedding themes executed",
+      subtitle: "Traditional, Royal, Minimal, Destination & Floral themes from past events",
       itemTypeLabel: "Theme Concept",
       tags: ["All", "Royal Marwar Stage", "Boho Chic Mandap", "Floral Tunnel Entrance", "Sangeet Glam Stage"],
       emptyPrompt: "No themes in portfolio. Upload images of past setups, mandaps, and stage designs!"
     },
     pricing: {
       title: "Packages & Pricing",
-      subtitle: "Full planning vs decor-only & vendor network management",
+      subtitle: "Full planning vs. decor-only, vendor tie-up network & per-event packages",
       itemTypeLabel: "Event Package",
       pricingFields: ["Decor Setup Cost", "End-to-End Planning Fee", "Lighting & Truss Setup", "Vendor Coordination Fee"],
       emptyPrompt: "No planning/decor packages listed. Set up options for decor-only or full planning."
@@ -726,19 +726,19 @@ export const VENDOR_CATEGORIES: Record<string, VendorCategoryConfig> = {
 
   caterers: {
     id: "caterers",
-    name: "Caterers",
+    name: "CATERERS",
     badge: "Food & Beverage",
     icon: UtensilsCrossed,
     media: {
       title: "Menu Management",
-      subtitle: "Cuisines offered, veg, non-veg & Jain food items",
+      subtitle: "Cuisines offered, Veg/Non-Veg/Jain options, live counters & dessert/sweets",
       itemTypeLabel: "Menu Category / Counter",
       tags: ["All", "North Indian Buffet", "Live Street Food Counters", "Royal Mughlai", "Jain Special", "Gourmet Desserts"],
       emptyPrompt: "No menu items or live counters added. Highlight signature cuisines and live food stalls!"
     },
     pricing: {
       title: "Packages & Pricing",
-      subtitle: "Per-plate rates & tasting appointment schedule rules",
+      subtitle: "Per-plate rates, minimum guest count & tasting session scheduling",
       itemTypeLabel: "Catering Menu Package",
       pricingFields: ["Per-Plate Rate (Veg)", "Per-Plate Rate (Non-Veg)", "Live Counters Included", "Tasting Session Charge"],
       emptyPrompt: "No catering pricing packages added. Set per-plate charges and minimum guest counts."
@@ -838,19 +838,19 @@ export const VENDOR_CATEGORIES: Record<string, VendorCategoryConfig> = {
 
   jewellery: {
     id: "jewellery",
-    name: "Jewellery",
+    name: "JEWELLERY",
     badge: "Bridal Ornaments",
     icon: Gem,
     media: {
       title: "Collection Catalog",
-      subtitle: "Bridal sets & luxury accessories by category",
+      subtitle: "Bridal Sets, Temple Jewellery, Antique, Contemporary & Accessories",
       itemTypeLabel: "Jewellery Piece / Set",
       tags: ["All", "Kundan Bridal Choker", "Polki & Emerald Set", "Temple Gold Neckpieces", "Mathapatti & Nath"],
       emptyPrompt: "No jewellery collections cataloged. Upload photos of bridal Kundan, Polki, and Gold sets!"
     },
     pricing: {
-      title: "Pricing",
-      subtitle: "Rental vs purchase options & security deposit terms",
+      title: "Pricing & Rental",
+      subtitle: "Rental vs. purchase options, per-piece rates & security deposit terms",
       itemTypeLabel: "Collection Price Tag",
       pricingFields: ["Purchase Price", "3-Day Rental Charge", "Security Deposit Amount", "Custom Fitting Charge"],
       emptyPrompt: "No pricing tags added yet. Add rental fees, deposit requirements, and purchase rates."
