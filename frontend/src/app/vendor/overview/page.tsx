@@ -118,7 +118,13 @@ export default function VendorOverviewPage() {
   const kpiCards = [
     { label: "Today's Leads", value: String(leads.length), subtitle: "Active inquiries", icon: Inbox, color: "bg-[#0F4C45]/10 text-[#0F4C45]" },
     { label: "Profile Views", value: leads.length > 0 ? "1,240" : "0", subtitle: "Live reach tracking", icon: Eye, color: "bg-purple-500/10 text-purple-600" },
-    { label: "Average Rating", value: "5.0", subtitle: "Verified Partner", icon: Star, color: "bg-amber-500/10 text-amber-600" },
+    { 
+      label: "Average Rating", 
+      value: Number(vendorData?.rating ?? 0) > 0 ? Number(vendorData.rating).toFixed(1) : "0.0", 
+      subtitle: Number(vendorData?.rating ?? 0) > 0 ? "Verified Reviews" : "No reviews yet", 
+      icon: Star, 
+      color: "bg-amber-500/10 text-amber-600" 
+    },
     { label: "Active Services", value: String(servicesCount), subtitle: "Published catalog", icon: ShoppingBag, color: "bg-emerald-500/10 text-emerald-600" },
   ];
 

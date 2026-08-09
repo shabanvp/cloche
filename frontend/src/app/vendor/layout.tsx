@@ -8,15 +8,7 @@ import { VendorToast } from "@/components/VendorToast";
 
 export default function VendorLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const isAuthPage = pathname === "/vendor/login" || pathname === "/vendor/register";
-  const isNavigationHub = pathname === "/vendor" || pathname === "/vendor/";
-  const isStandaloneOverview = pathname === "/vendor/overview" || pathname === "/vendor/overview/";
-  const isStandaloneProfile = pathname === "/vendor/profile" || pathname === "/vendor/profile/";
-  const isStandalonePackages = pathname.startsWith("/vendor/packages") || pathname.startsWith("/vendor/collections-pricing");
-  const isStandaloneOffers = pathname.startsWith("/vendor/offers");
-  const isStandaloneAnalytics = pathname.startsWith("/vendor/analytics");
-  const isStandaloneSubscription = pathname.startsWith("/vendor/subscription") || pathname.startsWith("/vendor/membership");
-  const isStandaloneCustomizeStore = pathname.startsWith("/vendor/customize-store");
+  const isAuthPage = pathname === "/vendor/login" || pathname === "/vendor/register" || pathname === "/vendor/verify-email";
 
   if (isAuthPage) {
     return (
@@ -29,19 +21,6 @@ export default function VendorLayout({ children }: { children: ReactNode }) {
     );
   }
 
-  // Standalone full-width screens (Navigation Hub, Overview, Profile, Collections, Offers, Analytics, Subscription, Customize Store)
-  if (isNavigationHub || isStandaloneOverview || isStandaloneProfile || isStandalonePackages || isStandaloneOffers || isStandaloneAnalytics || isStandaloneSubscription || isStandaloneCustomizeStore) {
-    return (
-      <div className="min-h-screen bg-[#FAF7F2] flex flex-col font-sans justify-between">
-        <main className="flex-1 py-6 px-4 sm:px-6 lg:px-8 max-w-[1200px] mx-auto w-full">
-          {children}
-        </main>
-        <VendorToast />
-      </div>
-    );
-  }
-
-  // Dedicated Management Sub-Pages: Render Sidebar on the left and sub-page content on the right
   return (
     <div className="min-h-screen bg-[#FAF7F2] flex flex-col justify-between font-sans">
       <main className="flex-1 py-6 lg:py-10 px-4 sm:px-6 lg:px-8 max-w-[1600px] mx-auto w-full">
