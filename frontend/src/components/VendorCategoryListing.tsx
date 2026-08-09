@@ -380,12 +380,20 @@ export function VendorCategoryListing({
 
                       {/* Rating & Review */}
                       <div className="flex items-center gap-1.5 text-xs font-bold text-charcoal/80">
-                        <span className="text-amber-500 flex items-center gap-0.5">
-                          ★ {vendor.rating}
-                        </span>
-                        <span className="text-charcoal/50 font-normal">
-                          ({vendor.reviewsCount})
-                        </span>
+                        {Number(vendor.rating ?? 0) > 0 ? (
+                          <>
+                            <span className="text-amber-500 flex items-center gap-0.5">
+                              ★ {Number(vendor.rating).toFixed(1)}
+                            </span>
+                            <span className="text-charcoal/50 font-normal">
+                              ({vendor.reviewsCount ?? 0} reviews)
+                            </span>
+                          </>
+                        ) : (
+                          <span className="text-xs font-bold text-emerald-800 bg-emerald-50 px-1.5 py-0.5 rounded">
+                            New
+                          </span>
+                        )}
                       </div>
 
                       {/* Location */}

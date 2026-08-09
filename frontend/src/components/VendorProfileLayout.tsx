@@ -38,6 +38,7 @@ export interface VendorProfileData {
   image: string;
   coverImages?: string[];
   subtitle?: string;
+  startingPrice?: string;
   about?: string;
   isVerified?: boolean;
   isFollowing?: boolean;
@@ -108,7 +109,7 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
         stats: [
           { icon: "users", value: "1,500", label: "Max Capacity" },
           { icon: "building", value: "24", label: "Guest Rooms" },
-          { icon: "star", value: `${vendor.rating || 4.9}`, label: "Average Rating" }
+          { icon: "star", value: Number(vendor.rating ?? 0) > 0 ? Number(vendor.rating).toFixed(1) : "New", label: "Average Rating" }
         ],
         highlightsTitle: "Venue Spaces & Ambiance",
         highlights: [
@@ -138,7 +139,7 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
         stats: [
           { icon: "clock", value: "8+", label: "Years Experience" },
           { icon: "camera", value: "350+", label: "Weddings Covered" },
-          { icon: "star", value: `${vendor.rating || 4.9}`, label: "Average Rating" }
+          { icon: "star", value: Number(vendor.rating ?? 0) > 0 ? Number(vendor.rating).toFixed(1) : "New", label: "Average Rating" }
         ],
         highlightsTitle: "Portfolio Highlights",
         highlights: [
@@ -168,7 +169,7 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
         stats: [
           { icon: "clock", value: "8+", label: "Years Experience" },
           { icon: "sparkles", value: "850+", label: "Brides Styled" },
-          { icon: "star", value: `${vendor.rating || 4.9}`, label: "Average Rating" }
+          { icon: "star", value: Number(vendor.rating ?? 0) > 0 ? Number(vendor.rating).toFixed(1) : "New", label: "Average Rating" }
         ],
         highlightsTitle: "Bridal Portfolio & Looks",
         highlights: [
@@ -198,7 +199,7 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
         stats: [
           { icon: "clock", value: "7+", label: "Years Experience" },
           { icon: "sparkles", value: "600+", label: "Brides Applied" },
-          { icon: "star", value: `${vendor.rating || 4.8}`, label: "Average Rating" }
+          { icon: "star", value: Number(vendor.rating ?? 0) > 0 ? Number(vendor.rating).toFixed(1) : "New", label: "Average Rating" }
         ],
         highlightsTitle: "Mehndi Design Highlights",
         highlights: [
@@ -228,7 +229,7 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
         stats: [
           { icon: "clock", value: "10+", label: "Years Experience" },
           { icon: "sparkles", value: "450+", label: "Events Designed" },
-          { icon: "star", value: `${vendor.rating || 4.9}`, label: "Average Rating" }
+          { icon: "star", value: Number(vendor.rating ?? 0) > 0 ? Number(vendor.rating).toFixed(1) : "New", label: "Average Rating" }
         ],
         highlightsTitle: "Decoration Themes & Mandaps",
         highlights: [
@@ -258,7 +259,7 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
         stats: [
           { icon: "sparkles", value: "500+", label: "Designer Outfits" },
           { icon: "users", value: "1,200+", label: "Happy Brides" },
-          { icon: "star", value: `${vendor.rating || 4.9}`, label: "Average Rating" }
+          { icon: "star", value: Number(vendor.rating ?? 0) > 0 ? Number(vendor.rating).toFixed(1) : "New", label: "Average Rating" }
         ],
         highlightsTitle: "Couture Collection Highlights",
         highlights: [
@@ -288,7 +289,7 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
         stats: [
           { icon: "sparkles", value: "100%", label: "Certified Jewels" },
           { icon: "building", value: "800+", label: "Unique Designs" },
-          { icon: "star", value: `${vendor.rating || 4.8}`, label: "Average Rating" }
+          { icon: "star", value: Number(vendor.rating ?? 0) > 0 ? Number(vendor.rating).toFixed(1) : "New", label: "Average Rating" }
         ],
         highlightsTitle: "Jewellery Highlights",
         highlights: [
@@ -501,8 +502,14 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
               <div className="mt-2 flex items-center gap-3 text-sm">
                 <div className="flex items-center gap-1 font-bold text-[#1A1410]">
                   <Star className="h-4 w-4 fill-[#C8A96A] text-[#C8A96A]" />
-                  <span>{vendor.rating || 4.8}</span>
-                  <span className="text-[#7A6E65] font-normal">({vendor.reviews || 128} reviews)</span>
+                  {Number(vendor.rating ?? 0) > 0 ? (
+                    <>
+                      <span>{Number(vendor.rating).toFixed(1)}</span>
+                      <span className="text-[#7A6E65] font-normal">({vendor.reviews ?? 0} reviews)</span>
+                    </>
+                  ) : (
+                    <span className="text-xs font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded">New</span>
+                  )}
                 </div>
                 <span className="text-[#8C827A]">•</span>
                 <div className="flex items-center gap-1 text-[#6B5E52]">
@@ -513,20 +520,11 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
 
               {/* Starting Price Display */}
               <div className="mt-4 p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 flex items-center justify-between">
-                <span className="text-xs text-[#7A6E65] font-medium">Starting Package</span>
-                <span className="font-serif text-lg font-bold text-[#0F4C45]">
-                  {prices[0]?.price || "₹25,000"} <span className="text-xs text-[#7A6E65] font-normal">onwards</span>
-                </span>
-              </div>
-
-              {/* Quick Stats Summary Pills */}
-              <div className="mt-4 grid grid-cols-3 gap-2 text-center">
-                {stats.slice(0, 3).map((st, i) => (
-                  <div key={i} className="p-2.5 rounded-xl bg-[#FAF5EA] border border-[#E8DFD1]">
-                    <span className="font-serif text-sm font-bold text-[#1A1410] block">{st.value}</span>
-                    <span className="text-[10px] text-[#7A6E65] truncate block mt-0.5">{st.label}</span>
-                  </div>
-                ))}
+                <div>
+                  <div className="text-[11px] text-[#7A6E65] uppercase tracking-wider font-semibold">Starting Price</div>
+                  <div className="text-xl font-bold text-[#0F4C45]">{vendor.startingPrice || "Contact for pricing"}</div>
+                </div>
+                <span className="text-xs text-[#7A6E65]">Per Event / Package</span>
               </div>
             </div>
 
@@ -582,8 +580,14 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
             <div className="mt-1.5 flex items-center gap-3 text-[clamp(0.75rem,0.9vw,0.875rem)] flex-wrap">
               <div className="flex items-center gap-1 font-bold text-[#1A1410]">
                 <Star className="h-4 w-4 fill-[#C8A96A] text-[#C8A96A]" />
-                <span>{vendor.rating || 4.8}</span>
-                <span className="text-[#7A6E65] font-normal">({vendor.reviews || 128})</span>
+                {Number(vendor.rating ?? 0) > 0 ? (
+                  <>
+                    <span>{Number(vendor.rating).toFixed(1)}</span>
+                    <span className="text-[#7A6E65] font-normal">({vendor.reviews ?? 0})</span>
+                  </>
+                ) : (
+                  <span className="text-xs font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded">New</span>
+                )}
               </div>
               <span className="text-[#0F4C45] font-semibold">• Verified {defaults.categoryLabel}</span>
               <div className="flex items-center gap-1 text-[#6B5E52]">

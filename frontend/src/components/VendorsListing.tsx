@@ -221,11 +221,11 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
                     logo_url: logoSrc,
                     profile_logo: logoSrc,
                     logo: logoSrc,
-                    rating: item.rating || 4.8,
+                    rating: Number(item.rating ?? 0),
                     city: item.city || "Kochi",
                     area: item.district || item.location || "Kerala",
                     tags: item.category || item.tags || "Bridal Boutique",
-                    starting_price: item.startingPrice || item.starting_price || "₹50,000",
+                    starting_price: item.startingPrice || item.starting_price || "Contact for pricing",
                   });
                 } else if (logoSrc) {
                   existing.logo_url = existing.logo_url || logoSrc;
@@ -258,11 +258,11 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
       id: boutique.id,
       name: boutique.boutique_name,
       category: resolveCategory(boutique),
-      price: boutique.starting_price || "₹50,000",
+      price: boutique.starting_price || "Contact for pricing",
       image: boutique.logo_url || boutique.logo || boutique.image_url,
       location: boutique.city || boutique.area || "Kochi, Kerala",
       city: boutique.city || "Kochi",
-      rating: boutique.rating || 4.8,
+      rating: Number(boutique.rating ?? 0),
     });
   };
 
@@ -387,7 +387,7 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
               const startingPrice =
                 (boutique as any).starting_price ||
                 (boutique as any).startingPrice ||
-                (category.includes("Venue") ? "₹1,80,000" : "₹50,000");
+                "Contact for pricing";
 
               const overlayTag = category.includes("Venue")
                 ? (boutique.id.toString().length % 2 === 0 ? "Outdoor" : "Indoor")
@@ -452,12 +452,20 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
 
                       <div className="flex items-center gap-1 text-xs text-charcoal/70">
                         <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400 shrink-0" />
-                        <span className="font-bold text-charcoal">
-                          {boutique.rating ? boutique.rating.toFixed(1) : "4.8"}
-                        </span>
-                        <span className="text-charcoal/50">
-                          ({(Math.abs(bName.length * 17) % 120) + 40})
-                        </span>
+                        {Number(boutique.rating ?? 0) > 0 ? (
+                          <>
+                            <span className="font-bold text-charcoal">
+                              {Number(boutique.rating).toFixed(1)}
+                            </span>
+                            <span className="text-charcoal/50">
+                              ({(boutique as any).review_count ?? (boutique as any).reviewCount ?? 0} reviews)
+                            </span>
+                          </>
+                        ) : (
+                          <span className="text-xs font-bold text-emerald-800 bg-emerald-50 px-1.5 py-0.5 rounded">
+                            New
+                          </span>
+                        )}
                       </div>
 
                       <p className="text-xs text-charcoal/60 flex items-center gap-1 truncate pt-0.5">
