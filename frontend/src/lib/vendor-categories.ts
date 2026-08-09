@@ -27,6 +27,7 @@ export interface VendorCategoryItem {
   verified?: boolean;
   specialtyTag?: string;
   subCategory?: string;
+  priceSuffix?: string;
 }
 
 export interface CategoryConfig {
@@ -38,6 +39,7 @@ export interface CategoryConfig {
   subFilters: Array<{ label: string; value: string }>;
   subCategories?: Array<{ id: string; name: string }>;
   vendors: VendorCategoryItem[];
+  priceSuffix?: string;
 }
 
 export const VENDOR_CATEGORIES_DATA: Record<string, CategoryConfig> = {
@@ -47,6 +49,7 @@ export const VENDOR_CATEGORIES_DATA: Record<string, CategoryConfig> = {
     subtitle: "Explore luxury banquet halls, royal palaces, grand lawns & beachside resorts",
     heroImage: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?q=80&w=1200&auto=format&fit=crop",
     searchPlaceholder: "Search venues by name, city, or venue type...",
+    priceSuffix: " / event",
     subFilters: [
       { label: "All", value: "all" },
       { label: "Banquet Halls", value: "banquet" },
@@ -70,7 +73,8 @@ export const VENDOR_CATEGORIES_DATA: Record<string, CategoryConfig> = {
         rating: 4.9,
         reviewsCount: 42,
         location: "Jaipur, Rajasthan",
-        startingPrice: "₹2,50,000 / slot",
+        startingPrice: "₹2,50,000",
+        priceSuffix: " / slot",
         badge: "Luxury Partner",
         verified: true,
         specialtyTag: "Palace Venue",
@@ -84,7 +88,8 @@ export const VENDOR_CATEGORIES_DATA: Record<string, CategoryConfig> = {
         rating: 4.8,
         reviewsCount: 38,
         location: "Kochi, Kerala",
-        startingPrice: "₹1,80,000 / day",
+        startingPrice: "₹1,80,000",
+        priceSuffix: " / day",
         badge: "Verified",
         verified: true,
         specialtyTag: "Lawn & Convention",
@@ -98,6 +103,7 @@ export const VENDOR_CATEGORIES_DATA: Record<string, CategoryConfig> = {
     subtitle: "Capture timeless candid moments, cinematic wedding films & pre-wedding shoots",
     heroImage: "https://images.unsplash.com/photo-1583939003579-730e3918a45a?q=80&w=1200&auto=format&fit=crop",
     searchPlaceholder: "Search photographers by name, style, or city...",
+    priceSuffix: " / day",
     subFilters: [
       { label: "All", value: "all" },
       { label: "Candid", value: "candid" },
@@ -119,7 +125,8 @@ export const VENDOR_CATEGORIES_DATA: Record<string, CategoryConfig> = {
         rating: 4.9,
         reviewsCount: 56,
         location: "Kochi, Kerala",
-        startingPrice: "₹85,000 / day",
+        startingPrice: "₹85,000",
+        priceSuffix: " / day",
         badge: "Award Winner",
         verified: true,
         specialtyTag: "Candid & Cinema",
@@ -133,6 +140,7 @@ export const VENDOR_CATEGORIES_DATA: Record<string, CategoryConfig> = {
     subtitle: "Transform your wedding look with expert HD & airbrush makeup artists",
     heroImage: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?q=80&w=1200&auto=format&fit=crop",
     searchPlaceholder: "Search makeup artists by name, service, or city...",
+    priceSuffix: " / function",
     subFilters: [
       { label: "All", value: "all" },
       { label: "HD Bridal", value: "hd" },
@@ -154,7 +162,8 @@ export const VENDOR_CATEGORIES_DATA: Record<string, CategoryConfig> = {
         rating: 4.9,
         reviewsCount: 29,
         location: "Kochi, Kerala",
-        startingPrice: "₹25,000 / function",
+        startingPrice: "₹25,000",
+        priceSuffix: " / function",
         badge: "Top Rated",
         verified: true,
         specialtyTag: "HD Airbrush Makeup",
@@ -168,6 +177,7 @@ export const VENDOR_CATEGORIES_DATA: Record<string, CategoryConfig> = {
     subtitle: "Bespoke bridal henna designs, Rajasthani figure portraits & Arabic patterns",
     heroImage: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?q=80&w=1200&auto=format&fit=crop",
     searchPlaceholder: "Search mehendi artists by name or design style...",
+    priceSuffix: " / bridal",
     subFilters: [
       { label: "All", value: "all" },
       { label: "Rajasthani", value: "rajasthani" },
@@ -187,7 +197,8 @@ export const VENDOR_CATEGORIES_DATA: Record<string, CategoryConfig> = {
         rating: 4.8,
         reviewsCount: 31,
         location: "Jaipur, Rajasthan",
-        startingPrice: "₹15,000 / bridal",
+        startingPrice: "₹15,000",
+        priceSuffix: " / bridal",
         badge: "Verified",
         verified: true,
         specialtyTag: "Organic Bridal Henna",
@@ -201,6 +212,7 @@ export const VENDOR_CATEGORIES_DATA: Record<string, CategoryConfig> = {
     subtitle: "End-to-end wedding execution, royal mandap decors & theme management",
     heroImage: "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=1200&auto=format&fit=crop",
     searchPlaceholder: "Search wedding planners and decor specialists...",
+    priceSuffix: " / event",
     subFilters: [
       { label: "All", value: "all" },
       { label: "Full Planning", value: "full" },
@@ -220,7 +232,8 @@ export const VENDOR_CATEGORIES_DATA: Record<string, CategoryConfig> = {
         rating: 5.0,
         reviewsCount: 19,
         location: "Kochi, Kerala",
-        startingPrice: "₹2,00,000 / event",
+        startingPrice: "₹2,00,000",
+        priceSuffix: " / event",
         badge: "Luxury Decor",
         verified: true,
         specialtyTag: "Royal Mandap Decor",
@@ -234,6 +247,7 @@ export const VENDOR_CATEGORIES_DATA: Record<string, CategoryConfig> = {
     subtitle: "Gourmet multi-cuisine feasts, live food stalls & royal thali buffets",
     heroImage: "https://images.unsplash.com/photo-1555244162-803834f70033?q=80&w=1200&auto=format&fit=crop",
     searchPlaceholder: "Search caterers by cuisine, food counters...",
+    priceSuffix: " / plate",
     subFilters: [
       { label: "All", value: "all" },
       { label: "Pure Veg & Jain", value: "veg" },
@@ -253,7 +267,8 @@ export const VENDOR_CATEGORIES_DATA: Record<string, CategoryConfig> = {
         rating: 4.8,
         reviewsCount: 45,
         location: "Kochi, Kerala",
-        startingPrice: "₹1,250 / plate",
+        startingPrice: "₹1,250",
+        priceSuffix: " / plate",
         badge: "Popular Choice",
         verified: true,
         specialtyTag: "Gourmet Buffet",
@@ -267,6 +282,7 @@ export const VENDOR_CATEGORIES_DATA: Record<string, CategoryConfig> = {
     subtitle: "Luxury boxed card suites, digital video e-invites & custom seed paper",
     heroImage: "https://images.unsplash.com/photo-1513519245088-0e12902e5a38?q=80&w=1200&auto=format&fit=crop",
     searchPlaceholder: "Search invitation designers, templates...",
+    priceSuffix: " / card",
     subFilters: [
       { label: "All", value: "all" },
       { label: "Boxed Cards", value: "boxed" },
@@ -286,7 +302,8 @@ export const VENDOR_CATEGORIES_DATA: Record<string, CategoryConfig> = {
         rating: 4.9,
         reviewsCount: 22,
         location: "Kochi, Kerala",
-        startingPrice: "₹250 / card",
+        startingPrice: "₹250",
+        priceSuffix: " / card",
         badge: "Bespoke Cards",
         verified: true,
         specialtyTag: "Gold Foil & Acrylic",
@@ -300,6 +317,7 @@ export const VENDOR_CATEGORIES_DATA: Record<string, CategoryConfig> = {
     subtitle: "Luxury Kundan chokers, uncut Polki sets, heritage gold & bridal rentals",
     heroImage: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?q=80&w=1200&auto=format&fit=crop",
     searchPlaceholder: "Search bridal jewellery sets, Kundan, Polki...",
+    priceSuffix: " rental",
     subFilters: [
       { label: "All", value: "all" },
       { label: "Polki & Kundan", value: "polki" },
@@ -319,7 +337,8 @@ export const VENDOR_CATEGORIES_DATA: Record<string, CategoryConfig> = {
         rating: 4.9,
         reviewsCount: 37,
         location: "Kochi, Kerala",
-        startingPrice: "₹25,000 rental",
+        startingPrice: "₹25,000",
+        priceSuffix: " rental",
         badge: "Certified Gold",
         verified: true,
         specialtyTag: "Kundan & Diamond",
@@ -333,6 +352,7 @@ export const VENDOR_CATEGORIES_DATA: Record<string, CategoryConfig> = {
     subtitle: "Designer lehengas, sherwanis, sarees & bespoke bridal couture",
     heroImage: "https://images.unsplash.com/photo-1594552072238-b8a33785b261?q=80&w=1200&auto=format&fit=crop",
     searchPlaceholder: "Search bridal boutiques, designer lehengas...",
+    priceSuffix: " / outfit",
     subFilters: [
       { label: "All", value: "all" },
       { label: "Bridal Lehengas", value: "lehenga" },
@@ -352,7 +372,8 @@ export const VENDOR_CATEGORIES_DATA: Record<string, CategoryConfig> = {
         rating: 4.9,
         reviewsCount: 41,
         location: "Kochi, Kerala",
-        startingPrice: "₹45,000 / outfit",
+        startingPrice: "₹45,000",
+        priceSuffix: " / outfit",
         badge: "Haute Couture",
         verified: true,
         specialtyTag: "Hand Embroidered Lehenga",
