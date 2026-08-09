@@ -110,6 +110,47 @@ export function VendorCategoryListing({
         } else {
           setAllVendors(categoryConfig.vendors);
         }
+
+        fetch("/api/v1/public/vendors")
+          .then((r) => r.json())
+          .then((res) => {
+            if (res.success && Array.isArray(res.data) && res.data.length > 0) {
+              const apiVendors: VendorCategoryItem[] = res.data.map((item: any, idx: number) => ({
+                id: item.id || item.slug || `api-${idx}`,
+                name: item.name || "Wedding Partner",
+                slug: item.slug || item.id || `partner-${idx}`,
+                image:
+                  item.coverImage ||
+                  item.cover_image ||
+                  item.cover_url ||
+                  item.logoUrl ||
+                  item.logo ||
+                  item.logo_url ||
+                  item.profile_logo ||
+                  item.image_url ||
+                  item.image ||
+                  "",
+                rating: Number(item.rating || 5.0),
+                reviewsCount: Number(item.reviewCount ?? item.reviewsCount ?? 0),
+                location: item.city ? `${item.city}, ${item.state || "Kerala"}` : "Kochi, Kerala",
+                startingPrice: item.startingPrice || "Contact for pricing",
+                badge: "Verified",
+                verified: Boolean(item.isVerified),
+                specialtyTag: item.category || categoryConfig.title,
+                subCategory: "all",
+              }));
+
+              setAllVendors((prev) => {
+                const existingMap = new Map<string, VendorCategoryItem>();
+                apiVendors.forEach((v) => existingMap.set(String(v.id), v));
+                prev.forEach((v) => {
+                  if (!existingMap.has(String(v.id))) existingMap.set(String(v.id), v);
+                });
+                return Array.from(existingMap.values());
+              });
+            }
+          })
+          .catch(() => {});
       } catch (e) {
         setAllVendors(categoryConfig.vendors);
       }
@@ -308,7 +349,7 @@ export function VendorCategoryListing({
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredVendors.map((vendor) => {
               const isLiked = wishlist.has(vendor.id);
-              const cardHref = categoryConfig.slug === "venues" ? `/venues/${vendor.slug || vendor.id}` : `/venues/${vendor.slug || vendor.id}`;
+              const cardHref = categoryConfig.slug === "venues" ? `/venues/${vendor.slug || vendor.id}` : `/boutiques/${vendor.id || vendor.slug}`;
               return (
                 <Link
                   key={vendor.id}
