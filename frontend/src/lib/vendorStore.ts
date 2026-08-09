@@ -61,8 +61,11 @@ export function showVendorToast(message: string, type: "success" | "error" | "in
 
 /**
  * Helper to sync updated vendor profile fields with database.
+ * Returns an object with { success: boolean } to match calling client pages.
  */
-export async function syncVendorProfileWithDatabase(profileData: Partial<VendorProfileData>): Promise<boolean> {
+export async function syncVendorProfileWithDatabase(
+  profileData: Partial<VendorProfileData>
+): Promise<{ success: boolean; data?: any }> {
   if (typeof window !== "undefined") {
     try {
       const res = await fetch("/api/v1/vendor/profile", {
@@ -70,12 +73,12 @@ export async function syncVendorProfileWithDatabase(profileData: Partial<VendorP
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(profileData),
       });
-      return res.ok;
+      return { success: res.ok };
     } catch (e) {
       console.error("[vendorStore] Sync error:", e);
     }
   }
-  return false;
+  return { success: false };
 }
 
 /**
