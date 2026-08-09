@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { getSupabaseConfig, supabaseFetch } from "@/lib/supabase";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export async function GET(req: Request) {
   const startTime = Date.now();
   try {
