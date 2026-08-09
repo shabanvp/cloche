@@ -34,7 +34,6 @@ export function UnifiedVendorDashboard() {
   const router = useRouter();
   
   const [activeCategoryKey, setActiveCategoryKey] = useState<string>("venues");
-  // Default to null right after login so ONLY profile header & plain menu list are shown
   const [activeTab, setActiveTab] = useState<string | null>(null);
 
   const categoryConfig: VendorCategoryConfig = VENDOR_CATEGORIES[activeCategoryKey] || VENDOR_CATEGORIES.venues;
@@ -47,16 +46,16 @@ export function UnifiedVendorDashboard() {
   const coverUrl = "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=1200&auto=format&fit=crop";
 
   const navItems = [
-    { id: "overview", label: "Overview", icon: LayoutDashboard, desc: "Business summary & recent activity" },
-    { id: "profile", label: "Profile", icon: Store, desc: "Business details, contact & working hours" },
+    { id: "overview", label: "Overview", icon: LayoutDashboard, desc: "Business summary, recent activity & performance insights" },
+    { id: "profile", label: "Profile", icon: Store, desc: "Business details, contact info & working hours" },
     { id: mediaTabId, label: categoryConfig.media.title, icon: categoryConfig.icon, desc: categoryConfig.media.subtitle },
     { id: pricingTabId, label: categoryConfig.pricing.title, icon: Package, desc: categoryConfig.pricing.subtitle },
-    { id: "appointments", label: "Appointments", icon: Calendar, desc: "Manage bookings & customer visits" },
-    { id: "enquiries", label: "Enquiries", icon: Inbox, desc: "View & respond to customer leads" },
+    { id: "appointments", label: "Appointments", icon: Calendar, desc: "Manage bookings, customer visits & schedules" },
+    { id: "enquiries", label: "Enquiries", icon: Inbox, desc: "View & respond to customer leads & quotes" },
     { id: "offers", label: "Offers", icon: Tag, desc: "Manage promotional discounts & deals" },
     { id: "analytics", label: "Analytics", icon: BarChart3, desc: "Profile views & performance insights" },
-    { id: "subscription", label: "Subscription", icon: CreditCard, desc: "Manage current plan & billing" },
-    { id: "customize-store", label: "Customize Store", icon: StorePalette, desc: "Logo, cover image & store branding" },
+    { id: "subscription", label: "Subscription", icon: CreditCard, desc: "Manage current plan & membership billing" },
+    { id: "customize-store", label: "Customize Store", icon: StorePalette, desc: "Logo, cover image & store branding theme" },
   ];
 
   const handleSignOut = () => {
@@ -93,7 +92,7 @@ export function UnifiedVendorDashboard() {
   return (
     <div className="min-h-screen bg-[#F8F6F2] font-sans antialiased pb-12">
       {/* Cover Header */}
-      <div className="relative h-44 sm:h-56 lg:h-64 w-full bg-[#0F4C45] overflow-hidden">
+      <div className="relative h-48 sm:h-60 lg:h-68 w-full bg-[#0F4C45] overflow-hidden">
         <img 
           src={coverUrl} 
           alt="Cover" 
@@ -135,11 +134,11 @@ export function UnifiedVendorDashboard() {
 
         {/* Post-Login Landing Screen vs 1-Click Dedicated View */}
         {activeTab === null ? (
-          /* Initial Post-Login Menu List ONLY */
+          /* SINGLE DASHBOARD LANDING PAGE (Cover + Profile Card + Descriptive Menu List) */
           <div className="bg-white rounded-3xl border border-gold/15 p-4 sm:p-6 shadow-sm space-y-2 animate-in fade-in duration-200">
             <div className="px-3 py-2 border-b border-gold/10 mb-2">
-              <span className="font-serif font-bold text-xs uppercase tracking-wider text-[#0F4C45]">
-                Vendor Dashboard Menu
+              <span className="font-serif font-bold text-xs uppercase tracking-widest text-[#0F4C45]">
+                VENDOR DASHBOARD MENU
               </span>
             </div>
 
@@ -157,7 +156,7 @@ export function UnifiedVendorDashboard() {
                     </div>
                     <div>
                       <h3 className="text-sm font-bold text-charcoal group-hover:text-[#0F4C45] transition-colors">{item.label}</h3>
-                      <p className="text-xs text-charcoal/50">{item.desc}</p>
+                      <p className="text-xs text-charcoal/60 mt-0.5">{item.desc}</p>
                     </div>
                   </div>
 
@@ -194,7 +193,7 @@ export function UnifiedVendorDashboard() {
               >
                 <ArrowLeft className="w-4 h-4" /> Back to Dashboard Menu
               </button>
-              <span className="font-serif font-bold text-sm text-charcoal">
+              <span className="font-serif font-bold text-[#0F4C45]">
                 {navItems.find(i => i.id === activeTab)?.label}
               </span>
             </div>

@@ -34,7 +34,7 @@ import { getActiveVendorIdentity, fetchAuthenticatedVendorFromDb } from "@/lib/v
 
 export function MehendiVendorDashboard() {
   const router = useRouter();
-  // By default right after login, activeTab is null (showing ONLY Profile Header + Plain Menu List)
+  // Default right after login: activeTab is null (renders ONLY Cover + Profile Card + Descriptive Menu List)
   const [activeTab, setActiveTab] = useState<string | null>(null);
   const [vendorData, setVendorData] = useState<any>(null);
 
@@ -60,18 +60,18 @@ export function MehendiVendorDashboard() {
   const logoUrl = vendorData?.logo || vendorData?.logo_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop";
   const coverUrl = vendorData?.coverImage || vendorData?.cover_image || "https://images.unsplash.com/photo-1610030469983-98e550d6193c?q=80&w=1200&auto=format&fit=crop";
 
-  // Plain Menu List Items with Icon in rounded square, bold title, subtitle & chevron arrow
+  // Menu List items with icon, bold title, descriptive subtitle, and chevron arrow
   const navItems = [
-    { id: "overview", label: "Overview", icon: LayoutDashboard, desc: "Quick summary: bookings, new enquiries, profile views" },
-    { id: "profile", label: "Profile", icon: Store, desc: "Business details, contact info, travel area & working hours" },
+    { id: "overview", label: "Overview", icon: LayoutDashboard, desc: "Business summary, weekly bookings & performance insights" },
+    { id: "profile", label: "Profile", icon: Store, desc: "Business details, contact info, outstation travel radius & working hours" },
     { id: "gallery", label: "Design Gallery", icon: Palette, desc: "Bridal, Arabic, Rajasthani, Indo-Arabic, Minimal/Party" },
-    { id: "pricing", label: "Packages & Pricing", icon: Package, desc: "Bridal packages, party rates, per-hand rates & travel charges" },
-    { id: "appointments", label: "Appointments", icon: Calendar, desc: "Calendar view of upcoming bookings & trial sessions" },
-    { id: "enquiries", label: "Enquiries", icon: Inbox, desc: "Inbox of customer messages & quote replies" },
-    { id: "offers", label: "Offers", icon: Tag, desc: "Create & manage seasonal or festive discounts" },
+    { id: "pricing", label: "Packages & Pricing", icon: Package, desc: "Bridal packages, party rates, per-hand rates & outstation charges" },
+    { id: "appointments", label: "Appointments", icon: Calendar, desc: "Calendar view of upcoming bookings & pre-bridal trial sessions" },
+    { id: "enquiries", label: "Enquiries", icon: Inbox, desc: "Inbox of customer messages, bride leads & quote replies" },
+    { id: "offers", label: "Offers", icon: Tag, desc: "Create & manage seasonal or festive discount coupons" },
     { id: "analytics", label: "Analytics", icon: BarChart3, desc: "Profile views, conversion rate & most-viewed design trends" },
     { id: "subscription", label: "Subscription", icon: CreditCard, desc: "Current plan details & membership billing" },
-    { id: "customize-store", label: "Customize Store", icon: StorePalette, desc: "Logo, cover image, store branding theme" },
+    { id: "customize-store", label: "Customize Store", icon: StorePalette, desc: "Logo, cover image, store branding theme & live preview" },
   ];
 
   const handleSignOut = () => {
@@ -107,8 +107,8 @@ export function MehendiVendorDashboard() {
 
   return (
     <div className="min-h-screen bg-[#F8F6F2] font-sans antialiased pb-12">
-      {/* 1. Cover Image Background / Header */}
-      <div className="relative h-44 sm:h-56 lg:h-64 w-full bg-[#0d3b30] overflow-hidden">
+      {/* 1. Cover Image Background Header */}
+      <div className="relative h-48 sm:h-60 lg:h-68 w-full bg-[#0d3b30] overflow-hidden">
         <img 
           src={coverUrl} 
           alt="Cover Header" 
@@ -120,7 +120,7 @@ export function MehendiVendorDashboard() {
       {/* Main Container */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative -mt-16 sm:-mt-20 z-10 space-y-6">
         
-        {/* 2 & 3. Profile Section Overlapping / Below Cover */}
+        {/* 2. Profile Card Overlapping Cover */}
         <div className="bg-white rounded-3xl shadow-sm border border-gold/15 p-6 sm:p-8 flex flex-col md:flex-row items-center md:items-end justify-between gap-5">
           <div className="flex flex-col sm:flex-row items-center sm:items-end gap-5 text-center sm:text-left">
             {/* Profile Photo / Logo */}
@@ -129,12 +129,9 @@ export function MehendiVendorDashboard() {
             </div>
 
             <div className="space-y-1">
-              {/* Business Name */}
               <h1 className="text-2xl sm:text-3xl font-serif font-bold text-charcoal">{businessName}</h1>
-              {/* Category Label */}
               <p className="text-xs font-bold uppercase tracking-wider text-[#0d3b30]">{categoryLabel}</p>
               
-              {/* Partner Badge */}
               <div className="flex items-center justify-center sm:justify-start pt-1">
                 <span className="inline-flex items-center gap-1.5 bg-[#0d3b30] text-[#C8A96A] text-[10px] font-bold uppercase tracking-widest px-3.5 py-1 rounded-full shadow-xs">
                   <Star className="w-3 h-3 fill-[#C8A96A]" /> {partnerBadge}
@@ -158,17 +155,17 @@ export function MehendiVendorDashboard() {
           </div>
         </div>
 
-        {/* 6. Default Post-Login Landing Screen vs. 1-Click Dedicated Page */}
+        {/* 3. Post-Login Landing View vs 1-Click Dedicated Page */}
         {activeTab === null ? (
-          /* INITIAL POST-LOGIN LANDING SCREEN: Plain Menu List ONLY */
+          /* SINGLE DASHBOARD LANDING PAGE (Cover + Profile Card + Descriptive Menu List) */
           <div className="bg-white rounded-3xl border border-gold/15 p-4 sm:p-6 shadow-sm space-y-2 animate-in fade-in duration-200">
             <div className="px-3 py-2 border-b border-gold/10 mb-2">
-              <span className="font-serif font-bold text-xs uppercase tracking-wider text-[#0d3b30]">
-                Vendor Dashboard Menu
+              <span className="font-serif font-bold text-xs uppercase tracking-widest text-[#0d3b30]">
+                VENDOR DASHBOARD MENU
               </span>
             </div>
 
-            {/* Plain Menu List Items */}
+            {/* Descriptive Menu List */}
             {navItems.map((item) => {
               const Icon = item.icon;
               return (
@@ -183,7 +180,7 @@ export function MehendiVendorDashboard() {
                     </div>
                     <div>
                       <h3 className="text-sm font-bold text-charcoal group-hover:text-[#0d3b30] transition-colors">{item.label}</h3>
-                      <p className="text-xs text-charcoal/50">{item.desc}</p>
+                      <p className="text-xs text-charcoal/60 mt-0.5">{item.desc}</p>
                     </div>
                   </div>
 
@@ -192,7 +189,7 @@ export function MehendiVendorDashboard() {
               );
             })}
 
-            {/* Sign Out Button */}
+            {/* Sign Out Action */}
             <div className="pt-3 mt-3 border-t border-gold/10">
               <button
                 onClick={handleSignOut}
@@ -214,7 +211,6 @@ export function MehendiVendorDashboard() {
         ) : (
           /* DEDICATED SECTION PAGE (1 Click Deeper) */
           <div className="space-y-4 animate-in fade-in duration-300">
-            {/* Back to Menu Navigation Header */}
             <div className="flex items-center justify-between bg-white px-5 py-3 rounded-2xl border border-gold/15 shadow-xs">
               <button
                 onClick={() => setActiveTab(null)}
@@ -227,7 +223,6 @@ export function MehendiVendorDashboard() {
               </span>
             </div>
 
-            {/* Dedicated View Component */}
             <div>
               {renderActiveSection()}
             </div>
