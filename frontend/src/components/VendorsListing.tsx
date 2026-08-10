@@ -161,14 +161,6 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
       window.addEventListener("cloche_wishlist_updated", updateWishlistSet);
 
       try {
-        const rawVendors = localStorage.getItem("cloche_registered_vendors");
-        const rawBoutiques = localStorage.getItem("cloche_registered_boutiques");
-        const rawUserData = localStorage.getItem("cloche_user_data");
-        const localList: any[] = [];
-        if (rawUserData) localList.push(JSON.parse(rawUserData));
-        if (rawVendors) localList.push(...JSON.parse(rawVendors));
-        if (rawBoutiques) localList.push(...JSON.parse(rawBoutiques));
-
         // Client-side fetch backup (uses HTTP caching)
         const loadRealDbVendors = async () => {
           const mergedMap = new Map<string, any>();
@@ -186,7 +178,7 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
             }
           } catch (e) {}
 
-          // 1. Database fetched boutiques get top priority
+          // 1. Database fetched boutiques
           dbItems.forEach((item) => {
             const bName = item.boutique_name || (item as any).name || (item as any).businessName || "Wedding Vendor";
             const itemKey = String(item.id || (item as any).slug || bName);
@@ -203,37 +195,6 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
               });
             }
           });
-
-          // 2. Local storage registered vendors
-          if (localList.length > 0) {
-            localList.forEach((item) => {
-              const bName = item.boutique_name || item.name || item.businessName || "Wedding Vendor";
-              const itemKey = String(item.id || item.slug || bName);
-              const normName = bName.toLowerCase().trim();
-              if (itemKey && normName) {
-                const existing = mergedMap.get(itemKey);
-                const logoSrc = item.logo_url || item.logo || item.profile_logo || item.image || item.image_url || "";
-                if (!existing) {
-                  seenNames.add(normName);
-                  mergedMap.set(itemKey, {
-                    id: itemKey,
-                    boutique_name: bName,
-                    logo_url: logoSrc,
-                    profile_logo: logoSrc,
-                    logo: logoSrc,
-                    rating: Number(item.rating ?? 0),
-                    city: item.city || "Kochi",
-                    area: item.district || item.location || "Kerala",
-                    tags: item.category || item.tags || "Bridal Boutique",
-                    starting_price: item.startingPrice || item.starting_price || "Contact for pricing",
-                  });
-                } else if (logoSrc) {
-                  existing.logo_url = existing.logo_url || logoSrc;
-                  existing.logo = existing.logo || logoSrc;
-                }
-              }
-            });
-          }
 
           const finalList = Array.from(mergedMap.values());
           if (finalList.length > 0) {

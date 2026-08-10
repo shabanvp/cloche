@@ -119,53 +119,8 @@ export function VendorCategoryListing({
               };
             });
           }
-
-          // Optional matching local draft vendors
-          const localList: any[] = [];
-          try {
-            const rawVendors = localStorage.getItem("cloche_registered_vendors");
-            const rawBoutiques = localStorage.getItem("cloche_registered_boutiques");
-            if (rawVendors) localList.push(...JSON.parse(rawVendors));
-            if (rawBoutiques) localList.push(...JSON.parse(rawBoutiques));
-          } catch (_) {}
-
-          const matchingLocal: VendorCategoryItem[] = localList
-            .filter((item) => {
-              const itemCat = (item.category || "").toLowerCase();
-              return itemCat.includes(targetSlug) || targetSlug.includes(itemCat);
-            })
-            .map((item, idx) => ({
-              id: item.id || `local-${idx}`,
-              name: item.boutique_name || item.name || item.businessName || "Wedding Partner",
-              slug: item.slug || item.id || `partner-${idx}`,
-              image:
-                item.coverImage ||
-                item.cover_image ||
-                item.cover_url ||
-                item.logoUrl ||
-                item.logo ||
-                item.logo_url ||
-                item.profile_logo ||
-                item.image_url ||
-                item.image ||
-                "",
-              rating: Number(item.rating ?? 0),
-              reviewsCount: Number(item.reviewsCount ?? item.review_count ?? item.reviewCount ?? 0),
-              location: item.location || (item.city ? (item.city.toLowerCase() === "kerala" ? "Kerala" : `${item.city}, Kerala`) : "Kerala"),
-              startingPrice: item.startingPrice || item.starting_price || "Contact for pricing",
-              badge: "Verified",
-              verified: true,
-              specialtyTag: item.category || categoryConfig.title,
-              subCategory: "all",
-            }));
-
-          const mergedMap = new Map<string, VendorCategoryItem>();
-          apiVendors.forEach((v) => mergedMap.set(String(v.id), v));
-          matchingLocal.forEach((v) => {
-            if (!mergedMap.has(String(v.id))) mergedMap.set(String(v.id), v);
-          });
-
-          setAllVendors(Array.from(mergedMap.values()));
+          // Only use real database vendors from API
+          setAllVendors(apiVendors);
           setIsLoading(false);
         })
         .catch(() => {
