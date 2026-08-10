@@ -4,11 +4,54 @@ import { getSupabaseConfig, supabaseFetch } from "@/lib/supabase";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
+const CATEGORY_SYNONYMS: Record<string, string[]> = {
+  venues: ["venues", "wedding-venue", "wedding-venues"],
+  "wedding-venue": ["venues", "wedding-venue", "wedding-venues"],
+  "wedding-venues": ["venues", "wedding-venue", "wedding-venues"],
+  makeup: ["makeup", "makeup-artist", "bridal-makeup", "makeup-artists"],
+  "makeup-artists": ["makeup", "makeup-artist", "bridal-makeup", "makeup-artists"],
+  "makeup-artist": ["makeup", "makeup-artist", "bridal-makeup", "makeup-artists"],
+  photographers: ["photographers", "photographer", "videographer"],
+  photographer: ["photographers", "photographer", "videographer"],
+  catering: ["catering", "caterer", "caterers"],
+  caterer: ["catering", "caterer", "caterers"],
+  "decor-planning": ["decorators", "decorator", "planners", "wedding-planner", "flower-decoration", "decor-planning"],
+  decorators: ["decorators", "decorator", "planners", "wedding-planner", "flower-decoration", "decor-planning"],
+  decorator: ["decorators", "decorator", "planners", "wedding-planner", "flower-decoration", "decor-planning"],
+  "bridal-wear": ["bridal-wear", "bridal-boutique", "boutiques"],
+  "bridal-boutique": ["bridal-wear", "bridal-boutique", "boutiques"],
+  boutiques: ["bridal-wear", "bridal-boutique", "boutiques"],
+  jewellery: ["jewellery", "jewellery-store", "jewelry"],
+  "jewellery-store": ["jewellery", "jewellery-store", "jewelry"],
+  "mehendi-artists": ["mehndi", "mehendi-artist", "mehendi-artists", "mehendi"],
+  "mehendi-artist": ["mehndi", "mehendi-artist", "mehendi-artists", "mehendi"],
+  mehendi: ["mehndi", "mehendi-artist", "mehendi-artists", "mehendi"],
+  mehndi: ["mehndi", "mehendi-artist", "mehendi-artists", "mehendi"],
+  invitations: ["invitations", "invitation-designer"],
+  "invitation-designer": ["invitations", "invitation-designer"],
+  "groom-wear": ["groom-wear"],
+  "djs-bands": ["djs-bands", "entertainment", "wedding-entertainment-legacy", "choreographer"],
+  entertainment: ["djs-bands", "entertainment", "wedding-entertainment-legacy", "choreographer"],
+  "cake-designer": ["cake-designer", "cakes"],
+  "car-rental": ["car-rental"],
+};
+
+function getMatchingSlugs(inputSlug: string): string[] {
+  const norm = (inputSlug || "").toLowerCase().trim();
+  if (CATEGORY_SYNONYMS[norm]) return CATEGORY_SYNONYMS[norm];
+  for (const [key, synonyms] of Object.entries(CATEGORY_SYNONYMS)) {
+    if (key === norm || synonyms.includes(norm) || norm.includes(key)) {
+      return synonyms;
+    }
+  }
+  return [norm];
+}
+
 export async function GET(req: Request) {
   const startTime = Date.now();
   try {
     const { searchParams } = new URL(req.url);
-    const categorySlug = searchParams.get("category") || "";
+    const categorySlug = searchParams.get("category") || searchParams.get("categorySlug") || searchParams.get("category_slug") || "";
     const city = searchParams.get("city") || "";
     const search = searchParams.get("search") || "";
     const minRating = Number(searchParams.get("rating") || 0);
@@ -30,9 +73,21 @@ export async function GET(req: Request) {
     
     // Add category filter if provided
     if (categorySlug && categorySlug.toLowerCase() !== "all") {
-      const catRes = await supabaseFetch(`vendor_categories?slug=ilike.${encodeURIComponent(categorySlug)}&select=id`);
-      if (catRes.data && Array.isArray(catRes.data) && catRes.data.length > 0) {
-        filter += `&category_id=eq.${encodeURIComponent(catRes.data[0].id)}`;
+      const matchingSlugs = getMatchingSlugs(categorySlug);
+      const catRes = await supabaseFetch(`vendor_categories?select=id,name,slug`);
+      const allCats = Array.isArray(catRes.data) ? catRes.data : [];
+      const matchedCatIds = allCats
+        .filter((c: any) => {
+          const cSlug = (c.slug || "").toLowerCase();
+          const cName = (c.name || "").toLowerCase();
+          return matchingSlugs.includes(cSlug) || matchingSlugs.some((ms) => cSlug.includes(ms) || cName.includes(ms));
+        })
+        .map((c: any) => c.id);
+
+      if (matchedCatIds.length > 0) {
+        filter += `&category_id=in.(${matchedCatIds.map((id: string) => encodeURIComponent(id)).join(",")})`;
+      } else {
+        filter += `&category_id=eq.00000000-0000-0000-0000-000000000000`;
       }
     }
 
