@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { login } from "@/app/actions/auth";
+import { clearActiveVendorIdentity } from "@/lib/vendorStore";
 
 export function VendorLoginClient() {
   const router = useRouter();
@@ -31,6 +32,9 @@ export function VendorLoginClient() {
     setIsSubmitting(true);
     setErrorMsg("");
 
+    // Clear any stale cached identity before authenticating new user
+    clearActiveVendorIdentity();
+
     const formData = new FormData(e.currentTarget);
     formData.append("role", "vendor");
 
@@ -41,23 +45,25 @@ export function VendorLoginClient() {
     if (res?.error) {
       setErrorMsg(res.error);
     } else {
+      // Automatically redirect to the unified vendor portal root where category is dynamically resolved
       router.push("/vendor");
     }
   };
 
   return (
     <main className="flex-grow flex flex-col items-center justify-center px-4 py-12 sm:px-6 w-full min-h-[calc(100vh-140px)] bg-ivory font-sans">
-      <div className="w-full max-w-md mx-auto">
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-[#0B3B2D] text-white rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-serif shadow-md font-medium border border-gold/30">
+      <div className="w-full max-w-md mx-auto space-y-6">
+        <div className="text-center">
+          <div className="w-16 h-16 bg-[#0d3b30] text-[#C8A96A] rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-serif shadow-md font-medium border border-gold/30">
             V
           </div>
           <h2 className="font-display text-[32px] leading-[40px] text-charcoal mb-2 font-medium">Vendor Portal</h2>
           <p className="font-sans text-[15px] text-charcoal/70">
-            Welcome back. Log in to manage your business.
+            Welcome back. Log in to manage your vendor business.
           </p>
         </div>
 
+        {/* Clean Email + Password Login Form (No manual portal buttons above) */}
         <form className="bg-white rounded-3xl shadow-sm border border-gold/10 p-8 sm:p-10" onSubmit={handleSubmit}>
           {successMsg && (
             <div className="mb-6 p-4 rounded-xl bg-emerald/10 border border-emerald/20 text-[#0F4C45] text-sm font-medium">
@@ -111,7 +117,7 @@ export function VendorLoginClient() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full bg-[#0F4C45] text-white rounded-xl py-4 font-semibold text-sm hover:bg-[#12584E] transition-colors shadow-sm tracking-wide disabled:opacity-50 mt-2"
+              className="w-full bg-[#0d3b30] text-white rounded-xl py-4 font-semibold text-sm hover:bg-[#072B27] transition-colors shadow-sm tracking-wide disabled:opacity-50 mt-2 cursor-pointer"
             >
               {isSubmitting ? "Logging in..." : "Log In to Portal"}
             </button>
@@ -119,13 +125,13 @@ export function VendorLoginClient() {
             <div className="pt-4 border-t border-gold/10 text-center space-y-3">
               <p className="text-xs text-charcoal/60">
                 Are you a new vendor partner?{" "}
-                <Link href="/vendor/register" className="text-[#0F4C45] font-bold hover:underline">
+                <Link href="/vendor/register" className="text-[#0d3b30] font-bold hover:underline">
                   Register Business
                 </Link>
               </p>
               <p className="text-xs text-charcoal/60">
                 Are you a customer?{" "}
-                <Link href="/login" className="text-[#0F4C45] font-bold hover:underline">
+                <Link href="/login" className="text-[#0d3b30] font-bold hover:underline">
                   Customer Login
                 </Link>
               </p>
