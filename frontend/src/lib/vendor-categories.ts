@@ -64,38 +64,7 @@ export const VENDOR_CATEGORIES_DATA: Record<string, CategoryConfig> = {
       { id: "palace", name: "Heritage Palaces" },
       { id: "resort", name: "Beach Resorts" }
     ],
-    vendors: [
-      {
-        id: "venue-1",
-        name: "Royal Palace Hotel & Resort",
-        slug: "royal-palace-hotel",
-        image: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?q=80&w=800&auto=format&fit=crop",
-        rating: 4.9,
-        reviewsCount: 42,
-        location: "Jaipur, Rajasthan",
-        startingPrice: "₹2,50,000",
-        priceSuffix: " / slot",
-        badge: "Luxury Partner",
-        verified: true,
-        specialtyTag: "Palace Venue",
-        subCategory: "palace"
-      },
-      {
-        id: "venue-2",
-        name: "Emerald Palm Convention Grounds",
-        slug: "emerald-palm-convention",
-        image: "https://images.unsplash.com/photo-1545232979-fbf34fd36666?q=80&w=800&auto=format&fit=crop",
-        rating: 4.8,
-        reviewsCount: 38,
-        location: "Kochi, Kerala",
-        startingPrice: "₹1,80,000",
-        priceSuffix: " / day",
-        badge: "Verified",
-        verified: true,
-        specialtyTag: "Lawn & Convention",
-        subCategory: "lawn"
-      }
-    ]
+    vendors: []
   },
   photographers: {
     slug: "photographers",
@@ -116,27 +85,11 @@ export const VENDOR_CATEGORIES_DATA: Record<string, CategoryConfig> = {
       { id: "cinematic", name: "Cinematic Film" },
       { id: "pre-wedding", name: "Pre-Wedding Shoot" }
     ],
-    vendors: [
-      {
-        id: "photo-1",
-        name: "Studio Memory Craft",
-        slug: "studio-memory-craft",
-        image: "https://images.unsplash.com/photo-1583939003579-730e3918a45a?q=80&w=800&auto=format&fit=crop",
-        rating: 4.9,
-        reviewsCount: 56,
-        location: "Kochi, Kerala",
-        startingPrice: "₹85,000",
-        priceSuffix: " / day",
-        badge: "Award Winner",
-        verified: true,
-        specialtyTag: "Candid & Cinema",
-        subCategory: "candid"
-      }
-    ]
+    vendors: []
   },
   makeup: {
     slug: "makeup",
-    title: "Bridal Makeup Artists",
+    title: "Bridal Makeup & Hair",
     subtitle: "Transform your wedding look with expert HD & airbrush makeup artists",
     heroImage: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?q=80&w=1200&auto=format&fit=crop",
     searchPlaceholder: "Search makeup artists by name, service, or city...",
@@ -153,27 +106,32 @@ export const VENDOR_CATEGORIES_DATA: Record<string, CategoryConfig> = {
       { id: "airbrush", name: "Airbrush Glam" },
       { id: "party", name: "Party Makeup" }
     ],
-    vendors: [
-      {
-        id: "makeup-1",
-        name: "Glow & Grace Bridal Artistry",
-        slug: "glow-and-grace-makeup",
-        image: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?q=80&w=800&auto=format&fit=crop",
-        rating: 4.9,
-        reviewsCount: 29,
-        location: "Kochi, Kerala",
-        startingPrice: "₹25,000",
-        priceSuffix: " / function",
-        badge: "Top Rated",
-        verified: true,
-        specialtyTag: "HD Airbrush Makeup",
-        subCategory: "hd"
-      }
-    ]
+    vendors: []
+  },
+  "makeup-artists": {
+    slug: "makeup-artists",
+    title: "Bridal Makeup & Hair",
+    subtitle: "Transform your wedding look with expert HD & airbrush makeup artists",
+    heroImage: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?q=80&w=1200&auto=format&fit=crop",
+    searchPlaceholder: "Search makeup artists by name, service, or city...",
+    priceSuffix: " / function",
+    subFilters: [
+      { label: "All", value: "all" },
+      { label: "HD Bridal", value: "hd" },
+      { label: "Airbrush Glam", value: "airbrush" },
+      { label: "Party Makeup", value: "party" }
+    ],
+    subCategories: [
+      { id: "all", name: "All Artists" },
+      { id: "hd", name: "HD Bridal" },
+      { id: "airbrush", name: "Airbrush Glam" },
+      { id: "party", name: "Party Makeup" }
+    ],
+    vendors: []
   },
   mehendi: {
     slug: "mehendi",
-    title: "Mehendi Artists",
+    title: "Mehndi & Henna Artists",
     subtitle: "Bespoke bridal henna designs, Rajasthani figure portraits & Arabic patterns",
     heroImage: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?q=80&w=1200&auto=format&fit=crop",
     searchPlaceholder: "Search mehendi artists by name or design style...",
@@ -181,34 +139,39 @@ export const VENDOR_CATEGORIES_DATA: Record<string, CategoryConfig> = {
     subFilters: [
       { label: "All", value: "all" },
       { label: "Rajasthani", value: "rajasthani" },
-      { label: "Arabic", value: "arabic" }
+      { label: "Arabic", value: "arabic" },
+      { label: "Bridal Henna", value: "bridal" }
     ],
     subCategories: [
       { id: "all", name: "All Designs" },
       { id: "rajasthani", name: "Rajasthani Bridal" },
       { id: "arabic", name: "Arabic Style" }
     ],
-    vendors: [
-      {
-        id: "mehendi-1",
-        name: "Marwar Henna Artistry",
-        slug: "marwar-henna-artistry",
-        image: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?q=80&w=800&auto=format&fit=crop",
-        rating: 4.8,
-        reviewsCount: 31,
-        location: "Jaipur, Rajasthan",
-        startingPrice: "₹15,000",
-        priceSuffix: " / bridal",
-        badge: "Verified",
-        verified: true,
-        specialtyTag: "Organic Bridal Henna",
-        subCategory: "rajasthani"
-      }
-    ]
+    vendors: []
+  },
+  "mehendi-artists": {
+    slug: "mehendi-artists",
+    title: "Mehndi & Henna Artists",
+    subtitle: "Bespoke bridal henna designs, Rajasthani figure portraits & Arabic patterns",
+    heroImage: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?q=80&w=1200&auto=format&fit=crop",
+    searchPlaceholder: "Search mehendi artists by name or design style...",
+    priceSuffix: " / bridal",
+    subFilters: [
+      { label: "All", value: "all" },
+      { label: "Rajasthani", value: "rajasthani" },
+      { label: "Arabic", value: "arabic" },
+      { label: "Bridal Henna", value: "bridal" }
+    ],
+    subCategories: [
+      { id: "all", name: "All Designs" },
+      { id: "rajasthani", name: "Rajasthani Bridal" },
+      { id: "arabic", name: "Arabic Style" }
+    ],
+    vendors: []
   },
   planners: {
     slug: "planners",
-    title: "Event Planners & Decorators",
+    title: "Wedding Planners & Decor",
     subtitle: "End-to-end wedding execution, royal mandap decors & theme management",
     heroImage: "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=1200&auto=format&fit=crop",
     searchPlaceholder: "Search wedding planners and decor specialists...",
@@ -223,23 +186,27 @@ export const VENDOR_CATEGORIES_DATA: Record<string, CategoryConfig> = {
       { id: "full", name: "Full Planning" },
       { id: "decor", name: "Decor Only" }
     ],
-    vendors: [
-      {
-        id: "planner-1",
-        name: "Opulent Weddings & Events",
-        slug: "opulent-weddings",
-        image: "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=800&auto=format&fit=crop",
-        rating: 5.0,
-        reviewsCount: 19,
-        location: "Kochi, Kerala",
-        startingPrice: "₹2,00,000",
-        priceSuffix: " / event",
-        badge: "Luxury Decor",
-        verified: true,
-        specialtyTag: "Royal Mandap Decor",
-        subCategory: "decor"
-      }
-    ]
+    vendors: []
+  },
+  "decor-planning": {
+    slug: "decor-planning",
+    title: "Wedding Decor & Planning",
+    subtitle: "End-to-end wedding execution, floral stage mandaps, lighting & theme design",
+    heroImage: "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=1200&auto=format&fit=crop",
+    searchPlaceholder: "Search wedding planners and decor specialists...",
+    priceSuffix: " / event",
+    subFilters: [
+      { label: "All", value: "all" },
+      { label: "Floral Mandap", value: "floral" },
+      { label: "Lighting & Stage", value: "stage" },
+      { label: "Full Planning", value: "full" }
+    ],
+    subCategories: [
+      { id: "all", name: "All Planners" },
+      { id: "full", name: "Full Planning" },
+      { id: "decor", name: "Decor Only" }
+    ],
+    vendors: []
   },
   caterers: {
     slug: "caterers",
@@ -258,23 +225,27 @@ export const VENDOR_CATEGORIES_DATA: Record<string, CategoryConfig> = {
       { id: "veg", name: "Pure Veg & Jain" },
       { id: "multi", name: "Multi-Cuisine" }
     ],
-    vendors: [
-      {
-        id: "caterer-1",
-        name: "Grand Royal Feast Caterers",
-        slug: "grand-royal-feast",
-        image: "https://images.unsplash.com/photo-1555244162-803834f70033?q=80&w=800&auto=format&fit=crop",
-        rating: 4.8,
-        reviewsCount: 45,
-        location: "Kochi, Kerala",
-        startingPrice: "₹1,250",
-        priceSuffix: " / plate",
-        badge: "Popular Choice",
-        verified: true,
-        specialtyTag: "Gourmet Buffet",
-        subCategory: "multi"
-      }
-    ]
+    vendors: []
+  },
+  catering: {
+    slug: "catering",
+    title: "Wedding Catering & Food",
+    subtitle: "Gourmet multi-cuisine feasts, live food stalls & royal thali buffets",
+    heroImage: "https://images.unsplash.com/photo-1555244162-803834f70033?q=80&w=1200&auto=format&fit=crop",
+    searchPlaceholder: "Search caterers by cuisine, food counters...",
+    priceSuffix: " / plate",
+    subFilters: [
+      { label: "All", value: "all" },
+      { label: "Pure Veg & Jain", value: "veg" },
+      { label: "Multi-Cuisine", value: "multi" },
+      { label: "Live Counters", value: "live" }
+    ],
+    subCategories: [
+      { id: "all", name: "All Caterers" },
+      { id: "veg", name: "Pure Veg & Jain" },
+      { id: "multi", name: "Multi-Cuisine" }
+    ],
+    vendors: []
   },
   invitations: {
     slug: "invitations",
@@ -293,23 +264,7 @@ export const VENDOR_CATEGORIES_DATA: Record<string, CategoryConfig> = {
       { id: "boxed", name: "Boxed Cards" },
       { id: "digital", name: "Digital Video Invite" }
     ],
-    vendors: [
-      {
-        id: "invitation-1",
-        name: "Papyrus Royal Studio",
-        slug: "papyrus-royal-studio",
-        image: "https://images.unsplash.com/photo-1513519245088-0e12902e5a38?q=80&w=800&auto=format&fit=crop",
-        rating: 4.9,
-        reviewsCount: 22,
-        location: "Kochi, Kerala",
-        startingPrice: "₹250",
-        priceSuffix: " / card",
-        badge: "Bespoke Cards",
-        verified: true,
-        specialtyTag: "Gold Foil & Acrylic",
-        subCategory: "boxed"
-      }
-    ]
+    vendors: []
   },
   jewellery: {
     slug: "jewellery",
@@ -328,23 +283,7 @@ export const VENDOR_CATEGORIES_DATA: Record<string, CategoryConfig> = {
       { id: "polki", name: "Polki & Kundan" },
       { id: "rental", name: "Bridal Rental" }
     ],
-    vendors: [
-      {
-        id: "jewellery-1",
-        name: "Heritage Ornaments & Gems",
-        slug: "heritage-ornaments",
-        image: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?q=80&w=800&auto=format&fit=crop",
-        rating: 4.9,
-        reviewsCount: 37,
-        location: "Kochi, Kerala",
-        startingPrice: "₹25,000",
-        priceSuffix: " rental",
-        badge: "Certified Gold",
-        verified: true,
-        specialtyTag: "Kundan & Diamond",
-        subCategory: "polki"
-      }
-    ]
+    vendors: []
   },
   boutiques: {
     slug: "boutiques",
@@ -363,25 +302,91 @@ export const VENDOR_CATEGORIES_DATA: Record<string, CategoryConfig> = {
       { id: "lehenga", name: "Bridal Lehengas" },
       { id: "groom", name: "Groom Wear" }
     ],
-    vendors: [
-      {
-        id: "boutique-1",
-        name: "Samsara Bridal Couture",
-        slug: "samsara-bridal-couture",
-        image: "https://images.unsplash.com/photo-1594552072238-b8a33785b261?q=80&w=800&auto=format&fit=crop",
-        rating: 4.9,
-        reviewsCount: 41,
-        location: "Kochi, Kerala",
-        startingPrice: "₹45,000",
-        priceSuffix: " / outfit",
-        badge: "Haute Couture",
-        verified: true,
-        specialtyTag: "Hand Embroidered Lehenga",
-        subCategory: "lehenga"
-      }
-    ]
+    vendors: []
+  },
+  "bridal-wear": {
+    slug: "bridal-wear",
+    title: "Bridal Wear & Lehengas",
+    subtitle: "Discover bespoke designer bridal lehengas, sarees, gowns & bridal boutiques",
+    heroImage: "https://images.unsplash.com/photo-1594552072238-b8a33785b261?q=80&w=1200&auto=format&fit=crop",
+    searchPlaceholder: "Search bridal wear, lehengas, sarees...",
+    priceSuffix: " / outfit",
+    subFilters: [
+      { label: "All", value: "all" },
+      { label: "Bridal Lehengas", value: "lehenga" },
+      { label: "Sarees & Silks", value: "saree" },
+      { label: "Gowns", value: "gown" }
+    ],
+    subCategories: [
+      { id: "all", name: "All Bridal Wear" },
+      { id: "lehenga", name: "Bridal Lehengas" },
+      { id: "saree", name: "Sarees & Silks" },
+      { id: "gown", name: "Gowns" }
+    ],
+    vendors: []
+  },
+  "groom-wear": {
+    slug: "groom-wear",
+    title: "Groom Wear & Sherwanis",
+    subtitle: "Tailored sherwanis, bandhgalas, tuxedos, indo-western suits & kurtas",
+    heroImage: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?q=80&w=1200&auto=format&fit=crop",
+    searchPlaceholder: "Search groom wear, sherwanis, suits...",
+    priceSuffix: " / outfit",
+    subFilters: [
+      { label: "All", value: "all" },
+      { label: "Sherwanis", value: "sherwani" },
+      { label: "Suits & Tuxedos", value: "suit" },
+      { label: "Kurtas", value: "kurta" }
+    ],
+    subCategories: [
+      { id: "all", name: "All Groom Wear" },
+      { id: "sherwani", name: "Sherwanis" },
+      { id: "suit", name: "Suits & Tuxedos" },
+      { id: "kurta", name: "Kurtas" }
+    ],
+    vendors: []
   }
 };
+
+export function getPublicCategoryConfig(categorySlug?: string): CategoryConfig {
+  const s = (categorySlug || "").toLowerCase().trim();
+  if (VENDOR_CATEGORIES_DATA[s]) {
+    return VENDOR_CATEGORIES_DATA[s];
+  }
+  
+  if (s === "bridal-wear" || s === "bridal-boutique" || s === "boutiques" || s.includes("bridal") || s.includes("wear") || s.includes("boutique")) {
+    return VENDOR_CATEGORIES_DATA["bridal-wear"] || VENDOR_CATEGORIES_DATA["boutiques"];
+  }
+  if (s === "catering" || s === "caterer" || s === "caterers" || s.includes("cater")) {
+    return VENDOR_CATEGORIES_DATA["catering"] || VENDOR_CATEGORIES_DATA["caterers"];
+  }
+  if (s === "decor-planning" || s === "decorators" || s === "decorator" || s === "planners" || s === "wedding-planner" || s.includes("decor") || s.includes("plan")) {
+    return VENDOR_CATEGORIES_DATA["decor-planning"] || VENDOR_CATEGORIES_DATA["planners"];
+  }
+  if (s === "groom-wear" || s.includes("groom")) {
+    return VENDOR_CATEGORIES_DATA["groom-wear"];
+  }
+  if (s === "jewellery" || s === "jewellery-store" || s === "jewelry" || s.includes("jewel")) {
+    return VENDOR_CATEGORIES_DATA["jewellery"];
+  }
+  if (s === "invitations" || s === "invitation-designer" || s.includes("invit")) {
+    return VENDOR_CATEGORIES_DATA["invitations"];
+  }
+  if (s === "makeup" || s === "makeup-artists" || s === "makeup-artist" || s.includes("makeup")) {
+    return VENDOR_CATEGORIES_DATA["makeup-artists"] || VENDOR_CATEGORIES_DATA["makeup"];
+  }
+  if (s === "mehendi" || s === "mehendi-artists" || s === "mehendi-artist" || s === "mehndi" || s.includes("mehendi") || s.includes("mehndi")) {
+    return VENDOR_CATEGORIES_DATA["mehendi-artists"] || VENDOR_CATEGORIES_DATA["mehendi"];
+  }
+  if (s === "photographers" || s === "photographer" || s.includes("photo") || s.includes("video")) {
+    return VENDOR_CATEGORIES_DATA["photographers"];
+  }
+  if (s === "venues" || s === "wedding-venue" || s === "venue" || s.includes("venue")) {
+    return VENDOR_CATEGORIES_DATA["venues"];
+  }
+
+  return VENDOR_CATEGORIES_DATA.venues;
+}
 
 
 // ==========================================

@@ -20,6 +20,7 @@ import {
   CategoryConfig,
   VendorCategoryItem,
   VENDOR_CATEGORIES_DATA,
+  getPublicCategoryConfig,
 } from "@/lib/vendor-categories";
 
 interface VendorCategoryListingProps {
@@ -31,18 +32,10 @@ export function VendorCategoryListing({
   categorySlug = "venues",
   initialCategoryConfig,
 }: VendorCategoryListingProps) {
-  // Resolve config based on categorySlug or fallback to venues
+  // Resolve config based on categorySlug or fallback to correct matching category
   const categoryConfig: CategoryConfig = useMemo(() => {
     if (initialCategoryConfig) return initialCategoryConfig;
-    const slug = (categorySlug || "").toLowerCase().trim();
-    if (VENDOR_CATEGORIES_DATA[slug]) {
-      return VENDOR_CATEGORIES_DATA[slug];
-    }
-    // Fallback search in dictionary
-    const foundKey = Object.keys(VENDOR_CATEGORIES_DATA).find(
-      (k) => k.includes(slug) || slug.includes(k)
-    );
-    return foundKey ? VENDOR_CATEGORIES_DATA[foundKey] : VENDOR_CATEGORIES_DATA.venues;
+    return getPublicCategoryConfig(categorySlug);
   }, [categorySlug, initialCategoryConfig]);
 
   const [searchQuery, setSearchQuery] = useState("");
