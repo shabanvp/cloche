@@ -313,9 +313,65 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
       };
     }
 
-    // Default Fallback: Catering Master Template
+    if (catKey.includes("cake") || catKey.includes("baker") || catKey.includes("dessert")) {
+      return {
+        categoryLabel: "Cake Designer",
+        stats: [
+          { icon: "clock", value: "6+", label: "Years Experience" },
+          { icon: "sparkles", value: "350+", label: "Custom Cakes Baked" },
+          { icon: "star", value: Number(vendor.rating ?? 0) > 0 ? Number(vendor.rating).toFixed(1) : "New", label: "Average Rating" }
+        ],
+        highlightsTitle: "Signature Wedding Cakes & Dessert Displays",
+        highlights: [
+          { name: "Multi-Tier Floral Wedding Cake", image: "https://images.unsplash.com/photo-1535141192574-5d4897c13136?auto=format&fit=crop&w=600&q=80" },
+          { name: "Gold Foil Fondant Masterpiece", image: "https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&w=600&q=80" },
+          { name: "Gourmet Dessert Table Spread", image: "https://images.unsplash.com/photo-1587314168485-3236d6710814?auto=format&fit=crop&w=600&q=80" }
+        ],
+        prices: [
+          { category: "2-Tier Cake (3kg)", price: "₹8,500" },
+          { category: "3-Tier Luxury (6kg)", price: "₹18,000", isPopular: true },
+          { category: "Grand 5-Tier (12kg)", price: "₹35,000" }
+        ],
+        services: [
+          { name: "Bespoke Flavors", icon: "cake" },
+          { name: "Eggless Options", icon: "eco" },
+          { name: "On-Site Setup", icon: "local_shipping" },
+          { name: "Tasting Sessions", icon: "restaurant" }
+        ]
+      };
+    }
+
+    if (catKey.includes("groom") || catKey.includes("sherwani") || catKey.includes("suit")) {
+      return {
+        categoryLabel: "Groom Wear Store",
+        stats: [
+          { icon: "sparkles", value: "400+", label: "Designer Outfits" },
+          { icon: "users", value: "850+", label: "Grooms Styled" },
+          { icon: "star", value: Number(vendor.rating ?? 0) > 0 ? Number(vendor.rating).toFixed(1) : "New", label: "Average Rating" }
+        ],
+        highlightsTitle: "Groom Apparel & Sherwani Collection",
+        highlights: [
+          { name: "Royal Embroidered Sherwani", image: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=600&q=80" },
+          { name: "Classic Bespoke Tuxedo", image: "https://images.unsplash.com/photo-1594938298603-c8148c4dae35?auto=format&fit=crop&w=600&q=80" },
+          { name: "Indo-Western Bandhgala", image: "https://images.unsplash.com/photo-1593032465175-481ac7f401a0?auto=format&fit=crop&w=600&q=80" }
+        ],
+        prices: [
+          { category: "Kurta Set", price: "₹15,000" },
+          { category: "Signature Sherwani", price: "₹45,000", isPopular: true },
+          { category: "Handcrafted Tuxedo", price: "₹65,000" }
+        ],
+        services: [
+          { name: "Custom Tailoring", icon: "content_cut" },
+          { name: "Fabric Selection", icon: "checkroom" },
+          { name: "Trial Fitting", icon: "accessibility_new" },
+          { name: "Matching Accessories", icon: "diamond" }
+        ]
+      };
+    }
+
+    // Default Fallback: Catering Master Template or Dynamic Label
     return {
-      categoryLabel: "Wedding Caterer",
+      categoryLabel: vendor.categoryLabel || (vendor.category ? vendor.category.replace(/-/g, " ").replace(/\b\w/g, l => l.toUpperCase()) : "Wedding Caterer"),
       stats: [
         { icon: "clock", value: "10+", label: "Years in Business" },
         { icon: "utensils", value: "500+", label: "Events Catered" },
@@ -342,6 +398,7 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
   };
 
   const defaults = getCategoryDefaults();
+  const displayCategoryLabel = vendor.categoryLabel || defaults.categoryLabel;
   const highlights = vendor.highlights || defaults.highlights;
   const prices = vendor.prices || defaults.prices;
   const services = vendor.services || defaults.services;
@@ -493,7 +550,7 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
               {/* Category Badge & Verified Initials Header */}
               <div className="flex items-center justify-between mb-4">
                 <span className="px-3 py-1 rounded-full bg-[#FAF5EA] border border-[#E8DFD1] text-[12px] font-bold text-[#0F4C45] uppercase tracking-wider">
-                  {defaults.categoryLabel}
+                  {displayCategoryLabel}
                 </span>
                 <div className="relative h-12 w-12 rounded-xl overflow-hidden bg-[#0F4C45] border-2 border-white shadow-sm flex items-center justify-center text-white shrink-0">
                   <span className="font-serif text-sm font-bold tracking-wider">{initials}</span>
@@ -601,7 +658,7 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
                   <span className="text-xs font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded">New</span>
                 )}
               </div>
-              <span className="text-[#0F4C45] font-semibold">• Verified {defaults.categoryLabel}</span>
+              <span className="text-[#0F4C45] font-semibold">• Verified {displayCategoryLabel}</span>
               <div className="flex items-center gap-1 text-[#6B5E52]">
                 <MapPin className="h-3.5 w-3.5 md:h-4 md:w-4 text-[#8C827A]" />
                 <span>{vendor.location}</span>

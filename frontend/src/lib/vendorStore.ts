@@ -36,14 +36,14 @@ export function normalizeVendorCategoryKey(rawCategory: string): string {
   const slug = (rawCategory || "").toLowerCase().trim();
   if (slug.includes("photo") || slug.includes("camera") || slug.includes("video")) return "photographers";
   if (slug.includes("mehendi") || slug.includes("henna") || slug.includes("mehndi")) return "mehendi";
-  if (slug.includes("venue") || slug.includes("palace") || slug.includes("lawn") || slug.includes("banquet")) return "venues";
-  if (slug.includes("makeup") || slug.includes("glam")) return "makeup";
-  if (slug.includes("cater") || slug.includes("food") || slug.includes("dining")) return "caterers";
-  if (slug.includes("invite") || slug.includes("card") || slug.includes("papyrus")) return "invitations";
-  if (slug.includes("jewel") || slug.includes("polki") || slug.includes("gold")) return "jewellery";
-  if (slug.includes("decor") || slug.includes("planner")) return "planners";
-  if (slug.includes("boutique") || slug.includes("bridal") || slug.includes("wear")) return "boutiques";
-  return "photographers";
+  if (slug.includes("venue") || slug.includes("palace") || slug.includes("lawn") || slug.includes("banquet") || slug.includes("car")) return "venues";
+  if (slug.includes("makeup") || slug.includes("glam") || slug.includes("beauty")) return "makeup";
+  if (slug.includes("cater") || slug.includes("food") || slug.includes("dining") || slug.includes("cake") || slug.includes("baker") || slug.includes("dessert")) return "caterers";
+  if (slug.includes("invite") || slug.includes("card") || slug.includes("papyrus") || slug.includes("gift")) return "invitations";
+  if (slug.includes("jewel") || slug.includes("polki") || slug.includes("gold") || slug.includes("ornament")) return "jewellery";
+  if (slug.includes("decor") || slug.includes("planner") || slug.includes("flower") || slug.includes("rental") || slug.includes("choreo") || slug.includes("dj") || slug.includes("band") || slug.includes("entertain")) return "planners";
+  if (slug.includes("boutique") || slug.includes("bridal") || slug.includes("wear") || slug.includes("groom") || slug.includes("sherwani") || slug.includes("suit")) return "boutiques";
+  return "caterers";
 }
 
 /**
