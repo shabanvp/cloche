@@ -111,47 +111,9 @@ export function AutocompleteSearch({
           }
         }
 
-        // Merge local storage registered vendors
-        const localList: SearchResultItem[] = [];
-        if (typeof window !== "undefined") {
-          try {
-            const rawVendors = localStorage.getItem("cloche_registered_vendors");
-            const rawBoutiques = localStorage.getItem("cloche_registered_boutiques");
-            const rawUserData = localStorage.getItem("cloche_user_data");
-            const combinedRaw: any[] = [];
-            if (rawUserData) combinedRaw.push(JSON.parse(rawUserData));
-            if (rawVendors) combinedRaw.push(...JSON.parse(rawVendors));
-            if (rawBoutiques) combinedRaw.push(...JSON.parse(rawBoutiques));
-
-            combinedRaw.forEach((item, idx) => {
-              const name = (item.boutique_name || item.name || item.businessName || "").trim();
-              const category = item.category || item.tags || "Bridal Wear";
-              const city = item.city || item.district || item.location || "Kochi";
-              const logo = item.logo_url || item.logo || item.profile_logo || item.image || "";
-
-              if (name) {
-                const nameLower = name.toLowerCase();
-                const catLower = category.toLowerCase();
-                const cityLower = city.toLowerCase();
-
-                if (nameLower.includes(trimmed) || catLower.includes(trimmed) || cityLower.includes(trimmed)) {
-                  localList.push({
-                    id: item.id || item.slug || `local-${idx}`,
-                    name: name,
-                    category: category,
-                    city: city,
-                    logo: logo,
-                    href: resolveDetailHref(item.id || item.slug || `local-${idx}`, category),
-                  });
-                }
-              }
-            });
-          } catch (e) {}
-        }
-
-        // Deduplicate and rank combined items
+        // Deduplicate and rank API items
         const mergedMap = new Map<string, SearchResultItem>();
-        [...apiResults, ...localList].forEach((item) => {
+        apiResults.forEach((item) => {
           const key = String(item.id || item.name).toLowerCase();
           if (!mergedMap.has(key)) {
             mergedMap.set(key, item);

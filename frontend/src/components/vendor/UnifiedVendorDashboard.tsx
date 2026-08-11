@@ -32,14 +32,16 @@ import { VendorPricingModule } from "./sections/VendorPricingModule";
 import { VendorCoverHeader } from "./VendorCoverHeader";
 import { getActiveVendorIdentity, fetchAuthenticatedVendorFromDb, clearActiveVendorIdentity } from "@/lib/vendorStore";
 
+import { normalizeVendorCategoryKey } from "@/lib/vendorStore";
+
 interface UnifiedVendorDashboardProps {
   categoryKey?: string;
 }
 
-export function UnifiedVendorDashboard({ categoryKey = "photographers" }: UnifiedVendorDashboardProps) {
+export function UnifiedVendorDashboard({ categoryKey = "caterers" }: UnifiedVendorDashboardProps) {
   const router = useRouter();
   
-  const [activeCategoryKey] = useState<string>(categoryKey);
+  const [activeCategoryKey, setActiveCategoryKey] = useState<string>(categoryKey);
   const [activeTab, setActiveTab] = useState<string | null>(null);
   const [vendorData, setVendorData] = useState<any>(null);
 
@@ -47,21 +49,28 @@ export function UnifiedVendorDashboard({ categoryKey = "photographers" }: Unifie
     const cached = getActiveVendorIdentity();
     if (cached && cached.id) {
       setVendorData(cached);
+      if (cached.category) {
+        setActiveCategoryKey(normalizeVendorCategoryKey(cached.category));
+      }
     }
 
     fetchAuthenticatedVendorFromDb().then((identity) => {
       if (identity && identity.id) {
         setVendorData(identity);
+        if (identity.category) {
+          setActiveCategoryKey(normalizeVendorCategoryKey(identity.category));
+        }
       }
     });
   }, []);
 
-  const categoryConfig: VendorCategoryConfig = VENDOR_CATEGORIES[activeCategoryKey] || VENDOR_CATEGORIES.photographers;
+  const categoryConfig: VendorCategoryConfig = VENDOR_CATEGORIES[activeCategoryKey] || VENDOR_CATEGORIES.caterers || VENDOR_CATEGORIES.photographers;
 
   const mediaTabId = categoryConfig.media.title.toLowerCase().replace(/[^a-z]/g, "");
   const pricingTabId = categoryConfig.pricing.title.toLowerCase().replace(/[^a-z]/g, "");
 
-  const vendorName = vendorData?.name || vendorData?.boutique_name || "Stories by Candid";
+  const vendorName = vendorData?.name || vendorData?.boutique_name || "Vendor Partner";
+  const vendorCategoryName = vendorData?.category || categoryConfig.name;
   const logoUrl = vendorData?.logo || vendorData?.logo_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop";
   const coverUrl = vendorData?.coverImage || vendorData?.cover_image || categoryConfig.sampleMedia?.[0]?.image || "https://images.unsplash.com/photo-1583939003579-730e3918a45a?q=80&w=1200&auto=format&fit=crop";
   const partnerBadge = vendorData?.plan || "Platinum Partner";
@@ -142,11 +151,21 @@ export function UnifiedVendorDashboard({ categoryKey = "photographers" }: Unifie
               </div>
             </div>
 
+<<<<<<< HEAD
             {/* REUSABLE DASHBOARD LANDING PAGE (Descriptive Menu List) */}
             <div className="bg-white rounded-3xl border border-gold/15 p-4 sm:p-6 shadow-sm space-y-2 animate-in fade-in duration-200">
               <div className="px-3 py-2 border-b border-gold/10 mb-2">
                 <span className="font-serif font-bold text-xs uppercase tracking-widest text-[#0F4C45]">
                   VENDOR DASHBOARD MENU
+=======
+            <div className="space-y-1">
+              <h1 className="text-2xl sm:text-3xl font-serif font-bold text-charcoal">{vendorName}</h1>
+              <p className="text-xs font-bold uppercase tracking-wider text-[#0F4C45]">{vendorCategoryName}</p>
+              
+              <div className="flex items-center justify-center sm:justify-start pt-1">
+                <span className="inline-flex items-center gap-1.5 bg-[#0F4C45] text-[#C8A96A] text-[10px] font-bold uppercase tracking-widest px-3.5 py-1 rounded-full shadow-xs">
+                  <Star className="w-3 h-3 fill-[#C8A96A]" /> {partnerBadge}
+>>>>>>> 5bdca6528c029bd38e2728e77494648fa3510cd9
                 </span>
               </div>
 

@@ -20,6 +20,7 @@ import {
   CategoryConfig,
   VendorCategoryItem,
   VENDOR_CATEGORIES_DATA,
+  getPublicCategoryConfig,
 } from "@/lib/vendor-categories";
 
 interface VendorCategoryListingProps {
@@ -31,18 +32,10 @@ export function VendorCategoryListing({
   categorySlug = "venues",
   initialCategoryConfig,
 }: VendorCategoryListingProps) {
-  // Resolve config based on categorySlug or fallback to venues
+  // Resolve config based on categorySlug or fallback to correct matching category
   const categoryConfig: CategoryConfig = useMemo(() => {
     if (initialCategoryConfig) return initialCategoryConfig;
-    const slug = (categorySlug || "").toLowerCase().trim();
-    if (VENDOR_CATEGORIES_DATA[slug]) {
-      return VENDOR_CATEGORIES_DATA[slug];
-    }
-    // Fallback search in dictionary
-    const foundKey = Object.keys(VENDOR_CATEGORIES_DATA).find(
-      (k) => k.includes(slug) || slug.includes(k)
-    );
-    return foundKey ? VENDOR_CATEGORIES_DATA[foundKey] : VENDOR_CATEGORIES_DATA.venues;
+    return getPublicCategoryConfig(categorySlug);
   }, [categorySlug, initialCategoryConfig]);
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -58,11 +51,15 @@ export function VendorCategoryListing({
   });
   const [currentPage, setCurrentPage] = useState(1);
   const [showFilterDrawer, setShowFilterDrawer] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Combine static config vendors with dynamic user-registered vendors from localStorage
-  const [allVendors, setAllVendors] = useState<VendorCategoryItem[]>(categoryConfig.vendors);
+  // Dynamic category-filtered vendors
+  const [allVendors, setAllVendors] = useState<VendorCategoryItem[]>([]);
 
   useEffect(() => {
+    let isMounted = true;
+    setIsLoading(true);
+
     const updateWishlistSet = () => {
       const { getWishlistItems } = require("@/lib/wishlistStore");
       setWishlist(new Set(getWishlistItems().map((i: any) => String(i.id))));
@@ -72,101 +69,65 @@ export function VendorCategoryListing({
       updateWishlistSet();
       window.addEventListener("cloche_wishlist_updated", updateWishlistSet);
 
-      try {
-        const rawVendors = localStorage.getItem("cloche_registered_vendors");
-        const rawBoutiques = localStorage.getItem("cloche_registered_boutiques");
-        const localList: any[] = [];
-        if (rawVendors) localList.push(...JSON.parse(rawVendors));
-        if (rawBoutiques) localList.push(...JSON.parse(rawBoutiques));
+      const targetSlug = (categorySlug || "").toLowerCase().trim();
 
-        if (localList.length > 0) {
-          const formattedLocal: VendorCategoryItem[] = localList.map((item, idx) => ({
-            id: item.id || `local-${idx}`,
-            name: item.boutique_name || item.name || item.businessName || "Wedding Partner",
-            slug: item.slug || item.id || `partner-${idx}`,
-            image:
-              item.coverImage ||
-              item.cover_image ||
-              item.cover_url ||
-              item.logoUrl ||
-              item.logo ||
-              item.logo_url ||
-              item.profile_logo ||
-              item.image_url ||
-              item.image ||
-              categoryConfig.vendors[0]?.image ||
-              "",
-            rating: Number(item.rating || 0),
-            reviewsCount: Number(item.reviewsCount ?? item.review_count ?? item.reviewCount ?? 0),
-            location: item.location || (item.city ? (item.city.toLowerCase() === "kerala" ? "Kerala" : `${item.city}, Kerala`) : "Kerala"),
-            startingPrice: item.startingPrice || item.starting_price || "Contact for pricing",
-            badge: "Verified",
-            verified: true,
-            specialtyTag: item.category || categoryConfig.title,
-            subCategory: "all",
-          }));
+      fetch(`/api/v1/public/vendors?category=${encodeURIComponent(targetSlug)}&t=${Date.now()}`)
+        .then((r) => r.json())
+        .then((res) => {
+          if (!isMounted) return;
 
-          setAllVendors([...formattedLocal, ...categoryConfig.vendors]);
-        } else {
-          setAllVendors(categoryConfig.vendors);
-        }
+          let apiVendors: VendorCategoryItem[] = [];
+          if (res.success && Array.isArray(res.data)) {
+            apiVendors = res.data.map((item: any, idx: number) => {
+              const locCity = (item.city || "").trim();
+              const locState = (item.state || "").trim();
+              const formattedLoc =
+                locCity && locState && locCity.toLowerCase() !== locState.toLowerCase()
+                  ? `${locCity}, ${locState}`
+                  : locCity || locState || "Kerala";
 
-        fetch("/api/v1/public/vendors")
-          .then((r) => r.json())
-          .then((res) => {
-            if (res.success && Array.isArray(res.data) && res.data.length > 0) {
-              const apiVendors: VendorCategoryItem[] = res.data.map((item: any, idx: number) => {
-                const locCity = (item.city || "").trim();
-                const locState = (item.state || "").trim();
-                const formattedLoc =
-                  locCity && locState && locCity.toLowerCase() !== locState.toLowerCase()
-                    ? `${locCity}, ${locState}`
-                    : locCity || locState || "Kerala";
-
-                return {
-                  id: item.id || item.slug || `api-${idx}`,
-                  name: item.name || "Wedding Partner",
-                  slug: item.slug || item.id || `partner-${idx}`,
-                  image:
-                    item.coverImage ||
-                    item.cover_image ||
-                    item.cover_url ||
-                    item.logoUrl ||
-                    item.logo ||
-                    item.logo_url ||
-                    item.profile_logo ||
-                    item.image_url ||
-                    item.image ||
-                    "",
-                  rating: Number(item.rating || 0),
-                  reviewsCount: Number(item.reviewCount ?? item.reviewsCount ?? 0),
-                  location: formattedLoc,
-                  startingPrice: item.startingPrice || "Contact for pricing",
-                  badge: "Verified",
-                  verified: Boolean(item.isVerified),
-                  specialtyTag: item.category || categoryConfig.title,
-                  subCategory: "all",
-                };
-              });
-
-              setAllVendors((prev) => {
-                const existingMap = new Map<string, VendorCategoryItem>();
-                apiVendors.forEach((v) => existingMap.set(String(v.id), v));
-                prev.forEach((v) => {
-                  if (!existingMap.has(String(v.id))) existingMap.set(String(v.id), v);
-                });
-                return Array.from(existingMap.values());
-              });
-            }
-          })
-          .catch(() => {});
-      } catch (e) {
-        setAllVendors(categoryConfig.vendors);
-      }
-
-      return () => window.removeEventListener("cloche_wishlist_updated", updateWishlistSet);
+              return {
+                id: item.id || item.slug || `api-${idx}`,
+                name: item.name || "Wedding Partner",
+                slug: item.slug || item.id || `partner-${idx}`,
+                image:
+                  item.coverImage ||
+                  item.cover_image ||
+                  item.cover_url ||
+                  item.logoUrl ||
+                  item.logo ||
+                  item.logo_url ||
+                  item.profile_logo ||
+                  item.image_url ||
+                  item.image ||
+                  "",
+                rating: Number(item.rating ?? 0),
+                reviewsCount: Number(item.reviewCount ?? item.reviewsCount ?? 0),
+                location: formattedLoc,
+                startingPrice: item.startingPrice || "Contact for pricing",
+                badge: item.badge || "Verified",
+                verified: Boolean(item.isVerified),
+                specialtyTag: item.category || categoryConfig.title,
+                subCategory: "all",
+              };
+            });
+          }
+          // Only use real database vendors from API
+          setAllVendors(apiVendors);
+          setIsLoading(false);
+        })
+        .catch(() => {
+          if (!isMounted) return;
+          setAllVendors([]);
+          setIsLoading(false);
+        });
     }
-  }, [categoryConfig]);
+
+    return () => {
+      isMounted = false;
+      window.removeEventListener("cloche_wishlist_updated", updateWishlistSet);
+    };
+  }, [categorySlug, categoryConfig]);
 
   // Reset filter sub-category when slug changes
   useEffect(() => {
@@ -283,7 +244,20 @@ export function VendorCategoryListing({
         </div>
 
         {/* Vendor Cards Listing Grid */}
-        {filteredVendors.length === 0 ? (
+        {isLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 my-4">
+            {[1, 2, 3, 4, 5, 6].map((n) => (
+              <div key={n} className="bg-white rounded-2xl border border-gold/15 shadow-sm overflow-hidden animate-pulse">
+                <div className="aspect-[4/3] bg-gold/10 w-full" />
+                <div className="p-4 space-y-3">
+                  <div className="h-5 bg-gold/15 rounded w-3/4" />
+                  <div className="h-4 bg-gold/10 rounded w-1/2" />
+                  <div className="h-4 bg-gold/10 rounded w-1/3" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : filteredVendors.length === 0 ? (
           <div className="bg-white rounded-3xl p-12 text-center border border-gold/15 shadow-sm space-y-4 my-8">
             <div className="w-16 h-16 bg-[#0F4C45]/10 text-[#0F4C45] rounded-full flex items-center justify-center mx-auto">
               <Search className="w-8 h-8" />
