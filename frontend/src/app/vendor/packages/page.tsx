@@ -212,9 +212,10 @@ export default function VendorPackagesPage() {
         <div>
           <Link
             href="/vendor"
-            className="text-xs font-semibold text-[#0F4C45] hover:underline flex items-center gap-1 mb-2"
+            aria-label="Back to Dashboard"
+            className="bg-[#FAF7F2] hover:bg-gold/20 text-[#0F4C45] p-2.5 rounded-xl border border-gold/20 transition-all inline-flex items-center justify-center cursor-pointer group mb-2"
           >
-            <ArrowLeft className="w-3.5 h-3.5" /> Back to Navigation Hub
+            <ArrowLeft className="w-5 h-5 group-hover:-translate-x-0.5 transition-transform" />
           </Link>
           <h1 className="text-3xl lg:text-4xl font-display font-bold text-charcoal">Pricing & Packages</h1>
           <p className="text-sm text-charcoal/70 mt-1">Manage luxury celebration packages, custom features, and public pricing for {businessName}.</p>

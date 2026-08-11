@@ -205,12 +205,13 @@ export function UnifiedVendorDashboard({ categoryKey = "caterers" }: UnifiedVend
       ) : (
         /* Dedicated Section View (Sub-page) */
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 space-y-4 animate-in fade-in duration-300">
-          <div className="bg-white px-5 py-3 rounded-2xl border border-gold/15 shadow-xs">
+          <div className="bg-white px-5 py-3 rounded-2xl border border-gold/15 shadow-xs flex items-center">
             <button
               onClick={() => setActiveTab(null)}
-              className="bg-[#FAF7F2] hover:bg-gold/20 text-[#0F4C45] font-bold text-xs px-4 py-2 rounded-xl border border-gold/20 transition-all flex items-center gap-2 cursor-pointer"
+              aria-label="Back to Dashboard Menu"
+              className="bg-[#FAF7F2] hover:bg-gold/20 text-[#0F4C45] p-2.5 rounded-xl border border-gold/20 transition-all flex items-center justify-center cursor-pointer group"
             >
-              <ArrowLeft className="w-4 h-4" /> Back to Dashboard Menu
+              <ArrowLeft className="w-5 h-5 group-hover:-translate-x-0.5 transition-transform" />
             </button>
           </div>
 
