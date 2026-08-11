@@ -140,7 +140,7 @@ export function UnifiedVendorDashboard({ categoryKey = "caterers" }: UnifiedVend
 
                 <div className="space-y-1">
                   <h1 className="text-2xl sm:text-3xl font-serif font-bold text-charcoal">{vendorName}</h1>
-                  <p className="text-xs font-bold uppercase tracking-wider text-[#0F4C45]">{categoryConfig.name}</p>
+                  <p className="text-xs font-bold uppercase tracking-wider text-[#0F4C45]">{vendorCategoryName}</p>
                   
                   <div className="flex items-center justify-center sm:justify-start pt-1">
                     <span className="inline-flex items-center gap-1.5 bg-[#0F4C45] text-[#C8A96A] text-[10px] font-bold uppercase tracking-widest px-3.5 py-1 rounded-full shadow-xs">
@@ -151,21 +151,11 @@ export function UnifiedVendorDashboard({ categoryKey = "caterers" }: UnifiedVend
               </div>
             </div>
 
-<<<<<<< HEAD
             {/* REUSABLE DASHBOARD LANDING PAGE (Descriptive Menu List) */}
             <div className="bg-white rounded-3xl border border-gold/15 p-4 sm:p-6 shadow-sm space-y-2 animate-in fade-in duration-200">
               <div className="px-3 py-2 border-b border-gold/10 mb-2">
                 <span className="font-serif font-bold text-xs uppercase tracking-widest text-[#0F4C45]">
                   VENDOR DASHBOARD MENU
-=======
-            <div className="space-y-1">
-              <h1 className="text-2xl sm:text-3xl font-serif font-bold text-charcoal">{vendorName}</h1>
-              <p className="text-xs font-bold uppercase tracking-wider text-[#0F4C45]">{vendorCategoryName}</p>
-              
-              <div className="flex items-center justify-center sm:justify-start pt-1">
-                <span className="inline-flex items-center gap-1.5 bg-[#0F4C45] text-[#C8A96A] text-[10px] font-bold uppercase tracking-widest px-3.5 py-1 rounded-full shadow-xs">
-                  <Star className="w-3 h-3 fill-[#C8A96A]" /> {partnerBadge}
->>>>>>> 5bdca6528c029bd38e2728e77494648fa3510cd9
                 </span>
               </div>
 
