@@ -114,102 +114,103 @@ export function UnifiedVendorDashboard({ categoryKey = "photographers" }: Unifie
 
   return (
     <div className="min-h-screen bg-[#F8F6F2] font-sans antialiased pb-36 md:pb-16">
-      {/* 1. Cover Image Background Header */}
-      <VendorCoverHeader coverUrl={coverUrl} altText={vendorName} />
+      {activeTab === null ? (
+        <>
+          {/* 1. Cover Image Background Header */}
+          <VendorCoverHeader coverUrl={coverUrl} altText={vendorName} />
 
-      {/* Main Container */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative -mt-16 sm:-mt-20 z-10 space-y-6">
-        
-        {/* 2. Profile Card Overlapping Cover */}
-        <div className="bg-white rounded-3xl shadow-sm border border-gold/15 p-6 sm:p-8">
-          <div className="flex flex-col sm:flex-row items-center sm:items-end gap-5 text-center sm:text-left">
-            <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full border-4 border-white overflow-hidden shadow-xl bg-white shrink-0 -mt-14 sm:-mt-16">
-              <img src={logoUrl} alt={vendorName} className="w-full h-full object-cover" />
+          {/* Main Container */}
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative -mt-16 sm:-mt-20 z-10 space-y-6">
+            
+            {/* 2. Profile Card Overlapping Cover */}
+            <div className="bg-white rounded-3xl shadow-sm border border-gold/15 p-6 sm:p-8">
+              <div className="flex flex-col sm:flex-row items-center sm:items-end gap-5 text-center sm:text-left">
+                <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full border-4 border-white overflow-hidden shadow-xl bg-white shrink-0 -mt-14 sm:-mt-16">
+                  <img src={logoUrl} alt={vendorName} className="w-full h-full object-cover" />
+                </div>
+
+                <div className="space-y-1">
+                  <h1 className="text-2xl sm:text-3xl font-serif font-bold text-charcoal">{vendorName}</h1>
+                  <p className="text-xs font-bold uppercase tracking-wider text-[#0F4C45]">{categoryConfig.name}</p>
+                  
+                  <div className="flex items-center justify-center sm:justify-start pt-1">
+                    <span className="inline-flex items-center gap-1.5 bg-[#0F4C45] text-[#C8A96A] text-[10px] font-bold uppercase tracking-widest px-3.5 py-1 rounded-full shadow-xs">
+                      <Star className="w-3 h-3 fill-[#C8A96A]" /> {partnerBadge}
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            <div className="space-y-1">
-              <h1 className="text-2xl sm:text-3xl font-serif font-bold text-charcoal">{vendorName}</h1>
-              <p className="text-xs font-bold uppercase tracking-wider text-[#0F4C45]">{categoryConfig.name}</p>
-              
-              <div className="flex items-center justify-center sm:justify-start pt-1">
-                <span className="inline-flex items-center gap-1.5 bg-[#0F4C45] text-[#C8A96A] text-[10px] font-bold uppercase tracking-widest px-3.5 py-1 rounded-full shadow-xs">
-                  <Star className="w-3 h-3 fill-[#C8A96A]" /> {partnerBadge}
+            {/* REUSABLE DASHBOARD LANDING PAGE (Descriptive Menu List) */}
+            <div className="bg-white rounded-3xl border border-gold/15 p-4 sm:p-6 shadow-sm space-y-2 animate-in fade-in duration-200">
+              <div className="px-3 py-2 border-b border-gold/10 mb-2">
+                <span className="font-serif font-bold text-xs uppercase tracking-widest text-[#0F4C45]">
+                  VENDOR DASHBOARD MENU
                 </span>
+              </div>
+
+              {navItems.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => setActiveTab(item.id)}
+                    className="w-full flex items-center justify-between p-4 rounded-2xl transition-all group text-left border border-transparent hover:border-gold/20 hover:bg-[#FAF7F2] cursor-pointer"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="w-11 h-11 rounded-2xl bg-[#0F4C45]/10 text-[#0F4C45] group-hover:bg-[#0F4C45] group-hover:text-white transition-colors flex items-center justify-center shrink-0">
+                        <Icon className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-bold text-charcoal group-hover:text-[#0F4C45] transition-colors">{item.label}</h3>
+                        <p className="text-xs text-charcoal/60 mt-0.5">{item.desc}</p>
+                      </div>
+                    </div>
+
+                    <ChevronRight className="w-4 h-4 text-charcoal/30 group-hover:text-[#0F4C45] group-hover:translate-x-1 transition-all shrink-0" />
+                  </button>
+                );
+              })}
+
+              <div className="pt-3 mt-3 border-t border-gold/10 pb-4">
+                <button
+                  onClick={handleSignOut}
+                  className="w-full flex items-center justify-between p-4 rounded-2xl text-red-600 hover:bg-red-50 transition-colors border border-transparent hover:border-red-100 cursor-pointer group"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="w-11 h-11 rounded-2xl bg-red-100/70 text-red-600 flex items-center justify-center shrink-0">
+                      <LogOut className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-bold">Sign Out</h3>
+                      <p className="text-xs text-red-500/80">Log out of your vendor account</p>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-red-400 group-hover:translate-x-1 transition-all shrink-0" />
+                </button>
               </div>
             </div>
           </div>
+        </>
+      ) : (
+        /* Dedicated Section View (Sub-page) */
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 space-y-4 animate-in fade-in duration-300">
+          <div className="flex items-center justify-between bg-white px-5 py-3 rounded-2xl border border-gold/15 shadow-xs">
+            <button
+              onClick={() => setActiveTab(null)}
+              className="bg-[#FAF7F2] hover:bg-gold/20 text-[#0F4C45] font-bold text-xs px-4 py-2 rounded-xl border border-gold/20 transition-all flex items-center gap-2 cursor-pointer"
+            >
+              <ArrowLeft className="w-4 h-4" /> Back to Dashboard Menu
+            </button>
+            <span className="font-serif font-bold text-[#0F4C45]">
+              {navItems.find(i => i.id === activeTab)?.label}
+            </span>
+          </div>
+
+          <div>{renderActiveSection()}</div>
         </div>
-
-        {/* 3. Post-Login Landing View vs 1-Click Dedicated Page */}
-        {activeTab === null ? (
-          /* REUSABLE DASHBOARD LANDING PAGE (Cover + Profile Card + Descriptive Menu List) */
-          <div className="bg-white rounded-3xl border border-gold/15 p-4 sm:p-6 shadow-sm space-y-2 animate-in fade-in duration-200">
-            <div className="px-3 py-2 border-b border-gold/10 mb-2">
-              <span className="font-serif font-bold text-xs uppercase tracking-widest text-[#0F4C45]">
-                VENDOR DASHBOARD MENU
-              </span>
-            </div>
-
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => setActiveTab(item.id)}
-                  className="w-full flex items-center justify-between p-4 rounded-2xl transition-all group text-left border border-transparent hover:border-gold/20 hover:bg-[#FAF7F2] cursor-pointer"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="w-11 h-11 rounded-2xl bg-[#0F4C45]/10 text-[#0F4C45] group-hover:bg-[#0F4C45] group-hover:text-white transition-colors flex items-center justify-center shrink-0">
-                      <Icon className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-bold text-charcoal group-hover:text-[#0F4C45] transition-colors">{item.label}</h3>
-                      <p className="text-xs text-charcoal/60 mt-0.5">{item.desc}</p>
-                    </div>
-                  </div>
-
-                  <ChevronRight className="w-4 h-4 text-charcoal/30 group-hover:text-[#0F4C45] group-hover:translate-x-1 transition-all shrink-0" />
-                </button>
-              );
-            })}
-
-            <div className="pt-3 mt-3 border-t border-gold/10 pb-4">
-              <button
-                onClick={handleSignOut}
-                className="w-full flex items-center justify-between p-4 rounded-2xl text-red-600 hover:bg-red-50 transition-colors border border-transparent hover:border-red-100 cursor-pointer group"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-11 h-11 rounded-2xl bg-red-100/70 text-red-600 flex items-center justify-center shrink-0">
-                    <LogOut className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-bold">Sign Out</h3>
-                    <p className="text-xs text-red-500/80">Log out of your vendor account</p>
-                  </div>
-                </div>
-                <ChevronRight className="w-4 h-4 text-red-400 group-hover:translate-x-1 transition-all shrink-0" />
-              </button>
-            </div>
-          </div>
-        ) : (
-          /* Dedicated Section View */
-          <div className="space-y-4 animate-in fade-in duration-300">
-            <div className="flex items-center justify-between bg-white px-5 py-3 rounded-2xl border border-gold/15 shadow-xs">
-              <button
-                onClick={() => setActiveTab(null)}
-                className="bg-[#FAF7F2] hover:bg-gold/20 text-[#0F4C45] font-bold text-xs px-4 py-2 rounded-xl border border-gold/20 transition-all flex items-center gap-2 cursor-pointer"
-              >
-                <ArrowLeft className="w-4 h-4" /> Back to Dashboard Menu
-              </button>
-              <span className="font-serif font-bold text-[#0F4C45]">
-                {navItems.find(i => i.id === activeTab)?.label}
-              </span>
-            </div>
-
-            <div>{renderActiveSection()}</div>
-          </div>
-        )}
-      </div>
+      )}
     </div>
   );
 }
