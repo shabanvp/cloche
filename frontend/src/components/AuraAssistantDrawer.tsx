@@ -6,16 +6,22 @@ import {
   Sparkles, Send, X, Star, MapPin, CheckCircle2, 
   ArrowRight, ExternalLink, RefreshCw, AlertCircle, 
   HeartHandshake, ChevronRight, UserPlus, LogIn, 
-  Save, CheckSquare, Square, Calculator, Scale, MailCheck, User
+  Save, CheckSquare, Square, Calculator, Scale, MailCheck, User,
+  Package, FileText, MessageSquareQuote, TrendingUp, DollarSign, Check
 } from "lucide-react";
 import { 
   queryAuraAssistant, 
   AuraResponse, 
   AuraVendorItem, 
   AuraUserContext,
+  AuraVendorContext,
   BudgetBreakdownItem,
   WeddingChecklistItem,
-  InquiryDraft
+  InquiryDraft,
+  PackageDraft,
+  ProfileDraft,
+  ReviewResponseDraft,
+  LeadsSummaryData
 } from "@/lib/auraEngine";
 
 interface AuraChatMessage {
@@ -35,6 +41,10 @@ interface AuraChatMessage {
   comparisonVendors?: AuraVendorItem[];
   checklist?: WeddingChecklistItem[];
   inquiryDraft?: InquiryDraft;
+  packageDraft?: PackageDraft & { isSaved?: boolean };
+  profileDraft?: ProfileDraft & { isApproved?: boolean };
+  reviewDraft?: ReviewResponseDraft & { isSent?: boolean };
+  leadsSummary?: LeadsSummaryData;
   timestamp: string;
 }
 
@@ -47,19 +57,53 @@ export function AuraAssistantDrawer({ isOpen, onClose }: AuraAssistantDrawerProp
   const [inputQuery, setInputQuery] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [userContext, setUserContext] = useState<AuraUserContext | null>(null);
+  const [vendorContext, setVendorContext] = useState<AuraVendorContext | null>(null);
   const [messages, setMessages] = useState<AuraChatMessage[]>([]);
-  const [isSendingInquiry, setIsSendingInquiry] = useState(false);
-  const [isSavingPlan, setIsSavingPlan] = useState(false);
+  const [isActionLoading, setIsActionLoading] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Fetch logged in user details on mount
+  // Fetch session on mount (Vendor first, then Customer)
   useEffect(() => {
-    async function loadUser() {
+    async function loadSession() {
       try {
-        const res = await fetch("/api/v1/auth/me");
-        if (res.ok) {
+        // 1. Check if Vendor session
+        const vRes = await fetch("/api/v1/vendor/profile").catch(() => null);
+        if (vRes && vRes.ok) {
+          const vJson = await vRes.json();
+          if (vJson.success && vJson.data?.vendor) {
+            const v = vJson.data.vendor;
+            const p = vJson.data.profile || {};
+            const ctx: AuraVendorContext = {
+              vendorId: v.id,
+              businessName: p.business_name || v.vendor_code || "your business",
+              category: vJson.data.category?.name || "Wedding Services",
+              categorySlug: vJson.data.category?.slug,
+              city: p.city || "Thrissur",
+              state: p.state || "Kerala",
+              about: p.about || "",
+              tagline: p.tagline || "",
+              rating: Number(p.rating || 0),
+              reviewCount: Number(p.review_count || 0),
+              startingPrice: p.starting_price,
+            };
+            setVendorContext(ctx);
+            setMessages([
+              {
+                id: "aura-welcome-vendor",
+                sender: "aura",
+                text: `Hi ${ctx.businessName}, I'm Aura — I can help you complete your profile, build packages, and manage enquiries. What would you like to work on?`,
+                timestamp: "Just now",
+              },
+            ]);
+            return;
+          }
+        }
+
+        // 2. Check if Customer session
+        const res = await fetch("/api/v1/auth/me").catch(() => null);
+        if (res && res.ok) {
           const json = await res.json();
           if (json.data?.user) {
             const u = json.data.user;
@@ -86,6 +130,7 @@ export function AuraAssistantDrawer({ isOpen, onClose }: AuraAssistantDrawerProp
         }
       } catch (e) {}
 
+      // 3. Guest Fallback
       setMessages([
         {
           id: "aura-welcome-guest",
@@ -96,7 +141,7 @@ export function AuraAssistantDrawer({ isOpen, onClose }: AuraAssistantDrawerProp
       ]);
     }
 
-    loadUser();
+    loadSession();
   }, []);
 
   useEffect(() => {
@@ -125,7 +170,7 @@ export function AuraAssistantDrawer({ isOpen, onClose }: AuraAssistantDrawerProp
     setIsTyping(true);
 
     try {
-      const response: AuraResponse = await queryAuraAssistant(textToSend, userContext);
+      const response: AuraResponse = await queryAuraAssistant(textToSend, userContext, vendorContext);
       const auraMessage: AuraChatMessage = {
         id: `aura-${Date.now()}`,
         sender: "aura",
@@ -137,6 +182,10 @@ export function AuraAssistantDrawer({ isOpen, onClose }: AuraAssistantDrawerProp
         comparisonVendors: response.comparisonVendors,
         checklist: response.checklist,
         inquiryDraft: response.inquiryDraft,
+        packageDraft: response.packageDraft,
+        profileDraft: response.profileDraft,
+        reviewDraft: response.reviewDraft,
+        leadsSummary: response.leadsSummary,
         timestamp: "Just now",
       };
       setMessages((prev) => [...prev, auraMessage]);
@@ -155,9 +204,91 @@ export function AuraAssistantDrawer({ isOpen, onClose }: AuraAssistantDrawerProp
     }
   };
 
-  // Direct-Write: Save Budget Plan
+  // Phase 3: Vendor Save Package (Draft-then-Confirm)
+  const handleSavePackage = async (msgId: string, draft: PackageDraft) => {
+    setIsActionLoading(true);
+    try {
+      const res = await fetch("/api/v1/vendor/packages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: draft.name,
+          tagline: draft.tagline,
+          description: draft.description,
+          price: draft.price,
+          features: draft.features,
+          is_popular: draft.isPopular,
+          is_active: true,
+        }),
+      });
+
+      if (res.ok) {
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === msgId && m.packageDraft
+              ? { ...m, packageDraft: { ...m.packageDraft, isSaved: true } }
+              : m
+          )
+        );
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `aura-saved-pkg-${Date.now()}`,
+            sender: "aura",
+            text: `Package "${draft.name}" (₹${draft.price.toLocaleString("en-IN")}) has been saved to your storefront package catalog.`,
+            timestamp: "Just now",
+          },
+        ]);
+      }
+    } catch (e) {
+    } finally {
+      setIsActionLoading(false);
+    }
+  };
+
+  // Phase 3: Vendor Update Profile SEO Description (Draft-then-Confirm)
+  const handleApproveProfile = async (msgId: string, draft: ProfileDraft) => {
+    setIsActionLoading(true);
+    try {
+      const res = await fetch("/api/v1/vendor/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          profile: {
+            businessName: draft.businessName,
+            about: draft.proposedAbout,
+            tagline: draft.proposedTagline,
+          },
+        }),
+      });
+
+      if (res.ok) {
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === msgId && m.profileDraft
+              ? { ...m, profileDraft: { ...m.profileDraft, isApproved: true } }
+              : m
+          )
+        );
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `aura-saved-profile-${Date.now()}`,
+            sender: "aura",
+            text: `Your storefront description and tagline have been updated with the new SEO-optimized text.`,
+            timestamp: "Just now",
+          },
+        ]);
+      }
+    } catch (e) {
+    } finally {
+      setIsActionLoading(false);
+    }
+  };
+
+  // Phase 2: Customer Save Budget Plan (Direct-Write)
   const handleSaveBudgetPlan = async (msgId: string, plan: any) => {
-    setIsSavingPlan(true);
+    setIsActionLoading(true);
     try {
       const res = await fetch("/api/v1/customer/wedding-plan", {
         method: "POST",
@@ -191,13 +322,13 @@ export function AuraAssistantDrawer({ isOpen, onClose }: AuraAssistantDrawerProp
       }
     } catch (e) {
     } finally {
-      setIsSavingPlan(false);
+      setIsActionLoading(false);
     }
   };
 
-  // Draft-Then-Confirm: Send Inquiry to Vendor
+  // Phase 2: Customer Confirm Send Inquiry (Draft-then-Confirm)
   const handleConfirmSendInquiry = async (draft: InquiryDraft) => {
-    setIsSendingInquiry(true);
+    setIsActionLoading(true);
     try {
       const res = await fetch("/api/v1/leads", {
         method: "POST",
@@ -229,33 +360,20 @@ export function AuraAssistantDrawer({ isOpen, onClose }: AuraAssistantDrawerProp
             timestamp: "Just now",
           },
         ]);
-      } else {
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: `aura-inquiry-err-${Date.now()}`,
-            sender: "aura",
-            text: `Could not send inquiry to ${draft.vendorName} right now. Please try calling the vendor directly from their profile page.`,
-            timestamp: "Just now",
-          },
-        ]);
       }
     } catch (e) {
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: `aura-inquiry-err-${Date.now()}`,
-          sender: "aura",
-          text: `A network error occurred while submitting your inquiry. Please try again.`,
-          timestamp: "Just now",
-        },
-      ]);
     } finally {
-      setIsSendingInquiry(false);
+      setIsActionLoading(false);
     }
   };
 
-  const sampleChips = userContext?.userId ? [
+  const sampleChips = vendorContext ? [
+    "Draft a premium wedding package",
+    "Rewrite my profile description for SEO",
+    "Summarize my enquiries this week",
+    "Pricing suggestions for Kerala weddings",
+    "Tips to increase booking conversions",
+  ] : userContext?.userId ? [
     "Plan my wedding for 400 guests in Thrissur, budget ₹15 lakh",
     "Compare shaban and Acesd for decor",
     "Show my wedding checklist",
@@ -291,11 +409,11 @@ export function AuraAssistantDrawer({ isOpen, onClose }: AuraAssistantDrawerProp
               <div className="flex items-center gap-1.5">
                 <h3 className="font-serif font-bold text-lg leading-none">Aura</h3>
                 <span className="bg-emerald-800 text-emerald-100 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-600">
-                  {userContext?.userId ? "Wedding Planner" : "AI Discovery"}
+                  {vendorContext ? "Vendor Assistant" : userContext?.userId ? "Wedding Planner" : "AI Discovery"}
                 </span>
               </div>
               <p className="text-[11px] text-white/80 mt-0.5">
-                {userContext?.fullName ? `Active for ${userContext.fullName}` : "Cloche Guest Discovery Assistant"}
+                {vendorContext?.businessName ? `Active for ${vendorContext.businessName}` : userContext?.fullName ? `Active for ${userContext.fullName}` : "Cloche Discovery Assistant"}
               </p>
             </div>
           </div>
@@ -409,10 +527,6 @@ export function AuraAssistantDrawer({ isOpen, onClose }: AuraAssistantDrawerProp
                                 <span className="text-charcoal/60">Starting:</span>
                                 <span className="font-bold text-[#0F4C45] truncate">{v.startingPrice}</span>
                               </div>
-                              <div className="flex justify-between">
-                                <span className="text-charcoal/60">Status:</span>
-                                <span className="text-emerald-700 font-semibold">{v.isVerified ? "Verified" : "Partner"}</span>
-                              </div>
                             </div>
                           </div>
 
@@ -429,7 +543,107 @@ export function AuraAssistantDrawer({ isOpen, onClose }: AuraAssistantDrawerProp
                   </div>
                 )}
 
-                {/* 3. Budget Planner Card (Direct-Write Tier) */}
+                {/* 3. Phase 3: Package Draft Card (Draft-then-Confirm) */}
+                {m.packageDraft && (
+                  <div className="mt-3 pt-3 border-t border-gold/20 bg-[#FAF7F2] p-3.5 rounded-xl border border-gold/20 space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-bold text-[#0F4C45] uppercase tracking-wider flex items-center gap-1">
+                        <Package className="h-3.5 w-3.5" /> Proposed Package Draft
+                      </span>
+                      <span className="text-[10px] bg-amber-100 text-amber-900 px-2 py-0.5 rounded-full font-bold">
+                        {m.packageDraft.isSaved ? "Saved to Catalog" : "Awaiting Save"}
+                      </span>
+                    </div>
+
+                    <div className="bg-white p-3 rounded-lg border border-gold/15 text-xs space-y-2 text-charcoal">
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-serif font-bold text-sm text-[#0F4C45]">{m.packageDraft.name}</h4>
+                        <span className="font-bold text-sm text-emerald-800">
+                          ₹{m.packageDraft.price.toLocaleString("en-IN")}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-charcoal/70">{m.packageDraft.tagline}</p>
+                      
+                      <div className="pt-2 border-t border-gold/10 space-y-1">
+                        <span className="text-[10px] font-bold text-charcoal/60 uppercase">Inclusions:</span>
+                        {m.packageDraft.features.map((feat, idx) => (
+                          <div key={idx} className="flex items-start gap-1.5 text-[11px]">
+                            <Check className="h-3 w-3 text-[#0F4C45] shrink-0 mt-0.5" />
+                            <span>{feat}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => handleSavePackage(m.id, m.packageDraft!)}
+                      disabled={m.packageDraft.isSaved || isActionLoading}
+                      className={`w-full py-2 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all cursor-pointer ${
+                        m.packageDraft.isSaved
+                          ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
+                          : "bg-[#0F4C45] hover:bg-[#135951] text-white"
+                      }`}
+                    >
+                      {m.packageDraft.isSaved ? (
+                        <>
+                          <CheckCircle2 className="h-3.5 w-3.5 text-emerald-700" /> Saved in Packages Catalog
+                        </>
+                      ) : (
+                        <>
+                          <Save className="h-3.5 w-3.5 text-gold" /> Save Package to Storefront
+                        </>
+                      )}
+                    </button>
+                  </div>
+                )}
+
+                {/* 4. Phase 3: Profile Description Rewrite (Before & After Comparison) */}
+                {m.profileDraft && (
+                  <div className="mt-3 pt-3 border-t border-gold/20 bg-[#FAF7F2] p-3.5 rounded-xl border border-gold/20 space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-bold text-[#0F4C45] uppercase tracking-wider flex items-center gap-1">
+                        <FileText className="h-3.5 w-3.5" /> SEO Description Comparison
+                      </span>
+                      <span className="text-[10px] bg-amber-100 text-amber-900 px-2 py-0.5 rounded-full font-bold">
+                        {m.profileDraft.isApproved ? "Updated on Profile" : "Before → After"}
+                      </span>
+                    </div>
+
+                    <div className="space-y-2 text-xs">
+                      <div className="bg-white p-2.5 rounded-lg border border-red-200">
+                        <span className="text-[10px] font-bold text-red-700 block mb-1">Current Description:</span>
+                        <p className="text-[11px] text-charcoal/70 italic">{m.profileDraft.currentAbout}</p>
+                      </div>
+
+                      <div className="bg-white p-2.5 rounded-lg border border-emerald-300">
+                        <span className="text-[10px] font-bold text-emerald-800 block mb-1">Proposed SEO-Optimized Description:</span>
+                        <p className="text-[11px] text-charcoal leading-relaxed">{m.profileDraft.proposedAbout}</p>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => handleApproveProfile(m.id, m.profileDraft!)}
+                      disabled={m.profileDraft.isApproved || isActionLoading}
+                      className={`w-full py-2 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all cursor-pointer ${
+                        m.profileDraft.isApproved
+                          ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
+                          : "bg-[#0F4C45] hover:bg-[#135951] text-white"
+                      }`}
+                    >
+                      {m.profileDraft.isApproved ? (
+                        <>
+                          <CheckCircle2 className="h-3.5 w-3.5 text-emerald-700" /> Storefront Profile Updated
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle2 className="h-3.5 w-3.5 text-gold" /> Approve & Update Storefront
+                        </>
+                      )}
+                    </button>
+                  </div>
+                )}
+
+                {/* 5. Phase 2: Budget Breakdown Card (Direct-Write) */}
                 {m.budgetPlan && (
                   <div className="mt-3 pt-3 border-t border-gold/15 space-y-2">
                     <div className="space-y-1.5">
@@ -449,7 +663,7 @@ export function AuraAssistantDrawer({ isOpen, onClose }: AuraAssistantDrawerProp
                     {userContext?.userId && (
                       <button
                         onClick={() => handleSaveBudgetPlan(m.id, m.budgetPlan)}
-                        disabled={m.budgetPlan.isSaved || isSavingPlan}
+                        disabled={m.budgetPlan.isSaved || isActionLoading}
                         className={`w-full mt-2 py-2 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all ${
                           m.budgetPlan.isSaved
                             ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
@@ -462,7 +676,7 @@ export function AuraAssistantDrawer({ isOpen, onClose }: AuraAssistantDrawerProp
                           </>
                         ) : (
                           <>
-                            <Save className="h-3.5 w-3.5 text-gold" /> Save to My Wedding Plan (Direct-Write)
+                            <Save className="h-3.5 w-3.5 text-gold" /> Save to My Wedding Plan
                           </>
                         )}
                       </button>
@@ -470,28 +684,7 @@ export function AuraAssistantDrawer({ isOpen, onClose }: AuraAssistantDrawerProp
                   </div>
                 )}
 
-                {/* 4. Wedding Checklist (Direct-Write Tier) */}
-                {m.checklist && (
-                  <div className="mt-3 pt-3 border-t border-gold/15 space-y-1.5">
-                    {m.checklist.map((item) => (
-                      <div key={item.id} className="bg-[#FAF7F2] p-2 rounded-xl border border-gold/10 flex items-center gap-2 text-xs">
-                        {item.completed ? (
-                          <CheckSquare className="h-4 w-4 text-[#0F4C45] shrink-0" />
-                        ) : (
-                          <Square className="h-4 w-4 text-charcoal/40 shrink-0" />
-                        )}
-                        <span className={`flex-1 ${item.completed ? "line-through text-charcoal/50" : "text-charcoal font-medium"}`}>
-                          {item.title}
-                        </span>
-                        <span className="text-[9px] bg-gold/15 text-charcoal/70 px-1.5 py-0.5 rounded font-semibold shrink-0">
-                          {item.category}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* 5. Inquiry Draft (Draft-Then-Confirm Tier) */}
+                {/* 6. Customer Inquiry Draft (Draft-then-Confirm) */}
                 {m.inquiryDraft && (
                   <div className="mt-3 pt-3 border-t border-gold/20 bg-[#FAF7F2] p-3.5 rounded-xl border border-gold/20 space-y-2.5">
                     <div className="flex items-center justify-between">
@@ -499,7 +692,7 @@ export function AuraAssistantDrawer({ isOpen, onClose }: AuraAssistantDrawerProp
                         <MailCheck className="h-3.5 w-3.5" /> Proposed Inquiry Draft
                       </span>
                       <span className="text-[10px] bg-amber-100 text-amber-900 px-2 py-0.5 rounded-full font-bold">
-                        Awaiting Your Confirmation
+                        Awaiting Confirmation
                       </span>
                     </div>
 
@@ -514,7 +707,7 @@ export function AuraAssistantDrawer({ isOpen, onClose }: AuraAssistantDrawerProp
 
                     <button
                       onClick={() => handleConfirmSendInquiry(m.inquiryDraft!)}
-                      disabled={isSendingInquiry}
+                      disabled={isActionLoading}
                       className="w-full bg-[#0F4C45] hover:bg-[#135951] text-white py-2 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all cursor-pointer disabled:opacity-50"
                     >
                       <Send className="h-3.5 w-3.5 text-gold" /> Confirm & Send Inquiry to {m.inquiryDraft.vendorName}
@@ -532,26 +725,6 @@ export function AuraAssistantDrawer({ isOpen, onClose }: AuraAssistantDrawerProp
                     >
                       <span>Explore all category listings</span>
                       <ArrowRight className="h-3 w-3" />
-                    </Link>
-                  </div>
-                )}
-
-                {/* Action Required Redirects for Guests */}
-                {m.actionRequired === "signup" && (
-                  <div className="mt-3 flex items-center gap-2 pt-2 border-t border-gold/10">
-                    <Link
-                      href="/signup"
-                      onClick={onClose}
-                      className="flex-1 bg-[#0F4C45] text-white py-1.5 px-3 rounded-lg text-center font-bold text-[11px] hover:bg-[#135951] transition-colors flex items-center justify-center gap-1"
-                    >
-                      <UserPlus className="h-3 w-3" /> Sign Up Free
-                    </Link>
-                    <Link
-                      href="/login"
-                      onClick={onClose}
-                      className="flex-1 bg-[#FAF7F2] border border-gold/20 text-[#0F4C45] py-1.5 px-3 rounded-lg text-center font-bold text-[11px] hover:bg-gold/10 transition-colors flex items-center justify-center gap-1"
-                    >
-                      <LogIn className="h-3 w-3" /> Log In
                     </Link>
                   </div>
                 )}
@@ -598,7 +771,7 @@ export function AuraAssistantDrawer({ isOpen, onClose }: AuraAssistantDrawerProp
             type="text"
             value={inputQuery}
             onChange={(e) => setInputQuery(e.target.value)}
-            placeholder={userContext?.userId ? "Ask Aura to budget, compare vendors, or send inquiry..." : "Ask Aura to find venues, caterers, photographers..."}
+            placeholder={vendorContext ? "Ask Aura: 'Draft a package', 'Rewrite my SEO description'..." : userContext?.userId ? "Ask Aura to budget, compare vendors, or send inquiry..." : "Ask Aura to find venues, caterers, photographers..."}
             disabled={isTyping}
             className="flex-1 bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-charcoal placeholder:text-charcoal/40 focus:outline-none focus:border-[#0F4C45]"
           />

@@ -21,6 +21,9 @@ import {
   CheckSquare,
   Square,
   MailCheck,
+  Package,
+  FileText,
+  Check
 } from "lucide-react";
 import { Footer } from "@/components/Footer";
 import { 
@@ -28,9 +31,14 @@ import {
   AuraResponse, 
   AuraVendorItem,
   AuraUserContext,
+  AuraVendorContext,
   BudgetBreakdownItem,
   WeddingChecklistItem,
-  InquiryDraft
+  InquiryDraft,
+  PackageDraft,
+  ProfileDraft,
+  ReviewResponseDraft,
+  LeadsSummaryData
 } from "@/lib/auraEngine";
 import { BottomNavBar } from "@/components/BottomNavBar";
 
@@ -51,6 +59,10 @@ interface ChatMessage {
   comparisonVendors?: AuraVendorItem[];
   checklist?: WeddingChecklistItem[];
   inquiryDraft?: InquiryDraft;
+  packageDraft?: PackageDraft & { isSaved?: boolean };
+  profileDraft?: ProfileDraft & { isApproved?: boolean };
+  reviewDraft?: ReviewResponseDraft & { isSent?: boolean };
+  leadsSummary?: LeadsSummaryData;
   timestamp: string;
 }
 
@@ -58,19 +70,53 @@ export function GenieClient() {
   const [promptInput, setPromptInput] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [userContext, setUserContext] = useState<AuraUserContext | null>(null);
+  const [vendorContext, setVendorContext] = useState<AuraVendorContext | null>(null);
   const [isThinking, setIsThinking] = useState(false);
-  const [isSendingInquiry, setIsSendingInquiry] = useState(false);
-  const [isSavingPlan, setIsSavingPlan] = useState(false);
+  const [isActionLoading, setIsActionLoading] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Fetch logged in user details on mount
+  // Fetch session on mount
   useEffect(() => {
-    async function loadUser() {
+    async function loadSession() {
       try {
-        const res = await fetch("/api/v1/auth/me");
-        if (res.ok) {
+        // 1. Vendor check
+        const vRes = await fetch("/api/v1/vendor/profile").catch(() => null);
+        if (vRes && vRes.ok) {
+          const vJson = await vRes.json();
+          if (vJson.success && vJson.data?.vendor) {
+            const v = vJson.data.vendor;
+            const p = vJson.data.profile || {};
+            const ctx: AuraVendorContext = {
+              vendorId: v.id,
+              businessName: p.business_name || v.vendor_code || "your business",
+              category: vJson.data.category?.name || "Wedding Services",
+              categorySlug: vJson.data.category?.slug,
+              city: p.city || "Thrissur",
+              state: p.state || "Kerala",
+              about: p.about || "",
+              tagline: p.tagline || "",
+              rating: Number(p.rating || 0),
+              reviewCount: Number(p.review_count || 0),
+              startingPrice: p.starting_price,
+            };
+            setVendorContext(ctx);
+            setMessages([
+              {
+                id: "aura-init-vendor",
+                sender: "aura",
+                text: `Hi ${ctx.businessName}, I'm Aura — I can help you complete your profile, build packages, and manage enquiries. What would you like to work on?`,
+                timestamp: "Just now",
+              },
+            ]);
+            return;
+          }
+        }
+
+        // 2. Customer check
+        const res = await fetch("/api/v1/auth/me").catch(() => null);
+        if (res && res.ok) {
           const json = await res.json();
           if (json.data?.user) {
             const u = json.data.user;
@@ -107,10 +153,16 @@ export function GenieClient() {
       ]);
     }
 
-    loadUser();
+    loadSession();
   }, []);
 
-  const samplePrompts = userContext?.userId ? [
+  const samplePrompts = vendorContext ? [
+    "Draft a premium wedding package",
+    "Rewrite my profile description for SEO",
+    "Summarize my enquiries this week",
+    "Pricing suggestions for Kerala weddings",
+    "Tips to increase booking conversions",
+  ] : userContext?.userId ? [
     "Plan my wedding for 400 guests in Thrissur, budget ₹15 lakh",
     "Compare shaban and Acesd for decor",
     "Show my wedding checklist",
@@ -144,7 +196,7 @@ export function GenieClient() {
     setIsThinking(true);
 
     try {
-      const response: AuraResponse = await queryAuraAssistant(query, userContext);
+      const response: AuraResponse = await queryAuraAssistant(query, userContext, vendorContext);
       const auraMessage: ChatMessage = {
         id: `aura-${Date.now()}`,
         sender: "aura",
@@ -156,6 +208,10 @@ export function GenieClient() {
         comparisonVendors: response.comparisonVendors,
         checklist: response.checklist,
         inquiryDraft: response.inquiryDraft,
+        packageDraft: response.packageDraft,
+        profileDraft: response.profileDraft,
+        reviewDraft: response.reviewDraft,
+        leadsSummary: response.leadsSummary,
         timestamp: "Just now",
       };
       setMessages((prev) => [...prev, auraMessage]);
@@ -174,9 +230,91 @@ export function GenieClient() {
     }
   };
 
-  // Direct-Write: Save Budget Plan
+  // Phase 3: Vendor Save Package
+  const handleSavePackage = async (msgId: string, draft: PackageDraft) => {
+    setIsActionLoading(true);
+    try {
+      const res = await fetch("/api/v1/vendor/packages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: draft.name,
+          tagline: draft.tagline,
+          description: draft.description,
+          price: draft.price,
+          features: draft.features,
+          is_popular: draft.isPopular,
+          is_active: true,
+        }),
+      });
+
+      if (res.ok) {
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === msgId && m.packageDraft
+              ? { ...m, packageDraft: { ...m.packageDraft, isSaved: true } }
+              : m
+          )
+        );
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `aura-saved-pkg-${Date.now()}`,
+            sender: "aura",
+            text: `Package "${draft.name}" (₹${draft.price.toLocaleString("en-IN")}) has been saved to your storefront package catalog.`,
+            timestamp: "Just now",
+          },
+        ]);
+      }
+    } catch (e) {
+    } finally {
+      setIsActionLoading(false);
+    }
+  };
+
+  // Phase 3: Vendor Update Profile SEO Description
+  const handleApproveProfile = async (msgId: string, draft: ProfileDraft) => {
+    setIsActionLoading(true);
+    try {
+      const res = await fetch("/api/v1/vendor/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          profile: {
+            businessName: draft.businessName,
+            about: draft.proposedAbout,
+            tagline: draft.proposedTagline,
+          },
+        }),
+      });
+
+      if (res.ok) {
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === msgId && m.profileDraft
+              ? { ...m, profileDraft: { ...m.profileDraft, isApproved: true } }
+              : m
+          )
+        );
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `aura-saved-profile-${Date.now()}`,
+            sender: "aura",
+            text: `Your storefront description and tagline have been updated with the new SEO-optimized text.`,
+            timestamp: "Just now",
+          },
+        ]);
+      }
+    } catch (e) {
+    } finally {
+      setIsActionLoading(false);
+    }
+  };
+
+  // Phase 2: Customer Save Budget Plan
   const handleSaveBudgetPlan = async (msgId: string, plan: any) => {
-    setIsSavingPlan(true);
+    setIsActionLoading(true);
     try {
       const res = await fetch("/api/v1/customer/wedding-plan", {
         method: "POST",
@@ -210,13 +348,13 @@ export function GenieClient() {
       }
     } catch (e) {
     } finally {
-      setIsSavingPlan(false);
+      setIsActionLoading(false);
     }
   };
 
-  // Draft-Then-Confirm: Send Inquiry to Vendor
+  // Phase 2: Customer Confirm Send Inquiry
   const handleConfirmSendInquiry = async (draft: InquiryDraft) => {
-    setIsSendingInquiry(true);
+    setIsActionLoading(true);
     try {
       const res = await fetch("/api/v1/leads", {
         method: "POST",
@@ -251,7 +389,7 @@ export function GenieClient() {
       }
     } catch (e) {
     } finally {
-      setIsSendingInquiry(false);
+      setIsActionLoading(false);
     }
   };
 
@@ -262,13 +400,13 @@ export function GenieClient() {
         <div className="bg-gradient-to-r from-[#0F4C45] via-[#12584E] to-[#0A3833] rounded-3xl p-6 sm:p-10 text-white shadow-xl relative overflow-hidden">
           <div className="relative z-10 max-w-2xl">
             <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/10 border border-white/20 text-xs font-semibold text-[#D4B66E] mb-4">
-              <Sparkles className="w-3.5 h-3.5" /> Cloche Aura • AI Wedding Planning Concierge
+              <Sparkles className="w-3.5 h-3.5" /> Cloche Aura • {vendorContext ? "Vendor Business Assistant" : "AI Wedding Planning Concierge"}
             </div>
             <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-3">
-              Personalized Wedding Concierge
+              {vendorContext?.businessName ? `${vendorContext.businessName} Assistant` : "Personalized Wedding Concierge"}
             </h1>
             <p className="text-white/80 text-sm sm:text-base leading-relaxed">
-              Plan your wedding budget, compare registered vendors side-by-side, manage checklist milestones, and draft vendor inquiries seamlessly.
+              {vendorContext ? "Draft service packages, rewrite storefront SEO descriptions, inspect live enquiries, and check regional pricing benchmarks." : "Plan your wedding budget, compare registered vendors side-by-side, manage checklist milestones, and draft vendor inquiries seamlessly."}
             </p>
           </div>
         </div>
@@ -293,108 +431,148 @@ export function GenieClient() {
                 >
                   <div className="whitespace-pre-line">{m.text}</div>
 
-                  {/* 1. Grounded Live Vendor Cards */}
+                  {/* Phase 3: Package Draft Card */}
+                  {m.packageDraft && (
+                    <div className="mt-3 pt-3 border-t border-gold/20 bg-white p-4 rounded-2xl border border-gold/20 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-[#0F4C45] uppercase tracking-wider flex items-center gap-1.5">
+                          <Package className="h-4 w-4" /> Proposed Package Draft
+                        </span>
+                        <span className="text-[11px] bg-amber-100 text-amber-900 px-2.5 py-0.5 rounded-full font-bold">
+                          {m.packageDraft.isSaved ? "Saved to Catalog" : "Awaiting Save"}
+                        </span>
+                      </div>
+
+                      <div className="bg-[#FAF7F2] p-3.5 rounded-xl border border-gold/15 text-xs space-y-2 text-charcoal">
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-serif font-bold text-base text-[#0F4C45]">{m.packageDraft.name}</h4>
+                          <span className="font-bold text-base text-emerald-800">
+                            ₹{m.packageDraft.price.toLocaleString("en-IN")}
+                          </span>
+                        </div>
+                        <p className="text-xs text-charcoal/70">{m.packageDraft.tagline}</p>
+                        
+                        <div className="pt-2 border-t border-gold/10 space-y-1">
+                          <span className="text-[10px] font-bold text-charcoal/60 uppercase">Inclusions:</span>
+                          {m.packageDraft.features.map((feat, idx) => (
+                            <div key={idx} className="flex items-start gap-1.5 text-xs">
+                              <Check className="h-3.5 w-3.5 text-[#0F4C45] shrink-0 mt-0.5" />
+                              <span>{feat}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={() => handleSavePackage(m.id, m.packageDraft!)}
+                        disabled={m.packageDraft.isSaved || isActionLoading}
+                        className={`w-full py-2.5 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer ${
+                          m.packageDraft.isSaved
+                            ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
+                            : "bg-[#0F4C45] hover:bg-[#135951] text-white"
+                        }`}
+                      >
+                        {m.packageDraft.isSaved ? (
+                          <>
+                            <CheckCircle2 className="h-4 w-4 text-emerald-700" /> Saved in Packages Catalog
+                          </>
+                        ) : (
+                          <>
+                            <Save className="h-4 w-4 text-gold" /> Save Package to Storefront
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Phase 3: Profile Description Before & After */}
+                  {m.profileDraft && (
+                    <div className="mt-3 pt-3 border-t border-gold/20 bg-white p-4 rounded-2xl border border-gold/20 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-[#0F4C45] uppercase tracking-wider flex items-center gap-1.5">
+                          <FileText className="h-4 w-4" /> SEO Description Comparison
+                        </span>
+                        <span className="text-[11px] bg-amber-100 text-amber-900 px-2.5 py-0.5 rounded-full font-bold">
+                          {m.profileDraft.isApproved ? "Updated on Storefront" : "Before → After"}
+                        </span>
+                      </div>
+
+                      <div className="space-y-2.5 text-xs">
+                        <div className="bg-[#FAF7F2] p-3 rounded-xl border border-red-200">
+                          <span className="text-[11px] font-bold text-red-700 block mb-1">Current Description:</span>
+                          <p className="text-xs text-charcoal/70 italic">{m.profileDraft.currentAbout}</p>
+                        </div>
+
+                        <div className="bg-[#FAF7F2] p-3 rounded-xl border border-emerald-300">
+                          <span className="text-[11px] font-bold text-emerald-800 block mb-1">Proposed SEO-Optimized Description:</span>
+                          <p className="text-xs text-charcoal leading-relaxed">{m.profileDraft.proposedAbout}</p>
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={() => handleApproveProfile(m.id, m.profileDraft!)}
+                        disabled={m.profileDraft.isApproved || isActionLoading}
+                        className={`w-full py-2.5 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer ${
+                          m.profileDraft.isApproved
+                            ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
+                            : "bg-[#0F4C45] hover:bg-[#135951] text-white"
+                        }`}
+                      >
+                        {m.profileDraft.isApproved ? (
+                          <>
+                            <CheckCircle2 className="h-4 w-4 text-emerald-700" /> Storefront Profile Updated
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle2 className="h-4 w-4 text-gold" /> Approve & Update Storefront
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Grounded Live Vendor Cards */}
                   {m.groundedVendors && m.groundedVendors.length > 0 && (
                     <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 border-t border-gold/10">
-                      {m.groundedVendors.map((v) => {
-                        const initials = v.name
-                          .split(" ")
-                          .map((w: string) => w[0])
-                          .filter(Boolean)
-                          .join("")
-                          .slice(0, 2)
-                          .toUpperCase() || "V";
-
-                        return (
-                          <Link
-                            key={v.id}
-                            href={v.detailUrl}
-                            className="flex items-center gap-3 bg-white hover:bg-gold/10 p-3 rounded-xl border border-gold/20 transition-all group"
-                          >
-                            <div className="relative h-12 w-12 rounded-lg overflow-hidden bg-[#0F4C45] shrink-0 border border-gold/20 flex items-center justify-center text-white">
-                              {v.coverImage ? (
-                                <img src={v.coverImage} alt={v.name} className="w-full h-full object-cover" />
-                              ) : v.logo ? (
-                                <img src={v.logo} alt={v.name} className="w-full h-full object-cover" />
-                              ) : (
-                                <span className="font-serif text-sm font-bold">{initials}</span>
-                              )}
-                            </div>
-
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-1">
-                                <h4 className="font-serif font-bold text-xs sm:text-sm text-charcoal truncate group-hover:text-[#0F4C45] transition-colors">
-                                  {v.name}
-                                </h4>
-                                {v.isVerified && (
-                                  <CheckCircle2 className="h-3.5 w-3.5 text-[#0F4C45] shrink-0" />
-                                )}
-                              </div>
-                              <p className="text-[11px] text-charcoal/60 truncate flex items-center gap-1 mt-0.5">
-                                <MapPin className="h-3 w-3 text-charcoal/40 shrink-0" />
-                                <span>{v.city}, {v.state}</span>
-                              </p>
-                              <div className="flex items-center justify-between gap-2 mt-1">
-                                <div className="flex items-center gap-1 text-[11px]">
-                                  <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
-                                  <span className="font-semibold text-charcoal">
-                                    {v.rating > 0 ? v.rating.toFixed(1) : "New"}
-                                  </span>
-                                </div>
-                                <span className="text-[11px] font-bold text-[#0F4C45]">
-                                  {v.startingPrice}
-                                </span>
-                              </div>
-                            </div>
-                            <ChevronRight className="h-4 w-4 text-charcoal/40 group-hover:translate-x-0.5 transition-transform shrink-0" />
-                          </Link>
-                        );
-                      })}
-                    </div>
-                  )}
-
-                  {/* 2. Side-by-Side Real Vendor Comparison */}
-                  {m.comparisonVendors && m.comparisonVendors.length >= 2 && (
-                    <div className="mt-3 pt-3 border-t border-gold/15">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {m.comparisonVendors.map((v) => (
-                          <div key={v.id} className="bg-white p-3.5 rounded-xl border border-gold/20 flex flex-col justify-between">
-                            <div>
-                              <div className="flex items-center justify-between gap-1 mb-1">
-                                <span className="font-serif font-bold text-sm text-charcoal truncate">{v.name}</span>
-                                {v.isVerified && <CheckCircle2 className="h-4 w-4 text-[#0F4C45] shrink-0" />}
-                              </div>
-                              <span className="text-xs text-charcoal/60 block mb-2">{v.category} • {v.city}</span>
-                              
-                              <div className="space-y-1.5 text-xs py-2 border-y border-gold/10 my-2">
-                                <div className="flex justify-between">
-                                  <span className="text-charcoal/60">Rating:</span>
-                                  <span className="font-bold">{v.rating > 0 ? `★ ${v.rating.toFixed(1)} (${v.reviewCount})` : "New (0)"}</span>
-                                </div>
-                                <div className="flex justify-between">
-                                  <span className="text-charcoal/60">Starting Price:</span>
-                                  <span className="font-bold text-[#0F4C45]">{v.startingPrice}</span>
-                                </div>
-                                <div className="flex justify-between">
-                                  <span className="text-charcoal/60">Verification:</span>
-                                  <span className="text-emerald-700 font-semibold">{v.isVerified ? "Verified Partner" : "Registered Partner"}</span>
-                                </div>
-                              </div>
-                            </div>
-
-                            <Link
-                              href={v.detailUrl}
-                              className="mt-2 text-center text-xs font-bold bg-[#0F4C45] text-white py-1.5 px-3 rounded-lg hover:bg-[#135951] transition-colors block"
-                            >
-                              View Vendor Storefront
-                            </Link>
+                      {m.groundedVendors.map((v) => (
+                        <Link
+                          key={v.id}
+                          href={v.detailUrl}
+                          className="flex items-center gap-3 bg-white hover:bg-gold/10 p-3 rounded-xl border border-gold/20 transition-all group"
+                        >
+                          <div className="relative h-12 w-12 rounded-lg overflow-hidden bg-[#0F4C45] shrink-0 border border-gold/20 flex items-center justify-center text-white">
+                            {v.coverImage ? (
+                              <img src={v.coverImage} alt={v.name} className="w-full h-full object-cover" />
+                            ) : v.logo ? (
+                              <img src={v.logo} alt={v.name} className="w-full h-full object-cover" />
+                            ) : (
+                              <span className="font-serif text-sm font-bold">{v.name.slice(0, 2).toUpperCase()}</span>
+                            )}
                           </div>
-                        ))}
-                      </div>
+
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-serif font-bold text-xs sm:text-sm text-charcoal truncate group-hover:text-[#0F4C45] transition-colors">
+                              {v.name}
+                            </h4>
+                            <p className="text-[11px] text-charcoal/60 truncate flex items-center gap-1 mt-0.5">
+                              <MapPin className="h-3 w-3 text-charcoal/40 shrink-0" />
+                              <span>{v.city}, {v.state}</span>
+                            </p>
+                            <div className="flex items-center justify-between gap-2 mt-1">
+                              <span className="text-[11px] text-charcoal font-semibold">
+                                {v.rating > 0 ? `★ ${v.rating.toFixed(1)}` : "New"}
+                              </span>
+                              <span className="text-[11px] font-bold text-[#0F4C45]">
+                                {v.startingPrice}
+                              </span>
+                            </div>
+                          </div>
+                        </Link>
+                      ))}
                     </div>
                   )}
 
-                  {/* 3. Budget Planner Card (Direct-Write) */}
+                  {/* Budget Plan Card */}
                   {m.budgetPlan && (
                     <div className="mt-3 pt-3 border-t border-gold/15 space-y-2">
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -414,7 +592,7 @@ export function GenieClient() {
                       {userContext?.userId && (
                         <button
                           onClick={() => handleSaveBudgetPlan(m.id, m.budgetPlan)}
-                          disabled={m.budgetPlan.isSaved || isSavingPlan}
+                          disabled={m.budgetPlan.isSaved || isActionLoading}
                           className={`w-full mt-2 py-2.5 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all ${
                             m.budgetPlan.isSaved
                               ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
@@ -427,7 +605,7 @@ export function GenieClient() {
                             </>
                           ) : (
                             <>
-                              <Save className="h-4 w-4 text-gold" /> Save to My Wedding Plan (Direct-Write)
+                              <Save className="h-4 w-4 text-gold" /> Save to My Wedding Plan
                             </>
                           )}
                         </button>
@@ -435,28 +613,7 @@ export function GenieClient() {
                     </div>
                   )}
 
-                  {/* 4. Wedding Checklist (Direct-Write) */}
-                  {m.checklist && (
-                    <div className="mt-3 pt-3 border-t border-gold/15 space-y-2">
-                      {m.checklist.map((item) => (
-                        <div key={item.id} className="bg-white p-2.5 rounded-xl border border-gold/10 flex items-center gap-2 text-xs">
-                          {item.completed ? (
-                            <CheckSquare className="h-4 w-4 text-[#0F4C45] shrink-0" />
-                          ) : (
-                            <Square className="h-4 w-4 text-charcoal/40 shrink-0" />
-                          )}
-                          <span className={`flex-1 ${item.completed ? "line-through text-charcoal/50" : "text-charcoal font-medium"}`}>
-                            {item.title}
-                          </span>
-                          <span className="text-[10px] bg-gold/15 text-charcoal/70 px-2 py-0.5 rounded font-semibold shrink-0">
-                            {item.category}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* 5. Inquiry Draft (Draft-Then-Confirm) */}
+                  {/* Inquiry Draft */}
                   {m.inquiryDraft && (
                     <div className="mt-3 pt-3 border-t border-gold/20 bg-white p-4 rounded-2xl border border-gold/20 space-y-3">
                       <div className="flex items-center justify-between">
@@ -471,7 +628,7 @@ export function GenieClient() {
                       <div className="bg-[#FAF7F2] p-3 rounded-xl border border-gold/15 text-xs space-y-1 text-charcoal">
                         <div><strong className="text-charcoal/60">Target Vendor:</strong> {m.inquiryDraft.vendorName} ({m.inquiryDraft.category})</div>
                         <div><strong className="text-charcoal/60">Your Contact:</strong> {m.inquiryDraft.customerName} ({m.inquiryDraft.customerPhone})</div>
-                        <div><strong className="text-charcoal/60">Event Details:</strong> {m.inquiryDraft.eventType} on {m.inquiryDraft.eventDate} ({m.inquiryDraft.city})</div>
+                        <div><strong className="text-charcoal/60">Event:</strong> {m.inquiryDraft.eventType} on {m.inquiryDraft.eventDate} ({m.inquiryDraft.city})</div>
                         <div className="pt-1.5 text-xs italic text-charcoal/80 bg-white p-2.5 rounded mt-2 border border-gold/10">
                           &ldquo;{m.inquiryDraft.message}&rdquo;
                         </div>
@@ -479,7 +636,7 @@ export function GenieClient() {
 
                       <button
                         onClick={() => handleConfirmSendInquiry(m.inquiryDraft!)}
-                        disabled={isSendingInquiry}
+                        disabled={isActionLoading}
                         className="w-full bg-[#0F4C45] hover:bg-[#135951] text-white py-2.5 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer disabled:opacity-50"
                       >
                         <Send className="h-4 w-4 text-gold" /> Confirm & Send Inquiry to {m.inquiryDraft.vendorName}
@@ -499,24 +656,6 @@ export function GenieClient() {
                       </Link>
                     </div>
                   )}
-
-                  {/* Action Decline Redirect Buttons for Guests */}
-                  {m.actionRequired === "signup" && (
-                    <div className="mt-3 flex items-center gap-2 pt-2 border-t border-gold/10">
-                      <Link
-                        href="/signup"
-                        className="flex-1 bg-[#0F4C45] text-white py-1.5 px-3 rounded-lg text-center font-bold text-[11px] hover:bg-[#135951] transition-colors flex items-center justify-center gap-1"
-                      >
-                        <UserPlus className="h-3 w-3" /> Sign Up Free
-                      </Link>
-                      <Link
-                        href="/login"
-                        className="flex-1 bg-[#FAF7F2] border border-gold/20 text-[#0F4C45] py-1.5 px-3 rounded-lg text-center font-bold text-[11px] hover:bg-gold/10 transition-colors flex items-center justify-center gap-1"
-                      >
-                        <LogIn className="h-3 w-3" /> Log In
-                      </Link>
-                    </div>
-                  )}
                 </div>
                 <span className="text-[10px] text-charcoal/40 px-1 mt-1">{m.timestamp}</span>
               </div>
@@ -525,7 +664,7 @@ export function GenieClient() {
             {isThinking && (
               <div className="flex items-center gap-2 text-xs text-charcoal/60 bg-[#FAF7F2] p-3 rounded-2xl border border-gold/15 w-fit animate-pulse">
                 <Sparkles className="w-4 h-4 text-gold animate-spin" />
-                <span>Aura is checking live directory...</span>
+                <span>Aura is processing with live database...</span>
               </div>
             )}
             <div ref={messagesEndRef} />
@@ -558,7 +697,7 @@ export function GenieClient() {
               type="text"
               value={promptInput}
               onChange={(e) => setPromptInput(e.target.value)}
-              placeholder={userContext?.userId ? "Ask Aura: 'Plan my wedding budget', 'Compare shaban and Acesd'..." : "Ask Aura: 'Find wedding venues in Kochi', 'Photographers in Kerala'..."}
+              placeholder={vendorContext ? "Ask Aura: 'Draft a package', 'Rewrite my SEO description'..." : "Ask Aura: 'Find wedding venues in Kochi', 'Photographers in Kerala'..."}
               disabled={isThinking}
               className="flex-1 bg-[#FAF7F2] border border-gold/20 rounded-2xl px-4 py-3 text-xs sm:text-sm text-charcoal placeholder:text-charcoal/40 focus:outline-none focus:border-[#0F4C45]"
             />
