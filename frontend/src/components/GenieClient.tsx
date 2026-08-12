@@ -17,9 +17,21 @@ import {
   X,
   UserPlus,
   LogIn,
+  Save,
+  CheckSquare,
+  Square,
+  MailCheck,
 } from "lucide-react";
 import { Footer } from "@/components/Footer";
-import { queryAuraAssistant, AuraResponse, AuraVendorItem } from "@/lib/auraEngine";
+import { 
+  queryAuraAssistant, 
+  AuraResponse, 
+  AuraVendorItem,
+  AuraUserContext,
+  BudgetBreakdownItem,
+  WeddingChecklistItem,
+  InquiryDraft
+} from "@/lib/auraEngine";
 import { BottomNavBar } from "@/components/BottomNavBar";
 
 interface ChatMessage {
@@ -29,30 +41,87 @@ interface ChatMessage {
   groundedVendors?: AuraVendorItem[];
   categoryUrl?: string;
   actionRequired?: "signup" | "login" | "none";
+  budgetPlan?: {
+    totalBudget: number;
+    guestCount: number;
+    city: string;
+    items: BudgetBreakdownItem[];
+    isSaved?: boolean;
+  };
+  comparisonVendors?: AuraVendorItem[];
+  checklist?: WeddingChecklistItem[];
+  inquiryDraft?: InquiryDraft;
   timestamp: string;
 }
 
 export function GenieClient() {
   const [promptInput, setPromptInput] = useState("");
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      id: "aura-init",
-      sender: "aura",
-      text: "Hi, I'm Aura, your Cloche AI Wedding Assistant. How can I help you today?",
-      timestamp: "Just now",
-    },
-  ]);
-
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [userContext, setUserContext] = useState<AuraUserContext | null>(null);
   const [isThinking, setIsThinking] = useState(false);
+  const [isSendingInquiry, setIsSendingInquiry] = useState(false);
+  const [isSavingPlan, setIsSavingPlan] = useState(false);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const samplePrompts = [
+  // Fetch logged in user details on mount
+  useEffect(() => {
+    async function loadUser() {
+      try {
+        const res = await fetch("/api/v1/auth/me");
+        if (res.ok) {
+          const json = await res.json();
+          if (json.data?.user) {
+            const u = json.data.user;
+            const ctx: AuraUserContext = {
+              userId: u.id,
+              fullName: u.fullName || u.email?.split("@")[0],
+              email: u.email,
+              phone: u.phone,
+              city: u.city || "Thrissur",
+              weddingDate: u.weddingDate,
+            };
+            setUserContext(ctx);
+            const firstName = ctx.fullName?.split(" ")[0] || "there";
+            setMessages([
+              {
+                id: "aura-init",
+                sender: "aura",
+                text: `Hi ${firstName}, I'm Aura, your Cloche AI Wedding Assistant. How can I help with your wedding planning today?`,
+                timestamp: "Just now",
+              },
+            ]);
+            return;
+          }
+        }
+      } catch (e) {}
+
+      setMessages([
+        {
+          id: "aura-init-guest",
+          sender: "aura",
+          text: "Hi, I'm Aura, your Cloche AI Wedding Assistant. How can I help you today?",
+          timestamp: "Just now",
+        },
+      ]);
+    }
+
+    loadUser();
+  }, []);
+
+  const samplePrompts = userContext?.userId ? [
+    "Plan my wedding for 400 guests in Thrissur, budget ₹15 lakh",
+    "Compare shaban and Acesd for decor",
+    "Show my wedding checklist",
+    "Send an inquiry to shaban",
+    "Find photographers in Kerala",
+  ] : [
     "Find wedding venues in Kochi",
     "Top rated photographers in Kerala",
+    "Compare shaban and Acesd for decor",
     "Bridal makeup artists",
     "Traditional Kerala Sadya catering",
-    "Kerala Hindu wedding rituals and Sadya tips",
   ];
 
   useEffect(() => {
@@ -75,7 +144,7 @@ export function GenieClient() {
     setIsThinking(true);
 
     try {
-      const response: AuraResponse = await queryAuraAssistant(query);
+      const response: AuraResponse = await queryAuraAssistant(query, userContext);
       const auraMessage: ChatMessage = {
         id: `aura-${Date.now()}`,
         sender: "aura",
@@ -83,6 +152,10 @@ export function GenieClient() {
         groundedVendors: response.groundedVendors,
         categoryUrl: response.categoryUrl,
         actionRequired: response.actionRequired,
+        budgetPlan: response.budgetPlan,
+        comparisonVendors: response.comparisonVendors,
+        checklist: response.checklist,
+        inquiryDraft: response.inquiryDraft,
         timestamp: "Just now",
       };
       setMessages((prev) => [...prev, auraMessage]);
@@ -101,6 +174,87 @@ export function GenieClient() {
     }
   };
 
+  // Direct-Write: Save Budget Plan
+  const handleSaveBudgetPlan = async (msgId: string, plan: any) => {
+    setIsSavingPlan(true);
+    try {
+      const res = await fetch("/api/v1/customer/wedding-plan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          estimatedBudget: plan.totalBudget,
+          guestCount: plan.guestCount,
+          preferredCity: plan.city,
+          budgetBreakdown: plan.items,
+        }),
+      });
+
+      if (res.ok) {
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === msgId && m.budgetPlan
+              ? { ...m, budgetPlan: { ...m.budgetPlan, isSaved: true } }
+              : m
+          )
+        );
+        const formattedAmount = `₹${(plan.totalBudget / 100000).toFixed(1)} Lakhs`;
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `aura-saved-${Date.now()}`,
+            sender: "aura",
+            text: `I've saved your ${formattedAmount} wedding budget plan (${plan.guestCount} guests in ${plan.city}) to your account. You can view or adjust this anytime from your dashboard.`,
+            timestamp: "Just now",
+          },
+        ]);
+      }
+    } catch (e) {
+    } finally {
+      setIsSavingPlan(false);
+    }
+  };
+
+  // Draft-Then-Confirm: Send Inquiry to Vendor
+  const handleConfirmSendInquiry = async (draft: InquiryDraft) => {
+    setIsSendingInquiry(true);
+    try {
+      const res = await fetch("/api/v1/leads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          vendor_id: draft.vendorId,
+          customer_name: draft.customerName,
+          customer_phone: draft.customerPhone,
+          customer_email: draft.customerEmail,
+          event_type: draft.eventType,
+          event_date: draft.eventDate,
+          city: draft.city,
+          guest_count: draft.guestCount,
+          estimated_budget: draft.estimatedBudget,
+          message: draft.message,
+        }),
+      });
+
+      if (res.ok) {
+        const json = await res.json();
+        const leadId = json.data?.id ? json.data.id.slice(0, 8) : "LD-" + Date.now().toString().slice(-4);
+        
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `aura-inquiry-sent-${Date.now()}`,
+            sender: "aura",
+            text: `Your inquiry has been successfully sent to ${draft.vendorName}! (Reference Lead ID: #${leadId}). The vendor will receive your request and contact you directly.`,
+            timestamp: "Just now",
+          },
+        ]);
+      }
+    } catch (e) {
+    } finally {
+      setIsSendingInquiry(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#F5F0E8] text-[#2D2520] flex flex-col pt-4 font-sans">
       {/* Hero Header */}
@@ -108,13 +262,13 @@ export function GenieClient() {
         <div className="bg-gradient-to-r from-[#0F4C45] via-[#12584E] to-[#0A3833] rounded-3xl p-6 sm:p-10 text-white shadow-xl relative overflow-hidden">
           <div className="relative z-10 max-w-2xl">
             <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/10 border border-white/20 text-xs font-semibold text-[#D4B66E] mb-4">
-              <Sparkles className="w-3.5 h-3.5" /> Cloche Aura • AI Discovery Concierge
+              <Sparkles className="w-3.5 h-3.5" /> Cloche Aura • AI Wedding Planning Concierge
             </div>
             <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-3">
-              Discover Verified Wedding Partners
+              Personalized Wedding Concierge
             </h1>
             <p className="text-white/80 text-sm sm:text-base leading-relaxed">
-              Ask Aura to search live verified banquet halls, candid photographers, bridal makeup artists, and caterers across Kerala.
+              Plan your wedding budget, compare registered vendors side-by-side, manage checklist milestones, and draft vendor inquiries seamlessly.
             </p>
           </div>
         </div>
@@ -122,7 +276,7 @@ export function GenieClient() {
 
       {/* Main Chat Assistant Workspace */}
       <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 py-4 flex flex-col gap-6">
-        <div className="bg-white rounded-3xl border border-gold/15 shadow-sm p-4 sm:p-6 flex flex-col h-[580px]">
+        <div className="bg-white rounded-3xl border border-gold/15 shadow-sm p-4 sm:p-6 flex flex-col h-[620px]">
           {/* Chat Stream */}
           <div className="flex-1 overflow-y-auto space-y-4 pr-1">
             {messages.map((m) => (
@@ -131,15 +285,15 @@ export function GenieClient() {
                 className={`flex flex-col ${m.sender === "user" ? "items-end" : "items-start"}`}
               >
                 <div
-                  className={`max-w-[85%] rounded-2xl p-4 text-xs sm:text-sm leading-relaxed shadow-xs ${
+                  className={`max-w-[88%] rounded-2xl p-4 text-xs sm:text-sm leading-relaxed shadow-xs ${
                     m.sender === "user"
                       ? "bg-[#0F4C45] text-white rounded-br-none"
                       : "bg-[#FAF7F2] text-charcoal border border-gold/15 rounded-bl-none"
                   }`}
                 >
-                  {m.text}
+                  <div className="whitespace-pre-line">{m.text}</div>
 
-                  {/* Grounded Live Vendor Cards */}
+                  {/* 1. Grounded Live Vendor Cards */}
                   {m.groundedVendors && m.groundedVendors.length > 0 && (
                     <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 border-t border-gold/10">
                       {m.groundedVendors.map((v) => {
@@ -199,6 +353,140 @@ export function GenieClient() {
                     </div>
                   )}
 
+                  {/* 2. Side-by-Side Real Vendor Comparison */}
+                  {m.comparisonVendors && m.comparisonVendors.length >= 2 && (
+                    <div className="mt-3 pt-3 border-t border-gold/15">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {m.comparisonVendors.map((v) => (
+                          <div key={v.id} className="bg-white p-3.5 rounded-xl border border-gold/20 flex flex-col justify-between">
+                            <div>
+                              <div className="flex items-center justify-between gap-1 mb-1">
+                                <span className="font-serif font-bold text-sm text-charcoal truncate">{v.name}</span>
+                                {v.isVerified && <CheckCircle2 className="h-4 w-4 text-[#0F4C45] shrink-0" />}
+                              </div>
+                              <span className="text-xs text-charcoal/60 block mb-2">{v.category} • {v.city}</span>
+                              
+                              <div className="space-y-1.5 text-xs py-2 border-y border-gold/10 my-2">
+                                <div className="flex justify-between">
+                                  <span className="text-charcoal/60">Rating:</span>
+                                  <span className="font-bold">{v.rating > 0 ? `★ ${v.rating.toFixed(1)} (${v.reviewCount})` : "New (0)"}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-charcoal/60">Starting Price:</span>
+                                  <span className="font-bold text-[#0F4C45]">{v.startingPrice}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-charcoal/60">Verification:</span>
+                                  <span className="text-emerald-700 font-semibold">{v.isVerified ? "Verified Partner" : "Registered Partner"}</span>
+                                </div>
+                              </div>
+                            </div>
+
+                            <Link
+                              href={v.detailUrl}
+                              className="mt-2 text-center text-xs font-bold bg-[#0F4C45] text-white py-1.5 px-3 rounded-lg hover:bg-[#135951] transition-colors block"
+                            >
+                              View Vendor Storefront
+                            </Link>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 3. Budget Planner Card (Direct-Write) */}
+                  {m.budgetPlan && (
+                    <div className="mt-3 pt-3 border-t border-gold/15 space-y-2">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        {m.budgetPlan.items.map((it, idx) => (
+                          <div key={idx} className="bg-white p-3 rounded-xl border border-gold/10 flex items-center justify-between text-xs">
+                            <div>
+                              <div className="font-semibold text-charcoal">{it.category} ({it.percentage}%)</div>
+                              <div className="text-[11px] text-charcoal/60">{it.note}</div>
+                            </div>
+                            <div className="font-bold text-[#0F4C45] text-right shrink-0">
+                              ₹{it.amount.toLocaleString("en-IN")}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {userContext?.userId && (
+                        <button
+                          onClick={() => handleSaveBudgetPlan(m.id, m.budgetPlan)}
+                          disabled={m.budgetPlan.isSaved || isSavingPlan}
+                          className={`w-full mt-2 py-2.5 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all ${
+                            m.budgetPlan.isSaved
+                              ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
+                              : "bg-[#0F4C45] text-white hover:bg-[#135951] cursor-pointer"
+                          }`}
+                        >
+                          {m.budgetPlan.isSaved ? (
+                            <>
+                              <CheckCircle2 className="h-4 w-4 text-emerald-700" /> Saved to My Wedding Plan
+                            </>
+                          ) : (
+                            <>
+                              <Save className="h-4 w-4 text-gold" /> Save to My Wedding Plan (Direct-Write)
+                            </>
+                          )}
+                        </button>
+                      )}
+                    </div>
+                  )}
+
+                  {/* 4. Wedding Checklist (Direct-Write) */}
+                  {m.checklist && (
+                    <div className="mt-3 pt-3 border-t border-gold/15 space-y-2">
+                      {m.checklist.map((item) => (
+                        <div key={item.id} className="bg-white p-2.5 rounded-xl border border-gold/10 flex items-center gap-2 text-xs">
+                          {item.completed ? (
+                            <CheckSquare className="h-4 w-4 text-[#0F4C45] shrink-0" />
+                          ) : (
+                            <Square className="h-4 w-4 text-charcoal/40 shrink-0" />
+                          )}
+                          <span className={`flex-1 ${item.completed ? "line-through text-charcoal/50" : "text-charcoal font-medium"}`}>
+                            {item.title}
+                          </span>
+                          <span className="text-[10px] bg-gold/15 text-charcoal/70 px-2 py-0.5 rounded font-semibold shrink-0">
+                            {item.category}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* 5. Inquiry Draft (Draft-Then-Confirm) */}
+                  {m.inquiryDraft && (
+                    <div className="mt-3 pt-3 border-t border-gold/20 bg-white p-4 rounded-2xl border border-gold/20 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-[#0F4C45] uppercase tracking-wider flex items-center gap-1.5">
+                          <MailCheck className="h-4 w-4" /> Proposed Inquiry Draft
+                        </span>
+                        <span className="text-[11px] bg-amber-100 text-amber-900 px-2.5 py-0.5 rounded-full font-bold">
+                          Awaiting Confirmation
+                        </span>
+                      </div>
+
+                      <div className="bg-[#FAF7F2] p-3 rounded-xl border border-gold/15 text-xs space-y-1 text-charcoal">
+                        <div><strong className="text-charcoal/60">Target Vendor:</strong> {m.inquiryDraft.vendorName} ({m.inquiryDraft.category})</div>
+                        <div><strong className="text-charcoal/60">Your Contact:</strong> {m.inquiryDraft.customerName} ({m.inquiryDraft.customerPhone})</div>
+                        <div><strong className="text-charcoal/60">Event Details:</strong> {m.inquiryDraft.eventType} on {m.inquiryDraft.eventDate} ({m.inquiryDraft.city})</div>
+                        <div className="pt-1.5 text-xs italic text-charcoal/80 bg-white p-2.5 rounded mt-2 border border-gold/10">
+                          &ldquo;{m.inquiryDraft.message}&rdquo;
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={() => handleConfirmSendInquiry(m.inquiryDraft!)}
+                        disabled={isSendingInquiry}
+                        className="w-full bg-[#0F4C45] hover:bg-[#135951] text-white py-2.5 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer disabled:opacity-50"
+                      >
+                        <Send className="h-4 w-4 text-gold" /> Confirm & Send Inquiry to {m.inquiryDraft.vendorName}
+                      </button>
+                    </div>
+                  )}
+
                   {/* Category Explore Link */}
                   {m.categoryUrl && (
                     <div className="mt-2.5 pt-2 border-t border-gold/10">
@@ -212,7 +500,7 @@ export function GenieClient() {
                     </div>
                   )}
 
-                  {/* Action Decline Redirect Buttons */}
+                  {/* Action Decline Redirect Buttons for Guests */}
                   {m.actionRequired === "signup" && (
                     <div className="mt-3 flex items-center gap-2 pt-2 border-t border-gold/10">
                       <Link
@@ -237,7 +525,7 @@ export function GenieClient() {
             {isThinking && (
               <div className="flex items-center gap-2 text-xs text-charcoal/60 bg-[#FAF7F2] p-3 rounded-2xl border border-gold/15 w-fit animate-pulse">
                 <Sparkles className="w-4 h-4 text-gold animate-spin" />
-                <span>Aura is searching live directory...</span>
+                <span>Aura is checking live directory...</span>
               </div>
             )}
             <div ref={messagesEndRef} />
@@ -270,7 +558,7 @@ export function GenieClient() {
               type="text"
               value={promptInput}
               onChange={(e) => setPromptInput(e.target.value)}
-              placeholder="Ask Aura: 'Find wedding venues in Kochi', 'Photographers in Kerala'..."
+              placeholder={userContext?.userId ? "Ask Aura: 'Plan my wedding budget', 'Compare shaban and Acesd'..." : "Ask Aura: 'Find wedding venues in Kochi', 'Photographers in Kerala'..."}
               disabled={isThinking}
               className="flex-1 bg-[#FAF7F2] border border-gold/20 rounded-2xl px-4 py-3 text-xs sm:text-sm text-charcoal placeholder:text-charcoal/40 focus:outline-none focus:border-[#0F4C45]"
             />

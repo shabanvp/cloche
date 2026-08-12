@@ -5,9 +5,18 @@ import Link from "next/link";
 import { 
   Sparkles, Send, X, Star, MapPin, CheckCircle2, 
   ArrowRight, ExternalLink, RefreshCw, AlertCircle, 
-  HeartHandshake, ChevronRight, UserPlus, LogIn
+  HeartHandshake, ChevronRight, UserPlus, LogIn, 
+  Save, CheckSquare, Square, Calculator, Scale, MailCheck, User
 } from "lucide-react";
-import { queryAuraAssistant, AuraResponse, AuraVendorItem } from "@/lib/auraEngine";
+import { 
+  queryAuraAssistant, 
+  AuraResponse, 
+  AuraVendorItem, 
+  AuraUserContext,
+  BudgetBreakdownItem,
+  WeddingChecklistItem,
+  InquiryDraft
+} from "@/lib/auraEngine";
 
 interface AuraChatMessage {
   id: string;
@@ -16,6 +25,16 @@ interface AuraChatMessage {
   groundedVendors?: AuraVendorItem[];
   categoryUrl?: string;
   actionRequired?: "signup" | "login" | "none";
+  budgetPlan?: {
+    totalBudget: number;
+    guestCount: number;
+    city: string;
+    items: BudgetBreakdownItem[];
+    isSaved?: boolean;
+  };
+  comparisonVendors?: AuraVendorItem[];
+  checklist?: WeddingChecklistItem[];
+  inquiryDraft?: InquiryDraft;
   timestamp: string;
 }
 
@@ -27,17 +46,58 @@ interface AuraAssistantDrawerProps {
 export function AuraAssistantDrawer({ isOpen, onClose }: AuraAssistantDrawerProps) {
   const [inputQuery, setInputQuery] = useState("");
   const [isTyping, setIsTyping] = useState(false);
-  const [messages, setMessages] = useState<AuraChatMessage[]>([
-    {
-      id: "aura-welcome",
-      sender: "aura",
-      text: "Hi, I'm Aura, your Cloche AI Wedding Assistant. How can I help you today?",
-      timestamp: "Just now",
-    },
-  ]);
+  const [userContext, setUserContext] = useState<AuraUserContext | null>(null);
+  const [messages, setMessages] = useState<AuraChatMessage[]>([]);
+  const [isSendingInquiry, setIsSendingInquiry] = useState(false);
+  const [isSavingPlan, setIsSavingPlan] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Fetch logged in user details on mount
+  useEffect(() => {
+    async function loadUser() {
+      try {
+        const res = await fetch("/api/v1/auth/me");
+        if (res.ok) {
+          const json = await res.json();
+          if (json.data?.user) {
+            const u = json.data.user;
+            const ctx: AuraUserContext = {
+              userId: u.id,
+              fullName: u.fullName || u.email?.split("@")[0],
+              email: u.email,
+              phone: u.phone,
+              city: u.city || "Thrissur",
+              weddingDate: u.weddingDate,
+            };
+            setUserContext(ctx);
+            const firstName = ctx.fullName?.split(" ")[0] || "there";
+            setMessages([
+              {
+                id: "aura-welcome",
+                sender: "aura",
+                text: `Hi ${firstName}, I'm Aura, your Cloche AI Wedding Assistant. How can I help with your wedding planning today?`,
+                timestamp: "Just now",
+              },
+            ]);
+            return;
+          }
+        }
+      } catch (e) {}
+
+      setMessages([
+        {
+          id: "aura-welcome-guest",
+          sender: "aura",
+          text: "Hi, I'm Aura, your Cloche AI Wedding Assistant. How can I help you today?",
+          timestamp: "Just now",
+        },
+      ]);
+    }
+
+    loadUser();
+  }, []);
 
   useEffect(() => {
     if (isOpen) {
@@ -65,7 +125,7 @@ export function AuraAssistantDrawer({ isOpen, onClose }: AuraAssistantDrawerProp
     setIsTyping(true);
 
     try {
-      const response: AuraResponse = await queryAuraAssistant(textToSend);
+      const response: AuraResponse = await queryAuraAssistant(textToSend, userContext);
       const auraMessage: AuraChatMessage = {
         id: `aura-${Date.now()}`,
         sender: "aura",
@@ -73,6 +133,10 @@ export function AuraAssistantDrawer({ isOpen, onClose }: AuraAssistantDrawerProp
         groundedVendors: response.groundedVendors,
         categoryUrl: response.categoryUrl,
         actionRequired: response.actionRequired,
+        budgetPlan: response.budgetPlan,
+        comparisonVendors: response.comparisonVendors,
+        checklist: response.checklist,
+        inquiryDraft: response.inquiryDraft,
         timestamp: "Just now",
       };
       setMessages((prev) => [...prev, auraMessage]);
@@ -91,12 +155,118 @@ export function AuraAssistantDrawer({ isOpen, onClose }: AuraAssistantDrawerProp
     }
   };
 
-  const sampleChips = [
+  // Direct-Write: Save Budget Plan
+  const handleSaveBudgetPlan = async (msgId: string, plan: any) => {
+    setIsSavingPlan(true);
+    try {
+      const res = await fetch("/api/v1/customer/wedding-plan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          estimatedBudget: plan.totalBudget,
+          guestCount: plan.guestCount,
+          preferredCity: plan.city,
+          budgetBreakdown: plan.items,
+        }),
+      });
+
+      if (res.ok) {
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === msgId && m.budgetPlan
+              ? { ...m, budgetPlan: { ...m.budgetPlan, isSaved: true } }
+              : m
+          )
+        );
+        const formattedAmount = `₹${(plan.totalBudget / 100000).toFixed(1)} Lakhs`;
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `aura-saved-${Date.now()}`,
+            sender: "aura",
+            text: `I've saved your ${formattedAmount} wedding budget plan (${plan.guestCount} guests in ${plan.city}) to your account. You can view or adjust this anytime from your dashboard.`,
+            timestamp: "Just now",
+          },
+        ]);
+      }
+    } catch (e) {
+    } finally {
+      setIsSavingPlan(false);
+    }
+  };
+
+  // Draft-Then-Confirm: Send Inquiry to Vendor
+  const handleConfirmSendInquiry = async (draft: InquiryDraft) => {
+    setIsSendingInquiry(true);
+    try {
+      const res = await fetch("/api/v1/leads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          vendor_id: draft.vendorId,
+          customer_name: draft.customerName,
+          customer_phone: draft.customerPhone,
+          customer_email: draft.customerEmail,
+          event_type: draft.eventType,
+          event_date: draft.eventDate,
+          city: draft.city,
+          guest_count: draft.guestCount,
+          estimated_budget: draft.estimatedBudget,
+          message: draft.message,
+        }),
+      });
+
+      if (res.ok) {
+        const json = await res.json();
+        const leadId = json.data?.id ? json.data.id.slice(0, 8) : "LD-" + Date.now().toString().slice(-4);
+        
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `aura-inquiry-sent-${Date.now()}`,
+            sender: "aura",
+            text: `Your inquiry has been successfully sent to ${draft.vendorName}! (Reference Lead ID: #${leadId}). The vendor will receive your request and contact you directly.`,
+            timestamp: "Just now",
+          },
+        ]);
+      } else {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `aura-inquiry-err-${Date.now()}`,
+            sender: "aura",
+            text: `Could not send inquiry to ${draft.vendorName} right now. Please try calling the vendor directly from their profile page.`,
+            timestamp: "Just now",
+          },
+        ]);
+      }
+    } catch (e) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `aura-inquiry-err-${Date.now()}`,
+          sender: "aura",
+          text: `A network error occurred while submitting your inquiry. Please try again.`,
+          timestamp: "Just now",
+        },
+      ]);
+    } finally {
+      setIsSendingInquiry(false);
+    }
+  };
+
+  const sampleChips = userContext?.userId ? [
+    "Plan my wedding for 400 guests in Thrissur, budget ₹15 lakh",
+    "Compare shaban and Acesd for decor",
+    "Show my wedding checklist",
+    "Send an inquiry to shaban",
+    "Find photographers in Kerala",
+  ] : [
     "Find wedding venues in Kochi",
     "Top photographers in Kerala",
+    "Compare shaban and Acesd for decor",
     "Bridal makeup artists",
     "Traditional Kerala Sadya catering",
-    "Kerala Christian wedding traditions",
   ];
 
   if (!isOpen) return null;
@@ -121,10 +291,12 @@ export function AuraAssistantDrawer({ isOpen, onClose }: AuraAssistantDrawerProp
               <div className="flex items-center gap-1.5">
                 <h3 className="font-serif font-bold text-lg leading-none">Aura</h3>
                 <span className="bg-emerald-800 text-emerald-100 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-600">
-                  AI Assistant
+                  {userContext?.userId ? "Wedding Planner" : "AI Discovery"}
                 </span>
               </div>
-              <p className="text-[11px] text-white/80 mt-0.5">Cloche Guest Discovery Assistant</p>
+              <p className="text-[11px] text-white/80 mt-0.5">
+                {userContext?.fullName ? `Active for ${userContext.fullName}` : "Cloche Guest Discovery Assistant"}
+              </p>
             </div>
           </div>
 
@@ -145,15 +317,15 @@ export function AuraAssistantDrawer({ isOpen, onClose }: AuraAssistantDrawerProp
               className={`flex flex-col ${m.sender === "user" ? "items-end" : "items-start"}`}
             >
               <div
-                className={`max-w-[88%] rounded-2xl p-3.5 sm:p-4 text-xs sm:text-sm leading-relaxed shadow-xs ${
+                className={`max-w-[92%] rounded-2xl p-3.5 sm:p-4 text-xs sm:text-sm leading-relaxed shadow-xs ${
                   m.sender === "user"
                     ? "bg-[#0F4C45] text-white rounded-br-none"
                     : "bg-white text-charcoal border border-gold/15 rounded-bl-none"
                 }`}
               >
-                {m.text}
+                <div className="whitespace-pre-line">{m.text}</div>
 
-                {/* Grounded Vendor Cards */}
+                {/* 1. Grounded Vendor Discovery Cards */}
                 {m.groundedVendors && m.groundedVendors.length > 0 && (
                   <div className="mt-3 space-y-2.5 pt-2 border-t border-gold/10">
                     {m.groundedVendors.map((v) => {
@@ -172,7 +344,6 @@ export function AuraAssistantDrawer({ isOpen, onClose }: AuraAssistantDrawerProp
                           onClick={onClose}
                           className="flex items-center gap-3 bg-[#FAF7F2] hover:bg-[#F3EDE2] p-2.5 rounded-xl border border-gold/15 transition-all group block"
                         >
-                          {/* Thumbnail with Logo Avatar */}
                           <div className="relative h-14 w-14 rounded-lg overflow-hidden bg-[#0F4C45] shrink-0 border border-gold/20 flex items-center justify-center text-white">
                             {v.coverImage ? (
                               <img src={v.coverImage} alt={v.name} className="w-full h-full object-cover" />
@@ -183,7 +354,6 @@ export function AuraAssistantDrawer({ isOpen, onClose }: AuraAssistantDrawerProp
                             )}
                           </div>
 
-                          {/* Info */}
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-1">
                               <h4 className="font-serif font-bold text-xs sm:text-sm text-charcoal truncate group-hover:text-[#0F4C45] transition-colors">
@@ -217,6 +387,141 @@ export function AuraAssistantDrawer({ isOpen, onClose }: AuraAssistantDrawerProp
                   </div>
                 )}
 
+                {/* 2. Side-by-Side Real Vendor Comparison Table */}
+                {m.comparisonVendors && m.comparisonVendors.length >= 2 && (
+                  <div className="mt-3 pt-3 border-t border-gold/15">
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      {m.comparisonVendors.map((v) => (
+                        <div key={v.id} className="bg-[#FAF7F2] p-3 rounded-xl border border-gold/20 flex flex-col justify-between">
+                          <div>
+                            <div className="flex items-center justify-between gap-1 mb-1">
+                              <span className="font-serif font-bold text-xs sm:text-sm text-charcoal truncate">{v.name}</span>
+                              {v.isVerified && <CheckCircle2 className="h-3.5 w-3.5 text-[#0F4C45] shrink-0" />}
+                            </div>
+                            <span className="text-[10px] text-charcoal/60 block mb-2">{v.category} • {v.city}</span>
+                            
+                            <div className="space-y-1 text-[11px] py-1 border-y border-gold/10 my-2">
+                              <div className="flex justify-between">
+                                <span className="text-charcoal/60">Rating:</span>
+                                <span className="font-bold">{v.rating > 0 ? `★ ${v.rating.toFixed(1)}` : "New (0)"}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-charcoal/60">Starting:</span>
+                                <span className="font-bold text-[#0F4C45] truncate">{v.startingPrice}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-charcoal/60">Status:</span>
+                                <span className="text-emerald-700 font-semibold">{v.isVerified ? "Verified" : "Partner"}</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <Link
+                            href={v.detailUrl}
+                            onClick={onClose}
+                            className="mt-2 text-center text-[10px] font-bold bg-[#0F4C45] text-white py-1 px-2 rounded-lg hover:bg-[#135951] transition-colors block"
+                          >
+                            View Storefront
+                          </Link>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* 3. Budget Planner Card (Direct-Write Tier) */}
+                {m.budgetPlan && (
+                  <div className="mt-3 pt-3 border-t border-gold/15 space-y-2">
+                    <div className="space-y-1.5">
+                      {m.budgetPlan.items.map((it, idx) => (
+                        <div key={idx} className="bg-[#FAF7F2] p-2.5 rounded-xl border border-gold/10 flex items-center justify-between text-xs">
+                          <div>
+                            <div className="font-semibold text-charcoal">{it.category} ({it.percentage}%)</div>
+                            <div className="text-[10px] text-charcoal/60">{it.note}</div>
+                          </div>
+                          <div className="font-bold text-[#0F4C45] text-right shrink-0">
+                            ₹{it.amount.toLocaleString("en-IN")}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {userContext?.userId && (
+                      <button
+                        onClick={() => handleSaveBudgetPlan(m.id, m.budgetPlan)}
+                        disabled={m.budgetPlan.isSaved || isSavingPlan}
+                        className={`w-full mt-2 py-2 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all ${
+                          m.budgetPlan.isSaved
+                            ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
+                            : "bg-[#0F4C45] text-white hover:bg-[#135951] cursor-pointer"
+                        }`}
+                      >
+                        {m.budgetPlan.isSaved ? (
+                          <>
+                            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-700" /> Saved to My Wedding Plan
+                          </>
+                        ) : (
+                          <>
+                            <Save className="h-3.5 w-3.5 text-gold" /> Save to My Wedding Plan (Direct-Write)
+                          </>
+                        )}
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                {/* 4. Wedding Checklist (Direct-Write Tier) */}
+                {m.checklist && (
+                  <div className="mt-3 pt-3 border-t border-gold/15 space-y-1.5">
+                    {m.checklist.map((item) => (
+                      <div key={item.id} className="bg-[#FAF7F2] p-2 rounded-xl border border-gold/10 flex items-center gap-2 text-xs">
+                        {item.completed ? (
+                          <CheckSquare className="h-4 w-4 text-[#0F4C45] shrink-0" />
+                        ) : (
+                          <Square className="h-4 w-4 text-charcoal/40 shrink-0" />
+                        )}
+                        <span className={`flex-1 ${item.completed ? "line-through text-charcoal/50" : "text-charcoal font-medium"}`}>
+                          {item.title}
+                        </span>
+                        <span className="text-[9px] bg-gold/15 text-charcoal/70 px-1.5 py-0.5 rounded font-semibold shrink-0">
+                          {item.category}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* 5. Inquiry Draft (Draft-Then-Confirm Tier) */}
+                {m.inquiryDraft && (
+                  <div className="mt-3 pt-3 border-t border-gold/20 bg-[#FAF7F2] p-3.5 rounded-xl border border-gold/20 space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-bold text-[#0F4C45] uppercase tracking-wider flex items-center gap-1">
+                        <MailCheck className="h-3.5 w-3.5" /> Proposed Inquiry Draft
+                      </span>
+                      <span className="text-[10px] bg-amber-100 text-amber-900 px-2 py-0.5 rounded-full font-bold">
+                        Awaiting Your Confirmation
+                      </span>
+                    </div>
+
+                    <div className="bg-white p-2.5 rounded-lg border border-gold/15 text-xs space-y-1 text-charcoal">
+                      <div><strong className="text-charcoal/60">Vendor:</strong> {m.inquiryDraft.vendorName} ({m.inquiryDraft.category})</div>
+                      <div><strong className="text-charcoal/60">Customer:</strong> {m.inquiryDraft.customerName} ({m.inquiryDraft.customerPhone})</div>
+                      <div><strong className="text-charcoal/60">Event:</strong> {m.inquiryDraft.eventType} • {m.inquiryDraft.eventDate} ({m.inquiryDraft.city})</div>
+                      <div className="pt-1 text-[11px] italic text-charcoal/80 bg-[#FAF7F2] p-2 rounded mt-1 border border-gold/10">
+                        &ldquo;{m.inquiryDraft.message}&rdquo;
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => handleConfirmSendInquiry(m.inquiryDraft!)}
+                      disabled={isSendingInquiry}
+                      className="w-full bg-[#0F4C45] hover:bg-[#135951] text-white py-2 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all cursor-pointer disabled:opacity-50"
+                    >
+                      <Send className="h-3.5 w-3.5 text-gold" /> Confirm & Send Inquiry to {m.inquiryDraft.vendorName}
+                    </button>
+                  </div>
+                )}
+
                 {/* Category Browse Link */}
                 {m.categoryUrl && (
                   <div className="mt-2.5 pt-2 border-t border-gold/10">
@@ -231,7 +536,7 @@ export function AuraAssistantDrawer({ isOpen, onClose }: AuraAssistantDrawerProp
                   </div>
                 )}
 
-                {/* Action Required Redirects (Sign up / Log in) */}
+                {/* Action Required Redirects for Guests */}
                 {m.actionRequired === "signup" && (
                   <div className="mt-3 flex items-center gap-2 pt-2 border-t border-gold/10">
                     <Link
@@ -293,7 +598,7 @@ export function AuraAssistantDrawer({ isOpen, onClose }: AuraAssistantDrawerProp
             type="text"
             value={inputQuery}
             onChange={(e) => setInputQuery(e.target.value)}
-            placeholder="Ask Aura to find venues, caterers, photographers..."
+            placeholder={userContext?.userId ? "Ask Aura to budget, compare vendors, or send inquiry..." : "Ask Aura to find venues, caterers, photographers..."}
             disabled={isTyping}
             className="flex-1 bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-charcoal placeholder:text-charcoal/40 focus:outline-none focus:border-[#0F4C45]"
           />
