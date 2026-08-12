@@ -236,7 +236,7 @@ export function InvitationsListing() {
 
                     {/* Tag Pills */}
                     <div className="mt-2 flex flex-wrap gap-1.5">
-                      {item.tags.map((t, idx) => (
+                      {(item.tags || []).map((t: string, idx: number) => (
                         <span
                           key={idx}
                           className="rounded-md bg-[#FAF7F2] px-2 py-0.5 text-[10px] font-medium text-[#7A6E65] border border-black/5"
