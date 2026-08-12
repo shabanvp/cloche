@@ -1,16 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Image from "next/image";
 import Link from "next/link";
-import { Star, MapPin, ChevronRight, Loader2 } from "lucide-react";
-import { makeupArtists, photographers } from "@/lib/vendorLists";
-import { mehendiVendors } from "@/lib/mehendiData";
-import { cateringVendors } from "@/lib/cateringData";
-import { jewelleryVendors } from "@/lib/jewelleryData";
-import { decorVendors } from "@/lib/decorData";
-import { bridalBoutiqueVendors, invitationVendors } from "@/lib/bridalAndInvitationData";
-import { groomWearVendors } from "@/lib/groomWearData";
+import { Star, MapPin, ChevronRight, Loader2, Building2, X } from "lucide-react";
 
 export interface ExploreOtherVendorsProps {
   category: string;
@@ -27,6 +19,8 @@ export interface ExploreVendorItem {
   price: string;
   location: string;
   href: string;
+  tagline?: string;
+  isVerified?: boolean;
 }
 
 export function normalizeCategoryMeta(categorySlug: string) {
@@ -112,171 +106,82 @@ export function normalizeCategoryMeta(categorySlug: string) {
   };
 }
 
-export function getStaticCategoryVendors(categoryKey: string): ExploreVendorItem[] {
-  switch (categoryKey) {
-    case "makeup":
-      return makeupArtists.map((v: any) => ({
-        id: v.id,
-        name: v.name,
-        image: v.image || v.images?.[0] || v.gallery?.[0] || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
-        rating: Number(v.rating || 4.8),
-        reviews: Number(v.reviews || v.reviewCount || 45),
-        price: v.price || v.startingPrice || "₹18,000",
-        location: v.location || "Kerala, India",
-        href: `/makeup/${v.id}`,
-      }));
-    case "mehendi":
-      return mehendiVendors.map((v: any) => ({
-        id: v.id,
-        name: v.name,
-        image: v.image || v.portfolio?.[0] || v.gallery?.[0] || "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?auto=format&fit=crop&w=400&q=80",
-        rating: Number(v.rating || 4.9),
-        reviews: Number(v.reviews || v.reviewCount || 38),
-        price: v.price || v.startingPrice || "₹5,000",
-        location: v.location || "Kerala, India",
-        href: `/categories/mehendi/${v.id}`,
-      }));
-    case "photographers":
-      return photographers.map((v: any) => ({
-        id: v.id,
-        name: v.name,
-        image: v.image || v.images?.[0] || v.gallery?.[0] || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80",
-        rating: Number(v.rating || 4.9),
-        reviews: Number(v.reviews || v.reviewCount || 85),
-        price: v.price || v.startingPrice || "₹45,000",
-        location: v.location || "Kerala, India",
-        href: `/photographers/${v.id}`,
-      }));
-    case "caterers":
-      return cateringVendors.map((v: any) => ({
-        id: v.id,
-        name: v.name,
-        image: v.image || v.gallery?.[0] || "https://images.unsplash.com/photo-1555244162-803834f70033?auto=format&fit=crop&w=400&q=80",
-        rating: Number(v.rating || 4.8),
-        reviews: Number(v.reviews || v.reviewCount || 92),
-        price: v.startingPrice || v.price || "₹450 / plate",
-        location: v.location || "Kerala, India",
-        href: `/catering/${v.id}`,
-      }));
-    case "jewellery":
-      return jewelleryVendors.map((v: any) => ({
-        id: v.id,
-        name: v.name,
-        image: v.image || v.gallery?.[0] || "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&w=400&q=80",
-        rating: Number(v.rating || 4.9),
-        reviews: Number(v.reviews || v.reviewCount || 64),
-        price: v.startingPrice || v.price || "₹35,000",
-        location: v.location || "Kerala, India",
-        href: `/categories/jewellery/${v.id}`,
-      }));
-    case "invitations":
-      return invitationVendors.map((v: any) => ({
-        id: v.id,
-        name: v.name,
-        image: v.image || v.gallery?.[0] || "https://images.unsplash.com/photo-1509315811355-57bd367776b3?auto=format&fit=crop&w=400&q=80",
-        rating: Number(v.rating || 4.8),
-        reviews: Number(v.reviews || v.reviewCount || 42),
-        price: v.startingPrice || v.price || "₹120 / card",
-        location: v.location || "Kerala, India",
-        href: `/categories/invitations/${v.id}`,
-      }));
-    case "planners":
-      return decorVendors.map((v: any) => ({
-        id: v.id,
-        name: v.name,
-        image: v.image || v.gallery?.[0] || "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=400&q=80",
-        rating: Number(v.rating || 4.9),
-        reviews: Number(v.reviews || v.reviewCount || 78),
-        price: v.startingPrice || v.price || "₹75,000",
-        location: v.location || "Kerala, India",
-        href: `/categories/decor-planning/${v.id}`,
-      }));
-    case "groom-wear":
-      return groomWearVendors.map((v: any) => ({
-        id: v.id,
-        name: v.name,
-        image: v.image || v.gallery?.[0] || "https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=400&q=80",
-        rating: Number(v.rating || 4.8),
-        reviews: Number(v.reviews || v.reviewCount || 54),
-        price: v.startingPrice || v.price || "₹15,000",
-        location: v.location || "Kerala, India",
-        href: `/groom-wear/${v.id}`,
-      }));
-    default:
-      return bridalBoutiqueVendors.map((v: any) => ({
-        id: v.id,
-        name: v.name,
-        image: v.image || v.gallery?.[0] || "https://images.unsplash.com/photo-1594552072238-b8a33785b261?auto=format&fit=crop&w=400&q=80",
-        rating: Number(v.rating || 4.8),
-        reviews: Number(v.reviews || v.reviewCount || 60),
-        price: v.startingPrice || v.price || "₹25,000",
-        location: v.location || "Kerala, India",
-        href: `/bridal-wear/${v.id}`,
-      }));
-  }
-}
-
 export function ExploreOtherVendors({ category, currentVendorId, currentVendorName }: ExploreOtherVendorsProps) {
   const meta = normalizeCategoryMeta(category);
   const [vendors, setVendors] = useState<ExploreVendorItem[]>([]);
+  const [allCategoryVendors, setAllCategoryVendors] = useState<ExploreVendorItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showFullModal, setShowFullModal] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
     setLoading(true);
 
-    async function loadCategoryVendors() {
-      // 1. Get real category static data first
-      const staticList = getStaticCategoryVendors(meta.key);
-
-      // 2. Fetch live vendors from DB API for this exact category
-      let apiItems: ExploreVendorItem[] = [];
+    async function fetchLiveSupabaseVendors() {
       try {
-        const res = await fetch(`/api/v1/vendors?category=${encodeURIComponent(meta.key)}`, {
+        // Direct Live Supabase Database API query (/api/v1/public/vendors)
+        const res = await fetch(`/api/v1/public/vendors?category=${encodeURIComponent(meta.key)}`, {
           cache: "no-store",
         });
+
         if (res.ok) {
           const json = await res.json();
-          const rows = Array.isArray(json.data) ? json.data : Array.isArray(json) ? json : [];
-          apiItems = rows.map((r: any) => ({
-            id: r.id || r.vendor_id || `v-${Math.random()}`,
-            name: r.boutique_name || r.name || r.business_name || "Cloche Vendor",
-            image: r.logo || r.logo_url || r.coverImage || r.cover_image || r.image || staticList[0]?.image || "",
-            rating: Number(r.rating || r.average_rating || 4.8),
-            reviews: Number(r.reviews || r.review_count || 24),
-            price: r.starting_price ? `₹${r.starting_price.toLocaleString()}` : r.price || "₹20,000",
-            location: [r.city, r.state || r.district].filter(Boolean).join(", ") || r.location || "Kerala, India",
-            href: meta.getItemHref(r.id || r.vendor_id),
-          }));
+          const rows = Array.isArray(json.data) ? json.data : [];
+
+          // Map live Supabase database records
+          const liveItems: ExploreVendorItem[] = rows
+            .map((r: any) => {
+              const vendorId = String(r.id || r.vendor_id || "");
+              const vendorName = String(r.name || r.boutique_name || r.business_name || "Cloche Vendor");
+
+              // Strict exclusion of currently viewed vendor by ID or Name
+              if (currentVendorId && vendorId.toLowerCase() === String(currentVendorId).toLowerCase()) {
+                return null;
+              }
+              if (currentVendorName && vendorName.toLowerCase().trim() === currentVendorName.toLowerCase().trim()) {
+                return null;
+              }
+
+              const coverImg = r.coverImage || r.logo || r.logoUrl || "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=400&q=80";
+              const cityState = [r.city, r.state].filter(Boolean).join(", ") || "Kerala, India";
+
+              return {
+                id: vendorId,
+                name: vendorName,
+                image: coverImg,
+                rating: Number(r.rating || 4.8),
+                reviews: Number(r.reviewCount || r.reviews || 0),
+                price: r.startingPrice || "Contact for Pricing",
+                location: cityState,
+                href: meta.getItemHref(vendorId),
+                tagline: r.tagline || "",
+                isVerified: Boolean(r.isVerified),
+              };
+            })
+            .filter((item): item is ExploreVendorItem => item !== null);
+
+          if (isMounted) {
+            setAllCategoryVendors(liveItems);
+            setVendors(liveItems.slice(0, 4));
+          }
+        } else {
+          if (isMounted) {
+            setVendors([]);
+            setAllCategoryVendors([]);
+          }
         }
-      } catch (_) {}
-
-      // Combine API & Static items for this EXACT category, avoiding duplicates
-      const combined = [...apiItems, ...staticList];
-      const uniqueMap = new Map<string, ExploreVendorItem>();
-
-      for (const item of combined) {
-        if (!item.id || !item.name) continue;
-        // Strict exclusion of currently viewed vendor
-        const isCurrentId = currentVendorId && item.id.toLowerCase() === currentVendorId.toLowerCase();
-        const isCurrentName = currentVendorName && item.name.toLowerCase().trim() === currentVendorName.toLowerCase().trim();
-
-        if (isCurrentId || isCurrentName) continue;
-
-        if (!uniqueMap.has(item.id)) {
-          uniqueMap.set(item.id, item);
+      } catch (err) {
+        console.error("[ExploreOtherVendors] Supabase Fetch Error:", err);
+        if (isMounted) {
+          setVendors([]);
+          setAllCategoryVendors([]);
         }
-      }
-
-      const filteredList = Array.from(uniqueMap.values()).slice(0, 5);
-
-      if (isMounted) {
-        setVendors(filteredList);
-        setLoading(false);
+      } finally {
+        if (isMounted) setLoading(false);
       }
     }
 
-    loadCategoryVendors();
+    fetchLiveSupabaseVendors();
 
     return () => {
       isMounted = false;
@@ -284,84 +189,161 @@ export function ExploreOtherVendors({ category, currentVendorId, currentVendorNa
   }, [category, currentVendorId, currentVendorName, meta.key]);
 
   return (
-    <section className="rounded-2xl bg-white p-4 sm:p-5 md:p-6 lg:p-8 border border-gold/15 shadow-xs font-sans space-y-4 my-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="font-serif text-lg sm:text-xl md:text-2xl font-bold text-[#1A1410]">
-            Explore Other {meta.headingLabel}
-          </h2>
-          <p className="text-xs text-[#7A6E65] mt-0.5">
-            Discover verified {meta.headingLabel.toLowerCase()} available for your wedding date
-          </p>
+    <>
+      <section className="rounded-2xl bg-white p-4 sm:p-5 md:p-6 lg:p-8 border border-gold/15 shadow-xs font-sans space-y-4 my-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="font-serif text-lg sm:text-xl md:text-2xl font-bold text-[#1A1410]">
+              Explore Other {meta.headingLabel}
+            </h2>
+            <p className="text-xs text-[#7A6E65] mt-0.5">
+              Live verified {meta.headingLabel.toLowerCase()} from our database
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setShowFullModal(true)}
+            className="text-xs sm:text-sm font-bold text-[#0F4C45] hover:text-[#C8A96A] transition-colors flex items-center gap-1 shrink-0 cursor-pointer"
+          >
+            See All ({allCategoryVendors.length}) <ChevronRight className="w-4 h-4" />
+          </button>
         </div>
 
-        <Link
-          href={meta.seeAllHref}
-          className="text-xs sm:text-sm font-bold text-[#0F4C45] hover:text-[#C8A96A] transition-colors flex items-center gap-1 shrink-0"
-        >
-          See All <ChevronRight className="w-4 h-4" />
-        </Link>
-      </div>
+        {loading ? (
+          <div className="py-10 flex items-center justify-center text-xs text-[#7A6E65] gap-2">
+            <Loader2 className="w-5 h-5 animate-spin text-[#0F4C45]" /> Fetching live Supabase vendors...
+          </div>
+        ) : vendors.length > 0 ? (
+          <div className="flex md:grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 overflow-x-auto md:overflow-visible hide-scrollbar pb-2 md:pb-0">
+            {vendors.map((v) => (
+              <Link
+                key={v.id}
+                href={v.href}
+                className="flex-shrink-0 min-w-[200px] w-[65vw] sm:w-56 md:w-auto rounded-2xl overflow-hidden bg-[#FAF7F2] border border-gold/15 shadow-2xs hover:border-[#0F4C45] hover:shadow-md transition-all group flex flex-col justify-between"
+              >
+                <div>
+                  <div className="relative h-36 sm:h-40 w-full bg-gray-200 overflow-hidden">
+                    <img
+                      src={v.image}
+                      alt={v.name}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-60" />
+                    <span className="absolute bottom-2 left-2 text-[10px] font-bold text-white bg-black/40 backdrop-blur-xs px-2 py-0.5 rounded-full flex items-center gap-1">
+                      <MapPin className="w-2.5 h-2.5 text-[#C8A96A]" /> {v.location.split(",")[0]}
+                    </span>
+                  </div>
 
-      {loading ? (
-        <div className="py-8 flex items-center justify-center text-xs text-[#7A6E65] gap-2">
-          <Loader2 className="w-4 h-4 animate-spin text-[#0F4C45]" /> Loading other {meta.headingLabel.toLowerCase()}...
-        </div>
-      ) : vendors.length > 0 ? (
-        <div className="flex md:grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 sm:gap-4 overflow-x-auto md:overflow-visible hide-scrollbar pb-2 md:pb-0">
-          {vendors.map((v) => (
-            <Link
-              key={v.id}
-              href={v.href}
-              className="flex-shrink-0 min-w-[200px] w-[65vw] sm:w-56 md:w-auto rounded-2xl overflow-hidden bg-[#FAF7F2] border border-gold/15 shadow-2xs hover:border-[#0F4C45] hover:shadow-md transition-all group flex flex-col justify-between"
-            >
-              <div>
-                <div className="relative h-36 sm:h-40 w-full bg-gray-200 overflow-hidden">
-                  <Image
-                    src={v.image}
-                    alt={v.name}
-                    fill
-                    sizes="(max-width: 768px) 65vw, 250px"
-                    className="object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-60" />
-                  <span className="absolute bottom-2 left-2 text-[10px] font-bold text-white bg-black/40 backdrop-blur-xs px-2 py-0.5 rounded-full flex items-center gap-1">
-                    <MapPin className="w-2.5 h-2.5 text-[#C8A96A]" /> {v.location.split(",")[0]}
-                  </span>
-                </div>
+                  <div className="p-3 space-y-1.5">
+                    <h4 className="text-xs sm:text-sm font-serif font-bold text-[#1A1410] line-clamp-1 group-hover:text-[#0F4C45] transition-colors">
+                      {v.name}
+                    </h4>
 
-                <div className="p-3 space-y-1.5">
-                  <h4 className="text-xs sm:text-sm font-serif font-bold text-[#1A1410] line-clamp-1 group-hover:text-[#0F4C45] transition-colors">
-                    {v.name}
-                  </h4>
-
-                  <div className="flex items-center gap-1.5 text-[11px] text-[#7A6E65]">
-                    <div className="flex items-center gap-0.5 bg-amber-50 text-amber-900 font-bold px-1.5 py-0.5 rounded-md text-[10px]">
-                      <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
-                      <span>{v.rating}</span>
+                    <div className="flex items-center gap-1.5 text-[11px] text-[#7A6E65]">
+                      <div className="flex items-center gap-0.5 bg-amber-50 text-amber-900 font-bold px-1.5 py-0.5 rounded-md text-[10px]">
+                        <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+                        <span>{v.rating}</span>
+                      </div>
+                      <span>({v.reviews} Reviews)</span>
                     </div>
-                    <span>({v.reviews} Reviews)</span>
                   </div>
                 </div>
+
+                <div className="px-3 pb-3 pt-1 border-t border-gold/10 flex items-center justify-between text-xs">
+                  <span className="text-[10px] text-[#7A6E65] uppercase font-bold tracking-wider">Starting From</span>
+                  <span className="font-bold text-[#0F4C45] text-xs sm:text-sm">{v.price}</span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <div className="py-10 px-4 rounded-xl bg-[#FAF7F2] border border-gold/15 text-center space-y-1">
+            <Building2 className="w-8 h-8 text-[#0F4C45]/40 mx-auto mb-2" />
+            <p className="text-sm font-serif font-bold text-[#1A1410]">
+              No other {meta.headingLabel} listed yet
+            </p>
+            <p className="text-xs text-[#7A6E65]">
+              As new verified {meta.headingLabel.toLowerCase()} register in Supabase, they will automatically appear here.
+            </p>
+          </div>
+        )}
+      </section>
+
+      {/* Full Category Vendors Modal for 'See All' */}
+      {showFullModal && (
+        <div className="fixed inset-0 z-[9999] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-4xl max-h-[85vh] rounded-3xl overflow-hidden shadow-2xl flex flex-col font-sans">
+            <div className="p-5 bg-[#FAF7F2] border-b border-gold/15 flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-serif font-bold text-[#1A1410]">
+                  All {meta.headingLabel} ({allCategoryVendors.length})
+                </h3>
+                <p className="text-xs text-[#7A6E65]">
+                  Full live Supabase directory list excluding currently viewed vendor
+                </p>
               </div>
 
-              <div className="px-3 pb-3 pt-1 border-t border-gold/10 flex items-center justify-between text-xs">
-                <span className="text-[10px] text-[#7A6E65] uppercase font-bold tracking-wider">Starts From</span>
-                <span className="font-bold text-[#0F4C45] text-xs sm:text-sm">{v.price}</span>
-              </div>
-            </Link>
-          ))}
-        </div>
-      ) : (
-        <div className="py-8 px-4 rounded-xl bg-[#FAF7F2] border border-gold/15 text-center space-y-1">
-          <p className="text-xs font-serif font-bold text-[#1A1410]">
-            More {meta.headingLabel} coming soon to Cloche!
-          </p>
-          <p className="text-[11px] text-[#7A6E65]">
-            Check back shortly as we expand our verified partner network across Kerala.
-          </p>
+              <button
+                type="button"
+                onClick={() => setShowFullModal(false)}
+                className="w-9 h-9 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 flex items-center justify-center cursor-pointer transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6 overflow-y-auto flex-1 space-y-4">
+              {allCategoryVendors.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                  {allCategoryVendors.map((v) => (
+                    <Link
+                      key={v.id}
+                      href={v.href}
+                      onClick={() => setShowFullModal(false)}
+                      className="rounded-2xl overflow-hidden bg-[#FAF7F2] border border-gold/15 shadow-xs hover:border-[#0F4C45] hover:shadow-md transition-all group flex flex-col justify-between"
+                    >
+                      <div>
+                        <div className="relative h-40 w-full bg-gray-200 overflow-hidden">
+                          <img
+                            src={v.image}
+                            alt={v.name}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          />
+                          <span className="absolute bottom-2 left-2 text-[10px] font-bold text-white bg-black/40 backdrop-blur-xs px-2 py-0.5 rounded-full flex items-center gap-1">
+                            <MapPin className="w-2.5 h-2.5 text-[#C8A96A]" /> {v.location}
+                          </span>
+                        </div>
+
+                        <div className="p-3.5 space-y-1">
+                          <h4 className="text-sm font-serif font-bold text-[#1A1410] line-clamp-1 group-hover:text-[#0F4C45] transition-colors">
+                            {v.name}
+                          </h4>
+                          {v.tagline && <p className="text-xs text-[#C8A96A] font-semibold italic line-clamp-1">"{v.tagline}"</p>}
+                          <div className="flex items-center gap-1.5 text-xs text-[#7A6E65]">
+                            <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                            <span className="font-bold text-[#1A1410]">{v.rating}</span>
+                            <span>({v.reviews} Reviews)</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="px-3.5 py-2.5 bg-white border-t border-gold/10 flex items-center justify-between text-xs font-bold text-[#0F4C45]">
+                        <span>Starting From</span>
+                        <span>{v.price}</span>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <div className="py-12 text-center text-xs text-[#7A6E65]">
+                  No other {meta.headingLabel} listed in Supabase database yet.
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       )}
-    </section>
+    </>
   );
 }
