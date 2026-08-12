@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { 
   Inbox, 
   Calendar, 
@@ -10,9 +11,13 @@ import {
   CheckCircle2, 
   ArrowUpRight,
   UserCheck,
-  Building2
+  Building2,
+  Loader2,
+  CalendarX,
+  InboxIcon
 } from "lucide-react";
 import { VendorCategoryConfig } from "@/lib/vendor-categories";
+import { fetchAuthenticatedVendorFromDb } from "@/lib/vendorStore";
 
 interface OverviewSectionProps {
   categoryConfig: VendorCategoryConfig;
@@ -21,22 +26,100 @@ interface OverviewSectionProps {
 }
 
 export function OverviewSection({ categoryConfig, vendorName, onNavigate }: OverviewSectionProps) {
+  const [isLoading, setIsLoading] = useState(true);
+  const [enquiriesCount, setEnquiriesCount] = useState(0);
+  const [bookingsCount, setBookingsCount] = useState(0);
+  const [viewsCount, setViewsCount] = useState(0);
+  const [rating, setRating] = useState("5.0 ★");
+  const [reviewsCount, setReviewsCount] = useState(0);
+  const [recentEnquiries, setRecentEnquiries] = useState<any[]>([]);
+  const [upcomingBookings, setUpcomingBookings] = useState<any[]>([]);
+
+  const getHeaders = () => {
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (typeof window !== "undefined") {
+      try {
+        const cookieStr = document.cookie;
+        const match = cookieStr.match(/(?:^|;\s*)user_data=([^;]*)/);
+        if (match) {
+          const parsed = JSON.parse(decodeURIComponent(match[1]));
+          if (parsed?.id) headers["x-user-id"] = parsed.id;
+          if (parsed?.email) headers["x-user-email"] = parsed.email;
+        }
+        const tokenMatch = cookieStr.match(/(?:^|;\s*)auth_token=([^;]*)/);
+        if (tokenMatch && tokenMatch[1]) headers["x-auth-token"] = tokenMatch[1];
+      } catch (_) {}
+    }
+    return headers;
+  };
+
+  useEffect(() => {
+    let isMounted = true;
+    const loadOverviewData = async () => {
+      setIsLoading(true);
+      try {
+        const [profRes, leadsRes, bookingsRes] = await Promise.all([
+          fetch("/api/v1/vendor/profile", { headers: getHeaders() }).catch(() => null),
+          fetch("/api/v1/vendor/leads", { headers: getHeaders() }).catch(() => null),
+          fetch("/api/v1/vendor/bookings", { headers: getHeaders() }).catch(() => null),
+        ]);
+
+        if (!isMounted) return;
+
+        if (profRes && profRes.ok) {
+          const profJson = await profRes.json();
+          const v = profJson.data?.vendor || {};
+          setViewsCount(v.view_count || 0);
+          setRating(v.rating ? `${v.rating} ★` : "New Partner");
+          setReviewsCount(v.reviews_count || 0);
+        }
+
+        if (leadsRes && leadsRes.ok) {
+          const leadsJson = await leadsRes.json();
+          if (leadsJson.success && Array.isArray(leadsJson.data)) {
+            setEnquiriesCount(leadsJson.data.length);
+            const mappedLeads = leadsJson.data.slice(0, 3).map((l: any) => ({
+              id: l.id,
+              name: l.customer_name || "Wedding Couple",
+              date: l.event_date ? new Date(l.event_date).toLocaleDateString("en-IN", { month: "short", day: "numeric" }) : "Upcoming",
+              details: l.event_type || "Wedding Enquiry",
+              status: l.status || "New Lead",
+              time: l.created_at ? new Date(l.created_at).toLocaleDateString("en-IN") : "Recently",
+            }));
+            setRecentEnquiries(mappedLeads);
+          }
+        }
+
+        if (bookingsRes && bookingsRes.ok) {
+          const bookingsJson = await bookingsRes.json();
+          if (bookingsJson.success && Array.isArray(bookingsJson.data)) {
+            setBookingsCount(bookingsJson.data.length);
+            const mappedBookings = bookingsJson.data.slice(0, 2).map((b: any) => ({
+              id: b.id,
+              client: b.notes?.match(/Client:\s*([^,]+)/)?.[1] || b.customer_name || "Wedding Booking",
+              date: b.event_date ? new Date(b.event_date).toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" }) : "Confirmed Date",
+              time: b.notes?.match(/\(([^)]+)\)/)?.[1] || "Full Day",
+              status: "Confirmed",
+            }));
+            setUpcomingBookings(mappedBookings);
+          }
+        }
+      } catch (e) {
+        console.error("[OverviewSection] Error loading live DB overview stats:", e);
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    };
+
+    loadOverviewData();
+    return () => { isMounted = false; };
+  }, []);
+
   const stats = [
-    { title: "Active Enquiries", value: "28", change: "+14% this week", icon: Inbox, color: "text-[#0F4C45]", bg: "bg-[#0F4C45]/10", target: "enquiries" },
-    { title: "Confirmed Bookings", value: "12", change: "+4 upcoming", icon: Calendar, color: "text-[#C8A96A]", bg: "bg-[#C8A96A]/15", target: "appointments" },
-    { title: "Profile Views", value: "3,480", change: "+24% this month", icon: Eye, color: "text-[#0F4C45]", bg: "bg-[#0F4C45]/10", target: "analytics" },
-    { title: "Rating & Reviews", value: "4.9 ★", change: "42 reviews", icon: Star, color: "text-amber-500", bg: "bg-amber-100", target: "overview" },
-  ];
-
-  const recentEnquiries = [
-    { id: "e1", name: "Ananya & Rahul", date: "Oct 18-20, 2026", details: "Wedding Rituals & Reception", status: "New Lead", time: "2 hrs ago" },
-    { id: "e2", name: "Priya Sharma", date: "Nov 12, 2026", details: "Bridal Ceremony", status: "In Discussion", time: "5 hrs ago" },
-    { id: "e3", name: "Vikram & Neha", date: "Dec 05, 2026", details: "Sangeet & Cocktail Night", status: "Quote Sent", time: "1 day ago" },
-  ];
-
-  const upcomingBookings = [
-    { id: "b1", client: "Meera & Siddharth", date: "Aug 24, 2026", time: "10:00 AM - 6:00 PM", status: "Confirmed" },
-    { id: "b2", client: "Rohan & Pooja", date: "Sep 02, 2026", time: "4:00 PM - 11:00 PM", status: "Confirmed" },
+    { title: "Active Enquiries", value: enquiriesCount.toString(), change: enquiriesCount > 0 ? "Live leads" : "0 new", icon: Inbox, color: "text-[#0F4C45]", bg: "bg-[#0F4C45]/10", target: "enquiries" },
+    { title: "Confirmed Bookings", value: bookingsCount.toString(), change: bookingsCount > 0 ? "Live dates" : "0 confirmed", icon: Calendar, color: "text-[#C8A96A]", bg: "bg-[#C8A96A]/15", target: "appointments" },
+    { title: "Profile Views", value: viewsCount.toLocaleString("en-IN"), change: "Total views", icon: Eye, color: "text-[#0F4C45]", bg: "bg-[#0F4C45]/10", target: "analytics" },
+    { title: "Rating & Reviews", value: rating, change: `${reviewsCount} reviews`, icon: Star, color: "text-amber-500", bg: "bg-amber-100", target: "overview" },
   ];
 
   return (
@@ -113,36 +196,44 @@ export function OverviewSection({ categoryConfig, vendorName, onNavigate }: Over
           </div>
 
           <div className="space-y-3">
-            {recentEnquiries.map((lead) => (
-              <div 
-                key={lead.id} 
-                onClick={() => onNavigate("enquiries")}
-                className="p-4 rounded-xl bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] border border-gold/10 hover:border-gold/30 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 cursor-pointer"
-              >
-                <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-full bg-[#0F4C45] text-white font-bold font-serif text-sm flex items-center justify-center shrink-0">
-                    {lead.name.charAt(0)}
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-bold text-charcoal">{lead.name}</h4>
-                    <p className="text-xs text-charcoal/70">{lead.details}</p>
-                    <div className="flex items-center gap-3 mt-1.5 text-[11px] text-charcoal/50">
-                      <span className="flex items-center gap-1"><Calendar className="w-3 h-3 text-[#0F4C45]" /> {lead.date}</span>
-                      <span className="flex items-center gap-1"><Clock className="w-3 h-3 text-gold" /> {lead.time}</span>
+            {recentEnquiries.length > 0 ? (
+              recentEnquiries.map((lead) => (
+                <div 
+                  key={lead.id} 
+                  onClick={() => onNavigate("enquiries")}
+                  className="p-4 rounded-xl bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] border border-gold/10 hover:border-gold/30 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 cursor-pointer"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-full bg-[#0F4C45] text-white font-bold font-serif text-sm flex items-center justify-center shrink-0">
+                      {lead.name.charAt(0)}
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-charcoal">{lead.name}</h4>
+                      <p className="text-xs text-charcoal/70">{lead.details}</p>
+                      <div className="flex items-center gap-3 mt-1.5 text-[11px] text-charcoal/50">
+                        <span className="flex items-center gap-1"><Calendar className="w-3 h-3 text-[#0F4C45]" /> {lead.date}</span>
+                        <span className="flex items-center gap-1"><Clock className="w-3 h-3 text-gold" /> {lead.time}</span>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
-                  <span className="text-[11px] font-bold text-[#0F4C45] bg-[#0F4C45]/10 px-2.5 py-1 rounded-full">
-                    {lead.status}
-                  </span>
-                  <button className="text-xs font-bold text-white bg-[#0F4C45] hover:bg-[#072B27] px-3 py-1.5 rounded-lg transition-colors cursor-pointer">
-                    Respond
-                  </button>
+                  <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
+                    <span className="text-[11px] font-bold text-[#0F4C45] bg-[#0F4C45]/10 px-2.5 py-1 rounded-full">
+                      {lead.status}
+                    </span>
+                    <button className="text-xs font-bold text-white bg-[#0F4C45] hover:bg-[#072B27] px-3 py-1.5 rounded-lg transition-colors cursor-pointer">
+                      Respond
+                    </button>
+                  </div>
                 </div>
+              ))
+            ) : (
+              <div className="p-8 text-center bg-[#FAF7F2]/40 border border-gold/10 rounded-xl space-y-2">
+                <InboxIcon className="w-6 h-6 text-[#0F4C45]/60 mx-auto" />
+                <p className="text-xs font-bold text-charcoal">No Recent Customer Leads</p>
+                <p className="text-[11px] text-charcoal/60">New enquiries from wedding couples will appear here automatically.</p>
               </div>
-            ))}
+            )}
           </div>
         </div>
 
@@ -163,19 +254,27 @@ export function OverviewSection({ categoryConfig, vendorName, onNavigate }: Over
             </div>
 
             <div className="space-y-3">
-              {upcomingBookings.map((b) => (
-                <div key={b.id} className="p-3.5 rounded-xl border border-gold/15 bg-white space-y-1">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-charcoal">{b.client}</span>
-                    <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
-                      {b.status}
-                    </span>
+              {upcomingBookings.length > 0 ? (
+                upcomingBookings.map((b) => (
+                  <div key={b.id} className="p-3.5 rounded-xl border border-gold/15 bg-white space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-charcoal">{b.client}</span>
+                      <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
+                        {b.status}
+                      </span>
+                    </div>
+                    <p className="text-[11px] font-medium text-charcoal/60 flex items-center gap-1">
+                      <Clock className="w-3 h-3 text-gold" /> {b.date} • {b.time}
+                    </p>
                   </div>
-                  <p className="text-[11px] font-medium text-charcoal/60 flex items-center gap-1">
-                    <Clock className="w-3 h-3 text-gold" /> {b.date} • {b.time}
-                  </p>
+                ))
+              ) : (
+                <div className="p-6 text-center bg-[#FAF7F2]/40 border border-gold/10 rounded-xl space-y-1.5">
+                  <CalendarX className="w-5 h-5 text-[#0F4C45]/60 mx-auto" />
+                  <p className="text-xs font-bold text-charcoal">No Confirmed Bookings</p>
+                  <p className="text-[11px] text-charcoal/60">Schedule wedding dates using the Appointments tab.</p>
                 </div>
-              ))}
+              )}
             </div>
           </div>
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   Store, 
   MapPin, 
@@ -14,8 +14,10 @@ import {
   Users,
   Sparkles,
   Plane,
-  FileText
+  FileText,
+  Loader2
 } from "lucide-react";
+import { fetchAuthenticatedVendorFromDb, syncVendorProfileWithDatabase, showVendorToast } from "@/lib/vendorStore";
 
 interface MehendiProfileSectionProps {
   artistName: string;
@@ -24,27 +26,77 @@ interface MehendiProfileSectionProps {
 
 export function MehendiProfileSection({ artistName, businessName }: MehendiProfileSectionProps) {
   const [isSaved, setIsSaved] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
   const [formData, setFormData] = useState({
-    businessName: businessName || "Marwar Henna Artistry",
-    artistName: artistName || "Pooja Marwar",
-    tagline: "Premier luxury bridal mehendi, organic stain & portrait motifs",
-    phone: "+91 98100 23456",
-    whatsapp: "+91 98100 23456",
-    email: "contact@marwarmehendi.com",
-    city: "Jaipur, Rajasthan",
+    businessName: businessName || "",
+    artistName: artistName || "",
+    tagline: "",
+    phone: "",
+    whatsapp: "",
+    email: "",
+    city: "",
     travelRadius: "Outstation & Destination Weddings Available",
-    travelPolicy: "Pan-India travel available. Travel & stay charges extra on actuals.",
-    experience: "9+ Years of Bridal Henna",
-    teamSize: "4 Assistant Artists (Guest Party Capacity: 50+ guests)",
-    hennaType: "100% Hand-mixed Chemical-Free Organic Rajasthani Henna",
-    bio: "Specializing in regal Rajasthani figure portraits, intricate bridal motifs, bold Arabic vines, and modern Indo-Arabic aesthetics. Over 9 years of creating timeless bridal henna stains with 100% organic, chemical-free henna cones.",
-    workingHours: "09:00 AM - 09:00 PM (Monday - Sunday)",
+    travelPolicy: "",
+    experience: "",
+    teamSize: "",
+    hennaType: "",
+    bio: "",
+    workingHours: "",
   });
 
-  const handleSave = (e: React.FormEvent) => {
+  useEffect(() => {
+    let isMounted = true;
+    fetchAuthenticatedVendorFromDb().then((profile) => {
+      if (!isMounted) return;
+      if (profile) {
+        setFormData((prev) => ({
+          ...prev,
+          businessName: profile.boutique_name || profile.name || businessName || "",
+          artistName: profile.ownerName || profile.owner_name || artistName || "",
+          phone: profile.phone || "",
+          whatsapp: profile.whatsapp || profile.phone || "",
+          email: profile.email || "",
+          city: profile.city || profile.district || "",
+          bio: profile.description || "",
+          workingHours: profile.workingHours || profile.working_hours || "09:00 AM - 09:00 PM (Monday - Sunday)",
+          travelRadius: profile.serviceAreas || profile.service_areas || prev.travelRadius,
+        }));
+      }
+    });
+    return () => { isMounted = false; };
+  }, [artistName, businessName]);
+
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSaved(true);
-    setTimeout(() => setIsSaved(false), 3000);
+    setIsSaving(true);
+
+    const res = await syncVendorProfileWithDatabase({
+      name: formData.businessName,
+      boutique_name: formData.businessName,
+      owner_name: formData.artistName,
+      ownerName: formData.artistName,
+      description: formData.bio,
+      phone: formData.phone,
+      whatsapp: formData.whatsapp || formData.phone,
+      email: formData.email,
+      city: formData.city,
+      working_hours: formData.workingHours,
+      workingHours: formData.workingHours,
+      service_areas: formData.travelRadius,
+      serviceAreas: formData.travelRadius,
+      tagline: formData.tagline,
+      experience: formData.experience,
+    } as any);
+
+    setIsSaving(false);
+    if (res.success) {
+      setIsSaved(true);
+      showVendorToast("Mehendi profile saved successfully!");
+      setTimeout(() => setIsSaved(false), 3000);
+    } else {
+      showVendorToast("Failed to save Mehendi profile. Please check database connection.", "error");
+    }
   };
 
   return (
@@ -65,9 +117,22 @@ export function MehendiProfileSection({ artistName, businessName }: MehendiProfi
 
         <button
           onClick={handleSave}
-          className="bg-[#0d3b30] hover:bg-[#072B27] text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow-xs transition-all flex items-center gap-2 shrink-0 cursor-pointer"
+          disabled={isSaving}
+          className="bg-[#0d3b30] hover:bg-[#072B27] disabled:opacity-50 text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow-xs transition-all flex items-center gap-2 shrink-0 cursor-pointer"
         >
-          <Save className="w-4 h-4 text-[#C8A96A]" /> {isSaved ? "Saved Successfully!" : "Save Profile"}
+          {isSaving ? (
+            <>
+              <Loader2 className="w-4 h-4 text-[#C8A96A] animate-spin" /> Saving Profile...
+            </>
+          ) : isSaved ? (
+            <>
+              <CheckCircle className="w-4 h-4 text-[#C8A96A]" /> Saved Successfully!
+            </>
+          ) : (
+            <>
+              <Save className="w-4 h-4 text-[#C8A96A]" /> Save Profile
+            </>
+          )}
         </button>
       </div>
 

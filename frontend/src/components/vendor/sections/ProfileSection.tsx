@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   Store, 
   MapPin, 
@@ -12,9 +12,11 @@ import {
   Save, 
   Award,
   CheckCircle,
-  FileText
+  FileText,
+  Loader2
 } from "lucide-react";
 import { VendorCategoryConfig } from "@/lib/vendor-categories";
+import { fetchAuthenticatedVendorFromDb, syncVendorProfileWithDatabase, showVendorToast } from "@/lib/vendorStore";
 
 interface ProfileSectionProps {
   categoryConfig: VendorCategoryConfig;
@@ -23,25 +25,83 @@ interface ProfileSectionProps {
 
 export function ProfileSection({ categoryConfig, vendorName }: ProfileSectionProps) {
   const [isSaved, setIsSaved] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
   const [formData, setFormData] = useState({
-    businessName: vendorName || "Royal Wedding Services",
-    tagline: "Premier luxury wedding experiences & bespoke services",
+    businessName: vendorName || "",
+    tagline: "",
     category: categoryConfig.name,
-    phone: "+91 98765 43210",
-    email: "contact@vendorpartner.com",
-    city: "Jaipur, Rajasthan",
-    address: "Plot 42, Heritage Enclave, Near City Palace, Jaipur",
-    experience: "8+ Years",
-    website: "https://cloche.in/vendor-profile",
-    bio: `We specialize in premier ${categoryConfig.name.toLowerCase()} services for luxury weddings, grand receptions, and intimate traditional rituals. With over 8 years of excellence, our team delivers unmatched quality and custom experiences tailored to every couple's dream vision.`,
+    phone: "",
+    email: "",
+    city: "",
+    address: "",
+    experience: "",
+    website: "",
+    instagram: "",
+    bio: "",
     mondayToSaturday: "09:00 AM - 08:00 PM",
     sundayHours: "10:00 AM - 06:00 PM",
+    serviceAreas: "",
   });
 
-  const handleSave = (e: React.FormEvent) => {
+  useEffect(() => {
+    let isMounted = true;
+    fetchAuthenticatedVendorFromDb().then((profile) => {
+      if (!isMounted) return;
+      if (profile) {
+        setFormData((prev) => ({
+          ...prev,
+          businessName: profile.boutique_name || profile.name || vendorName || "",
+          phone: profile.phone || "",
+          email: profile.email || "",
+          city: profile.city || profile.district || "",
+          address: profile.address || "",
+          bio: profile.description || "",
+          website: profile.website || "",
+          instagram: profile.instagram || "",
+          mondayToSaturday: profile.workingHours || profile.working_hours || prev.mondayToSaturday,
+          serviceAreas: profile.serviceAreas || profile.service_areas || "",
+        }));
+      }
+      setIsLoading(false);
+    }).catch(() => {
+      if (isMounted) setIsLoading(false);
+    });
+    return () => { isMounted = false; };
+  }, [vendorName]);
+
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSaved(true);
-    setTimeout(() => setIsSaved(false), 3000);
+    setIsSaving(true);
+
+    const res = await syncVendorProfileWithDatabase({
+      name: formData.businessName,
+      boutique_name: formData.businessName,
+      description: formData.bio,
+      phone: formData.phone,
+      whatsapp: formData.phone,
+      email: formData.email,
+      city: formData.city,
+      address: formData.address,
+      website: formData.website,
+      instagram: formData.instagram,
+      working_hours: `${formData.mondayToSaturday} | Sun: ${formData.sundayHours}`,
+      workingHours: `${formData.mondayToSaturday} | Sun: ${formData.sundayHours}`,
+      service_areas: formData.serviceAreas,
+      serviceAreas: formData.serviceAreas,
+      tagline: formData.tagline,
+      experience: formData.experience,
+    } as any);
+
+    setIsSaving(false);
+    if (res.success) {
+      setIsSaved(true);
+      showVendorToast("Profile saved successfully to database!");
+      setTimeout(() => setIsSaved(false), 3000);
+    } else {
+      showVendorToast("Failed to save profile. Please check database connection.", "error");
+    }
   };
 
   return (
@@ -63,9 +123,22 @@ export function ProfileSection({ categoryConfig, vendorName }: ProfileSectionPro
 
         <button
           onClick={handleSave}
-          className="bg-[#0F4C45] hover:bg-[#072B27] text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow-xs transition-all flex items-center gap-2 shrink-0 cursor-pointer"
+          disabled={isSaving}
+          className="bg-[#0F4C45] hover:bg-[#072B27] disabled:opacity-50 text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow-xs transition-all flex items-center gap-2 shrink-0 cursor-pointer"
         >
-          <Save className="w-4 h-4 text-gold" /> {isSaved ? "Saved Successfully!" : "Save Changes"}
+          {isSaving ? (
+            <>
+              <Loader2 className="w-4 h-4 text-gold animate-spin" /> Saving to Database...
+            </>
+          ) : isSaved ? (
+            <>
+              <CheckCircle className="w-4 h-4 text-gold" /> Saved Successfully!
+            </>
+          ) : (
+            <>
+              <Save className="w-4 h-4 text-gold" /> Save Changes
+            </>
+          )}
         </button>
       </div>
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   Plus, 
   Layers, 
@@ -12,9 +12,12 @@ import {
   Edit, 
   CheckCircle,
   Image as ImageIcon,
-  FolderPlus
+  FolderPlus,
+  Loader2,
+  Upload
 } from "lucide-react";
 import { VendorCategoryConfig } from "@/lib/vendor-categories";
+import { showVendorToast } from "@/lib/vendorStore";
 
 interface VendorMediaModuleProps {
   categoryConfig: VendorCategoryConfig;
@@ -22,39 +25,123 @@ interface VendorMediaModuleProps {
 
 export function VendorMediaModule({ categoryConfig }: VendorMediaModuleProps) {
   const [selectedTag, setSelectedTag] = useState("All");
-  const [mediaList, setMediaList] = useState(categoryConfig.sampleMedia || []);
+  const [mediaList, setMediaList] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   
   // New Item State
   const [newItemTitle, setNewItemTitle] = useState("");
   const [newItemCategory, setNewItemCategory] = useState(categoryConfig.media.tags[1] || "General");
   const [newItemDetails, setNewItemDetails] = useState("");
-  const [newItemImage, setNewItemImage] = useState("https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=800&auto=format&fit=crop");
+  const [newItemImage, setNewItemImage] = useState("");
+
+  const getHeaders = () => {
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (typeof window !== "undefined") {
+      try {
+        const cookieStr = document.cookie;
+        const match = cookieStr.match(/(?:^|;\s*)user_data=([^;]*)/);
+        if (match) {
+          const parsed = JSON.parse(decodeURIComponent(match[1]));
+          if (parsed?.id) headers["x-user-id"] = parsed.id;
+          if (parsed?.email) headers["x-user-email"] = parsed.email;
+        }
+        const tokenMatch = cookieStr.match(/(?:^|;\s*)auth_token=([^;]*)/);
+        if (tokenMatch && tokenMatch[1]) headers["x-auth-token"] = tokenMatch[1];
+      } catch (_) {}
+    }
+    return headers;
+  };
+
+  const fetchGallery = async () => {
+    setIsLoading(true);
+    try {
+      const res = await fetch("/api/v1/vendor/gallery", { headers: getHeaders() });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && Array.isArray(json.data)) {
+          const mapped = json.data.map((item: any) => ({
+            id: item.id,
+            title: item.title || item.caption || "Showcase Photo",
+            category: item.category || item.category_tag || "General",
+            image: item.image_url || item.url || item.cdn_url || "",
+            details: item.caption || item.details || "",
+          }));
+          setMediaList(mapped);
+        }
+      }
+    } catch (e) {
+      console.error("[VendorMediaModule] Fetch error:", e);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchGallery();
+  }, []);
 
   const filteredMedia = selectedTag === "All" 
     ? mediaList 
     : mediaList.filter(item => item.category === selectedTag);
 
-  const handleAddItem = (e: React.FormEvent) => {
+  const handleAddItem = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newItemTitle) return;
+    if (!newItemTitle.trim()) {
+      showVendorToast("Please enter a title for this item.", "error");
+      return;
+    }
+    const finalImage = newItemImage.trim() || "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=800&auto=format&fit=crop";
 
-    const newItem = {
-      id: `media-${Date.now()}`,
-      title: newItemTitle,
-      category: newItemCategory,
-      image: newItemImage,
-      details: newItemDetails || "Newly added portfolio entry"
-    };
+    setIsSaving(true);
+    try {
+      const res = await fetch("/api/v1/vendor/gallery", {
+        method: "POST",
+        headers: getHeaders(),
+        body: JSON.stringify({
+          title: newItemTitle.trim(),
+          category: newItemCategory,
+          image_url: finalImage,
+          caption: newItemDetails.trim(),
+        }),
+      });
 
-    setMediaList([newItem, ...mediaList]);
-    setNewItemTitle("");
-    setNewItemDetails("");
-    setIsAddModalOpen(false);
+      if (res.ok) {
+        showVendorToast("Portfolio item saved successfully!");
+        setNewItemTitle("");
+        setNewItemDetails("");
+        setNewItemImage("");
+        setIsAddModalOpen(false);
+        await fetchGallery();
+      } else {
+        const errJson = await res.json().catch(() => ({}));
+        showVendorToast(errJson.error?.message || "Failed to save portfolio item.", "error");
+      }
+    } catch (e) {
+      showVendorToast("Network error saving portfolio item.", "error");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  const handleDeleteItem = (id: string) => {
-    setMediaList(mediaList.filter(i => i.id !== id));
+  const handleDeleteItem = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this item?")) return;
+    try {
+      const res = await fetch(`/api/v1/vendor/gallery?id=${encodeURIComponent(id)}`, {
+        method: "DELETE",
+        headers: getHeaders(),
+      });
+
+      if (res.ok) {
+        showVendorToast("Item deleted successfully.");
+        setMediaList((prev) => prev.filter((i) => i.id !== id));
+      } else {
+        showVendorToast("Failed to delete item.", "error");
+      }
+    } catch (e) {
+      showVendorToast("Network error deleting item.", "error");
+    }
   };
 
   return (
@@ -101,7 +188,12 @@ export function VendorMediaModule({ categoryConfig }: VendorMediaModuleProps) {
       )}
 
       {/* Media Cards Grid */}
-      {filteredMedia.length > 0 ? (
+      {isLoading ? (
+        <div className="bg-white rounded-2xl border border-gold/15 p-12 text-center space-y-3">
+          <Loader2 className="w-8 h-8 text-[#0F4C45] animate-spin mx-auto" />
+          <p className="text-xs font-bold text-charcoal/60 uppercase tracking-wider">Loading Portfolio Items...</p>
+        </div>
+      ) : filteredMedia.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredMedia.map((item) => (
             <div 

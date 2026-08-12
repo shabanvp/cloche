@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { 
   Palette, 
   Calendar, 
@@ -13,7 +14,10 @@ import {
   Plus, 
   Star,
   Award,
-  Heart
+  Heart,
+  Loader2,
+  InboxIcon,
+  CalendarX
 } from "lucide-react";
 
 interface MehendiOverviewSectionProps {
@@ -23,22 +27,103 @@ interface MehendiOverviewSectionProps {
 }
 
 export function MehendiOverviewSection({ artistName, businessName, onNavigate }: MehendiOverviewSectionProps) {
+  const [isLoading, setIsLoading] = useState(true);
+  const [enquiriesCount, setEnquiriesCount] = useState(0);
+  const [bookingsCount, setBookingsCount] = useState(0);
+  const [viewsCount, setViewsCount] = useState(0);
+  const [rating, setRating] = useState("5.0 ★");
+  const [reviewsCount, setReviewsCount] = useState(0);
+  const [recentEnquiries, setRecentEnquiries] = useState<any[]>([]);
+  const [upcomingBookings, setUpcomingBookings] = useState<any[]>([]);
+
+  const getHeaders = () => {
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (typeof window !== "undefined") {
+      try {
+        const cookieStr = document.cookie;
+        const match = cookieStr.match(/(?:^|;\s*)user_data=([^;]*)/);
+        if (match) {
+          const parsed = JSON.parse(decodeURIComponent(match[1]));
+          if (parsed?.id) headers["x-user-id"] = parsed.id;
+          if (parsed?.email) headers["x-user-email"] = parsed.email;
+        }
+        const tokenMatch = cookieStr.match(/(?:^|;\s*)auth_token=([^;]*)/);
+        if (tokenMatch && tokenMatch[1]) headers["x-auth-token"] = tokenMatch[1];
+      } catch (_) {}
+    }
+    return headers;
+  };
+
+  useEffect(() => {
+    let isMounted = true;
+    const loadOverviewData = async () => {
+      setIsLoading(true);
+      try {
+        const [profRes, leadsRes, bookingsRes] = await Promise.all([
+          fetch("/api/v1/vendor/profile", { headers: getHeaders() }).catch(() => null),
+          fetch("/api/v1/vendor/leads", { headers: getHeaders() }).catch(() => null),
+          fetch("/api/v1/vendor/bookings", { headers: getHeaders() }).catch(() => null),
+        ]);
+
+        if (!isMounted) return;
+
+        if (profRes && profRes.ok) {
+          const profJson = await profRes.json();
+          const v = profJson.data?.vendor || {};
+          setViewsCount(v.view_count || 0);
+          setRating(v.rating ? `${v.rating} ★` : "New Artist");
+          setReviewsCount(v.reviews_count || 0);
+        }
+
+        if (leadsRes && leadsRes.ok) {
+          const leadsJson = await leadsRes.json();
+          if (leadsJson.success && Array.isArray(leadsJson.data)) {
+            setEnquiriesCount(leadsJson.data.length);
+            const mappedLeads = leadsJson.data.slice(0, 3).map((l: any) => ({
+              id: l.id,
+              name: l.customer_name || "Bridal Client",
+              date: l.event_date ? new Date(l.event_date).toLocaleDateString("en-IN", { month: "short", day: "numeric" }) : "Upcoming",
+              type: l.event_type || "Bridal Henna Enquiry",
+              location: l.location || "Location TBD",
+              budget: l.budget || "Quote requested",
+              status: l.status || "New Lead",
+              time: l.created_at ? new Date(l.created_at).toLocaleDateString("en-IN") : "Recently",
+            }));
+            setRecentEnquiries(mappedLeads);
+          }
+        }
+
+        if (bookingsRes && bookingsRes.ok) {
+          const bookingsJson = await bookingsRes.json();
+          if (bookingsJson.success && Array.isArray(bookingsJson.data)) {
+            setBookingsCount(bookingsJson.data.length);
+            const mappedBookings = bookingsJson.data.slice(0, 2).map((b: any) => ({
+              id: b.id,
+              bride: b.notes?.match(/Client:\s*([^,]+)/)?.[1] || b.customer_name || "Bridal Booking",
+              date: b.event_date ? new Date(b.event_date).toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" }) : "Confirmed Date",
+              time: b.notes?.match(/\(([^)]+)\)/)?.[1] || "Full Day",
+              function: b.notes?.split("(")[0]?.trim() || "Bridal Henna Application",
+              status: "Confirmed",
+            }));
+            setUpcomingBookings(mappedBookings);
+          }
+        }
+      } catch (e) {
+        console.error("[MehendiOverviewSection] Error loading live DB stats:", e);
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    };
+
+    loadOverviewData();
+    return () => { isMounted = false; };
+  }, []);
+
   const stats = [
-    { title: "Bookings This Week", value: "4", change: "2 Bridal • 2 Party", icon: Calendar, color: "text-[#0d3b30]", bg: "bg-[#0d3b30]/10", target: "appointments" },
-    { title: "New Enquiries", value: "18", change: "+6 since yesterday", icon: Inbox, color: "text-[#C8A96A]", bg: "bg-[#C8A96A]/20", target: "enquiries" },
-    { title: "Recent Profile Views", value: "2,140", change: "+28% this month", icon: Eye, color: "text-[#0d3b30]", bg: "bg-[#0d3b30]/10", target: "analytics" },
-    { title: "Artist Rating", value: "4.95 ★", change: "34 verified brides", icon: Star, color: "text-amber-500", bg: "bg-amber-100", target: "overview" },
-  ];
-
-  const recentEnquiries = [
-    { id: "le-1", name: "Ananya Deshmukh", date: "Oct 18, 2026", type: "Full Length Rajasthani Bridal Henna", location: "Jaipur (Outstation)", budget: "₹18,000", status: "New Lead", time: "1 hr ago" },
-    { id: "le-2", name: "Priya Sharma", date: "Nov 02, 2026", type: "Bridal + 15 Guest Mehendi Party", location: "Kochi, Kerala", budget: "₹32,000", status: "In Discussion", time: "3 hrs ago" },
-    { id: "le-3", name: "Sneha & Family", date: "Dec 05, 2026", type: "Indo-Arabic Sangeet Palms", location: "Bangalore", budget: "₹15,000", status: "Quote Sent", time: "1 day ago" },
-  ];
-
-  const upcomingBookings = [
-    { id: "b1", bride: "Kavya Malhotra", date: "Aug 24, 2026", time: "09:00 AM - 02:00 PM", function: "Full Bridal Henna Application", status: "Confirmed" },
-    { id: "b2", bride: "Rhea Sen", date: "Sep 02, 2026", time: "04:00 PM - 08:00 PM", function: "Pre-Bridal Trial Session", status: "Trial Scheduled" },
+    { title: "Bookings This Week", value: bookingsCount.toString(), change: bookingsCount > 0 ? "Confirmed dates" : "0 confirmed", icon: Calendar, color: "text-[#0d3b30]", bg: "bg-[#0d3b30]/10", target: "appointments" },
+    { title: "New Enquiries", value: enquiriesCount.toString(), change: enquiriesCount > 0 ? "Active leads" : "0 new", icon: Inbox, color: "text-[#C8A96A]", bg: "bg-[#C8A96A]/20", target: "enquiries" },
+    { title: "Recent Profile Views", value: viewsCount.toLocaleString("en-IN"), change: "Total views", icon: Eye, color: "text-[#0d3b30]", bg: "bg-[#0d3b30]/10", target: "analytics" },
+    { title: "Artist Rating", value: rating, change: `${reviewsCount} verified reviews`, icon: Star, color: "text-amber-500", bg: "bg-amber-100", target: "overview" },
   ];
 
   return (

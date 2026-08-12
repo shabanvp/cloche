@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   Plus, 
   Package, 
@@ -10,8 +10,11 @@ import {
   Plane, 
   Sparkles, 
   DollarSign,
-  PackageCheck
+  PackageCheck,
+  Loader2,
+  PackageX
 } from "lucide-react";
+import { showVendorToast } from "@/lib/vendorStore";
 
 export interface MehendiPackage {
   id: string;
@@ -24,104 +27,132 @@ export interface MehendiPackage {
 }
 
 export function MehendiPricingSection() {
-  const [packages, setPackages] = useState<MehendiPackage[]>([
-    {
-      id: "mp-1",
-      name: "Royal Full Length Bridal Package",
-      price: "₹18,000",
-      unit: "full bridal",
-      features: [
-        "Both hands till elbow (Front & Back)",
-        "Both feet application till mid-calf",
-        "Customized Baraat & Portrait Figures",
-        "100% Hand-mixed Organic Rajasthani Henna",
-        "Complimentary Bridal Touch-Up & Stain Aftercare Kit"
-      ],
-      popular: true,
-      badge: "Most Popular for Brides"
-    },
-    {
-      id: "mp-2",
-      name: "Sangeet Mehendi Party Team (15 Guests)",
-      price: "₹16,500",
-      unit: "group booking",
-      features: [
-        "2 Assistant Artists for 5 Hours",
-        "Arabic Vines / Floral Palms for 15 Guests",
-        "Fast 15-Min per guest application",
-        "Organic Chemical-Free Henna Cones"
-      ],
-      popular: false,
-      badge: "Group Saver"
-    },
-    {
-      id: "mp-3",
-      name: "Per-Hand Rate (Front & Back Palm)",
-      price: "₹850",
-      unit: "per hand",
-      features: [
-        "Intricate Arabic or Indo-Arabic Pattern",
-        "Applies to Palms & Wrists",
-        "Minimum order: 4 hands"
-      ],
-      popular: false,
-      badge: "Standard Rate"
-    },
-    {
-      id: "mp-4",
-      name: "Outstation Travel & Stay Policy",
-      price: "₹5,000",
-      unit: "plus actual travel",
-      features: [
-        "Covers outstation travel setup & equipment transport",
-        "Requires 2 AC Deluxe Rooms for artist team",
-        "Flight / Train tickets borne by client"
-      ],
-      popular: false,
-      badge: "Destination Wedding"
-    }
-  ]);
-
+  const [packages, setPackages] = useState<MehendiPackage[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   // Form State
   const [newPkgName, setNewPkgName] = useState("");
   const [newPkgPrice, setNewPkgPrice] = useState("");
-  const [newPkgUnit, setNewPkgUnit] = useState("per package");
+  const [newPkgUnit, setNewPkgUnit] = useState("full bridal");
   const [newFeatureText, setNewFeatureText] = useState("");
   const [newFeatures, setNewFeatures] = useState<string[]>([
-    "Organic chemical-free henna cones",
+    "100% Hand-mixed Organic Rajasthani Henna",
     "Deep stain care guidance"
   ]);
 
+  const getHeaders = () => {
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (typeof window !== "undefined") {
+      try {
+        const cookieStr = document.cookie;
+        const match = cookieStr.match(/(?:^|;\s*)user_data=([^;]*)/);
+        if (match) {
+          const parsed = JSON.parse(decodeURIComponent(match[1]));
+          if (parsed?.id) headers["x-user-id"] = parsed.id;
+          if (parsed?.email) headers["x-user-email"] = parsed.email;
+        }
+        const tokenMatch = cookieStr.match(/(?:^|;\s*)auth_token=([^;]*)/);
+        if (tokenMatch && tokenMatch[1]) headers["x-auth-token"] = tokenMatch[1];
+      } catch (_) {}
+    }
+    return headers;
+  };
+
+  const fetchPackages = async () => {
+    setIsLoading(true);
+    try {
+      const res = await fetch("/api/v1/vendor/packages", { headers: getHeaders() });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && Array.isArray(json.data)) {
+          const mapped: MehendiPackage[] = json.data.map((pkg: any) => ({
+            id: pkg.id,
+            name: pkg.name || "Henna Package",
+            price: typeof pkg.price === "number" ? `₹${pkg.price.toLocaleString("en-IN")}` : (pkg.price || "Quote on Request"),
+            unit: pkg.tagline || pkg.unit || "per function",
+            features: Array.isArray(pkg.features) ? pkg.features : [],
+            popular: Boolean(pkg.is_popular),
+            badge: pkg.is_popular ? "Most Popular" : "Bridal Package"
+          }));
+          setPackages(mapped);
+        }
+      }
+    } catch (e) {
+      console.error("[MehendiPricingSection] Fetch error:", e);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPackages();
+  }, []);
+
   const handleAddFeature = () => {
-    if (!newFeatureText) return;
-    setNewFeatures([...newFeatures, newFeatureText]);
+    if (!newFeatureText.trim()) return;
+    setNewFeatures([...newFeatures, newFeatureText.trim()]);
     setNewFeatureText("");
   };
 
-  const handleCreatePackage = (e: React.FormEvent) => {
+  const handleCreatePackage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newPkgName || !newPkgPrice) return;
+    if (!newPkgName.trim()) {
+      showVendorToast("Please enter a package name.", "error");
+      return;
+    }
 
-    const item: MehendiPackage = {
-      id: `mp-${Date.now()}`,
-      name: newPkgName,
-      price: newPkgPrice.startsWith("₹") ? newPkgPrice : `₹${newPkgPrice}`,
-      unit: newPkgUnit,
-      features: newFeatures,
-      popular: false,
-      badge: "Custom Rates"
-    };
+    const numPrice = parseFloat(newPkgPrice.replace(/[^0-9.]/g, "")) || 0;
 
-    setPackages([...packages, item]);
-    setNewPkgName("");
-    setNewPkgPrice("");
-    setIsAddModalOpen(false);
+    setIsSaving(true);
+    try {
+      const res = await fetch("/api/v1/vendor/packages", {
+        method: "POST",
+        headers: getHeaders(),
+        body: JSON.stringify({
+          name: newPkgName.trim(),
+          price: numPrice,
+          tagline: newPkgUnit,
+          features: newFeatures,
+          is_popular: false,
+        }),
+      });
+
+      if (res.ok) {
+        showVendorToast("Mehendi package saved successfully!");
+        setNewPkgName("");
+        setNewPkgPrice("");
+        setIsAddModalOpen(false);
+        await fetchPackages();
+      } else {
+        const errJson = await res.json().catch(() => ({}));
+        showVendorToast(errJson.error?.message || "Failed to save package.", "error");
+      }
+    } catch (e) {
+      showVendorToast("Network error saving package.", "error");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  const handleDelete = (id: string) => {
-    setPackages(packages.filter(p => p.id !== id));
+  const handleDeletePackage = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this mehendi package?")) return;
+    try {
+      const res = await fetch(`/api/v1/vendor/packages/${encodeURIComponent(id)}`, {
+        method: "DELETE",
+        headers: getHeaders(),
+      });
+
+      if (res.ok) {
+        showVendorToast("Package deleted successfully.");
+        setPackages((prev) => prev.filter((p) => p.id !== id));
+      } else {
+        showVendorToast("Failed to delete package.", "error");
+      }
+    } catch (e) {
+      showVendorToast("Network error deleting package.", "error");
+    }
   };
 
   return (
@@ -158,7 +189,12 @@ export function MehendiPricingSection() {
       </div>
 
       {/* Packages Grid */}
-      {packages.length > 0 ? (
+      {isLoading ? (
+        <div className="bg-white rounded-3xl border border-gold/15 p-12 text-center space-y-3 shadow-xs">
+          <Loader2 className="w-8 h-8 text-[#0d3b30] animate-spin mx-auto" />
+          <p className="text-xs font-bold text-charcoal/60 uppercase tracking-wider">Loading Mehendi Packages...</p>
+        </div>
+      ) : packages.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {packages.map((pkg) => (
             <div

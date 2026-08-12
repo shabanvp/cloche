@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   Calendar as CalendarIcon, 
   Clock, 
@@ -10,54 +10,123 @@ import {
   Plus, 
   Search, 
   Sparkles,
-  CalendarDays
+  CalendarDays,
+  Loader2,
+  CalendarX
 } from "lucide-react";
+import { showVendorToast } from "@/lib/vendorStore";
 
 export function MehendiAppointmentsSection() {
   const [activeTab, setActiveTab] = useState<"upcoming" | "trials" | "completed">("upcoming");
   const [searchTerm, setSearchTerm] = useState("");
+  const [bookings, setBookings] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
-  const bookings = [
-    {
-      id: "b-1",
-      brideName: "Kavya Malhotra & Rahul",
-      eventDate: "Oct 18, 2026",
-      timeSlot: "09:00 AM - 03:00 PM",
-      type: "Full Length Bridal Henna",
-      location: "Royal Heritage Resort, Jaipur",
-      phone: "+91 98112 34567",
-      status: "upcoming",
-      category: "Bridal",
-      amount: "₹18,000",
-      depositPaid: "₹5,000"
-    },
-    {
-      id: "b-2",
-      brideName: "Rhea Sen",
-      eventDate: "Sep 02, 2026",
-      timeSlot: "04:00 PM - 06:00 PM",
-      type: "Pre-Bridal Design Trial Session",
-      location: "Studio Trial Room, Jaipur",
-      phone: "+91 98765 12345",
-      status: "trials",
-      category: "Trial",
-      amount: "₹2,500",
-      depositPaid: "₹2,500"
-    },
-    {
-      id: "b-3",
-      brideName: "Simran & Family",
-      eventDate: "Jul 15, 2026",
-      timeSlot: "10:00 AM - 04:00 PM",
-      type: "Sangeet Mehendi Party (12 Guests)",
-      location: "Kochi, Kerala",
-      phone: "+91 99887 65432",
-      status: "completed",
-      category: "Party",
-      amount: "₹15,000",
-      depositPaid: "₹15,000"
+  // Form state
+  const [newBrideName, setNewBrideName] = useState("");
+  const [newEventDate, setNewEventDate] = useState("");
+  const [newTimeSlot, setNewTimeSlot] = useState("09:00 AM - 03:00 PM");
+  const [newType, setNewType] = useState("Full Length Bridal Henna");
+  const [newLocation, setNewLocation] = useState("");
+  const [newPhone, setNewPhone] = useState("");
+  const [newAmount, setNewAmount] = useState("");
+
+  const getHeaders = () => {
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (typeof window !== "undefined") {
+      try {
+        const cookieStr = document.cookie;
+        const match = cookieStr.match(/(?:^|;\s*)user_data=([^;]*)/);
+        if (match) {
+          const parsed = JSON.parse(decodeURIComponent(match[1]));
+          if (parsed?.id) headers["x-user-id"] = parsed.id;
+          if (parsed?.email) headers["x-user-email"] = parsed.email;
+        }
+        const tokenMatch = cookieStr.match(/(?:^|;\s*)auth_token=([^;]*)/);
+        if (tokenMatch && tokenMatch[1]) headers["x-auth-token"] = tokenMatch[1];
+      } catch (_) {}
     }
-  ];
+    return headers;
+  };
+
+  const fetchBookings = async () => {
+    setIsLoading(true);
+    try {
+      const res = await fetch("/api/v1/vendor/bookings", { headers: getHeaders() });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && Array.isArray(json.data)) {
+          const mapped = json.data.map((b: any) => ({
+            id: b.id,
+            brideName: b.notes?.match(/Client:\s*([^,]+)/)?.[1] || b.customer_name || "Bridal Client",
+            eventDate: b.event_date ? new Date(b.event_date).toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" }) : "TBD Date",
+            timeSlot: b.notes?.match(/\(([^)]+)\)/)?.[1] || "Full Day",
+            type: b.notes?.split("(")[0]?.trim() || "Bridal Henna",
+            location: b.event_location || b.address || "Client Location",
+            phone: b.notes?.match(/Phone:\s*([^\s]+)/)?.[1] || b.customer_phone || "+91 98000 00000",
+            status: b.notes?.toLowerCase().includes("trial") ? "trials" : (b.status === "completed" ? "completed" : "upcoming"),
+            category: b.notes?.toLowerCase().includes("trial") ? "Trial" : "Bridal",
+            amount: typeof b.total_amount === "number" ? `₹${b.total_amount.toLocaleString("en-IN")}` : `₹${b.total_amount || 0}`,
+            depositPaid: "Confirmed",
+          }));
+          setBookings(mapped);
+        }
+      }
+    } catch (e) {
+      console.error("[MehendiAppointmentsSection] Fetch error:", e);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchBookings();
+  }, []);
+
+  const handleCreateBooking = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newBrideName.trim() || !newEventDate) {
+      showVendorToast("Please enter bride's name and date.", "error");
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const res = await fetch("/api/v1/vendor/bookings", {
+        method: "POST",
+        headers: getHeaders(),
+        body: JSON.stringify({
+          clientName: newBrideName.trim(),
+          eventDate: newEventDate,
+          timeSlot: newTimeSlot,
+          eventType: newType,
+          location: newLocation,
+          phone: newPhone,
+          amount: newAmount,
+        }),
+      });
+
+      if (res.ok) {
+        showVendorToast("Appointment scheduled successfully!");
+        setNewBrideName("");
+        setNewEventDate("");
+        setNewLocation("");
+        setNewPhone("");
+        setNewAmount("");
+        setIsAddModalOpen(false);
+        await fetchBookings();
+      } else {
+        const errJson = await res.json().catch(() => ({}));
+        showVendorToast(errJson.error?.message || "Failed to schedule appointment.", "error");
+      }
+    } catch (e) {
+      showVendorToast("Network error scheduling appointment.", "error");
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const filtered = bookings.filter(b => {
     const matchesTab = b.status === activeTab;

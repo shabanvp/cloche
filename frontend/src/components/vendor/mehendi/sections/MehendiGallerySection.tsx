@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   Plus, 
   Palette, 
@@ -9,8 +9,10 @@ import {
   FolderPlus, 
   CheckCircle,
   Eye,
-  Tag
+  Tag,
+  Loader2
 } from "lucide-react";
+import { showVendorToast } from "@/lib/vendorStore";
 
 export interface MehendiGalleryItem {
   id: string;
@@ -24,75 +26,125 @@ export interface MehendiGalleryItem {
 export function MehendiGallerySection() {
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [designs, setDesigns] = useState<MehendiGalleryItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
 
   const categories = ["All", "Bridal", "Arabic", "Rajasthani", "Indo-Arabic", "Minimal/Party"];
-
-  const [designs, setDesigns] = useState<MehendiGalleryItem[]>([
-    {
-      id: "mh-1",
-      title: "Royal Portrait Dulha-Dulhan Motif",
-      category: "Bridal",
-      image: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?q=80&w=800&auto=format&fit=crop",
-      details: "Elbow Length • Customized Baraat Motif • Organic Henna Stain",
-      views: "1,420 views"
-    },
-    {
-      id: "mh-2",
-      title: "Flowing Floral Arabic Palms",
-      category: "Arabic",
-      image: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=800&auto=format&fit=crop",
-      details: "Fast Application • Bold Vines & Geometric Accents",
-      views: "980 views"
-    },
-    {
-      id: "mh-3",
-      title: "Intricate Marwari Peacock Palms",
-      category: "Rajasthani",
-      image: "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=800&auto=format&fit=crop",
-      details: "Traditional Mandap & Doli Patterns • Deep Red Stain",
-      views: "1,150 views"
-    },
-    {
-      id: "mh-4",
-      title: "Modern Minimalist Sangeet Wrist Band",
-      category: "Minimal/Party",
-      image: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?q=80&w=800&auto=format&fit=crop",
-      details: "Ideal for Bridesmaids • 15-min Quick Application",
-      views: "640 views"
-    }
-  ]);
 
   // Form State
   const [newTitle, setNewTitle] = useState("");
   const [newCategory, setNewCategory] = useState("Bridal");
   const [newDetails, setNewDetails] = useState("");
-  const [newImage, setNewImage] = useState("https://images.unsplash.com/photo-1610030469983-98e550d6193c?q=80&w=800&auto=format&fit=crop");
+  const [newImage, setNewImage] = useState("");
+
+  const getHeaders = () => {
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (typeof window !== "undefined") {
+      try {
+        const cookieStr = document.cookie;
+        const match = cookieStr.match(/(?:^|;\s*)user_data=([^;]*)/);
+        if (match) {
+          const parsed = JSON.parse(decodeURIComponent(match[1]));
+          if (parsed?.id) headers["x-user-id"] = parsed.id;
+          if (parsed?.email) headers["x-user-email"] = parsed.email;
+        }
+        const tokenMatch = cookieStr.match(/(?:^|;\s*)auth_token=([^;]*)/);
+        if (tokenMatch && tokenMatch[1]) headers["x-auth-token"] = tokenMatch[1];
+      } catch (_) {}
+    }
+    return headers;
+  };
+
+  const fetchGallery = async () => {
+    setIsLoading(true);
+    try {
+      const res = await fetch("/api/v1/vendor/gallery", { headers: getHeaders() });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && Array.isArray(json.data)) {
+          const mapped: MehendiGalleryItem[] = json.data.map((item: any) => ({
+            id: item.id,
+            title: item.title || item.caption || "Henna Pattern",
+            category: item.category || item.category_tag || "Bridal",
+            image: item.image_url || item.url || item.cdn_url || "",
+            details: item.caption || item.details || "Handcrafted mehendi design",
+            views: "Live DB",
+          }));
+          setDesigns(mapped);
+        }
+      }
+    } catch (e) {
+      console.error("[MehendiGallerySection] Fetch error:", e);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchGallery();
+  }, []);
 
   const filteredDesigns = selectedCategory === "All"
     ? designs
     : designs.filter(d => d.category === selectedCategory);
 
-  const handleAddDesign = (e: React.FormEvent) => {
+  const handleAddDesign = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newTitle) return;
+    if (!newTitle.trim()) {
+      showVendorToast("Please enter a title for the design.", "error");
+      return;
+    }
+    const finalImage = newImage.trim() || "https://images.unsplash.com/photo-1610030469983-98e550d6193c?q=80&w=800&auto=format&fit=crop";
 
-    const item: MehendiGalleryItem = {
-      id: `mh-${Date.now()}`,
-      title: newTitle,
-      category: newCategory,
-      image: newImage,
-      details: newDetails || "Handcrafted mehendi design",
-      views: "New Upload"
-    };
+    setIsSaving(true);
+    try {
+      const res = await fetch("/api/v1/vendor/gallery", {
+        method: "POST",
+        headers: getHeaders(),
+        body: JSON.stringify({
+          title: newTitle.trim(),
+          category: newCategory,
+          image_url: finalImage,
+          caption: newDetails.trim(),
+        }),
+      });
 
-    setDesigns([item, ...designs]);
-    setNewTitle("");
-    setNewDetails("");
-    setIsAddModalOpen(false);
+      if (res.ok) {
+        showVendorToast("Mehendi design saved successfully!");
+        setNewTitle("");
+        setNewDetails("");
+        setNewImage("");
+        setIsAddModalOpen(false);
+        await fetchGallery();
+      } else {
+        const errJson = await res.json().catch(() => ({}));
+        showVendorToast(errJson.error?.message || "Failed to save design.", "error");
+      }
+    } catch (e) {
+      showVendorToast("Network error saving design.", "error");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  const handleDelete = (id: string) => {
-    setDesigns(designs.filter(d => d.id !== id));
+  const handleDelete = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this mehendi design?")) return;
+    try {
+      const res = await fetch(`/api/v1/vendor/gallery?id=${encodeURIComponent(id)}`, {
+        method: "DELETE",
+        headers: getHeaders(),
+      });
+
+      if (res.ok) {
+        showVendorToast("Design deleted successfully.");
+        setDesigns((prev) => prev.filter((d) => d.id !== id));
+      } else {
+        showVendorToast("Failed to delete design.", "error");
+      }
+    } catch (e) {
+      showVendorToast("Network error deleting design.", "error");
+    }
   };
 
   return (
@@ -137,7 +189,12 @@ export function MehendiGallerySection() {
       </div>
 
       {/* Gallery Cards Grid */}
-      {filteredDesigns.length > 0 ? (
+      {isLoading ? (
+        <div className="bg-white rounded-3xl border border-gold/15 p-12 text-center space-y-3 shadow-xs">
+          <Loader2 className="w-8 h-8 text-[#0d3b30] animate-spin mx-auto" />
+          <p className="text-xs font-bold text-charcoal/60 uppercase tracking-wider">Loading Mehendi Designs...</p>
+        </div>
+      ) : filteredDesigns.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredDesigns.map((design) => (
             <div 
