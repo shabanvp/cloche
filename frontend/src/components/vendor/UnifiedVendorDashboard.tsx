@@ -46,6 +46,19 @@ export function UnifiedVendorDashboard({ categoryKey = "caterers" }: UnifiedVend
   const [vendorData, setVendorData] = useState<any>(null);
 
   useEffect(() => {
+    const handleProfileUpdate = (e: any) => {
+      if (e?.detail) {
+        setVendorData((prev: any) => ({ ...prev, ...e.detail }));
+        if (e.detail.category) {
+          setActiveCategoryKey(normalizeVendorCategoryKey(e.detail.category));
+        }
+      }
+    };
+
+    if (typeof window !== "undefined") {
+      window.addEventListener("cloche_vendor_profile_updated", handleProfileUpdate);
+    }
+
     const cached = getActiveVendorIdentity();
     if (cached && cached.id) {
       setVendorData(cached);
@@ -62,6 +75,12 @@ export function UnifiedVendorDashboard({ categoryKey = "caterers" }: UnifiedVend
         }
       }
     });
+
+    return () => {
+      if (typeof window !== "undefined") {
+        window.removeEventListener("cloche_vendor_profile_updated", handleProfileUpdate);
+      }
+    };
   }, []);
 
   const categoryConfig: VendorCategoryConfig = VENDOR_CATEGORIES[activeCategoryKey] || VENDOR_CATEGORIES.caterers || VENDOR_CATEGORIES.photographers;

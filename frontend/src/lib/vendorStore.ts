@@ -68,12 +68,61 @@ export async function syncVendorProfileWithDatabase(
 ): Promise<{ success: boolean; data?: any }> {
   if (typeof window !== "undefined") {
     try {
+      const payload = {
+        profile: {
+          business_name: profileData.boutique_name || profileData.name,
+          boutique_name: profileData.boutique_name || profileData.name,
+          logo: profileData.logo || profileData.logo_url,
+          logo_url: profileData.logo || profileData.logo_url,
+          coverImage: profileData.coverImage || profileData.cover_image,
+          cover_image: profileData.coverImage || profileData.cover_image,
+          about: profileData.description,
+          city: profileData.city,
+          state: profileData.district,
+          ...profileData,
+        },
+        contact: {
+          contact_name: profileData.owner_name || profileData.ownerName,
+          phone: profileData.phone,
+          whatsapp: profileData.whatsapp,
+          email: profileData.email,
+        },
+        address: {
+          address_line1: profileData.address,
+          city: profileData.city,
+          state: profileData.district,
+        },
+        ...profileData,
+      };
+
       const res = await fetch("/api/v1/vendor/profile", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(profileData),
+        body: JSON.stringify(payload),
       });
-      return { success: res.ok };
+
+      if (res.ok) {
+        // Invalidate in-flight cache
+        inFlightProfileFetch = null;
+
+        // Update active cached vendor identity
+        try {
+          const raw = localStorage.getItem("cloche_active_vendor_identity");
+          const existing = raw ? JSON.parse(raw) : {};
+          const updated = {
+            ...existing,
+            ...profileData,
+            logo: profileData.logo || profileData.logo_url || existing.logo || existing.logo_url,
+            logo_url: profileData.logo || profileData.logo_url || existing.logo_url || existing.logo,
+            coverImage: profileData.coverImage || profileData.cover_image || existing.coverImage || existing.cover_image,
+            cover_image: profileData.coverImage || profileData.cover_image || existing.cover_image || existing.coverImage,
+          };
+          localStorage.setItem("cloche_active_vendor_identity", JSON.stringify(updated));
+          window.dispatchEvent(new CustomEvent("cloche_vendor_profile_updated", { detail: updated }));
+        } catch (_) {}
+
+        return { success: true };
+      }
     } catch (e) {
       console.error("[vendorStore] Sync error:", e);
     }
