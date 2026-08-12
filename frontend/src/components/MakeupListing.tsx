@@ -53,7 +53,7 @@ export function MakeupListing() {
   }, [liveDbArtists]);
 
   const filteredArtists = useMemo(() => {
-    return allArtists.filter((artist) => {
+    return allArtists.filter((artist: any) => {
       const q = search.toLowerCase().trim();
       const matchesSearch =
         !q || artist.name.toLowerCase().includes(q) || (artist.location || artist.city || "").toLowerCase().includes(q) || (artist.about || "").toLowerCase().includes(q);

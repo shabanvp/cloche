@@ -158,7 +158,7 @@ export function ExploreOtherVendors({ category, currentVendorId, currentVendorNa
                 isVerified: Boolean(r.isVerified),
               };
             })
-            .filter((item): item is ExploreVendorItem => item !== null);
+            .filter((item: ExploreVendorItem | null): item is ExploreVendorItem => item !== null);
 
           if (isMounted) {
             setAllCategoryVendors(liveItems);
