@@ -78,16 +78,16 @@ export function MakeupDetailClient({ artist }: { artist: VendorDetail }) {
   const themeKey = vendorData?.color_theme || vendorData?.colorTheme || "emerald";
   const activeTheme = COLOR_THEMES.find((t) => t.id === themeKey) || COLOR_THEMES[0];
 
-  const tagline = vendorData?.tagline || artist.tagline || "";
-  const customAbout = vendorData?.about || vendorData?.description || artist.about || "";
+  const tagline = vendorData?.tagline || artist?.tagline || "";
+  const customAbout = vendorData?.about || vendorData?.description || artist?.about || "";
   const galleryLayout = vendorData?.gallery_layout || vendorData?.galleryLayout || "grid";
-  const introVideo = vendorData?.intro_video || vendorData?.intro_video_url || vendorData?.introVideo || artist.introVideo || "";
+  const introVideo = vendorData?.intro_video || vendorData?.intro_video_url || vendorData?.introVideo || artist?.introVideo || "";
 
   // Social Links
-  const instagram = vendorData?.instagram || artist.instagram || "";
-  const facebook = vendorData?.facebook || artist.facebook || "";
-  const youtube = vendorData?.youtube || artist.youtube || "";
-  const website = vendorData?.website || artist.website || "";
+  const instagram = vendorData?.instagram || artist?.instagram || "";
+  const facebook = vendorData?.facebook || artist?.facebook || "";
+  const youtube = vendorData?.youtube || artist?.youtube || "";
+  const website = vendorData?.website || artist?.website || "";
 
   const hasSocialLinks = Boolean(instagram || facebook || youtube || website);
 

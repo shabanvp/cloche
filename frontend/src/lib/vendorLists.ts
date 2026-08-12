@@ -12,6 +12,11 @@ export type VendorDetail = {
   phone?: string;
   email?: string;
   website?: string;
+  tagline?: string;
+  instagram?: string;
+  facebook?: string;
+  youtube?: string;
+  introVideo?: string;
 };
 
 export const makeupArtists: VendorDetail[] = [
