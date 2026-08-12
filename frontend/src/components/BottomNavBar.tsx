@@ -30,7 +30,7 @@ export function BottomNavBar({ activeTab }: BottomNavBarProps = {}) {
     <>
       <Link
         href="/search"
-        className="mobile-menu-floating-action fixed bottom-[76px] right-6 z-50 flex h-[58px] w-[58px] items-center justify-center rounded-full bg-[#D4B66E] text-[#0F4C45] shadow-[0_10px_24px_rgba(15,76,69,0.28)] transition-transform active:scale-95 md:hidden"
+        className="mobile-menu-floating-action fixed bottom-[76px] md:bottom-8 right-6 md:right-8 z-50 flex h-[58px] w-[58px] items-center justify-center rounded-full bg-[#D4B66E] hover:bg-[#C8A96A] text-[#0F4C45] shadow-[0_10px_24px_rgba(15,76,69,0.28)] hover:shadow-[0_12px_28px_rgba(15,76,69,0.35)] transition-all duration-300 active:scale-95 hover:scale-105"
         aria-label="Search wedding vendors"
       >
         <Sparkles className="h-6 w-6" strokeWidth={1.9} />
