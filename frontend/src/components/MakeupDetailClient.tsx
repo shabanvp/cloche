@@ -12,13 +12,36 @@ import {
   Share2,
   Heart,
   CheckCircle2,
-  Instagram,
-  Facebook,
-  Youtube,
   Globe,
   Play,
   Video
 } from "lucide-react";
+
+function InstagramIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+      <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+    </svg>
+  );
+}
+
+function FacebookIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
+    </svg>
+  );
+}
+
+function YoutubeIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-1.96C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 1.96A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-1.96c.32-1.74.46-3.56.46-5.33s-.14-3.59-.46-5.28zM9.75 15.02V8.48l5.75 3.27-5.75 3.27z" />
+    </svg>
+  );
+}
 import { BottomNavBar } from "@/components/BottomNavBar";
 import { VendorDetail } from "@/lib/vendorLists";
 import { formatTelUri } from "@/lib/formatters";
@@ -395,17 +418,17 @@ export function MakeupDetailClient({ artist }: { artist: VendorDetail }) {
                     <div className="flex flex-wrap gap-4 text-xs font-bold">
                       {instagram && (
                         <a href={instagram} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-pink-600 hover:underline">
-                          <Instagram className="w-4 h-4" /> Instagram
+                          <InstagramIcon className="w-4 h-4" /> Instagram
                         </a>
                       )}
                       {facebook && (
                         <a href={facebook} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-blue-600 hover:underline">
-                          <Facebook className="w-4 h-4" /> Facebook
+                          <FacebookIcon className="w-4 h-4" /> Facebook
                         </a>
                       )}
                       {youtube && (
                         <a href={youtube} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-red-600 hover:underline">
-                          <Youtube className="w-4 h-4" /> YouTube
+                          <YoutubeIcon className="w-4 h-4" /> YouTube
                         </a>
                       )}
                       {website && (
