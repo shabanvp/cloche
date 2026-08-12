@@ -3,9 +3,24 @@ import { supabaseFetch } from "@/lib/supabase";
 import { requireAuthenticatedVendor, vendorOwnsRecord } from "@/lib/vendorAuth";
 
 function normalizeOfferPayload(body: Record<string, any>, vendorId: string) {
+  const title = body.title || body.name || "Promotional Offer";
+  const code = (body.promo_code || body.code || body.coupon_code || "FESTIVE").toUpperCase();
+  const discount = body.discount || body.discount_value || "15% OFF";
+
   return {
-    ...body,
+    id: body.id || `off-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
     vendor_id: vendorId,
+    title,
+    name: title,
+    promo_code: code,
+    code,
+    coupon_code: code,
+    discount,
+    discount_value: discount,
+    description: body.description || "",
+    validity: body.validity || "Valid for 30 days",
+    is_active: body.is_active !== undefined ? Boolean(body.is_active) : true,
+    status: body.status || (body.is_active !== false ? "active" : "inactive"),
     updated_at: new Date().toISOString(),
   };
 }
