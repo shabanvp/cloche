@@ -19,26 +19,55 @@ export function MakeupListing() {
   useEffect(() => {
     const updateLocalWishlist = () => {
       const items = getWishlistItems();
-      setWishlist(new Set(items.map((i) => String(i.id))));
+      setWishlist(new Set(items.map((i: any) => String(i.id))));
     };
     updateLocalWishlist();
     window.addEventListener("cloche_wishlist_updated", updateLocalWishlist);
     return () => window.removeEventListener("cloche_wishlist_updated", updateLocalWishlist);
   }, []);
 
+  const [liveDbArtists, setLiveDbArtists] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+    async function loadMakeupVendors() {
+      try {
+        const res = await fetch("/api/v1/public/vendors?category=makeup", { cache: "no-store" });
+        if (res.ok) {
+          const json = await res.json();
+          if (isMounted && Array.isArray(json.data) && json.data.length > 0) {
+            setLiveDbArtists(json.data);
+          }
+        }
+      } catch (_) {} finally {
+        if (isMounted) setLoading(false);
+      }
+    }
+    loadMakeupVendors();
+    return () => { isMounted = false; };
+  }, []);
+
+  const allArtists = useMemo(() => {
+    if (liveDbArtists.length === 0) return makeupArtists;
+    const dbIds = new Set(liveDbArtists.map((d: any) => String(d.id)));
+    const fallbackFiltered = makeupArtists.filter((m: any) => !dbIds.has(String(m.id)));
+    return [...liveDbArtists, ...fallbackFiltered];
+  }, [liveDbArtists]);
+
   const filteredArtists = useMemo(() => {
-    return makeupArtists.filter((artist) => {
+    return allArtists.filter((artist: any) => {
       const q = search.toLowerCase().trim();
       const matchesSearch =
-        !q || artist.name.toLowerCase().includes(q) || artist.location.toLowerCase().includes(q) || artist.about.toLowerCase().includes(q);
+        !q || artist.name.toLowerCase().includes(q) || (artist.location || artist.city || "").toLowerCase().includes(q) || (artist.about || "").toLowerCase().includes(q);
 
       const targetChip = activeChip.toLowerCase().replace("hd ", "").replace("venue travel", "travel").trim();
       const matchesChip =
-        activeChip === "All" || artist.category.toLowerCase().includes(targetChip) || artist.about.toLowerCase().includes(targetChip);
+        activeChip === "All" || (artist.category || "").toLowerCase().includes(targetChip) || (artist.about || "").toLowerCase().includes(targetChip);
 
       return matchesSearch && matchesChip;
     });
-  }, [search, activeChip]);
+  }, [allArtists, search, activeChip]);
 
   const handleWishlistToggle = (e: React.MouseEvent, item: any) => {
     e.preventDefault();

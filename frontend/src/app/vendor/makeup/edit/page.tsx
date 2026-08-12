@@ -31,6 +31,7 @@ import {
   Mail,
   Globe
 } from "lucide-react";
+import { VendorImageUploader } from "@/components/ui/VendorImageUploader";
 
 function VendorMakeupEditContent() {
   const searchParams = useSearchParams();
@@ -775,22 +776,13 @@ function VendorMakeupEditContent() {
                     />
                   </div>
 
-                  <div>
-                    <span className="text-[11px] font-semibold block mb-1">Image URL or File Upload</span>
-                    <input
-                      type="text"
-                      placeholder="https://images.unsplash.com/..."
-                      value={newPortfolio.image_url}
-                      onChange={(e) => setNewPortfolio({ ...newPortfolio, image_url: e.target.value })}
-                      className="w-full p-2.5 rounded-xl border border-[#EBE5DA] bg-white mb-2"
-                    />
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => handleImageUpload(e, "portfolio")}
-                      className="text-xs"
-                    />
-                  </div>
+                  <VendorImageUploader
+                    label="Look Photo"
+                    sublabel="Select look photo directly from your device (Max 5MB)"
+                    value={newPortfolio.image_url}
+                    onChange={(url) => setNewPortfolio({ ...newPortfolio, image_url: Array.isArray(url) ? url[0] || "" : url })}
+                    folder="cloche/vendors/makeup/portfolio"
+                  />
 
                   <button
                     onClick={() => {

@@ -1,50 +1,260 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Palette, Upload, Image as ImageIcon, Sparkles, CheckCircle, Save, Eye, Loader2 } from "lucide-react";
+import {
+  Palette,
+  Upload,
+  Image as ImageIcon,
+  Sparkles,
+  CheckCircle,
+  Save,
+  Eye,
+  Loader2,
+  ChevronDown,
+  ChevronUp,
+  Video,
+  LayoutGrid,
+  Globe,
+  FileText,
+  X,
+  Play
+} from "lucide-react";
+
+function InstagramIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+      <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+    </svg>
+  );
+}
+
+function FacebookIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
+    </svg>
+  );
+}
+
+function YoutubeIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-1.96C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 1.96A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-1.96c.32-1.74.46-3.56.46-5.33s-.14-3.59-.46-5.28zM9.75 15.02V8.48l5.75 3.27-5.75 3.27z" />
+    </svg>
+  );
+}
 import { VendorCategoryConfig } from "@/lib/vendor-categories";
 import { uploadImageToCloudinaryDetailed } from "@/lib/cloudinary";
-import { fetchAuthenticatedVendorFromDb, getActiveVendorIdentity, syncVendorProfileWithDatabase, showVendorToast } from "@/lib/vendorStore";
+import {
+  fetchAuthenticatedVendorFromDb,
+  getActiveVendorIdentity,
+  syncVendorProfileWithDatabase,
+  showVendorToast
+} from "@/lib/vendorStore";
 
 interface CustomizeStoreSectionProps {
   categoryConfig: VendorCategoryConfig;
   vendorName: string;
 }
 
+export interface ColorThemeOption {
+  id: string;
+  label: string;
+  primary: string;
+  secondary: string;
+  accent: string;
+  badgeBg: string;
+  badgeText: string;
+}
+
+export const COLOR_THEMES: ColorThemeOption[] = [
+  { id: "emerald", label: "Emerald Green", primary: "#0F4C45", secondary: "#072B27", accent: "#C8A96A", badgeBg: "#0F4C45", badgeText: "#FFFFFF" },
+  { id: "rosegold", label: "Rose Gold", primary: "#B87333", secondary: "#915622", accent: "#E8A598", badgeBg: "#B87333", badgeText: "#FFFFFF" },
+  { id: "burgundy", label: "Burgundy", primary: "#800020", secondary: "#4A0012", accent: "#D4AF37", badgeBg: "#800020", badgeText: "#FFFFFF" },
+  { id: "beige", label: "Beige / Sand", primary: "#8C7355", secondary: "#604E38", accent: "#D4B896", badgeBg: "#8C7355", badgeText: "#FFFFFF" },
+  { id: "blackgold", label: "Black & Gold", primary: "#1A1A1A", secondary: "#0A0A0A", accent: "#C8A96A", badgeBg: "#1A1A1A", badgeText: "#C8A96A" },
+  { id: "softpink", label: "Soft Pink", primary: "#C27BA0", secondary: "#9E5A7E", accent: "#F4C2C2", badgeBg: "#C27BA0", badgeText: "#FFFFFF" },
+];
+
+export const GALLERY_LAYOUTS = [
+  { id: "grid", label: "Grid", desc: "Classic balanced tile grid" },
+  { id: "masonry", label: "Masonry", desc: "Dynamic editorial staggered look" },
+  { id: "carousel", label: "Carousel", desc: "Interactive horizontal swipe" },
+  { id: "hero", label: "Large Hero Gallery", desc: "Featured hero photo + grid" },
+];
+
+export const CUISINE_OPTIONS = [
+  "Kerala",
+  "South Indian",
+  "North Indian",
+  "Mughlai",
+  "Chinese",
+  "Continental",
+  "Arabic",
+  "Vegetarian",
+  "Jain",
+  "Custom Menu",
+];
+
+export const SERVICE_TYPE_OPTIONS = [
+  "Wedding Catering",
+  "Reception",
+  "Engagement",
+  "Birthday Party",
+  "Corporate Events",
+  "House Functions",
+  "Outdoor Catering",
+  "Live Food Counters",
+];
+
+export const KERALA_DISTRICT_OPTIONS = [
+  "Ernakulam",
+  "Trivandrum",
+  "Kozhikode",
+  "Thrissur",
+  "Kottayam",
+  "Palakkad",
+  "Malappuram",
+  "Kannur",
+  "Alappuzha",
+  "Kollam",
+  "Idukki",
+  "Wayanad",
+  "Kasaragod",
+  "Pathanamthitta",
+];
+
+export const GUEST_CAPACITY_OPTIONS = [
+  "Up to 100 Guests",
+  "100-300 Guests",
+  "300-500 Guests",
+  "500-1000 Guests",
+  "1000+ Guests",
+];
+
+export const CATERING_SPECIALITY_OPTIONS = [
+  "Traditional Sadya",
+  "Halal Food",
+  "Pure Vegetarian",
+  "Live Counters",
+  "BBQ",
+  "Dessert Station",
+  "Beverage Counter",
+  "Kids Menu",
+  "Custom Menu Available",
+];
+
 export function CustomizeStoreSection({ categoryConfig, vendorName }: CustomizeStoreSectionProps) {
   const [vendorData, setVendorData] = useState<any>(null);
+
+  // Storefront Customization Fields
   const [logoUrl, setLogoUrl] = useState<string>("");
   const [coverUrl, setCoverUrl] = useState<string>("");
+  const [tagline, setTagline] = useState<string>("");
+  const [about, setAbout] = useState<string>("");
+  const [colorTheme, setColorTheme] = useState<string>("emerald");
+  const [galleryLayout, setGalleryLayout] = useState<string>("grid");
+  const [introVideo, setIntroVideo] = useState<string>("");
+
+  // Social Links
+  const [instagram, setInstagram] = useState<string>("");
+  const [facebook, setFacebook] = useState<string>("");
+  const [youtube, setYoutube] = useState<string>("");
+  const [website, setWebsite] = useState<string>("");
+
+  // Catering Specific Customization Fields
+  const [cuisineTypes, setCuisineTypes] = useState<string[]>([]);
+  const [serviceTypes, setServiceTypes] = useState<string[]>([]);
+  const [serviceLocations, setServiceLocations] = useState<string[]>([]);
+  const [guestCapacity, setGuestCapacity] = useState<string>("");
+  const [cateringSpecialities, setCateringSpecialities] = useState<string[]>([]);
+
+  // Loading & Upload states
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const [isUploadingCover, setIsUploadingCover] = useState(false);
+  const [isUploadingVideo, setIsUploadingVideo] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
+  // Accordion Sections State
+  const [openAccordions, setOpenAccordions] = useState<Record<string, boolean>>({
+    branding: true,
+    theme: true,
+    about: false,
+    media: false,
+    social: false,
+    cuisines: false,
+    services: false,
+    locations: false,
+    capacity: false,
+    specialities: false,
+  });
+
   const logoInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
+  const videoInputRef = useRef<HTMLInputElement>(null);
+
+  const toggleAccordion = (key: string) => {
+    setOpenAccordions((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const populateFromIdentity = (identity: any) => {
+    if (!identity) return;
+    setVendorData(identity);
+    if (identity.logo || identity.logo_url) setLogoUrl(identity.logo || identity.logo_url || "");
+    if (identity.coverImage || identity.cover_image) setCoverUrl(identity.coverImage || identity.cover_image || "");
+    if (identity.tagline) setTagline(identity.tagline || "");
+    if (identity.about || identity.description) setAbout(identity.about || identity.description || "");
+    if (identity.color_theme || identity.colorTheme) setColorTheme(identity.color_theme || identity.colorTheme || "emerald");
+    if (identity.gallery_layout || identity.galleryLayout) setGalleryLayout(identity.gallery_layout || identity.galleryLayout || "grid");
+    if (identity.intro_video || identity.intro_video_url || identity.introVideo) {
+      setIntroVideo(identity.intro_video || identity.intro_video_url || identity.introVideo || "");
+    }
+    if (identity.instagram) setInstagram(identity.instagram || "");
+    if (identity.facebook) setFacebook(identity.facebook || "");
+    if (identity.youtube) setYoutube(identity.youtube || "");
+    if (identity.website) setWebsite(identity.website || "");
+
+    const cTypes = identity.cuisineTypes || identity.cuisine_types;
+    if (Array.isArray(cTypes)) setCuisineTypes(cTypes);
+    const sTypes = identity.serviceTypes || identity.service_types;
+    if (Array.isArray(sTypes)) setServiceTypes(sTypes);
+    const sLocs = identity.serviceLocations || identity.service_locations;
+    if (Array.isArray(sLocs)) setServiceLocations(sLocs);
+    const gCap = identity.guestCapacity || identity.guest_capacity;
+    if (gCap) setGuestCapacity(gCap);
+    const cSpecs = identity.cateringSpecialities || identity.catering_specialities;
+    if (Array.isArray(cSpecs)) setCateringSpecialities(cSpecs);
+  };
 
   useEffect(() => {
     // 1. Check cached active vendor identity first
     const cached = getActiveVendorIdentity();
     if (cached && cached.id) {
-      setVendorData(cached);
-      if (cached.logo || cached.logo_url) setLogoUrl(cached.logo || cached.logo_url || "");
-      if (cached.coverImage || cached.cover_image) setCoverUrl(cached.coverImage || cached.cover_image || "");
+      populateFromIdentity(cached);
     }
 
     // 2. Fetch authoritative database profile
     fetchAuthenticatedVendorFromDb().then((identity) => {
       if (identity && identity.id) {
-        setVendorData(identity);
-        if (identity.logo || identity.logo_url) setLogoUrl(identity.logo || identity.logo_url || "");
-        if (identity.coverImage || identity.cover_image) setCoverUrl(identity.coverImage || identity.cover_image || "");
+        populateFromIdentity(identity);
       }
     });
   }, []);
 
-  const currentDisplayName = vendorData?.boutique_name || vendorData?.name || vendorName || "Vendor Partner";
+  const currentDisplayName = vendorData?.boutique_name || vendorData?.name || vendorName || "Makeup Artist Studio";
   const currentCategoryBadge = vendorData?.category || categoryConfig.badge || categoryConfig.name;
   const currentLocation = [vendorData?.city, vendorData?.district].filter(Boolean).join(", ") || "Kerala, India";
+
+  const isCateringVendor =
+    (categoryConfig?.id || "").toLowerCase().includes("cater") ||
+    (categoryConfig?.name || "").toLowerCase().includes("cater") ||
+    (vendorData?.category || "").toLowerCase().includes("cater") ||
+    (vendorData?.category || "").toLowerCase().includes("food");
+
+  const activeTheme = COLOR_THEMES.find((t) => t.id === colorTheme) || COLOR_THEMES[0];
 
   const initials = currentDisplayName
     .split(" ")
@@ -52,7 +262,7 @@ export function CustomizeStoreSection({ categoryConfig, vendorName }: CustomizeS
     .filter(Boolean)
     .join("")
     .slice(0, 2)
-    .toUpperCase() || "CL";
+    .toUpperCase() || "MA";
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -65,7 +275,6 @@ export function CustomizeStoreSection({ categoryConfig, vendorName }: CustomizeS
         setLogoUrl(res.secure_url);
         showVendorToast("✓ Brand logo uploaded! Saving...", "info");
 
-        // Immediately persist to database
         const syncResult = await syncVendorProfileWithDatabase({
           id: vendorData?.id,
           logo: res.secure_url,
@@ -74,8 +283,6 @@ export function CustomizeStoreSection({ categoryConfig, vendorName }: CustomizeS
 
         if (syncResult.success) {
           showVendorToast("✓ Brand logo updated and saved!", "success");
-        } else {
-          showVendorToast("Logo uploaded. Click 'Save Branding' to finalize.", "info");
         }
       }
     } catch (err) {
@@ -98,7 +305,6 @@ export function CustomizeStoreSection({ categoryConfig, vendorName }: CustomizeS
         setCoverUrl(res.secure_url);
         showVendorToast("✓ Store cover photo uploaded! Saving...", "info");
 
-        // Immediately persist to database
         const syncResult = await syncVendorProfileWithDatabase({
           id: vendorData?.id,
           coverImage: res.secure_url,
@@ -107,8 +313,6 @@ export function CustomizeStoreSection({ categoryConfig, vendorName }: CustomizeS
 
         if (syncResult.success) {
           showVendorToast("✓ Store cover photo updated and saved!", "success");
-        } else {
-          showVendorToast("Cover uploaded. Click 'Save Branding' to finalize.", "info");
         }
       }
     } catch (err) {
@@ -117,6 +321,31 @@ export function CustomizeStoreSection({ categoryConfig, vendorName }: CustomizeS
     } finally {
       setIsUploadingCover(false);
       if (coverInputRef.current) coverInputRef.current.value = "";
+    }
+  };
+
+  const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 50 * 1024 * 1024) {
+      showVendorToast("Intro video size must be under 50MB.", "error");
+      return;
+    }
+
+    setIsUploadingVideo(true);
+    try {
+      const res = await uploadImageToCloudinaryDetailed(file, "cloche/vendors/videos");
+      if (res.secure_url) {
+        setIntroVideo(res.secure_url);
+        showVendorToast("✓ Intro video uploaded successfully!", "success");
+      }
+    } catch (err) {
+      console.error("[CustomizeStore] Video upload failed:", err);
+      showVendorToast("Video upload failed. Please try again.", "error");
+    } finally {
+      setIsUploadingVideo(false);
+      if (videoInputRef.current) videoInputRef.current.value = "";
     }
   };
 
@@ -129,19 +358,43 @@ export function CustomizeStoreSection({ categoryConfig, vendorName }: CustomizeS
         logo_url: logoUrl,
         coverImage: coverUrl,
         cover_image: coverUrl,
+        tagline: tagline.trim(),
+        about: about.trim(),
+        description: about.trim(),
+        color_theme: colorTheme,
+        colorTheme: colorTheme,
+        gallery_layout: galleryLayout,
+        galleryLayout: galleryLayout,
+        intro_video: introVideo,
+        intro_video_url: introVideo,
+        introVideo: introVideo,
+        instagram: instagram.trim(),
+        facebook: facebook.trim(),
+        youtube: youtube.trim(),
+        website: website.trim(),
+        cuisineTypes,
+        cuisine_types: cuisineTypes,
+        serviceTypes,
+        service_types: serviceTypes,
+        serviceLocations,
+        service_locations: serviceLocations,
+        guestCapacity,
+        guest_capacity: guestCapacity,
+        cateringSpecialities,
+        catering_specialities: cateringSpecialities,
       };
 
       const res = await syncVendorProfileWithDatabase(payload);
       if (res.success) {
         setSaved(true);
-        showVendorToast("✓ Storefront branding saved successfully!", "success");
+        showVendorToast("✓ Storefront customization saved successfully!", "success");
         setTimeout(() => setSaved(false), 3500);
       } else {
-        showVendorToast("Unable to save branding. Please try again.", "error");
+        showVendorToast("Unable to save storefront customization. Please try again.", "error");
       }
     } catch (err) {
       console.error("[CustomizeStore] Save error:", err);
-      showVendorToast("Unable to save branding. Please try again.", "error");
+      showVendorToast("Unable to save storefront customization. Please try again.", "error");
     } finally {
       setIsSaving(false);
     }
@@ -149,7 +402,7 @@ export function CustomizeStoreSection({ categoryConfig, vendorName }: CustomizeS
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300 font-sans">
-      {/* Hidden File Inputs */}
+      {/* Hidden Device File Inputs */}
       <input
         ref={logoInputRef}
         type="file"
@@ -164,34 +417,45 @@ export function CustomizeStoreSection({ categoryConfig, vendorName }: CustomizeS
         className="hidden"
         onChange={handleCoverUpload}
       />
+      <input
+        ref={videoInputRef}
+        type="file"
+        accept="video/mp4,video/webm,video/quicktime"
+        className="hidden"
+        onChange={handleVideoUpload}
+      />
 
-      {/* Header */}
+      {/* Header Banner */}
       <div className="bg-white rounded-2xl border border-gold/15 p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="bg-[#0F4C45] text-white text-[11px] font-bold px-3 py-0.5 rounded-full">
-              Store Branding
+            <span
+              style={{ backgroundColor: activeTheme.primary }}
+              className="text-white text-[11px] font-bold px-3 py-0.5 rounded-full transition-colors"
+            >
+              Storefront Customization
             </span>
           </div>
           <h2 className="text-2xl font-serif font-bold text-charcoal">Customize Storefront</h2>
           <p className="text-xs text-charcoal/60 mt-0.5">
-            Personalize logo, banner image, brand aesthetic & highlight badges for couples on Cloche
+            Personalize logo, tagline, brand theme, intro video, gallery layout & social links
           </p>
         </div>
 
         <button
           type="button"
           onClick={handleSave}
-          disabled={isSaving || isUploadingLogo || isUploadingCover}
-          className="bg-[#0F4C45] hover:bg-[#072B27] disabled:opacity-50 text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow-xs transition-all flex items-center gap-2 shrink-0 cursor-pointer"
+          disabled={isSaving || isUploadingLogo || isUploadingCover || isUploadingVideo}
+          style={{ backgroundColor: activeTheme.primary }}
+          className="hover:opacity-90 disabled:opacity-50 text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow-xs transition-all flex items-center gap-2 shrink-0 cursor-pointer"
         >
           {isSaving ? (
             <>
-              <Loader2 className="w-4 h-4 text-gold animate-spin" /> Saving...
+              <Loader2 className="w-4 h-4 text-gold animate-spin" /> Saving Storefront...
             </>
           ) : (
             <>
-              <Save className="w-4 h-4 text-gold" /> {saved ? "Store Branding Saved!" : "Save Branding"}
+              <Save className="w-4 h-4 text-gold" /> {saved ? "Storefront Customization Saved!" : "Save Customization"}
             </>
           )}
         </button>
@@ -199,34 +463,42 @@ export function CustomizeStoreSection({ categoryConfig, vendorName }: CustomizeS
 
       {saved && (
         <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-4 rounded-xl text-xs font-semibold flex items-center gap-2">
-          <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" /> Storefront branding updated successfully!
+          <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" /> Storefront customization updated successfully!
         </div>
       )}
 
-      {/* Visual Live Preview Card */}
+      {/* Real-time Live Storefront Preview Card */}
       <div className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-xs space-y-0">
         <div className="p-4 bg-[#FAF7F2] border-b border-gold/10 flex items-center justify-between">
           <span className="text-xs font-serif font-bold text-charcoal flex items-center gap-1.5">
-            <Eye className="w-4 h-4 text-[#0F4C45]" /> Live Storefront Preview ({currentCategoryBadge})
+            <Eye className="w-4 h-4 text-[#0F4C45]" /> Real-time Live Storefront Preview ({currentCategoryBadge})
           </span>
-          <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full">
-            Public View
+          <span
+            style={{ backgroundColor: `${activeTheme.primary}15`, color: activeTheme.primary }}
+            className="text-[10px] font-bold px-2.5 py-0.5 rounded-full"
+          >
+            Live Public View
           </span>
         </div>
 
-        {/* Cover Banner & Logo Mockup */}
-        <div className="relative h-44 sm:h-56 bg-[#0F4C45] overflow-hidden">
+        {/* Banner Hero & Branding Header */}
+        <div style={{ backgroundColor: activeTheme.secondary }} className="relative h-48 sm:h-60 overflow-hidden transition-colors">
           {coverUrl ? (
             <img src={coverUrl} alt="Store Cover" className="w-full h-full object-cover" />
           ) : (
-            <div className="w-full h-full bg-gradient-to-br from-[#0F4C45] via-[#165a52] to-[#0a3530] flex items-center justify-center">
-              <span className="text-white/20 font-serif text-3xl tracking-widest font-bold select-none">{currentDisplayName}</span>
+            <div className="w-full h-full flex items-center justify-center">
+              <span className="text-white/20 font-serif text-3xl tracking-widest font-bold select-none">
+                {currentDisplayName}
+              </span>
             </div>
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/20 to-transparent" />
-          
+          <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/30 to-transparent" />
+
           <div className="absolute bottom-4 left-6 right-6 flex items-end gap-4 text-white">
-            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-4 border-white overflow-hidden shadow-lg bg-[#0F4C45] shrink-0 relative flex items-center justify-center text-white">
+            <div
+              style={{ backgroundColor: activeTheme.primary }}
+              className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-4 border-white overflow-hidden shadow-lg shrink-0 relative flex items-center justify-center text-white"
+            >
               {logoUrl ? (
                 <img src={logoUrl} alt="Store Logo" className="w-full h-full object-cover" />
               ) : (
@@ -238,100 +510,738 @@ export function CustomizeStoreSection({ categoryConfig, vendorName }: CustomizeS
                 </div>
               )}
             </div>
-            <div className="mb-1 drop-shadow-md">
-              <h3 className="text-xl sm:text-2xl font-serif font-bold text-white leading-tight">{currentDisplayName}</h3>
-              <p className="text-xs text-white/90 font-medium mt-0.5">{currentCategoryBadge} • {currentLocation}</p>
+
+            <div className="mb-1 drop-shadow-md flex-1 min-w-0">
+              <h3 className="text-xl sm:text-2xl font-serif font-bold text-white leading-tight truncate">
+                {currentDisplayName}
+              </h3>
+              {tagline ? (
+                <p style={{ color: activeTheme.accent }} className="text-xs font-semibold mt-0.5 italic truncate">
+                  "{tagline}"
+                </p>
+              ) : (
+                <p className="text-xs text-white/80 font-medium mt-0.5 truncate">
+                  {currentCategoryBadge} • {currentLocation}
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Live Preview Accent Bar & Buttons */}
+        <div className="p-4 sm:p-5 bg-white border-b border-gold/10 space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
+            <div className="flex items-center gap-2">
+              <span
+                style={{ backgroundColor: activeTheme.primary }}
+                className="text-white font-bold text-[10px] uppercase px-3 py-1 rounded-full shadow-xs"
+              >
+                {activeTheme.label} Theme
+              </span>
+              <span className="text-[11px] font-semibold text-charcoal/70">
+                Gallery: {GALLERY_LAYOUTS.find((l) => l.id === galleryLayout)?.label}
+              </span>
+            </div>
+
+            {/* Social Icons Strip Preview */}
+            <div className="flex items-center gap-2">
+              {instagram && (
+                <span className="w-7 h-7 rounded-full bg-pink-50 text-pink-600 flex items-center justify-center text-xs font-bold shadow-xs">
+                  <InstagramIcon className="w-3.5 h-3.5" />
+                </span>
+              )}
+              {facebook && (
+                <span className="w-7 h-7 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-xs font-bold shadow-xs">
+                  <FacebookIcon className="w-3.5 h-3.5" />
+                </span>
+              )}
+              {youtube && (
+                <span className="w-7 h-7 rounded-full bg-red-50 text-red-600 flex items-center justify-center text-xs font-bold shadow-xs">
+                  <YoutubeIcon className="w-3.5 h-3.5" />
+                </span>
+              )}
+              {website && (
+                <span className="w-7 h-7 rounded-full bg-amber-50 text-amber-700 flex items-center justify-center text-xs font-bold shadow-xs">
+                  <Globe className="w-3.5 h-3.5" />
+                </span>
+              )}
             </div>
           </div>
 
-          {isUploadingCover && (
-            <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center gap-2 text-white">
-              <Loader2 className="w-8 h-8 text-gold animate-spin" />
-              <span className="text-xs font-bold uppercase tracking-wider">Uploading Cover Photo...</span>
+          {/* Intro Video Badge in Preview */}
+          {introVideo && (
+            <div className="p-3 bg-[#FAF7F2] rounded-xl border border-gold/20 flex items-center justify-between text-xs">
+              <div className="flex items-center gap-2.5">
+                <div
+                  style={{ backgroundColor: activeTheme.primary }}
+                  className="w-8 h-8 rounded-full text-white flex items-center justify-center shrink-0"
+                >
+                  <Play className="w-4 h-4 fill-white" />
+                </div>
+                <div>
+                  <span className="font-serif font-bold text-charcoal block">Intro Brand Reel Active</span>
+                  <span className="text-[10px] text-charcoal/60">30-60s Brand Introduction Video</span>
+                </div>
+              </div>
+              <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
+                Video Attached
+              </span>
+            </div>
+          )}
+
+          {/* Live About Preview */}
+          {about && (
+            <div className="p-3.5 bg-gray-50/80 rounded-xl border border-gray-100 text-xs text-charcoal/80 space-y-1">
+              <span className="font-serif font-bold text-charcoal block">About Brand Preview:</span>
+              <p className="text-[11px] leading-relaxed line-clamp-3 font-medium text-charcoal/70">{about}</p>
+            </div>
+          )}
+
+          {/* Live Catering Features Preview */}
+          {isCateringVendor && (cuisineTypes.length > 0 || serviceTypes.length > 0 || cateringSpecialities.length > 0 || guestCapacity || serviceLocations.length > 0) && (
+            <div className="p-3.5 bg-[#FAF7F2] rounded-xl border border-gold/20 text-xs space-y-2">
+              <span className="font-serif font-bold text-[#0F4C45] block">Catering Specifications Live Preview:</span>
+              
+              {cuisineTypes.length > 0 && (
+                <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
+                  <span className="font-bold text-charcoal/80 shrink-0">Cuisines:</span>
+                  {cuisineTypes.map((c) => (
+                    <span key={c} className="bg-emerald-100 text-emerald-900 font-semibold px-2 py-0.5 rounded-md text-[10px]">
+                      {c}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {cateringSpecialities.length > 0 && (
+                <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
+                  <span className="font-bold text-charcoal/80 shrink-0">Specialities:</span>
+                  {cateringSpecialities.map((s) => (
+                    <span key={s} className="bg-amber-100 text-amber-900 font-semibold px-2 py-0.5 rounded-md text-[10px]">
+                      {s}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {guestCapacity && (
+                <div className="text-[11px] text-charcoal/80 font-medium">
+                  <span className="font-bold text-charcoal/90">Guest Capacity:</span> {guestCapacity}
+                </div>
+              )}
+
+              {serviceLocations.length > 0 && (
+                <div className="text-[11px] text-charcoal/80 font-medium line-clamp-1">
+                  <span className="font-bold text-charcoal/90">Service Districts:</span> {serviceLocations.join(", ")}
+                </div>
+              )}
             </div>
           )}
         </div>
       </div>
 
-      {/* Upload Controls */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Logo Upload */}
-        <div className="bg-white p-6 rounded-2xl border border-gold/15 space-y-4 shadow-xs">
-          <h3 className="font-serif font-bold text-base text-charcoal flex items-center gap-2">
-            <ImageIcon className="w-4 h-4 text-[#0F4C45]" /> Brand Logo / Emblem
-          </h3>
-          <p className="text-xs text-charcoal/60">Recommended square ratio (500x500 px PNG/JPG)</p>
+      {/* Accordion Form Controls */}
+      <div className="space-y-4">
+        {/* Accordion 1: Branding & Basic Identity */}
+        <div className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-xs">
+          <button
+            type="button"
+            onClick={() => toggleAccordion("branding")}
+            className="w-full p-5 text-left font-serif font-bold text-base text-charcoal flex items-center justify-between bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] transition-colors"
+          >
+            <span className="flex items-center gap-2">
+              <ImageIcon className="w-4 h-4 text-[#0F4C45]" /> 1. Brand Logo, Cover Photo & Store Tagline
+            </span>
+            {openAccordions.branding ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+          </button>
 
-          <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-full border-2 border-gold/20 overflow-hidden shrink-0 bg-[#0F4C45] relative flex items-center justify-center text-white">
-              {logoUrl ? (
-                <img src={logoUrl} className="w-full h-full object-cover" alt="Logo" />
-              ) : (
-                <span className="font-serif text-base font-bold tracking-wider">{initials}</span>
-              )}
-              {isUploadingLogo && (
-                <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                  <Loader2 className="w-5 h-5 text-white animate-spin" />
+          {openAccordions.branding && (
+            <div className="p-6 border-t border-gold/10 space-y-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                {/* Logo Uploader */}
+                <div className="space-y-3">
+                  <label className="block text-xs font-bold text-charcoal/80 uppercase tracking-wider">Brand Logo / Avatar</label>
+                  <div className="flex items-center gap-4">
+                    <div
+                      style={{ backgroundColor: activeTheme.primary }}
+                      className="w-16 h-16 rounded-full border-2 border-gold/20 overflow-hidden shrink-0 relative flex items-center justify-center text-white shadow-xs"
+                    >
+                      {logoUrl ? (
+                        <img src={logoUrl} className="w-full h-full object-cover" alt="Logo" />
+                      ) : (
+                        <span className="font-serif text-base font-bold tracking-wider">{initials}</span>
+                      )}
+                      {isUploadingLogo && (
+                        <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                          <Loader2 className="w-5 h-5 text-white animate-spin" />
+                        </div>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => logoInputRef.current?.click()}
+                      disabled={isUploadingLogo}
+                      className="bg-[#FAF7F2] border border-gold/20 hover:bg-[#F3EDE2] text-[#0F4C45] font-bold text-xs px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                    >
+                      {isUploadingLogo ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+                      Upload Logo
+                    </button>
+                  </div>
+                </div>
+
+                {/* Cover Uploader */}
+                <div className="space-y-3">
+                  <label className="block text-xs font-bold text-charcoal/80 uppercase tracking-wider">Store Cover Photo</label>
+                  <div className="flex items-center gap-4">
+                    <div className="w-24 h-14 rounded-lg border border-gold/20 overflow-hidden shrink-0 bg-gray-100 relative flex items-center justify-center text-white shadow-xs">
+                      {coverUrl ? (
+                        <img src={coverUrl} className="w-full h-full object-cover" alt="Cover" />
+                      ) : (
+                        <span className="font-serif text-xs font-bold text-charcoal/40">No Cover</span>
+                      )}
+                      {isUploadingCover && (
+                        <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                          <Loader2 className="w-5 h-5 text-white animate-spin" />
+                        </div>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => coverInputRef.current?.click()}
+                      disabled={isUploadingCover}
+                      className="bg-[#FAF7F2] border border-gold/20 hover:bg-[#F3EDE2] text-[#0F4C45] font-bold text-xs px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                    >
+                      {isUploadingCover ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+                      Replace Cover
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Tagline Field with Live Counter */}
+              <div className="space-y-1.5 pt-2 border-t border-gold/10">
+                <div className="flex items-center justify-between">
+                  <label className="block text-xs font-bold text-charcoal/80 uppercase tracking-wider">Store Tagline</label>
+                  <span className={`text-[11px] font-mono font-bold ${tagline.length > 80 ? "text-red-600" : "text-charcoal/50"}`}>
+                    {tagline.length} / 80 chars
+                  </span>
+                </div>
+                <input
+                  type="text"
+                  maxLength={80}
+                  placeholder="e.g. Luxury Bridal Makeup Artist | HD & Airbrush Specialist"
+                  value={tagline}
+                  onChange={(e) => setTagline(e.target.value)}
+                  className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-4 py-2.5 text-xs text-charcoal font-medium focus:outline-none focus:border-[#0F4C45]"
+                />
+                <p className="text-[11px] text-charcoal/50">Reflects immediately under your studio name on live storefront.</p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Accordion 2: Brand Color Theme */}
+        <div className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-xs">
+          <button
+            type="button"
+            onClick={() => toggleAccordion("theme")}
+            className="w-full p-5 text-left font-serif font-bold text-base text-charcoal flex items-center justify-between bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] transition-colors"
+          >
+            <span className="flex items-center gap-2">
+              <Palette className="w-4 h-4 text-[#0F4C45]" /> 2. Brand Color Theme Palette
+            </span>
+            {openAccordions.theme ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+          </button>
+
+          {openAccordions.theme && (
+            <div className="p-6 border-t border-gold/10 space-y-4">
+              <p className="text-xs text-charcoal/70">
+                Select your signature brand color. This theme will styled your action buttons, highlights, and badges on your public storefront.
+              </p>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {COLOR_THEMES.map((theme) => {
+                  const isSelected = colorTheme === theme.id;
+                  return (
+                    <button
+                      key={theme.id}
+                      type="button"
+                      onClick={() => setColorTheme(theme.id)}
+                      className={`p-3.5 rounded-xl border transition-all text-left flex flex-col justify-between space-y-3 cursor-pointer ${
+                        isSelected
+                          ? "border-[#0F4C45] ring-2 ring-[#0F4C45]/20 bg-[#FAF7F2]"
+                          : "border-gold/20 bg-white hover:border-gold/40"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-charcoal">{theme.label}</span>
+                        {isSelected && <CheckCircle className="w-4 h-4 text-[#0F4C45]" />}
+                      </div>
+
+                      <div className="flex items-center gap-1.5">
+                        <div className="w-5 h-5 rounded-full shadow-xs border border-white" style={{ backgroundColor: theme.primary }} />
+                        <div className="w-4 h-4 rounded-full shadow-xs border border-white" style={{ backgroundColor: theme.secondary }} />
+                        <div className="w-4 h-4 rounded-full shadow-xs border border-white" style={{ backgroundColor: theme.accent }} />
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Accordion 3: About Brand */}
+        <div className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-xs">
+          <button
+            type="button"
+            onClick={() => toggleAccordion("about")}
+            className="w-full p-5 text-left font-serif font-bold text-base text-charcoal flex items-center justify-between bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] transition-colors"
+          >
+            <span className="flex items-center gap-2">
+              <FileText className="w-4 h-4 text-[#0F4C45]" /> 3. About Brand & Biography
+            </span>
+            {openAccordions.about ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+          </button>
+
+          {openAccordions.about && (
+            <div className="p-6 border-t border-gold/10 space-y-3">
+              <div className="flex items-center justify-between">
+                <label className="block text-xs font-bold text-charcoal/80 uppercase tracking-wider">About Brand Story</label>
+                <span className={`text-[11px] font-mono font-bold ${about.length > 500 ? "text-red-600" : "text-charcoal/50"}`}>
+                  {about.length} / 500 chars (Rec: 200 - 500)
+                </span>
+              </div>
+              <textarea
+                rows={4}
+                maxLength={500}
+                placeholder="Share your artistry story, experience years, product brands used (MAC, Dior, Charlotte Tilbury), and beauty philosophy..."
+                value={about}
+                onChange={(e) => setAbout(e.target.value)}
+                className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl p-3.5 text-xs text-charcoal font-medium focus:outline-none focus:border-[#0F4C45] resize-none"
+              />
+              <p className="text-[11px] text-charcoal/50">Displayed directly under the cover image on your public storefront page.</p>
+            </div>
+          )}
+        </div>
+
+        {/* Accordion 4: Featured Gallery Layout & Intro Video */}
+        <div className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-xs">
+          <button
+            type="button"
+            onClick={() => toggleAccordion("media")}
+            className="w-full p-5 text-left font-serif font-bold text-base text-charcoal flex items-center justify-between bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] transition-colors"
+          >
+            <span className="flex items-center gap-2">
+              <LayoutGrid className="w-4 h-4 text-[#0F4C45]" /> 4. Featured Gallery Layout & Intro Brand Reel
+            </span>
+            {openAccordions.media ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+          </button>
+
+          {openAccordions.media && (
+            <div className="p-6 border-t border-gold/10 space-y-6">
+              {/* Layout Selector */}
+              <div className="space-y-3">
+                <label className="block text-xs font-bold text-charcoal/80 uppercase tracking-wider">Featured Gallery Layout</label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {GALLERY_LAYOUTS.map((layout) => {
+                    const isSelected = galleryLayout === layout.id;
+                    return (
+                      <button
+                        key={layout.id}
+                        type="button"
+                        onClick={() => setGalleryLayout(layout.id)}
+                        className={`p-4 rounded-xl border transition-all text-left flex items-start justify-between cursor-pointer ${
+                          isSelected
+                            ? "border-[#0F4C45] ring-2 ring-[#0F4C45]/20 bg-[#FAF7F2]"
+                            : "border-gold/20 bg-white hover:border-gold/40"
+                        }`}
+                      >
+                        <div>
+                          <span className="text-xs font-bold text-charcoal block">{layout.label}</span>
+                          <span className="text-[11px] text-charcoal/60 mt-0.5 block">{layout.desc}</span>
+                        </div>
+                        {isSelected && <CheckCircle className="w-4 h-4 text-[#0F4C45] shrink-0 mt-0.5" />}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Device Intro Video Upload */}
+              <div className="space-y-3 pt-4 border-t border-gold/10">
+                <label className="block text-xs font-bold text-charcoal/80 uppercase tracking-wider">Intro Promotional Video Reel (30 - 60s)</label>
+
+                {introVideo ? (
+                  <div className="p-4 bg-[#FAF7F2] rounded-xl border border-gold/20 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-xs font-bold text-emerald-800">
+                        <Video className="w-4 h-4 text-[#0F4C45]" /> Intro Video Reel Uploaded
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setIntroVideo("")}
+                        className="text-xs font-bold text-red-600 hover:text-red-800 flex items-center gap-1 cursor-pointer"
+                      >
+                        <X className="w-3.5 h-3.5" /> Remove Video
+                      </button>
+                    </div>
+                    <video src={introVideo} controls className="w-full max-h-48 rounded-lg border border-gold/15 bg-black" />
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-4">
+                    <button
+                      type="button"
+                      onClick={() => videoInputRef.current?.click()}
+                      disabled={isUploadingVideo}
+                      className="bg-[#FAF7F2] border border-gold/20 hover:bg-[#F3EDE2] text-[#0F4C45] font-bold text-xs px-5 py-3 rounded-xl transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                    >
+                      {isUploadingVideo ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin text-[#0F4C45]" /> Uploading Video File...
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="w-4 h-4" /> Upload Video from Device
+                        </>
+                      )}
+                    </button>
+                    <span className="text-[11px] text-charcoal/60">MP4, WEBM (Max 50MB). Hidden on storefront if left empty.</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Accordion 5: Social Media Links */}
+        <div className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-xs">
+          <button
+            type="button"
+            onClick={() => toggleAccordion("social")}
+            className="w-full p-5 text-left font-serif font-bold text-base text-charcoal flex items-center justify-between bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] transition-colors"
+          >
+            <span className="flex items-center gap-2">
+              <Globe className="w-4 h-4 text-[#0F4C45]" /> 5. Social Media Connections
+            </span>
+            {openAccordions.social ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+          </button>
+
+          {openAccordions.social && (
+            <div className="p-6 border-t border-gold/10 space-y-4">
+              <p className="text-xs text-charcoal/60">
+                Provide links to your active social profiles. Icons will be displayed on your public storefront only for platforms you fill in.
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                <div>
+                  <label className="block font-bold text-charcoal/80 mb-1 flex items-center gap-1.5">
+                    <InstagramIcon className="w-3.5 h-3.5 text-pink-600" /> Instagram Profile
+                  </label>
+                  <input
+                    type="url"
+                    placeholder="https://instagram.com/yourhandle"
+                    value={instagram}
+                    onChange={(e) => setInstagram(e.target.value)}
+                    className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2 text-xs text-charcoal focus:outline-none focus:border-[#0F4C45]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-charcoal/80 mb-1 flex items-center gap-1.5">
+                    <FacebookIcon className="w-3.5 h-3.5 text-blue-600" /> Facebook Page
+                  </label>
+                  <input
+                    type="url"
+                    placeholder="https://facebook.com/yourpage"
+                    value={facebook}
+                    onChange={(e) => setFacebook(e.target.value)}
+                    className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2 text-xs text-charcoal focus:outline-none focus:border-[#0F4C45]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-charcoal/80 mb-1 flex items-center gap-1.5">
+                    <YoutubeIcon className="w-3.5 h-3.5 text-red-600" /> YouTube Channel
+                  </label>
+                  <input
+                    type="url"
+                    placeholder="https://youtube.com/@yourchannel"
+                    value={youtube}
+                    onChange={(e) => setYoutube(e.target.value)}
+                    className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2 text-xs text-charcoal focus:outline-none focus:border-[#0F4C45]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-charcoal/80 mb-1 flex items-center gap-1.5">
+                    <Globe className="w-3.5 h-3.5 text-amber-700" /> Personal Website
+                  </label>
+                  <input
+                    type="url"
+                    placeholder="https://yourwebsite.com"
+                    value={website}
+                    onChange={(e) => setWebsite(e.target.value)}
+                    className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2 text-xs text-charcoal focus:outline-none focus:border-[#0F4C45]"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Catering Specific Accordions */}
+        {isCateringVendor && (
+          <>
+            {/* Accordion 6: Cuisine Types */}
+            <div className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-xs">
+              <button
+                type="button"
+                onClick={() => toggleAccordion("cuisines")}
+                className="w-full p-5 text-left font-serif font-bold text-base text-charcoal flex items-center justify-between bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] transition-colors cursor-pointer"
+              >
+                <span className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-[#0F4C45]" /> 6. Cuisine Types Offered ({cuisineTypes.length})
+                </span>
+                {openAccordions.cuisines ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              </button>
+
+              {openAccordions.cuisines && (
+                <div className="p-6 border-t border-gold/10 space-y-4">
+                  <p className="text-xs text-charcoal/70">
+                    Select all cuisines your catering team specializes in preparing for wedding events:
+                  </p>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                    {CUISINE_OPTIONS.map((item) => {
+                      const isChecked = cuisineTypes.includes(item);
+                      return (
+                        <label
+                          key={item}
+                          className={`flex items-center gap-2.5 p-3 rounded-xl border text-xs font-semibold cursor-pointer transition-all ${
+                            isChecked
+                              ? "bg-[#0F4C45]/10 border-[#0F4C45] text-[#0F4C45]"
+                              : "bg-[#FAF7F2] border-gold/20 text-charcoal/80 hover:border-[#0F4C45]/50"
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={(e) => {
+                              if (e.target.checked) setCuisineTypes([...cuisineTypes, item]);
+                              else setCuisineTypes(cuisineTypes.filter((c) => c !== item));
+                            }}
+                            className="rounded text-[#0F4C45] focus:ring-[#0F4C45] h-4 w-4"
+                          />
+                          <span>{item}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
             </div>
-            <button
-              type="button"
-              onClick={() => logoInputRef.current?.click()}
-              disabled={isUploadingLogo}
-              className="bg-[#FAF7F2] border border-gold/20 hover:bg-[#F3EDE2] disabled:opacity-50 text-[#0F4C45] font-bold text-xs px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 cursor-pointer"
-            >
-              {isUploadingLogo ? (
-                <>
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" /> Uploading Logo...
-                </>
-              ) : (
-                <>
-                  <Upload className="w-3.5 h-3.5" /> Upload New Logo
-                </>
-              )}
-            </button>
-          </div>
-        </div>
 
-        {/* Cover Banner Upload */}
-        <div className="bg-white p-6 rounded-2xl border border-gold/15 space-y-4 shadow-xs">
-          <h3 className="font-serif font-bold text-base text-charcoal flex items-center gap-2">
-            <Palette className="w-4 h-4 text-[#0F4C45]" /> Store Cover Image
-          </h3>
-          <p className="text-xs text-charcoal/60">High resolution wide cover photo (1200x500 px)</p>
+            {/* Accordion 7: Service Types */}
+            <div className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-xs">
+              <button
+                type="button"
+                onClick={() => toggleAccordion("services")}
+                className="w-full p-5 text-left font-serif font-bold text-base text-charcoal flex items-center justify-between bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] transition-colors cursor-pointer"
+              >
+                <span className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-[#0F4C45]" /> 7. Service Types Offered ({serviceTypes.length})
+                </span>
+                {openAccordions.services ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              </button>
 
-          <div className="flex items-center gap-4">
-            <div className="w-24 h-14 rounded-lg border border-gold/20 overflow-hidden shrink-0 bg-[#0F4C45] relative flex items-center justify-center text-white">
-              {coverUrl ? (
-                <img src={coverUrl} className="w-full h-full object-cover" alt="Cover" />
-              ) : (
-                <span className="font-serif text-xs font-bold opacity-60">No Cover</span>
-              )}
-              {isUploadingCover && (
-                <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                  <Loader2 className="w-5 h-5 text-white animate-spin" />
+              {openAccordions.services && (
+                <div className="p-6 border-t border-gold/10 space-y-4">
+                  <p className="text-xs text-charcoal/70">
+                    Select event formats and service types your catering business caters to:
+                  </p>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                    {SERVICE_TYPE_OPTIONS.map((item) => {
+                      const isChecked = serviceTypes.includes(item);
+                      return (
+                        <label
+                          key={item}
+                          className={`flex items-center gap-2.5 p-3 rounded-xl border text-xs font-semibold cursor-pointer transition-all ${
+                            isChecked
+                              ? "bg-[#0F4C45]/10 border-[#0F4C45] text-[#0F4C45]"
+                              : "bg-[#FAF7F2] border-gold/20 text-charcoal/80 hover:border-[#0F4C45]/50"
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={(e) => {
+                              if (e.target.checked) setServiceTypes([...serviceTypes, item]);
+                              else setServiceTypes(serviceTypes.filter((s) => s !== item));
+                            }}
+                            className="rounded text-[#0F4C45] focus:ring-[#0F4C45] h-4 w-4"
+                          />
+                          <span>{item}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
             </div>
-            <button
-              type="button"
-              onClick={() => coverInputRef.current?.click()}
-              disabled={isUploadingCover}
-              className="bg-[#FAF7F2] border border-gold/20 hover:bg-[#F3EDE2] disabled:opacity-50 text-[#0F4C45] font-bold text-xs px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 cursor-pointer"
-            >
-              {isUploadingCover ? (
-                <>
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" /> Uploading Cover...
-                </>
-              ) : (
-                <>
-                  <Upload className="w-3.5 h-3.5" /> Replace Cover
-                </>
+
+            {/* Accordion 8: Service Locations */}
+            <div className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-xs">
+              <button
+                type="button"
+                onClick={() => toggleAccordion("locations")}
+                className="w-full p-5 text-left font-serif font-bold text-base text-charcoal flex items-center justify-between bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] transition-colors cursor-pointer"
+              >
+                <span className="flex items-center gap-2">
+                  <Globe className="w-4 h-4 text-[#0F4C45]" /> 8. Service Locations / Travel Districts ({serviceLocations.length})
+                </span>
+                {openAccordions.locations ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              </button>
+
+              {openAccordions.locations && (
+                <div className="p-6 border-t border-gold/10 space-y-4">
+                  <p className="text-xs text-charcoal/70">
+                    Select districts/cities where your catering team operates and travels:
+                  </p>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                    {KERALA_DISTRICT_OPTIONS.map((district) => {
+                      const isChecked = serviceLocations.includes(district);
+                      return (
+                        <label
+                          key={district}
+                          className={`flex items-center gap-2.5 p-3 rounded-xl border text-xs font-semibold cursor-pointer transition-all ${
+                            isChecked
+                              ? "bg-[#0F4C45]/10 border-[#0F4C45] text-[#0F4C45]"
+                              : "bg-[#FAF7F2] border-gold/20 text-charcoal/80 hover:border-[#0F4C45]/50"
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={(e) => {
+                              if (e.target.checked) setServiceLocations([...serviceLocations, district]);
+                              else setServiceLocations(serviceLocations.filter((l) => l !== district));
+                            }}
+                            className="rounded text-[#0F4C45] focus:ring-[#0F4C45] h-4 w-4"
+                          />
+                          <span>{district}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
               )}
-            </button>
-          </div>
-        </div>
+            </div>
+
+            {/* Accordion 9: Guest Capacity */}
+            <div className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-xs">
+              <button
+                type="button"
+                onClick={() => toggleAccordion("capacity")}
+                className="w-full p-5 text-left font-serif font-bold text-base text-charcoal flex items-center justify-between bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] transition-colors cursor-pointer"
+              >
+                <span className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-[#0F4C45]" /> 9. Guest Capacity Range {guestCapacity ? `(${guestCapacity})` : ""}
+                </span>
+                {openAccordions.capacity ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              </button>
+
+              {openAccordions.capacity && (
+                <div className="p-6 border-t border-gold/10 space-y-4">
+                  <p className="text-xs text-charcoal/70">
+                    Select maximum guest count range your catering team handles:
+                  </p>
+                  <select
+                    value={guestCapacity}
+                    onChange={(e) => setGuestCapacity(e.target.value)}
+                    className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-4 py-3 text-xs text-charcoal font-semibold focus:outline-none focus:border-[#0F4C45]"
+                  >
+                    <option value="">Select Guest Capacity Range</option>
+                    {GUEST_CAPACITY_OPTIONS.map((opt) => (
+                      <option key={opt} value={opt}>{opt}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            </div>
+
+            {/* Accordion 10: Catering Specialities */}
+            <div className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-xs">
+              <button
+                type="button"
+                onClick={() => toggleAccordion("specialities")}
+                className="w-full p-5 text-left font-serif font-bold text-base text-charcoal flex items-center justify-between bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] transition-colors cursor-pointer"
+              >
+                <span className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-[#0F4C45]" /> 10. Catering Specialities & Signature Stations ({cateringSpecialities.length})
+                </span>
+                {openAccordions.specialities ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              </button>
+
+              {openAccordions.specialities && (
+                <div className="p-6 border-t border-gold/10 space-y-4">
+                  <p className="text-xs text-charcoal/70">
+                    Select special features, dietary standards, and signature stations:
+                  </p>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                    {CATERING_SPECIALITY_OPTIONS.map((item) => {
+                      const isChecked = cateringSpecialities.includes(item);
+                      return (
+                        <label
+                          key={item}
+                          className={`flex items-center gap-2.5 p-3 rounded-xl border text-xs font-semibold cursor-pointer transition-all ${
+                            isChecked
+                              ? "bg-[#0F4C45]/10 border-[#0F4C45] text-[#0F4C45]"
+                              : "bg-[#FAF7F2] border-gold/20 text-charcoal/80 hover:border-[#0F4C45]/50"
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={(e) => {
+                              if (e.target.checked) setCateringSpecialities([...cateringSpecialities, item]);
+                              else setCateringSpecialities(cateringSpecialities.filter((cs) => cs !== item));
+                            }}
+                            className="rounded text-[#0F4C45] focus:ring-[#0F4C45] h-4 w-4"
+                          />
+                          <span>{item}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Bottom Save Action Bar */}
+      <div className="bg-white rounded-2xl border border-gold/15 p-5 shadow-xs flex items-center justify-between">
+        <span className="text-xs text-charcoal/60 font-medium">
+          Saved storefront branding updates live for all couples on Cloche.
+        </span>
+        <button
+          type="button"
+          onClick={handleSave}
+          disabled={isSaving || isUploadingLogo || isUploadingCover || isUploadingVideo}
+          style={{ backgroundColor: activeTheme.primary }}
+          className="hover:opacity-90 disabled:opacity-50 text-white font-bold text-xs px-6 py-3 rounded-xl shadow-xs transition-all flex items-center gap-2 cursor-pointer"
+        >
+          {isSaving ? (
+            <>
+              <Loader2 className="w-4 h-4 text-gold animate-spin" /> Saving...
+            </>
+          ) : (
+            <>
+              <Save className="w-4 h-4 text-gold" /> {saved ? "Storefront Saved!" : "Save Branding"}
+            </>
+          )}
+        </button>
       </div>
     </div>
   );

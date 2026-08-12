@@ -1244,6 +1244,7 @@ export async function fetchPublicVendorProfileFromDb(identifier: string) {
     catalogRes,
     reviewsRes,
     bookingsRes,
+    cateringRes,
   ] = await Promise.all([
     supabaseFetch(`vendor_profiles?vendor_id=eq.${encodeURIComponent(vendorId)}&select=*`),
     supabaseFetch(`vendor_contacts?vendor_id=eq.${encodeURIComponent(vendorId)}&order=is_primary.desc,created_at.asc&select=*`),
@@ -1256,6 +1257,7 @@ export async function fetchPublicVendorProfileFromDb(identifier: string) {
     supabaseFetch(`vendor_catalog_items?vendor_id=eq.${encodeURIComponent(vendorId)}&deleted_at=is.null&status=eq.published&is_available=eq.true&order=sort_order.asc,created_at.desc&select=*,vendor_catalog_images(*)`),
     supabaseFetch(`reviews?vendor_id=eq.${encodeURIComponent(vendorId)}&status=eq.published&order=created_at.desc&select=*`),
     supabaseFetch(`bookings?vendor_id=eq.${encodeURIComponent(vendorId)}&status=eq.completed&select=id`),
+    supabaseFetch(`catering_details?vendor_id=eq.${encodeURIComponent(vendorId)}&select=*`),
   ]);
 
   console.log(`[DB:FETCH] public_vendor_profile vendor_id=${vendorId} ms=${Date.now() - start}`);
@@ -1263,6 +1265,7 @@ export async function fetchPublicVendorProfileFromDb(identifier: string) {
   const profile: any = firstRow(profileRes.data) || {};
   const contact: any = firstRow(contactsRes.data) || {};
   const address: any = firstRow(addressRes.data) || {};
+  const cateringDetail: any = firstRow(cateringRes.data) || {};
   const services = asArray<any>(servicesRes.data);
   const packages = asArray<any>(packagesRes.data);
   const gallery = asArray<any>(galleryRes.data);
@@ -1276,16 +1279,18 @@ export async function fetchPublicVendorProfileFromDb(identifier: string) {
     : { data: [], error: null };
   const mediaById = new Map(asArray<any>(mediaRes.data).map((row) => [String(row.id), row]));
 
-  const logoUrl = mediaUrl(mediaById.get(String(profile.logo_media_id))) || "";
+  const logoUrl = mediaUrl(mediaById.get(String(profile.logo_media_id))) || profile.logo_url || profile.logo || "";
   const coverUrl =
     mediaUrl(mediaById.get(String(profile.cover_media_id))) ||
+    profile.cover_image ||
+    profile.coverImage ||
     gallery.find((item) => item.is_cover)?.image_url ||
     "";
 
   const packagePrices = packages.map((pkg) => Number(pkg.discount_price || pkg.price || 0)).filter((price) => price > 0);
   const servicePrices = services.map((svc) => Number(svc.base_price || svc.price || 0)).filter((price) => price > 0);
   const startingAmount =
-    packagePrices.length > 0 ? Math.min(...packagePrices) : servicePrices.length > 0 ? Math.min(...servicePrices) : 0;
+    packagePrices.length > 0 ? Math.min(...packagePrices) : servicePrices.length > 0 ? Math.min(...servicePrices) : Number(profile.starting_price || 0);
   const averageRating =
     reviews.length > 0 ? reviews.reduce((sum, review) => sum + Number(review.rating || 0), 0) / reviews.length : Number(profile.rating || 0);
 
@@ -1315,13 +1320,25 @@ export async function fetchPublicVendorProfileFromDb(identifier: string) {
       reviews: reviews.length,
       image: coverUrl,
       logo: logoUrl,
+      tagline: profile.tagline || "",
       subtitle: profile.tagline || "",
       about: profile.about || "",
+      colorTheme: profile.color_theme || "emerald",
+      galleryLayout: profile.gallery_layout || "grid",
+      introVideo: profile.intro_video_url || profile.intro_video || "",
+      instagram: socialLinks.instagram || contact.instagram || "",
+      facebook: socialLinks.facebook || contact.facebook || "",
+      youtube: socialLinks.youtube || contact.youtube || "",
+      website: socialLinks.website || contact.website || "",
+      cuisineTypes: cateringDetail.cuisine_types || profile.cuisine_types || [],
+      serviceTypes: cateringDetail.service_types || profile.service_types || [],
+      serviceLocations: cateringDetail.service_locations || profile.service_locations || [],
+      guestCapacity: cateringDetail.guest_capacity || profile.guest_capacity || "",
+      cateringSpecialities: cateringDetail.catering_specialities || profile.catering_specialities || [],
       isVerified: Boolean(vendor.is_verified || vendor.is_kyc_verified),
       phone: contact.phone || "",
       whatsapp: contact.whatsapp || contact.phone || "",
       email: contact.email || "",
-      website: socialLinks.website || "",
       address: fullAddress,
       googleMaps: address.latitude && address.longitude ? `https://www.google.com/maps?q=${address.latitude},${address.longitude}` : "",
       socialLinks,

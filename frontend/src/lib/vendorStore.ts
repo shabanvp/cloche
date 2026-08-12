@@ -17,6 +17,16 @@ export interface VendorProfileData {
   email?: string;
   website?: string;
   instagram?: string;
+  facebook?: string;
+  youtube?: string;
+  tagline?: string;
+  about?: string;
+  color_theme?: string;
+  colorTheme?: string;
+  gallery_layout?: string;
+  galleryLayout?: string;
+  intro_video?: string;
+  intro_video_url?: string;
   address?: string;
   city?: string;
   district?: string;
@@ -27,6 +37,16 @@ export interface VendorProfileData {
   service_areas?: string;
   plan?: string;
   profile_completion_percentage?: number;
+  cuisineTypes?: string[];
+  cuisine_types?: string[];
+  serviceTypes?: string[];
+  service_types?: string[];
+  serviceLocations?: string[];
+  service_locations?: string[];
+  guestCapacity?: string;
+  guest_capacity?: string;
+  cateringSpecialities?: string[];
+  catering_specialities?: string[];
 }
 
 /**
@@ -112,6 +132,8 @@ export async function syncVendorProfileWithDatabase(
         },
         socialLinks: [
           { platform: "instagram", url: profileData.instagram || "" },
+          { platform: "facebook", url: profileData.facebook || "" },
+          { platform: "youtube", url: profileData.youtube || "" },
           { platform: "website", url: profileData.website || "" },
         ],
         ...profileData,
@@ -232,6 +254,13 @@ export async function fetchAuthenticatedVendorFromDb(): Promise<VendorProfileDat
 
             const ownerNameVal = c.contact_name || v.owner_name || v.ownerName || p.owner_name || "";
 
+            const catDetails = json.data.categoryDetails || {};
+            const cuisineTypesVal = catDetails.cuisine_types || p.cuisine_types || p.cuisineTypes || [];
+            const serviceTypesVal = catDetails.service_types || p.service_types || p.serviceTypes || [];
+            const serviceLocationsVal = catDetails.service_locations || p.service_locations || p.serviceLocations || [];
+            const guestCapacityVal = catDetails.guest_capacity || p.guest_capacity || p.guestCapacity || "";
+            const cateringSpecialitiesVal = catDetails.catering_specialities || p.catering_specialities || p.cateringSpecialities || [];
+
             const resolvedVendor: VendorProfileData = {
               id: v.id || "",
               user_id: v.user_id || "",
@@ -258,6 +287,16 @@ export async function fetchAuthenticatedVendorFromDb(): Promise<VendorProfileDat
               serviceAreas: v.service_areas || "",
               service_areas: v.service_areas || "",
               profile_completion_percentage: v.profile_completion_percentage || 0,
+              cuisineTypes: Array.isArray(cuisineTypesVal) ? cuisineTypesVal : [],
+              cuisine_types: Array.isArray(cuisineTypesVal) ? cuisineTypesVal : [],
+              serviceTypes: Array.isArray(serviceTypesVal) ? serviceTypesVal : [],
+              service_types: Array.isArray(serviceTypesVal) ? serviceTypesVal : [],
+              serviceLocations: Array.isArray(serviceLocationsVal) ? serviceLocationsVal : [],
+              service_locations: Array.isArray(serviceLocationsVal) ? serviceLocationsVal : [],
+              guestCapacity: guestCapacityVal,
+              guest_capacity: guestCapacityVal,
+              cateringSpecialities: Array.isArray(cateringSpecialitiesVal) ? cateringSpecialitiesVal : [],
+              catering_specialities: Array.isArray(cateringSpecialitiesVal) ? cateringSpecialitiesVal : [],
             };
 
             if (typeof window !== "undefined") {

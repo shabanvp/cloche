@@ -15,11 +15,39 @@ export function PhotographersListing() {
   const [search, setSearch] = useState("");
   const [activeChip, setActiveChip] = useState("All");
   const [wishlist, setWishlist] = useState<Set<string>>(() => new Set());
+  const [photographersList, setPhotographersList] = useState<any[]>(photographers);
+
+  useEffect(() => {
+    fetch("/api/v1/public/vendors?category=photographers", { cache: "no-store" })
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+          const mapped = json.data.map((dbV: any) => ({
+            id: dbV.id,
+            name: dbV.name,
+            about: dbV.tagline || dbV.about || "Luxury Wedding Photography & Cinematic Films",
+            location: dbV.city || dbV.state || "Kerala, India",
+            rating: dbV.rating || 4.9,
+            reviews: dbV.reviewCount || 0,
+            price: dbV.startingPrice || "₹65,000 / day",
+            category: "Photographers",
+            isVerified: dbV.isVerified ?? true,
+            image: dbV.coverImage || dbV.logo || "",
+            portfolio: [dbV.coverImage || dbV.logo, dbV.logo].filter(Boolean),
+          }));
+
+          const dbIds = new Set(mapped.map((m: any) => m.id));
+          const existingFiltered = photographers.filter((p) => !dbIds.has(p.id));
+          setPhotographersList([...mapped, ...existingFiltered]);
+        }
+      })
+      .catch((err) => console.error("Error fetching live photographer vendors:", err));
+  }, []);
 
   useEffect(() => {
     const updateLocalWishlist = () => {
       const items = getWishlistItems();
-      setWishlist(new Set(items.map((i) => String(i.id))));
+      setWishlist(new Set(items.map((i: any) => String(i.id))));
     };
     updateLocalWishlist();
     window.addEventListener("cloche_wishlist_updated", updateLocalWishlist);
@@ -27,7 +55,7 @@ export function PhotographersListing() {
   }, []);
 
   const filteredPhotographers = useMemo(() => {
-    return photographers.filter((photo) => {
+    return photographersList.filter((photo) => {
       const q = search.toLowerCase().trim();
       const matchesSearch =
         !q || photo.name.toLowerCase().includes(q) || photo.location.toLowerCase().includes(q) || photo.about.toLowerCase().includes(q);
@@ -38,7 +66,7 @@ export function PhotographersListing() {
 
       return matchesSearch && matchesChip;
     });
-  }, [search, activeChip]);
+  }, [search, activeChip, photographersList]);
 
   const handleWishlistToggle = (e: React.MouseEvent, item: any) => {
     e.preventDefault();

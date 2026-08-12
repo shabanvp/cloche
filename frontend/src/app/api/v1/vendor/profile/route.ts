@@ -313,6 +313,9 @@ export async function PUT(req: Request) {
         business_name: profile.businessName || profile.business_name,
         tagline: profile.tagline || null,
         about: profile.about || profile.description || null,
+        color_theme: profile.color_theme || profile.colorTheme || null,
+        gallery_layout: profile.gallery_layout || profile.galleryLayout || null,
+        intro_video_url: profile.intro_video_url || profile.intro_video || profile.introVideo || null,
         city: profile.city || "Kochi",
         state: profile.state || "Kerala",
         pincode: profile.pincode || null,
@@ -414,6 +417,8 @@ export async function PUT(req: Request) {
 
     const socialLinks = [
       { platform: "instagram", url: profile?.instagram || contact?.instagram },
+      { platform: "facebook", url: profile?.facebook || contact?.facebook },
+      { platform: "youtube", url: profile?.youtube || contact?.youtube },
       { platform: "website", url: profile?.website || contact?.website },
     ].filter((link) => link.url);
 
@@ -436,10 +441,19 @@ export async function PUT(req: Request) {
     }
 
     // 4. Upsert Category Specific Extension Details
-    if (categoryDetails && typeof categoryDetails === "object") {
+    const mergedCategoryDetails = {
+      ...(categoryDetails || {}),
+      ...(profile?.cuisineTypes || profile?.cuisine_types ? { cuisine_types: profile.cuisineTypes || profile.cuisine_types } : {}),
+      ...(profile?.serviceTypes || profile?.service_types ? { service_types: profile.serviceTypes || profile.service_types } : {}),
+      ...(profile?.serviceLocations || profile?.service_locations ? { service_locations: profile.serviceLocations || profile.service_locations } : {}),
+      ...(profile?.guestCapacity || profile?.guest_capacity ? { guest_capacity: profile.guestCapacity || profile.guest_capacity } : {}),
+      ...(profile?.cateringSpecialities || profile?.catering_specialities ? { catering_specialities: profile.cateringSpecialities || profile.catering_specialities } : {}),
+    };
+
+    if (Object.keys(mergedCategoryDetails).length > 0) {
       const extPayload = {
         vendor_id: vendorId,
-        ...categoryDetails,
+        ...mergedCategoryDetails,
         updated_at: new Date().toISOString(),
       };
 
@@ -452,7 +466,7 @@ export async function PUT(req: Request) {
           Prefer: "resolution=merge-duplicates",
         },
         body: JSON.stringify(extPayload),
-      });
+      }).catch(() => null);
     }
 
     // 5. Create Draft Version Metadata in vendor_profile_versions

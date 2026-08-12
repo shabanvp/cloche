@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   ArrowLeft,
   Search,
@@ -21,9 +21,38 @@ import { decorVendors, DecorVendor } from "@/lib/decorData";
 export function DecorPlanningListing() {
   const [search, setSearch] = useState("");
   const [cityFilter, setCityFilter] = useState("All");
+  const [decorList, setDecorList] = useState<any[]>(decorVendors);
+
+  useEffect(() => {
+    fetch("/api/v1/public/vendors?category=decor-planning", { cache: "no-store" })
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+          const mapped = json.data.map((dbV: any) => ({
+            id: dbV.id,
+            name: dbV.name,
+            subtitle: dbV.tagline || dbV.about || "Luxury Wedding Decor & Event Planning",
+            location: dbV.city || dbV.state || "Kerala, India",
+            rating: dbV.rating || 4.9,
+            reviewsCount: dbV.reviewCount || 0,
+            startingPrice: dbV.startingPrice || "₹1,50,000 / event",
+            category: "Decorator",
+            verified: dbV.isVerified ?? true,
+            heroImage: dbV.coverImage || dbV.logo || "",
+            image: dbV.coverImage || dbV.logo || "",
+            badge: "Award Winning",
+          }));
+
+          const dbIds = new Set(mapped.map((m: any) => m.id));
+          const existingFiltered = decorVendors.filter((d) => !dbIds.has(d.id));
+          setDecorList([...mapped, ...existingFiltered]);
+        }
+      })
+      .catch((err) => console.error("Error fetching live decor vendors:", err));
+  }, []);
 
   const filteredVendors = useMemo(() => {
-    return decorVendors.filter((vendor) => {
+    return decorList.filter((vendor) => {
       const matchesSearch =
         vendor.name.toLowerCase().includes(search.toLowerCase()) ||
         vendor.subtitle.toLowerCase().includes(search.toLowerCase()) ||
@@ -31,7 +60,7 @@ export function DecorPlanningListing() {
       const matchesCity = cityFilter === "All" || vendor.location.toLowerCase().includes(cityFilter.toLowerCase());
       return matchesSearch && matchesCity;
     });
-  }, [search, cityFilter]);
+  }, [search, cityFilter, decorList]);
 
   return (
     <div className="min-h-screen flex flex-col bg-[#FAF7F2] pb-24 text-[#2D2520]">

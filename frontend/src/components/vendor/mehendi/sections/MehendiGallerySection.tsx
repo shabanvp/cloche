@@ -13,6 +13,7 @@ import {
   Loader2
 } from "lucide-react";
 import { showVendorToast } from "@/lib/vendorStore";
+import { VendorImageUploader } from "@/components/ui/VendorImageUploader";
 
 export interface MehendiGalleryItem {
   id: string;
@@ -311,18 +312,14 @@ export function MehendiGallerySection() {
                 </select>
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-charcoal/80 mb-1">
-                  High-Res Image URL
-                </label>
-                <input
-                  type="url"
-                  value={newImage}
-                  onChange={(e) => setNewImage(e.target.value)}
-                  required
-                  className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2.5 text-xs text-charcoal font-medium focus:outline-none focus:border-[#0d3b30]"
-                />
-              </div>
+              <VendorImageUploader
+                label="Upload Henna Photo(s)"
+                sublabel="Select single or multiple photos from your device camera/gallery (Max 5MB per photo)"
+                value={newImage}
+                onChange={(urls) => setNewImage(Array.isArray(urls) ? urls[0] || "" : urls)}
+                multiple={true}
+                folder="cloche/vendors/mehendi/gallery"
+              />
 
               <div>
                 <label className="block text-xs font-bold text-charcoal/80 mb-1">

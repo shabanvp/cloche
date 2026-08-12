@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { VendorCategoryConfig } from "@/lib/vendor-categories";
 import { showVendorToast } from "@/lib/vendorStore";
+import { VendorImageUploader } from "@/components/ui/VendorImageUploader";
 
 interface VendorMediaModuleProps {
   categoryConfig: VendorCategoryConfig;
@@ -317,18 +318,14 @@ export function VendorMediaModule({ categoryConfig }: VendorMediaModuleProps) {
                 </select>
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-charcoal/80 mb-1">
-                  Image URL
-                </label>
-                <input
-                  type="url"
-                  value={newItemImage}
-                  onChange={(e) => setNewItemImage(e.target.value)}
-                  required
-                  className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2.5 text-xs text-charcoal font-medium focus:outline-none focus:border-[#0F4C45]"
-                />
-              </div>
+              <VendorImageUploader
+                label="Upload Item Photo(s)"
+                sublabel="Select single or multiple photos from your device camera/gallery (Max 5MB per file)"
+                value={newItemImage}
+                onChange={(urls) => setNewItemImage(Array.isArray(urls) ? urls[0] || "" : urls)}
+                multiple={true}
+                folder={`cloche/vendors/${categoryConfig.id}/portfolio`}
+              />
 
               <div>
                 <label className="block text-xs font-bold text-charcoal/80 mb-1">

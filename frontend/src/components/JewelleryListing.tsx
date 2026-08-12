@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   ArrowLeft,
   Search,
@@ -21,16 +21,45 @@ import { jewelleryVendors, JewelleryVendor } from "@/lib/jewelleryData";
 export function JewelleryListing() {
   const [search, setSearch] = useState("");
   const [wishlist, setWishlist] = useState<Set<string>>(new Set());
+  const [jewelleryList, setJewelleryList] = useState<any[]>(jewelleryVendors);
+
+  useEffect(() => {
+    fetch("/api/v1/public/vendors?category=jewellery", { cache: "no-store" })
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+          const mapped = json.data.map((dbV: any) => ({
+            id: dbV.id,
+            name: dbV.name,
+            subtitle: dbV.tagline || dbV.about || "Heritage Bridal Jewellery & Temple Ornaments",
+            location: dbV.city || dbV.state || "Kerala, India",
+            rating: dbV.rating || 4.9,
+            reviewsCount: dbV.reviewCount || 0,
+            startingPrice: dbV.startingPrice || "₹25,000 / set",
+            category: "Jewellery",
+            verified: dbV.isVerified ?? true,
+            heroImage: dbV.coverImage || dbV.logo || "",
+            image: dbV.coverImage || dbV.logo || "",
+            badge: "BIS Hallmarked",
+          }));
+
+          const dbIds = new Set(mapped.map((m: any) => m.id));
+          const existingFiltered = jewelleryVendors.filter((j) => !dbIds.has(j.id));
+          setJewelleryList([...mapped, ...existingFiltered]);
+        }
+      })
+      .catch((err) => console.error("Error fetching live jewellery vendors:", err));
+  }, []);
 
   const filtered = useMemo(() => {
-    return jewelleryVendors.filter((v) => {
+    return jewelleryList.filter((v) => {
       return (
         v.name.toLowerCase().includes(search.toLowerCase()) ||
         v.location.toLowerCase().includes(search.toLowerCase()) ||
         v.subtitle.toLowerCase().includes(search.toLowerCase())
       );
     });
-  }, [search]);
+  }, [search, jewelleryList]);
 
   const toggleWishlist = (e: React.MouseEvent, id: string) => {
     e.preventDefault();

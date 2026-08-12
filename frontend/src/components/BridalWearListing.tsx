@@ -22,7 +22,7 @@ export function BridalWearListing() {
   useEffect(() => {
     const updateLocalWishlist = () => {
       const items = getWishlistItems();
-      setWishlist(new Set(items.map((i) => String(i.id))));
+      setWishlist(new Set(items.map((i: any) => String(i.id))));
     };
     updateLocalWishlist();
     window.addEventListener("cloche_wishlist_updated", updateLocalWishlist);

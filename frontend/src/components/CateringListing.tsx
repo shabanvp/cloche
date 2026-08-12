@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   ArrowLeft,
   Search,
@@ -20,16 +20,50 @@ export function CateringListing() {
   const [search, setSearch] = useState("");
   const [activeChip, setActiveChip] = useState("Catering & Food");
   const [wishlist, setWishlist] = useState<Set<string>>(new Set());
+  const [vendorList, setVendorList] = useState<any[]>(cateringVendors);
+
+  useEffect(() => {
+    fetch("/api/v1/public/vendors?category=catering", { cache: "no-store" })
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+          const mapped = json.data.map((dbV: any) => ({
+            id: dbV.id,
+            name: dbV.name,
+            subtitle: dbV.tagline || dbV.about || "Luxury Wedding Caterers",
+            location: dbV.city || dbV.state || "Kerala, India",
+            rating: dbV.rating || 4.9,
+            reviews: dbV.reviewCount || 0,
+            price: dbV.startingPrice || "₹450 / plate",
+            badge: "Featured Caterer",
+            verified: dbV.isVerified ?? true,
+            heroImage: dbV.coverImage || dbV.logo || "",
+            image: dbV.coverImage || dbV.logo || "",
+            gallery: [dbV.coverImage || dbV.logo, dbV.logo].filter(Boolean),
+            cuisines: dbV.cuisineTypes?.length > 0 ? dbV.cuisineTypes : ["Kerala", "South Indian", "North Indian"],
+            specialties: dbV.cateringSpecialities?.length > 0 ? dbV.cateringSpecialities : ["Sadya", "Live Counters"],
+            services: dbV.serviceTypes?.length > 0 ? dbV.serviceTypes : ["Wedding Catering", "Reception"],
+            capacity: dbV.guestCapacity || "100 - 1500 Guests",
+          }));
+
+          // Put real DB vendors at top
+          const dbIds = new Set(mapped.map((m: any) => m.id));
+          const existingFiltered = cateringVendors.filter((v) => !dbIds.has(v.id));
+          setVendorList([...mapped, ...existingFiltered]);
+        }
+      })
+      .catch((err) => console.error("Error fetching live catering vendors:", err));
+  }, []);
 
   const filtered = useMemo(() => {
-    return cateringVendors.filter((v) => {
+    return vendorList.filter((v) => {
       const matchesSearch =
         v.name.toLowerCase().includes(search.toLowerCase()) ||
         v.location.toLowerCase().includes(search.toLowerCase()) ||
         v.subtitle.toLowerCase().includes(search.toLowerCase());
       return matchesSearch;
     });
-  }, [search]);
+  }, [search, vendorList]);
 
   const toggleWishlist = (e: React.MouseEvent, id: string) => {
     e.preventDefault();
