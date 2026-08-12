@@ -794,7 +794,7 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
 
         {/* Real Dynamic Explore Other Vendors in Same Category */}
         <ExploreOtherVendors
-          category={vendor.category || defaults.categoryKey}
+          category={vendor.category || "venues"}
           currentVendorId={vendor.id}
           currentVendorName={vendor.name}
         />
