@@ -38,7 +38,8 @@ export function InvitationsListing() {
             startingPrice: dbV.startingPrice || "₹150 / card",
             category: "Invitations",
             verified: dbV.isVerified ?? true,
-            heroImage: dbV.coverImage || dbV.logo || invitationVendors[0].heroImage,
+            heroImage: dbV.coverImage || dbV.logo || invitationVendors[0]?.image || "",
+            image: dbV.coverImage || dbV.logo || invitationVendors[0]?.image || "",
             tags: ["Bespoke", "Boxed Invites", "Digital PDF"],
           }));
 

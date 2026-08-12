@@ -32,7 +32,8 @@ export function MehendiListing() {
             startingPrice: dbV.startingPrice || "₹4,500",
             category: "Mehendi",
             verified: dbV.isVerified ?? true,
-            heroImage: dbV.coverImage || dbV.logo || mehendiVendors[0].heroImage,
+            heroImage: dbV.coverImage || dbV.logo || mehendiVendors[0]?.image || "",
+            image: dbV.coverImage || dbV.logo || mehendiVendors[0]?.image || "",
             chips: ["Bridal Heavy", "Organic Henna"],
           }));
 

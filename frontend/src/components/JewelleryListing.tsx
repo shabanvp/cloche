@@ -38,7 +38,8 @@ export function JewelleryListing() {
             startingPrice: dbV.startingPrice || "₹25,000 / set",
             category: "Jewellery",
             verified: dbV.isVerified ?? true,
-            heroImage: dbV.coverImage || dbV.logo || jewelleryVendors[0].heroImage,
+            heroImage: dbV.coverImage || dbV.logo || jewelleryVendors[0]?.image || "",
+            image: dbV.coverImage || dbV.logo || jewelleryVendors[0]?.image || "",
             badge: "BIS Hallmarked",
           }));
 
