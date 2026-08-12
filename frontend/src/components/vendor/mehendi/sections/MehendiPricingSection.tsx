@@ -232,7 +232,7 @@ export function MehendiPricingSection() {
 
               <div className="pt-3 border-t border-gold/15 flex items-center justify-between">
                 <button
-                  onClick={() => handleDelete(pkg.id)}
+                  onClick={() => handleDeletePackage(pkg.id)}
                   className="text-xs font-bold text-red-600 hover:text-red-800 flex items-center gap-1 cursor-pointer"
                 >
                   <Trash2 className="w-3.5 h-3.5" /> Delete
