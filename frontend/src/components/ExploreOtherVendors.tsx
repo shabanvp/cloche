@@ -115,101 +115,101 @@ export function normalizeCategoryMeta(categorySlug: string) {
 export function getStaticCategoryVendors(categoryKey: string): ExploreVendorItem[] {
   switch (categoryKey) {
     case "makeup":
-      return makeupArtists.map((v) => ({
+      return makeupArtists.map((v: any) => ({
         id: v.id,
         name: v.name,
-        image: v.image || v.images?.[0] || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
-        rating: v.rating || 4.8,
-        reviews: v.reviews || 45,
-        price: "₹18,000",
+        image: v.image || v.images?.[0] || v.gallery?.[0] || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
+        rating: Number(v.rating || 4.8),
+        reviews: Number(v.reviews || v.reviewCount || 45),
+        price: v.price || v.startingPrice || "₹18,000",
         location: v.location || "Kerala, India",
         href: `/makeup/${v.id}`,
       }));
     case "mehendi":
-      return mehendiVendors.map((v) => ({
+      return mehendiVendors.map((v: any) => ({
         id: v.id,
         name: v.name,
-        image: v.image || v.gallery?.[0] || "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?auto=format&fit=crop&w=400&q=80",
-        rating: v.rating || 4.9,
-        reviews: v.reviewCount || v.reviews || 38,
-        price: v.startingPrice || "₹5,000",
+        image: v.image || v.portfolio?.[0] || v.gallery?.[0] || "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?auto=format&fit=crop&w=400&q=80",
+        rating: Number(v.rating || 4.9),
+        reviews: Number(v.reviews || v.reviewCount || 38),
+        price: v.price || v.startingPrice || "₹5,000",
         location: v.location || "Kerala, India",
         href: `/categories/mehendi/${v.id}`,
       }));
     case "photographers":
-      return photographers.map((v) => ({
+      return photographers.map((v: any) => ({
         id: v.id,
         name: v.name,
-        image: v.image || v.images?.[0] || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80",
-        rating: v.rating || 4.9,
-        reviews: v.reviews || 85,
-        price: "₹45,000",
+        image: v.image || v.images?.[0] || v.gallery?.[0] || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80",
+        rating: Number(v.rating || 4.9),
+        reviews: Number(v.reviews || v.reviewCount || 85),
+        price: v.price || v.startingPrice || "₹45,000",
         location: v.location || "Kerala, India",
         href: `/photographers/${v.id}`,
       }));
     case "caterers":
-      return cateringVendors.map((v) => ({
+      return cateringVendors.map((v: any) => ({
         id: v.id,
         name: v.name,
         image: v.image || v.gallery?.[0] || "https://images.unsplash.com/photo-1555244162-803834f70033?auto=format&fit=crop&w=400&q=80",
-        rating: v.rating || 4.8,
-        reviews: v.reviewCount || 92,
-        price: v.startingPrice || "₹450 / plate",
+        rating: Number(v.rating || 4.8),
+        reviews: Number(v.reviews || v.reviewCount || 92),
+        price: v.startingPrice || v.price || "₹450 / plate",
         location: v.location || "Kerala, India",
         href: `/catering/${v.id}`,
       }));
     case "jewellery":
-      return jewelleryVendors.map((v) => ({
+      return jewelleryVendors.map((v: any) => ({
         id: v.id,
         name: v.name,
         image: v.image || v.gallery?.[0] || "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&w=400&q=80",
-        rating: v.rating || 4.9,
-        reviews: v.reviewCount || 64,
-        price: v.startingPrice || "₹35,000",
+        rating: Number(v.rating || 4.9),
+        reviews: Number(v.reviews || v.reviewCount || 64),
+        price: v.startingPrice || v.price || "₹35,000",
         location: v.location || "Kerala, India",
         href: `/categories/jewellery/${v.id}`,
       }));
     case "invitations":
-      return invitationVendors.map((v) => ({
+      return invitationVendors.map((v: any) => ({
         id: v.id,
         name: v.name,
         image: v.image || v.gallery?.[0] || "https://images.unsplash.com/photo-1509315811355-57bd367776b3?auto=format&fit=crop&w=400&q=80",
-        rating: v.rating || 4.8,
-        reviews: v.reviewCount || 42,
-        price: v.startingPrice || "₹120 / card",
+        rating: Number(v.rating || 4.8),
+        reviews: Number(v.reviews || v.reviewCount || 42),
+        price: v.startingPrice || v.price || "₹120 / card",
         location: v.location || "Kerala, India",
         href: `/categories/invitations/${v.id}`,
       }));
     case "planners":
-      return decorVendors.map((v) => ({
+      return decorVendors.map((v: any) => ({
         id: v.id,
         name: v.name,
         image: v.image || v.gallery?.[0] || "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=400&q=80",
-        rating: v.rating || 4.9,
-        reviews: v.reviewCount || 78,
-        price: v.startingPrice || "₹75,000",
+        rating: Number(v.rating || 4.9),
+        reviews: Number(v.reviews || v.reviewCount || 78),
+        price: v.startingPrice || v.price || "₹75,000",
         location: v.location || "Kerala, India",
         href: `/categories/decor-planning/${v.id}`,
       }));
     case "groom-wear":
-      return groomWearVendors.map((v) => ({
+      return groomWearVendors.map((v: any) => ({
         id: v.id,
         name: v.name,
         image: v.image || v.gallery?.[0] || "https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=400&q=80",
-        rating: v.rating || 4.8,
-        reviews: v.reviewCount || 54,
-        price: v.startingPrice || "₹15,000",
+        rating: Number(v.rating || 4.8),
+        reviews: Number(v.reviews || v.reviewCount || 54),
+        price: v.startingPrice || v.price || "₹15,000",
         location: v.location || "Kerala, India",
         href: `/groom-wear/${v.id}`,
       }));
     default:
-      return bridalBoutiqueVendors.map((v) => ({
+      return bridalBoutiqueVendors.map((v: any) => ({
         id: v.id,
         name: v.name,
         image: v.image || v.gallery?.[0] || "https://images.unsplash.com/photo-1594552072238-b8a33785b261?auto=format&fit=crop&w=400&q=80",
-        rating: v.rating || 4.8,
-        reviews: v.reviewCount || 60,
-        price: v.startingPrice || "₹25,000",
+        rating: Number(v.rating || 4.8),
+        reviews: Number(v.reviews || v.reviewCount || 60),
+        price: v.startingPrice || v.price || "₹25,000",
         location: v.location || "Kerala, India",
         href: `/bridal-wear/${v.id}`,
       }));
