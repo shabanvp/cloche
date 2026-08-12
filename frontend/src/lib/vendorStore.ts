@@ -68,6 +68,7 @@ export async function syncVendorProfileWithDatabase(
 ): Promise<{ success: boolean; data?: any }> {
   if (typeof window !== "undefined") {
     try {
+<<<<<<< HEAD
       const extraHeaders: Record<string, string> = { "Content-Type": "application/json" };
       try {
         const cookieStr = document.cookie;
@@ -109,16 +110,70 @@ export async function syncVendorProfileWithDatabase(
           { platform: "instagram", url: profileData.instagram || "" },
           { platform: "website", url: profileData.website || "" },
         ]
+=======
+      const payload = {
+        profile: {
+          business_name: profileData.boutique_name || profileData.name,
+          boutique_name: profileData.boutique_name || profileData.name,
+          logo: profileData.logo || profileData.logo_url,
+          logo_url: profileData.logo || profileData.logo_url,
+          coverImage: profileData.coverImage || profileData.cover_image,
+          cover_image: profileData.coverImage || profileData.cover_image,
+          about: profileData.description,
+          city: profileData.city,
+          state: profileData.district,
+          ...profileData,
+        },
+        contact: {
+          contact_name: profileData.owner_name || profileData.ownerName,
+          phone: profileData.phone,
+          whatsapp: profileData.whatsapp,
+          email: profileData.email,
+        },
+        address: {
+          address_line1: profileData.address,
+          city: profileData.city,
+          state: profileData.district,
+        },
+        ...profileData,
+>>>>>>> fc383a1cf04355bb0ae22d59ff3df8caaba20fe4
       };
 
       const res = await fetch("/api/v1/vendor/profile", {
         method: "PUT",
+<<<<<<< HEAD
         headers: extraHeaders,
         body: JSON.stringify(bodyPayload),
       });
 
       if (res.ok) {
         await fetchAuthenticatedVendorFromDb();
+=======
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (res.ok) {
+        // Invalidate in-flight cache
+        inFlightProfileFetch = null;
+
+        // Update active cached vendor identity
+        try {
+          const raw = localStorage.getItem("cloche_active_vendor_identity");
+          const existing = raw ? JSON.parse(raw) : {};
+          const updated = {
+            ...existing,
+            ...profileData,
+            logo: profileData.logo || profileData.logo_url || existing.logo || existing.logo_url,
+            logo_url: profileData.logo || profileData.logo_url || existing.logo_url || existing.logo,
+            coverImage: profileData.coverImage || profileData.cover_image || existing.coverImage || existing.cover_image,
+            cover_image: profileData.coverImage || profileData.cover_image || existing.cover_image || existing.coverImage,
+          };
+          localStorage.setItem("cloche_active_vendor_identity", JSON.stringify(updated));
+          window.dispatchEvent(new CustomEvent("cloche_vendor_profile_updated", { detail: updated }));
+        } catch (_) {}
+
+>>>>>>> fc383a1cf04355bb0ae22d59ff3df8caaba20fe4
         return { success: true };
       }
     } catch (e) {

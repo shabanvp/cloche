@@ -884,15 +884,6 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
           >
             <Mail className="h-4 w-4" /> Get Quote
           </button>
-
-          {/* Floating Golden Genie Button */}
-          <Link
-            href="/genie"
-            className="absolute -top-3 -right-2 md:-top-3 md:-right-3 h-12 w-12 md:h-14 md:w-14 rounded-full bg-gradient-to-tr from-[#D4AF37] to-[#F3E5AB] text-[#0F4C45] border-2 border-white shadow-xl flex items-center justify-center active:scale-95 transition-transform hover:scale-105"
-            aria-label="Cloche Genie Assistant"
-          >
-            <Sparkles className="h-6 w-6 fill-[#0F4C45] text-[#0F4C45] animate-pulse" />
-          </Link>
         </div>
       </div>
 

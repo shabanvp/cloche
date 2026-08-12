@@ -187,7 +187,14 @@ export async function PUT(req: Request) {
     }
 
     const body = await req.json();
-    const { profile, contact, address, categoryDetails, changeSummary } = body;
+    const rawProfile = body.profile || body;
+    const profile = typeof rawProfile === "object" && rawProfile !== null ? rawProfile : {};
+    const rawContact = body.contact || body;
+    const contact = typeof rawContact === "object" && rawContact !== null ? rawContact : {};
+    const rawAddress = body.address || body;
+    const address = typeof rawAddress === "object" && rawAddress !== null ? rawAddress : {};
+    const categoryDetails = body.categoryDetails;
+    const changeSummary = body.changeSummary;
 
     // 1. Fetch authenticated vendor core record
     const vendorRes = await fetch(`${url}/rest/v1/vendors?id=eq.${encodeURIComponent(auth.vendorId)}&select=id,user_id,publication_status,category_id`, {

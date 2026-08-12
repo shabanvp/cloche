@@ -1,555 +1,580 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
   Sparkles,
   Send,
   Building2,
-  Shirt,
   Camera,
   Heart,
-  Calculator,
-  MessageCircle,
-  Phone,
   CheckCircle2,
   ChevronRight,
   ArrowRight,
-  UserCheck,
-  Zap,
   Star,
-  DollarSign,
-  Calendar,
+  MapPin,
   X,
+  UserPlus,
+  LogIn,
+  Save,
+  CheckSquare,
+  Square,
+  MailCheck,
 } from "lucide-react";
 import { Footer } from "@/components/Footer";
+import { 
+  queryAuraAssistant, 
+  AuraResponse, 
+  AuraVendorItem,
+  AuraUserContext,
+  BudgetBreakdownItem,
+  WeddingChecklistItem,
+  InquiryDraft
+} from "@/lib/auraEngine";
+import { BottomNavBar } from "@/components/BottomNavBar";
+
+interface ChatMessage {
+  id: string;
+  sender: "aura" | "user";
+  text: string;
+  groundedVendors?: AuraVendorItem[];
+  categoryUrl?: string;
+  actionRequired?: "signup" | "login" | "none";
+  budgetPlan?: {
+    totalBudget: number;
+    guestCount: number;
+    city: string;
+    items: BudgetBreakdownItem[];
+    isSaved?: boolean;
+  };
+  comparisonVendors?: AuraVendorItem[];
+  checklist?: WeddingChecklistItem[];
+  inquiryDraft?: InquiryDraft;
+  timestamp: string;
+}
 
 export function GenieClient() {
   const [promptInput, setPromptInput] = useState("");
-  const [messages, setMessages] = useState<
-    { sender: "user" | "genie"; text: string; data?: any }[]
-  >([
-    {
-      sender: "genie",
-      text: "Namaste! I am Cloche Genie — your personal luxury wedding AI concierge. Ask me anything about finding dream venues, bridal couture, jewelry stores, budget planning, or vendor recommendations!",
-    },
-  ]);
-
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [userContext, setUserContext] = useState<AuraUserContext | null>(null);
   const [isThinking, setIsThinking] = useState(false);
-  const [budget, setBudget] = useState(2500000); // 25 Lakhs
-  const [guests, setGuests] = useState(500);
-  const [isConsultModalOpen, setIsConsultModalOpen] = useState(false);
-  const [consultName, setConsultName] = useState("");
-  const [consultPhone, setConsultPhone] = useState("");
-  const [consultCity, setConsultCity] = useState("Kochi");
-  const [consultSuccess, setConsultSuccess] = useState(false);
+  const [isSendingInquiry, setIsSendingInquiry] = useState(false);
+  const [isSavingPlan, setIsSavingPlan] = useState(false);
 
-  const samplePrompts = [
-    "Find luxury waterfront venues in Kerala for 500 guests under ₹20 Lakhs",
-    "Suggest top bridal lehenga boutiques & royal jewelry stores in Jaipur",
-    "Calculate estimated budget breakdown for 600 guests wedding in Udaipur",
-    "Top rated luxury wedding photographers and makeup artists in Delhi",
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Fetch logged in user details on mount
+  useEffect(() => {
+    async function loadUser() {
+      try {
+        const res = await fetch("/api/v1/auth/me");
+        if (res.ok) {
+          const json = await res.json();
+          if (json.data?.user) {
+            const u = json.data.user;
+            const ctx: AuraUserContext = {
+              userId: u.id,
+              fullName: u.fullName || u.email?.split("@")[0],
+              email: u.email,
+              phone: u.phone,
+              city: u.city || "Thrissur",
+              weddingDate: u.weddingDate,
+            };
+            setUserContext(ctx);
+            const firstName = ctx.fullName?.split(" ")[0] || "there";
+            setMessages([
+              {
+                id: "aura-init",
+                sender: "aura",
+                text: `Hi ${firstName}, I'm Aura, your Cloche AI Wedding Assistant. How can I help with your wedding planning today?`,
+                timestamp: "Just now",
+              },
+            ]);
+            return;
+          }
+        }
+      } catch (e) {}
+
+      setMessages([
+        {
+          id: "aura-init-guest",
+          sender: "aura",
+          text: "Hi, I'm Aura, your Cloche AI Wedding Assistant. How can I help you today?",
+          timestamp: "Just now",
+        },
+      ]);
+    }
+
+    loadUser();
+  }, []);
+
+  const samplePrompts = userContext?.userId ? [
+    "Plan my wedding for 400 guests in Thrissur, budget ₹15 lakh",
+    "Compare shaban and Acesd for decor",
+    "Show my wedding checklist",
+    "Send an inquiry to shaban",
+    "Find photographers in Kerala",
+  ] : [
+    "Find wedding venues in Kochi",
+    "Top rated photographers in Kerala",
+    "Compare shaban and Acesd for decor",
+    "Bridal makeup artists",
+    "Traditional Kerala Sadya catering",
   ];
 
-  const handleSendPrompt = (textToSend?: string) => {
-    const query = textToSend || promptInput;
-    if (!query.trim()) return;
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, isThinking]);
 
-    setMessages((prev) => [...prev, { sender: "user", text: query }]);
+  const handleSendPrompt = async (textToSend?: string) => {
+    const query = (textToSend || promptInput).trim();
+    if (!query || isThinking) return;
+
+    const userMessage: ChatMessage = {
+      id: `user-${Date.now()}`,
+      sender: "user",
+      text: query,
+      timestamp: "Just now",
+    };
+
+    setMessages((prev) => [...prev, userMessage]);
     if (!textToSend) setPromptInput("");
     setIsThinking(true);
 
-    setTimeout(() => {
-      let genieReply = "";
-      let replyData = null;
-
-      const lower = query.toLowerCase();
-      if (lower.includes("venue") || lower.includes("kerala") || lower.includes("udaipur")) {
-        genieReply =
-          "Here are our top recommended luxury wedding venues matching your preferences with waterfront views and grand guest capacity:";
-        replyData = {
-          type: "venues",
-          items: [
-            {
-              id: "grand-solitaire-resort",
-              name: "Grand Solitaire Island Resort",
-              location: "Kochi, Kerala",
-              price: "₹2,50,000 / day",
-              capacity: "300 - 3000 Guests",
-              image: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=600&q=80",
-            },
-            {
-              id: "palace-estate",
-              name: "The Palace Estate",
-              location: "Udaipur, Rajasthan",
-              price: "₹8,00,000 / day",
-              capacity: "500 - 1200 Guests",
-              image: "https://images.unsplash.com/photo-1519167758481-83f552bb8c74?auto=format&fit=crop&w=600&q=80",
-            },
-          ],
-        };
-      } else if (lower.includes("boutique") || lower.includes("lehenga") || lower.includes("attire")) {
-        genieReply =
-          "Here are premier bridal & groom wear boutiques featuring royal silk sarees, designer lehengas, and handcrafted tuxedos:";
-        replyData = {
-          type: "boutiques",
-          items: [
-            {
-              id: "posh-wedding-rental",
-              name: "Posh Wedding Rental",
-              category: "Bridal & Groom Couture",
-              location: "MG Road, Kochi",
-              image: "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=600&q=80",
-            },
-            {
-              id: "royal-heritage-boutique",
-              name: "Royal Heritage Boutique",
-              category: "Bridal Wear",
-              location: "Jaipur, Rajasthan",
-              image: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=600&q=80",
-            },
-          ],
-        };
-      } else if (lower.includes("budget") || lower.includes("calculate") || lower.includes("cost")) {
-        genieReply = `Based on a total budget of ₹${(budget / 100000).toFixed(1)} Lakhs for ${guests} guests, here is your optimal wedding budget distribution:`;
-        replyData = {
-          type: "budget",
-          venue: Math.round(budget * 0.45),
-          attire: Math.round(budget * 0.20),
-          decor: Math.round(budget * 0.15),
-          photo: Math.round(budget * 0.10),
-          misc: Math.round(budget * 0.10),
-        };
-      } else {
-        genieReply =
-          "I have curated personalized recommendations tailored to your style, budget, and location preferences. You can also connect directly with a senior Cloche Concierge Specialist for 1-on-1 assistance!";
-      }
-
+    try {
+      const response: AuraResponse = await queryAuraAssistant(query, userContext);
+      const auraMessage: ChatMessage = {
+        id: `aura-${Date.now()}`,
+        sender: "aura",
+        text: response.reply,
+        groundedVendors: response.groundedVendors,
+        categoryUrl: response.categoryUrl,
+        actionRequired: response.actionRequired,
+        budgetPlan: response.budgetPlan,
+        comparisonVendors: response.comparisonVendors,
+        checklist: response.checklist,
+        inquiryDraft: response.inquiryDraft,
+        timestamp: "Just now",
+      };
+      setMessages((prev) => [...prev, auraMessage]);
+    } catch (err) {
       setMessages((prev) => [
         ...prev,
-        { sender: "genie", text: genieReply, data: replyData },
+        {
+          id: `aura-err-${Date.now()}`,
+          sender: "aura",
+          text: "I encountered a network error while searching our live directory. Please try again.",
+          timestamp: "Just now",
+        },
       ]);
+    } finally {
       setIsThinking(false);
-    }, 900);
+    }
   };
 
-  const handleConsultSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setConsultSuccess(true);
-    setTimeout(() => {
-      setConsultSuccess(false);
-      setIsConsultModalOpen(false);
-    }, 2500);
+  // Direct-Write: Save Budget Plan
+  const handleSaveBudgetPlan = async (msgId: string, plan: any) => {
+    setIsSavingPlan(true);
+    try {
+      const res = await fetch("/api/v1/customer/wedding-plan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          estimatedBudget: plan.totalBudget,
+          guestCount: plan.guestCount,
+          preferredCity: plan.city,
+          budgetBreakdown: plan.items,
+        }),
+      });
+
+      if (res.ok) {
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === msgId && m.budgetPlan
+              ? { ...m, budgetPlan: { ...m.budgetPlan, isSaved: true } }
+              : m
+          )
+        );
+        const formattedAmount = `₹${(plan.totalBudget / 100000).toFixed(1)} Lakhs`;
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `aura-saved-${Date.now()}`,
+            sender: "aura",
+            text: `I've saved your ${formattedAmount} wedding budget plan (${plan.guestCount} guests in ${plan.city}) to your account. You can view or adjust this anytime from your dashboard.`,
+            timestamp: "Just now",
+          },
+        ]);
+      }
+    } catch (e) {
+    } finally {
+      setIsSavingPlan(false);
+    }
+  };
+
+  // Draft-Then-Confirm: Send Inquiry to Vendor
+  const handleConfirmSendInquiry = async (draft: InquiryDraft) => {
+    setIsSendingInquiry(true);
+    try {
+      const res = await fetch("/api/v1/leads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          vendor_id: draft.vendorId,
+          customer_name: draft.customerName,
+          customer_phone: draft.customerPhone,
+          customer_email: draft.customerEmail,
+          event_type: draft.eventType,
+          event_date: draft.eventDate,
+          city: draft.city,
+          guest_count: draft.guestCount,
+          estimated_budget: draft.estimatedBudget,
+          message: draft.message,
+        }),
+      });
+
+      if (res.ok) {
+        const json = await res.json();
+        const leadId = json.data?.id ? json.data.id.slice(0, 8) : "LD-" + Date.now().toString().slice(-4);
+        
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `aura-inquiry-sent-${Date.now()}`,
+            sender: "aura",
+            text: `Your inquiry has been successfully sent to ${draft.vendorName}! (Reference Lead ID: #${leadId}). The vendor will receive your request and contact you directly.`,
+            timestamp: "Just now",
+          },
+        ]);
+      }
+    } catch (e) {
+    } finally {
+      setIsSendingInquiry(false);
+    }
   };
 
   return (
-    <div className="min-h-screen bg-[#F5F0E8] text-[#2D2520] flex flex-col pt-4">
-      {/* ─── HERO HEADER ─── */}
+    <div className="min-h-screen bg-[#F5F0E8] text-[#2D2520] flex flex-col pt-4 font-sans">
+      {/* Hero Header */}
       <section className="w-full max-w-6xl mx-auto px-4 sm:px-6 pt-6 pb-4">
         <div className="bg-gradient-to-r from-[#0F4C45] via-[#12584E] to-[#0A3833] rounded-3xl p-6 sm:p-10 text-white shadow-xl relative overflow-hidden">
-          <div className="absolute -right-12 -top-12 w-64 h-64 bg-[#C8A96A]/20 rounded-full blur-3xl pointer-events-none" />
-
-          <div className="relative z-10 max-w-2xl space-y-3">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#C8A96A]/20 text-[#C8A96A] text-xs font-bold uppercase tracking-wider border border-[#C8A96A]/30">
-              <Sparkles className="w-4 h-4 text-[#C8A96A]" />
-              <span>AI Wedding Concierge</span>
+          <div className="relative z-10 max-w-2xl">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/10 border border-white/20 text-xs font-semibold text-[#D4B66E] mb-4">
+              <Sparkles className="w-3.5 h-3.5" /> Cloche Aura • AI Wedding Planning Concierge
             </div>
-
-            <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold text-white leading-tight">
-              Cloche Genie Services
+            <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-3">
+              Personalized Wedding Concierge
             </h1>
-
             <p className="text-white/80 text-sm sm:text-base leading-relaxed">
-              Your 24/7 AI-powered wedding assistant. Discover verified venues, designer couture, smart budget breakdowns, and instant concierge support for your dream celebration.
+              Plan your wedding budget, compare registered vendors side-by-side, manage checklist milestones, and draft vendor inquiries seamlessly.
             </p>
-
-            <div className="pt-2 flex flex-wrap gap-3">
-              <button
-                onClick={() => setIsConsultModalOpen(true)}
-                className="px-5 py-3 rounded-2xl bg-[#C8A96A] text-[#1A1410] font-bold text-xs sm:text-sm uppercase tracking-wider hover:bg-[#D4AF37] transition-all shadow-md flex items-center gap-2 cursor-pointer"
-              >
-                <UserCheck className="w-4 h-4" />
-                <span>Book 1-on-1 Concierge Call</span>
-              </button>
-
-              <a
-                href="https://wa.me/?text=Hi%20Cloche%20Concierge,%20I%20need%20help%20planning%20my%20wedding!"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-5 py-3 rounded-2xl bg-white/10 hover:bg-white/20 text-white border border-white/20 font-bold text-xs sm:text-sm uppercase tracking-wider transition-all flex items-center gap-2"
-              >
-                <MessageCircle className="w-4 h-4 text-[#25D366]" />
-                <span>WhatsApp Concierge</span>
-              </a>
-            </div>
           </div>
         </div>
       </section>
 
-      {/* ─── MAIN CONCIERGE CHAT & BUDGET WIDGET GRID ─── */}
-      <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 py-6 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        
-        {/* LEFT COLUMN: INTERACTIVE GENIE CHAT (7 Cols) */}
-        <div className="lg:col-span-7 bg-white rounded-3xl p-6 sm:p-7 shadow-sm border border-[#E2D5C0]/80 space-y-6">
-          <div className="flex items-center justify-between border-b border-[#E2D5C0]/60 pb-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-[#0F4C45]/10 flex items-center justify-center text-[#0F4C45]">
-                <Sparkles className="w-5 h-5 text-[#C8A96A]" />
-              </div>
-              <div>
-                <h2 className="font-display text-lg font-bold text-[#1A1410]">Genie AI Concierge Chat</h2>
-                <p className="text-xs text-[#7A6E65]">Ask questions or click sample prompts below</p>
-              </div>
-            </div>
-            <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#4CAF50]/10 text-[#4CAF50] text-xs font-bold">
-              <span className="w-2 h-2 rounded-full bg-[#4CAF50] animate-pulse" /> Live AI Active
-            </span>
-          </div>
-
-          {/* Sample Prompt Badges */}
-          <div className="space-y-2">
-            <p className="text-xs font-semibold text-[#9A8D7D] uppercase tracking-wider">Suggested Prompts:</p>
-            <div className="flex flex-wrap gap-2">
-              {samplePrompts.map((sp, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => handleSendPrompt(sp)}
-                  className="text-left text-xs bg-[#F5F0E8] hover:bg-[#0F4C45]/10 text-[#2D2520] hover:text-[#0F4C45] px-3 py-2 rounded-xl border border-[#E2D5C0]/60 transition-colors cursor-pointer"
-                >
-                  {sp}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Chat Messages Log */}
-          <div className="space-y-4 max-h-[420px] overflow-y-auto pr-1">
-            {messages.map((m, idx) => (
+      {/* Main Chat Assistant Workspace */}
+      <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 py-4 flex flex-col gap-6">
+        <div className="bg-white rounded-3xl border border-gold/15 shadow-sm p-4 sm:p-6 flex flex-col h-[620px]">
+          {/* Chat Stream */}
+          <div className="flex-1 overflow-y-auto space-y-4 pr-1">
+            {messages.map((m) => (
               <div
-                key={idx}
+                key={m.id}
                 className={`flex flex-col ${m.sender === "user" ? "items-end" : "items-start"}`}
               >
                 <div
-                  className={`max-w-[85%] rounded-2xl p-4 text-sm leading-relaxed ${
+                  className={`max-w-[88%] rounded-2xl p-4 text-xs sm:text-sm leading-relaxed shadow-xs ${
                     m.sender === "user"
                       ? "bg-[#0F4C45] text-white rounded-br-none"
-                      : "bg-[#F5F0E8] text-[#1A1410] border border-[#E2D5C0]/60 rounded-bl-none"
+                      : "bg-[#FAF7F2] text-charcoal border border-gold/15 rounded-bl-none"
                   }`}
                 >
-                  {m.text}
+                  <div className="whitespace-pre-line">{m.text}</div>
+
+                  {/* 1. Grounded Live Vendor Cards */}
+                  {m.groundedVendors && m.groundedVendors.length > 0 && (
+                    <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 border-t border-gold/10">
+                      {m.groundedVendors.map((v) => {
+                        const initials = v.name
+                          .split(" ")
+                          .map((w: string) => w[0])
+                          .filter(Boolean)
+                          .join("")
+                          .slice(0, 2)
+                          .toUpperCase() || "V";
+
+                        return (
+                          <Link
+                            key={v.id}
+                            href={v.detailUrl}
+                            className="flex items-center gap-3 bg-white hover:bg-gold/10 p-3 rounded-xl border border-gold/20 transition-all group"
+                          >
+                            <div className="relative h-12 w-12 rounded-lg overflow-hidden bg-[#0F4C45] shrink-0 border border-gold/20 flex items-center justify-center text-white">
+                              {v.coverImage ? (
+                                <img src={v.coverImage} alt={v.name} className="w-full h-full object-cover" />
+                              ) : v.logo ? (
+                                <img src={v.logo} alt={v.name} className="w-full h-full object-cover" />
+                              ) : (
+                                <span className="font-serif text-sm font-bold">{initials}</span>
+                              )}
+                            </div>
+
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-1">
+                                <h4 className="font-serif font-bold text-xs sm:text-sm text-charcoal truncate group-hover:text-[#0F4C45] transition-colors">
+                                  {v.name}
+                                </h4>
+                                {v.isVerified && (
+                                  <CheckCircle2 className="h-3.5 w-3.5 text-[#0F4C45] shrink-0" />
+                                )}
+                              </div>
+                              <p className="text-[11px] text-charcoal/60 truncate flex items-center gap-1 mt-0.5">
+                                <MapPin className="h-3 w-3 text-charcoal/40 shrink-0" />
+                                <span>{v.city}, {v.state}</span>
+                              </p>
+                              <div className="flex items-center justify-between gap-2 mt-1">
+                                <div className="flex items-center gap-1 text-[11px]">
+                                  <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+                                  <span className="font-semibold text-charcoal">
+                                    {v.rating > 0 ? v.rating.toFixed(1) : "New"}
+                                  </span>
+                                </div>
+                                <span className="text-[11px] font-bold text-[#0F4C45]">
+                                  {v.startingPrice}
+                                </span>
+                              </div>
+                            </div>
+                            <ChevronRight className="h-4 w-4 text-charcoal/40 group-hover:translate-x-0.5 transition-transform shrink-0" />
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {/* 2. Side-by-Side Real Vendor Comparison */}
+                  {m.comparisonVendors && m.comparisonVendors.length >= 2 && (
+                    <div className="mt-3 pt-3 border-t border-gold/15">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {m.comparisonVendors.map((v) => (
+                          <div key={v.id} className="bg-white p-3.5 rounded-xl border border-gold/20 flex flex-col justify-between">
+                            <div>
+                              <div className="flex items-center justify-between gap-1 mb-1">
+                                <span className="font-serif font-bold text-sm text-charcoal truncate">{v.name}</span>
+                                {v.isVerified && <CheckCircle2 className="h-4 w-4 text-[#0F4C45] shrink-0" />}
+                              </div>
+                              <span className="text-xs text-charcoal/60 block mb-2">{v.category} • {v.city}</span>
+                              
+                              <div className="space-y-1.5 text-xs py-2 border-y border-gold/10 my-2">
+                                <div className="flex justify-between">
+                                  <span className="text-charcoal/60">Rating:</span>
+                                  <span className="font-bold">{v.rating > 0 ? `★ ${v.rating.toFixed(1)} (${v.reviewCount})` : "New (0)"}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-charcoal/60">Starting Price:</span>
+                                  <span className="font-bold text-[#0F4C45]">{v.startingPrice}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-charcoal/60">Verification:</span>
+                                  <span className="text-emerald-700 font-semibold">{v.isVerified ? "Verified Partner" : "Registered Partner"}</span>
+                                </div>
+                              </div>
+                            </div>
+
+                            <Link
+                              href={v.detailUrl}
+                              className="mt-2 text-center text-xs font-bold bg-[#0F4C45] text-white py-1.5 px-3 rounded-lg hover:bg-[#135951] transition-colors block"
+                            >
+                              View Vendor Storefront
+                            </Link>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 3. Budget Planner Card (Direct-Write) */}
+                  {m.budgetPlan && (
+                    <div className="mt-3 pt-3 border-t border-gold/15 space-y-2">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        {m.budgetPlan.items.map((it, idx) => (
+                          <div key={idx} className="bg-white p-3 rounded-xl border border-gold/10 flex items-center justify-between text-xs">
+                            <div>
+                              <div className="font-semibold text-charcoal">{it.category} ({it.percentage}%)</div>
+                              <div className="text-[11px] text-charcoal/60">{it.note}</div>
+                            </div>
+                            <div className="font-bold text-[#0F4C45] text-right shrink-0">
+                              ₹{it.amount.toLocaleString("en-IN")}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {userContext?.userId && (
+                        <button
+                          onClick={() => handleSaveBudgetPlan(m.id, m.budgetPlan)}
+                          disabled={m.budgetPlan.isSaved || isSavingPlan}
+                          className={`w-full mt-2 py-2.5 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all ${
+                            m.budgetPlan.isSaved
+                              ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
+                              : "bg-[#0F4C45] text-white hover:bg-[#135951] cursor-pointer"
+                          }`}
+                        >
+                          {m.budgetPlan.isSaved ? (
+                            <>
+                              <CheckCircle2 className="h-4 w-4 text-emerald-700" /> Saved to My Wedding Plan
+                            </>
+                          ) : (
+                            <>
+                              <Save className="h-4 w-4 text-gold" /> Save to My Wedding Plan (Direct-Write)
+                            </>
+                          )}
+                        </button>
+                      )}
+                    </div>
+                  )}
+
+                  {/* 4. Wedding Checklist (Direct-Write) */}
+                  {m.checklist && (
+                    <div className="mt-3 pt-3 border-t border-gold/15 space-y-2">
+                      {m.checklist.map((item) => (
+                        <div key={item.id} className="bg-white p-2.5 rounded-xl border border-gold/10 flex items-center gap-2 text-xs">
+                          {item.completed ? (
+                            <CheckSquare className="h-4 w-4 text-[#0F4C45] shrink-0" />
+                          ) : (
+                            <Square className="h-4 w-4 text-charcoal/40 shrink-0" />
+                          )}
+                          <span className={`flex-1 ${item.completed ? "line-through text-charcoal/50" : "text-charcoal font-medium"}`}>
+                            {item.title}
+                          </span>
+                          <span className="text-[10px] bg-gold/15 text-charcoal/70 px-2 py-0.5 rounded font-semibold shrink-0">
+                            {item.category}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* 5. Inquiry Draft (Draft-Then-Confirm) */}
+                  {m.inquiryDraft && (
+                    <div className="mt-3 pt-3 border-t border-gold/20 bg-white p-4 rounded-2xl border border-gold/20 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-[#0F4C45] uppercase tracking-wider flex items-center gap-1.5">
+                          <MailCheck className="h-4 w-4" /> Proposed Inquiry Draft
+                        </span>
+                        <span className="text-[11px] bg-amber-100 text-amber-900 px-2.5 py-0.5 rounded-full font-bold">
+                          Awaiting Confirmation
+                        </span>
+                      </div>
+
+                      <div className="bg-[#FAF7F2] p-3 rounded-xl border border-gold/15 text-xs space-y-1 text-charcoal">
+                        <div><strong className="text-charcoal/60">Target Vendor:</strong> {m.inquiryDraft.vendorName} ({m.inquiryDraft.category})</div>
+                        <div><strong className="text-charcoal/60">Your Contact:</strong> {m.inquiryDraft.customerName} ({m.inquiryDraft.customerPhone})</div>
+                        <div><strong className="text-charcoal/60">Event Details:</strong> {m.inquiryDraft.eventType} on {m.inquiryDraft.eventDate} ({m.inquiryDraft.city})</div>
+                        <div className="pt-1.5 text-xs italic text-charcoal/80 bg-white p-2.5 rounded mt-2 border border-gold/10">
+                          &ldquo;{m.inquiryDraft.message}&rdquo;
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={() => handleConfirmSendInquiry(m.inquiryDraft!)}
+                        disabled={isSendingInquiry}
+                        className="w-full bg-[#0F4C45] hover:bg-[#135951] text-white py-2.5 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer disabled:opacity-50"
+                      >
+                        <Send className="h-4 w-4 text-gold" /> Confirm & Send Inquiry to {m.inquiryDraft.vendorName}
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Category Explore Link */}
+                  {m.categoryUrl && (
+                    <div className="mt-2.5 pt-2 border-t border-gold/10">
+                      <Link
+                        href={m.categoryUrl}
+                        className="text-[11px] font-bold text-[#0F4C45] hover:underline flex items-center gap-1"
+                      >
+                        <span>Explore full category catalog</span>
+                        <ArrowRight className="h-3 w-3" />
+                      </Link>
+                    </div>
+                  )}
+
+                  {/* Action Decline Redirect Buttons for Guests */}
+                  {m.actionRequired === "signup" && (
+                    <div className="mt-3 flex items-center gap-2 pt-2 border-t border-gold/10">
+                      <Link
+                        href="/signup"
+                        className="flex-1 bg-[#0F4C45] text-white py-1.5 px-3 rounded-lg text-center font-bold text-[11px] hover:bg-[#135951] transition-colors flex items-center justify-center gap-1"
+                      >
+                        <UserPlus className="h-3 w-3" /> Sign Up Free
+                      </Link>
+                      <Link
+                        href="/login"
+                        className="flex-1 bg-[#FAF7F2] border border-gold/20 text-[#0F4C45] py-1.5 px-3 rounded-lg text-center font-bold text-[11px] hover:bg-gold/10 transition-colors flex items-center justify-center gap-1"
+                      >
+                        <LogIn className="h-3 w-3" /> Log In
+                      </Link>
+                    </div>
+                  )}
                 </div>
-
-                {/* Render Rich Cards Output from AI */}
-                {m.data?.type === "venues" && (
-                  <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
-                    {m.data.items.map((item: any) => (
-                      <Link
-                        key={item.id}
-                        href={`/venues/${item.id}`}
-                        className="bg-white rounded-2xl overflow-hidden border border-[#E2D5C0] shadow-xs hover:shadow-md transition-all group p-3 space-y-2"
-                      >
-                        <div className="relative h-28 w-full rounded-xl overflow-hidden">
-                          <Image src={item.image} alt={item.name} fill className="object-cover group-hover:scale-105 transition-transform" />
-                        </div>
-                        <div>
-                          <h4 className="font-bold text-[#1A1410] text-xs line-clamp-1">{item.name}</h4>
-                          <p className="text-[11px] text-[#7A6E65]">{item.location}</p>
-                          <p className="text-xs font-semibold text-[#0F4C45] mt-1">{item.price}</p>
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
-                )}
-
-                {m.data?.type === "boutiques" && (
-                  <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
-                    {m.data.items.map((item: any) => (
-                      <Link
-                        key={item.id}
-                        href={`/boutiques/${item.id}`}
-                        className="bg-white rounded-2xl overflow-hidden border border-[#E2D5C0] shadow-xs hover:shadow-md transition-all group p-3 space-y-2"
-                      >
-                        <div className="relative h-28 w-full rounded-xl overflow-hidden">
-                          <Image src={item.image} alt={item.name} fill className="object-cover group-hover:scale-105 transition-transform" />
-                        </div>
-                        <div>
-                          <h4 className="font-bold text-[#1A1410] text-xs line-clamp-1">{item.name}</h4>
-                          <p className="text-[11px] text-[#7A6E65]">{item.category}</p>
-                          <p className="text-xs text-[#0F4C45] font-medium mt-1">{item.location}</p>
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
-                )}
-
-                {m.data?.type === "budget" && (
-                  <div className="mt-3 bg-[#F5F0E8] rounded-2xl p-4 border border-[#E2D5C0] w-full space-y-2 text-xs">
-                    <div className="flex justify-between font-semibold text-[#1A1410]">
-                      <span>Venue & Catering (45%):</span>
-                      <span className="text-[#0F4C45]">₹{(m.data.venue / 100000).toFixed(2)} Lakhs</span>
-                    </div>
-                    <div className="flex justify-between text-[#7A6E65]">
-                      <span>Attire & Jewellery (20%):</span>
-                      <span>₹{(m.data.attire / 100000).toFixed(2)} Lakhs</span>
-                    </div>
-                    <div className="flex justify-between text-[#7A6E65]">
-                      <span>Decor & Production (15%):</span>
-                      <span>₹{(m.data.decor / 100000).toFixed(2)} Lakhs</span>
-                    </div>
-                    <div className="flex justify-between text-[#7A6E65]">
-                      <span>Photo & Video (10%):</span>
-                      <span>₹{(m.data.photo / 100000).toFixed(2)} Lakhs</span>
-                    </div>
-                  </div>
-                )}
+                <span className="text-[10px] text-charcoal/40 px-1 mt-1">{m.timestamp}</span>
               </div>
             ))}
 
             {isThinking && (
-              <div className="flex items-center gap-2 text-xs text-[#7A6E65] bg-[#F5F0E8] p-3 rounded-2xl w-fit">
-                <Sparkles className="w-4 h-4 text-[#C8A96A] animate-spin" />
-                <span>Genie is analyzing your preferences...</span>
+              <div className="flex items-center gap-2 text-xs text-charcoal/60 bg-[#FAF7F2] p-3 rounded-2xl border border-gold/15 w-fit animate-pulse">
+                <Sparkles className="w-4 h-4 text-gold animate-spin" />
+                <span>Aura is checking live directory...</span>
               </div>
             )}
+            <div ref={messagesEndRef} />
           </div>
 
-          {/* Input Box */}
+          {/* Quick Prompt Chips */}
+          <div className="pt-3 pb-2 border-t border-gold/10 flex items-center gap-2 overflow-x-auto scrollbar-none">
+            {samplePrompts.map((p, idx) => (
+              <button
+                key={idx}
+                onClick={() => handleSendPrompt(p)}
+                disabled={isThinking}
+                className="text-[11px] whitespace-nowrap bg-[#FAF7F2] hover:bg-gold/15 text-charcoal/80 border border-gold/15 px-3 py-1.5 rounded-full transition-colors cursor-pointer shrink-0 disabled:opacity-50"
+              >
+                {p}
+              </button>
+            ))}
+          </div>
+
+          {/* Input Form */}
           <form
             onSubmit={(e) => {
               e.preventDefault();
               handleSendPrompt();
             }}
-            className="flex items-center gap-2 pt-2 border-t border-[#E2D5C0]/60"
+            className="pt-2 flex items-center gap-2"
           >
             <input
+              ref={inputRef}
               type="text"
               value={promptInput}
               onChange={(e) => setPromptInput(e.target.value)}
-              placeholder="Ask Genie (e.g. recommend 5-star resort venues in Kochi)..."
-              className="flex-1 bg-[#F5F0E8] border border-[#E2D5C0] rounded-2xl px-4 py-3 text-sm text-[#1A1410] outline-none focus:border-[#0F4C45] transition-colors"
+              placeholder={userContext?.userId ? "Ask Aura: 'Plan my wedding budget', 'Compare shaban and Acesd'..." : "Ask Aura: 'Find wedding venues in Kochi', 'Photographers in Kerala'..."}
+              disabled={isThinking}
+              className="flex-1 bg-[#FAF7F2] border border-gold/20 rounded-2xl px-4 py-3 text-xs sm:text-sm text-charcoal placeholder:text-charcoal/40 focus:outline-none focus:border-[#0F4C45]"
             />
             <button
               type="submit"
-              disabled={isThinking || !promptInput.trim()}
-              className="w-12 h-12 bg-[#0F4C45] hover:bg-[#12584E] disabled:opacity-50 text-white rounded-2xl flex items-center justify-center transition-all cursor-pointer shadow-md"
+              disabled={!promptInput.trim() || isThinking}
+              className="h-11 px-5 rounded-2xl bg-[#0F4C45] hover:bg-[#135951] disabled:opacity-40 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition-colors shrink-0 cursor-pointer"
             >
-              <Send className="w-5 h-5" />
+              <Send className="w-3.5 h-3.5 text-gold" /> Ask Aura
             </button>
           </form>
         </div>
-
-        {/* RIGHT COLUMN: QUICK BUDGET ESTIMATOR & VIP SERVICES (5 Cols) */}
-        <div className="lg:col-span-5 space-y-6">
-          
-          {/* BUDGET ESTIMATOR CARD */}
-          <div className="bg-white rounded-3xl p-6 shadow-sm border border-[#E2D5C0]/80 space-y-5">
-            <div className="flex items-center gap-3 border-b border-[#E2D5C0]/60 pb-3">
-              <div className="w-9 h-9 rounded-xl bg-[#C8A96A]/15 flex items-center justify-center text-[#C8A96A]">
-                <Calculator className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="font-display font-bold text-[#1A1410] text-base">Instant Budget Breakdown</h3>
-                <p className="text-xs text-[#7A6E65]">Slide to test your total wedding budget</p>
-              </div>
-            </div>
-
-            {/* Slider 1: Total Budget */}
-            <div className="space-y-2">
-              <div className="flex justify-between text-xs font-semibold">
-                <span className="text-[#7A6E65]">Estimated Total Budget:</span>
-                <span className="text-[#0F4C45] font-bold">₹{(budget / 100000).toFixed(1)} Lakhs</span>
-              </div>
-              <input
-                type="range"
-                min={500000}
-                max={15000000}
-                step={250000}
-                value={budget}
-                onChange={(e) => setBudget(Number(e.target.value))}
-                className="w-full accent-[#0F4C45] cursor-pointer"
-              />
-            </div>
-
-            {/* Slider 2: Guests Count */}
-            <div className="space-y-2">
-              <div className="flex justify-between text-xs font-semibold">
-                <span className="text-[#7A6E65]">Expected Guest Count:</span>
-                <span className="text-[#0F4C45] font-bold">{guests} Guests</span>
-              </div>
-              <input
-                type="range"
-                min={100}
-                max={2500}
-                step={50}
-                value={guests}
-                onChange={(e) => setGuests(Number(e.target.value))}
-                className="w-full accent-[#0F4C45] cursor-pointer"
-              />
-            </div>
-
-            {/* Visual Budget Breakdown Bars */}
-            <div className="bg-[#F5F0E8] rounded-2xl p-4 border border-[#E2D5C0]/60 space-y-3 text-xs">
-              <div className="space-y-1">
-                <div className="flex justify-between font-semibold">
-                  <span className="text-[#1A1410]">Venue & Catering (45%)</span>
-                  <span className="text-[#0F4C45]">₹{((budget * 0.45) / 100000).toFixed(2)} L</span>
-                </div>
-                <div className="w-full h-2 bg-white rounded-full overflow-hidden">
-                  <div className="h-full bg-[#0F4C45] w-[45%]" />
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <div className="flex justify-between font-semibold">
-                  <span className="text-[#1A1410]">Attire & Jewellery (20%)</span>
-                  <span className="text-[#0F4C45]">₹{((budget * 0.20) / 100000).toFixed(2)} L</span>
-                </div>
-                <div className="w-full h-2 bg-white rounded-full overflow-hidden">
-                  <div className="h-full bg-[#C8A96A] w-[20%]" />
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <div className="flex justify-between font-semibold">
-                  <span className="text-[#1A1410]">Decor & Styling (15%)</span>
-                  <span className="text-[#0F4C45]">₹{((budget * 0.15) / 100000).toFixed(2)} L</span>
-                </div>
-                <div className="w-full h-2 bg-white rounded-full overflow-hidden">
-                  <div className="h-full bg-[#12584E] w-[15%]" />
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <div className="flex justify-between font-semibold">
-                  <span className="text-[#1A1410]">Photo & Video (10%)</span>
-                  <span className="text-[#0F4C45]">₹{((budget * 0.10) / 100000).toFixed(2)} L</span>
-                </div>
-                <div className="w-full h-2 bg-white rounded-full overflow-hidden">
-                  <div className="h-full bg-[#9A8D7D] w-[10%]" />
-                </div>
-              </div>
-            </div>
-
-            <button
-              onClick={() => handleSendPrompt(`Calculate detailed budget breakdown for ₹${(budget / 100000).toFixed(1)} Lakhs and ${guests} guests`)}
-              className="w-full py-3 bg-[#0F4C45] hover:bg-[#12584E] text-white rounded-2xl font-bold text-xs uppercase tracking-wider transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
-            >
-              <span>Ask Genie to Optimize Plan</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
-          </div>
-
-          {/* VIP CONCIERGE ASSISTANCE CARD */}
-          <div className="bg-gradient-to-br from-[#1A1410] to-[#2D2520] rounded-3xl p-6 text-white space-y-4 shadow-md border border-[#C8A96A]/30 relative overflow-hidden">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-[#C8A96A]/20 flex items-center justify-center text-[#C8A96A]">
-                <UserCheck className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="font-display font-bold text-[#C8A96A] text-base">Human Concierge Desk</h3>
-                <p className="text-xs text-white/70">Personal assistance for luxury weddings</p>
-              </div>
-            </div>
-
-            <p className="text-xs text-white/80 leading-relaxed">
-              Need direct negotiation with venues, custom designer appointments, or site inspection coordination? Our senior wedding managers are here to assist you.
-            </p>
-
-            <button
-              onClick={() => setIsConsultModalOpen(true)}
-              className="w-full py-3 bg-[#C8A96A] hover:bg-[#D4AF37] text-[#1A1410] rounded-2xl font-bold text-xs uppercase tracking-wider transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
-            >
-              <span>Request Personal Callback</span>
-              <Phone className="w-4 h-4" />
-            </button>
-          </div>
-
-        </div>
-
       </main>
 
-      {/* ─── MODAL: 1-ON-1 CONCIERGE CALL ─── */}
-      {isConsultModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
-          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-[#E2D5C0] relative animate-in fade-in zoom-in-95 duration-200">
-            <button
-              onClick={() => setIsConsultModalOpen(false)}
-              className="absolute top-4 right-4 text-[#9A8D7D] hover:text-[#1A1410] cursor-pointer"
-            >
-              <X className="w-5 h-5" />
-            </button>
-
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-2xl bg-[#0F4C45]/10 flex items-center justify-center text-[#0F4C45]">
-                <Phone className="w-5 h-5 text-[#0F4C45]" />
-              </div>
-              <div>
-                <h3 className="font-display text-lg font-bold text-[#1A1410]">Book Concierge Callback</h3>
-                <p className="text-xs text-[#7A6E65]">Free 15-min consultation with a wedding specialist</p>
-              </div>
-            </div>
-
-            {consultSuccess ? (
-              <div className="py-8 text-center space-y-3">
-                <div className="w-12 h-12 bg-emerald/10 text-emerald rounded-full flex items-center justify-center mx-auto">
-                  <CheckCircle2 className="w-6 h-6 text-[#0F4C45]" />
-                </div>
-                <h4 className="font-bold text-[#1A1410] text-base">Request Received!</h4>
-                <p className="text-xs text-[#7A6E65]">
-                  Our senior concierge specialist will reach out to you within 2 hours.
-                </p>
-              </div>
-            ) : (
-              <form onSubmit={handleConsultSubmit} className="space-y-4 text-xs">
-                <div>
-                  <label className="font-semibold text-[#1A1410] block mb-1">Your Name *</label>
-                  <input
-                    required
-                    type="text"
-                    value={consultName}
-                    onChange={(e) => setConsultName(e.target.value)}
-                    placeholder="Ananya Sharma"
-                    className="w-full bg-[#F5F0E8] border border-[#E2D5C0] rounded-xl px-4 py-2.5 outline-none focus:border-[#0F4C45]"
-                  />
-                </div>
-
-                <div>
-                  <label className="font-semibold text-[#1A1410] block mb-1">Phone Number *</label>
-                  <input
-                    required
-                    type="tel"
-                    value={consultPhone}
-                    onChange={(e) => setConsultPhone(e.target.value)}
-                    placeholder="9876543210"
-                    className="w-full bg-[#F5F0E8] border border-[#E2D5C0] rounded-xl px-4 py-2.5 outline-none focus:border-[#0F4C45]"
-                  />
-                </div>
-
-                <div>
-                  <label className="font-semibold text-[#1A1410] block mb-1">Preferred Wedding City</label>
-                  <input
-                    type="text"
-                    value={consultCity}
-                    onChange={(e) => setConsultCity(e.target.value)}
-                    placeholder="Kochi, Udaipur, Jaipur..."
-                    className="w-full bg-[#F5F0E8] border border-[#E2D5C0] rounded-xl px-4 py-2.5 outline-none focus:border-[#0F4C45]"
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  className="w-full py-3.5 bg-[#0F4C45] hover:bg-[#0A3833] text-white rounded-2xl font-bold text-xs uppercase tracking-wider transition-colors shadow-md cursor-pointer"
-                >
-                  Request Call Back
-                </button>
-              </form>
-            )}
-          </div>
-        </div>
-      )}
-
       <Footer />
+      <BottomNavBar activeTab="home" />
     </div>
   );
 }

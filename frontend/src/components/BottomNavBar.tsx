@@ -1,8 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { BookOpenText, Home, ImageIcon, MapPin, Sparkles, Users } from "lucide-react";
+import { AuraAssistantDrawer } from "@/components/AuraAssistantDrawer";
 
 type BottomNavBarProps = {
   activeTab?: "home" | "venues" | "vendors" | "photos" | "blogs";
@@ -10,6 +12,8 @@ type BottomNavBarProps = {
 
 export function BottomNavBar({ activeTab }: BottomNavBarProps = {}) {
   const pathname = usePathname();
+  const [isAuraOpen, setIsAuraOpen] = useState(false);
+
   if (pathname === "/login" || pathname === "/signup") return null;
 
   const isActive = (tab: string, href: string) => {
@@ -28,13 +32,23 @@ export function BottomNavBar({ activeTab }: BottomNavBarProps = {}) {
 
   return (
     <>
-      <Link
-        href="/search"
-        className="mobile-menu-floating-action fixed bottom-[76px] right-6 z-50 flex h-[58px] w-[58px] items-center justify-center rounded-full bg-[#D4B66E] text-[#0F4C45] shadow-[0_10px_24px_rgba(15,76,69,0.28)] transition-transform active:scale-95 md:hidden"
-        aria-label="Search wedding vendors"
+      {/* Floating AI Assistant Button */}
+      <button
+        type="button"
+        onClick={() => setIsAuraOpen(true)}
+        className="mobile-menu-floating-action fixed bottom-[76px] md:bottom-8 right-6 md:right-8 z-50 flex h-[58px] w-[58px] items-center justify-center rounded-full bg-[#D4B66E] hover:bg-[#C8A96A] text-[#0F4C45] shadow-[0_10px_24px_rgba(15,76,69,0.28)] hover:shadow-[0_12px_28px_rgba(15,76,69,0.35)] transition-all duration-300 active:scale-95 hover:scale-105 cursor-pointer"
+        aria-label="Open Aura AI Wedding Assistant"
       >
         <Sparkles className="h-6 w-6" strokeWidth={1.9} />
-      </Link>
+      </button>
+
+      {/* Aura Assistant Drawer */}
+      <AuraAssistantDrawer
+        isOpen={isAuraOpen}
+        onClose={() => setIsAuraOpen(false)}
+      />
+
+      {/* Mobile Bottom Navigation Bar */}
       <nav className="mobile-bottom-nav fixed bottom-0 left-0 right-0 z-50 flex h-[64px] items-center justify-around bg-[#0F4C45] px-2 pb-[max(7px,env(safe-area-inset-bottom))] pt-2 text-white shadow-[0_-8px_24px_rgba(0,0,0,0.16)] md:hidden">
         {navItems.map((item) => {
           const Icon = item.icon;
