@@ -18,6 +18,7 @@ import {
 import { BottomNavBar } from "@/components/BottomNavBar";
 import { MehendiVendor } from "@/lib/mehendiData";
 import { formatTelUri } from "@/lib/formatters";
+import { ExploreOtherVendors } from "@/components/ExploreOtherVendors";
 
 export function MehendiDetailClient({ artist }: { artist: MehendiVendor }) {
   const [activeTab, setActiveTab] = useState<string>("about");
@@ -205,6 +206,10 @@ export function MehendiDetailClient({ artist }: { artist: MehendiVendor }) {
             )}
           </div>
         </div>
+      </div>
+
+      <div className="max-w-4xl mx-auto w-full px-4">
+        <ExploreOtherVendors category="mehendi" currentVendorId={artist.id} currentVendorName={artist.name} />
       </div>
 
       <BottomNavBar activeTab="vendors" />

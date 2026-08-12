@@ -26,6 +26,7 @@ import {
   Calendar
 } from "lucide-react";
 import { BottomNavBar } from "@/components/BottomNavBar";
+import { ExploreOtherVendors } from "@/components/ExploreOtherVendors";
 
 export interface VendorProfileData {
   id: string;
@@ -404,37 +405,6 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
   const services = vendor.services || defaults.services;
   const stats = vendor.stats || defaults.stats;
   const highlightsTitle = vendor.highlightsTitle || defaults.highlightsTitle;
-
-  // Global Similar Vendors by Category
-  const defaultSimilarVendors = [
-    {
-      id: "sim-1",
-      name: "Grand Spice Caterers & Banquets",
-      rating: 4.8,
-      reviews: 142,
-      price: "₹22,000",
-      location: vendor.location || "Bandra, Mumbai",
-      image: "https://images.unsplash.com/photo-1555244162-803834f70033?auto=format&fit=crop&w=400&q=80"
-    },
-    {
-      name: "Saffron Gourmet Celebrations",
-      rating: 4.9,
-      reviews: 198,
-      price: "₹35,000",
-      location: vendor.location || "Mumbai",
-      image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=400&q=80"
-    },
-    {
-      name: "Flavors of Royal Kitchen",
-      rating: 4.7,
-      reviews: 95,
-      price: "₹28,000",
-      location: vendor.location || "Juhu, Mumbai",
-      image: "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=400&q=80"
-    }
-  ];
-
-  const similarVendors = vendor.similarVendors || defaultSimilarVendors;
 
   return (
     <div className="min-h-screen flex flex-col bg-[#FAF7F2] pb-32 text-[#2D2520] font-sans">
@@ -822,40 +792,12 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
           </section>
         )}
 
-        {/* Global Cards of Other Vendors in Same Category */}
-        <section className="rounded-2xl bg-white p-3 sm:p-4 md:p-6 lg:p-8 border border-black/5 shadow-xs">
-          <div className="flex items-center justify-between mb-3 md:mb-5">
-            <h2 className="font-serif text-[clamp(1rem,1.5vw,1.625rem)] font-bold text-[#1A1410]">
-              Explore Other {defaults.categoryLabel}s
-            </h2>
-            <Link href="/vendors" className="text-[12px] md:text-[13px] font-bold text-[#0F4C45] hover:underline">
-              See All
-            </Link>
-          </div>
-
-          <div className="flex md:grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 md:gap-4 lg:gap-5 overflow-x-auto md:overflow-visible hide-scrollbar pb-2 md:pb-0">
-            {similarVendors.map((sim, idx) => (
-              <Link
-                key={idx}
-                href="/vendors"
-                className="flex-shrink-0 min-w-[200px] w-[62vw] sm:w-52 md:w-auto rounded-xl overflow-hidden bg-[#FAF7F2] border border-black/5 shadow-2xs hover:border-[#0F4C45] transition-all group"
-              >
-                <div className="relative h-32 md:h-36 w-full">
-                  <Image src={sim.image} alt={sim.name} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
-                </div>
-                <div className="p-2.5 md:p-3">
-                  <h4 className="text-xs md:text-sm font-bold text-[#1A1410] truncate">{sim.name}</h4>
-                  <div className="flex items-center gap-1 text-[10px] md:text-[12px] text-[#7A6E65] mt-0.5">
-                    <Star className="h-3 w-3 fill-[#C8A96A] text-[#C8A96A]" />
-                    <span>{sim.rating}</span>
-                    <span>({sim.reviews || 95})</span>
-                  </div>
-                  <span className="block text-[11px] md:text-[13px] font-bold text-[#0F4C45] mt-1">{sim.price} onwards</span>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </section>
+        {/* Real Dynamic Explore Other Vendors in Same Category */}
+        <ExploreOtherVendors
+          category={vendor.category || defaults.categoryKey}
+          currentVendorId={vendor.id}
+          currentVendorName={vendor.name}
+        />
 
       </main>
 
