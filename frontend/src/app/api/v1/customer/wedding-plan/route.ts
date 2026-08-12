@@ -27,13 +27,17 @@ export async function GET(req: Request) {
 
     let parsedStylePrefs: Record<string, any> = {};
     if (userPref?.style_preferences) {
-      parsedStylePrefs = typeof userPref.style_preferences === "string" 
-        ? JSON.parse(userPref.style_preferences) 
-        : userPref.style_preferences;
-    } else if (userRow?.preferences) {
-      parsedStylePrefs = typeof userRow.preferences === "string"
-        ? JSON.parse(userRow.preferences)
-        : userRow.preferences;
+      if (Array.isArray(userPref.style_preferences) && userPref.style_preferences.length > 0) {
+        try {
+          parsedStylePrefs = JSON.parse(userPref.style_preferences[0]);
+        } catch (e) {}
+      } else if (typeof userPref.style_preferences === "string") {
+        try {
+          parsedStylePrefs = JSON.parse(userPref.style_preferences);
+        } catch (e) {}
+      } else {
+        parsedStylePrefs = userPref.style_preferences;
+      }
     }
 
     const weddingPlan = {
@@ -111,7 +115,7 @@ export async function POST(req: Request) {
       guest_count: guestCount !== undefined ? Number(guestCount) : undefined,
       preferred_city: preferredCity !== undefined ? String(preferredCity) : undefined,
       wedding_date: weddingDate !== undefined ? weddingDate : undefined,
-      style_preferences: JSON.stringify(currentStyle),
+      style_preferences: [JSON.stringify(currentStyle)],
       updated_at: new Date().toISOString(),
     };
 

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { saveLeadToDb, saveLeadActivityToDb } from "@/lib/supabase";
+import { saveLeadToDb, saveLeadActivityToDb, supabaseFetch } from "@/lib/supabase";
 import { notificationService } from "@/lib/notifications";
 import { sendVerificationMail } from "@/lib/email";
 
@@ -34,8 +34,15 @@ export async function POST(req: Request) {
       );
     }
 
+    // Resolve vendor_id if a vendor_profile ID was passed
+    let resolvedVendorId = String(vendor_id);
+    const { data: vpRows } = await supabaseFetch(`vendor_profiles?id=eq.${encodeURIComponent(resolvedVendorId)}&select=vendor_id`);
+    if (Array.isArray(vpRows) && vpRows.length > 0 && vpRows[0].vendor_id) {
+      resolvedVendorId = vpRows[0].vendor_id;
+    }
+
     const payload = {
-      vendor_id,
+      vendor_id: resolvedVendorId,
       customer_name: customer_name.trim(),
       customer_phone: customer_phone.trim(),
       customer_email: customer_email ? customer_email.trim().toLowerCase() : null,
@@ -51,7 +58,7 @@ export async function POST(req: Request) {
       status: "new",
     };
 
-    console.log(`${logPrefix} Saving lead for vendor ${vendor_id}...`);
+    console.log(`${logPrefix} Saving lead for vendor ${resolvedVendorId}...`);
     const { data, error } = await saveLeadToDb(payload);
 
     if (error) {
