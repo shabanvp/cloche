@@ -215,12 +215,18 @@ export async function queryAuraAssistant(
 
     if (targetVendorName) {
       try {
-        const res = await fetch(`/api/v1/public/vendors?search=${encodeURIComponent(targetVendorName)}&limit=1`);
+        const res = await fetch(`/api/v1/public/vendors?search=${encodeURIComponent(targetVendorName)}&limit=5`);
         if (res.ok) {
           const json = await res.json();
           const items = Array.isArray(json.data) ? json.data : [];
-          if (items.length > 0) {
-            const v = items[0];
+          const matched = items.find((item: any) => 
+            item.name.toLowerCase().includes(targetVendorName) || 
+            (item.slug || "").toLowerCase().includes(targetVendorName) ||
+            targetVendorName.includes(item.name.toLowerCase())
+          );
+
+          if (matched) {
+            const v = matched;
             const eventDate = userContext?.weddingDate || new Date(Date.now() + 90 * 86400000).toISOString().split("T")[0];
             const draft: InquiryDraft = {
               vendorId: v.id,
@@ -241,6 +247,13 @@ export async function queryAuraAssistant(
             return {
               reply: `I have prepared an inquiry draft for ${v.name} (${v.category}). Please review the details below before I send this to the vendor:`,
               inquiryDraft: draft,
+              topic: "inquiry_draft",
+            };
+          } else {
+            return {
+              reply: `I searched our directory for a vendor named "${targetVendorName}", but could not find a matching registered vendor profile. Please verify the vendor's name or browse our verified vendor categories.`,
+              groundedVendors: [],
+              categoryUrl: "/vendors",
               topic: "inquiry_draft",
             };
           }
