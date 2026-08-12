@@ -32,7 +32,7 @@ export function PhotographersListing() {
             price: dbV.startingPrice || "₹65,000 / day",
             category: "Photographers",
             isVerified: dbV.isVerified ?? true,
-            image: dbV.coverImage || dbV.logo || photographers[0].image,
+            image: dbV.coverImage || dbV.logo || "",
             portfolio: [dbV.coverImage || dbV.logo, dbV.logo].filter(Boolean),
           }));
 

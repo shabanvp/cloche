@@ -38,7 +38,7 @@ export function VenuesListing() {
           const mapped = json.data.map((dbV: any) => ({
             id: dbV.id,
             name: dbV.name,
-            image_url: dbV.coverImage || dbV.logo || venues[0].image_url,
+            image_url: dbV.coverImage || dbV.logo || "",
             location: dbV.city || dbV.state || "Kerala, India",
             rating: dbV.rating || 4.9,
             review_count: dbV.reviewCount || 0,

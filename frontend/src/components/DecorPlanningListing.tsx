@@ -38,8 +38,8 @@ export function DecorPlanningListing() {
             startingPrice: dbV.startingPrice || "₹1,50,000 / event",
             category: "Decorator",
             verified: dbV.isVerified ?? true,
-            heroImage: dbV.coverImage || dbV.logo || decorVendors[0]?.image || "",
-            image: dbV.coverImage || dbV.logo || decorVendors[0]?.image || "",
+            heroImage: dbV.coverImage || dbV.logo || "",
+            image: dbV.coverImage || dbV.logo || "",
             badge: "Award Winning",
           }));
 
