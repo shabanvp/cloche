@@ -17,6 +17,16 @@ export interface VendorProfileData {
   email?: string;
   website?: string;
   instagram?: string;
+  facebook?: string;
+  youtube?: string;
+  tagline?: string;
+  about?: string;
+  color_theme?: string;
+  colorTheme?: string;
+  gallery_layout?: string;
+  galleryLayout?: string;
+  intro_video?: string;
+  intro_video_url?: string;
   address?: string;
   city?: string;
   district?: string;
@@ -112,6 +122,8 @@ export async function syncVendorProfileWithDatabase(
         },
         socialLinks: [
           { platform: "instagram", url: profileData.instagram || "" },
+          { platform: "facebook", url: profileData.facebook || "" },
+          { platform: "youtube", url: profileData.youtube || "" },
           { platform: "website", url: profileData.website || "" },
         ],
         ...profileData,

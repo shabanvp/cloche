@@ -313,6 +313,9 @@ export async function PUT(req: Request) {
         business_name: profile.businessName || profile.business_name,
         tagline: profile.tagline || null,
         about: profile.about || profile.description || null,
+        color_theme: profile.color_theme || profile.colorTheme || null,
+        gallery_layout: profile.gallery_layout || profile.galleryLayout || null,
+        intro_video_url: profile.intro_video_url || profile.intro_video || profile.introVideo || null,
         city: profile.city || "Kochi",
         state: profile.state || "Kerala",
         pincode: profile.pincode || null,
@@ -414,6 +417,8 @@ export async function PUT(req: Request) {
 
     const socialLinks = [
       { platform: "instagram", url: profile?.instagram || contact?.instagram },
+      { platform: "facebook", url: profile?.facebook || contact?.facebook },
+      { platform: "youtube", url: profile?.youtube || contact?.youtube },
       { platform: "website", url: profile?.website || contact?.website },
     ].filter((link) => link.url);
 
