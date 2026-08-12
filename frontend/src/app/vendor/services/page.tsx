@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Search, Filter, Plus, Edit3, Trash2, Copy, ShoppingBag, AlertCircle } from "lucide-react";
 import { fetchAuthenticatedVendorFromDb, getActiveVendorIdentity, showVendorToast } from "@/lib/vendorStore";
+import { VendorImageUploader } from "@/components/ui/VendorImageUploader";
 
 interface ServiceItem {
   id: string;
@@ -445,16 +446,13 @@ function VendorServicesContent() {
                 />
               </div>
 
-              <div>
-                <label className="text-xs font-bold text-charcoal/70 uppercase tracking-wider block mb-1">Image URL</label>
-                <input
-                  type="url"
-                  value={formData.image_url || ""}
-                  onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                  className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-4 py-2.5 text-xs text-charcoal focus:outline-none focus:border-[#0F4C45]"
-                  placeholder="https://images.unsplash.com/..."
-                />
-              </div>
+              <VendorImageUploader
+                label="Service / Catalog Photo"
+                sublabel="Select photo directly from your device (Max 5MB)"
+                value={formData.image_url || ""}
+                onChange={(url) => setFormData({ ...formData, image_url: Array.isArray(url) ? url[0] || "" : url })}
+                folder="cloche/vendors/services"
+              />
 
               <div className="pt-4 flex items-center justify-end gap-3 border-t border-gold/10">
                 <button

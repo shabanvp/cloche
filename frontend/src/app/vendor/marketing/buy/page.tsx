@@ -10,6 +10,7 @@ import {
   Calendar, Layers, MapPin, Tag, Check, Image as ImageIcon
 } from "lucide-react";
 import { Button } from "@/components/Button";
+import { VendorImageUploader } from "@/components/ui/VendorImageUploader";
 
 export default function BuyAdvertisementPage() {
   const router = useRouter();
@@ -296,26 +297,20 @@ export default function BuyAdvertisementPage() {
 
                 {/* Banner Creatives */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-gold/10">
-                  <div>
-                    <label className="font-semibold block text-charcoal/70 mb-1">Desktop Banner Image URL</label>
-                    <input
-                      required
-                      type="text"
-                      value={desktopBanner}
-                      onChange={(e) => setDesktopBanner(e.target.value)}
-                      className="w-full bg-[#FBF8F1] border border-gold/20 rounded-xl p-2.5 text-charcoal outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="font-semibold block text-charcoal/70 mb-1">Mobile Banner Image URL</label>
-                    <input
-                      required
-                      type="text"
-                      value={mobileBanner}
-                      onChange={(e) => setMobileBanner(e.target.value)}
-                      className="w-full bg-[#FBF8F1] border border-gold/20 rounded-xl p-2.5 text-charcoal outline-none"
-                    />
-                  </div>
+                  <VendorImageUploader
+                    label="Desktop Banner Photo"
+                    sublabel="Select desktop banner image from your device"
+                    value={desktopBanner}
+                    onChange={(url) => setDesktopBanner(Array.isArray(url) ? url[0] || "" : url)}
+                    folder="cloche/marketing/banners"
+                  />
+                  <VendorImageUploader
+                    label="Mobile Banner Photo"
+                    sublabel="Select mobile banner image from your device"
+                    value={mobileBanner}
+                    onChange={(url) => setMobileBanner(Array.isArray(url) ? url[0] || "" : url)}
+                    folder="cloche/marketing/banners"
+                  />
                 </div>
 
                 {/* Dates & Payment */}
