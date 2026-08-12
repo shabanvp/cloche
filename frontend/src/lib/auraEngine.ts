@@ -136,10 +136,10 @@ export async function queryAuraAssistant(rawQuery: string): Promise<AuraResponse
   const lower = query.toLowerCase();
 
   // 1. Guardrail: Action Requests (Bookings, Quotation generation, Vendor profile edits)
-  const actionKeywords = ["book", "booking", "send quote", "request quote", "generate quote", "edit my profile", "update my boutique", "create lead", "hire"];
+  const actionKeywords = ["book", "booking", "quote", "quotation", "hire", "edit my", "update my", "create lead"];
   const isActionRequest = actionKeywords.some((w) => lower.includes(w));
 
-  if (isActionRequest && (lower.includes("quote") || lower.includes("book") || lower.includes("edit") || lower.includes("hire"))) {
+  if (isActionRequest) {
     return {
       reply: "I am currently in guest discovery mode, so I cannot directly book services, generate custom quotation documents, or modify vendor accounts. You can connect directly with vendors via phone or WhatsApp on their profile pages, or sign up for a Cloche account to manage inquiries.",
       groundedVendors: [],
