@@ -230,11 +230,7 @@ export function VendorPricingModule({ categoryConfig }: VendorPricingModuleProps
 
                 {/* Features List */}
                 <ul className="space-y-2 pt-3 border-t border-gold/15 text-xs text-charcoal/80">
-<<<<<<< HEAD
                   {(pkg.features || []).map((feat: string, idx: number) => (
-=======
-                  {pkg.features.map((feat: string, idx: number) => (
->>>>>>> dbc4ee5aa113c0b2b1f97225a08766856c4b2ef2
                     <li key={idx} className="flex items-start gap-2">
                       <Check className="w-4 h-4 text-[#0F4C45] shrink-0 mt-0.5" />
                       <span>{feat}</span>
