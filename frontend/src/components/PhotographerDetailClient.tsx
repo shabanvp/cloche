@@ -717,6 +717,7 @@ export function PhotographerDetailClient({ photographer }: { photographer: Vendo
                 </div>
               </div>
             )}
+          </div>
         </div>
       </div>
 

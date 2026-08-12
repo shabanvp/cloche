@@ -442,6 +442,7 @@ export function MakeupDetailClient({ artist }: { artist: VendorDetail }) {
                 )}
               </div>
             )}
+          </div>
         </div>
       </div>
 
