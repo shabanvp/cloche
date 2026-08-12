@@ -85,6 +85,11 @@ export interface VendorProfileData {
     location: string;
     image: string;
   }>;
+  cuisineTypes?: string[];
+  serviceTypes?: string[];
+  serviceLocations?: string[];
+  guestCapacity?: string;
+  cateringSpecialities?: string[];
 }
 
 export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
@@ -714,6 +719,76 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
             ))}
           </div>
         </section>
+
+        {/* Catering Specifications Section */}
+        {((vendor.cuisineTypes && vendor.cuisineTypes.length > 0) ||
+          (vendor.serviceTypes && vendor.serviceTypes.length > 0) ||
+          (vendor.cateringSpecialities && vendor.cateringSpecialities.length > 0) ||
+          vendor.guestCapacity ||
+          (vendor.serviceLocations && vendor.serviceLocations.length > 0)) && (
+          <section className="rounded-2xl bg-white p-4 sm:p-5 md:p-6 lg:p-8 border border-black/5 shadow-xs space-y-4">
+            <h2 className="font-serif text-[clamp(1rem,1.5vw,1.625rem)] font-bold text-[#1A1410]">
+              Catering Specifications & Capabilities
+            </h2>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs font-sans">
+              {vendor.cuisineTypes && vendor.cuisineTypes.length > 0 && (
+                <div className="p-4 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-2">
+                  <span className="font-serif font-bold text-[#0F4C45] text-sm block">Cuisine Types</span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {vendor.cuisineTypes.map((c) => (
+                      <span key={c} className="bg-[#0F4C45]/10 text-[#0F4C45] font-semibold px-2.5 py-1 rounded-md text-[11px]">
+                        {c}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {vendor.cateringSpecialities && vendor.cateringSpecialities.length > 0 && (
+                <div className="p-4 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-2">
+                  <span className="font-serif font-bold text-[#0F4C45] text-sm block">Specialities & Offerings</span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {vendor.cateringSpecialities.map((s) => (
+                      <span key={s} className="bg-amber-100 text-amber-950 font-semibold px-2.5 py-1 rounded-md text-[11px]">
+                        {s}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {vendor.serviceTypes && vendor.serviceTypes.length > 0 && (
+                <div className="p-4 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-2">
+                  <span className="font-serif font-bold text-[#0F4C45] text-sm block">Service Formats</span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {vendor.serviceTypes.map((st) => (
+                      <span key={st} className="bg-emerald-100 text-emerald-950 font-semibold px-2.5 py-1 rounded-md text-[11px]">
+                        {st}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {vendor.guestCapacity && (
+                <div className="p-4 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
+                  <span className="font-serif font-bold text-[#0F4C45] text-sm block">Guest Capacity</span>
+                  <span className="text-xs font-bold text-[#2D2520] block">{vendor.guestCapacity}</span>
+                </div>
+              )}
+
+              {vendor.serviceLocations && vendor.serviceLocations.length > 0 && (
+                <div className="p-4 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1 sm:col-span-2">
+                  <span className="font-serif font-bold text-[#0F4C45] text-sm block">Service & Travel Districts</span>
+                  <span className="text-xs font-medium text-[#4A3F35] block leading-relaxed">
+                    {vendor.serviceLocations.join(" • ")}
+                  </span>
+                </div>
+              )}
+            </div>
+          </section>
+        )}
 
         {/* Services Included Section */}
         <section className="rounded-2xl bg-white p-3 sm:p-4 md:p-6 lg:p-8 border border-black/5 shadow-xs">

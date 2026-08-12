@@ -85,6 +85,67 @@ export const GALLERY_LAYOUTS = [
   { id: "hero", label: "Large Hero Gallery", desc: "Featured hero photo + grid" },
 ];
 
+export const CUISINE_OPTIONS = [
+  "Kerala",
+  "South Indian",
+  "North Indian",
+  "Mughlai",
+  "Chinese",
+  "Continental",
+  "Arabic",
+  "Vegetarian",
+  "Jain",
+  "Custom Menu",
+];
+
+export const SERVICE_TYPE_OPTIONS = [
+  "Wedding Catering",
+  "Reception",
+  "Engagement",
+  "Birthday Party",
+  "Corporate Events",
+  "House Functions",
+  "Outdoor Catering",
+  "Live Food Counters",
+];
+
+export const KERALA_DISTRICT_OPTIONS = [
+  "Ernakulam",
+  "Trivandrum",
+  "Kozhikode",
+  "Thrissur",
+  "Kottayam",
+  "Palakkad",
+  "Malappuram",
+  "Kannur",
+  "Alappuzha",
+  "Kollam",
+  "Idukki",
+  "Wayanad",
+  "Kasaragod",
+  "Pathanamthitta",
+];
+
+export const GUEST_CAPACITY_OPTIONS = [
+  "Up to 100 Guests",
+  "100-300 Guests",
+  "300-500 Guests",
+  "500-1000 Guests",
+  "1000+ Guests",
+];
+
+export const CATERING_SPECIALITY_OPTIONS = [
+  "Traditional Sadya",
+  "Halal Food",
+  "Pure Vegetarian",
+  "Live Counters",
+  "BBQ",
+  "Dessert Station",
+  "Beverage Counter",
+  "Kids Menu",
+  "Custom Menu Available",
+];
+
 export function CustomizeStoreSection({ categoryConfig, vendorName }: CustomizeStoreSectionProps) {
   const [vendorData, setVendorData] = useState<any>(null);
 
@@ -103,6 +164,13 @@ export function CustomizeStoreSection({ categoryConfig, vendorName }: CustomizeS
   const [youtube, setYoutube] = useState<string>("");
   const [website, setWebsite] = useState<string>("");
 
+  // Catering Specific Customization Fields
+  const [cuisineTypes, setCuisineTypes] = useState<string[]>([]);
+  const [serviceTypes, setServiceTypes] = useState<string[]>([]);
+  const [serviceLocations, setServiceLocations] = useState<string[]>([]);
+  const [guestCapacity, setGuestCapacity] = useState<string>("");
+  const [cateringSpecialities, setCateringSpecialities] = useState<string[]>([]);
+
   // Loading & Upload states
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const [isUploadingCover, setIsUploadingCover] = useState(false);
@@ -117,6 +185,11 @@ export function CustomizeStoreSection({ categoryConfig, vendorName }: CustomizeS
     about: false,
     media: false,
     social: false,
+    cuisines: false,
+    services: false,
+    locations: false,
+    capacity: false,
+    specialities: false,
   });
 
   const logoInputRef = useRef<HTMLInputElement>(null);
@@ -143,6 +216,17 @@ export function CustomizeStoreSection({ categoryConfig, vendorName }: CustomizeS
     if (identity.facebook) setFacebook(identity.facebook || "");
     if (identity.youtube) setYoutube(identity.youtube || "");
     if (identity.website) setWebsite(identity.website || "");
+
+    const cTypes = identity.cuisineTypes || identity.cuisine_types;
+    if (Array.isArray(cTypes)) setCuisineTypes(cTypes);
+    const sTypes = identity.serviceTypes || identity.service_types;
+    if (Array.isArray(sTypes)) setServiceTypes(sTypes);
+    const sLocs = identity.serviceLocations || identity.service_locations;
+    if (Array.isArray(sLocs)) setServiceLocations(sLocs);
+    const gCap = identity.guestCapacity || identity.guest_capacity;
+    if (gCap) setGuestCapacity(gCap);
+    const cSpecs = identity.cateringSpecialities || identity.catering_specialities;
+    if (Array.isArray(cSpecs)) setCateringSpecialities(cSpecs);
   };
 
   useEffect(() => {
@@ -163,6 +247,11 @@ export function CustomizeStoreSection({ categoryConfig, vendorName }: CustomizeS
   const currentDisplayName = vendorData?.boutique_name || vendorData?.name || vendorName || "Makeup Artist Studio";
   const currentCategoryBadge = vendorData?.category || categoryConfig.badge || categoryConfig.name;
   const currentLocation = [vendorData?.city, vendorData?.district].filter(Boolean).join(", ") || "Kerala, India";
+
+  const isCateringVendor =
+    (categoryConfig?.slug || "").includes("cater") ||
+    (vendorData?.category || "").toLowerCase().includes("cater") ||
+    (vendorData?.category || "").toLowerCase().includes("food");
 
   const activeTheme = COLOR_THEMES.find((t) => t.id === colorTheme) || COLOR_THEMES[0];
 
@@ -282,6 +371,16 @@ export function CustomizeStoreSection({ categoryConfig, vendorName }: CustomizeS
         facebook: facebook.trim(),
         youtube: youtube.trim(),
         website: website.trim(),
+        cuisineTypes,
+        cuisine_types: cuisineTypes,
+        serviceTypes,
+        service_types: serviceTypes,
+        serviceLocations,
+        service_locations: serviceLocations,
+        guestCapacity,
+        guest_capacity: guestCapacity,
+        cateringSpecialities,
+        catering_specialities: cateringSpecialities,
       };
 
       const res = await syncVendorProfileWithDatabase(payload);
@@ -494,6 +593,47 @@ export function CustomizeStoreSection({ categoryConfig, vendorName }: CustomizeS
             <div className="p-3.5 bg-gray-50/80 rounded-xl border border-gray-100 text-xs text-charcoal/80 space-y-1">
               <span className="font-serif font-bold text-charcoal block">About Brand Preview:</span>
               <p className="text-[11px] leading-relaxed line-clamp-3 font-medium text-charcoal/70">{about}</p>
+            </div>
+          )}
+
+          {/* Live Catering Features Preview */}
+          {isCateringVendor && (cuisineTypes.length > 0 || serviceTypes.length > 0 || cateringSpecialities.length > 0 || guestCapacity || serviceLocations.length > 0) && (
+            <div className="p-3.5 bg-[#FAF7F2] rounded-xl border border-gold/20 text-xs space-y-2">
+              <span className="font-serif font-bold text-[#0F4C45] block">Catering Specifications Live Preview:</span>
+              
+              {cuisineTypes.length > 0 && (
+                <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
+                  <span className="font-bold text-charcoal/80 shrink-0">Cuisines:</span>
+                  {cuisineTypes.map((c) => (
+                    <span key={c} className="bg-emerald-100 text-emerald-900 font-semibold px-2 py-0.5 rounded-md text-[10px]">
+                      {c}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {cateringSpecialities.length > 0 && (
+                <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
+                  <span className="font-bold text-charcoal/80 shrink-0">Specialities:</span>
+                  {cateringSpecialities.map((s) => (
+                    <span key={s} className="bg-amber-100 text-amber-900 font-semibold px-2 py-0.5 rounded-md text-[10px]">
+                      {s}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {guestCapacity && (
+                <div className="text-[11px] text-charcoal/80 font-medium">
+                  <span className="font-bold text-charcoal/90">Guest Capacity:</span> {guestCapacity}
+                </div>
+              )}
+
+              {serviceLocations.length > 0 && (
+                <div className="text-[11px] text-charcoal/80 font-medium line-clamp-1">
+                  <span className="font-bold text-charcoal/90">Service Districts:</span> {serviceLocations.join(", ")}
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -848,6 +988,235 @@ export function CustomizeStoreSection({ categoryConfig, vendorName }: CustomizeS
             </div>
           )}
         </div>
+
+        {/* Catering Specific Accordions */}
+        {isCateringVendor && (
+          <>
+            {/* Accordion 6: Cuisine Types */}
+            <div className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-xs">
+              <button
+                type="button"
+                onClick={() => toggleAccordion("cuisines")}
+                className="w-full p-5 text-left font-serif font-bold text-base text-charcoal flex items-center justify-between bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] transition-colors cursor-pointer"
+              >
+                <span className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-[#0F4C45]" /> 6. Cuisine Types Offered ({cuisineTypes.length})
+                </span>
+                {openAccordions.cuisines ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              </button>
+
+              {openAccordions.cuisines && (
+                <div className="p-6 border-t border-gold/10 space-y-4">
+                  <p className="text-xs text-charcoal/70">
+                    Select all cuisines your catering team specializes in preparing for wedding events:
+                  </p>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                    {CUISINE_OPTIONS.map((item) => {
+                      const isChecked = cuisineTypes.includes(item);
+                      return (
+                        <label
+                          key={item}
+                          className={`flex items-center gap-2.5 p-3 rounded-xl border text-xs font-semibold cursor-pointer transition-all ${
+                            isChecked
+                              ? "bg-[#0F4C45]/10 border-[#0F4C45] text-[#0F4C45]"
+                              : "bg-[#FAF7F2] border-gold/20 text-charcoal/80 hover:border-[#0F4C45]/50"
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={(e) => {
+                              if (e.target.checked) setCuisineTypes([...cuisineTypes, item]);
+                              else setCuisineTypes(cuisineTypes.filter((c) => c !== item));
+                            }}
+                            className="rounded text-[#0F4C45] focus:ring-[#0F4C45] h-4 w-4"
+                          />
+                          <span>{item}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Accordion 7: Service Types */}
+            <div className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-xs">
+              <button
+                type="button"
+                onClick={() => toggleAccordion("services")}
+                className="w-full p-5 text-left font-serif font-bold text-base text-charcoal flex items-center justify-between bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] transition-colors cursor-pointer"
+              >
+                <span className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-[#0F4C45]" /> 7. Service Types Offered ({serviceTypes.length})
+                </span>
+                {openAccordions.services ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              </button>
+
+              {openAccordions.services && (
+                <div className="p-6 border-t border-gold/10 space-y-4">
+                  <p className="text-xs text-charcoal/70">
+                    Select event formats and service types your catering business caters to:
+                  </p>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                    {SERVICE_TYPE_OPTIONS.map((item) => {
+                      const isChecked = serviceTypes.includes(item);
+                      return (
+                        <label
+                          key={item}
+                          className={`flex items-center gap-2.5 p-3 rounded-xl border text-xs font-semibold cursor-pointer transition-all ${
+                            isChecked
+                              ? "bg-[#0F4C45]/10 border-[#0F4C45] text-[#0F4C45]"
+                              : "bg-[#FAF7F2] border-gold/20 text-charcoal/80 hover:border-[#0F4C45]/50"
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={(e) => {
+                              if (e.target.checked) setServiceTypes([...serviceTypes, item]);
+                              else setServiceTypes(serviceTypes.filter((s) => s !== item));
+                            }}
+                            className="rounded text-[#0F4C45] focus:ring-[#0F4C45] h-4 w-4"
+                          />
+                          <span>{item}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Accordion 8: Service Locations */}
+            <div className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-xs">
+              <button
+                type="button"
+                onClick={() => toggleAccordion("locations")}
+                className="w-full p-5 text-left font-serif font-bold text-base text-charcoal flex items-center justify-between bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] transition-colors cursor-pointer"
+              >
+                <span className="flex items-center gap-2">
+                  <Globe className="w-4 h-4 text-[#0F4C45]" /> 8. Service Locations / Travel Districts ({serviceLocations.length})
+                </span>
+                {openAccordions.locations ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              </button>
+
+              {openAccordions.locations && (
+                <div className="p-6 border-t border-gold/10 space-y-4">
+                  <p className="text-xs text-charcoal/70">
+                    Select districts/cities where your catering team operates and travels:
+                  </p>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                    {KERALA_DISTRICT_OPTIONS.map((district) => {
+                      const isChecked = serviceLocations.includes(district);
+                      return (
+                        <label
+                          key={district}
+                          className={`flex items-center gap-2.5 p-3 rounded-xl border text-xs font-semibold cursor-pointer transition-all ${
+                            isChecked
+                              ? "bg-[#0F4C45]/10 border-[#0F4C45] text-[#0F4C45]"
+                              : "bg-[#FAF7F2] border-gold/20 text-charcoal/80 hover:border-[#0F4C45]/50"
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={(e) => {
+                              if (e.target.checked) setServiceLocations([...serviceLocations, district]);
+                              else setServiceLocations(serviceLocations.filter((l) => l !== district));
+                            }}
+                            className="rounded text-[#0F4C45] focus:ring-[#0F4C45] h-4 w-4"
+                          />
+                          <span>{district}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Accordion 9: Guest Capacity */}
+            <div className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-xs">
+              <button
+                type="button"
+                onClick={() => toggleAccordion("capacity")}
+                className="w-full p-5 text-left font-serif font-bold text-base text-charcoal flex items-center justify-between bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] transition-colors cursor-pointer"
+              >
+                <span className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-[#0F4C45]" /> 9. Guest Capacity Range {guestCapacity ? `(${guestCapacity})` : ""}
+                </span>
+                {openAccordions.capacity ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              </button>
+
+              {openAccordions.capacity && (
+                <div className="p-6 border-t border-gold/10 space-y-4">
+                  <p className="text-xs text-charcoal/70">
+                    Select maximum guest count range your catering team handles:
+                  </p>
+                  <select
+                    value={guestCapacity}
+                    onChange={(e) => setGuestCapacity(e.target.value)}
+                    className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-4 py-3 text-xs text-charcoal font-semibold focus:outline-none focus:border-[#0F4C45]"
+                  >
+                    <option value="">Select Guest Capacity Range</option>
+                    {GUEST_CAPACITY_OPTIONS.map((opt) => (
+                      <option key={opt} value={opt}>{opt}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            </div>
+
+            {/* Accordion 10: Catering Specialities */}
+            <div className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-xs">
+              <button
+                type="button"
+                onClick={() => toggleAccordion("specialities")}
+                className="w-full p-5 text-left font-serif font-bold text-base text-charcoal flex items-center justify-between bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] transition-colors cursor-pointer"
+              >
+                <span className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-[#0F4C45]" /> 10. Catering Specialities & Signature Stations ({cateringSpecialities.length})
+                </span>
+                {openAccordions.specialities ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              </button>
+
+              {openAccordions.specialities && (
+                <div className="p-6 border-t border-gold/10 space-y-4">
+                  <p className="text-xs text-charcoal/70">
+                    Select special features, dietary standards, and signature stations:
+                  </p>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                    {CATERING_SPECIALITY_OPTIONS.map((item) => {
+                      const isChecked = cateringSpecialities.includes(item);
+                      return (
+                        <label
+                          key={item}
+                          className={`flex items-center gap-2.5 p-3 rounded-xl border text-xs font-semibold cursor-pointer transition-all ${
+                            isChecked
+                              ? "bg-[#0F4C45]/10 border-[#0F4C45] text-[#0F4C45]"
+                              : "bg-[#FAF7F2] border-gold/20 text-charcoal/80 hover:border-[#0F4C45]/50"
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={(e) => {
+                              if (e.target.checked) setCateringSpecialities([...cateringSpecialities, item]);
+                              else setCateringSpecialities(cateringSpecialities.filter((cs) => cs !== item));
+                            }}
+                            className="rounded text-[#0F4C45] focus:ring-[#0F4C45] h-4 w-4"
+                          />
+                          <span>{item}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          </>
+        )}
       </div>
 
       {/* Bottom Save Action Bar */}

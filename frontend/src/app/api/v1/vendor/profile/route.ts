@@ -441,10 +441,19 @@ export async function PUT(req: Request) {
     }
 
     // 4. Upsert Category Specific Extension Details
-    if (categoryDetails && typeof categoryDetails === "object") {
+    const mergedCategoryDetails = {
+      ...(categoryDetails || {}),
+      ...(profile?.cuisineTypes || profile?.cuisine_types ? { cuisine_types: profile.cuisineTypes || profile.cuisine_types } : {}),
+      ...(profile?.serviceTypes || profile?.service_types ? { service_types: profile.serviceTypes || profile.service_types } : {}),
+      ...(profile?.serviceLocations || profile?.service_locations ? { service_locations: profile.serviceLocations || profile.service_locations } : {}),
+      ...(profile?.guestCapacity || profile?.guest_capacity ? { guest_capacity: profile.guestCapacity || profile.guest_capacity } : {}),
+      ...(profile?.cateringSpecialities || profile?.catering_specialities ? { catering_specialities: profile.cateringSpecialities || profile.catering_specialities } : {}),
+    };
+
+    if (Object.keys(mergedCategoryDetails).length > 0) {
       const extPayload = {
         vendor_id: vendorId,
-        ...categoryDetails,
+        ...mergedCategoryDetails,
         updated_at: new Date().toISOString(),
       };
 
@@ -457,7 +466,7 @@ export async function PUT(req: Request) {
           Prefer: "resolution=merge-duplicates",
         },
         body: JSON.stringify(extPayload),
-      });
+      }).catch(() => null);
     }
 
     // 5. Create Draft Version Metadata in vendor_profile_versions
