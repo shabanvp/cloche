@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   Inbox, 
   Calendar, 
@@ -10,66 +10,104 @@ import {
   Phone, 
   Mail, 
   Sparkles,
-  MessageSquare
+  MessageSquare,
+  Loader2,
+  InboxIcon
 } from "lucide-react";
+import { showVendorToast } from "@/lib/vendorStore";
 
 export function MehendiEnquiriesSection() {
   const [selectedLead, setSelectedLead] = useState<any | null>(null);
   const [replyText, setReplyText] = useState("");
   const [quoteAmount, setQuoteAmount] = useState("");
+  const [leads, setLeads] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSending, setIsSending] = useState(false);
 
-  const leads = [
-    {
-      id: "mlead-1",
-      brideName: "Ananya Deshmukh",
-      eventDate: "Oct 18, 2026",
-      eventType: "Full Length Rajasthani Bridal Henna",
-      location: "Jaipur (Outstation)",
-      guestCount: "Bridal + 10 Guests",
-      budget: "₹18,000 - ₹22,000",
-      status: "New Lead",
-      receivedTime: "1 hour ago",
-      phone: "+91 98123 45678",
-      email: "ananya.d2026@gmail.com",
-      message: "Hi! I am getting married in Jaipur this October. I love your Rajasthani portrait motifs on Cloche. Are you available on Oct 18th for full bridal mehendi? Please send across your outstation charges and quote."
-    },
-    {
-      id: "mlead-2",
-      brideName: "Priya Sharma",
-      eventDate: "Nov 02, 2026",
-      eventType: "Bridal + 15 Guest Mehendi Party",
-      location: "Kochi, Kerala",
-      guestCount: "15 Guests",
-      budget: "₹30,000+",
-      status: "In Discussion",
-      receivedTime: "3 hours ago",
-      phone: "+91 98765 43210",
-      email: "priya.sharma@outlook.com",
-      message: "Hello Pooja! We are planning a 15-guest Sangeet mehendi party. Do you bring assistant artists for fast guest application?"
-    },
-    {
-      id: "mlead-3",
-      brideName: "Sneha Kapadia",
-      eventDate: "Dec 05, 2026",
-      eventType: "Indo-Arabic Sangeet Palms",
-      location: "Bangalore",
-      guestCount: "Bridal Only",
-      budget: "₹12,000",
-      status: "Quote Sent",
-      receivedTime: "1 day ago",
-      phone: "+91 99112 23344",
-      email: "sneha.wedding@gmail.com",
-      message: "Can you confirm if organic henna stain care kit is included in the package?"
+  const getHeaders = () => {
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (typeof window !== "undefined") {
+      try {
+        const cookieStr = document.cookie;
+        const match = cookieStr.match(/(?:^|;\s*)user_data=([^;]*)/);
+        if (match) {
+          const parsed = JSON.parse(decodeURIComponent(match[1]));
+          if (parsed?.id) headers["x-user-id"] = parsed.id;
+          if (parsed?.email) headers["x-user-email"] = parsed.email;
+        }
+        const tokenMatch = cookieStr.match(/(?:^|;\s*)auth_token=([^;]*)/);
+        if (tokenMatch && tokenMatch[1]) headers["x-auth-token"] = tokenMatch[1];
+      } catch (_) {}
     }
-  ];
+    return headers;
+  };
 
-  const handleSendQuote = (e: React.FormEvent) => {
+  const fetchLeads = async () => {
+    setIsLoading(true);
+    try {
+      const res = await fetch("/api/v1/vendor/leads", { headers: getHeaders() });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && Array.isArray(json.data)) {
+          const mapped = json.data.map((lead: any) => ({
+            id: lead.id,
+            brideName: lead.customer_name || "Bridal Client",
+            eventDate: lead.event_date ? new Date(lead.event_date).toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" }) : "Upcoming Wedding",
+            eventType: lead.event_type || "Bridal Mehendi Enquiry",
+            location: lead.location || "Location TBD",
+            guestCount: lead.guest_count ? `${lead.guest_count} Guests` : "Flexible Guests",
+            budget: lead.budget || "Quote requested",
+            status: lead.status || "New Lead",
+            receivedTime: lead.created_at ? new Date(lead.created_at).toLocaleDateString("en-IN") : "Recently",
+            phone: lead.customer_phone || "+91 98000 00000",
+            email: lead.customer_email || "bride@gmail.com",
+            message: lead.message || "Hi, I would like to check availability and package rates for my upcoming bridal mehendi function.",
+            quoteAmount: lead.quote_amount ? `₹${lead.quote_amount}` : null,
+          }));
+          setLeads(mapped);
+        }
+      }
+    } catch (e) {
+      console.error("[MehendiEnquiriesSection] Fetch error:", e);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchLeads();
+  }, []);
+
+  const handleSendQuote = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedLead) return;
-    alert(`Henna quotation of ₹${quoteAmount} sent to ${selectedLead.brideName}!`);
-    setSelectedLead(null);
-    setReplyText("");
-    setQuoteAmount("");
+
+    setIsSending(true);
+    try {
+      const res = await fetch(`/api/v1/vendor/leads/${encodeURIComponent(selectedLead.id)}`, {
+        method: "PUT",
+        headers: getHeaders(),
+        body: JSON.stringify({
+          status: "Quote Sent",
+          quote_amount: quoteAmount,
+          vendor_notes: replyText,
+        }),
+      });
+
+      if (res.ok) {
+        showVendorToast(`Henna quotation sent to ${selectedLead.brideName}!`);
+        setSelectedLead(null);
+        setReplyText("");
+        setQuoteAmount("");
+        await fetchLeads();
+      } else {
+        showVendorToast("Failed to send quotation.", "error");
+      }
+    } catch (e) {
+      showVendorToast("Network error sending quotation.", "error");
+    } finally {
+      setIsSending(false);
+    }
   };
 
   return (

@@ -64,16 +64,63 @@ export function showVendorToast(message: string, type: "success" | "error" | "in
  * Returns an object with { success: boolean } to match calling client pages.
  */
 export async function syncVendorProfileWithDatabase(
-  profileData: Partial<VendorProfileData>
+  profileData: Partial<VendorProfileData> & Record<string, any>
 ): Promise<{ success: boolean; data?: any }> {
   if (typeof window !== "undefined") {
     try {
+      const extraHeaders: Record<string, string> = { "Content-Type": "application/json" };
+      try {
+        const cookieStr = document.cookie;
+        const match = cookieStr.match(/(?:^|;\s*)user_data=([^;]*)/);
+        if (match) {
+          const parsed = JSON.parse(decodeURIComponent(match[1]));
+          if (parsed?.id) extraHeaders["x-user-id"] = parsed.id;
+          if (parsed?.email) extraHeaders["x-user-email"] = parsed.email;
+        }
+        const tokenMatch = cookieStr.match(/(?:^|;\s*)auth_token=([^;]*)/);
+        if (tokenMatch && tokenMatch[1]) extraHeaders["x-auth-token"] = tokenMatch[1];
+      } catch (_) {}
+
+      const bodyPayload = {
+        profile: {
+          business_name: profileData.boutique_name || profileData.name,
+          about: profileData.description,
+          city: profileData.city,
+          address: profileData.address,
+          state: profileData.district,
+          logo_url: profileData.logo_url || profileData.logo,
+          cover_image: profileData.cover_image || profileData.coverImage,
+          working_hours: profileData.working_hours || profileData.workingHours,
+          service_areas: profileData.service_areas || profileData.serviceAreas,
+          experience_years: profileData.experience,
+          tagline: profileData.tagline,
+        },
+        contact: {
+          phone: profileData.phone,
+          whatsapp: profileData.whatsapp || profileData.phone,
+          email: profileData.email,
+        },
+        address: {
+          city: profileData.city,
+          state: profileData.district,
+          address_line1: profileData.address,
+        },
+        socialLinks: [
+          { platform: "instagram", url: profileData.instagram || "" },
+          { platform: "website", url: profileData.website || "" },
+        ]
+      };
+
       const res = await fetch("/api/v1/vendor/profile", {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(profileData),
+        headers: extraHeaders,
+        body: JSON.stringify(bodyPayload),
       });
-      return { success: res.ok };
+
+      if (res.ok) {
+        await fetchAuthenticatedVendorFromDb();
+        return { success: true };
+      }
     } catch (e) {
       console.error("[vendorStore] Sync error:", e);
     }

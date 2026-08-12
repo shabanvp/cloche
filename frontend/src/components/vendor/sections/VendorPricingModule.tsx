@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   Plus, 
   CreditCard, 
@@ -11,16 +11,21 @@ import {
   Tag, 
   DollarSign, 
   ShieldCheck,
-  PackageCheck
+  PackageCheck,
+  Loader2,
+  PackageX
 } from "lucide-react";
 import { VendorCategoryConfig } from "@/lib/vendor-categories";
+import { showVendorToast } from "@/lib/vendorStore";
 
 interface VendorPricingModuleProps {
   categoryConfig: VendorCategoryConfig;
 }
 
 export function VendorPricingModule({ categoryConfig }: VendorPricingModuleProps) {
-  const [pricingList, setPricingList] = useState(categoryConfig.samplePricing || []);
+  const [pricingList, setPricingList] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   // New Package Form State
@@ -33,33 +38,116 @@ export function VendorPricingModule({ categoryConfig }: VendorPricingModuleProps
     "On-site team assistance"
   ]);
 
+  const getHeaders = () => {
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (typeof window !== "undefined") {
+      try {
+        const cookieStr = document.cookie;
+        const match = cookieStr.match(/(?:^|;\s*)user_data=([^;]*)/);
+        if (match) {
+          const parsed = JSON.parse(decodeURIComponent(match[1]));
+          if (parsed?.id) headers["x-user-id"] = parsed.id;
+          if (parsed?.email) headers["x-user-email"] = parsed.email;
+        }
+        const tokenMatch = cookieStr.match(/(?:^|;\s*)auth_token=([^;]*)/);
+        if (tokenMatch && tokenMatch[1]) headers["x-auth-token"] = tokenMatch[1];
+      } catch (_) {}
+    }
+    return headers;
+  };
+
+  const fetchPackages = async () => {
+    setIsLoading(true);
+    try {
+      const res = await fetch("/api/v1/vendor/packages", { headers: getHeaders() });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && Array.isArray(json.data)) {
+          const mapped = json.data.map((pkg: any) => ({
+            id: pkg.id,
+            name: pkg.name || "Package Tier",
+            price: typeof pkg.price === "number" ? `₹${pkg.price.toLocaleString("en-IN")}` : (pkg.price || "Contact for Quote"),
+            unit: pkg.tagline || pkg.unit || "per event",
+            features: Array.isArray(pkg.features) ? pkg.features : [],
+            badge: pkg.is_popular ? "Popular Choice" : "Published Package"
+          }));
+          setPricingList(mapped);
+        }
+      }
+    } catch (e) {
+      console.error("[VendorPricingModule] Fetch error:", e);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPackages();
+  }, []);
+
   const handleAddFeature = () => {
-    if (!newPkgFeature) return;
-    setNewPkgFeatures([...newPkgFeatures, newPkgFeature]);
+    if (!newPkgFeature.trim()) return;
+    setNewPkgFeatures([...newPkgFeatures, newPkgFeature.trim()]);
     setNewPkgFeature("");
   };
 
-  const handleCreatePackage = (e: React.FormEvent) => {
+  const handleCreatePackage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newPkgName || !newPkgPrice) return;
+    if (!newPkgName.trim()) {
+      showVendorToast("Please enter a package name.", "error");
+      return;
+    }
 
-    const newPkg = {
-      id: `pkg-${Date.now()}`,
-      name: newPkgName,
-      price: newPkgPrice.startsWith("₹") ? newPkgPrice : `₹${newPkgPrice}`,
-      unit: newPkgUnit,
-      features: newPkgFeatures,
-      badge: "Custom Tier"
-    };
+    const numPrice = parseFloat(newPkgPrice.replace(/[^0-9.]/g, "")) || 0;
 
-    setPricingList([...pricingList, newPkg]);
-    setNewPkgName("");
-    setNewPkgPrice("");
-    setIsAddModalOpen(false);
+    setIsSaving(true);
+    try {
+      const res = await fetch("/api/v1/vendor/packages", {
+        method: "POST",
+        headers: getHeaders(),
+        body: JSON.stringify({
+          name: newPkgName.trim(),
+          price: numPrice,
+          tagline: newPkgUnit,
+          features: newPkgFeatures,
+          is_popular: false,
+        }),
+      });
+
+      if (res.ok) {
+        showVendorToast("Package saved to database successfully!");
+        setNewPkgName("");
+        setNewPkgPrice("");
+        setIsAddModalOpen(false);
+        await fetchPackages();
+      } else {
+        const errJson = await res.json().catch(() => ({}));
+        showVendorToast(errJson.error?.message || "Failed to save package.", "error");
+      }
+    } catch (e) {
+      showVendorToast("Network error saving package.", "error");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  const handleDeletePackage = (id: string) => {
-    setPricingList(pricingList.filter(p => p.id !== id));
+  const handleDeletePackage = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this package?")) return;
+    try {
+      const res = await fetch(`/api/v1/vendor/packages/${encodeURIComponent(id)}`, {
+        method: "DELETE",
+        headers: getHeaders(),
+      });
+
+      if (res.ok) {
+        showVendorToast("Package deleted successfully.");
+        setPricingList((prev) => prev.filter((p) => p.id !== id));
+      } else {
+        showVendorToast("Failed to delete package.", "error");
+      }
+    } catch (e) {
+      showVendorToast("Network error deleting package.", "error");
+    }
   };
 
   return (
@@ -99,7 +187,12 @@ export function VendorPricingModule({ categoryConfig }: VendorPricingModuleProps
       )}
 
       {/* Pricing Cards Grid */}
-      {pricingList.length > 0 ? (
+      {isLoading ? (
+        <div className="bg-white rounded-2xl border border-gold/15 p-12 text-center space-y-3">
+          <Loader2 className="w-8 h-8 text-[#0F4C45] animate-spin mx-auto" />
+          <p className="text-xs font-bold text-charcoal/60 uppercase tracking-wider">Loading Package Rates...</p>
+        </div>
+      ) : pricingList.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {pricingList.map((pkg) => (
             <div

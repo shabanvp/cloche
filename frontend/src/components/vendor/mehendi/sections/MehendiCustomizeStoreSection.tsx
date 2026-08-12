@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { Palette, Upload, Image as ImageIcon, CheckCircle, Save, Eye } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Palette, Upload, Image as ImageIcon, CheckCircle, Save, Eye, Loader2 } from "lucide-react";
+import { fetchAuthenticatedVendorFromDb, syncVendorProfileWithDatabase, showVendorToast } from "@/lib/vendorStore";
 
 interface MehendiCustomizeStoreSectionProps {
   artistName: string;
@@ -10,12 +11,39 @@ interface MehendiCustomizeStoreSectionProps {
 
 export function MehendiCustomizeStoreSection({ artistName, businessName }: MehendiCustomizeStoreSectionProps) {
   const [saved, setSaved] = useState(false);
-  const [logoUrl] = useState("https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop");
-  const [coverUrl] = useState("https://images.unsplash.com/photo-1610030469983-98e550d6193c?q=80&w=1200&auto=format&fit=crop");
+  const [isSaving, setIsSaving] = useState(false);
+  const [logoUrl, setLogoUrl] = useState("");
+  const [coverUrl, setCoverUrl] = useState("");
 
-  const handleSave = () => {
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+  useEffect(() => {
+    let isMounted = true;
+    fetchAuthenticatedVendorFromDb().then((profile) => {
+      if (!isMounted) return;
+      if (profile) {
+        setLogoUrl(profile.logo || profile.logo_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop");
+        setCoverUrl(profile.coverImage || profile.cover_image || "https://images.unsplash.com/photo-1610030469983-98e550d6193c?q=80&w=1200&auto=format&fit=crop");
+      }
+    });
+    return () => { isMounted = false; };
+  }, [artistName, businessName]);
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    const res = await syncVendorProfileWithDatabase({
+      logo_url: logoUrl,
+      logo: logoUrl,
+      cover_image: coverUrl,
+      coverImage: coverUrl,
+    });
+
+    setIsSaving(false);
+    if (res.success) {
+      setSaved(true);
+      showVendorToast("Mehendi store branding updated!");
+      setTimeout(() => setSaved(false), 3000);
+    } else {
+      showVendorToast("Failed to save branding.", "error");
+    }
   };
 
   return (

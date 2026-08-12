@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   Inbox, 
   Search, 
@@ -15,9 +15,12 @@ import {
   Phone, 
   Mail,
   ChevronRight,
-  Filter
+  Filter,
+  Loader2,
+  InboxIcon
 } from "lucide-react";
 import { VendorCategoryConfig } from "@/lib/vendor-categories";
+import { showVendorToast } from "@/lib/vendorStore";
 
 interface EnquiriesSectionProps {
   categoryConfig: VendorCategoryConfig;
@@ -28,59 +31,94 @@ export function EnquiriesSection({ categoryConfig }: EnquiriesSectionProps) {
   const [replyText, setReplyText] = useState("");
   const [quoteAmount, setQuoteAmount] = useState("");
   const [leadStatusFilter, setLeadStatusFilter] = useState("all");
+  const [leads, setLeads] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSending, setIsSending] = useState(false);
 
-  const leads = [
-    {
-      id: "lead-101",
-      coupleNames: "Ananya & Rahul Deshmukh",
-      eventDate: "Oct 18 - 20, 2026",
-      eventType: "Full 3-Day Wedding Rituals",
-      location: "Jaipur, Rajasthan",
-      guestCount: "500 - 700 Guests",
-      budget: "₹2,50,000 - ₹3,50,000",
-      status: "New Lead",
-      receivedTime: "2 hours ago",
-      phone: "+91 98123 45678",
-      email: "ananya.rahul2026@gmail.com",
-      message: `Hi! We loved your ${categoryConfig.name.toLowerCase()} work on Cloche. We are planning a 3-day wedding celebration in Jaipur this October and would love to check your availability, sample packages, and quotation.`
-    },
-    {
-      id: "lead-102",
-      coupleNames: "Priya Sharma & Vivek",
-      eventDate: "Nov 12, 2026",
-      eventType: "Grand Sangeet Ceremony",
-      location: "Udaipur, Rajasthan",
-      guestCount: "250 Guests",
-      budget: "₹1,20,000 - ₹1,80,000",
-      status: "In Discussion",
-      receivedTime: "5 hours ago",
-      phone: "+91 98765 43210",
-      email: "priya.sharma@outlook.com",
-      message: `Looking for customized packages for our Sangeet night. Please send across your team availability and pricing terms.`
-    },
-    {
-      id: "lead-103",
-      coupleNames: "Kavya & Siddharth",
-      eventDate: "Dec 05, 2026",
-      eventType: "Bridal & Reception Functions",
-      location: "Delhi NCR",
-      guestCount: "400 Guests",
-      budget: "₹2,00,000+",
-      status: "Quote Sent",
-      receivedTime: "1 day ago",
-      phone: "+91 99112 23344",
-      email: "kavya.wedding@gmail.com",
-      message: `Can you share if travel and accommodation charges outside Jaipur are included in the quote?`
+  const getHeaders = () => {
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (typeof window !== "undefined") {
+      try {
+        const cookieStr = document.cookie;
+        const match = cookieStr.match(/(?:^|;\s*)user_data=([^;]*)/);
+        if (match) {
+          const parsed = JSON.parse(decodeURIComponent(match[1]));
+          if (parsed?.id) headers["x-user-id"] = parsed.id;
+          if (parsed?.email) headers["x-user-email"] = parsed.email;
+        }
+        const tokenMatch = cookieStr.match(/(?:^|;\s*)auth_token=([^;]*)/);
+        if (tokenMatch && tokenMatch[1]) headers["x-auth-token"] = tokenMatch[1];
+      } catch (_) {}
     }
-  ];
+    return headers;
+  };
 
-  const handleSendQuote = (e: React.FormEvent) => {
+  const fetchLeads = async () => {
+    setIsLoading(true);
+    try {
+      const res = await fetch("/api/v1/vendor/leads", { headers: getHeaders() });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && Array.isArray(json.data)) {
+          const mapped = json.data.map((lead: any) => ({
+            id: lead.id,
+            coupleNames: lead.customer_name || "Wedding Couple",
+            eventDate: lead.event_date ? new Date(lead.event_date).toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" }) : "Upcoming Wedding",
+            eventType: lead.event_type || `${categoryConfig.name} Enquiry`,
+            location: lead.location || "Location TBD",
+            guestCount: lead.guest_count ? `${lead.guest_count} Guests` : "Flexible Guest Count",
+            budget: lead.budget || "Budget on Request",
+            status: lead.status || "New Lead",
+            receivedTime: lead.created_at ? new Date(lead.created_at).toLocaleDateString("en-IN") : "Recently",
+            phone: lead.customer_phone || "+91 98000 00000",
+            email: lead.customer_email || "couple@gmail.com",
+            message: lead.message || `Interested in hiring ${categoryConfig.name} services for upcoming wedding functions.`,
+            quoteAmount: lead.quote_amount ? `₹${lead.quote_amount}` : null,
+          }));
+          setLeads(mapped);
+        }
+      }
+    } catch (e) {
+      console.error("[EnquiriesSection] Fetch error:", e);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchLeads();
+  }, []);
+
+  const handleSendQuote = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedLead) return;
-    alert(`Quotation of ₹${quoteAmount} sent to ${selectedLead.coupleNames}!`);
-    setSelectedLead(null);
-    setReplyText("");
-    setQuoteAmount("");
+
+    setIsSending(true);
+    try {
+      const res = await fetch(`/api/v1/vendor/leads/${encodeURIComponent(selectedLead.id)}`, {
+        method: "PUT",
+        headers: getHeaders(),
+        body: JSON.stringify({
+          status: "Quote Sent",
+          quote_amount: quoteAmount,
+          vendor_notes: replyText,
+        }),
+      });
+
+      if (res.ok) {
+        showVendorToast(`Quotation sent to ${selectedLead.coupleNames}!`);
+        setSelectedLead(null);
+        setReplyText("");
+        setQuoteAmount("");
+        await fetchLeads();
+      } else {
+        showVendorToast("Failed to send quotation.", "error");
+      }
+    } catch (e) {
+      showVendorToast("Network error sending quotation.", "error");
+    } finally {
+      setIsSending(false);
+    }
   };
 
   return (
@@ -104,7 +142,13 @@ export function EnquiriesSection({ categoryConfig }: EnquiriesSectionProps) {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Enquiries List (1 or 2 cols) */}
         <div className={`space-y-3 ${selectedLead ? "lg:col-span-1" : "lg:col-span-3"}`}>
-          {leads.map((lead) => (
+          {isLoading ? (
+            <div className="bg-white rounded-2xl border border-gold/15 p-12 text-center space-y-3">
+              <Loader2 className="w-8 h-8 text-[#0F4C45] animate-spin mx-auto" />
+              <p className="text-xs font-bold text-charcoal/60 uppercase tracking-wider">Loading Customer Enquiries...</p>
+            </div>
+          ) : leads.length > 0 ? (
+            leads.map((lead) => (
             <div
               key={lead.id}
               onClick={() => setSelectedLead(lead)}
@@ -145,8 +189,20 @@ export function EnquiriesSection({ categoryConfig }: EnquiriesSectionProps) {
                 </span>
                 <span className="font-bold text-[#0F4C45]">{lead.budget}</span>
               </div>
+            ))
+          ) : (
+            <div className="bg-white rounded-2xl border border-gold/15 p-12 text-center space-y-4 shadow-xs">
+              <div className="w-16 h-16 rounded-full bg-[#FAF7F2] text-[#0F4C45] mx-auto flex items-center justify-center border border-gold/20 shadow-inner">
+                <InboxIcon className="w-8 h-8 text-[#0F4C45]" />
+              </div>
+              <div className="max-w-md mx-auto">
+                <h3 className="font-serif font-bold text-lg text-charcoal">No Enquiries Received Yet</h3>
+                <p className="text-xs text-charcoal/60 mt-1 leading-relaxed">
+                  When couples browse your profile and submit messages or quote requests on Cloche, they will appear here directly in your inbox.
+                </p>
+              </div>
             </div>
-          ))}
+          )}
         </div>
 
         {/* Lead Detail & Response Panel */}

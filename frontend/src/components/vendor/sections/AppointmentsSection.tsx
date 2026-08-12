@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   Calendar as CalendarIcon, 
   Clock, 
@@ -12,9 +12,12 @@ import {
   Search, 
   Filter,
   Plus,
-  CalendarDays
+  CalendarDays,
+  Loader2,
+  CalendarX
 } from "lucide-react";
 import { VendorCategoryConfig } from "@/lib/vendor-categories";
+import { showVendorToast } from "@/lib/vendorStore";
 
 interface AppointmentsSectionProps {
   categoryConfig: VendorCategoryConfig;
@@ -23,50 +26,116 @@ interface AppointmentsSectionProps {
 export function AppointmentsSection({ categoryConfig }: AppointmentsSectionProps) {
   const [activeTab, setActiveTab] = useState<"upcoming" | "completed" | "cancelled">("upcoming");
   const [searchTerm, setSearchTerm] = useState("");
+  const [bookings, setBookings] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
-  const sampleBookings = [
-    {
-      id: "app-1",
-      clientName: "Ananya Deshmukh & Rahul",
-      eventDate: "Oct 18, 2026",
-      timeSlot: "10:00 AM - 06:00 PM",
-      eventType: "Wedding Ceremony & Reception",
-      guests: "600 Guests",
-      location: "Royal Heritage Resort, Jaipur",
-      phone: "+91 98112 34567",
-      status: "upcoming",
-      amount: "₹1,80,000",
-      advancePaid: "₹50,000"
-    },
-    {
-      id: "app-2",
-      clientName: "Priya Sharma",
-      eventDate: "Nov 02, 2026",
-      timeSlot: "02:00 PM - 08:00 PM",
-      eventType: "Sangeet & Cocktail Evening",
-      guests: "250 Guests",
-      location: "Taj Amber Lawn, Jaipur",
-      phone: "+91 98765 12345",
-      status: "upcoming",
-      amount: "₹95,000",
-      advancePaid: "₹30,000"
-    },
-    {
-      id: "app-3",
-      clientName: "Simran & Jasprit",
-      eventDate: "Jul 15, 2026",
-      timeSlot: "09:00 AM - 04:00 PM",
-      eventType: "Anand Karaj & Lunch",
-      guests: "400 Guests",
-      location: "Gurudwara Hall & Garden",
-      phone: "+91 99887 65432",
-      status: "completed",
-      amount: "₹1,20,000",
-      advancePaid: "₹1,20,000"
+  // New Booking Form State
+  const [newClientName, setNewClientName] = useState("");
+  const [newEventDate, setNewEventDate] = useState("");
+  const [newTimeSlot, setNewTimeSlot] = useState("10:00 AM - 06:00 PM");
+  const [newEventPageType, setNewEventPageType] = useState("Wedding Function");
+  const [newLocation, setNewLocation] = useState("");
+  const [newPhone, setNewPhone] = useState("");
+  const [newAmount, setNewAmount] = useState("");
+
+  const getHeaders = () => {
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (typeof window !== "undefined") {
+      try {
+        const cookieStr = document.cookie;
+        const match = cookieStr.match(/(?:^|;\s*)user_data=([^;]*)/);
+        if (match) {
+          const parsed = JSON.parse(decodeURIComponent(match[1]));
+          if (parsed?.id) headers["x-user-id"] = parsed.id;
+          if (parsed?.email) headers["x-user-email"] = parsed.email;
+        }
+        const tokenMatch = cookieStr.match(/(?:^|;\s*)auth_token=([^;]*)/);
+        if (tokenMatch && tokenMatch[1]) headers["x-auth-token"] = tokenMatch[1];
+      } catch (_) {}
     }
-  ];
+    return headers;
+  };
 
-  const filteredBookings = sampleBookings.filter(b => {
+  const fetchBookings = async () => {
+    setIsLoading(true);
+    try {
+      const res = await fetch("/api/v1/vendor/bookings", { headers: getHeaders() });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && Array.isArray(json.data)) {
+          const mapped = json.data.map((b: any) => ({
+            id: b.id,
+            clientName: b.notes?.match(/Client:\s*([^,]+)/)?.[1] || b.customer_name || "Wedding Client",
+            eventDate: b.event_date ? new Date(b.event_date).toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" }) : "TBD Date",
+            timeSlot: b.notes?.match(/\(([^)]+)\)/)?.[1] || "Full Day",
+            eventType: b.notes?.split("(")[0]?.trim() || "Wedding Event",
+            guests: "Confirmed Booking",
+            location: b.event_location || b.address || "Venue Location TBD",
+            phone: b.notes?.match(/Phone:\s*([^\s]+)/)?.[1] || b.customer_phone || "+91 98000 00000",
+            status: b.status === "completed" ? "completed" : b.status === "cancelled" ? "cancelled" : "upcoming",
+            amount: typeof b.total_amount === "number" ? `₹${b.total_amount.toLocaleString("en-IN")}` : `₹${b.total_amount || 0}`,
+            advancePaid: "Confirmed",
+          }));
+          setBookings(mapped);
+        }
+      }
+    } catch (e) {
+      console.error("[AppointmentsSection] Fetch error:", e);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchBookings();
+  }, []);
+
+  const handleCreateBooking = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newClientName.trim() || !newEventDate) {
+      showVendorToast("Please enter client name and event date.", "error");
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const res = await fetch("/api/v1/vendor/bookings", {
+        method: "POST",
+        headers: getHeaders(),
+        body: JSON.stringify({
+          clientName: newClientName.trim(),
+          eventDate: newEventDate,
+          timeSlot: newTimeSlot,
+          eventType: newEventPageType,
+          location: newLocation,
+          phone: newPhone,
+          amount: newAmount,
+        }),
+      });
+
+      if (res.ok) {
+        showVendorToast("Booking added successfully!");
+        setNewClientName("");
+        setNewEventDate("");
+        setNewLocation("");
+        setNewPhone("");
+        setNewAmount("");
+        setIsAddModalOpen(false);
+        await fetchBookings();
+      } else {
+        const errJson = await res.json().catch(() => ({}));
+        showVendorToast(errJson.error?.message || "Failed to create booking.", "error");
+      }
+    } catch (e) {
+      showVendorToast("Network error creating booking.", "error");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const filteredBookings = bookings.filter(b => {
     const matchesTab = b.status === activeTab;
     const matchesSearch = b.clientName.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           b.eventType.toLowerCase().includes(searchTerm.toLowerCase());
@@ -89,7 +158,10 @@ export function AppointmentsSection({ categoryConfig }: AppointmentsSectionProps
           </p>
         </div>
 
-        <button className="bg-[#0F4C45] hover:bg-[#072B27] text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-xs transition-all flex items-center gap-2 shrink-0 cursor-pointer">
+        <button
+          onClick={() => setIsAddModalOpen(true)}
+          className="bg-[#0F4C45] hover:bg-[#072B27] text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-xs transition-all flex items-center gap-2 shrink-0 cursor-pointer"
+        >
           <Plus className="w-4 h-4 text-gold" /> Add Manual Booking
         </button>
       </div>
@@ -106,7 +178,7 @@ export function AppointmentsSection({ categoryConfig }: AppointmentsSectionProps
                 : "text-charcoal/70 hover:text-[#0F4C45]"
             }`}
           >
-            Upcoming (2)
+            Upcoming ({bookings.filter(b => b.status === "upcoming").length})
           </button>
           <button
             onClick={() => setActiveTab("completed")}
@@ -116,7 +188,7 @@ export function AppointmentsSection({ categoryConfig }: AppointmentsSectionProps
                 : "text-charcoal/70 hover:text-[#0F4C45]"
             }`}
           >
-            Completed (1)
+            Completed ({bookings.filter(b => b.status === "completed").length})
           </button>
           <button
             onClick={() => setActiveTab("cancelled")}
@@ -126,7 +198,7 @@ export function AppointmentsSection({ categoryConfig }: AppointmentsSectionProps
                 : "text-charcoal/70 hover:text-[#0F4C45]"
             }`}
           >
-            Cancelled (0)
+            Cancelled ({bookings.filter(b => b.status === "cancelled").length})
           </button>
         </div>
 
@@ -144,7 +216,12 @@ export function AppointmentsSection({ categoryConfig }: AppointmentsSectionProps
       </div>
 
       {/* Bookings List or Empty State */}
-      {filteredBookings.length > 0 ? (
+      {isLoading ? (
+        <div className="bg-white rounded-2xl border border-gold/15 p-12 text-center space-y-3">
+          <Loader2 className="w-8 h-8 text-[#0F4C45] animate-spin mx-auto" />
+          <p className="text-xs font-bold text-charcoal/60 uppercase tracking-wider">Loading Appointments Calendar...</p>
+        </div>
+      ) : filteredBookings.length > 0 ? (
         <div className="space-y-4">
           {filteredBookings.map((booking) => (
             <div 
