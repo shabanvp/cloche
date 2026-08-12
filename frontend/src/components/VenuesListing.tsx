@@ -31,46 +31,28 @@ export function VenuesListing() {
   const [allVenuesList, setAllVenuesList] = useState<any[]>(venues);
 
   useEffect(() => {
-    const updateWishlistSet = () => {
-      const { getWishlistItems } = require("@/lib/wishlistStore");
-      setWishlist(new Set(getWishlistItems().map((i: any) => String(i.id))));
-    };
-
-    if (typeof window !== "undefined") {
-      updateWishlistSet();
-      window.addEventListener("cloche_wishlist_updated", updateWishlistSet);
-
-      try {
-        const rawVendors = localStorage.getItem("cloche_registered_vendors");
-        const rawBoutiques = localStorage.getItem("cloche_registered_boutiques");
-        const localList: any[] = [];
-        if (rawVendors) localList.push(...JSON.parse(rawVendors));
-        if (rawBoutiques) localList.push(...JSON.parse(rawBoutiques));
-
-        if (localList.length > 0) {
-          const venueItems = localList.filter((item: any) => {
-            const cat = (item.category || item.tags || "").toLowerCase();
-            return cat.includes("venue") || cat.includes("hall") || cat.includes("resort") || cat.includes("palace");
-          });
-
-          const formattedLocal: any[] = venueItems.map((item, idx) => ({
-            id: item.id || `local-venue-${idx}`,
-            name: item.boutique_name || item.name || "Wedding Venue",
-            image_url: item.logo || item.image_url || item.image || "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?q=80&w=800&auto=format&fit=crop",
-            location: item.location || (item.city ? `${item.city}, Kerala` : "Kochi, Kerala"),
-            rating: item.rating || 4.9,
-            review_count: item.reviewsCount || 85,
-            price_per_plate: "₹1,200",
+    fetch("/api/v1/public/vendors?category=venues", { cache: "no-store" })
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+          const mapped = json.data.map((dbV: any) => ({
+            id: dbV.id,
+            name: dbV.name,
+            image_url: dbV.coverImage || dbV.logo || venues[0].image_url,
+            location: dbV.city || dbV.state || "Kerala, India",
+            rating: dbV.rating || 4.9,
+            review_count: dbV.reviewCount || 0,
+            price_per_plate: dbV.startingPrice || "₹1,200 / plate",
             max_capacity: 1000,
-            venue_type: "Banquet Hall",
+            venue_type: "Banquet Hall & Lawns",
           }));
 
-          setAllVenuesList([...formattedLocal, ...venues]);
+          const dbIds = new Set(mapped.map((m: any) => m.id));
+          const existingFiltered = venues.filter((v) => !dbIds.has(v.id));
+          setAllVenuesList([...mapped, ...existingFiltered]);
         }
-      } catch (e) {}
-
-      return () => window.removeEventListener("cloche_wishlist_updated", updateWishlistSet);
-    }
+      })
+      .catch((err) => console.error("Error fetching live venue vendors:", err));
   }, []);
 
   const filtered = useMemo(() => {

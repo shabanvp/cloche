@@ -91,7 +91,12 @@ export async function GET(req: Request) {
       }
     }
 
-    const endpoint = `vendors?${filter}&select=id,vendor_code,status,publication_status,is_verified,is_kyc_verified,created_at,vendor_categories(id,name,slug),vendor_profiles(*,logo_media:media!logo_media_id(cdn_url),cover_media:media!cover_media_id(cdn_url)),vendor_contacts(*),vendor_services(id,name,base_price,pricing_type),vendor_gallery(id,media(cdn_url,file_path))&order=created_at.desc&limit=${limit}&offset=${offset}`;
+    const vendorIdParam = searchParams.get("id") || "";
+    if (vendorIdParam) {
+      filter += `&id=eq.${encodeURIComponent(vendorIdParam)}`;
+    }
+
+    const endpoint = `vendors?${filter}&select=id,vendor_code,status,publication_status,is_verified,is_kyc_verified,created_at,vendor_categories(id,name,slug),vendor_profiles(*,logo_media:media!logo_media_id(cdn_url),cover_media:media!cover_media_id(cdn_url)),vendor_contacts(*),vendor_services(id,name,base_price,pricing_type),vendor_gallery(id,media(cdn_url,file_path)),vendor_social_links(*),catering_details(*)&order=created_at.desc&limit=${limit}&offset=${offset}`;
 
     const res = await supabaseFetch(endpoint);
     console.log(`[DB:FETCH] public_vendors filter=${filter} rows=${Array.isArray(res.data) ? res.data.length : 0} ms=${Date.now() - startTime}`);
@@ -118,10 +123,17 @@ export async function GET(req: Request) {
           : {};
       const gallery = Array.isArray(v.vendor_gallery) ? v.vendor_gallery : [];
       const services = Array.isArray(v.vendor_services) ? v.vendor_services : [];
+      const socialList = Array.isArray(v.vendor_social_links) ? v.vendor_social_links : [];
+      const cateringDetail = Array.isArray(v.catering_details) && v.catering_details.length > 0 ? v.catering_details[0] : {};
 
       const logoImg = profile.logo_media?.cdn_url || profile.logo_url || "";
       const coverImg = profile.cover_media?.cdn_url || profile.cover_image || gallery.find((g: any) => g.media?.cdn_url)?.media?.cdn_url || "";
       const startingPrice = services.length > 0 ? Math.min(...services.map((s: any) => Number(s.base_price || 0)).filter((p: number) => p > 0)) : (profile.starting_price || 0);
+
+      const instagram = socialList.find((s: any) => s.platform === "instagram")?.url || contact.instagram || "";
+      const facebook = socialList.find((s: any) => s.platform === "facebook")?.url || contact.facebook || "";
+      const youtube = socialList.find((s: any) => s.platform === "youtube")?.url || contact.youtube || "";
+      const website = socialList.find((s: any) => s.platform === "website")?.url || contact.website || "";
 
       return {
         id: v.id,
@@ -140,6 +152,18 @@ export async function GET(req: Request) {
         coverImage: coverImg,
         about: profile.about || "",
         tagline: profile.tagline || "",
+        colorTheme: profile.color_theme || "emerald",
+        galleryLayout: profile.gallery_layout || "grid",
+        introVideo: profile.intro_video_url || "",
+        instagram,
+        facebook,
+        youtube,
+        website,
+        cuisineTypes: cateringDetail.cuisine_types || profile.cuisine_types || [],
+        serviceTypes: cateringDetail.service_types || profile.service_types || [],
+        serviceLocations: cateringDetail.service_locations || profile.service_locations || [],
+        guestCapacity: cateringDetail.guest_capacity || profile.guest_capacity || "",
+        cateringSpecialities: cateringDetail.catering_specialities || profile.catering_specialities || [],
         isVerified: Boolean(v.is_verified || v.is_kyc_verified),
         phone: contact.phone || "",
         whatsapp: contact.whatsapp || "",

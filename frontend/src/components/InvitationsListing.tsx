@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   ArrowLeft,
   Search,
@@ -21,16 +21,44 @@ import { invitationVendors } from "@/lib/bridalAndInvitationData";
 export function InvitationsListing() {
   const [search, setSearch] = useState("");
   const [wishlist, setWishlist] = useState<Set<string>>(new Set());
+  const [invitationsList, setInvitationsList] = useState<any[]>(invitationVendors);
+
+  useEffect(() => {
+    fetch("/api/v1/public/vendors?category=invitations", { cache: "no-store" })
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+          const mapped = json.data.map((dbV: any) => ({
+            id: dbV.id,
+            name: dbV.name,
+            subtitle: dbV.tagline || dbV.about || "Luxury Bespoke Wedding Invitations",
+            location: dbV.city || dbV.state || "Kerala, India",
+            rating: dbV.rating || 4.9,
+            reviewsCount: dbV.reviewCount || 0,
+            startingPrice: dbV.startingPrice || "₹150 / card",
+            category: "Invitations",
+            verified: dbV.isVerified ?? true,
+            heroImage: dbV.coverImage || dbV.logo || invitationVendors[0].heroImage,
+            tags: ["Bespoke", "Boxed Invites", "Digital PDF"],
+          }));
+
+          const dbIds = new Set(mapped.map((m: any) => m.id));
+          const existingFiltered = invitationVendors.filter((iv) => !dbIds.has(iv.id));
+          setInvitationsList([...mapped, ...existingFiltered]);
+        }
+      })
+      .catch((err) => console.error("Error fetching live invitation vendors:", err));
+  }, []);
 
   const filtered = useMemo(() => {
-    return invitationVendors.filter((v) => {
+    return invitationsList.filter((v) => {
       return (
         v.name.toLowerCase().includes(search.toLowerCase()) ||
         v.location.toLowerCase().includes(search.toLowerCase()) ||
-        v.tags.some((t) => t.toLowerCase().includes(search.toLowerCase()))
+        (v.tags && v.tags.some((t: string) => t.toLowerCase().includes(search.toLowerCase())))
       );
     });
-  }, [search]);
+  }, [search, invitationsList]);
 
   const toggleWishlist = (e: React.MouseEvent, id: string) => {
     e.preventDefault();

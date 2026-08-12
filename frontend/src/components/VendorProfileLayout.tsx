@@ -542,6 +542,12 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
                 )}
               </div>
 
+              {(vendor.tagline || vendor.subtitle) && (
+                <p className="text-xs font-semibold italic text-[#0F4C45] mt-1">
+                  "{vendor.tagline || vendor.subtitle}"
+                </p>
+              )}
+
               {/* Rating & Location */}
               <div className="mt-2 flex items-center gap-3 text-sm">
                 <div className="flex items-center gap-1 font-bold text-[#1A1410]">
@@ -786,6 +792,18 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
                   </span>
                 </div>
               )}
+            </div>
+          </section>
+        )}
+
+        {/* Intro Video Reel Section */}
+        {vendor.introVideo && (
+          <section className="rounded-2xl bg-white p-4 sm:p-5 md:p-6 lg:p-8 border border-black/5 shadow-xs space-y-3">
+            <h2 className="font-serif text-[clamp(1rem,1.5vw,1.625rem)] font-bold text-[#1A1410]">
+              Brand Introduction & Showcase Reel
+            </h2>
+            <div className="rounded-xl overflow-hidden bg-black max-w-3xl mx-auto aspect-video border border-gold/20 shadow-md">
+              <video src={vendor.introVideo} controls className="w-full h-full object-cover" />
             </div>
           </section>
         )}

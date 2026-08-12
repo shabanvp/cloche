@@ -15,6 +15,34 @@ export function MehendiListing() {
   const [search, setSearch] = useState("");
   const [activeChip, setActiveChip] = useState("All");
   const [wishlist, setWishlist] = useState<Set<string>>(() => new Set());
+  const [mehendiList, setMehendiList] = useState<any[]>(mehendiVendors);
+
+  useEffect(() => {
+    fetch("/api/v1/public/vendors?category=mehendi", { cache: "no-store" })
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+          const mapped = json.data.map((dbV: any) => ({
+            id: dbV.id,
+            name: dbV.name,
+            subtitle: dbV.tagline || dbV.about || "Bridal Mehendi Artist Specialist",
+            location: dbV.city || dbV.state || "Kerala, India",
+            rating: dbV.rating || 4.9,
+            reviewsCount: dbV.reviewCount || 0,
+            startingPrice: dbV.startingPrice || "₹4,500",
+            category: "Mehendi",
+            verified: dbV.isVerified ?? true,
+            heroImage: dbV.coverImage || dbV.logo || mehendiVendors[0].heroImage,
+            chips: ["Bridal Heavy", "Organic Henna"],
+          }));
+
+          const dbIds = new Set(mapped.map((m: any) => m.id));
+          const existingFiltered = mehendiVendors.filter((m) => !dbIds.has(m.id));
+          setMehendiList([...mapped, ...existingFiltered]);
+        }
+      })
+      .catch((err) => console.error("Error fetching live mehendi vendors:", err));
+  }, []);
 
   useEffect(() => {
     const updateLocalWishlist = () => {
@@ -27,7 +55,7 @@ export function MehendiListing() {
   }, []);
 
   const filteredVendors = useMemo(() => {
-    return mehendiVendors.filter((artist) => {
+    return mehendiList.filter((artist) => {
       const q = search.toLowerCase().trim();
       const matchesSearch =
         !q || artist.name.toLowerCase().includes(q) || artist.location.toLowerCase().includes(q) || artist.subtitle.toLowerCase().includes(q);
@@ -35,13 +63,13 @@ export function MehendiListing() {
       const targetChip = activeChip.toLowerCase().replace("bridal ", "").replace(" pack", "").trim();
       const matchesChip =
         activeChip === "All" ||
-        (artist.chips && artist.chips.some((c) => c.toLowerCase().includes(targetChip))) ||
+        (artist.chips && artist.chips.some((c: string) => c.toLowerCase().includes(targetChip))) ||
         ((artist as any).tags && (artist as any).tags.some((t: string) => t.toLowerCase().includes(targetChip))) ||
         artist.subtitle.toLowerCase().includes(targetChip);
 
       return matchesSearch && matchesChip;
     });
-  }, [search, activeChip]);
+  }, [search, activeChip, mehendiList]);
 
   const handleWishlistToggle = (e: React.MouseEvent, item: any) => {
     e.preventDefault();

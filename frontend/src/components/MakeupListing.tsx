@@ -49,7 +49,10 @@ export function MakeupListing() {
   }, []);
 
   const allArtists = useMemo(() => {
-    return liveDbArtists.length > 0 ? liveDbArtists : makeupArtists;
+    if (liveDbArtists.length === 0) return makeupArtists;
+    const dbIds = new Set(liveDbArtists.map((d: any) => String(d.id)));
+    const fallbackFiltered = makeupArtists.filter((m: any) => !dbIds.has(String(m.id)));
+    return [...liveDbArtists, ...fallbackFiltered];
   }, [liveDbArtists]);
 
   const filteredArtists = useMemo(() => {
