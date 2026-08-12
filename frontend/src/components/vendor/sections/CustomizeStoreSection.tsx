@@ -249,7 +249,8 @@ export function CustomizeStoreSection({ categoryConfig, vendorName }: CustomizeS
   const currentLocation = [vendorData?.city, vendorData?.district].filter(Boolean).join(", ") || "Kerala, India";
 
   const isCateringVendor =
-    (categoryConfig?.slug || "").includes("cater") ||
+    (categoryConfig?.id || "").toLowerCase().includes("cater") ||
+    (categoryConfig?.name || "").toLowerCase().includes("cater") ||
     (vendorData?.category || "").toLowerCase().includes("cater") ||
     (vendorData?.category || "").toLowerCase().includes("food");
 
