@@ -18,12 +18,22 @@ import {
 import { VendorCategoryConfig } from "@/lib/vendor-categories";
 import { showVendorToast } from "@/lib/vendorStore";
 
+export interface VendorPackageItem {
+  id: string;
+  name: string;
+  price: string;
+  unit: string;
+  features: string[];
+  badge?: string;
+  popular?: boolean;
+}
+
 interface VendorPricingModuleProps {
   categoryConfig: VendorCategoryConfig;
 }
 
 export function VendorPricingModule({ categoryConfig }: VendorPricingModuleProps) {
-  const [pricingList, setPricingList] = useState<any[]>([]);
+  const [pricingList, setPricingList] = useState<VendorPackageItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -63,7 +73,7 @@ export function VendorPricingModule({ categoryConfig }: VendorPricingModuleProps
       if (res.ok) {
         const json = await res.json();
         if (json.success && Array.isArray(json.data)) {
-          const mapped = json.data.map((pkg: any) => ({
+          const mapped: VendorPackageItem[] = json.data.map((pkg: any) => ({
             id: pkg.id,
             name: pkg.name || "Package Tier",
             price: typeof pkg.price === "number" ? `₹${pkg.price.toLocaleString("en-IN")}` : (pkg.price || "Contact for Quote"),
@@ -220,7 +230,7 @@ export function VendorPricingModule({ categoryConfig }: VendorPricingModuleProps
 
                 {/* Features List */}
                 <ul className="space-y-2 pt-3 border-t border-gold/15 text-xs text-charcoal/80">
-                  {pkg.features.map((feat, idx) => (
+                  {pkg.features.map((feat: string, idx: number) => (
                     <li key={idx} className="flex items-start gap-2">
                       <Check className="w-4 h-4 text-[#0F4C45] shrink-0 mt-0.5" />
                       <span>{feat}</span>
