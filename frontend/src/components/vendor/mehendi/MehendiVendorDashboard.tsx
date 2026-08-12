@@ -55,7 +55,7 @@ export function MehendiVendorDashboard() {
   const businessName = vendorData?.name || vendorData?.boutique_name || "mehandi by henna";
   const artistName = vendorData?.artistName || "Pooja Marwar";
   const categoryLabel = "MEHENDI ARTISTS";
-  const partnerBadge = vendorData?.plan || "Platinum Partner";
+  const partnerBadge = vendorData?.plan || (vendorData?.isVerified || vendorData?.is_verified ? "Verified Partner" : "Registered Partner");
 
   const logoUrl = vendorData?.logo || vendorData?.logo_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop";
   const coverUrl = vendorData?.coverImage || vendorData?.cover_image || "https://images.unsplash.com/photo-1610030469983-98e550d6193c?q=80&w=1200&auto=format&fit=crop";
