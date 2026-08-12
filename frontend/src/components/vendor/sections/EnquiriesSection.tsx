@@ -189,8 +189,9 @@ export function EnquiriesSection({ categoryConfig }: EnquiriesSectionProps) {
                 </span>
                 <span className="font-bold text-[#0F4C45]">{lead.budget}</span>
               </div>
-            ))
-          ) : (
+            </div>
+          ))
+        ) : (
             <div className="bg-white rounded-2xl border border-gold/15 p-12 text-center space-y-4 shadow-xs">
               <div className="w-16 h-16 rounded-full bg-[#FAF7F2] text-[#0F4C45] mx-auto flex items-center justify-center border border-gold/20 shadow-inner">
                 <InboxIcon className="w-8 h-8 text-[#0F4C45]" />

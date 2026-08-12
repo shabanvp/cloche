@@ -1,17 +1,10 @@
 "use client";
 
-<<<<<<< HEAD
-import { useState, useEffect } from "react";
-import { Palette, Upload, Image as ImageIcon, Sparkles, CheckCircle, Save, Eye, Loader2 } from "lucide-react";
-import { VendorCategoryConfig } from "@/lib/vendor-categories";
-import { fetchAuthenticatedVendorFromDb, syncVendorProfileWithDatabase, showVendorToast } from "@/lib/vendorStore";
-=======
 import { useState, useEffect, useRef } from "react";
-import { Palette, Upload, Image as ImageIcon, CheckCircle, Save, Eye, Loader2 } from "lucide-react";
+import { Palette, Upload, Image as ImageIcon, Sparkles, CheckCircle, Save, Eye, Loader2 } from "lucide-react";
 import { VendorCategoryConfig } from "@/lib/vendor-categories";
 import { uploadImageToCloudinaryDetailed } from "@/lib/cloudinary";
 import { fetchAuthenticatedVendorFromDb, getActiveVendorIdentity, syncVendorProfileWithDatabase, showVendorToast } from "@/lib/vendorStore";
->>>>>>> fc383a1cf04355bb0ae22d59ff3df8caaba20fe4
 
 interface CustomizeStoreSectionProps {
   categoryConfig: VendorCategoryConfig;
@@ -26,51 +19,6 @@ export function CustomizeStoreSection({ categoryConfig, vendorName }: CustomizeS
   const [isUploadingCover, setIsUploadingCover] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-<<<<<<< HEAD
-  const [isSaving, setIsSaving] = useState(false);
-  const [logoUrl, setLogoUrl] = useState("");
-  const [coverUrl, setCoverUrl] = useState("");
-
-  useEffect(() => {
-    let isMounted = true;
-    fetchAuthenticatedVendorFromDb().then((profile) => {
-      if (!isMounted) return;
-      if (profile) {
-        setLogoUrl(profile.logo || profile.logo_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop");
-        setCoverUrl(profile.coverImage || profile.cover_image || categoryConfig.sampleMedia?.[0]?.image || "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=1200&auto=format&fit=crop");
-      }
-    });
-    return () => { isMounted = false; };
-  }, [categoryConfig]);
-
-  const handleSave = async () => {
-    setIsSaving(true);
-    const res = await syncVendorProfileWithDatabase({
-      logo_url: logoUrl,
-      logo: logoUrl,
-      cover_image: coverUrl,
-      coverImage: coverUrl,
-    });
-
-    setIsSaving(false);
-    if (res.success) {
-      setSaved(true);
-      showVendorToast("Store branding updated and saved!");
-      setTimeout(() => setSaved(false), 3000);
-    } else {
-      showVendorToast("Failed to save branding.", "error");
-    }
-  };
-
-  const handleFileUpload = (type: "logo" | "cover", file: File) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const dataUrl = e.target?.result as string;
-      if (type === "logo") setLogoUrl(dataUrl);
-      else setCoverUrl(dataUrl);
-    };
-    reader.readAsDataURL(file);
-=======
 
   const logoInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
@@ -197,7 +145,6 @@ export function CustomizeStoreSection({ categoryConfig, vendorName }: CustomizeS
     } finally {
       setIsSaving(false);
     }
->>>>>>> fc383a1cf04355bb0ae22d59ff3df8caaba20fe4
   };
 
   return (
