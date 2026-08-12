@@ -90,6 +90,14 @@ export interface VendorProfileData {
   serviceLocations?: string[];
   guestCapacity?: string;
   cateringSpecialities?: string[];
+  tagline?: string;
+  colorTheme?: string;
+  galleryLayout?: string;
+  introVideo?: string;
+  instagram?: string;
+  facebook?: string;
+  youtube?: string;
+  website?: string;
 }
 
 export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
