@@ -28,7 +28,8 @@ import {
   ExternalLink,
   Briefcase,
   User,
-  Check
+  Check,
+  Tag
 } from "lucide-react";
 import { BottomNavBar } from "@/components/BottomNavBar";
 import { ExploreOtherVendors } from "@/components/ExploreOtherVendors";
