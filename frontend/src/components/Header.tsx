@@ -8,6 +8,7 @@ import {
   Lightbulb, Info, CircleHelp, ArrowRight, Users, MessageCircle, CheckCircle2, Sparkles
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { fetchAuthenticatedVendorFromDb, getActiveVendorIdentity } from "@/lib/vendorStore";
 
 type HeaderProps = {
   session?: { token: string; role?: string } | null;
@@ -85,77 +86,86 @@ export function Header({ session }: HeaderProps = {}) {
     name: string;
     category: string;
     logo: string;
+    coverImage?: string;
+    isVerified?: boolean;
     isVendor: boolean;
   }>({
     name: "",
     category: "",
     logo: "",
+    coverImage: "",
+    isVerified: false,
     isVendor: false,
   });
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const storedName =
-          localStorage.getItem("boutique_name") ||
-          localStorage.getItem("vendor_name") ||
-          localStorage.getItem("businessName") ||
-          localStorage.getItem("owner_name") ||
-          localStorage.getItem("user_name");
+    let isMounted = true;
 
-        const rawUserData = localStorage.getItem("cloche_user_data");
-        const rawVendors = localStorage.getItem("cloche_registered_vendors");
-        const rawVenues = localStorage.getItem("cloche_registered_venues");
-
-        let resolvedName = storedName || "";
-        let resolvedCategory = "";
-        let resolvedLogo = "";
-        let isVendorUser = false;
-
-        if (rawUserData) {
-          const u = JSON.parse(rawUserData);
-          resolvedName = u.boutique_name || u.businessName || u.name || u.full_name || resolvedName;
-          resolvedCategory = u.category || resolvedCategory;
-          resolvedLogo = u.logo || u.logo_url || u.profile_logo || u.image_url || u.image || resolvedLogo;
-          if (u.role === "vendor" || u.account_type === "partner" || u.boutique_name || u.category) {
-            isVendorUser = true;
-          }
-        }
-
-        if (!resolvedName && rawVendors) {
-          const list = JSON.parse(rawVendors);
-          if (list.length > 0) {
-            const active = list[0];
-            resolvedName = active.boutique_name || active.name || active.businessName || "";
-            resolvedCategory = active.category || "Bridal Wear";
-            resolvedLogo = active.logo || active.logo_url || active.profile_logo || active.image_url || "";
-            isVendorUser = true;
-          }
-        }
-
-        if (!resolvedName && rawVenues) {
-          const list = JSON.parse(rawVenues);
-          if (list.length > 0) {
-            const active = list[0];
-            resolvedName = active.boutique_name || active.name || active.businessName || "";
-            resolvedCategory = active.category || "Wedding Venue";
-            resolvedLogo = active.logo || active.logo_url || active.profile_logo || active.image_url || "";
-            isVendorUser = true;
-          }
-        }
-
-        if (session?.role === "vendor" || session?.role === "partner") {
-          isVendorUser = true;
-        }
-
+    const applyVendorData = (identity: any) => {
+      if (!isMounted || !identity) return;
+      const bName = identity.name || identity.boutique_name || identity.business_name || "";
+      if (bName) {
         setVendorState({
-          name: resolvedName,
-          category: resolvedCategory || "Bridal Wear",
-          logo: resolvedLogo,
-          isVendor: isVendorUser || Boolean(resolvedName),
+          name: bName,
+          category: identity.category || "Wedding Services",
+          logo: identity.logo || identity.logo_url || "",
+          coverImage: identity.coverImage || identity.cover_image || "",
+          isVerified: Boolean(identity.isVerified || identity.is_verified),
+          isVendor: true,
         });
-      } catch (e) {}
+      }
+    };
+
+    // 1. Initial cached vendor check (synchronous)
+    const cached = getActiveVendorIdentity();
+    if (cached && (cached.name || cached.boutique_name)) {
+      applyVendorData(cached);
     }
+
+    // 2. Fetch authenticated vendor's live database record
+    fetchAuthenticatedVendorFromDb().then((identity) => {
+      if (identity && (identity.name || identity.boutique_name)) {
+        applyVendorData(identity);
+      } else {
+        // If no vendor record returned, check if authenticated customer
+        fetch("/api/v1/auth/me")
+          .then((res) => (res.ok ? res.json() : null))
+          .then((json) => {
+            if (json?.data?.user && isMounted) {
+              const u = json.data.user;
+              const isVendorRole = u.roles?.includes("vendor") || u.roles?.includes("partner") || u.role === "vendor";
+              setVendorState({
+                name: u.fullName || u.email?.split("@")[0] || "",
+                category: isVendorRole ? "Wedding Services" : "Member",
+                logo: u.avatarUrl || u.avatar || "",
+                isVerified: Boolean(u.isEmailVerified),
+                isVendor: isVendorRole,
+              });
+            }
+          })
+          .catch(() => {});
+      }
+    });
+
+    // 3. Listen for live profile updates across dashboard
+    const handleProfileUpdate = (e: any) => {
+      if (e?.detail) {
+        applyVendorData(e.detail);
+      } else {
+        fetchAuthenticatedVendorFromDb().then(applyVendorData);
+      }
+    };
+
+    if (typeof window !== "undefined") {
+      window.addEventListener("cloche_vendor_profile_updated", handleProfileUpdate);
+    }
+
+    return () => {
+      isMounted = false;
+      if (typeof window !== "undefined") {
+        window.removeEventListener("cloche_vendor_profile_updated", handleProfileUpdate);
+      }
+    };
   }, [session]);
 
   if (isAuthRoute) return null;
@@ -416,16 +426,17 @@ export function Header({ session }: HeaderProps = {}) {
                   )}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h2 className="truncate font-display text-[18px] font-bold leading-6 text-[#F7F3EC]">
-                    {vendorState.isVendor && vendorState.name
-                      ? vendorState.name
-                      : session
-                      ? "My Profile"
-                      : "Cloche Guest"}
-                  </h2>
+                  <div className="flex items-center gap-1.5">
+                    <h2 className="truncate font-display text-[18px] font-bold leading-6 text-[#F7F3EC]">
+                      {vendorState.name || (session ? "My Profile" : "Cloche Guest")}
+                    </h2>
+                    {vendorState.isVerified && (
+                      <CheckCircle2 className="h-4 w-4 text-[#C8A96A] shrink-0" />
+                    )}
+                  </div>
                   <p className="mt-0.5 truncate font-sans text-[13px] leading-5 text-[#D8C39A]">
                     {vendorState.isVendor
-                      ? vendorState.category || "Bridal Wear"
+                      ? vendorState.category || "Wedding Services"
                       : session
                       ? "View Profile"
                       : "Sign In / Sign Up"}
