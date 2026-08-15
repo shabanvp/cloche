@@ -721,7 +721,6 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
                 </div>
                 <span className="text-xs text-[#7A6E65]">Per Event / Package</span>
               </div>
-            </div>
 
               {/* Store Highlights Badges in Desktop Hero Sidebar */}
               {(vendor.storeHighlights || vendor.store_highlights) && (vendor.storeHighlights || vendor.store_highlights)!.length > 0 && (
@@ -1008,7 +1007,6 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
               </div>
             </div>
           )}
-          </div>
 
           {/* Social Media Channels */}
           {(vendor.instagram || vendor.facebook || vendor.youtube || vendor.website) && (
