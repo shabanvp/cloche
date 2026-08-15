@@ -165,6 +165,8 @@ export async function GET(req: Request) {
         guestCapacity: cateringDetail.guest_capacity || profile.guest_capacity || "",
         cateringSpecialities: cateringDetail.catering_specialities || profile.catering_specialities || [],
         isVerified: Boolean(v.is_verified || v.is_kyc_verified),
+        membershipBadge: v.plan || profile.plan || "Verified",
+        isFeatured: Boolean(v.is_featured || profile.is_featured),
         phone: contact.phone || "",
         whatsapp: contact.whatsapp || "",
       };

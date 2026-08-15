@@ -244,6 +244,8 @@ export async function fetchAuthenticatedVendorFromDb(): Promise<VendorProfileDat
             const s = Array.isArray(json.data.socialLinks) ? json.data.socialLinks : [];
 
             const instaLink = s.find((item: any) => item.platform === "instagram")?.url || "";
+            const facebookLink = s.find((item: any) => item.platform === "facebook")?.url || "";
+            const youtubeLink = s.find((item: any) => item.platform === "youtube")?.url || "";
             const webLink = s.find((item: any) => item.platform === "website")?.url || "";
 
             const bName = p.business_name || v.boutique_name || v.name || "";
@@ -260,8 +262,6 @@ export async function fetchAuthenticatedVendorFromDb(): Promise<VendorProfileDat
             const serviceLocationsVal = catDetails.service_locations || p.service_locations || p.serviceLocations || [];
             const guestCapacityVal = catDetails.guest_capacity || p.guest_capacity || p.guestCapacity || "";
             const cateringSpecialitiesVal = catDetails.catering_specialities || p.catering_specialities || p.cateringSpecialities || [];
-
-            const resolvedVendor: VendorProfileData = {
               id: v.id || "",
               user_id: v.user_id || "",
               name: bName,
@@ -274,6 +274,13 @@ export async function fetchAuthenticatedVendorFromDb(): Promise<VendorProfileDat
               coverImage: p.cover_image || v.cover_image || "",
               cover_image: p.cover_image || v.cover_image || "",
               description: p.about || v.description || "",
+              tagline: p.tagline || v.tagline || "",
+              color_theme: p.color_theme || "emerald",
+              colorTheme: p.color_theme || "emerald",
+              gallery_layout: p.gallery_layout || "grid",
+              galleryLayout: p.gallery_layout || "grid",
+              intro_video: p.intro_video_url || p.intro_video || "",
+              intro_video_url: p.intro_video_url || p.intro_video || "",
               phone: c.phone || v.phone || "",
               whatsapp: c.whatsapp || v.whatsapp || c.phone || "",
               email: c.email || v.email || "",
@@ -281,11 +288,14 @@ export async function fetchAuthenticatedVendorFromDb(): Promise<VendorProfileDat
               district: p.state || a.state || v.district || "",
               address: a.address_line1 || p.address || "",
               instagram: instaLink,
+              facebook: facebookLink,
+              youtube: youtubeLink,
               website: webLink,
-              workingHours: v.working_hours || "",
-              working_hours: v.working_hours || "",
-              serviceAreas: v.service_areas || "",
-              service_areas: v.service_areas || "",
+              workingHours: v.working_hours || p.working_hours || "",
+              working_hours: v.working_hours || p.working_hours || "",
+              serviceAreas: v.service_areas || p.service_areas || "",
+              service_areas: v.service_areas || p.service_areas || "",
+              experience: v.experience_years || p.experience_years || "",
               profile_completion_percentage: v.profile_completion_percentage || 0,
               cuisineTypes: Array.isArray(cuisineTypesVal) ? cuisineTypesVal : [],
               cuisine_types: Array.isArray(cuisineTypesVal) ? cuisineTypesVal : [],
