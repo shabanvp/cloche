@@ -100,8 +100,12 @@ export interface VendorProfileData {
   youtube?: string;
   socialLinks?: Record<string, string>;
   serviceAreas?: string;
+  service_areas?: string;
   workingHours?: string;
+  working_hours?: string;
   experienceYears?: string;
+  experience_years?: string;
+  priceSuffix?: string;
   stats?: Array<{
     icon: string; // lucide or material icon name
     value: string | number;
