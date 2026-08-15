@@ -107,6 +107,58 @@ export interface VendorProfileData {
   experience_years?: string;
   experience?: string;
   priceSuffix?: string;
+  storeHighlights?: string[];
+  store_highlights?: string[];
+  featuredCollections?: string[];
+  featured_collections?: string[];
+  rentalAvailable?: boolean;
+  rental_available?: boolean;
+  homeTrialAvailable?: boolean;
+  home_trial_available?: boolean;
+  homeDeliveryAvailable?: boolean;
+  home_delivery_available?: boolean;
+  customJewelleryAvailable?: boolean;
+  custom_jewellery_available?: boolean;
+  collectionsCount?: string;
+  collections_count?: string;
+  citiesServed?: string;
+  cities_served?: string;
+  actionButtons?: {
+    callNow?: boolean;
+    whatsapp?: boolean;
+    bookAppointment?: boolean;
+    viewCollection?: boolean;
+    getQuote?: boolean;
+    visitStore?: boolean;
+  };
+  action_buttons?: {
+    callNow?: boolean;
+    whatsapp?: boolean;
+    bookAppointment?: boolean;
+    viewCollection?: boolean;
+    getQuote?: boolean;
+    visitStore?: boolean;
+  };
+  openingTime?: string;
+  opening_time?: string;
+  closingTime?: string;
+  closing_time?: string;
+  workingDays?: string;
+  working_days?: string;
+  weeklyOff?: string;
+  weekly_off?: string;
+  holidayNotice?: string;
+  holiday_notice?: string;
+  rentalPolicy?: string;
+  rental_policy?: string;
+  returnPolicy?: string;
+  return_policy?: string;
+  cancellationPolicy?: string;
+  cancellation_policy?: string;
+  securityDepositPolicy?: string;
+  security_deposit_policy?: string;
+  damagePolicy?: string;
+  damage_policy?: string;
   stats?: Array<{
     icon: string; // lucide or material icon name
     value: string | number;
@@ -671,11 +723,26 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
               </div>
             </div>
 
+              {/* Store Highlights Badges in Desktop Hero Sidebar */}
+              {(vendor.storeHighlights || vendor.store_highlights) && (vendor.storeHighlights || vendor.store_highlights)!.length > 0 && (
+                <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                  {(vendor.storeHighlights || vendor.store_highlights)!.map((badge) => (
+                    <span
+                      key={badge}
+                      className="bg-black/5 text-[#0F4C45] text-[10px] font-bold px-2 py-0.5 rounded-full border border-[#0F4C45]/20 flex items-center gap-1"
+                    >
+                      <Sparkles className="w-2.5 h-2.5 text-[#C8A96A]" /> {badge}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+
             {/* Action Buttons */}
             <div className="space-y-2.5 pt-4 border-t border-black/5">
               <button
                 onClick={() => setActiveModal("quote")}
-                className="w-full py-3.5 rounded-xl bg-[#C8A96A] text-[#0F4C45] font-bold hover:bg-yellow-400 transition-colors flex items-center justify-center gap-2 shadow-xs"
+                className="w-full py-3.5 rounded-xl bg-[#C8A96A] text-[#0F4C45] font-bold hover:bg-yellow-400 transition-colors flex items-center justify-center gap-2 shadow-xs cursor-pointer"
               >
                 <Mail className="h-4 w-4" /> Get Instant Quote
               </button>
@@ -705,17 +772,31 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
       <main className="flex-1 px-3 sm:px-4 md:px-6 lg:px-8 pt-3 sm:pt-4 md:pt-6 space-y-4 sm:space-y-5 md:space-y-6 lg:space-y-8 xl:space-y-10 w-[min(96vw,1300px)] mx-auto">
 
         {/* Profile Card Header (Mobile & Tablet only) */}
-        <div className="lg:hidden flex gap-3 sm:gap-4 md:gap-6 items-center relative bg-white p-3 sm:p-4 md:p-6 lg:p-7 rounded-2xl border border-black/5 shadow-xs">
-          <div className="relative h-16 w-16 md:h-20 md:w-20 lg:h-22 lg:w-22 shrink-0 rounded-2xl overflow-hidden bg-[#0F4C45] border-2 border-white shadow-md flex items-center justify-center text-white">
-            {vendor.logo || vendor.logo_url ? (
-              <img src={vendor.logo || vendor.logo_url} alt={vendor.name} className="w-full h-full object-cover" />
-            ) : (
-              <span className="font-serif text-lg md:text-2xl font-bold tracking-wider">{initials}</span>
-            )}
+        <div className="lg:hidden flex flex-col sm:flex-row gap-3 sm:gap-4 md:gap-6 items-start sm:items-center relative bg-white p-3 sm:p-4 md:p-6 lg:p-7 rounded-2xl border border-black/5 shadow-xs">
+          <div className="flex items-center gap-3 w-full sm:w-auto">
+            <div className="relative h-16 w-16 md:h-20 md:w-20 lg:h-22 lg:w-22 shrink-0 rounded-2xl overflow-hidden bg-[#0F4C45] border-2 border-white shadow-md flex items-center justify-center text-white">
+              {vendor.logo || vendor.logo_url ? (
+                <img src={vendor.logo || vendor.logo_url} alt={vendor.name} className="w-full h-full object-cover" />
+              ) : (
+                <span className="font-serif text-lg md:text-2xl font-bold tracking-wider">{initials}</span>
+              )}
+            </div>
+
+            <div className="flex-1 min-w-0 sm:hidden">
+              <div className="flex items-center gap-1.5">
+                <h1 className="font-serif text-lg font-bold text-[#1A1410] leading-tight truncate">
+                  {vendor.name}
+                </h1>
+                {vendor.isVerified !== false && (
+                  <CheckCircle2 className="h-4 w-4 shrink-0 fill-[#0F4C45] text-white" />
+                )}
+              </div>
+              <span className="text-[#0F4C45] text-xs font-semibold block">{displayCategoryLabel}</span>
+            </div>
           </div>
 
-          <div className="flex-1 min-w-0 flex flex-col justify-center">
-            <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex-1 min-w-0">
+            <div className="hidden sm:flex items-center gap-2 flex-wrap">
               <h1 className="font-serif text-[clamp(1.375rem,2.5vw,2.375rem)] font-bold text-[#1A1410] leading-tight">
                 {vendor.name}
               </h1>
@@ -730,26 +811,43 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
               </p>
             )}
 
-            <div className="mt-1.5 flex items-center gap-3 text-[clamp(0.75rem,0.9vw,0.875rem)] flex-wrap">
-              <div className="flex items-center gap-1 font-bold text-[#1A1410]">
-                <Star className="h-4 w-4 fill-[#C8A96A] text-[#C8A96A]" />
-                {Number(vendor.rating ?? 0) > 0 ? (
-                  <>
-                    <span>{Number(vendor.rating).toFixed(1)}</span>
-                    <span className="text-[#7A6E65] font-normal">({vendor.reviews ?? 0})</span>
-                  </>
-                ) : (
-                  <span className="text-xs font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded">New</span>
-                )}
+            {/* Store Highlights Badges on Mobile */}
+            {(vendor.storeHighlights || vendor.store_highlights) && (vendor.storeHighlights || vendor.store_highlights)!.length > 0 && (
+              <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                {(vendor.storeHighlights || vendor.store_highlights)!.map((badge) => (
+                  <span
+                    key={badge}
+                    className="bg-[#FAF7F2] text-[#0F4C45] text-[10px] font-bold px-2 py-0.5 rounded-full border border-[#0F4C45]/20 flex items-center gap-1"
+                  >
+                    <Sparkles className="w-2.5 h-2.5 text-[#C8A96A]" /> {badge}
+                  </span>
+                ))}
               </div>
-              <span className="text-[#0F4C45] font-semibold">• Verified {displayCategoryLabel}</span>
-              <div className="flex items-center gap-1 text-[#6B5E52]">
-                <MapPin className="h-3.5 w-3.5 md:h-4 md:w-4 text-[#8C827A]" />
-                <span>{vendor.location}</span>
-              </div>
-            </div>
+            )}
           </div>
         </div>
+
+        {/* Featured Collections Strip */}
+        {(vendor.featuredCollections || vendor.featured_collections) && (vendor.featuredCollections || vendor.featured_collections)!.length > 0 && (
+          <section className="rounded-2xl bg-white p-4 sm:p-5 border border-black/5 shadow-xs space-y-2.5">
+            <div className="flex items-center justify-between">
+              <h2 className="font-serif text-sm sm:text-base font-bold text-[#1A1410] flex items-center gap-2">
+                <Tag className="w-4 h-4 text-[#0F4C45]" /> Featured Collections
+              </h2>
+              <span className="text-[11px] text-[#7A6E65] font-medium">Curated by Store</span>
+            </div>
+            <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar pb-1">
+              {(vendor.featuredCollections || vendor.featured_collections)!.map((col) => (
+                <span
+                  key={col}
+                  className="bg-[#FAF5EA] text-[#0F4C45] border border-[#E8DFD1] text-xs font-bold px-3.5 py-1.5 rounded-xl shrink-0 shadow-2xs flex items-center gap-1.5"
+                >
+                  <Sparkles className="w-3 h-3 text-[#C8A96A]" /> {col}
+                </span>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* About Section */}
         <section className="rounded-2xl bg-white p-3 sm:p-4 md:p-6 lg:p-8 border border-black/5 shadow-xs">
@@ -766,6 +864,56 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
           </h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs font-sans">
+            {(vendor.experienceYears || vendor.experience_years || vendor.experience) && (
+              <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
+                <span className="text-[11px] text-[#7A6E65] uppercase font-bold tracking-wider block">Years of Experience</span>
+                <span className="font-bold text-[#0F4C45] text-sm block">{vendor.experienceYears || vendor.experience_years || vendor.experience} Years</span>
+              </div>
+            )}
+
+            {(vendor.rentalAvailable !== undefined || vendor.rental_available !== undefined) && (
+              <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
+                <span className="text-[11px] text-[#7A6E65] uppercase font-bold tracking-wider block">Rental Service</span>
+                <span className="font-bold text-[#1A1410] text-sm block">
+                  {Boolean(vendor.rentalAvailable ?? vendor.rental_available) ? "✓ Rental Available" : "✗ Purchase Only"}
+                </span>
+              </div>
+            )}
+
+            {(vendor.homeTrialAvailable !== undefined || vendor.home_trial_available !== undefined) && (
+              <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
+                <span className="text-[11px] text-[#7A6E65] uppercase font-bold tracking-wider block">Home Trial Service</span>
+                <span className="font-bold text-[#1A1410] text-sm block">
+                  {Boolean(vendor.homeTrialAvailable ?? vendor.home_trial_available) ? "✓ Available" : "✗ In-Store Only"}
+                </span>
+              </div>
+            )}
+
+            {(vendor.homeDeliveryAvailable !== undefined || vendor.home_delivery_available !== undefined) && (
+              <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
+                <span className="text-[11px] text-[#7A6E65] uppercase font-bold tracking-wider block">Home Delivery</span>
+                <span className="font-bold text-[#1A1410] text-sm block">
+                  {Boolean(vendor.homeDeliveryAvailable ?? vendor.home_delivery_available) ? "✓ Insured Courier / Delivery" : "✗ Store Pickup Only"}
+                </span>
+              </div>
+            )}
+
+            {(vendor.customJewelleryAvailable !== undefined || vendor.custom_jewellery_available !== undefined) && (
+              <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
+                <span className="text-[11px] text-[#7A6E65] uppercase font-bold tracking-wider block">Customization</span>
+                <span className="font-bold text-[#1A1410] text-sm block">
+                  {Boolean(vendor.customJewelleryAvailable ?? vendor.custom_jewellery_available) ? "✓ Custom Orders Accepted" : "✗ Standard Designs"}
+                </span>
+              </div>
+            )}
+
+            {(vendor.collectionsCount || vendor.collections_count) && (
+              <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
+                <span className="text-[11px] text-[#7A6E65] uppercase font-bold tracking-wider block">Collections Available</span>
+                <span className="font-bold text-[#0F4C45] text-sm block">{vendor.collectionsCount || vendor.collections_count}</span>
+              </div>
+            )}
+
             {(vendor.ownerName || vendor.owner_name) && (
               <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
                 <span className="text-[11px] text-[#7A6E65] uppercase font-bold tracking-wider block">Vendor / Owner Name</span>
@@ -806,26 +954,60 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
               </div>
             )}
 
-            {(vendor.serviceAreas || vendor.service_areas) && (
+            {(vendor.serviceAreas || vendor.service_areas || vendor.citiesServed || vendor.cities_served) && (
               <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1 sm:col-span-2">
                 <span className="text-[11px] text-[#7A6E65] uppercase font-bold tracking-wider block">Service Area / Operating Districts</span>
-                <span className="font-medium text-[#2D2520] text-xs block leading-relaxed">{vendor.serviceAreas || vendor.service_areas}</span>
+                <span className="font-medium text-[#2D2520] text-xs block leading-relaxed">{vendor.serviceAreas || vendor.service_areas || vendor.citiesServed || vendor.cities_served}</span>
               </div>
             )}
 
-            {(vendor.workingHours || vendor.working_hours) && (
-              <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
-                <span className="text-[11px] text-[#7A6E65] uppercase font-bold tracking-wider block">Working Hours</span>
-                <span className="font-medium text-[#2D2520] text-xs block">{vendor.workingHours || vendor.working_hours}</span>
+            {(vendor.workingHours || vendor.working_hours || vendor.workingDays || vendor.working_days) && (
+              <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1 sm:col-span-2">
+                <span className="text-[11px] text-[#7A6E65] uppercase font-bold tracking-wider block">Working Hours & Timings</span>
+                <span className="font-medium text-[#2D2520] text-xs block">
+                  {vendor.workingHours || vendor.working_hours || `${vendor.workingDays || vendor.working_days || "Mon-Sat"}: ${vendor.openingTime || vendor.opening_time || "10:00 AM"} - ${vendor.closingTime || vendor.closing_time || "08:00 PM"} (Weekly Off: ${vendor.weeklyOff || vendor.weekly_off || "Sunday"})`}
+                </span>
+                {(vendor.holidayNotice || vendor.holiday_notice) && (
+                  <span className="text-[11px] text-[#0F4C45] font-semibold block mt-0.5">
+                    Notice: {vendor.holidayNotice || vendor.holiday_notice}
+                  </span>
+                )}
               </div>
             )}
+          </div>
 
-            {(vendor.experienceYears || vendor.experience_years) && (
-              <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
-                <span className="text-[11px] text-[#7A6E65] uppercase font-bold tracking-wider block">Experience</span>
-                <span className="font-bold text-[#0F4C45] text-sm block">{vendor.experienceYears || vendor.experience_years} Years</span>
+          {/* Store Policies Accordion */}
+          {(vendor.rentalPolicy || vendor.rental_policy || vendor.returnPolicy || vendor.return_policy || vendor.securityDepositPolicy || vendor.security_deposit_policy) && (
+            <div className="pt-4 border-t border-black/5 space-y-3">
+              <span className="text-xs font-serif font-bold text-[#1A1410] block">Store & Rental Policies</span>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                {(vendor.rentalPolicy || vendor.rental_policy) && (
+                  <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
+                    <span className="font-bold text-[#0F4C45] block">Rental Terms</span>
+                    <p className="text-[#5A6561] leading-relaxed">{vendor.rentalPolicy || vendor.rental_policy}</p>
+                  </div>
+                )}
+                {(vendor.returnPolicy || vendor.return_policy) && (
+                  <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
+                    <span className="font-bold text-[#0F4C45] block">Return & Overdue Policy</span>
+                    <p className="text-[#5A6561] leading-relaxed">{vendor.returnPolicy || vendor.return_policy}</p>
+                  </div>
+                )}
+                {(vendor.cancellationPolicy || vendor.cancellation_policy) && (
+                  <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
+                    <span className="font-bold text-[#0F4C45] block">Cancellation & Refund</span>
+                    <p className="text-[#5A6561] leading-relaxed">{vendor.cancellationPolicy || vendor.cancellation_policy}</p>
+                  </div>
+                )}
+                {(vendor.securityDepositPolicy || vendor.security_deposit_policy) && (
+                  <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
+                    <span className="font-bold text-[#0F4C45] block">Security Deposit Guarantee</span>
+                    <p className="text-[#5A6561] leading-relaxed">{vendor.securityDepositPolicy || vendor.security_deposit_policy}</p>
+                  </div>
+                )}
               </div>
-            )}
+            </div>
+          )}
           </div>
 
           {/* Social Media Channels */}

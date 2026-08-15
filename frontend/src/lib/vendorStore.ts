@@ -54,6 +54,58 @@ export interface VendorProfileData {
   guest_capacity?: string;
   cateringSpecialities?: string[];
   catering_specialities?: string[];
+  storeHighlights?: string[];
+  store_highlights?: string[];
+  featuredCollections?: string[];
+  featured_collections?: string[];
+  rentalAvailable?: boolean;
+  rental_available?: boolean;
+  homeTrialAvailable?: boolean;
+  home_trial_available?: boolean;
+  homeDeliveryAvailable?: boolean;
+  home_delivery_available?: boolean;
+  customJewelleryAvailable?: boolean;
+  custom_jewellery_available?: boolean;
+  collectionsCount?: string;
+  collections_count?: string;
+  citiesServed?: string;
+  cities_served?: string;
+  actionButtons?: {
+    callNow?: boolean;
+    whatsapp?: boolean;
+    bookAppointment?: boolean;
+    viewCollection?: boolean;
+    getQuote?: boolean;
+    visitStore?: boolean;
+  };
+  action_buttons?: {
+    callNow?: boolean;
+    whatsapp?: boolean;
+    bookAppointment?: boolean;
+    viewCollection?: boolean;
+    getQuote?: boolean;
+    visitStore?: boolean;
+  };
+  openingTime?: string;
+  opening_time?: string;
+  closingTime?: string;
+  closing_time?: string;
+  workingDays?: string;
+  working_days?: string;
+  weeklyOff?: string;
+  weekly_off?: string;
+  holidayNotice?: string;
+  holiday_notice?: string;
+  rentalPolicy?: string;
+  rental_policy?: string;
+  returnPolicy?: string;
+  return_policy?: string;
+  cancellationPolicy?: string;
+  cancellation_policy?: string;
+  securityDepositPolicy?: string;
+  security_deposit_policy?: string;
+  damagePolicy?: string;
+  damage_policy?: string;
 }
 
 /**
@@ -318,6 +370,44 @@ export async function fetchAuthenticatedVendorFromDb(): Promise<VendorProfileDat
               guest_capacity: guestCapacityVal,
               cateringSpecialities: Array.isArray(cateringSpecialitiesVal) ? cateringSpecialitiesVal : [],
               catering_specialities: Array.isArray(cateringSpecialitiesVal) ? cateringSpecialitiesVal : [],
+              storeHighlights: p.store_highlights || p.storeHighlights || [],
+              store_highlights: p.store_highlights || p.storeHighlights || [],
+              featuredCollections: p.featured_collections || p.featuredCollections || [],
+              featured_collections: p.featured_collections || p.featuredCollections || [],
+              rentalAvailable: Boolean(p.rental_available ?? p.rentalAvailable ?? true),
+              rental_available: Boolean(p.rental_available ?? p.rentalAvailable ?? true),
+              homeTrialAvailable: Boolean(p.home_trial_available ?? p.homeTrialAvailable ?? false),
+              home_trial_available: Boolean(p.home_trial_available ?? p.homeTrialAvailable ?? false),
+              homeDeliveryAvailable: Boolean(p.home_delivery_available ?? p.homeDeliveryAvailable ?? true),
+              home_delivery_available: Boolean(p.home_delivery_available ?? p.homeDeliveryAvailable ?? true),
+              customJewelleryAvailable: Boolean(p.custom_jewellery_available ?? p.customJewelleryAvailable ?? true),
+              custom_jewellery_available: Boolean(p.custom_jewellery_available ?? p.customJewelleryAvailable ?? true),
+              collectionsCount: p.collections_count || p.collectionsCount || "50+ Sets",
+              collections_count: p.collections_count || p.collectionsCount || "50+ Sets",
+              citiesServed: p.cities_served || p.citiesServed || "Kochi, Calicut, Trivandrum",
+              cities_served: p.cities_served || p.citiesServed || "Kochi, Calicut, Trivandrum",
+              actionButtons: p.action_buttons || p.actionButtons || { callNow: true, whatsapp: true, bookAppointment: true, viewCollection: true, getQuote: true, visitStore: true },
+              action_buttons: p.action_buttons || p.actionButtons || { callNow: true, whatsapp: true, bookAppointment: true, viewCollection: true, getQuote: true, visitStore: true },
+              openingTime: p.opening_time || p.openingTime || "10:00 AM",
+              opening_time: p.opening_time || p.openingTime || "10:00 AM",
+              closingTime: p.closing_time || p.closingTime || "08:00 PM",
+              closing_time: p.closing_time || p.closingTime || "08:00 PM",
+              workingDays: p.working_days || p.workingDays || "Monday - Saturday",
+              working_days: p.working_days || p.workingDays || "Monday - Saturday",
+              weeklyOff: p.weekly_off || p.weeklyOff || "Sunday",
+              weekly_off: p.weekly_off || p.weeklyOff || "Sunday",
+              holidayNotice: p.holiday_notice || p.holidayNotice || "Open on festive wedding dates by appointment",
+              holiday_notice: p.holiday_notice || p.holidayNotice || "Open on festive wedding dates by appointment",
+              rentalPolicy: p.rental_policy || p.rentalPolicy || "Minimum 2-day rental with valid government ID verification.",
+              rental_policy: p.rental_policy || p.rentalPolicy || "Minimum 2-day rental with valid government ID verification.",
+              returnPolicy: p.return_policy || p.returnPolicy || "Return by 05:00 PM on designated date. Late fee applies.",
+              return_policy: p.return_policy || p.returnPolicy || "Return by 05:00 PM on designated date. Late fee applies.",
+              cancellationPolicy: p.cancellation_policy || p.cancellationPolicy || "Full refund 7+ days prior to event date.",
+              cancellation_policy: p.cancellation_policy || p.cancellationPolicy || "Full refund 7+ days prior to event date.",
+              securityDepositPolicy: p.security_deposit_policy || p.securityDepositPolicy || "100% refundable within 24 hours of safe return inspection.",
+              security_deposit_policy: p.security_deposit_policy || p.securityDepositPolicy || "100% refundable within 24 hours of safe return inspection.",
+              damagePolicy: p.damage_policy || p.damagePolicy || "Normal wear & tear accepted. Missing stones/breakage deducted at actuals.",
+              damage_policy: p.damage_policy || p.damagePolicy || "Normal wear & tear accepted. Missing stones/breakage deducted at actuals.",
               plan: v.plan || (v.isVerified ? "Verified Partner" : "Registered Partner"),
               planCode: v.planCode || "free",
               isSubscribed: Boolean(v.isSubscribed),

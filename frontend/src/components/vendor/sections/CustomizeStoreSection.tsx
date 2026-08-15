@@ -17,7 +17,21 @@ import {
   Globe,
   FileText,
   X,
-  Play
+  Play,
+  Award,
+  ShieldCheck,
+  Tag,
+  Clock,
+  MapPin,
+  Phone,
+  MessageCircle,
+  Calendar,
+  Layers,
+  ArrowUp,
+  ArrowDown,
+  Check,
+  Building,
+  HelpCircle
 } from "lucide-react";
 
 function InstagramIcon({ className = "w-4 h-4" }: { className?: string }) {
@@ -45,6 +59,7 @@ function YoutubeIcon({ className = "w-4 h-4" }: { className?: string }) {
     </svg>
   );
 }
+
 import { VendorCategoryConfig } from "@/lib/vendor-categories";
 import { uploadImageToCloudinaryDetailed } from "@/lib/cloudinary";
 import {
@@ -85,71 +100,34 @@ export const GALLERY_LAYOUTS = [
   { id: "hero", label: "Large Hero Gallery", desc: "Featured hero photo + grid" },
 ];
 
-export const CUISINE_OPTIONS = [
-  "Kerala",
-  "South Indian",
-  "North Indian",
-  "Mughlai",
-  "Chinese",
-  "Continental",
-  "Arabic",
-  "Vegetarian",
-  "Jain",
-  "Custom Menu",
+export const STORE_HIGHLIGHT_OPTIONS = [
+  "Verified Partner",
+  "Premium Store",
+  "Bridal Specialist",
+  "Rental Available",
+  "Home Delivery",
+  "Custom Jewellery",
+  "Trusted Seller",
+  "Certified Store",
 ];
 
-export const SERVICE_TYPE_OPTIONS = [
-  "Wedding Catering",
-  "Reception",
-  "Engagement",
-  "Birthday Party",
-  "Corporate Events",
-  "House Functions",
-  "Outdoor Catering",
-  "Live Food Counters",
-];
-
-export const KERALA_DISTRICT_OPTIONS = [
-  "Ernakulam",
-  "Trivandrum",
-  "Kozhikode",
-  "Thrissur",
-  "Kottayam",
-  "Palakkad",
-  "Malappuram",
-  "Kannur",
-  "Alappuzha",
-  "Kollam",
-  "Idukki",
-  "Wayanad",
-  "Kasaragod",
-  "Pathanamthitta",
-];
-
-export const GUEST_CAPACITY_OPTIONS = [
-  "Up to 100 Guests",
-  "100-300 Guests",
-  "300-500 Guests",
-  "500-1000 Guests",
-  "1000+ Guests",
-];
-
-export const CATERING_SPECIALITY_OPTIONS = [
-  "Traditional Sadya",
-  "Halal Food",
-  "Pure Vegetarian",
-  "Live Counters",
-  "BBQ",
-  "Dessert Station",
-  "Beverage Counter",
-  "Kids Menu",
-  "Custom Menu Available",
+export const ALL_COLLECTION_OPTIONS = [
+  "Bridal Collection",
+  "Temple Jewellery",
+  "Antique Collection",
+  "Reception Collection",
+  "Diamond Collection",
+  "Gold Collection",
+  "Silver Collection",
+  "Trending Collection",
+  "Best Sellers",
+  "New Arrivals",
 ];
 
 export function CustomizeStoreSection({ categoryConfig, vendorName }: CustomizeStoreSectionProps) {
   const [vendorData, setVendorData] = useState<any>(null);
 
-  // Storefront Customization Fields
+  // 1. Branding & Identity
   const [logoUrl, setLogoUrl] = useState<string>("");
   const [coverUrl, setCoverUrl] = useState<string>("");
   const [tagline, setTagline] = useState<string>("");
@@ -158,18 +136,70 @@ export function CustomizeStoreSection({ categoryConfig, vendorName }: CustomizeS
   const [galleryLayout, setGalleryLayout] = useState<string>("grid");
   const [introVideo, setIntroVideo] = useState<string>("");
 
-  // Social Links
+  // 2. Social Links
   const [instagram, setInstagram] = useState<string>("");
   const [facebook, setFacebook] = useState<string>("");
   const [youtube, setYoutube] = useState<string>("");
   const [website, setWebsite] = useState<string>("");
 
-  // Catering Specific Customization Fields
-  const [cuisineTypes, setCuisineTypes] = useState<string[]>([]);
-  const [serviceTypes, setServiceTypes] = useState<string[]>([]);
-  const [serviceLocations, setServiceLocations] = useState<string[]>([]);
-  const [guestCapacity, setGuestCapacity] = useState<string>("");
-  const [cateringSpecialities, setCateringSpecialities] = useState<string[]>([]);
+  // 3. Store Highlights
+  const [storeHighlights, setStoreHighlights] = useState<string[]>([
+    "Verified Partner",
+    "Bridal Specialist",
+    "Rental Available",
+    "Home Delivery",
+  ]);
+
+  // 4. Featured Collections (with reordering)
+  const [featuredCollections, setFeaturedCollections] = useState<string[]>([
+    "Bridal Collection",
+    "Temple Jewellery",
+    "Antique Collection",
+    "Diamond Collection",
+  ]);
+
+  // 5. Business Information
+  const [experienceYears, setExperienceYears] = useState<string>("8");
+  const [rentalAvailable, setRentalAvailable] = useState<boolean>(true);
+  const [homeTrialAvailable, setHomeTrialAvailable] = useState<boolean>(true);
+  const [homeDeliveryAvailable, setHomeDeliveryAvailable] = useState<boolean>(true);
+  const [customJewelleryAvailable, setCustomJewelleryAvailable] = useState<boolean>(true);
+  const [collectionsCount, setCollectionsCount] = useState<string>("50+ Sets");
+  const [citiesServed, setCitiesServed] = useState<string>("Kochi, Trivandrum, Kozhikode, Thrissur");
+
+  // 6. Contact Action Buttons
+  const [actionButtons, setActionButtons] = useState({
+    callNow: true,
+    whatsapp: true,
+    bookAppointment: true,
+    viewCollection: true,
+    getQuote: true,
+    visitStore: true,
+  });
+
+  // 7. Working Hours
+  const [openingTime, setOpeningTime] = useState<string>("10:00 AM");
+  const [closingTime, setClosingTime] = useState<string>("08:00 PM");
+  const [workingDays, setWorkingDays] = useState<string>("Monday - Saturday");
+  const [weeklyOff, setWeeklyOff] = useState<string>("Sunday");
+  const [holidayNotice, setHolidayNotice] = useState<string>("Open on wedding season dates by prior appointment");
+
+  // 8. Store Policies
+  const [rentalPolicy, setRentalPolicy] = useState<string>(
+    "Minimum 2-day rental with valid government ID verification."
+  );
+  const [returnPolicy, setReturnPolicy] = useState<string>(
+    "Return by 05:00 PM on designated date. Late fee applies."
+  );
+  const [cancellationPolicy, setCancellationPolicy] = useState<string>(
+    "Full refund 7+ days prior to event date."
+  );
+  const [securityDepositPolicy, setSecurityDepositPolicy] = useState<string>(
+    "100% refundable within 24 hours of safe return inspection."
+  );
+  const [damagePolicy, setDamagePolicy] = useState<string>(
+    "Normal wear & tear accepted. Missing stones/breakage deducted at actuals."
+  );
 
   // Loading & Upload states
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
@@ -182,15 +212,18 @@ export function CustomizeStoreSection({ categoryConfig, vendorName }: CustomizeS
   const [openAccordions, setOpenAccordions] = useState<Record<string, boolean>>({
     branding: true,
     theme: true,
+    highlights: true,
+    featuredCollections: false,
+    businessInfo: false,
+    actionButtons: false,
+    workingHours: false,
+    policies: false,
     about: false,
     media: false,
     social: false,
-    cuisines: false,
-    services: false,
-    locations: false,
-    capacity: false,
-    specialities: false,
   });
+
+  const [activePolicyTab, setActivePolicyTab] = useState<string>("rental");
 
   const logoInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
@@ -217,26 +250,45 @@ export function CustomizeStoreSection({ categoryConfig, vendorName }: CustomizeS
     if (identity.youtube) setYoutube(identity.youtube || "");
     if (identity.website) setWebsite(identity.website || "");
 
-    const cTypes = identity.cuisineTypes || identity.cuisine_types;
-    if (Array.isArray(cTypes)) setCuisineTypes(cTypes);
-    const sTypes = identity.serviceTypes || identity.service_types;
-    if (Array.isArray(sTypes)) setServiceTypes(sTypes);
-    const sLocs = identity.serviceLocations || identity.service_locations;
-    if (Array.isArray(sLocs)) setServiceLocations(sLocs);
-    const gCap = identity.guestCapacity || identity.guest_capacity;
-    if (gCap) setGuestCapacity(gCap);
-    const cSpecs = identity.cateringSpecialities || identity.catering_specialities;
-    if (Array.isArray(cSpecs)) setCateringSpecialities(cSpecs);
+    if (Array.isArray(identity.storeHighlights || identity.store_highlights)) {
+      setStoreHighlights(identity.storeHighlights || identity.store_highlights);
+    }
+    if (Array.isArray(identity.featuredCollections || identity.featured_collections)) {
+      setFeaturedCollections(identity.featuredCollections || identity.featured_collections);
+    }
+    if (identity.experienceYears || identity.experience_years || identity.experience) {
+      setExperienceYears(identity.experienceYears || identity.experience_years || identity.experience);
+    }
+    if (identity.rentalAvailable !== undefined) setRentalAvailable(Boolean(identity.rentalAvailable));
+    if (identity.homeTrialAvailable !== undefined) setHomeTrialAvailable(Boolean(identity.homeTrialAvailable));
+    if (identity.homeDeliveryAvailable !== undefined) setHomeDeliveryAvailable(Boolean(identity.homeDeliveryAvailable));
+    if (identity.customJewelleryAvailable !== undefined) setCustomJewelleryAvailable(Boolean(identity.customJewelleryAvailable));
+    if (identity.collectionsCount || identity.collections_count) setCollectionsCount(identity.collectionsCount || identity.collections_count);
+    if (identity.citiesServed || identity.cities_served) setCitiesServed(identity.citiesServed || identity.cities_served);
+
+    if (identity.actionButtons || identity.action_buttons) {
+      setActionButtons({ ...actionButtons, ...(identity.actionButtons || identity.action_buttons) });
+    }
+
+    if (identity.openingTime || identity.opening_time) setOpeningTime(identity.openingTime || identity.opening_time);
+    if (identity.closingTime || identity.closing_time) setClosingTime(identity.closingTime || identity.closing_time);
+    if (identity.workingDays || identity.working_days) setWorkingDays(identity.workingDays || identity.working_days);
+    if (identity.weeklyOff || identity.weekly_off) setWeeklyOff(identity.weeklyOff || identity.weekly_off);
+    if (identity.holidayNotice || identity.holiday_notice) setHolidayNotice(identity.holidayNotice || identity.holiday_notice);
+
+    if (identity.rentalPolicy || identity.rental_policy) setRentalPolicy(identity.rentalPolicy || identity.rental_policy);
+    if (identity.returnPolicy || identity.return_policy) setReturnPolicy(identity.returnPolicy || identity.return_policy);
+    if (identity.cancellationPolicy || identity.cancellation_policy) setCancellationPolicy(identity.cancellationPolicy || identity.cancellation_policy);
+    if (identity.securityDepositPolicy || identity.security_deposit_policy) setSecurityDepositPolicy(identity.securityDepositPolicy || identity.security_deposit_policy);
+    if (identity.damagePolicy || identity.damage_policy) setDamagePolicy(identity.damagePolicy || identity.damage_policy);
   };
 
   useEffect(() => {
-    // 1. Check cached active vendor identity first
     const cached = getActiveVendorIdentity();
     if (cached && cached.id) {
       populateFromIdentity(cached);
     }
 
-    // 2. Fetch authoritative database profile
     fetchAuthenticatedVendorFromDb().then((identity) => {
       if (identity && identity.id) {
         populateFromIdentity(identity);
@@ -244,15 +296,9 @@ export function CustomizeStoreSection({ categoryConfig, vendorName }: CustomizeS
     });
   }, []);
 
-  const currentDisplayName = vendorData?.boutique_name || vendorData?.name || vendorName || "Makeup Artist Studio";
+  const currentDisplayName = vendorData?.boutique_name || vendorData?.name || vendorName || "Jewellery Studio";
   const currentCategoryBadge = vendorData?.category || categoryConfig.badge || categoryConfig.name;
   const currentLocation = [vendorData?.city, vendorData?.district].filter(Boolean).join(", ") || "Kerala, India";
-
-  const isCateringVendor =
-    (categoryConfig?.id || "").toLowerCase().includes("cater") ||
-    (categoryConfig?.name || "").toLowerCase().includes("cater") ||
-    (vendorData?.category || "").toLowerCase().includes("cater") ||
-    (vendorData?.category || "").toLowerCase().includes("food");
 
   const activeTheme = COLOR_THEMES.find((t) => t.id === colorTheme) || COLOR_THEMES[0];
 
@@ -262,7 +308,28 @@ export function CustomizeStoreSection({ categoryConfig, vendorName }: CustomizeS
     .filter(Boolean)
     .join("")
     .slice(0, 2)
-    .toUpperCase() || "MA";
+    .toUpperCase() || "JW";
+
+  const toggleHighlight = (badge: string) => {
+    setStoreHighlights((prev) =>
+      prev.includes(badge) ? prev.filter((b) => b !== badge) : [...prev, badge]
+    );
+  };
+
+  const toggleFeaturedCollection = (col: string) => {
+    setFeaturedCollections((prev) =>
+      prev.includes(col) ? prev.filter((c) => c !== col) : [...prev, col]
+    );
+  };
+
+  const moveCollection = (index: number, direction: "up" | "down") => {
+    const targetIndex = direction === "up" ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= featuredCollections.length) return;
+    const copy = [...featuredCollections];
+    const [moved] = copy.splice(index, 1);
+    copy.splice(targetIndex, 0, moved);
+    setFeaturedCollections(copy);
+  };
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -275,15 +342,11 @@ export function CustomizeStoreSection({ categoryConfig, vendorName }: CustomizeS
         setLogoUrl(res.secure_url);
         showVendorToast("✓ Brand logo uploaded! Saving...", "info");
 
-        const syncResult = await syncVendorProfileWithDatabase({
+        await syncVendorProfileWithDatabase({
           id: vendorData?.id,
           logo: res.secure_url,
           logo_url: res.secure_url,
         });
-
-        if (syncResult.success) {
-          showVendorToast("✓ Brand logo updated and saved!", "success");
-        }
       }
     } catch (err) {
       console.error("[CustomizeStore] Logo upload failed:", err);
@@ -305,15 +368,11 @@ export function CustomizeStoreSection({ categoryConfig, vendorName }: CustomizeS
         setCoverUrl(res.secure_url);
         showVendorToast("✓ Store cover photo uploaded! Saving...", "info");
 
-        const syncResult = await syncVendorProfileWithDatabase({
+        await syncVendorProfileWithDatabase({
           id: vendorData?.id,
           coverImage: res.secure_url,
           cover_image: res.secure_url,
         });
-
-        if (syncResult.success) {
-          showVendorToast("✓ Store cover photo updated and saved!", "success");
-        }
       }
     } catch (err) {
       console.error("[CustomizeStore] Cover upload failed:", err);
@@ -372,22 +431,53 @@ export function CustomizeStoreSection({ categoryConfig, vendorName }: CustomizeS
         facebook: facebook.trim(),
         youtube: youtube.trim(),
         website: website.trim(),
-        cuisineTypes,
-        cuisine_types: cuisineTypes,
-        serviceTypes,
-        service_types: serviceTypes,
-        serviceLocations,
-        service_locations: serviceLocations,
-        guestCapacity,
-        guest_capacity: guestCapacity,
-        cateringSpecialities,
-        catering_specialities: cateringSpecialities,
+        storeHighlights,
+        store_highlights: storeHighlights,
+        featuredCollections,
+        featured_collections: featuredCollections,
+        experienceYears: experienceYears.trim(),
+        experience_years: experienceYears.trim(),
+        experience: experienceYears.trim(),
+        rentalAvailable,
+        rental_available: rentalAvailable,
+        homeTrialAvailable,
+        home_trial_available: homeTrialAvailable,
+        homeDeliveryAvailable,
+        home_delivery_available: homeDeliveryAvailable,
+        customJewelleryAvailable,
+        custom_jewellery_available: customJewelleryAvailable,
+        collectionsCount: collectionsCount.trim(),
+        collections_count: collectionsCount.trim(),
+        citiesServed: citiesServed.trim(),
+        cities_served: citiesServed.trim(),
+        actionButtons,
+        action_buttons: actionButtons,
+        openingTime: openingTime.trim(),
+        opening_time: openingTime.trim(),
+        closingTime: closingTime.trim(),
+        closing_time: closingTime.trim(),
+        workingDays: workingDays.trim(),
+        working_days: workingDays.trim(),
+        weeklyOff: weeklyOff.trim(),
+        weekly_off: weeklyOff.trim(),
+        holidayNotice: holidayNotice.trim(),
+        holiday_notice: holidayNotice.trim(),
+        rentalPolicy: rentalPolicy.trim(),
+        rental_policy: rentalPolicy.trim(),
+        returnPolicy: returnPolicy.trim(),
+        return_policy: returnPolicy.trim(),
+        cancellationPolicy: cancellationPolicy.trim(),
+        cancellation_policy: cancellationPolicy.trim(),
+        securityDepositPolicy: securityDepositPolicy.trim(),
+        security_deposit_policy: securityDepositPolicy.trim(),
+        damagePolicy: damagePolicy.trim(),
+        damage_policy: damagePolicy.trim(),
       };
 
       const res = await syncVendorProfileWithDatabase(payload);
       if (res.success) {
         setSaved(true);
-        showVendorToast("✓ Storefront customization saved successfully!", "success");
+        showVendorToast("✓ Storefront customization saved & synchronized!", "success");
         setTimeout(() => setSaved(false), 3500);
       } else {
         showVendorToast("Unable to save storefront customization. Please try again.", "error");
@@ -402,7 +492,7 @@ export function CustomizeStoreSection({ categoryConfig, vendorName }: CustomizeS
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300 font-sans">
-      {/* Hidden Device File Inputs */}
+      {/* Hidden File Inputs */}
       <input
         ref={logoInputRef}
         type="file"
@@ -438,7 +528,7 @@ export function CustomizeStoreSection({ categoryConfig, vendorName }: CustomizeS
           </div>
           <h2 className="text-2xl font-serif font-bold text-charcoal">Customize Storefront</h2>
           <p className="text-xs text-charcoal/60 mt-0.5">
-            Personalize logo, tagline, brand theme, intro video, gallery layout & social links
+            Personalize branding, highlights, featured collections, business info, action buttons, timings & policies
           </p>
         </div>
 
@@ -451,70 +541,74 @@ export function CustomizeStoreSection({ categoryConfig, vendorName }: CustomizeS
         >
           {isSaving ? (
             <>
-              <Loader2 className="w-4 h-4 text-gold animate-spin" /> Saving Storefront...
+              <Loader2 className="w-4 h-4 animate-spin" /> Saving Settings...
+            </>
+          ) : saved ? (
+            <>
+              <CheckCircle className="w-4 h-4 text-emerald-300" /> Saved to Live Store!
             </>
           ) : (
             <>
-              <Save className="w-4 h-4 text-gold" /> {saved ? "Storefront Customization Saved!" : "Save Customization"}
+              <Save className="w-4 h-4" /> Save Customization
             </>
           )}
         </button>
       </div>
 
-      {saved && (
-        <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-4 rounded-xl text-xs font-semibold flex items-center gap-2">
-          <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" /> Storefront customization updated successfully!
-        </div>
-      )}
-
-      {/* Real-time Live Storefront Preview Card */}
-      <div className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-xs space-y-0">
-        <div className="p-4 bg-[#FAF7F2] border-b border-gold/10 flex items-center justify-between">
-          <span className="text-xs font-serif font-bold text-charcoal flex items-center gap-1.5">
-            <Eye className="w-4 h-4 text-[#0F4C45]" /> Real-time Live Storefront Preview ({currentCategoryBadge})
-          </span>
+      {/* LIVE STOREFRONT PREVIEW PANE (Dynamic Theme & Real-Time Sync) */}
+      <div className="bg-white rounded-3xl border border-gold/20 shadow-md overflow-hidden transition-all">
+        <div className="bg-[#FAF7F2] px-6 py-3 border-b border-gold/15 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="font-serif font-bold text-xs text-charcoal flex items-center gap-1.5">
+              <Eye className="w-3.5 h-3.5 text-[#0F4C45]" /> Live Storefront Preview (Customer View)
+            </span>
+          </div>
           <span
-            style={{ backgroundColor: `${activeTheme.primary}15`, color: activeTheme.primary }}
-            className="text-[10px] font-bold px-2.5 py-0.5 rounded-full"
+            style={{ color: activeTheme.primary }}
+            className="text-[11px] font-bold uppercase tracking-wider bg-white px-2.5 py-0.5 rounded-full border border-gold/15 shadow-2xs"
           >
-            Live Public View
+            {activeTheme.label} Palette
           </span>
         </div>
 
-        {/* Banner Hero & Branding Header */}
-        <div style={{ backgroundColor: activeTheme.secondary }} className="relative h-48 sm:h-60 overflow-hidden transition-colors">
+        {/* Live Hero Header */}
+        <div className="relative aspect-[21/9] max-h-[300px] w-full overflow-hidden bg-[#0F4C45]">
           {coverUrl ? (
             <img src={coverUrl} alt="Store Cover" className="w-full h-full object-cover" />
           ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <span className="text-white/20 font-serif text-3xl tracking-widest font-bold select-none">
-                {currentDisplayName}
-              </span>
-            </div>
-          )}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/30 to-transparent" />
-
-          <div className="absolute bottom-4 left-6 right-6 flex items-end gap-4 text-white">
             <div
               style={{ backgroundColor: activeTheme.primary }}
-              className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-4 border-white overflow-hidden shadow-lg shrink-0 relative flex items-center justify-center text-white"
+              className="w-full h-full flex items-center justify-center opacity-80"
+            >
+              <Sparkles className="w-16 h-16 text-white/40" />
+            </div>
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+
+          {/* Profile Header Block */}
+          <div className="absolute bottom-4 left-4 right-4 flex items-end gap-3 sm:gap-4">
+            <div
+              style={{ backgroundColor: activeTheme.primary }}
+              className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl border-2 border-white overflow-hidden shadow-lg shrink-0 relative flex items-center justify-center text-white"
             >
               {logoUrl ? (
                 <img src={logoUrl} alt="Store Logo" className="w-full h-full object-cover" />
               ) : (
-                <span className="font-serif text-xl sm:text-2xl font-bold tracking-wider">{initials}</span>
-              )}
-              {isUploadingLogo && (
-                <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                  <Loader2 className="w-6 h-6 text-white animate-spin" />
-                </div>
+                <span className="font-serif text-lg sm:text-xl font-bold tracking-wider">{initials}</span>
               )}
             </div>
 
-            <div className="mb-1 drop-shadow-md flex-1 min-w-0">
-              <h3 className="text-xl sm:text-2xl font-serif font-bold text-white leading-tight truncate">
-                {currentDisplayName}
-              </h3>
+            <div className="mb-0.5 drop-shadow-md flex-1 min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 className="text-lg sm:text-2xl font-serif font-bold text-white leading-tight truncate">
+                  {currentDisplayName}
+                </h3>
+                <span className="inline-flex items-center gap-1 bg-white/90 backdrop-blur-md text-[#0F4C45] text-[10px] font-bold px-2 py-0.5 rounded-full">
+                  <ShieldCheck className="w-3 h-3 text-[#0F4C45]" /> Verified
+                </span>
+              </div>
+
               {tagline ? (
                 <p style={{ color: activeTheme.accent }} className="text-xs font-semibold mt-0.5 italic truncate">
                   "{tagline}"
@@ -524,265 +618,208 @@ export function CustomizeStoreSection({ categoryConfig, vendorName }: CustomizeS
                   {currentCategoryBadge} • {currentLocation}
                 </p>
               )}
+
+              {/* 1. Live Store Highlights Badges */}
+              {storeHighlights.length > 0 && (
+                <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                  {storeHighlights.map((badge) => (
+                    <span
+                      key={badge}
+                      style={{ borderColor: activeTheme.accent }}
+                      className="bg-black/50 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full border shadow-2xs flex items-center gap-1"
+                    >
+                      <Sparkles className="w-2.5 h-2.5 text-gold" /> {badge}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>
 
-        {/* Live Preview Accent Bar & Buttons */}
-        <div className="p-4 sm:p-5 bg-white border-b border-gold/10 space-y-3">
-          <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
-            <div className="flex items-center gap-2">
-              <span
+        {/* Live Preview Content Area */}
+        <div className="p-4 sm:p-6 bg-white space-y-5">
+          {/* 4. Live Contact Action Buttons Preview */}
+          <div className="flex flex-wrap items-center gap-2">
+            {actionButtons.callNow && (
+              <button
                 style={{ backgroundColor: activeTheme.primary }}
-                className="text-white font-bold text-[10px] uppercase px-3 py-1 rounded-full shadow-xs"
+                className="px-3.5 py-2 rounded-xl text-white text-xs font-bold flex items-center gap-1.5 shadow-xs"
               >
-                {activeTheme.label} Theme
-              </span>
-              <span className="text-[11px] font-semibold text-charcoal/70">
-                Gallery: {GALLERY_LAYOUTS.find((l) => l.id === galleryLayout)?.label}
+                <Phone className="w-3.5 h-3.5" /> Call Now
+              </button>
+            )}
+            {actionButtons.whatsapp && (
+              <button
+                style={{ backgroundColor: activeTheme.secondary }}
+                className="px-3.5 py-2 rounded-xl text-white text-xs font-bold flex items-center gap-1.5 shadow-xs"
+              >
+                <MessageCircle className="w-3.5 h-3.5" /> WhatsApp
+              </button>
+            )}
+            {actionButtons.bookAppointment && (
+              <button
+                style={{ borderColor: activeTheme.primary, color: activeTheme.primary }}
+                className="px-3.5 py-2 rounded-xl border text-xs font-bold flex items-center gap-1.5 hover:bg-gold/10"
+              >
+                <Calendar className="w-3.5 h-3.5" /> Book Appointment
+              </button>
+            )}
+            {actionButtons.viewCollection && (
+              <button
+                style={{ borderColor: activeTheme.primary, color: activeTheme.primary }}
+                className="px-3.5 py-2 rounded-xl border text-xs font-bold flex items-center gap-1.5 hover:bg-gold/10"
+              >
+                <Layers className="w-3.5 h-3.5" /> View Collection
+              </button>
+            )}
+            {actionButtons.getQuote && (
+              <button
+                style={{ backgroundColor: activeTheme.accent, color: activeTheme.secondary }}
+                className="px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs"
+              >
+                <FileText className="w-3.5 h-3.5" /> Get Quote
+              </button>
+            )}
+            {actionButtons.visitStore && (
+              <button className="px-3.5 py-2 rounded-xl bg-[#FAF7F2] border border-gold/20 text-charcoal text-xs font-bold flex items-center gap-1.5">
+                <Building className="w-3.5 h-3.5" /> Visit Store
+              </button>
+            )}
+          </div>
+
+          {/* 3. Live Business Information Cards */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+            <div className="p-3 rounded-2xl bg-[#FAF7F2] border border-gold/15 space-y-0.5">
+              <span className="text-[10px] uppercase font-bold text-charcoal/50 block">Experience</span>
+              <span style={{ color: activeTheme.primary }} className="font-serif font-bold text-sm block">
+                {experienceYears} Years
               </span>
             </div>
-
-            {/* Social Icons Strip Preview */}
-            <div className="flex items-center gap-2">
-              {instagram && (
-                <span className="w-7 h-7 rounded-full bg-pink-50 text-pink-600 flex items-center justify-center text-xs font-bold shadow-xs">
-                  <InstagramIcon className="w-3.5 h-3.5" />
-                </span>
-              )}
-              {facebook && (
-                <span className="w-7 h-7 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-xs font-bold shadow-xs">
-                  <FacebookIcon className="w-3.5 h-3.5" />
-                </span>
-              )}
-              {youtube && (
-                <span className="w-7 h-7 rounded-full bg-red-50 text-red-600 flex items-center justify-center text-xs font-bold shadow-xs">
-                  <YoutubeIcon className="w-3.5 h-3.5" />
-                </span>
-              )}
-              {website && (
-                <span className="w-7 h-7 rounded-full bg-amber-50 text-amber-700 flex items-center justify-center text-xs font-bold shadow-xs">
-                  <Globe className="w-3.5 h-3.5" />
-                </span>
-              )}
+            <div className="p-3 rounded-2xl bg-[#FAF7F2] border border-gold/15 space-y-0.5">
+              <span className="text-[10px] uppercase font-bold text-charcoal/50 block">Rental Service</span>
+              <span className="font-bold text-xs text-charcoal block">
+                {rentalAvailable ? "✓ Available" : "✗ Sale Only"}
+              </span>
+            </div>
+            <div className="p-3 rounded-2xl bg-[#FAF7F2] border border-gold/15 space-y-0.5">
+              <span className="text-[10px] uppercase font-bold text-charcoal/50 block">Home Trial & Delivery</span>
+              <span className="font-bold text-xs text-charcoal block">
+                {homeDeliveryAvailable ? "✓ Available" : "✗ Store Pickup"}
+              </span>
+            </div>
+            <div className="p-3 rounded-2xl bg-[#FAF7F2] border border-gold/15 space-y-0.5">
+              <span className="text-[10px] uppercase font-bold text-charcoal/50 block">Collections Available</span>
+              <span style={{ color: activeTheme.primary }} className="font-serif font-bold text-sm block">
+                {collectionsCount}
+              </span>
             </div>
           </div>
 
-          {/* Intro Video Badge in Preview */}
-          {introVideo && (
-            <div className="p-3 bg-[#FAF7F2] rounded-xl border border-gold/20 flex items-center justify-between text-xs">
-              <div className="flex items-center gap-2.5">
-                <div
-                  style={{ backgroundColor: activeTheme.primary }}
-                  className="w-8 h-8 rounded-full text-white flex items-center justify-center shrink-0"
-                >
-                  <Play className="w-4 h-4 fill-white" />
-                </div>
-                <div>
-                  <span className="font-serif font-bold text-charcoal block">Intro Brand Reel Active</span>
-                  <span className="text-[10px] text-charcoal/60">30-60s Brand Introduction Video</span>
-                </div>
+          {/* 2. Live Featured Collections Bar */}
+          {featuredCollections.length > 0 && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="font-serif font-bold text-xs text-charcoal">Featured Collections:</span>
+                <span className="text-[10px] text-charcoal/50 font-medium">Pinned by Store</span>
               </div>
-              <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
-                Video Attached
+              <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar pb-1">
+                {featuredCollections.map((col, idx) => (
+                  <span
+                    key={col}
+                    style={{ backgroundColor: activeTheme.primary }}
+                    className="text-white text-xs font-bold px-3.5 py-1.5 rounded-xl shrink-0 shadow-2xs flex items-center gap-1.5"
+                  >
+                    <Tag className="w-3 h-3 text-gold" /> {col}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* 5. Live Working Hours Preview */}
+          <div className="p-3.5 bg-[#FAF7F2] rounded-2xl border border-gold/15 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+            <div className="flex items-center gap-2.5">
+              <Clock style={{ color: activeTheme.primary }} className="w-4 h-4 shrink-0" />
+              <div>
+                <span className="font-serif font-bold text-charcoal block">Business Timings</span>
+                <span className="text-[11px] text-charcoal/70">
+                  {workingDays}: {openingTime} - {closingTime} (Off: {weeklyOff})
+                </span>
+              </div>
+            </div>
+            {holidayNotice && (
+              <span className="text-[10px] text-[#0F4C45] bg-[#0F4C45]/10 font-bold px-2.5 py-1 rounded-lg">
+                {holidayNotice}
               </span>
+            )}
+          </div>
+
+          {/* 6. Live Store Policies Accordion Preview */}
+          <div className="space-y-2 pt-2 border-t border-gold/10">
+            <span className="font-serif font-bold text-xs text-charcoal block">Store Policies:</span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+              <div className="p-3 bg-gray-50 rounded-xl border border-gray-200/80 space-y-1">
+                <span className="font-bold text-charcoal block flex items-center gap-1">
+                  <ShieldCheck className="w-3.5 h-3.5 text-[#0F4C45]" /> Rental & ID Terms
+                </span>
+                <p className="text-[11px] text-charcoal/70 leading-relaxed">{rentalPolicy}</p>
+              </div>
+
+              <div className="p-3 bg-gray-50 rounded-xl border border-gray-200/80 space-y-1">
+                <span className="font-bold text-charcoal block flex items-center gap-1">
+                  <FileText className="w-3.5 h-3.5 text-[#0F4C45]" /> Security Deposit Release
+                </span>
+                <p className="text-[11px] text-charcoal/70 leading-relaxed">{securityDepositPolicy}</p>
+              </div>
             </div>
-          )}
-
-          {/* Live About Preview */}
-          {about && (
-            <div className="p-3.5 bg-gray-50/80 rounded-xl border border-gray-100 text-xs text-charcoal/80 space-y-1">
-              <span className="font-serif font-bold text-charcoal block">About Brand Preview:</span>
-              <p className="text-[11px] leading-relaxed line-clamp-3 font-medium text-charcoal/70">{about}</p>
-            </div>
-          )}
-
-          {/* Live Catering Features Preview */}
-          {isCateringVendor && (cuisineTypes.length > 0 || serviceTypes.length > 0 || cateringSpecialities.length > 0 || guestCapacity || serviceLocations.length > 0) && (
-            <div className="p-3.5 bg-[#FAF7F2] rounded-xl border border-gold/20 text-xs space-y-2">
-              <span className="font-serif font-bold text-[#0F4C45] block">Catering Specifications Live Preview:</span>
-              
-              {cuisineTypes.length > 0 && (
-                <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
-                  <span className="font-bold text-charcoal/80 shrink-0">Cuisines:</span>
-                  {cuisineTypes.map((c) => (
-                    <span key={c} className="bg-emerald-100 text-emerald-900 font-semibold px-2 py-0.5 rounded-md text-[10px]">
-                      {c}
-                    </span>
-                  ))}
-                </div>
-              )}
-
-              {cateringSpecialities.length > 0 && (
-                <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
-                  <span className="font-bold text-charcoal/80 shrink-0">Specialities:</span>
-                  {cateringSpecialities.map((s) => (
-                    <span key={s} className="bg-amber-100 text-amber-900 font-semibold px-2 py-0.5 rounded-md text-[10px]">
-                      {s}
-                    </span>
-                  ))}
-                </div>
-              )}
-
-              {guestCapacity && (
-                <div className="text-[11px] text-charcoal/80 font-medium">
-                  <span className="font-bold text-charcoal/90">Guest Capacity:</span> {guestCapacity}
-                </div>
-              )}
-
-              {serviceLocations.length > 0 && (
-                <div className="text-[11px] text-charcoal/80 font-medium line-clamp-1">
-                  <span className="font-bold text-charcoal/90">Service Districts:</span> {serviceLocations.join(", ")}
-                </div>
-              )}
-            </div>
-          )}
+          </div>
         </div>
       </div>
 
-      {/* Accordion Form Controls */}
+      {/* ACCORDION FORM CONFIGURATOR SECTIONS */}
       <div className="space-y-4">
-        {/* Accordion 1: Branding & Basic Identity */}
+        {/* Section 1: Store Highlights Badges */}
         <div className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-xs">
           <button
             type="button"
-            onClick={() => toggleAccordion("branding")}
+            onClick={() => toggleAccordion("highlights")}
             className="w-full p-5 text-left font-serif font-bold text-base text-charcoal flex items-center justify-between bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] transition-colors"
           >
-            <span className="flex items-center gap-2">
-              <ImageIcon className="w-4 h-4 text-[#0F4C45]" /> 1. Brand Logo, Cover Photo & Store Tagline
-            </span>
-            {openAccordions.branding ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-          </button>
-
-          {openAccordions.branding && (
-            <div className="p-6 border-t border-gold/10 space-y-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                {/* Logo Uploader */}
-                <div className="space-y-3">
-                  <label className="block text-xs font-bold text-charcoal/80 uppercase tracking-wider">Brand Logo / Avatar</label>
-                  <div className="flex items-center gap-4">
-                    <div
-                      style={{ backgroundColor: activeTheme.primary }}
-                      className="w-16 h-16 rounded-full border-2 border-gold/20 overflow-hidden shrink-0 relative flex items-center justify-center text-white shadow-xs"
-                    >
-                      {logoUrl ? (
-                        <img src={logoUrl} className="w-full h-full object-cover" alt="Logo" />
-                      ) : (
-                        <span className="font-serif text-base font-bold tracking-wider">{initials}</span>
-                      )}
-                      {isUploadingLogo && (
-                        <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                          <Loader2 className="w-5 h-5 text-white animate-spin" />
-                        </div>
-                      )}
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => logoInputRef.current?.click()}
-                      disabled={isUploadingLogo}
-                      className="bg-[#FAF7F2] border border-gold/20 hover:bg-[#F3EDE2] text-[#0F4C45] font-bold text-xs px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
-                    >
-                      {isUploadingLogo ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
-                      Upload Logo
-                    </button>
-                  </div>
-                </div>
-
-                {/* Cover Uploader */}
-                <div className="space-y-3">
-                  <label className="block text-xs font-bold text-charcoal/80 uppercase tracking-wider">Store Cover Photo</label>
-                  <div className="flex items-center gap-4">
-                    <div className="w-24 h-14 rounded-lg border border-gold/20 overflow-hidden shrink-0 bg-gray-100 relative flex items-center justify-center text-white shadow-xs">
-                      {coverUrl ? (
-                        <img src={coverUrl} className="w-full h-full object-cover" alt="Cover" />
-                      ) : (
-                        <span className="font-serif text-xs font-bold text-charcoal/40">No Cover</span>
-                      )}
-                      {isUploadingCover && (
-                        <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                          <Loader2 className="w-5 h-5 text-white animate-spin" />
-                        </div>
-                      )}
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => coverInputRef.current?.click()}
-                      disabled={isUploadingCover}
-                      className="bg-[#FAF7F2] border border-gold/20 hover:bg-[#F3EDE2] text-[#0F4C45] font-bold text-xs px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
-                    >
-                      {isUploadingCover ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
-                      Replace Cover
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Tagline Field with Live Counter */}
-              <div className="space-y-1.5 pt-2 border-t border-gold/10">
-                <div className="flex items-center justify-between">
-                  <label className="block text-xs font-bold text-charcoal/80 uppercase tracking-wider">Store Tagline</label>
-                  <span className={`text-[11px] font-mono font-bold ${tagline.length > 80 ? "text-red-600" : "text-charcoal/50"}`}>
-                    {tagline.length} / 80 chars
-                  </span>
-                </div>
-                <input
-                  type="text"
-                  maxLength={80}
-                  placeholder="e.g. Luxury Bridal Makeup Artist | HD & Airbrush Specialist"
-                  value={tagline}
-                  onChange={(e) => setTagline(e.target.value)}
-                  className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-4 py-2.5 text-xs text-charcoal font-medium focus:outline-none focus:border-[#0F4C45]"
-                />
-                <p className="text-[11px] text-charcoal/50">Reflects immediately under your studio name on live storefront.</p>
+            <div className="flex items-center gap-3">
+              <Award style={{ color: activeTheme.primary }} className="w-5 h-5" />
+              <div>
+                <span className="block">1. Store Highlights</span>
+                <span className="text-xs font-sans font-normal text-charcoal/60">
+                  Select trust & feature badges to display under your store name
+                </span>
               </div>
             </div>
-          )}
-        </div>
-
-        {/* Accordion 2: Brand Color Theme */}
-        <div className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-xs">
-          <button
-            type="button"
-            onClick={() => toggleAccordion("theme")}
-            className="w-full p-5 text-left font-serif font-bold text-base text-charcoal flex items-center justify-between bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] transition-colors"
-          >
-            <span className="flex items-center gap-2">
-              <Palette className="w-4 h-4 text-[#0F4C45]" /> 2. Brand Color Theme Palette
-            </span>
-            {openAccordions.theme ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            {openAccordions.highlights ? <ChevronUp className="w-4 h-4 text-charcoal/40" /> : <ChevronDown className="w-4 h-4 text-charcoal/40" />}
           </button>
 
-          {openAccordions.theme && (
-            <div className="p-6 border-t border-gold/10 space-y-4">
-              <p className="text-xs text-charcoal/70">
-                Select your signature brand color. This theme will styled your action buttons, highlights, and badges on your public storefront.
+          {openAccordions.highlights && (
+            <div className="p-5 border-t border-gold/10 space-y-4 text-xs animate-in fade-in duration-200">
+              <p className="text-charcoal/70 leading-relaxed">
+                Click to toggle store highlight badges on your public storefront:
               </p>
-
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {COLOR_THEMES.map((theme) => {
-                  const isSelected = colorTheme === theme.id;
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                {STORE_HIGHLIGHT_OPTIONS.map((badge) => {
+                  const isSelected = storeHighlights.includes(badge);
                   return (
                     <button
-                      key={theme.id}
+                      key={badge}
                       type="button"
-                      onClick={() => setColorTheme(theme.id)}
-                      className={`p-3.5 rounded-xl border transition-all text-left flex flex-col justify-between space-y-3 cursor-pointer ${
-                        isSelected
-                          ? "border-[#0F4C45] ring-2 ring-[#0F4C45]/20 bg-[#FAF7F2]"
-                          : "border-gold/20 bg-white hover:border-gold/40"
-                      }`}
+                      onClick={() => toggleHighlight(badge)}
+                      style={{
+                        backgroundColor: isSelected ? activeTheme.primary : "#FAF7F2",
+                        color: isSelected ? "#FFFFFF" : "#2D2520",
+                        borderColor: isSelected ? activeTheme.primary : "#E8DFD1",
+                      }}
+                      className="p-3 rounded-xl border text-xs font-bold text-left transition-all flex items-center justify-between cursor-pointer"
                     >
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-charcoal">{theme.label}</span>
-                        {isSelected && <CheckCircle className="w-4 h-4 text-[#0F4C45]" />}
-                      </div>
-
-                      <div className="flex items-center gap-1.5">
-                        <div className="w-5 h-5 rounded-full shadow-xs border border-white" style={{ backgroundColor: theme.primary }} />
-                        <div className="w-4 h-4 rounded-full shadow-xs border border-white" style={{ backgroundColor: theme.secondary }} />
-                        <div className="w-4 h-4 rounded-full shadow-xs border border-white" style={{ backgroundColor: theme.accent }} />
-                      </div>
+                      <span>{badge}</span>
+                      {isSelected && <Check className="w-3.5 h-3.5 text-white" />}
                     </button>
                   );
                 })}
@@ -791,198 +828,322 @@ export function CustomizeStoreSection({ categoryConfig, vendorName }: CustomizeS
           )}
         </div>
 
-        {/* Accordion 3: About Brand */}
+        {/* Section 2: Featured Collections (Reorderable) */}
         <div className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-xs">
           <button
             type="button"
-            onClick={() => toggleAccordion("about")}
+            onClick={() => toggleAccordion("featuredCollections")}
             className="w-full p-5 text-left font-serif font-bold text-base text-charcoal flex items-center justify-between bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] transition-colors"
           >
-            <span className="flex items-center gap-2">
-              <FileText className="w-4 h-4 text-[#0F4C45]" /> 3. About Brand & Biography
-            </span>
-            {openAccordions.about ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-          </button>
-
-          {openAccordions.about && (
-            <div className="p-6 border-t border-gold/10 space-y-3">
-              <div className="flex items-center justify-between">
-                <label className="block text-xs font-bold text-charcoal/80 uppercase tracking-wider">About Brand Story</label>
-                <span className={`text-[11px] font-mono font-bold ${about.length > 500 ? "text-red-600" : "text-charcoal/50"}`}>
-                  {about.length} / 500 chars (Rec: 200 - 500)
+            <div className="flex items-center gap-3">
+              <Tag style={{ color: activeTheme.primary }} className="w-5 h-5" />
+              <div>
+                <span className="block">2. Featured Collections</span>
+                <span className="text-xs font-sans font-normal text-charcoal/60">
+                  Select and pin collections in your preferred display order
                 </span>
               </div>
-              <textarea
-                rows={4}
-                maxLength={500}
-                placeholder="Share your artistry story, experience years, product brands used (MAC, Dior, Charlotte Tilbury), and beauty philosophy..."
-                value={about}
-                onChange={(e) => setAbout(e.target.value)}
-                className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl p-3.5 text-xs text-charcoal font-medium focus:outline-none focus:border-[#0F4C45] resize-none"
-              />
-              <p className="text-[11px] text-charcoal/50">Displayed directly under the cover image on your public storefront page.</p>
             </div>
-          )}
-        </div>
-
-        {/* Accordion 4: Featured Gallery Layout & Intro Video */}
-        <div className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-xs">
-          <button
-            type="button"
-            onClick={() => toggleAccordion("media")}
-            className="w-full p-5 text-left font-serif font-bold text-base text-charcoal flex items-center justify-between bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] transition-colors"
-          >
-            <span className="flex items-center gap-2">
-              <LayoutGrid className="w-4 h-4 text-[#0F4C45]" /> 4. Featured Gallery Layout & Intro Brand Reel
-            </span>
-            {openAccordions.media ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            {openAccordions.featuredCollections ? <ChevronUp className="w-4 h-4 text-charcoal/40" /> : <ChevronDown className="w-4 h-4 text-charcoal/40" />}
           </button>
 
-          {openAccordions.media && (
-            <div className="p-6 border-t border-gold/10 space-y-6">
-              {/* Layout Selector */}
-              <div className="space-y-3">
-                <label className="block text-xs font-bold text-charcoal/80 uppercase tracking-wider">Featured Gallery Layout</label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {GALLERY_LAYOUTS.map((layout) => {
-                    const isSelected = galleryLayout === layout.id;
+          {openAccordions.featuredCollections && (
+            <div className="p-5 border-t border-gold/10 space-y-4 text-xs animate-in fade-in duration-200">
+              <div>
+                <span className="font-bold text-charcoal block mb-2">Available Collections (Click to Pin/Unpin):</span>
+                <div className="flex flex-wrap gap-2">
+                  {ALL_COLLECTION_OPTIONS.map((col) => {
+                    const isPinned = featuredCollections.includes(col);
                     return (
                       <button
-                        key={layout.id}
+                        key={col}
                         type="button"
-                        onClick={() => setGalleryLayout(layout.id)}
-                        className={`p-4 rounded-xl border transition-all text-left flex items-start justify-between cursor-pointer ${
-                          isSelected
-                            ? "border-[#0F4C45] ring-2 ring-[#0F4C45]/20 bg-[#FAF7F2]"
-                            : "border-gold/20 bg-white hover:border-gold/40"
+                        onClick={() => toggleFeaturedCollection(col)}
+                        className={`px-3 py-1.5 rounded-xl border text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                          isPinned
+                            ? "bg-[#0F4C45] text-white border-[#0F4C45]"
+                            : "bg-[#FAF7F2] text-charcoal border-gold/20 hover:bg-gold/15"
                         }`}
                       >
-                        <div>
-                          <span className="text-xs font-bold text-charcoal block">{layout.label}</span>
-                          <span className="text-[11px] text-charcoal/60 mt-0.5 block">{layout.desc}</span>
-                        </div>
-                        {isSelected && <CheckCircle className="w-4 h-4 text-[#0F4C45] shrink-0 mt-0.5" />}
+                        {col} {isPinned ? "✓" : "+"}
                       </button>
                     );
                   })}
                 </div>
               </div>
 
-              {/* Device Intro Video Upload */}
-              <div className="space-y-3 pt-4 border-t border-gold/10">
-                <label className="block text-xs font-bold text-charcoal/80 uppercase tracking-wider">Intro Promotional Video Reel (30 - 60s)</label>
-
-                {introVideo ? (
-                  <div className="p-4 bg-[#FAF7F2] rounded-xl border border-gold/20 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2 text-xs font-bold text-emerald-800">
-                        <Video className="w-4 h-4 text-[#0F4C45]" /> Intro Video Reel Uploaded
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setIntroVideo("")}
-                        className="text-xs font-bold text-red-600 hover:text-red-800 flex items-center gap-1 cursor-pointer"
+              {featuredCollections.length > 0 && (
+                <div className="pt-3 border-t border-gold/10 space-y-2">
+                  <span className="font-bold text-charcoal block">Pinned Order (Use arrows to reorder):</span>
+                  <div className="space-y-1.5">
+                    {featuredCollections.map((col, idx) => (
+                      <div
+                        key={col}
+                        className="p-3 bg-[#FAF7F2] rounded-xl border border-gold/15 flex items-center justify-between text-xs"
                       >
-                        <X className="w-3.5 h-3.5" /> Remove Video
-                      </button>
-                    </div>
-                    <video src={introVideo} controls className="w-full max-h-48 rounded-lg border border-gold/15 bg-black" />
+                        <span className="font-bold text-charcoal">
+                          {idx + 1}. {col}
+                        </span>
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            disabled={idx === 0}
+                            onClick={() => moveCollection(idx, "up")}
+                            className="p-1 rounded bg-white text-charcoal hover:bg-gray-100 disabled:opacity-30 cursor-pointer"
+                          >
+                            <ArrowUp className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            disabled={idx === featuredCollections.length - 1}
+                            onClick={() => moveCollection(idx, "down")}
+                            className="p-1 rounded bg-white text-charcoal hover:bg-gray-100 disabled:opacity-30 cursor-pointer"
+                          >
+                            <ArrowDown className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ) : (
-                  <div className="flex items-center gap-4">
-                    <button
-                      type="button"
-                      onClick={() => videoInputRef.current?.click()}
-                      disabled={isUploadingVideo}
-                      className="bg-[#FAF7F2] border border-gold/20 hover:bg-[#F3EDE2] text-[#0F4C45] font-bold text-xs px-5 py-3 rounded-xl transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
-                    >
-                      {isUploadingVideo ? (
-                        <>
-                          <Loader2 className="w-4 h-4 animate-spin text-[#0F4C45]" /> Uploading Video File...
-                        </>
-                      ) : (
-                        <>
-                          <Upload className="w-4 h-4" /> Upload Video from Device
-                        </>
-                      )}
-                    </button>
-                    <span className="text-[11px] text-charcoal/60">MP4, WEBM (Max 50MB). Hidden on storefront if left empty.</span>
-                  </div>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           )}
         </div>
 
-        {/* Accordion 5: Social Media Links */}
+        {/* Section 3: Business Information */}
         <div className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-xs">
           <button
             type="button"
-            onClick={() => toggleAccordion("social")}
+            onClick={() => toggleAccordion("businessInfo")}
             className="w-full p-5 text-left font-serif font-bold text-base text-charcoal flex items-center justify-between bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] transition-colors"
           >
-            <span className="flex items-center gap-2">
-              <Globe className="w-4 h-4 text-[#0F4C45]" /> 5. Social Media Connections
-            </span>
-            {openAccordions.social ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            <div className="flex items-center gap-3">
+              <Building style={{ color: activeTheme.primary }} className="w-5 h-5" />
+              <div>
+                <span className="block">3. Business Information</span>
+                <span className="text-xs font-sans font-normal text-charcoal/60">
+                  Experience, services availability & coverage areas
+                </span>
+              </div>
+            </div>
+            {openAccordions.businessInfo ? <ChevronUp className="w-4 h-4 text-charcoal/40" /> : <ChevronDown className="w-4 h-4 text-charcoal/40" />}
           </button>
 
-          {openAccordions.social && (
-            <div className="p-6 border-t border-gold/10 space-y-4">
-              <p className="text-xs text-charcoal/60">
-                Provide links to your active social profiles. Icons will be displayed on your public storefront only for platforms you fill in.
-              </p>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+          {openAccordions.businessInfo && (
+            <div className="p-5 border-t border-gold/10 space-y-4 text-xs animate-in fade-in duration-200">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block font-bold text-charcoal/80 mb-1 flex items-center gap-1.5">
-                    <InstagramIcon className="w-3.5 h-3.5 text-pink-600" /> Instagram Profile
-                  </label>
+                  <label className="block font-bold text-charcoal mb-1">Years of Experience</label>
                   <input
-                    type="url"
-                    placeholder="https://instagram.com/yourhandle"
-                    value={instagram}
-                    onChange={(e) => setInstagram(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2 text-xs text-charcoal focus:outline-none focus:border-[#0F4C45]"
+                    type="text"
+                    value={experienceYears}
+                    onChange={(e) => setExperienceYears(e.target.value)}
+                    placeholder="e.g. 8"
+                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-bold text-charcoal/80 mb-1 flex items-center gap-1.5">
-                    <FacebookIcon className="w-3.5 h-3.5 text-blue-600" /> Facebook Page
-                  </label>
+                  <label className="block font-bold text-charcoal mb-1">Number of Collections</label>
                   <input
-                    type="url"
-                    placeholder="https://facebook.com/yourpage"
-                    value={facebook}
-                    onChange={(e) => setFacebook(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2 text-xs text-charcoal focus:outline-none focus:border-[#0F4C45]"
+                    type="text"
+                    value={collectionsCount}
+                    onChange={(e) => setCollectionsCount(e.target.value)}
+                    placeholder="e.g. 50+ Sets"
+                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
+                  />
+                </div>
+
+                <div className="sm:col-span-2">
+                  <label className="block font-bold text-charcoal mb-1">Cities / Coverage Areas Served</label>
+                  <input
+                    type="text"
+                    value={citiesServed}
+                    onChange={(e) => setCitiesServed(e.target.value)}
+                    placeholder="e.g. Kochi, Trivandrum, Kozhikode, Thrissur"
+                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
+                  />
+                </div>
+              </div>
+
+              {/* Service Flags Toggles */}
+              <div className="pt-2 grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                <label className="p-3 bg-[#FAF7F2] rounded-xl border border-gold/15 flex items-center justify-between cursor-pointer">
+                  <span className="font-bold text-charcoal">Rental Available</span>
+                  <input
+                    type="checkbox"
+                    checked={rentalAvailable}
+                    onChange={(e) => setRentalAvailable(e.target.checked)}
+                    className="rounded accent-[#0F4C45] w-4 h-4"
+                  />
+                </label>
+
+                <label className="p-3 bg-[#FAF7F2] rounded-xl border border-gold/15 flex items-center justify-between cursor-pointer">
+                  <span className="font-bold text-charcoal">Home Trial</span>
+                  <input
+                    type="checkbox"
+                    checked={homeTrialAvailable}
+                    onChange={(e) => setHomeTrialAvailable(e.target.checked)}
+                    className="rounded accent-[#0F4C45] w-4 h-4"
+                  />
+                </label>
+
+                <label className="p-3 bg-[#FAF7F2] rounded-xl border border-gold/15 flex items-center justify-between cursor-pointer">
+                  <span className="font-bold text-charcoal">Home Delivery</span>
+                  <input
+                    type="checkbox"
+                    checked={homeDeliveryAvailable}
+                    onChange={(e) => setHomeDeliveryAvailable(e.target.checked)}
+                    className="rounded accent-[#0F4C45] w-4 h-4"
+                  />
+                </label>
+
+                <label className="p-3 bg-[#FAF7F2] rounded-xl border border-gold/15 flex items-center justify-between cursor-pointer">
+                  <span className="font-bold text-charcoal">Custom Jewellery</span>
+                  <input
+                    type="checkbox"
+                    checked={customJewelleryAvailable}
+                    onChange={(e) => setCustomJewelleryAvailable(e.target.checked)}
+                    className="rounded accent-[#0F4C45] w-4 h-4"
+                  />
+                </label>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Section 4: Contact Action Buttons */}
+        <div className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-xs">
+          <button
+            type="button"
+            onClick={() => toggleAccordion("actionButtons")}
+            className="w-full p-5 text-left font-serif font-bold text-base text-charcoal flex items-center justify-between bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <Phone style={{ color: activeTheme.primary }} className="w-5 h-5" />
+              <div>
+                <span className="block">4. Contact Action Buttons</span>
+                <span className="text-xs font-sans font-normal text-charcoal/60">
+                  Configure primary call-to-action buttons for customers
+                </span>
+              </div>
+            </div>
+            {openAccordions.actionButtons ? <ChevronUp className="w-4 h-4 text-charcoal/40" /> : <ChevronDown className="w-4 h-4 text-charcoal/40" />}
+          </button>
+
+          {openAccordions.actionButtons && (
+            <div className="p-5 border-t border-gold/10 space-y-3 text-xs animate-in fade-in duration-200">
+              <p className="text-charcoal/70">Enable or disable primary customer action buttons:</p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {[
+                  { key: "callNow", label: "Call Now", icon: Phone },
+                  { key: "whatsapp", label: "WhatsApp", icon: MessageCircle },
+                  { key: "bookAppointment", label: "Book Appointment", icon: Calendar },
+                  { key: "viewCollection", label: "View Collection", icon: Layers },
+                  { key: "getQuote", label: "Get Quote", icon: FileText },
+                  { key: "visitStore", label: "Visit Store", icon: Building },
+                ].map((btn) => {
+                  const Icon = btn.icon;
+                  const isChecked = (actionButtons as any)[btn.key];
+                  return (
+                    <label
+                      key={btn.key}
+                      className="p-3 bg-[#FAF7F2] rounded-xl border border-gold/15 flex items-center justify-between cursor-pointer"
+                    >
+                      <span className="font-bold text-charcoal flex items-center gap-1.5">
+                        <Icon className="w-3.5 h-3.5 text-[#0F4C45]" /> {btn.label}
+                      </span>
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        onChange={(e) =>
+                          setActionButtons({ ...actionButtons, [btn.key]: e.target.checked })
+                        }
+                        className="rounded accent-[#0F4C45] w-4 h-4"
+                      />
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Section 5: Working Hours */}
+        <div className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-xs">
+          <button
+            type="button"
+            onClick={() => toggleAccordion("workingHours")}
+            className="w-full p-5 text-left font-serif font-bold text-base text-charcoal flex items-center justify-between bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <Clock style={{ color: activeTheme.primary }} className="w-5 h-5" />
+              <div>
+                <span className="block">5. Working Hours</span>
+                <span className="text-xs font-sans font-normal text-charcoal/60">
+                  Store operating times, working days & weekly holidays
+                </span>
+              </div>
+            </div>
+            {openAccordions.workingHours ? <ChevronUp className="w-4 h-4 text-charcoal/40" /> : <ChevronDown className="w-4 h-4 text-charcoal/40" />}
+          </button>
+
+          {openAccordions.workingHours && (
+            <div className="p-5 border-t border-gold/10 space-y-4 text-xs animate-in fade-in duration-200">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block font-bold text-charcoal mb-1">Opening Time</label>
+                  <input
+                    type="text"
+                    value={openingTime}
+                    onChange={(e) => setOpeningTime(e.target.value)}
+                    placeholder="10:00 AM"
+                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-bold text-charcoal/80 mb-1 flex items-center gap-1.5">
-                    <YoutubeIcon className="w-3.5 h-3.5 text-red-600" /> YouTube Channel
-                  </label>
+                  <label className="block font-bold text-charcoal mb-1">Closing Time</label>
                   <input
-                    type="url"
-                    placeholder="https://youtube.com/@yourchannel"
-                    value={youtube}
-                    onChange={(e) => setYoutube(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2 text-xs text-charcoal focus:outline-none focus:border-[#0F4C45]"
+                    type="text"
+                    value={closingTime}
+                    onChange={(e) => setClosingTime(e.target.value)}
+                    placeholder="08:00 PM"
+                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-bold text-charcoal/80 mb-1 flex items-center gap-1.5">
-                    <Globe className="w-3.5 h-3.5 text-amber-700" /> Personal Website
-                  </label>
+                  <label className="block font-bold text-charcoal mb-1">Working Days</label>
                   <input
-                    type="url"
-                    placeholder="https://yourwebsite.com"
-                    value={website}
-                    onChange={(e) => setWebsite(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2 text-xs text-charcoal focus:outline-none focus:border-[#0F4C45]"
+                    type="text"
+                    value={workingDays}
+                    onChange={(e) => setWorkingDays(e.target.value)}
+                    placeholder="Monday - Saturday"
+                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-charcoal mb-1">Weekly Off</label>
+                  <input
+                    type="text"
+                    value={weeklyOff}
+                    onChange={(e) => setWeeklyOff(e.target.value)}
+                    placeholder="Sunday"
+                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
+                  />
+                </div>
+
+                <div className="sm:col-span-2">
+                  <label className="block font-bold text-charcoal mb-1">Holiday / Festive Notice</label>
+                  <input
+                    type="text"
+                    value={holidayNotice}
+                    onChange={(e) => setHolidayNotice(e.target.value)}
+                    placeholder="e.g. Open on wedding season dates by prior appointment"
+                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
                   />
                 </div>
               </div>
@@ -990,258 +1151,201 @@ export function CustomizeStoreSection({ categoryConfig, vendorName }: CustomizeS
           )}
         </div>
 
-        {/* Catering Specific Accordions */}
-        {isCateringVendor && (
-          <>
-            {/* Accordion 6: Cuisine Types */}
-            <div className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-xs">
-              <button
-                type="button"
-                onClick={() => toggleAccordion("cuisines")}
-                className="w-full p-5 text-left font-serif font-bold text-base text-charcoal flex items-center justify-between bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] transition-colors cursor-pointer"
-              >
-                <span className="flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-[#0F4C45]" /> 6. Cuisine Types Offered ({cuisineTypes.length})
+        {/* Section 6: Store Policies */}
+        <div className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-xs">
+          <button
+            type="button"
+            onClick={() => toggleAccordion("policies")}
+            className="w-full p-5 text-left font-serif font-bold text-base text-charcoal flex items-center justify-between bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <FileText style={{ color: activeTheme.primary }} className="w-5 h-5" />
+              <div>
+                <span className="block">6. Store Policies</span>
+                <span className="text-xs font-sans font-normal text-charcoal/60">
+                  Rental terms, return window, cancellation & damage policies
                 </span>
-                {openAccordions.cuisines ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-              </button>
-
-              {openAccordions.cuisines && (
-                <div className="p-6 border-t border-gold/10 space-y-4">
-                  <p className="text-xs text-charcoal/70">
-                    Select all cuisines your catering team specializes in preparing for wedding events:
-                  </p>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                    {CUISINE_OPTIONS.map((item) => {
-                      const isChecked = cuisineTypes.includes(item);
-                      return (
-                        <label
-                          key={item}
-                          className={`flex items-center gap-2.5 p-3 rounded-xl border text-xs font-semibold cursor-pointer transition-all ${
-                            isChecked
-                              ? "bg-[#0F4C45]/10 border-[#0F4C45] text-[#0F4C45]"
-                              : "bg-[#FAF7F2] border-gold/20 text-charcoal/80 hover:border-[#0F4C45]/50"
-                          }`}
-                        >
-                          <input
-                            type="checkbox"
-                            checked={isChecked}
-                            onChange={(e) => {
-                              if (e.target.checked) setCuisineTypes([...cuisineTypes, item]);
-                              else setCuisineTypes(cuisineTypes.filter((c) => c !== item));
-                            }}
-                            className="rounded text-[#0F4C45] focus:ring-[#0F4C45] h-4 w-4"
-                          />
-                          <span>{item}</span>
-                        </label>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
+              </div>
             </div>
+            {openAccordions.policies ? <ChevronUp className="w-4 h-4 text-charcoal/40" /> : <ChevronDown className="w-4 h-4 text-charcoal/40" />}
+          </button>
 
-            {/* Accordion 7: Service Types */}
-            <div className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-xs">
-              <button
-                type="button"
-                onClick={() => toggleAccordion("services")}
-                className="w-full p-5 text-left font-serif font-bold text-base text-charcoal flex items-center justify-between bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] transition-colors cursor-pointer"
-              >
-                <span className="flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-[#0F4C45]" /> 7. Service Types Offered ({serviceTypes.length})
-                </span>
-                {openAccordions.services ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-              </button>
-
-              {openAccordions.services && (
-                <div className="p-6 border-t border-gold/10 space-y-4">
-                  <p className="text-xs text-charcoal/70">
-                    Select event formats and service types your catering business caters to:
-                  </p>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                    {SERVICE_TYPE_OPTIONS.map((item) => {
-                      const isChecked = serviceTypes.includes(item);
-                      return (
-                        <label
-                          key={item}
-                          className={`flex items-center gap-2.5 p-3 rounded-xl border text-xs font-semibold cursor-pointer transition-all ${
-                            isChecked
-                              ? "bg-[#0F4C45]/10 border-[#0F4C45] text-[#0F4C45]"
-                              : "bg-[#FAF7F2] border-gold/20 text-charcoal/80 hover:border-[#0F4C45]/50"
-                          }`}
-                        >
-                          <input
-                            type="checkbox"
-                            checked={isChecked}
-                            onChange={(e) => {
-                              if (e.target.checked) setServiceTypes([...serviceTypes, item]);
-                              else setServiceTypes(serviceTypes.filter((s) => s !== item));
-                            }}
-                            className="rounded text-[#0F4C45] focus:ring-[#0F4C45] h-4 w-4"
-                          />
-                          <span>{item}</span>
-                        </label>
-                      );
-                    })}
-                  </div>
+          {openAccordions.policies && (
+            <div className="p-5 border-t border-gold/10 space-y-4 text-xs animate-in fade-in duration-200">
+              <div className="space-y-3">
+                <div>
+                  <label className="block font-bold text-charcoal mb-1">Rental Policy</label>
+                  <textarea
+                    rows={2}
+                    value={rentalPolicy}
+                    onChange={(e) => setRentalPolicy(e.target.value)}
+                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
+                  />
                 </div>
-              )}
-            </div>
 
-            {/* Accordion 8: Service Locations */}
-            <div className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-xs">
-              <button
-                type="button"
-                onClick={() => toggleAccordion("locations")}
-                className="w-full p-5 text-left font-serif font-bold text-base text-charcoal flex items-center justify-between bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] transition-colors cursor-pointer"
-              >
-                <span className="flex items-center gap-2">
-                  <Globe className="w-4 h-4 text-[#0F4C45]" /> 8. Service Locations / Travel Districts ({serviceLocations.length})
-                </span>
-                {openAccordions.locations ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-              </button>
-
-              {openAccordions.locations && (
-                <div className="p-6 border-t border-gold/10 space-y-4">
-                  <p className="text-xs text-charcoal/70">
-                    Select districts/cities where your catering team operates and travels:
-                  </p>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                    {KERALA_DISTRICT_OPTIONS.map((district) => {
-                      const isChecked = serviceLocations.includes(district);
-                      return (
-                        <label
-                          key={district}
-                          className={`flex items-center gap-2.5 p-3 rounded-xl border text-xs font-semibold cursor-pointer transition-all ${
-                            isChecked
-                              ? "bg-[#0F4C45]/10 border-[#0F4C45] text-[#0F4C45]"
-                              : "bg-[#FAF7F2] border-gold/20 text-charcoal/80 hover:border-[#0F4C45]/50"
-                          }`}
-                        >
-                          <input
-                            type="checkbox"
-                            checked={isChecked}
-                            onChange={(e) => {
-                              if (e.target.checked) setServiceLocations([...serviceLocations, district]);
-                              else setServiceLocations(serviceLocations.filter((l) => l !== district));
-                            }}
-                            className="rounded text-[#0F4C45] focus:ring-[#0F4C45] h-4 w-4"
-                          />
-                          <span>{district}</span>
-                        </label>
-                      );
-                    })}
-                  </div>
+                <div>
+                  <label className="block font-bold text-charcoal mb-1">Return Policy</label>
+                  <textarea
+                    rows={2}
+                    value={returnPolicy}
+                    onChange={(e) => setReturnPolicy(e.target.value)}
+                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
+                  />
                 </div>
-              )}
-            </div>
 
-            {/* Accordion 9: Guest Capacity */}
-            <div className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-xs">
-              <button
-                type="button"
-                onClick={() => toggleAccordion("capacity")}
-                className="w-full p-5 text-left font-serif font-bold text-base text-charcoal flex items-center justify-between bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] transition-colors cursor-pointer"
-              >
-                <span className="flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-[#0F4C45]" /> 9. Guest Capacity Range {guestCapacity ? `(${guestCapacity})` : ""}
-                </span>
-                {openAccordions.capacity ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-              </button>
-
-              {openAccordions.capacity && (
-                <div className="p-6 border-t border-gold/10 space-y-4">
-                  <p className="text-xs text-charcoal/70">
-                    Select maximum guest count range your catering team handles:
-                  </p>
-                  <select
-                    value={guestCapacity}
-                    onChange={(e) => setGuestCapacity(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-4 py-3 text-xs text-charcoal font-semibold focus:outline-none focus:border-[#0F4C45]"
-                  >
-                    <option value="">Select Guest Capacity Range</option>
-                    {GUEST_CAPACITY_OPTIONS.map((opt) => (
-                      <option key={opt} value={opt}>{opt}</option>
-                    ))}
-                  </select>
+                <div>
+                  <label className="block font-bold text-charcoal mb-1">Cancellation Policy</label>
+                  <textarea
+                    rows={2}
+                    value={cancellationPolicy}
+                    onChange={(e) => setCancellationPolicy(e.target.value)}
+                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
+                  />
                 </div>
-              )}
-            </div>
 
-            {/* Accordion 10: Catering Specialities */}
-            <div className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-xs">
-              <button
-                type="button"
-                onClick={() => toggleAccordion("specialities")}
-                className="w-full p-5 text-left font-serif font-bold text-base text-charcoal flex items-center justify-between bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] transition-colors cursor-pointer"
-              >
-                <span className="flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-[#0F4C45]" /> 10. Catering Specialities & Signature Stations ({cateringSpecialities.length})
-                </span>
-                {openAccordions.specialities ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-              </button>
-
-              {openAccordions.specialities && (
-                <div className="p-6 border-t border-gold/10 space-y-4">
-                  <p className="text-xs text-charcoal/70">
-                    Select special features, dietary standards, and signature stations:
-                  </p>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                    {CATERING_SPECIALITY_OPTIONS.map((item) => {
-                      const isChecked = cateringSpecialities.includes(item);
-                      return (
-                        <label
-                          key={item}
-                          className={`flex items-center gap-2.5 p-3 rounded-xl border text-xs font-semibold cursor-pointer transition-all ${
-                            isChecked
-                              ? "bg-[#0F4C45]/10 border-[#0F4C45] text-[#0F4C45]"
-                              : "bg-[#FAF7F2] border-gold/20 text-charcoal/80 hover:border-[#0F4C45]/50"
-                          }`}
-                        >
-                          <input
-                            type="checkbox"
-                            checked={isChecked}
-                            onChange={(e) => {
-                              if (e.target.checked) setCateringSpecialities([...cateringSpecialities, item]);
-                              else setCateringSpecialities(cateringSpecialities.filter((cs) => cs !== item));
-                            }}
-                            className="rounded text-[#0F4C45] focus:ring-[#0F4C45] h-4 w-4"
-                          />
-                          <span>{item}</span>
-                        </label>
-                      );
-                    })}
-                  </div>
+                <div>
+                  <label className="block font-bold text-charcoal mb-1">Security Deposit Policy</label>
+                  <textarea
+                    rows={2}
+                    value={securityDepositPolicy}
+                    onChange={(e) => setSecurityDepositPolicy(e.target.value)}
+                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
+                  />
                 </div>
-              )}
-            </div>
-          </>
-        )}
-      </div>
 
-      {/* Bottom Save Action Bar */}
-      <div className="bg-white rounded-2xl border border-gold/15 p-5 shadow-xs flex items-center justify-between">
-        <span className="text-xs text-charcoal/60 font-medium">
-          Saved storefront branding updates live for all couples on Cloche.
-        </span>
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={isSaving || isUploadingLogo || isUploadingCover || isUploadingVideo}
-          style={{ backgroundColor: activeTheme.primary }}
-          className="hover:opacity-90 disabled:opacity-50 text-white font-bold text-xs px-6 py-3 rounded-xl shadow-xs transition-all flex items-center gap-2 cursor-pointer"
-        >
-          {isSaving ? (
-            <>
-              <Loader2 className="w-4 h-4 text-gold animate-spin" /> Saving...
-            </>
-          ) : (
-            <>
-              <Save className="w-4 h-4 text-gold" /> {saved ? "Storefront Saved!" : "Save Branding"}
-            </>
+                <div>
+                  <label className="block font-bold text-charcoal mb-1">Damage Policy</label>
+                  <textarea
+                    rows={2}
+                    value={damagePolicy}
+                    onChange={(e) => setDamagePolicy(e.target.value)}
+                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
+                  />
+                </div>
+              </div>
+            </div>
           )}
-        </button>
+        </div>
+
+        {/* Section 7: Brand Theme Colors */}
+        <div className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-xs">
+          <button
+            type="button"
+            onClick={() => toggleAccordion("theme")}
+            className="w-full p-5 text-left font-serif font-bold text-base text-charcoal flex items-center justify-between bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <Palette style={{ color: activeTheme.primary }} className="w-5 h-5" />
+              <div>
+                <span className="block">7. Brand Color Theme</span>
+                <span className="text-xs font-sans font-normal text-charcoal/60">
+                  Select your luxury signature palette for buttons, badges & accents
+                </span>
+              </div>
+            </div>
+            {openAccordions.theme ? <ChevronUp className="w-4 h-4 text-charcoal/40" /> : <ChevronDown className="w-4 h-4 text-charcoal/40" />}
+          </button>
+
+          {openAccordions.theme && (
+            <div className="p-5 border-t border-gold/10 space-y-4 text-xs animate-in fade-in duration-200">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {COLOR_THEMES.map((theme) => (
+                  <button
+                    key={theme.id}
+                    type="button"
+                    onClick={() => setColorTheme(theme.id)}
+                    className={`p-3.5 rounded-xl border text-left flex flex-col justify-between space-y-2 transition-all cursor-pointer ${
+                      colorTheme === theme.id
+                        ? "border-2 shadow-xs bg-[#FAF7F2]"
+                        : "border-gold/15 hover:border-gold/30 bg-white"
+                    }`}
+                    style={{ borderColor: colorTheme === theme.id ? theme.primary : undefined }}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-serif font-bold text-xs text-charcoal">{theme.label}</span>
+                      {colorTheme === theme.id && <Check className="w-3.5 h-3.5 text-[#0F4C45]" />}
+                    </div>
+
+                    <div className="flex items-center gap-1.5 pt-1">
+                      <div className="w-5 h-5 rounded-full border border-black/10" style={{ backgroundColor: theme.primary }} />
+                      <div className="w-5 h-5 rounded-full border border-black/10" style={{ backgroundColor: theme.accent }} />
+                      <div className="w-5 h-5 rounded-full border border-black/10" style={{ backgroundColor: theme.secondary }} />
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Section 8: Brand Logo, Cover & Tagline */}
+        <div className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-xs">
+          <button
+            type="button"
+            onClick={() => toggleAccordion("branding")}
+            className="w-full p-5 text-left font-serif font-bold text-base text-charcoal flex items-center justify-between bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <ImageIcon style={{ color: activeTheme.primary }} className="w-5 h-5" />
+              <div>
+                <span className="block">8. Logo, Cover Image & Tagline</span>
+                <span className="text-xs font-sans font-normal text-charcoal/60">
+                  Update primary brand visual assets
+                </span>
+              </div>
+            </div>
+            {openAccordions.branding ? <ChevronUp className="w-4 h-4 text-charcoal/40" /> : <ChevronDown className="w-4 h-4 text-charcoal/40" />}
+          </button>
+
+          {openAccordions.branding && (
+            <div className="p-5 border-t border-gold/10 space-y-4 text-xs animate-in fade-in duration-200">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="p-4 bg-[#FAF7F2] rounded-xl border border-gold/15 space-y-2">
+                  <span className="font-bold text-charcoal block">Brand Logo</span>
+                  <div className="flex items-center gap-3">
+                    <div className="w-14 h-14 rounded-full bg-white border border-gold/20 overflow-hidden shrink-0 flex items-center justify-center">
+                      {logoUrl ? <img src={logoUrl} alt="Logo" className="w-full h-full object-cover" /> : initials}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => logoInputRef.current?.click()}
+                      className="px-3.5 py-2 bg-[#0F4C45] text-white font-bold rounded-xl text-xs hover:bg-[#072B27]"
+                    >
+                      Upload Logo
+                    </button>
+                  </div>
+                </div>
+
+                <div className="p-4 bg-[#FAF7F2] rounded-xl border border-gold/15 space-y-2">
+                  <span className="font-bold text-charcoal block">Store Cover Photo</span>
+                  <div className="flex items-center gap-3">
+                    <div className="w-20 h-14 rounded-xl bg-white border border-gold/20 overflow-hidden shrink-0 flex items-center justify-center">
+                      {coverUrl ? <img src={coverUrl} alt="Cover" className="w-full h-full object-cover" /> : <ImageIcon className="w-5 h-5 text-gray-400" />}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => coverInputRef.current?.click()}
+                      className="px-3.5 py-2 bg-[#0F4C45] text-white font-bold rounded-xl text-xs hover:bg-[#072B27]"
+                    >
+                      Upload Cover
+                    </button>
+                  </div>
+                </div>
+
+                <div className="sm:col-span-2">
+                  <label className="block font-bold text-charcoal mb-1">Store Tagline</label>
+                  <input
+                    type="text"
+                    value={tagline}
+                    onChange={(e) => setTagline(e.target.value)}
+                    placeholder="e.g. Royal Bridal Jewels & Heritage Temple Ornaments"
+                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
