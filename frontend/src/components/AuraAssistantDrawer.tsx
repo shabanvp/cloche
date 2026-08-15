@@ -51,9 +51,10 @@ interface AuraChatMessage {
 interface AuraAssistantDrawerProps {
   isOpen: boolean;
   onClose: () => void;
+  initialQuery?: string;
 }
 
-export function AuraAssistantDrawer({ isOpen, onClose }: AuraAssistantDrawerProps) {
+export function AuraAssistantDrawer({ isOpen, onClose, initialQuery }: AuraAssistantDrawerProps) {
   const [inputQuery, setInputQuery] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [userContext, setUserContext] = useState<AuraUserContext | null>(null);
@@ -146,9 +147,13 @@ export function AuraAssistantDrawer({ isOpen, onClose }: AuraAssistantDrawerProp
 
   useEffect(() => {
     if (isOpen) {
-      setTimeout(() => inputRef.current?.focus(), 150);
+      if (initialQuery) {
+        handleSend(initialQuery);
+      } else {
+        setTimeout(() => inputRef.current?.focus(), 150);
+      }
     }
-  }, [isOpen]);
+  }, [isOpen, initialQuery]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
