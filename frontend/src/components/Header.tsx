@@ -185,6 +185,7 @@ export function Header({ session }: HeaderProps = {}) {
     { label: "Real Weddings", href: "/real-weddings", icon: BookHeart },
     { label: "Photos & Inspiration", href: "/inspiration", icon: Lightbulb },
     { label: "Blogs", href: "/blogs", icon: FileText },
+    { label: "Aura AI Assistant", href: "/genie", icon: Sparkles },
   ];
 
   const companyLinks = [
@@ -300,7 +301,15 @@ export function Header({ session }: HeaderProps = {}) {
           <Link href="/real-weddings" className={`transition-colors ${isActiveLink("/real-weddings") ? "text-gold font-bold" : "hover:text-gold"}`}>Real Weddings</Link>
           <Link href="/blogs" className={`transition-colors ${isActiveLink("/blogs") ? "text-gold font-bold" : "hover:text-gold"}`}>Blog</Link>
           <Link href="/e-invites" className={`transition-colors ${isActiveLink("/e-invites") ? "text-gold font-bold" : "hover:text-gold"}`}>E-Invites</Link>
-          <Link href="/genie" className={`transition-colors ${isActiveLink("/genie") ? "text-gold font-bold" : "hover:text-gold"}`}>Genie</Link>
+          <Link 
+            href="/genie" 
+            className={`transition-colors inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border border-gold/30 bg-white/5 hover:bg-white/10 ${
+              isActiveLink("/genie") || isActiveLink("/aura") ? "text-gold font-bold border-gold shadow-xs" : "text-white/90 hover:text-gold"
+            }`}
+          >
+            <Sparkles className="w-3.5 h-3.5 text-gold animate-pulse" />
+            <span>Aura</span>
+          </Link>
         </nav>
 
         {/* Actions */}
