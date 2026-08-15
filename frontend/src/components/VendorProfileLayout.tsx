@@ -105,6 +105,7 @@ export interface VendorProfileData {
   working_hours?: string;
   experienceYears?: string;
   experience_years?: string;
+  experience?: string;
   priceSuffix?: string;
   stats?: Array<{
     icon: string; // lucide or material icon name

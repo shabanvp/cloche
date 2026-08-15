@@ -35,6 +35,9 @@ export interface VendorProfileData {
   working_hours?: string;
   serviceAreas?: string;
   service_areas?: string;
+  experience?: string;
+  experience_years?: string;
+  experienceYears?: string;
   plan?: string;
   planCode?: string;
   isSubscribed?: boolean;
@@ -302,6 +305,8 @@ export async function fetchAuthenticatedVendorFromDb(): Promise<VendorProfileDat
               serviceAreas: v.service_areas || p.service_areas || "",
               service_areas: v.service_areas || p.service_areas || "",
               experience: v.experience_years || p.experience_years || "",
+              experience_years: v.experience_years || p.experience_years || "",
+              experienceYears: v.experience_years || p.experience_years || "",
               profile_completion_percentage: v.profile_completion_percentage || 0,
               cuisineTypes: Array.isArray(cuisineTypesVal) ? cuisineTypesVal : [],
               cuisine_types: Array.isArray(cuisineTypesVal) ? cuisineTypesVal : [],
