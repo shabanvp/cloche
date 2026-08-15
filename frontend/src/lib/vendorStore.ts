@@ -266,6 +266,8 @@ export async function fetchAuthenticatedVendorFromDb(): Promise<VendorProfileDat
             const serviceLocationsVal = catDetails.service_locations || p.service_locations || p.serviceLocations || [];
             const guestCapacityVal = catDetails.guest_capacity || p.guest_capacity || p.guestCapacity || "";
             const cateringSpecialitiesVal = catDetails.catering_specialities || p.catering_specialities || p.cateringSpecialities || [];
+
+            const resolvedVendor: VendorProfileData = {
               id: v.id || "",
               user_id: v.user_id || "",
               name: bName,
