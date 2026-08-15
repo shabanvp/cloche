@@ -149,7 +149,7 @@ export function AnalyticsSection({ categoryConfig }: AnalyticsSectionProps) {
           </div>
 
           {/* Jewellery Wishlist & Popularity Analytics Breakdown */}
-          {(categoryConfig.slug?.includes("jewel") || categoryConfig.name?.toLowerCase().includes("jewel")) && (
+          {(categoryConfig.id === "jewellery" || categoryConfig.slug?.includes("jewel") || categoryConfig.name?.toLowerCase().includes("jewel")) && (
             <div className="space-y-4">
               <h3 className="font-serif font-bold text-lg text-charcoal">Wishlist & Popularity Analytics</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
