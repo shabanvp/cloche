@@ -147,6 +147,68 @@ export function AnalyticsSection({ categoryConfig }: AnalyticsSectionProps) {
               ))}
             </div>
           </div>
+
+          {/* Jewellery Wishlist & Popularity Analytics Breakdown */}
+          {(categoryConfig.slug?.includes("jewel") || categoryConfig.name?.toLowerCase().includes("jewel")) && (
+            <div className="space-y-4">
+              <h3 className="font-serif font-bold text-lg text-charcoal">Wishlist & Popularity Analytics</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                <div className="bg-white p-5 rounded-2xl border border-gold/15 shadow-xs space-y-3">
+                  <h4 className="font-serif font-bold text-sm text-[#0F4C45]">Most Viewed Pieces</h4>
+                  <ul className="space-y-2 text-charcoal/80 font-medium">
+                    <li className="flex justify-between">
+                      <span className="truncate">1. Kundan Bridal Choker Set</span>
+                      <strong className="text-charcoal">420 views</strong>
+                    </li>
+                    <li className="flex justify-between">
+                      <span className="truncate">2. Temple Pure Silver Haram</span>
+                      <strong className="text-charcoal">310 views</strong>
+                    </li>
+                    <li className="flex justify-between">
+                      <span className="truncate">3. Solitaire CZ Layered Necklace</span>
+                      <strong className="text-charcoal">285 views</strong>
+                    </li>
+                  </ul>
+                </div>
+
+                <div className="bg-white p-5 rounded-2xl border border-gold/15 shadow-xs space-y-3">
+                  <h4 className="font-serif font-bold text-sm text-amber-900">Most Wishlisted Items</h4>
+                  <ul className="space-y-2 text-charcoal/80 font-medium">
+                    <li className="flex justify-between">
+                      <span className="truncate">1. Polki Ruby Mathapatti</span>
+                      <strong className="text-amber-900">184 saves</strong>
+                    </li>
+                    <li className="flex justify-between">
+                      <span className="truncate">2. Gold-Plated Peacock Jhumkas</span>
+                      <strong className="text-amber-900">142 saves</strong>
+                    </li>
+                    <li className="flex justify-between">
+                      <span className="truncate">3. Floral Haldi Hathphool Combo</span>
+                      <strong className="text-amber-900">120 saves</strong>
+                    </li>
+                  </ul>
+                </div>
+
+                <div className="bg-white p-5 rounded-2xl border border-gold/15 shadow-xs space-y-3">
+                  <h4 className="font-serif font-bold text-sm text-emerald-900">Highest Booked Collections</h4>
+                  <ul className="space-y-2 text-charcoal/80 font-medium">
+                    <li className="flex justify-between">
+                      <span className="truncate">1. Royal Kundan Bridal Sets</span>
+                      <strong className="text-emerald-900">14 Bookings</strong>
+                    </li>
+                    <li className="flex justify-between">
+                      <span className="truncate">2. Haldi & Mehendi Floral Sets</span>
+                      <strong className="text-emerald-900">11 Bookings</strong>
+                    </li>
+                    <li className="flex justify-between">
+                      <span className="truncate">3. Pure Silver Temple Sets</span>
+                      <strong className="text-emerald-900">9 Bookings</strong>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          )}
         </>
       )}
     </div>
