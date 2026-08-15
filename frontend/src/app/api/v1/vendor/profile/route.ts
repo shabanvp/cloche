@@ -126,11 +126,33 @@ export async function GET(req: Request) {
       if (Array.isArray(verRows)) versions = verRows;
     }
 
+    // 4. Fetch real subscription tier from vendor_subscriptions table
+    let activePlan: { name: string; code: string; expiresAt?: string } | null = null;
+    if (vendor.id) {
+      const subRes = await fetch(
+        `${url}/rest/v1/vendor_subscriptions?vendor_id=eq.${encodeURIComponent(vendor.id)}&status=eq.active&select=*,plan:subscription_plans(name,code)&order=created_at.desc&limit=1`,
+        { headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` } }
+      ).catch(() => null);
+      if (subRes && subRes.ok) {
+        const subs = await subRes.json();
+        if (Array.isArray(subs) && subs.length > 0 && subs[0]?.plan) {
+          activePlan = {
+            name: subs[0].plan.name,
+            code: subs[0].plan.code,
+            expiresAt: subs[0].expires_at || subs[0].current_period_end,
+          };
+        }
+      }
+    }
+
     const primaryContactName = contacts[0]?.contact_name || auth.user.fullName || "";
     const resolvedContacts = contacts.map((c: any) => ({
       ...c,
       contact_name: c.contact_name || primaryContactName,
     }));
+
+    const resolvedPlanName = activePlan ? activePlan.name : (vendor.is_verified ? "Verified Partner" : "Registered Partner");
+    const resolvedPlanCode = activePlan ? activePlan.code : "free";
 
     return NextResponse.json(
       {
@@ -151,6 +173,10 @@ export async function GET(req: Request) {
             isVerified: vendor.is_verified,
             isKycVerified: vendor.is_kyc_verified,
             category,
+            plan: resolvedPlanName,
+            planCode: resolvedPlanCode,
+            isSubscribed: Boolean(activePlan),
+            subscription: activePlan,
           },
           profile,
           contacts: resolvedContacts.length > 0 ? resolvedContacts : [{ contact_name: primaryContactName }],

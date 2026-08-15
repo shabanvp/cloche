@@ -4,40 +4,25 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, CheckCircle2, ShieldCheck, Star } from "lucide-react";
 import { BottomNavBar } from "@/components/BottomNavBar";
+import { fetchAuthenticatedVendorFromDb, getActiveVendorIdentity } from "@/lib/vendorStore";
 
 export default function VendorSubscriptionPage() {
   const [businessName, setBusinessName] = useState("Your Business");
-  const [currentPlan, setCurrentPlan] = useState("Premium Partner");
+  const [currentPlan, setCurrentPlan] = useState("Registered Partner");
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const storedName =
-          localStorage.getItem("boutique_name") ||
-          localStorage.getItem("vendor_name") ||
-          localStorage.getItem("businessName") ||
-          localStorage.getItem("user_name");
-
-        const rawUserData = localStorage.getItem("cloche_user_data");
-        const rawVendors = localStorage.getItem("cloche_registered_vendors");
-
-        if (storedName) setBusinessName(storedName);
-
-        if (rawUserData) {
-          const u = JSON.parse(rawUserData);
-          if (u.boutique_name || u.name || u.businessName) {
-            setBusinessName(u.boutique_name || u.name || u.businessName);
-          }
-          if (u.plan) setCurrentPlan(u.plan);
-        } else if (rawVendors) {
-          const v = JSON.parse(rawVendors);
-          if (v.length > 0) {
-            if (v[0].boutique_name || v[0].name) setBusinessName(v[0].boutique_name || v[0].name);
-            if (v[0].plan) setCurrentPlan(v[0].plan);
-          }
-        }
-      } catch (e) {}
+    const cached = getActiveVendorIdentity();
+    if (cached) {
+      if (cached.name || cached.boutique_name) setBusinessName(cached.name || cached.boutique_name);
+      if (cached.plan) setCurrentPlan(cached.plan);
     }
+
+    fetchAuthenticatedVendorFromDb().then((identity) => {
+      if (identity) {
+        if (identity.name || identity.boutique_name) setBusinessName(identity.name || identity.boutique_name);
+        if (identity.plan) setCurrentPlan(identity.plan);
+      }
+    });
   }, []);
 
   return (

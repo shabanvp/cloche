@@ -36,6 +36,10 @@ export interface VendorProfileData {
   serviceAreas?: string;
   service_areas?: string;
   plan?: string;
+  planCode?: string;
+  isSubscribed?: boolean;
+  is_verified?: boolean;
+  isVerified?: boolean;
   profile_completion_percentage?: number;
   cuisineTypes?: string[];
   cuisine_types?: string[];
@@ -307,6 +311,11 @@ export async function fetchAuthenticatedVendorFromDb(): Promise<VendorProfileDat
               guest_capacity: guestCapacityVal,
               cateringSpecialities: Array.isArray(cateringSpecialitiesVal) ? cateringSpecialitiesVal : [],
               catering_specialities: Array.isArray(cateringSpecialitiesVal) ? cateringSpecialitiesVal : [],
+              plan: v.plan || (v.isVerified ? "Verified Partner" : "Registered Partner"),
+              planCode: v.planCode || "free",
+              isSubscribed: Boolean(v.isSubscribed),
+              is_verified: Boolean(v.isVerified),
+              isVerified: Boolean(v.isVerified),
             };
 
             if (typeof window !== "undefined") {
