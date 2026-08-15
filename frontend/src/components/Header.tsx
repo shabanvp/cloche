@@ -181,10 +181,9 @@ export function Header({ session }: HeaderProps = {}) {
     { label: "Home", href: "/", icon: Home },
     { label: "Venues", href: "/venues", icon: MapPin },
     { label: "Vendors", href: "/boutiques", icon: Users },
-    { label: "Exclusive Deals", href: "/deals", icon: Sparkles },
+    { label: "Inspiration", href: "/inspiration", icon: Lightbulb },
     { label: "Real Weddings", href: "/real-weddings", icon: BookHeart },
-    { label: "Photos & Inspiration", href: "/inspiration", icon: Lightbulb },
-    { label: "Blogs", href: "/blogs", icon: FileText },
+    { label: "Deals", href: "/deals", icon: Sparkles },
     { label: "Aura AI Assistant", href: "/genie", icon: Sparkles },
   ];
 
@@ -297,10 +296,9 @@ export function Header({ session }: HeaderProps = {}) {
         <nav className="hidden lg:flex items-center gap-5 xl:gap-8 font-semibold text-[14px] xl:text-[15px]">
           <Link href="/venues" className={`transition-colors ${isActiveLink("/venues") ? "text-gold font-bold" : "hover:text-gold"}`}>Venues</Link>
           <Link href="/boutiques" className={`transition-colors ${isActiveLink("/boutiques") ? "text-gold font-bold" : "hover:text-gold"}`}>Vendors</Link>
-          <Link href="/inspiration" className={`transition-colors ${isActiveLink("/inspiration") ? "text-gold font-bold" : "hover:text-gold"}`}>Photos</Link>
+          <Link href="/inspiration" className={`transition-colors ${isActiveLink("/inspiration") ? "text-gold font-bold" : "hover:text-gold"}`}>Inspiration</Link>
           <Link href="/real-weddings" className={`transition-colors ${isActiveLink("/real-weddings") ? "text-gold font-bold" : "hover:text-gold"}`}>Real Weddings</Link>
-          <Link href="/blogs" className={`transition-colors ${isActiveLink("/blogs") ? "text-gold font-bold" : "hover:text-gold"}`}>Blog</Link>
-          <Link href="/e-invites" className={`transition-colors ${isActiveLink("/e-invites") ? "text-gold font-bold" : "hover:text-gold"}`}>E-Invites</Link>
+          <Link href="/deals" className={`transition-colors ${isActiveLink("/deals") ? "text-gold font-bold" : "hover:text-gold"}`}>Deals</Link>
           <Link 
             href="/genie" 
             className={`transition-colors inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border border-gold/30 bg-white/5 hover:bg-white/10 ${
