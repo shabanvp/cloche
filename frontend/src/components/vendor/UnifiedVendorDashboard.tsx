@@ -30,7 +30,7 @@ import { CustomizeStoreSection } from "./sections/CustomizeStoreSection";
 import { VendorMediaModule } from "./sections/VendorMediaModule";
 import { VendorPricingModule } from "./sections/VendorPricingModule";
 import { VendorCoverHeader } from "./VendorCoverHeader";
-import { getActiveVendorIdentity, fetchAuthenticatedVendorFromDb, clearActiveVendorIdentity } from "@/lib/vendorStore";
+import { getActiveVendorIdentity, fetchAuthenticatedVendorFromDb, clearActiveVendorIdentity, normalizeVendorCategoryKey } from "@/lib/vendorStore";
 
 import { JewelleryInventorySection } from "./jewellery/JewelleryInventorySection";
 import { JewelleryOrdersSection } from "./jewellery/JewelleryOrdersSection";
