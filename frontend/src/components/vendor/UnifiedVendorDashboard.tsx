@@ -27,6 +27,7 @@ import { OffersSection } from "./sections/OffersSection";
 import { AnalyticsSection } from "./sections/AnalyticsSection";
 import { SubscriptionSection } from "./sections/SubscriptionSection";
 import { CustomizeStoreSection } from "./sections/CustomizeStoreSection";
+import { DecorCustomizeStoreSection } from "./decor/sections/DecorCustomizeStoreSection";
 import { VendorMediaModule } from "./sections/VendorMediaModule";
 import { VendorPricingModule } from "./sections/VendorPricingModule";
 import { VendorCoverHeader } from "./VendorCoverHeader";
@@ -129,6 +130,7 @@ export function UnifiedVendorDashboard({ categoryKey = "caterers" }: UnifiedVend
 
   const isJewellery = activeCategoryKey === "jewellery" || vendorCategoryName.toLowerCase().includes("jewel");
   const isVenue = activeCategoryKey === "venues" || vendorCategoryName.toLowerCase().includes("venue");
+  const isDecor = activeCategoryKey === "planners" || activeCategoryKey === "decor" || vendorCategoryName.toLowerCase().includes("decor") || vendorCategoryName.toLowerCase().includes("planner");
 
   // Navigation items matching requested structure
   let navItems;
@@ -253,6 +255,8 @@ export function UnifiedVendorDashboard({ categoryKey = "caterers" }: UnifiedVend
       case "customize-store":
         return isVenue ? (
           <VenueCustomizeStoreSection vendorName={vendorName} categoryConfig={categoryConfig} onBack={() => setActiveTab(null)} />
+        ) : isDecor ? (
+          <DecorCustomizeStoreSection vendorName={vendorName} onBack={() => setActiveTab(null)} />
         ) : (
           <CustomizeStoreSection categoryConfig={categoryConfig} vendorName={vendorName} onBack={() => setActiveTab(null)} />
         );

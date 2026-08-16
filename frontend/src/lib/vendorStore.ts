@@ -182,6 +182,22 @@ export interface VendorProfileData {
   group_booking_policy?: string;
   travelPolicy?: string;
   travel_policy?: string;
+
+  // Wedding Decorator specific attributes (matching Supabase decor_details columns)
+  decorHighlights?: string[];
+  decor_highlights?: string[];
+  featuredThemes?: string[];
+  featured_themes?: string[];
+  eventsCompleted?: string;
+  events_completed?: string;
+  decorServices?: string[];
+  decor_services?: string[];
+  setupTeardownPolicy?: string;
+  setup_teardown_policy?: string;
+  propertyDamagePolicy?: string;
+  property_damage_policy?: string;
+  siteSurveyAvailable?: boolean;
+  site_survey_available?: boolean;
 }
 
 /**
