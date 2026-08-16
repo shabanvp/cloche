@@ -301,12 +301,12 @@ export function VenueCustomizeStoreSection({
     if (data.youtube) setYoutube(data.youtube || "");
 
     // Venue Highlights
-    const hl = data.venueHighlights || data.venue_highlights || data.storeHighlights || data.store_highlights;
-    if (Array.isArray(hl) && hl.length > 0) setVenueHighlights(hl);
+    const rawHighlights = data.venueHighlights || data.venue_highlights || data.storeHighlights || data.store_highlights;
+    if (Array.isArray(rawHighlights) && rawHighlights.length > 0) setVenueHighlights(rawHighlights);
 
     // Featured Halls
-    const halls = data.featuredHalls || data.featured_halls;
-    if (Array.isArray(halls) && halls.length > 0) setFeaturedHalls(halls);
+    const rawHalls = data.featuredHalls || data.featured_halls;
+    if (Array.isArray(rawHalls) && rawHalls.length > 0) setFeaturedHalls(rawHalls);
 
     // Venue Information
     if (data.yearsInBusiness || data.years_in_business || data.experience_years || data.experience) {
@@ -322,7 +322,7 @@ export function VenueCustomizeStoreSection({
 
     // Contact Action Buttons
     if (data.actionButtons || data.action_buttons) {
-      const act = data.actionButtons || data.action_buttons;
+      const act: Record<string, any> = (data.actionButtons || data.action_buttons || {}) as Record<string, any>;
       setActionButtons({
         callNow: Boolean(act.callNow ?? true),
         whatsapp: Boolean(act.whatsapp ?? true),

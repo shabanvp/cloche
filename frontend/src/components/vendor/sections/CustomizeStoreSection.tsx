@@ -267,7 +267,8 @@ export function CustomizeStoreSection({ categoryConfig, vendorName }: CustomizeS
     if (identity.citiesServed || identity.cities_served) setCitiesServed(identity.citiesServed || identity.cities_served || "");
 
     if (identity.actionButtons || identity.action_buttons) {
-      setActionButtons({ ...actionButtons, ...(identity.actionButtons || identity.action_buttons) });
+      const act: Record<string, any> = (identity.actionButtons || identity.action_buttons || {}) as Record<string, any>;
+      setActionButtons({ ...actionButtons, ...act });
     }
 
     if (identity.openingTime || identity.opening_time) setOpeningTime(identity.openingTime || identity.opening_time || "");

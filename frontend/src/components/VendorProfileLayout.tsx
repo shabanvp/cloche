@@ -876,9 +876,9 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
             )}
 
             {/* Store Highlights Badges on Mobile */}
-            {(vendor.storeHighlights || vendor.store_highlights) && (vendor.storeHighlights || vendor.store_highlights)!.length > 0 && (
+            {((vendor.storeHighlights || vendor.store_highlights) ?? []).length > 0 && (
               <div className="flex flex-wrap items-center gap-1.5 mt-2">
-                {(vendor.storeHighlights || vendor.store_highlights)!.map((badge) => (
+                {(vendor.storeHighlights || vendor.store_highlights || []).map((badge) => (
                   <span
                     key={badge}
                     className="bg-[#FAF7F2] text-[#0F4C45] text-[10px] font-bold px-2 py-0.5 rounded-full border border-[#0F4C45]/20 flex items-center gap-1"
@@ -892,7 +892,7 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
         </div>
 
         {/* Featured Collections Strip (Jewellery Only) */}
-        {isJewellery && (vendor.featuredCollections || vendor.featured_collections) && (vendor.featuredCollections || vendor.featured_collections)!.length > 0 && (
+        {isJewellery && ((vendor.featuredCollections || vendor.featured_collections) ?? []).length > 0 && (
           <section className="rounded-2xl bg-white p-4 sm:p-5 border border-black/5 shadow-xs space-y-2.5">
             <div className="flex items-center justify-between">
               <h2 className="font-serif text-sm sm:text-base font-bold text-[#1A1410] flex items-center gap-2">
@@ -901,7 +901,7 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
               <span className="text-[11px] text-[#7A6E65] font-medium">Curated by Store</span>
             </div>
             <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar pb-1">
-              {(vendor.featuredCollections || vendor.featured_collections)!.map((col: string) => (
+              {(vendor.featuredCollections || vendor.featured_collections || []).map((col: string) => (
                 <span
                   key={col}
                   className="bg-[#FAF5EA] text-[#0F4C45] border border-[#E8DFD1] text-xs font-bold px-3.5 py-1.5 rounded-xl shrink-0 shadow-2xs flex items-center gap-1.5"
@@ -914,7 +914,7 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
         )}
 
         {/* Featured Halls Strip (Venues Only) */}
-        {isVenue && (vendor.featuredHalls || vendor.featured_halls) && (vendor.featuredHalls || vendor.featured_halls)!.length > 0 && (
+        {isVenue && ((vendor.featuredHalls || vendor.featured_halls) ?? []).length > 0 && (
           <section className="rounded-2xl bg-white p-4 sm:p-5 border border-black/5 shadow-xs space-y-2.5">
             <div className="flex items-center justify-between">
               <h2 className="font-serif text-sm sm:text-base font-bold text-[#1A1410] flex items-center gap-2">
@@ -923,7 +923,7 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
               <span className="text-[11px] text-[#7A6E65] font-medium">Curated by Venue</span>
             </div>
             <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar pb-1">
-              {(vendor.featuredHalls || vendor.featured_halls)!.map((hall: string) => (
+              {(vendor.featuredHalls || vendor.featured_halls || []).map((hall: string) => (
                 <span
                   key={hall}
                   className="bg-[#FAF5EA] text-[#0F4C45] border border-[#E8DFD1] text-xs font-bold px-3.5 py-1.5 rounded-xl shrink-0 shadow-2xs flex items-center gap-1.5"
@@ -936,18 +936,18 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
         )}
 
         {/* Venue Facilities & Spaces (Venues Only) */}
-        {isVenue && (vendor.facilities || vendor.venue_facilities) && (vendor.facilities || vendor.venue_facilities)!.length > 0 && (
+        {isVenue && ((vendor.facilities || vendor.venue_facilities) ?? []).length > 0 && (
           <section className="rounded-2xl bg-white p-4 sm:p-5 md:p-6 lg:p-8 border border-black/5 shadow-xs space-y-3">
             <div className="flex items-center justify-between border-b border-black/5 pb-3">
               <h2 className="font-serif text-[clamp(1rem,1.5vw,1.625rem)] font-bold text-[#1A1410] flex items-center gap-2">
                 <Layers className="w-5 h-5 text-[#0F4C45]" /> Venue Facilities & Spaces
               </h2>
               <span className="text-xs font-bold text-[#0F4C45]">
-                {(vendor.facilities || vendor.venue_facilities)!.length} Verified Amenities
+                {(vendor.facilities || vendor.venue_facilities || []).length} Verified Amenities
               </span>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 pt-1">
-              {(vendor.facilities || vendor.venue_facilities)!.map((fac: string) => (
+              {(vendor.facilities || vendor.venue_facilities || []).map((fac: string) => (
                 <div
                   key={fac}
                   className="bg-[#FAF7F2] p-3 rounded-xl border border-black/5 flex items-center gap-2 text-xs font-bold text-[#2D2520]"
