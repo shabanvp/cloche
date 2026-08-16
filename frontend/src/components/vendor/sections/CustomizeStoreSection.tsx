@@ -257,30 +257,30 @@ export function CustomizeStoreSection({ categoryConfig, vendorName }: CustomizeS
       setFeaturedCollections(identity.featuredCollections || identity.featured_collections);
     }
     if (identity.experienceYears || identity.experience_years || identity.experience) {
-      setExperienceYears(identity.experienceYears || identity.experience_years || identity.experience);
+      setExperienceYears(identity.experienceYears || identity.experience_years || identity.experience || "");
     }
     if (identity.rentalAvailable !== undefined) setRentalAvailable(Boolean(identity.rentalAvailable));
     if (identity.homeTrialAvailable !== undefined) setHomeTrialAvailable(Boolean(identity.homeTrialAvailable));
     if (identity.homeDeliveryAvailable !== undefined) setHomeDeliveryAvailable(Boolean(identity.homeDeliveryAvailable));
     if (identity.customJewelleryAvailable !== undefined) setCustomJewelleryAvailable(Boolean(identity.customJewelleryAvailable));
-    if (identity.collectionsCount || identity.collections_count) setCollectionsCount(identity.collectionsCount || identity.collections_count);
-    if (identity.citiesServed || identity.cities_served) setCitiesServed(identity.citiesServed || identity.cities_served);
+    if (identity.collectionsCount || identity.collections_count) setCollectionsCount(identity.collectionsCount || identity.collections_count || "");
+    if (identity.citiesServed || identity.cities_served) setCitiesServed(identity.citiesServed || identity.cities_served || "");
 
     if (identity.actionButtons || identity.action_buttons) {
       setActionButtons({ ...actionButtons, ...(identity.actionButtons || identity.action_buttons) });
     }
 
-    if (identity.openingTime || identity.opening_time) setOpeningTime(identity.openingTime || identity.opening_time);
-    if (identity.closingTime || identity.closing_time) setClosingTime(identity.closingTime || identity.closing_time);
-    if (identity.workingDays || identity.working_days) setWorkingDays(identity.workingDays || identity.working_days);
-    if (identity.weeklyOff || identity.weekly_off) setWeeklyOff(identity.weeklyOff || identity.weekly_off);
-    if (identity.holidayNotice || identity.holiday_notice) setHolidayNotice(identity.holidayNotice || identity.holiday_notice);
+    if (identity.openingTime || identity.opening_time) setOpeningTime(identity.openingTime || identity.opening_time || "");
+    if (identity.closingTime || identity.closing_time) setClosingTime(identity.closingTime || identity.closing_time || "");
+    if (identity.workingDays || identity.working_days) setWorkingDays(identity.workingDays || identity.working_days || "");
+    if (identity.weeklyOff || identity.weekly_off) setWeeklyOff(identity.weeklyOff || identity.weekly_off || "");
+    if (identity.holidayNotice || identity.holiday_notice) setHolidayNotice(identity.holidayNotice || identity.holiday_notice || "");
 
-    if (identity.rentalPolicy || identity.rental_policy) setRentalPolicy(identity.rentalPolicy || identity.rental_policy);
-    if (identity.returnPolicy || identity.return_policy) setReturnPolicy(identity.returnPolicy || identity.return_policy);
-    if (identity.cancellationPolicy || identity.cancellation_policy) setCancellationPolicy(identity.cancellationPolicy || identity.cancellation_policy);
-    if (identity.securityDepositPolicy || identity.security_deposit_policy) setSecurityDepositPolicy(identity.securityDepositPolicy || identity.security_deposit_policy);
-    if (identity.damagePolicy || identity.damage_policy) setDamagePolicy(identity.damagePolicy || identity.damage_policy);
+    if (identity.rentalPolicy || identity.rental_policy) setRentalPolicy(identity.rentalPolicy || identity.rental_policy || "");
+    if (identity.returnPolicy || identity.return_policy) setReturnPolicy(identity.returnPolicy || identity.return_policy || "");
+    if (identity.cancellationPolicy || identity.cancellation_policy) setCancellationPolicy(identity.cancellationPolicy || identity.cancellation_policy || "");
+    if (identity.securityDepositPolicy || identity.security_deposit_policy) setSecurityDepositPolicy(identity.securityDepositPolicy || identity.security_deposit_policy || "");
+    if (identity.damagePolicy || identity.damage_policy) setDamagePolicy(identity.damagePolicy || identity.damage_policy || "");
   };
 
   useEffect(() => {

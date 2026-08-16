@@ -281,24 +281,24 @@ export function VenueCustomizeStoreSection({
     // Branding
     if (data.logo || data.logo_url) setLogoUrl(data.logo || data.logo_url || "");
     if (data.coverImage || data.cover_image) setCoverUrl(data.coverImage || data.cover_image || "");
-    if (data.tagline) setTagline(data.tagline);
+    if (data.tagline) setTagline(data.tagline || "");
     if (data.about || data.description) setAbout(data.about || data.description || "");
     if (data.colorTheme || data.color_theme) setColorTheme(data.colorTheme || data.color_theme || "emerald");
     if (data.introVideo || data.intro_video || data.intro_video_url) {
       setIntroVideo(data.introVideo || data.intro_video || data.intro_video_url || "");
     }
     if (Array.isArray(data.galleryImages || data.gallery_images)) {
-      setGalleryImages(data.galleryImages || data.gallery_images || []);
+      setGalleryImages((data.galleryImages || data.gallery_images) ?? []);
     }
     if (Array.isArray(data.hallImages || data.hall_images)) {
-      setHallImages(data.hallImages || data.hall_images || []);
+      setHallImages((data.hallImages || data.hall_images) ?? []);
     }
 
     // Social Links
-    if (data.instagram) setInstagram(data.instagram);
-    if (data.facebook) setFacebook(data.facebook);
-    if (data.website) setWebsite(data.website);
-    if (data.youtube) setYoutube(data.youtube);
+    if (data.instagram) setInstagram(data.instagram || "");
+    if (data.facebook) setFacebook(data.facebook || "");
+    if (data.website) setWebsite(data.website || "");
+    if (data.youtube) setYoutube(data.youtube || "");
 
     // Venue Highlights
     const hl = data.venueHighlights || data.venue_highlights || data.storeHighlights || data.store_highlights;
@@ -310,36 +310,36 @@ export function VenueCustomizeStoreSection({
 
     // Venue Information
     if (data.yearsInBusiness || data.years_in_business || data.experience_years || data.experience) {
-      setYearsInBusiness(String(data.yearsInBusiness || data.years_in_business || data.experience_years || data.experience));
+      setYearsInBusiness(String(data.yearsInBusiness || data.years_in_business || data.experience_years || data.experience || ""));
     }
-    if (data.guestCapacity || data.guest_capacity) setGuestCapacity(data.guestCapacity || data.guest_capacity);
-    if (data.minGuestCapacity || data.min_guest_capacity) setMinGuestCapacity(data.minGuestCapacity || data.min_guest_capacity);
-    if (data.numberOfHalls || data.number_of_halls) setNumberOfHalls(data.numberOfHalls || data.number_of_halls);
-    if (data.diningCapacity || data.dining_capacity) setDiningCapacity(data.diningCapacity || data.dining_capacity);
-    if (data.parkingCapacity || data.parking_capacity) setParkingCapacity(data.parkingCapacity || data.parking_capacity);
-    if (data.serviceAreas || data.service_areas) setServiceAreas(data.serviceAreas || data.service_areas);
-    if (data.languagesSpoken || data.languages_spoken) setLanguagesSpoken(data.languagesSpoken || data.languages_spoken);
+    if (data.guestCapacity || data.guest_capacity) setGuestCapacity(data.guestCapacity || data.guest_capacity || "");
+    if (data.minGuestCapacity || data.min_guest_capacity) setMinGuestCapacity(data.minGuestCapacity || data.min_guest_capacity || "");
+    if (data.numberOfHalls || data.number_of_halls) setNumberOfHalls(data.numberOfHalls || data.number_of_halls || "");
+    if (data.diningCapacity || data.dining_capacity) setDiningCapacity(data.diningCapacity || data.dining_capacity || "");
+    if (data.parkingCapacity || data.parking_capacity) setParkingCapacity(data.parkingCapacity || data.parking_capacity || "");
+    if (data.serviceAreas || data.service_areas) setServiceAreas(data.serviceAreas || data.service_areas || "");
+    if (data.languagesSpoken || data.languages_spoken) setLanguagesSpoken(data.languagesSpoken || data.languages_spoken || "");
 
     // Contact Action Buttons
     if (data.actionButtons || data.action_buttons) {
       const act = data.actionButtons || data.action_buttons;
       setActionButtons({
-        callNow: act.callNow ?? true,
-        whatsapp: act.whatsapp ?? true,
-        bookVenueVisit: act.bookVenueVisit ?? act.bookAppointment ?? true,
-        requestQuote: act.requestQuote ?? act.getQuote ?? true,
-        getDirections: act.getDirections ?? act.visitStore ?? true,
-        website: act.website ?? true,
+        callNow: Boolean(act.callNow ?? true),
+        whatsapp: Boolean(act.whatsapp ?? true),
+        bookVenueVisit: Boolean(act.bookVenueVisit ?? act.bookAppointment ?? true),
+        requestQuote: Boolean(act.requestQuote ?? act.getQuote ?? true),
+        getDirections: Boolean(act.getDirections ?? act.visitStore ?? true),
+        website: Boolean(act.website ?? true),
       });
     }
 
     // Working Hours & Visit Timings
-    if (data.openingTime || data.opening_time) setOpeningTime(data.openingTime || data.opening_time);
-    if (data.closingTime || data.closing_time) setClosingTime(data.closingTime || data.closing_time);
-    if (data.weeklyHolidays || data.weekly_holidays) setWeeklyHolidays(data.weeklyHolidays || data.weekly_holidays);
-    if (data.venueVisitTimings || data.venue_visit_timings) setVenueVisitTimings(data.venueVisitTimings || data.venue_visit_timings);
+    if (data.openingTime || data.opening_time) setOpeningTime(data.openingTime || data.opening_time || "");
+    if (data.closingTime || data.closing_time) setClosingTime(data.closingTime || data.closing_time || "");
+    if (data.weeklyHolidays || data.weekly_holidays) setWeeklyHolidays(data.weeklyHolidays || data.weekly_holidays || "");
+    if (data.venueVisitTimings || data.venue_visit_timings) setVenueVisitTimings(data.venueVisitTimings || data.venue_visit_timings || "");
     if (data.publicHolidayAvailability || data.public_holiday_availability) {
-      setPublicHolidayAvailability(data.publicHolidayAvailability || data.public_holiday_availability);
+      setPublicHolidayAvailability(data.publicHolidayAvailability || data.public_holiday_availability || "");
     }
     if (data.advanceAppointmentRequired !== undefined || data.advance_appointment_required !== undefined) {
       setAdvanceAppointmentRequired(Boolean(data.advanceAppointmentRequired ?? data.advance_appointment_required));
@@ -347,37 +347,37 @@ export function VenueCustomizeStoreSection({
 
     // Booking Policies
     if (data.advanceBookingRequired || data.advance_booking_required) {
-      setAdvanceBookingRequired(data.advanceBookingRequired || data.advance_booking_required);
+      setAdvanceBookingRequired(data.advanceBookingRequired || data.advance_booking_required || "");
     }
     if (data.advancePaymentPolicy || data.advance_payment_policy) {
-      setAdvancePaymentPolicy(data.advancePaymentPolicy || data.advance_payment_policy);
+      setAdvancePaymentPolicy(data.advancePaymentPolicy || data.advance_payment_policy || "");
     }
     if (data.cancellationPolicy || data.cancellation_policy) {
-      setCancellationPolicy(data.cancellationPolicy || data.cancellation_policy);
+      setCancellationPolicy(data.cancellationPolicy || data.cancellation_policy || "");
     }
     if (data.refundPolicy || data.refund_policy) {
-      setRefundPolicy(data.refundPolicy || data.refund_policy);
+      setRefundPolicy(data.refundPolicy || data.refund_policy || "");
     }
     if (data.decorationRules || data.decoration_rules) {
-      setDecorationRules(data.decorationRules || data.decoration_rules);
+      setDecorationRules(data.decorationRules || data.decoration_rules || "");
     }
     if (data.outsideCateringPolicy || data.outside_catering_policy) {
-      setOutsideCateringPolicy(data.outsideCateringPolicy || data.outside_catering_policy);
+      setOutsideCateringPolicy(data.outsideCateringPolicy || data.outside_catering_policy || "");
     }
     if (data.outsidePhotographyPolicy || data.outside_photography_policy) {
-      setOutsidePhotographyPolicy(data.outsidePhotographyPolicy || data.outside_photography_policy);
+      setOutsidePhotographyPolicy(data.outsidePhotographyPolicy || data.outside_photography_policy || "");
     }
     if (data.noiseRestrictions || data.noise_restrictions) {
-      setNoiseRestrictions(data.noiseRestrictions || data.noise_restrictions);
+      setNoiseRestrictions(data.noiseRestrictions || data.noise_restrictions || "");
     }
     if (data.alcoholPolicy || data.alcohol_policy) {
-      setAlcoholPolicy(data.alcoholPolicy || data.alcohol_policy);
+      setAlcoholPolicy(data.alcoholPolicy || data.alcohol_policy || "");
     }
     if (data.overtimeCharges || data.overtime_charges) {
-      setOvertimeCharges(data.overtimeCharges || data.overtime_charges);
+      setOvertimeCharges(data.overtimeCharges || data.overtime_charges || "");
     }
     if (data.eventTimingRules || data.event_timing_rules) {
-      setEventTimingRules(data.eventTimingRules || data.event_timing_rules);
+      setEventTimingRules(data.eventTimingRules || data.event_timing_rules || "");
     }
   };
 
