@@ -2,12 +2,11 @@
 // CLOCHE INSPIRATION DATA
 //
 // ARCHITECTURE:
-//   - Categories backed by Pexels API (dynamically fetched via
-//     GET /api/v1/inspiration/photos?category=X) — no hardcoded photo IDs.
-//   - "Color Themes" is STATIC and EDITORIAL — hand-curated palettes.
-//     These are not photo-searchable; they stay here as genuine curation.
-//   - ALL other category items are now fetched live; this file exports only
-//     the category metadata, Color Theme items, and supporting constants.
+//   - Dynamic categories → Pexels API via /api/v1/inspiration/photos?category=X
+//   - "Color Themes" → static editorial palettes (not photo-searchable)
+//   - Collections → curated groupings that map to Pexels category queries
+//   - No hardcoded photo IDs. No fabricated titles for API photos.
+//   - Photographer attribution required by Pexels ToS — always rendered.
 // ─────────────────────────────────────────────────────────────────────────────
 
 export interface ColorSwatch {
@@ -25,107 +24,148 @@ export type InspirationCategory =
   | "Color Themes"
   | "Seasonal Trends";
 
-// Shape of a photo returned from the server API (/api/v1/inspiration/photos)
+// Shape of a photo from the Pexels API server route
 export interface DynamicInspirationPhoto {
   id: string;
   category: InspirationCategory;
-  // Image URLs from Pexels
-  src: {
-    large2x: string;
-    large: string;
-    medium: string;
-  };
+  src: { large2x: string; large: string; medium: string };
   width: number;
   height: number;
-  // Attribution — required by Pexels ToS
+  // Pexels attribution — required by ToS on every display
   photographer: string;
   photographer_url: string;
-  pexels_url: string; // link to original Pexels page
-  alt: string | null; // Pexels-provided alt text (used as caption; never invented)
+  pexels_url: string;
+  alt: string | null;
 }
 
-// Shape of a static Color Theme item (kept editorial)
+// Static editorial Color Theme palettes
 export interface StaticColorTheme {
   id: string;
   category: "Color Themes";
   title: string;
-  image: string; // Still a verified Unsplash image for palette preview
+  image: string;
   aspectRatio: "portrait" | "tall" | "square" | "landscape";
   description: string;
   colorTheme: ColorSwatch[];
   tags: string[];
 }
 
-// Union type used throughout the app
 export type InspirationItem = DynamicInspirationPhoto | StaticColorTheme;
 
-// Type guard
 export function isStaticColorTheme(item: InspirationItem): item is StaticColorTheme {
   return item.category === "Color Themes";
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// CATEGORIES
-// "Color Themes" is marked as static so the client knows not to call the API.
+// CATEGORY PILLS (8 core content types)
 // ─────────────────────────────────────────────────────────────────────────────
-export const INSPIRATION_CATEGORIES: {
+export const INSPIRATION_CATEGORIES: { id: string; label: string; emoji: string; isStatic?: boolean }[] = [
+  { id: "All", label: "All", emoji: "✨" },
+  { id: "Wedding Photos", label: "Wedding Photos", emoji: "📸" },
+  { id: "Stage Designs", label: "Stage & Mandap", emoji: "✨" },
+  { id: "Trending Decor", label: "Trending Decor", emoji: "💐" },
+  { id: "Bridal Looks", label: "Bridal Looks", emoji: "👰" },
+  { id: "Groom Looks", label: "Groom Looks", emoji: "🤵" },
+  { id: "Mehendi Designs", label: "Mehendi", emoji: "🌿" },
+  { id: "Seasonal Trends", label: "Seasonal Trends", emoji: "🌸" },
+  { id: "Color Themes", label: "Color Themes", emoji: "🎨", isStatic: true },
+];
+
+export const DYNAMIC_CATEGORIES: InspirationCategory[] = [
+  "Wedding Photos", "Trending Decor", "Bridal Looks",
+  "Groom Looks", "Mehendi Designs", "Stage Designs", "Seasonal Trends",
+];
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CURATED COLLECTIONS (maps to a category for API fetching)
+// ─────────────────────────────────────────────────────────────────────────────
+export interface InspirationCollection {
   id: string;
   label: string;
-  isStatic?: boolean;
-}[] = [
-  { id: "All", label: "All Inspirations" },
-  { id: "Wedding Photos", label: "Wedding Photos" },
-  { id: "Trending Decor", label: "Trending Decor" },
-  { id: "Bridal Looks", label: "Bridal Looks" },
-  { id: "Groom Looks", label: "Groom Looks" },
-  { id: "Mehendi Designs", label: "Mehendi Designs" },
-  { id: "Stage Designs", label: "Stage Designs" },
-  { id: "Color Themes", label: "Color Themes", isStatic: true },
-  { id: "Seasonal Trends", label: "Seasonal Trends" },
-];
+  emoji: string;
+  category: InspirationCategory | "Color Themes";
+  gradient: string; // Tailwind gradient classes for the card bg
+  badge?: string;
+}
 
-// Dynamic categories (those backed by the Pexels API)
-export const DYNAMIC_CATEGORIES: InspirationCategory[] = [
-  "Wedding Photos",
-  "Trending Decor",
-  "Bridal Looks",
-  "Groom Looks",
-  "Mehendi Designs",
-  "Stage Designs",
-  "Seasonal Trends",
+export const INSPIRATION_COLLECTIONS: InspirationCollection[] = [
+  { id: "trending", label: "Trending This Week", emoji: "🔥", category: "Wedding Photos", gradient: "from-orange-500 to-rose-600", badge: "Hot" },
+  { id: "kerala", label: "Kerala Weddings", emoji: "💍", category: "Wedding Photos", gradient: "from-[#0F4C45] to-[#12584E]", badge: "Local" },
+  { id: "luxury", label: "Luxury Weddings", emoji: "👑", category: "Stage Designs", gradient: "from-amber-600 to-yellow-500" },
+  { id: "minimal", label: "Minimal Weddings", emoji: "🌿", category: "Trending Decor", gradient: "from-stone-400 to-stone-600" },
+  { id: "pastel", label: "Pastel Themes", emoji: "🌸", category: "Color Themes", gradient: "from-pink-300 to-purple-400" },
+  { id: "stage", label: "Stage Decoration", emoji: "✨", category: "Stage Designs", gradient: "from-violet-500 to-indigo-600" },
+  { id: "photography", label: "Photography Ideas", emoji: "📸", category: "Wedding Photos", gradient: "from-slate-600 to-gray-800" },
+  { id: "bridal", label: "Bridal Looks", emoji: "👰", category: "Bridal Looks", gradient: "from-rose-400 to-pink-600" },
+  { id: "groom", label: "Groom Looks", emoji: "🤵", category: "Groom Looks", gradient: "from-blue-600 to-indigo-700" },
+  { id: "mehendi", label: "Mehendi", emoji: "🌼", category: "Mehendi Designs", gradient: "from-orange-400 to-amber-600" },
+  { id: "floral", label: "Floral Decoration", emoji: "💐", category: "Trending Decor", gradient: "from-emerald-400 to-teal-600" },
+  { id: "destination", label: "Destination Weddings", emoji: "🏖", category: "Seasonal Trends", gradient: "from-sky-400 to-blue-600" },
+  { id: "monsoon", label: "Monsoon Weddings", emoji: "🌧", category: "Seasonal Trends", gradient: "from-teal-500 to-cyan-700" },
+  { id: "reception", label: "Reception Ideas", emoji: "🎉", category: "Stage Designs", gradient: "from-purple-500 to-pink-600" },
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
-// STATIC EDITORIAL: COLOR THEMES
-// These are genuine hand-curated palette boards, not photo searches.
-// Titles and descriptions are written by a human editor, not auto-generated.
+// VENDOR DISCOVERY LINKS per category
+// Maps inspiration categories to real Cloche vendor directory routes
+// ─────────────────────────────────────────────────────────────────────────────
+export const CATEGORY_VENDOR_LINKS: Record<string, { label: string; href: string; emoji: string }[]> = {
+  "Stage Designs": [
+    { label: "Browse Decorators", href: "/categories/decor-planning", emoji: "🌸" },
+    { label: "Browse Venues", href: "/venues", emoji: "🏛" },
+  ],
+  "Trending Decor": [
+    { label: "Browse Decorators", href: "/categories/decor-planning", emoji: "💐" },
+  ],
+  "Bridal Looks": [
+    { label: "Browse Makeup Artists", href: "/makeup-artists", emoji: "💄" },
+    { label: "Browse Bridal Wear", href: "/bridal-wear", emoji: "👰" },
+  ],
+  "Groom Looks": [
+    { label: "Browse Groom Wear", href: "/groom-wear", emoji: "🤵" },
+  ],
+  "Mehendi Designs": [
+    { label: "Browse Mehendi Artists", href: "/mehendi-artists", emoji: "🌿" },
+  ],
+  "Wedding Photos": [
+    { label: "Browse Photographers", href: "/photographers", emoji: "📸" },
+  ],
+  "Seasonal Trends": [
+    { label: "Browse Venues", href: "/venues", emoji: "🏛" },
+    { label: "Browse Decorators", href: "/categories/decor-planning", emoji: "💐" },
+  ],
+  "Color Themes": [
+    { label: "Browse Decorators", href: "/categories/decor-planning", emoji: "🎨" },
+  ],
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// STATIC COLOR THEMES (editorial)
 // ─────────────────────────────────────────────────────────────────────────────
 export const STATIC_COLOR_THEMES: StaticColorTheme[] = [
   {
-    id: "color-theme-emerald-gold",
+    id: "color-emerald-gold",
     category: "Color Themes",
     title: "Royal Emerald & Champagne Gold",
     image: "https://images.unsplash.com/photo-1513279922550-250c2129b13a?auto=format&fit=crop&w=1200&q=80",
     aspectRatio: "square",
-    description:
-      "A distinguished imperial palette balancing deep forest greens, brushed champagne gold accents, pearl ivory silks, and rich mahogany woodwork. The Cloche signature palette.",
+    description: "The Cloche signature palette — deep forest greens and brushed champagne gold. Perfect for luxury Kerala weddings.",
     colorTheme: [
       { name: "Cloche Emerald", hex: "#0F4C45" },
       { name: "Champagne Gold", hex: "#C8A96A" },
       { name: "Pearl Ivory", hex: "#FAF7F2" },
       { name: "Forest Canopy", hex: "#064E3B" },
-      { name: "Mahogany Warmth", hex: "#451A03" },
+      { name: "Mahogany", hex: "#451A03" },
     ],
     tags: ["Emerald", "Gold", "Luxury", "Royal", "Cloche Signature"],
   },
   {
-    id: "color-theme-pastel-blossom",
+    id: "color-pastel-blossom",
     category: "Color Themes",
     title: "Pastel Blossom: Peach, Blush & Lavender",
     image: "https://images.unsplash.com/photo-1526047932273-341f2a7631f9?auto=format&fit=crop&w=1200&q=80",
     aspectRatio: "portrait",
-    description:
-      "An airy, romantic color story blending soft peach organza, French lavender hydrangeas, blush spray roses, and brushed silver candle holders.",
+    description: "Airy and romantic — soft peach organza, French lavender, and blush spray roses for spring celebrations.",
     colorTheme: [
       { name: "Soft Peach", hex: "#FFEDD5" },
       { name: "Dusty Blush", hex: "#FCE7F3" },
@@ -133,18 +173,17 @@ export const STATIC_COLOR_THEMES: StaticColorTheme[] = [
       { name: "Sage Mist", hex: "#DCFCE7" },
       { name: "Silver Frost", hex: "#E2E8F0" },
     ],
-    tags: ["Pastel", "Blush", "Lavender", "Spring Wedding", "Romantic"],
+    tags: ["Pastel", "Blush", "Lavender", "Spring", "Romantic"],
   },
   {
-    id: "color-theme-terracotta-rust",
+    id: "color-terracotta-rust",
     category: "Color Themes",
-    title: "Sunset Ochre, Terracotta & Rust",
+    title: "Terracotta, Ochre & Rust",
     image: "https://images.unsplash.com/photo-1508615039623-a25605d2b022?auto=format&fit=crop&w=1200&q=80",
     aspectRatio: "tall",
-    description:
-      "Warm earthy tones inspired by Kerala terracotta architecture, burnt sienna marigolds, mustard silks, and rustic raw teakwood.",
+    description: "Warm earthy tones inspired by Kerala terracotta architecture — burnt sienna, mustard silks, and rustic teakwood.",
     colorTheme: [
-      { name: "Terracotta Clay", hex: "#9A3412" },
+      { name: "Terracotta", hex: "#9A3412" },
       { name: "Sunset Rust", hex: "#C2410C" },
       { name: "Mustard Ochre", hex: "#CA8A04" },
       { name: "Earthen Sand", hex: "#D6D3D1" },
@@ -153,13 +192,12 @@ export const STATIC_COLOR_THEMES: StaticColorTheme[] = [
     tags: ["Terracotta", "Rust", "Ochre", "Earth Tone", "Boho"],
   },
   {
-    id: "color-theme-crimson-ruby",
+    id: "color-crimson-ruby",
     category: "Color Themes",
-    title: "Royal Crimson & Temple Ruby",
+    title: "Royal Crimson & Temple Gold",
     image: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=80",
     aspectRatio: "square",
-    description:
-      "The classic south Indian bridal palette: deep crimson silk, zardozi gold, temple ruby accents, and sandalwood warmth.",
+    description: "The classic South Indian bridal palette — deep crimson silk, zardozi gold, temple ruby, and sandalwood.",
     colorTheme: [
       { name: "Sindoor Crimson", hex: "#991B1B" },
       { name: "Zardozi Gold", hex: "#C8A96A" },
@@ -170,13 +208,12 @@ export const STATIC_COLOR_THEMES: StaticColorTheme[] = [
     tags: ["Crimson", "Red", "Gold", "Temple", "South Indian"],
   },
   {
-    id: "color-theme-ivory-champagne",
+    id: "color-ivory-champagne",
     category: "Color Themes",
     title: "Ivory & Champagne Elegance",
     image: "https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=1200&q=80",
     aspectRatio: "landscape",
-    description:
-      "Refined minimalism in ivory, champagne, and warm whites — ideal for Christian and inter-faith ceremonies with clean, editorial styling.",
+    description: "Refined minimalism in ivory, champagne, and warm whites — ideal for Christian and civil ceremonies.",
     colorTheme: [
       { name: "Bridal Ivory", hex: "#FAFAF8" },
       { name: "Champagne", hex: "#F7E7CE" },
@@ -189,12 +226,23 @@ export const STATIC_COLOR_THEMES: StaticColorTheme[] = [
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
-// AURA AI CONTEXTUAL PROMPTS for the Inspiration page
+// AURA CONTEXTUAL PROMPTS for the Inspiration page
 // ─────────────────────────────────────────────────────────────────────────────
 export const AURA_INSPIRATION_PROMPTS = [
-  "Show luxury Kerala wedding stage decorations",
-  "Suggest pastel wedding color palettes for 2026",
-  "Find traditional Kasavu bridal styling ideas",
-  "Show outdoor mandap designs with floral pools",
-  "Suggest wedding photo poses for backwaters",
+  "Show luxury Kerala wedding decorations",
+  "Suggest a royal reception theme",
+  "Show pastel stage decorations",
+  "Plan a ₹10 lakh Kerala wedding",
+  "Find traditional Kasavu bridal styling",
+];
+
+// ─────────────────────────────────────────────────────────────────────────────
+// DEFAULT BOARDS (shown when user first opens "My Boards")
+// ─────────────────────────────────────────────────────────────────────────────
+export const DEFAULT_BOARDS = [
+  { id: "dream-wedding", name: "❤️ Dream Wedding" },
+  { id: "reception", name: "💍 Reception" },
+  { id: "bridal-looks", name: "👰 Bridal Looks" },
+  { id: "decor", name: "🎨 Decor" },
+  { id: "photography", name: "📸 Photography" },
 ];

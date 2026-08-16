@@ -25,6 +25,20 @@ const CATEGORY_QUERIES: Record<string, string> = {
   "Stage Designs": "indian wedding mandap stage floral decoration",
   "Trending Decor": "indian wedding flower decoration venue",
   "Seasonal Trends": "outdoor indian wedding ceremony",
+  // Collection-based aliases
+  "trending": "indian wedding photography ceremony",
+  "kerala": "kerala wedding kasavu traditional ceremony",
+  "luxury": "luxury indian wedding royal decoration",
+  "minimal": "minimal modern indian wedding decor",
+  "stage": "indian wedding mandap stage floral decoration",
+  "photography": "indian wedding candid photography couple",
+  "bridal": "indian bride wedding saree lehenga",
+  "groom": "indian groom sherwani wedding",
+  "mehendi": "bridal mehndi henna hands design",
+  "floral": "indian wedding flower decoration floral",
+  "destination": "outdoor destination indian wedding",
+  "monsoon": "outdoor indian wedding ceremony rain",
+  "reception": "indian wedding reception decoration stage",
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
