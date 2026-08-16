@@ -116,8 +116,6 @@ export interface VendorProfileData {
   featured_halls?: string[];
   yearsInBusiness?: string;
   years_in_business?: string;
-  guestCapacity?: string;
-  guest_capacity?: string;
   minGuestCapacity?: string;
   min_guest_capacity?: string;
   numberOfHalls?: string;
