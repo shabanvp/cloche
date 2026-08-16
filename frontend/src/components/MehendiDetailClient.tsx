@@ -27,7 +27,7 @@ export function MehendiDetailClient({ artist }: { artist: MehendiVendor }) {
 
   return (
     <div className="min-h-screen flex flex-col bg-[#F8F5F0] pb-32 text-[#2D2520] font-sans">
-      {/* ─── VENUE-STYLE COMPACT 2-COLUMN LAYOUT ON DESKTOP ─── */}
+      {/* ─── MEHENDI ARTIST COMPACT 2-COLUMN LAYOUT ON DESKTOP ─── */}
       <div className="max-w-4xl mx-auto w-full px-4 pt-4 md:pt-6">
         <div className="flex flex-col md:grid md:grid-cols-12 gap-6 lg:gap-8 items-start">
           
@@ -74,7 +74,7 @@ export function MehendiDetailClient({ artist }: { artist: MehendiVendor }) {
             </div>
           </div>
 
-          {/* Right Column: Sticky Venue-Style Information & Action Card */}
+          {/* Right Column: Sticky Artist Information & Action Card */}
           <div className="w-full md:col-span-5 bg-white rounded-3xl p-6 sm:p-7 border border-[#E8DFC5]/80 shadow-md space-y-5 md:sticky md:top-24">
             
             {/* Header Row */}
@@ -108,6 +108,17 @@ export function MehendiDetailClient({ artist }: { artist: MehendiVendor }) {
 
             {/* Subtitle */}
             <p className="text-xs text-[#5A6561] leading-relaxed">{artist.subtitle}</p>
+
+            {/* Artist Chips & Highlights */}
+            {Array.isArray(artist.chips) && artist.chips.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {artist.chips.map((chip, idx) => (
+                  <span key={idx} className="bg-[#FAF7F2] text-[#0F4C45] text-[10px] font-bold px-2.5 py-1 rounded-full border border-gold/15">
+                    {chip}
+                  </span>
+                ))}
+              </div>
+            )}
 
             {/* Calling & Messaging Buttons in Right Column Card */}
             <div className="space-y-2.5 pt-1">

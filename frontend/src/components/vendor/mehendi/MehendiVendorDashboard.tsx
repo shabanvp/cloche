@@ -100,7 +100,7 @@ export function MehendiVendorDashboard() {
       case "subscription":
         return <MehendiSubscriptionSection />;
       case "customize-store":
-        return <MehendiCustomizeStoreSection artistName={artistName} businessName={businessName} />;
+        return <MehendiCustomizeStoreSection artistName={artistName} businessName={businessName} onBack={() => setActiveTab(null)} />;
       default:
         return null;
     }

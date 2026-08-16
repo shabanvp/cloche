@@ -1,137 +1,503 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Palette, Upload, Image as ImageIcon, CheckCircle, Save, Eye, Loader2 } from "lucide-react";
+import {
+  Palette,
+  Upload,
+  Image as ImageIcon,
+  Sparkles,
+  CheckCircle,
+  Save,
+  Eye,
+  Loader2,
+  ChevronDown,
+  ChevronUp,
+  Video,
+  Globe,
+  FileText,
+  X,
+  Play,
+  Award,
+  ShieldCheck,
+  Clock,
+  MapPin,
+  Phone,
+  MessageCircle,
+  Calendar,
+  Layers,
+  ArrowUp,
+  ArrowDown,
+  Check,
+  Heart,
+  Users,
+  Sparkle
+} from "lucide-react";
 import { uploadImageToCloudinaryDetailed } from "@/lib/cloudinary";
-import { fetchAuthenticatedVendorFromDb, getActiveVendorIdentity, syncVendorProfileWithDatabase, showVendorToast } from "@/lib/vendorStore";
+import {
+  fetchAuthenticatedVendorFromDb,
+  getActiveVendorIdentity,
+  syncVendorProfileWithDatabase,
+  showVendorToast,
+  VendorProfileData
+} from "@/lib/vendorStore";
+import {
+  MEHENDI_COLOR_THEMES,
+  MEHENDI_HIGHLIGHT_OPTIONS,
+  ALL_MEHENDI_PACKAGE_OPTIONS,
+  MehendiBrandTheme
+} from "@/lib/mehendiTypes";
 
-interface MehendiCustomizeStoreSectionProps {
-  artistName: string;
-  businessName: string;
+function InstagramIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+      <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+    </svg>
+  );
 }
 
-export function MehendiCustomizeStoreSection({ artistName, businessName }: MehendiCustomizeStoreSectionProps) {
-  const [vendorData, setVendorData] = useState<any>(null);
+function FacebookIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
+    </svg>
+  );
+}
+
+function YoutubeIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-1.96C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 1.96A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-1.96c.32-1.74.46-3.56.46-5.33s-.14-3.59-.46-5.28zM9.75 15.02V8.48l5.75 3.27-5.75 3.27z" />
+    </svg>
+  );
+}
+
+export interface MehendiCustomizeStoreSectionProps {
+  artistName?: string;
+  businessName?: string;
+  onBack?: () => void;
+}
+
+export function MehendiCustomizeStoreSection({
+  artistName,
+  businessName,
+  onBack,
+}: MehendiCustomizeStoreSectionProps = {}) {
+  const [vendorData, setVendorData] = useState<VendorProfileData | null>(null);
+
+  // 1. Branding & Identity
   const [logoUrl, setLogoUrl] = useState<string>("");
   const [coverUrl, setCoverUrl] = useState<string>("");
+  const [tagline, setTagline] = useState<string>("");
+  const [about, setAbout] = useState<string>("");
+  const [colorTheme, setColorTheme] = useState<string>("henna");
+  const [introVideo, setIntroVideo] = useState<string>("");
+  const [galleryImages, setGalleryImages] = useState<string[]>([]);
+
+  // 2. Social Links
+  const [instagram, setInstagram] = useState<string>("");
+  const [facebook, setFacebook] = useState<string>("");
+  const [youtube, setYoutube] = useState<string>("");
+  const [website, setWebsite] = useState<string>("");
+
+  // 3. Mehendi Highlights Badges
+  const [mehendiHighlights, setMehendiHighlights] = useState<string[]>([
+    "100% Organic Henna",
+    "Bridal Specialist",
+    "Arabic & Indo-Arabic",
+    "Custom Figure Portraits",
+    "Fast Dark Stain",
+    "Verified Partner",
+  ]);
+
+  // 4. Featured Packages & Henna Styles
+  const [featuredPackages, setFeaturedPackages] = useState<string[]>([
+    "Signature Bridal Mehendi",
+    "Rajasthani Traditional Set",
+    "Arabic & Minimalist Henna",
+    "Royale Family & Guest Package",
+  ]);
+
+  // 5. Artist & Studio Information
+  const [experienceYears, setExperienceYears] = useState<string>("10+");
+  const [maxBridesPerDay, setMaxBridesPerDay] = useState<string>("2 Brides per Day");
+  const [organicHennaCertified, setOrganicHennaCertified] = useState<boolean>(true);
+  const [teamSize, setTeamSize] = useState<string>("4 Professional Artists");
+  const [travelCities, setTravelCities] = useState<string>("Mumbai, Delhi, Jaipur, Outstation & International");
+  const [languagesSpoken, setLanguagesSpoken] = useState<string>("English, Hindi, Gujarati, Marwari");
+
+  // 6. Contact Action Buttons
+  const [actionButtons, setActionButtons] = useState({
+    callNow: true,
+    whatsapp: true,
+    bookAppointment: true,
+    requestQuote: true,
+    getDirections: true,
+    website: true,
+  });
+
+  // 7. Studio Hours & Timings
+  const [openingTime, setOpeningTime] = useState<string>("10:00 AM");
+  const [closingTime, setClosingTime] = useState<string>("08:00 PM");
+  const [weeklyHolidays, setWeeklyHolidays] = useState<string>("Tuesday Off (Open all Peak Wedding Dates)");
+  const [appointmentNotice, setAppointmentNotice] = useState<string>("Guided Bridal Trials available by appointment");
+  const [homeVisitAvailable, setHomeVisitAvailable] = useState<boolean>(true);
+
+  // 8. Booking Policies & Henna Guidelines
+  const [advanceBookingRequired, setAdvanceBookingRequired] = useState<string>(
+    "Minimum 15 to 45 days advance booking recommended for peak bridal dates."
+  );
+  const [advancePaymentPolicy, setAdvancePaymentPolicy] = useState<string>(
+    "30% advance on booking confirmation, 70% post-application completion."
+  );
+  const [cancellationPolicy, setCancellationPolicy] = useState<string>(
+    "100% advance refund if cancelled 30+ days prior to scheduled wedding event."
+  );
+  const [stainCarePolicy, setStainCarePolicy] = useState<string>(
+    "Complimentary organic stain-lock essential oil & aftercare instructions provided for maximum dark stain tone."
+  );
+  const [groupBookingPolicy, setGroupBookingPolicy] = useState<string>(
+    "Dedicated team of assistant artists assigned for bridal family & sangeet guest mehendi."
+  );
+  const [travelPolicy, setTravelPolicy] = useState<string>(
+    "Travel & lodging charges applicable for outstation wedding destinations."
+  );
+
+  // Accordion State
+  const [openAccordions, setOpenAccordions] = useState<Record<string, boolean>>({
+    highlights: true,
+    featuredPackages: true,
+    artistInfo: true,
+    actionButtons: false,
+    timings: false,
+    policies: false,
+    theme: false,
+    branding: false,
+  });
+
+  const toggleAccordion = (section: string) => {
+    setOpenAccordions((prev) => ({ ...prev, [section]: !prev[section] }));
+  };
+
+  // Upload States
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const [isUploadingCover, setIsUploadingCover] = useState(false);
+  const [isUploadingVideo, setIsUploadingVideo] = useState(false);
+  const [isUploadingGallery, setIsUploadingGallery] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
   const logoInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
+  const videoInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
 
+  // Initial Hydration
   useEffect(() => {
-    const cached = getActiveVendorIdentity();
-    if (cached && cached.id) {
-      setVendorData(cached);
-      if (cached.logo || cached.logo_url) setLogoUrl(cached.logo || cached.logo_url || "");
-      if (cached.coverImage || cached.cover_image) setCoverUrl(cached.coverImage || cached.cover_image || "");
+    const localVendor = getActiveVendorIdentity();
+    if (localVendor) {
+      setVendorData(localVendor);
+      hydrateFields(localVendor);
     }
 
-    fetchAuthenticatedVendorFromDb().then((identity) => {
-      if (identity && identity.id) {
-        setVendorData(identity);
-        if (identity.logo || identity.logo_url) setLogoUrl(identity.logo || identity.logo_url || "");
-        if (identity.coverImage || identity.cover_image) setCoverUrl(identity.coverImage || identity.cover_image || "");
+    async function loadDbVendor() {
+      try {
+        const dbVendor = await fetchAuthenticatedVendorFromDb();
+        if (dbVendor) {
+          setVendorData(dbVendor);
+          hydrateFields(dbVendor);
+        }
+      } catch (e) {
+        console.error("[MehendiCustomizeStore] Error loading vendor:", e);
       }
-    });
+    }
+
+    loadDbVendor();
   }, []);
 
-  const currentDisplayName = vendorData?.boutique_name || vendorData?.name || businessName || artistName || "Mehendi Studio";
+  const hydrateFields = (data: Partial<VendorProfileData> & Record<string, any>) => {
+    if (data.logo || data.logo_url) setLogoUrl(data.logo || data.logo_url || "");
+    if (data.coverImage || data.cover_image) setCoverUrl(data.coverImage || data.cover_image || "");
+    if (data.tagline) setTagline(data.tagline || "");
+    if (data.about || data.description) setAbout(data.about || data.description || "");
+    if (data.colorTheme || data.color_theme) setColorTheme(data.colorTheme || data.color_theme || "henna");
+    if (data.introVideo || data.intro_video || data.intro_video_url) {
+      setIntroVideo(data.introVideo || data.intro_video || data.intro_video_url || "");
+    }
+
+    const gallery = Array.isArray(data.galleryImages)
+      ? data.galleryImages
+      : Array.isArray(data.gallery_images)
+      ? data.gallery_images
+      : null;
+    if (gallery) setGalleryImages(gallery);
+
+    // Social Links
+    if (data.instagram) setInstagram(data.instagram || "");
+    if (data.facebook) setFacebook(data.facebook || "");
+    if (data.website) setWebsite(data.website || "");
+    if (data.youtube) setYoutube(data.youtube || "");
+
+    // Mehendi Highlights
+    const rawHighlights = data.mehendiHighlights || data.mehendi_highlights || data.storeHighlights || data.store_highlights;
+    if (Array.isArray(rawHighlights) && rawHighlights.length > 0) setMehendiHighlights(rawHighlights);
+
+    // Featured Packages
+    const rawPackages = data.featuredPackages || data.featured_packages || data.featuredCollections || data.featured_collections;
+    if (Array.isArray(rawPackages) && rawPackages.length > 0) setFeaturedPackages(rawPackages);
+
+    // Artist Info
+    if (data.experienceYears || data.experience_years || data.experience) {
+      setExperienceYears(String(data.experienceYears || data.experience_years || data.experience || ""));
+    }
+    if (data.maxBridesPerDay || data.max_brides_per_day) setMaxBridesPerDay(data.maxBridesPerDay || data.max_brides_per_day || "");
+    if (data.organicHennaCertified !== undefined || data.organic_henna_certified !== undefined) {
+      setOrganicHennaCertified(Boolean(data.organicHennaCertified ?? data.organic_henna_certified));
+    }
+    if (data.teamSize || data.team_size) setTeamSize(data.teamSize || data.team_size || "");
+    if (data.travelCities || data.serviceAreas || data.service_areas) {
+      setTravelCities(data.travelCities || data.serviceAreas || data.service_areas || "");
+    }
+    if (data.languagesSpoken || data.languages_spoken) setLanguagesSpoken(data.languagesSpoken || data.languages_spoken || "");
+
+    // Contact Buttons
+    if (data.actionButtons || data.action_buttons) {
+      const act = (data.actionButtons || data.action_buttons || {}) as Record<string, any>;
+      setActionButtons({
+        callNow: Boolean(act.callNow ?? true),
+        whatsapp: Boolean(act.whatsapp ?? true),
+        bookAppointment: Boolean(act.bookAppointment ?? act.bookVenueVisit ?? true),
+        requestQuote: Boolean(act.requestQuote ?? true),
+        getDirections: Boolean(act.getDirections ?? true),
+        website: Boolean(act.website ?? true),
+      });
+    }
+
+    // Timings
+    if (data.openingTime || data.opening_time) setOpeningTime(data.openingTime || data.opening_time || "");
+    if (data.closingTime || data.closing_time) setClosingTime(data.closingTime || data.closing_time || "");
+    if (data.weeklyHolidays || data.weekly_holidays) setWeeklyHolidays(data.weeklyHolidays || data.weekly_holidays || "");
+    if (data.appointmentNotice || data.publicHolidayAvailability) {
+      setAppointmentNotice(data.appointmentNotice || data.publicHolidayAvailability || "");
+    }
+
+    // Policies
+    if (data.advanceBookingRequired || data.advance_booking_required) {
+      setAdvanceBookingRequired(data.advanceBookingRequired || data.advance_booking_required || "");
+    }
+    if (data.advancePaymentPolicy || data.advance_payment_policy) {
+      setAdvancePaymentPolicy(data.advancePaymentPolicy || data.advance_payment_policy || "");
+    }
+    if (data.cancellationPolicy || data.cancellation_policy) {
+      setCancellationPolicy(data.cancellationPolicy || data.cancellation_policy || "");
+    }
+    if (data.stainCarePolicy || data.stain_care_policy) {
+      setStainCarePolicy(data.stainCarePolicy || data.stain_care_policy || "");
+    }
+    if (data.groupBookingPolicy || data.group_booking_policy) {
+      setGroupBookingPolicy(data.groupBookingPolicy || data.group_booking_policy || "");
+    }
+    if (data.travelPolicy || data.travel_policy) {
+      setTravelPolicy(data.travelPolicy || data.travel_policy || "");
+    }
+  };
+
+  const activeTheme = MEHENDI_COLOR_THEMES.find((t) => t.id === colorTheme) || MEHENDI_COLOR_THEMES[1];
+  const currentDisplayName = businessName || artistName || vendorData?.boutique_name || vendorData?.name || "Henna Artistry Studio";
   const currentLocation = [vendorData?.city, vendorData?.district].filter(Boolean).join(", ") || "Jaipur, Rajasthan";
 
   const initials = currentDisplayName
     .split(" ")
-    .map((w: string) => w[0])
+    .map((w) => w[0])
     .filter(Boolean)
     .join("")
     .slice(0, 2)
-    .toUpperCase() || "HN";
+    .toUpperCase() || "HA";
 
+  const toggleHighlight = (badge: string) => {
+    setMehendiHighlights((prev) =>
+      prev.includes(badge) ? prev.filter((b) => b !== badge) : [...prev, badge]
+    );
+  };
+
+  const togglePackage = (pkg: string) => {
+    setFeaturedPackages((prev) =>
+      prev.includes(pkg) ? prev.filter((p) => p !== pkg) : [...prev, pkg]
+    );
+  };
+
+  const movePackage = (index: number, direction: "up" | "down") => {
+    const targetIndex = direction === "up" ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= featuredPackages.length) return;
+    const newPkgs = [...featuredPackages];
+    const temp = newPkgs[index];
+    newPkgs[index] = newPkgs[targetIndex];
+    newPkgs[targetIndex] = temp;
+    setFeaturedPackages(newPkgs);
+  };
+
+  // Upload Handlers
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    setIsUploadingLogo(true);
     try {
+      setIsUploadingLogo(true);
       const res = await uploadImageToCloudinaryDetailed(file, "cloche/vendors/logos");
-      if (res.secure_url) {
-        setLogoUrl(res.secure_url);
-        showVendorToast("✓ Brand logo uploaded! Saving...", "info");
-
-        const syncResult = await syncVendorProfileWithDatabase({
-          id: vendorData?.id,
-          logo: res.secure_url,
-          logo_url: res.secure_url,
-        });
-
-        if (syncResult.success) {
-          showVendorToast("✓ Brand logo updated and saved!", "success");
-        }
-      }
-    } catch (err) {
-      console.error("[MehendiCustomizeStore] Logo upload failed:", err);
-      showVendorToast("Logo upload failed. Please try again.", "error");
+      setLogoUrl(res.secure_url);
+      showVendorToast("✓ Artist Logo uploaded successfully", "success");
+    } catch (err: any) {
+      showVendorToast(err?.message || "Failed to upload logo", "error");
     } finally {
       setIsUploadingLogo(false);
-      if (logoInputRef.current) logoInputRef.current.value = "";
     }
   };
 
   const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    setIsUploadingCover(true);
     try {
+      setIsUploadingCover(true);
       const res = await uploadImageToCloudinaryDetailed(file, "cloche/vendors/covers");
-      if (res.secure_url) {
-        setCoverUrl(res.secure_url);
-        showVendorToast("✓ Store cover photo uploaded! Saving...", "info");
-
-        const syncResult = await syncVendorProfileWithDatabase({
-          id: vendorData?.id,
-          coverImage: res.secure_url,
-          cover_image: res.secure_url,
-        });
-
-        if (syncResult.success) {
-          showVendorToast("✓ Store cover photo updated and saved!", "success");
-        }
-      }
-    } catch (err) {
-      console.error("[MehendiCustomizeStore] Cover upload failed:", err);
-      showVendorToast("Cover photo upload failed. Please try again.", "error");
+      setCoverUrl(res.secure_url);
+      showVendorToast("✓ Henna Studio Cover photo uploaded successfully", "success");
+    } catch (err: any) {
+      showVendorToast(err?.message || "Failed to upload cover photo", "error");
     } finally {
       setIsUploadingCover(false);
-      if (coverInputRef.current) coverInputRef.current.value = "";
     }
   };
 
-  const handleSave = async () => {
-    setIsSaving(true);
+  const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 50 * 1024 * 1024) {
+      showVendorToast("Video file exceeds the 50MB size limit.", "error");
+      return;
+    }
     try {
-      const payload = {
-        id: vendorData?.id,
-        logo: logoUrl,
-        logo_url: logoUrl,
-        coverImage: coverUrl,
-        cover_image: coverUrl,
+      setIsUploadingVideo(true);
+      const res = await uploadImageToCloudinaryDetailed(file, "cloche/vendors/videos");
+      setIntroVideo(res.secure_url);
+      showVendorToast("✓ Mehendi Reel Video uploaded successfully", "success");
+    } catch (err: any) {
+      showVendorToast(err?.message || "Failed to upload video", "error");
+    } finally {
+      setIsUploadingVideo(false);
+    }
+  };
+
+  const handleGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    try {
+      setIsUploadingGallery(true);
+      const uploadPromises = Array.from(files).map((f) => uploadImageToCloudinaryDetailed(f, "cloche/vendors/gallery"));
+      const results = await Promise.all(uploadPromises);
+      const newUrls = results.map((r) => r.secure_url);
+      setGalleryImages((prev) => [...prev, ...newUrls]);
+      showVendorToast(`✓ Added ${newUrls.length} photos to Henna Portfolio`, "success");
+    } catch (err: any) {
+      showVendorToast(err?.message || "Failed to upload gallery images", "error");
+    } finally {
+      setIsUploadingGallery(false);
+    }
+  };
+
+  const handleRemoveGalleryImage = (index: number) => {
+    setGalleryImages((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  // Save All Changes
+  const handleSave = async () => {
+    try {
+      setIsSaving(true);
+
+      const payload: Partial<VendorProfileData> & Record<string, any> = {
+        logo: logoUrl.trim(),
+        logo_url: logoUrl.trim(),
+        coverImage: coverUrl.trim(),
+        cover_image: coverUrl.trim(),
+        tagline: tagline.trim(),
+        about: about.trim(),
+        description: about.trim(),
+        colorTheme,
+        color_theme: colorTheme,
+        introVideo: introVideo.trim(),
+        intro_video: introVideo.trim(),
+        galleryImages,
+        gallery_images: galleryImages,
+
+        // Social Links
+        instagram: instagram.trim(),
+        facebook: facebook.trim(),
+        youtube: youtube.trim(),
+        website: website.trim(),
+
+        // Mehendi Highlights & Packages
+        mehendiHighlights,
+        mehendi_highlights: mehendiHighlights,
+        storeHighlights: mehendiHighlights,
+        store_highlights: mehendiHighlights,
+        featuredPackages,
+        featured_packages: featuredPackages,
+        featuredCollections: featuredPackages,
+        featured_collections: featuredPackages,
+
+        // Artist Info
+        experienceYears: experienceYears.trim(),
+        experience_years: experienceYears.trim(),
+        maxBridesPerDay: maxBridesPerDay.trim(),
+        max_brides_per_day: maxBridesPerDay.trim(),
+        organicHennaCertified,
+        organic_henna_certified: organicHennaCertified,
+        teamSize: teamSize.trim(),
+        team_size: teamSize.trim(),
+        travelCities: travelCities.trim(),
+        serviceAreas: travelCities.trim(),
+        service_areas: travelCities.trim(),
+        languagesSpoken: languagesSpoken.trim(),
+        languages_spoken: languagesSpoken.trim(),
+
+        // Action Buttons
+        actionButtons,
+        action_buttons: actionButtons,
+
+        // Hours & Visit
+        openingTime: openingTime.trim(),
+        opening_time: openingTime.trim(),
+        closingTime: closingTime.trim(),
+        closing_time: closingTime.trim(),
+        weeklyHolidays: weeklyHolidays.trim(),
+        weekly_holidays: weeklyHolidays.trim(),
+        appointmentNotice: appointmentNotice.trim(),
+
+        // Policies
+        advanceBookingRequired: advanceBookingRequired.trim(),
+        advance_booking_required: advanceBookingRequired.trim(),
+        advancePaymentPolicy: advancePaymentPolicy.trim(),
+        advance_payment_policy: advancePaymentPolicy.trim(),
+        cancellationPolicy: cancellationPolicy.trim(),
+        cancellation_policy: cancellationPolicy.trim(),
+        stainCarePolicy: stainCarePolicy.trim(),
+        stain_care_policy: stainCarePolicy.trim(),
+        groupBookingPolicy: groupBookingPolicy.trim(),
+        group_booking_policy: groupBookingPolicy.trim(),
+        travelPolicy: travelPolicy.trim(),
+        travel_policy: travelPolicy.trim(),
       };
 
       const res = await syncVendorProfileWithDatabase(payload);
       if (res.success) {
         setSaved(true);
-        showVendorToast("✓ Henna store branding saved successfully!", "success");
+        showVendorToast("✓ Mehendi storefront customization saved & synchronized!", "success");
         setTimeout(() => setSaved(false), 3500);
       } else {
-        showVendorToast("Unable to save branding. Please try again.", "error");
+        showVendorToast("Unable to save storefront customization. Please try again.", "error");
       }
     } catch (err) {
       console.error("[MehendiCustomizeStore] Save error:", err);
-      showVendorToast("Unable to save branding. Please try again.", "error");
+      showVendorToast("Unable to save storefront customization. Please try again.", "error");
     } finally {
       setIsSaving(false);
     }
@@ -139,6 +505,7 @@ export function MehendiCustomizeStoreSection({ artistName, businessName }: Mehen
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300 font-sans">
+      {/* Hidden File Inputs */}
       <input
         ref={logoInputRef}
         type="file"
@@ -153,164 +520,1087 @@ export function MehendiCustomizeStoreSection({ artistName, businessName }: Mehen
         className="hidden"
         onChange={handleCoverUpload}
       />
+      <input
+        ref={videoInputRef}
+        type="file"
+        accept="video/mp4,video/webm,video/quicktime"
+        className="hidden"
+        onChange={handleVideoUpload}
+      />
+      <input
+        ref={galleryInputRef}
+        type="file"
+        multiple
+        accept="image/png,image/jpeg,image/webp,image/jpg"
+        className="hidden"
+        onChange={handleGalleryUpload}
+      />
 
-      <div className="bg-white rounded-3xl border border-gold/15 p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+      {/* Header Banner */}
+      <div className="bg-white rounded-2xl border border-gold/15 p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="bg-[#0d3b30] text-white text-[11px] font-bold px-3 py-0.5 rounded-full">
-              Henna Store Branding
+            <span
+              style={{ backgroundColor: activeTheme.primary }}
+              className="text-white text-[11px] font-bold px-3 py-0.5 rounded-full transition-colors"
+            >
+              Mehendi Artist Customization
             </span>
           </div>
-          <h2 className="text-2xl font-serif font-bold text-charcoal">Customize Storefront</h2>
+          <h2 className="text-2xl font-serif font-bold text-charcoal">Customize Mehendi Storefront</h2>
           <p className="text-xs text-charcoal/60 mt-0.5">
-            Personalize logo, cover banner image & store branding theme for brides on Cloche
+            Personalize henna branding, bridal highlights, package options, organic certifications & stain policies
           </p>
         </div>
 
         <button
           type="button"
           onClick={handleSave}
-          disabled={isSaving || isUploadingLogo || isUploadingCover}
-          className="bg-[#0d3b30] hover:bg-[#072B27] disabled:opacity-50 text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow-xs transition-all flex items-center gap-2 shrink-0 cursor-pointer"
+          disabled={isSaving || isUploadingLogo || isUploadingCover || isUploadingVideo || isUploadingGallery}
+          style={{ backgroundColor: activeTheme.primary }}
+          className="hover:opacity-90 disabled:opacity-50 text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow-xs transition-all flex items-center gap-2 shrink-0 cursor-pointer"
         >
           {isSaving ? (
             <>
-              <Loader2 className="w-4 h-4 text-[#C8A96A] animate-spin" /> Saving...
+              <Loader2 className="w-4 h-4 animate-spin" /> Saving Settings...
+            </>
+          ) : saved ? (
+            <>
+              <CheckCircle className="w-4 h-4 text-emerald-300" /> Saved to Live Store!
             </>
           ) : (
             <>
-              <Save className="w-4 h-4 text-[#C8A96A]" /> {saved ? "Saved Branding!" : "Save Branding"}
+              <Save className="w-4 h-4" /> Save Storefront
             </>
           )}
         </button>
       </div>
 
-      {saved && (
-        <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-4 rounded-xl text-xs font-semibold flex items-center gap-2">
-          <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" /> Mehendi store branding updated successfully!
-        </div>
-      )}
-
-      {/* Visual Live Storefront Preview */}
-      <div className="bg-white rounded-3xl border border-gold/15 overflow-hidden shadow-xs space-y-0">
-        <div className="p-4 bg-[#FAF7F2] border-b border-gold/10 flex items-center justify-between">
-          <span className="text-xs font-serif font-bold text-charcoal flex items-center gap-1.5">
-            <Eye className="w-4 h-4 text-[#0d3b30]" /> Live Storefront Preview (Mehendi Artist Studio)
+      {/* LIVE STOREFRONT PREVIEW PANE (Dynamic Theme & Real-Time Sync) */}
+      <div className="bg-white rounded-3xl border border-gold/20 shadow-md overflow-hidden transition-all">
+        <div className="bg-[#FAF7F2] px-6 py-3 border-b border-gold/15 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="font-serif font-bold text-xs text-charcoal flex items-center gap-1.5">
+              <Eye className="w-3.5 h-3.5 text-[#0F4C45]" /> Live Storefront Preview (Bride & Customer View)
+            </span>
+          </div>
+          <span
+            style={{ color: activeTheme.primary }}
+            className="text-[11px] font-bold uppercase tracking-wider bg-white px-2.5 py-0.5 rounded-full border border-gold/15 shadow-2xs"
+          >
+            {activeTheme.label} Palette
           </span>
-          <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full">
-            Public Bride View
-          </span>
         </div>
 
-        <div className="relative h-48 sm:h-56 bg-[#0d3b30] overflow-hidden">
+        {/* Live Hero Header */}
+        <div className="relative aspect-[21/9] max-h-[300px] w-full overflow-hidden bg-[#0F4C45]">
           {coverUrl ? (
-            <img src={coverUrl} alt="Store Cover" className="w-full h-full object-cover" />
+            <img src={coverUrl} alt="Mehendi Cover" className="w-full h-full object-cover" />
           ) : (
-            <div className="w-full h-full bg-gradient-to-br from-[#0d3b30] via-[#145243] to-[#07251e] flex items-center justify-center">
-              <span className="text-white/20 font-serif text-3xl tracking-widest font-bold select-none">{currentDisplayName}</span>
+            <div
+              style={{ backgroundColor: activeTheme.primary }}
+              className="w-full h-full flex items-center justify-center opacity-80"
+            >
+              <Sparkle className="w-16 h-16 text-white/40" />
             </div>
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/20 to-transparent" />
-          
-          <div className="absolute bottom-4 left-6 right-6 flex items-end gap-4 text-white">
-            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-4 border-white overflow-hidden shadow-lg bg-[#0d3b30] shrink-0 relative flex items-center justify-center text-white">
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+
+          {/* Profile Header Block */}
+          <div className="absolute bottom-4 left-4 right-4 flex items-end gap-3 sm:gap-4">
+            <div
+              style={{ backgroundColor: activeTheme.primary }}
+              className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl border-2 border-white overflow-hidden shadow-lg shrink-0 relative flex items-center justify-center text-white"
+            >
               {logoUrl ? (
-                <img src={logoUrl} alt="Logo" className="w-full h-full object-cover" />
+                <img src={logoUrl} alt="Artist Logo" className="w-full h-full object-cover" />
               ) : (
-                <span className="font-serif text-xl sm:text-2xl font-bold tracking-wider">{initials}</span>
+                <span className="font-serif text-lg sm:text-xl font-bold tracking-wider">{initials}</span>
               )}
-              {isUploadingLogo && (
-                <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                  <Loader2 className="w-6 h-6 text-white animate-spin" />
+            </div>
+
+            <div className="mb-0.5 drop-shadow-md flex-1 min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 className="text-lg sm:text-2xl font-serif font-bold text-white leading-tight truncate">
+                  {currentDisplayName}
+                </h3>
+                <span className="inline-flex items-center gap-1 bg-white/90 backdrop-blur-md text-[#0F4C45] text-[10px] font-bold px-2 py-0.5 rounded-full">
+                  <ShieldCheck className="w-3 h-3 text-[#0F4C45]" /> Verified Partner
+                </span>
+              </div>
+
+              {tagline ? (
+                <p style={{ color: activeTheme.accent }} className="text-xs font-semibold mt-0.5 italic truncate">
+                  "{tagline}"
+                </p>
+              ) : (
+                <p className="text-xs text-white/80 font-medium mt-0.5 truncate">
+                  Bridal Henna Artist • {currentLocation}
+                </p>
+              )}
+
+              {/* Live Mehendi Highlights Badges */}
+              {mehendiHighlights.length > 0 && (
+                <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                  {mehendiHighlights.map((badge) => (
+                    <span
+                      key={badge}
+                      style={{ borderColor: activeTheme.accent }}
+                      className="bg-black/50 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full border shadow-2xs flex items-center gap-1"
+                    >
+                      <Sparkles className="w-2.5 h-2.5 text-gold" /> {badge}
+                    </span>
+                  ))}
                 </div>
               )}
             </div>
-            <div className="mb-1 drop-shadow-md">
-              <h3 className="text-xl sm:text-2xl font-serif font-bold text-white leading-tight">{currentDisplayName}</h3>
-              <p className="text-xs text-white/90 font-medium mt-0.5">Rajasthani & Arabic Bridal Mehendi • {currentLocation}</p>
+          </div>
+        </div>
+
+        {/* Live Preview Content Area */}
+        <div className="p-4 sm:p-6 bg-white space-y-5">
+          {/* Action Buttons Preview */}
+          <div className="flex flex-wrap items-center gap-2">
+            {actionButtons.callNow && (
+              <button
+                style={{ backgroundColor: activeTheme.primary }}
+                className="px-3.5 py-2 rounded-xl text-white text-xs font-bold flex items-center gap-1.5 shadow-xs"
+              >
+                <Phone className="w-3.5 h-3.5" /> Call Now
+              </button>
+            )}
+            {actionButtons.whatsapp && (
+              <button
+                style={{ backgroundColor: activeTheme.secondary }}
+                className="px-3.5 py-2 rounded-xl text-white text-xs font-bold flex items-center gap-1.5 shadow-xs"
+              >
+                <MessageCircle className="w-3.5 h-3.5" /> WhatsApp
+              </button>
+            )}
+            {actionButtons.bookAppointment && (
+              <button
+                style={{ borderColor: activeTheme.primary, color: activeTheme.primary }}
+                className="px-3.5 py-2 rounded-xl border text-xs font-bold flex items-center gap-1.5 hover:bg-gold/10"
+              >
+                <Calendar className="w-3.5 h-3.5" /> Book Appointment
+              </button>
+            )}
+            {actionButtons.requestQuote && (
+              <button
+                style={{ backgroundColor: activeTheme.accent, color: activeTheme.secondary }}
+                className="px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs"
+              >
+                <FileText className="w-3.5 h-3.5" /> Request Quote
+              </button>
+            )}
+            {actionButtons.getDirections && (
+              <button className="px-3.5 py-2 rounded-xl bg-[#FAF7F2] border border-gold/20 text-charcoal text-xs font-bold flex items-center gap-1.5">
+                <MapPin className="w-3.5 h-3.5" /> Get Directions
+              </button>
+            )}
+            {actionButtons.website && (
+              <button className="px-3.5 py-2 rounded-xl bg-[#FAF7F2] border border-gold/20 text-charcoal text-xs font-bold flex items-center gap-1.5">
+                <Globe className="w-3.5 h-3.5" /> Official Website
+              </button>
+            )}
+          </div>
+
+          {/* Live Mehendi Info Metrics Cards */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+            <div className="p-3 rounded-2xl bg-[#FAF7F2] border border-gold/15 space-y-0.5">
+              <span className="text-[10px] uppercase font-bold text-charcoal/50 block">Experience</span>
+              <span style={{ color: activeTheme.primary }} className="font-serif font-bold text-sm block">
+                {experienceYears}
+              </span>
+            </div>
+            <div className="p-3 rounded-2xl bg-[#FAF7F2] border border-gold/15 space-y-0.5">
+              <span className="text-[10px] uppercase font-bold text-charcoal/50 block">Daily Limit</span>
+              <span className="font-bold text-xs text-charcoal block truncate">
+                {maxBridesPerDay}
+              </span>
+            </div>
+            <div className="p-3 rounded-2xl bg-[#FAF7F2] border border-gold/15 space-y-0.5">
+              <span className="text-[10px] uppercase font-bold text-charcoal/50 block">Henna Quality</span>
+              <span className="font-bold text-xs text-emerald-700 block truncate">
+                {organicHennaCertified ? "100% Organic Henna" : "Standard Henna"}
+              </span>
+            </div>
+            <div className="p-3 rounded-2xl bg-[#FAF7F2] border border-gold/15 space-y-0.5">
+              <span className="text-[10px] uppercase font-bold text-charcoal/50 block">Team Strength</span>
+              <span style={{ color: activeTheme.primary }} className="font-serif font-bold text-xs block truncate">
+                {teamSize}
+              </span>
             </div>
           </div>
 
-          {isUploadingCover && (
-            <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center gap-2 text-white">
-              <Loader2 className="w-8 h-8 text-[#C8A96A] animate-spin" />
-              <span className="text-xs font-bold uppercase tracking-wider">Uploading Cover Photo...</span>
+          {/* Live Featured Packages Bar */}
+          {featuredPackages.length > 0 && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="font-serif font-bold text-xs text-charcoal">Featured Henna Packages & Styles:</span>
+                <span className="text-[10px] text-charcoal/50 font-medium">Curated by Artist</span>
+              </div>
+              <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar pb-1">
+                {featuredPackages.map((pkg) => (
+                  <span
+                    key={pkg}
+                    style={{ backgroundColor: activeTheme.primary }}
+                    className="text-white text-xs font-bold px-3.5 py-1.5 rounded-xl shrink-0 shadow-2xs flex items-center gap-1.5"
+                  >
+                    <Heart className="w-3 h-3 text-gold" /> {pkg}
+                  </span>
+                ))}
+              </div>
             </div>
           )}
+
+          {/* Live Working Hours Preview */}
+          <div className="p-3.5 bg-[#FAF7F2] rounded-2xl border border-gold/15 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+            <div className="flex items-center gap-2.5">
+              <Clock style={{ color: activeTheme.primary }} className="w-4 h-4 shrink-0" />
+              <div>
+                <span className="font-serif font-bold text-charcoal block">Studio & Appointment Timings</span>
+                <span className="text-[11px] text-charcoal/70">
+                  Hours: {openingTime} - {closingTime} ({weeklyHolidays})
+                </span>
+              </div>
+            </div>
+            {appointmentNotice && (
+              <span className="text-[10px] text-[#0F4C45] bg-[#0F4C45]/10 font-bold px-2.5 py-1 rounded-lg">
+                {appointmentNotice}
+              </span>
+            )}
+          </div>
+
+          {/* Live Henna Booking Policies Preview */}
+          <div className="space-y-2 pt-2 border-t border-gold/10">
+            <span className="font-serif font-bold text-xs text-charcoal block">Booking Policies & Henna Stain Guidelines:</span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+              <div className="p-3 bg-gray-50 rounded-xl border border-gray-200/80 space-y-1">
+                <span className="font-bold text-charcoal block flex items-center gap-1">
+                  <ShieldCheck className="w-3.5 h-3.5 text-[#0F4C45]" /> Advance Booking & Stain Care
+                </span>
+                <p className="text-[11px] text-charcoal/70 leading-relaxed">{advanceBookingRequired}</p>
+                <p className="text-[10px] text-charcoal/60 leading-relaxed italic">{stainCarePolicy}</p>
+              </div>
+
+              <div className="p-3 bg-gray-50 rounded-xl border border-gray-200/80 space-y-1">
+                <span className="font-bold text-charcoal block flex items-center gap-1">
+                  <FileText className="w-3.5 h-3.5 text-[#0F4C45]" /> Family Group & Travel Terms
+                </span>
+                <p className="text-[11px] text-charcoal/70 leading-relaxed">{groupBookingPolicy}</p>
+                <p className="text-[10px] text-charcoal/60 leading-relaxed italic">{travelPolicy}</p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white p-6 rounded-3xl border border-gold/15 space-y-4 shadow-xs">
-          <h3 className="font-serif font-bold text-base text-charcoal flex items-center gap-2">
-            <ImageIcon className="w-4 h-4 text-[#0d3b30]" /> Artist Logo / Emblem
-          </h3>
-          <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-full border-2 border-gold/20 overflow-hidden shrink-0 bg-[#0d3b30] relative flex items-center justify-center text-white">
-              {logoUrl ? (
-                <img src={logoUrl} className="w-full h-full object-cover" alt="Logo" />
-              ) : (
-                <span className="font-serif text-base font-bold tracking-wider">{initials}</span>
-              )}
-              {isUploadingLogo && (
-                <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                  <Loader2 className="w-5 h-5 text-white animate-spin" />
-                </div>
-              )}
+      {/* ACCORDION FORM CONFIGURATOR SECTIONS */}
+      <div className="space-y-4">
+        {/* Section 1: Mehendi Style Highlights & Badges */}
+        <div className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-xs">
+          <button
+            type="button"
+            onClick={() => toggleAccordion("highlights")}
+            className="w-full p-5 text-left font-serif font-bold text-base text-charcoal flex items-center justify-between bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <Award style={{ color: activeTheme.primary }} className="w-5 h-5" />
+              <div>
+                <span className="block">1. Mehendi Style Highlights & Badges</span>
+                <span className="text-xs font-sans font-normal text-charcoal/60">
+                  Select key artist badges to highlight your henna specialty on your public profile
+                </span>
+              </div>
             </div>
-            <button
-              type="button"
-              onClick={() => logoInputRef.current?.click()}
-              disabled={isUploadingLogo}
-              className="bg-[#FAF7F2] border border-gold/20 hover:bg-[#F3EDE2] disabled:opacity-50 text-[#0d3b30] font-bold text-xs px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 cursor-pointer"
-            >
-              {isUploadingLogo ? (
-                <>
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" /> Uploading Logo...
-                </>
-              ) : (
-                <>
-                  <Upload className="w-3.5 h-3.5" /> Upload Logo
-                </>
-              )}
-            </button>
-          </div>
+            {openAccordions.highlights ? <ChevronUp className="w-4 h-4 text-charcoal/40" /> : <ChevronDown className="w-4 h-4 text-charcoal/40" />}
+          </button>
+
+          {openAccordions.highlights && (
+            <div className="p-5 border-t border-gold/10 space-y-4 text-xs animate-in fade-in duration-200">
+              <p className="text-charcoal/70 leading-relaxed">
+                Click to toggle Mehendi artist badges on your public storefront:
+              </p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
+                {MEHENDI_HIGHLIGHT_OPTIONS.map((badge) => {
+                  const isSelected = mehendiHighlights.includes(badge);
+                  return (
+                    <button
+                      key={badge}
+                      type="button"
+                      onClick={() => toggleHighlight(badge)}
+                      style={{
+                        backgroundColor: isSelected ? activeTheme.primary : "#FAF7F2",
+                        color: isSelected ? "#FFFFFF" : "#2D2520",
+                        borderColor: isSelected ? activeTheme.primary : "#E8DFD1",
+                      }}
+                      className="p-3 rounded-xl border text-xs font-bold text-left transition-all flex items-center justify-between cursor-pointer"
+                    >
+                      <span>{badge}</span>
+                      {isSelected && <Check className="w-3.5 h-3.5 text-white" />}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
 
-        <div className="bg-white p-6 rounded-3xl border border-gold/15 space-y-4 shadow-xs">
-          <h3 className="font-serif font-bold text-base text-charcoal flex items-center gap-2">
-            <Palette className="w-4 h-4 text-[#0d3b30]" /> Cover Banner Image
-          </h3>
-          <div className="flex items-center gap-4">
-            <div className="w-24 h-14 rounded-lg border border-gold/20 overflow-hidden shrink-0 bg-[#0d3b30] relative flex items-center justify-center text-white">
-              {coverUrl ? (
-                <img src={coverUrl} className="w-full h-full object-cover" alt="Cover" />
-              ) : (
-                <span className="font-serif text-xs font-bold opacity-60">No Cover</span>
-              )}
-              {isUploadingCover && (
-                <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                  <Loader2 className="w-5 h-5 text-white animate-spin" />
+        {/* Section 2: Featured Packages & Henna Styles (Reorderable) */}
+        <div className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-xs">
+          <button
+            type="button"
+            onClick={() => toggleAccordion("featuredPackages")}
+            className="w-full p-5 text-left font-serif font-bold text-base text-charcoal flex items-center justify-between bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <Heart style={{ color: activeTheme.primary }} className="w-5 h-5" />
+              <div>
+                <span className="block">2. Featured Packages & Henna Styles</span>
+                <span className="text-xs font-sans font-normal text-charcoal/60">
+                  Select and pin featured bridal packages in your preferred display order
+                </span>
+              </div>
+            </div>
+            {openAccordions.featuredPackages ? <ChevronUp className="w-4 h-4 text-charcoal/40" /> : <ChevronDown className="w-4 h-4 text-charcoal/40" />}
+          </button>
+
+          {openAccordions.featuredPackages && (
+            <div className="p-5 border-t border-gold/10 space-y-4 text-xs animate-in fade-in duration-200">
+              <div>
+                <span className="font-bold text-charcoal block mb-2">Available Packages & Styles (Click to Pin/Unpin):</span>
+                <div className="flex flex-wrap gap-2">
+                  {ALL_MEHENDI_PACKAGE_OPTIONS.map((pkg) => {
+                    const isPinned = featuredPackages.includes(pkg);
+                    return (
+                      <button
+                        key={pkg}
+                        type="button"
+                        onClick={() => togglePackage(pkg)}
+                        className={`px-3 py-1.5 rounded-xl border text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                          isPinned
+                            ? "bg-[#0F4C45] text-white border-[#0F4C45]"
+                            : "bg-[#FAF7F2] text-charcoal border-gold/20 hover:bg-gold/15"
+                        }`}
+                      >
+                        {pkg} {isPinned ? "✓" : "+"}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {featuredPackages.length > 0 && (
+                <div className="pt-3 border-t border-gold/10 space-y-2">
+                  <span className="font-bold text-charcoal block">Pinned Order (Use arrows to reorder):</span>
+                  <div className="space-y-1.5">
+                    {featuredPackages.map((pkg, idx) => (
+                      <div
+                        key={pkg}
+                        className="p-3 bg-[#FAF7F2] rounded-xl border border-gold/15 flex items-center justify-between text-xs"
+                      >
+                        <span className="font-bold text-charcoal flex items-center gap-2">
+                          <Heart className="w-3.5 h-3.5 text-[#0F4C45]" /> {idx + 1}. {pkg}
+                        </span>
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            disabled={idx === 0}
+                            onClick={() => movePackage(idx, "up")}
+                            className="p-1 rounded bg-white text-charcoal hover:bg-gray-100 disabled:opacity-30 cursor-pointer"
+                          >
+                            <ArrowUp className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            disabled={idx === featuredPackages.length - 1}
+                            onClick={() => movePackage(idx, "down")}
+                            className="p-1 rounded bg-white text-charcoal hover:bg-gray-100 disabled:opacity-30 cursor-pointer"
+                          >
+                            <ArrowDown className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
-            <button
-              type="button"
-              onClick={() => coverInputRef.current?.click()}
-              disabled={isUploadingCover}
-              className="bg-[#FAF7F2] border border-gold/20 hover:bg-[#F3EDE2] disabled:opacity-50 text-[#0d3b30] font-bold text-xs px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 cursor-pointer"
-            >
-              {isUploadingCover ? (
-                <>
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" /> Uploading Cover...
-                </>
-              ) : (
-                <>
-                  <Upload className="w-3.5 h-3.5" /> Replace Cover
-                </>
-              )}
-            </button>
-          </div>
+          )}
+        </div>
+
+        {/* Section 3: Artist & Studio Information */}
+        <div className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-xs">
+          <button
+            type="button"
+            onClick={() => toggleAccordion("artistInfo")}
+            className="w-full p-5 text-left font-serif font-bold text-base text-charcoal flex items-center justify-between bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <Layers style={{ color: activeTheme.primary }} className="w-5 h-5" />
+              <div>
+                <span className="block">3. Artist & Studio Information</span>
+                <span className="text-xs font-sans font-normal text-charcoal/60">
+                  Experience, daily limits, organic certification, team size & travel cities
+                </span>
+              </div>
+            </div>
+            {openAccordions.artistInfo ? <ChevronUp className="w-4 h-4 text-charcoal/40" /> : <ChevronDown className="w-4 h-4 text-charcoal/40" />}
+          </button>
+
+          {openAccordions.artistInfo && (
+            <div className="p-5 border-t border-gold/10 space-y-4 text-xs animate-in fade-in duration-200">
+              <div className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <label className="block font-bold text-charcoal">About Artist Studio / Bio</label>
+                  <span className={`text-[10px] ${about.length > 500 ? "text-red-500 font-bold" : "text-charcoal/50"}`}>
+                    {about.length}/500 chars
+                  </span>
+                </div>
+                <textarea
+                  rows={3}
+                  value={about}
+                  onChange={(e) => setAbout(e.target.value)}
+                  placeholder="Describe your henna artistry experience, intricate bridal figures, organic paste preparation..."
+                  className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block font-bold text-charcoal mb-1">Years of Experience</label>
+                  <input
+                    type="text"
+                    value={experienceYears}
+                    onChange={(e) => setExperienceYears(e.target.value)}
+                    placeholder="e.g. 10+"
+                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-charcoal mb-1">Max Brides per Day</label>
+                  <input
+                    type="text"
+                    value={maxBridesPerDay}
+                    onChange={(e) => setMaxBridesPerDay(e.target.value)}
+                    placeholder="e.g. 2 Brides per Day"
+                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-charcoal mb-1">Team Strength / Artists Count</label>
+                  <input
+                    type="text"
+                    value={teamSize}
+                    onChange={(e) => setTeamSize(e.target.value)}
+                    placeholder="e.g. 4 Professional Artists"
+                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
+                  />
+                </div>
+
+                <div className="sm:col-span-2">
+                  <label className="block font-bold text-charcoal mb-1">Travel & Service Cities</label>
+                  <input
+                    type="text"
+                    value={travelCities}
+                    onChange={(e) => setTravelCities(e.target.value)}
+                    placeholder="e.g. Mumbai, Delhi, Jaipur, Outstation & Destination Weddings"
+                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-charcoal mb-1">Languages Spoken</label>
+                  <input
+                    type="text"
+                    value={languagesSpoken}
+                    onChange={(e) => setLanguagesSpoken(e.target.value)}
+                    placeholder="e.g. English, Hindi, Gujarati, Marwari"
+                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
+                  />
+                </div>
+
+                <div className="sm:col-span-3 pt-1">
+                  <label className="p-3 bg-[#FAF7F2] rounded-xl border border-gold/15 flex items-center justify-between cursor-pointer">
+                    <div>
+                      <span className="font-bold text-charcoal block">100% Natural Organic Henna Certified</span>
+                      <span className="text-[11px] text-charcoal/60">Guarantee chemical-free organic henna paste mixed with essential oils</span>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={organicHennaCertified}
+                      onChange={(e) => setOrganicHennaCertified(e.target.checked)}
+                      className="rounded accent-[#0F4C45] w-4 h-4 shrink-0"
+                    />
+                  </label>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Section 4: Contact Action Buttons */}
+        <div className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-xs">
+          <button
+            type="button"
+            onClick={() => toggleAccordion("actionButtons")}
+            className="w-full p-5 text-left font-serif font-bold text-base text-charcoal flex items-center justify-between bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <Phone style={{ color: activeTheme.primary }} className="w-5 h-5" />
+              <div>
+                <span className="block">4. Contact Action Buttons</span>
+                <span className="text-xs font-sans font-normal text-charcoal/60">
+                  Select which call-to-action buttons appear on your public storefront
+                </span>
+              </div>
+            </div>
+            {openAccordions.actionButtons ? <ChevronUp className="w-4 h-4 text-charcoal/40" /> : <ChevronDown className="w-4 h-4 text-charcoal/40" />}
+          </button>
+
+          {openAccordions.actionButtons && (
+            <div className="p-5 border-t border-gold/10 space-y-3 text-xs animate-in fade-in duration-200">
+              <p className="text-charcoal/70">
+                Enable or disable action buttons for visitors viewing your Mehendi artist profile:
+              </p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <label className="p-3 bg-[#FAF7F2] rounded-xl border border-gold/15 flex items-center justify-between cursor-pointer">
+                  <span className="font-bold text-charcoal flex items-center gap-1.5">
+                    <Phone className="w-3.5 h-3.5 text-[#0F4C45]" /> Call Now
+                  </span>
+                  <input
+                    type="checkbox"
+                    checked={actionButtons.callNow}
+                    onChange={(e) => setActionButtons((prev) => ({ ...prev, callNow: e.target.checked }))}
+                    className="rounded accent-[#0F4C45] w-4 h-4"
+                  />
+                </label>
+
+                <label className="p-3 bg-[#FAF7F2] rounded-xl border border-gold/15 flex items-center justify-between cursor-pointer">
+                  <span className="font-bold text-charcoal flex items-center gap-1.5">
+                    <MessageCircle className="w-3.5 h-3.5 text-[#0F4C45]" /> WhatsApp
+                  </span>
+                  <input
+                    type="checkbox"
+                    checked={actionButtons.whatsapp}
+                    onChange={(e) => setActionButtons((prev) => ({ ...prev, whatsapp: e.target.checked }))}
+                    className="rounded accent-[#0F4C45] w-4 h-4"
+                  />
+                </label>
+
+                <label className="p-3 bg-[#FAF7F2] rounded-xl border border-gold/15 flex items-center justify-between cursor-pointer">
+                  <span className="font-bold text-charcoal flex items-center gap-1.5">
+                    <Calendar className="w-3.5 h-3.5 text-[#0F4C45]" /> Book Appointment
+                  </span>
+                  <input
+                    type="checkbox"
+                    checked={actionButtons.bookAppointment}
+                    onChange={(e) => setActionButtons((prev) => ({ ...prev, bookAppointment: e.target.checked }))}
+                    className="rounded accent-[#0F4C45] w-4 h-4"
+                  />
+                </label>
+
+                <label className="p-3 bg-[#FAF7F2] rounded-xl border border-gold/15 flex items-center justify-between cursor-pointer">
+                  <span className="font-bold text-charcoal flex items-center gap-1.5">
+                    <FileText className="w-3.5 h-3.5 text-[#0F4C45]" /> Request Quote
+                  </span>
+                  <input
+                    type="checkbox"
+                    checked={actionButtons.requestQuote}
+                    onChange={(e) => setActionButtons((prev) => ({ ...prev, requestQuote: e.target.checked }))}
+                    className="rounded accent-[#0F4C45] w-4 h-4"
+                  />
+                </label>
+
+                <label className="p-3 bg-[#FAF7F2] rounded-xl border border-gold/15 flex items-center justify-between cursor-pointer">
+                  <span className="font-bold text-charcoal flex items-center gap-1.5">
+                    <MapPin className="w-3.5 h-3.5 text-[#0F4C45]" /> Get Directions
+                  </span>
+                  <input
+                    type="checkbox"
+                    checked={actionButtons.getDirections}
+                    onChange={(e) => setActionButtons((prev) => ({ ...prev, getDirections: e.target.checked }))}
+                    className="rounded accent-[#0F4C45] w-4 h-4"
+                  />
+                </label>
+
+                <label className="p-3 bg-[#FAF7F2] rounded-xl border border-gold/15 flex items-center justify-between cursor-pointer">
+                  <span className="font-bold text-charcoal flex items-center gap-1.5">
+                    <Globe className="w-3.5 h-3.5 text-[#0F4C45]" /> Official Website
+                  </span>
+                  <input
+                    type="checkbox"
+                    checked={actionButtons.website}
+                    onChange={(e) => setActionButtons((prev) => ({ ...prev, website: e.target.checked }))}
+                    className="rounded accent-[#0F4C45] w-4 h-4"
+                  />
+                </label>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Section 5: Studio Working Hours & Appointment Timings */}
+        <div className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-xs">
+          <button
+            type="button"
+            onClick={() => toggleAccordion("timings")}
+            className="w-full p-5 text-left font-serif font-bold text-base text-charcoal flex items-center justify-between bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <Clock style={{ color: activeTheme.primary }} className="w-5 h-5" />
+              <div>
+                <span className="block">5. Studio Hours & Appointment Timings</span>
+                <span className="text-xs font-sans font-normal text-charcoal/60">
+                  Studio timings, weekly holidays & trial appointment guidance
+                </span>
+              </div>
+            </div>
+            {openAccordions.timings ? <ChevronUp className="w-4 h-4 text-charcoal/40" /> : <ChevronDown className="w-4 h-4 text-charcoal/40" />}
+          </button>
+
+          {openAccordions.timings && (
+            <div className="p-5 border-t border-gold/10 space-y-4 text-xs animate-in fade-in duration-200">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block font-bold text-charcoal mb-1">Opening Time</label>
+                  <input
+                    type="text"
+                    value={openingTime}
+                    onChange={(e) => setOpeningTime(e.target.value)}
+                    placeholder="e.g. 10:00 AM"
+                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-charcoal mb-1">Closing Time</label>
+                  <input
+                    type="text"
+                    value={closingTime}
+                    onChange={(e) => setClosingTime(e.target.value)}
+                    placeholder="e.g. 08:00 PM"
+                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-charcoal mb-1">Weekly Off / Holidays</label>
+                  <input
+                    type="text"
+                    value={weeklyHolidays}
+                    onChange={(e) => setWeeklyHolidays(e.target.value)}
+                    placeholder="e.g. Tuesday Off"
+                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
+                  />
+                </div>
+
+                <div className="sm:col-span-2">
+                  <label className="block font-bold text-charcoal mb-1">Appointment & Trial Notice</label>
+                  <input
+                    type="text"
+                    value={appointmentNotice}
+                    onChange={(e) => setAppointmentNotice(e.target.value)}
+                    placeholder="e.g. Guided Bridal Trials available by prior appointment"
+                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
+                  />
+                </div>
+
+                <div className="sm:col-span-3 pt-1">
+                  <label className="p-3 bg-[#FAF7F2] rounded-xl border border-gold/15 flex items-center justify-between cursor-pointer">
+                    <div>
+                      <span className="font-bold text-charcoal block">Home & Venue Visit Available</span>
+                      <span className="text-[11px] text-charcoal/60">Artist travels directly to bride's home/venue for application</span>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={homeVisitAvailable}
+                      onChange={(e) => setHomeVisitAvailable(e.target.checked)}
+                      className="rounded accent-[#0F4C45] w-4 h-4 shrink-0"
+                    />
+                  </label>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Section 6: Booking Policies & Henna Guidelines */}
+        <div className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-xs">
+          <button
+            type="button"
+            onClick={() => toggleAccordion("policies")}
+            className="w-full p-5 text-left font-serif font-bold text-base text-charcoal flex items-center justify-between bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <ShieldCheck style={{ color: activeTheme.primary }} className="w-5 h-5" />
+              <div>
+                <span className="block">6. Booking Policies & Henna Guidelines</span>
+                <span className="text-xs font-sans font-normal text-charcoal/60">
+                  Advance booking, stain care policy, group terms & travel rules
+                </span>
+              </div>
+            </div>
+            {openAccordions.policies ? <ChevronUp className="w-4 h-4 text-charcoal/40" /> : <ChevronDown className="w-4 h-4 text-charcoal/40" />}
+          </button>
+
+          {openAccordions.policies && (
+            <div className="p-5 border-t border-gold/10 space-y-4 text-xs animate-in fade-in duration-200">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block font-bold text-charcoal mb-1">Advance Booking Lead Time</label>
+                  <input
+                    type="text"
+                    value={advanceBookingRequired}
+                    onChange={(e) => setAdvanceBookingRequired(e.target.value)}
+                    placeholder="e.g. Minimum 15 to 45 days advance booking recommended"
+                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-charcoal mb-1">Advance Payment Schedule</label>
+                  <input
+                    type="text"
+                    value={advancePaymentPolicy}
+                    onChange={(e) => setAdvancePaymentPolicy(e.target.value)}
+                    placeholder="e.g. 30% advance on confirmation, 70% post-application"
+                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-charcoal mb-1">Cancellation Refund Policy</label>
+                  <input
+                    type="text"
+                    value={cancellationPolicy}
+                    onChange={(e) => setCancellationPolicy(e.target.value)}
+                    placeholder="e.g. 100% refund if cancelled 30+ days prior to event"
+                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-charcoal mb-1">Organic Henna Stain Care Policy</label>
+                  <input
+                    type="text"
+                    value={stainCarePolicy}
+                    onChange={(e) => setStainCarePolicy(e.target.value)}
+                    placeholder="e.g. Organic stain-lock oil provided with instructions"
+                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-charcoal mb-1">Family & Guest Mehendi Terms</label>
+                  <input
+                    type="text"
+                    value={groupBookingPolicy}
+                    onChange={(e) => setGroupBookingPolicy(e.target.value)}
+                    placeholder="e.g. Dedicated assistant team for sangeet guest mehendi"
+                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-charcoal mb-1">Outstation Travel Policy</label>
+                  <input
+                    type="text"
+                    value={travelPolicy}
+                    onChange={(e) => setTravelPolicy(e.target.value)}
+                    placeholder="e.g. Travel & stay covered for outstation weddings"
+                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Section 7: Brand Color Theme */}
+        <div className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-xs">
+          <button
+            type="button"
+            onClick={() => toggleAccordion("theme")}
+            className="w-full p-5 text-left font-serif font-bold text-base text-charcoal flex items-center justify-between bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <Palette style={{ color: activeTheme.primary }} className="w-5 h-5" />
+              <div>
+                <span className="block">7. Brand Color Theme</span>
+                <span className="text-xs font-sans font-normal text-charcoal/60">
+                  Select a cohesive luxury palette for buttons, badges, and store accents
+                </span>
+              </div>
+            </div>
+            {openAccordions.theme ? <ChevronUp className="w-4 h-4 text-charcoal/40" /> : <ChevronDown className="w-4 h-4 text-charcoal/40" />}
+          </button>
+
+          {openAccordions.theme && (
+            <div className="p-5 border-t border-gold/10 space-y-4 text-xs animate-in fade-in duration-200">
+              <p className="text-charcoal/70">
+                Choose a signature theme that highlights your Mehendi studio's aesthetic:
+              </p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+                {MEHENDI_COLOR_THEMES.map((theme) => {
+                  const isSelected = colorTheme === theme.id;
+                  return (
+                    <button
+                      key={theme.id}
+                      type="button"
+                      onClick={() => setColorTheme(theme.id)}
+                      className={`p-3 rounded-2xl border text-left transition-all relative cursor-pointer ${
+                        isSelected
+                          ? "border-charcoal shadow-sm ring-2 ring-charcoal/20 bg-white"
+                          : "border-gold/20 bg-[#FAF7F2] hover:bg-gold/10"
+                      }`}
+                    >
+                      <div className="flex items-center gap-1.5 mb-2">
+                        <div
+                          style={{ backgroundColor: theme.primary }}
+                          className="w-4 h-4 rounded-full shadow-2xs shrink-0"
+                        />
+                        <div
+                          style={{ backgroundColor: theme.accent }}
+                          className="w-3 h-3 rounded-full shadow-2xs shrink-0"
+                        />
+                      </div>
+                      <span className="font-bold text-charcoal block text-[11px] leading-tight">
+                        {theme.label}
+                      </span>
+                      {isSelected && (
+                        <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-emerald-500" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Section 8: Artist Logo, Cover Banner & Media */}
+        <div className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-xs">
+          <button
+            type="button"
+            onClick={() => toggleAccordion("branding")}
+            className="w-full p-5 text-left font-serif font-bold text-base text-charcoal flex items-center justify-between bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <ImageIcon style={{ color: activeTheme.primary }} className="w-5 h-5" />
+              <div>
+                <span className="block">8. Artist Logo, Cover Banner & Media</span>
+                <span className="text-xs font-sans font-normal text-charcoal/60">
+                  Emblem logo, studio cover banner, tagline, intro reel & portfolio gallery
+                </span>
+              </div>
+            </div>
+            {openAccordions.branding ? <ChevronUp className="w-4 h-4 text-charcoal/40" /> : <ChevronDown className="w-4 h-4 text-charcoal/40" />}
+          </button>
+
+          {openAccordions.branding && (
+            <div className="p-5 border-t border-gold/10 space-y-5 text-xs animate-in fade-in duration-200">
+              {/* Media Upload Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {/* Logo Upload Card */}
+                <div className="p-4 bg-[#FAF7F2] rounded-2xl border border-gold/15 flex flex-col items-center text-center space-y-3">
+                  <div className="w-20 h-20 rounded-2xl bg-white border border-gold/20 flex items-center justify-center overflow-hidden relative shadow-xs">
+                    {logoUrl ? (
+                      <img src={logoUrl} alt="Logo" className="w-full h-full object-cover" />
+                    ) : (
+                      <Heart className="w-8 h-8 text-charcoal/30" />
+                    )}
+                  </div>
+                  <div>
+                    <span className="font-bold text-charcoal block">Artist Logo / Emblem</span>
+                    <span className="text-[10px] text-charcoal/50">PNG, JPG, WebP (Square 1:1)</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => logoInputRef.current?.click()}
+                    disabled={isUploadingLogo}
+                    className="w-full py-2 px-3 bg-white border border-gold/20 rounded-xl text-charcoal font-bold text-xs hover:bg-gold/10 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    {isUploadingLogo ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" /> Uploading...
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="w-3.5 h-3.5 text-[#0F4C45]" /> Upload Logo
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {/* Cover Banner Upload Card */}
+                <div className="p-4 bg-[#FAF7F2] rounded-2xl border border-gold/15 flex flex-col items-center text-center space-y-3">
+                  <div className="w-full h-20 rounded-2xl bg-white border border-gold/20 flex items-center justify-center overflow-hidden relative shadow-xs">
+                    {coverUrl ? (
+                      <img src={coverUrl} alt="Cover" className="w-full h-full object-cover" />
+                    ) : (
+                      <ImageIcon className="w-8 h-8 text-charcoal/30" />
+                    )}
+                  </div>
+                  <div>
+                    <span className="font-bold text-charcoal block">Cover Banner Photo</span>
+                    <span className="text-[10px] text-charcoal/50">Landscape (16:9 / 21:9)</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => coverInputRef.current?.click()}
+                    disabled={isUploadingCover}
+                    className="w-full py-2 px-3 bg-white border border-gold/20 rounded-xl text-charcoal font-bold text-xs hover:bg-gold/10 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    {isUploadingCover ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" /> Uploading...
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="w-3.5 h-3.5 text-[#0F4C45]" /> Upload Cover
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {/* Intro Video Upload Card */}
+                <div className="p-4 bg-[#FAF7F2] rounded-2xl border border-gold/15 flex flex-col items-center text-center space-y-3">
+                  <div className="w-full h-20 rounded-2xl bg-white border border-gold/20 flex items-center justify-center overflow-hidden relative shadow-xs">
+                    {introVideo ? (
+                      <div className="flex items-center gap-1 text-emerald-700 font-bold text-xs">
+                        <Play className="w-4 h-4 fill-emerald-700" /> Video Ready
+                      </div>
+                    ) : (
+                      <Video className="w-8 h-8 text-charcoal/30" />
+                    )}
+                  </div>
+                  <div>
+                    <span className="font-bold text-charcoal block">Intro Video Reel</span>
+                    <span className="text-[10px] text-charcoal/50">MP4, WebM (Max 50MB)</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => videoInputRef.current?.click()}
+                    disabled={isUploadingVideo}
+                    className="w-full py-2 px-3 bg-white border border-gold/20 rounded-xl text-charcoal font-bold text-xs hover:bg-gold/10 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    {isUploadingVideo ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" /> Uploading...
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="w-3.5 h-3.5 text-[#0F4C45]" /> Upload Video
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* Tagline Input */}
+              <div>
+                <label className="block font-bold text-charcoal mb-1">Mehendi Studio Tagline / Subtitle</label>
+                <input
+                  type="text"
+                  value={tagline}
+                  onChange={(e) => setTagline(e.target.value)}
+                  placeholder="e.g. Royal Marwari Patterns, Intricate Figure Portraits & 100% Organic Henna"
+                  className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
+                />
+              </div>
+
+              {/* Portfolio Henna Photos */}
+              <div className="space-y-3 pt-2 border-t border-gold/10">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className="font-bold text-charcoal block">Henna Portfolio Photos ({galleryImages.length})</span>
+                    <span className="text-[10px] text-charcoal/60">Upload high-resolution bridal mehendi photography</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => galleryInputRef.current?.click()}
+                    disabled={isUploadingGallery}
+                    className="py-1.5 px-3 bg-[#0F4C45] text-white font-bold rounded-xl text-xs flex items-center gap-1.5 cursor-pointer"
+                  >
+                    {isUploadingGallery ? <Loader2 className="w-3 h-3 animate-spin" /> : <Upload className="w-3 h-3" />}
+                    Add Photos
+                  </button>
+                </div>
+
+                {galleryImages.length > 0 && (
+                  <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-2.5">
+                    {galleryImages.map((img, i) => (
+                      <div key={i} className="relative aspect-square rounded-xl overflow-hidden border border-gold/15 group">
+                        <img src={img} alt={`Henna Portfolio ${i + 1}`} className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveGalleryImage(i)}
+                          className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Social Media Links */}
+              <div className="space-y-3 pt-3 border-t border-gold/10">
+                <span className="font-bold text-charcoal block">Social Media & Online Presence:</span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="flex items-center gap-2 bg-[#FAF7F2] p-2.5 rounded-xl border border-gold/15">
+                    <InstagramIcon className="w-4 h-4 text-[#0F4C45] shrink-0" />
+                    <input
+                      type="text"
+                      value={instagram}
+                      onChange={(e) => setInstagram(e.target.value)}
+                      placeholder="Instagram URL (e.g. instagram.com/hennabyrida)"
+                      className="w-full bg-transparent outline-none text-xs"
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-2 bg-[#FAF7F2] p-2.5 rounded-xl border border-gold/15">
+                    <FacebookIcon className="w-4 h-4 text-[#0F4C45] shrink-0" />
+                    <input
+                      type="text"
+                      value={facebook}
+                      onChange={(e) => setFacebook(e.target.value)}
+                      placeholder="Facebook Page URL"
+                      className="w-full bg-transparent outline-none text-xs"
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-2 bg-[#FAF7F2] p-2.5 rounded-xl border border-gold/15">
+                    <Globe className="w-4 h-4 text-[#0F4C45] shrink-0" />
+                    <input
+                      type="text"
+                      value={website}
+                      onChange={(e) => setWebsite(e.target.value)}
+                      placeholder="Official Website URL"
+                      className="w-full bg-transparent outline-none text-xs"
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-2 bg-[#FAF7F2] p-2.5 rounded-xl border border-gold/15">
+                    <YoutubeIcon className="w-4 h-4 text-[#0F4C45] shrink-0" />
+                    <input
+                      type="text"
+                      value={youtube}
+                      onChange={(e) => setYoutube(e.target.value)}
+                      placeholder="YouTube Channel URL"
+                      className="w-full bg-transparent outline-none text-xs"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

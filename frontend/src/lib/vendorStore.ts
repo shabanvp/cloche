@@ -162,6 +162,26 @@ export interface VendorProfileData {
   event_timing_rules?: string;
   hallImages?: string[];
   hall_images?: string[];
+
+  // Mehendi Artist specific attributes (matching Supabase mehndi_details columns)
+  mehendiHighlights?: string[];
+  mehendi_highlights?: string[];
+  featuredPackages?: string[];
+  featured_packages?: string[];
+  maxBridesPerDay?: string;
+  max_brides_per_day?: string;
+  organicHennaCertified?: boolean;
+  organic_henna_certified?: boolean;
+  teamSize?: string;
+  team_size?: string;
+  outstationAvailable?: boolean;
+  outstation_available?: boolean;
+  stainCarePolicy?: string;
+  stain_care_policy?: string;
+  groupBookingPolicy?: string;
+  group_booking_policy?: string;
+  travelPolicy?: string;
+  travel_policy?: string;
 }
 
 /**
