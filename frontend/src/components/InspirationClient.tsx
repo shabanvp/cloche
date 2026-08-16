@@ -452,13 +452,9 @@ export function InspirationClient() {
 
     setFetchState((p) => ({ ...p, loading: true, error: null }));
     try {
-      const res = await fetch(`/api/v1/inspiration/photos?category=${encodeURIComponent(target)}&per_page=32`);
+      const res = await fetch(`/api/pexels?category=${encodeURIComponent(target)}&per_page=32`);
       const json = await res.json();
       if (!json.success) {
-        if (json.error === "PEXELS_NOT_CONFIGURED") {
-          setFetchState({ photos: [], loading: false, error: null, noApiKey: true });
-          return;
-        }
         setFetchState({ photos: [], loading: false, error: json.message || "Failed to load photos", noApiKey: false });
         return;
       }
@@ -470,7 +466,7 @@ export function InspirationClient() {
       photoCache.current[target] = photos;
       setFetchState({ photos, loading: false, error: null, noApiKey: false });
     } catch {
-      setFetchState({ photos: [], loading: false, error: "Network error — please try again.", noApiKey: false });
+      setFetchState({ photos: [], loading: false, error: "Network error — please check your connection and retry.", noApiKey: false });
     }
   }, []);
 
@@ -761,30 +757,19 @@ export function InspirationClient() {
           4. MASONRY PHOTO GRID (STARTS IMMEDIATELY BELOW CONTROLS)
       ══════════════════════════════════════════════════════════════════════ */}
       <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-6 w-full">
-        {/* Pexels API Key Notification if not set */}
-        {activeTab === "explore" && fetchState.noApiKey && activeCategory !== "Color Themes" && (
-          <div className="mb-6 bg-amber-50 border border-amber-200 rounded-3xl p-5 flex items-start gap-3.5 shadow-sm">
-            <AlertCircle className="w-5 h-5 text-amber-600 mt-0.5 shrink-0" />
-            <div className="space-y-1 text-xs">
-              <p className="font-bold text-amber-900">Live Pexels Wedding Photos API</p>
-              <p className="text-amber-800">
-                To enable live wedding photo browsing, add your free Pexels API key to <code className="bg-amber-100 px-1 rounded font-mono">.env.local</code>:
-              </p>
-              <code className="block mt-1 bg-amber-100/80 text-amber-950 p-2 rounded-xl font-mono text-[11px]">
-                PEXELS_API_KEY=your_key_here
-              </code>
-              <div className="pt-1 flex items-center gap-3">
-                <a
-                  href="https://www.pexels.com/api/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-bold text-amber-900 underline flex items-center gap-1"
-                >
-                  Get free API key at pexels.com/api <ExternalLink className="w-3 h-3" />
-                </a>
-                <span className="text-amber-700">✦ Editorial Color Themes are active below</span>
-              </div>
+        {/* Error notification if any */}
+        {activeTab === "explore" && fetchState.error && (
+          <div className="mb-6 bg-red-50 border border-red-200 rounded-2xl p-4 flex items-center justify-between shadow-xs">
+            <div className="flex items-center gap-2.5">
+              <AlertCircle className="w-5 h-5 text-red-500 shrink-0" />
+              <p className="text-xs font-semibold text-red-800">{fetchState.error}</p>
             </div>
+            <button
+              onClick={() => fetchPhotos(activeCategory)}
+              className="text-xs font-bold text-red-700 bg-white border border-red-200 px-3 py-1.5 rounded-xl hover:bg-red-50 cursor-pointer transition-colors shrink-0"
+            >
+              Retry
+            </button>
           </div>
         )}
 
