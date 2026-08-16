@@ -1050,11 +1050,7 @@ export function InspirationClient() {
       ══════════════════════════════════════════════════════════════════════ */}
       {selectedItem && selectedProfile && (
         <div
-<<<<<<< HEAD
-          className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6 bg-black/75 backdrop-blur-sm animate-in fade-in duration-200"
-=======
           className="fixed inset-0 z-[120] bg-white md:bg-black/85 md:backdrop-blur-md flex flex-col md:flex-row md:items-center md:justify-center p-0 md:p-6 overflow-y-auto md:overflow-hidden animate-in fade-in duration-200"
->>>>>>> ab2aabfe4ed033227d0ab511eb9e30b8f4bc4ee7
           onClick={() => setSelectedItem(null)}
         >
           <div
@@ -1519,19 +1515,14 @@ export function InspirationClient() {
 
       {/* ── SAVE TO BOARD MODAL ── */}
       {itemToSave && (
-<<<<<<< HEAD
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150" onClick={() => setItemToSave(null)}>
-          <div className="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-gold/20 space-y-4" onClick={(e) => e.stopPropagation()}>
-=======
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150"
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150"
           onClick={() => setItemToSave(null)}
         >
           <div
             className="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl space-y-4 border border-gold/25"
             onClick={(e) => e.stopPropagation()}
           >
->>>>>>> ab2aabfe4ed033227d0ab511eb9e30b8f4bc4ee7
             <div className="flex items-center justify-between border-b border-gold/10 pb-3">
               <h3 className="font-serif font-bold text-base flex items-center gap-2 text-charcoal">
                 <Bookmark className="w-4 h-4 text-[#0F4C45]" />
@@ -1614,16 +1605,14 @@ export function InspirationClient() {
 
       {/* ── STANDALONE CREATE BOARD MODAL ── */}
       {!itemToSave && isCreatingBoard && (
-<<<<<<< HEAD
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-          <div className="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-gold/20 space-y-4" onClick={(e) => e.stopPropagation()}>
-=======
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150">
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150"
+          onClick={() => setIsCreatingBoard(false)}
+        >
           <div
             className="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-gold/25 space-y-4"
             onClick={(e) => e.stopPropagation()}
           >
->>>>>>> ab2aabfe4ed033227d0ab511eb9e30b8f4bc4ee7
             <div className="flex items-center justify-between border-b border-gold/10 pb-3">
               <h3 className="font-serif font-bold text-base flex items-center gap-2 text-charcoal">
                 <FolderPlus className="w-4 h-4 text-[#0F4C45]" />
