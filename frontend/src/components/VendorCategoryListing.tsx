@@ -281,7 +281,28 @@ export function VendorCategoryListing({
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredVendors.map((vendor) => {
               const isLiked = wishlist.has(vendor.id);
-              const cardHref = `/boutiques/${vendor.id || vendor.slug}`;
+              const getCategoryRoutePrefix = (slug: string) => {
+                const norm = (slug || "").toLowerCase();
+                if (norm.includes("makeup")) return "makeup-artists";
+                if (norm.includes("mehendi") || norm.includes("mehndi")) return "mehendi-artists";
+                if (norm.includes("cater")) return "catering";
+                if (norm.includes("photo") || norm.includes("video")) return "photographers";
+                if (norm.includes("venue")) return "venues";
+                if (norm.includes("jewel")) return "jewellery";
+                if (norm.includes("bridal")) return "bridal-wear";
+                if (norm.includes("groom")) return "groom-wear";
+                if (norm.includes("decor")) return "decor-planning";
+                if (norm.includes("invite")) return "invitations";
+                return "boutiques";
+              };
+
+              const routePrefix = getCategoryRoutePrefix(categorySlug);
+              const cardHref = `/${routePrefix}/${vendor.slug || vendor.id}`;
+
+              const taglineVal = (vendor as any).tagline || "";
+              const membershipVal = (vendor as any).membershipBadge || vendor.badge || "Verified";
+              const isFeatured = (vendor as any).isFeatured;
+
               return (
                 <Link
                   key={vendor.id}
@@ -320,10 +341,17 @@ export function VendorCategoryListing({
                         );
                       })()}
 
-                      {/* Optional Overlay Badge (Indoor, Outdoor, Verified, Destination) */}
-                      {vendor.badge && (
+                      {/* Featured Badge */}
+                      {isFeatured && (
+                        <span className="absolute top-3 left-3 bg-[#C8A96A] text-[#0F4C45] text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow-xs uppercase tracking-wider">
+                          Featured
+                        </span>
+                      )}
+
+                      {/* Membership / Overlay Badge */}
+                      {membershipVal && (
                         <span className="absolute bottom-3 left-3 bg-white/90 backdrop-blur-md text-charcoal text-[10px] font-bold px-3 py-1 rounded-full shadow-xs">
-                          {vendor.badge}
+                          {membershipVal}
                         </span>
                       )}
 
@@ -343,13 +371,20 @@ export function VendorCategoryListing({
 
                     {/* Card Content Area */}
                     <div className="p-4 space-y-2">
-                      <div className="flex items-center justify-between gap-2">
-                        <h3 className="font-display font-bold text-base sm:text-lg text-charcoal group-hover:text-[#0F4C45] transition-colors truncate flex items-center gap-1.5">
-                          {vendor.name}
-                          {vendor.verified && (
-                            <CheckCircle2 className="w-4 h-4 text-[#0F4C45] shrink-0 fill-[#0F4C45]/10" />
-                          )}
-                        </h3>
+                      <div className="space-y-0.5">
+                        <div className="flex items-center justify-between gap-2">
+                          <h3 className="font-display font-bold text-base sm:text-lg text-charcoal group-hover:text-[#0F4C45] transition-colors truncate flex items-center gap-1.5">
+                            {vendor.name}
+                            {vendor.verified && (
+                              <CheckCircle2 className="w-4 h-4 text-[#0F4C45] shrink-0 fill-[#0F4C45]/10" />
+                            )}
+                          </h3>
+                        </div>
+                        {taglineVal && (
+                          <p className="text-xs text-[#0F4C45] italic font-medium truncate">
+                            "{taglineVal}"
+                          </p>
+                        )}
                       </div>
 
                       {/* Rating & Review */}
@@ -387,9 +422,9 @@ export function VendorCategoryListing({
                         </p>
                       </div>
 
-                      {/* Specialty Tag Badge */}
+                      {/* Specialty Tag / Category Badge */}
                       {vendor.specialtyTag && (
-                        <div className="pt-2">
+                        <div className="pt-2 flex items-center gap-1.5 flex-wrap">
                           <span className="inline-block bg-rose-50 text-rose-700 text-[10px] font-bold px-2.5 py-1 rounded-md border border-rose-100">
                             {vendor.specialtyTag}
                           </span>

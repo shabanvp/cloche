@@ -396,6 +396,7 @@ export function getPublicCategoryConfig(categorySlug?: string): CategoryConfig {
 export interface VendorCategoryConfig {
   id: string;
   name: string;
+  slug?: string;
   badge: string;
   icon: LucideIcon;
   media: {

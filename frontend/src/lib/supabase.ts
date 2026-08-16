@@ -1231,6 +1231,23 @@ export async function fetchPublicVendorProfileFromDb(identifier: string) {
 
   const vendor: any = resolved.vendor;
   const vendorId = String(vendor.id);
+  const categorySlug = (vendor.vendor_categories?.slug || vendor.category || "").toLowerCase();
+
+  const getCategoryTableName = (slug: string): string => {
+    if (slug.includes("venue")) return "venue_details";
+    if (slug.includes("photo") || slug.includes("video")) return "photographer_details";
+    if (slug.includes("makeup")) return "makeup_details";
+    if (slug.includes("cater")) return "catering_details";
+    if (slug.includes("decor")) return "decorator_details";
+    if (slug.includes("bridal") || slug.includes("boutique")) return "bridal_wear_details";
+    if (slug.includes("jewel")) return "jewellery_details";
+    if (slug.includes("mehendi") || slug.includes("mehndi")) return "mehndi_details";
+    if (slug.includes("invite") || slug.includes("card")) return "invitation_details";
+    if (slug.includes("entertain") || slug.includes("dhol") || slug.includes("choreo")) return "entertainment_details";
+    return "catering_details";
+  };
+
+  const extTable = getCategoryTableName(categorySlug);
 
   const [
     profileRes,
@@ -1244,7 +1261,7 @@ export async function fetchPublicVendorProfileFromDb(identifier: string) {
     catalogRes,
     reviewsRes,
     bookingsRes,
-    cateringRes,
+    categoryExtRes,
   ] = await Promise.all([
     supabaseFetch(`vendor_profiles?vendor_id=eq.${encodeURIComponent(vendorId)}&select=*`),
     supabaseFetch(`vendor_contacts?vendor_id=eq.${encodeURIComponent(vendorId)}&order=is_primary.desc,created_at.asc&select=*`),
@@ -1257,15 +1274,15 @@ export async function fetchPublicVendorProfileFromDb(identifier: string) {
     supabaseFetch(`vendor_catalog_items?vendor_id=eq.${encodeURIComponent(vendorId)}&deleted_at=is.null&status=eq.published&is_available=eq.true&order=sort_order.asc,created_at.desc&select=*,vendor_catalog_images(*)`),
     supabaseFetch(`reviews?vendor_id=eq.${encodeURIComponent(vendorId)}&status=eq.published&order=created_at.desc&select=*`),
     supabaseFetch(`bookings?vendor_id=eq.${encodeURIComponent(vendorId)}&status=eq.completed&select=id`),
-    supabaseFetch(`catering_details?vendor_id=eq.${encodeURIComponent(vendorId)}&select=*`),
+    supabaseFetch(`${extTable}?vendor_id=eq.${encodeURIComponent(vendorId)}&select=*`).catch(() => ({ data: [], error: null })),
   ]);
 
-  console.log(`[DB:FETCH] public_vendor_profile vendor_id=${vendorId} ms=${Date.now() - start}`);
+  console.log(`[DB:FETCH] public_vendor_profile vendor_id=${vendorId} extTable=${extTable} ms=${Date.now() - start}`);
 
   const profile: any = firstRow(profileRes.data) || {};
   const contact: any = firstRow(contactsRes.data) || {};
   const address: any = firstRow(addressRes.data) || {};
-  const cateringDetail: any = firstRow(cateringRes.data) || {};
+  const categoryDetail: any = firstRow(categoryExtRes.data) || {};
   const services = asArray<any>(servicesRes.data);
   const packages = asArray<any>(packagesRes.data);
   const gallery = asArray<any>(galleryRes.data);
@@ -1308,21 +1325,37 @@ export async function fetchPublicVendorProfileFromDb(identifier: string) {
     .filter(Boolean)
     .join(", ");
 
+  const ownerName = contact.contact_name || vendor.owner_name || profile.owner_name || "";
+  const cityVal = profile.city || address.city || "Kochi";
+  const stateVal = profile.state || address.state || "Kerala";
+  const serviceAreasVal = vendor.service_areas || profile.service_areas || "";
+  const workingHoursVal = vendor.working_hours || profile.working_hours || "";
+  const experienceYearsVal = vendor.experience_years || profile.experience || profile.years_of_experience || "";
+
   return {
     data: {
       id: vendorId,
       slug: profile.slug || vendor.vendor_code || vendorId,
-      name: profile.business_name || "Unnamed Vendor",
-      category: vendor.vendor_categories?.slug || "",
-      categoryLabel: vendor.vendor_categories?.name || "Vendor",
-      location: [profile.city, profile.state].filter(Boolean).join(", "),
+      name: profile.business_name || vendor.boutique_name || vendor.name || "Unnamed Vendor",
+      ownerName: ownerName,
+      owner_name: ownerName,
+      category: vendor.vendor_categories?.slug || categorySlug || "",
+      categoryLabel: vendor.vendor_categories?.name || "Vendor Partner",
+      location: [cityVal, stateVal].filter(Boolean).join(", "),
+      city: cityVal,
+      state: stateVal,
+      district: stateVal,
       rating: Number(averageRating.toFixed(1)),
       reviews: reviews.length,
       image: coverUrl,
+      cover_image: coverUrl,
+      coverImage: coverUrl,
       logo: logoUrl,
+      logo_url: logoUrl,
       tagline: profile.tagline || "",
       subtitle: profile.tagline || "",
-      about: profile.about || "",
+      about: profile.about || profile.description || "",
+      description: profile.about || profile.description || "",
       colorTheme: profile.color_theme || "emerald",
       galleryLayout: profile.gallery_layout || "grid",
       introVideo: profile.intro_video_url || profile.intro_video || "",
@@ -1330,30 +1363,42 @@ export async function fetchPublicVendorProfileFromDb(identifier: string) {
       facebook: socialLinks.facebook || contact.facebook || "",
       youtube: socialLinks.youtube || contact.youtube || "",
       website: socialLinks.website || contact.website || "",
-      cuisineTypes: cateringDetail.cuisine_types || profile.cuisine_types || [],
-      serviceTypes: cateringDetail.service_types || profile.service_types || [],
-      serviceLocations: cateringDetail.service_locations || profile.service_locations || [],
-      guestCapacity: cateringDetail.guest_capacity || profile.guest_capacity || "",
-      cateringSpecialities: cateringDetail.catering_specialities || profile.catering_specialities || [],
+      serviceAreas: serviceAreasVal,
+      service_areas: serviceAreasVal,
+      workingHours: workingHoursVal,
+      working_hours: workingHoursVal,
+      experienceYears: experienceYearsVal,
+      experience_years: experienceYearsVal,
+      membershipBadge: vendor.plan || profile.plan || "Verified Partner",
+      plan: vendor.plan || profile.plan || "Partner",
       isVerified: Boolean(vendor.is_verified || vendor.is_kyc_verified),
-      phone: contact.phone || "",
-      whatsapp: contact.whatsapp || contact.phone || "",
-      email: contact.email || "",
-      address: fullAddress,
+      isFeatured: Boolean(vendor.is_featured || profile.is_featured),
+      phone: contact.phone || vendor.phone || "",
+      whatsapp: contact.whatsapp || contact.phone || vendor.whatsapp || "",
+      email: contact.email || vendor.email || "",
+      address: fullAddress || address.address_line1 || "",
       googleMaps: address.latitude && address.longitude ? `https://www.google.com/maps?q=${address.latitude},${address.longitude}` : "",
       socialLinks,
       businessHours,
+      startingPrice: startingAmount > 0 ? money(startingAmount) : "",
       startingPriceLabel: startingAmount > 0 ? `${money(startingAmount)} onwards` : "Contact for pricing",
+      cuisineTypes: categoryDetail.cuisine_types || profile.cuisine_types || [],
+      serviceTypes: categoryDetail.service_types || profile.service_types || [],
+      serviceLocations: categoryDetail.service_locations || profile.service_locations || [],
+      guestCapacity: categoryDetail.guest_capacity || profile.guest_capacity || "",
+      cateringSpecialities: categoryDetail.catering_specialities || profile.catering_specialities || [],
+      categoryDetails: categoryDetail,
       stats: [
         { icon: "star", value: reviews.length > 0 ? averageRating.toFixed(1) : "N/A", label: "Average Rating" },
         { icon: "users", value: reviews.length > 0 ? String(reviews.length) : "0", label: "Review Count" },
         { icon: "sparkles", value: completedProjects > 0 ? String(completedProjects) : "0", label: "Completed Projects" },
       ],
-      highlightsTitle: "Gallery",
+      highlightsTitle: "Gallery & Portfolio",
       highlights: gallery.map((item) => ({
         name: item.title || item.caption || "Showcase Photo",
         image: item.image_url,
       })),
+      galleryImages: gallery.map((item) => item.image_url).filter(Boolean),
       services: services.map((svc) => ({
         name: svc.name,
         description: svc.description || "",

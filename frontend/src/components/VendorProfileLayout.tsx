@@ -23,29 +23,143 @@ import {
   Building,
   Award,
   ShieldCheck,
-  Calendar
+  Calendar,
+  Globe,
+  ExternalLink,
+  Briefcase,
+  User,
+  Check,
+  Tag
 } from "lucide-react";
 import { BottomNavBar } from "@/components/BottomNavBar";
 import { ExploreOtherVendors } from "@/components/ExploreOtherVendors";
 
+function InstagramIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+      <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+    </svg>
+  );
+}
+
+function FacebookIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
+    </svg>
+  );
+}
+
+function YoutubeIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-1.96C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 1.96A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-1.96c.32-1.74.46-3.56.46-5.33s-.14-3.59-.46-5.28zM9.75 15.02V8.48l5.75 3.27-5.75 3.27z" />
+    </svg>
+  );
+}
+
 export interface VendorProfileData {
   id: string;
   name: string;
+  ownerName?: string;
+  owner_name?: string;
   category: "catering" | "venue" | "photographer" | "makeup" | "mehendi" | "decorator" | "bridal-wear" | "jewellery" | string;
   categoryLabel?: string;
   location: string;
+  city?: string;
+  state?: string;
+  district?: string;
+  address?: string;
+  googleMaps?: string;
   rating: number;
   reviews: number;
   image: string;
+  coverImage?: string;
+  cover_image?: string;
   coverImages?: string[];
+  logo?: string;
+  logo_url?: string;
   subtitle?: string;
+  tagline?: string;
   startingPrice?: string;
+  startingPriceLabel?: string;
   about?: string;
+  description?: string;
   isVerified?: boolean;
+  isFeatured?: boolean;
+  membershipBadge?: string;
+  plan?: string;
   isFollowing?: boolean;
   phone?: string;
   whatsapp?: string;
   email?: string;
+  website?: string;
+  instagram?: string;
+  facebook?: string;
+  youtube?: string;
+  socialLinks?: Record<string, string>;
+  serviceAreas?: string;
+  service_areas?: string;
+  workingHours?: string;
+  working_hours?: string;
+  experienceYears?: string;
+  experience_years?: string;
+  experience?: string;
+  priceSuffix?: string;
+  storeHighlights?: string[];
+  store_highlights?: string[];
+  featuredCollections?: string[];
+  featured_collections?: string[];
+  rentalAvailable?: boolean;
+  rental_available?: boolean;
+  homeTrialAvailable?: boolean;
+  home_trial_available?: boolean;
+  homeDeliveryAvailable?: boolean;
+  home_delivery_available?: boolean;
+  customJewelleryAvailable?: boolean;
+  custom_jewellery_available?: boolean;
+  collectionsCount?: string;
+  collections_count?: string;
+  citiesServed?: string;
+  cities_served?: string;
+  actionButtons?: {
+    callNow?: boolean;
+    whatsapp?: boolean;
+    bookAppointment?: boolean;
+    viewCollection?: boolean;
+    getQuote?: boolean;
+    visitStore?: boolean;
+  };
+  action_buttons?: {
+    callNow?: boolean;
+    whatsapp?: boolean;
+    bookAppointment?: boolean;
+    viewCollection?: boolean;
+    getQuote?: boolean;
+    visitStore?: boolean;
+  };
+  openingTime?: string;
+  opening_time?: string;
+  closingTime?: string;
+  closing_time?: string;
+  workingDays?: string;
+  working_days?: string;
+  weeklyOff?: string;
+  weekly_off?: string;
+  holidayNotice?: string;
+  holiday_notice?: string;
+  rentalPolicy?: string;
+  rental_policy?: string;
+  returnPolicy?: string;
+  return_policy?: string;
+  cancellationPolicy?: string;
+  cancellation_policy?: string;
+  securityDepositPolicy?: string;
+  security_deposit_policy?: string;
+  damagePolicy?: string;
+  damage_policy?: string;
   stats?: Array<{
     icon: string; // lucide or material icon name
     value: string | number;
@@ -56,6 +170,7 @@ export interface VendorProfileData {
     name: string;
     image: string;
   }>;
+  galleryImages?: string[];
   pricesTitle?: string;
   prices?: Array<{
     category: string;
@@ -69,6 +184,22 @@ export interface VendorProfileData {
     description?: string;
     price?: string;
     pricingType?: string;
+  }>;
+  packages?: Array<{
+    name: string;
+    tagline?: string;
+    description?: string;
+    price?: string;
+    originalPrice?: string;
+    features?: string[];
+    isPopular?: boolean;
+  }>;
+  collections?: Array<{
+    id: string;
+    title: string;
+    description?: string;
+    image?: string;
+    price?: string;
   }>;
   userReviews?: Array<{
     author: string;
@@ -90,14 +221,10 @@ export interface VendorProfileData {
   serviceLocations?: string[];
   guestCapacity?: string;
   cateringSpecialities?: string[];
-  tagline?: string;
+  categoryDetails?: Record<string, any>;
   colorTheme?: string;
   galleryLayout?: string;
   introVideo?: string;
-  instagram?: string;
-  facebook?: string;
-  youtube?: string;
-  website?: string;
 }
 
 export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
@@ -518,46 +645,57 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
                 className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-black/60 backdrop-blur-md text-white text-xs font-bold hover:bg-black/80 transition-colors border border-white/20"
               >
                 <Camera className="h-3.5 w-3.5" />
-                <span>View All Photos (15)</span>
+                <span>View All Photos ({highlights.length})</span>
               </button>
 
               <div className="rounded-full bg-black/60 px-3.5 py-1.5 text-xs font-bold text-white backdrop-blur-md border border-white/20">
-                1/15
+                1/{highlights.length || 1}
               </div>
             </div>
           </div>
 
           {/* Right Column (Sticky Vendor Information Card) */}
-          <div className="col-span-5 sticky top-24 rounded-2xl border border-black/5 bg-white shadow-md p-6 h-[460px] xl:h-[500px] 2xl:h-[540px] flex flex-col justify-between">
+          <div className="col-span-5 sticky top-24 rounded-2xl border border-black/5 bg-white shadow-md p-6 min-h-[460px] flex flex-col justify-between">
             <div>
-              {/* Category Badge & Verified Initials Header */}
+              {/* Category Badge & Logo / Initials Header */}
               <div className="flex items-center justify-between mb-4">
                 <span className="px-3 py-1 rounded-full bg-[#FAF5EA] border border-[#E8DFD1] text-[12px] font-bold text-[#0F4C45] uppercase tracking-wider">
                   {displayCategoryLabel}
                 </span>
                 <div className="relative h-12 w-12 rounded-xl overflow-hidden bg-[#0F4C45] border-2 border-white shadow-sm flex items-center justify-center text-white shrink-0">
-                  <span className="font-serif text-sm font-bold tracking-wider">{initials}</span>
+                  {vendor.logo || vendor.logo_url ? (
+                    <img src={vendor.logo || vendor.logo_url} alt={vendor.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="font-serif text-sm font-bold tracking-wider">{initials}</span>
+                  )}
                 </div>
               </div>
 
-              {/* Vendor Title */}
-              <div className="flex items-center gap-2">
-                <h1 className="font-serif text-2xl xl:text-3xl font-bold text-[#1A1410] leading-tight">
-                  {vendor.name}
-                </h1>
-                {vendor.isVerified !== false && (
-                  <CheckCircle2 className="h-6 w-6 shrink-0 fill-[#0F4C45] text-white" />
+              {/* Vendor Title & Owner Name */}
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <h1 className="font-serif text-2xl xl:text-3xl font-bold text-[#1A1410] leading-tight">
+                    {vendor.name}
+                  </h1>
+                  {vendor.isVerified !== false && (
+                    <CheckCircle2 className="h-6 w-6 shrink-0 fill-[#0F4C45] text-white" />
+                  )}
+                </div>
+                {(vendor.ownerName || vendor.owner_name) && (
+                  <p className="text-xs text-[#7A6E65] font-medium flex items-center gap-1">
+                    <User className="h-3 w-3 text-[#0F4C45]" /> Owner / Managed by {vendor.ownerName || vendor.owner_name}
+                  </p>
                 )}
               </div>
 
               {(vendor.tagline || vendor.subtitle) && (
-                <p className="text-xs font-semibold italic text-[#0F4C45] mt-1">
+                <p className="text-xs font-semibold italic text-[#0F4C45] mt-1.5">
                   "{vendor.tagline || vendor.subtitle}"
                 </p>
               )}
 
               {/* Rating & Location */}
-              <div className="mt-2 flex items-center gap-3 text-sm">
+              <div className="mt-2.5 flex items-center gap-3 text-sm">
                 <div className="flex items-center gap-1 font-bold text-[#1A1410]">
                   <Star className="h-4 w-4 fill-[#C8A96A] text-[#C8A96A]" />
                   {Number(vendor.rating ?? 0) > 0 ? (
@@ -580,30 +718,44 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
               <div className="mt-4 p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 flex items-center justify-between">
                 <div>
                   <div className="text-[11px] text-[#7A6E65] uppercase tracking-wider font-semibold">Starting Price</div>
-                  <div className="text-xl font-bold text-[#0F4C45]">{vendor.startingPrice || "Contact for pricing"}</div>
+                  <div className="text-xl font-bold text-[#0F4C45]">{vendor.startingPriceLabel || vendor.startingPrice || "Contact for pricing"}</div>
                 </div>
                 <span className="text-xs text-[#7A6E65]">Per Event / Package</span>
               </div>
+
+              {/* Store Highlights Badges in Desktop Hero Sidebar */}
+              {(vendor.storeHighlights || vendor.store_highlights) && (vendor.storeHighlights || vendor.store_highlights)!.length > 0 && (
+                <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                  {(vendor.storeHighlights || vendor.store_highlights)!.map((badge) => (
+                    <span
+                      key={badge}
+                      className="bg-black/5 text-[#0F4C45] text-[10px] font-bold px-2 py-0.5 rounded-full border border-[#0F4C45]/20 flex items-center gap-1"
+                    >
+                      <Sparkles className="w-2.5 h-2.5 text-[#C8A96A]" /> {badge}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Action Buttons */}
             <div className="space-y-2.5 pt-4 border-t border-black/5">
               <button
                 onClick={() => setActiveModal("quote")}
-                className="w-full py-3.5 rounded-xl bg-[#C8A96A] text-[#0F4C45] font-bold hover:bg-yellow-400 transition-colors flex items-center justify-center gap-2 shadow-xs"
+                className="w-full py-3.5 rounded-xl bg-[#C8A96A] text-[#0F4C45] font-bold hover:bg-yellow-400 transition-colors flex items-center justify-center gap-2 shadow-xs cursor-pointer"
               >
                 <Mail className="h-4 w-4" /> Get Instant Quote
               </button>
 
               <div className="flex gap-2.5">
                 <a
-                  href={`tel:${vendor.phone || "9876543210"}`}
+                  href={`tel:${vendor.phone || ""}`}
                   className="flex-1 py-2.5 rounded-xl bg-[#0F4C45] text-white font-bold text-xs hover:bg-[#083833] transition-colors flex items-center justify-center gap-1.5"
                 >
                   <Phone className="h-3.5 w-3.5" /> Call
                 </a>
                 <a
-                  href={`https://wa.me/${vendor.phone || "9876543210"}`}
+                  href={`https://wa.me/${(vendor.whatsapp || vendor.phone || "").replace(/\D/g, "")}`}
                   target="_blank"
                   rel="noreferrer"
                   className="flex-1 py-2.5 rounded-xl bg-[#0F4C45] text-white font-bold text-xs hover:bg-[#083833] transition-colors flex items-center justify-center gap-1.5"
@@ -620,13 +772,31 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
       <main className="flex-1 px-3 sm:px-4 md:px-6 lg:px-8 pt-3 sm:pt-4 md:pt-6 space-y-4 sm:space-y-5 md:space-y-6 lg:space-y-8 xl:space-y-10 w-[min(96vw,1300px)] mx-auto">
 
         {/* Profile Card Header (Mobile & Tablet only) */}
-        <div className="lg:hidden flex gap-3 sm:gap-4 md:gap-6 items-center relative bg-white p-3 sm:p-4 md:p-6 lg:p-7 rounded-2xl border border-black/5 shadow-xs">
-          <div className="relative h-16 w-16 md:h-20 md:w-20 lg:h-22 lg:w-22 shrink-0 rounded-2xl overflow-hidden bg-[#0F4C45] border-2 border-white shadow-md flex items-center justify-center text-white">
-            <span className="font-serif text-lg md:text-2xl font-bold tracking-wider">{initials}</span>
+        <div className="lg:hidden flex flex-col sm:flex-row gap-3 sm:gap-4 md:gap-6 items-start sm:items-center relative bg-white p-3 sm:p-4 md:p-6 lg:p-7 rounded-2xl border border-black/5 shadow-xs">
+          <div className="flex items-center gap-3 w-full sm:w-auto">
+            <div className="relative h-16 w-16 md:h-20 md:w-20 lg:h-22 lg:w-22 shrink-0 rounded-2xl overflow-hidden bg-[#0F4C45] border-2 border-white shadow-md flex items-center justify-center text-white">
+              {vendor.logo || vendor.logo_url ? (
+                <img src={vendor.logo || vendor.logo_url} alt={vendor.name} className="w-full h-full object-cover" />
+              ) : (
+                <span className="font-serif text-lg md:text-2xl font-bold tracking-wider">{initials}</span>
+              )}
+            </div>
+
+            <div className="flex-1 min-w-0 sm:hidden">
+              <div className="flex items-center gap-1.5">
+                <h1 className="font-serif text-lg font-bold text-[#1A1410] leading-tight truncate">
+                  {vendor.name}
+                </h1>
+                {vendor.isVerified !== false && (
+                  <CheckCircle2 className="h-4 w-4 shrink-0 fill-[#0F4C45] text-white" />
+                )}
+              </div>
+              <span className="text-[#0F4C45] text-xs font-semibold block">{displayCategoryLabel}</span>
+            </div>
           </div>
 
-          <div className="flex-1 min-w-0 flex flex-col justify-center">
-            <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex-1 min-w-0">
+            <div className="hidden sm:flex items-center gap-2 flex-wrap">
               <h1 className="font-serif text-[clamp(1.375rem,2.5vw,2.375rem)] font-bold text-[#1A1410] leading-tight">
                 {vendor.name}
               </h1>
@@ -635,33 +805,238 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
               )}
             </div>
 
-            <div className="mt-1.5 flex items-center gap-3 text-[clamp(0.75rem,0.9vw,0.875rem)] flex-wrap">
-              <div className="flex items-center gap-1 font-bold text-[#1A1410]">
-                <Star className="h-4 w-4 fill-[#C8A96A] text-[#C8A96A]" />
-                {Number(vendor.rating ?? 0) > 0 ? (
-                  <>
-                    <span>{Number(vendor.rating).toFixed(1)}</span>
-                    <span className="text-[#7A6E65] font-normal">({vendor.reviews ?? 0})</span>
-                  </>
-                ) : (
-                  <span className="text-xs font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded">New</span>
-                )}
+            {(vendor.ownerName || vendor.owner_name) && (
+              <p className="text-xs text-[#7A6E65] font-medium mt-0.5">
+                Owner: {vendor.ownerName || vendor.owner_name}
+              </p>
+            )}
+
+            {/* Store Highlights Badges on Mobile */}
+            {(vendor.storeHighlights || vendor.store_highlights) && (vendor.storeHighlights || vendor.store_highlights)!.length > 0 && (
+              <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                {(vendor.storeHighlights || vendor.store_highlights)!.map((badge) => (
+                  <span
+                    key={badge}
+                    className="bg-[#FAF7F2] text-[#0F4C45] text-[10px] font-bold px-2 py-0.5 rounded-full border border-[#0F4C45]/20 flex items-center gap-1"
+                  >
+                    <Sparkles className="w-2.5 h-2.5 text-[#C8A96A]" /> {badge}
+                  </span>
+                ))}
               </div>
-              <span className="text-[#0F4C45] font-semibold">• Verified {displayCategoryLabel}</span>
-              <div className="flex items-center gap-1 text-[#6B5E52]">
-                <MapPin className="h-3.5 w-3.5 md:h-4 md:w-4 text-[#8C827A]" />
-                <span>{vendor.location}</span>
-              </div>
-            </div>
+            )}
           </div>
         </div>
 
+        {/* Featured Collections Strip */}
+        {(vendor.featuredCollections || vendor.featured_collections) && (vendor.featuredCollections || vendor.featured_collections)!.length > 0 && (
+          <section className="rounded-2xl bg-white p-4 sm:p-5 border border-black/5 shadow-xs space-y-2.5">
+            <div className="flex items-center justify-between">
+              <h2 className="font-serif text-sm sm:text-base font-bold text-[#1A1410] flex items-center gap-2">
+                <Tag className="w-4 h-4 text-[#0F4C45]" /> Featured Collections
+              </h2>
+              <span className="text-[11px] text-[#7A6E65] font-medium">Curated by Store</span>
+            </div>
+            <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar pb-1">
+              {(vendor.featuredCollections || vendor.featured_collections)!.map((col) => (
+                <span
+                  key={col}
+                  className="bg-[#FAF5EA] text-[#0F4C45] border border-[#E8DFD1] text-xs font-bold px-3.5 py-1.5 rounded-xl shrink-0 shadow-2xs flex items-center gap-1.5"
+                >
+                  <Sparkles className="w-3 h-3 text-[#C8A96A]" /> {col}
+                </span>
+              ))}
+            </div>
+          </section>
+        )}
+
         {/* About Section */}
         <section className="rounded-2xl bg-white p-3 sm:p-4 md:p-6 lg:p-8 border border-black/5 shadow-xs">
-          <h2 className="font-serif text-[clamp(1rem,1.5vw,1.625rem)] font-bold text-[#1A1410]">About</h2>
+          <h2 className="font-serif text-[clamp(1rem,1.5vw,1.625rem)] font-bold text-[#1A1410]">About Brand</h2>
           <p className="mt-2 text-[clamp(0.8125rem,1vw,1.0625rem)] text-[#5A6561] leading-relaxed max-w-[760px]">
-            {vendor.about || `${vendor.name} is known for creating memorable wedding experiences with a perfect blend of style, presentation, and unmatched hospitality. From intimate gatherings to grand celebrations, we bring your vision to life.`}
+            {vendor.about || vendor.description || `${vendor.name} is a premier ${displayCategoryLabel.toLowerCase()} in ${vendor.location}, dedicated to delivering exceptional service and luxury experiences for grand celebrations and intimate weddings.`}
           </p>
+        </section>
+
+        {/* Business & Contact Information */}
+        <section className="rounded-2xl bg-white p-4 sm:p-5 md:p-6 lg:p-8 border border-black/5 shadow-xs space-y-4">
+          <h2 className="font-serif text-[clamp(1rem,1.5vw,1.625rem)] font-bold text-[#1A1410]">
+            Business Information & Contact
+          </h2>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs font-sans">
+            {(vendor.experienceYears || vendor.experience_years || vendor.experience) && (
+              <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
+                <span className="text-[11px] text-[#7A6E65] uppercase font-bold tracking-wider block">Years of Experience</span>
+                <span className="font-bold text-[#0F4C45] text-sm block">{vendor.experienceYears || vendor.experience_years || vendor.experience} Years</span>
+              </div>
+            )}
+
+            {(vendor.rentalAvailable !== undefined || vendor.rental_available !== undefined) && (
+              <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
+                <span className="text-[11px] text-[#7A6E65] uppercase font-bold tracking-wider block">Rental Service</span>
+                <span className="font-bold text-[#1A1410] text-sm block">
+                  {Boolean(vendor.rentalAvailable ?? vendor.rental_available) ? "✓ Rental Available" : "✗ Purchase Only"}
+                </span>
+              </div>
+            )}
+
+            {(vendor.homeTrialAvailable !== undefined || vendor.home_trial_available !== undefined) && (
+              <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
+                <span className="text-[11px] text-[#7A6E65] uppercase font-bold tracking-wider block">Home Trial Service</span>
+                <span className="font-bold text-[#1A1410] text-sm block">
+                  {Boolean(vendor.homeTrialAvailable ?? vendor.home_trial_available) ? "✓ Available" : "✗ In-Store Only"}
+                </span>
+              </div>
+            )}
+
+            {(vendor.homeDeliveryAvailable !== undefined || vendor.home_delivery_available !== undefined) && (
+              <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
+                <span className="text-[11px] text-[#7A6E65] uppercase font-bold tracking-wider block">Home Delivery</span>
+                <span className="font-bold text-[#1A1410] text-sm block">
+                  {Boolean(vendor.homeDeliveryAvailable ?? vendor.home_delivery_available) ? "✓ Insured Courier / Delivery" : "✗ Store Pickup Only"}
+                </span>
+              </div>
+            )}
+
+            {(vendor.customJewelleryAvailable !== undefined || vendor.custom_jewellery_available !== undefined) && (
+              <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
+                <span className="text-[11px] text-[#7A6E65] uppercase font-bold tracking-wider block">Customization</span>
+                <span className="font-bold text-[#1A1410] text-sm block">
+                  {Boolean(vendor.customJewelleryAvailable ?? vendor.custom_jewellery_available) ? "✓ Custom Orders Accepted" : "✗ Standard Designs"}
+                </span>
+              </div>
+            )}
+
+            {(vendor.collectionsCount || vendor.collections_count) && (
+              <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
+                <span className="text-[11px] text-[#7A6E65] uppercase font-bold tracking-wider block">Collections Available</span>
+                <span className="font-bold text-[#0F4C45] text-sm block">{vendor.collectionsCount || vendor.collections_count}</span>
+              </div>
+            )}
+
+            {(vendor.ownerName || vendor.owner_name) && (
+              <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
+                <span className="text-[11px] text-[#7A6E65] uppercase font-bold tracking-wider block">Vendor / Owner Name</span>
+                <span className="font-bold text-[#1A1410] text-sm block">{vendor.ownerName || vendor.owner_name}</span>
+              </div>
+            )}
+
+            {vendor.phone && (
+              <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
+                <span className="text-[11px] text-[#7A6E65] uppercase font-bold tracking-wider block">Phone Number</span>
+                <a href={`tel:${vendor.phone}`} className="font-bold text-[#0F4C45] text-sm hover:underline block">{vendor.phone}</a>
+              </div>
+            )}
+
+            {vendor.whatsapp && (
+              <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
+                <span className="text-[11px] text-[#7A6E65] uppercase font-bold tracking-wider block">WhatsApp</span>
+                <a href={`https://wa.me/${vendor.whatsapp.replace(/\D/g, "")}`} target="_blank" rel="noreferrer" className="font-bold text-[#0F4C45] text-sm hover:underline block">{vendor.whatsapp}</a>
+              </div>
+            )}
+
+            {vendor.email && (
+              <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
+                <span className="text-[11px] text-[#7A6E65] uppercase font-bold tracking-wider block">Email Address</span>
+                <a href={`mailto:${vendor.email}`} className="font-semibold text-[#0F4C45] text-xs hover:underline block truncate">{vendor.email}</a>
+              </div>
+            )}
+
+            {(vendor.address || vendor.location) && (
+              <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1 sm:col-span-2">
+                <span className="text-[11px] text-[#7A6E65] uppercase font-bold tracking-wider block">Studio / Business Address</span>
+                <span className="font-medium text-[#2D2520] text-xs block leading-relaxed">{vendor.address || vendor.location}</span>
+                {vendor.googleMaps && (
+                  <a href={vendor.googleMaps} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-[11px] text-[#0F4C45] font-bold hover:underline mt-1">
+                    <MapPin className="w-3.5 h-3.5" /> View on Google Maps <ExternalLink className="w-3 h-3" />
+                  </a>
+                )}
+              </div>
+            )}
+
+            {(vendor.serviceAreas || vendor.service_areas || vendor.citiesServed || vendor.cities_served) && (
+              <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1 sm:col-span-2">
+                <span className="text-[11px] text-[#7A6E65] uppercase font-bold tracking-wider block">Service Area / Operating Districts</span>
+                <span className="font-medium text-[#2D2520] text-xs block leading-relaxed">{vendor.serviceAreas || vendor.service_areas || vendor.citiesServed || vendor.cities_served}</span>
+              </div>
+            )}
+
+            {(vendor.workingHours || vendor.working_hours || vendor.workingDays || vendor.working_days) && (
+              <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1 sm:col-span-2">
+                <span className="text-[11px] text-[#7A6E65] uppercase font-bold tracking-wider block">Working Hours & Timings</span>
+                <span className="font-medium text-[#2D2520] text-xs block">
+                  {vendor.workingHours || vendor.working_hours || `${vendor.workingDays || vendor.working_days || "Mon-Sat"}: ${vendor.openingTime || vendor.opening_time || "10:00 AM"} - ${vendor.closingTime || vendor.closing_time || "08:00 PM"} (Weekly Off: ${vendor.weeklyOff || vendor.weekly_off || "Sunday"})`}
+                </span>
+                {(vendor.holidayNotice || vendor.holiday_notice) && (
+                  <span className="text-[11px] text-[#0F4C45] font-semibold block mt-0.5">
+                    Notice: {vendor.holidayNotice || vendor.holiday_notice}
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Store Policies Accordion */}
+          {(vendor.rentalPolicy || vendor.rental_policy || vendor.returnPolicy || vendor.return_policy || vendor.securityDepositPolicy || vendor.security_deposit_policy) && (
+            <div className="pt-4 border-t border-black/5 space-y-3">
+              <span className="text-xs font-serif font-bold text-[#1A1410] block">Store & Rental Policies</span>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                {(vendor.rentalPolicy || vendor.rental_policy) && (
+                  <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
+                    <span className="font-bold text-[#0F4C45] block">Rental Terms</span>
+                    <p className="text-[#5A6561] leading-relaxed">{vendor.rentalPolicy || vendor.rental_policy}</p>
+                  </div>
+                )}
+                {(vendor.returnPolicy || vendor.return_policy) && (
+                  <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
+                    <span className="font-bold text-[#0F4C45] block">Return & Overdue Policy</span>
+                    <p className="text-[#5A6561] leading-relaxed">{vendor.returnPolicy || vendor.return_policy}</p>
+                  </div>
+                )}
+                {(vendor.cancellationPolicy || vendor.cancellation_policy) && (
+                  <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
+                    <span className="font-bold text-[#0F4C45] block">Cancellation & Refund</span>
+                    <p className="text-[#5A6561] leading-relaxed">{vendor.cancellationPolicy || vendor.cancellation_policy}</p>
+                  </div>
+                )}
+                {(vendor.securityDepositPolicy || vendor.security_deposit_policy) && (
+                  <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
+                    <span className="font-bold text-[#0F4C45] block">Security Deposit Guarantee</span>
+                    <p className="text-[#5A6561] leading-relaxed">{vendor.securityDepositPolicy || vendor.security_deposit_policy}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Social Media Channels */}
+          {(vendor.instagram || vendor.facebook || vendor.youtube || vendor.website) && (
+            <div className="pt-3 border-t border-black/5">
+              <span className="text-[11px] text-[#7A6E65] uppercase font-bold tracking-wider block mb-2">Connect via Social Media & Website</span>
+              <div className="flex flex-wrap items-center gap-2">
+                {vendor.instagram && (
+                  <a href={vendor.instagram.startsWith("http") ? vendor.instagram : `https://instagram.com/${vendor.instagram.replace("@", "")}`} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 px-3 py-1.5 bg-[#FAF5EA] border border-[#E8DFD1] rounded-lg text-xs font-bold text-[#0F4C45] hover:bg-[#0F4C45] hover:text-white transition-colors">
+                    <InstagramIcon className="w-4 h-4" /> Instagram
+                  </a>
+                )}
+                {vendor.facebook && (
+                  <a href={vendor.facebook.startsWith("http") ? vendor.facebook : `https://facebook.com/${vendor.facebook}`} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 px-3 py-1.5 bg-[#FAF5EA] border border-[#E8DFD1] rounded-lg text-xs font-bold text-[#0F4C45] hover:bg-[#0F4C45] hover:text-white transition-colors">
+                    <FacebookIcon className="w-4 h-4" /> Facebook
+                  </a>
+                )}
+                {vendor.youtube && (
+                  <a href={vendor.youtube.startsWith("http") ? vendor.youtube : `https://youtube.com/${vendor.youtube}`} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 px-3 py-1.5 bg-[#FAF5EA] border border-[#E8DFD1] rounded-lg text-xs font-bold text-[#0F4C45] hover:bg-[#0F4C45] hover:text-white transition-colors">
+                    <YoutubeIcon className="w-4 h-4" /> YouTube
+                  </a>
+                )}
+                {vendor.website && (
+                  <a href={vendor.website.startsWith("http") ? vendor.website : `https://${vendor.website}`} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 px-3 py-1.5 bg-[#FAF5EA] border border-[#E8DFD1] rounded-lg text-xs font-bold text-[#0F4C45] hover:bg-[#0F4C45] hover:text-white transition-colors">
+                    <Globe className="w-4 h-4" /> Official Website <ExternalLink className="w-3 h-3" />
+                  </a>
+                )}
+              </div>
+            </div>
+          )}
         </section>
 
         {/* Key Stats Cards (3 Columns) */}
@@ -706,6 +1081,53 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
           </div>
         </section>
 
+        {/* Vendor Packages Section */}
+        {vendor.packages && vendor.packages.length > 0 && (
+          <section className="rounded-2xl bg-white p-4 sm:p-5 md:p-6 lg:p-8 border border-black/5 shadow-xs space-y-4">
+            <h2 className="font-serif text-[clamp(1rem,1.5vw,1.625rem)] font-bold text-[#1A1410]">
+              Exclusive Packages & Offerings
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {vendor.packages.map((pkg, idx) => (
+                <div key={idx} className={`p-5 rounded-2xl border flex flex-col justify-between relative ${pkg.isPopular ? "bg-[#FAF5EA] border-[#C8A96A] border-2 shadow-sm" : "bg-[#FAF7F2] border-black/10"}`}>
+                  {pkg.isPopular && (
+                    <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#0F4C45] text-white text-[10px] font-bold uppercase tracking-wider px-3 py-0.5 rounded-full shadow-xs">
+                      Most Popular
+                    </span>
+                  )}
+                  <div className="space-y-2">
+                    <h3 className="font-serif font-bold text-lg text-[#1A1410]">{pkg.name}</h3>
+                    {pkg.tagline && <p className="text-xs font-semibold text-[#0F4C45] italic">"{pkg.tagline}"</p>}
+                    {pkg.description && <p className="text-xs text-[#5A6561] leading-relaxed">{pkg.description}</p>}
+
+                    {pkg.features && pkg.features.length > 0 && (
+                      <ul className="mt-3 space-y-1.5 text-xs text-[#2D2520]">
+                        {pkg.features.map((feat, fidx) => (
+                          <li key={fidx} className="flex items-center gap-1.5">
+                            <Check className="w-3.5 h-3.5 text-[#0F4C45] shrink-0" />
+                            <span>{feat}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+
+                  <div className="mt-4 pt-3 border-t border-black/5 flex items-center justify-between">
+                    <div>
+                      <span className="text-xs text-[#7A6E65] block font-medium">Package Price</span>
+                      <span className="font-serif text-xl font-bold text-[#0F4C45]">{pkg.price}</span>
+                      {pkg.originalPrice && <span className="text-xs text-[#8C827A] line-through ml-2">{pkg.originalPrice}</span>}
+                    </div>
+                    <button onClick={() => setActiveModal("quote")} className="px-4 py-2 bg-[#0F4C45] text-white font-bold text-xs rounded-xl hover:bg-[#072B27] transition-colors">
+                      Book Package
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
         {/* Price Range Section (Centered 3 Columns) */}
         <section className="rounded-2xl bg-white p-3 sm:p-4 md:p-6 lg:p-8 border border-black/5 shadow-xs w-[min(100%,960px)] mx-auto">
           <h2 className="font-serif text-[clamp(1rem,1.5vw,1.625rem)] font-bold text-[#1A1410] mb-3 md:mb-5">Price Range</h2>
@@ -734,7 +1156,7 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
           </div>
         </section>
 
-        {/* Catering Specifications Section */}
+        {/* Category Specifications Section */}
         {((vendor.cuisineTypes && vendor.cuisineTypes.length > 0) ||
           (vendor.serviceTypes && vendor.serviceTypes.length > 0) ||
           (vendor.cateringSpecialities && vendor.cateringSpecialities.length > 0) ||
@@ -742,7 +1164,7 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
           (vendor.serviceLocations && vendor.serviceLocations.length > 0)) && (
           <section className="rounded-2xl bg-white p-4 sm:p-5 md:p-6 lg:p-8 border border-black/5 shadow-xs space-y-4">
             <h2 className="font-serif text-[clamp(1rem,1.5vw,1.625rem)] font-bold text-[#1A1410]">
-              Catering Specifications & Capabilities
+              Category Specifications & Capabilities
             </h2>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs font-sans">
@@ -840,7 +1262,7 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
         {vendor.userReviews && vendor.userReviews.length > 0 ? (
           <section className="rounded-2xl bg-white p-3 sm:p-4 md:p-6 lg:p-8 border border-black/5 shadow-xs w-[min(100%,880px)] mx-auto">
             <div className="flex items-center justify-between mb-3 md:mb-5">
-              <h2 className="font-serif text-[clamp(1rem,1.5vw,1.625rem)] font-bold text-[#1A1410]">Reviews</h2>
+              <h2 className="font-serif text-[clamp(1rem,1.5vw,1.625rem)] font-bold text-[#1A1410]">Verified Reviews</h2>
               <button className="text-[12px] md:text-[13px] font-bold text-[#0F4C45] hover:underline">See All</button>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 lg:gap-5">
@@ -859,37 +1281,14 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
             </div>
           </section>
         ) : (
-          <section className="rounded-2xl bg-white p-3 sm:p-4 md:p-6 lg:p-8 border border-black/5 shadow-xs w-[min(100%,880px)] mx-auto">
-            <div className="flex items-center justify-between mb-3 md:mb-5">
-              <h2 className="font-serif text-[clamp(1rem,1.5vw,1.625rem)] font-bold text-[#1A1410]">Reviews</h2>
-              <button className="text-[12px] md:text-[13px] font-bold text-[#0F4C45] hover:underline">See All</button>
+          <section className="rounded-2xl bg-white p-6 md:p-8 border border-black/5 shadow-xs text-center space-y-2 w-[min(100%,880px)] mx-auto">
+            <div className="w-12 h-12 rounded-full bg-[#FAF5EA] border border-[#E8DFD1] text-[#0F4C45] flex items-center justify-center mx-auto">
+              <Star className="w-6 h-6 fill-[#C8A96A] text-[#C8A96A]" />
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 lg:gap-5">
-              <div className="p-3 sm:p-4 rounded-xl bg-[#FAF5EA] border border-[#E8DFD1]">
-                <div className="flex items-center justify-between">
-                  <span className="text-[13px] md:text-[14px] font-bold text-[#1A1410]">Neha Sharma</span>
-                  <div className="flex items-center gap-1">
-                    <Star className="h-3.5 w-3.5 fill-[#C8A96A] text-[#C8A96A]" />
-                    <span className="text-[11px] md:text-[12px] font-bold text-[#1A1410]">5</span>
-                  </div>
-                </div>
-                <p className="mt-1.5 text-[12px] md:text-[13px] text-[#5A6561] leading-relaxed">
-                  The service was absolutely amazing! Every detail was executed flawlessly. Highly recommended!
-                </p>
-              </div>
-              <div className="p-3 sm:p-4 rounded-xl bg-[#FAF5EA] border border-[#E8DFD1] hidden md:block">
-                <div className="flex items-center justify-between">
-                  <span className="text-[13px] md:text-[14px] font-bold text-[#1A1410]">Rohan Verma</span>
-                  <div className="flex items-center gap-1">
-                    <Star className="h-3.5 w-3.5 fill-[#C8A96A] text-[#C8A96A]" />
-                    <span className="text-[11px] md:text-[12px] font-bold text-[#1A1410]">5</span>
-                  </div>
-                </div>
-                <p className="mt-1.5 text-[12px] md:text-[13px] text-[#5A6561] leading-relaxed">
-                  Extremely professional team with incredible taste and punctuality. Our guests loved everything!
-                </p>
-              </div>
-            </div>
+            <h3 className="font-serif font-bold text-lg text-[#1A1410]">No Reviews Yet</h3>
+            <p className="text-xs text-[#7A6E65] max-w-sm mx-auto">
+              This partner is newly listed or hasn't received public reviews yet. Book through Cloche and leave the first review!
+            </p>
           </section>
         )}
 
@@ -906,14 +1305,14 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
       <div className="fixed bottom-16 md:bottom-6 lg:bottom-8 left-1/2 -translate-x-1/2 z-40 bg-white/95 backdrop-blur-md px-3 sm:px-4 md:px-6 py-2.5 md:py-0 border-t md:border border-black/10 shadow-lg md:shadow-2xl md:rounded-full w-[calc(100%-1.5rem)] md:w-[min(92vw,980px)] h-auto md:h-[72px] flex items-center transition-all">
         <div className="relative flex-1 flex items-center gap-2 md:gap-4">
           <a
-            href={`tel:${vendor.phone || "9876543210"}`}
+            href={`tel:${vendor.phone || ""}`}
             className="flex-1 flex items-center justify-center gap-1.5 rounded-xl md:rounded-full bg-[#0F4C45] h-12 md:h-14 text-[13px] md:text-[14px] font-bold text-white hover:bg-[#083833] transition-colors"
           >
             <Phone className="h-4 w-4" /> Call
           </a>
 
           <a
-            href={`https://wa.me/${vendor.phone || "9876543210"}`}
+            href={`https://wa.me/${(vendor.whatsapp || vendor.phone || "").replace(/\D/g, "")}`}
             target="_blank"
             rel="noreferrer"
             className="flex-1 flex items-center justify-center gap-1.5 rounded-xl md:rounded-full bg-[#0F4C45] h-12 md:h-14 text-[13px] md:text-[14px] font-bold text-white hover:bg-[#083833] transition-colors"
