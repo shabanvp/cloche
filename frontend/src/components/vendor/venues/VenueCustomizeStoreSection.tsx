@@ -561,7 +561,7 @@ export function VenueCustomizeStoreSection() {
         venueVisitTimings: venueVisitTimings.trim(),
         venue_visit_timings: venueVisitTimings.trim(),
         publicHolidayAvailability: publicHolidayAvailability.trim(),
-        public_holiday_availability: publicHolidayAvailability.trim>,
+        public_holiday_availability: publicHolidayAvailability.trim(),
         advanceAppointmentRequired,
         advance_appointment_required: advanceAppointmentRequired,
 
