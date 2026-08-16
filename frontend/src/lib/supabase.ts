@@ -1385,7 +1385,6 @@ export async function fetchPublicVendorProfileFromDb(identifier: string) {
       cuisineTypes: categoryDetail.cuisine_types || profile.cuisine_types || [],
       serviceTypes: categoryDetail.service_types || profile.service_types || [],
       serviceLocations: categoryDetail.service_locations || profile.service_locations || [],
-      guestCapacity: categoryDetail.guest_capacity || profile.guest_capacity || "",
       cateringSpecialities: categoryDetail.catering_specialities || profile.catering_specialities || [],
       categoryDetails: categoryDetail,
       // Venue specific fields
