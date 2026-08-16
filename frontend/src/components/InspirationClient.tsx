@@ -56,12 +56,12 @@ function getAspectClass(w: number, h: number) {
 // SKELETON CARD
 // ─────────────────────────────────────────────────────────────────────────────
 function SkeletonCard({ idx }: { idx: number }) {
-  const heights = ["h-72", "h-56", "h-84", "h-60", "h-76", "h-64"];
+  const heights = ["h-64 md:h-72", "h-48 md:h-56", "h-72 md:h-84", "h-52 md:h-60", "h-68 md:h-76", "h-56 md:h-64"];
   return (
-    <div className={`break-inside-avoid rounded-3xl bg-white border border-gold/10 ${heights[idx % 6]} mb-5 animate-pulse relative overflow-hidden shadow-xs`}>
+    <div className={`break-inside-avoid rounded-[18px] md:rounded-3xl bg-white border border-gold/10 ${heights[idx % 6]} mb-2.5 md:mb-5 animate-pulse relative overflow-hidden shadow-xs`}>
       <div className="w-full h-full bg-gradient-to-b from-gray-100 to-gray-200" />
-      <div className="absolute top-3 left-3 w-16 h-4 bg-white/60 rounded-full" />
-      <div className="absolute bottom-3 left-3 right-3 space-y-2">
+      <div className="hidden md:block absolute top-3 left-3 w-16 h-4 bg-white/60 rounded-full" />
+      <div className="hidden md:block absolute bottom-3 left-3 right-3 space-y-2">
         <div className="h-3 bg-white/70 rounded-full w-2/3" />
         <div className="h-2 bg-white/50 rounded-full w-1/3" />
       </div>
@@ -91,8 +91,13 @@ function PhotoCard({
   const profile = getInspirationPlanningProfile(item);
 
   return (
-    <div onClick={onClick} className="break-inside-avoid mb-5 relative group cursor-pointer select-none">
-      <div className={`relative w-full overflow-hidden rounded-3xl bg-gray-100 ${aspectClass} shadow-xs group-hover:shadow-2xl transition-all duration-500 ease-out border border-gold/15 group-hover:-translate-y-1`}>
+    <div
+      onClick={onClick}
+      className="break-inside-avoid mb-2.5 md:mb-5 relative group cursor-pointer select-none active:scale-[0.98] transition-transform duration-200"
+    >
+      <div
+        className={`relative w-full overflow-hidden rounded-[18px] md:rounded-3xl bg-gray-100 ${aspectClass} shadow-xs md:shadow-xs md:group-hover:shadow-2xl transition-all duration-500 ease-out border border-gold/10 md:border-gold/15 md:group-hover:-translate-y-1`}
+      >
         {!imgLoaded && (
           <div className="absolute inset-0 bg-gradient-to-br from-gray-100 via-gray-200 to-gray-100 animate-pulse" />
         )}
@@ -101,13 +106,16 @@ function PhotoCard({
           alt={caption}
           loading="lazy"
           onLoad={() => setImgLoaded(true)}
-          className={`w-full h-full object-cover transition-all duration-700 ease-out group-hover:scale-105 ${imgLoaded ? "opacity-100" : "opacity-0"}`}
+          className={`w-full h-full object-cover transition-all duration-700 ease-out md:group-hover:scale-105 ${
+            imgLoaded ? "opacity-100" : "opacity-0"
+          }`}
         />
 
-        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+        {/* Desktop-only Hover Gradient Overlay */}
+        <div className="hidden md:block absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
 
-        {/* Top Badges & Actions */}
-        <div className="absolute top-0 left-0 right-0 p-3 flex items-start justify-between z-10">
+        {/* Desktop-only Top Badges & Actions */}
+        <div className="hidden md:flex absolute top-0 left-0 right-0 p-3 items-start justify-between z-10">
           <div className="flex flex-col gap-1.5 items-start">
             <span className="text-[10px] font-bold uppercase tracking-wider bg-black/60 backdrop-blur-md text-[#D4B66E] px-3 py-1 rounded-full border border-white/20 shadow-xs">
               {item.category}
@@ -137,8 +145,8 @@ function PhotoCard({
           </div>
         </div>
 
-        {/* Bottom Context Info on Hover */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 space-y-1.5">
+        {/* Desktop-only Bottom Info on Hover */}
+        <div className="hidden md:block absolute bottom-0 left-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 space-y-1.5">
           <p className="text-white text-xs font-bold line-clamp-2 leading-snug drop-shadow-md">
             {profile.styleName}
           </p>
@@ -150,25 +158,25 @@ function PhotoCard({
           </div>
         </div>
 
-        {/* Pexels Attribution */}
-        <div className="absolute bottom-0 left-0 right-0 px-3 py-1.5 bg-gradient-to-t from-black/60 to-transparent group-hover:opacity-0 transition-opacity duration-300 pointer-events-none">
+        {/* Desktop-only Pexels Attribution overlay */}
+        <div className="hidden md:block absolute bottom-0 left-0 right-0 px-3 py-1.5 bg-gradient-to-t from-black/60 to-transparent group-hover:opacity-0 transition-opacity duration-300 pointer-events-none">
           <span className="text-[9px] text-white/75 font-medium truncate block">
             📷 {item.photographer} / Pexels
           </span>
         </div>
 
-        {/* Saved badge */}
+        {/* Saved Heart Indicator (Clean & Minimal on mobile) */}
         {saved && (
-          <div className="absolute top-3 right-3 group-hover:opacity-0 transition-opacity">
-            <span className="bg-[#C8A96A] text-[#0F4C45] text-[9px] font-extrabold px-2 py-0.5 rounded-full shadow-md">
-              Saved ❤️
+          <div className="absolute top-2 right-2 md:top-3 md:right-3 z-10">
+            <span className="bg-[#C8A96A]/95 backdrop-blur-xs text-[#0F4C45] text-[10px] md:text-[9px] font-extrabold px-2 py-0.5 rounded-full shadow-md flex items-center gap-1">
+              ❤️ <span className="hidden md:inline">Saved</span>
             </span>
           </div>
         )}
       </div>
 
-      {/* Under-card Planning Strip */}
-      <div className="pt-2 px-1 flex items-center justify-between text-[11px] text-charcoal/70">
+      {/* Desktop-only Under-card Planning Strip */}
+      <div className="hidden md:flex pt-2 px-1 items-center justify-between text-[11px] text-charcoal/70">
         <span className="font-semibold text-charcoal truncate max-w-[130px]">{profile.styleName}</span>
         <span className="font-bold text-[#0F4C45] text-[10px] bg-[#FAF7F2] px-2 py-0.5 rounded-md border border-gold/20">
           {profile.estimatedCostRange}
@@ -202,17 +210,25 @@ function ColorThemeCard({
   };
 
   return (
-    <div onClick={onClick} className="break-inside-avoid mb-5 relative group cursor-pointer select-none">
-      <div className={`relative w-full overflow-hidden rounded-3xl bg-gray-100 ${aspectMap[item.aspectRatio]} shadow-xs group-hover:shadow-2xl transition-all duration-500 ease-out border border-gold/20 group-hover:-translate-y-1`}>
+    <div
+      onClick={onClick}
+      className="break-inside-avoid mb-2.5 md:mb-5 relative group cursor-pointer select-none active:scale-[0.98] transition-transform duration-200"
+    >
+      <div
+        className={`relative w-full overflow-hidden rounded-[18px] md:rounded-3xl bg-gray-100 ${aspectMap[item.aspectRatio]} shadow-xs md:shadow-xs md:group-hover:shadow-2xl transition-all duration-500 ease-out border border-gold/15 md:group-hover:-translate-y-1`}
+      >
         <img
           src={item.image}
           alt={item.title}
           loading="lazy"
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+          className="w-full h-full object-cover md:group-hover:scale-105 transition-transform duration-700 ease-out"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
-        <div className="absolute top-0 left-0 right-0 p-3 flex items-start justify-between z-10">
+        {/* Desktop-only Gradient Overlay */}
+        <div className="hidden md:block absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+        {/* Desktop-only Top Badges */}
+        <div className="hidden md:flex absolute top-0 left-0 right-0 p-3 items-start justify-between z-10">
           <div className="flex flex-col gap-1.5 items-start">
             <span className="text-[10px] font-bold uppercase tracking-wider bg-black/60 backdrop-blur-md text-[#D4B66E] px-3 py-1 rounded-full border border-white/20">
               🎨 Color Theme
@@ -240,7 +256,8 @@ function ColorThemeCard({
           </div>
         </div>
 
-        <div className="absolute bottom-0 left-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 space-y-2">
+        {/* Desktop-only Hover palette */}
+        <div className="hidden md:block absolute bottom-0 left-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 space-y-2">
           <h4 className="text-white text-xs font-bold line-clamp-1">{item.title}</h4>
           <div className="flex items-center gap-1.5">
             {item.colorTheme.slice(0, 5).map((c, i) => (
@@ -253,18 +270,23 @@ function ColorThemeCard({
             ))}
           </div>
         </div>
+
+        {/* Saved indicator */}
+        {saved && (
+          <div className="absolute top-2 right-2 md:top-3 md:right-3 z-10">
+            <span className="bg-[#C8A96A]/95 backdrop-blur-xs text-[#0F4C45] text-[10px] md:text-[9px] font-extrabold px-2 py-0.5 rounded-full shadow-md flex items-center gap-1">
+              ❤️ <span className="hidden md:inline">Saved</span>
+            </span>
+          </div>
+        )}
       </div>
 
-      <div className="pt-2 px-1 space-y-1">
-        <div className="flex items-center justify-between text-[11px]">
-          <span className="font-bold text-charcoal truncate max-w-[150px]">{item.title}</span>
-          <span className="text-[10px] text-[#0F4C45] font-semibold">{item.styleTag}</span>
-        </div>
-        <div className="flex gap-1">
-          {item.colorTheme.slice(0, 5).map((c, i) => (
-            <span key={i} style={{ backgroundColor: c.hex }} className="flex-1 h-1.5 rounded-full border border-black/5" />
-          ))}
-        </div>
+      {/* Desktop-only Under-card strip */}
+      <div className="hidden md:flex pt-2 px-1 items-center justify-between text-[11px] text-charcoal/70">
+        <span className="font-semibold text-charcoal truncate max-w-[150px]">{item.title}</span>
+        <span className="font-bold text-[#0F4C45] text-[10px] bg-[#FAF7F2] px-2 py-0.5 rounded-md border border-gold/20">
+          {item.estimatedBudget}
+        </span>
       </div>
     </div>
   );
@@ -756,10 +778,10 @@ export function InspirationClient() {
       {/* ══════════════════════════════════════════════════════════════════════
           4. MASONRY PHOTO GRID (STARTS IMMEDIATELY BELOW CONTROLS)
       ══════════════════════════════════════════════════════════════════════ */}
-      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-6 w-full">
+      <main className="flex-1 max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-10 py-3 md:py-6 w-full">
         {/* Error notification if any */}
         {activeTab === "explore" && fetchState.error && (
-          <div className="mb-6 bg-red-50 border border-red-200 rounded-2xl p-4 flex items-center justify-between shadow-xs">
+          <div className="mb-4 md:mb-6 bg-red-50 border border-red-200 rounded-2xl p-4 flex items-center justify-between shadow-xs">
             <div className="flex items-center gap-2.5">
               <AlertCircle className="w-5 h-5 text-red-500 shrink-0" />
               <p className="text-xs font-semibold text-red-800">{fetchState.error}</p>
@@ -776,9 +798,49 @@ export function InspirationClient() {
         {/* ── EXPLORE TAB FEED ── */}
         {activeTab === "explore" && (
           <>
+            {/* Curated Section Highlights Carousel */}
+            {activeCategory === "All" && !searchQuery && budgetFilter === "all" && !fetchState.loading && (
+              <div className="mb-4 md:mb-7 space-y-2">
+                <div className="flex items-center justify-between px-1">
+                  <span className="text-[11px] md:text-xs font-extrabold uppercase tracking-wider text-[#0F4C45] flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-[#C8A96A]" />
+                    <span>Curated Kerala Collections</span>
+                  </span>
+                  <span className="text-[11px] text-charcoal/50 font-medium hidden sm:inline">Swipe to browse collection →</span>
+                </div>
+                <div className="flex overflow-x-auto gap-2.5 sm:gap-3.5 pb-2 pt-1 scrollbar-none snap-x snap-mandatory -mx-1 px-1">
+                  {[
+                    { id: "Bridal Looks", title: "Bridal & Kasavu", emoji: "👰", img: "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=400&q=80" },
+                    { id: "Stage Designs", title: "Stage & Mandap", emoji: "🌸", img: "https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=400&q=80" },
+                    { id: "Traditional Kerala Weddings", title: "Kerala Traditions", emoji: "🌴", img: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=400&q=80" },
+                    { id: "Wedding Photos", title: "Photography", emoji: "📸", img: "https://images.unsplash.com/photo-1606800052052-a08af7148866?auto=format&fit=crop&w=400&q=80" },
+                    { id: "Color Themes", title: "Colour Stories", emoji: "🎨", img: "https://images.unsplash.com/photo-1513279922550-250c2129b13a?auto=format&fit=crop&w=400&q=80" },
+                    { id: "Destination Weddings", title: "Destination", emoji: "🏖", img: "https://images.unsplash.com/photo-1544078751-58fee2d8a03b?auto=format&fit=crop&w=400&q=80" },
+                    { id: "Mehendi Designs", title: "Henna Art", emoji: "🌿", img: "https://images.unsplash.com/photo-1560707303-4e980ce876ad?auto=format&fit=crop&w=400&q=80" },
+                    { id: "Groom Looks", title: "Groom Wear", emoji: "🤵", img: "https://images.unsplash.com/photo-1507676184212-d03ab07a01bf?auto=format&fit=crop&w=400&q=80" },
+                  ].map((col) => (
+                    <button
+                      key={col.id}
+                      onClick={() => {
+                        setActiveCategory(col.id);
+                      }}
+                      className="w-28 sm:w-36 h-36 sm:h-44 shrink-0 snap-start rounded-[18px] sm:rounded-[22px] overflow-hidden relative group cursor-pointer shadow-xs active:scale-95 transition-all text-left border border-gold/20"
+                    >
+                      <img src={col.img} alt={col.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
+                      <div className="absolute bottom-0 left-0 right-0 p-2.5 sm:p-3 text-white space-y-0.5">
+                        <span className="text-sm sm:text-base">{col.emoji}</span>
+                        <p className="text-[11px] sm:text-xs font-bold leading-tight drop-shadow-xs line-clamp-1">{col.title}</p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Skeletons while loading */}
             {fetchState.loading && (
-              <div className="columns-2 sm:columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-5">
+              <div className="columns-2 sm:columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-2.5 sm:gap-3 md:gap-5">
                 {Array.from({ length: 15 }).map((_, i) => (
                   <SkeletonCard key={i} idx={i} />
                 ))}
@@ -808,7 +870,7 @@ export function InspirationClient() {
 
             {/* Responsive Pinterest Masonry Grid */}
             {!fetchState.loading && displayItems.length > 0 && (
-              <div className="columns-2 sm:columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-5">
+              <div className="columns-2 sm:columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-2.5 sm:gap-3 md:gap-5">
                 {displayItems.map((item) => {
                   const saved = isItemSaved(item.id);
                   if (isStaticColorTheme(item)) {

@@ -460,12 +460,12 @@ export const INSPIRATION_CATEGORIES: InspirationCategoryItem[] = [
   {
     id: "Stage Designs",
     label: "Stage & Mandap",
-    emoji: "✨",
+    emoji: "🌸",
     image: "https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=400&q=80",
   },
   {
     id: "Trending Decor",
-    label: "Trending Decor",
+    label: "Floral & Decor",
     emoji: "💐",
     image: "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=400&q=80",
   },
@@ -483,21 +483,39 @@ export const INSPIRATION_CATEGORIES: InspirationCategoryItem[] = [
   },
   {
     id: "Wedding Photos",
-    label: "Wedding Photos",
+    label: "Photography",
     emoji: "📸",
     image: "https://images.unsplash.com/photo-1606800052052-a08af7148866?auto=format&fit=crop&w=400&q=80",
   },
   {
     id: "Color Themes",
-    label: "Color Themes",
+    label: "Colour Themes",
     emoji: "🎨",
     image: "https://images.unsplash.com/photo-1513279922550-250c2129b13a?auto=format&fit=crop&w=400&q=80",
     isStatic: true,
   },
   {
+    id: "Traditional Kerala Weddings",
+    label: "Kerala Weddings",
+    emoji: "🌴",
+    image: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=400&q=80",
+  },
+  {
+    id: "Destination Weddings",
+    label: "Destination",
+    emoji: "🏖",
+    image: "https://images.unsplash.com/photo-1544078751-58fee2d8a03b?auto=format&fit=crop&w=400&q=80",
+  },
+  {
+    id: "Reception Ideas",
+    label: "Reception Ideas",
+    emoji: "💍",
+    image: "https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?auto=format&fit=crop&w=400&q=80",
+  },
+  {
     id: "Seasonal Trends",
     label: "Seasonal Trends",
-    emoji: "🌸",
+    emoji: "🌧",
     image: "https://images.unsplash.com/photo-1508615039623-a25605d2b022?auto=format&fit=crop&w=400&q=80",
   },
 ];
