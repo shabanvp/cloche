@@ -476,7 +476,7 @@ export async function PUT(req: Request) {
       ...(profile?.cateringSpecialities || profile?.catering_specialities ? { catering_specialities: profile.cateringSpecialities || profile.catering_specialities } : {}),
       // Venue specific extension fields
       ...(profile?.venueHighlights || profile?.venue_highlights || profile?.storeHighlights || profile?.store_highlights ? { venue_highlights: profile.venueHighlights || profile.venue_highlights || profile.storeHighlights || profile.store_highlights } : {}),
-      ...(profile?.facilities || profile?.venueFacilities || profile?.venue_facilities ? { facilities: profile.facilities || profile.venueFacilities || profile.venue_facilities } : {}),
+      ...(profile?.facilities || profile?.venue_facilities ? { facilities: profile.facilities || profile.venue_facilities } : {}),
       ...(profile?.yearsInBusiness || profile?.years_in_business ? { years_in_business: profile.yearsInBusiness || profile.years_in_business } : {}),
       ...(profile?.numberOfHalls || profile?.number_of_halls ? { number_of_halls: profile.numberOfHalls || profile.number_of_halls } : {}),
       ...(profile?.indoorCapacity || profile?.indoor_capacity ? { indoor_capacity: profile.indoorCapacity || profile.indoor_capacity } : {}),

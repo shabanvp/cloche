@@ -222,11 +222,61 @@ export interface VendorProfileData {
   serviceTypes?: string[];
   serviceLocations?: string[];
   guestCapacity?: string;
+  guest_capacity?: string;
   cateringSpecialities?: string[];
   categoryDetails?: Record<string, any>;
   colorTheme?: string;
+  color_theme?: string;
   galleryLayout?: string;
+  gallery_layout?: string;
   introVideo?: string;
+  intro_video?: string;
+  intro_video_url?: string;
+  // Venue specific attributes (matching Supabase venue_details columns)
+  facilities?: string[];
+  venue_facilities?: string[];
+  venueHighlights?: string[];
+  venue_highlights?: string[];
+  yearsInBusiness?: string;
+  years_in_business?: string;
+  numberOfHalls?: string;
+  number_of_halls?: string;
+  indoorCapacity?: string;
+  indoor_capacity?: string;
+  outdoorCapacity?: string;
+  outdoor_capacity?: string;
+  parkingCapacity?: string;
+  parking_capacity?: string;
+  languagesSpoken?: string;
+  languages_spoken?: string;
+  contactActions?: string[];
+  contact_actions?: string[];
+  weeklyHolidays?: string;
+  weekly_holidays?: string;
+  publicHolidayAvailability?: string;
+  public_holiday_availability?: string;
+  venueVisitTimings?: string;
+  venue_visit_timings?: string;
+  advanceBookingRequired?: string;
+  advance_booking_required?: string;
+  advancePaymentPolicy?: string;
+  advance_payment_policy?: string;
+  refundPolicy?: string;
+  refund_policy?: string;
+  overtimeCharges?: string;
+  overtime_charges?: string;
+  decorationRules?: string;
+  decoration_rules?: string;
+  outsideCateringPolicy?: string;
+  outside_catering_policy?: string;
+  outsidePhotographyPolicy?: string;
+  outside_photography_policy?: string;
+  noiseRestrictions?: string;
+  noise_restrictions?: string;
+  alcoholPolicy?: string;
+  alcohol_policy?: string;
+  eventTimingRules?: string;
+  event_timing_rules?: string;
 }
 
 export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
@@ -854,18 +904,18 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
         )}
 
         {/* Venue Facilities & Spaces (Venues Only) */}
-        {isVenue && (vendor.facilities || vendor.venueFacilities || vendor.venue_facilities) && (vendor.facilities || vendor.venueFacilities || vendor.venue_facilities)!.length > 0 && (
+        {isVenue && (vendor.facilities || vendor.venue_facilities) && (vendor.facilities || vendor.venue_facilities)!.length > 0 && (
           <section className="rounded-2xl bg-white p-4 sm:p-5 md:p-6 lg:p-8 border border-black/5 shadow-xs space-y-3">
             <div className="flex items-center justify-between border-b border-black/5 pb-3">
               <h2 className="font-serif text-[clamp(1rem,1.5vw,1.625rem)] font-bold text-[#1A1410] flex items-center gap-2">
                 <Layers className="w-5 h-5 text-[#0F4C45]" /> Venue Facilities & Spaces
               </h2>
               <span className="text-xs font-bold text-[#0F4C45]">
-                {(vendor.facilities || vendor.venueFacilities || vendor.venue_facilities)!.length} Verified Amenities
+                {(vendor.facilities || vendor.venue_facilities)!.length} Verified Amenities
               </span>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 pt-1">
-              {(vendor.facilities || vendor.venueFacilities || vendor.venue_facilities)!.map((fac: string) => (
+              {(vendor.facilities || vendor.venue_facilities)!.map((fac: string) => (
                 <div
                   key={fac}
                   className="bg-[#FAF7F2] p-3 rounded-xl border border-black/5 flex items-center gap-2 text-xs font-bold text-[#2D2520]"

@@ -270,7 +270,7 @@ export function VenueCustomizeStoreSection({ vendorName = "Wedding Venue" }: Ven
     if (Array.isArray(hl) && hl.length > 0) setVenueHighlights(hl);
 
     // Facilities
-    const fac = data.facilities || data.venueFacilities || data.venue_facilities;
+    const fac = data.facilities || data.venue_facilities;
     if (Array.isArray(fac) && fac.length > 0) setFacilities(fac);
 
     // Business Info
@@ -387,7 +387,6 @@ export function VenueCustomizeStoreSection({ vendorName = "Wedding Venue" }: Ven
         storeHighlights: venueHighlights,
         store_highlights: venueHighlights,
         facilities,
-        venueFacilities: facilities,
         venue_facilities: facilities,
         yearsInBusiness,
         years_in_business: yearsInBusiness,

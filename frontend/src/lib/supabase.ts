@@ -1392,7 +1392,6 @@ export async function fetchPublicVendorProfileFromDb(identifier: string) {
       storeHighlights: categoryDetail.venue_highlights || profile.store_highlights || profile.storeHighlights || [],
       venueHighlights: categoryDetail.venue_highlights || profile.store_highlights || profile.storeHighlights || [],
       facilities: categoryDetail.facilities || profile.facilities || [],
-      venueFacilities: categoryDetail.facilities || profile.facilities || [],
       yearsInBusiness: categoryDetail.years_in_business || profile.experience_years || vendor.experience_years || "",
       numberOfHalls: categoryDetail.number_of_halls || "",
       indoorCapacity: categoryDetail.indoor_capacity || "",
