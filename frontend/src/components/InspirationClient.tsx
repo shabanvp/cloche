@@ -972,79 +972,83 @@ export function InspirationClient() {
       </main>
 
       {/* ══════════════════════════════════════════════════════════════════════
-          5. LIGHTBOX DETAIL MODAL
+          5. LIGHTBOX DETAIL MODAL (RESPONSIVE MOBILE & DESKTOP)
       ══════════════════════════════════════════════════════════════════════ */}
       {selectedItem && selectedProfile && (
         <div
-          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-md animate-in fade-in duration-200 p-0 sm:p-4"
+          className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/85 backdrop-blur-md animate-in fade-in duration-200 p-0 sm:p-4 md:p-6"
           onClick={() => setSelectedItem(null)}
         >
           <div
-            className="bg-white w-full sm:max-w-5xl sm:rounded-3xl max-h-[92vh] overflow-hidden shadow-2xl flex flex-col md:flex-row relative animate-in slide-in-from-bottom-8 sm:zoom-in-95 duration-200 border border-gold/30"
+            className="bg-white w-full max-w-full md:max-w-5xl rounded-t-[28px] md:rounded-3xl max-h-[94vh] md:max-h-[90vh] overflow-y-auto md:overflow-hidden shadow-2xl flex flex-col md:flex-row relative border border-gold/30 animate-in slide-in-from-bottom-6 duration-200 overscroll-contain"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Close Button */}
+            {/* Close Button (Touch Target 44px+) */}
             <button
               onClick={() => setSelectedItem(null)}
-              className="absolute top-4 right-4 z-30 p-2.5 rounded-full bg-black/70 hover:bg-black text-white cursor-pointer shadow-lg transition-transform hover:scale-105"
+              aria-label="Close details"
+              className="absolute top-3 right-3 md:top-4 md:right-4 z-30 min-w-[44px] min-h-[44px] w-11 h-11 rounded-full bg-black/75 hover:bg-black text-white flex items-center justify-center cursor-pointer shadow-xl border border-white/20 transition-transform active:scale-95 hover:scale-105"
             >
               <X className="w-5 h-5" />
             </button>
 
-            {/* Left Column: Image */}
-            <div className="md:w-1/2 bg-black flex flex-col justify-between relative min-h-[300px] sm:min-h-[500px]">
+            {/* Top / Left Column: Full Width Image with Clean Credit Bar */}
+            <div className="w-full md:w-1/2 bg-black flex flex-col justify-between relative shrink-0 aspect-[4/3] sm:aspect-[16/10] md:aspect-auto md:min-h-[550px] md:h-full select-none overflow-hidden">
               <img
                 src={isStaticColorTheme(selectedItem) ? selectedItem.image : selectedItem.src.large2x}
                 alt={isStaticColorTheme(selectedItem) ? selectedItem.title : selectedItem.alt || selectedItem.category}
-                className="w-full h-full max-h-[450px] md:max-h-full object-cover"
+                className="w-full h-full object-cover"
               />
 
               {!isStaticColorTheme(selectedItem) ? (
-                <div className="absolute bottom-0 left-0 right-0 bg-black/70 backdrop-blur-md px-4 py-2.5 flex items-center justify-between z-10 text-white">
-                  <span className="text-xs">
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/65 to-transparent px-4 py-3 pt-6 flex items-center justify-between z-10 text-white text-xs leading-none">
+                  <span className="truncate max-w-[62%]">
                     📷 Photo by <span className="font-bold">{selectedItem.photographer}</span>
                   </span>
                   <a
                     href={selectedItem.pexels_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-[11px] text-[#D4B66E] hover:underline flex items-center gap-1 font-semibold"
+                    className="text-[11px] text-[#D4B66E] hover:underline flex items-center gap-1 font-semibold shrink-0"
                   >
                     Pexels Profile <ExternalLink className="w-3 h-3" />
                   </a>
                 </div>
               ) : (
-                <div className="absolute bottom-0 left-0 right-0 bg-black/70 backdrop-blur-md px-4 py-2.5 flex items-center justify-between z-10 text-white">
-                  <span className="text-xs font-bold text-[#D4B66E]">✦ Cloche Editorial Master Collection</span>
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/65 to-transparent px-4 py-3 pt-6 flex items-center justify-between z-10 text-white text-xs leading-none">
+                  <span className="font-bold text-[#D4B66E] flex items-center gap-1">
+                    <Sparkles className="w-3.5 h-3.5" /> Cloche Editorial Collection
+                  </span>
                 </div>
               )}
             </div>
 
-            {/* Right Column: Planning Intelligence Dashboard */}
-            <div className="md:w-1/2 flex flex-col overflow-y-auto max-h-[60vh] md:max-h-[92vh] bg-white">
-              <div className="p-6 sm:p-8 space-y-6 flex-1">
-                {/* Header */}
-                <div className="flex items-start justify-between gap-3 pt-1 border-b border-gold/15 pb-4">
-                  <div>
-                    <span className="text-xs font-extrabold uppercase tracking-wider text-[#0F4C45] bg-[#FAF7F2] px-3 py-1 rounded-full border border-gold/20 inline-block mb-1">
+            {/* Bottom / Right Column: Planning Intelligence Dashboard */}
+            <div className="w-full md:w-1/2 flex flex-col md:overflow-y-auto md:max-h-[90vh] bg-white">
+              <div className="p-4 sm:p-6 md:p-8 space-y-4 sm:space-y-5 md:space-y-6 flex-1 pb-6 md:pb-8">
+                {/* Header (Title, Category, Share & Save) */}
+                <div className="flex items-start justify-between gap-3 border-b border-gold/15 pb-4">
+                  <div className="space-y-1">
+                    <span className="text-[11px] sm:text-xs font-extrabold uppercase tracking-wider text-[#0F4C45] bg-[#FAF7F2] px-3 py-1 rounded-full border border-gold/20 inline-block">
                       {selectedItem.category}
                     </span>
-                    <h2 className="font-serif font-black text-xl sm:text-2xl text-charcoal leading-snug">
+                    <h2 className="font-serif font-black text-lg sm:text-2xl text-charcoal leading-snug">
                       {isStaticColorTheme(selectedItem) ? selectedItem.title : selectedProfile.styleName}
                     </h2>
                   </div>
 
-                  <div className="flex items-center gap-2 shrink-0">
+                  <div className="flex items-center gap-2 shrink-0 pt-0.5">
                     <button
                       onClick={() => handleShare(selectedItem)}
-                      className="p-2.5 rounded-full bg-[#FAF7F2] text-charcoal border border-gold/20 hover:bg-gold/10 cursor-pointer shadow-xs"
+                      aria-label="Share inspiration"
+                      className="min-w-[44px] min-h-[44px] w-11 h-11 rounded-full bg-[#FAF7F2] text-charcoal border border-gold/20 hover:bg-gold/10 flex items-center justify-center cursor-pointer shadow-xs active:scale-95 transition-transform"
                       title="Share link"
                     >
                       <Share2 className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => setItemToSave(selectedItem)}
-                      className={`px-4 py-2 rounded-full text-xs font-extrabold flex items-center gap-1.5 cursor-pointer shadow-md transition-all ${
+                      className={`min-h-[44px] px-4 py-2.5 rounded-full text-xs font-extrabold flex items-center gap-1.5 cursor-pointer shadow-md active:scale-95 transition-all ${
                         isItemSaved(selectedItem.id)
                           ? "bg-[#C8A96A] text-[#0F4C45]"
                           : "bg-[#0F4C45] hover:bg-[#12584E] text-white"
@@ -1056,7 +1060,7 @@ export function InspirationClient() {
                   </div>
                 </div>
 
-                {/* 1. Style & Concept */}
+                {/* 1. Style & Aesthetic Concept */}
                 <div className="space-y-2 bg-[#FAF7F2] p-4 rounded-2xl border border-gold/15">
                   <div className="flex items-center gap-2 text-xs font-extrabold text-[#0F4C45] uppercase tracking-wider">
                     <Sparkles className="w-3.5 h-3.5 text-[#C8A96A]" />
@@ -1071,16 +1075,22 @@ export function InspirationClient() {
                   </div>
                 </div>
 
-                {/* 2. Budget Breakdown */}
+                {/* 2. Budget Benchmark (Transparent Planning Range) */}
                 <div className="space-y-3 bg-white p-4 rounded-2xl border border-gold/20 shadow-xs">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between gap-2">
                     <span className="text-xs font-extrabold text-[#0F4C45] uppercase tracking-wider flex items-center gap-1.5">
                       <DollarSign className="w-4 h-4 text-[#C8A96A]" />
-                      <span>2. Estimated Budget</span>
+                      <span>2. Market Budget Benchmark</span>
                     </span>
-                    <span className="text-xs font-black bg-[#0F4C45] text-[#C8A96A] px-3 py-1 rounded-full">
+                    <span className="text-xs font-black bg-[#0F4C45] text-[#C8A96A] px-3 py-1 rounded-full whitespace-nowrap">
                       {selectedProfile.estimatedCostRange}
                     </span>
+                  </div>
+
+                  {/* Transparent Market Benchmark Notice */}
+                  <div className="bg-amber-50/90 border border-amber-200/80 rounded-xl p-2.5 flex items-start gap-2 text-[11px] text-amber-900 leading-relaxed">
+                    <AlertCircle className="w-3.5 h-3.5 text-amber-700 shrink-0 mt-0.5" />
+                    <p>{selectedProfile.disclaimer}</p>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
@@ -1112,7 +1122,7 @@ export function InspirationClient() {
                         <button
                           key={i}
                           onClick={() => handleCopyHex(c.hex, c.name)}
-                          className="flex flex-col items-center gap-1 cursor-pointer group/s"
+                          className="flex flex-col items-center gap-1 cursor-pointer group/s min-h-[44px]"
                           title={`Copy ${c.name} (${c.hex})`}
                         >
                           <div
@@ -1145,7 +1155,7 @@ export function InspirationClient() {
                         key={v.href}
                         href={v.href}
                         onClick={() => setSelectedItem(null)}
-                        className="bg-white hover:bg-[#0F4C45] hover:text-white border border-gold/20 hover:border-[#0F4C45] text-charcoal p-3 rounded-2xl text-xs font-bold transition-all flex items-center justify-between shadow-xs group"
+                        className="bg-[#FAF7F2]/60 hover:bg-[#0F4C45] hover:text-white border border-gold/20 hover:border-[#0F4C45] text-charcoal p-3 rounded-2xl text-xs font-bold transition-all flex items-center justify-between shadow-xs group min-h-[48px] active:scale-[0.99]"
                       >
                         <div className="flex items-center gap-2.5">
                           <span className="text-lg">{v.emoji}</span>
@@ -1167,7 +1177,7 @@ export function InspirationClient() {
                       setSelectedItem(null);
                       handleOpenAura(selectedProfile.auraPrompt);
                     }}
-                    className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-[#0F4C45] via-[#12584E] to-[#0A2E2A] text-white text-xs sm:text-sm font-extrabold flex items-center justify-center gap-2.5 shadow-xl hover:scale-[1.01] transition-transform cursor-pointer border border-[#C8A96A]/30"
+                    className="min-h-[48px] w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-[#0F4C45] via-[#12584E] to-[#0A2E2A] text-white text-xs sm:text-sm font-extrabold flex items-center justify-center gap-2.5 shadow-xl hover:scale-[1.01] active:scale-[0.99] transition-transform cursor-pointer border border-[#C8A96A]/30"
                   >
                     <Sparkles className="w-4 h-4 text-[#C8A96A] animate-pulse" />
                     <span>✨ Ask Aura to Plan &amp; Replicate This Look</span>
@@ -1175,18 +1185,18 @@ export function InspirationClient() {
                 </div>
               </div>
 
-              {/* Similar Inspirations */}
+              {/* Similar Inspirations (Smooth Horizontal Scroll) */}
               {relatedItems.length > 0 && (
-                <div className="border-t border-gold/15 p-6 bg-[#FAF7F2]/60 space-y-3">
-                  <span className="text-xs font-extrabold text-[#0F4C45] uppercase tracking-wider">
+                <div className="border-t border-gold/15 p-4 sm:p-6 bg-[#FAF7F2]/60 space-y-3 pb-8 md:pb-6">
+                  <span className="text-xs font-extrabold text-[#0F4C45] uppercase tracking-wider block">
                     Similar Inspiration Concepts
                   </span>
-                  <div className="grid grid-cols-3 sm:grid-cols-6 gap-2.5">
+                  <div className="flex overflow-x-auto gap-3 pb-2 pt-1 scrollbar-none snap-x snap-mandatory -mx-1 px-1">
                     {relatedItems.map((rel) => (
                       <div
                         key={rel.id}
                         onClick={() => setSelectedItem(rel)}
-                        className="aspect-square rounded-2xl overflow-hidden bg-gray-100 cursor-pointer hover:opacity-85 transition-opacity border border-gold/20 shadow-xs"
+                        className="w-24 h-24 sm:w-28 sm:h-28 shrink-0 snap-start rounded-2xl overflow-hidden bg-gray-100 cursor-pointer hover:opacity-85 active:scale-95 transition-all border border-gold/20 shadow-xs relative"
                       >
                         <img
                           src={isStaticColorTheme(rel) ? rel.image : rel.src.medium}

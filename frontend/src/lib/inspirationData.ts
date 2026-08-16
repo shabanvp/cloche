@@ -67,7 +67,11 @@ export interface InspirationPlanningProfile {
   keralaTouch: string;
   recommendedVendors: { label: string; href: string; emoji: string; subtitle: string }[];
   auraPrompt: string;
+  disclaimer: string;
 }
+
+const GENERAL_DISCLAIMER =
+  "Typical market benchmark range for Kerala weddings. Actual costs vary based on custom requirements, materials, season, and vendor selection. Connect with verified vendors for exact quotations.";
 
 export function getInspirationPlanningProfile(item: InspirationItem): InspirationPlanningProfile {
   const category = item.category;
@@ -93,9 +97,10 @@ export function getInspirationPlanningProfile(item: InspirationItem): Inspiratio
       recommendedVendors: [
         { label: "Stage Decorators", href: "/categories/decor-planning", emoji: "🌸", subtitle: "Decor & Floral Artists" },
         { label: "Wedding Venues", href: "/venues", emoji: "🏛", subtitle: "Convention Centres & Resorts" },
-        { label: "Lighting & Sound", href: "/categories/decor-planning", emoji: "✨", subtitle: "Atmosphere & AV" },
+        { label: "Decor & Lighting", href: "/categories/decor-planning", emoji: "✨", subtitle: "Atmosphere & AV" },
       ],
       auraPrompt: `Plan a ${isUltra ? "Royal Kerala Mandap" : "Modern Floral Stage"} within a ₹${isUltra ? "4 Lakh" : "2 Lakh"} decor budget in Kochi/Trivandrum`,
+      disclaimer: GENERAL_DISCLAIMER,
     };
   }
 
@@ -121,6 +126,7 @@ export function getInspirationPlanningProfile(item: InspirationItem): Inspiratio
         { label: "Temple Jewellery", href: "/jewellery", emoji: "👑", subtitle: "Bridal Ornaments & Rentals" },
       ],
       auraPrompt: "Recommend top bridal makeup artists and Kasavu saree boutiques in Kerala under ₹60,000",
+      disclaimer: GENERAL_DISCLAIMER,
     };
   }
 
@@ -143,6 +149,7 @@ export function getInspirationPlanningProfile(item: InspirationItem): Inspiratio
         { label: "Men's Grooming", href: "/makeup-artists", emoji: "✂️", subtitle: "Hair & Grooming Styling" },
       ],
       auraPrompt: "Find luxury Kerala groom wear boutiques for silk Mundu and designer Bandhgalas in Kochi",
+      disclaimer: GENERAL_DISCLAIMER,
     };
   }
 
@@ -165,6 +172,7 @@ export function getInspirationPlanningProfile(item: InspirationItem): Inspiratio
         { label: "Mehendi Event Decor", href: "/categories/decor-planning", emoji: "🎉", subtitle: "Colorful Seating & Props" },
       ],
       auraPrompt: "Suggest mehendi artists and colorful backyard decor ideas in Kerala under ₹25,000",
+      disclaimer: GENERAL_DISCLAIMER,
     };
   }
 
@@ -185,9 +193,10 @@ export function getInspirationPlanningProfile(item: InspirationItem): Inspiratio
       keralaTouch: "Drone footage of traditional houseboat arrival on Vembanad Lake",
       recommendedVendors: [
         { label: "Wedding Photographers", href: "/photographers", emoji: "📸", subtitle: "Candid & Cinematic Teams" },
-        { label: "Videographers & Drone", href: "/categories/videographers", emoji: "🎥", subtitle: "Film Directors & 4K AV" },
+        { label: "Cinematic Videography", href: "/photographers", emoji: "🎥", subtitle: "4K Films & Drone Coverage" },
       ],
       auraPrompt: "Find top candid wedding photographers in Kerala with backwater destination experience",
+      disclaimer: GENERAL_DISCLAIMER,
     };
   }
 
@@ -207,11 +216,12 @@ export function getInspirationPlanningProfile(item: InspirationItem): Inspiratio
       keyElements: ["Cohesive 5-tone palette", "Natural botanical foliage", "Custom welcome board typography"],
       keralaTouch: "Gold-bordered accents inspired by Travancore heritage and backwater flora",
       recommendedVendors: [
-        { label: "Wedding Planners", href: "/categories/wedding-planners", emoji: "📋", subtitle: "Full Theme & Concept Execution" },
+        { label: "Wedding Planners & Decor", href: "/categories/decor-planning", emoji: "📋", subtitle: "Full Theme & Concept Execution" },
         { label: "Decor & Lighting", href: "/categories/decor-planning", emoji: "🎨", subtitle: "Floral & Stage Designers" },
         { label: "Invitation Designers", href: "/invitations", emoji: "💌", subtitle: "Matching Stationery & E-Invites" },
       ],
       auraPrompt: `How do I execute a ${isTheme ? item.title : "Luxury Color Palette"} wedding in Kerala with decor, lighting, and attire?`,
+      disclaimer: GENERAL_DISCLAIMER,
     };
   }
 
@@ -235,6 +245,7 @@ export function getInspirationPlanningProfile(item: InspirationItem): Inspiratio
       { label: "Caterers", href: "/catering", emoji: "🍛", subtitle: "Grand Kerala Sadya & Multi-Cuisine" },
     ],
     auraPrompt: "Create a complete wedding decor and vendor checklist for a Kerala outdoor lawn reception",
+    disclaimer: GENERAL_DISCLAIMER,
   };
 }
 
