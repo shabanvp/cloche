@@ -287,12 +287,11 @@ export function VenueCustomizeStoreSection({
     if (data.introVideo || data.intro_video || data.intro_video_url) {
       setIntroVideo(data.introVideo || data.intro_video || data.intro_video_url || "");
     }
-    if (Array.isArray(data.galleryImages || data.gallery_images)) {
-      setGalleryImages((data.galleryImages || data.gallery_images) ?? []);
-    }
-    if (Array.isArray(data.hallImages || data.hall_images)) {
-      setHallImages((data.hallImages || data.hall_images) ?? []);
-    }
+    const gallery = Array.isArray(data.galleryImages) ? data.galleryImages : Array.isArray(data.gallery_images) ? data.gallery_images : null;
+    if (gallery) setGalleryImages(gallery);
+
+    const halls = Array.isArray(data.hallImages) ? data.hallImages : Array.isArray(data.hall_images) ? data.hall_images : null;
+    if (halls) setHallImages(halls);
 
     // Social Links
     if (data.instagram) setInstagram(data.instagram || "");
@@ -424,7 +423,7 @@ export function VenueCustomizeStoreSection({
     try {
       setIsUploadingLogo(true);
       const res = await uploadImageToCloudinaryDetailed(file);
-      setLogoUrl(res.secureUrl);
+      setLogoUrl(res.secure_url);
       showVendorToast("✓ Venue Logo uploaded successfully", "success");
     } catch (err: any) {
       showVendorToast(err?.message || "Failed to upload logo", "error");
@@ -439,7 +438,7 @@ export function VenueCustomizeStoreSection({
     try {
       setIsUploadingCover(true);
       const res = await uploadImageToCloudinaryDetailed(file);
-      setCoverUrl(res.secureUrl);
+      setCoverUrl(res.secure_url);
       showVendorToast("✓ Venue Cover photo uploaded successfully", "success");
     } catch (err: any) {
       showVendorToast(err?.message || "Failed to upload cover photo", "error");
@@ -458,7 +457,7 @@ export function VenueCustomizeStoreSection({
     try {
       setIsUploadingVideo(true);
       const res = await uploadImageToCloudinaryDetailed(file);
-      setIntroVideo(res.secureUrl);
+      setIntroVideo(res.secure_url);
       showVendorToast("✓ Venue Intro Video uploaded successfully", "success");
     } catch (err: any) {
       showVendorToast(err?.message || "Failed to upload video", "error");
@@ -474,7 +473,7 @@ export function VenueCustomizeStoreSection({
       setIsUploadingGallery(true);
       const uploadPromises = Array.from(files).map((f) => uploadImageToCloudinaryDetailed(f));
       const results = await Promise.all(uploadPromises);
-      const newUrls = results.map((r) => r.secureUrl);
+      const newUrls = results.map((r) => r.secure_url);
       setGalleryImages((prev) => [...prev, ...newUrls]);
       showVendorToast(`✓ Added ${newUrls.length} photos to Venue Gallery`, "success");
     } catch (err: any) {
