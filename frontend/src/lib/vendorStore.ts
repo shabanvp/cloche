@@ -30,6 +30,7 @@ export interface VendorProfileData {
   address?: string;
   city?: string;
   district?: string;
+  location?: string;
   category: string;
   workingHours?: string;
   working_hours?: string;

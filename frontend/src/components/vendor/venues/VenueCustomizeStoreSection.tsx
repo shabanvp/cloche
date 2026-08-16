@@ -382,8 +382,8 @@ export function VenueCustomizeStoreSection({
   };
 
   const activeTheme = COLOR_THEMES.find((t) => t.id === colorTheme) || COLOR_THEMES[0];
-  const currentDisplayName = vendorName || vendorData?.name || vendorData?.boutique_name || "Royal Orchid Palace & Banquets";
-  const currentLocation = vendorData?.location || vendorData?.district || "Golf Course Road, Gurgaon";
+  const currentDisplayName = vendorName || vendorData?.name || vendorData?.boutique_name || "Wedding Venue";
+  const currentLocation = [vendorData?.city, vendorData?.district, vendorData?.address].filter(Boolean).join(", ");
 
   const initials = currentDisplayName
     .split(" ")
@@ -746,9 +746,13 @@ export function VenueCustomizeStoreSection({
                 <p style={{ color: activeTheme.accent }} className="text-xs font-semibold mt-0.5 italic truncate">
                   "{tagline}"
                 </p>
-              ) : (
+              ) : currentLocation ? (
                 <p className="text-xs text-white/80 font-medium mt-0.5 truncate">
                   Wedding Venue • {currentLocation}
+                </p>
+              ) : (
+                <p className="text-xs text-white/80 font-medium mt-0.5 truncate">
+                  Wedding Venue
                 </p>
               )}
 
