@@ -496,6 +496,18 @@ export function InspirationClient() {
     fetchPhotos(activeCategory);
   }, [activeCategory, fetchPhotos]);
 
+  // ── Lock Body Scroll when Detail Lightbox is Open ──
+  useEffect(() => {
+    if (selectedItem) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [selectedItem]);
+
   // ── Filter & Sort Display Items ──
   const displayItems = useMemo<InspirationItem[]>(() => {
     const dynamic = fetchState.photos;
@@ -1034,28 +1046,28 @@ export function InspirationClient() {
       </main>
 
       {/* ══════════════════════════════════════════════════════════════════════
-          5. LIGHTBOX DETAIL MODAL (RESPONSIVE MOBILE & DESKTOP)
+          5. DEDICATED FULL-SCREEN DETAIL VIEW (MOBILE FULLSCREEN & DESKTOP MODAL)
       ══════════════════════════════════════════════════════════════════════ */}
       {selectedItem && selectedProfile && (
         <div
-          className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/85 backdrop-blur-md animate-in fade-in duration-200 p-0 sm:p-4 md:p-6"
+          className="fixed inset-0 z-[120] bg-white md:bg-black/85 md:backdrop-blur-md flex flex-col md:flex-row md:items-center md:justify-center p-0 md:p-6 overflow-y-auto md:overflow-hidden animate-in fade-in duration-200"
           onClick={() => setSelectedItem(null)}
         >
           <div
-            className="bg-white w-full max-w-full md:max-w-5xl rounded-t-[28px] md:rounded-3xl max-h-[94vh] md:max-h-[90vh] overflow-y-auto md:overflow-hidden shadow-2xl flex flex-col md:flex-row relative border border-gold/30 animate-in slide-in-from-bottom-6 duration-200 overscroll-contain"
+            className="bg-white w-full max-w-full md:max-w-5xl rounded-none md:rounded-3xl min-h-[100dvh] md:min-h-0 md:max-h-[90vh] overflow-y-auto md:overflow-hidden shadow-none md:shadow-2xl flex flex-col md:flex-row relative border-0 md:border md:border-gold/30 overscroll-contain"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Close Button (Touch Target 44px+) */}
+            {/* Close Button (Floating Top Right, Touch Target 44px+) */}
             <button
               onClick={() => setSelectedItem(null)}
               aria-label="Close details"
-              className="absolute top-3 right-3 md:top-4 md:right-4 z-30 min-w-[44px] min-h-[44px] w-11 h-11 rounded-full bg-black/75 hover:bg-black text-white flex items-center justify-center cursor-pointer shadow-xl border border-white/20 transition-transform active:scale-95 hover:scale-105"
+              className="fixed top-3.5 right-3.5 md:absolute md:top-4 md:right-4 z-50 min-w-[44px] min-h-[44px] w-11 h-11 rounded-full bg-black/75 hover:bg-black text-white flex items-center justify-center cursor-pointer shadow-xl border border-white/25 active:scale-95 transition-transform"
             >
               <X className="w-5 h-5" />
             </button>
 
-            {/* Top / Left Column: Full Width Image with Clean Credit Bar */}
-            <div className="w-full md:w-1/2 bg-black flex flex-col justify-between relative shrink-0 aspect-[4/3] sm:aspect-[16/10] md:aspect-auto md:min-h-[550px] md:h-full select-none overflow-hidden">
+            {/* Top / Left Column: Hero Image (68vh on mobile edge-to-edge) */}
+            <div className="w-full md:w-1/2 bg-black flex flex-col justify-between relative shrink-0 h-[68vh] sm:h-[72vh] md:h-full md:min-h-[560px] select-none overflow-hidden">
               <img
                 src={isStaticColorTheme(selectedItem) ? selectedItem.image : selectedItem.src.large2x}
                 alt={isStaticColorTheme(selectedItem) ? selectedItem.title : selectedItem.alt || selectedItem.category}
@@ -1063,9 +1075,9 @@ export function InspirationClient() {
               />
 
               {!isStaticColorTheme(selectedItem) ? (
-                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/65 to-transparent px-4 py-3 pt-6 flex items-center justify-between z-10 text-white text-xs leading-none">
-                  <span className="truncate max-w-[62%]">
-                    📷 Photo by <span className="font-bold">{selectedItem.photographer}</span>
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent px-4 py-3 pt-8 flex items-center justify-between z-10 text-white text-xs leading-none">
+                  <span className="truncate max-w-[62%] font-medium">
+                    📷 Photo by <span className="font-bold text-white">{selectedItem.photographer}</span>
                   </span>
                   <a
                     href={selectedItem.pexels_url}
@@ -1077,7 +1089,7 @@ export function InspirationClient() {
                   </a>
                 </div>
               ) : (
-                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/65 to-transparent px-4 py-3 pt-6 flex items-center justify-between z-10 text-white text-xs leading-none">
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent px-4 py-3 pt-8 flex items-center justify-between z-10 text-white text-xs leading-none">
                   <span className="font-bold text-[#D4B66E] flex items-center gap-1">
                     <Sparkles className="w-3.5 h-3.5" /> Cloche Editorial Collection
                   </span>
@@ -1087,8 +1099,11 @@ export function InspirationClient() {
 
             {/* Bottom / Right Column: Planning Intelligence Dashboard */}
             <div className="w-full md:w-1/2 flex flex-col md:overflow-y-auto md:max-h-[90vh] bg-white">
-              <div className="p-4 sm:p-6 md:p-8 space-y-4 sm:space-y-5 md:space-y-6 flex-1 pb-6 md:pb-8">
-                {/* Header (Title, Category, Share & Save) */}
+              <div
+                className="p-4 sm:p-6 md:p-8 space-y-6 flex-1"
+                style={{ paddingBottom: "calc(120px + env(safe-area-inset-bottom, 24px))" }}
+              >
+                {/* Header (Title, Category, Share & Save - Visible on First Screen) */}
                 <div className="flex items-start justify-between gap-3 border-b border-gold/15 pb-4">
                   <div className="space-y-1">
                     <span className="text-[11px] sm:text-xs font-extrabold uppercase tracking-wider text-[#0F4C45] bg-[#FAF7F2] px-3 py-1 rounded-full border border-gold/20 inline-block">
@@ -1245,31 +1260,31 @@ export function InspirationClient() {
                     <span>✨ Ask Aura to Plan &amp; Replicate This Look</span>
                   </button>
                 </div>
-              </div>
 
-              {/* Similar Inspirations (Smooth Horizontal Scroll) */}
-              {relatedItems.length > 0 && (
-                <div className="border-t border-gold/15 p-4 sm:p-6 bg-[#FAF7F2]/60 space-y-3 pb-8 md:pb-6">
-                  <span className="text-xs font-extrabold text-[#0F4C45] uppercase tracking-wider block">
-                    Similar Inspiration Concepts
-                  </span>
-                  <div className="flex overflow-x-auto gap-3 pb-2 pt-1 scrollbar-none snap-x snap-mandatory -mx-1 px-1">
-                    {relatedItems.map((rel) => (
-                      <div
-                        key={rel.id}
-                        onClick={() => setSelectedItem(rel)}
-                        className="w-24 h-24 sm:w-28 sm:h-28 shrink-0 snap-start rounded-2xl overflow-hidden bg-gray-100 cursor-pointer hover:opacity-85 active:scale-95 transition-all border border-gold/20 shadow-xs relative"
-                      >
-                        <img
-                          src={isStaticColorTheme(rel) ? rel.image : rel.src.medium}
-                          alt={isStaticColorTheme(rel) ? rel.title : rel.alt || rel.category}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                    ))}
+                {/* 5. Similar Inspirations (Smooth Horizontal Scroll & Full Clearance) */}
+                {relatedItems.length > 0 && (
+                  <div className="border-t border-gold/15 pt-6 space-y-3">
+                    <span className="text-xs font-extrabold text-[#0F4C45] uppercase tracking-wider block">
+                      Similar Inspiration Concepts
+                    </span>
+                    <div className="flex overflow-x-auto gap-3 pb-4 pt-1 scrollbar-none snap-x snap-mandatory -mx-4 px-4 sm:-mx-6 sm:px-6">
+                      {relatedItems.map((rel) => (
+                        <div
+                          key={rel.id}
+                          onClick={() => setSelectedItem(rel)}
+                          className="w-32 h-32 sm:w-36 sm:h-36 shrink-0 snap-start rounded-2xl overflow-hidden bg-gray-100 cursor-pointer hover:opacity-85 active:scale-95 transition-all border border-gold/20 shadow-xs relative"
+                        >
+                          <img
+                            src={isStaticColorTheme(rel) ? rel.image : rel.src.medium}
+                            alt={isStaticColorTheme(rel) ? rel.title : rel.alt || rel.category}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
         </div>
