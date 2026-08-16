@@ -5,32 +5,25 @@ import Link from "next/link";
 import {
   Sparkles, Search, Bookmark, Share2, X, Plus, Check,
   Download, FolderPlus, ExternalLink, CheckCircle2,
-  AlertCircle, ArrowRight, Heart, Eye, ChevronRight,
-  TrendingUp, Clock, Flame, Wand2, DollarSign, Palette,
-  MapPin, ShieldCheck, MessageSquare, Copy, ChevronDown,
-  Layers, SlidersHorizontal, RefreshCw, Send, CheckSquare,
-  FileText
+  AlertCircle, ChevronRight, Wand2, DollarSign, Palette,
+  MapPin, ShieldCheck, Copy, CheckSquare, RefreshCw,
+  Flame, Clock, ArrowUpDown
 } from "lucide-react";
 import { Footer } from "@/components/Footer";
 import { BottomNavBar } from "@/components/BottomNavBar";
 import { AuraAssistantDrawer } from "@/components/AuraAssistantDrawer";
 import {
   INSPIRATION_CATEGORIES,
-  DYNAMIC_CATEGORIES,
   STATIC_COLOR_THEMES,
   AURA_INSPIRATION_PROMPTS,
-  INSPIRATION_COLLECTIONS,
   CATEGORY_VENDOR_LINKS,
   DEFAULT_BOARDS,
-  DAILY_INSPIRATION_SPOTLIGHT,
-  SMART_SEARCH_SUGGESTIONS,
   MOODBOARD_OPTIONS,
   generateAIMoodBoard,
   getInspirationPlanningProfile,
   DynamicInspirationPhoto,
   StaticColorTheme,
   InspirationItem,
-  InspirationCollection,
   AIMoodBoardResult,
   isStaticColorTheme,
   ColorSwatch,
@@ -77,7 +70,7 @@ function SkeletonCard({ idx }: { idx: number }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// DYNAMIC PHOTO CARD (WITH PLANNING INTELLIGENCE)
+// DYNAMIC PHOTO CARD
 // ─────────────────────────────────────────────────────────────────────────────
 function PhotoCard({
   item,
@@ -100,7 +93,6 @@ function PhotoCard({
   return (
     <div onClick={onClick} className="break-inside-avoid mb-5 relative group cursor-pointer select-none">
       <div className={`relative w-full overflow-hidden rounded-3xl bg-gray-100 ${aspectClass} shadow-xs group-hover:shadow-2xl transition-all duration-500 ease-out border border-gold/15 group-hover:-translate-y-1`}>
-        {/* Shimmer Placeholder */}
         {!imgLoaded && (
           <div className="absolute inset-0 bg-gradient-to-br from-gray-100 via-gray-200 to-gray-100 animate-pulse" />
         )}
@@ -112,7 +104,6 @@ function PhotoCard({
           className={`w-full h-full object-cover transition-all duration-700 ease-out group-hover:scale-105 ${imgLoaded ? "opacity-100" : "opacity-0"}`}
         />
 
-        {/* Ambient Gradient Overlays */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
 
         {/* Top Badges & Actions */}
@@ -159,14 +150,14 @@ function PhotoCard({
           </div>
         </div>
 
-        {/* Pexels Attribution (Always visible gently, hides on hover) */}
+        {/* Pexels Attribution */}
         <div className="absolute bottom-0 left-0 right-0 px-3 py-1.5 bg-gradient-to-t from-black/60 to-transparent group-hover:opacity-0 transition-opacity duration-300 pointer-events-none">
           <span className="text-[9px] text-white/75 font-medium truncate block">
             📷 {item.photographer} / Pexels
           </span>
         </div>
 
-        {/* Saved badge top left */}
+        {/* Saved badge */}
         {saved && (
           <div className="absolute top-3 right-3 group-hover:opacity-0 transition-opacity">
             <span className="bg-[#C8A96A] text-[#0F4C45] text-[9px] font-extrabold px-2 py-0.5 rounded-full shadow-md">
@@ -176,7 +167,7 @@ function PhotoCard({
         )}
       </div>
 
-      {/* Under-card Quick Planning Strip */}
+      {/* Under-card Planning Strip */}
       <div className="pt-2 px-1 flex items-center justify-between text-[11px] text-charcoal/70">
         <span className="font-semibold text-charcoal truncate max-w-[130px]">{profile.styleName}</span>
         <span className="font-bold text-[#0F4C45] text-[10px] bg-[#FAF7F2] px-2 py-0.5 rounded-md border border-gold/20">
@@ -188,7 +179,7 @@ function PhotoCard({
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// STATIC COLOR THEME CARD (EDITORIAL PALETTE)
+// STATIC COLOR THEME CARD
 // ─────────────────────────────────────────────────────────────────────────────
 function ColorThemeCard({
   item,
@@ -221,7 +212,6 @@ function ColorThemeCard({
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
-        {/* Top Badges */}
         <div className="absolute top-0 left-0 right-0 p-3 flex items-start justify-between z-10">
           <div className="flex flex-col gap-1.5 items-start">
             <span className="text-[10px] font-bold uppercase tracking-wider bg-black/60 backdrop-blur-md text-[#D4B66E] px-3 py-1 rounded-full border border-white/20">
@@ -250,7 +240,6 @@ function ColorThemeCard({
           </div>
         </div>
 
-        {/* Bottom Swatch overlay on hover */}
         <div className="absolute bottom-0 left-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 space-y-2">
           <h4 className="text-white text-xs font-bold line-clamp-1">{item.title}</h4>
           <div className="flex items-center gap-1.5">
@@ -266,7 +255,6 @@ function ColorThemeCard({
         </div>
       </div>
 
-      {/* Under-card Mini Palette Strip */}
       <div className="pt-2 px-1 space-y-1">
         <div className="flex items-center justify-between text-[11px]">
           <span className="font-bold text-charcoal truncate max-w-[150px]">{item.title}</span>
@@ -283,41 +271,12 @@ function ColorThemeCard({
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// COLLECTION CARD (CAROUSEL ITEM)
-// ─────────────────────────────────────────────────────────────────────────────
-function CollectionCard({
-  col,
-  onClick,
-}: {
-  col: InspirationCollection;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={`relative flex-shrink-0 w-36 sm:w-44 h-24 sm:h-28 rounded-3xl bg-gradient-to-br ${col.gradient} text-white shadow-md hover:shadow-2xl hover:-translate-y-1.5 transition-all duration-300 cursor-pointer overflow-hidden group border border-white/20 text-left`}
-    >
-      <div className="absolute inset-0 bg-black/25 group-hover:bg-black/10 transition-colors" />
-      {col.badge && (
-        <span className="absolute top-2 right-2 text-[9px] font-extrabold bg-white/30 backdrop-blur-md px-2 py-0.5 rounded-full border border-white/30">
-          {col.badge}
-        </span>
-      )}
-      <div className="relative z-10 p-3.5 flex flex-col justify-end h-full">
-        <span className="text-xl leading-none mb-1">{col.emoji}</span>
-        <span className="text-xs font-bold leading-tight line-clamp-1">{col.label}</span>
-        <span className="text-[10px] text-white/80 line-clamp-1 font-normal mt-0.5">{col.subtext}</span>
-      </div>
-    </button>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// MAIN INSPIRATION CLIENT COMPONENT
+// MAIN INSPIRATION CLIENT COMPONENT (COMPACT WEDMEGOOD-STYLE HEADER)
 // ─────────────────────────────────────────────────────────────────────────────
 export function InspirationClient() {
   const [activeCategory, setActiveCategory] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState<"trending" | "latest">("trending");
   const [budgetFilter, setBudgetFilter] = useState<"all" | "budget" | "mid" | "luxury">("all");
   const [activeTab, setActiveTab] = useState<"explore" | "saved">("explore");
   const [activeBoardId, setActiveBoardId] = useState("all");
@@ -338,9 +297,6 @@ export function InspirationClient() {
     venueSetting: "backwater-lawn",
   });
   const [generatedMoodBoard, setGeneratedMoodBoard] = useState<AIMoodBoardResult | null>(null);
-
-  // Search Autocomplete State
-  const [isSearchFocused, setIsSearchFocused] = useState(false);
 
   // Toast
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -496,7 +452,7 @@ export function InspirationClient() {
 
     setFetchState((p) => ({ ...p, loading: true, error: null }));
     try {
-      const res = await fetch(`/api/v1/inspiration/photos?category=${encodeURIComponent(target)}&per_page=28`);
+      const res = await fetch(`/api/v1/inspiration/photos?category=${encodeURIComponent(target)}&per_page=32`);
       const json = await res.json();
       if (!json.success) {
         if (json.error === "PEXELS_NOT_CONFIGURED") {
@@ -522,7 +478,7 @@ export function InspirationClient() {
     fetchPhotos(activeCategory);
   }, [activeCategory, fetchPhotos]);
 
-  // ── Filter Display Items ──
+  // ── Filter & Sort Display Items ──
   const displayItems = useMemo<InspirationItem[]>(() => {
     const dynamic = fetchState.photos;
     const statics = STATIC_COLOR_THEMES;
@@ -542,18 +498,26 @@ export function InspirationClient() {
     }
 
     // Filter by search query
-    if (!searchQuery.trim()) return all;
-    const q = searchQuery.toLowerCase();
-    return all.filter((item) => {
-      const prof = getInspirationPlanningProfile(item);
-      const isTheme = isStaticColorTheme(item);
-      const textMatch = isTheme
-        ? item.title.toLowerCase().includes(q) || item.tags.some((t) => t.toLowerCase().includes(q))
-        : (item.alt || "").toLowerCase().includes(q) || item.category.toLowerCase().includes(q);
-      const styleMatch = prof.styleName.toLowerCase().includes(q) || prof.vibe.toLowerCase().includes(q);
-      return textMatch || styleMatch;
-    });
-  }, [activeCategory, fetchState.photos, searchQuery, budgetFilter]);
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      all = all.filter((item) => {
+        const prof = getInspirationPlanningProfile(item);
+        const isTheme = isStaticColorTheme(item);
+        const textMatch = isTheme
+          ? item.title.toLowerCase().includes(q) || item.tags.some((t) => t.toLowerCase().includes(q))
+          : (item.alt || "").toLowerCase().includes(q) || item.category.toLowerCase().includes(q);
+        const styleMatch = prof.styleName.toLowerCase().includes(q) || prof.vibe.toLowerCase().includes(q);
+        return textMatch || styleMatch;
+      });
+    }
+
+    // Apply sorting
+    if (sortBy === "latest") {
+      return [...all].reverse();
+    }
+
+    return all;
+  }, [activeCategory, fetchState.photos, searchQuery, budgetFilter, sortBy]);
 
   // ── Saved View Items ──
   const savedItemsList = useMemo<InspirationItem[]>(() => {
@@ -600,280 +564,54 @@ export function InspirationClient() {
       )}
 
       {/* ══════════════════════════════════════════════════════════════════════
-          1. LUXURY HERO SECTION & SMART SEARCH
+          1. COMPACT WEDMEGOOD-STYLE HEADER & BREADCRUMB
       ══════════════════════════════════════════════════════════════════════ */}
-      <section className="relative bg-[#0A2E2A] text-white overflow-hidden border-b border-gold/15">
-        {/* Ambient Gradient Glows */}
-        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-[#C8A96A]/15 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 right-1/4 w-[450px] h-[450px] bg-[#0F4C45]/60 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-10 pt-12 sm:pt-16 pb-12 sm:pb-16 text-center space-y-6">
-          {/* Top Brand Pill */}
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 border border-[#C8A96A]/30 text-xs font-semibold text-[#D4B66E] backdrop-blur-md">
-            <Sparkles className="w-3.5 h-3.5 text-[#C8A96A] animate-pulse" />
-            <span>Cloche Aura • India's #1 AI Wedding Planning &amp; Discovery Hub</span>
+      <section className="bg-white border-b border-gold/15 pt-4 pb-2 px-4 sm:px-6 lg:px-10">
+        <div className="max-w-7xl mx-auto space-y-3">
+          {/* Breadcrumb line */}
+          <div className="flex items-center gap-1.5 text-xs text-charcoal/50">
+            <Link href="/" className="hover:text-charcoal transition-colors">Home</Link>
+            <span>/</span>
+            <span className="text-charcoal font-semibold">Wedding Inspiration</span>
           </div>
 
-          {/* Main Title */}
-          <h1 className="text-4xl sm:text-6xl md:text-7xl font-serif font-black text-white tracking-tight leading-[1.05]">
-            Wedding<br className="hidden sm:block" />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#C8A96A] via-[#F3E5AB] to-[#C8A96A]">
-              {" "}Inspiration &amp; Ideas
-            </span>
-          </h1>
-
-          <p className="max-w-2xl mx-auto text-sm sm:text-base text-white/80 leading-relaxed font-light">
-            Discover thousands of curated wedding concepts, Kerala Kasavu traditions, luxury mandaps, bridal looks, and realistic budget breakdowns.
-          </p>
-
-          {/* Smart Search Bar with Dropdown Autocomplete */}
-          <div className="max-w-2xl mx-auto relative z-20">
-            <div className="relative flex items-center bg-white/10 backdrop-blur-2xl rounded-2xl border border-white/25 p-2 shadow-2xl hover:bg-white/15 transition-all focus-within:ring-2 focus-within:ring-[#C8A96A] focus-within:bg-white/20">
-              <Search className="w-5 h-5 text-white/60 ml-3.5 shrink-0" />
-              <input
-                type="text"
-                value={searchQuery}
-                onFocus={() => setIsSearchFocused(true)}
-                onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search ideas, styles or budgets (e.g. Kasavu Bridal, Luxury Mandap, Beach)..."
-                className="w-full bg-transparent border-none px-3.5 py-2.5 text-sm text-white placeholder:text-white/45 focus:outline-none"
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery("")}
-                  className="p-2 rounded-xl text-white/60 hover:text-white hover:bg-white/10 cursor-pointer mr-1"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              )}
-              <button
-                onClick={() => {}}
-                className="bg-gradient-to-r from-[#C8A96A] to-[#E8C878] text-[#0F4C45] font-extrabold text-xs px-5 py-2.5 rounded-xl shrink-0 hover:opacity-95 transition-opacity shadow-md cursor-pointer"
-              >
-                Search
-              </button>
-            </div>
-
-            {/* Smart Autocomplete Dropdown */}
-            {isSearchFocused && (
-              <div className="absolute top-full left-0 right-0 mt-2 bg-[#0A2E2A]/95 backdrop-blur-2xl border border-[#C8A96A]/30 rounded-2xl p-3 shadow-2xl text-left z-30 animate-in fade-in slide-in-from-top-2 duration-150 space-y-2">
-                <div className="flex items-center justify-between text-[11px] font-bold text-[#D4B66E] px-2 uppercase tracking-wider">
-                  <span>Suggested Searches</span>
-                  <span>Category</span>
-                </div>
-                <div className="divide-y divide-white/10">
-                  {SMART_SEARCH_SUGGESTIONS.filter((s) =>
-                    s.text.toLowerCase().includes(searchQuery.toLowerCase())
-                  ).map((s) => (
-                    <button
-                      key={s.text}
-                      onMouseDown={() => {
-                        setSearchQuery(s.text);
-                        setActiveCategory(s.category);
-                      }}
-                      className="w-full py-2 px-2.5 hover:bg-white/10 rounded-xl flex items-center justify-between text-xs text-white transition-colors cursor-pointer text-left"
-                    >
-                      <span className="flex items-center gap-2">
-                        <Sparkles className="w-3.5 h-3.5 text-[#C8A96A]" />
-                        {s.text}
-                      </span>
-                      <span className="text-[10px] text-white/50 bg-white/10 px-2 py-0.5 rounded-md">
-                        {s.type}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Quick Keyword Pills */}
-            <div className="flex flex-wrap justify-center gap-2 mt-3.5">
-              {["Luxury Mandap", "Kasavu Bridal", "Pastel Themes", "Monsoon Glasshouse", "Malabar Mehendi", "Under ₹3L"].map((tag) => (
-                <button
-                  key={tag}
-                  onClick={() => setSearchQuery(tag)}
-                  className="text-[11px] text-white/70 hover:text-white bg-white/10 hover:bg-white/20 border border-white/15 px-3 py-1 rounded-full transition-all cursor-pointer backdrop-blur-md"
-                >
-                  {tag}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Action CTAs: AI Mood Board & Key Statistics */}
-          <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
-            <button
-              onClick={() => {
-                handleGenerateMoodBoard();
-                setIsMoodBoardOpen(true);
-              }}
-              className="w-full sm:w-auto px-6 py-3 rounded-2xl bg-gradient-to-r from-[#C8A96A] via-[#E8C878] to-[#C8A96A] text-[#0F4C45] font-extrabold text-xs sm:text-sm flex items-center justify-center gap-2.5 shadow-xl hover:scale-105 transition-transform cursor-pointer"
-            >
-              <Wand2 className="w-4 h-4" />
-              <span>✨ Generate AI Mood Board</span>
-            </button>
-            <button
-              onClick={() => handleOpenAura("Plan a ₹10 Lakh Kerala luxury wedding budget with stage decor, bridal makeup, and photography")}
-              className="w-full sm:w-auto px-5 py-3 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/25 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 backdrop-blur-md transition-colors cursor-pointer"
-            >
-              <Sparkles className="w-4 h-4 text-[#C8A96A]" />
-              <span>Ask Aura Wedding AI</span>
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {/* ══════════════════════════════════════════════════════════════════════
-          2. DAILY INSPIRATION SPOTLIGHT (CURATED KERALA WEDDING HIGHLIGHT)
-      ══════════════════════════════════════════════════════════════════════ */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 -mt-6 sm:-mt-8 relative z-20">
-        <div className="bg-white rounded-3xl border border-gold/20 shadow-xl overflow-hidden flex flex-col lg:flex-row">
-          {/* Spotlight Image with Gradient & Badge */}
-          <div className="lg:w-1/2 relative min-h-[260px] sm:min-h-[340px] bg-black">
-            <img
-              src={DAILY_INSPIRATION_SPOTLIGHT.image}
-              alt={DAILY_INSPIRATION_SPOTLIGHT.title}
-              className="w-full h-full object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-            <div className="absolute top-4 left-4">
-              <span className="bg-[#C8A96A] text-[#0F4C45] text-xs font-black px-3.5 py-1 rounded-full shadow-lg flex items-center gap-1.5">
-                <Flame className="w-3.5 h-3.5" />
-                {DAILY_INSPIRATION_SPOTLIGHT.badge}
-              </span>
-            </div>
-            <div className="absolute bottom-4 left-4 right-4 text-white space-y-1">
-              <span className="text-[11px] text-[#D4B66E] font-bold uppercase tracking-wider flex items-center gap-1">
-                <MapPin className="w-3.5 h-3.5" /> {DAILY_INSPIRATION_SPOTLIGHT.location}
-              </span>
-              <h3 className="font-serif font-black text-lg sm:text-xl leading-snug drop-shadow-md">
-                {DAILY_INSPIRATION_SPOTLIGHT.title}
-              </h3>
-            </div>
-          </div>
-
-          {/* Spotlight Planning Details */}
-          <div className="lg:w-1/2 p-6 sm:p-8 flex flex-col justify-between space-y-5 bg-gradient-to-br from-white via-[#FAF7F2] to-white">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between border-b border-gold/15 pb-3">
-                <div>
-                  <span className="text-[11px] font-bold text-[#0F4C45] uppercase tracking-wider block">Estimated Budget</span>
-                  <span className="text-sm sm:text-base font-extrabold text-charcoal">{DAILY_INSPIRATION_SPOTLIGHT.estimatedBudget}</span>
-                </div>
-                <div className="text-right">
-                  <span className="text-[11px] font-bold text-[#0F4C45] uppercase tracking-wider block">Style Classification</span>
-                  <span className="text-xs font-bold text-charcoal/80">{DAILY_INSPIRATION_SPOTLIGHT.styleName}</span>
-                </div>
-              </div>
-
-              <p className="text-xs sm:text-sm text-charcoal/70 leading-relaxed font-light">
-                {DAILY_INSPIRATION_SPOTLIGHT.story}
-              </p>
-
-              {/* Color Palette Preview */}
-              <div className="space-y-1.5">
-                <span className="text-[10px] font-extrabold text-charcoal uppercase tracking-wider">Curated Palette</span>
-                <div className="flex items-center gap-2">
-                  {DAILY_INSPIRATION_SPOTLIGHT.palette.map((c) => (
-                    <button
-                      key={c.name}
-                      onClick={() => handleCopyHex(c.hex, c.name)}
-                      className="group/swatch relative flex items-center gap-1 bg-white border border-gold/20 px-2 py-1 rounded-xl shadow-xs hover:border-gold cursor-pointer transition-colors"
-                    >
-                      <span style={{ backgroundColor: c.hex }} className="w-3.5 h-3.5 rounded-full border border-black/10" />
-                      <span className="text-[10px] font-semibold text-charcoal/80">{c.name}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-2.5 pt-2">
-              <button
-                onClick={() => handleOpenAura(`Replicate "${DAILY_INSPIRATION_SPOTLIGHT.title}" in Kerala. Breakdown stage decor items, recommended florist vendors, and realistic timeline.`)}
-                className="flex-1 bg-[#0F4C45] hover:bg-[#12584E] text-white font-extrabold text-xs py-3 px-4 rounded-2xl flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer"
-              >
-                <Sparkles className="w-4 h-4 text-[#C8A96A]" />
-                <span>Replicate with Aura AI</span>
-              </button>
-              <Link
-                href="/categories/decor-planning"
-                className="bg-white hover:bg-gold/10 border border-gold/30 text-[#0F4C45] font-extrabold text-xs py-3 px-4 rounded-2xl flex items-center justify-center gap-1.5 transition-colors"
-              >
-                <span>Find Decorators</span>
-                <ChevronRight className="w-3.5 h-3.5" />
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ══════════════════════════════════════════════════════════════════════
-          3. TOP COLLECTIONS & TRENDING IN KERALA (CAROUSEL)
-      ══════════════════════════════════════════════════════════════════════ */}
-      <section className="py-8 px-4 sm:px-6 lg:px-10">
-        <div className="max-w-7xl mx-auto space-y-4">
-          <div className="flex items-center justify-between">
+          {/* Compact Page Title Row */}
+          <div className="flex flex-col md:flex-row md:items-baseline justify-between gap-2">
             <div>
-              <h2 className="text-lg sm:text-xl font-serif font-bold text-charcoal flex items-center gap-2">
-                <span>🔥 Trending Collections in Kerala</span>
-              </h2>
-              <p className="text-xs text-charcoal/60">Curated by Cloche wedding designers &amp; stylists</p>
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-serif font-black text-charcoal tracking-tight flex items-baseline gap-2.5">
+                <span>Wedding Inspiration, Trends &amp; Photos</span>
+                <span className="text-xs sm:text-sm font-sans font-medium text-charcoal/50">
+                  ({displayItems.length ? `${displayItems.length * 40}+ Photos` : "1,200+ Photos"})
+                </span>
+              </h1>
+              <p className="text-xs text-charcoal/60 mt-0.5 font-light">
+                Discover trending decor ideas, bridal looks, and real Kerala wedding moments.
+              </p>
             </div>
-            <button
-              onClick={() => {
-                setActiveCategory("All");
-                setBudgetFilter("all");
-              }}
-              className="text-xs font-bold text-[#0F4C45] hover:underline flex items-center gap-1 cursor-pointer"
-            >
-              View All <ChevronRight className="w-3.5 h-3.5" />
-            </button>
-          </div>
 
-          <div className="flex gap-3.5 overflow-x-auto scrollbar-none pb-2 pt-1">
-            {INSPIRATION_COLLECTIONS.map((col) => (
-              <CollectionCard
-                key={col.id}
-                col={col}
+            {/* Quick Action Buttons: AI Mood Board & Saved Boards */}
+            <div className="flex items-center gap-2 shrink-0">
+              <button
                 onClick={() => {
-                  setActiveTab("explore");
-                  setActiveCategory(col.category === "Color Themes" ? "Color Themes" : col.category);
-                  setSearchQuery(col.label.includes("Kerala") ? "Kasavu" : col.label);
+                  handleGenerateMoodBoard();
+                  setIsMoodBoardOpen(true);
                 }}
-              />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ══════════════════════════════════════════════════════════════════════
-          4. STICKY CONTROLS & SMART BUDGET FILTERS
-      ══════════════════════════════════════════════════════════════════════ */}
-      <div className="sticky top-0 z-30 bg-white/95 backdrop-blur-xl border-b border-gold/15 shadow-xs py-3 px-4 sm:px-6 lg:px-10">
-        <div className="max-w-7xl mx-auto flex flex-col gap-3">
-          {/* Top Row: Tabs, Budget Filters & AI Button */}
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            {/* Explore vs My Saved Tabs */}
-            <div className="flex items-center gap-1.5 bg-[#FAF7F2] p-1 rounded-2xl border border-gold/20">
-              <button
-                onClick={() => setActiveTab("explore")}
-                className={`px-4 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
-                  activeTab === "explore" ? "bg-[#0F4C45] text-white shadow-xs" : "text-charcoal/70 hover:text-charcoal"
-                }`}
+                className="inline-flex items-center gap-1.5 text-xs font-extrabold bg-[#0F4C45] hover:bg-[#12584E] text-white px-3.5 py-2 rounded-xl shadow-xs transition-colors cursor-pointer"
               >
-                Explore Ideas
+                <Wand2 className="w-3.5 h-3.5 text-[#C8A96A]" />
+                <span>AI Mood Board</span>
               </button>
+
               <button
-                onClick={() => setActiveTab("saved")}
-                className={`px-4 py-1.5 rounded-xl text-xs font-extrabold transition-all flex items-center gap-1.5 cursor-pointer ${
-                  activeTab === "saved" ? "bg-[#0F4C45] text-white shadow-xs" : "text-charcoal/70 hover:text-charcoal"
+                onClick={() => setActiveTab(activeTab === "saved" ? "explore" : "saved")}
+                className={`inline-flex items-center gap-1.5 text-xs font-bold px-3.5 py-2 rounded-xl transition-all cursor-pointer border ${
+                  activeTab === "saved"
+                    ? "bg-[#0F4C45] text-white border-[#0F4C45] shadow-xs"
+                    : "bg-[#FAF7F2] text-charcoal/80 border-gold/20 hover:border-gold"
                 }`}
               >
-                <Bookmark className="w-3.5 h-3.5" />
-                <span>My Saved Boards</span>
+                <Bookmark className="w-3.5 h-3.5 text-[#C8A96A]" />
+                <span>My Boards</span>
                 {totalSavedCount > 0 && (
                   <span className="bg-[#C8A96A] text-[#0F4C45] text-[10px] font-black px-1.5 rounded-full">
                     {totalSavedCount}
@@ -881,15 +619,102 @@ export function InspirationClient() {
                 )}
               </button>
             </div>
+          </div>
 
-            {/* Budget Filters (Active in Explore mode) */}
+          {/* ──────────────────────────────────────────────────────────────────
+              2. HORIZONTAL SCROLLABLE CATEGORY THUMBNAILS (WedMeGood Reference)
+          ────────────────────────────────────────────────────────────────── */}
+          <div className="pt-2 pb-1 overflow-x-auto scrollbar-none">
+            <div className="flex items-center gap-4 sm:gap-6 min-w-max pb-1">
+              {INSPIRATION_CATEGORIES.map((cat) => {
+                const isActive = activeCategory === cat.id && activeTab === "explore";
+                return (
+                  <button
+                    key={cat.id}
+                    onClick={() => {
+                      setActiveTab("explore");
+                      setActiveCategory(cat.id);
+                    }}
+                    className="flex flex-col items-center gap-1.5 cursor-pointer group transition-all"
+                  >
+                    {/* Rounded Image Thumbnail */}
+                    <div
+                      className={`relative w-14 h-14 sm:w-16 sm:h-16 rounded-2xl overflow-hidden transition-all duration-300 ${
+                        isActive
+                          ? "ring-2 ring-[#0F4C45] ring-offset-2 scale-105 shadow-md border-2 border-white"
+                          : "border border-gold/25 group-hover:border-gold group-hover:scale-105 opacity-85 group-hover:opacity-100 shadow-xs"
+                      }`}
+                    >
+                      <img
+                        src={cat.image}
+                        alt={cat.label}
+                        className="w-full h-full object-cover"
+                      />
+                      <div className={`absolute inset-0 bg-black/15 group-hover:bg-transparent transition-colors ${isActive ? "bg-transparent" : ""}`} />
+                      {isActive && (
+                        <div className="absolute top-1 right-1 w-2.5 h-2.5 bg-[#C8A96A] rounded-full ring-2 ring-white" />
+                      )}
+                    </div>
+
+                    {/* Category Label */}
+                    <span
+                      className={`text-[11px] sm:text-xs text-center max-w-[76px] leading-tight transition-colors line-clamp-1 ${
+                        isActive
+                          ? "font-extrabold text-[#0F4C45]"
+                          : "font-medium text-charcoal/75 group-hover:text-charcoal"
+                      }`}
+                    >
+                      {cat.label}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════════════════════════════════
+          3. SLIM CONTROL ROW: SORT, BUDGET & COMPACT SEARCH
+      ══════════════════════════════════════════════════════════════════════ */}
+      <div className="bg-[#FAF7F2] border-b border-gold/15 py-2.5 px-4 sm:px-6 lg:px-10">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-3">
+          {/* Left: Sort By & Budget Filter Pills */}
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Sort Toggle */}
+            <div className="flex items-center gap-1 bg-white p-1 rounded-xl border border-gold/20 shadow-xs">
+              <span className="text-[11px] font-bold text-charcoal/50 px-2 flex items-center gap-1">
+                <ArrowUpDown className="w-3 h-3" /> Sort:
+              </span>
+              <button
+                onClick={() => setSortBy("trending")}
+                className={`text-[11px] font-extrabold px-3 py-1 rounded-lg transition-all cursor-pointer flex items-center gap-1 ${
+                  sortBy === "trending"
+                    ? "bg-[#0F4C45] text-white shadow-xs"
+                    : "text-charcoal/70 hover:text-charcoal"
+                }`}
+              >
+                <Flame className="w-3 h-3 text-[#C8A96A]" />
+                <span>Trending</span>
+              </button>
+              <button
+                onClick={() => setSortBy("latest")}
+                className={`text-[11px] font-extrabold px-3 py-1 rounded-lg transition-all cursor-pointer flex items-center gap-1 ${
+                  sortBy === "latest"
+                    ? "bg-[#0F4C45] text-white shadow-xs"
+                    : "text-charcoal/70 hover:text-charcoal"
+                }`}
+              >
+                <Clock className="w-3 h-3 text-[#C8A96A]" />
+                <span>Latest</span>
+              </button>
+            </div>
+
+            {/* Budget Filters */}
             {activeTab === "explore" && (
-              <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none">
-                <span className="text-[11px] font-bold text-charcoal/50 mr-1 flex items-center gap-1">
-                  <DollarSign className="w-3 h-3" /> Budget:
-                </span>
+              <div className="flex items-center gap-1 overflow-x-auto scrollbar-none">
                 {[
-                  { id: "all", label: "All Tiers" },
+                  { id: "all", label: "All Budgets" },
                   { id: "budget", label: "< ₹2 Lakhs" },
                   { id: "mid", label: "₹2L – ₹5L" },
                   { id: "luxury", label: "₹5L+ Luxury" },
@@ -899,8 +724,8 @@ export function InspirationClient() {
                     onClick={() => setBudgetFilter(b.id as any)}
                     className={`text-[11px] font-bold px-3 py-1 rounded-xl transition-all whitespace-nowrap cursor-pointer ${
                       budgetFilter === b.id
-                        ? "bg-[#C8A96A] text-[#0F4C45] shadow-xs"
-                        : "bg-[#FAF7F2] text-charcoal/70 border border-gold/15 hover:border-gold"
+                        ? "bg-[#C8A96A] text-[#0F4C45] shadow-xs font-black"
+                        : "bg-white text-charcoal/70 border border-gold/15 hover:border-gold shadow-xs"
                     }`}
                   >
                     {b.label}
@@ -908,92 +733,42 @@ export function InspirationClient() {
                 ))}
               </div>
             )}
-
-            {/* Launch AI Mood Board Button */}
-            <button
-              onClick={() => {
-                handleGenerateMoodBoard();
-                setIsMoodBoardOpen(true);
-              }}
-              className="hidden md:flex items-center gap-2 text-xs font-extrabold bg-gradient-to-r from-[#0F4C45] to-[#12584E] text-white px-4 py-2 rounded-xl shadow-xs hover:opacity-95 transition-opacity cursor-pointer"
-            >
-              <Wand2 className="w-3.5 h-3.5 text-[#C8A96A]" />
-              <span>AI Mood Board</span>
-            </button>
           </div>
 
-          {/* Bottom Row: Category Pills (in Explore Tab) */}
-          {activeTab === "explore" && (
-            <div className="flex items-center gap-2 overflow-x-auto scrollbar-none pt-1">
-              {INSPIRATION_CATEGORIES.map((cat) => (
-                <button
-                  key={cat.id}
-                  onClick={() => setActiveCategory(cat.id)}
-                  className={`text-xs font-bold px-4 py-1.5 rounded-full whitespace-nowrap cursor-pointer shrink-0 transition-all ${
-                    activeCategory === cat.id
-                      ? "bg-[#0F4C45] text-[#C8A96A] shadow-md border border-[#0F4C45]"
-                      : "bg-white text-charcoal/80 border border-gold/20 hover:border-gold/60 hover:bg-[#FAF7F2]"
-                  }`}
-                >
-                  {cat.emoji} {cat.label}
-                  {cat.isStatic && <span className="ml-1 text-[9px] opacity-70">✦</span>}
-                </button>
-              ))}
-            </div>
-          )}
-
-          {/* Bottom Row: Board Selector (in Saved Tab) */}
-          {activeTab === "saved" && (
-            <div className="flex items-center gap-2 overflow-x-auto scrollbar-none pt-1">
+          {/* Right: Slim Search Input */}
+          <div className="relative w-full md:w-72">
+            <Search className="w-4 h-4 text-charcoal/40 absolute left-3 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search 10,000+ ideas..."
+              className="w-full bg-white border border-gold/20 rounded-xl pl-9 pr-8 py-1.5 text-xs text-charcoal placeholder:text-charcoal/45 focus:outline-none focus:border-[#0F4C45] shadow-xs"
+            />
+            {searchQuery && (
               <button
-                onClick={() => setActiveBoardId("all")}
-                className={`text-xs font-bold px-4 py-1.5 rounded-full whitespace-nowrap cursor-pointer shrink-0 ${
-                  activeBoardId === "all" ? "bg-[#0F4C45] text-white shadow-xs" : "bg-white text-charcoal/80 border border-gold/20"
-                }`}
+                onClick={() => setSearchQuery("")}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-charcoal/40 hover:text-charcoal cursor-pointer"
               >
-                All Boards ({totalSavedCount})
+                <X className="w-3.5 h-3.5" />
               </button>
-              {boards.map((b) => {
-                const count = Object.values(savedMap).filter((bds) => bds.includes(b.id)).length;
-                return (
-                  <button
-                    key={b.id}
-                    onClick={() => setActiveBoardId(b.id)}
-                    className={`text-xs font-bold px-4 py-1.5 rounded-full whitespace-nowrap cursor-pointer shrink-0 ${
-                      activeBoardId === b.id ? "bg-[#0F4C45] text-white shadow-xs" : "bg-white text-charcoal/80 border border-gold/20"
-                    }`}
-                  >
-                    {b.name} ({count})
-                  </button>
-                );
-              })}
-              <button
-                onClick={() => {
-                  setItemToSave(null);
-                  setIsCreatingBoard(true);
-                }}
-                className="text-xs font-bold px-3.5 py-1.5 rounded-full bg-[#FAF7F2] text-[#0F4C45] border border-dashed border-[#0F4C45]/40 hover:border-[#0F4C45] flex items-center gap-1 shrink-0 cursor-pointer"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                <span>New Board</span>
-              </button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
 
       {/* ══════════════════════════════════════════════════════════════════════
-          5. MAIN CONTENT FEED
+          4. MASONRY PHOTO GRID (STARTS IMMEDIATELY BELOW CONTROLS)
       ══════════════════════════════════════════════════════════════════════ */}
-      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-8 w-full">
+      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-6 w-full">
         {/* Pexels API Key Notification if not set */}
         {activeTab === "explore" && fetchState.noApiKey && activeCategory !== "Color Themes" && (
-          <div className="mb-8 bg-amber-50 border border-amber-200 rounded-3xl p-5 flex items-start gap-3.5 shadow-sm">
+          <div className="mb-6 bg-amber-50 border border-amber-200 rounded-3xl p-5 flex items-start gap-3.5 shadow-sm">
             <AlertCircle className="w-5 h-5 text-amber-600 mt-0.5 shrink-0" />
             <div className="space-y-1 text-xs">
               <p className="font-bold text-amber-900">Live Pexels Wedding Photos API</p>
               <p className="text-amber-800">
-                To enable infinite live photo browsing, add your free Pexels API key to <code className="bg-amber-100 px-1 rounded font-mono">.env.local</code>:
+                To enable live wedding photo browsing, add your free Pexels API key to <code className="bg-amber-100 px-1 rounded font-mono">.env.local</code>:
               </p>
               <code className="block mt-1 bg-amber-100/80 text-amber-950 p-2 rounded-xl font-mono text-[11px]">
                 PEXELS_API_KEY=your_key_here
@@ -1016,46 +791,6 @@ export function InspirationClient() {
         {/* ── EXPLORE TAB FEED ── */}
         {activeTab === "explore" && (
           <>
-            {/* Feed Header */}
-            {!fetchState.loading && displayItems.length > 0 && (
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 border-b border-gold/15 pb-4">
-                <div>
-                  <h2 className="text-lg font-serif font-black text-charcoal flex items-center gap-2">
-                    <span>
-                      {searchQuery
-                        ? `Results for "${searchQuery}"`
-                        : activeCategory === "All"
-                        ? "✨ All Wedding Inspirations"
-                        : `${INSPIRATION_CATEGORIES.find((c) => c.id === activeCategory)?.emoji || ""} ${activeCategory}`}
-                    </span>
-                    <span className="text-xs font-sans font-normal text-charcoal/50 bg-[#FAF7F2] border border-gold/20 px-2 py-0.5 rounded-full">
-                      {displayItems.length} concepts
-                    </span>
-                  </h2>
-                  <p className="text-xs text-charcoal/60 mt-0.5">
-                    Click any card for realistic budget estimates, vendor credits, and Aura AI replication
-                  </p>
-                </div>
-
-                {/* Direct Vendor Shortcuts for Active Category */}
-                {CATEGORY_VENDOR_LINKS[activeCategory]?.length > 0 && (
-                  <div className="flex items-center gap-2 overflow-x-auto scrollbar-none">
-                    <span className="text-[11px] font-bold text-charcoal/50">Kerala Vendors:</span>
-                    {CATEGORY_VENDOR_LINKS[activeCategory].map((v) => (
-                      <Link
-                        key={v.href}
-                        href={v.href}
-                        className="text-xs font-bold text-[#0F4C45] bg-white hover:bg-[#0F4C45] hover:text-white border border-gold/25 px-3 py-1 rounded-full transition-all flex items-center gap-1 shadow-xs"
-                      >
-                        <span>{v.emoji}</span>
-                        <span>{v.label}</span>
-                      </Link>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-
             {/* Skeletons while loading */}
             {fetchState.loading && (
               <div className="columns-2 sm:columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-5">
@@ -1067,11 +802,11 @@ export function InspirationClient() {
 
             {/* Empty State */}
             {!fetchState.loading && displayItems.length === 0 && !fetchState.noApiKey && (
-              <div className="text-center py-24 bg-white rounded-3xl border border-gold/15 max-w-md mx-auto space-y-4 p-8 shadow-xs">
+              <div className="text-center py-20 bg-white rounded-3xl border border-gold/15 max-w-md mx-auto space-y-4 p-8 shadow-xs">
                 <Search className="w-12 h-12 text-charcoal/25 mx-auto" />
                 <h3 className="font-serif font-bold text-xl text-charcoal">No matching inspirations found</h3>
                 <p className="text-xs text-charcoal/60">
-                  Try adjusting your search terms, changing the budget filter, or exploring all categories.
+                  Try adjusting your search query, changing the budget filter, or exploring all categories.
                 </p>
                 <button
                   onClick={() => {
@@ -1123,7 +858,7 @@ export function InspirationClient() {
               </div>
             )}
 
-            {/* Pexels ToS Attribution Footer Note */}
+            {/* Pexels Attribution Footer Note */}
             {!fetchState.loading && !fetchState.noApiKey && activeCategory !== "Color Themes" && fetchState.photos.length > 0 && (
               <div className="mt-12 text-center border-t border-gold/10 pt-6">
                 <a
@@ -1134,7 +869,7 @@ export function InspirationClient() {
                 >
                   <span>Photos provided by Pexels</span>
                   <span>•</span>
-                  <span>Click any photo for photographer portfolio &amp; high-res credits</span>
+                  <span>Click any photo for photographer credits</span>
                 </a>
               </div>
             )}
@@ -1143,8 +878,24 @@ export function InspirationClient() {
 
         {/* ── MY SAVED BOARDS VIEW ── */}
         {activeTab === "saved" && (
-          <div className="space-y-8">
-            {/* Top Board Cards */}
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-serif font-black text-xl text-charcoal">My Saved Wedding Boards</h3>
+                <p className="text-xs text-charcoal/60">Organize and save your favorite inspirations by celebration</p>
+              </div>
+              <button
+                onClick={() => {
+                  setItemToSave(null);
+                  setIsCreatingBoard(true);
+                }}
+                className="bg-[#0F4C45] text-white text-xs font-bold px-4 py-2 rounded-xl flex items-center gap-1.5 cursor-pointer shadow-xs"
+              >
+                <Plus className="w-4 h-4" /> Create Board
+              </button>
+            </div>
+
+            {/* Board Cards */}
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3.5">
               {boards.map((b) => {
                 const count = Object.values(savedMap).filter((bds) => bds.includes(b.id)).length;
@@ -1165,16 +916,6 @@ export function InspirationClient() {
                   </button>
                 );
               })}
-              <button
-                onClick={() => {
-                  setItemToSave(null);
-                  setIsCreatingBoard(true);
-                }}
-                className="p-4 rounded-3xl border border-dashed border-[#0F4C45]/40 hover:border-[#0F4C45] text-[#0F4C45] transition-all cursor-pointer text-left bg-[#FAF7F2] flex flex-col justify-center"
-              >
-                <Plus className="w-5 h-5 mb-1 opacity-70" />
-                <p className="text-sm font-extrabold">Create Board</p>
-              </button>
             </div>
 
             {/* Empty Saved State */}
@@ -1246,7 +987,7 @@ export function InspirationClient() {
       </main>
 
       {/* ══════════════════════════════════════════════════════════════════════
-          6. LIGHTBOX DETAIL MODAL (ANSWERS ALL 6 CORE QUESTIONS)
+          5. LIGHTBOX DETAIL MODAL
       ══════════════════════════════════════════════════════════════════════ */}
       {selectedItem && selectedProfile && (
         <div
@@ -1265,7 +1006,7 @@ export function InspirationClient() {
               <X className="w-5 h-5" />
             </button>
 
-            {/* Left Column: High-Res Image & Attribution */}
+            {/* Left Column: Image */}
             <div className="md:w-1/2 bg-black flex flex-col justify-between relative min-h-[300px] sm:min-h-[500px]">
               <img
                 src={isStaticColorTheme(selectedItem) ? selectedItem.image : selectedItem.src.large2x}
@@ -1273,7 +1014,6 @@ export function InspirationClient() {
                 className="w-full h-full max-h-[450px] md:max-h-full object-cover"
               />
 
-              {/* Attribution Overlay */}
               {!isStaticColorTheme(selectedItem) ? (
                 <div className="absolute bottom-0 left-0 right-0 bg-black/70 backdrop-blur-md px-4 py-2.5 flex items-center justify-between z-10 text-white">
                   <span className="text-xs">
@@ -1295,10 +1035,10 @@ export function InspirationClient() {
               )}
             </div>
 
-            {/* Right Column: 6 Core Questions Intelligence Dashboard */}
+            {/* Right Column: Planning Intelligence Dashboard */}
             <div className="md:w-1/2 flex flex-col overflow-y-auto max-h-[60vh] md:max-h-[92vh] bg-white">
               <div className="p-6 sm:p-8 space-y-6 flex-1">
-                {/* Header & Quick Action Buttons */}
+                {/* Header */}
                 <div className="flex items-start justify-between gap-3 pt-1 border-b border-gold/15 pb-4">
                   <div>
                     <span className="text-xs font-extrabold uppercase tracking-wider text-[#0F4C45] bg-[#FAF7F2] px-3 py-1 rounded-full border border-gold/20 inline-block mb-1">
@@ -1331,7 +1071,7 @@ export function InspirationClient() {
                   </div>
                 </div>
 
-                {/* ── QUESTION 1: WHAT IS THIS STYLE? ── */}
+                {/* 1. Style & Concept */}
                 <div className="space-y-2 bg-[#FAF7F2] p-4 rounded-2xl border border-gold/15">
                   <div className="flex items-center gap-2 text-xs font-extrabold text-[#0F4C45] uppercase tracking-wider">
                     <Sparkles className="w-3.5 h-3.5 text-[#C8A96A]" />
@@ -1341,17 +1081,17 @@ export function InspirationClient() {
                     {selectedProfile.vibe}
                   </p>
                   <div className="text-[11px] text-[#0F4C45] font-semibold flex items-center gap-1.5 pt-1">
-                    <span>🌴 Kerala Heritage Touch:</span>
+                    <span>🌴 Kerala Touch:</span>
                     <span className="text-charcoal/80 font-normal">{selectedProfile.keralaTouch}</span>
                   </div>
                 </div>
 
-                {/* ── QUESTION 2: HOW MUCH WILL IT COST? ── */}
+                {/* 2. Budget Breakdown */}
                 <div className="space-y-3 bg-white p-4 rounded-2xl border border-gold/20 shadow-xs">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-extrabold text-[#0F4C45] uppercase tracking-wider flex items-center gap-1.5">
                       <DollarSign className="w-4 h-4 text-[#C8A96A]" />
-                      <span>2. Realistic Budget Breakdown</span>
+                      <span>2. Estimated Budget</span>
                     </span>
                     <span className="text-xs font-black bg-[#0F4C45] text-[#C8A96A] px-3 py-1 rounded-full">
                       {selectedProfile.estimatedCostRange}
@@ -1368,7 +1108,7 @@ export function InspirationClient() {
                   </div>
                 </div>
 
-                {/* ── PALETTE FOR COLOR THEMES ── */}
+                {/* Palette for Color Themes */}
                 {isStaticColorTheme(selectedItem) && (
                   <div className="bg-[#FAF7F2] p-4 rounded-2xl border border-gold/15 space-y-3">
                     <div className="flex items-center justify-between">
@@ -1399,11 +1139,10 @@ export function InspirationClient() {
                         </button>
                       ))}
                     </div>
-                    <p className="text-[10px] text-charcoal/50 italic text-center">Click any swatch to copy HEX code</p>
                   </div>
                 )}
 
-                {/* ── QUESTION 3 & 6: RECOMMENDED VENDORS & IMMEDIATE CONTACT ── */}
+                {/* 3. Verified Vendors */}
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-extrabold text-charcoal uppercase tracking-wider flex items-center gap-1.5">
@@ -1411,7 +1150,7 @@ export function InspirationClient() {
                       <span>3. Verified Kerala Vendors</span>
                     </span>
                     <span className="text-[10px] font-bold text-[#0F4C45] bg-[#FAF7F2] px-2 py-0.5 rounded-full border border-gold/20">
-                      Direct Quote Ready
+                      Direct Quotes Ready
                     </span>
                   </div>
 
@@ -1436,7 +1175,7 @@ export function InspirationClient() {
                   </div>
                 </div>
 
-                {/* ── QUESTION 4: AURA AI REPLICATION CTA ── */}
+                {/* 4. Aura CTA */}
                 <div className="pt-2">
                   <button
                     onClick={() => {
@@ -1451,7 +1190,7 @@ export function InspirationClient() {
                 </div>
               </div>
 
-              {/* Related / Similar Inspirations Section */}
+              {/* Similar Inspirations */}
               {relatedItems.length > 0 && (
                 <div className="border-t border-gold/15 p-6 bg-[#FAF7F2]/60 space-y-3">
                   <span className="text-xs font-extrabold text-[#0F4C45] uppercase tracking-wider">
@@ -1480,7 +1219,7 @@ export function InspirationClient() {
       )}
 
       {/* ══════════════════════════════════════════════════════════════════════
-          7. AI MOOD BOARD GENERATOR INTERACTIVE MODAL
+          6. AI MOOD BOARD GENERATOR MODAL
       ══════════════════════════════════════════════════════════════════════ */}
       {isMoodBoardOpen && (
         <div
@@ -1514,9 +1253,8 @@ export function InspirationClient() {
               </button>
             </div>
 
-            {/* Step 1 & 2 Inputs */}
+            {/* Inputs */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Wedding Style */}
               <div className="space-y-2">
                 <label className="text-xs font-extrabold text-[#0F4C45] uppercase tracking-wider block">
                   1. Wedding Type &amp; Ceremony
@@ -1534,7 +1272,6 @@ export function InspirationClient() {
                 </select>
               </div>
 
-              {/* Color Theme */}
               <div className="space-y-2">
                 <label className="text-xs font-extrabold text-[#0F4C45] uppercase tracking-wider block">
                   2. Color Palette Theme
@@ -1552,7 +1289,6 @@ export function InspirationClient() {
                 </select>
               </div>
 
-              {/* Budget Tier */}
               <div className="space-y-2">
                 <label className="text-xs font-extrabold text-[#0F4C45] uppercase tracking-wider block">
                   3. Total Target Budget
@@ -1570,7 +1306,6 @@ export function InspirationClient() {
                 </select>
               </div>
 
-              {/* Venue Setting */}
               <div className="space-y-2">
                 <label className="text-xs font-extrabold text-[#0F4C45] uppercase tracking-wider block">
                   4. Setting / Location
@@ -1589,7 +1324,6 @@ export function InspirationClient() {
               </div>
             </div>
 
-            {/* Generate / Refresh Button */}
             <button
               onClick={handleGenerateMoodBoard}
               className="w-full py-3 rounded-2xl bg-[#0F4C45] hover:bg-[#12584E] text-white text-xs font-extrabold flex items-center justify-center gap-2 shadow-md cursor-pointer transition-all"
@@ -1598,7 +1332,6 @@ export function InspirationClient() {
               <span>Update AI Mood Board</span>
             </button>
 
-            {/* Generated Mood Board Preview */}
             {generatedMoodBoard && (
               <div className="bg-[#FAF7F2] p-5 sm:p-6 rounded-3xl border border-gold/25 space-y-6 animate-in fade-in duration-200">
                 <div>
@@ -1618,7 +1351,7 @@ export function InspirationClient() {
                   </p>
                 </div>
 
-                {/* Color Swatches */}
+                {/* Swatches */}
                 <div className="space-y-2">
                   <span className="text-[11px] font-bold text-charcoal uppercase tracking-wider">
                     Harmonious Palette Swatches
@@ -1659,7 +1392,7 @@ export function InspirationClient() {
                   </div>
                 </div>
 
-                {/* Styling Checklist */}
+                {/* Checklist */}
                 <div className="space-y-2">
                   <span className="text-[11px] font-bold text-charcoal uppercase tracking-wider">
                     Essential Styling Checklist
@@ -1674,7 +1407,7 @@ export function InspirationClient() {
                   </div>
                 </div>
 
-                {/* Actions */}
+                {/* CTAs */}
                 <div className="flex flex-col sm:flex-row gap-3 pt-2">
                   <button
                     onClick={() => {
@@ -1708,9 +1441,7 @@ export function InspirationClient() {
         </div>
       )}
 
-      {/* ══════════════════════════════════════════════════════════════════════
-          8. SAVE TO BOARD MODAL
-      ══════════════════════════════════════════════════════════════════════ */}
+      {/* ── SAVE TO BOARD MODAL ── */}
       {itemToSave && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150"
@@ -1758,7 +1489,7 @@ export function InspirationClient() {
                   type="text"
                   value={newBoardName}
                   onChange={(e) => setNewBoardName(e.target.value)}
-                  placeholder="e.g. Kasavu Saree Ideas, Mandap Setup..."
+                  placeholder="e.g. Kasavu Saree Ideas, Mandap..."
                   className="w-full bg-[#FAF7F2] border border-gold/30 rounded-xl px-3 py-2 text-xs text-charcoal focus:outline-none focus:border-[#0F4C45]"
                   autoFocus
                 />

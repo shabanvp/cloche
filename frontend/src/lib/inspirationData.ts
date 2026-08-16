@@ -425,16 +425,70 @@ export function generateAIMoodBoard(input: AIMoodBoardInput): AIMoodBoardResult 
 // ─────────────────────────────────────────────────────────────────────────────
 // 4. CATEGORY PILLS & POPULAR AUTOCOMPLETE SUGGESTIONS
 // ─────────────────────────────────────────────────────────────────────────────
-export const INSPIRATION_CATEGORIES: { id: string; label: string; emoji: string; isStatic?: boolean }[] = [
-  { id: "All", label: "All", emoji: "✨" },
-  { id: "Wedding Photos", label: "Wedding Photos", emoji: "📸" },
-  { id: "Stage Designs", label: "Stage & Mandap", emoji: "✨" },
-  { id: "Trending Decor", label: "Trending Decor", emoji: "💐" },
-  { id: "Bridal Looks", label: "Bridal Looks", emoji: "👰" },
-  { id: "Groom Looks", label: "Groom Looks", emoji: "🤵" },
-  { id: "Mehendi Designs", label: "Mehendi", emoji: "🌿" },
-  { id: "Seasonal Trends", label: "Seasonal Trends", emoji: "🌸" },
-  { id: "Color Themes", label: "Color Themes", emoji: "🎨", isStatic: true },
+export interface InspirationCategoryItem {
+  id: string;
+  label: string;
+  emoji: string;
+  image: string;
+  isStatic?: boolean;
+}
+
+export const INSPIRATION_CATEGORIES: InspirationCategoryItem[] = [
+  {
+    id: "All",
+    label: "All Categories",
+    emoji: "✨",
+    image: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=400&q=80",
+  },
+  {
+    id: "Bridal Looks",
+    label: "Bridal Looks",
+    emoji: "👰",
+    image: "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=400&q=80",
+  },
+  {
+    id: "Stage Designs",
+    label: "Stage & Mandap",
+    emoji: "✨",
+    image: "https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=400&q=80",
+  },
+  {
+    id: "Trending Decor",
+    label: "Trending Decor",
+    emoji: "💐",
+    image: "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=400&q=80",
+  },
+  {
+    id: "Groom Looks",
+    label: "Groom Looks",
+    emoji: "🤵",
+    image: "https://images.unsplash.com/photo-1507676184212-d03ab07a01bf?auto=format&fit=crop&w=400&q=80",
+  },
+  {
+    id: "Mehendi Designs",
+    label: "Mehendi Designs",
+    emoji: "🌿",
+    image: "https://images.unsplash.com/photo-1560707303-4e980ce876ad?auto=format&fit=crop&w=400&q=80",
+  },
+  {
+    id: "Wedding Photos",
+    label: "Wedding Photos",
+    emoji: "📸",
+    image: "https://images.unsplash.com/photo-1606800052052-a08af7148866?auto=format&fit=crop&w=400&q=80",
+  },
+  {
+    id: "Color Themes",
+    label: "Color Themes",
+    emoji: "🎨",
+    image: "https://images.unsplash.com/photo-1513279922550-250c2129b13a?auto=format&fit=crop&w=400&q=80",
+    isStatic: true,
+  },
+  {
+    id: "Seasonal Trends",
+    label: "Seasonal Trends",
+    emoji: "🌸",
+    image: "https://images.unsplash.com/photo-1508615039623-a25605d2b022?auto=format&fit=crop&w=400&q=80",
+  },
 ];
 
 export const DYNAMIC_CATEGORIES: InspirationCategory[] = [
