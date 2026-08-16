@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { showVendorToast } from "@/lib/vendorStore";
 import { VendorImageUploader } from "@/components/ui/VendorImageUploader";
+import { VendorModal } from "@/components/vendor/VendorModal";
 
 export interface MehendiGalleryItem {
   id: string;
@@ -267,92 +268,83 @@ export function MehendiGallerySection() {
       )}
 
       {/* Add New Design Modal */}
-      {isAddModalOpen && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 space-y-5 shadow-2xl border border-gold/20 animate-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between border-b border-gold/15 pb-3">
-              <h3 className="font-serif font-bold text-lg text-charcoal">
-                Upload New Mehendi Design
-              </h3>
-              <button
-                onClick={() => setIsAddModalOpen(false)}
-                className="text-xs font-bold text-charcoal/40 hover:text-charcoal cursor-pointer"
-              >
-                ✕
-              </button>
-            </div>
-
-            <form onSubmit={handleAddDesign} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-charcoal/80 mb-1">
-                  Design Title / Pattern Name
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. Royal Marwar Mandap Bridal Henna"
-                  value={newTitle}
-                  onChange={(e) => setNewTitle(e.target.value)}
-                  required
-                  className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2.5 text-xs text-charcoal font-medium focus:outline-none focus:border-[#0d3b30]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-charcoal/80 mb-1">
-                  Design Category
-                </label>
-                <select
-                  value={newCategory}
-                  onChange={(e) => setNewCategory(e.target.value)}
-                  className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2.5 text-xs text-charcoal font-medium focus:outline-none focus:border-[#0d3b30]"
-                >
-                  {categories.filter(c => c !== "All").map(cat => (
-                    <option key={cat} value={cat}>{cat}</option>
-                  ))}
-                </select>
-              </div>
-
-              <VendorImageUploader
-                label="Upload Henna Photo(s)"
-                sublabel="Select single or multiple photos from your device camera/gallery (Max 5MB per photo)"
-                value={newImage}
-                onChange={(urls) => setNewImage(Array.isArray(urls) ? urls[0] || "" : urls)}
-                multiple={true}
-                folder="cloche/vendors/mehendi/gallery"
-              />
-
-              <div>
-                <label className="block text-xs font-bold text-charcoal/80 mb-1">
-                  Pattern Details & Specifications
-                </label>
-                <textarea
-                  rows={3}
-                  placeholder="e.g. Both hands till elbow, portrait Dulha-Dulhan motif, organic stain..."
-                  value={newDetails}
-                  onChange={(e) => setNewDetails(e.target.value)}
-                  className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl p-3 text-xs text-charcoal font-medium focus:outline-none focus:border-[#0d3b30] resize-none"
-                />
-              </div>
-
-              <div className="flex items-center justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setIsAddModalOpen(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-bold text-charcoal/60 hover:bg-gray-100 cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="bg-[#0d3b30] hover:bg-[#072B27] text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow-xs transition-all cursor-pointer"
-                >
-                  Save Design
-                </button>
-              </div>
-            </form>
+      <VendorModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        title="Upload New Mehendi Design"
+        subtitle="Add pattern photos, style tags, and description for your henna portfolio"
+        footer={
+          <>
+            <button
+              type="button"
+              onClick={() => setIsAddModalOpen(false)}
+              className="px-4 py-2.5 rounded-xl text-xs font-bold text-charcoal/60 hover:bg-gray-100 cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              form="add-mehendi-design-form"
+              className="bg-[#0d3b30] hover:bg-[#07251e] text-white font-bold text-xs px-6 py-2.5 rounded-xl shadow-xs transition-all cursor-pointer"
+            >
+              Save Design
+            </button>
+          </>
+        }
+      >
+        <form id="add-mehendi-design-form" onSubmit={handleAddDesign} className="space-y-4">
+          <div>
+            <label className="block text-xs font-bold text-charcoal/80 mb-1">
+              Design Title / Pattern Name
+            </label>
+            <input
+              type="text"
+              placeholder="e.g. Royal Marwar Mandap Bridal Henna"
+              value={newTitle}
+              onChange={(e) => setNewTitle(e.target.value)}
+              required
+              className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2.5 text-xs text-charcoal font-medium focus:outline-none focus:border-[#0d3b30]"
+            />
           </div>
-        </div>
-      )}
+
+          <div>
+            <label className="block text-xs font-bold text-charcoal/80 mb-1">
+              Design Category
+            </label>
+            <select
+              value={newCategory}
+              onChange={(e) => setNewCategory(e.target.value)}
+              className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2.5 text-xs text-charcoal font-medium focus:outline-none focus:border-[#0d3b30]"
+            >
+              {categories.filter(c => c !== "All").map(cat => (
+                <option key={cat} value={cat}>{cat}</option>
+              ))}
+            </select>
+          </div>
+
+          <VendorImageUploader
+            label="Upload Henna Photo(s)"
+            sublabel="Select single or multiple photos from your device camera/gallery (Max 5MB per photo)"
+            value={newImage}
+            onChange={(urls) => setNewImage(Array.isArray(urls) ? urls[0] || "" : urls)}
+            multiple={true}
+            folder="cloche/vendors/mehendi/gallery"
+          />
+
+          <div>
+            <label className="block text-xs font-bold text-charcoal/80 mb-1">
+              Pattern Details & Specifications
+            </label>
+            <textarea
+              rows={3}
+              placeholder="e.g. Both hands till elbow, portrait Dulha-Dulhan motif, organic stain..."
+              value={newDetails}
+              onChange={(e) => setNewDetails(e.target.value)}
+              className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl p-3 text-xs text-charcoal font-medium focus:outline-none focus:border-[#0d3b30] resize-none"
+            />
+          </div>
+        </form>
+      </VendorModal>
     </div>
   );
 }

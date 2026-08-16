@@ -5,6 +5,7 @@ import { Tag, Sparkles, Plus, Calendar, CheckCircle2, Trash2, Loader2, TagIcon }
 import { VendorCategoryConfig } from "@/lib/vendor-categories";
 import { showVendorToast } from "@/lib/vendorStore";
 import { saveVendorOffer, getVendorOffers, deleteVendorOffer } from "@/lib/vendorOffersStore";
+import { VendorModal } from "@/components/vendor/VendorModal";
 
 interface OffersSectionProps {
   categoryConfig: VendorCategoryConfig;
@@ -272,73 +273,77 @@ export function OffersSection({ categoryConfig }: OffersSectionProps) {
       )}
 
       {/* Add Offer Modal */}
-      {isAddModalOpen && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl border border-gold/20 max-w-md w-full p-6 space-y-4 shadow-2xl animate-in zoom-in-95 duration-200">
-            <h3 className="font-serif font-bold text-lg text-charcoal">Create Promotional Offer</h3>
-            <form onSubmit={handleCreateOffer} className="space-y-3">
-              <div>
-                <label className="block text-xs font-bold text-charcoal/80 mb-1">Offer Title</label>
-                <input
-                  type="text"
-                  placeholder="e.g. Early Bird Wedding Special"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2 text-xs text-charcoal focus:outline-none focus:border-[#0F4C45]"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-charcoal/80 mb-1">Promo Code</label>
-                  <input
-                    type="text"
-                    placeholder="WED2026"
-                    value={code}
-                    onChange={(e) => setCode(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2 text-xs font-mono uppercase text-charcoal focus:outline-none focus:border-[#0F4C45]"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-charcoal/80 mb-1">Discount Tag</label>
-                  <input
-                    type="text"
-                    placeholder="15% OFF / Free Upgrade"
-                    value={discount}
-                    onChange={(e) => setDiscount(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2 text-xs text-charcoal focus:outline-none focus:border-[#0F4C45]"
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-charcoal/80 mb-1">Description</label>
-                <textarea
-                  rows={3}
-                  placeholder="Details of the offer terms..."
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2 text-xs text-charcoal focus:outline-none focus:border-[#0F4C45] resize-none"
-                />
-              </div>
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-gold/15">
-                <button
-                  type="button"
-                  onClick={() => setIsAddModalOpen(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-bold text-charcoal/60 hover:bg-gray-100 cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSaving}
-                  className="bg-[#0F4C45] hover:bg-[#072B27] text-white font-bold text-xs px-5 py-2 rounded-xl shadow-xs transition-all cursor-pointer flex items-center gap-1.5"
-                >
-                  {isSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin text-gold" /> : "Save Offer"}
-                </button>
-              </div>
-            </form>
+      <VendorModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        title="Create Promotional Offer"
+        subtitle="Set up promotional codes and discount incentives visible on your store"
+        footer={
+          <>
+            <button
+              type="button"
+              onClick={() => setIsAddModalOpen(false)}
+              className="px-4 py-2.5 rounded-xl text-xs font-bold text-charcoal/60 hover:bg-gray-100 cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              form="create-offer-form"
+              disabled={isSaving}
+              className="bg-[#0F4C45] hover:bg-[#072B27] text-white font-bold text-xs px-6 py-2.5 rounded-xl shadow-xs transition-all cursor-pointer flex items-center gap-1.5"
+            >
+              {isSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin text-gold" /> : "Save Offer"}
+            </button>
+          </>
+        }
+      >
+        <form id="create-offer-form" onSubmit={handleCreateOffer} className="space-y-4">
+          <div>
+            <label className="block text-xs font-bold text-charcoal/80 mb-1">Offer Title</label>
+            <input
+              type="text"
+              placeholder="e.g. Early Bird Wedding Special"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              required
+              className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2.5 text-xs text-charcoal focus:outline-none focus:border-[#0F4C45]"
+            />
           </div>
-        </div>
-      )}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-bold text-charcoal/80 mb-1">Promo Code</label>
+              <input
+                type="text"
+                placeholder="WED2026"
+                value={code}
+                onChange={(e) => setCode(e.target.value)}
+                className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2.5 text-xs font-mono uppercase text-charcoal focus:outline-none focus:border-[#0F4C45]"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-charcoal/80 mb-1">Discount Tag</label>
+              <input
+                type="text"
+                placeholder="15% OFF / Free Upgrade"
+                value={discount}
+                onChange={(e) => setDiscount(e.target.value)}
+                className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2.5 text-xs text-charcoal focus:outline-none focus:border-[#0F4C45]"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-xs font-bold text-charcoal/80 mb-1">Description</label>
+            <textarea
+              rows={3}
+              placeholder="Details of the offer terms..."
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl p-3 text-xs text-charcoal focus:outline-none focus:border-[#0F4C45] resize-none"
+            />
+          </div>
+        </form>
+      </VendorModal>
     </div>
   );
 }

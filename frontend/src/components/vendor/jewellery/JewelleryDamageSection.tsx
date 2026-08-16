@@ -12,6 +12,7 @@ import {
   ShieldAlert,
   Search
 } from "lucide-react";
+import { VendorModal } from "@/components/vendor/VendorModal";
 
 export interface DamageReport {
   id: string;
@@ -172,85 +173,78 @@ export function JewelleryDamageSection() {
       </div>
 
       {/* File Damage Report Modal */}
-      {showAddModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 border border-gold/20 shadow-2xl animate-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between border-b border-gold/10 pb-3">
-              <h3 className="font-serif font-bold text-base text-charcoal">File Damage Inspection Report</h3>
-              <button
-                onClick={() => setShowAddModal(false)}
-                className="text-charcoal/40 hover:text-charcoal text-sm font-bold"
-              >
-                ✕
-              </button>
+      <VendorModal
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        title="File Damage Inspection Report"
+        subtitle="Log damage details, estimate repairs, and assess security deposit deduction"
+        footer={
+          <>
+            <button
+              type="button"
+              onClick={() => setShowAddModal(false)}
+              className="px-4 py-2.5 bg-gray-100 text-charcoal font-bold rounded-xl text-xs hover:bg-gray-200 cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              form="file-damage-report-form"
+              className="px-6 py-2.5 bg-[#0F4C45] text-white font-bold rounded-xl text-xs hover:bg-[#083833] cursor-pointer shadow-xs"
+            >
+              Submit Report
+            </button>
+          </>
+        }
+      >
+        <form id="file-damage-report-form" onSubmit={handleCreateReport} className="space-y-3.5 text-xs">
+          <div>
+            <label className="block text-charcoal font-bold mb-1">Customer Name & Order #</label>
+            <input
+              type="text"
+              required
+              placeholder="e.g. Ananya Sen (Order #9821)"
+              value={newReport.customerName}
+              onChange={(e) => setNewReport({ ...newReport, customerName: e.target.value })}
+              className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
+            />
+          </div>
+
+          <div>
+            <label className="block text-charcoal font-bold mb-1">Damage Description</label>
+            <textarea
+              required
+              rows={3}
+              placeholder="Describe damage details (bent clasps, missing stones, scratches)..."
+              value={newReport.damageDescription}
+              onChange={(e) => setNewReport({ ...newReport, damageDescription: e.target.value })}
+              className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-charcoal font-bold mb-1">Repair Cost (₹)</label>
+              <input
+                type="number"
+                value={newReport.repairCostEstimate}
+                onChange={(e) => setNewReport({ ...newReport, repairCostEstimate: Number(e.target.value) })}
+                className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
+              />
             </div>
 
-            <form onSubmit={handleCreateReport} className="space-y-3.5 text-xs">
-              <div>
-                <label className="block text-charcoal font-bold mb-1">Customer Name & Order #</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Ananya Sen (Order #9821)"
-                  value={newReport.customerName}
-                  onChange={(e) => setNewReport({ ...newReport, customerName: e.target.value })}
-                  className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-charcoal font-bold mb-1">Damage Description</label>
-                <textarea
-                  required
-                  rows={3}
-                  placeholder="Describe damage details (bent clasps, missing stones, scratches)..."
-                  value={newReport.damageDescription}
-                  onChange={(e) => setNewReport({ ...newReport, damageDescription: e.target.value })}
-                  className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-charcoal font-bold mb-1">Repair Cost (₹)</label>
-                  <input
-                    type="number"
-                    value={newReport.repairCostEstimate}
-                    onChange={(e) => setNewReport({ ...newReport, repairCostEstimate: Number(e.target.value) })}
-                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-charcoal font-bold mb-1">Customer Liability (₹)</label>
-                  <input
-                    type="number"
-                    value={newReport.customerLiabilityAmount}
-                    onChange={(e) => setNewReport({ ...newReport, customerLiabilityAmount: Number(e.target.value) })}
-                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
-                  />
-                </div>
-              </div>
-
-              <div className="pt-3 flex justify-end gap-2 border-t border-gold/10">
-                <button
-                  type="button"
-                  onClick={() => setShowAddModal(false)}
-                  className="px-4 py-2 bg-gray-100 text-charcoal font-bold rounded-xl"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 bg-[#0F4C45] text-white font-bold rounded-xl"
-                >
-                  Submit Report
-                </button>
-              </div>
-            </form>
+            <div>
+              <label className="block text-charcoal font-bold mb-1">Customer Liability (₹)</label>
+              <input
+                type="number"
+                value={newReport.customerLiabilityAmount}
+                onChange={(e) => setNewReport({ ...newReport, customerLiabilityAmount: Number(e.target.value) })}
+                className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
+              />
+            </div>
           </div>
-        </div>
-      )}
+        </form>
+      </VendorModal>
     </div>
   );
 }

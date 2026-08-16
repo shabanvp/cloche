@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { VendorCategoryConfig } from "@/lib/vendor-categories";
 import { showVendorToast } from "@/lib/vendorStore";
+import { VendorModal } from "@/components/vendor/VendorModal";
 
 export interface VendorPackageItem {
   id: string;
@@ -255,13 +256,12 @@ export function VendorPricingModule({ categoryConfig }: VendorPricingModuleProps
           ))}
         </div>
       ) : (
-        /* Empty State */
         <div className="bg-white rounded-2xl border border-gold/15 p-12 text-center space-y-4 shadow-xs">
           <div className="w-16 h-16 rounded-full bg-[#FAF7F2] text-[#0F4C45] mx-auto flex items-center justify-center border border-gold/20 shadow-inner">
-            <PackageCheck className="w-8 h-8 text-[#0F4C45]" />
+            <PackageX className="w-8 h-8 text-[#0F4C45]" />
           </div>
           <div className="max-w-md mx-auto">
-            <h3 className="font-serif font-bold text-lg text-charcoal">No {categoryConfig.pricing.title} Set Up</h3>
+            <h3 className="font-serif font-bold text-lg text-charcoal">No {categoryConfig.pricing.title} Configured</h3>
             <p className="text-xs text-charcoal/60 mt-1 leading-relaxed">
               {categoryConfig.pricing.emptyPrompt}
             </p>
@@ -276,121 +276,112 @@ export function VendorPricingModule({ categoryConfig }: VendorPricingModuleProps
       )}
 
       {/* Add New Package Modal */}
-      {isAddModalOpen && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 space-y-5 shadow-2xl border border-gold/20 animate-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between border-b border-gold/15 pb-3">
-              <h3 className="font-serif font-bold text-lg text-charcoal">
-                Create {categoryConfig.pricing.itemTypeLabel}
-              </h3>
+      <VendorModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        title={`Create ${categoryConfig.pricing.itemTypeLabel}`}
+        subtitle={`Configure pricing, deliverables and rental terms for your ${categoryConfig.name.toLowerCase()} business`}
+        footer={
+          <>
+            <button
+              type="button"
+              onClick={() => setIsAddModalOpen(false)}
+              className="px-4 py-2.5 rounded-xl text-xs font-bold text-charcoal/60 hover:bg-gray-100 cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              form="create-pricing-package-form"
+              className="bg-[#0F4C45] hover:bg-[#072B27] text-white font-bold text-xs px-6 py-2.5 rounded-xl shadow-xs transition-all cursor-pointer"
+            >
+              Create Package
+            </button>
+          </>
+        }
+      >
+        <form id="create-pricing-package-form" onSubmit={handleCreatePackage} className="space-y-4">
+          <div>
+            <label className="block text-xs font-bold text-charcoal/80 mb-1">
+              Package Name / Tier Title
+            </label>
+            <input
+              type="text"
+              placeholder={`e.g. Signature ${categoryConfig.name} Package`}
+              value={newPkgName}
+              onChange={(e) => setNewPkgName(e.target.value)}
+              required
+              className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2.5 text-xs text-charcoal font-medium focus:outline-none focus:border-[#0F4C45]"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-bold text-charcoal/80 mb-1">
+                Price Amount (₹)
+              </label>
+              <input
+                type="text"
+                placeholder="e.g. ₹1,50,000"
+                value={newPkgPrice}
+                onChange={(e) => setNewPkgPrice(e.target.value)}
+                required
+                className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2.5 text-xs text-charcoal font-medium focus:outline-none focus:border-[#0F4C45]"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-charcoal/80 mb-1">
+                Pricing Basis / Unit
+              </label>
+              <input
+                type="text"
+                placeholder="e.g. per day / per plate / 3-day rental"
+                value={newPkgUnit}
+                onChange={(e) => setNewPkgUnit(e.target.value)}
+                className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2.5 text-xs text-charcoal font-medium focus:outline-none focus:border-[#0F4C45]"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-charcoal/80 mb-1">
+              Add Deliverables & Included Services
+            </label>
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                placeholder="e.g. Complimentary pre-bridal trial"
+                value={newPkgFeature}
+                onChange={(e) => setNewPkgFeature(e.target.value)}
+                className="flex-1 bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2 text-xs text-charcoal font-medium focus:outline-none focus:border-[#0F4C45]"
+              />
               <button
-                onClick={() => setIsAddModalOpen(false)}
-                className="text-xs font-bold text-charcoal/40 hover:text-charcoal cursor-pointer"
+                type="button"
+                onClick={handleAddFeature}
+                className="bg-[#0F4C45] text-white font-bold text-xs px-3.5 py-2 rounded-xl shrink-0 cursor-pointer"
               >
-                ✕
+                Add
               </button>
             </div>
 
-            <form onSubmit={handleCreatePackage} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-charcoal/80 mb-1">
-                  Package Name / Tier Title
-                </label>
-                <input
-                  type="text"
-                  placeholder={`e.g. Signature ${categoryConfig.name} Package`}
-                  value={newPkgName}
-                  onChange={(e) => setNewPkgName(e.target.value)}
-                  required
-                  className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2.5 text-xs text-charcoal font-medium focus:outline-none focus:border-[#0F4C45]"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-charcoal/80 mb-1">
-                    Price Amount (₹)
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g. ₹1,50,000"
-                    value={newPkgPrice}
-                    onChange={(e) => setNewPkgPrice(e.target.value)}
-                    required
-                    className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2.5 text-xs text-charcoal font-medium focus:outline-none focus:border-[#0F4C45]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-charcoal/80 mb-1">
-                    Pricing Basis / Unit
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g. per day / per plate / 3-day rental"
-                    value={newPkgUnit}
-                    onChange={(e) => setNewPkgUnit(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2.5 text-xs text-charcoal font-medium focus:outline-none focus:border-[#0F4C45]"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-charcoal/80 mb-1">
-                  Add Deliverables & Included Services
-                </label>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    placeholder="e.g. Complimentary pre-bridal trial"
-                    value={newPkgFeature}
-                    onChange={(e) => setNewPkgFeature(e.target.value)}
-                    className="flex-1 bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2 text-xs text-charcoal font-medium focus:outline-none focus:border-[#0F4C45]"
-                  />
+            <div className="mt-2 space-y-1">
+              {newPkgFeatures.map((f, idx) => (
+                <div key={idx} className="text-[11px] text-charcoal/80 bg-gray-50 px-3 py-1 rounded-lg border border-gray-200 flex items-center justify-between">
+                  <span>✓ {f}</span>
                   <button
                     type="button"
-                    onClick={handleAddFeature}
-                    className="bg-[#0F4C45] text-white font-bold text-xs px-3.5 py-2 rounded-xl shrink-0 cursor-pointer"
+                    onClick={() => setNewPkgFeatures(newPkgFeatures.filter((_, i) => i !== idx))}
+                    className="text-red-500 font-bold hover:underline"
                   >
-                    Add
+                    ✕
                   </button>
                 </div>
-
-                <div className="mt-2 space-y-1">
-                  {newPkgFeatures.map((f, idx) => (
-                    <div key={idx} className="text-[11px] text-charcoal/80 bg-gray-50 px-3 py-1 rounded-lg border border-gray-200 flex items-center justify-between">
-                      <span>✓ {f}</span>
-                      <button
-                        type="button"
-                        onClick={() => setNewPkgFeatures(newPkgFeatures.filter((_, i) => i !== idx))}
-                        className="text-red-500 font-bold hover:underline"
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="flex items-center justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setIsAddModalOpen(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-bold text-charcoal/60 hover:bg-gray-100 cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="bg-[#0F4C45] hover:bg-[#072B27] text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow-xs transition-all cursor-pointer"
-                >
-                  Create Package
-                </button>
-              </div>
-            </form>
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        </form>
+      </VendorModal>
     </div>
   );
 }

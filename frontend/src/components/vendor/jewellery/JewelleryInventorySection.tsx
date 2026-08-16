@@ -20,6 +20,7 @@ import {
   ShieldAlert,
   ArrowUpDown
 } from "lucide-react";
+import { VendorModal } from "@/components/vendor/VendorModal";
 
 export interface JewelleryItem {
   id: string;
@@ -448,183 +449,164 @@ export function JewelleryInventorySection() {
       </div>
 
       {/* Add New Item Modal */}
-      {showAddModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 space-y-4 border border-gold/20 shadow-2xl animate-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between border-b border-gold/10 pb-3">
-              <h3 className="font-serif font-bold text-lg text-charcoal">Add Jewellery Item to Inventory</h3>
-              <button
-                onClick={() => setShowAddModal(false)}
-                className="text-charcoal/40 hover:text-charcoal text-sm font-bold"
-              >
-                ✕
-              </button>
+      <VendorModal
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        title="Add Jewellery Item to Inventory"
+        subtitle="Specify SKU, stock counts, rental rates, and security deposit value"
+        footer={
+          <>
+            <button
+              type="button"
+              onClick={() => setShowAddModal(false)}
+              className="px-4 py-2.5 bg-gray-100 text-charcoal font-bold rounded-xl text-xs hover:bg-gray-200 cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              form="add-jewellery-inventory-form"
+              className="px-6 py-2.5 bg-[#0F4C45] text-white font-bold rounded-xl hover:bg-[#083833] text-xs cursor-pointer shadow-xs"
+            >
+              Save Item
+            </button>
+          </>
+        }
+      >
+        <form id="add-jewellery-inventory-form" onSubmit={handleAddItem} className="space-y-3.5 text-xs">
+          <div>
+            <label className="block text-charcoal font-bold mb-1">Jewellery Name</label>
+            <input
+              type="text"
+              required
+              placeholder="e.g. Maharani Antique Polki Necklace Set"
+              value={newItem.name}
+              onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
+              className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none focus:border-[#0F4C45]"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-charcoal font-bold mb-1">SKU Code</label>
+              <input
+                type="text"
+                placeholder="JWL-BRD-010"
+                value={newItem.sku}
+                onChange={(e) => setNewItem({ ...newItem, sku: e.target.value })}
+                className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none focus:border-[#0F4C45]"
+              />
             </div>
 
-            <form onSubmit={handleAddItem} className="space-y-3.5 text-xs">
-              <div>
-                <label className="block text-charcoal font-bold mb-1">Jewellery Name</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Maharani Antique Polki Necklace Set"
-                  value={newItem.name}
-                  onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
-                  className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none focus:border-[#0F4C45]"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-charcoal font-bold mb-1">SKU Code</label>
-                  <input
-                    type="text"
-                    placeholder="JWL-BRD-010"
-                    value={newItem.sku}
-                    onChange={(e) => setNewItem({ ...newItem, sku: e.target.value })}
-                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none focus:border-[#0F4C45]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-charcoal font-bold mb-1">Category</label>
-                  <select
-                    value={newItem.category}
-                    onChange={(e) => setNewItem({ ...newItem, category: e.target.value })}
-                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
-                  >
-                    {categories.filter((c) => c !== "All").map((c) => (
-                      <option key={c} value={c}>
-                        {c}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-3 gap-3">
-                <div>
-                  <label className="block text-charcoal font-bold mb-1">Total Stock</label>
-                  <input
-                    type="number"
-                    min="1"
-                    value={newItem.totalQuantity}
-                    onChange={(e) => setNewItem({ ...newItem, totalQuantity: Number(e.target.value) })}
-                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-charcoal font-bold mb-1">Rental Rate (₹/day)</label>
-                  <input
-                    type="number"
-                    value={newItem.rentalPricePerDay}
-                    onChange={(e) => setNewItem({ ...newItem, rentalPricePerDay: Number(e.target.value) })}
-                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-charcoal font-bold mb-1">Deposit (₹)</label>
-                  <input
-                    type="number"
-                    value={newItem.securityDeposit}
-                    onChange={(e) => setNewItem({ ...newItem, securityDeposit: Number(e.target.value) })}
-                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-charcoal font-bold mb-1">Image URL</label>
-                <input
-                  type="text"
-                  value={newItem.image}
-                  onChange={(e) => setNewItem({ ...newItem, image: e.target.value })}
-                  className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
-                />
-              </div>
-
-              <div className="pt-3 flex justify-end gap-2 border-t border-gold/10">
-                <button
-                  type="button"
-                  onClick={() => setShowAddModal(false)}
-                  className="px-4 py-2 bg-gray-100 text-charcoal font-bold rounded-xl"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 bg-[#0F4C45] text-white font-bold rounded-xl hover:bg-[#083833]"
-                >
-                  Save Item
-                </button>
-              </div>
-            </form>
+            <div>
+              <label className="block text-charcoal font-bold mb-1">Category</label>
+              <select
+                value={newItem.category}
+                onChange={(e) => setNewItem({ ...newItem, category: e.target.value })}
+                className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
+              >
+                {categories.filter((c) => c !== "All").map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
-        </div>
-      )}
+
+          <div className="grid grid-cols-3 gap-3">
+            <div>
+              <label className="block text-charcoal font-bold mb-1">Total Stock</label>
+              <input
+                type="number"
+                min="1"
+                value={newItem.totalQuantity}
+                onChange={(e) => setNewItem({ ...newItem, totalQuantity: Number(e.target.value) })}
+                className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-charcoal font-bold mb-1">Rental Rate (₹/day)</label>
+              <input
+                type="number"
+                value={newItem.rentalPricePerDay}
+                onChange={(e) => setNewItem({ ...newItem, rentalPricePerDay: Number(e.target.value) })}
+                className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-charcoal font-bold mb-1">Deposit (₹)</label>
+              <input
+                type="number"
+                value={newItem.securityDeposit}
+                onChange={(e) => setNewItem({ ...newItem, securityDeposit: Number(e.target.value) })}
+                className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-charcoal font-bold mb-1">Image URL</label>
+            <input
+              type="text"
+              value={newItem.image}
+              onChange={(e) => setNewItem({ ...newItem, image: e.target.value })}
+              className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
+            />
+          </div>
+        </form>
+      </VendorModal>
 
       {/* Item Rental History Modal */}
-      {selectedItemForHistory && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 space-y-4 border border-gold/20 shadow-2xl animate-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between border-b border-gold/10 pb-3">
-              <div>
-                <h3 className="font-serif font-bold text-base text-charcoal">Rental History Timeline</h3>
-                <p className="text-xs text-[#0F4C45] font-semibold">{selectedItemForHistory.name}</p>
-              </div>
-              <button
-                onClick={() => setSelectedItemForHistory(null)}
-                className="text-charcoal/40 hover:text-charcoal text-sm font-bold"
-              >
-                ✕
-              </button>
+      <VendorModal
+        isOpen={Boolean(selectedItemForHistory)}
+        onClose={() => setSelectedItemForHistory(null)}
+        title="Rental History Timeline"
+        subtitle={selectedItemForHistory?.name || ""}
+        footer={
+          <button
+            type="button"
+            onClick={() => setSelectedItemForHistory(null)}
+            className="px-5 py-2 bg-[#0F4C45] text-white font-bold rounded-xl text-xs hover:bg-[#083833] cursor-pointer"
+          >
+            Close
+          </button>
+        }
+      >
+        <div className="space-y-3 text-xs">
+          <div className="p-3 bg-[#FAF7F2] rounded-xl border border-gold/15 flex justify-between items-center">
+            <div>
+              <span className="font-bold text-charcoal block">Ananya Sen (Order #ORD-9821)</span>
+              <span className="text-[11px] text-charcoal/60">3 Days Rental • Oct 12 - Oct 15, 2026</span>
             </div>
+            <span className="bg-emerald-100 text-emerald-950 font-bold px-2 py-0.5 rounded text-[10px]">
+              Returned Clean
+            </span>
+          </div>
 
-            <div className="space-y-3 text-xs max-h-[350px] overflow-y-auto pr-1">
-              <div className="p-3 bg-[#FAF7F2] rounded-xl border border-gold/15 flex justify-between items-center">
-                <div>
-                  <span className="font-bold text-charcoal block">Ananya Sen (Order #ORD-9821)</span>
-                  <span className="text-[11px] text-charcoal/60">3 Days Rental • Oct 12 - Oct 15, 2026</span>
-                </div>
-                <span className="bg-emerald-100 text-emerald-950 font-bold px-2 py-0.5 rounded text-[10px]">
-                  Returned Clean
-                </span>
-              </div>
-
-              <div className="p-3 bg-[#FAF7F2] rounded-xl border border-gold/15 flex justify-between items-center">
-                <div>
-                  <span className="font-bold text-charcoal block">Kavita Verma (Order #ORD-9104)</span>
-                  <span className="text-[11px] text-charcoal/60">2 Days Rental • Sep 04 - Sep 06, 2026</span>
-                </div>
-                <span className="bg-emerald-100 text-emerald-950 font-bold px-2 py-0.5 rounded text-[10px]">
-                  Returned Clean
-                </span>
-              </div>
-
-              <div className="p-3 bg-rose-50 rounded-xl border border-rose-200 flex justify-between items-center">
-                <div>
-                  <span className="font-bold text-rose-950 block">Meera Roy (Order #ORD-8411)</span>
-                  <span className="text-[11px] text-rose-800">Minor Clasp Bend • Damaged Deposit Deduction ₹1,200</span>
-                </div>
-                <span className="bg-rose-200 text-rose-900 font-bold px-2 py-0.5 rounded text-[10px]">
-                  Repaired
-                </span>
-              </div>
+          <div className="p-3 bg-[#FAF7F2] rounded-xl border border-gold/15 flex justify-between items-center">
+            <div>
+              <span className="font-bold text-charcoal block">Kavita Verma (Order #ORD-9104)</span>
+              <span className="text-[11px] text-charcoal/60">2 Days Rental • Sep 04 - Sep 06, 2026</span>
             </div>
+            <span className="bg-emerald-100 text-emerald-950 font-bold px-2 py-0.5 rounded text-[10px]">
+              Returned Clean
+            </span>
+          </div>
 
-            <div className="pt-2 text-right">
-              <button
-                onClick={() => setSelectedItemForHistory(null)}
-                className="px-4 py-2 bg-[#0F4C45] text-white font-bold rounded-xl"
-              >
-                Close
-              </button>
+          <div className="p-3 bg-rose-50 rounded-xl border border-rose-200 flex justify-between items-center">
+            <div>
+              <span className="font-bold text-rose-950 block">Meera Roy (Order #ORD-8411)</span>
+              <span className="text-[11px] text-rose-800">Minor Clasp Bend • Damaged Deposit Deduction ₹1,200</span>
             </div>
+            <span className="bg-rose-200 text-rose-900 font-bold px-2 py-0.5 rounded text-[10px]">
+              Repaired
+            </span>
           </div>
         </div>
-      )}
+      </VendorModal>
     </div>
   );
 }

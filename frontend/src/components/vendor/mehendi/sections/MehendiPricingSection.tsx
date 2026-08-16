@@ -15,6 +15,7 @@ import {
   PackageX
 } from "lucide-react";
 import { showVendorToast } from "@/lib/vendorStore";
+import { VendorModal } from "@/components/vendor/VendorModal";
 
 export interface MehendiPackage {
   id: string;
@@ -265,122 +266,113 @@ export function MehendiPricingSection() {
         </div>
       )}
 
-      {/* Modal */}
-      {isAddModalOpen && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 space-y-5 shadow-2xl border border-gold/20 animate-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between border-b border-gold/15 pb-3">
-              <h3 className="font-serif font-bold text-lg text-charcoal">
-                Create Mehendi Package
-              </h3>
+      {/* Create Package Modal */}
+      <VendorModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        title="Create Mehendi Package"
+        subtitle="Configure henna pricing, design complexity tiers, and included services"
+        footer={
+          <>
+            <button
+              type="button"
+              onClick={() => setIsAddModalOpen(false)}
+              className="px-4 py-2.5 rounded-xl text-xs font-bold text-charcoal/60 hover:bg-gray-100 cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              form="create-mehendi-package-form"
+              className="bg-[#0d3b30] hover:bg-[#072B27] text-white font-bold text-xs px-6 py-2.5 rounded-xl shadow-xs transition-all cursor-pointer"
+            >
+              Create Package
+            </button>
+          </>
+        }
+      >
+        <form id="create-mehendi-package-form" onSubmit={handleCreatePackage} className="space-y-4">
+          <div>
+            <label className="block text-xs font-bold text-charcoal/80 mb-1">
+              Package Title
+            </label>
+            <input
+              type="text"
+              placeholder="e.g. Signature Rajasthani Bridal Package"
+              value={newPkgName}
+              onChange={(e) => setNewPkgName(e.target.value)}
+              required
+              className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2.5 text-xs text-charcoal font-medium focus:outline-none focus:border-[#0d3b30]"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-bold text-charcoal/80 mb-1">
+                Price Amount (₹)
+              </label>
+              <input
+                type="text"
+                placeholder="e.g. ₹18,000"
+                value={newPkgPrice}
+                onChange={(e) => setNewPkgPrice(e.target.value)}
+                required
+                className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2.5 text-xs text-charcoal font-medium focus:outline-none focus:border-[#0d3b30]"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-charcoal/80 mb-1">
+                Billing Basis / Unit
+              </label>
+              <input
+                type="text"
+                placeholder="e.g. full bridal / per hand / group"
+                value={newPkgUnit}
+                onChange={(e) => setNewPkgUnit(e.target.value)}
+                className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2.5 text-xs text-charcoal font-medium focus:outline-none focus:border-[#0d3b30]"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-charcoal/80 mb-1">
+              Inclusions & Deliverables
+            </label>
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                placeholder="e.g. Complimentary stain care kit"
+                value={newFeatureText}
+                onChange={(e) => setNewFeatureText(e.target.value)}
+                className="flex-1 bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2 text-xs text-charcoal font-medium focus:outline-none focus:border-[#0d3b30]"
+              />
               <button
-                onClick={() => setIsAddModalOpen(false)}
-                className="text-xs font-bold text-charcoal/40 hover:text-charcoal cursor-pointer"
+                type="button"
+                onClick={handleAddFeature}
+                className="bg-[#0d3b30] text-white font-bold text-xs px-3.5 py-2 rounded-xl shrink-0 cursor-pointer"
               >
-                ✕
+                Add
               </button>
             </div>
 
-            <form onSubmit={handleCreatePackage} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-charcoal/80 mb-1">
-                  Package Title
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. Signature Rajasthani Bridal Package"
-                  value={newPkgName}
-                  onChange={(e) => setNewPkgName(e.target.value)}
-                  required
-                  className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2.5 text-xs text-charcoal font-medium focus:outline-none focus:border-[#0d3b30]"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-charcoal/80 mb-1">
-                    Price Amount (₹)
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g. ₹18,000"
-                    value={newPkgPrice}
-                    onChange={(e) => setNewPkgPrice(e.target.value)}
-                    required
-                    className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2.5 text-xs text-charcoal font-medium focus:outline-none focus:border-[#0d3b30]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-charcoal/80 mb-1">
-                    Billing Basis / Unit
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g. full bridal / per hand / group"
-                    value={newPkgUnit}
-                    onChange={(e) => setNewPkgUnit(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2.5 text-xs text-charcoal font-medium focus:outline-none focus:border-[#0d3b30]"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-charcoal/80 mb-1">
-                  Inclusions & Deliverables
-                </label>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    placeholder="e.g. Complimentary stain care kit"
-                    value={newFeatureText}
-                    onChange={(e) => setNewFeatureText(e.target.value)}
-                    className="flex-1 bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2 text-xs text-charcoal font-medium focus:outline-none focus:border-[#0d3b30]"
-                  />
+            <div className="mt-2 space-y-1">
+              {newFeatures.map((f, idx) => (
+                <div key={idx} className="text-[11px] text-charcoal/80 bg-gray-50 px-3 py-1 rounded-lg border border-gray-200 flex items-center justify-between">
+                  <span>✓ {f}</span>
                   <button
                     type="button"
-                    onClick={handleAddFeature}
-                    className="bg-[#0d3b30] text-white font-bold text-xs px-3.5 py-2 rounded-xl shrink-0 cursor-pointer"
+                    onClick={() => setNewFeatures(newFeatures.filter((_, i) => i !== idx))}
+                    className="text-red-500 font-bold hover:underline"
                   >
-                    Add
+                    ✕
                   </button>
                 </div>
-
-                <div className="mt-2 space-y-1">
-                  {newFeatures.map((f, idx) => (
-                    <div key={idx} className="text-[11px] text-charcoal/80 bg-gray-50 px-3 py-1 rounded-lg border border-gray-200 flex items-center justify-between">
-                      <span>✓ {f}</span>
-                      <button
-                        type="button"
-                        onClick={() => setNewFeatures(newFeatures.filter((_, i) => i !== idx))}
-                        className="text-red-500 font-bold hover:underline"
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="flex items-center justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setIsAddModalOpen(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-bold text-charcoal/60 hover:bg-gray-100 cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="bg-[#0d3b30] hover:bg-[#072B27] text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow-xs transition-all cursor-pointer"
-                >
-                  Save Package
-                </button>
-              </div>
-            </form>
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        </form>
+      </VendorModal>
     </div>
   );
 }

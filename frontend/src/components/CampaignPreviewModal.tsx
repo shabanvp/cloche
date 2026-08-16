@@ -13,7 +13,7 @@ export function CampaignPreviewModal({ campaign, onClose }: Props) {
   const [device, setDevice] = useState<"desktop" | "tablet" | "mobile">("desktop");
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-300">
+    <div className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-300">
       <div className="bg-white rounded-3xl max-w-4xl w-full p-6 sm:p-8 shadow-2xl border border-gold/20 space-y-6 my-8">
         
         {/* Header & Controls */}

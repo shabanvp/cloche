@@ -10,6 +10,7 @@ import {
   Sparkles,
   HelpCircle
 } from "lucide-react";
+import { VendorModal } from "@/components/vendor/VendorModal";
 
 export function JewelleryPoliciesSection() {
   const [policies, setPolicies] = useState({
@@ -131,50 +132,38 @@ export function JewelleryPoliciesSection() {
       </form>
 
       {/* Customer Preview Modal */}
-      {showPreviewModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 space-y-4 border border-gold/20 shadow-2xl animate-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between border-b border-gold/10 pb-3">
-              <div>
-                <h3 className="font-serif font-bold text-base text-charcoal">Customer Rental Agreement Preview</h3>
-                <p className="text-[11px] text-[#0F4C45] font-semibold">How brides see your policies before booking</p>
-              </div>
-              <button
-                onClick={() => setShowPreviewModal(false)}
-                className="text-charcoal/40 hover:text-charcoal text-sm font-bold"
-              >
-                ✕
-              </button>
-            </div>
+      <VendorModal
+        isOpen={showPreviewModal}
+        onClose={() => setShowPreviewModal(false)}
+        title="Customer Rental Agreement Preview"
+        subtitle="How brides and families review your policies before booking"
+        footer={
+          <button
+            type="button"
+            onClick={() => setShowPreviewModal(false)}
+            className="px-5 py-2 bg-[#0F4C45] text-white font-bold rounded-xl text-xs hover:bg-[#083833] cursor-pointer"
+          >
+            Close Preview
+          </button>
+        }
+      >
+        <div className="space-y-3 text-xs">
+          <div className="p-3.5 bg-[#FAF7F2] rounded-xl border border-gold/15 space-y-1">
+            <span className="font-bold text-[#0F4C45] block">1. Rental Terms & Mandatory ID</span>
+            <p className="text-charcoal/80 leading-relaxed">{policies.rentalTerms}</p>
+          </div>
 
-            <div className="space-y-3 text-xs max-h-[350px] overflow-y-auto pr-1">
-              <div className="p-3.5 bg-[#FAF7F2] rounded-xl border border-gold/15 space-y-1">
-                <span className="font-bold text-[#0F4C45] block">1. Rental Terms & Mandatory ID</span>
-                <p className="text-charcoal/80 leading-relaxed">{policies.rentalTerms}</p>
-              </div>
+          <div className="p-3.5 bg-[#FAF7F2] rounded-xl border border-gold/15 space-y-1">
+            <span className="font-bold text-[#0F4C45] block">2. Return Deadline & Penalties</span>
+            <p className="text-charcoal/80 leading-relaxed">{policies.returnPolicy}</p>
+          </div>
 
-              <div className="p-3.5 bg-[#FAF7F2] rounded-xl border border-gold/15 space-y-1">
-                <span className="font-bold text-[#0F4C45] block">2. Return Deadline & Penalties</span>
-                <p className="text-charcoal/80 leading-relaxed">{policies.returnPolicy}</p>
-              </div>
-
-              <div className="p-3.5 bg-[#FAF7F2] rounded-xl border border-gold/15 space-y-1">
-                <span className="font-bold text-[#0F4C45] block">3. Damage & Deposit Release</span>
-                <p className="text-charcoal/80 leading-relaxed">{policies.damagePolicy}</p>
-              </div>
-            </div>
-
-            <div className="pt-2 text-right">
-              <button
-                onClick={() => setShowPreviewModal(false)}
-                className="px-5 py-2 bg-[#0F4C45] text-white font-bold rounded-xl text-xs"
-              >
-                Close Preview
-              </button>
-            </div>
+          <div className="p-3.5 bg-[#FAF7F2] rounded-xl border border-gold/15 space-y-1">
+            <span className="font-bold text-[#0F4C45] block">3. Damage & Deposit Release</span>
+            <p className="text-charcoal/80 leading-relaxed">{policies.damagePolicy}</p>
           </div>
         </div>
-      )}
+      </VendorModal>
     </div>
   );
 }

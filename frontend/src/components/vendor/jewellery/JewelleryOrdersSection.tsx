@@ -17,6 +17,7 @@ import {
   ChevronRight,
   ShieldCheck
 } from "lucide-react";
+import { VendorModal } from "@/components/vendor/VendorModal";
 
 export interface RentalOrder {
   id: string;
@@ -241,24 +242,24 @@ export function JewelleryOrdersSection() {
       </div>
 
       {/* Order Details & Timeline Modal */}
-      {selectedOrder && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-xl w-full p-6 space-y-5 border border-gold/20 shadow-2xl animate-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between border-b border-gold/10 pb-3">
-              <div>
-                <h3 className="font-serif font-bold text-lg text-charcoal">
-                  Order Details #{selectedOrder.orderNumber}
-                </h3>
-                <span className="text-xs text-charcoal/60">Customer: {selectedOrder.customerName}</span>
-              </div>
-              <button
-                onClick={() => setSelectedOrder(null)}
-                className="text-charcoal/40 hover:text-charcoal text-sm font-bold"
-              >
-                ✕
-              </button>
-            </div>
-
+      <VendorModal
+        isOpen={Boolean(selectedOrder)}
+        onClose={() => setSelectedOrder(null)}
+        title={selectedOrder ? `Order Details #${selectedOrder.orderNumber}` : "Order Details"}
+        subtitle={selectedOrder ? `Customer: ${selectedOrder.customerName}` : ""}
+        maxWidth="xl"
+        footer={
+          <button
+            type="button"
+            onClick={() => setSelectedOrder(null)}
+            className="px-5 py-2.5 bg-[#0F4C45] text-white text-xs font-bold rounded-xl hover:bg-[#083833] cursor-pointer"
+          >
+            Close Details
+          </button>
+        }
+      >
+        {selectedOrder && (
+          <div className="space-y-4">
             {/* Rental Status Progress Timeline */}
             <div className="space-y-2">
               <span className="text-xs font-bold uppercase tracking-wider text-[#0F4C45]">
@@ -320,36 +321,27 @@ export function JewelleryOrdersSection() {
               <div className="flex flex-wrap gap-2">
                 <button
                   onClick={() => updateOrderStatus(selectedOrder.id, "Active")}
-                  className="px-3 py-1.5 rounded-lg bg-blue-100 text-blue-900 text-xs font-bold hover:bg-blue-200"
+                  className="px-3 py-1.5 rounded-lg bg-blue-100 text-blue-900 text-xs font-bold hover:bg-blue-200 cursor-pointer"
                 >
                   Mark Dispatched / Active
                 </button>
                 <button
                   onClick={() => updateOrderStatus(selectedOrder.id, "Pending Return")}
-                  className="px-3 py-1.5 rounded-lg bg-amber-100 text-amber-950 text-xs font-bold hover:bg-amber-200"
+                  className="px-3 py-1.5 rounded-lg bg-amber-100 text-amber-950 text-xs font-bold hover:bg-amber-200 cursor-pointer"
                 >
                   Mark Pending Return
                 </button>
                 <button
                   onClick={() => updateOrderStatus(selectedOrder.id, "Completed")}
-                  className="px-3 py-1.5 rounded-lg bg-emerald-100 text-emerald-900 text-xs font-bold hover:bg-emerald-200"
+                  className="px-3 py-1.5 rounded-lg bg-emerald-100 text-emerald-900 text-xs font-bold hover:bg-emerald-200 cursor-pointer"
                 >
                   Mark Completed & Deposit Refunded
                 </button>
               </div>
             </div>
-
-            <div className="pt-2 text-right">
-              <button
-                onClick={() => setSelectedOrder(null)}
-                className="px-5 py-2.5 bg-[#0F4C45] text-white text-xs font-bold rounded-xl"
-              >
-                Close
-              </button>
-            </div>
           </div>
-        </div>
-      )}
+        )}
+      </VendorModal>
     </div>
   );
 }

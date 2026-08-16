@@ -830,7 +830,7 @@ export function InspirationClient() {
       {/* ── DETAIL LIGHTBOX ── */}
       {selectedItem && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/75 backdrop-blur-sm animate-in fade-in duration-200"
+          className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6 bg-black/75 backdrop-blur-sm animate-in fade-in duration-200"
           onClick={() => setSelectedItem(null)}
         >
           <div
@@ -994,7 +994,7 @@ export function InspirationClient() {
 
       {/* ── SAVE TO BOARD MODAL ── */}
       {itemToSave && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150" onClick={() => setItemToSave(null)}>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150" onClick={() => setItemToSave(null)}>
           <div className="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-gold/20 space-y-4" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between border-b border-gold/10 pb-3">
               <h3 className="font-serif font-bold text-base text-charcoal flex items-center gap-2">
@@ -1035,7 +1035,7 @@ export function InspirationClient() {
 
       {/* ── STANDALONE CREATE BOARD ── */}
       {!itemToSave && isCreatingBoard && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
           <div className="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-gold/20 space-y-4" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between border-b border-gold/10 pb-3">
               <h3 className="font-serif font-bold text-base text-charcoal flex items-center gap-2"><FolderPlus className="w-4 h-4 text-[#0F4C45]" /> Create New Board</h3>

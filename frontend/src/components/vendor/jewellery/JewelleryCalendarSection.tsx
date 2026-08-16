@@ -14,6 +14,7 @@ import {
   CheckCircle2,
   Filter
 } from "lucide-react";
+import { VendorModal } from "@/components/vendor/VendorModal";
 
 export interface CalendarBookingEvent {
   id: string;
@@ -213,62 +214,55 @@ export function JewelleryCalendarSection() {
       </div>
 
       {/* Block Date Modal */}
-      {showBlockModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 border border-gold/20 shadow-2xl animate-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between border-b border-gold/10 pb-3">
-              <h3 className="font-serif font-bold text-base text-charcoal">Block Dates on Calendar</h3>
-              <button
-                onClick={() => setShowBlockModal(false)}
-                className="text-charcoal/40 hover:text-charcoal text-sm font-bold"
-              >
-                ✕
-              </button>
-            </div>
-
-            <form onSubmit={handleAddBlockDate} className="space-y-3.5 text-xs">
-              <div>
-                <label className="block text-charcoal font-bold mb-1">Select Date</label>
-                <input
-                  type="date"
-                  required
-                  value={blockDate}
-                  onChange={(e) => setBlockDate(e.target.value)}
-                  className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-charcoal font-bold mb-1">Reason for Blocking</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Annual Vault Audit / Private Exhibition"
-                  value={blockReason}
-                  onChange={(e) => setBlockReason(e.target.value)}
-                  className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
-                />
-              </div>
-
-              <div className="pt-3 flex justify-end gap-2 border-t border-gold/10">
-                <button
-                  type="button"
-                  onClick={() => setShowBlockModal(false)}
-                  className="px-4 py-2 bg-gray-100 text-charcoal font-bold rounded-xl"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 bg-[#0F4C45] text-white font-bold rounded-xl"
-                >
-                  Block Date
-                </button>
-              </div>
-            </form>
+      <VendorModal
+        isOpen={showBlockModal}
+        onClose={() => setShowBlockModal(false)}
+        title="Block Dates on Calendar"
+        subtitle="Prevent customer bookings for audits, exhibitions, or private events"
+        footer={
+          <>
+            <button
+              type="button"
+              onClick={() => setShowBlockModal(false)}
+              className="px-4 py-2.5 bg-gray-100 text-charcoal font-bold rounded-xl text-xs hover:bg-gray-200 cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              form="block-calendar-date-form"
+              className="px-6 py-2.5 bg-[#0F4C45] text-white font-bold rounded-xl text-xs hover:bg-[#083833] cursor-pointer shadow-xs"
+            >
+              Block Date
+            </button>
+          </>
+        }
+      >
+        <form id="block-calendar-date-form" onSubmit={handleAddBlockDate} className="space-y-3.5 text-xs">
+          <div>
+            <label className="block text-charcoal font-bold mb-1">Select Date</label>
+            <input
+              type="date"
+              required
+              value={blockDate}
+              onChange={(e) => setBlockDate(e.target.value)}
+              className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
+            />
           </div>
-        </div>
-      )}
+
+          <div>
+            <label className="block text-charcoal font-bold mb-1">Reason for Blocking</label>
+            <input
+              type="text"
+              required
+              placeholder="e.g. Annual Vault Audit / Private Exhibition"
+              value={blockReason}
+              onChange={(e) => setBlockReason(e.target.value)}
+              className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
+            />
+          </div>
+        </form>
+      </VendorModal>
     </div>
   );
 }

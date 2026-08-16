@@ -74,17 +74,17 @@ export function BookingModal({ boutiqueId, boutiqueName }: Props) {
       </Button>
 
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal/40 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white w-full max-w-md rounded-2xl shadow-xl overflow-hidden animate-in slide-in-from-bottom-4 duration-300">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-charcoal/50 backdrop-blur-xs overflow-y-auto animate-in fade-in duration-200">
+          <div className="bg-white w-full max-w-md rounded-2xl shadow-xl overflow-hidden max-h-[90vh] flex flex-col my-auto animate-in slide-in-from-bottom-4 duration-300">
             
-            <div className="flex justify-between items-center p-4 border-b border-gold/10">
+            <div className="flex justify-between items-center p-4 border-b border-gold/10 shrink-0">
               <h3 className="font-display text-xl text-charcoal">Book Appointment</h3>
-              <button onClick={handleClose} className="p-2 text-charcoal/50 hover:bg-gray-100 rounded-full transition-colors">
+              <button onClick={handleClose} className="p-2 text-charcoal/50 hover:bg-gray-100 rounded-full transition-colors cursor-pointer">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="p-6">
+            <div className="p-6 overflow-y-auto flex-1 overscroll-contain">
               {success ? (
                 <div className="text-center py-8">
                   <div className="w-16 h-16 bg-emerald/10 text-emerald rounded-full flex items-center justify-center mx-auto mb-4 animate-in zoom-in duration-300">

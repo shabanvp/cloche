@@ -19,6 +19,7 @@ import {
 import { VendorCategoryConfig } from "@/lib/vendor-categories";
 import { showVendorToast } from "@/lib/vendorStore";
 import { VendorImageUploader } from "@/components/ui/VendorImageUploader";
+import { VendorModal } from "@/components/vendor/VendorModal";
 
 interface VendorMediaModuleProps {
   categoryConfig: VendorCategoryConfig;
@@ -273,92 +274,83 @@ export function VendorMediaModule({ categoryConfig }: VendorMediaModuleProps) {
       )}
 
       {/* Add New Item Modal */}
-      {isAddModalOpen && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 space-y-5 shadow-2xl border border-gold/20 animate-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between border-b border-gold/15 pb-3">
-              <h3 className="font-serif font-bold text-lg text-charcoal">
-                Add New {categoryConfig.media.itemTypeLabel}
-              </h3>
-              <button
-                onClick={() => setIsAddModalOpen(false)}
-                className="text-xs font-bold text-charcoal/40 hover:text-charcoal cursor-pointer"
-              >
-                ✕
-              </button>
-            </div>
-
-            <form onSubmit={handleAddItem} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-charcoal/80 mb-1">
-                  Title / Name
-                </label>
-                <input
-                  type="text"
-                  placeholder={`e.g. Royal ${categoryConfig.name} Setup`}
-                  value={newItemTitle}
-                  onChange={(e) => setNewItemTitle(e.target.value)}
-                  required
-                  className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2.5 text-xs text-charcoal font-medium focus:outline-none focus:border-[#0F4C45]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-charcoal/80 mb-1">
-                  Category Tag
-                </label>
-                <select
-                  value={newItemCategory}
-                  onChange={(e) => setNewItemCategory(e.target.value)}
-                  className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2.5 text-xs text-charcoal font-medium focus:outline-none focus:border-[#0F4C45]"
-                >
-                  {categoryConfig.media.tags.filter(t => t !== "All").map(tag => (
-                    <option key={tag} value={tag}>{tag}</option>
-                  ))}
-                </select>
-              </div>
-
-              <VendorImageUploader
-                label="Upload Item Photo(s)"
-                sublabel="Select single or multiple photos from your device camera/gallery (Max 5MB per file)"
-                value={newItemImage}
-                onChange={(urls) => setNewItemImage(Array.isArray(urls) ? urls[0] || "" : urls)}
-                multiple={true}
-                folder={`cloche/vendors/${categoryConfig.id}/portfolio`}
-              />
-
-              <div>
-                <label className="block text-xs font-bold text-charcoal/80 mb-1">
-                  Description & Key Specifications
-                </label>
-                <textarea
-                  rows={3}
-                  placeholder="Provide features, guest capacity, included deliverables..."
-                  value={newItemDetails}
-                  onChange={(e) => setNewItemDetails(e.target.value)}
-                  className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl p-3 text-xs text-charcoal font-medium focus:outline-none focus:border-[#0F4C45] resize-none"
-                />
-              </div>
-
-              <div className="flex items-center justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setIsAddModalOpen(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-bold text-charcoal/60 hover:bg-gray-100 cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="bg-[#0F4C45] hover:bg-[#072B27] text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow-xs transition-all cursor-pointer"
-                >
-                  Save Entry
-                </button>
-              </div>
-            </form>
+      <VendorModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        title={`Add New ${categoryConfig.media.itemTypeLabel}`}
+        subtitle={`Upload photo and specifications for your ${categoryConfig.name.toLowerCase()} showcase`}
+        footer={
+          <>
+            <button
+              type="button"
+              onClick={() => setIsAddModalOpen(false)}
+              className="px-4 py-2.5 rounded-xl text-xs font-bold text-charcoal/60 hover:bg-gray-100 cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              form="add-media-item-form"
+              className="bg-[#0F4C45] hover:bg-[#072B27] text-white font-bold text-xs px-6 py-2.5 rounded-xl shadow-xs transition-all cursor-pointer"
+            >
+              Save Entry
+            </button>
+          </>
+        }
+      >
+        <form id="add-media-item-form" onSubmit={handleAddItem} className="space-y-4">
+          <div>
+            <label className="block text-xs font-bold text-charcoal/80 mb-1">
+              Title / Name
+            </label>
+            <input
+              type="text"
+              placeholder={`e.g. Royal ${categoryConfig.name} Setup`}
+              value={newItemTitle}
+              onChange={(e) => setNewItemTitle(e.target.value)}
+              required
+              className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2.5 text-xs text-charcoal font-medium focus:outline-none focus:border-[#0F4C45]"
+            />
           </div>
-        </div>
-      )}
+
+          <div>
+            <label className="block text-xs font-bold text-charcoal/80 mb-1">
+              Category Tag
+            </label>
+            <select
+              value={newItemCategory}
+              onChange={(e) => setNewItemCategory(e.target.value)}
+              className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2.5 text-xs text-charcoal font-medium focus:outline-none focus:border-[#0F4C45]"
+            >
+              {categoryConfig.media.tags.filter(t => t !== "All").map(tag => (
+                <option key={tag} value={tag}>{tag}</option>
+              ))}
+            </select>
+          </div>
+
+          <VendorImageUploader
+            label="Upload Item Photo(s)"
+            sublabel="Select single or multiple photos from your device camera/gallery (Max 5MB per file)"
+            value={newItemImage}
+            onChange={(urls) => setNewItemImage(Array.isArray(urls) ? urls[0] || "" : urls)}
+            multiple={true}
+            folder={`cloche/vendors/${categoryConfig.id}/portfolio`}
+          />
+
+          <div>
+            <label className="block text-xs font-bold text-charcoal/80 mb-1">
+              Description & Key Specifications
+            </label>
+            <textarea
+              rows={3}
+              placeholder="Provide features, guest capacity, included deliverables..."
+              value={newItemDetails}
+              onChange={(e) => setNewItemDetails(e.target.value)}
+              className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl p-3 text-xs text-charcoal font-medium focus:outline-none focus:border-[#0F4C45] resize-none"
+            />
+          </div>
+        </form>
+      </VendorModal>
     </div>
   );
 }
