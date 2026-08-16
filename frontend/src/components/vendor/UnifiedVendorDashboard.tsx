@@ -252,7 +252,7 @@ export function UnifiedVendorDashboard({ categoryKey = "caterers" }: UnifiedVend
         return <SubscriptionSection categoryConfig={categoryConfig} />;
       case "customize-store":
         return isVenue ? (
-          <VenueCustomizeStoreSection vendorName={vendorName} />
+          <VenueCustomizeStoreSection vendorName={vendorName} categoryConfig={categoryConfig} />
         ) : (
           <CustomizeStoreSection categoryConfig={categoryConfig} vendorName={vendorName} />
         );

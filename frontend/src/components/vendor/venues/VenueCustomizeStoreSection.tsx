@@ -36,6 +36,7 @@ import {
   Car,
   Utensils
 } from "lucide-react";
+import { VendorCategoryConfig } from "@/lib/vendor-categories";
 import { uploadImageToCloudinaryDetailed } from "@/lib/cloudinary";
 import {
   fetchAuthenticatedVendorFromDb,
@@ -44,6 +45,11 @@ import {
   showVendorToast,
   VendorProfileData
 } from "@/lib/vendorStore";
+
+export interface VenueCustomizeStoreSectionProps {
+  vendorName?: string;
+  categoryConfig?: VendorCategoryConfig;
+}
 
 function InstagramIcon({ className = "w-4 h-4" }: { className?: string }) {
   return (
@@ -117,7 +123,10 @@ export const ALL_VENUE_HALL_OPTIONS = [
   "Poolside Venue",
 ];
 
-export function VenueCustomizeStoreSection() {
+export function VenueCustomizeStoreSection({
+  vendorName,
+  categoryConfig,
+}: VenueCustomizeStoreSectionProps = {}) {
   const [vendorData, setVendorData] = useState<VendorProfileData | null>(null);
 
   // 1. Branding & Identity
@@ -373,7 +382,7 @@ export function VenueCustomizeStoreSection() {
   };
 
   const activeTheme = COLOR_THEMES.find((t) => t.id === colorTheme) || COLOR_THEMES[0];
-  const currentDisplayName = vendorData?.name || vendorData?.boutique_name || "Royal Orchid Palace & Banquets";
+  const currentDisplayName = vendorName || vendorData?.name || vendorData?.boutique_name || "Royal Orchid Palace & Banquets";
   const currentLocation = vendorData?.location || vendorData?.district || "Golf Course Road, Gurgaon";
 
   const initials = currentDisplayName
