@@ -5,17 +5,13 @@ export const dynamic = "force-dynamic";
 // ─────────────────────────────────────────────────────────────────────────────
 // SERVER-SIDE IN-MEMORY CACHE
 // Keeps a result set per category + query for CACHE_TTL_MS before re-fetching.
-// This avoids hammering the Pexels API on every page load.
-// Free-tier limit: 25 req/hr (api.pexels.com/v1/search). 7 categories × a few
-// pages each ≈ well within limits when cached.
+// 4 hours TTL to respect Pexels rate limits while keeping content fresh.
 // ─────────────────────────────────────────────────────────────────────────────
 const CACHE_TTL_MS = 4 * 60 * 60 * 1000; // 4 hours
 const cache = new Map<string, { ts: number; data: PexelsPhoto[] }>();
 
 // ─────────────────────────────────────────────────────────────────────────────
 // CATEGORY → PEXELS SEARCH QUERY MAPPING
-// Carefully chosen to return relevant Indian wedding imagery.
-// "Color Themes" is excluded — those are kept as static editorial palettes.
 // ─────────────────────────────────────────────────────────────────────────────
 const CATEGORY_QUERIES: Record<string, string> = {
   "Wedding Photos": "indian wedding photography ceremony",
@@ -68,18 +64,21 @@ interface PexelsResponse {
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ROUTE HANDLER
-// GET /api/v1/inspiration/photos?category=Wedding+Photos&page=1&per_page=20
+// GET /api/v1/inspiration/photos?category=Wedding+Photos&page=1&per_page=28
 // ─────────────────────────────────────────────────────────────────────────────
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const category = searchParams.get("category") || "Wedding Photos";
   const page = parseInt(searchParams.get("page") || "1", 10);
-  const perPage = Math.min(parseInt(searchParams.get("per_page") || "20", 10), 30);
+  const perPage = Math.min(parseInt(searchParams.get("per_page") || "28", 10), 40);
 
-  const PEXELS_API_KEY = process.env.PEXELS_API_KEY;
+  // Securely read the server-side environment key
+  const rawKey = process.env.PEXELS_API_KEY || "";
+  const PEXELS_API_KEY = rawKey.trim().replace(/^["']|["']$/g, "");
 
   // ── No API key configured → return graceful not-configured response ──
   if (!PEXELS_API_KEY || PEXELS_API_KEY === "YOUR_PEXELS_API_KEY_HERE") {
+    console.warn("[Pexels API Route] No PEXELS_API_KEY detected in server environment.");
     return NextResponse.json(
       {
         success: false,
@@ -89,7 +88,7 @@ export async function GET(request: NextRequest) {
         photos: [],
         total: 0,
       },
-      { status: 200 } // 200 so client can handle gracefully, not crash
+      { status: 200 }
     );
   }
 
@@ -97,7 +96,7 @@ export async function GET(request: NextRequest) {
   const query = CATEGORY_QUERIES[category] || "indian wedding";
   const cacheKey = `${query}::page${page}::per${perPage}`;
 
-  // ── Check cache ──
+  // ── Check in-memory cache ──
   const cached = cache.get(cacheKey);
   if (cached && Date.now() - cached.ts < CACHE_TTL_MS) {
     return NextResponse.json(
@@ -118,29 +117,30 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  // ── Fetch from Pexels API ──
+  // ── Fetch live from official Pexels API ──
   try {
     const pexelsUrl = new URL("https://api.pexels.com/v1/search");
     pexelsUrl.searchParams.set("query", query);
     pexelsUrl.searchParams.set("page", String(page));
     pexelsUrl.searchParams.set("per_page", String(perPage));
-    pexelsUrl.searchParams.set("orientation", "portrait"); // better for masonry
+    pexelsUrl.searchParams.set("orientation", "portrait");
 
     const res = await fetch(pexelsUrl.toString(), {
       headers: {
         Authorization: PEXELS_API_KEY,
       },
-      next: { revalidate: 14400 }, // 4 hours Next.js cache
+      next: { revalidate: 14400 },
     });
 
     if (!res.ok) {
       const errText = await res.text().catch(() => "");
-      console.error(`[Pexels API] ${res.status} ${res.statusText}:`, errText);
+      console.error(`[Pexels API Error] HTTP ${res.status} ${res.statusText}:`, errText);
       return NextResponse.json(
         {
           success: false,
           error: "PEXELS_API_ERROR",
-          message: `Pexels API returned ${res.status}. Check your API key or rate limits.`,
+          httpStatus: res.status,
+          message: `Pexels API returned HTTP ${res.status} (${res.statusText}): ${errText}`,
           photos: [],
           total: 0,
         },
@@ -150,7 +150,7 @@ export async function GET(request: NextRequest) {
 
     const data: PexelsResponse = await res.json();
 
-    // ── Pluck only the fields we need (smaller payload) ──
+    // ── Pluck and sanitize payload ──
     const photos: PexelsPhoto[] = (data.photos || []).map((p) => ({
       id: String(p.id),
       width: p.width,
@@ -166,8 +166,10 @@ export async function GET(request: NextRequest) {
       alt: p.alt,
     }));
 
-    // ── Store in cache ──
+    // ── Store in server cache ──
     cache.set(cacheKey, { ts: Date.now(), data: photos });
+
+    console.log(`[Pexels API Route] Successfully fetched ${photos.length} photos for category: "${category}" (Query: "${query}")`);
 
     return NextResponse.json(
       {
@@ -186,12 +188,12 @@ export async function GET(request: NextRequest) {
       }
     );
   } catch (err: any) {
-    console.error("[Pexels API] Fetch error:", err?.message);
+    console.error("[Pexels API Route] Network / Exception error:", err?.message);
     return NextResponse.json(
       {
         success: false,
         error: "NETWORK_ERROR",
-        message: "Could not reach Pexels API. Falling back to curated content.",
+        message: `Network exception when contacting Pexels API: ${err?.message || "Unknown error"}`,
         photos: [],
         total: 0,
       },
