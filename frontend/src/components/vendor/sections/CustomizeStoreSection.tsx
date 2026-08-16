@@ -29,6 +29,7 @@ import {
   Layers,
   ArrowUp,
   ArrowDown,
+  ArrowLeft,
   Check,
   Building,
   HelpCircle
@@ -72,6 +73,7 @@ import {
 interface CustomizeStoreSectionProps {
   categoryConfig: VendorCategoryConfig;
   vendorName: string;
+  onBack?: () => void;
 }
 
 export interface ColorThemeOption {
@@ -124,7 +126,7 @@ export const ALL_COLLECTION_OPTIONS = [
   "New Arrivals",
 ];
 
-export function CustomizeStoreSection({ categoryConfig, vendorName }: CustomizeStoreSectionProps) {
+export function CustomizeStoreSection({ categoryConfig, vendorName, onBack }: CustomizeStoreSectionProps) {
   const [vendorData, setVendorData] = useState<any>(null);
 
   // 1. Branding & Identity
@@ -493,6 +495,17 @@ export function CustomizeStoreSection({ categoryConfig, vendorName }: CustomizeS
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300 font-sans">
+      {/* Back Navigation Button */}
+      {onBack && (
+        <button
+          type="button"
+          onClick={onBack}
+          className="inline-flex items-center gap-2 text-xs font-bold text-charcoal/70 hover:text-[#0F4C45] transition-colors cursor-pointer"
+        >
+          <ArrowLeft className="w-4 h-4 text-[#0F4C45]" /> ← Back to Dashboard
+        </button>
+      )}
+
       {/* Hidden File Inputs */}
       <input
         ref={logoInputRef}
