@@ -476,11 +476,15 @@ export async function PUT(req: Request) {
       ...(profile?.cateringSpecialities || profile?.catering_specialities ? { catering_specialities: profile.cateringSpecialities || profile.catering_specialities } : {}),
       // Venue specific extension fields
       ...(profile?.venueHighlights || profile?.venue_highlights || profile?.storeHighlights || profile?.store_highlights ? { venue_highlights: profile.venueHighlights || profile.venue_highlights || profile.storeHighlights || profile.store_highlights } : {}),
+      ...(profile?.featuredHalls || profile?.featured_halls ? { featured_halls: profile.featuredHalls || profile.featured_halls } : {}),
       ...(profile?.facilities || profile?.venue_facilities ? { facilities: profile.facilities || profile.venue_facilities } : {}),
       ...(profile?.yearsInBusiness || profile?.years_in_business ? { years_in_business: profile.yearsInBusiness || profile.years_in_business } : {}),
+      ...(profile?.guestCapacity || profile?.guest_capacity ? { guest_capacity: profile.guestCapacity || profile.guest_capacity } : {}),
+      ...(profile?.minGuestCapacity || profile?.min_guest_capacity ? { min_guest_capacity: profile.minGuestCapacity || profile.min_guest_capacity } : {}),
       ...(profile?.numberOfHalls || profile?.number_of_halls ? { number_of_halls: profile.numberOfHalls || profile.number_of_halls } : {}),
       ...(profile?.indoorCapacity || profile?.indoor_capacity ? { indoor_capacity: profile.indoorCapacity || profile.indoor_capacity } : {}),
       ...(profile?.outdoorCapacity || profile?.outdoor_capacity ? { outdoor_capacity: profile.outdoorCapacity || profile.outdoor_capacity } : {}),
+      ...(profile?.diningCapacity || profile?.dining_capacity ? { dining_capacity: profile.diningCapacity || profile.dining_capacity } : {}),
       ...(profile?.parkingCapacity || profile?.parking_capacity ? { parking_capacity: profile.parkingCapacity || profile.parking_capacity } : {}),
       ...(profile?.languagesSpoken || profile?.languages_spoken ? { languages_spoken: profile.languagesSpoken || profile.languages_spoken } : {}),
       ...(profile?.contactActions || profile?.contact_actions ? { contact_actions: profile.contactActions || profile.contact_actions } : {}),
@@ -489,6 +493,7 @@ export async function PUT(req: Request) {
       ...(profile?.weeklyHolidays || profile?.weekly_holidays ? { weekly_holidays: profile.weeklyHolidays || profile.weekly_holidays } : {}),
       ...(profile?.publicHolidayAvailability || profile?.public_holiday_availability ? { public_holiday_availability: profile.publicHolidayAvailability || profile.public_holiday_availability } : {}),
       ...(profile?.venueVisitTimings || profile?.venue_visit_timings ? { venue_visit_timings: profile.venueVisitTimings || profile.venue_visit_timings } : {}),
+      ...(profile?.advanceAppointmentRequired !== undefined || profile?.advance_appointment_required !== undefined ? { advance_appointment_required: Boolean(profile?.advanceAppointmentRequired ?? profile?.advance_appointment_required) } : {}),
       ...(profile?.advanceBookingRequired || profile?.advance_booking_required ? { advance_booking_required: profile.advanceBookingRequired || profile.advance_booking_required } : {}),
       ...(profile?.advancePaymentPolicy || profile?.advance_payment_policy ? { advance_payment_policy: profile.advancePaymentPolicy || profile.advance_payment_policy } : {}),
       ...(profile?.cancellationPolicy || profile?.cancellation_policy ? { cancellation_policy: profile.cancellationPolicy || profile.cancellation_policy } : {}),
@@ -500,6 +505,7 @@ export async function PUT(req: Request) {
       ...(profile?.noiseRestrictions || profile?.noise_restrictions ? { noise_restrictions: profile.noiseRestrictions || profile.noise_restrictions } : {}),
       ...(profile?.alcoholPolicy || profile?.alcohol_policy ? { alcohol_policy: profile.alcoholPolicy || profile.alcohol_policy } : {}),
       ...(profile?.eventTimingRules || profile?.event_timing_rules ? { event_timing_rules: profile.eventTimingRules || profile.event_timing_rules } : {}),
+      ...(profile?.hallImages || profile?.hall_images ? { hall_images: profile.hallImages || profile.hall_images } : {}),
     };
 
     if (Object.keys(mergedCategoryDetails).length > 0) {

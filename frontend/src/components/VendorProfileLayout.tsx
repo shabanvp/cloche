@@ -237,14 +237,20 @@ export interface VendorProfileData {
   venue_facilities?: string[];
   venueHighlights?: string[];
   venue_highlights?: string[];
+  featuredHalls?: string[];
+  featured_halls?: string[];
   yearsInBusiness?: string;
   years_in_business?: string;
+  minGuestCapacity?: string;
+  min_guest_capacity?: string;
   numberOfHalls?: string;
   number_of_halls?: string;
   indoorCapacity?: string;
   indoor_capacity?: string;
   outdoorCapacity?: string;
   outdoor_capacity?: string;
+  diningCapacity?: string;
+  dining_capacity?: string;
   parkingCapacity?: string;
   parking_capacity?: string;
   languagesSpoken?: string;
@@ -257,6 +263,8 @@ export interface VendorProfileData {
   public_holiday_availability?: string;
   venueVisitTimings?: string;
   venue_visit_timings?: string;
+  advanceAppointmentRequired?: boolean | string;
+  advance_appointment_required?: boolean | string;
   advanceBookingRequired?: string;
   advance_booking_required?: string;
   advancePaymentPolicy?: string;
@@ -277,6 +285,8 @@ export interface VendorProfileData {
   alcohol_policy?: string;
   eventTimingRules?: string;
   event_timing_rules?: string;
+  hallImages?: string[];
+  hall_images?: string[];
 }
 
 export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
@@ -903,6 +913,28 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
           </section>
         )}
 
+        {/* Featured Halls Strip (Venues Only) */}
+        {isVenue && (vendor.featuredHalls || vendor.featured_halls) && (vendor.featuredHalls || vendor.featured_halls)!.length > 0 && (
+          <section className="rounded-2xl bg-white p-4 sm:p-5 border border-black/5 shadow-xs space-y-2.5">
+            <div className="flex items-center justify-between">
+              <h2 className="font-serif text-sm sm:text-base font-bold text-[#1A1410] flex items-center gap-2">
+                <Building2 className="w-4 h-4 text-[#0F4C45]" /> Featured Halls & Spaces
+              </h2>
+              <span className="text-[11px] text-[#7A6E65] font-medium">Curated by Venue</span>
+            </div>
+            <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar pb-1">
+              {(vendor.featuredHalls || vendor.featured_halls)!.map((hall: string) => (
+                <span
+                  key={hall}
+                  className="bg-[#FAF5EA] text-[#0F4C45] border border-[#E8DFD1] text-xs font-bold px-3.5 py-1.5 rounded-xl shrink-0 shadow-2xs flex items-center gap-1.5"
+                >
+                  <Building2 className="w-3 h-3 text-[#C8A96A]" /> {hall}
+                </span>
+              ))}
+            </div>
+          </section>
+        )}
+
         {/* Venue Facilities & Spaces (Venues Only) */}
         {isVenue && (vendor.facilities || vendor.venue_facilities) && (vendor.facilities || vendor.venue_facilities)!.length > 0 && (
           <section className="rounded-2xl bg-white p-4 sm:p-5 md:p-6 lg:p-8 border border-black/5 shadow-xs space-y-3">
@@ -960,10 +992,24 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
               </div>
             )}
 
+            {isVenue && (vendor.minGuestCapacity || vendor.min_guest_capacity) && (
+              <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
+                <span className="text-[11px] text-[#7A6E65] uppercase font-bold tracking-wider block">Min Guest Capacity</span>
+                <span className="font-bold text-[#2D2520] text-sm block">{vendor.minGuestCapacity || vendor.min_guest_capacity}</span>
+              </div>
+            )}
+
             {isVenue && (vendor.numberOfHalls || vendor.number_of_halls) && (
               <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
                 <span className="text-[11px] text-[#7A6E65] uppercase font-bold tracking-wider block">Halls & Lawns</span>
                 <span className="font-bold text-[#0F4C45] text-sm block">{vendor.numberOfHalls || vendor.number_of_halls}</span>
+              </div>
+            )}
+
+            {isVenue && (vendor.diningCapacity || vendor.dining_capacity) && (
+              <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
+                <span className="text-[11px] text-[#7A6E65] uppercase font-bold tracking-wider block">Dining Capacity</span>
+                <span className="font-bold text-[#2D2520] text-sm block">{vendor.diningCapacity || vendor.dining_capacity}</span>
               </div>
             )}
 

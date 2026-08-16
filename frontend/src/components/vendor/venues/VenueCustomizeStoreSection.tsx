@@ -2,41 +2,47 @@
 
 import { useState, useEffect, useRef } from "react";
 import {
-  Building2,
   Palette,
+  Upload,
   Image as ImageIcon,
   Sparkles,
   CheckCircle,
   Save,
   Eye,
   Loader2,
+  ChevronDown,
+  ChevronUp,
   Video,
+  LayoutGrid,
   Globe,
   FileText,
+  X,
+  Play,
+  Award,
+  ShieldCheck,
+  Building2,
   Clock,
   MapPin,
   Phone,
   MessageCircle,
   Calendar,
   Layers,
+  ArrowUp,
+  ArrowDown,
   Check,
-  Building,
-  Users,
-  Compass,
-  Car,
-  ShieldCheck,
-  ArrowUpRight,
   HelpCircle,
-  X,
-  Play
+  Compass,
+  Users,
+  Car,
+  Utensils
 } from "lucide-react";
-import { VendorImageUploader } from "@/components/ui/VendorImageUploader";
 import { uploadImageToCloudinaryDetailed } from "@/lib/cloudinary";
 import {
   fetchAuthenticatedVendorFromDb,
   getActiveVendorIdentity,
   syncVendorProfileWithDatabase,
-  showVendorToast
+  showVendorToast,
+  VendorProfileData
 } from "@/lib/vendorStore";
 
 function InstagramIcon({ className = "w-4 h-4" }: { className?: string }) {
@@ -75,7 +81,7 @@ export interface ColorThemeOption {
   badgeText: string;
 }
 
-export const VENUE_COLOR_THEMES: ColorThemeOption[] = [
+export const COLOR_THEMES: ColorThemeOption[] = [
   { id: "emerald", label: "Emerald Green", primary: "#0F4C45", secondary: "#072B27", accent: "#C8A96A", badgeBg: "#0F4C45", badgeText: "#FFFFFF" },
   { id: "rosegold", label: "Rose Gold", primary: "#B87333", secondary: "#915622", accent: "#E8A598", badgeBg: "#B87333", badgeText: "#FFFFFF" },
   { id: "burgundy", label: "Burgundy", primary: "#800020", secondary: "#4A0012", accent: "#D4AF37", badgeBg: "#800020", badgeText: "#FFFFFF" },
@@ -87,176 +93,196 @@ export const VENUE_COLOR_THEMES: ColorThemeOption[] = [
 export const VENUE_HIGHLIGHT_OPTIONS = [
   "Premium Wedding Venue",
   "Luxury Venue",
-  "Outdoor Lawn",
   "Indoor AC Hall",
-  "Beach Venue",
+  "Outdoor Lawn",
+  "Banquet Hall",
   "Destination Wedding",
-  "Parking Available",
+  "Beach Venue",
   "Bridal Suite",
+  "Parking Available",
   "Catering Available",
   "Decoration Included",
   "Wheelchair Accessible",
   "Verified Partner",
 ];
 
-export const VENUE_FACILITIES_OPTIONS = [
-  "Indoor Hall",
-  "Outdoor Lawn",
+export const ALL_VENUE_HALL_OPTIONS = [
+  "Grand Ballroom",
+  "Royal Hall",
+  "Emerald Hall",
+  "Crystal Hall",
+  "Garden Lawn",
   "Banquet Hall",
-  "AC Hall",
-  "Bridal Room",
-  "Groom Room",
-  "Dining Area",
-  "Stage",
-  "LED Wall",
-  "Sound System",
-  "DJ Area",
-  "Generator Backup",
-  "Power Backup",
-  "Parking",
-  "Valet Parking",
-  "Lift",
-  "Wheelchair Access",
-  "Kids Area",
-  "Accommodation Rooms",
-  "Swimming Pool",
-  "Garden Area",
+  "Outdoor Lawn",
+  "Poolside Venue",
 ];
 
-export const CONTACT_ACTION_OPTIONS = [
-  { id: "call", label: "Call Now", icon: Phone },
-  { id: "whatsapp", label: "WhatsApp", icon: MessageCircle },
-  { id: "visit", label: "Book Venue Visit", icon: Calendar },
-  { id: "quote", label: "Request Quote", icon: FileText },
-  { id: "directions", label: "Get Directions", icon: Compass },
-  { id: "website", label: "Website", icon: Globe },
-];
+export function VenueCustomizeStoreSection() {
+  const [vendorData, setVendorData] = useState<VendorProfileData | null>(null);
 
-interface VenueCustomizeStoreSectionProps {
-  vendorName?: string;
-}
-
-export function VenueCustomizeStoreSection({ vendorName = "Wedding Venue" }: VenueCustomizeStoreSectionProps) {
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
-  const [uploadingVideo, setUploadingVideo] = useState(false);
-  const videoInputRef = useRef<HTMLInputElement>(null);
-
-  // 1. Branding & Visual Identity
-  const [venueName, setVenueName] = useState(vendorName);
+  // 1. Branding & Identity
   const [logoUrl, setLogoUrl] = useState<string>("");
   const [coverUrl, setCoverUrl] = useState<string>("");
   const [tagline, setTagline] = useState<string>("");
   const [about, setAbout] = useState<string>("");
   const [colorTheme, setColorTheme] = useState<string>("emerald");
   const [introVideo, setIntroVideo] = useState<string>("");
+  const [galleryImages, setGalleryImages] = useState<string[]>([]);
+  const [hallImages, setHallImages] = useState<string[]>([]);
 
-  // 2. Social Media Links
+  // 2. Social Links
   const [instagram, setInstagram] = useState<string>("");
   const [facebook, setFacebook] = useState<string>("");
-  const [website, setWebsite] = useState<string>("");
   const [youtube, setYoutube] = useState<string>("");
+  const [website, setWebsite] = useState<string>("");
 
   // 3. Venue Highlights
   const [venueHighlights, setVenueHighlights] = useState<string[]>([
     "Premium Wedding Venue",
-    "Luxury Venue",
-    "Outdoor Lawn",
     "Indoor AC Hall",
-    "Parking Available",
-    "Bridal Suite",
-  ]);
-
-  // 4. Venue Facilities
-  const [facilities, setFacilities] = useState<string[]>([
-    "Indoor Hall",
     "Outdoor Lawn",
-    "Banquet Hall",
-    "AC Hall",
-    "Bridal Room",
-    "Dining Area",
-    "Stage",
-    "Generator Backup",
-    "Parking",
-    "Valet Parking",
+    "Bridal Suite",
+    "Parking Available",
   ]);
 
-  // 5. Business Information
+  // 4. Featured Halls (with reordering)
+  const [featuredHalls, setFeaturedHalls] = useState<string[]>([
+    "Grand Ballroom",
+    "Royal Hall",
+    "Garden Lawn",
+    "Outdoor Lawn",
+  ]);
+
+  // 5. Venue Information
   const [yearsInBusiness, setYearsInBusiness] = useState<string>("12");
-  const [guestCapacity, setGuestCapacity] = useState<string>("500 - 1500 Guests");
-  const [numberOfHalls, setNumberOfHalls] = useState<string>("3 Halls");
-  const [indoorCapacity, setIndoorCapacity] = useState<string>("800 Guests");
-  const [outdoorCapacity, setOutdoorCapacity] = useState<string>("1200 Guests");
-  const [parkingCapacity, setParkingCapacity] = useState<string>("250 Cars");
-  const [serviceAreas, setServiceAreas] = useState<string>("Kochi, Ernakulam & Kerala");
-  const [languagesSpoken, setLanguagesSpoken] = useState<string>("English, Malayalam, Hindi, Tamil");
-  const [locationStr, setLocationStr] = useState<string>("Kochi, Kerala");
+  const [guestCapacity, setGuestCapacity] = useState<string>("1,500 Guests");
+  const [minGuestCapacity, setMinGuestCapacity] = useState<string>("150 Guests");
+  const [numberOfHalls, setNumberOfHalls] = useState<string>("3 Halls & 2 Lawns");
+  const [diningCapacity, setDiningCapacity] = useState<string>("600 Seated");
+  const [parkingCapacity, setParkingCapacity] = useState<string>("350 Cars & Valet");
+  const [serviceAreas, setServiceAreas] = useState<string>("Golf Course Road, Gurgaon, Delhi NCR");
+  const [languagesSpoken, setLanguagesSpoken] = useState<string>("English, Hindi, Punjabi");
 
   // 6. Contact Action Buttons
-  const [contactActions, setContactActions] = useState<string[]>([
-    "Call Now",
-    "WhatsApp",
-    "Book Venue Visit",
-    "Request Quote",
-    "Get Directions",
-    "Website",
-  ]);
+  const [actionButtons, setActionButtons] = useState({
+    callNow: true,
+    whatsapp: true,
+    bookVenueVisit: true,
+    requestQuote: true,
+    getDirections: true,
+    website: true,
+  });
 
-  // 7. Working Hours & Timings
-  const [openingTime, setOpeningTime] = useState<string>("08:00 AM");
-  const [closingTime, setClosingTime] = useState<string>("10:00 PM");
-  const [weeklyHolidays, setWeeklyHolidays] = useState<string>("None / Open 7 Days");
-  const [publicHolidayAvailability, setPublicHolidayAvailability] = useState<string>("Available for events on all public holidays");
-  const [venueVisitTimings, setVenueVisitTimings] = useState<string>("10:00 AM - 06:00 PM (Prior appointment recommended)");
+  // 7. Working Hours & Venue Visit Timings
+  const [openingTime, setOpeningTime] = useState<string>("09:00 AM");
+  const [closingTime, setClosingTime] = useState<string>("09:00 PM");
+  const [weeklyHolidays, setWeeklyHolidays] = useState<string>("Open All 7 Days");
+  const [venueVisitTimings, setVenueVisitTimings] = useState<string>("10:00 AM - 06:00 PM (Daily)");
+  const [publicHolidayAvailability, setPublicHolidayAvailability] = useState<string>("Open for guided tours by prior appointment");
+  const [advanceAppointmentRequired, setAdvanceAppointmentRequired] = useState<boolean>(true);
 
-  // 8. Booking Policies
-  const [advanceBookingRequired, setAdvanceBookingRequired] = useState<string>("Minimum 2 to 4 months in advance recommended for peak wedding dates.");
-  const [advancePaymentPolicy, setAdvancePaymentPolicy] = useState<string>("25% advance upon booking confirmation, 50% 30 days prior to event, balance 25% on event day.");
-  const [cancellationPolicy, setCancellationPolicy] = useState<string>("Full refund if cancelled 90+ days prior; 50% refund within 30 to 89 days; Non-refundable within 30 days.");
-  const [refundPolicy, setRefundPolicy] = useState<string>("Security damage deposit is refunded via bank transfer within 48 hours post-event walkthrough inspection.");
-  const [overtimeCharges, setOvertimeCharges] = useState<string>("₹15,000 per additional hour beyond the reserved morning/evening slot timing.");
-  const [decorationRules, setDecorationRules] = useState<string>("In-house empanelled decorators and external approved decorators are welcome with prior venue approval.");
-  const [outsideCateringPolicy, setOutsideCateringPolicy] = useState<string>("Both in-house catering and external professional catering are permitted with a standard kitchen access fee.");
-  const [outsidePhotographyPolicy, setOutsidePhotographyPolicy] = useState<string>("Outside candid photographers, cinematographers, and drone pilots are fully permitted.");
-  const [noiseRestrictions, setNoiseRestrictions] = useState<string>("Outdoor amplified music permitted until 10:00 PM per municipal guidelines. Indoor acoustic halls support 24/7 events.");
-  const [alcoholPolicy, setAlcoholPolicy] = useState<string>("Permitted with a valid state excise temporary event license. Dedicated bar setup areas provided.");
-  const [eventTimingRules, setEventTimingRules] = useState<string>("Morning Slot: 06:00 AM - 03:00 PM | Evening Slot: 05:00 PM - 11:30 PM | Full Day: 06:00 AM - 11:30 PM.");
+  // 8. Booking Policies & Venue Guidelines
+  const [advanceBookingRequired, setAdvanceBookingRequired] = useState<string>(
+    "Minimum 30 to 90 days advance booking recommended for peak wedding dates."
+  );
+  const [advancePaymentPolicy, setAdvancePaymentPolicy] = useState<string>(
+    "25% on booking confirmation, 50% 30 days prior, remaining 25% 7 days before event."
+  );
+  const [cancellationPolicy, setCancellationPolicy] = useState<string>(
+    "Full refund of advance if cancelled 60+ days prior to scheduled event date."
+  );
+  const [refundPolicy, setRefundPolicy] = useState<string>(
+    "100% security damage deposit refunded within 24 hours of successful post-event inspection."
+  );
+  const [decorationRules, setDecorationRules] = useState<string>(
+    "Empaneled luxury decorator list available. External decorators subject to venue approval & safety guidelines."
+  );
+  const [outsideCateringPolicy, setOutsideCateringPolicy] = useState<string>(
+    "In-house 5-star culinary team available. Outside catering permitted with kitchen utility charges."
+  );
+  const [outsidePhotographyPolicy, setOutsidePhotographyPolicy] = useState<string>(
+    "Unrestricted professional wedding photography & 4K drone videography permitted across all spaces."
+  );
+  const [noiseRestrictions, setNoiseRestrictions] = useState<string>(
+    "Indoor halls: 01:00 AM cutoff. Outdoor lawns: DJ / amplified sound permitted until 10:00 PM per city noise regulations."
+  );
+  const [alcoholPolicy, setAlcoholPolicy] = useState<string>(
+    "Permitted with standard 1-day excise license. Bartending counter setup & glassware support provided."
+  );
+  const [overtimeCharges, setOvertimeCharges] = useState<string>(
+    "₹15,000 per additional hour beyond booked slot time, subject to next slot availability."
+  );
+  const [eventTimingRules, setEventTimingRules] = useState<string>(
+    "Morning Slot: 06:00 AM - 03:00 PM | Evening Slot: 05:00 PM - 11:30 PM | Full Day: 06:00 AM - 11:30 PM"
+  );
 
-  // Pre-fill from Supabase on mount
+  // Accordion State
+  const [openAccordions, setOpenAccordions] = useState<Record<string, boolean>>({
+    highlights: true,
+    featuredHalls: true,
+    venueInfo: true,
+    actionButtons: false,
+    timings: false,
+    policies: false,
+    theme: false,
+    branding: false,
+  });
+
+  const toggleAccordion = (section: string) => {
+    setOpenAccordions((prev) => ({ ...prev, [section]: !prev[section] }));
+  };
+
+  // Upload States
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+  const [isUploadingCover, setIsUploadingCover] = useState(false);
+  const [isUploadingVideo, setIsUploadingVideo] = useState(false);
+  const [isUploadingGallery, setIsUploadingGallery] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  const logoInputRef = useRef<HTMLInputElement>(null);
+  const coverInputRef = useRef<HTMLInputElement>(null);
+  const videoInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
+
+  // Initial Data Fetch & Hydration
   useEffect(() => {
-    async function loadVenueData() {
-      setIsLoading(true);
-      try {
-        const cached = getActiveVendorIdentity();
-        if (cached) {
-          hydrateState(cached);
-        }
+    const localVendor = getActiveVendorIdentity();
+    setVendorData(localVendor);
 
-        const fresh = await fetchAuthenticatedVendorFromDb();
-        if (fresh) {
-          hydrateState(fresh);
+    async function loadDbVendor() {
+      try {
+        const dbVendor = await fetchAuthenticatedVendorFromDb();
+        if (dbVendor) {
+          setVendorData(dbVendor);
+          hydrateFields(dbVendor);
+        } else if (localVendor) {
+          hydrateFields(localVendor);
         }
-      } catch (err) {
-        console.error("Failed to load venue customization:", err);
-      } finally {
-        setIsLoading(false);
+      } catch (e) {
+        console.error("[VenueCustomizeStore] Error loading vendor:", e);
+        if (localVendor) hydrateFields(localVendor);
       }
     }
 
-    loadVenueData();
+    loadDbVendor();
   }, []);
 
-  const hydrateState = (data: any) => {
-    if (data.name || data.boutique_name || data.business_name) {
-      setVenueName(data.name || data.boutique_name || data.business_name);
-    }
-    if (data.logo || data.logo_url) setLogoUrl(data.logo || data.logo_url);
-    if (data.coverImage || data.cover_image) setCoverUrl(data.coverImage || data.cover_image);
+  const hydrateFields = (data: Partial<VendorProfileData> & Record<string, any>) => {
+    // Branding
+    if (data.logo || data.logo_url) setLogoUrl(data.logo || data.logo_url || "");
+    if (data.coverImage || data.cover_image) setCoverUrl(data.coverImage || data.cover_image || "");
     if (data.tagline) setTagline(data.tagline);
-    if (data.about || data.description) setAbout(data.about || data.description);
-    if (data.colorTheme || data.color_theme) setColorTheme(data.colorTheme || data.color_theme);
-    if (data.introVideo || data.intro_video_url || data.intro_video) {
-      setIntroVideo(data.introVideo || data.intro_video_url || data.intro_video);
+    if (data.about || data.description) setAbout(data.about || data.description || "");
+    if (data.colorTheme || data.color_theme) setColorTheme(data.colorTheme || data.color_theme || "emerald");
+    if (data.introVideo || data.intro_video || data.intro_video_url) {
+      setIntroVideo(data.introVideo || data.intro_video || data.intro_video_url || "");
+    }
+    if (Array.isArray(data.galleryImages || data.gallery_images)) {
+      setGalleryImages(data.galleryImages || data.gallery_images || []);
+    }
+    if (Array.isArray(data.hallImages || data.hall_images)) {
+      setHallImages(data.hallImages || data.hall_images || []);
     }
 
     // Social Links
@@ -269,1081 +295,1499 @@ export function VenueCustomizeStoreSection({ vendorName = "Wedding Venue" }: Ven
     const hl = data.venueHighlights || data.venue_highlights || data.storeHighlights || data.store_highlights;
     if (Array.isArray(hl) && hl.length > 0) setVenueHighlights(hl);
 
-    // Facilities
-    const fac = data.facilities || data.venue_facilities;
-    if (Array.isArray(fac) && fac.length > 0) setFacilities(fac);
+    // Featured Halls
+    const halls = data.featuredHalls || data.featured_halls;
+    if (Array.isArray(halls) && halls.length > 0) setFeaturedHalls(halls);
 
-    // Business Info
+    // Venue Information
     if (data.yearsInBusiness || data.years_in_business || data.experience_years || data.experience) {
       setYearsInBusiness(String(data.yearsInBusiness || data.years_in_business || data.experience_years || data.experience));
     }
     if (data.guestCapacity || data.guest_capacity) setGuestCapacity(data.guestCapacity || data.guest_capacity);
+    if (data.minGuestCapacity || data.min_guest_capacity) setMinGuestCapacity(data.minGuestCapacity || data.min_guest_capacity);
     if (data.numberOfHalls || data.number_of_halls) setNumberOfHalls(data.numberOfHalls || data.number_of_halls);
-    if (data.indoorCapacity || data.indoor_capacity) setIndoorCapacity(data.indoorCapacity || data.indoor_capacity);
-    if (data.outdoorCapacity || data.outdoor_capacity) setOutdoorCapacity(data.outdoorCapacity || data.outdoor_capacity);
+    if (data.diningCapacity || data.dining_capacity) setDiningCapacity(data.diningCapacity || data.dining_capacity);
     if (data.parkingCapacity || data.parking_capacity) setParkingCapacity(data.parkingCapacity || data.parking_capacity);
     if (data.serviceAreas || data.service_areas) setServiceAreas(data.serviceAreas || data.service_areas);
     if (data.languagesSpoken || data.languages_spoken) setLanguagesSpoken(data.languagesSpoken || data.languages_spoken);
-    if (data.location || data.city) setLocationStr(data.location || `${data.city || "Kochi"}, ${data.state || "Kerala"}`);
 
-    // Contact Actions
-    const ca = data.contactActions || data.contact_actions;
-    if (Array.isArray(ca) && ca.length > 0) setContactActions(ca);
+    // Contact Action Buttons
+    if (data.actionButtons || data.action_buttons) {
+      const act = data.actionButtons || data.action_buttons;
+      setActionButtons({
+        callNow: act.callNow ?? true,
+        whatsapp: act.whatsapp ?? true,
+        bookVenueVisit: act.bookVenueVisit ?? act.bookAppointment ?? true,
+        requestQuote: act.requestQuote ?? act.getQuote ?? true,
+        getDirections: act.getDirections ?? act.visitStore ?? true,
+        website: act.website ?? true,
+      });
+    }
 
-    // Timings
+    // Working Hours & Visit Timings
     if (data.openingTime || data.opening_time) setOpeningTime(data.openingTime || data.opening_time);
     if (data.closingTime || data.closing_time) setClosingTime(data.closingTime || data.closing_time);
     if (data.weeklyHolidays || data.weekly_holidays) setWeeklyHolidays(data.weeklyHolidays || data.weekly_holidays);
+    if (data.venueVisitTimings || data.venue_visit_timings) setVenueVisitTimings(data.venueVisitTimings || data.venue_visit_timings);
     if (data.publicHolidayAvailability || data.public_holiday_availability) {
       setPublicHolidayAvailability(data.publicHolidayAvailability || data.public_holiday_availability);
     }
-    if (data.venueVisitTimings || data.venue_visit_timings) setVenueVisitTimings(data.venueVisitTimings || data.venue_visit_timings);
+    if (data.advanceAppointmentRequired !== undefined || data.advance_appointment_required !== undefined) {
+      setAdvanceAppointmentRequired(Boolean(data.advanceAppointmentRequired ?? data.advance_appointment_required));
+    }
 
     // Booking Policies
-    if (data.advanceBookingRequired || data.advance_booking_required) setAdvanceBookingRequired(data.advanceBookingRequired || data.advance_booking_required);
-    if (data.advancePaymentPolicy || data.advance_payment_policy) setAdvancePaymentPolicy(data.advancePaymentPolicy || data.advance_payment_policy);
-    if (data.cancellationPolicy || data.cancellation_policy) setCancellationPolicy(data.cancellationPolicy || data.cancellation_policy);
-    if (data.refundPolicy || data.refund_policy) setRefundPolicy(data.refundPolicy || data.refund_policy);
-    if (data.overtimeCharges || data.overtime_charges) setOvertimeCharges(data.overtimeCharges || data.overtime_charges);
-    if (data.decorationRules || data.decoration_rules) setDecorationRules(data.decorationRules || data.decoration_rules);
-    if (data.outsideCateringPolicy || data.outside_catering_policy) setOutsideCateringPolicy(data.outsideCateringPolicy || data.outside_catering_policy);
-    if (data.outsidePhotographyPolicy || data.outside_photography_policy) setOutsidePhotographyPolicy(data.outsidePhotographyPolicy || data.outside_photography_policy);
-    if (data.noiseRestrictions || data.noise_restrictions) setNoiseRestrictions(data.noiseRestrictions || data.noise_restrictions);
-    if (data.alcoholPolicy || data.alcohol_policy) setAlcoholPolicy(data.alcoholPolicy || data.alcohol_policy);
-    if (data.eventTimingRules || data.event_timing_rules) setEventTimingRules(data.eventTimingRules || data.event_timing_rules);
+    if (data.advanceBookingRequired || data.advance_booking_required) {
+      setAdvanceBookingRequired(data.advanceBookingRequired || data.advance_booking_required);
+    }
+    if (data.advancePaymentPolicy || data.advance_payment_policy) {
+      setAdvancePaymentPolicy(data.advancePaymentPolicy || data.advance_payment_policy);
+    }
+    if (data.cancellationPolicy || data.cancellation_policy) {
+      setCancellationPolicy(data.cancellationPolicy || data.cancellation_policy);
+    }
+    if (data.refundPolicy || data.refund_policy) {
+      setRefundPolicy(data.refundPolicy || data.refund_policy);
+    }
+    if (data.decorationRules || data.decoration_rules) {
+      setDecorationRules(data.decorationRules || data.decoration_rules);
+    }
+    if (data.outsideCateringPolicy || data.outside_catering_policy) {
+      setOutsideCateringPolicy(data.outsideCateringPolicy || data.outside_catering_policy);
+    }
+    if (data.outsidePhotographyPolicy || data.outside_photography_policy) {
+      setOutsidePhotographyPolicy(data.outsidePhotographyPolicy || data.outside_photography_policy);
+    }
+    if (data.noiseRestrictions || data.noise_restrictions) {
+      setNoiseRestrictions(data.noiseRestrictions || data.noise_restrictions);
+    }
+    if (data.alcoholPolicy || data.alcohol_policy) {
+      setAlcoholPolicy(data.alcoholPolicy || data.alcohol_policy);
+    }
+    if (data.overtimeCharges || data.overtime_charges) {
+      setOvertimeCharges(data.overtimeCharges || data.overtime_charges);
+    }
+    if (data.eventTimingRules || data.event_timing_rules) {
+      setEventTimingRules(data.eventTimingRules || data.event_timing_rules);
+    }
   };
 
-  const handleToggleHighlight = (badge: string) => {
+  const activeTheme = COLOR_THEMES.find((t) => t.id === colorTheme) || COLOR_THEMES[0];
+  const currentDisplayName = vendorData?.name || vendorData?.boutique_name || "Royal Orchid Palace & Banquets";
+  const currentLocation = vendorData?.location || vendorData?.district || "Golf Course Road, Gurgaon";
+
+  const initials = currentDisplayName
+    .split(" ")
+    .map((w) => w[0])
+    .filter(Boolean)
+    .join("")
+    .slice(0, 2)
+    .toUpperCase() || "VP";
+
+  // Handlers for Highlights
+  const toggleHighlight = (badge: string) => {
     setVenueHighlights((prev) =>
       prev.includes(badge) ? prev.filter((b) => b !== badge) : [...prev, badge]
     );
   };
 
-  const handleToggleFacility = (facility: string) => {
-    setFacilities((prev) =>
-      prev.includes(facility) ? prev.filter((f) => f !== facility) : [...prev, facility]
+  // Handlers for Featured Halls
+  const toggleFeaturedHall = (hall: string) => {
+    setFeaturedHalls((prev) =>
+      prev.includes(hall) ? prev.filter((h) => h !== hall) : [...prev, hall]
     );
   };
 
-  const handleToggleAction = (actionLabel: string) => {
-    setContactActions((prev) =>
-      prev.includes(actionLabel) ? prev.filter((a) => a !== actionLabel) : [...prev, actionLabel]
-    );
+  const moveHall = (index: number, direction: "up" | "down") => {
+    const targetIndex = direction === "up" ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= featuredHalls.length) return;
+    const newHalls = [...featuredHalls];
+    const temp = newHalls[index];
+    newHalls[index] = newHalls[targetIndex];
+    newHalls[targetIndex] = temp;
+    setFeaturedHalls(newHalls);
   };
 
-  // Video Upload Handler
+  // File Upload Handlers
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      setIsUploadingLogo(true);
+      const res = await uploadImageToCloudinaryDetailed(file);
+      setLogoUrl(res.secureUrl);
+      showVendorToast("✓ Venue Logo uploaded successfully", "success");
+    } catch (err: any) {
+      showVendorToast(err?.message || "Failed to upload logo", "error");
+    } finally {
+      setIsUploadingLogo(false);
+    }
+  };
+
+  const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      setIsUploadingCover(true);
+      const res = await uploadImageToCloudinaryDetailed(file);
+      setCoverUrl(res.secureUrl);
+      showVendorToast("✓ Venue Cover photo uploaded successfully", "success");
+    } catch (err: any) {
+      showVendorToast(err?.message || "Failed to upload cover photo", "error");
+    } finally {
+      setIsUploadingCover(false);
+    }
+  };
+
   const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
     if (file.size > 50 * 1024 * 1024) {
-      showVendorToast("Video file must be under 50MB.", "error");
+      showVendorToast("Video file exceeds the 50MB size limit.", "error");
       return;
     }
-
-    setUploadingVideo(true);
     try {
-      const res = await uploadImageToCloudinaryDetailed(file, "cloche/vendors/venues/videos");
-      if (res.secure_url) {
-        setIntroVideo(res.secure_url);
-        showVendorToast("Intro video uploaded successfully!", "success");
-      } else {
-        showVendorToast("Failed to upload video.", "error");
-      }
+      setIsUploadingVideo(true);
+      const res = await uploadImageToCloudinaryDetailed(file);
+      setIntroVideo(res.secureUrl);
+      showVendorToast("✓ Venue Intro Video uploaded successfully", "success");
     } catch (err: any) {
-      showVendorToast(err.message || "Failed to upload video.", "error");
+      showVendorToast(err?.message || "Failed to upload video", "error");
     } finally {
-      setUploadingVideo(false);
+      setIsUploadingVideo(false);
     }
   };
 
-  // Unified Save Action
-  const handleSaveStore = async () => {
-    setIsSaving(true);
+  const handleGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
     try {
-      const payload = {
-        name: venueName,
-        business_name: venueName,
-        boutique_name: venueName,
-        logo: logoUrl,
-        logo_url: logoUrl,
-        coverImage: coverUrl,
-        cover_image: coverUrl,
-        tagline,
-        about,
-        description: about,
+      setIsUploadingGallery(true);
+      const uploadPromises = Array.from(files).map((f) => uploadImageToCloudinaryDetailed(f));
+      const results = await Promise.all(uploadPromises);
+      const newUrls = results.map((r) => r.secureUrl);
+      setGalleryImages((prev) => [...prev, ...newUrls]);
+      showVendorToast(`✓ Added ${newUrls.length} photos to Venue Gallery`, "success");
+    } catch (err: any) {
+      showVendorToast(err?.message || "Failed to upload gallery images", "error");
+    } finally {
+      setIsUploadingGallery(false);
+    }
+  };
+
+  const handleRemoveGalleryImage = (index: number) => {
+    setGalleryImages((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  // Save All Changes
+  const handleSave = async () => {
+    try {
+      setIsSaving(true);
+
+      const contactActionsArray = [
+        ...(actionButtons.callNow ? ["Call Now"] : []),
+        ...(actionButtons.whatsapp ? ["WhatsApp"] : []),
+        ...(actionButtons.bookVenueVisit ? ["Book Venue Visit"] : []),
+        ...(actionButtons.requestQuote ? ["Request Quote"] : []),
+        ...(actionButtons.getDirections ? ["Get Directions"] : []),
+        ...(actionButtons.website ? ["Website"] : []),
+      ];
+
+      const payload: Partial<VendorProfileData> & Record<string, any> = {
+        // Branding & Identity
+        logo: logoUrl.trim(),
+        logo_url: logoUrl.trim(),
+        coverImage: coverUrl.trim(),
+        cover_image: coverUrl.trim(),
+        tagline: tagline.trim(),
+        about: about.trim(),
+        description: about.trim(),
         colorTheme,
         color_theme: colorTheme,
-        introVideo,
-        intro_video_url: introVideo,
-        intro_video: introVideo,
-        instagram,
-        facebook,
-        website,
-        youtube,
-        // Venue Extension Fields (Stored in venue_details)
+        introVideo: introVideo.trim(),
+        intro_video: introVideo.trim(),
+        galleryImages,
+        gallery_images: galleryImages,
+        hallImages,
+        hall_images: hallImages,
+
+        // Social Links
+        instagram: instagram.trim(),
+        facebook: facebook.trim(),
+        youtube: youtube.trim(),
+        website: website.trim(),
+
+        // Venue Highlights
         venueHighlights,
         venue_highlights: venueHighlights,
         storeHighlights: venueHighlights,
         store_highlights: venueHighlights,
-        facilities,
-        venue_facilities: facilities,
-        yearsInBusiness,
-        years_in_business: yearsInBusiness,
-        experience_years: yearsInBusiness,
-        guestCapacity,
-        guest_capacity: guestCapacity,
-        numberOfHalls,
-        number_of_halls: numberOfHalls,
-        indoorCapacity,
-        indoor_capacity: indoorCapacity,
-        outdoorCapacity,
-        outdoor_capacity: outdoorCapacity,
-        parkingCapacity,
-        parking_capacity: parkingCapacity,
-        serviceAreas,
-        service_areas: serviceAreas,
-        languagesSpoken,
-        languages_spoken: languagesSpoken,
-        contactActions,
-        contact_actions: contactActions,
-        openingTime,
-        opening_time: openingTime,
-        closingTime,
-        closing_time: closingTime,
-        weeklyHolidays,
-        weekly_holidays: weeklyHolidays,
-        publicHolidayAvailability,
-        public_holiday_availability: publicHolidayAvailability,
-        venueVisitTimings,
-        venue_visit_timings: venueVisitTimings,
-        advanceBookingRequired,
-        advance_booking_required: advanceBookingRequired,
-        advancePaymentPolicy,
-        advance_payment_policy: advancePaymentPolicy,
-        cancellationPolicy,
-        cancellation_policy: cancellationPolicy,
-        refundPolicy,
-        refund_policy: refundPolicy,
-        overtimeCharges,
-        overtime_charges: overtimeCharges,
-        decorationRules,
-        decoration_rules: decorationRules,
-        outsideCateringPolicy,
-        outside_catering_policy: outsideCateringPolicy,
-        outsidePhotographyPolicy,
-        outside_photography_policy: outsidePhotographyPolicy,
-        noiseRestrictions,
-        noise_restrictions: noiseRestrictions,
-        alcoholPolicy,
-        alcohol_policy: alcoholPolicy,
-        eventTimingRules,
-        event_timing_rules: eventTimingRules,
+
+        // Featured Halls
+        featuredHalls,
+        featured_halls: featuredHalls,
+
+        // Venue Information
+        yearsInBusiness: yearsInBusiness.trim(),
+        years_in_business: yearsInBusiness.trim(),
+        guestCapacity: guestCapacity.trim(),
+        guest_capacity: guestCapacity.trim(),
+        minGuestCapacity: minGuestCapacity.trim(),
+        min_guest_capacity: minGuestCapacity.trim(),
+        numberOfHalls: numberOfHalls.trim(),
+        number_of_halls: numberOfHalls.trim(),
+        diningCapacity: diningCapacity.trim(),
+        dining_capacity: diningCapacity.trim(),
+        parkingCapacity: parkingCapacity.trim(),
+        parking_capacity: parkingCapacity.trim(),
+        serviceAreas: serviceAreas.trim(),
+        service_areas: serviceAreas.trim(),
+        languagesSpoken: languagesSpoken.trim(),
+        languages_spoken: languagesSpoken.trim(),
+
+        // Contact Action Buttons
+        actionButtons,
+        action_buttons: actionButtons,
+        contactActions: contactActionsArray,
+        contact_actions: contactActionsArray,
+
+        // Working Hours & Visit Timings
+        openingTime: openingTime.trim(),
+        opening_time: openingTime.trim(),
+        closingTime: closingTime.trim(),
+        closing_time: closingTime.trim(),
+        weeklyHolidays: weeklyHolidays.trim(),
+        weekly_holidays: weeklyHolidays.trim(),
+        venueVisitTimings: venueVisitTimings.trim(),
+        venue_visit_timings: venueVisitTimings.trim(),
+        publicHolidayAvailability: publicHolidayAvailability.trim(),
+        public_holiday_availability: publicHolidayAvailability.trim>,
+        advanceAppointmentRequired,
+        advance_appointment_required: advanceAppointmentRequired,
+
+        // Booking Policies & Guidelines
+        advanceBookingRequired: advanceBookingRequired.trim(),
+        advance_booking_required: advanceBookingRequired.trim(),
+        advancePaymentPolicy: advancePaymentPolicy.trim(),
+        advance_payment_policy: advancePaymentPolicy.trim(),
+        cancellationPolicy: cancellationPolicy.trim(),
+        cancellation_policy: cancellationPolicy.trim(),
+        refundPolicy: refundPolicy.trim(),
+        refund_policy: refundPolicy.trim(),
+        decorationRules: decorationRules.trim(),
+        decoration_rules: decorationRules.trim(),
+        outsideCateringPolicy: outsideCateringPolicy.trim(),
+        outside_catering_policy: outsideCateringPolicy.trim(),
+        outsidePhotographyPolicy: outsidePhotographyPolicy.trim(),
+        outside_photography_policy: outsidePhotographyPolicy.trim(),
+        noiseRestrictions: noiseRestrictions.trim(),
+        noise_restrictions: noiseRestrictions.trim(),
+        alcoholPolicy: alcoholPolicy.trim(),
+        alcohol_policy: alcoholPolicy.trim(),
+        overtimeCharges: overtimeCharges.trim(),
+        overtime_charges: overtimeCharges.trim(),
+        eventTimingRules: eventTimingRules.trim(),
+        event_timing_rules: eventTimingRules.trim(),
       };
 
       const res = await syncVendorProfileWithDatabase(payload);
-      if (res?.success) {
-        showVendorToast("Wedding Venue Storefront saved successfully! ✨", "success");
+      if (res.success) {
+        setSaved(true);
+        showVendorToast("✓ Venue storefront customization saved & synchronized!", "success");
+        setTimeout(() => setSaved(false), 3500);
       } else {
-        showVendorToast("Storefront updated locally. Connect database for global sync.", "success");
+        showVendorToast("Unable to save storefront customization. Please try again.", "error");
       }
-    } catch (err: any) {
-      showVendorToast(err.message || "Failed to save venue storefront.", "error");
+    } catch (err) {
+      console.error("[VenueCustomizeStore] Save error:", err);
+      showVendorToast("Unable to save storefront customization. Please try again.", "error");
     } finally {
       setIsSaving(false);
     }
   };
 
-  const activeTheme = VENUE_COLOR_THEMES.find((t) => t.id === colorTheme) || VENUE_COLOR_THEMES[0];
-
-  if (isLoading) {
-    return (
-      <div className="bg-white rounded-3xl p-12 text-center space-y-3 border border-gold/15 shadow-sm">
-        <Loader2 className="w-8 h-8 animate-spin text-[#0F4C45] mx-auto" />
-        <p className="text-xs font-bold text-charcoal/60">Loading venue customization profile...</p>
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-8 animate-in fade-in duration-300">
-      {/* Top Action Header */}
-      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-gold/15 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="space-y-6 animate-in fade-in duration-300 font-sans">
+      {/* Hidden File Inputs */}
+      <input
+        ref={logoInputRef}
+        type="file"
+        accept="image/png,image/jpeg,image/webp,image/jpg"
+        className="hidden"
+        onChange={handleLogoUpload}
+      />
+      <input
+        ref={coverInputRef}
+        type="file"
+        accept="image/png,image/jpeg,image/webp,image/jpg"
+        className="hidden"
+        onChange={handleCoverUpload}
+      />
+      <input
+        ref={videoInputRef}
+        type="file"
+        accept="video/mp4,video/webm,video/quicktime"
+        className="hidden"
+        onChange={handleVideoUpload}
+      />
+      <input
+        ref={galleryInputRef}
+        type="file"
+        multiple
+        accept="image/png,image/jpeg,image/webp,image/jpg"
+        className="hidden"
+        onChange={handleGalleryUpload}
+      />
+
+      {/* Header Banner */}
+      <div className="bg-white rounded-2xl border border-gold/15 p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="p-2 rounded-xl bg-[#0F4C45]/10 text-[#0F4C45]">
-              <Building2 className="w-5 h-5" />
+          <div className="flex items-center gap-2 mb-1">
+            <span
+              style={{ backgroundColor: activeTheme.primary }}
+              className="text-white text-[11px] font-bold px-3 py-0.5 rounded-full transition-colors"
+            >
+              Wedding Venue Customization
             </span>
-            <h2 className="font-serif text-2xl font-bold text-charcoal">Customize Venue Storefront</h2>
           </div>
-          <p className="text-xs text-charcoal/60 mt-1 max-w-xl">
-            Configure your wedding venue badges, hall facilities, capacity metrics, visit timings, and booking policies for prospective couples.
+          <h2 className="text-2xl font-serif font-bold text-charcoal">Customize Venue Storefront</h2>
+          <p className="text-xs text-charcoal/60 mt-0.5">
+            Personalize venue branding, hall info, highlights, capacity metrics, visit timings & booking policies
           </p>
         </div>
 
-        <div className="flex items-center gap-3 shrink-0">
-          <button
-            type="button"
-            onClick={handleSaveStore}
-            disabled={isSaving}
-            className="bg-[#0F4C45] hover:bg-[#072B27] text-white font-bold text-xs px-6 py-3 rounded-2xl shadow-sm hover:shadow transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+        <button
+          type="button"
+          onClick={handleSave}
+          disabled={isSaving || isUploadingLogo || isUploadingCover || isUploadingVideo || isUploadingGallery}
+          style={{ backgroundColor: activeTheme.primary }}
+          className="hover:opacity-90 disabled:opacity-50 text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow-xs transition-all flex items-center gap-2 shrink-0 cursor-pointer"
+        >
+          {isSaving ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" /> Saving Settings...
+            </>
+          ) : saved ? (
+            <>
+              <CheckCircle className="w-4 h-4 text-emerald-300" /> Saved to Live Store!
+            </>
+          ) : (
+            <>
+              <Save className="w-4 h-4" /> Save Customization
+            </>
+          )}
+        </button>
+      </div>
+
+      {/* LIVE STOREFRONT PREVIEW PANE (Dynamic Theme & Real-Time Sync) */}
+      <div className="bg-white rounded-3xl border border-gold/20 shadow-md overflow-hidden transition-all">
+        <div className="bg-[#FAF7F2] px-6 py-3 border-b border-gold/15 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="font-serif font-bold text-xs text-charcoal flex items-center gap-1.5">
+              <Eye className="w-3.5 h-3.5 text-[#0F4C45]" /> Live Storefront Preview (Customer View)
+            </span>
+          </div>
+          <span
+            style={{ color: activeTheme.primary }}
+            className="text-[11px] font-bold uppercase tracking-wider bg-white px-2.5 py-0.5 rounded-full border border-gold/15 shadow-2xs"
           >
-            {isSaving ? <Loader2 className="w-4 h-4 animate-spin text-[#C8A96A]" /> : <Save className="w-4 h-4 text-[#C8A96A]" />}
-            <span>Save Storefront</span>
-          </button>
+            {activeTheme.label} Palette
+          </span>
+        </div>
+
+        {/* Live Hero Header */}
+        <div className="relative aspect-[21/9] max-h-[300px] w-full overflow-hidden bg-[#0F4C45]">
+          {coverUrl ? (
+            <img src={coverUrl} alt="Venue Cover" className="w-full h-full object-cover" />
+          ) : (
+            <div
+              style={{ backgroundColor: activeTheme.primary }}
+              className="w-full h-full flex items-center justify-center opacity-80"
+            >
+              <Building2 className="w-16 h-16 text-white/40" />
+            </div>
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+
+          {/* Profile Header Block */}
+          <div className="absolute bottom-4 left-4 right-4 flex items-end gap-3 sm:gap-4">
+            <div
+              style={{ backgroundColor: activeTheme.primary }}
+              className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl border-2 border-white overflow-hidden shadow-lg shrink-0 relative flex items-center justify-center text-white"
+            >
+              {logoUrl ? (
+                <img src={logoUrl} alt="Venue Logo" className="w-full h-full object-cover" />
+              ) : (
+                <span className="font-serif text-lg sm:text-xl font-bold tracking-wider">{initials}</span>
+              )}
+            </div>
+
+            <div className="mb-0.5 drop-shadow-md flex-1 min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 className="text-lg sm:text-2xl font-serif font-bold text-white leading-tight truncate">
+                  {currentDisplayName}
+                </h3>
+                <span className="inline-flex items-center gap-1 bg-white/90 backdrop-blur-md text-[#0F4C45] text-[10px] font-bold px-2 py-0.5 rounded-full">
+                  <ShieldCheck className="w-3 h-3 text-[#0F4C45]" /> Verified Partner
+                </span>
+              </div>
+
+              {tagline ? (
+                <p style={{ color: activeTheme.accent }} className="text-xs font-semibold mt-0.5 italic truncate">
+                  "{tagline}"
+                </p>
+              ) : (
+                <p className="text-xs text-white/80 font-medium mt-0.5 truncate">
+                  Wedding Venue • {currentLocation}
+                </p>
+              )}
+
+              {/* 1. Live Venue Highlights Badges */}
+              {venueHighlights.length > 0 && (
+                <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                  {venueHighlights.map((badge) => (
+                    <span
+                      key={badge}
+                      style={{ borderColor: activeTheme.accent }}
+                      className="bg-black/50 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full border shadow-2xs flex items-center gap-1"
+                    >
+                      <Sparkles className="w-2.5 h-2.5 text-gold" /> {badge}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Live Preview Content Area */}
+        <div className="p-4 sm:p-6 bg-white space-y-5">
+          {/* 4. Live Contact Action Buttons Preview */}
+          <div className="flex flex-wrap items-center gap-2">
+            {actionButtons.callNow && (
+              <button
+                style={{ backgroundColor: activeTheme.primary }}
+                className="px-3.5 py-2 rounded-xl text-white text-xs font-bold flex items-center gap-1.5 shadow-xs"
+              >
+                <Phone className="w-3.5 h-3.5" /> Call Now
+              </button>
+            )}
+            {actionButtons.whatsapp && (
+              <button
+                style={{ backgroundColor: activeTheme.secondary }}
+                className="px-3.5 py-2 rounded-xl text-white text-xs font-bold flex items-center gap-1.5 shadow-xs"
+              >
+                <MessageCircle className="w-3.5 h-3.5" /> WhatsApp
+              </button>
+            )}
+            {actionButtons.bookVenueVisit && (
+              <button
+                style={{ borderColor: activeTheme.primary, color: activeTheme.primary }}
+                className="px-3.5 py-2 rounded-xl border text-xs font-bold flex items-center gap-1.5 hover:bg-gold/10"
+              >
+                <Calendar className="w-3.5 h-3.5" /> Book Venue Visit
+              </button>
+            )}
+            {actionButtons.requestQuote && (
+              <button
+                style={{ backgroundColor: activeTheme.accent, color: activeTheme.secondary }}
+                className="px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs"
+              >
+                <FileText className="w-3.5 h-3.5" /> Request Quote
+              </button>
+            )}
+            {actionButtons.getDirections && (
+              <button className="px-3.5 py-2 rounded-xl bg-[#FAF7F2] border border-gold/20 text-charcoal text-xs font-bold flex items-center gap-1.5">
+                <MapPin className="w-3.5 h-3.5" /> Get Directions
+              </button>
+            )}
+            {actionButtons.website && (
+              <button className="px-3.5 py-2 rounded-xl bg-[#FAF7F2] border border-gold/20 text-charcoal text-xs font-bold flex items-center gap-1.5">
+                <Globe className="w-3.5 h-3.5" /> Official Website
+              </button>
+            )}
+          </div>
+
+          {/* 3. Live Venue Information Cards */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+            <div className="p-3 rounded-2xl bg-[#FAF7F2] border border-gold/15 space-y-0.5">
+              <span className="text-[10px] uppercase font-bold text-charcoal/50 block">Experience</span>
+              <span style={{ color: activeTheme.primary }} className="font-serif font-bold text-sm block">
+                {yearsInBusiness} Years
+              </span>
+            </div>
+            <div className="p-3 rounded-2xl bg-[#FAF7F2] border border-gold/15 space-y-0.5">
+              <span className="text-[10px] uppercase font-bold text-charcoal/50 block">Guest Capacity</span>
+              <span className="font-bold text-xs text-charcoal block truncate">
+                {minGuestCapacity} - {guestCapacity}
+              </span>
+            </div>
+            <div className="p-3 rounded-2xl bg-[#FAF7F2] border border-gold/15 space-y-0.5">
+              <span className="text-[10px] uppercase font-bold text-charcoal/50 block">Halls & Lawns</span>
+              <span className="font-bold text-xs text-charcoal block truncate">
+                {numberOfHalls}
+              </span>
+            </div>
+            <div className="p-3 rounded-2xl bg-[#FAF7F2] border border-gold/15 space-y-0.5">
+              <span className="text-[10px] uppercase font-bold text-charcoal/50 block">Dining & Parking</span>
+              <span style={{ color: activeTheme.primary }} className="font-serif font-bold text-xs block truncate">
+                {diningCapacity} • {parkingCapacity}
+              </span>
+            </div>
+          </div>
+
+          {/* 2. Live Featured Halls Bar */}
+          {featuredHalls.length > 0 && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="font-serif font-bold text-xs text-charcoal">Featured Halls & Spaces:</span>
+                <span className="text-[10px] text-charcoal/50 font-medium">Curated by Venue</span>
+              </div>
+              <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar pb-1">
+                {featuredHalls.map((hall) => (
+                  <span
+                    key={hall}
+                    style={{ backgroundColor: activeTheme.primary }}
+                    className="text-white text-xs font-bold px-3.5 py-1.5 rounded-xl shrink-0 shadow-2xs flex items-center gap-1.5"
+                  >
+                    <Building2 className="w-3 h-3 text-gold" /> {hall}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* 5. Live Working Hours Preview */}
+          <div className="p-3.5 bg-[#FAF7F2] rounded-2xl border border-gold/15 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+            <div className="flex items-center gap-2.5">
+              <Clock style={{ color: activeTheme.primary }} className="w-4 h-4 shrink-0" />
+              <div>
+                <span className="font-serif font-bold text-charcoal block">Office Hours & Guided Visit Timings</span>
+                <span className="text-[11px] text-charcoal/70">
+                  Office: {openingTime} - {closingTime} ({weeklyHolidays}) • Visits: {venueVisitTimings}
+                </span>
+              </div>
+            </div>
+            {publicHolidayAvailability && (
+              <span className="text-[10px] text-[#0F4C45] bg-[#0F4C45]/10 font-bold px-2.5 py-1 rounded-lg">
+                {publicHolidayAvailability}
+              </span>
+            )}
+          </div>
+
+          {/* 6. Live Venue Booking Policies Preview */}
+          <div className="space-y-2 pt-2 border-t border-gold/10">
+            <span className="font-serif font-bold text-xs text-charcoal block">Booking Policies & Guidelines:</span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+              <div className="p-3 bg-gray-50 rounded-xl border border-gray-200/80 space-y-1">
+                <span className="font-bold text-charcoal block flex items-center gap-1">
+                  <ShieldCheck className="w-3.5 h-3.5 text-[#0F4C45]" /> Advance Booking & Payment
+                </span>
+                <p className="text-[11px] text-charcoal/70 leading-relaxed">{advanceBookingRequired}</p>
+                <p className="text-[10px] text-charcoal/60 leading-relaxed italic">{advancePaymentPolicy}</p>
+              </div>
+
+              <div className="p-3 bg-gray-50 rounded-xl border border-gray-200/80 space-y-1">
+                <span className="font-bold text-charcoal block flex items-center gap-1">
+                  <FileText className="w-3.5 h-3.5 text-[#0F4C45]" /> Cancellation & Security Refund
+                </span>
+                <p className="text-[11px] text-charcoal/70 leading-relaxed">{cancellationPolicy}</p>
+                <p className="text-[10px] text-charcoal/60 leading-relaxed italic">{refundPolicy}</p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Main 2-Column Split: Form Controls (Left) vs Live Preview (Right) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* Left Column: Form Controls (7 Cols) */}
-        <div className="lg:col-span-7 space-y-6">
-
-          {/* 1. Venue Highlights Badges */}
-          <div className="bg-white rounded-3xl p-6 sm:p-7 border border-gold/15 shadow-sm space-y-4">
-            <div className="flex items-center justify-between border-b border-gold/10 pb-3">
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-[#C8A96A]" />
-                <h3 className="font-serif text-base font-bold text-charcoal">1. Venue Highlights</h3>
-              </div>
-              <span className="text-[11px] font-bold text-[#0F4C45]">
-                {venueHighlights.length} Badges Selected
-              </span>
-            </div>
-            <p className="text-xs text-charcoal/60 leading-relaxed">
-              Select key highlights that appear immediately beneath your venue name on search cards and your public storefront:
-            </p>
-
-            <div className="flex flex-wrap gap-2 pt-1">
-              {VENUE_HIGHLIGHT_OPTIONS.map((badge) => {
-                const isSelected = venueHighlights.includes(badge);
-                return (
-                  <button
-                    key={badge}
-                    type="button"
-                    onClick={() => handleToggleHighlight(badge)}
-                    className={`px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                      isSelected
-                        ? "bg-[#0F4C45] text-white shadow-xs scale-[1.02]"
-                        : "bg-[#FAF7F2] text-charcoal/70 border border-gold/20 hover:border-[#0F4C45]"
-                    }`}
-                  >
-                    <Sparkles className={`w-3 h-3 ${isSelected ? "text-[#C8A96A]" : "text-charcoal/40"}`} />
-                    <span>{badge}</span>
-                    {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* 2. Venue Facilities (Toggle List) */}
-          <div className="bg-white rounded-3xl p-6 sm:p-7 border border-gold/15 shadow-sm space-y-4">
-            <div className="flex items-center justify-between border-b border-gold/10 pb-3">
-              <div className="flex items-center gap-2">
-                <Layers className="w-4 h-4 text-[#0F4C45]" />
-                <h3 className="font-serif text-base font-bold text-charcoal">2. Venue Facilities & Spaces</h3>
-              </div>
-              <span className="text-[11px] font-bold text-[#0F4C45]">
-                {facilities.length} Active Facilities
-              </span>
-            </div>
-            <p className="text-xs text-charcoal/60 leading-relaxed">
-              Enable the amenities and spaces available at your property. These appear automatically in the "Venue Facilities" grid on your public profile:
-            </p>
-
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-1">
-              {VENUE_FACILITIES_OPTIONS.map((fac) => {
-                const isEnabled = facilities.includes(fac);
-                return (
-                  <button
-                    key={fac}
-                    type="button"
-                    onClick={() => handleToggleFacility(fac)}
-                    className={`p-3 rounded-2xl text-left text-xs font-bold transition-all border flex items-center justify-between cursor-pointer ${
-                      isEnabled
-                        ? "bg-[#FAF5EA] border-[#0F4C45] text-[#0F4C45] shadow-xs"
-                        : "bg-[#FAF7F2] border-gold/15 text-charcoal/60 hover:bg-gold/10"
-                    }`}
-                  >
-                    <span className="truncate pr-1">{fac}</span>
-                    <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] shrink-0 border ${
-                      isEnabled ? "bg-[#0F4C45] text-white border-[#0F4C45]" : "bg-white border-charcoal/20"
-                    }`}>
-                      {isEnabled && <Check className="w-3 h-3 stroke-[3]" />}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* 3. Business & Capacity Information */}
-          <div className="bg-white rounded-3xl p-6 sm:p-7 border border-gold/15 shadow-sm space-y-4">
-            <div className="flex items-center gap-2 border-b border-gold/10 pb-3">
-              <Building className="w-4 h-4 text-[#0F4C45]" />
-              <h3 className="font-serif text-base font-bold text-charcoal">3. Business & Capacity Information</h3>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-sans">
+      {/* ACCORDION FORM CONFIGURATOR SECTIONS */}
+      <div className="space-y-4">
+        {/* Section 1: Venue Highlights Badges */}
+        <div className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-xs">
+          <button
+            type="button"
+            onClick={() => toggleAccordion("highlights")}
+            className="w-full p-5 text-left font-serif font-bold text-base text-charcoal flex items-center justify-between bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <Award style={{ color: activeTheme.primary }} className="w-5 h-5" />
               <div>
-                <label className="block text-xs font-bold text-charcoal/80 mb-1">
-                  Years in Business / Operating Experience
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. 15 Years"
-                  value={yearsInBusiness}
-                  onChange={(e) => setYearsInBusiness(e.target.value)}
-                  className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2.5 text-xs text-charcoal font-medium focus:outline-none focus:border-[#0F4C45]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-charcoal/80 mb-1">
-                  Overall Guest Capacity Range
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. 500 - 2,500 Guests"
-                  value={guestCapacity}
-                  onChange={(e) => setGuestCapacity(e.target.value)}
-                  className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2.5 text-xs text-charcoal font-medium focus:outline-none focus:border-[#0F4C45]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-charcoal/80 mb-1">
-                  Number of Banquet Halls & Spaces
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. 3 AC Banquet Halls + 2 Lawns"
-                  value={numberOfHalls}
-                  onChange={(e) => setNumberOfHalls(e.target.value)}
-                  className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2.5 text-xs text-charcoal font-medium focus:outline-none focus:border-[#0F4C45]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-charcoal/80 mb-1">
-                  Indoor AC Hall Capacity
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. 1,000 Floating / 600 Seated"
-                  value={indoorCapacity}
-                  onChange={(e) => setIndoorCapacity(e.target.value)}
-                  className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2.5 text-xs text-charcoal font-medium focus:outline-none focus:border-[#0F4C45]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-charcoal/80 mb-1">
-                  Outdoor Lawn / Open Space Capacity
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. 1,500 Floating Guests"
-                  value={outdoorCapacity}
-                  onChange={(e) => setOutdoorCapacity(e.target.value)}
-                  className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2.5 text-xs text-charcoal font-medium focus:outline-none focus:border-[#0F4C45]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-charcoal/80 mb-1">
-                  Parking Capacity & Valet
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. 300 Cars with Valet Facility"
-                  value={parkingCapacity}
-                  onChange={(e) => setParkingCapacity(e.target.value)}
-                  className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2.5 text-xs text-charcoal font-medium focus:outline-none focus:border-[#0F4C45]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-charcoal/80 mb-1">
-                  Service & Operating Districts
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. Kochi, Ernakulam, Alappuzha"
-                  value={serviceAreas}
-                  onChange={(e) => setServiceAreas(e.target.value)}
-                  className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2.5 text-xs text-charcoal font-medium focus:outline-none focus:border-[#0F4C45]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-charcoal/80 mb-1">
-                  Languages Spoken by Staff
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. English, Malayalam, Hindi, Tamil"
-                  value={languagesSpoken}
-                  onChange={(e) => setLanguagesSpoken(e.target.value)}
-                  className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2.5 text-xs text-charcoal font-medium focus:outline-none focus:border-[#0F4C45]"
-                />
+                <span className="block">1. Venue Highlights</span>
+                <span className="text-xs font-sans font-normal text-charcoal/60">
+                  Select key venue badges to display under your venue name
+                </span>
               </div>
             </div>
-          </div>
+            {openAccordions.highlights ? <ChevronUp className="w-4 h-4 text-charcoal/40" /> : <ChevronDown className="w-4 h-4 text-charcoal/40" />}
+          </button>
 
-          {/* 4. Contact Action Buttons (Public CTAs) */}
-          <div className="bg-white rounded-3xl p-6 sm:p-7 border border-gold/15 shadow-sm space-y-4">
-            <div className="flex items-center justify-between border-b border-gold/10 pb-3">
-              <div className="flex items-center gap-2">
-                <Phone className="w-4 h-4 text-[#0F4C45]" />
-                <h3 className="font-serif text-base font-bold text-charcoal">4. Contact Action Buttons (Public CTAs)</h3>
-              </div>
-              <span className="text-[11px] font-bold text-[#0F4C45]">
-                {contactActions.length} Buttons Active
-              </span>
-            </div>
-            <p className="text-xs text-charcoal/60 leading-relaxed">
-              Choose which high-intent action buttons are displayed to couples visiting your storefront:
-            </p>
-
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-1">
-              {CONTACT_ACTION_OPTIONS.map((action) => {
-                const isEnabled = contactActions.includes(action.label);
-                const IconComp = action.icon;
-                return (
-                  <button
-                    key={action.id}
-                    type="button"
-                    onClick={() => handleToggleAction(action.label)}
-                    className={`p-3 rounded-2xl text-xs font-bold transition-all border flex items-center justify-between cursor-pointer ${
-                      isEnabled
-                        ? "bg-[#0F4C45] text-white border-[#0F4C45] shadow-xs"
-                        : "bg-[#FAF7F2] border-gold/15 text-charcoal/70 hover:bg-gold/10"
-                    }`}
-                  >
-                    <span className="flex items-center gap-1.5 truncate">
-                      <IconComp className={`w-3.5 h-3.5 ${isEnabled ? "text-[#C8A96A]" : "text-charcoal/50"}`} />
-                      <span>{action.label}</span>
-                    </span>
-                    {isEnabled && <Check className="w-3.5 h-3.5 stroke-[3]" />}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* 5. Working Hours & Visit Timings */}
-          <div className="bg-white rounded-3xl p-6 sm:p-7 border border-gold/15 shadow-sm space-y-4">
-            <div className="flex items-center gap-2 border-b border-gold/10 pb-3">
-              <Clock className="w-4 h-4 text-[#0F4C45]" />
-              <h3 className="font-serif text-base font-bold text-charcoal">5. Working Hours & Venue Visit Timings</h3>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-sans">
-              <div>
-                <label className="block text-xs font-bold text-charcoal/80 mb-1">
-                  Office Opening Time
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. 08:00 AM"
-                  value={openingTime}
-                  onChange={(e) => setOpeningTime(e.target.value)}
-                  className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2.5 text-xs text-charcoal font-medium focus:outline-none focus:border-[#0F4C45]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-charcoal/80 mb-1">
-                  Office Closing Time
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. 10:00 PM"
-                  value={closingTime}
-                  onChange={(e) => setClosingTime(e.target.value)}
-                  className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2.5 text-xs text-charcoal font-medium focus:outline-none focus:border-[#0F4C45]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-charcoal/80 mb-1">
-                  Weekly Holidays / Office Off Days
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. None / Open All 7 Days"
-                  value={weeklyHolidays}
-                  onChange={(e) => setWeeklyHolidays(e.target.value)}
-                  className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2.5 text-xs text-charcoal font-medium focus:outline-none focus:border-[#0F4C45]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-charcoal/80 mb-1">
-                  Public Holiday Availability
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. Available for wedding bookings on all public holidays"
-                  value={publicHolidayAvailability}
-                  onChange={(e) => setPublicHolidayAvailability(e.target.value)}
-                  className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2.5 text-xs text-charcoal font-medium focus:outline-none focus:border-[#0F4C45]"
-                />
-              </div>
-
-              <div className="sm:col-span-2">
-                <label className="block text-xs font-bold text-charcoal/80 mb-1">
-                  Venue Visit & Guided Tour Timings for Couples
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. 10:00 AM - 06:00 PM (Prior appointment recommended)"
-                  value={venueVisitTimings}
-                  onChange={(e) => setVenueVisitTimings(e.target.value)}
-                  className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2.5 text-xs text-charcoal font-medium focus:outline-none focus:border-[#0F4C45]"
-                />
+          {openAccordions.highlights && (
+            <div className="p-5 border-t border-gold/10 space-y-4 text-xs animate-in fade-in duration-200">
+              <p className="text-charcoal/70 leading-relaxed">
+                Click to toggle venue highlight badges on your public storefront:
+              </p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
+                {VENUE_HIGHLIGHT_OPTIONS.map((badge) => {
+                  const isSelected = venueHighlights.includes(badge);
+                  return (
+                    <button
+                      key={badge}
+                      type="button"
+                      onClick={() => toggleHighlight(badge)}
+                      style={{
+                        backgroundColor: isSelected ? activeTheme.primary : "#FAF7F2",
+                        color: isSelected ? "#FFFFFF" : "#2D2520",
+                        borderColor: isSelected ? activeTheme.primary : "#E8DFD1",
+                      }}
+                      className="p-3 rounded-xl border text-xs font-bold text-left transition-all flex items-center justify-between cursor-pointer"
+                    >
+                      <span>{badge}</span>
+                      {isSelected && <Check className="w-3.5 h-3.5 text-white" />}
+                    </button>
+                  );
+                })}
               </div>
             </div>
-          </div>
+          )}
+        </div>
 
-          {/* 6. Booking Policies & Event Rules */}
-          <div className="bg-white rounded-3xl p-6 sm:p-7 border border-gold/15 shadow-sm space-y-4">
-            <div className="flex items-center gap-2 border-b border-gold/10 pb-3">
-              <FileText className="w-4 h-4 text-[#0F4C45]" />
-              <h3 className="font-serif text-base font-bold text-charcoal">6. Booking Policies & Venue Guidelines</h3>
+        {/* Section 2: Featured Halls (Reorderable) */}
+        <div className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-xs">
+          <button
+            type="button"
+            onClick={() => toggleAccordion("featuredHalls")}
+            className="w-full p-5 text-left font-serif font-bold text-base text-charcoal flex items-center justify-between bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <Building2 style={{ color: activeTheme.primary }} className="w-5 h-5" />
+              <div>
+                <span className="block">2. Featured Halls</span>
+                <span className="text-xs font-sans font-normal text-charcoal/60">
+                  Select and pin banquet halls & lawns in your preferred display order
+                </span>
+              </div>
             </div>
-            <p className="text-xs text-charcoal/60 leading-relaxed">
-              Transparent terms displayed under "Venue Policies" to set clear expectations with clients:
-            </p>
+            {openAccordions.featuredHalls ? <ChevronUp className="w-4 h-4 text-charcoal/40" /> : <ChevronDown className="w-4 h-4 text-charcoal/40" />}
+          </button>
 
-            <div className="space-y-3.5 text-xs font-sans">
+          {openAccordions.featuredHalls && (
+            <div className="p-5 border-t border-gold/10 space-y-4 text-xs animate-in fade-in duration-200">
               <div>
-                <label className="block text-xs font-bold text-charcoal/80 mb-1">
-                  Advance Booking Lead Time
-                </label>
-                <input
-                  type="text"
-                  value={advanceBookingRequired}
-                  onChange={(e) => setAdvanceBookingRequired(e.target.value)}
-                  className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2.5 text-xs text-charcoal font-medium focus:outline-none focus:border-[#0F4C45]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-charcoal/80 mb-1">
-                  Advance Payment Schedule & Milestones
-                </label>
-                <input
-                  type="text"
-                  value={advancePaymentPolicy}
-                  onChange={(e) => setAdvancePaymentPolicy(e.target.value)}
-                  className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2.5 text-xs text-charcoal font-medium focus:outline-none focus:border-[#0F4C45]"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                <div>
-                  <label className="block text-xs font-bold text-charcoal/80 mb-1">
-                    Cancellation Policy
-                  </label>
-                  <textarea
-                    rows={2}
-                    value={cancellationPolicy}
-                    onChange={(e) => setCancellationPolicy(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl p-3 text-xs text-charcoal font-medium focus:outline-none focus:border-[#0F4C45] resize-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-charcoal/80 mb-1">
-                    Security Deposit & Refund Terms
-                  </label>
-                  <textarea
-                    rows={2}
-                    value={refundPolicy}
-                    onChange={(e) => setRefundPolicy(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl p-3 text-xs text-charcoal font-medium focus:outline-none focus:border-[#0F4C45] resize-none"
-                  />
+                <span className="font-bold text-charcoal block mb-2">Available Halls & Spaces (Click to Pin/Unpin):</span>
+                <div className="flex flex-wrap gap-2">
+                  {ALL_VENUE_HALL_OPTIONS.map((hall) => {
+                    const isPinned = featuredHalls.includes(hall);
+                    return (
+                      <button
+                        key={hall}
+                        type="button"
+                        onClick={() => toggleFeaturedHall(hall)}
+                        className={`px-3 py-1.5 rounded-xl border text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                          isPinned
+                            ? "bg-[#0F4C45] text-white border-[#0F4C45]"
+                            : "bg-[#FAF7F2] text-charcoal border-gold/20 hover:bg-gold/15"
+                        }`}
+                      >
+                        {hall} {isPinned ? "✓" : "+"}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              {featuredHalls.length > 0 && (
+                <div className="pt-3 border-t border-gold/10 space-y-2">
+                  <span className="font-bold text-charcoal block">Pinned Order (Use arrows to reorder):</span>
+                  <div className="space-y-1.5">
+                    {featuredHalls.map((hall, idx) => (
+                      <div
+                        key={hall}
+                        className="p-3 bg-[#FAF7F2] rounded-xl border border-gold/15 flex items-center justify-between text-xs"
+                      >
+                        <span className="font-bold text-charcoal flex items-center gap-2">
+                          <Building2 className="w-3.5 h-3.5 text-[#0F4C45]" /> {idx + 1}. {hall}
+                        </span>
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            disabled={idx === 0}
+                            onClick={() => moveHall(idx, "up")}
+                            className="p-1 rounded bg-white text-charcoal hover:bg-gray-100 disabled:opacity-30 cursor-pointer"
+                          >
+                            <ArrowUp className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            disabled={idx === featuredHalls.length - 1}
+                            onClick={() => moveHall(idx, "down")}
+                            className="p-1 rounded bg-white text-charcoal hover:bg-gray-100 disabled:opacity-30 cursor-pointer"
+                          >
+                            <ArrowDown className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Section 3: Venue Information */}
+        <div className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-xs">
+          <button
+            type="button"
+            onClick={() => toggleAccordion("venueInfo")}
+            className="w-full p-5 text-left font-serif font-bold text-base text-charcoal flex items-center justify-between bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <Layers style={{ color: activeTheme.primary }} className="w-5 h-5" />
+              <div>
+                <span className="block">3. Venue Information</span>
+                <span className="text-xs font-sans font-normal text-charcoal/60">
+                  Capacities, hall counts, operating districts & languages spoken
+                </span>
+              </div>
+            </div>
+            {openAccordions.venueInfo ? <ChevronUp className="w-4 h-4 text-charcoal/40" /> : <ChevronDown className="w-4 h-4 text-charcoal/40" />}
+          </button>
+
+          {openAccordions.venueInfo && (
+            <div className="p-5 border-t border-gold/10 space-y-4 text-xs animate-in fade-in duration-200">
+              <div className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <label className="block font-bold text-charcoal">About Venue / Description</label>
+                  <span className={`text-[10px] ${about.length > 500 ? "text-red-500 font-bold" : "text-charcoal/50"}`}>
+                    {about.length}/500 chars
+                  </span>
+                </div>
+                <textarea
+                  rows={3}
+                  value={about}
+                  onChange={(e) => setAbout(e.target.value)}
+                  placeholder="Describe the architectural luxury, lawn ambiance, and 5-star hospitality of your wedding venue..."
+                  className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-charcoal/80 mb-1">
-                    Overtime / Extra Hour Charges
-                  </label>
+                  <label className="block font-bold text-charcoal mb-1">Years in Business</label>
                   <input
                     type="text"
-                    value={overtimeCharges}
-                    onChange={(e) => setOvertimeCharges(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2.5 text-xs text-charcoal font-medium focus:outline-none focus:border-[#0F4C45]"
+                    value={yearsInBusiness}
+                    onChange={(e) => setYearsInBusiness(e.target.value)}
+                    placeholder="e.g. 12"
+                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-charcoal/80 mb-1">
-                    Decoration Rules & Guidelines
+                  <label className="block font-bold text-charcoal mb-1">Maximum Guest Capacity</label>
+                  <input
+                    type="text"
+                    value={guestCapacity}
+                    onChange={(e) => setGuestCapacity(e.target.value)}
+                    placeholder="e.g. 1,500 Guests"
+                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-charcoal mb-1">Minimum Guest Capacity</label>
+                  <input
+                    type="text"
+                    value={minGuestCapacity}
+                    onChange={(e) => setMinGuestCapacity(e.target.value)}
+                    placeholder="e.g. 150 Guests"
+                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-charcoal mb-1">Number of Halls & Spaces</label>
+                  <input
+                    type="text"
+                    value={numberOfHalls}
+                    onChange={(e) => setNumberOfHalls(e.target.value)}
+                    placeholder="e.g. 3 Halls & 2 Lawns"
+                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-charcoal mb-1">Dining / Seated Capacity</label>
+                  <input
+                    type="text"
+                    value={diningCapacity}
+                    onChange={(e) => setDiningCapacity(e.target.value)}
+                    placeholder="e.g. 600 Seated"
+                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-charcoal mb-1">Parking & Valet Capacity</label>
+                  <input
+                    type="text"
+                    value={parkingCapacity}
+                    onChange={(e) => setParkingCapacity(e.target.value)}
+                    placeholder="e.g. 350 Cars & Valet"
+                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
+                  />
+                </div>
+
+                <div className="sm:col-span-2">
+                  <label className="block font-bold text-charcoal mb-1">Operating Districts & Service Areas</label>
+                  <input
+                    type="text"
+                    value={serviceAreas}
+                    onChange={(e) => setServiceAreas(e.target.value)}
+                    placeholder="e.g. Golf Course Road, Gurgaon, South Delhi, NCR"
+                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-charcoal mb-1">Languages Spoken by Staff</label>
+                  <input
+                    type="text"
+                    value={languagesSpoken}
+                    onChange={(e) => setLanguagesSpoken(e.target.value)}
+                    placeholder="e.g. English, Hindi, Punjabi"
+                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Section 4: Contact Action Buttons */}
+        <div className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-xs">
+          <button
+            type="button"
+            onClick={() => toggleAccordion("actionButtons")}
+            className="w-full p-5 text-left font-serif font-bold text-base text-charcoal flex items-center justify-between bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <Phone style={{ color: activeTheme.primary }} className="w-5 h-5" />
+              <div>
+                <span className="block">4. Contact Action Buttons</span>
+                <span className="text-xs font-sans font-normal text-charcoal/60">
+                  Select which call-to-action buttons appear on your public storefront
+                </span>
+              </div>
+            </div>
+            {openAccordions.actionButtons ? <ChevronUp className="w-4 h-4 text-charcoal/40" /> : <ChevronDown className="w-4 h-4 text-charcoal/40" />}
+          </button>
+
+          {openAccordions.actionButtons && (
+            <div className="p-5 border-t border-gold/10 space-y-3 text-xs animate-in fade-in duration-200">
+              <p className="text-charcoal/70">
+                Enable or disable action buttons for visitors viewing your venue profile:
+              </p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <label className="p-3 bg-[#FAF7F2] rounded-xl border border-gold/15 flex items-center justify-between cursor-pointer">
+                  <span className="font-bold text-charcoal flex items-center gap-1.5">
+                    <Phone className="w-3.5 h-3.5 text-[#0F4C45]" /> Call Now
+                  </span>
+                  <input
+                    type="checkbox"
+                    checked={actionButtons.callNow}
+                    onChange={(e) => setActionButtons((prev) => ({ ...prev, callNow: e.target.checked }))}
+                    className="rounded accent-[#0F4C45] w-4 h-4"
+                  />
+                </label>
+
+                <label className="p-3 bg-[#FAF7F2] rounded-xl border border-gold/15 flex items-center justify-between cursor-pointer">
+                  <span className="font-bold text-charcoal flex items-center gap-1.5">
+                    <MessageCircle className="w-3.5 h-3.5 text-[#0F4C45]" /> WhatsApp
+                  </span>
+                  <input
+                    type="checkbox"
+                    checked={actionButtons.whatsapp}
+                    onChange={(e) => setActionButtons((prev) => ({ ...prev, whatsapp: e.target.checked }))}
+                    className="rounded accent-[#0F4C45] w-4 h-4"
+                  />
+                </label>
+
+                <label className="p-3 bg-[#FAF7F2] rounded-xl border border-gold/15 flex items-center justify-between cursor-pointer">
+                  <span className="font-bold text-charcoal flex items-center gap-1.5">
+                    <Calendar className="w-3.5 h-3.5 text-[#0F4C45]" /> Book Venue Visit
+                  </span>
+                  <input
+                    type="checkbox"
+                    checked={actionButtons.bookVenueVisit}
+                    onChange={(e) => setActionButtons((prev) => ({ ...prev, bookVenueVisit: e.target.checked }))}
+                    className="rounded accent-[#0F4C45] w-4 h-4"
+                  />
+                </label>
+
+                <label className="p-3 bg-[#FAF7F2] rounded-xl border border-gold/15 flex items-center justify-between cursor-pointer">
+                  <span className="font-bold text-charcoal flex items-center gap-1.5">
+                    <FileText className="w-3.5 h-3.5 text-[#0F4C45]" /> Request Quote
+                  </span>
+                  <input
+                    type="checkbox"
+                    checked={actionButtons.requestQuote}
+                    onChange={(e) => setActionButtons((prev) => ({ ...prev, requestQuote: e.target.checked }))}
+                    className="rounded accent-[#0F4C45] w-4 h-4"
+                  />
+                </label>
+
+                <label className="p-3 bg-[#FAF7F2] rounded-xl border border-gold/15 flex items-center justify-between cursor-pointer">
+                  <span className="font-bold text-charcoal flex items-center gap-1.5">
+                    <MapPin className="w-3.5 h-3.5 text-[#0F4C45]" /> Get Directions
+                  </span>
+                  <input
+                    type="checkbox"
+                    checked={actionButtons.getDirections}
+                    onChange={(e) => setActionButtons((prev) => ({ ...prev, getDirections: e.target.checked }))}
+                    className="rounded accent-[#0F4C45] w-4 h-4"
+                  />
+                </label>
+
+                <label className="p-3 bg-[#FAF7F2] rounded-xl border border-gold/15 flex items-center justify-between cursor-pointer">
+                  <span className="font-bold text-charcoal flex items-center gap-1.5">
+                    <Globe className="w-3.5 h-3.5 text-[#0F4C45]" /> Official Website
+                  </span>
+                  <input
+                    type="checkbox"
+                    checked={actionButtons.website}
+                    onChange={(e) => setActionButtons((prev) => ({ ...prev, website: e.target.checked }))}
+                    className="rounded accent-[#0F4C45] w-4 h-4"
+                  />
+                </label>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Section 5: Working Hours & Venue Visit Timings */}
+        <div className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-xs">
+          <button
+            type="button"
+            onClick={() => toggleAccordion("timings")}
+            className="w-full p-5 text-left font-serif font-bold text-base text-charcoal flex items-center justify-between bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <Clock style={{ color: activeTheme.primary }} className="w-5 h-5" />
+              <div>
+                <span className="block">5. Working Hours & Venue Visit Timings</span>
+                <span className="text-xs font-sans font-normal text-charcoal/60">
+                  Office timings, weekly holidays & guided venue tour slots
+                </span>
+              </div>
+            </div>
+            {openAccordions.timings ? <ChevronUp className="w-4 h-4 text-charcoal/40" /> : <ChevronDown className="w-4 h-4 text-charcoal/40" />}
+          </button>
+
+          {openAccordions.timings && (
+            <div className="p-5 border-t border-gold/10 space-y-4 text-xs animate-in fade-in duration-200">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block font-bold text-charcoal mb-1">Office Opening Time</label>
+                  <input
+                    type="text"
+                    value={openingTime}
+                    onChange={(e) => setOpeningTime(e.target.value)}
+                    placeholder="e.g. 09:00 AM"
+                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-charcoal mb-1">Office Closing Time</label>
+                  <input
+                    type="text"
+                    value={closingTime}
+                    onChange={(e) => setClosingTime(e.target.value)}
+                    placeholder="e.g. 09:00 PM"
+                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-charcoal mb-1">Weekly Holidays / Off Days</label>
+                  <input
+                    type="text"
+                    value={weeklyHolidays}
+                    onChange={(e) => setWeeklyHolidays(e.target.value)}
+                    placeholder="e.g. Open All 7 Days or Tuesday Off"
+                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
+                  />
+                </div>
+
+                <div className="sm:col-span-2">
+                  <label className="block font-bold text-charcoal mb-1">Guided Venue Visit Timings</label>
+                  <input
+                    type="text"
+                    value={venueVisitTimings}
+                    onChange={(e) => setVenueVisitTimings(e.target.value)}
+                    placeholder="e.g. 10:00 AM - 06:00 PM (Daily by appointment)"
+                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-charcoal mb-1">Public Holiday Availability</label>
+                  <input
+                    type="text"
+                    value={publicHolidayAvailability}
+                    onChange={(e) => setPublicHolidayAvailability(e.target.value)}
+                    placeholder="e.g. Open for tours by appointment"
+                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
+                  />
+                </div>
+
+                <div className="sm:col-span-3 pt-1">
+                  <label className="p-3 bg-[#FAF7F2] rounded-xl border border-gold/15 flex items-center justify-between cursor-pointer">
+                    <div>
+                      <span className="font-bold text-charcoal block">Prior Appointment Required for Guided Visits</span>
+                      <span className="text-[11px] text-charcoal/60">Couples must schedule a visit time before visiting the venue grounds</span>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={advanceAppointmentRequired}
+                      onChange={(e) => setAdvanceAppointmentRequired(e.target.checked)}
+                      className="rounded accent-[#0F4C45] w-4 h-4 shrink-0"
+                    />
                   </label>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Section 6: Booking Policies & Venue Guidelines */}
+        <div className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-xs">
+          <button
+            type="button"
+            onClick={() => toggleAccordion("policies")}
+            className="w-full p-5 text-left font-serif font-bold text-base text-charcoal flex items-center justify-between bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <ShieldCheck style={{ color: activeTheme.primary }} className="w-5 h-5" />
+              <div>
+                <span className="block">6. Booking Policies & Venue Guidelines</span>
+                <span className="text-xs font-sans font-normal text-charcoal/60">
+                  Advance booking, payments, catering, decor & noise guidelines
+                </span>
+              </div>
+            </div>
+            {openAccordions.policies ? <ChevronUp className="w-4 h-4 text-charcoal/40" /> : <ChevronDown className="w-4 h-4 text-charcoal/40" />}
+          </button>
+
+          {openAccordions.policies && (
+            <div className="p-5 border-t border-gold/10 space-y-4 text-xs animate-in fade-in duration-200">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block font-bold text-charcoal mb-1">Advance Booking Lead Time</label>
+                  <input
+                    type="text"
+                    value={advanceBookingRequired}
+                    onChange={(e) => setAdvanceBookingRequired(e.target.value)}
+                    placeholder="e.g. Minimum 30 to 90 days advance booking recommended"
+                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-charcoal mb-1">Advance Payment Schedule</label>
+                  <input
+                    type="text"
+                    value={advancePaymentPolicy}
+                    onChange={(e) => setAdvancePaymentPolicy(e.target.value)}
+                    placeholder="e.g. 25% on booking, 50% 30 days prior, 25% 7 days prior"
+                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-charcoal mb-1">Cancellation Policy</label>
+                  <input
+                    type="text"
+                    value={cancellationPolicy}
+                    onChange={(e) => setCancellationPolicy(e.target.value)}
+                    placeholder="e.g. Full refund 60+ days prior to event"
+                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-charcoal mb-1">Security Deposit & Refund Policy</label>
+                  <input
+                    type="text"
+                    value={refundPolicy}
+                    onChange={(e) => setRefundPolicy(e.target.value)}
+                    placeholder="e.g. 100% deposit refunded within 24 hours of inspection"
+                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-charcoal mb-1">Decoration Policy</label>
                   <input
                     type="text"
                     value={decorationRules}
                     onChange={(e) => setDecorationRules(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2.5 text-xs text-charcoal font-medium focus:outline-none focus:border-[#0F4C45]"
+                    placeholder="e.g. Empaneled decorators available; outside decor by approval"
+                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
                   />
                 </div>
-              </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
-                  <label className="block text-xs font-bold text-charcoal/80 mb-1">
-                    Outside Catering Policy
-                  </label>
+                  <label className="block font-bold text-charcoal mb-1">Outside Catering Policy</label>
                   <input
                     type="text"
                     value={outsideCateringPolicy}
                     onChange={(e) => setOutsideCateringPolicy(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2.5 text-xs text-charcoal font-medium focus:outline-none focus:border-[#0F4C45]"
+                    placeholder="e.g. In-house catering team; outside caterers subject to royalty"
+                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-charcoal/80 mb-1">
-                    Outside Photography & Drone Policy
-                  </label>
+                  <label className="block font-bold text-charcoal mb-1">Photography & Drone Policy</label>
                   <input
                     type="text"
                     value={outsidePhotographyPolicy}
                     onChange={(e) => setOutsidePhotographyPolicy(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2.5 text-xs text-charcoal font-medium focus:outline-none focus:border-[#0F4C45]"
+                    placeholder="e.g. Unrestricted drone videography and professional cameras allowed"
+                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
                   />
                 </div>
-              </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
-                  <label className="block text-xs font-bold text-charcoal/80 mb-1">
-                    Music & Noise Restriction Timing
-                  </label>
+                  <label className="block font-bold text-charcoal mb-1">Music & Noise Timing Restrictions</label>
                   <input
                     type="text"
                     value={noiseRestrictions}
                     onChange={(e) => setNoiseRestrictions(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2.5 text-xs text-charcoal font-medium focus:outline-none focus:border-[#0F4C45]"
+                    placeholder="e.g. Indoor: 01:00 AM; Outdoor lawn DJ cutoff: 10:00 PM"
+                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-charcoal/80 mb-1">
-                    Alcohol & Bar Policy
-                  </label>
+                  <label className="block font-bold text-charcoal mb-1">Alcohol Policy & Bar License</label>
                   <input
                     type="text"
                     value={alcoholPolicy}
                     onChange={(e) => setAlcoholPolicy(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2.5 text-xs text-charcoal font-medium focus:outline-none focus:border-[#0F4C45]"
+                    placeholder="e.g. Allowed with standard 1-day excise bar permit"
+                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-charcoal mb-1">Overtime Charges</label>
+                  <input
+                    type="text"
+                    value={overtimeCharges}
+                    onChange={(e) => setOvertimeCharges(e.target.value)}
+                    placeholder="e.g. ₹15,000 per extra hour beyond slot cutoff"
+                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
+                  />
+                </div>
+
+                <div className="sm:col-span-2">
+                  <label className="block font-bold text-charcoal mb-1">Available Event Slot Rules</label>
+                  <input
+                    type="text"
+                    value={eventTimingRules}
+                    onChange={(e) => setEventTimingRules(e.target.value)}
+                    placeholder="e.g. Morning (06 AM - 03 PM) | Evening (05 PM - 11:30 PM) | Full Day (06 AM - 11:30 PM)"
+                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
                   />
                 </div>
               </div>
+            </div>
+          )}
+        </div>
 
+        {/* Section 7: Brand Color Theme */}
+        <div className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-xs">
+          <button
+            type="button"
+            onClick={() => toggleAccordion("theme")}
+            className="w-full p-5 text-left font-serif font-bold text-base text-charcoal flex items-center justify-between bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <Palette style={{ color: activeTheme.primary }} className="w-5 h-5" />
               <div>
-                <label className="block text-xs font-bold text-charcoal/80 mb-1">
-                  Event Timing Slot Rules
-                </label>
-                <input
-                  type="text"
-                  value={eventTimingRules}
-                  onChange={(e) => setEventTimingRules(e.target.value)}
-                  className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2.5 text-xs text-charcoal font-medium focus:outline-none focus:border-[#0F4C45]"
-                />
+                <span className="block">7. Brand Color Theme</span>
+                <span className="text-xs font-sans font-normal text-charcoal/60">
+                  Select a cohesive luxury palette for buttons, badges, and accents
+                </span>
               </div>
             </div>
-          </div>
+            {openAccordions.theme ? <ChevronUp className="w-4 h-4 text-charcoal/40" /> : <ChevronDown className="w-4 h-4 text-charcoal/40" />}
+          </button>
 
-          {/* 7. Brand Theme */}
-          <div className="bg-white rounded-3xl p-6 sm:p-7 border border-gold/15 shadow-sm space-y-4">
-            <div className="flex items-center gap-2 border-b border-gold/10 pb-3">
-              <Palette className="w-4 h-4 text-[#0F4C45]" />
-              <h3 className="font-serif text-base font-bold text-charcoal">7. Storefront Brand Theme</h3>
-            </div>
-            <p className="text-xs text-charcoal/60 leading-relaxed">
-              Select your venue's primary color theme. This dynamically styles your CTA buttons, badges, highlights, and storefront cards:
-            </p>
-
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-1">
-              {VENUE_COLOR_THEMES.map((theme) => {
-                const isSelected = colorTheme === theme.id;
-                return (
-                  <button
-                    key={theme.id}
-                    type="button"
-                    onClick={() => setColorTheme(theme.id)}
-                    className={`p-3.5 rounded-2xl border text-left transition-all relative cursor-pointer ${
-                      isSelected
-                        ? "border-[#0F4C45] bg-[#FAF5EA] ring-2 ring-[#0F4C45]/20 shadow-xs"
-                        : "border-gold/15 bg-[#FAF7F2] hover:bg-gold/10"
-                    }`}
-                  >
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="w-5 h-5 rounded-full border border-black/10 shadow-2xs shrink-0" style={{ backgroundColor: theme.primary }} />
-                      <span className="w-3.5 h-3.5 rounded-full border border-black/10 shrink-0" style={{ backgroundColor: theme.accent }} />
-                    </div>
-                    <span className="font-serif font-bold text-xs text-charcoal block truncate">{theme.label}</span>
-                    {isSelected && (
-                      <span className="absolute top-3 right-3 text-[#0F4C45]">
-                        <Check className="w-4 h-4 stroke-[3]" />
+          {openAccordions.theme && (
+            <div className="p-5 border-t border-gold/10 space-y-4 text-xs animate-in fade-in duration-200">
+              <p className="text-charcoal/70">
+                Choose a signature theme that highlights your venue's aesthetic:
+              </p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+                {COLOR_THEMES.map((theme) => {
+                  const isSelected = colorTheme === theme.id;
+                  return (
+                    <button
+                      key={theme.id}
+                      type="button"
+                      onClick={() => setColorTheme(theme.id)}
+                      className={`p-3 rounded-2xl border text-left transition-all relative cursor-pointer ${
+                        isSelected
+                          ? "border-charcoal shadow-sm ring-2 ring-charcoal/20 bg-white"
+                          : "border-gold/20 bg-[#FAF7F2] hover:bg-gold/10"
+                      }`}
+                    >
+                      <div className="flex items-center gap-1.5 mb-2">
+                        <div
+                          style={{ backgroundColor: theme.primary }}
+                          className="w-4 h-4 rounded-full shadow-2xs shrink-0"
+                        />
+                        <div
+                          style={{ backgroundColor: theme.accent }}
+                          className="w-3 h-3 rounded-full shadow-2xs shrink-0"
+                        />
+                      </div>
+                      <span className="font-bold text-charcoal block text-[11px] leading-tight">
+                        {theme.label}
                       </span>
+                      {isSelected && (
+                        <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-emerald-500" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Section 8: Logo, Cover Image & Branding */}
+        <div className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-xs">
+          <button
+            type="button"
+            onClick={() => toggleAccordion("branding")}
+            className="w-full p-5 text-left font-serif font-bold text-base text-charcoal flex items-center justify-between bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <ImageIcon style={{ color: activeTheme.primary }} className="w-5 h-5" />
+              <div>
+                <span className="block">8. Logo, Cover Image & Branding Media</span>
+                <span className="text-xs font-sans font-normal text-charcoal/60">
+                  Venue logo, banner cover, tagline, intro video reel & social connections
+                </span>
+              </div>
+            </div>
+            {openAccordions.branding ? <ChevronUp className="w-4 h-4 text-charcoal/40" /> : <ChevronDown className="w-4 h-4 text-charcoal/40" />}
+          </button>
+
+          {openAccordions.branding && (
+            <div className="p-5 border-t border-gold/10 space-y-5 text-xs animate-in fade-in duration-200">
+              {/* Media Upload Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {/* Logo Upload Card */}
+                <div className="p-4 bg-[#FAF7F2] rounded-2xl border border-gold/15 flex flex-col items-center text-center space-y-3">
+                  <div className="w-20 h-20 rounded-2xl bg-white border border-gold/20 flex items-center justify-center overflow-hidden relative shadow-xs">
+                    {logoUrl ? (
+                      <img src={logoUrl} alt="Logo" className="w-full h-full object-cover" />
+                    ) : (
+                      <Building2 className="w-8 h-8 text-charcoal/30" />
+                    )}
+                  </div>
+                  <div>
+                    <span className="font-bold text-charcoal block">Venue Logo</span>
+                    <span className="text-[10px] text-charcoal/50">PNG, JPG, WebP (Square 1:1)</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => logoInputRef.current?.click()}
+                    disabled={isUploadingLogo}
+                    className="w-full py-2 px-3 bg-white border border-gold/20 rounded-xl text-charcoal font-bold text-xs hover:bg-gold/10 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    {isUploadingLogo ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" /> Uploading...
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="w-3.5 h-3.5 text-[#0F4C45]" /> Upload Logo
+                      </>
                     )}
                   </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* 8. Branding, Logo & Intro Video */}
-          <div className="bg-white rounded-3xl p-6 sm:p-7 border border-gold/15 shadow-sm space-y-5">
-            <div className="flex items-center gap-2 border-b border-gold/10 pb-3">
-              <Building2 className="w-4 h-4 text-[#0F4C45]" />
-              <h3 className="font-serif text-base font-bold text-charcoal">8. Venue Branding & Media</h3>
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-charcoal/80 mb-1">
-                  Venue Name
-                </label>
-                <input
-                  type="text"
-                  value={venueName}
-                  onChange={(e) => setVenueName(e.target.value)}
-                  className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2.5 text-xs text-charcoal font-medium focus:outline-none focus:border-[#0F4C45]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-charcoal/80 mb-1">
-                  Venue Tagline
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. Royal Heritage Palaces & Grand Wedding Lawns"
-                  value={tagline}
-                  onChange={(e) => setTagline(e.target.value)}
-                  className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2.5 text-xs text-charcoal font-medium focus:outline-none focus:border-[#0F4C45]"
-                />
-              </div>
-
-              {/* About Venue with live character counter */}
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <label className="text-xs font-bold text-charcoal/80">
-                    About Venue Description
-                  </label>
-                  <span className={`text-[10px] font-bold ${about.length >= 300 && about.length <= 500 ? "text-emerald-700" : "text-charcoal/40"}`}>
-                    {about.length} / 500 chars (Min 300 recommended)
-                  </span>
                 </div>
-                <textarea
-                  rows={4}
-                  placeholder="Describe your architecture, hospitality, parking space, banquet capacity, and scenic beauty (300 to 500 characters)..."
-                  value={about}
-                  onChange={(e) => setAbout(e.target.value)}
-                  maxLength={600}
-                  className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl p-3 text-xs text-charcoal font-medium focus:outline-none focus:border-[#0F4C45] resize-none leading-relaxed"
-                />
-              </div>
 
-              {/* Logo & Cover Media Uploaders */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <VendorImageUploader
-                  label="Venue Logo"
-                  sublabel="Square ratio, transparent or white background"
-                  value={logoUrl}
-                  onChange={(url) => setLogoUrl(Array.isArray(url) ? url[0] || "" : url)}
-                  folder="cloche/vendors/venues/logos"
-                />
-
-                <VendorImageUploader
-                  label="Venue Cover Photo"
-                  sublabel="Hero landscape photo of your ballroom or lawn"
-                  value={coverUrl}
-                  onChange={(url) => setCoverUrl(Array.isArray(url) ? url[0] || "" : url)}
-                  folder="cloche/vendors/venues/covers"
-                />
-              </div>
-
-              {/* Intro Video Upload (Device Picker) */}
-              <div className="p-4 rounded-2xl bg-[#FAF7F2] border border-gold/15 space-y-2.5">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Video className="w-4 h-4 text-[#0F4C45]" />
-                    <span className="text-xs font-bold text-charcoal">Venue Cinematic Intro Reel / Video</span>
+                {/* Cover Photo Upload Card */}
+                <div className="p-4 bg-[#FAF7F2] rounded-2xl border border-gold/15 flex flex-col items-center text-center space-y-3">
+                  <div className="w-full h-20 rounded-2xl bg-white border border-gold/20 flex items-center justify-center overflow-hidden relative shadow-xs">
+                    {coverUrl ? (
+                      <img src={coverUrl} alt="Cover" className="w-full h-full object-cover" />
+                    ) : (
+                      <ImageIcon className="w-8 h-8 text-charcoal/30" />
+                    )}
                   </div>
-                  {introVideo && (
-                    <button
-                      type="button"
-                      onClick={() => setIntroVideo("")}
-                      className="text-[11px] text-red-600 hover:underline font-bold cursor-pointer"
-                    >
-                      Remove Video
-                    </button>
-                  )}
+                  <div>
+                    <span className="font-bold text-charcoal block">Cover Banner Photo</span>
+                    <span className="text-[10px] text-charcoal/50">Landscape (16:9 / 21:9)</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => coverInputRef.current?.click()}
+                    disabled={isUploadingCover}
+                    className="w-full py-2 px-3 bg-white border border-gold/20 rounded-xl text-charcoal font-bold text-xs hover:bg-gold/10 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    {isUploadingCover ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" /> Uploading...
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="w-3.5 h-3.5 text-[#0F4C45]" /> Upload Cover
+                      </>
+                    )}
+                  </button>
                 </div>
-                <p className="text-[11px] text-charcoal/60">
-                  Upload a 15-60 second walk-through video reel directly from your device (Max 50MB):
-                </p>
 
-                <input
-                  ref={videoInputRef}
-                  type="file"
-                  accept="video/mp4,video/quicktime,video/webm"
-                  onChange={handleVideoUpload}
-                  className="hidden"
-                />
-
-                {introVideo ? (
-                  <div className="relative rounded-xl overflow-hidden bg-black aspect-video max-h-48 border border-gold/20">
-                    <video src={introVideo} controls className="w-full h-full object-contain" />
+                {/* Intro Video Upload Card */}
+                <div className="p-4 bg-[#FAF7F2] rounded-2xl border border-gold/15 flex flex-col items-center text-center space-y-3">
+                  <div className="w-full h-20 rounded-2xl bg-white border border-gold/20 flex items-center justify-center overflow-hidden relative shadow-xs">
+                    {introVideo ? (
+                      <div className="flex items-center gap-1 text-emerald-700 font-bold text-xs">
+                        <Play className="w-4 h-4 fill-emerald-700" /> Video Ready
+                      </div>
+                    ) : (
+                      <Video className="w-8 h-8 text-charcoal/30" />
+                    )}
                   </div>
-                ) : (
+                  <div>
+                    <span className="font-bold text-charcoal block">Intro Video Reel</span>
+                    <span className="text-[10px] text-charcoal/50">MP4, WebM (Max 50MB)</span>
+                  </div>
                   <button
                     type="button"
                     onClick={() => videoInputRef.current?.click()}
-                    disabled={uploadingVideo}
-                    className="w-full py-4 rounded-xl border border-dashed border-[#0F4C45]/40 hover:border-[#0F4C45] bg-white text-xs font-bold text-[#0F4C45] flex items-center justify-center gap-2 cursor-pointer transition-all hover:bg-gold/5"
+                    disabled={isUploadingVideo}
+                    className="w-full py-2 px-3 bg-white border border-gold/20 rounded-xl text-charcoal font-bold text-xs hover:bg-gold/10 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
                   >
-                    {uploadingVideo ? (
+                    {isUploadingVideo ? (
                       <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        <span>Uploading Video Reel...</span>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" /> Uploading...
                       </>
                     ) : (
                       <>
-                        <Video className="w-4 h-4 text-[#C8A96A]" />
-                        <span>Choose Video from Device</span>
+                        <Upload className="w-3.5 h-3.5 text-[#0F4C45]" /> Upload Video
                       </>
                     )}
                   </button>
+                </div>
+              </div>
+
+              {/* Tagline Input */}
+              <div>
+                <label className="block font-bold text-charcoal mb-1">Venue Tagline / Subtitle</label>
+                <input
+                  type="text"
+                  value={tagline}
+                  onChange={(e) => setTagline(e.target.value)}
+                  placeholder="e.g. Royal Palaces, Majestic Lawns & Unforgettable Grand Celebrations"
+                  className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
+                />
+              </div>
+
+              {/* Venue Gallery Images */}
+              <div className="space-y-3 pt-2 border-t border-gold/10">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className="font-bold text-charcoal block">Venue Gallery Photos ({galleryImages.length})</span>
+                    <span className="text-[10px] text-charcoal/60">Upload high-resolution banquet and lawn photography</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => galleryInputRef.current?.click()}
+                    disabled={isUploadingGallery}
+                    className="py-1.5 px-3 bg-[#0F4C45] text-white font-bold rounded-xl text-xs flex items-center gap-1.5 cursor-pointer"
+                  >
+                    {isUploadingGallery ? <Loader2 className="w-3 h-3 animate-spin" /> : <Upload className="w-3 h-3" />}
+                    Add Photos
+                  </button>
+                </div>
+
+                {galleryImages.length > 0 && (
+                  <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-2.5">
+                    {galleryImages.map((img, i) => (
+                      <div key={i} className="relative aspect-square rounded-xl overflow-hidden border border-gold/15 group">
+                        <img src={img} alt={`Gallery ${i + 1}`} className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveGalleryImage(i)}
+                          className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
                 )}
               </div>
 
-              {/* Social Links */}
-              <div className="space-y-3 pt-2">
-                <span className="text-xs font-bold text-charcoal block">Social Media & Online Presence:</span>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                  <div className="flex items-center bg-[#FAF7F2] border border-gold/20 rounded-xl px-3 py-2">
-                    <InstagramIcon className="w-4 h-4 text-[#E1306C] mr-2 shrink-0" />
+              {/* Social Media Links */}
+              <div className="space-y-3 pt-3 border-t border-gold/10">
+                <span className="font-bold text-charcoal block">Social Media & Online Presence:</span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="flex items-center gap-2 bg-[#FAF7F2] p-2.5 rounded-xl border border-gold/15">
+                    <InstagramIcon className="w-4 h-4 text-[#0F4C45] shrink-0" />
                     <input
                       type="text"
-                      placeholder="Instagram profile or handle"
                       value={instagram}
                       onChange={(e) => setInstagram(e.target.value)}
-                      className="w-full bg-transparent text-xs text-charcoal focus:outline-none"
+                      placeholder="Instagram URL (e.g. instagram.com/royalorchid)"
+                      className="w-full bg-transparent outline-none text-xs"
                     />
                   </div>
 
-                  <div className="flex items-center bg-[#FAF7F2] border border-gold/20 rounded-xl px-3 py-2">
-                    <FacebookIcon className="w-4 h-4 text-[#1877F2] mr-2 shrink-0" />
+                  <div className="flex items-center gap-2 bg-[#FAF7F2] p-2.5 rounded-xl border border-gold/15">
+                    <FacebookIcon className="w-4 h-4 text-[#0F4C45] shrink-0" />
                     <input
                       type="text"
-                      placeholder="Facebook page link"
                       value={facebook}
                       onChange={(e) => setFacebook(e.target.value)}
-                      className="w-full bg-transparent text-xs text-charcoal focus:outline-none"
+                      placeholder="Facebook Page URL"
+                      className="w-full bg-transparent outline-none text-xs"
                     />
                   </div>
 
-                  <div className="flex items-center bg-[#FAF7F2] border border-gold/20 rounded-xl px-3 py-2">
-                    <Globe className="w-4 h-4 text-[#0F4C45] mr-2 shrink-0" />
+                  <div className="flex items-center gap-2 bg-[#FAF7F2] p-2.5 rounded-xl border border-gold/15">
+                    <Globe className="w-4 h-4 text-[#0F4C45] shrink-0" />
                     <input
                       type="text"
-                      placeholder="Official website URL"
                       value={website}
                       onChange={(e) => setWebsite(e.target.value)}
-                      className="w-full bg-transparent text-xs text-charcoal focus:outline-none"
+                      placeholder="Official Website URL"
+                      className="w-full bg-transparent outline-none text-xs"
                     />
                   </div>
 
-                  <div className="flex items-center bg-[#FAF7F2] border border-gold/20 rounded-xl px-3 py-2">
-                    <YoutubeIcon className="w-4 h-4 text-[#FF0000] mr-2 shrink-0" />
+                  <div className="flex items-center gap-2 bg-[#FAF7F2] p-2.5 rounded-xl border border-gold/15">
+                    <YoutubeIcon className="w-4 h-4 text-[#0F4C45] shrink-0" />
                     <input
                       type="text"
-                      placeholder="YouTube channel / tour video"
                       value={youtube}
                       onChange={(e) => setYoutube(e.target.value)}
-                      className="w-full bg-transparent text-xs text-charcoal focus:outline-none"
+                      placeholder="YouTube Channel URL"
+                      className="w-full bg-transparent outline-none text-xs"
                     />
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-
-          {/* Bottom Save Action Button */}
-          <div className="pt-2">
-            <button
-              type="button"
-              onClick={handleSaveStore}
-              disabled={isSaving}
-              className="w-full bg-[#0F4C45] hover:bg-[#072B27] text-white font-bold text-sm py-4 rounded-2xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
-            >
-              {isSaving ? <Loader2 className="w-4 h-4 animate-spin text-[#C8A96A]" /> : <Save className="w-4 h-4 text-[#C8A96A]" />}
-              <span>Save & Publish Venue Customization</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Right Column: Real-Time Live Preview (5 Cols, Sticky) */}
-        <div className="lg:col-span-5 sticky top-6 space-y-4">
-          <div className="bg-white rounded-3xl p-5 border border-gold/20 shadow-lg space-y-4">
-            <div className="flex items-center justify-between border-b border-gold/10 pb-3">
-              <div className="flex items-center gap-2">
-                <Eye className="w-4 h-4 text-[#0F4C45]" />
-                <h3 className="font-serif text-sm font-bold text-charcoal">Live Storefront Preview</h3>
-              </div>
-              <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
-                Real-Time
-              </span>
-            </div>
-
-            {/* Mobile / Storefront Preview Card */}
-            <div className="rounded-2xl border border-gold/20 overflow-hidden bg-[#FAF7F2] shadow-inner text-xs space-y-3">
-              {/* Cover Photo & Floating Header */}
-              <div className="relative h-44 bg-charcoal/10 overflow-hidden">
-                {coverUrl ? (
-                  <img src={coverUrl} alt="Venue Cover" className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-charcoal/40 font-serif italic">
-                    Venue Cover Photo
-                  </div>
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/20" />
-
-                {/* Logo & Venue Name */}
-                <div className="absolute bottom-3 left-3 right-3 flex items-end gap-2.5">
-                  <div className="w-12 h-12 rounded-xl bg-white p-1 shadow-md shrink-0 border border-white/40 overflow-hidden">
-                    {logoUrl ? (
-                      <img src={logoUrl} alt="Logo" className="w-full h-full object-contain rounded-lg" />
-                    ) : (
-                      <div className="w-full h-full bg-[#0F4C45] text-white flex items-center justify-center font-bold text-xs rounded-lg">
-                        {venueName.slice(0, 2).toUpperCase()}
-                      </div>
-                    )}
-                  </div>
-                  <div className="text-white min-w-0 flex-1">
-                    <h4 className="font-serif font-bold text-sm leading-tight truncate">{venueName}</h4>
-                    <span className="text-[10px] text-white/80 block truncate">
-                      {tagline || "Luxury Wedding Venue"}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="p-3.5 space-y-3">
-                {/* Location & Operating Experience */}
-                <div className="flex items-center justify-between text-[11px] text-charcoal/70 border-b border-gold/10 pb-2">
-                  <span className="flex items-center gap-1">
-                    <MapPin className="w-3 h-3 text-[#0F4C45]" />
-                    <span>{locationStr}</span>
-                  </span>
-                  <span className="font-bold text-[#0F4C45]">
-                    {yearsInBusiness} Years Exp.
-                  </span>
-                </div>
-
-                {/* Highlights Strip */}
-                {venueHighlights.length > 0 && (
-                  <div className="flex flex-wrap gap-1">
-                    {venueHighlights.slice(0, 4).map((badge) => (
-                      <span
-                        key={badge}
-                        className="text-[9px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-2xs"
-                        style={{ backgroundColor: activeTheme.badgeBg, color: activeTheme.badgeText }}
-                      >
-                        <Sparkles className="w-2.5 h-2.5 text-[#C8A96A]" /> {badge}
-                      </span>
-                    ))}
-                    {venueHighlights.length > 4 && (
-                      <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-charcoal/10 text-charcoal/60">
-                        +{venueHighlights.length - 4} more
-                      </span>
-                    )}
-                  </div>
-                )}
-
-                {/* Capacity Stats Card */}
-                <div className="grid grid-cols-2 gap-2 text-[10px] bg-white p-2.5 rounded-xl border border-gold/15">
-                  <div>
-                    <span className="text-charcoal/50 block font-semibold">Max Guests</span>
-                    <span className="font-bold text-[#0F4C45]">{guestCapacity}</span>
-                  </div>
-                  <div>
-                    <span className="text-charcoal/50 block font-semibold">Halls & Lawns</span>
-                    <span className="font-bold text-[#0F4C45]">{numberOfHalls}</span>
-                  </div>
-                </div>
-
-                {/* Facilities Pill List */}
-                {facilities.length > 0 && (
-                  <div className="space-y-1">
-                    <span className="text-[10px] font-bold text-charcoal/60 uppercase tracking-wider block">
-                      Venue Facilities ({facilities.length})
-                    </span>
-                    <div className="flex flex-wrap gap-1">
-                      {facilities.slice(0, 6).map((f) => (
-                        <span key={f} className="text-[9px] font-bold bg-white text-charcoal px-2 py-0.5 rounded-lg border border-gold/15">
-                          ✓ {f}
-                        </span>
-                      ))}
-                      {facilities.length > 6 && (
-                        <span className="text-[9px] font-bold bg-white text-charcoal/50 px-2 py-0.5 rounded-lg border border-gold/15">
-                          +{facilities.length - 6} more
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* About Preview */}
-                {about && (
-                  <div className="space-y-1 pt-1">
-                    <span className="text-[10px] font-bold text-charcoal/60 uppercase tracking-wider block">
-                      About Venue
-                    </span>
-                    <p className="text-[10px] text-charcoal/80 leading-relaxed line-clamp-3">
-                      {about}
-                    </p>
-                  </div>
-                )}
-
-                {/* Timings & Visit Notice */}
-                <div className="p-2.5 rounded-xl bg-[#FAF5EA] border border-gold/20 text-[10px] space-y-0.5">
-                  <span className="font-bold text-[#0F4C45] block">Venue Visit Timings:</span>
-                  <span className="text-charcoal/80 block">{venueVisitTimings}</span>
-                </div>
-
-                {/* Action Buttons Mockup */}
-                <div className="pt-2 flex flex-wrap gap-1.5">
-                  {contactActions.includes("Call Now") && (
-                    <span className="flex-1 py-1.5 rounded-lg text-center font-bold text-[10px] text-white shadow-xs" style={{ backgroundColor: activeTheme.primary }}>
-                      📞 Call Now
-                    </span>
-                  )}
-                  {contactActions.includes("WhatsApp") && (
-                    <span className="flex-1 py-1.5 rounded-lg text-center font-bold text-[10px] text-white bg-emerald-600 shadow-xs">
-                      💬 WhatsApp
-                    </span>
-                  )}
-                  {contactActions.includes("Book Venue Visit") && (
-                    <span className="w-full py-1.5 rounded-lg text-center font-bold text-[10px] text-white shadow-xs" style={{ backgroundColor: activeTheme.secondary }}>
-                      📅 Book Venue Visit
-                    </span>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
+          )}
         </div>
       </div>
     </div>

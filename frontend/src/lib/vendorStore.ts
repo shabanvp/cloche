@@ -111,14 +111,22 @@ export interface VendorProfileData {
   venue_facilities?: string[];
   venueHighlights?: string[];
   venue_highlights?: string[];
+  featuredHalls?: string[];
+  featured_halls?: string[];
   yearsInBusiness?: string;
   years_in_business?: string;
+  guestCapacity?: string;
+  guest_capacity?: string;
+  minGuestCapacity?: string;
+  min_guest_capacity?: string;
   numberOfHalls?: string;
   number_of_halls?: string;
   indoorCapacity?: string;
   indoor_capacity?: string;
   outdoorCapacity?: string;
   outdoor_capacity?: string;
+  diningCapacity?: string;
+  dining_capacity?: string;
   parkingCapacity?: string;
   parking_capacity?: string;
   languagesSpoken?: string;
@@ -131,6 +139,8 @@ export interface VendorProfileData {
   public_holiday_availability?: string;
   venueVisitTimings?: string;
   venue_visit_timings?: string;
+  advanceAppointmentRequired?: boolean | string;
+  advance_appointment_required?: boolean | string;
   advanceBookingRequired?: string;
   advance_booking_required?: string;
   advancePaymentPolicy?: string;
@@ -151,6 +161,8 @@ export interface VendorProfileData {
   alcohol_policy?: string;
   eventTimingRules?: string;
   event_timing_rules?: string;
+  hallImages?: string[];
+  hall_images?: string[];
 }
 
 /**
