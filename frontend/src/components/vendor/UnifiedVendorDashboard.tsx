@@ -42,6 +42,19 @@ import { JewelleryReviewsSection } from "./jewellery/JewelleryReviewsSection";
 import { JewelleryPoliciesSection } from "./jewellery/JewelleryPoliciesSection";
 import { JewelleryNotificationsSection } from "./jewellery/JewelleryNotificationsSection";
 import { JewelleryCatalogSection } from "./jewellery/JewelleryCatalogSection";
+
+import { VenueCustomizeStoreSection } from "./venues/VenueCustomizeStoreSection";
+import { VenueCalendarSection } from "./venues/VenueCalendarSection";
+import { VenueBookingsSection } from "./venues/VenueBookingsSection";
+import { VenueFacilitiesSection } from "./venues/VenueFacilitiesSection";
+import { VenuePackagesSection } from "./venues/VenuePackagesSection";
+import { VenuePaymentsSection } from "./venues/VenuePaymentsSection";
+import { VenueStaffSection } from "./venues/VenueStaffSection";
+import { VenueReviewsSection } from "./venues/VenueReviewsSection";
+import { VenueDocumentsSection } from "./venues/VenueDocumentsSection";
+import { VenueNotificationsSection } from "./venues/VenueNotificationsSection";
+import { VenueAnalyticsSection } from "./venues/VenueAnalyticsSection";
+
 import {
   Layers,
   ShoppingBag,
@@ -49,7 +62,9 @@ import {
   Wrench,
   FileText,
   Bell,
-  DollarSign
+  DollarSign,
+  Users,
+  Building2
 } from "lucide-react";
 
 interface UnifiedVendorDashboardProps {
@@ -113,39 +128,61 @@ export function UnifiedVendorDashboard({ categoryKey = "caterers" }: UnifiedVend
   const partnerBadge = vendorData?.plan || (vendorData?.isVerified || vendorData?.is_verified ? "Verified Partner" : "Registered Partner");
 
   const isJewellery = activeCategoryKey === "jewellery" || vendorCategoryName.toLowerCase().includes("jewel");
+  const isVenue = activeCategoryKey === "venues" || vendorCategoryName.toLowerCase().includes("venue");
 
   // Navigation items matching requested structure
-  const navItems = isJewellery
-    ? [
-        { id: "overview", label: "Overview", icon: LayoutDashboard, desc: "Business summary, active rentals & revenue insights" },
-        { id: "profile", label: "Profile", icon: Store, desc: "Business details, contact info, service area & working hours" },
-        { id: "inventory", label: "Inventory Management", icon: Layers, desc: "Stock availability, quantity tracking, reserved & damaged items" },
-        { id: "orders", label: "Orders & Rentals", icon: ShoppingBag, desc: "Active rentals, upcoming bookings & return timelines" },
-        { id: "calendar", label: "Booking Calendar", icon: Calendar, desc: "Trials, delivery dates, wedding events & blocked dates" },
-        { id: pricingTabId, label: categoryConfig.pricing.title, icon: Package, desc: categoryConfig.pricing.subtitle },
-        { id: "payments", label: "Payments & Security Deposits", icon: CreditCard, desc: "Total revenue, deposit refunds, damage charges & balances" },
-        { id: "delivery", label: "Delivery & Pickup Management", icon: Truck, desc: "Self pickup vs courier delivery, delivery partners & timelines" },
-        { id: "damage-repairs", label: "Damage & Maintenance", icon: Wrench, desc: "Upload damage photos, repair status & customer liability" },
-        { id: "reviews", label: "Customer Reviews", icon: Star, desc: "Bride reviews, official vendor replies & featured testimonials" },
-        { id: "analytics", label: "Wishlist & Popularity Analytics", icon: BarChart3, desc: "Most viewed, most wishlisted & popular collections" },
-        { id: "offers", label: "Coupons & Offers", icon: Tag, desc: "Coupon codes, percentage/flat discounts & wedding season deals" },
-        { id: "policies", label: "Rental Policies & Agreements", icon: FileText, desc: "Rental terms, return deadline, cancellation & deposit agreement" },
-        { id: "notifications", label: "Notifications Center", icon: Bell, desc: "Booking alerts, return reminders & low stock notifications" },
-        { id: "subscription", label: "Subscription", icon: CreditCard, desc: "Current plan details & membership billing" },
-        { id: "customize-store", label: "Customize Store", icon: StorePalette, desc: "Logo, cover image, store branding theme & live preview" },
-      ]
-    : [
-        { id: "overview", label: "Overview", icon: LayoutDashboard, desc: "Business summary, weekly bookings & performance insights" },
-        { id: "profile", label: "Profile", icon: Store, desc: "Business details, contact info, service area & working hours" },
-        { id: mediaTabId, label: categoryConfig.media.title, icon: categoryConfig.icon, desc: categoryConfig.media.subtitle },
-        { id: pricingTabId, label: categoryConfig.pricing.title, icon: Package, desc: categoryConfig.pricing.subtitle },
-        { id: "appointments", label: "Appointments", icon: Calendar, desc: "Calendar view of upcoming shoots & consultation meetings" },
-        { id: "enquiries", label: "Enquiries", icon: Inbox, desc: "Inbox of customer messages, couple leads & quote replies" },
-        { id: "offers", label: "Offers", icon: Tag, desc: "Create & manage seasonal or festive discount packages" },
-        { id: "analytics", label: "Analytics", icon: BarChart3, desc: "Profile views, conversion rate & most-viewed portfolio pieces" },
-        { id: "subscription", label: "Subscription", icon: CreditCard, desc: "Current plan details & membership billing" },
-        { id: "customize-store", label: "Customize Store", icon: StorePalette, desc: "Logo, cover image, store branding theme & live preview" },
-      ];
+  let navItems;
+  if (isJewellery) {
+    navItems = [
+      { id: "overview", label: "Overview", icon: LayoutDashboard, desc: "Business summary, active rentals & revenue insights" },
+      { id: "profile", label: "Profile", icon: Store, desc: "Business details, contact info, service area & working hours" },
+      { id: "inventory", label: "Inventory Management", icon: Layers, desc: "Stock availability, quantity tracking, reserved & damaged items" },
+      { id: "orders", label: "Orders & Rentals", icon: ShoppingBag, desc: "Active rentals, upcoming bookings & return timelines" },
+      { id: "calendar", label: "Booking Calendar", icon: Calendar, desc: "Trials, delivery dates, wedding events & blocked dates" },
+      { id: pricingTabId, label: categoryConfig.pricing.title, icon: Package, desc: categoryConfig.pricing.subtitle },
+      { id: "payments", label: "Payments & Security Deposits", icon: CreditCard, desc: "Total revenue, deposit refunds, damage charges & balances" },
+      { id: "delivery", label: "Delivery & Pickup Management", icon: Truck, desc: "Self pickup vs courier delivery, delivery partners & timelines" },
+      { id: "damage-repairs", label: "Damage & Maintenance", icon: Wrench, desc: "Upload damage photos, repair status & customer liability" },
+      { id: "reviews", label: "Customer Reviews", icon: Star, desc: "Bride reviews, official vendor replies & featured testimonials" },
+      { id: "analytics", label: "Wishlist & Popularity Analytics", icon: BarChart3, desc: "Most viewed, most wishlisted & popular collections" },
+      { id: "offers", label: "Coupons & Offers", icon: Tag, desc: "Coupon codes, percentage/flat discounts & wedding season deals" },
+      { id: "policies", label: "Rental Policies & Agreements", icon: FileText, desc: "Rental terms, return deadline, cancellation & deposit agreement" },
+      { id: "notifications", label: "Notifications Center", icon: Bell, desc: "Booking alerts, return reminders & low stock notifications" },
+      { id: "subscription", label: "Subscription", icon: CreditCard, desc: "Current plan details & membership billing" },
+      { id: "customize-store", label: "Customize Store", icon: StorePalette, desc: "Logo, cover image, store branding theme & live preview" },
+    ];
+  } else if (isVenue) {
+    navItems = [
+      { id: "overview", label: "Overview", icon: LayoutDashboard, desc: "Venue performance overview, upcoming events & lead inquiries" },
+      { id: "profile", label: "Profile", icon: Store, desc: "Business details, contact info, operating location & basic info" },
+      { id: "venue-calendar", label: "Venue Availability Calendar", icon: Calendar, desc: "Event dates, wedding bookings, hall reservation slots & blocked dates" },
+      { id: "venue-bookings", label: "Booking Management", icon: Inbox, desc: "Event bookings, client schedule, hall allocations & advance status" },
+      { id: "venue-facilities", label: "Venue Facilities", icon: Layers, desc: "Manage banquet halls, outdoor lawns, bridal suites & guest capacity" },
+      { id: "venue-packages", label: "Event Packages", icon: Package, desc: "Day/evening rental packages, plate rates, per-event pricing tiers" },
+      { id: "venue-payments", label: "Payment Management", icon: CreditCard, desc: "Advance payments, balance due dates, damage deposits & invoices" },
+      { id: "venue-staff", label: "Staff Management", icon: Users, desc: "Event coordinators, floor managers, banquet staff & security personnel" },
+      { id: "venue-reviews", label: "Customer Reviews", icon: Star, desc: "Client reviews, couple testimonials & venue ratings" },
+      { id: "venue-documents", label: "Documents & Licenses", icon: FileText, desc: "Fire safety NOC, trade license, FSSAI / excise permits & contracts" },
+      { id: "venue-notifications", label: "Notifications Center", icon: Bell, desc: "New visit requests, booking reminders & payment notifications" },
+      { id: "venue-analytics", label: "Venue Performance Analytics", icon: BarChart3, desc: "Profile views, visit conversions & popular wedding months" },
+      { id: "offers", label: "Offers & Deals", icon: Tag, desc: "Seasonal packages, weekday discounts & early bird wedding deals" },
+      { id: "subscription", label: "Subscription", icon: CreditCard, desc: "Current plan details & membership billing" },
+      { id: "customize-store", label: "Customize Store", icon: StorePalette, desc: "Venue logo, cover photo, badges, facilities, policies, brand theme & live preview" },
+    ];
+  } else {
+    navItems = [
+      { id: "overview", label: "Overview", icon: LayoutDashboard, desc: "Business summary, weekly bookings & performance insights" },
+      { id: "profile", label: "Profile", icon: Store, desc: "Business details, contact info, service area & working hours" },
+      { id: mediaTabId, label: categoryConfig.media.title, icon: categoryConfig.icon, desc: categoryConfig.media.subtitle },
+      { id: pricingTabId, label: categoryConfig.pricing.title, icon: Package, desc: categoryConfig.pricing.subtitle },
+      { id: "appointments", label: "Appointments", icon: Calendar, desc: "Calendar view of upcoming shoots & consultation meetings" },
+      { id: "enquiries", label: "Enquiries", icon: Inbox, desc: "Inbox of customer messages, couple leads & quote replies" },
+      { id: "offers", label: "Offers", icon: Tag, desc: "Create & manage seasonal or festive discount packages" },
+      { id: "analytics", label: "Analytics", icon: BarChart3, desc: "Profile views, conversion rate & most-viewed portfolio pieces" },
+      { id: "subscription", label: "Subscription", icon: CreditCard, desc: "Current plan details & membership billing" },
+      { id: "customize-store", label: "Customize Store", icon: StorePalette, desc: "Logo, cover image, store branding theme & live preview" },
+    ];
+  }
 
   const handleSignOut = () => {
     clearActiveVendorIdentity();
@@ -158,6 +195,7 @@ export function UnifiedVendorDashboard({ categoryKey = "caterers" }: UnifiedVend
         return <OverviewSection categoryConfig={categoryConfig} vendorName={vendorName} onNavigate={(t) => setActiveTab(t)} />;
       case "profile":
         return <ProfileSection categoryConfig={categoryConfig} vendorName={vendorName} />;
+      // Jewellery routes
       case "inventory":
         return <JewelleryInventorySection />;
       case "orders":
@@ -176,22 +214,48 @@ export function UnifiedVendorDashboard({ categoryKey = "caterers" }: UnifiedVend
         return <JewelleryPoliciesSection />;
       case "notifications":
         return <JewelleryNotificationsSection />;
+      // Venue routes
+      case "venue-calendar":
+        return <VenueCalendarSection />;
+      case "venue-bookings":
+        return <VenueBookingsSection />;
+      case "venue-facilities":
+        return <VenueFacilitiesSection />;
+      case "venue-packages":
+        return <VenuePackagesSection />;
+      case "venue-payments":
+        return <VenuePaymentsSection />;
+      case "venue-staff":
+        return <VenueStaffSection />;
+      case "venue-reviews":
+        return <VenueReviewsSection />;
+      case "venue-documents":
+        return <VenueDocumentsSection />;
+      case "venue-notifications":
+        return <VenueNotificationsSection />;
+      case "venue-analytics":
+        return <VenueAnalyticsSection />;
+      // General routes
       case mediaTabId:
         return <VendorMediaModule categoryConfig={categoryConfig} />;
       case pricingTabId:
-        return isJewellery ? <JewelleryCatalogSection /> : <VendorPricingModule categoryConfig={categoryConfig} />;
+        return isJewellery ? <JewelleryCatalogSection /> : isVenue ? <VenuePackagesSection /> : <VendorPricingModule categoryConfig={categoryConfig} />;
       case "appointments":
-        return isJewellery ? <JewelleryCalendarSection /> : <AppointmentsSection categoryConfig={categoryConfig} />;
+        return isJewellery ? <JewelleryCalendarSection /> : isVenue ? <VenueCalendarSection /> : <AppointmentsSection categoryConfig={categoryConfig} />;
       case "enquiries":
-        return <EnquiriesSection categoryConfig={categoryConfig} />;
+        return isVenue ? <VenueBookingsSection /> : <EnquiriesSection categoryConfig={categoryConfig} />;
       case "offers":
         return <OffersSection categoryConfig={categoryConfig} />;
       case "analytics":
-        return <AnalyticsSection categoryConfig={categoryConfig} />;
+        return isVenue ? <VenueAnalyticsSection /> : <AnalyticsSection categoryConfig={categoryConfig} />;
       case "subscription":
         return <SubscriptionSection categoryConfig={categoryConfig} />;
       case "customize-store":
-        return <CustomizeStoreSection categoryConfig={categoryConfig} vendorName={vendorName} />;
+        return isVenue ? (
+          <VenueCustomizeStoreSection vendorName={vendorName} />
+        ) : (
+          <CustomizeStoreSection categoryConfig={categoryConfig} vendorName={vendorName} />
+        );
       default:
         return null;
     }

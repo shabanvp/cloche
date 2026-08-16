@@ -29,7 +29,9 @@ import {
   Briefcase,
   User,
   Check,
-  Tag
+  Tag,
+  Layers,
+  Building2
 } from "lucide-react";
 import { BottomNavBar } from "@/components/BottomNavBar";
 import { ExploreOtherVendors } from "@/components/ExploreOtherVendors";
@@ -241,6 +243,8 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
     .toUpperCase() || "CL";
 
   const catKey = (vendor.category || "").toLowerCase();
+  const isJewellery = catKey.includes("jewel");
+  const isVenue = catKey.includes("venue");
 
   // Category Configuration Engine (Dynamic Mappings)
   const getCategoryDefaults = () => {
@@ -827,8 +831,8 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
           </div>
         </div>
 
-        {/* Featured Collections Strip */}
-        {(vendor.featuredCollections || vendor.featured_collections) && (vendor.featuredCollections || vendor.featured_collections)!.length > 0 && (
+        {/* Featured Collections Strip (Jewellery Only) */}
+        {isJewellery && (vendor.featuredCollections || vendor.featured_collections) && (vendor.featuredCollections || vendor.featured_collections)!.length > 0 && (
           <section className="rounded-2xl bg-white p-4 sm:p-5 border border-black/5 shadow-xs space-y-2.5">
             <div className="flex items-center justify-between">
               <h2 className="font-serif text-sm sm:text-base font-bold text-[#1A1410] flex items-center gap-2">
@@ -837,7 +841,7 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
               <span className="text-[11px] text-[#7A6E65] font-medium">Curated by Store</span>
             </div>
             <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar pb-1">
-              {(vendor.featuredCollections || vendor.featured_collections)!.map((col) => (
+              {(vendor.featuredCollections || vendor.featured_collections)!.map((col: string) => (
                 <span
                   key={col}
                   className="bg-[#FAF5EA] text-[#0F4C45] border border-[#E8DFD1] text-xs font-bold px-3.5 py-1.5 rounded-xl shrink-0 shadow-2xs flex items-center gap-1.5"
@@ -849,9 +853,36 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
           </section>
         )}
 
+        {/* Venue Facilities & Spaces (Venues Only) */}
+        {isVenue && (vendor.facilities || vendor.venueFacilities || vendor.venue_facilities) && (vendor.facilities || vendor.venueFacilities || vendor.venue_facilities)!.length > 0 && (
+          <section className="rounded-2xl bg-white p-4 sm:p-5 md:p-6 lg:p-8 border border-black/5 shadow-xs space-y-3">
+            <div className="flex items-center justify-between border-b border-black/5 pb-3">
+              <h2 className="font-serif text-[clamp(1rem,1.5vw,1.625rem)] font-bold text-[#1A1410] flex items-center gap-2">
+                <Layers className="w-5 h-5 text-[#0F4C45]" /> Venue Facilities & Spaces
+              </h2>
+              <span className="text-xs font-bold text-[#0F4C45]">
+                {(vendor.facilities || vendor.venueFacilities || vendor.venue_facilities)!.length} Verified Amenities
+              </span>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 pt-1">
+              {(vendor.facilities || vendor.venueFacilities || vendor.venue_facilities)!.map((fac: string) => (
+                <div
+                  key={fac}
+                  className="bg-[#FAF7F2] p-3 rounded-xl border border-black/5 flex items-center gap-2 text-xs font-bold text-[#2D2520]"
+                >
+                  <span className="w-4 h-4 rounded-full bg-[#0F4C45] text-white flex items-center justify-center text-[10px] shrink-0">
+                    ✓
+                  </span>
+                  <span className="truncate">{fac}</span>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
         {/* About Section */}
         <section className="rounded-2xl bg-white p-3 sm:p-4 md:p-6 lg:p-8 border border-black/5 shadow-xs">
-          <h2 className="font-serif text-[clamp(1rem,1.5vw,1.625rem)] font-bold text-[#1A1410]">About Brand</h2>
+          <h2 className="font-serif text-[clamp(1rem,1.5vw,1.625rem)] font-bold text-[#1A1410]">About {isVenue ? "Venue" : "Brand"}</h2>
           <p className="mt-2 text-[clamp(0.8125rem,1vw,1.0625rem)] text-[#5A6561] leading-relaxed max-w-[760px]">
             {vendor.about || vendor.description || `${vendor.name} is a premier ${displayCategoryLabel.toLowerCase()} in ${vendor.location}, dedicated to delivering exceptional service and luxury experiences for grand celebrations and intimate weddings.`}
           </p>
@@ -860,18 +891,62 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
         {/* Business & Contact Information */}
         <section className="rounded-2xl bg-white p-4 sm:p-5 md:p-6 lg:p-8 border border-black/5 shadow-xs space-y-4">
           <h2 className="font-serif text-[clamp(1rem,1.5vw,1.625rem)] font-bold text-[#1A1410]">
-            Business Information & Contact
+            {isVenue ? "Venue & Operating Information" : "Business Information & Contact"}
           </h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs font-sans">
-            {(vendor.experienceYears || vendor.experience_years || vendor.experience) && (
+            {(vendor.experienceYears || vendor.yearsInBusiness || vendor.years_in_business || vendor.experience_years || vendor.experience) && (
               <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
                 <span className="text-[11px] text-[#7A6E65] uppercase font-bold tracking-wider block">Years of Experience</span>
-                <span className="font-bold text-[#0F4C45] text-sm block">{vendor.experienceYears || vendor.experience_years || vendor.experience} Years</span>
+                <span className="font-bold text-[#0F4C45] text-sm block">{vendor.experienceYears || vendor.yearsInBusiness || vendor.years_in_business || vendor.experience_years || vendor.experience} Years</span>
               </div>
             )}
 
-            {(vendor.rentalAvailable !== undefined || vendor.rental_available !== undefined) && (
+            {/* Venue Specific Capacity Cards */}
+            {isVenue && (vendor.guestCapacity || vendor.guest_capacity) && (
+              <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
+                <span className="text-[11px] text-[#7A6E65] uppercase font-bold tracking-wider block">Max Guest Capacity</span>
+                <span className="font-bold text-[#0F4C45] text-sm block">{vendor.guestCapacity || vendor.guest_capacity}</span>
+              </div>
+            )}
+
+            {isVenue && (vendor.numberOfHalls || vendor.number_of_halls) && (
+              <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
+                <span className="text-[11px] text-[#7A6E65] uppercase font-bold tracking-wider block">Halls & Lawns</span>
+                <span className="font-bold text-[#0F4C45] text-sm block">{vendor.numberOfHalls || vendor.number_of_halls}</span>
+              </div>
+            )}
+
+            {isVenue && (vendor.indoorCapacity || vendor.indoor_capacity) && (
+              <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
+                <span className="text-[11px] text-[#7A6E65] uppercase font-bold tracking-wider block">Indoor AC Capacity</span>
+                <span className="font-bold text-[#2D2520] text-sm block">{vendor.indoorCapacity || vendor.indoor_capacity}</span>
+              </div>
+            )}
+
+            {isVenue && (vendor.outdoorCapacity || vendor.outdoor_capacity) && (
+              <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
+                <span className="text-[11px] text-[#7A6E65] uppercase font-bold tracking-wider block">Outdoor Lawn Capacity</span>
+                <span className="font-bold text-[#2D2520] text-sm block">{vendor.outdoorCapacity || vendor.outdoor_capacity}</span>
+              </div>
+            )}
+
+            {isVenue && (vendor.parkingCapacity || vendor.parking_capacity) && (
+              <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
+                <span className="text-[11px] text-[#7A6E65] uppercase font-bold tracking-wider block">Parking & Valet</span>
+                <span className="font-bold text-[#2D2520] text-sm block">{vendor.parkingCapacity || vendor.parking_capacity}</span>
+              </div>
+            )}
+
+            {isVenue && (vendor.languagesSpoken || vendor.languages_spoken) && (
+              <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
+                <span className="text-[11px] text-[#7A6E65] uppercase font-bold tracking-wider block">Staff Languages</span>
+                <span className="font-bold text-[#2D2520] text-sm block">{vendor.languagesSpoken || vendor.languages_spoken}</span>
+              </div>
+            )}
+
+            {/* Jewellery Specific Toggles */}
+            {isJewellery && (vendor.rentalAvailable !== undefined || vendor.rental_available !== undefined) && (
               <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
                 <span className="text-[11px] text-[#7A6E65] uppercase font-bold tracking-wider block">Rental Service</span>
                 <span className="font-bold text-[#1A1410] text-sm block">
@@ -880,7 +955,7 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
               </div>
             )}
 
-            {(vendor.homeTrialAvailable !== undefined || vendor.home_trial_available !== undefined) && (
+            {isJewellery && (vendor.homeTrialAvailable !== undefined || vendor.home_trial_available !== undefined) && (
               <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
                 <span className="text-[11px] text-[#7A6E65] uppercase font-bold tracking-wider block">Home Trial Service</span>
                 <span className="font-bold text-[#1A1410] text-sm block">
@@ -889,7 +964,7 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
               </div>
             )}
 
-            {(vendor.homeDeliveryAvailable !== undefined || vendor.home_delivery_available !== undefined) && (
+            {isJewellery && (vendor.homeDeliveryAvailable !== undefined || vendor.home_delivery_available !== undefined) && (
               <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
                 <span className="text-[11px] text-[#7A6E65] uppercase font-bold tracking-wider block">Home Delivery</span>
                 <span className="font-bold text-[#1A1410] text-sm block">
@@ -898,7 +973,7 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
               </div>
             )}
 
-            {(vendor.customJewelleryAvailable !== undefined || vendor.custom_jewellery_available !== undefined) && (
+            {isJewellery && (vendor.customJewelleryAvailable !== undefined || vendor.custom_jewellery_available !== undefined) && (
               <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
                 <span className="text-[11px] text-[#7A6E65] uppercase font-bold tracking-wider block">Customization</span>
                 <span className="font-bold text-[#1A1410] text-sm block">
@@ -907,7 +982,7 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
               </div>
             )}
 
-            {(vendor.collectionsCount || vendor.collections_count) && (
+            {isJewellery && (vendor.collectionsCount || vendor.collections_count) && (
               <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
                 <span className="text-[11px] text-[#7A6E65] uppercase font-bold tracking-wider block">Collections Available</span>
                 <span className="font-bold text-[#0F4C45] text-sm block">{vendor.collectionsCount || vendor.collections_count}</span>
@@ -916,7 +991,7 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
 
             {(vendor.ownerName || vendor.owner_name) && (
               <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
-                <span className="text-[11px] text-[#7A6E65] uppercase font-bold tracking-wider block">Vendor / Owner Name</span>
+                <span className="text-[11px] text-[#7A6E65] uppercase font-bold tracking-wider block">{isVenue ? "Venue Manager" : "Vendor / Owner Name"}</span>
                 <span className="font-bold text-[#1A1410] text-sm block">{vendor.ownerName || vendor.owner_name}</span>
               </div>
             )}
@@ -944,7 +1019,7 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
 
             {(vendor.address || vendor.location) && (
               <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1 sm:col-span-2">
-                <span className="text-[11px] text-[#7A6E65] uppercase font-bold tracking-wider block">Studio / Business Address</span>
+                <span className="text-[11px] text-[#7A6E65] uppercase font-bold tracking-wider block">{isVenue ? "Venue Location & Address" : "Studio / Business Address"}</span>
                 <span className="font-medium text-[#2D2520] text-xs block leading-relaxed">{vendor.address || vendor.location}</span>
                 {vendor.googleMaps && (
                   <a href={vendor.googleMaps} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-[11px] text-[#0F4C45] font-bold hover:underline mt-1">
@@ -961,23 +1036,132 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
               </div>
             )}
 
-            {(vendor.workingHours || vendor.working_hours || vendor.workingDays || vendor.working_days) && (
-              <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1 sm:col-span-2">
-                <span className="text-[11px] text-[#7A6E65] uppercase font-bold tracking-wider block">Working Hours & Timings</span>
-                <span className="font-medium text-[#2D2520] text-xs block">
-                  {vendor.workingHours || vendor.working_hours || `${vendor.workingDays || vendor.working_days || "Mon-Sat"}: ${vendor.openingTime || vendor.opening_time || "10:00 AM"} - ${vendor.closingTime || vendor.closing_time || "08:00 PM"} (Weekly Off: ${vendor.weeklyOff || vendor.weekly_off || "Sunday"})`}
-                </span>
-                {(vendor.holidayNotice || vendor.holiday_notice) && (
-                  <span className="text-[11px] text-[#0F4C45] font-semibold block mt-0.5">
-                    Notice: {vendor.holidayNotice || vendor.holiday_notice}
+            {/* Venue Visit Timings vs General Working Hours */}
+            {isVenue ? (
+              (vendor.openingTime || vendor.venueVisitTimings || vendor.venue_visit_timings || vendor.workingHours) && (
+                <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1 sm:col-span-2">
+                  <span className="text-[11px] text-[#7A6E65] uppercase font-bold tracking-wider block">Office Hours & Venue Visit Timings</span>
+                  <span className="font-medium text-[#2D2520] text-xs block">
+                    Office: {vendor.openingTime || "08:00 AM"} - {vendor.closingTime || "10:00 PM"} ({vendor.weeklyHolidays || "Open All 7 Days"})
                   </span>
-                )}
-              </div>
+                  {(vendor.venueVisitTimings || vendor.venue_visit_timings) && (
+                    <span className="text-[11px] text-[#0F4C45] font-bold block mt-0.5">
+                      Guided Visit Timings: {vendor.venueVisitTimings || vendor.venue_visit_timings}
+                    </span>
+                  )}
+                  {(vendor.publicHolidayAvailability || vendor.public_holiday_availability) && (
+                    <span className="text-[10px] text-[#7A6E65] block mt-0.5">
+                      Holidays: {vendor.publicHolidayAvailability || vendor.public_holiday_availability}
+                    </span>
+                  )}
+                </div>
+              )
+            ) : (
+              (vendor.workingHours || vendor.working_hours || vendor.workingDays || vendor.working_days) && (
+                <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1 sm:col-span-2">
+                  <span className="text-[11px] text-[#7A6E65] uppercase font-bold tracking-wider block">Working Hours & Timings</span>
+                  <span className="font-medium text-[#2D2520] text-xs block">
+                    {vendor.workingHours || vendor.working_hours || `${vendor.workingDays || vendor.working_days || "Mon-Sat"}: ${vendor.openingTime || vendor.opening_time || "10:00 AM"} - ${vendor.closingTime || vendor.closing_time || "08:00 PM"} (Weekly Off: ${vendor.weeklyOff || vendor.weekly_off || "Sunday"})`}
+                  </span>
+                  {(vendor.holidayNotice || vendor.holiday_notice) && (
+                    <span className="text-[11px] text-[#0F4C45] font-semibold block mt-0.5">
+                      Notice: {vendor.holidayNotice || vendor.holiday_notice}
+                    </span>
+                  )}
+                </div>
+              )
             )}
           </div>
 
-          {/* Store Policies Accordion */}
-          {(vendor.rentalPolicy || vendor.rental_policy || vendor.returnPolicy || vendor.return_policy || vendor.securityDepositPolicy || vendor.security_deposit_policy) && (
+          {/* Venue Booking Policies & Guidelines (Venues Only) */}
+          {isVenue && (
+            vendor.advanceBookingRequired || vendor.advance_booking_required ||
+            vendor.advancePaymentPolicy || vendor.advance_payment_policy ||
+            vendor.cancellationPolicy || vendor.cancellation_policy ||
+            vendor.refundPolicy || vendor.refund_policy ||
+            vendor.overtimeCharges || vendor.overtime_charges ||
+            vendor.decorationRules || vendor.decoration_rules ||
+            vendor.outsideCateringPolicy || vendor.outside_catering_policy ||
+            vendor.outsidePhotographyPolicy || vendor.outside_photography_policy ||
+            vendor.noiseRestrictions || vendor.noise_restrictions ||
+            vendor.alcoholPolicy || vendor.alcohol_policy ||
+            vendor.eventTimingRules || vendor.event_timing_rules
+          ) && (
+            <div className="pt-4 border-t border-black/5 space-y-3">
+              <span className="text-xs font-serif font-bold text-[#1A1410] block">Venue Booking Policies & Guidelines</span>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                {(vendor.advanceBookingRequired || vendor.advance_booking_required) && (
+                  <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
+                    <span className="font-bold text-[#0F4C45] block">Advance Booking Requirement</span>
+                    <p className="text-[#5A6561] leading-relaxed">{vendor.advanceBookingRequired || vendor.advance_booking_required}</p>
+                  </div>
+                )}
+                {(vendor.advancePaymentPolicy || vendor.advance_payment_policy) && (
+                  <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
+                    <span className="font-bold text-[#0F4C45] block">Advance Payment Policy</span>
+                    <p className="text-[#5A6561] leading-relaxed">{vendor.advancePaymentPolicy || vendor.advance_payment_policy}</p>
+                  </div>
+                )}
+                {(vendor.cancellationPolicy || vendor.cancellation_policy) && (
+                  <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
+                    <span className="font-bold text-[#0F4C45] block">Cancellation Policy</span>
+                    <p className="text-[#5A6561] leading-relaxed">{vendor.cancellationPolicy || vendor.cancellation_policy}</p>
+                  </div>
+                )}
+                {(vendor.refundPolicy || vendor.refund_policy) && (
+                  <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
+                    <span className="font-bold text-[#0F4C45] block">Security Deposit & Refund</span>
+                    <p className="text-[#5A6561] leading-relaxed">{vendor.refundPolicy || vendor.refund_policy}</p>
+                  </div>
+                )}
+                {(vendor.overtimeCharges || vendor.overtime_charges) && (
+                  <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
+                    <span className="font-bold text-[#0F4C45] block">Overtime Charges</span>
+                    <p className="text-[#5A6561] leading-relaxed">{vendor.overtimeCharges || vendor.overtime_charges}</p>
+                  </div>
+                )}
+                {(vendor.decorationRules || vendor.decoration_rules) && (
+                  <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
+                    <span className="font-bold text-[#0F4C45] block">Decoration Guidelines</span>
+                    <p className="text-[#5A6561] leading-relaxed">{vendor.decorationRules || vendor.decoration_rules}</p>
+                  </div>
+                )}
+                {(vendor.outsideCateringPolicy || vendor.outside_catering_policy) && (
+                  <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
+                    <span className="font-bold text-[#0F4C45] block">Outside Catering Policy</span>
+                    <p className="text-[#5A6561] leading-relaxed">{vendor.outsideCateringPolicy || vendor.outside_catering_policy}</p>
+                  </div>
+                )}
+                {(vendor.outsidePhotographyPolicy || vendor.outside_photography_policy) && (
+                  <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
+                    <span className="font-bold text-[#0F4C45] block">Photography & Drone Rules</span>
+                    <p className="text-[#5A6561] leading-relaxed">{vendor.outsidePhotographyPolicy || vendor.outside_photography_policy}</p>
+                  </div>
+                )}
+                {(vendor.noiseRestrictions || vendor.noise_restrictions) && (
+                  <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
+                    <span className="font-bold text-[#0F4C45] block">Music & Noise Timings</span>
+                    <p className="text-[#5A6561] leading-relaxed">{vendor.noiseRestrictions || vendor.noise_restrictions}</p>
+                  </div>
+                )}
+                {(vendor.alcoholPolicy || vendor.alcohol_policy) && (
+                  <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
+                    <span className="font-bold text-[#0F4C45] block">Alcohol & Bar Setup</span>
+                    <p className="text-[#5A6561] leading-relaxed">{vendor.alcoholPolicy || vendor.alcohol_policy}</p>
+                  </div>
+                )}
+                {(vendor.eventTimingRules || vendor.event_timing_rules) && (
+                  <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1 sm:col-span-2">
+                    <span className="font-bold text-[#0F4C45] block">Event Timing Slot Rules</span>
+                    <p className="text-[#5A6561] leading-relaxed">{vendor.eventTimingRules || vendor.event_timing_rules}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Store & Rental Policies Accordion (Jewellery Only) */}
+          {isJewellery && (vendor.rentalPolicy || vendor.rental_policy || vendor.returnPolicy || vendor.return_policy || vendor.securityDepositPolicy || vendor.security_deposit_policy) && (
             <div className="pt-4 border-t border-black/5 space-y-3">
               <span className="text-xs font-serif font-bold text-[#1A1410] block">Store & Rental Policies</span>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
