@@ -70,12 +70,21 @@ export async function GET(request: NextRequest) {
   // Derive search query
   const query = rawQuery || CATEGORY_QUERIES[category] || "kerala wedding";
 
-  // Safely read server-side environment variable
+  // ── DIAGNOSTIC: Always log env status in Render logs ──
   const rawKey = process.env.PEXELS_API_KEY || "";
+  console.log("[/api/pexels DIAGNOSTIC]", {
+    NODE_ENV: process.env.NODE_ENV,
+    pexelsLoaded: !!rawKey,
+    length: rawKey.length,
+    firstChars: rawKey.length > 0 ? rawKey.substring(0, 6) + "..." : "(empty)",
+    category,
+    query,
+  });
+
   const PEXELS_API_KEY = rawKey.trim().replace(/^["']|["']$/g, "");
 
   if (!PEXELS_API_KEY || PEXELS_API_KEY === "YOUR_PEXELS_API_KEY_HERE") {
-    console.warn("[/api/pexels] PEXELS_API_KEY is not defined in server environment.");
+    console.error("[/api/pexels] ✗ PEXELS_API_KEY is missing or placeholder — check Render Environment Variables dashboard.");
     return NextResponse.json(
       {
         success: false,
@@ -87,6 +96,8 @@ export async function GET(request: NextRequest) {
       { status: 200 }
     );
   }
+
+  console.log("[/api/pexels] ✓ PEXELS_API_KEY detected. Proceeding with Pexels request.");
 
   const cacheKey = `${query}::page${page}::per${perPage}`;
 
