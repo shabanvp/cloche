@@ -10,6 +10,7 @@ import {
   LayoutTemplate,
   Tag,
   FileText,
+  BookHeart,
   BarChart3, 
   CreditCard,
   Calendar,
@@ -19,6 +20,7 @@ import {
 
 const navItems = [
   { label: "Overview", icon: LayoutDashboard, href: "/admin" },
+  { label: "Real Weddings", icon: BookHeart, href: "/admin/real-weddings" },
   { label: "Vendors", icon: Users, href: "/admin/vendors" },
   { label: "Marketing & Ads", icon: Megaphone, href: "/admin/marketing" },
   { label: "Collections", icon: ShoppingBag, href: "/admin/collections" },

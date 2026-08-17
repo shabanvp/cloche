@@ -7,6 +7,7 @@
     "start": "npm run start --prefix frontend"
   },
   "dependencies": {
-    "googleapis": "^171.4.0"
+    "googleapis": "^171.4.0",
+    "pg": "^8.23.0"
   }
 }
