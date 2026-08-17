@@ -1,15 +1,107 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Footer } from "@/components/Footer";
 import { AdBanner } from "@/components/AdBanner";
 import { AutocompleteSearch } from "@/components/AutocompleteSearch";
-import { Sparkles } from "lucide-react";
+import { Sparkles, MapPin, Calendar, BookHeart, Plus, ArrowRight, Star, Heart } from "lucide-react";
+import { RealWeddingStoryDb } from "@/lib/realWeddings";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
+
+interface VendorItem {
+  id: string;
+  slug: string;
+  name: string;
+  category: string;
+  categorySlug?: string;
+  city: string;
+  rating: number;
+  startingPrice: string;
+  coverImage?: string;
+  logo?: string;
+}
 
 export default function Home() {
+  const [vendors, setVendors] = useState<VendorItem[]>([]);
+  const [vendorsLoading, setVendorsLoading] = useState(true);
+  const [stories, setStories] = useState<RealWeddingStoryDb[]>([]);
+  const [storiesLoading, setStoriesLoading] = useState(true);
+
+  // Fetch real registered vendors
+  useEffect(() => {
+    async function loadVendors() {
+      try {
+        const res = await fetch("/api/v1/public/vendors?limit=8");
+        const data = await res.json();
+        if (data.success && Array.isArray(data.data) && data.data.length > 0) {
+          setVendors(
+            data.data.map((v: any) => ({
+              id: v.id,
+              slug: v.slug || v.id,
+              name: v.name || "Verified Vendor",
+              category: v.category || "Wedding Expert",
+              categorySlug: v.categorySlug || "vendors",
+              city: v.city || "Kerala",
+              rating: v.rating > 0 ? v.rating : 5.0,
+              startingPrice: v.startingPrice || "Contact for pricing",
+              coverImage:
+                v.coverImage ||
+                v.logo ||
+                "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=80",
+            }))
+          );
+        } else {
+          // Fallback to /api/boutiques
+          const bRes = await fetch("/api/boutiques");
+          const bData = await bRes.json();
+          if (Array.isArray(bData) && bData.length > 0) {
+            setVendors(
+              bData.slice(0, 8).map((b: any) => ({
+                id: b.id,
+                slug: b.slug || b.id,
+                name: b.name || b.boutique_name || "Luxury Boutique",
+                category: b.category || "Wedding Vendor",
+                categorySlug: "venues",
+                city: b.city || "Kerala",
+                rating: b.rating > 0 ? Number(b.rating) : 5.0,
+                startingPrice: b.starting_price ? `₹${Number(b.starting_price).toLocaleString("en-IN")}` : "Contact for pricing",
+                coverImage:
+                  b.cover_image ||
+                  b.logo ||
+                  "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=800&q=80",
+              }))
+            );
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch featured vendors:", err);
+      } finally {
+        setVendorsLoading(false);
+      }
+    }
+
+    // Fetch real published real wedding stories
+    async function loadStories() {
+      try {
+        const res = await fetch("/api/v1/public/real-weddings?limit=6");
+        const data = await res.json();
+        if (data.success && Array.isArray(data.stories)) {
+          setStories(data.stories);
+        }
+      } catch (err) {
+        console.error("Failed to fetch real wedding stories:", err);
+      } finally {
+        setStoriesLoading(false);
+      }
+    }
+
+    loadVendors();
+    loadStories();
+  }, []);
+
   const popularSearches = [
     {
       label: "Photographers",
@@ -109,49 +201,6 @@ export default function Home() {
       bgColor: "bg-[#F6F3E5]",
       img: "https://images.unsplash.com/photo-1519225421980-715cb0215aed?q=80&w=800&auto=format&fit=crop",
       alt: "Decor and Planning"
-    }
-  ];
-
-  const featuredVendors = [
-    {
-      id: "v-solitaire",
-      name: "YAAN Udaipur",
-      category: "Wedding Venues, Udaipur",
-      price: "₹ 2,500",
-      priceLabel: "onwards per plate",
-      rating: "5.0",
-      img: "https://lh3.googleusercontent.com/aida-public/AB6AXuAEVqgHsiLSkZxXDg9lZQdQ2fTPFR5V8lLcuHmefPBRdMQNLe7DaNIoSBMDs-TSNQGmqfAtssE4J--SOQxWjq7wkGDdxYVBNbm0OTuHdJ3w3xNBTdbMqW78GJjhIvnF-lOipqY-3sm_s6h3uWydOcqo0AS-iQmi6b9dkhBX90G8s7rj70Ezy4-SF50TMXr3WS3XoOGVt9oKy4bGHthPojLDYTly5luPhH83fWUVH7svHPLOX4DXF44G0Dbc6zeguczDCK1Zp2_klw92",
-      href: "/boutiques/v-solitaire"
-    },
-    {
-      id: "v-[#15]",
-      name: "ROYAL MAKEUP ART",
-      category: "Bridal Makeup, Kochi",
-      price: "₹ 20,000",
-      priceLabel: "starting price",
-      rating: "4.9",
-      img: "https://lh3.googleusercontent.com/aida-public/AB6AXuDDZrXk8w7Jm5zSye-40lOKoE1m_Bo60PY2TvXxl9Fjth9bqLBSC2S2ppFjnymMrhAM8LGBq1odmw-SqU6bDvxSD5u_aLGw0mJbkiLUuCEZJhohjh9H6gsy7m3e5xdRtDgRHpsB4D8gYHfEYTHyeJt7Yu2DEOYq1i39XavHu6kIjbRdP491Z7XnbNqfJMItjqFxsVHuhhlDC3sBL3Rv6opkON-QP18z8KLdAn-EUqXu2KvyWFL-AO7Ob_80mvQ_jdqpQ-_8bj4rGy2i",
-      href: "/boutiques/v-[#15]"
-    },
-    {
-      id: "v-[#22]",
-      name: "Label M Boutique",
-      category: "Bridal Wear, Kochi",
-      price: "₹ 35,000",
-      priceLabel: "starting price",
-      rating: "4.9",
-      img: "https://images.unsplash.com/photo-1594223274512-ad4803739b7c?q=80&w=800&auto=format&fit=crop",
-      href: "/boutiques/v-[#22]"
-    },
-    {
-      id: "v-30",
-      name: "Memory Lanes",
-      category: "Photography, Kozhikode",
-      price: "₹ 50,000",
-      priceLabel: "per day",
-      rating: "4.8",
-      img: "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=800&auto=format&fit=crop",
-      href: "/boutiques/v-30"
     }
   ];
 
@@ -324,81 +373,142 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Featured Vendors */}
+        {/* ── REAL FEATURED VENDORS (FETCHED LIVE FROM DATABASE) ── */}
         <section className="py-10 max-w-7xl mx-auto">
           <div className="px-6 mb-6 flex justify-between items-end">
             <div>
               <h2 className="text-2xl font-bold text-on-surface font-display">Featured Vendors</h2>
-              <p className="text-xs md:text-sm text-outline mt-1">Handpicked luxury boutiques & wedding experts</p>
+              <p className="text-xs md:text-sm text-outline mt-1">Handpicked luxury boutiques &amp; wedding experts across Kerala</p>
             </div>
             <Link href="/boutiques" className="text-primary text-sm font-bold hover:underline">View All</Link>
           </div>
 
-          <div className="flex overflow-x-auto hide-scrollbar gap-4 px-6 md:grid md:grid-cols-3 lg:grid-cols-4 md:gap-6 md:overflow-visible">
-            {featuredVendors.map((vendor) => (
-              <Link 
-                key={vendor.id} 
-                href={vendor.href} 
-                className="flex-shrink-0 w-72 md:w-auto bg-white rounded-2xl overflow-hidden shadow-sm border border-gold/10 group hover:shadow-md transition-all"
-              >
-                <div className="relative h-48 overflow-hidden">
-                  <img className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" src={vendor.img} alt={vendor.name} />
-                  <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm">
-                    <span className="material-symbols-outlined text-amber-500 text-[14px]" style={{fontVariationSettings: 'FILL 1'}}>star</span>
-                    <span className="text-[12px] font-bold text-charcoal">{vendor.rating}</span>
+          {vendorsLoading ? (
+            <div className="flex overflow-x-auto gap-4 px-6 md:grid md:grid-cols-4 md:gap-6">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="flex-shrink-0 w-72 md:w-auto h-72 rounded-2xl bg-gray-100 animate-pulse border border-gold/10" />
+              ))}
+            </div>
+          ) : vendors.length > 0 ? (
+            <div className="flex overflow-x-auto hide-scrollbar gap-4 px-6 md:grid md:grid-cols-3 lg:grid-cols-4 md:gap-6 md:overflow-visible">
+              {vendors.map((vendor) => (
+                <Link 
+                  key={vendor.id} 
+                  href={`/boutiques/${vendor.slug}`} 
+                  className="flex-shrink-0 w-72 md:w-auto bg-white rounded-2xl overflow-hidden shadow-sm border border-gold/10 group hover:shadow-md transition-all"
+                >
+                  <div className="relative h-48 overflow-hidden bg-gray-100">
+                    <img 
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
+                      src={vendor.coverImage} 
+                      alt={vendor.name} 
+                    />
+                    <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm">
+                      <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
+                      <span className="text-[12px] font-bold text-charcoal">{vendor.rating.toFixed(1)}</span>
+                    </div>
                   </div>
-                </div>
-                <div className="p-5">
-                  <h3 className="font-bold text-lg font-display text-charcoal group-hover:text-primary transition-colors">{vendor.name}</h3>
-                  <p className="text-outline text-xs mt-0.5">{vendor.category}</p>
-                  <p className="text-primary font-bold mt-3 text-sm">{vendor.price} <span className="text-[11px] text-outline font-normal">{vendor.priceLabel}</span></p>
-                </div>
+                  <div className="p-5 space-y-1">
+                    <h3 className="font-bold text-lg font-display text-charcoal group-hover:text-primary transition-colors line-clamp-1">
+                      {vendor.name}
+                    </h3>
+                    <p className="text-outline text-xs line-clamp-1">
+                      {vendor.category}{vendor.city ? `, ${vendor.city}` : ""}
+                    </p>
+                    <p className="text-primary font-bold pt-2 text-sm">
+                      {vendor.startingPrice}
+                    </p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="px-6 py-8 text-center bg-white rounded-2xl border border-gold/15 max-w-md mx-auto">
+              <p className="text-xs text-charcoal/60">Explore verified boutiques and registered wedding venues.</p>
+              <Link href="/boutiques" className="inline-block mt-3 bg-[#0F4C45] text-white text-xs font-bold px-5 py-2 rounded-full">
+                Browse All Vendors
               </Link>
-            ))}
-          </div>
+            </div>
+          )}
         </section>
 
-        {/* Real Wedding Stories */}
+        {/* ── REAL WEDDING STORIES (FETCHED LIVE FROM DATABASE) ── */}
         <section className="py-10 max-w-7xl mx-auto">
           <div className="px-6 mb-6 flex justify-between items-end">
             <div>
               <h2 className="text-2xl font-bold text-on-surface font-display">Real Wedding Stories</h2>
-              <p className="text-xs md:text-sm text-outline mt-1">Get inspired by beautiful real wedding celebrations in Kerala</p>
+              <p className="text-xs md:text-sm text-outline mt-1">Get inspired by authentic real wedding celebrations in Kerala</p>
             </div>
             <Link href="/real-weddings" className="text-primary text-sm font-bold hover:underline">View All Stories</Link>
           </div>
 
-          <div className="flex overflow-x-auto hide-scrollbar gap-4 px-6 md:grid md:grid-cols-3 md:gap-6 md:overflow-visible">
-            <Link href="/real-weddings" className="flex-shrink-0 w-80 md:w-auto group">
-              <div className="rounded-2xl overflow-hidden h-52 shadow-sm group-hover:shadow-md transition-all">
-                <img className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDybVNqcPesLD5TJ7kU9ktSMRShli2bgr5sdljfio0SWnaL97ugJeG5NsgA-mLNOMmOWJFMXxIm8Cq0OVUqip0XseKaqm8oRYpFn9rVaXA9cjCD-SDGwxjuRlriALzXa3J-yi7BB4rlT_7lg9HvntbRnwlCgC56Nh2DE8CO_MNWiZsqHJabXtiHyQDUH_uQaCYIdNH0dQzaZIAJhC1V2j2QFn2xmPnNG2cPP8zqQx9aPk6CWxsgx94Gl-KVZ1lik28hVY-SJexudags" alt="Gayatri and Ayush" />
+          {storiesLoading ? (
+            <div className="flex overflow-x-auto gap-4 px-6 md:grid md:grid-cols-3 md:gap-6">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="flex-shrink-0 w-80 md:w-auto h-72 rounded-2xl bg-gray-100 animate-pulse border border-gold/10" />
+              ))}
+            </div>
+          ) : stories.length > 0 ? (
+            <div className="flex overflow-x-auto hide-scrollbar gap-4 px-6 md:grid md:grid-cols-3 md:gap-6 md:overflow-visible">
+              {stories.map((story) => (
+                <Link key={story.id} href={`/real-weddings/${story.slug}`} className="flex-shrink-0 w-80 md:w-auto group">
+                  <div className="rounded-2xl overflow-hidden h-52 shadow-sm group-hover:shadow-md transition-all relative bg-gray-100">
+                    <img 
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                      src={story.cover_image_url} 
+                      alt={story.title} 
+                    />
+                    <span className="absolute top-3 left-3 bg-[#0F4C45]/90 backdrop-blur-xs text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full">
+                      {story.style}
+                    </span>
+                  </div>
+                  <div className="py-4 space-y-1">
+                    <div className="flex items-center justify-between text-xs text-outline">
+                      <span className="flex items-center gap-1 font-semibold">
+                        <MapPin className="w-3 h-3 text-[#0F4C45]" /> {story.city || "Kerala"}
+                      </span>
+                      {story.wedding_date && (
+                        <span className="flex items-center gap-1">
+                          <Calendar className="w-3 h-3 text-[#0F4C45]" /> {story.wedding_date}
+                        </span>
+                      )}
+                    </div>
+                    <h3 className="font-bold text-on-surface text-base md:text-lg leading-tight font-display group-hover:text-primary transition-colors line-clamp-2">
+                      {story.title}
+                    </h3>
+                    {story.couple_names && (
+                      <p className="text-xs font-bold text-[#0F4C45]">{story.couple_names}</p>
+                    )}
+                    <p className="text-xs text-outline line-clamp-2 leading-relaxed">
+                      {story.short_story || story.story_text}
+                    </p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            /* Honest Editorial Invitation when 0 published stories exist */
+            <div className="mx-6 p-8 sm:p-12 bg-white rounded-3xl border border-gold/20 shadow-md text-center max-w-2xl lg:mx-auto space-y-4">
+              <div className="w-14 h-14 rounded-full bg-[#FAF7F2] border border-gold/30 text-[#0F4C45] flex items-center justify-center mx-auto shadow-inner">
+                <BookHeart className="w-7 h-7" />
               </div>
-              <div className="py-4">
-                <h3 className="font-bold text-on-surface text-base md:text-lg leading-tight font-display group-hover:text-primary transition-colors">Gayatri and Ayush</h3>
-                <p className="text-xs md:text-sm text-outline mt-1 line-clamp-2">A Jaipur & Kochi Wedding That Delivered One Stunning Setup After Another!</p>
+              <div className="space-y-1.5">
+                <h3 className="font-serif text-xl sm:text-2xl font-bold text-charcoal">
+                  Share Your Real Wedding Story
+                </h3>
+                <p className="text-xs sm:text-sm text-charcoal/70 max-w-md mx-auto leading-relaxed">
+                  Celebrate your love story on Cloche and give authentic credit to the photographers, decorators, and artisans who crafted your day.
+                </p>
               </div>
-            </Link>
-
-            <Link href="/real-weddings" className="flex-shrink-0 w-80 md:w-auto group">
-              <div className="rounded-2xl overflow-hidden h-52 shadow-sm group-hover:shadow-md transition-all">
-                <img className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAlIY3Rsu77h9JhRfLXKWhl7uY5PHM8h9xVxmI_mqGehxB9rM5xAhOV97FZ-KIBEAVoSfZ2yUzYqrQP2ekudMlla5kZeNhyCpXH7z_nIIz_SRmWGLg5ZuibsDA6i1wJnbbADnytZPvYR8MVfl8OctX3XWNreNdozLPiqRD4RXQwt9pIBn_maMAoWjVTKO4UNrvIqoe-A9jetFAt-ppdexODCU8-XefMAttsQRTbVnm1eF4Zv_EF_MVTo-_D_MwrpZEoYJcV-oxdRscx" alt="Beach Wedding" />
-              </div>
-              <div className="py-4">
-                <h3 className="font-bold text-on-surface text-base md:text-lg leading-tight font-display group-hover:text-primary transition-colors">The Rise of Coastal Kerala Weddings</h3>
-                <p className="text-xs md:text-sm text-outline mt-1 line-clamp-2">Destination weddings in Kovalam and Bekal are entering a new era of luxury...</p>
-              </div>
-            </Link>
-
-            <Link href="/real-weddings" className="flex-shrink-0 w-80 md:w-auto group">
-              <div className="rounded-2xl overflow-hidden h-52 shadow-sm group-hover:shadow-md transition-all">
-                <img className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=800&auto=format&fit=crop" alt="Backwater Wedding" />
-              </div>
-              <div className="py-4">
-                <h3 className="font-bold text-on-surface text-base md:text-lg leading-tight font-display group-hover:text-primary transition-colors">Anand & Meera's Backwater Celebration</h3>
-                <p className="text-xs md:text-sm text-outline mt-1 line-clamp-2">An elegant Kumarakom houseboat wedding filled with traditional flowers and serene views.</p>
-              </div>
-            </Link>
-          </div>
+              <Link
+                href="/real-weddings"
+                className="inline-flex items-center gap-2 bg-[#0F4C45] hover:bg-[#12584E] text-white text-xs font-bold px-6 py-3 rounded-full shadow-md transition-all"
+              >
+                <span>Submit Your Wedding</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+          )}
         </section>
 
         {/* Mobile Sticky Sponsored Banner */}
@@ -409,3 +519,4 @@ export default function Home() {
     </>
   );
 }
+
