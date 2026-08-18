@@ -205,6 +205,9 @@ export interface VendorProfileData {
  */
 export function normalizeVendorCategoryKey(rawCategory: string): string {
   const slug = (rawCategory || "").toLowerCase().trim();
+  if (slug.includes("bride") && slug.includes("story")) return "brides-story";
+  if (slug.includes("groom") && slug.includes("story")) return "grooms-story";
+  if (slug.includes("wedding") && slug.includes("story")) return "wedding-story";
   if (slug.includes("photo") || slug.includes("camera") || slug.includes("video")) return "photographers";
   if (slug.includes("mehendi") || slug.includes("henna") || slug.includes("mehndi")) return "mehendi";
   if (slug.includes("venue") || slug.includes("palace") || slug.includes("lawn") || slug.includes("banquet") || slug.includes("car")) return "venues";

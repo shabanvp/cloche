@@ -24,6 +24,9 @@ import {
 export type CategorySlug =
   | "bridal-boutiques"
   | "groom-wear"
+  | "brides-story"
+  | "grooms-story"
+  | "wedding-story"
   | "venues"
   | "photographers"
   | "videographers"
@@ -73,6 +76,39 @@ const sharedThumb = {
 };
 
 export const categories: CategoryCard[] = [
+  {
+    slug: "brides-story",
+    title: "Bride's Story",
+    description: "Exclusive bridal lehengas, silk sarees, Nikah dresses & ceremony couture.",
+    icon: Sparkles,
+    image: sharedThumb.bridalWear,
+    imageAlt: "Luxury bridal couture displayed in a boutique setting.",
+    badge: "Bridal Only",
+    detail: "Discover designer bridal lehengas, Christian gowns, Kerala sarees, and ceremony edits.",
+    chips: ["Lehengas", "Bridal Sarees", "Gowns", "Custom fits"],
+  },
+  {
+    slug: "grooms-story",
+    title: "Groom's Story",
+    description: "Bespoke sherwanis, tuxedos, Jodhpuri suits & modern ceremonial groom wear.",
+    icon: Shirt,
+    image: sharedThumb.couplePortrait,
+    imageAlt: "Elegant wedding fashion styling for the groom.",
+    badge: "Groom Only",
+    detail: "Find refined sherwanis, bandhgalas, tuxedos, and tailored groom wear edits.",
+    chips: ["Sherwanis", "Tuxedos", "Jodhpuri Suits", "Custom fits"],
+  },
+  {
+    slug: "wedding-story",
+    title: "Wedding Story",
+    description: "Complete bridal & groom ceremonial couture, wedding edits & couple ensembles.",
+    icon: Store,
+    image: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=80",
+    imageAlt: "Couples wedding couture and ceremonial edits.",
+    badge: "Bridal & Groom",
+    detail: "Curated wedding fashion boutiques offering complete bridal and groom ceremonial edits.",
+    chips: ["Bridal & Groom", "Couple Edits", "Custom Tailoring"],
+  },
   {
     slug: "bridal-boutiques",
     title: "Bridal Boutiques",

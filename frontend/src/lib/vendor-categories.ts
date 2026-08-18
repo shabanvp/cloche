@@ -345,6 +345,70 @@ export const VENDOR_CATEGORIES_DATA: Record<string, CategoryConfig> = {
       { id: "kurta", name: "Kurtas" }
     ],
     vendors: []
+  },
+  "brides-story": {
+    slug: "brides-story",
+    title: "Bride's Story",
+    subtitle: "Exclusive bridal lehengas, silk sarees, Nikah dresses, gowns & ceremony couture",
+    heroImage: "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?q=80&w=1200&auto=format&fit=crop",
+    searchPlaceholder: "Search bridal wear by lehenga, saree, gown, fabric or city...",
+    priceSuffix: " / outfit",
+    subFilters: [
+      { label: "All", value: "all" },
+      { label: "Bridal Lehenga", value: "lehenga" },
+      { label: "Bridal Saree", value: "saree" },
+      { label: "Bridal Gown", value: "gown" },
+      { label: "Reception Dress", value: "reception" }
+    ],
+    subCategories: [
+      { id: "all", name: "All Bridal Wear" },
+      { id: "lehenga", name: "Bridal Lehengas" },
+      { id: "saree", name: "Bridal Sarees" },
+      { id: "gown", name: "Bridal Gowns" },
+      { id: "reception", name: "Reception Wear" }
+    ],
+    vendors: []
+  },
+  "grooms-story": {
+    slug: "grooms-story",
+    title: "Groom's Story",
+    subtitle: "Bespoke sherwanis, tuxedos, suits, Jodhpuri sets & ceremonial groom wear",
+    heroImage: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1200&auto=format&fit=crop",
+    searchPlaceholder: "Search groom wear by sherwani, suit, tuxedo, fabric or city...",
+    priceSuffix: " / outfit",
+    subFilters: [
+      { label: "All", value: "all" },
+      { label: "Sherwani", value: "sherwani" },
+      { label: "Suit & Tuxedo", value: "suit" },
+      { label: "Indo-Western", value: "indo-western" }
+    ],
+    subCategories: [
+      { id: "all", name: "All Groom Wear" },
+      { id: "sherwani", name: "Sherwanis" },
+      { id: "suit", name: "Suits & Tuxedos" },
+      { id: "indo-western", name: "Indo-Western" }
+    ],
+    vendors: []
+  },
+  "wedding-story": {
+    slug: "wedding-story",
+    title: "Wedding Story",
+    subtitle: "Complete bridal & groom ceremonial couture, wedding edits & couple ensembles",
+    heroImage: "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=1200&auto=format&fit=crop",
+    searchPlaceholder: "Search couple wedding couture, bridal & groom wear...",
+    priceSuffix: " / outfit",
+    subFilters: [
+      { label: "All", value: "all" },
+      { label: "Bridal Wear", value: "bridal" },
+      { label: "Groom Wear", value: "groom" },
+      { label: "Couple Edits", value: "couple" }
+    ],
+    subCategories: [
+      { id: "all", name: "All Ensembles" },
+      { id: "bridal", name: "Bridal Collections" },
+      { id: "groom", name: "Groom Collections" }
+    ],
+    vendors: []
   }
 };
 
@@ -354,6 +418,15 @@ export function getPublicCategoryConfig(categorySlug?: string): CategoryConfig {
     return VENDOR_CATEGORIES_DATA[s];
   }
   
+  if (s === "brides-story" || s === "bride-story" || s === "bridal-story") {
+    return VENDOR_CATEGORIES_DATA["brides-story"];
+  }
+  if (s === "grooms-story" || s === "groom-story") {
+    return VENDOR_CATEGORIES_DATA["grooms-story"];
+  }
+  if (s === "wedding-story" || s === "weddingstory") {
+    return VENDOR_CATEGORIES_DATA["wedding-story"];
+  }
   if (s === "bridal-wear" || s === "bridal-boutique" || s === "boutiques" || s.includes("bridal") || s.includes("wear") || s.includes("boutique")) {
     return VENDOR_CATEGORIES_DATA["bridal-wear"] || VENDOR_CATEGORIES_DATA["boutiques"];
   }

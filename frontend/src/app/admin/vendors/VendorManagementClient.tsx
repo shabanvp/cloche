@@ -24,6 +24,9 @@ export type VendorRecord = {
 
 const CATEGORY_TABS = [
   "All Categories",
+  "Bride's Story",
+  "Groom's Story",
+  "Wedding Story",
   "Photographers",
   "Bridal Boutiques",
   "Groom Wear",
