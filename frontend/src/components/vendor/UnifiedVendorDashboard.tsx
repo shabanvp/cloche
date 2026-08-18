@@ -28,6 +28,8 @@ import { AnalyticsSection } from "./sections/AnalyticsSection";
 import { SubscriptionSection } from "./sections/SubscriptionSection";
 import { CustomizeStoreSection } from "./sections/CustomizeStoreSection";
 import { DecorCustomizeStoreSection } from "./decor/sections/DecorCustomizeStoreSection";
+import { StoryCollectionSection } from "./boutique/StoryCollectionSection";
+import { StoryAnalyticsSection } from "./boutique/StoryAnalyticsSection";
 import { VendorMediaModule } from "./sections/VendorMediaModule";
 import { VendorPricingModule } from "./sections/VendorPricingModule";
 import { VendorCoverHeader } from "./VendorCoverHeader";
@@ -70,19 +72,20 @@ import {
 
 interface UnifiedVendorDashboardProps {
   categoryKey?: string;
+  initialTab?: string | null;
 }
 
-export function UnifiedVendorDashboard({ categoryKey = "caterers" }: UnifiedVendorDashboardProps) {
+export function UnifiedVendorDashboard({ categoryKey = "caterers", initialTab = null }: UnifiedVendorDashboardProps) {
   const router = useRouter();
   
   const [activeCategoryKey, setActiveCategoryKey] = useState<string>(categoryKey);
-  const [activeTab, setActiveTab] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<string | null>(initialTab);
   const [vendorData, setVendorData] = useState<any>(null);
 
   useEffect(() => {
-    const handleProfileUpdate = (e: any) => {
-      if (e?.detail) {
-        setVendorData((prev: any) => ({ ...prev, ...e.detail }));
+    const handleProfileUpdate = (e: CustomEvent) => {
+      if (e.detail) {
+        setVendorData(e.detail);
         if (e.detail.category) {
           setActiveCategoryKey(normalizeVendorCategoryKey(e.detail.category));
         }
@@ -90,7 +93,7 @@ export function UnifiedVendorDashboard({ categoryKey = "caterers" }: UnifiedVend
     };
 
     if (typeof window !== "undefined") {
-      window.addEventListener("cloche_vendor_profile_updated", handleProfileUpdate);
+      window.addEventListener("cloche_vendor_profile_updated", handleProfileUpdate as EventListener);
     }
 
     const cached = getActiveVendorIdentity();
@@ -112,7 +115,7 @@ export function UnifiedVendorDashboard({ categoryKey = "caterers" }: UnifiedVend
 
     return () => {
       if (typeof window !== "undefined") {
-        window.removeEventListener("cloche_vendor_profile_updated", handleProfileUpdate);
+        window.removeEventListener("cloche_vendor_profile_updated", handleProfileUpdate as EventListener);
       }
     };
   }, []);
@@ -131,10 +134,26 @@ export function UnifiedVendorDashboard({ categoryKey = "caterers" }: UnifiedVend
   const isJewellery = activeCategoryKey === "jewellery" || vendorCategoryName.toLowerCase().includes("jewel");
   const isVenue = activeCategoryKey === "venues" || vendorCategoryName.toLowerCase().includes("venue");
   const isDecor = activeCategoryKey === "planners" || activeCategoryKey === "decor" || vendorCategoryName.toLowerCase().includes("decor") || vendorCategoryName.toLowerCase().includes("planner");
+  const isBoutiqueStory =
+    activeCategoryKey === "brides-story" ||
+    activeCategoryKey === "grooms-story" ||
+    activeCategoryKey === "wedding-story" ||
+    activeCategoryKey === "boutiques" ||
+    vendorCategoryName.toLowerCase().includes("story") ||
+    vendorCategoryName.toLowerCase().includes("boutique");
 
   // Navigation items matching requested structure
   let navItems;
-  if (isJewellery) {
+  if (isBoutiqueStory) {
+    navItems = [
+      { id: "overview", label: "Overview", icon: LayoutDashboard, desc: "Boutique performance overview, views & analytics" },
+      { id: "profile", label: "Boutique Profile", icon: Store, desc: "Address, shop hours, map location, contact details & bio" },
+      { id: "story-collections", label: "Dress Collections", icon: ShoppingBag, desc: "Upload outfits, set purchase/rental prices, fabrics & stock status" },
+      { id: "story-analytics", label: "Analytics & Wishlist", icon: BarChart3, desc: "Profile views, wishlist saves, most viewed outfits & active inventory" },
+      { id: "subscription", label: "Subscription", icon: CreditCard, desc: "Current plan details & membership billing" },
+      { id: "customize-store", label: "Customize Store", icon: StorePalette, desc: "Logo, cover banner, brand color theme & live storefront preview" },
+    ];
+  } else if (isJewellery) {
     navItems = [
       { id: "overview", label: "Overview", icon: LayoutDashboard, desc: "Business summary, active rentals & revenue insights" },
       { id: "profile", label: "Profile", icon: Store, desc: "Business details, contact info, service area & working hours" },
@@ -235,8 +254,11 @@ export function UnifiedVendorDashboard({ categoryKey = "caterers" }: UnifiedVend
         return <VenueDocumentsSection />;
       case "venue-notifications":
         return <VenueNotificationsSection />;
-      case "venue-analytics":
-        return <VenueAnalyticsSection />;
+      // Boutique Story routes
+      case "story-collections":
+        return <StoryCollectionSection categoryKey={activeCategoryKey} boutiqueName={vendorName} />;
+      case "story-analytics":
+        return <StoryAnalyticsSection categoryKey={activeCategoryKey} />;
       // General routes
       case mediaTabId:
         return <VendorMediaModule categoryConfig={categoryConfig} />;
