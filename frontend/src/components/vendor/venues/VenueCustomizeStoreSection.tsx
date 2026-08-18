@@ -612,6 +612,7 @@ export function VenueCustomizeStoreSection({
           storeHighlights: venueHighlights,
           featuredCollections: featuredHalls,
           galleryLayout: galleryLayout,
+          gallery: [...galleryImages, ...hallImages].map((url, i) => ({ url, caption: `Venue Photo ${i + 1}` })),
           actionButtons,
           businessInfo: {
             experienceYears: yearsInBusiness.trim(),
@@ -756,6 +757,9 @@ export function VenueCustomizeStoreSection({
             description: about,
             colorTheme: colorTheme,
             galleryLayout: galleryLayout,
+            galleryImages: galleryImages,
+            hallImages: hallImages,
+            gallery: [...galleryImages, ...hallImages].map((url, i) => ({ url, caption: `Venue Photo ${i + 1}` })),
             startingPrice: "₹1,800 per plate",
             phone: "+91 98470 12345",
             whatsapp: "+91 98470 12345",
@@ -798,6 +802,7 @@ export function VenueCustomizeStoreSection({
             storeHighlights: venueHighlights,
             featuredCollections: featuredHalls,
             galleryLayout: galleryLayout,
+            gallery: [...galleryImages, ...hallImages].map((url, i) => ({ url, caption: `Venue Photo ${i + 1}` })),
             actionButtons: actionButtons,
             businessInfo: {
               experienceYears: yearsInBusiness,

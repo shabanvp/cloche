@@ -527,6 +527,7 @@ export function DecorCustomizeStoreSection({
           storeHighlights: decorHighlights,
           featuredCollections: featuredThemes,
           galleryLayout: galleryLayout,
+          gallery: galleryImages.map((url, i) => ({ url, caption: `Decor Concept ${i + 1}` })),
           actionButtons,
           businessInfo: {
             experienceYears: experienceYears.trim(),
@@ -671,6 +672,8 @@ export function DecorCustomizeStoreSection({
             description: about,
             colorTheme: colorTheme,
             galleryLayout: galleryLayout,
+            galleryImages: galleryImages,
+            gallery: galleryImages.map((url, i) => ({ url, caption: `Decor Concept ${i + 1}` })),
             startingPrice: (vendorData as any)?.startingPrice || (vendorData as any)?.starting_price || "₹50,000",
             phone: "+91 98470 12345",
             whatsapp: "+91 98470 12345",
@@ -714,6 +717,7 @@ export function DecorCustomizeStoreSection({
             storeHighlights: decorHighlights,
             featuredCollections: featuredThemes,
             galleryLayout: galleryLayout,
+            gallery: galleryImages.map((url, i) => ({ url, caption: `Decor Concept ${i + 1}` })),
             actionButtons: actionButtons,
             businessInfo: {
               experienceYears: experienceYears,

@@ -75,12 +75,13 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
   }, [themeId, sf.brandColors]);
 
   // Vendor Visuals
-  const coverUrl =
+  const rawCover =
     sf.coverImage ||
     vendor?.cover_image ||
     vendor?.coverImage ||
     vendor?.image ||
-    "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1600&q=80";
+    "";
+  const coverUrl = rawCover && !rawCover.includes("images.unsplash.com") ? rawCover : "";
 
   const logoUrl =
     sf.logo ||
@@ -188,23 +189,85 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
     };
   }, [sf.policies, vendor]);
 
-  // Gallery Layout & Photos
+  // Gallery Layout & Photos (ONLY real photos uploaded by vendor, ZERO demo / unsplash images)
   const galleryLayout = sf.galleryLayout || vendor?.galleryLayout || vendor?.gallery_layout || "grid";
   const galleryPhotos: Array<{ url: string; caption?: string }> = useMemo(() => {
-    if (Array.isArray(sf.gallery) && sf.gallery.length > 0) return sf.gallery;
-    if (Array.isArray(vendor?.galleryImages) && vendor.galleryImages.length > 0) {
-      return vendor.galleryImages.map((url: string, i: number) => ({ url, caption: `Photo ${i + 1}` }));
+    const list: Array<{ url: string; caption?: string }> = [];
+
+    const isUploadedPhoto = (url: any): boolean => {
+      if (!url || typeof url !== "string") return false;
+      const clean = url.trim();
+      if (!clean) return false;
+      if (clean.includes("images.unsplash.com")) return false;
+      if (clean.includes("via.placeholder.com") || clean.includes("placeholder")) return false;
+      return true;
+    };
+
+    // 1. Storefront gallery items (direct customizer upload)
+    if (Array.isArray(sf.gallery)) {
+      for (const item of sf.gallery) {
+        const url = typeof item === "string" ? item : item?.url || item?.image_url || item?.image;
+        const caption = typeof item === "object" ? item?.caption || item?.title : undefined;
+        if (isUploadedPhoto(url) && !list.some((p) => p.url === url)) {
+          list.push({ url, caption: caption || `Showcase Photo ${list.length + 1}` });
+        }
+      }
     }
-    if (Array.isArray(vendor?.highlights) && vendor.highlights.length > 0) {
-      return vendor.highlights.map((h: any) => ({ url: h.image || h.url, caption: h.name || h.caption }));
+
+    // 2. Vendor galleryImages array
+    if (Array.isArray(vendor?.galleryImages)) {
+      for (const item of vendor.galleryImages) {
+        const url = typeof item === "string" ? item : item?.url || item?.image_url;
+        const caption = typeof item === "object" ? item?.caption || item?.title : undefined;
+        if (isUploadedPhoto(url) && !list.some((p) => p.url === url)) {
+          list.push({ url, caption: caption || `Showcase Photo ${list.length + 1}` });
+        }
+      }
     }
-    return [
-      { url: coverUrl, caption: "Storefront Showcase" },
-      { url: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=800&q=80", caption: "Bridal Feature" },
-      { url: "https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=800&q=80", caption: "Signature Decor" },
-      { url: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=800&q=80", caption: "Artisan Styling" },
-    ];
-  }, [sf.gallery, vendor, coverUrl]);
+
+    // 3. Vendor gallery_images array (snake_case database field)
+    if (Array.isArray(vendor?.gallery_images)) {
+      for (const item of vendor.gallery_images) {
+        const url = typeof item === "string" ? item : item?.url || item?.image_url;
+        const caption = typeof item === "object" ? item?.caption || item?.title : undefined;
+        if (isUploadedPhoto(url) && !list.some((p) => p.url === url)) {
+          list.push({ url, caption: caption || `Showcase Photo ${list.length + 1}` });
+        }
+      }
+    }
+
+    // 4. Vendor database highlights (table vendor_gallery)
+    if (Array.isArray(vendor?.highlights)) {
+      for (const h of vendor.highlights) {
+        const url = h?.image || h?.url || h?.image_url;
+        if (isUploadedPhoto(url) && !list.some((p) => p.url === url)) {
+          list.push({ url, caption: h?.name || h?.caption || h?.title || `Showcase Photo ${list.length + 1}` });
+        }
+      }
+    }
+
+    // 5. Hall images (for wedding venues)
+    if (Array.isArray(vendor?.hallImages)) {
+      for (const h of vendor.hallImages) {
+        const url = typeof h === "string" ? h : h?.url || h?.image;
+        if (isUploadedPhoto(url) && !list.some((p) => p.url === url)) {
+          list.push({ url, caption: typeof h === "object" ? h?.caption || h?.title : `Hall Photo ${list.length + 1}` });
+        }
+      }
+    }
+
+    // 6. Vendor portfolio items
+    if (Array.isArray(vendor?.portfolio)) {
+      for (const p of vendor.portfolio) {
+        const url = typeof p === "string" ? p : p?.url || p?.image || p?.image_url;
+        if (isUploadedPhoto(url) && !list.some((item) => item.url === url)) {
+          list.push({ url, caption: typeof p === "object" ? p?.caption || p?.title : `Portfolio Photo ${list.length + 1}` });
+        }
+      }
+    }
+
+    return list;
+  }, [sf.gallery, vendor]);
 
   // Contact Info
   const phone = sf.contactInfo?.phone || vendor?.phone || "+91 98470 12345";
@@ -607,6 +670,19 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
                   ))}
                 </div>
               )}
+            </div>
+          )}
+
+          {/* E2. PREVIEW EMPTY STATE (When vendor has not uploaded gallery photos yet) */}
+          {galleryPhotos.length === 0 && previewMode && (
+            <div className="bg-[#FAF7F2] rounded-3xl p-8 border border-dashed border-gold/30 text-center space-y-2">
+              <div className="w-12 h-12 rounded-full bg-white border border-gold/20 flex items-center justify-center mx-auto text-[#0F4C45]">
+                <Sparkles className="w-5 h-5 text-[#0F4C45]" />
+              </div>
+              <h3 className="font-serif font-bold text-base text-charcoal">No Portfolio Photos Uploaded Yet</h3>
+              <p className="text-xs text-charcoal/60 max-w-md mx-auto">
+                Upload your authentic high-resolution event photos in the gallery upload section to display your portfolio here on your live storefront.
+              </p>
             </div>
           )}
 
