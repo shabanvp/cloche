@@ -58,9 +58,12 @@ async function initRealWeddingsTable(p: Pool) {
       CREATE INDEX IF NOT EXISTS idx_rws_status ON real_wedding_stories(status);
       CREATE INDEX IF NOT EXISTS idx_rws_slug ON real_wedding_stories(slug);
       CREATE INDEX IF NOT EXISTS idx_rws_created_at ON real_wedding_stories(created_at DESC);
+
+      -- Ensure storefront configuration column on vendor_profiles
+      ALTER TABLE vendor_profiles ADD COLUMN IF NOT EXISTS storefront JSONB DEFAULT '{}'::jsonb;
     `);
   } catch (err) {
-    console.error("[DB] initRealWeddingsTable error:", err);
+    console.error("[DB] initDatabaseTables error:", err);
   }
 }
 
