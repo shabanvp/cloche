@@ -63,6 +63,7 @@ function YoutubeIcon({ className = "w-4 h-4" }: { className?: string }) {
 
 import { VendorCategoryConfig } from "@/lib/vendor-categories";
 import { uploadImageToCloudinaryDetailed } from "@/lib/cloudinary";
+import { VendorStorefront } from "@/components/VendorStorefront";
 import {
   fetchAuthenticatedVendorFromDb,
   getActiveVendorIdentity,
@@ -475,6 +476,47 @@ export function CustomizeStoreSection({ categoryConfig, vendorName, onBack }: Cu
         security_deposit_policy: securityDepositPolicy.trim(),
         damagePolicy: damagePolicy.trim(),
         damage_policy: damagePolicy.trim(),
+        storefront: {
+          theme: colorTheme,
+          brandColors: activeTheme,
+          coverImage: coverUrl,
+          logo: logoUrl,
+          tagline: tagline.trim(),
+          about: about.trim(),
+          storeHighlights,
+          featuredCollections,
+          galleryLayout: galleryLayout,
+          actionButtons,
+          businessInfo: {
+            experienceYears: experienceYears.trim(),
+            rentalAvailable,
+            homeDeliveryAvailable,
+            homeTrialAvailable,
+            customJewelleryAvailable,
+            collectionsCount: collectionsCount.trim(),
+            citiesServed: citiesServed.trim(),
+          },
+          workingHours: {
+            workingDays: workingDays.trim(),
+            openingTime: openingTime.trim(),
+            closingTime: closingTime.trim(),
+            weeklyOff: weeklyOff.trim(),
+            holidayNotice: holidayNotice.trim(),
+          },
+          policies: {
+            rentalPolicy: rentalPolicy.trim(),
+            securityDepositPolicy: securityDepositPolicy.trim(),
+            returnPolicy: returnPolicy.trim(),
+            cancellationPolicy: cancellationPolicy.trim(),
+            damagePolicy: damagePolicy.trim(),
+          },
+          socialLinks: {
+            instagram: instagram.trim(),
+            facebook: facebook.trim(),
+            youtube: youtube.trim(),
+            website: website.trim(),
+          },
+        },
       };
 
       const res = await syncVendorProfileWithDatabase(payload);
@@ -519,29 +561,25 @@ export function CustomizeStoreSection({ categoryConfig, vendorName, onBack }: Cu
         onChange={handleVideoUpload}
       />
 
-      {/* Header Banner */}
-      <div className="bg-white rounded-2xl border border-gold/15 p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span
-              style={{ backgroundColor: activeTheme.primary }}
-              className="text-white text-[11px] font-bold px-3 py-0.5 rounded-full transition-colors"
-            >
-              Storefront Customization
-            </span>
+      {/* Top Header Card with Quick Publish Action */}
+      <div className="bg-white rounded-2xl p-6 border border-gold/15 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <Palette className="w-5 h-5 text-[#0F4C45]" />
+            <h2 className="text-xl font-serif font-bold text-charcoal">
+              Customize Storefront &amp; Branding
+            </h2>
           </div>
-          <h2 className="text-2xl font-serif font-bold text-charcoal">Customize Storefront</h2>
-          <p className="text-xs text-charcoal/60 mt-0.5">
-            Personalize branding, highlights, featured collections, business info, action buttons, timings & policies
+          <p className="text-xs text-charcoal/70">
+            Real-time visual editor. Colors, banner, highlights, and policies update immediately on your public storefront.
           </p>
         </div>
 
         <button
           type="button"
+          disabled={isSaving}
           onClick={handleSave}
-          disabled={isSaving || isUploadingLogo || isUploadingCover || isUploadingVideo}
-          style={{ backgroundColor: activeTheme.primary }}
-          className="hover:opacity-90 disabled:opacity-50 text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow-xs transition-all flex items-center gap-2 shrink-0 cursor-pointer"
+          className="px-6 py-2.5 rounded-xl bg-[#0F4C45] hover:bg-[#12584E] text-white text-xs font-bold shadow-sm transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50 shrink-0"
         >
           {isSaving ? (
             <>
@@ -559,226 +597,105 @@ export function CustomizeStoreSection({ categoryConfig, vendorName, onBack }: Cu
         </button>
       </div>
 
-      {/* LIVE STOREFRONT PREVIEW PANE (Dynamic Theme & Real-Time Sync) */}
-      <div className="bg-white rounded-3xl border border-gold/20 shadow-md overflow-hidden transition-all">
-        <div className="bg-[#FAF7F2] px-6 py-3 border-b border-gold/15 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="font-serif font-bold text-xs text-charcoal flex items-center gap-1.5">
-              <Eye className="w-3.5 h-3.5 text-[#0F4C45]" /> Live Storefront Preview (Customer View)
-            </span>
-          </div>
-          <span
-            style={{ color: activeTheme.primary }}
-            className="text-[11px] font-bold uppercase tracking-wider bg-white px-2.5 py-0.5 rounded-full border border-gold/15 shadow-2xs"
-          >
-            {activeTheme.label} Palette
-          </span>
-        </div>
-
-        {/* Live Hero Header */}
-        <div className="relative aspect-[21/9] max-h-[300px] w-full overflow-hidden bg-[#0F4C45]">
-          {coverUrl ? (
-            <img src={coverUrl} alt="Store Cover" className="w-full h-full object-cover" />
-          ) : (
-            <div
-              style={{ backgroundColor: activeTheme.primary }}
-              className="w-full h-full flex items-center justify-center opacity-80"
-            >
-              <Sparkles className="w-16 h-16 text-white/40" />
-            </div>
-          )}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-
-          {/* Profile Header Block */}
-          <div className="absolute bottom-4 left-4 right-4 flex items-end gap-3 sm:gap-4">
-            <div
-              style={{ backgroundColor: activeTheme.primary }}
-              className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl border-2 border-white overflow-hidden shadow-lg shrink-0 relative flex items-center justify-center text-white"
-            >
-              {logoUrl ? (
-                <img src={logoUrl} alt="Store Logo" className="w-full h-full object-cover" />
-              ) : (
-                <span className="font-serif text-lg sm:text-xl font-bold tracking-wider">{initials}</span>
-              )}
-            </div>
-
-            <div className="mb-0.5 drop-shadow-md flex-1 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <h3 className="text-lg sm:text-2xl font-serif font-bold text-white leading-tight truncate">
-                  {currentDisplayName}
-                </h3>
-                <span className="inline-flex items-center gap-1 bg-white/90 backdrop-blur-md text-[#0F4C45] text-[10px] font-bold px-2 py-0.5 rounded-full">
-                  <ShieldCheck className="w-3 h-3 text-[#0F4C45]" /> Verified
-                </span>
-              </div>
-
-              {tagline ? (
-                <p style={{ color: activeTheme.accent }} className="text-xs font-semibold mt-0.5 italic truncate">
-                  "{tagline}"
-                </p>
-              ) : (
-                <p className="text-xs text-white/80 font-medium mt-0.5 truncate">
-                  {currentCategoryBadge} • {currentLocation}
-                </p>
-              )}
-
-              {/* 1. Live Store Highlights Badges */}
-              {storeHighlights.length > 0 && (
-                <div className="flex flex-wrap items-center gap-1.5 mt-2">
-                  {storeHighlights.map((badge) => (
-                    <span
-                      key={badge}
-                      style={{ borderColor: activeTheme.accent }}
-                      className="bg-black/50 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full border shadow-2xs flex items-center gap-1"
-                    >
-                      <Sparkles className="w-2.5 h-2.5 text-gold" /> {badge}
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Live Preview Content Area */}
-        <div className="p-4 sm:p-6 bg-white space-y-5">
-          {/* 4. Live Contact Action Buttons Preview */}
-          <div className="flex flex-wrap items-center gap-2">
-            {actionButtons.callNow && (
-              <button
-                style={{ backgroundColor: activeTheme.primary }}
-                className="px-3.5 py-2 rounded-xl text-white text-xs font-bold flex items-center gap-1.5 shadow-xs"
-              >
-                <Phone className="w-3.5 h-3.5" /> Call Now
-              </button>
-            )}
-            {actionButtons.whatsapp && (
-              <button
-                style={{ backgroundColor: activeTheme.secondary }}
-                className="px-3.5 py-2 rounded-xl text-white text-xs font-bold flex items-center gap-1.5 shadow-xs"
-              >
-                <MessageCircle className="w-3.5 h-3.5" /> WhatsApp
-              </button>
-            )}
-            {actionButtons.bookAppointment && (
-              <button
-                style={{ borderColor: activeTheme.primary, color: activeTheme.primary }}
-                className="px-3.5 py-2 rounded-xl border text-xs font-bold flex items-center gap-1.5 hover:bg-gold/10"
-              >
-                <Calendar className="w-3.5 h-3.5" /> Book Appointment
-              </button>
-            )}
-            {actionButtons.viewCollection && (
-              <button
-                style={{ borderColor: activeTheme.primary, color: activeTheme.primary }}
-                className="px-3.5 py-2 rounded-xl border text-xs font-bold flex items-center gap-1.5 hover:bg-gold/10"
-              >
-                <Layers className="w-3.5 h-3.5" /> View Collection
-              </button>
-            )}
-            {actionButtons.getQuote && (
-              <button
-                style={{ backgroundColor: activeTheme.accent, color: activeTheme.secondary }}
-                className="px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs"
-              >
-                <FileText className="w-3.5 h-3.5" /> Get Quote
-              </button>
-            )}
-            {actionButtons.visitStore && (
-              <button className="px-3.5 py-2 rounded-xl bg-[#FAF7F2] border border-gold/20 text-charcoal text-xs font-bold flex items-center gap-1.5">
-                <Building className="w-3.5 h-3.5" /> Visit Store
-              </button>
-            )}
-          </div>
-
-          {/* 3. Live Business Information Cards */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-            <div className="p-3 rounded-2xl bg-[#FAF7F2] border border-gold/15 space-y-0.5">
-              <span className="text-[10px] uppercase font-bold text-charcoal/50 block">Experience</span>
-              <span style={{ color: activeTheme.primary }} className="font-serif font-bold text-sm block">
-                {experienceYears} Years
-              </span>
-            </div>
-            <div className="p-3 rounded-2xl bg-[#FAF7F2] border border-gold/15 space-y-0.5">
-              <span className="text-[10px] uppercase font-bold text-charcoal/50 block">Rental Service</span>
-              <span className="font-bold text-xs text-charcoal block">
-                {rentalAvailable ? "✓ Available" : "✗ Sale Only"}
-              </span>
-            </div>
-            <div className="p-3 rounded-2xl bg-[#FAF7F2] border border-gold/15 space-y-0.5">
-              <span className="text-[10px] uppercase font-bold text-charcoal/50 block">Home Trial & Delivery</span>
-              <span className="font-bold text-xs text-charcoal block">
-                {homeDeliveryAvailable ? "✓ Available" : "✗ Store Pickup"}
-              </span>
-            </div>
-            <div className="p-3 rounded-2xl bg-[#FAF7F2] border border-gold/15 space-y-0.5">
-              <span className="text-[10px] uppercase font-bold text-charcoal/50 block">Collections Available</span>
-              <span style={{ color: activeTheme.primary }} className="font-serif font-bold text-sm block">
-                {collectionsCount}
-              </span>
-            </div>
-          </div>
-
-          {/* 2. Live Featured Collections Bar */}
-          {featuredCollections.length > 0 && (
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="font-serif font-bold text-xs text-charcoal">Featured Collections:</span>
-                <span className="text-[10px] text-charcoal/50 font-medium">Pinned by Store</span>
-              </div>
-              <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar pb-1">
-                {featuredCollections.map((col, idx) => (
-                  <span
-                    key={col}
-                    style={{ backgroundColor: activeTheme.primary }}
-                    className="text-white text-xs font-bold px-3.5 py-1.5 rounded-xl shrink-0 shadow-2xs flex items-center gap-1.5"
-                  >
-                    <Tag className="w-3 h-3 text-gold" /> {col}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* 5. Live Working Hours Preview */}
-          <div className="p-3.5 bg-[#FAF7F2] rounded-2xl border border-gold/15 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
-            <div className="flex items-center gap-2.5">
-              <Clock style={{ color: activeTheme.primary }} className="w-4 h-4 shrink-0" />
-              <div>
-                <span className="font-serif font-bold text-charcoal block">Business Timings</span>
-                <span className="text-[11px] text-charcoal/70">
-                  {workingDays}: {openingTime} - {closingTime} (Off: {weeklyOff})
-                </span>
-              </div>
-            </div>
-            {holidayNotice && (
-              <span className="text-[10px] text-[#0F4C45] bg-[#0F4C45]/10 font-bold px-2.5 py-1 rounded-lg">
-                {holidayNotice}
-              </span>
-            )}
-          </div>
-
-          {/* 6. Live Store Policies Accordion Preview */}
-          <div className="space-y-2 pt-2 border-t border-gold/10">
-            <span className="font-serif font-bold text-xs text-charcoal block">Store Policies:</span>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-              <div className="p-3 bg-gray-50 rounded-xl border border-gray-200/80 space-y-1">
-                <span className="font-bold text-charcoal block flex items-center gap-1">
-                  <ShieldCheck className="w-3.5 h-3.5 text-[#0F4C45]" /> Rental & ID Terms
-                </span>
-                <p className="text-[11px] text-charcoal/70 leading-relaxed">{rentalPolicy}</p>
-              </div>
-
-              <div className="p-3 bg-gray-50 rounded-xl border border-gray-200/80 space-y-1">
-                <span className="font-bold text-charcoal block flex items-center gap-1">
-                  <FileText className="w-3.5 h-3.5 text-[#0F4C45]" /> Security Deposit Release
-                </span>
-                <p className="text-[11px] text-charcoal/70 leading-relaxed">{securityDepositPolicy}</p>
-              </div>
-            </div>
-          </div>
-        </div>
+      {/* LIVE STOREFRONT PREVIEW PANE (Exact Unified Component) */}
+      <div className="rounded-3xl border border-gold/20 shadow-md overflow-hidden transition-all">
+        <VendorStorefront
+          previewMode={true}
+          vendor={{
+            id: "preview-vendor",
+            name: currentDisplayName,
+            business_name: currentDisplayName,
+            boutique_name: currentDisplayName,
+            category: categoryConfig.slug,
+            categoryLabel: currentCategoryBadge,
+            location: currentLocation,
+            city: vendorData?.city || "Kochi",
+            state: "Kerala",
+            rating: 5.0,
+            reviews: 12,
+            image: coverUrl,
+            cover_image: coverUrl,
+            coverImage: coverUrl,
+            logo: logoUrl,
+            logo_url: logoUrl,
+            tagline: tagline,
+            subtitle: tagline,
+            about: about,
+            description: about,
+            colorTheme: colorTheme,
+            galleryLayout: galleryLayout,
+            startingPrice: "₹25,000",
+            phone: "+91 98470 12345",
+            whatsapp: "+91 98470 12345",
+            email: "store@cloche.com",
+            address: `${currentLocation}, Kerala`,
+            storeHighlights: storeHighlights,
+            featuredCollections: featuredCollections,
+            actionButtons: actionButtons,
+            businessInfo: {
+              experienceYears: experienceYears,
+              rentalAvailable: rentalAvailable,
+              homeDeliveryAvailable: homeDeliveryAvailable,
+              homeTrialAvailable: homeTrialAvailable,
+              customJewelleryAvailable: customJewelleryAvailable,
+              collectionsCount: collectionsCount,
+            },
+            workingHours: {
+              workingDays: workingDays,
+              openingTime: openingTime,
+              closingTime: closingTime,
+              weeklyOff: weeklyOff,
+              holidayNotice: holidayNotice,
+            },
+            policies: {
+              rentalPolicy: rentalPolicy,
+              securityDepositPolicy: securityDepositPolicy,
+              returnPolicy: returnPolicy,
+              cancellationPolicy: cancellationPolicy,
+              damagePolicy: damagePolicy,
+            },
+          }}
+          storefront={{
+            theme: colorTheme,
+            brandColors: activeTheme,
+            coverImage: coverUrl,
+            logo: logoUrl,
+            tagline: tagline,
+            about: about,
+            storeHighlights: storeHighlights,
+            featuredCollections: featuredCollections,
+            galleryLayout: galleryLayout,
+            actionButtons: actionButtons,
+            businessInfo: {
+              experienceYears: experienceYears,
+              rentalAvailable: rentalAvailable,
+              homeDeliveryAvailable: homeDeliveryAvailable,
+              homeTrialAvailable: homeTrialAvailable,
+              customJewelleryAvailable: customJewelleryAvailable,
+              collectionsCount: collectionsCount,
+            },
+            workingHours: {
+              workingDays: workingDays,
+              openingTime: openingTime,
+              closingTime: closingTime,
+              weeklyOff: weeklyOff,
+              holidayNotice: holidayNotice,
+            },
+            policies: {
+              rentalPolicy: rentalPolicy,
+              securityDepositPolicy: securityDepositPolicy,
+              returnPolicy: returnPolicy,
+              cancellationPolicy: cancellationPolicy,
+              damagePolicy: damagePolicy,
+            },
+            socialLinks: {
+              instagram: instagram.trim(),
+              facebook: facebook.trim(),
+              youtube: youtube.trim(),
+              website: website.trim(),
+            },
+          }}
+        />
       </div>
 
       {/* ACCORDION FORM CONFIGURATOR SECTIONS */}

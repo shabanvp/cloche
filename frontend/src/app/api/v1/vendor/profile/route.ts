@@ -352,6 +352,7 @@ export async function PUT(req: Request) {
       if (logoMediaId) profilePayload.logo_media_id = logoMediaId;
       if (coverMediaId) profilePayload.cover_media_id = coverMediaId;
       if (profile.gstNumber || profile.gst_number) profilePayload.gst_number = profile.gstNumber || profile.gst_number;
+      if (profile.storefront || body.storefront) profilePayload.storefront = profile.storefront || body.storefront;
 
       console.log(`[IMAGE_FLOW] PUT profile write: vendor_id=${vendorId}, logoMediaId=${logoMediaId}, coverMediaId=${coverMediaId}`);
 
@@ -365,10 +366,22 @@ export async function PUT(req: Request) {
         body: JSON.stringify(profilePayload),
       });
 
-      if (!patchRes.ok && profilePayload.gst_number) {
+      // Also persist directly via Postgres DB Pool if configured
+      try {
+        const { getDbPool } = await import("@/lib/db");
+        const pool = getDbPool();
+        const sfData = profile.storefront || body.storefront;
+        if (sfData) {
+          await pool.query(
+            "UPDATE vendor_profiles SET storefront = $1, updated_at = NOW() WHERE vendor_id = $2 OR id = $2;",
+            [JSON.stringify(sfData), vendorId]
+          ).catch(() => null);
+        }
+      } catch (_) {}
+
+      if (!patchRes.ok && (profilePayload.gst_number || profilePayload.storefront)) {
         const errText = await patchRes.clone().text();
-        if (errText.includes("PGRST204") || errText.includes("gst_number")) {
-          console.warn("[IMAGE_FLOW] Retrying vendor_profiles PATCH without gst_number column...");
+        if (errText.includes("PGRST204") || errText.includes("gst_number") || errText.includes("storefront")) {
           delete profilePayload.gst_number;
           await fetch(`${url}/rest/v1/vendor_profiles?vendor_id=eq.${encodeURIComponent(vendorId)}`, {
             method: "PATCH",

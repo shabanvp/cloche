@@ -35,6 +35,7 @@ import {
   Boxes
 } from "lucide-react";
 import { uploadImageToCloudinaryDetailed } from "@/lib/cloudinary";
+import { VendorStorefront } from "@/components/VendorStorefront";
 import {
   fetchAuthenticatedVendorFromDb,
   getActiveVendorIdentity,
@@ -93,6 +94,7 @@ export function DecorCustomizeStoreSection({
   const [tagline, setTagline] = useState<string>("");
   const [about, setAbout] = useState<string>("");
   const [colorTheme, setColorTheme] = useState<string>("emerald");
+  const [galleryLayout, setGalleryLayout] = useState<string>("grid");
   const [introVideo, setIntroVideo] = useState<string>("");
   const [galleryImages, setGalleryImages] = useState<string[]>([]);
 
@@ -514,6 +516,47 @@ export function DecorCustomizeStoreSection({
         property_damage_policy: propertyDamagePolicy.trim(),
         travelPolicy: travelPolicy.trim(),
         travel_policy: travelPolicy.trim(),
+
+        storefront: {
+          theme: colorTheme,
+          brandColors: activeTheme,
+          coverImage: coverUrl,
+          logo: logoUrl,
+          tagline: tagline.trim(),
+          about: about.trim(),
+          storeHighlights: decorHighlights,
+          featuredCollections: featuredThemes,
+          galleryLayout: galleryLayout,
+          actionButtons,
+          businessInfo: {
+            experienceYears: experienceYears.trim(),
+            rentalAvailable: true,
+            homeDeliveryAvailable: siteSurveyAvailable,
+            homeTrialAvailable: false,
+            collectionsCount: `${eventsCompleted} Events`,
+            citiesServed: citiesServed.trim(),
+          },
+          workingHours: {
+            workingDays: "All Days",
+            openingTime: openingTime.trim(),
+            closingTime: closingTime.trim(),
+            weeklyOff: weeklyHolidays.trim(),
+            holidayNotice: consultationNotice.trim(),
+          },
+          policies: {
+            rentalPolicy: advanceBookingRequired.trim(),
+            securityDepositPolicy: advancePaymentPolicy.trim(),
+            cancellationPolicy: cancellationPolicy.trim(),
+            refundPolicy: setupTeardownPolicy.trim(),
+            damagePolicy: propertyDamagePolicy.trim(),
+          },
+          socialLinks: {
+            instagram: instagram.trim(),
+            facebook: facebook.trim(),
+            youtube: youtube.trim(),
+            website: website.trim(),
+          },
+        },
       };
 
       const res = await syncVendorProfileWithDatabase(payload);
@@ -565,29 +608,25 @@ export function DecorCustomizeStoreSection({
         onChange={handleGalleryUpload}
       />
 
-      {/* Header Banner */}
-      <div className="bg-white rounded-2xl border border-gold/15 p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span
-              style={{ backgroundColor: activeTheme.primary }}
-              className="text-white text-[11px] font-bold px-3 py-0.5 rounded-full transition-colors"
-            >
-              Wedding Decorator Customization
-            </span>
+      {/* Top Header Card with Quick Publish Action */}
+      <div className="bg-white rounded-2xl p-6 border border-gold/15 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <Palette className="w-5 h-5 text-[#0F4C45]" />
+            <h2 className="text-xl font-serif font-bold text-charcoal">
+              Customize Decorator Storefront &amp; Themes
+            </h2>
           </div>
-          <h2 className="text-2xl font-serif font-bold text-charcoal">Customize Decorator Storefront</h2>
-          <p className="text-xs text-charcoal/60 mt-0.5">
-            Personalize stage & mandap themes, decor highlights, crew size, design services & setup policies
+          <p className="text-xs text-charcoal/70">
+            Real-time visual editor. Colors, banner, decor highlights, signature themes, and setup policies update immediately on your public storefront.
           </p>
         </div>
 
         <button
           type="button"
+          disabled={isSaving}
           onClick={handleSave}
-          disabled={isSaving || isUploadingLogo || isUploadingCover || isUploadingVideo || isUploadingGallery}
-          style={{ backgroundColor: activeTheme.primary }}
-          className="hover:opacity-90 disabled:opacity-50 text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow-xs transition-all flex items-center gap-2 shrink-0 cursor-pointer"
+          className="px-6 py-2.5 rounded-xl bg-[#0F4C45] hover:bg-[#12584E] text-white text-xs font-bold shadow-sm transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50 shrink-0"
         >
           {isSaving ? (
             <>
@@ -605,239 +644,107 @@ export function DecorCustomizeStoreSection({
         </button>
       </div>
 
-      {/* LIVE STOREFRONT PREVIEW PANE */}
-      <div className="bg-white rounded-3xl border border-gold/20 shadow-md overflow-hidden transition-all">
-        <div className="bg-[#FAF7F2] px-6 py-3 border-b border-gold/15 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="font-serif font-bold text-xs text-charcoal flex items-center gap-1.5">
-              <Eye className="w-3.5 h-3.5 text-[#0F4C45]" /> Live Storefront Preview (Customer View)
-            </span>
-          </div>
-          <span
-            style={{ color: activeTheme.primary }}
-            className="text-[11px] font-bold uppercase tracking-wider bg-white px-2.5 py-0.5 rounded-full border border-gold/15 shadow-2xs"
-          >
-            {activeTheme.label} Palette
-          </span>
-        </div>
-
-        {/* Live Hero Header */}
-        <div className="relative aspect-[21/9] max-h-[300px] w-full overflow-hidden bg-[#0F4C45]">
-          {coverUrl ? (
-            <img src={coverUrl} alt="Decor Cover" className="w-full h-full object-cover" />
-          ) : (
-            <div
-              style={{ backgroundColor: activeTheme.primary }}
-              className="w-full h-full flex items-center justify-center opacity-80"
-            >
-              <Flower2 className="w-16 h-16 text-white/40" />
-            </div>
-          )}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-
-          {/* Profile Header Block */}
-          <div className="absolute bottom-4 left-4 right-4 flex items-end gap-3 sm:gap-4">
-            <div
-              style={{ backgroundColor: activeTheme.primary }}
-              className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl border-2 border-white overflow-hidden shadow-lg shrink-0 relative flex items-center justify-center text-white"
-            >
-              {logoUrl ? (
-                <img src={logoUrl} alt="Studio Logo" className="w-full h-full object-cover" />
-              ) : (
-                <span className="font-serif text-lg sm:text-xl font-bold tracking-wider">{initials}</span>
-              )}
-            </div>
-
-            <div className="mb-0.5 drop-shadow-md flex-1 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <h3 className="text-lg sm:text-2xl font-serif font-bold text-white leading-tight truncate">
-                  {currentDisplayName}
-                </h3>
-                <span className="inline-flex items-center gap-1 bg-white/90 backdrop-blur-md text-[#0F4C45] text-[10px] font-bold px-2 py-0.5 rounded-full">
-                  <ShieldCheck className="w-3 h-3 text-[#0F4C45]" /> Verified Partner
-                </span>
-              </div>
-
-              {tagline ? (
-                <p style={{ color: activeTheme.accent }} className="text-xs font-semibold mt-0.5 italic truncate">
-                  "{tagline}"
-                </p>
-              ) : (
-                <p className="text-xs text-white/80 font-medium mt-0.5 truncate">
-                  Luxury Wedding Decor & Floral Artistry • {currentLocation}
-                </p>
-              )}
-
-              {/* Live Decor Highlights Badges */}
-              {decorHighlights.length > 0 && (
-                <div className="flex flex-wrap items-center gap-1.5 mt-2">
-                  {decorHighlights.map((badge) => (
-                    <span
-                      key={badge}
-                      style={{ borderColor: activeTheme.accent }}
-                      className="bg-black/50 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full border shadow-2xs flex items-center gap-1"
-                    >
-                      <Sparkles className="w-2.5 h-2.5 text-gold" /> {badge}
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Live Preview Content Area */}
-        <div className="p-4 sm:p-6 bg-white space-y-5">
-          {/* Action Buttons Preview */}
-          <div className="flex flex-wrap items-center gap-2">
-            {actionButtons.callNow && (
-              <button
-                style={{ backgroundColor: activeTheme.primary }}
-                className="px-3.5 py-2 rounded-xl text-white text-xs font-bold flex items-center gap-1.5 shadow-xs"
-              >
-                <Phone className="w-3.5 h-3.5" /> Call Studio
-              </button>
-            )}
-            {actionButtons.whatsapp && (
-              <button
-                style={{ backgroundColor: activeTheme.secondary }}
-                className="px-3.5 py-2 rounded-xl text-white text-xs font-bold flex items-center gap-1.5 shadow-xs"
-              >
-                <MessageCircle className="w-3.5 h-3.5" /> WhatsApp
-              </button>
-            )}
-            {actionButtons.bookAppointment && (
-              <button
-                style={{ borderColor: activeTheme.primary, color: activeTheme.primary }}
-                className="px-3.5 py-2 rounded-xl border text-xs font-bold flex items-center gap-1.5 hover:bg-gold/10"
-              >
-                <Calendar className="w-3.5 h-3.5" /> Book Consultation
-              </button>
-            )}
-            {actionButtons.requestQuote && (
-              <button
-                style={{ backgroundColor: activeTheme.accent, color: activeTheme.secondary }}
-                className="px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs"
-              >
-                <FileText className="w-3.5 h-3.5" /> Request Quote
-              </button>
-            )}
-            {actionButtons.getDirections && (
-              <button className="px-3.5 py-2 rounded-xl bg-[#FAF7F2] border border-gold/20 text-charcoal text-xs font-bold flex items-center gap-1.5">
-                <MapPin className="w-3.5 h-3.5" /> Get Directions
-              </button>
-            )}
-            {actionButtons.website && (
-              <button className="px-3.5 py-2 rounded-xl bg-[#FAF7F2] border border-gold/20 text-charcoal text-xs font-bold flex items-center gap-1.5">
-                <Globe className="w-3.5 h-3.5" /> Official Website
-              </button>
-            )}
-          </div>
-
-          {/* Live Decorator Info Metrics Cards */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-            <div className="p-3 rounded-2xl bg-[#FAF7F2] border border-gold/15 space-y-0.5">
-              <span className="text-[10px] uppercase font-bold text-charcoal/50 block">Experience</span>
-              <span style={{ color: activeTheme.primary }} className="font-serif font-bold text-sm block">
-                {experienceYears}
-              </span>
-            </div>
-            <div className="p-3 rounded-2xl bg-[#FAF7F2] border border-gold/15 space-y-0.5">
-              <span className="text-[10px] uppercase font-bold text-charcoal/50 block">On-Site Crew</span>
-              <span className="font-bold text-xs text-charcoal block truncate">
-                {teamSize}
-              </span>
-            </div>
-            <div className="p-3 rounded-2xl bg-[#FAF7F2] border border-gold/15 space-y-0.5">
-              <span className="text-[10px] uppercase font-bold text-charcoal/50 block">Events Completed</span>
-              <span className="font-bold text-xs text-emerald-700 block truncate">
-                {eventsCompleted}
-              </span>
-            </div>
-            <div className="p-3 rounded-2xl bg-[#FAF7F2] border border-gold/15 space-y-0.5">
-              <span className="text-[10px] uppercase font-bold text-charcoal/50 block">Cities Covered</span>
-              <span style={{ color: activeTheme.primary }} className="font-serif font-bold text-xs block truncate">
-                {citiesServed}
-              </span>
-            </div>
-          </div>
-
-          {/* Live Featured Decor Themes Bar */}
-          {featuredThemes.length > 0 && (
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="font-serif font-bold text-xs text-charcoal">Featured Decor Themes & Staging:</span>
-                <span className="text-[10px] text-charcoal/50 font-medium">Signature Concepts</span>
-              </div>
-              <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar pb-1">
-                {featuredThemes.map((theme) => (
-                  <span
-                    key={theme}
-                    style={{ backgroundColor: activeTheme.primary }}
-                    className="text-white text-xs font-bold px-3.5 py-1.5 rounded-xl shrink-0 shadow-2xs flex items-center gap-1.5"
-                  >
-                    <Brush className="w-3 h-3 text-gold" /> {theme}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Live Design Services Offered Badges */}
-          {decorServices.length > 0 && (
-            <div className="space-y-1.5">
-              <span className="font-serif font-bold text-xs text-charcoal block">Design Services & Capabilities:</span>
-              <div className="flex flex-wrap gap-1.5">
-                {decorServices.map((svc) => (
-                  <span key={svc} className="bg-[#FAF7F2] border border-gold/20 text-charcoal text-[11px] font-bold px-2.5 py-1 rounded-lg">
-                    ✓ {svc}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Live Working Hours Preview */}
-          <div className="p-3.5 bg-[#FAF7F2] rounded-2xl border border-gold/15 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
-            <div className="flex items-center gap-2.5">
-              <Clock style={{ color: activeTheme.primary }} className="w-4 h-4 shrink-0" />
-              <div>
-                <span className="font-serif font-bold text-charcoal block">Studio & Consultation Timings</span>
-                <span className="text-[11px] text-charcoal/70">
-                  Hours: {openingTime} - {closingTime} ({weeklyHolidays})
-                </span>
-              </div>
-            </div>
-            {consultationNotice && (
-              <span className="text-[10px] text-[#0F4C45] bg-[#0F4C45]/10 font-bold px-2.5 py-1 rounded-lg">
-                {consultationNotice}
-              </span>
-            )}
-          </div>
-
-          {/* Live Decor Booking Policies Preview */}
-          <div className="space-y-2 pt-2 border-t border-gold/10">
-            <span className="font-serif font-bold text-xs text-charcoal block">Booking Policies & Setup Guidelines:</span>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-              <div className="p-3 bg-gray-50 rounded-xl border border-gray-200/80 space-y-1">
-                <span className="font-bold text-charcoal block flex items-center gap-1">
-                  <ShieldCheck className="w-3.5 h-3.5 text-[#0F4C45]" /> Advance Booking & Payments
-                </span>
-                <p className="text-[11px] text-charcoal/70 leading-relaxed">{advanceBookingRequired}</p>
-                <p className="text-[10px] text-charcoal/60 leading-relaxed italic">{advancePaymentPolicy}</p>
-              </div>
-
-              <div className="p-3 bg-gray-50 rounded-xl border border-gray-200/80 space-y-1">
-                <span className="font-bold text-charcoal block flex items-center gap-1">
-                  <FileText className="w-3.5 h-3.5 text-[#0F4C45]" /> Setup Timings & Property Care
-                </span>
-                <p className="text-[11px] text-charcoal/70 leading-relaxed">{setupTeardownPolicy}</p>
-                <p className="text-[10px] text-charcoal/60 leading-relaxed italic">{propertyDamagePolicy}</p>
-              </div>
-            </div>
-          </div>
-        </div>
+      {/* LIVE STOREFRONT PREVIEW PANE (Exact Unified Component) */}
+      <div className="rounded-3xl border border-gold/20 shadow-md overflow-hidden transition-all">
+        <VendorStorefront
+          previewMode={true}
+          vendor={{
+            id: "preview-decor",
+            name: currentDisplayName,
+            business_name: currentDisplayName,
+            boutique_name: currentDisplayName,
+            category: "wedding-decor",
+            categoryLabel: "Wedding Decorator",
+            location: currentLocation,
+            city: vendorData?.city || "Kochi",
+            state: "Kerala",
+            rating: 5.0,
+            reviews: 20,
+            image: coverUrl,
+            cover_image: coverUrl,
+            coverImage: coverUrl,
+            logo: logoUrl,
+            logo_url: logoUrl,
+            tagline: tagline,
+            subtitle: tagline,
+            about: about,
+            description: about,
+            colorTheme: colorTheme,
+            galleryLayout: galleryLayout,
+            startingPrice: (vendorData as any)?.startingPrice || (vendorData as any)?.starting_price || "₹50,000",
+            phone: "+91 98470 12345",
+            whatsapp: "+91 98470 12345",
+            email: "decor@cloche.com",
+            address: `${currentLocation}, Kerala`,
+            storeHighlights: decorHighlights,
+            decorHighlights: decorHighlights,
+            featuredCollections: featuredThemes,
+            featuredThemes: featuredThemes,
+            actionButtons: actionButtons,
+            businessInfo: {
+              experienceYears: experienceYears,
+              rentalAvailable: true,
+              homeDeliveryAvailable: siteSurveyAvailable,
+              homeTrialAvailable: false,
+              collectionsCount: `${eventsCompleted} Events`,
+              citiesServed: citiesServed,
+            },
+            workingHours: {
+              workingDays: "All Days",
+              openingTime: openingTime,
+              closingTime: closingTime,
+              weeklyOff: weeklyHolidays,
+              holidayNotice: consultationNotice,
+            },
+            policies: {
+              rentalPolicy: advanceBookingRequired,
+              securityDepositPolicy: advancePaymentPolicy,
+              cancellationPolicy: cancellationPolicy,
+              refundPolicy: setupTeardownPolicy,
+              damagePolicy: propertyDamagePolicy,
+            },
+          }}
+          storefront={{
+            theme: colorTheme,
+            brandColors: activeTheme,
+            coverImage: coverUrl,
+            logo: logoUrl,
+            tagline: tagline,
+            about: about,
+            storeHighlights: decorHighlights,
+            featuredCollections: featuredThemes,
+            galleryLayout: galleryLayout,
+            actionButtons: actionButtons,
+            businessInfo: {
+              experienceYears: experienceYears,
+              rentalAvailable: true,
+              homeDeliveryAvailable: siteSurveyAvailable,
+              homeTrialAvailable: false,
+              collectionsCount: `${eventsCompleted} Events`,
+              citiesServed: citiesServed,
+            },
+            workingHours: {
+              workingDays: "All Days",
+              openingTime: openingTime,
+              closingTime: closingTime,
+              weeklyOff: weeklyHolidays,
+              holidayNotice: consultationNotice,
+            },
+            policies: {
+              rentalPolicy: advanceBookingRequired,
+              securityDepositPolicy: advancePaymentPolicy,
+              cancellationPolicy: cancellationPolicy,
+              refundPolicy: setupTeardownPolicy,
+              damagePolicy: propertyDamagePolicy,
+            },
+            socialLinks: {
+              instagram: instagram.trim(),
+              facebook: facebook.trim(),
+              youtube: youtube.trim(),
+              website: website.trim(),
+            },
+          }}
+        />
       </div>
 
       {/* ACCORDION FORM CONFIGURATOR SECTIONS */}
