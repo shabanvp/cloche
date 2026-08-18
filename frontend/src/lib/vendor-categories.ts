@@ -10,6 +10,31 @@ import {
   LucideIcon
 } from "lucide-react";
 
+export const VENDOR_REGISTRATION_CATEGORIES: string[] = [
+  "Bridal Studio",
+  "Groom Studio",
+  "Wedding Studio",
+  "Wedding Venue",
+  "Photographer",
+  "Videographer",
+  "Makeup Artist",
+  "Mehendi Artist",
+  "Wedding Planner",
+  "Decorator",
+  "Caterer",
+  "Jewellery Store",
+  "Invitation Designer",
+  "Cake Designer",
+  "Entertainment",
+  "Choreographer",
+  "Car Rental",
+  "Flower Decoration",
+  "Rental Services",
+  "Gift Store",
+  "Honeymoon Planner",
+  "Other",
+];
+
 // ==========================================
 // 1. PUBLIC CATEGORY LISTING TYPES & DATA
 // ==========================================
@@ -418,13 +443,13 @@ export function getPublicCategoryConfig(categorySlug?: string): CategoryConfig {
     return VENDOR_CATEGORIES_DATA[s];
   }
   
-  if (s === "brides-story" || s === "bride-story" || s === "bridal-story") {
+  if (s === "brides-story" || s === "bride-story" || s === "bridal-story" || s === "bridal-studio" || s === "bridal studio") {
     return VENDOR_CATEGORIES_DATA["brides-story"];
   }
-  if (s === "grooms-story" || s === "groom-story") {
+  if (s === "grooms-story" || s === "groom-story" || s === "groom-studio" || s === "groom studio") {
     return VENDOR_CATEGORIES_DATA["grooms-story"];
   }
-  if (s === "wedding-story" || s === "weddingstory") {
+  if (s === "wedding-story" || s === "weddingstory" || s === "wedding-studio" || s === "wedding studio") {
     return VENDOR_CATEGORIES_DATA["wedding-story"];
   }
   if (s === "bridal-wear" || s === "bridal-boutique" || s === "boutiques" || s.includes("bridal") || s.includes("wear") || s.includes("boutique")) {

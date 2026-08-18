@@ -13,29 +13,9 @@ function generateSlug(text: string): string {
   return base ? `${base}-${randomSuffix}` : `vendor-${Date.now()}`;
 }
 
-const PRIMARY_CATEGORIES = [
-  "Bridal Boutique",
-  "Groom Wear",
-  "Wedding Venue",
-  "Photographer",
-  "Videographer",
-  "Makeup Artist",
-  "Mehendi Artist",
-  "Wedding Planner",
-  "Decorator",
-  "Caterer",
-  "Jewellery Store",
-  "Invitation Designer",
-  "Cake Designer",
-  "Entertainment",
-  "Choreographer",
-  "Car Rental",
-  "Flower Decoration",
-  "Rental Services",
-  "Gift Store",
-  "Honeymoon Planner",
-  "Other",
-];
+import { VENDOR_REGISTRATION_CATEGORIES } from "@/lib/vendor-categories";
+
+const PRIMARY_CATEGORIES = VENDOR_REGISTRATION_CATEGORIES;
 
 export async function GET() {
   const { url, serviceKey, anonKey } = getSupabaseConfig();
@@ -48,8 +28,31 @@ export async function GET() {
       });
       if (res.ok) {
         const categories: Array<{ id: string; name: string; slug: string }> = await res.json();
+        
+        // Map legacy DB names to updated studio category names
+        const mapped = categories.map((c) => {
+          let name = c.name;
+          if (name === "Bridal Boutique" || name === "Bride's Story") name = "Bridal Studio";
+          if (name === "Groom Wear" || name === "Groom's Story") name = "Groom Studio";
+          if (name === "Wedding Story") name = "Wedding Studio";
+          return { ...c, name };
+        });
+
+        // Ensure Bridal Studio, Groom Studio, and Wedding Studio options exist
+        const requiredStudios = [
+          { id: "bridal-studio", name: "Bridal Studio", slug: "bridal-studio" },
+          { id: "groom-studio", name: "Groom Studio", slug: "groom-studio" },
+          { id: "wedding-studio", name: "Wedding Studio", slug: "wedding-studio" },
+        ];
+
+        for (const studio of requiredStudios) {
+          if (!mapped.some((c) => c.name === studio.name)) {
+            mapped.push(studio);
+          }
+        }
+
         const primarySet = new Set(PRIMARY_CATEGORIES);
-        const filtered = categories.filter((c) => primarySet.has(c.name));
+        const filtered = mapped.filter((c) => primarySet.has(c.name));
 
         const seen = new Set<string>();
         const uniquePrimary = filtered.filter((c) => {
@@ -58,10 +61,23 @@ export async function GET() {
           return true;
         });
 
+        // Sort according to PRIMARY_CATEGORIES order
+        uniquePrimary.sort((a, b) => PRIMARY_CATEGORIES.indexOf(a.name) - PRIMARY_CATEGORIES.indexOf(b.name));
+
         return NextResponse.json({ success: true, statusCode: 200, data: uniquePrimary });
       }
     }
   } catch (err: any) {}
+
+  // Fallback if DB fetch fails
+  const fallbackData = PRIMARY_CATEGORIES.map((name) => ({
+    id: name,
+    name,
+    slug: name.toLowerCase().replace(/[^a-z0-9]/g, "-"),
+  }));
+
+  return NextResponse.json({ success: true, statusCode: 200, data: fallbackData });
+}
 
   return NextResponse.json(
     { success: false, statusCode: 500, error: { code: "SERVER_ERROR", message: "Failed to fetch vendor categories." } },
