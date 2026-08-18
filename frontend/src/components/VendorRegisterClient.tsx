@@ -32,14 +32,9 @@ type FieldErrors = Partial<Record<FieldName, string>>;
 const rawBaseUrl = process.env.NEXT_PUBLIC_API_URL || "https://cloche-backend.onrender.com";
 const API_BASE_URL = rawBaseUrl.endsWith("/api") ? rawBaseUrl : `${rawBaseUrl}/api`;
 
-const VENDOR_CATEGORIES = [
-  "Bridal Studio", "Groom Studio", "Wedding Studio",
-  "Wedding Venue", "Photographer", "Videographer",
-  "Makeup Artist", "Mehendi Artist", "Wedding Planner", "Decorator", "Caterer",
-  "Jewellery Store", "Invitation Designer", "Cake Designer", "Entertainment",
-  "Choreographer", "Car Rental", "Flower Decoration", "Rental Services",
-  "Gift Store", "Honeymoon Planner", "Other"
-];
+import { VENDOR_REGISTRATION_CATEGORIES } from "@/lib/vendor-categories";
+
+const VENDOR_CATEGORIES = VENDOR_REGISTRATION_CATEGORIES;
 
 const fieldNames: FieldName[] = [
   "boutique_name", "owner_name", "category", "gst_number", "email", "phone",
@@ -579,7 +574,7 @@ export function VendorRegisterClient() {
               <option value="">Select Category</option>
               {dbCategories.length > 0
                 ? dbCategories.map((c) => (
-                    <option key={c.id} value={c.id}>
+                    <option key={c.id} value={c.name}>
                       {c.name}
                     </option>
                   ))

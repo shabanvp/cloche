@@ -10,6 +10,31 @@ import {
   LucideIcon
 } from "lucide-react";
 
+export const VENDOR_REGISTRATION_CATEGORIES: string[] = [
+  "Bridal Studio",
+  "Groom Studio",
+  "Wedding Studio",
+  "Wedding Venue",
+  "Photographer",
+  "Videographer",
+  "Makeup Artist",
+  "Mehendi Artist",
+  "Wedding Planner",
+  "Decorator",
+  "Caterer",
+  "Jewellery Store",
+  "Invitation Designer",
+  "Cake Designer",
+  "Entertainment",
+  "Choreographer",
+  "Car Rental",
+  "Flower Decoration",
+  "Rental Services",
+  "Gift Store",
+  "Honeymoon Planner",
+  "Other",
+];
+
 // ==========================================
 // 1. PUBLIC CATEGORY LISTING TYPES & DATA
 // ==========================================
