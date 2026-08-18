@@ -79,12 +79,6 @@ export async function GET() {
   return NextResponse.json({ success: true, statusCode: 200, data: fallbackData });
 }
 
-  return NextResponse.json(
-    { success: false, statusCode: 500, error: { code: "SERVER_ERROR", message: "Failed to fetch vendor categories." } },
-    { status: 500 }
-  );
-}
-
 export async function POST(req: Request) {
   const logPrefix = "[VENDOR_REGISTER_API]";
   let insertedUserId: string | null = null;
