@@ -138,6 +138,7 @@ export function CustomizeStoreSection({ categoryConfig, vendorName, onBack }: Cu
   const [colorTheme, setColorTheme] = useState<string>("emerald");
   const [galleryLayout, setGalleryLayout] = useState<string>("grid");
   const [introVideo, setIntroVideo] = useState<string>("");
+  const [galleryImages, setGalleryImages] = useState<string[]>([]);
 
   // 2. Social Links
   const [instagram, setInstagram] = useState<string>("");
@@ -258,6 +259,10 @@ export function CustomizeStoreSection({ categoryConfig, vendorName, onBack }: Cu
     }
     if (Array.isArray(identity.featuredCollections || identity.featured_collections)) {
       setFeaturedCollections(identity.featuredCollections || identity.featured_collections);
+    }
+    if (Array.isArray(identity.galleryImages || identity.gallery_images || identity.gallery)) {
+      const g = identity.galleryImages || identity.gallery_images || identity.gallery;
+      setGalleryImages(g.map((x: any) => (typeof x === "string" ? x : x?.url || x?.image_url || x?.image)).filter(Boolean));
     }
     if (identity.experienceYears || identity.experience_years || identity.experience) {
       setExperienceYears(identity.experienceYears || identity.experience_years || identity.experience || "");
@@ -486,6 +491,7 @@ export function CustomizeStoreSection({ categoryConfig, vendorName, onBack }: Cu
           storeHighlights,
           featuredCollections,
           galleryLayout: galleryLayout,
+          gallery: galleryImages.map((url, i) => ({ url, caption: `Showcase Photo ${i + 1}` })),
           actionButtons,
           businessInfo: {
             experienceYears: experienceYears.trim(),
@@ -624,6 +630,8 @@ export function CustomizeStoreSection({ categoryConfig, vendorName, onBack }: Cu
             description: about,
             colorTheme: colorTheme,
             galleryLayout: galleryLayout,
+            galleryImages: galleryImages,
+            gallery: galleryImages.map((url, i) => ({ url, caption: `Showcase Photo ${i + 1}` })),
             startingPrice: "₹25,000",
             phone: "+91 98470 12345",
             whatsapp: "+91 98470 12345",
@@ -665,6 +673,7 @@ export function CustomizeStoreSection({ categoryConfig, vendorName, onBack }: Cu
             storeHighlights: storeHighlights,
             featuredCollections: featuredCollections,
             galleryLayout: galleryLayout,
+            gallery: galleryImages.map((url, i) => ({ url, caption: `Showcase Photo ${i + 1}` })),
             actionButtons: actionButtons,
             businessInfo: {
               experienceYears: experienceYears,
