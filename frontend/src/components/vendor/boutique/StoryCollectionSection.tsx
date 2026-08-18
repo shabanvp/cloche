@@ -102,7 +102,7 @@ export function StoryCollectionSection({
             name: isGroomOnly ? "Royal Maroon Velvet Sherwani" : "Royal Crimson Zardosi Lehenga",
             description: "Handcrafted intricate bullion zardosi embroidery on velvet silk blend with royal organza dupatta.",
             category: isGroomOnly ? "Sherwani" : "Bridal Lehenga",
-            targetAudience: isGroomOnly ? "groom" : "bride",
+            targetAudience: (isGroomOnly ? "groom" : "bride") as TargetAudience,
             images: [
               isGroomOnly
                 ? "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=600&q=80"
@@ -129,7 +129,7 @@ export function StoryCollectionSection({
             name: isGroomOnly ? "Black Velvet Tuxedo Suit" : "Pastel Pink Organza Reception Gown",
             description: "Modern minimalist silhouette with delicate crystal beadwork and tailored structured fitting.",
             category: isGroomOnly ? "Tuxedo" : "Reception Dress",
-            targetAudience: isGroomOnly ? "groom" : "bride",
+            targetAudience: (isGroomOnly ? "groom" : "bride") as TargetAudience,
             images: [
               isGroomOnly
                 ? "https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=600&q=80"
