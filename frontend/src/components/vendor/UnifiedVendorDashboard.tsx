@@ -69,13 +69,14 @@ import {
 } from "lucide-react";
 
 interface UnifiedVendorDashboardProps {
+  categoryKey?: string;
   initialTab?: string | null;
 }
 
-export function UnifiedVendorDashboard({ initialTab = null }: UnifiedVendorDashboardProps) {
+export function UnifiedVendorDashboard({ categoryKey = "caterers", initialTab = null }: UnifiedVendorDashboardProps) {
   const router = useRouter();
   
-  const [activeCategoryKey, setActiveCategoryKey] = useState<string>("caterers");
+  const [activeCategoryKey, setActiveCategoryKey] = useState<string>(categoryKey);
   const [activeTab, setActiveTab] = useState<string | null>(initialTab);
   const [vendorData, setVendorData] = useState<any>(null);
 
