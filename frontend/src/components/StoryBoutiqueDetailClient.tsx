@@ -34,7 +34,8 @@ import {
   DRESS_COLORS,
   DRESS_FABRICS,
   AvailabilityType,
-  SizeOption
+  SizeOption,
+  TargetAudience
 } from "@/lib/storyBoutiqueTypes";
 
 export function StoryBoutiqueDetailClient({
