@@ -28,6 +28,8 @@ import { AnalyticsSection } from "./sections/AnalyticsSection";
 import { SubscriptionSection } from "./sections/SubscriptionSection";
 import { CustomizeStoreSection } from "./sections/CustomizeStoreSection";
 import { DecorCustomizeStoreSection } from "./decor/sections/DecorCustomizeStoreSection";
+import { StoryCollectionSection } from "./boutique/StoryCollectionSection";
+import { StoryAnalyticsSection } from "./boutique/StoryAnalyticsSection";
 import { VendorMediaModule } from "./sections/VendorMediaModule";
 import { VendorPricingModule } from "./sections/VendorPricingModule";
 import { VendorCoverHeader } from "./VendorCoverHeader";
