@@ -14,6 +14,9 @@ function generateSlug(text: string): string {
 }
 
 const PRIMARY_CATEGORIES = [
+  "Bridal Studio",
+  "Groom Studio",
+  "Wedding Studio",
   "Bridal Boutique",
   "Groom Wear",
   "Wedding Venue",

@@ -33,8 +33,8 @@ const rawBaseUrl = process.env.NEXT_PUBLIC_API_URL || "https://cloche-backend.on
 const API_BASE_URL = rawBaseUrl.endsWith("/api") ? rawBaseUrl : `${rawBaseUrl}/api`;
 
 const VENDOR_CATEGORIES = [
-  "Bride's Story", "Groom's Story", "Wedding Story",
-  "Bridal Boutique", "Groom Wear", "Wedding Venue", "Photographer", "Videographer",
+  "Bridal Studio", "Groom Studio", "Wedding Studio",
+  "Wedding Venue", "Photographer", "Videographer",
   "Makeup Artist", "Mehendi Artist", "Wedding Planner", "Decorator", "Caterer",
   "Jewellery Store", "Invitation Designer", "Cake Designer", "Entertainment",
   "Choreographer", "Car Rental", "Flower Decoration", "Rental Services",
