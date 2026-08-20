@@ -76,7 +76,7 @@ const mapServerErrorToField = (message: string): { fieldErrors: FieldErrors; gen
   } else if (lower.includes("boutique_name") || lower.includes("boutique with this name")) {
     fieldErrors.boutique_name = message;
   } else if (lower.includes("category")) {
-    fieldErrors.category = "Select the correct vendor category.";
+    fieldErrors.category = message || "Select a valid vendor category.";
   } else if (lower.includes("image") || lower.includes("logo")) {
     fieldErrors.logo = "Upload a profile logo image.";
     fieldErrors.cover = "Upload a cover image.";

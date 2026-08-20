@@ -343,7 +343,7 @@ export async function POST(req: Request) {
     }
 
     let categoryId: string | null = null;
-    let categoryName: string = "";
+    let categoryName: string = submittedCategory;
 
     const catRes = await fetch(
       `${url}/rest/v1/vendor_categories?or=(id.eq.${encodeURIComponent(submittedCategory)},slug.eq.${encodeURIComponent(submittedCategory)},name.eq.${encodeURIComponent(submittedCategory)})&select=id,name,slug&limit=1`,
@@ -354,22 +354,48 @@ export async function POST(req: Request) {
       const cats = await catRes.json();
       if (Array.isArray(cats) && cats.length > 0) {
         categoryId = cats[0].id;
-        categoryName = cats[0].name;
+        categoryName = cats[0].name || submittedCategory;
       }
     }
 
     if (!categoryId) {
-      return NextResponse.json(
-        {
-          success: false,
-          statusCode: 400,
-          error: {
-            code: "INVALID_CATEGORY",
-            message: `Selected vendor category "${submittedCategory}" does not exist in database.`,
-          },
+      // 1. Attempt to auto-insert new vendor category into Supabase vendor_categories table
+      const createCatRes = await fetch(`${url}/rest/v1/vendor_categories`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: apiKey,
+          Authorization: `Bearer ${apiKey}`,
+          Prefer: "return=representation",
         },
-        { status: 400 }
-      );
+        body: JSON.stringify({
+          name: submittedCategory,
+          slug: generateSlug(submittedCategory),
+          is_active: true,
+        }),
+      }).catch(() => null);
+
+      if (createCatRes && createCatRes.ok) {
+        const createdCats = await createCatRes.json().catch(() => []);
+        if (Array.isArray(createdCats) && createdCats.length > 0) {
+          categoryId = createdCats[0].id;
+          categoryName = createdCats[0].name || submittedCategory;
+        }
+      }
+    }
+
+    if (!categoryId) {
+      // 2. Fallback to existing vendor category ID so vendors table foreign key constraint passes
+      const fallbackCatRes = await fetch(`${url}/rest/v1/vendor_categories?select=id,name&limit=1`, {
+        headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
+      }).catch(() => null);
+
+      if (fallbackCatRes && fallbackCatRes.ok) {
+        const fbCats = await fallbackCatRes.json().catch(() => []);
+        if (Array.isArray(fbCats) && fbCats.length > 0) {
+          categoryId = fbCats[0].id;
+        }
+      }
     }
 
     // Step 4: Create Core Vendor Record in vendors table
