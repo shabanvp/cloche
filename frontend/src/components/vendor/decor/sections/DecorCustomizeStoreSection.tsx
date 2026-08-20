@@ -12,11 +12,9 @@ import {
   Loader2,
   ChevronDown,
   ChevronUp,
-  Video,
   Globe,
   FileText,
   X,
-  Play,
   Award,
   ShieldCheck,
   Clock,
@@ -95,7 +93,6 @@ export function DecorCustomizeStoreSection({
   const [about, setAbout] = useState<string>("");
   const [colorTheme, setColorTheme] = useState<string>("emerald");
   const [galleryLayout, setGalleryLayout] = useState<string>("grid");
-  const [introVideo, setIntroVideo] = useState<string>("");
   const [galleryImages, setGalleryImages] = useState<string[]>([]);
 
   // 2. Social Links
@@ -193,14 +190,12 @@ export function DecorCustomizeStoreSection({
   // Upload States
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const [isUploadingCover, setIsUploadingCover] = useState(false);
-  const [isUploadingVideo, setIsUploadingVideo] = useState(false);
   const [isUploadingGallery, setIsUploadingGallery] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
   const logoInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
-  const videoInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
 
   // Initial Hydration
@@ -232,9 +227,6 @@ export function DecorCustomizeStoreSection({
     if (data.tagline) setTagline(data.tagline || "");
     if (data.about || data.description) setAbout(data.about || data.description || "");
     if (data.colorTheme || data.color_theme) setColorTheme(data.colorTheme || data.color_theme || "emerald");
-    if (data.introVideo || data.intro_video || data.intro_video_url) {
-      setIntroVideo(data.introVideo || data.intro_video || data.intro_video_url || "");
-    }
 
     const gallery = Array.isArray(data.galleryImages)
       ? data.galleryImages
@@ -395,24 +387,7 @@ export function DecorCustomizeStoreSection({
     }
   };
 
-  const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (file.size > 50 * 1024 * 1024) {
-      showVendorToast("Video file exceeds the 50MB size limit.", "error");
-      return;
-    }
-    try {
-      setIsUploadingVideo(true);
-      const res = await uploadImageToCloudinaryDetailed(file, "cloche/vendors/videos");
-      setIntroVideo(res.secure_url);
-      showVendorToast("✓ Setup Walkthrough Video uploaded successfully", "success");
-    } catch (err: any) {
-      showVendorToast(err?.message || "Failed to upload video", "error");
-    } finally {
-      setIsUploadingVideo(false);
-    }
-  };
+
 
   const handleGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -450,8 +425,6 @@ export function DecorCustomizeStoreSection({
         description: about.trim(),
         colorTheme,
         color_theme: colorTheme,
-        introVideo: introVideo.trim(),
-        intro_video: introVideo.trim(),
         galleryImages,
         gallery_images: galleryImages,
 
@@ -593,13 +566,7 @@ export function DecorCustomizeStoreSection({
         className="hidden"
         onChange={handleCoverUpload}
       />
-      <input
-        ref={videoInputRef}
-        type="file"
-        accept="video/mp4,video/webm,video/quicktime"
-        className="hidden"
-        onChange={handleVideoUpload}
-      />
+
       <input
         ref={galleryInputRef}
         type="file"
@@ -1357,7 +1324,7 @@ export function DecorCustomizeStoreSection({
               <div>
                 <span className="block">8. Studio Logo, Cover Banner & Media</span>
                 <span className="text-xs font-sans font-normal text-charcoal/60">
-                  Emblem logo, setup cover banner, tagline, walkthrough reel & portfolio gallery
+                  Emblem logo, setup cover banner, tagline & portfolio gallery
                 </span>
               </div>
             </div>
@@ -1367,7 +1334,7 @@ export function DecorCustomizeStoreSection({
           {openAccordions.branding && (
             <div className="p-5 border-t border-gold/10 space-y-5 text-xs animate-in fade-in duration-200">
               {/* Media Upload Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Logo Upload Card */}
                 <div className="p-4 bg-[#FAF7F2] rounded-2xl border border-gold/15 flex flex-col items-center text-center space-y-3">
                   <div className="w-20 h-20 rounded-2xl bg-white border border-gold/20 flex items-center justify-center overflow-hidden relative shadow-xs">
@@ -1430,38 +1397,7 @@ export function DecorCustomizeStoreSection({
                   </button>
                 </div>
 
-                {/* Intro Video Upload Card */}
-                <div className="p-4 bg-[#FAF7F2] rounded-2xl border border-gold/15 flex flex-col items-center text-center space-y-3">
-                  <div className="w-full h-20 rounded-2xl bg-white border border-gold/20 flex items-center justify-center overflow-hidden relative shadow-xs">
-                    {introVideo ? (
-                      <div className="flex items-center gap-1 text-emerald-700 font-bold text-xs">
-                        <Play className="w-4 h-4 fill-emerald-700" /> Video Ready
-                      </div>
-                    ) : (
-                      <Video className="w-8 h-8 text-charcoal/30" />
-                    )}
-                  </div>
-                  <div>
-                    <span className="font-bold text-charcoal block">Setup Walkthrough Reel</span>
-                    <span className="text-[10px] text-charcoal/50">MP4, WebM (Max 50MB)</span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => videoInputRef.current?.click()}
-                    disabled={isUploadingVideo}
-                    className="w-full py-2 px-3 bg-white border border-gold/20 rounded-xl text-charcoal font-bold text-xs hover:bg-gold/10 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
-                  >
-                    {isUploadingVideo ? (
-                      <>
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" /> Uploading...
-                      </>
-                    ) : (
-                      <>
-                        <Upload className="w-3.5 h-3.5 text-[#0F4C45]" /> Upload Video
-                      </>
-                    )}
-                  </button>
-                </div>
+
               </div>
 
               {/* Tagline Input */}

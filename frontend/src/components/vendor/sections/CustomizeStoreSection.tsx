@@ -12,12 +12,10 @@ import {
   Loader2,
   ChevronDown,
   ChevronUp,
-  Video,
   LayoutGrid,
   Globe,
   FileText,
   X,
-  Play,
   Award,
   ShieldCheck,
   Tag,
@@ -137,7 +135,6 @@ export function CustomizeStoreSection({ categoryConfig, vendorName, onBack }: Cu
   const [about, setAbout] = useState<string>("");
   const [colorTheme, setColorTheme] = useState<string>("emerald");
   const [galleryLayout, setGalleryLayout] = useState<string>("grid");
-  const [introVideo, setIntroVideo] = useState<string>("");
   const [galleryImages, setGalleryImages] = useState<string[]>([]);
 
   // 2. Social Links
@@ -208,7 +205,6 @@ export function CustomizeStoreSection({ categoryConfig, vendorName, onBack }: Cu
   // Loading & Upload states
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const [isUploadingCover, setIsUploadingCover] = useState(false);
-  const [isUploadingVideo, setIsUploadingVideo] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
@@ -231,7 +227,6 @@ export function CustomizeStoreSection({ categoryConfig, vendorName, onBack }: Cu
 
   const logoInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
-  const videoInputRef = useRef<HTMLInputElement>(null);
 
   const toggleAccordion = (key: string) => {
     setOpenAccordions((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -246,9 +241,7 @@ export function CustomizeStoreSection({ categoryConfig, vendorName, onBack }: Cu
     if (identity.about || identity.description) setAbout(identity.about || identity.description || "");
     if (identity.color_theme || identity.colorTheme) setColorTheme(identity.color_theme || identity.colorTheme || "emerald");
     if (identity.gallery_layout || identity.galleryLayout) setGalleryLayout(identity.gallery_layout || identity.galleryLayout || "grid");
-    if (identity.intro_video || identity.intro_video_url || identity.introVideo) {
-      setIntroVideo(identity.intro_video || identity.intro_video_url || identity.introVideo || "");
-    }
+
     if (identity.instagram) setInstagram(identity.instagram || "");
     if (identity.facebook) setFacebook(identity.facebook || "");
     if (identity.youtube) setYoutube(identity.youtube || "");
@@ -392,30 +385,7 @@ export function CustomizeStoreSection({ categoryConfig, vendorName, onBack }: Cu
     }
   };
 
-  const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
 
-    if (file.size > 50 * 1024 * 1024) {
-      showVendorToast("Intro video size must be under 50MB.", "error");
-      return;
-    }
-
-    setIsUploadingVideo(true);
-    try {
-      const res = await uploadImageToCloudinaryDetailed(file, "cloche/vendors/videos");
-      if (res.secure_url) {
-        setIntroVideo(res.secure_url);
-        showVendorToast("✓ Intro video uploaded successfully!", "success");
-      }
-    } catch (err) {
-      console.error("[CustomizeStore] Video upload failed:", err);
-      showVendorToast("Video upload failed. Please try again.", "error");
-    } finally {
-      setIsUploadingVideo(false);
-      if (videoInputRef.current) videoInputRef.current.value = "";
-    }
-  };
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -433,9 +403,7 @@ export function CustomizeStoreSection({ categoryConfig, vendorName, onBack }: Cu
         colorTheme: colorTheme,
         gallery_layout: galleryLayout,
         galleryLayout: galleryLayout,
-        intro_video: introVideo,
-        intro_video_url: introVideo,
-        introVideo: introVideo,
+
         instagram: instagram.trim(),
         facebook: facebook.trim(),
         youtube: youtube.trim(),
@@ -559,13 +527,7 @@ export function CustomizeStoreSection({ categoryConfig, vendorName, onBack }: Cu
         className="hidden"
         onChange={handleCoverUpload}
       />
-      <input
-        ref={videoInputRef}
-        type="file"
-        accept="video/mp4,video/webm,video/quicktime"
-        className="hidden"
-        onChange={handleVideoUpload}
-      />
+
 
       {/* Top Header Card with Quick Publish Action */}
       <div className="bg-white rounded-2xl p-6 border border-gold/15 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
