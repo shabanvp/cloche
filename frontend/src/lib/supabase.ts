@@ -754,7 +754,7 @@ export async function fetchCustomerFavoritesFromDb(customerId: string) {
 
   // 1. Try embedded select query
   const embeddedRes = await supabaseFetch(
-    `customer_favorites?customer_id=eq.${encodeURIComponent(targetId)}&select=*,vendors(*)`
+    `customer_favorites?customer_id=eq.${encodeURIComponent(targetId)}&select=*,vendors(*,vendor_categories(id,name,slug),vendor_profiles(*,logo_media:media!logo_media_id(cdn_url),cover_media:media!cover_media_id(cdn_url)))`
   );
 
   if (!embeddedRes.error && Array.isArray(embeddedRes.data)) {
@@ -773,7 +773,7 @@ export async function fetchCustomerFavoritesFromDb(customerId: string) {
     const vendorIds = simpleRes.data.map((fav: any) => fav.vendor_id).filter(Boolean);
     if (vendorIds.length > 0) {
       const filter = `id=in.(${vendorIds.map((id: string) => encodeURIComponent(id)).join(",")})`;
-      const vendorsRes = await supabaseFetch(`vendors?${filter}&select=*`);
+      const vendorsRes = await supabaseFetch(`vendors?${filter}&select=*,vendor_categories(id,name,slug),vendor_profiles(*,logo_media:media!logo_media_id(cdn_url),cover_media:media!cover_media_id(cdn_url))`);
       const vendorsMap = new Map();
       if (Array.isArray(vendorsRes.data)) {
         vendorsRes.data.forEach((v: any) => vendorsMap.set(v.id, v));

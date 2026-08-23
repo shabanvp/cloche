@@ -446,7 +446,7 @@ export function UserDashboardClient() {
                         </div>
 
                         <div className="flex items-center gap-2">
-                          <Link href={`/boutiques/${item.id}`} className="bg-[#0F4C45] text-white p-2 rounded-xl text-xs font-bold hover:bg-[#12584E] transition-all">
+                          <Link href={item.href || `/boutiques/${item.id}`} className="bg-[#0F4C45] text-white p-2 rounded-xl text-xs font-bold hover:bg-[#12584E] transition-all">
                             <Eye className="w-4 h-4" />
                           </Link>
                           <button onClick={() => handleRemoveVendor(item.id)} className="bg-rose-50 text-rose-600 p-2 rounded-xl text-xs font-bold hover:bg-rose-100 transition-all cursor-pointer">
