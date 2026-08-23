@@ -26,61 +26,80 @@ interface VendorItem {
 }
 
 export default function Home() {
-  const [vendors, setVendors] = useState<VendorItem[]>([]);
+  const [trendingVendors, setTrendingVendors] = useState<VendorItem[]>([]);
+  const [featuredVendors, setFeaturedVendors] = useState<VendorItem[]>([]);
   const [vendorsLoading, setVendorsLoading] = useState(true);
   const [stories, setStories] = useState<RealWeddingStoryDb[]>([]);
   const [storiesLoading, setStoriesLoading] = useState(true);
 
-  // Fetch real registered vendors
+  // Fetch real registered vendors & boutiques with strict deduplication
   useEffect(() => {
     async function loadVendors() {
       try {
-        const res = await fetch("/api/v1/public/vendors?limit=8");
+        const res = await fetch("/api/v1/public/vendors?limit=12");
         const data = await res.json();
+        let allPublicVendors: VendorItem[] = [];
+
         if (data.success && Array.isArray(data.data) && data.data.length > 0) {
-          setVendors(
-            data.data.map((v: any) => ({
-              id: v.id,
-              slug: v.slug || v.id,
-              name: v.name || "Verified Vendor",
-              category: v.category || "Wedding Expert",
-              categorySlug: v.categorySlug || "vendors",
-              city: v.city || "Kerala",
-              rating: Number(v.rating || 0),
-              reviewCount: Number(v.reviewCount || 0),
-              startingPrice: v.startingPrice || "Contact for pricing",
-              coverImage:
-                v.coverImage ||
-                v.logo ||
-                "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=80",
-            }))
-          );
-        } else {
-          // Fallback to /api/boutiques
+          allPublicVendors = data.data.map((v: any) => ({
+            id: v.id,
+            slug: v.slug || v.id,
+            name: v.name || "Verified Vendor",
+            category: v.category || "Wedding Expert",
+            categorySlug: v.categorySlug || "vendors",
+            city: v.city || "Kerala",
+            rating: Number(v.rating || 0),
+            reviewCount: Number(v.reviewCount || 0),
+            startingPrice: v.startingPrice || "Contact for pricing",
+            coverImage:
+              v.coverImage ||
+              v.logo ||
+              "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=80",
+          }));
+        }
+
+        // Fetch fallback boutiques for unique featured section listings
+        let boutiqueVendors: VendorItem[] = [];
+        try {
           const bRes = await fetch("/api/boutiques");
           const bData = await bRes.json();
           if (Array.isArray(bData) && bData.length > 0) {
-            setVendors(
-              bData.slice(0, 8).map((b: any) => ({
-                id: b.id,
-                slug: b.slug || b.id,
-                name: b.name || b.boutique_name || "Luxury Boutique",
-                category: b.category || "Wedding Vendor",
-                categorySlug: "venues",
-                city: b.city || "Kerala",
-                rating: Number(b.rating || 0),
-                reviewCount: Number(b.review_count || 0),
-                startingPrice: b.starting_price ? `₹${Number(b.starting_price).toLocaleString("en-IN")}` : "Contact for pricing",
-                coverImage:
-                  b.cover_image ||
-                  b.logo ||
-                  "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=800&q=80",
-              }))
-            );
+            boutiqueVendors = bData.map((b: any) => ({
+              id: String(b.id),
+              slug: b.slug || String(b.id),
+              name: b.name || b.boutique_name || "Luxury Boutique",
+              category: b.category || "Wedding Vendor",
+              categorySlug: "venues",
+              city: b.city || "Kerala",
+              rating: Number(b.rating || 0),
+              reviewCount: Number(b.review_count || 0),
+              startingPrice: b.starting_price ? `₹${Number(b.starting_price).toLocaleString("en-IN")}` : "Contact for pricing",
+              coverImage:
+                b.cover_image ||
+                b.logo ||
+                "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=800&q=80",
+            }));
           }
+        } catch (bErr) {
+          console.error("Boutiques fetch error:", bErr);
         }
+
+        // Set Trending Vendors (Top 4)
+        const trending = allPublicVendors.length > 0 ? allPublicVendors.slice(0, 4) : boutiqueVendors.slice(0, 4);
+        setTrendingVendors(trending);
+
+        // Deduplicate Featured Vendors so no vendor in Trending appears in Featured
+        const trendingIds = new Set(trending.map((t) => String(t.id).toLowerCase()));
+        const trendingSlugs = new Set(trending.map((t) => (t.slug || "").toLowerCase()));
+
+        const candidates = [...allPublicVendors.slice(4), ...boutiqueVendors];
+        const deduplicatedFeatured = candidates.filter(
+          (v) => !trendingIds.has(String(v.id).toLowerCase()) && !trendingSlugs.has((v.slug || "").toLowerCase())
+        );
+
+        setFeaturedVendors(deduplicatedFeatured.slice(0, 4));
       } catch (err) {
-        console.error("Failed to fetch featured vendors:", err);
+        console.error("Failed to fetch vendors:", err);
       } finally {
         setVendorsLoading(false);
       }
@@ -318,16 +337,16 @@ export default function Home() {
             {vendorsLoading ? (
               <div className="flex overflow-x-auto hide-scrollbar snap-x snap-mandatory gap-4 -mx-6 px-6 md:mx-0 md:px-0 md:grid md:grid-cols-4 md:gap-6 md:overflow-visible pb-2">
                 {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="flex-shrink-0 w-[82vw] sm:w-[300px] md:w-auto h-72 rounded-3xl bg-gray-200/60 animate-pulse snap-start" />
+                  <div key={i} className="flex-shrink-0 w-72 sm:w-[300px] md:w-auto h-72 rounded-2xl bg-gray-200/60 animate-pulse snap-start" />
                 ))}
               </div>
-            ) : vendors.length > 0 ? (
+            ) : trendingVendors.length > 0 ? (
               <div className="flex overflow-x-auto hide-scrollbar snap-x snap-mandatory gap-4 -mx-6 px-6 md:mx-0 md:px-0 md:grid md:grid-cols-4 md:gap-6 md:overflow-visible pb-2">
-                {vendors.slice(0, 4).map((vendor, index) => (
+                {trendingVendors.map((vendor, index) => (
                   <Link
                     key={vendor.id}
                     href={`/boutiques/${vendor.slug}`}
-                    className="flex-shrink-0 w-[82vw] sm:w-[300px] md:w-auto snap-start bg-white rounded-3xl overflow-hidden shadow-xs hover:shadow-md border border-gold/15 transition-all group flex flex-col justify-between"
+                    className="flex-shrink-0 w-72 sm:w-[300px] md:w-auto snap-start bg-white rounded-2xl overflow-hidden shadow-xs hover:shadow-md border border-gold/15 transition-all group flex flex-col justify-between"
                   >
                     <div>
                       <div className="relative h-48 overflow-hidden bg-gray-100">
@@ -423,7 +442,7 @@ export default function Home() {
           </div>
         </section>
 
-        {/* ── REAL FEATURED VENDORS (FETCHED LIVE FROM DATABASE) ── */}
+        {/* ── REAL FEATURED VENDORS (DEDUPLICATED & STANDARDIZED) ── */}
         <section className="py-10 max-w-7xl mx-auto">
           <div className="px-6 mb-6 flex justify-between items-end">
             <div>
@@ -434,46 +453,53 @@ export default function Home() {
           </div>
 
           {vendorsLoading ? (
-            <div className="flex overflow-x-auto gap-4 px-6 md:grid md:grid-cols-4 md:gap-6">
+            <div className="flex overflow-x-auto hide-scrollbar snap-x snap-mandatory gap-4 -mx-6 px-6 md:mx-0 md:px-0 md:grid md:grid-cols-4 md:gap-6 md:overflow-visible pb-2">
               {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="flex-shrink-0 w-72 md:w-auto h-72 rounded-2xl bg-gray-100 animate-pulse border border-gold/10" />
+                <div key={i} className="flex-shrink-0 w-72 sm:w-[300px] md:w-auto h-72 rounded-2xl bg-gray-100 animate-pulse border border-gold/10 snap-start" />
               ))}
             </div>
-          ) : vendors.length > 0 ? (
-            <div className="flex overflow-x-auto hide-scrollbar gap-4 px-6 md:grid md:grid-cols-3 lg:grid-cols-4 md:gap-6 md:overflow-visible">
-              {vendors.map((vendor) => (
+          ) : featuredVendors.length > 0 ? (
+            <div className="flex overflow-x-auto hide-scrollbar snap-x snap-mandatory gap-4 -mx-6 px-6 md:mx-0 md:px-0 md:grid md:grid-cols-4 md:gap-6 md:overflow-visible pb-2">
+              {featuredVendors.map((vendor) => (
                 <Link 
                   key={vendor.id} 
                   href={`/boutiques/${vendor.slug}`} 
-                  className="flex-shrink-0 w-72 md:w-auto bg-white rounded-2xl overflow-hidden shadow-sm border border-gold/10 group hover:shadow-md transition-all"
+                  className="flex-shrink-0 w-72 sm:w-[300px] md:w-auto snap-start bg-white rounded-2xl overflow-hidden shadow-xs hover:shadow-md border border-gold/15 transition-all group flex flex-col justify-between"
                 >
-                  <div className="relative h-48 overflow-hidden bg-gray-100">
-                    <img 
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
-                      src={vendor.coverImage} 
-                      alt={vendor.name} 
-                    />
-                    <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm">
-                      {vendor.rating > 0 && (vendor.reviewCount ?? 0) > 0 ? (
-                        <>
-                          <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
-                          <span className="text-[12px] font-bold text-charcoal">{vendor.rating.toFixed(1)}</span>
-                        </>
-                      ) : (
-                        <span className="text-[11px] font-bold text-[#0F4C45] px-1">New</span>
-                      )}
+                  <div>
+                    <div className="relative h-48 overflow-hidden bg-gray-100">
+                      <img 
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                        src={vendor.coverImage} 
+                        alt={vendor.name} 
+                        loading="lazy"
+                      />
+                      <div className="absolute top-3 right-3 bg-white/95 backdrop-blur-xs px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm">
+                        {vendor.rating > 0 && (vendor.reviewCount ?? 0) > 0 ? (
+                          <>
+                            <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
+                            <span className="text-xs font-bold text-charcoal">{vendor.rating.toFixed(1)}</span>
+                          </>
+                        ) : (
+                          <span className="text-[11px] font-bold text-[#0F4C45] px-1">New</span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="p-5 space-y-2">
+                      <span className="text-[11px] font-bold text-gold uppercase tracking-wider block">
+                        {vendor.category}
+                      </span>
+                      <h3 className="font-bold text-base md:text-lg font-display text-charcoal group-hover:text-primary transition-colors line-clamp-1">
+                        {vendor.name}
+                      </h3>
+                      <p className="text-xs text-charcoal/60 flex items-center gap-1">
+                        <MapPin className="w-3 h-3 text-[#0F4C45]" /> {vendor.city || "Kerala"}
+                      </p>
                     </div>
                   </div>
-                  <div className="p-5 space-y-1">
-                    <h3 className="font-bold text-lg font-display text-charcoal group-hover:text-primary transition-colors line-clamp-1">
-                      {vendor.name}
-                    </h3>
-                    <p className="text-outline text-xs line-clamp-1">
-                      {vendor.category}{vendor.city ? `, ${vendor.city}` : ""}
-                    </p>
-                    <p className="text-primary font-bold pt-2 text-sm">
-                      {vendor.startingPrice}
-                    </p>
+                  <div className="px-5 pb-5 pt-2 border-t border-gold/10 flex items-center justify-between">
+                    <span className="text-xs text-charcoal/50 font-medium">Starting from</span>
+                    <span className="text-sm font-bold text-[#0F4C45]">{vendor.startingPrice}</span>
                   </div>
                 </Link>
               ))}
