@@ -370,33 +370,9 @@ export function InspirationClient() {
     persist("cloche_insp_boards_v3", v);
   };
 
-  const syncDashboardSavedInspirations = (newMap: Record<string, string[]>, itemObj?: InspirationItem) => {
-    try {
-      const savedIds = Object.keys(newMap).filter((id) => newMap[id] && newMap[id].length > 0);
-      const existingStr = localStorage.getItem("cloche_saved_inspirations");
-      let list: any[] = existingStr ? JSON.parse(existingStr) : [];
-
-      list = list.filter((item) => savedIds.includes(item.id));
-
-      if (itemObj && savedIds.includes(itemObj.id) && !list.some((item) => item.id === itemObj.id)) {
-        const title = (itemObj as any).alt || (itemObj as any).title || (itemObj as any).category || "Saved Inspiration";
-        const image = (itemObj as any).src?.medium || (itemObj as any).src?.large || (itemObj as any).image || "";
-        list.unshift({
-          id: itemObj.id,
-          title,
-          category: itemObj.category || "Decor",
-          image,
-        });
-      }
-
-      localStorage.setItem("cloche_saved_inspirations", JSON.stringify(list));
-    } catch (e) {}
-  };
-
-  const saveSaves = (v: Record<string, string[]>, itemObj?: InspirationItem) => {
+  const saveSaves = (v: Record<string, string[]>) => {
     setSavedMap(v);
     persist("cloche_insp_saves_v3", v);
-    syncDashboardSavedInspirations(v, itemObj);
   };
 
   const showToast = (msg: string) => {
@@ -412,11 +388,11 @@ export function InspirationClient() {
     if (savedMap[id]?.length) {
       const next = { ...savedMap };
       delete next[id];
-      saveSaves(next, item);
+      saveSaves(next);
       showToast("Removed from saved boards");
     } else {
       const firstBoardId = boards[0]?.id || "dream-wedding";
-      saveSaves({ ...savedMap, [id]: [firstBoardId] }, item);
+      saveSaves({ ...savedMap, [id]: [firstBoardId] });
       showToast(`Saved to ${boards[0]?.name || "Dream Wedding"} ❤️`);
     }
   };
@@ -428,7 +404,7 @@ export function InspirationClient() {
     const next = curr.includes(boardId) ? curr.filter((b) => b !== boardId) : [...curr, boardId];
     const updated = { ...savedMap };
     if (next.length === 0) delete updated[id]; else updated[id] = next;
-    saveSaves(updated, itemToSave);
+    saveSaves(updated);
   };
 
   const handleCreateBoard = () => {

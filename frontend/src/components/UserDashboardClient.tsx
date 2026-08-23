@@ -37,51 +37,11 @@ type DashboardTab =
   | "enquiries"
   | "settings";
 
-const DEFAULT_SAVED_INSPIRATIONS = [
-  {
-    id: "insp-1",
-    title: "Minimal Botanical Stage Decor & Tenting",
-    category: "Decor",
-    image: "https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=800&q=80",
-  },
-  {
-    id: "insp-2",
-    title: "Traditional Kerala Bride Silk Saree & Temple Gold",
-    category: "Bridal Wear",
-    image: "https://images.unsplash.com/photo-1594552072238-b8a33785b261?auto=format&fit=crop&w=800&q=80",
-  },
-  {
-    id: "insp-3",
-    title: "Cinematic Sunset Couple Portrait Photography",
-    category: "Photography",
-    image: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=800&q=80",
-  },
-  {
-    id: "insp-4",
-    title: "HD Dewy Bridal Makeup & Floral Gajra Hairstyle",
-    category: "Makeup",
-    image: "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=800&q=80",
-  },
-  {
-    id: "insp-5",
-    title: "Royal Emerald Heritage Mandap Setup",
-    category: "Decor",
-    image: "https://images.unsplash.com/photo-1545232979-fbfd42e000b9?auto=format&fit=crop&w=800&q=80",
-  },
-  {
-    id: "insp-6",
-    title: "Lakeside Backwater Lawn Venue & Outdoor Ceremony",
-    category: "Venues",
-    image: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=800&q=80",
-  },
-];
-
 interface ChecklistItem {
   id: string;
   task: string;
   category: string;
   completed: boolean;
-  autoVerified?: boolean;
 }
 
 interface BudgetItem {
@@ -125,18 +85,20 @@ export function UserDashboardClient() {
   const [savedVenues, setSavedVenues] = useState<WishlistItem[]>([]);
   const [savedInspirations, setSavedInspirations] = useState<
     { id: string; title: string; category: string; image: string }[]
-  >(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const stored = localStorage.getItem("cloche_saved_inspirations");
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-        }
-      } catch (e) {}
-    }
-    return DEFAULT_SAVED_INSPIRATIONS;
-  });
+  >([
+    {
+      id: "insp-1",
+      title: "Minimal Botanical Stage Decor",
+      category: "Decor",
+      image: "https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=800&q=80",
+    },
+    {
+      id: "insp-2",
+      title: "Traditional Kerala Bride Silk Saree",
+      category: "Bridal Wear",
+      image: "https://images.unsplash.com/photo-1594552072238-b8a33785b261?auto=format&fit=crop&w=800&q=80",
+    },
+  ]);
 
   // Checklist State
   const [checklist, setChecklist] = useState<ChecklistItem[]>([
@@ -165,15 +127,6 @@ export function UserDashboardClient() {
 
   // Enquiries & Quotations State
   const [enquiries, setEnquiries] = useState<any[]>([]);
-
-  // Persist saved inspirations to localStorage if modified
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      try {
-        localStorage.setItem("cloche_saved_inspirations", JSON.stringify(savedInspirations));
-      } catch (e) {}
-    }
-  }, [savedInspirations]);
 
   useEffect(() => {
     async function initUserDashboard() {
@@ -229,94 +182,6 @@ export function UserDashboardClient() {
     initUserDashboard();
   }, []);
 
-  // Automatic Checklist Evaluation Effect based on user actions & saved items
-  useEffect(() => {
-    setChecklist((prevChecklist) => {
-      let manualMap: Record<string, boolean> = {};
-      try {
-        const stored = localStorage.getItem("cloche_checklist_manual_toggles");
-        if (stored) manualMap = JSON.parse(stored);
-      } catch (e) {}
-
-      const hasCategoryInInspirations = (catNames: string[]) =>
-        savedInspirations.some((item) =>
-          catNames.some((c) =>
-            (item.category || "").toLowerCase().includes(c.toLowerCase()) ||
-            (item.title || "").toLowerCase().includes(c.toLowerCase())
-          )
-        );
-
-      const hasCategoryInVendors = (catNames: string[]) =>
-        savedVendors.some((item) =>
-          catNames.some((c) =>
-            (item.category || "").toLowerCase().includes(c.toLowerCase()) ||
-            (item.name || "").toLowerCase().includes(c.toLowerCase())
-          )
-        );
-
-      const hasCategoryInEnquiries = (catNames: string[]) =>
-        enquiries.some((item) =>
-          catNames.some((c) =>
-            (item.vendorCategory || item.category || item.vendorName || "").toLowerCase().includes(c.toLowerCase())
-          )
-        );
-
-      return prevChecklist.map((item) => {
-        let isAutoCompleted = false;
-
-        if (item.id === "chk-1") {
-          // Finalize Wedding Date & City
-          isAutoCompleted = Boolean(weddingDate || city);
-        } else if (item.id === "chk-2" || item.category === "Venues") {
-          // Shortlist & Book Main Venue
-          isAutoCompleted =
-            savedVenues.length > 0 ||
-            hasCategoryInInspirations(["venue", "venues", "lawn", "hall", "resort"]) ||
-            hasCategoryInVendors(["venue", "venues", "lawn", "hall", "resort"]) ||
-            hasCategoryInEnquiries(["venue", "venues"]);
-        } else if (item.id === "chk-3" || item.category === "Photography") {
-          // Book Lead Photographer & Videographer
-          isAutoCompleted =
-            hasCategoryInInspirations(["photo", "cinema", "video"]) ||
-            hasCategoryInVendors(["photo", "cinema", "video", "camera"]) ||
-            hasCategoryInEnquiries(["photo", "cinema", "video"]);
-        } else if (item.id === "chk-4" || item.category === "Makeup") {
-          // Book Bridal Makeup Artist
-          isAutoCompleted =
-            hasCategoryInInspirations(["makeup", "bridal wear", "attire", "beauty", "saree"]) ||
-            hasCategoryInVendors(["makeup", "beauty", "artist", "bridal"]) ||
-            hasCategoryInEnquiries(["makeup", "beauty"]);
-        } else if (item.id === "chk-5" || item.category === "Decor") {
-          // Select Stage Decorator & Florist
-          isAutoCompleted =
-            hasCategoryInInspirations(["decor", "floral", "mandap", "stage"]) ||
-            hasCategoryInVendors(["decor", "florist", "planning", "mandap"]) ||
-            hasCategoryInEnquiries(["decor", "florist"]);
-        } else if (item.id === "chk-6" || item.category === "Catering") {
-          // Finalize Feast / Sadya Menu with Caterer
-          isAutoCompleted =
-            hasCategoryInInspirations(["cater", "sadya", "food", "feast"]) ||
-            hasCategoryInVendors(["cater", "sadya", "food", "banquet"]) ||
-            hasCategoryInEnquiries(["cater", "sadya", "food"]);
-        } else if (item.id === "chk-7" || item.category === "Invites") {
-          // Order Custom E-Invites & Cards
-          isAutoCompleted =
-            hasCategoryInInspirations(["invite", "card", "stationery"]) ||
-            hasCategoryInVendors(["invite", "card", "stationery", "print"]) ||
-            hasCategoryInEnquiries(["invite", "card"]);
-        }
-
-        const isCompleted = manualMap[item.id] !== undefined ? manualMap[item.id] : (isAutoCompleted || item.completed);
-
-        return {
-          ...item,
-          completed: isCompleted,
-          autoVerified: isAutoCompleted,
-        };
-      });
-    });
-  }, [savedInspirations, savedVendors, savedVenues, enquiries, weddingDate, city]);
-
   // Handlers
   const handleRemoveVendor = (id: string | number) => {
     const updated = removeWishlistItem(id);
@@ -329,38 +194,12 @@ export function UserDashboardClient() {
   };
 
   const handleRemoveInspiration = (id: string) => {
-    setSavedInspirations((prev) => {
-      const updated = prev.filter((i) => i.id !== id);
-      try {
-        localStorage.setItem("cloche_saved_inspirations", JSON.stringify(updated));
-      } catch (e) {}
-      return updated;
-    });
-  };
-
-  const handleResetDemoInspirations = () => {
-    setSavedInspirations(DEFAULT_SAVED_INSPIRATIONS);
-    try {
-      localStorage.setItem("cloche_saved_inspirations", JSON.stringify(DEFAULT_SAVED_INSPIRATIONS));
-      localStorage.removeItem("cloche_checklist_manual_toggles");
-    } catch (e) {}
+    setSavedInspirations((prev) => prev.filter((i) => i.id !== id));
   };
 
   const handleToggleChecklist = (id: string) => {
     setChecklist((prev) =>
-      prev.map((item) => {
-        if (item.id === id) {
-          const newStatus = !item.completed;
-          try {
-            const stored = localStorage.getItem("cloche_checklist_manual_toggles") || "{}";
-            const manualMap = JSON.parse(stored);
-            manualMap[id] = newStatus;
-            localStorage.setItem("cloche_checklist_manual_toggles", JSON.stringify(manualMap));
-          } catch (e) {}
-          return { ...item, completed: newStatus };
-        }
-        return item;
-      })
+      prev.map((item) => (item.id === id ? { ...item, completed: !item.completed } : item))
     );
   };
 
@@ -711,17 +550,9 @@ export function UserDashboardClient() {
                     <h2 className="text-xl font-bold text-charcoal font-display">Saved Inspiration Board</h2>
                     <p className="text-xs text-charcoal/60">Decor concepts, bridal fashion looks, and wedding ideas.</p>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <button
-                      onClick={handleResetDemoInspirations}
-                      className="text-xs font-bold text-gold hover:text-amber-700 bg-amber-50 px-3 py-1.5 rounded-full border border-amber-200/80 transition-all flex items-center gap-1 cursor-pointer"
-                    >
-                      <Sparkles className="w-3.5 h-3.5" /> Reload Demo Board
-                    </button>
-                    <Link href="/inspiration" className="text-xs font-bold text-[#0F4C45] hover:underline">
-                      Explore Inspiration →
-                    </Link>
-                  </div>
+                  <Link href="/inspiration" className="text-xs font-bold text-[#0F4C45] hover:underline">
+                    Explore Inspiration →
+                  </Link>
                 </div>
 
                 {savedInspirations.length > 0 ? (
@@ -746,12 +577,6 @@ export function UserDashboardClient() {
                     <Sparkles className="w-10 h-10 text-gold/40 mx-auto" />
                     <p className="text-sm font-semibold text-charcoal">No saved inspirations</p>
                     <p className="text-xs text-charcoal/60 max-w-sm mx-auto">Browse wedding photos and decor ideas to save inspiration for your big day.</p>
-                    <button
-                      onClick={handleResetDemoInspirations}
-                      className="inline-block bg-[#0F4C45] text-white text-xs font-bold px-6 py-2.5 rounded-full shadow-xs hover:bg-[#12584E] transition-all cursor-pointer"
-                    >
-                      Load Demo Inspirations
-                    </button>
                   </div>
                 )}
               </div>
@@ -800,16 +625,9 @@ export function UserDashboardClient() {
                           {item.task}
                         </span>
                       </div>
-                      <div className="flex items-center gap-2">
-                        {item.completed && item.autoVerified && (
-                          <span className="text-[10px] font-bold text-[#0F4C45] bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 flex items-center gap-1">
-                            <Sparkles className="w-3 h-3 text-[#0F4C45]" /> Auto-Checked
-                          </span>
-                        )}
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-gold bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
-                          {item.category}
-                        </span>
-                      </div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-gold bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
+                        {item.category}
+                      </span>
                     </label>
                   ))}
                 </div>
