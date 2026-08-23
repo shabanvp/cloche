@@ -19,6 +19,7 @@ import {
   ArrowLeft
 } from "lucide-react";
 import { VENDOR_CATEGORIES, VendorCategoryConfig } from "@/lib/vendor-categories";
+import { OverviewSection } from "./sections/OverviewSection";
 import { ProfileSection } from "./sections/ProfileSection";
 import { EnquiriesSection } from "./sections/EnquiriesSection";
 import { OffersSection } from "./sections/OffersSection";
@@ -35,6 +36,13 @@ import { getActiveVendorIdentity, fetchAuthenticatedVendorFromDb, clearActiveVen
 
 import { JewelleryInventorySection } from "./jewellery/JewelleryInventorySection";
 import { JewelleryOrdersSection } from "./jewellery/JewelleryOrdersSection";
+import { JewelleryPaymentsSection } from "./jewellery/JewelleryPaymentsSection";
+import { JewelleryDeliverySection } from "./jewellery/JewelleryDeliverySection";
+import { JewelleryDamageSection } from "./jewellery/JewelleryDamageSection";
+import { JewelleryReviewsSection } from "./jewellery/JewelleryReviewsSection";
+import { JewelleryPoliciesSection } from "./jewellery/JewelleryPoliciesSection";
+import { JewelleryNotificationsSection } from "./jewellery/JewelleryNotificationsSection";
+import { JewelleryCatalogSection } from "./jewellery/JewelleryCatalogSection";
 import { VenueCustomizeStoreSection } from "./venues/VenueCustomizeStoreSection";
 import { VenueFacilitiesSection } from "./venues/VenueFacilitiesSection";
 import { VenuePackagesSection } from "./venues/VenuePackagesSection";
