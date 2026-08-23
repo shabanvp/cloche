@@ -31,7 +31,7 @@ export async function login(formData: FormData) {
     // 1. Primary Authentication: Check custom database users table first
     if (url && apiKey) {
       const userRes = await fetch(
-        `${url}/rest/v1/users?email=eq.${encodeURIComponent(email)}&select=id,email,password_hash,full_name,name,is_active,user_roles(roles(name))`,
+        `${url}/rest/v1/users?email=eq.${encodeURIComponent(email)}&select=id,email,password_hash,full_name,name,phone,city,wedding_date,is_active,user_roles(roles(name))`,
         {
           headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
           cache: "no-store",
@@ -66,6 +66,10 @@ export async function login(formData: FormData) {
               full_name: displayName,
               name: displayName,
               fullName: displayName,
+              phone: user.phone || "",
+              city: user.city || "",
+              wedding_date: user.wedding_date || "",
+              weddingDate: user.wedding_date || "",
               roles: [activeRole],
               role: activeRole,
             };
@@ -253,7 +257,7 @@ export async function signup(formData: FormData) {
           }).catch(() => null);
 
           const cookieStore = await cookies();
-          const userObj = { id: newUser.id, email: newUser.email, full_name: name, name: name, fullName: name, roles: [role] };
+          const userObj = { id: newUser.id, email: newUser.email, full_name: name, name: name, fullName: name, phone: phone || newUser.phone || "", roles: [role] };
           
           cookieStore.set(AUTH_COOKIE_NAME, token, { httpOnly: true, path: "/", maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 });
           cookieStore.set("auth_token", token, { path: "/", maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 });
@@ -379,11 +383,11 @@ export async function getCurrentUser() {
     } catch (e) {}
   }
 
-  // 3. Query Supabase database directly by email or userId to fetch fresh name
+  // 3. Query Supabase database directly by email or userId to fetch fresh profile
   const { url, anonKey } = getSupabaseConfig();
   if (url && anonKey && (email || userId)) {
     const filter = userId ? `id=eq.${encodeURIComponent(userId)}` : `email=eq.${encodeURIComponent(email!)}`;
-    const dbRes = await fetch(`${url}/rest/v1/users?${filter}&select=id,email,full_name,name`, {
+    const dbRes = await fetch(`${url}/rest/v1/users?${filter}&select=id,email,full_name,name,phone,city,wedding_date`, {
       headers: { apikey: anonKey, Authorization: `Bearer ${anonKey}` },
       cache: "no-store",
     }).catch(() => null);
@@ -401,6 +405,10 @@ export async function getCurrentUser() {
             full_name: dbName,
             name: dbName,
             fullName: dbName,
+            phone: u.phone || "",
+            city: u.city || "",
+            wedding_date: u.wedding_date || "",
+            weddingDate: u.wedding_date || "",
           },
         };
       }

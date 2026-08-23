@@ -24,7 +24,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { getWishlistItems, removeWishlistItem, syncWishlistWithServer, WishlistItem } from "@/lib/wishlistStore";
-import { fetchAuthenticatedUser, resolveUserDisplayName } from "@/lib/userStore";
+import { fetchAuthenticatedUser, fetchAuthenticatedUserProfile, resolveUserDisplayName } from "@/lib/userStore";
 import { logout } from "@/app/actions/auth";
 
 type DashboardTab =
@@ -54,10 +54,30 @@ interface BudgetItem {
 export function UserDashboardClient() {
   const [activeTab, setActiveTab] = useState<DashboardTab>("profile");
   const [userName, setUserName] = useState(() => resolveUserDisplayName());
-  const [userEmail, setUserEmail] = useState("user@cloche.com");
-  const [weddingDate, setWeddingDate] = useState("2026-12-18");
-  const [city, setCity] = useState("Kochi, Kerala");
-  const [phone, setPhone] = useState("+91 98765 43210");
+  const [userEmail, setUserEmail] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("userEmail") || localStorage.getItem("email") || "";
+    }
+    return "";
+  });
+  const [weddingDate, setWeddingDate] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("weddingDate") || "";
+    }
+    return "";
+  });
+  const [city, setCity] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("userCity") || "";
+    }
+    return "";
+  });
+  const [phone, setPhone] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("userPhone") || "";
+    }
+    return "";
+  });
   const [isLoading, setIsLoading] = useState(true);
 
   // Saved Data States
@@ -106,39 +126,30 @@ export function UserDashboardClient() {
   const [newEstimatedInput, setNewEstimatedInput] = useState("");
 
   // Enquiries & Quotations State
-  const [enquiries, setEnquiries] = useState<any[]>([
-    {
-      id: "enq-101",
-      vendorName: "Sajawat Designer Hub",
-      category: "Bridal Studio",
-      date: "2026-08-20",
-      status: "Quotation Received",
-      amount: "₹1,45,000",
-      notes: "Custom lehenga & family silk saree package quote attached.",
-    },
-    {
-      id: "enq-102",
-      vendorName: "Plaza Catering & Sadya",
-      category: "Catering",
-      date: "2026-08-22",
-      status: "Pending Vendor Response",
-      amount: "Quote Requested",
-      notes: "Inquiry sent for 500 pax traditional Kerala wedding lunch.",
-    },
-  ]);
+  const [enquiries, setEnquiries] = useState<any[]>([]);
 
   useEffect(() => {
     async function initUserDashboard() {
       try {
-        const resolved = await fetchAuthenticatedUser();
-        if (resolved) {
-          setUserName(resolved);
-        }
-
-        // Parse user email if saved
-        if (typeof window !== "undefined") {
-          const storedEmail = localStorage.getItem("userEmail") || localStorage.getItem("email");
-          if (storedEmail) setUserEmail(storedEmail);
+        // 1. Fetch fresh customer profile settings from API
+        const settingsRes = await fetch("/api/v1/customer/settings", { cache: "no-store" }).then((r) => r.json()).catch(() => null);
+        if (settingsRes && settingsRes.success && settingsRes.data) {
+          const d = settingsRes.data;
+          if (d.full_name || d.name) setUserName(d.full_name || d.name);
+          if (d.email) setUserEmail(d.email);
+          if (d.phone) setPhone(d.phone);
+          if (d.city) setCity(d.city);
+          if (d.wedding_date) setWeddingDate(d.wedding_date);
+        } else {
+          // 2. Fallback to auth store profile
+          const profile = await fetchAuthenticatedUserProfile();
+          if (profile) {
+            if (profile.name && profile.name !== "User") setUserName(profile.name);
+            if (profile.email) setUserEmail(profile.email);
+            if (profile.phone) setPhone(profile.phone);
+            if (profile.city) setCity(profile.city);
+            if (profile.weddingDate) setWeddingDate(profile.weddingDate);
+          }
         }
 
         // Sync wishlist items from server
@@ -147,9 +158,19 @@ export function UserDashboardClient() {
         setSavedVenues(items.filter((i) => (i.category || "").toLowerCase() === "venue" || (i.category || "").toLowerCase() === "venues"));
 
         // Load live dashboard inquiries
-        const res = await fetch("/api/v1/customer/dashboard", { cache: "no-store" }).then((r) => r.json());
-        if (res.success && res.data && res.data.inquiries) {
-          setEnquiries(res.data.inquiries);
+        const res = await fetch("/api/v1/customer/dashboard", { cache: "no-store" }).then((r) => r.json()).catch(() => null);
+        if (res && res.success && res.data) {
+          if (res.data.inquiries && res.data.inquiries.length > 0) {
+            setEnquiries(res.data.inquiries);
+          }
+          if (res.data.user) {
+            const u = res.data.user;
+            if (u.fullName) setUserName((prev) => prev || u.fullName);
+            if (u.email) setUserEmail((prev) => prev || u.email);
+            if (u.phone) setPhone((prev) => prev || u.phone);
+            if (u.city) setCity((prev) => prev || u.city);
+            if (u.weddingDate) setWeddingDate((prev) => prev || u.weddingDate);
+          }
         }
       } catch (e) {
         console.error("Dashboard init error:", e);
@@ -250,10 +271,10 @@ export function UserDashboardClient() {
                 </div>
                 <p className="text-xs sm:text-sm text-white/80 font-light mt-1 flex items-center gap-4 flex-wrap">
                   <span className="flex items-center gap-1">
-                    <Calendar className="w-3.5 h-3.5 text-gold" /> Wedding: {weddingDate}
+                    <Calendar className="w-3.5 h-3.5 text-gold" /> Wedding: {weddingDate || "Not Set"}
                   </span>
                   <span className="flex items-center gap-1">
-                    <MapPin className="w-3.5 h-3.5 text-gold" /> Location: {city}
+                    <MapPin className="w-3.5 h-3.5 text-gold" /> Location: {city || "Not Set"}
                   </span>
                 </p>
               </div>
@@ -362,28 +383,28 @@ export function UserDashboardClient() {
                       <span className="text-[11px] font-bold text-gold uppercase tracking-wider flex items-center gap-1">
                         <User className="w-3.5 h-3.5" /> Full Name
                       </span>
-                      <p className="text-sm font-semibold text-charcoal">{userName}</p>
+                      <p className="text-sm font-semibold text-charcoal">{userName || "User"}</p>
                     </div>
 
                     <div className="space-y-1 bg-[#FAF7F2] p-4 rounded-2xl border border-gold/10">
                       <span className="text-[11px] font-bold text-gold uppercase tracking-wider flex items-center gap-1">
                         <Mail className="w-3.5 h-3.5" /> Email Address
                       </span>
-                      <p className="text-sm font-semibold text-charcoal">{userEmail}</p>
+                      <p className="text-sm font-semibold text-charcoal">{userEmail || "Not Provided"}</p>
                     </div>
 
                     <div className="space-y-1 bg-[#FAF7F2] p-4 rounded-2xl border border-gold/10">
                       <span className="text-[11px] font-bold text-gold uppercase tracking-wider flex items-center gap-1">
                         <Phone className="w-3.5 h-3.5" /> Phone Number
                       </span>
-                      <p className="text-sm font-semibold text-charcoal">{phone}</p>
+                      <p className="text-sm font-semibold text-charcoal">{phone || "Not Provided"}</p>
                     </div>
 
                     <div className="space-y-1 bg-[#FAF7F2] p-4 rounded-2xl border border-gold/10">
                       <span className="text-[11px] font-bold text-gold uppercase tracking-wider flex items-center gap-1">
                         <Calendar className="w-3.5 h-3.5" /> Wedding Date
                       </span>
-                      <p className="text-sm font-semibold text-charcoal">{weddingDate}</p>
+                      <p className="text-sm font-semibold text-charcoal">{weddingDate || "Not Set"}</p>
                     </div>
                   </div>
                 </div>
@@ -744,12 +765,38 @@ export function UserDashboardClient() {
                 </div>
 
                 <form
-                  onSubmit={(e) => {
+                  onSubmit={async (e) => {
                     e.preventDefault();
-                    if (typeof window !== "undefined") {
-                      localStorage.setItem("userName", userName);
+                    try {
+                      const res = await fetch("/api/v1/customer/settings", {
+                        method: "PATCH",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          profile: {
+                            full_name: userName,
+                            name: userName,
+                            phone: phone,
+                            city: city,
+                            wedding_date: weddingDate,
+                          },
+                        }),
+                      });
+                      const data = await res.json();
+                      if (res.ok && data.success) {
+                        if (typeof window !== "undefined") {
+                          localStorage.setItem("userName", userName);
+                          localStorage.setItem("userEmail", userEmail);
+                          localStorage.setItem("userPhone", phone);
+                          localStorage.setItem("userCity", city);
+                          localStorage.setItem("weddingDate", weddingDate);
+                        }
+                        alert("Profile updated successfully!");
+                      } else {
+                        alert(data.error?.message || "Failed to save settings.");
+                      }
+                    } catch (err) {
+                      alert("Error saving settings. Please try again.");
                     }
-                    alert("Profile updated successfully!");
                   }}
                   className="space-y-4 max-w-md"
                 >
@@ -759,6 +806,17 @@ export function UserDashboardClient() {
                       type="text"
                       value={userName}
                       onChange={(e) => setUserName(e.target.value)}
+                      className="w-full bg-[#FAF7F2] border border-gold/20 rounded-2xl px-4 py-3 text-xs text-charcoal outline-none focus:border-[#0F4C45]"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-charcoal/70 uppercase">Phone Number</label>
+                    <input
+                      type="tel"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      placeholder="+91 98765 43210"
                       className="w-full bg-[#FAF7F2] border border-gold/20 rounded-2xl px-4 py-3 text-xs text-charcoal outline-none focus:border-[#0F4C45]"
                     />
                   </div>
@@ -779,6 +837,7 @@ export function UserDashboardClient() {
                       type="text"
                       value={city}
                       onChange={(e) => setCity(e.target.value)}
+                      placeholder="Kochi, Kerala"
                       className="w-full bg-[#FAF7F2] border border-gold/20 rounded-2xl px-4 py-3 text-xs text-charcoal outline-none focus:border-[#0F4C45]"
                     />
                   </div>

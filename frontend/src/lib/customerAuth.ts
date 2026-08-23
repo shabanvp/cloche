@@ -6,6 +6,9 @@ export interface AuthenticatedCustomer {
   userId: string;
   email: string;
   fullName: string;
+  phone?: string;
+  city?: string;
+  weddingDate?: string;
   roles?: string[];
 }
 
@@ -52,6 +55,9 @@ export async function getAuthenticatedCustomerUser(req?: Request): Promise<Authe
   let email: string | null = null;
   let userId: string | null = null;
   let fullName: string | null = null;
+  let phone: string | null = null;
+  let city: string | null = null;
+  let weddingDate: string | null = null;
 
   // 3. Verify JWT Token
   if (token) {
@@ -70,16 +76,22 @@ export async function getAuthenticatedCustomerUser(req?: Request): Promise<Authe
       email = unverified.email || unverified.sub || null;
       userId = unverified.userId || unverified.id || unverified.sub || null;
       fullName = unverified.fullName || unverified.full_name || unverified.name || null;
+      phone = unverified.phone || null;
+      city = unverified.city || null;
+      weddingDate = unverified.weddingDate || unverified.wedding_date || null;
     }
   }
 
   // 4. Parse user_data cookie
-  if (userDataCookie && (!userId || !fullName)) {
+  if (userDataCookie) {
     try {
       const parsed = JSON.parse(userDataCookie);
       userId = userId || parsed.id || parsed.userId || null;
       email = email || parsed.email || null;
       fullName = fullName || parsed.full_name || parsed.fullName || parsed.name || null;
+      phone = phone || parsed.phone || null;
+      city = city || parsed.city || null;
+      weddingDate = weddingDate || parsed.weddingDate || parsed.wedding_date || null;
     } catch (e) {}
   }
 
@@ -90,7 +102,7 @@ export async function getAuthenticatedCustomerUser(req?: Request): Promise<Authe
     if (url && apiKey) {
       try {
         const filter = userId ? `id=eq.${encodeURIComponent(userId)}` : `email=eq.${encodeURIComponent(email!)}`;
-        const dbRes = await fetch(`${url}/rest/v1/users?${filter}&select=id,email,full_name,name`, {
+        const dbRes = await fetch(`${url}/rest/v1/users?${filter}&select=id,email,full_name,name,phone,city,wedding_date`, {
           headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
           cache: "no-store",
         });
@@ -103,6 +115,9 @@ export async function getAuthenticatedCustomerUser(req?: Request): Promise<Authe
               userId: u.id,
               email: u.email,
               fullName: u.full_name || u.name || (u.email ? u.email.split("@")[0] : "Customer"),
+              phone: u.phone || phone || undefined,
+              city: u.city || city || undefined,
+              weddingDate: u.wedding_date || weddingDate || undefined,
               roles: ["customer"],
             };
           }
@@ -117,6 +132,9 @@ export async function getAuthenticatedCustomerUser(req?: Request): Promise<Authe
       userId,
       email,
       fullName: fullName || email.split("@")[0],
+      phone: phone || undefined,
+      city: city || undefined,
+      weddingDate: weddingDate || undefined,
       roles: ["customer"],
     };
   }
