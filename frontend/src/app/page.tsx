@@ -19,6 +19,7 @@ interface VendorItem {
   categorySlug?: string;
   city: string;
   rating: number;
+  reviewCount?: number;
   startingPrice: string;
   coverImage?: string;
   logo?: string;
@@ -45,7 +46,8 @@ export default function Home() {
               category: v.category || "Wedding Expert",
               categorySlug: v.categorySlug || "vendors",
               city: v.city || "Kerala",
-              rating: v.rating > 0 ? v.rating : 5.0,
+              rating: Number(v.rating || 0),
+              reviewCount: Number(v.reviewCount || 0),
               startingPrice: v.startingPrice || "Contact for pricing",
               coverImage:
                 v.coverImage ||
@@ -66,7 +68,8 @@ export default function Home() {
                 category: b.category || "Wedding Vendor",
                 categorySlug: "venues",
                 city: b.city || "Kerala",
-                rating: b.rating > 0 ? Number(b.rating) : 5.0,
+                rating: Number(b.rating || 0),
+                reviewCount: Number(b.review_count || 0),
                 startingPrice: b.starting_price ? `₹${Number(b.starting_price).toLocaleString("en-IN")}` : "Contact for pricing",
                 coverImage:
                   b.cover_image ||
@@ -298,27 +301,18 @@ export default function Home() {
         {/* ── 🔥 TRENDING THIS WEEK SECTION ── */}
         <section className="py-12 bg-[#FAF7F2] my-8 border-y border-gold/15">
           <div className="max-w-7xl mx-auto px-6">
-            <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="bg-amber-100 text-amber-800 text-[11px] font-bold uppercase tracking-widest px-2.5 py-0.5 rounded-full flex items-center gap-1 border border-amber-300">
-                    <Flame className="w-3.5 h-3.5 text-amber-500 fill-amber-500" /> Live Rankings
-                  </span>
-                </div>
-                <h2 className="text-2xl md:text-3xl font-bold text-charcoal font-display">
-                  🔥 Trending This Week
-                </h2>
-                <p className="text-xs md:text-sm text-charcoal/70 mt-1">
-                  Most engaged wedding partners based on verified user views, inquiries, and authentic reviews.
-                </p>
+            <div className="mb-8">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="bg-amber-100 text-amber-800 text-[11px] font-bold uppercase tracking-widest px-2.5 py-0.5 rounded-full flex items-center gap-1 border border-amber-300">
+                  <Flame className="w-3.5 h-3.5 text-amber-500 fill-amber-500" /> Live Rankings
+                </span>
               </div>
-              <Link
-                href="/boutiques"
-                className="text-xs font-bold text-[#0F4C45] hover:text-[#12584E] flex items-center gap-1 bg-white px-4 py-2 rounded-full border border-gold/20 shadow-2xs hover:shadow-xs transition-all w-fit"
-              >
-                <span>View Full Rankings</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
+              <h2 className="text-2xl md:text-3xl font-bold text-charcoal font-display">
+                🔥 Trending This Week
+              </h2>
+              <p className="text-xs md:text-sm text-charcoal/70 mt-1">
+                Most engaged wedding partners based on verified user views, inquiries, and authentic reviews.
+              </p>
             </div>
 
             {vendorsLoading ? (
@@ -346,10 +340,16 @@ export default function Home() {
                         <div className="absolute top-3 left-3 bg-[#0F4C45] text-white text-xs font-extrabold px-3 py-1 rounded-full shadow-md flex items-center gap-1 border border-white/20">
                           <span>#{index + 1}</span>
                         </div>
-                        {/* Rating Badge */}
+                        {/* Rating Badge / New Badge */}
                         <div className="absolute top-3 right-3 bg-white/95 backdrop-blur-xs px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm">
-                          <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
-                          <span className="text-xs font-bold text-charcoal">{vendor.rating.toFixed(1)}</span>
+                          {vendor.rating > 0 && (vendor.reviewCount ?? 0) > 0 ? (
+                            <>
+                              <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
+                              <span className="text-xs font-bold text-charcoal">{vendor.rating.toFixed(1)}</span>
+                            </>
+                          ) : (
+                            <span className="text-[11px] font-bold text-[#0F4C45] px-1">New</span>
+                          )}
                         </div>
                       </div>
 
@@ -453,8 +453,14 @@ export default function Home() {
                       alt={vendor.name} 
                     />
                     <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm">
-                      <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
-                      <span className="text-[12px] font-bold text-charcoal">{vendor.rating.toFixed(1)}</span>
+                      {vendor.rating > 0 && (vendor.reviewCount ?? 0) > 0 ? (
+                        <>
+                          <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
+                          <span className="text-[12px] font-bold text-charcoal">{vendor.rating.toFixed(1)}</span>
+                        </>
+                      ) : (
+                        <span className="text-[11px] font-bold text-[#0F4C45] px-1">New</span>
+                      )}
                     </div>
                   </div>
                   <div className="p-5 space-y-1">
