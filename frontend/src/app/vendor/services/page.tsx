@@ -213,10 +213,10 @@ function VendorServicesContent() {
         showVendorToast("Service saved successfully.");
         await fetchDataFromDb(vendorId);
       } else {
-        setValidationError(res.error?.message || "Failed to save service into database.");
+        setValidationError(res.error?.message || "Failed to save service. Please try again.");
       }
     } catch (err: any) {
-      setValidationError("Network error saving service to database.");
+      setValidationError("Network error. Please try again.");
     } finally {
       setIsSubmitting(false);
     }

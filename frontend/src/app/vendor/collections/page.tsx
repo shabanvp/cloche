@@ -184,10 +184,10 @@ export default function VendorCollections() {
     setIsUploading(false);
 
     if (successCount > 0) {
-      showVendorToast(`✓ ${successCount} Showcase photo(s) saved to database`);
+      showVendorToast(`${successCount} Showcase photo(s) saved successfully`);
       await loadGallery(vendorId);
     } else {
-      showVendorToast("Failed to upload photos to database.", "error");
+      showVendorToast("Failed to upload photos. Please try again.", "error");
     }
   };
 
@@ -226,7 +226,7 @@ export default function VendorCollections() {
         </div>
         <div>
           <h3 className="font-display font-bold text-base text-charcoal">Upload {vendorCategory} Showcase Photos</h3>
-          <p className="text-xs text-charcoal/60 mt-1">{isUploading ? "Saving to database..." : "Supports JPG, PNG, WEBP. Multi-select upload enabled."}</p>
+          <p className="text-xs text-charcoal/60 mt-1">{isUploading ? "Uploading..." : "Supports JPG, PNG, WEBP. Multi-select upload enabled."}</p>
         </div>
         <input type="file" multiple accept="image/*" disabled={isUploading} className="hidden" onChange={handleFileUpload} />
       </label>
@@ -254,7 +254,7 @@ export default function VendorCollections() {
 
       {/* Masonry Grid Layout */}
       {isLoading ? (
-        <div className="text-center py-16 text-xs text-charcoal/60">Querying vendor_gallery table from Supabase database...</div>
+        <div className="text-center py-16 text-xs text-charcoal/60">Loading showcase gallery...</div>
       ) : filteredItems.length > 0 ? (
         <div className="columns-1 sm:columns-2 lg:columns-3 gap-6 space-y-6">
           {filteredItems.map((item) => {

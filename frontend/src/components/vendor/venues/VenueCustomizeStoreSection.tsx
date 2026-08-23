@@ -647,7 +647,7 @@ export function VenueCustomizeStoreSection({
       const res = await syncVendorProfileWithDatabase(payload);
       if (res.success) {
         setSaved(true);
-        showVendorToast("✓ Venue storefront customization saved & synchronized!", "success");
+        showVendorToast("Venue storefront customization saved successfully.", "success");
         setTimeout(() => setSaved(false), 3500);
       } else {
         showVendorToast("Unable to save storefront customization. Please try again.", "error");
@@ -1148,17 +1148,7 @@ export function VenueCustomizeStoreSection({
                   />
                 </label>
 
-                <label className="p-3 bg-[#FAF7F2] rounded-xl border border-gold/15 flex items-center justify-between cursor-pointer">
-                  <span className="font-bold text-charcoal flex items-center gap-1.5">
-                    <Calendar className="w-3.5 h-3.5 text-[#0F4C45]" /> Book Venue Visit
-                  </span>
-                  <input
-                    type="checkbox"
-                    checked={actionButtons.bookVenueVisit}
-                    onChange={(e) => setActionButtons((prev) => ({ ...prev, bookVenueVisit: e.target.checked }))}
-                    className="rounded accent-[#0F4C45] w-4 h-4"
-                  />
-                </label>
+
 
                 <label className="p-3 bg-[#FAF7F2] rounded-xl border border-gold/15 flex items-center justify-between cursor-pointer">
                   <span className="font-bold text-charcoal flex items-center gap-1.5">
@@ -1277,20 +1267,7 @@ export function VenueCustomizeStoreSection({
                   />
                 </div>
 
-                <div className="sm:col-span-3 pt-1">
-                  <label className="p-3 bg-[#FAF7F2] rounded-xl border border-gold/15 flex items-center justify-between cursor-pointer">
-                    <div>
-                      <span className="font-bold text-charcoal block">Prior Appointment Required for Guided Visits</span>
-                      <span className="text-[11px] text-charcoal/60">Couples must schedule a visit time before visiting the venue grounds</span>
-                    </div>
-                    <input
-                      type="checkbox"
-                      checked={advanceAppointmentRequired}
-                      onChange={(e) => setAdvanceAppointmentRequired(e.target.checked)}
-                      className="rounded accent-[#0F4C45] w-4 h-4 shrink-0"
-                    />
-                  </label>
-                </div>
+
               </div>
             </div>
           )}

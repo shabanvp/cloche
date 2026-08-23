@@ -117,7 +117,6 @@ export function OverviewSection({ categoryConfig, vendorName, onNavigate }: Over
 
   const stats = [
     { title: "Active Enquiries", value: enquiriesCount.toString(), change: enquiriesCount > 0 ? "Live leads" : "0 new", icon: Inbox, color: "text-[#0F4C45]", bg: "bg-[#0F4C45]/10", target: "enquiries" },
-    { title: "Confirmed Bookings", value: bookingsCount.toString(), change: bookingsCount > 0 ? "Live dates" : "0 confirmed", icon: Calendar, color: "text-[#C8A96A]", bg: "bg-[#C8A96A]/15", target: "appointments" },
     { title: "Profile Views", value: viewsCount.toLocaleString("en-IN"), change: "Total views", icon: Eye, color: "text-[#0F4C45]", bg: "bg-[#0F4C45]/10", target: "analytics" },
     { title: "Rating & Reviews", value: rating, change: `${reviewsCount} reviews`, icon: Star, color: "text-amber-500", bg: "bg-amber-100", target: "overview" },
   ];
@@ -133,11 +132,11 @@ export function OverviewSection({ categoryConfig, vendorName, onNavigate }: Over
               <span className="bg-[#C8A96A] text-[#072B27] text-[10px] font-bold uppercase tracking-widest px-2.5 py-0.5 rounded-full">
                 {categoryConfig.name} Dashboard
               </span>
-              <span className="text-xs text-white/70">• Peak Wedding Season</span>
+              <span className="text-xs text-white/70">• Active Storefront</span>
             </div>
             <h2 className="text-2xl font-serif font-bold text-white">Welcome back, {vendorName || "Partner"}</h2>
             <p className="text-xs text-white/80 mt-1 max-w-xl">
-              You have 5 unread customer enquiries and 2 pending booking approvals. Track your performance insights below.
+              Track your enquiries, manage your storefront catalog, and review performance analytics below.
             </p>
           </div>
           <div className="flex items-center gap-3 shrink-0">
@@ -151,8 +150,8 @@ export function OverviewSection({ categoryConfig, vendorName, onNavigate }: Over
         </div>
       </div>
 
-      {/* Metric Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Metric Cards Grid (3 cols) */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {stats.map((stat) => {
           const Icon = stat.icon;
           return (
@@ -176,107 +175,64 @@ export function OverviewSection({ categoryConfig, vendorName, onNavigate }: Over
         })}
       </div>
 
-      {/* Main Content Grid: Recent Enquiries & Upcoming Schedule */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Recent Enquiries Feed (2 cols) */}
-        <div className="lg:col-span-2 bg-white rounded-2xl border border-gold/15 p-6 shadow-xs">
-          <div className="flex items-center justify-between mb-5 border-b border-gold/10 pb-4">
-            <div>
-              <h3 className="font-serif font-bold text-lg text-charcoal flex items-center gap-2">
-                <Inbox className="w-5 h-5 text-[#0F4C45]" /> Recent Customer Leads
-              </h3>
-              <p className="text-xs text-charcoal/60">Couples interested in booking your {categoryConfig.name.toLowerCase()} services</p>
-            </div>
-            <button 
-              onClick={() => onNavigate("enquiries")}
-              className="text-xs font-bold text-[#0F4C45] hover:underline flex items-center gap-1 cursor-pointer"
-            >
-              View All <ArrowUpRight className="w-3.5 h-3.5" />
-            </button>
+      {/* Main Content: Recent Enquiries Feed */}
+      <div className="bg-white rounded-2xl border border-gold/15 p-6 shadow-xs">
+        <div className="flex items-center justify-between mb-5 border-b border-gold/10 pb-4">
+          <div>
+            <h3 className="font-serif font-bold text-lg text-charcoal flex items-center gap-2">
+              <Inbox className="w-5 h-5 text-[#0F4C45]" /> Recent Customer Leads
+            </h3>
+            <p className="text-xs text-charcoal/60">Couples interested in your {categoryConfig.name.toLowerCase()} services</p>
           </div>
-
-          <div className="space-y-3">
-            {recentEnquiries.length > 0 ? (
-              recentEnquiries.map((lead) => (
-                <div 
-                  key={lead.id} 
-                  onClick={() => onNavigate("enquiries")}
-                  className="p-4 rounded-xl bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] border border-gold/10 hover:border-gold/30 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 cursor-pointer"
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-full bg-[#0F4C45] text-white font-bold font-serif text-sm flex items-center justify-center shrink-0">
-                      {lead.name.charAt(0)}
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-bold text-charcoal">{lead.name}</h4>
-                      <p className="text-xs text-charcoal/70">{lead.details}</p>
-                      <div className="flex items-center gap-3 mt-1.5 text-[11px] text-charcoal/50">
-                        <span className="flex items-center gap-1"><Calendar className="w-3 h-3 text-[#0F4C45]" /> {lead.date}</span>
-                        <span className="flex items-center gap-1"><Clock className="w-3 h-3 text-gold" /> {lead.time}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
-                    <span className="text-[11px] font-bold text-[#0F4C45] bg-[#0F4C45]/10 px-2.5 py-1 rounded-full">
-                      {lead.status}
-                    </span>
-                    <button className="text-xs font-bold text-white bg-[#0F4C45] hover:bg-[#072B27] px-3 py-1.5 rounded-lg transition-colors cursor-pointer">
-                      Respond
-                    </button>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="p-8 text-center bg-[#FAF7F2]/40 border border-gold/10 rounded-xl space-y-2">
-                <InboxIcon className="w-6 h-6 text-[#0F4C45]/60 mx-auto" />
-                <p className="text-xs font-bold text-charcoal">No Recent Customer Leads</p>
-                <p className="text-[11px] text-charcoal/60">New enquiries from wedding couples will appear here automatically.</p>
-              </div>
-            )}
-          </div>
+          <button 
+            onClick={() => onNavigate("enquiries")}
+            className="text-xs font-bold text-[#0F4C45] hover:underline flex items-center gap-1 cursor-pointer"
+          >
+            View All <ArrowUpRight className="w-3.5 h-3.5" />
+          </button>
         </div>
 
-        {/* Upcoming Appointments & Actions (1 col) */}
-        <div className="space-y-6">
-          {/* Quick Schedule Card */}
-          <div className="bg-white rounded-2xl border border-gold/15 p-6 shadow-xs">
-            <div className="flex items-center justify-between mb-4 border-b border-gold/10 pb-3">
-              <h3 className="font-serif font-bold text-base text-charcoal flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-[#C8A96A]" /> Upcoming Bookings
-              </h3>
-              <button 
-                onClick={() => onNavigate("appointments")}
-                className="text-[11px] font-bold text-[#0F4C45] hover:underline cursor-pointer"
+        <div className="space-y-3">
+          {recentEnquiries.length > 0 ? (
+            recentEnquiries.map((lead) => (
+              <div 
+                key={lead.id} 
+                onClick={() => onNavigate("enquiries")}
+                className="p-4 rounded-xl bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] border border-gold/10 hover:border-gold/30 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 cursor-pointer"
               >
-                Calendar
-              </button>
-            </div>
-
-            <div className="space-y-3">
-              {upcomingBookings.length > 0 ? (
-                upcomingBookings.map((b) => (
-                  <div key={b.id} className="p-3.5 rounded-xl border border-gold/15 bg-white space-y-1">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-charcoal">{b.client}</span>
-                      <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
-                        {b.status}
-                      </span>
-                    </div>
-                    <p className="text-[11px] font-medium text-charcoal/60 flex items-center gap-1">
-                      <Clock className="w-3 h-3 text-gold" /> {b.date} • {b.time}
-                    </p>
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-full bg-[#0F4C45] text-white font-bold font-serif text-sm flex items-center justify-center shrink-0">
+                    {lead.name.charAt(0)}
                   </div>
-                ))
-              ) : (
-                <div className="p-6 text-center bg-[#FAF7F2]/40 border border-gold/10 rounded-xl space-y-1.5">
-                  <CalendarX className="w-5 h-5 text-[#0F4C45]/60 mx-auto" />
-                  <p className="text-xs font-bold text-charcoal">No Confirmed Bookings</p>
-                  <p className="text-[11px] text-charcoal/60">Schedule wedding dates using the Appointments tab.</p>
+                  <div>
+                    <h4 className="text-sm font-bold text-charcoal">{lead.name}</h4>
+                    <p className="text-xs text-charcoal/70">{lead.details}</p>
+                    <div className="flex items-center gap-3 mt-1.5 text-[11px] text-charcoal/50">
+                      <span className="flex items-center gap-1"><Calendar className="w-3 h-3 text-[#0F4C45]" /> {lead.date}</span>
+                      <span className="flex items-center gap-1"><Clock className="w-3 h-3 text-gold" /> {lead.time}</span>
+                    </div>
+                  </div>
                 </div>
-              )}
+
+                <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
+                  <span className="text-[11px] font-bold text-[#0F4C45] bg-[#0F4C45]/10 px-2.5 py-1 rounded-full">
+                    {lead.status}
+                  </span>
+                  <button className="text-xs font-bold text-white bg-[#0F4C45] hover:bg-[#072B27] px-3 py-1.5 rounded-lg transition-colors cursor-pointer">
+                    Respond
+                  </button>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="p-8 text-center bg-[#FAF7F2]/40 border border-gold/10 rounded-xl space-y-2">
+              <InboxIcon className="w-6 h-6 text-[#0F4C45]/60 mx-auto" />
+              <p className="text-xs font-bold text-charcoal">No Recent Customer Leads</p>
+              <p className="text-[11px] text-charcoal/60">New enquiries from wedding couples will appear here automatically.</p>
             </div>
-          </div>
+          )}
+        </div>
+      </div>
 
           {/* Quick Category Action Prompt */}
           <div className="bg-[#FAF7F2] rounded-2xl border border-gold/20 p-5 text-center">

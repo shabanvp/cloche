@@ -120,7 +120,6 @@ export function MehendiOverviewSection({ artistName, businessName, onNavigate }:
   }, []);
 
   const stats = [
-    { title: "Bookings This Week", value: bookingsCount.toString(), change: bookingsCount > 0 ? "Confirmed dates" : "0 confirmed", icon: Calendar, color: "text-[#0d3b30]", bg: "bg-[#0d3b30]/10", target: "appointments" },
     { title: "New Enquiries", value: enquiriesCount.toString(), change: enquiriesCount > 0 ? "Active leads" : "0 new", icon: Inbox, color: "text-[#C8A96A]", bg: "bg-[#C8A96A]/20", target: "enquiries" },
     { title: "Recent Profile Views", value: viewsCount.toLocaleString("en-IN"), change: "Total views", icon: Eye, color: "text-[#0d3b30]", bg: "bg-[#0d3b30]/10", target: "analytics" },
     { title: "Artist Rating", value: rating, change: `${reviewsCount} verified reviews`, icon: Star, color: "text-amber-500", bg: "bg-amber-100", target: "overview" },
@@ -138,14 +137,14 @@ export function MehendiOverviewSection({ artistName, businessName, onNavigate }:
               <span className="bg-[#C8A96A] text-[#072B27] text-[10px] font-extrabold uppercase tracking-widest px-3 py-0.5 rounded-full shadow-xs">
                 Mehendi Artist Studio
               </span>
-              <span className="text-xs text-white/80">• Peak Wedding Season</span>
+              <span className="text-xs text-white/80">• Active Storefront</span>
             </div>
 
             <h1 className="text-2xl sm:text-3xl font-serif font-bold text-white">
               Welcome back, {artistName || "Marwar Henna Artistry"}
             </h1>
             <p className="text-xs sm:text-sm text-white/85 max-w-xl leading-relaxed">
-              Your mehendi storefront is active! You have <strong className="text-[#C8A96A]">18 new bride enquiries</strong> and 4 upcoming bookings scheduled this week.
+              Your mehendi storefront is active! Manage your design gallery, respond to customer leads, and track studio analytics below.
             </p>
           </div>
 
@@ -166,8 +165,8 @@ export function MehendiOverviewSection({ artistName, businessName, onNavigate }:
         </div>
       </div>
 
-      {/* Top Stat Cards Home Base */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Top Stat Cards Home Base (3 cols) */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {stats.map((stat) => {
           const Icon = stat.icon;
           return (

@@ -95,7 +95,7 @@ export function MehendiProfileSection({ artistName, businessName }: MehendiProfi
       showVendorToast("Mehendi profile saved successfully!");
       setTimeout(() => setIsSaved(false), 3000);
     } else {
-      showVendorToast("Failed to save Mehendi profile. Please check database connection.", "error");
+      showVendorToast("Failed to save Mehendi profile. Please try again.", "error");
     }
   };
 

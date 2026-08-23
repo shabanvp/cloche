@@ -119,7 +119,7 @@ export default function VendorEnquiries() {
 
       {/* CRM Split View */}
       {isLoading ? (
-        <div className="text-center py-16 text-xs text-charcoal/60">Loading CRM inquiries from database...</div>
+        <div className="text-center py-16 text-xs text-charcoal/60">Loading customer leads...</div>
       ) : (
         <div className="flex flex-col lg:flex-row gap-6 min-h-[640px]">
           

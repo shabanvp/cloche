@@ -528,7 +528,7 @@ export function CustomizeStoreSection({ categoryConfig, vendorName, onBack }: Cu
       const res = await syncVendorProfileWithDatabase(payload);
       if (res.success) {
         setSaved(true);
-        showVendorToast("✓ Storefront customization saved & synchronized!", "success");
+        showVendorToast("Storefront customization saved successfully.", "success");
         setTimeout(() => setSaved(false), 3500);
       } else {
         showVendorToast("Unable to save storefront customization. Please try again.", "error");
@@ -969,7 +969,6 @@ export function CustomizeStoreSection({ categoryConfig, vendorName, onBack }: Cu
                 {[
                   { key: "callNow", label: "Call Now", icon: Phone },
                   { key: "whatsapp", label: "WhatsApp", icon: MessageCircle },
-                  { key: "bookAppointment", label: "Book Appointment", icon: Calendar },
                   { key: "viewCollection", label: "View Collection", icon: Layers },
                   { key: "getQuote", label: "Get Quote", icon: FileText },
                   { key: "visitStore", label: "Visit Store", icon: Building },

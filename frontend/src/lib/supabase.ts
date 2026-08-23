@@ -1401,7 +1401,7 @@ export async function fetchPublicVendorProfileFromDb(identifier: string) {
       diningCapacity: categoryDetail.dining_capacity || "",
       parkingCapacity: categoryDetail.parking_capacity || "",
       languagesSpoken: categoryDetail.languages_spoken || "",
-      contactActions: categoryDetail.contact_actions || ["Call Now", "WhatsApp", "Book Venue Visit", "Request Quote", "Get Directions", "Website"],
+      contactActions: categoryDetail.contact_actions || ["Call Now", "WhatsApp", "Request Quote", "Get Directions", "Website"],
       openingTime: categoryDetail.opening_time || profile.opening_time || "",
       closingTime: categoryDetail.closing_time || profile.closing_time || "",
       weeklyHolidays: categoryDetail.weekly_holidays || profile.weekly_holidays || "",
@@ -1492,7 +1492,6 @@ export async function fetchPublicVendorProfileFromDb(identifier: string) {
       actionButtons: profile.storefront?.actionButtons || profile.action_buttons || profile.actionButtons || {
         callNow: true,
         whatsapp: true,
-        bookAppointment: true,
         viewCollection: true,
         getQuote: true,
         visitStore: true,
