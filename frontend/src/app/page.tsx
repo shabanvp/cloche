@@ -316,18 +316,18 @@ export default function Home() {
             </div>
 
             {vendorsLoading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="flex overflow-x-auto hide-scrollbar snap-x snap-mandatory gap-4 -mx-6 px-6 md:mx-0 md:px-0 md:grid md:grid-cols-4 md:gap-6 md:overflow-visible pb-2">
                 {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="h-72 rounded-3xl bg-gray-200/60 animate-pulse" />
+                  <div key={i} className="flex-shrink-0 w-[82vw] sm:w-[300px] md:w-auto h-72 rounded-3xl bg-gray-200/60 animate-pulse snap-start" />
                 ))}
               </div>
             ) : vendors.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="flex overflow-x-auto hide-scrollbar snap-x snap-mandatory gap-4 -mx-6 px-6 md:mx-0 md:px-0 md:grid md:grid-cols-4 md:gap-6 md:overflow-visible pb-2">
                 {vendors.slice(0, 4).map((vendor, index) => (
                   <Link
                     key={vendor.id}
                     href={`/boutiques/${vendor.slug}`}
-                    className="bg-white rounded-3xl overflow-hidden shadow-xs hover:shadow-md border border-gold/15 transition-all group flex flex-col justify-between"
+                    className="flex-shrink-0 w-[82vw] sm:w-[300px] md:w-auto snap-start bg-white rounded-3xl overflow-hidden shadow-xs hover:shadow-md border border-gold/15 transition-all group flex flex-col justify-between"
                   >
                     <div>
                       <div className="relative h-48 overflow-hidden bg-gray-100">
@@ -335,6 +335,7 @@ export default function Home() {
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                           src={vendor.coverImage}
                           alt={vendor.name}
+                          loading="lazy"
                         />
                         {/* Rank Badge */}
                         <div className="absolute top-3 left-3 bg-[#0F4C45] text-white text-xs font-extrabold px-3 py-1 rounded-full shadow-md flex items-center gap-1 border border-white/20">
