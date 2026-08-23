@@ -6,7 +6,7 @@ import Link from "next/link";
 import { Footer } from "@/components/Footer";
 import { AdBanner } from "@/components/AdBanner";
 import { AutocompleteSearch } from "@/components/AutocompleteSearch";
-import { Sparkles, MapPin, Calendar, BookHeart, Plus, ArrowRight, Star, Heart } from "lucide-react";
+import { Sparkles, MapPin, Calendar, BookHeart, Plus, ArrowRight, Star, Heart, Flame } from "lucide-react";
 import { RealWeddingStoryDb } from "@/lib/realWeddings";
 
 export const dynamic = "force-dynamic";
@@ -295,41 +295,90 @@ export default function Home() {
         {/* Sponsored Homepage Banner */}
         <AdBanner placement="Homepage Between Categories" />
 
-        {/* In-house Services Grid */}
-        <section className="py-12 bg-[#F6F4EE] my-8">
+        {/* ── 🔥 TRENDING THIS WEEK SECTION ── */}
+        <section className="py-12 bg-[#FAF7F2] my-8 border-y border-gold/15">
           <div className="max-w-7xl mx-auto px-6">
-            <div className="mb-8 text-center md:text-left">
-              <span className="text-xs font-bold uppercase tracking-widest text-gold block mb-1">Exclusive Experience</span>
-              <h2 className="text-2xl md:text-3xl font-bold text-on-surface font-display">CLOCHE Inhouse Services</h2>
-            </div>
-
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4 md:gap-8">
-              <div className="bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-gold/10 group hover:shadow-lg transition-all">
-                <div className="relative aspect-[4/3] rounded-xl overflow-hidden mb-4">
-                  <img className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC983QCwzoBbPjpm9Zznnun6gn-EB-wYrmIhc00lbhmpI-FTxPqwXxP2F7jLxu7rrw8Jtm2xCWGDBK7YmmbngAnZzGGiqUUwkBf2FeTSYvP63hxfYMJQ-4CJJ-Sjrm51rZ5XJi_Gm6t_VTrmx-VkoVxu_utvUK3vFcwoUmJmzuPMG1PCvANSr4DlKywgMBtO1wXbCFP-SlgrTBsmj3sLVh5DeuRTsBxtDEC6YxRhAQSpp-PYQvp5ByYVtnf3ARlIemRmd45PU6wi70i" alt="Wedsta" />
+            <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="bg-amber-100 text-amber-800 text-[11px] font-bold uppercase tracking-widest px-2.5 py-0.5 rounded-full flex items-center gap-1 border border-amber-300">
+                    <Flame className="w-3.5 h-3.5 text-amber-500 fill-amber-500" /> Live Rankings
+                  </span>
                 </div>
-                <h3 className="font-bold text-on-surface text-center text-base md:text-lg font-display">Wedsta</h3>
-                <p className="text-xs md:text-sm text-center text-outline leading-tight mt-1.5">At Home, Family Makeup Services</p>
+                <h2 className="text-2xl md:text-3xl font-bold text-charcoal font-display">
+                  🔥 Trending This Week
+                </h2>
+                <p className="text-xs md:text-sm text-charcoal/70 mt-1">
+                  Most engaged wedding partners based on verified user views, inquiries, and authentic reviews.
+                </p>
               </div>
-
-              <Link href="/genie" className="bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-gold/10 group hover:shadow-lg transition-all block">
-                <div className="relative aspect-[4/3] rounded-xl overflow-hidden mb-4">
-                  <img className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" src="https://lh3.googleusercontent.com/aida-public/AB6AXuABl_Ywl89hmmsujcwC-WF0OMTRRI3bbpHV8YfU9YPIxElnclEVGbDjccF1Bzdmg3ZYCFApqzP2DmEYDCI8SL4JB8bMgKWPuY2gY5CCovLBvR0o63pE2XUdDHZUVK95vEFxvd4A3GqNwRk_uVR7CK_t477O8JMhTM46yu9dXY844AeN4-qHDFE1RhBvA5lXiKe2d2T_GMPVlwudC-KxhD518L0qAMCTsOz9OtI0OT1bL5-OlSIniccN_sSlzFAoRIaLdroWjE3Q7aLM" alt="Genie Services" />
-                </div>
-                <h3 className="font-bold text-on-surface text-center text-base md:text-lg font-display flex items-center justify-center gap-1.5">
-                  <Sparkles className="w-4 h-4 text-gold" /> Aura AI Concierge
-                </h3>
-                <p className="text-xs md:text-sm text-center text-outline leading-tight mt-1.5">Plan your dream wedding in budget</p>
+              <Link
+                href="/boutiques"
+                className="text-xs font-bold text-[#0F4C45] hover:text-[#12584E] flex items-center gap-1 bg-white px-4 py-2 rounded-full border border-gold/20 shadow-2xs hover:shadow-xs transition-all w-fit"
+              >
+                <span>View Full Rankings</span>
+                <ArrowRight className="w-3.5 h-3.5" />
               </Link>
-
-              <div className="bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-gold/10 group hover:shadow-lg transition-all col-span-2 md:col-span-1">
-                <div className="relative aspect-[4/3] rounded-xl overflow-hidden mb-4">
-                  <img className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAqptFpOh387e6OXFJ4fisIHEri1Lsb9UuqUuqjc9GWPDretbefCzIrZDt8dnZYnkN3B7rLYsAlvyWmw46_rl20mhXiD9l8kKFdAvK10IBIWhov6I-S43Ex_0AXH0YM5TpNTogUEsRj85Vmt5ZXphtVZu14grZXrzdRFyS0Gb4nOUVHVQcchDNdacy5i-ENW6n-jFynIo_uGODZX_Bvv2waWo1bxE7Ay8NsSwLLab3efewn6lR2TyoO-ehBK9oUW12BSsTxamHm7TgW" alt="Venue Booking" />
-                </div>
-                <h3 className="font-bold text-on-surface text-center text-base md:text-lg font-display">Venue Booking</h3>
-                <p className="text-xs md:text-sm text-center text-outline leading-tight mt-1.5">Best Price Guaranteed</p>
-              </div>
             </div>
+
+            {vendorsLoading ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="h-72 rounded-3xl bg-gray-200/60 animate-pulse" />
+                ))}
+              </div>
+            ) : vendors.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {vendors.slice(0, 4).map((vendor, index) => (
+                  <Link
+                    key={vendor.id}
+                    href={`/boutiques/${vendor.slug}`}
+                    className="bg-white rounded-3xl overflow-hidden shadow-xs hover:shadow-md border border-gold/15 transition-all group flex flex-col justify-between"
+                  >
+                    <div>
+                      <div className="relative h-48 overflow-hidden bg-gray-100">
+                        <img
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          src={vendor.coverImage}
+                          alt={vendor.name}
+                        />
+                        {/* Rank Badge */}
+                        <div className="absolute top-3 left-3 bg-[#0F4C45] text-white text-xs font-extrabold px-3 py-1 rounded-full shadow-md flex items-center gap-1 border border-white/20">
+                          <span>#{index + 1}</span>
+                        </div>
+                        {/* Rating Badge */}
+                        <div className="absolute top-3 right-3 bg-white/95 backdrop-blur-xs px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm">
+                          <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
+                          <span className="text-xs font-bold text-charcoal">{vendor.rating.toFixed(1)}</span>
+                        </div>
+                      </div>
+
+                      <div className="p-5 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[11px] font-bold text-gold uppercase tracking-wider">
+                            {vendor.category}
+                          </span>
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
+                            <Flame className="w-3 h-3 text-amber-500" /> Trending
+                          </span>
+                        </div>
+                        <h3 className="font-bold text-base md:text-lg font-display text-charcoal group-hover:text-primary transition-colors line-clamp-1">
+                          {vendor.name}
+                        </h3>
+                        <p className="text-xs text-charcoal/60 flex items-center gap-1">
+                          <MapPin className="w-3 h-3 text-[#0F4C45]" /> {vendor.city || "Kerala"}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="px-5 pb-5 pt-2 border-t border-gold/10 flex items-center justify-between">
+                      <span className="text-xs text-charcoal/50 font-medium">Starting from</span>
+                      <span className="text-sm font-bold text-[#0F4C45]">{vendor.startingPrice}</span>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            ) : null}
           </div>
         </section>
 
