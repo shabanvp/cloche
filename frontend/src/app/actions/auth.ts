@@ -59,18 +59,20 @@ export async function login(formData: FormData) {
             });
 
             const cookieStore = await cookies();
+            const activeRole = (role === "vendor" || role === "partner") ? "vendor" : (role === "admin" ? "admin" : "user");
             const userObj = {
               id: user.id,
               email: user.email,
               full_name: displayName,
               name: displayName,
               fullName: displayName,
-              roles: userRoles,
+              roles: [activeRole],
+              role: activeRole,
             };
 
             cookieStore.set(AUTH_COOKIE_NAME, token, { httpOnly: true, path: "/", maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 });
             cookieStore.set("auth_token", token, { path: "/", maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 });
-            cookieStore.set("user_role", userRoles.includes("vendor") ? "vendor" : (role === "customer" ? "user" : role), { path: "/", maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 });
+            cookieStore.set("user_role", activeRole, { path: "/", maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 });
             cookieStore.set("user_data", JSON.stringify(userObj), { path: "/", maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 });
 
             return { success: true, user: userObj };

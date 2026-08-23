@@ -45,15 +45,7 @@ export function VendorLoginClient() {
     if (res?.error) {
       setErrorMsg(res.error);
     } else {
-      const userObj = (res?.user as any) || {};
-      const userRoles: string[] = Array.isArray(userObj.roles) ? userObj.roles : [userObj.role || "vendor"];
-      const normalizedRoles = userRoles.map((r) => (r || "").toLowerCase());
-
-      if (normalizedRoles.includes("user") || normalizedRoles.includes("customer")) {
-        window.location.href = "/user/dashboard";
-      } else {
-        window.location.href = "/vendor/dashboard";
-      }
+      window.location.href = "/vendor/dashboard";
     }
   };
 

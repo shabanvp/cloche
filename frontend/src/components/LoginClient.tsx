@@ -55,13 +55,8 @@ export function LoginClient() {
       const userRoles: string[] = Array.isArray(userObj.roles) ? userObj.roles : [userObj.role || requestedRole];
       const normalizedRoles = userRoles.map((r) => (r || "").toLowerCase());
 
-      const isAdmin = requestedRole === "admin" || normalizedRoles.includes("admin") || normalizedRoles.includes("super_admin");
-      const isVendor = normalizedRoles.includes("vendor") || normalizedRoles.includes("partner");
-
-      if (isAdmin) {
+      if (requestedRole === "admin") {
         window.location.href = "/admin";
-      } else if (isVendor) {
-        window.location.href = "/vendor/dashboard";
       } else {
         window.location.href = "/user/dashboard";
       }
