@@ -64,7 +64,12 @@ export async function supabaseFetch<T = any>(
       return { data: null, error: new Error(`Supabase API error (${res.status}): ${errText}`) };
     }
 
-    const data = await res.json();
+    const text = await res.text();
+    if (!text || text.trim().length === 0) {
+      return { data: null, error: null };
+    }
+
+    const data = JSON.parse(text);
     return { data, error: null };
   } catch (err: any) {
     return { data: null, error: err };

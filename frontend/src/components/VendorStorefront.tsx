@@ -178,6 +178,17 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
     };
   }, [sf.workingHours, vendor]);
 
+  // Automatically record view event for trending analytics engine
+  React.useEffect(() => {
+    if (vendor?.id && !previewMode) {
+      fetch("/api/v1/public/analytics/view", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ vendor_id: String(vendor.id) }),
+      }).catch(() => null);
+    }
+  }, [vendor?.id, previewMode]);
+
   // Policies
   const policies = useMemo(() => {
     const p = sf.policies || {};
