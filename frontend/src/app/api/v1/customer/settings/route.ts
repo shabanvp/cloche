@@ -14,7 +14,7 @@ export async function GET(req: Request) {
     }
 
     const { data: users, error } = await supabaseFetch(
-      `users?id=eq.${encodeURIComponent(authUser.userId)}&select=id,email,full_name,name,phone,city,wedding_date,avatar_url,preferences,created_at`
+      `users?id=eq.${encodeURIComponent(authUser.userId)}&select=id,email,full_name,name,phone,avatar_url,preferences,created_at`
     );
 
     if (error || !users || users.length === 0) {
@@ -26,17 +26,27 @@ export async function GET(req: Request) {
             id: authUser.userId,
             email: authUser.email,
             full_name: authUser.fullName,
-            phone: "",
-            city: "Kochi",
-            wedding_date: "",
+            phone: authUser.phone || "",
+            city: authUser.city || "Kochi",
+            wedding_date: authUser.weddingDate || "",
           },
         },
         { status: 200 }
       );
     }
 
+    const u = users[0];
+    const prefs = u.preferences || {};
     return NextResponse.json(
-      { success: true, statusCode: 200, data: users[0] },
+      {
+        success: true,
+        statusCode: 200,
+        data: {
+          ...u,
+          city: prefs.city || u.city || authUser.city || "",
+          wedding_date: prefs.wedding_date || u.wedding_date || authUser.weddingDate || "",
+        },
+      },
       { status: 200 }
     );
   } catch (err: any) {
@@ -107,13 +117,17 @@ export async function PATCH(req: Request) {
       if (profile.full_name !== undefined) updatePayload.full_name = String(profile.full_name).trim();
       if (profile.name !== undefined) updatePayload.name = String(profile.name).trim();
       if (profile.phone !== undefined) updatePayload.phone = String(profile.phone).trim();
-      if (profile.city !== undefined) updatePayload.city = String(profile.city).trim();
-      if (profile.wedding_date !== undefined) updatePayload.wedding_date = profile.wedding_date;
       if (profile.avatar_url !== undefined) updatePayload.avatar_url = profile.avatar_url;
     }
 
-    if (preferences) {
-      updatePayload.preferences = preferences;
+    const currentPrefs = preferences || {};
+    const updatedPrefs = {
+      ...currentPrefs,
+      ...(profile?.city !== undefined ? { city: String(profile.city).trim() } : {}),
+      ...(profile?.wedding_date !== undefined ? { wedding_date: profile.wedding_date } : {}),
+    };
+    if (Object.keys(updatedPrefs).length > 0) {
+      updatePayload.preferences = updatedPrefs;
     }
 
     if (Object.keys(updatePayload).length === 0) {

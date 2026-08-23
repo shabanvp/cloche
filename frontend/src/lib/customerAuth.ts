@@ -102,7 +102,7 @@ export async function getAuthenticatedCustomerUser(req?: Request): Promise<Authe
     if (url && apiKey) {
       try {
         const filter = userId ? `id=eq.${encodeURIComponent(userId)}` : `email=eq.${encodeURIComponent(email!)}`;
-        const dbRes = await fetch(`${url}/rest/v1/users?${filter}&select=id,email,full_name,name,phone,city,wedding_date`, {
+        const dbRes = await fetch(`${url}/rest/v1/users?${filter}&select=id,email,full_name,name,phone,preferences`, {
           headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
           cache: "no-store",
         });
@@ -111,13 +111,14 @@ export async function getAuthenticatedCustomerUser(req?: Request): Promise<Authe
           const rows = await dbRes.json();
           if (Array.isArray(rows) && rows.length > 0) {
             const u = rows[0];
+            const prefs = u.preferences || {};
             return {
               userId: u.id,
               email: u.email,
               fullName: u.full_name || u.name || (u.email ? u.email.split("@")[0] : "Customer"),
               phone: u.phone || phone || undefined,
-              city: u.city || city || undefined,
-              weddingDate: u.wedding_date || weddingDate || undefined,
+              city: prefs.city || u.city || city || undefined,
+              weddingDate: prefs.wedding_date || u.wedding_date || weddingDate || undefined,
               roles: ["customer"],
             };
           }

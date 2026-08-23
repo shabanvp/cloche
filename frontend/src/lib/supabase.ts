@@ -1127,14 +1127,32 @@ export async function updateReviewStatusByAdminInDb(reviewId: string, status: "p
 }
 
 export async function updateCustomerUserProfileInDb(userId: string, profileData: Record<string, any>) {
-  // Updates existing users table record directly
+  // Filter payload to only include valid Supabase users table columns
+  const validColumns = [
+    "full_name",
+    "name",
+    "email",
+    "phone",
+    "avatar_url",
+    "password_hash",
+    "is_active",
+    "is_verified",
+    "preferences",
+    "updated_at",
+  ];
+
+  const sanitized: Record<string, any> = {};
+  for (const [key, val] of Object.entries(profileData)) {
+    if (validColumns.includes(key)) {
+      sanitized[key] = val;
+    }
+  }
+  sanitized.updated_at = new Date().toISOString();
+
   return supabaseFetch(`users?id=eq.${encodeURIComponent(userId)}`, {
     method: "PATCH",
     headers: { Prefer: "return=representation" },
-    body: JSON.stringify({
-      ...profileData,
-      updated_at: new Date().toISOString(),
-    }),
+    body: JSON.stringify(sanitized),
   });
 }
 
