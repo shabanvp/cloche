@@ -208,36 +208,44 @@ export function MehendiOverviewSection({ artistName, businessName, onNavigate }:
           </div>
 
           <div className="space-y-3">
-            {recentLeads.map((lead) => (
-              <div 
-                key={lead.id} 
-                onClick={() => onNavigate("enquiries")}
-                className="p-4 rounded-2xl bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] border border-gold/10 hover:border-gold/30 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 cursor-pointer"
-              >
-                <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-full bg-[#0d3b30] text-white font-bold font-serif text-sm flex items-center justify-center shrink-0">
-                    {lead.bride.charAt(0)}
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-bold text-charcoal">{lead.bride}</h4>
-                    <p className="text-xs text-charcoal/70">{lead.function}</p>
-                    <div className="flex items-center gap-3 mt-1 text-[11px] text-charcoal/50">
-                      <span className="flex items-center gap-1"><Calendar className="w-3 h-3 text-[#0d3b30]" /> {lead.date}</span>
-                      <span className="flex items-center gap-1"><MapPin className="w-3 h-3 text-[#C8A96A]" /> {lead.city}</span>
+            {recentEnquiries.length > 0 ? (
+              recentEnquiries.map((lead) => (
+                <div 
+                  key={lead.id} 
+                  onClick={() => onNavigate("enquiries")}
+                  className="p-4 rounded-2xl bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] border border-gold/10 hover:border-gold/30 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 cursor-pointer"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-full bg-[#0d3b30] text-white font-bold font-serif text-sm flex items-center justify-center shrink-0">
+                      {lead.name.charAt(0)}
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-charcoal">{lead.name}</h4>
+                      <p className="text-xs text-charcoal/70">{lead.type}</p>
+                      <div className="flex items-center gap-3 mt-1 text-[11px] text-charcoal/50">
+                        <span className="flex items-center gap-1"><Calendar className="w-3 h-3 text-[#0d3b30]" /> {lead.date}</span>
+                        <span className="flex items-center gap-1"><Clock className="w-3 h-3 text-[#C8A96A]" /> {lead.time}</span>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
-                  <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
-                    {lead.status}
-                  </span>
-                  <button className="text-xs font-bold text-white bg-[#0d3b30] hover:bg-[#072B27] px-3.5 py-1.5 rounded-xl transition-colors cursor-pointer shadow-xs">
-                    Reply
-                  </button>
+                  <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
+                    <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
+                      {lead.status}
+                    </span>
+                    <button className="text-xs font-bold text-white bg-[#0d3b30] hover:bg-[#072B27] px-3.5 py-1.5 rounded-xl transition-colors cursor-pointer shadow-xs">
+                      Reply
+                    </button>
+                  </div>
                 </div>
+              ))
+            ) : (
+              <div className="p-8 text-center bg-[#FAF7F2]/40 border border-gold/10 rounded-xl space-y-2">
+                <InboxIcon className="w-6 h-6 text-[#0d3b30]/60 mx-auto" />
+                <p className="text-xs font-bold text-charcoal">No Recent Customer Leads</p>
+                <p className="text-[11px] text-charcoal/60">New enquiries from wedding couples will appear here automatically.</p>
               </div>
-            ))}
+            )}
           </div>
         </div>
 
