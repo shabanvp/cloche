@@ -70,7 +70,7 @@ export async function login(formData: FormData) {
 
             cookieStore.set(AUTH_COOKIE_NAME, token, { httpOnly: true, path: "/", maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 });
             cookieStore.set("auth_token", token, { path: "/", maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 });
-            cookieStore.set("user_role", userRoles.includes("vendor") ? "vendor" : role, { path: "/", maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 });
+            cookieStore.set("user_role", userRoles.includes("vendor") ? "vendor" : (role === "customer" ? "user" : role), { path: "/", maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 });
             cookieStore.set("user_data", JSON.stringify(userObj), { path: "/", maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 });
 
             return { success: true, user: userObj };
@@ -91,11 +91,12 @@ export async function login(formData: FormData) {
 
       const token = authResult.session?.access_token || authUser.id;
       const cookieStore = await cookies();
-      const userObj = { id: customUserId, email: authUser.email, full_name: displayName, name: displayName, fullName: displayName, roles: userRoles };
+      const normalizedRole = role === "customer" ? "user" : role;
+      const userObj = { id: customUserId, email: authUser.email, full_name: displayName, name: displayName, fullName: displayName, roles: [normalizedRole] };
 
       cookieStore.set(AUTH_COOKIE_NAME, token, { httpOnly: true, path: "/", maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 });
       cookieStore.set("auth_token", token, { path: "/", maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 });
-      cookieStore.set("user_role", role, { path: "/", maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 });
+      cookieStore.set("user_role", normalizedRole, { path: "/", maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 });
       cookieStore.set("user_data", JSON.stringify(userObj), { path: "/", maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 });
 
       return { success: true, user: userObj };
@@ -135,11 +136,12 @@ export async function login(formData: FormData) {
       fetchedUser.full_name = email.split("@")[0];
     }
 
+    const normalizedRole = role === "customer" ? "user" : role;
     if (data.token) {
       fallbackCookieStore.set("auth_token", data.token, { path: "/", maxAge: 7 * 24 * 60 * 60 });
       fallbackCookieStore.set(AUTH_COOKIE_NAME, data.token, { path: "/", maxAge: 7 * 24 * 60 * 60 });
     }
-    fallbackCookieStore.set("user_role", role, { path: "/", maxAge: 7 * 24 * 60 * 60 });
+    fallbackCookieStore.set("user_role", normalizedRole, { path: "/", maxAge: 7 * 24 * 60 * 60 });
     fallbackCookieStore.set("user_data", JSON.stringify(fetchedUser), { path: "/", maxAge: 7 * 24 * 60 * 60 });
 
     return { success: true, user: fetchedUser };

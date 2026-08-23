@@ -51,10 +51,19 @@ export function LoginClient() {
     const res = await login(formData);
 
     if (res.success) {
-      if (requestedRole === "admin" || (res as any)?.user?.role === "admin") {
+      const userObj = (res.user as any) || {};
+      const userRoles: string[] = Array.isArray(userObj.roles) ? userObj.roles : [userObj.role || requestedRole];
+      const normalizedRoles = userRoles.map((r) => (r || "").toLowerCase());
+
+      const isAdmin = requestedRole === "admin" || normalizedRoles.includes("admin") || normalizedRoles.includes("super_admin");
+      const isVendor = normalizedRoles.includes("vendor") || normalizedRoles.includes("partner");
+
+      if (isAdmin) {
         window.location.href = "/admin";
+      } else if (isVendor) {
+        window.location.href = "/vendor/dashboard";
       } else {
-        window.location.href = "/";
+        window.location.href = "/user/dashboard";
       }
     } else {
       setErrorMsg(res.error || "Invalid credentials. Please try again.");
