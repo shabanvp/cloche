@@ -1,12 +1,12 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getStoryBySlug } from "@/lib/realWeddings";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export async function GET(
-  req: Request,
-  { params }: { params: Promise<{ slug: string }> }
+  req: NextRequest,
+  { params }: { params: Promise<any> }
 ) {
   try {
     const { slug } = await params;

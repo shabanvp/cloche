@@ -1,7 +1,7 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { fetchPublicVendorProfileFromDb } from "@/lib/supabase";
 
-export async function GET(req: Request, { params }: { params: Promise<{ slug: string }> }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<any> }) {
   try {
     const { slug } = await params;
     if (!slug) {

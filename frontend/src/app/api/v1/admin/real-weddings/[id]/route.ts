@@ -1,11 +1,11 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { updateAdminStoryStatus, deleteAdminStory } from "@/lib/realWeddings";
 
 export const dynamic = "force-dynamic";
 
 export async function PATCH(
-  req: Request,
-  { params }: { params: Promise<{ id: string }> }
+  req: NextRequest,
+  { params }: { params: Promise<any> }
 ) {
   try {
     const { id } = await params;
@@ -48,8 +48,8 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  req: Request,
-  { params }: { params: Promise<{ id: string }> }
+  req: NextRequest,
+  { params }: { params: Promise<any> }
 ) {
   try {
     const { id } = await params;

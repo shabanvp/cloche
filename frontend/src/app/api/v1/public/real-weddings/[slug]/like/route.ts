@@ -1,11 +1,11 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { toggleStoryLike } from "@/lib/realWeddings";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(
-  req: Request,
-  { params }: { params: Promise<{ slug: string }> }
+  req: NextRequest,
+  { params }: { params: Promise<any> }
 ) {
   try {
     const { slug } = await params;
