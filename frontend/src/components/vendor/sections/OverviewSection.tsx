@@ -250,8 +250,6 @@ export function OverviewSection({ categoryConfig, vendorName, onNavigate }: Over
               Open {categoryConfig.media.title}
             </button>
           </div>
-        </div>
-      </div>
     </div>
   );
 }
