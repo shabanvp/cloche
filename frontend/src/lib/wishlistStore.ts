@@ -39,18 +39,42 @@ export async function syncWishlistWithServer(): Promise<WishlistItem[]> {
     }
 
     if (res.success && Array.isArray(res.data)) {
-      const serverItems: WishlistItem[] = res.data.map((item: any) => ({
-        id: item.vendor_id || item.vendors?.id || item.id,
-        name: item.vendors?.name || item.vendors?.boutique_name || item.name || "Saved Vendor",
-        category: item.vendors?.category || item.category || "Vendor",
-        price: item.vendors?.price_range || item.price || "Contact for pricing",
-        image: item.vendors?.cover_image || item.vendors?.image || item.image || "https://images.unsplash.com/photo-1594223274512-ad4803739b7c?q=80&w=800&auto=format&fit=crop",
-        boutique_name: item.vendors?.business_name || item.vendors?.boutique_name || item.vendors?.name || item.boutique_name || "Wedding Partner",
-        location: item.vendors?.city || item.location || "Kerala",
-        city: item.vendors?.city || item.city || "Kerala",
-        rating: item.vendors?.rating || item.rating || 4.9,
-        href: `/vendors`,
-      }));
+      const serverItems: WishlistItem[] = res.data.map((item: any) => {
+        const vendor = item.vendors || item;
+        const profile = Array.isArray(vendor.vendor_profiles)
+          ? vendor.vendor_profiles[0]
+          : vendor.vendor_profiles && typeof vendor.vendor_profiles === "object"
+          ? vendor.vendor_profiles
+          : {};
+        const categoryObj = Array.isArray(vendor.vendor_categories)
+          ? vendor.vendor_categories[0]
+          : vendor.vendor_categories && typeof vendor.vendor_categories === "object"
+          ? vendor.vendor_categories
+          : {};
+
+        const rawName = profile.business_name || vendor.name || vendor.boutique_name || item.name || "Saved Vendor";
+        const name = rawName.split(" ").map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+        const category = categoryObj.name || vendor.category || "Vendor";
+        const image = profile.cover_media?.cdn_url || profile.logo_media?.cdn_url || profile.cover_image || vendor.image || "https://images.unsplash.com/photo-1519741497674-611481863552?w=800";
+        const rawCity = profile.city || vendor.city || "Kerala";
+        const city = rawCity ? (rawCity.charAt(0).toUpperCase() + rawCity.slice(1)) : "Kerala";
+        const rating = Number(profile.rating || vendor.rating || 4.9);
+        const price = profile.starting_price ? `₹${Number(profile.starting_price).toLocaleString("en-IN")}` : (vendor.price || "Contact for pricing");
+        const slug = profile.slug || vendor.slug || vendor.id;
+
+        return {
+          id: vendor.id || item.vendor_id || item.id,
+          name,
+          category,
+          price,
+          image,
+          boutique_name: name,
+          location: city,
+          city,
+          rating,
+          href: `/boutiques/${slug}`,
+        };
+      });
 
       localStorage.setItem(WISHLIST_KEY, JSON.stringify(serverItems));
       window.dispatchEvent(new Event("cloche_wishlist_updated"));

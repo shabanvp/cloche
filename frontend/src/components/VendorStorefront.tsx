@@ -3,6 +3,7 @@
 import React, { useState, useMemo } from "react";
 import Link from "next/link";
 import {
+  ArrowRight,
   Sparkles,
   ShieldCheck,
   Phone,
@@ -176,6 +177,17 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
       holidayNotice: w.holidayNotice || vendor?.holidayNotice || vendor?.holiday_notice || vendor?.publicHolidayAvailability || "",
     };
   }, [sf.workingHours, vendor]);
+
+  // Automatically record view event for trending analytics engine
+  React.useEffect(() => {
+    if (vendor?.id && !previewMode) {
+      fetch("/api/v1/public/analytics/view", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ vendor_id: String(vendor.id) }),
+      }).catch(() => null);
+    }
+  }, [vendor?.id, previewMode]);
 
   // Policies
   const policies = useMemo(() => {
@@ -593,9 +605,9 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
             </div>
           )}
 
-          {/* E. STOREFRONT PORTFOLIO & GALLERY */}
+          {/* E. STOREFRONT PORTFOLIO & GALLERY (FIXED PREVIEW GRID: 6 Desktop/Tablet, 4 Mobile) */}
           {galleryPhotos.length > 0 && (
-            <div className="space-y-4">
+            <div className="space-y-5">
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="font-serif text-2xl font-bold text-charcoal">Portfolio &amp; Showcase</h2>
@@ -606,62 +618,43 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
                 </span>
               </div>
 
-              {/* Gallery Grid (Responsive to Layout Choice) */}
-              {galleryLayout === "hero" ? (
-                <div className="space-y-3">
+              {/* Fixed Preview Grid Layout: 3x2 Desktop (6), 2x3 Tablet (6), 2x2 Mobile (4) */}
+              <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
+                {galleryPhotos.slice(0, 6).map((photo, i) => (
                   <div
-                    onClick={() => setSelectedPhoto(galleryPhotos[0].url)}
-                    className="relative h-80 sm:h-96 rounded-3xl overflow-hidden border border-gold/20 shadow-md cursor-pointer group bg-charcoal"
+                    key={i}
+                    onClick={() => setSelectedPhoto(photo.url)}
+                    className={`relative aspect-[4/3] rounded-2xl overflow-hidden border border-gold/20 shadow-xs hover:shadow-md transition-all duration-300 cursor-pointer group bg-gray-100 ${
+                      i >= 4 ? "hidden md:block" : ""
+                    }`}
                   >
-                    <img src={galleryPhotos[0].url} alt={galleryPhotos[0].caption || "Hero"} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent p-5 flex items-end">
-                      <span className="text-white font-bold text-sm">{galleryPhotos[0].caption || "Featured Showcase"}</span>
+                    <img
+                      src={photo.url}
+                      alt={photo.caption || `Portfolio Photo ${i + 1}`}
+                      loading="lazy"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity p-3 flex items-end">
+                      <span className="text-white font-bold text-xs line-clamp-1">{photo.caption || "Showcase Photo"}</span>
                     </div>
                   </div>
-                  <div className="grid grid-cols-3 gap-3">
-                    {galleryPhotos.slice(1).map((photo, i) => (
-                      <div
-                        key={i}
-                        onClick={() => setSelectedPhoto(photo.url)}
-                        className="relative h-32 sm:h-44 rounded-2xl overflow-hidden border border-gold/15 shadow-2xs cursor-pointer group bg-gray-100"
-                      >
-                        <img src={photo.url} alt={photo.caption || `Photo ${i + 2}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ) : galleryLayout === "carousel" ? (
-                <div className="flex items-center gap-3 overflow-x-auto hide-scrollbar pb-2">
-                  {galleryPhotos.map((photo, i) => (
-                    <div
-                      key={i}
-                      onClick={() => setSelectedPhoto(photo.url)}
-                      className="relative w-64 sm:w-80 h-72 rounded-2xl overflow-hidden border border-gold/20 shadow-md shrink-0 cursor-pointer group bg-gray-100"
-                    >
-                      <img src={photo.url} alt={photo.caption || `Photo ${i + 1}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity p-4 flex items-end">
-                        <span className="text-white font-bold text-xs">{photo.caption || "Showcase Photo"}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                /* Classic Grid & Masonry */
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
-                  {galleryPhotos.map((photo, i) => (
-                    <div
-                      key={i}
-                      onClick={() => setSelectedPhoto(photo.url)}
-                      className="relative h-48 sm:h-64 rounded-2xl overflow-hidden border border-gold/20 shadow-sm cursor-pointer group bg-gray-100"
-                    >
-                      <img src={photo.url} alt={photo.caption || `Photo ${i + 1}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity p-3 flex items-end">
-                        <span className="text-white font-bold text-xs">{photo.caption || "Showcase Photo"}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+                ))}
+              </div>
+
+              {/* View All Portfolio Redirect Action */}
+              <div className="pt-1 flex justify-center">
+                <Link
+                  href={
+                    (vendor?.category || "").toLowerCase().includes("venue")
+                      ? `/venues/${vendor?.slug || vendor?.id || "preview"}/gallery`
+                      : `/vendors/${vendor?.slug || vendor?.id || "preview"}/gallery`
+                  }
+                  className="w-full sm:w-auto px-8 py-3 rounded-2xl bg-white border border-gold/25 text-charcoal font-bold text-xs hover:bg-[#FAF7F2] hover:border-gold/40 shadow-xs transition-all flex items-center justify-center gap-2 group cursor-pointer"
+                >
+                  <span>View All Portfolio ({galleryPhotos.length})</span>
+                  <ArrowRight className="w-4 h-4 text-[#0F4C45] group-hover:translate-x-1 transition-transform" />
+                </Link>
+              </div>
             </div>
           )}
 

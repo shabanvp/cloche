@@ -1,0 +1,12 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "nextjs",
+  "buildCommand": "cd frontend && npm run build",
+  "outputDirectory": "frontend/.next",
+  "crons": [
+    {
+      "path": "/api/v1/cron/trending-recompute",
+      "schedule": "0 0 * * *"
+    }
+  ]
+}

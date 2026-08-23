@@ -64,7 +64,12 @@ export async function supabaseFetch<T = any>(
       return { data: null, error: new Error(`Supabase API error (${res.status}): ${errText}`) };
     }
 
-    const data = await res.json();
+    const text = await res.text();
+    if (!text || text.trim().length === 0) {
+      return { data: null, error: null };
+    }
+
+    const data = JSON.parse(text);
     return { data, error: null };
   } catch (err: any) {
     return { data: null, error: err };
@@ -749,7 +754,7 @@ export async function fetchCustomerFavoritesFromDb(customerId: string) {
 
   // 1. Try embedded select query
   const embeddedRes = await supabaseFetch(
-    `customer_favorites?customer_id=eq.${encodeURIComponent(targetId)}&select=*,vendors(*)`
+    `customer_favorites?customer_id=eq.${encodeURIComponent(targetId)}&select=*,vendors(*,vendor_categories(id,name,slug),vendor_profiles(*,logo_media:media!logo_media_id(cdn_url),cover_media:media!cover_media_id(cdn_url)))`
   );
 
   if (!embeddedRes.error && Array.isArray(embeddedRes.data)) {
@@ -768,7 +773,7 @@ export async function fetchCustomerFavoritesFromDb(customerId: string) {
     const vendorIds = simpleRes.data.map((fav: any) => fav.vendor_id).filter(Boolean);
     if (vendorIds.length > 0) {
       const filter = `id=in.(${vendorIds.map((id: string) => encodeURIComponent(id)).join(",")})`;
-      const vendorsRes = await supabaseFetch(`vendors?${filter}&select=*`);
+      const vendorsRes = await supabaseFetch(`vendors?${filter}&select=*,vendor_categories(id,name,slug),vendor_profiles(*,logo_media:media!logo_media_id(cdn_url),cover_media:media!cover_media_id(cdn_url))`);
       const vendorsMap = new Map();
       if (Array.isArray(vendorsRes.data)) {
         vendorsRes.data.forEach((v: any) => vendorsMap.set(v.id, v));
@@ -1122,14 +1127,31 @@ export async function updateReviewStatusByAdminInDb(reviewId: string, status: "p
 }
 
 export async function updateCustomerUserProfileInDb(userId: string, profileData: Record<string, any>) {
-  // Updates existing users table record directly
+  // Filter payload to only include valid Supabase users table columns
+  const validColumns = [
+    "full_name",
+    "name",
+    "email",
+    "phone",
+    "avatar_url",
+    "password_hash",
+    "is_active",
+    "is_verified",
+    "updated_at",
+  ];
+
+  const sanitized: Record<string, any> = {};
+  for (const [key, val] of Object.entries(profileData)) {
+    if (validColumns.includes(key)) {
+      sanitized[key] = val;
+    }
+  }
+  sanitized.updated_at = new Date().toISOString();
+
   return supabaseFetch(`users?id=eq.${encodeURIComponent(userId)}`, {
     method: "PATCH",
     headers: { Prefer: "return=representation" },
-    body: JSON.stringify({
-      ...profileData,
-      updated_at: new Date().toISOString(),
-    }),
+    body: JSON.stringify(sanitized),
   });
 }
 

@@ -30,9 +30,11 @@ export function SignupClient() {
     } else {
       if (typeof window !== "undefined") {
         const nameVal = formData.get("name") as string;
-        if (nameVal) {
-          localStorage.setItem("userName", nameVal.trim());
-        }
+        const emailVal = formData.get("email") as string;
+        const phoneVal = formData.get("phone") as string;
+        if (nameVal) localStorage.setItem("userName", nameVal.trim());
+        if (emailVal) localStorage.setItem("userEmail", emailVal.trim().toLowerCase());
+        if (phoneVal) localStorage.setItem("userPhone", phoneVal.trim());
       }
       router.push("/login?registered=true");
     }

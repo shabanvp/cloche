@@ -51,10 +51,14 @@ export function LoginClient() {
     const res = await login(formData);
 
     if (res.success) {
-      if (requestedRole === "admin" || (res as any)?.user?.role === "admin") {
+      const userObj = (res.user as any) || {};
+      const userRoles: string[] = Array.isArray(userObj.roles) ? userObj.roles : [userObj.role || requestedRole];
+      const normalizedRoles = userRoles.map((r) => (r || "").toLowerCase());
+
+      if (requestedRole === "admin") {
         window.location.href = "/admin";
       } else {
-        window.location.href = "/";
+        window.location.href = "/user/dashboard";
       }
     } else {
       setErrorMsg(res.error || "Invalid credentials. Please try again.");

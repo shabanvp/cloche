@@ -21,7 +21,7 @@ export async function GET(req: Request) {
 
     // 2. Fetch user profile defaults
     const { data: userRows } = await supabaseFetch(
-      `users?id=eq.${encodeURIComponent(authUser.userId)}&select=id,full_name,wedding_date,city,preferences`
+      `users?id=eq.${encodeURIComponent(authUser.userId)}&select=id,full_name`
     );
     const userRow = Array.isArray(userRows) && userRows.length > 0 ? userRows[0] : null;
 
@@ -44,8 +44,8 @@ export async function GET(req: Request) {
       userId: authUser.userId,
       estimatedBudget: Number(userPref?.estimated_budget || parsedStylePrefs?.estimatedBudget || 1500000),
       guestCount: Number(userPref?.guest_count || parsedStylePrefs?.guestCount || 400),
-      preferredCity: userPref?.preferred_city || userRow?.city || "Thrissur",
-      weddingDate: userPref?.wedding_date || userRow?.wedding_date || "",
+      preferredCity: userPref?.preferred_city || "Thrissur",
+      weddingDate: userPref?.wedding_date || "",
       budgetBreakdown: parsedStylePrefs?.budgetBreakdown || [
         { category: "Venue & Accommodation", percentage: 40, amount: 600000, note: "Main banquet hall / lawn & guest stay" },
         { category: "Catering & Sadya", percentage: 25, amount: 375000, note: "Traditional banana leaf Sadya & live counters" },
@@ -137,16 +137,7 @@ export async function POST(req: Request) {
       });
     }
 
-    // Also update users.wedding_date and users.city for synchronization
-    const userUpdate: Record<string, any> = {};
-    if (weddingDate) userUpdate.wedding_date = weddingDate;
-    if (preferredCity) userUpdate.city = preferredCity;
-    if (Object.keys(userUpdate).length > 0) {
-      await supabaseFetch(`users?id=eq.${encodeURIComponent(authUser.userId)}`, {
-        method: "PATCH",
-        body: JSON.stringify(userUpdate),
-      });
-    }
+
 
     return NextResponse.json({
       success: true,

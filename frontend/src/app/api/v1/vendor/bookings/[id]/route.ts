@@ -1,8 +1,8 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { supabaseFetch } from "@/lib/supabase";
 import { requireAuthenticatedVendor, vendorOwnsRecord } from "@/lib/vendorAuth";
 
-export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<any> }) {
   try {
     const auth = await requireAuthenticatedVendor(req);
     if (auth.response) return auth.response;
@@ -30,7 +30,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   }
 }
 
-export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<any> }) {
   try {
     const auth = await requireAuthenticatedVendor(req);
     if (auth.response) return auth.response;

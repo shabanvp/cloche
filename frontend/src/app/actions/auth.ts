@@ -31,7 +31,7 @@ export async function login(formData: FormData) {
     // 1. Primary Authentication: Check custom database users table first
     if (url && apiKey) {
       const userRes = await fetch(
-        `${url}/rest/v1/users?email=eq.${encodeURIComponent(email)}&select=id,email,password_hash,full_name,name,is_active,user_roles(roles(name))`,
+        `${url}/rest/v1/users?email=eq.${encodeURIComponent(email)}&select=id,email,password_hash,full_name,name,phone,city,wedding_date,is_active,user_roles(roles(name))`,
         {
           headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
           cache: "no-store",
@@ -59,18 +59,24 @@ export async function login(formData: FormData) {
             });
 
             const cookieStore = await cookies();
+            const activeRole = (role === "vendor" || role === "partner") ? "vendor" : (role === "admin" ? "admin" : "user");
             const userObj = {
               id: user.id,
               email: user.email,
               full_name: displayName,
               name: displayName,
               fullName: displayName,
-              roles: userRoles,
+              phone: user.phone || "",
+              city: user.city || "",
+              wedding_date: user.wedding_date || "",
+              weddingDate: user.wedding_date || "",
+              roles: [activeRole],
+              role: activeRole,
             };
 
             cookieStore.set(AUTH_COOKIE_NAME, token, { httpOnly: true, path: "/", maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 });
             cookieStore.set("auth_token", token, { path: "/", maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 });
-            cookieStore.set("user_role", userRoles.includes("vendor") ? "vendor" : role, { path: "/", maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 });
+            cookieStore.set("user_role", activeRole, { path: "/", maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 });
             cookieStore.set("user_data", JSON.stringify(userObj), { path: "/", maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 });
 
             return { success: true, user: userObj };
@@ -91,11 +97,12 @@ export async function login(formData: FormData) {
 
       const token = authResult.session?.access_token || authUser.id;
       const cookieStore = await cookies();
-      const userObj = { id: customUserId, email: authUser.email, full_name: displayName, name: displayName, fullName: displayName, roles: userRoles };
+      const normalizedRole = role === "customer" ? "user" : role;
+      const userObj = { id: customUserId, email: authUser.email, full_name: displayName, name: displayName, fullName: displayName, roles: [normalizedRole] };
 
       cookieStore.set(AUTH_COOKIE_NAME, token, { httpOnly: true, path: "/", maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 });
       cookieStore.set("auth_token", token, { path: "/", maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 });
-      cookieStore.set("user_role", role, { path: "/", maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 });
+      cookieStore.set("user_role", normalizedRole, { path: "/", maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 });
       cookieStore.set("user_data", JSON.stringify(userObj), { path: "/", maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 });
 
       return { success: true, user: userObj };
@@ -135,11 +142,12 @@ export async function login(formData: FormData) {
       fetchedUser.full_name = email.split("@")[0];
     }
 
+    const normalizedRole = role === "customer" ? "user" : role;
     if (data.token) {
       fallbackCookieStore.set("auth_token", data.token, { path: "/", maxAge: 7 * 24 * 60 * 60 });
       fallbackCookieStore.set(AUTH_COOKIE_NAME, data.token, { path: "/", maxAge: 7 * 24 * 60 * 60 });
     }
-    fallbackCookieStore.set("user_role", role, { path: "/", maxAge: 7 * 24 * 60 * 60 });
+    fallbackCookieStore.set("user_role", normalizedRole, { path: "/", maxAge: 7 * 24 * 60 * 60 });
     fallbackCookieStore.set("user_data", JSON.stringify(fetchedUser), { path: "/", maxAge: 7 * 24 * 60 * 60 });
 
     return { success: true, user: fetchedUser };
@@ -249,7 +257,7 @@ export async function signup(formData: FormData) {
           }).catch(() => null);
 
           const cookieStore = await cookies();
-          const userObj = { id: newUser.id, email: newUser.email, full_name: name, name: name, fullName: name, roles: [role] };
+          const userObj = { id: newUser.id, email: newUser.email, full_name: name, name: name, fullName: name, phone: phone || newUser.phone || "", roles: [role] };
           
           cookieStore.set(AUTH_COOKIE_NAME, token, { httpOnly: true, path: "/", maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 });
           cookieStore.set("auth_token", token, { path: "/", maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 });
@@ -375,11 +383,11 @@ export async function getCurrentUser() {
     } catch (e) {}
   }
 
-  // 3. Query Supabase database directly by email or userId to fetch fresh name
+  // 3. Query Supabase database directly by email or userId to fetch fresh profile
   const { url, anonKey } = getSupabaseConfig();
   if (url && anonKey && (email || userId)) {
     const filter = userId ? `id=eq.${encodeURIComponent(userId)}` : `email=eq.${encodeURIComponent(email!)}`;
-    const dbRes = await fetch(`${url}/rest/v1/users?${filter}&select=id,email,full_name,name`, {
+    const dbRes = await fetch(`${url}/rest/v1/users?${filter}&select=id,email,full_name,name,phone`, {
       headers: { apikey: anonKey, Authorization: `Bearer ${anonKey}` },
       cache: "no-store",
     }).catch(() => null);
@@ -389,6 +397,23 @@ export async function getCurrentUser() {
       if (Array.isArray(rows) && rows.length > 0) {
         const u = rows[0];
         const dbName = u.full_name || u.name || (u.email ? u.email.split("@")[0] : "User");
+
+        let userCity = "";
+        let userWeddingDate = "";
+        try {
+          const prefRes = await fetch(`${url}/rest/v1/user_preferences?user_id=eq.${encodeURIComponent(u.id)}&select=preferred_city,wedding_date`, {
+            headers: { apikey: anonKey, Authorization: `Bearer ${anonKey}` },
+            cache: "no-store",
+          });
+          if (prefRes.ok) {
+            const prefRows = await prefRes.json();
+            if (Array.isArray(prefRows) && prefRows.length > 0) {
+              userCity = prefRows[0].preferred_city || "";
+              userWeddingDate = prefRows[0].wedding_date || "";
+            }
+          }
+        } catch (e) {}
+
         return {
           success: true,
           user: {
@@ -397,6 +422,10 @@ export async function getCurrentUser() {
             full_name: dbName,
             name: dbName,
             fullName: dbName,
+            phone: u.phone || "",
+            city: userCity,
+            wedding_date: userWeddingDate,
+            weddingDate: userWeddingDate,
           },
         };
       }

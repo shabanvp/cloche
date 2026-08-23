@@ -45,8 +45,7 @@ export function VendorLoginClient() {
     if (res?.error) {
       setErrorMsg(res.error);
     } else {
-      // Automatically redirect to the unified vendor portal root where category is dynamically resolved
-      router.push("/vendor");
+      window.location.href = "/vendor/dashboard";
     }
   };
 

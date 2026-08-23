@@ -94,10 +94,26 @@ export async function GET(req: Request) {
     console.log(`[IMAGE_FLOW] GET profile: Fetched logo URL for vendor ${vendor.id}:`, logoUrl);
     console.log(`[IMAGE_FLOW] GET profile: Fetched cover URL for vendor ${vendor.id}:`, coverUrl);
 
+    // Fetch vendor_gallery records for this vendor
+    let galleryUrls: string[] = [];
+    if (vendor.id) {
+      const gRes = await fetch(`${url}/rest/v1/vendor_gallery?vendor_id=eq.${encodeURIComponent(vendor.id)}&order=sort_order.asc,created_at.desc&select=*,media(*)`, {
+        headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
+      }).catch(() => null);
+      if (gRes && gRes.ok) {
+        const gRows = await gRes.json();
+        if (Array.isArray(gRows)) {
+          galleryUrls = gRows.map((g: any) => g.media?.cdn_url || g.media?.file_path).filter(Boolean);
+        }
+      }
+    }
+
     const profile = {
       ...rawProfile,
       logo_url: logoUrl,
       cover_image: coverUrl,
+      gallery_images: galleryUrls,
+      galleryImages: galleryUrls,
     };
 
     // 2. Fetch category specific details
@@ -329,6 +345,112 @@ export async function PUT(req: Request) {
         } else if (mediaRes) {
           const errText = await mediaRes.text().catch(() => "");
           console.warn(`[IMAGE_FLOW] Cover media insert status ${mediaRes.status}:`, errText);
+        }
+      }
+    }
+
+    // Handle gallery media & vendor_gallery inserts
+    const galleryArray = Array.isArray(profile?.galleryImages)
+      ? profile.galleryImages
+      : Array.isArray(profile?.gallery_images)
+      ? profile.gallery_images
+      : Array.isArray(body?.galleryImages)
+      ? body.galleryImages
+      : Array.isArray(body?.gallery_images)
+      ? body.gallery_images
+      : Array.isArray(body?.gallery)
+      ? body.gallery
+      : null;
+
+    if (galleryArray && Array.isArray(galleryArray)) {
+      const validGalleryUrls: string[] = galleryArray
+        .map((item: any) => (typeof item === "string" ? item : item?.url || item?.image_url || item?.cdn_url || item?.image))
+        .filter((u: any) => isHostedUrl(u));
+
+      // Fetch existing gallery items for vendor to handle deletions and duplicates
+      const existingGalleryRes = await fetch(
+        `${url}/rest/v1/vendor_gallery?vendor_id=eq.${encodeURIComponent(vendorId)}&select=id,media_id,media!inner(id,cdn_url,file_path)`,
+        { headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` } }
+      ).catch(() => null);
+
+      const existingGalleryItems: any[] = (existingGalleryRes && existingGalleryRes.ok) ? await existingGalleryRes.json() : [];
+      const existingUrlToItemMap = new Map<string, any>();
+      for (const item of existingGalleryItems) {
+        const cdn = item.media?.cdn_url || item.media?.file_path;
+        if (cdn) existingUrlToItemMap.set(cdn, item);
+      }
+
+      // Delete items no longer in validGalleryUrls
+      for (const [existingUrl, item] of existingUrlToItemMap.entries()) {
+        if (!validGalleryUrls.includes(existingUrl)) {
+          await fetch(`${url}/rest/v1/vendor_gallery?id=eq.${encodeURIComponent(item.id)}`, {
+            method: "DELETE",
+            headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
+          }).catch(() => null);
+        }
+      }
+
+      // Insert new gallery items into media & vendor_gallery
+      for (let idx = 0; idx < validGalleryUrls.length; idx++) {
+        const gUrl = validGalleryUrls[idx];
+        if (!existingUrlToItemMap.has(gUrl)) {
+          let mId: string | null = null;
+          const checkMediaRes = await fetch(`${url}/rest/v1/media?vendor_id=eq.${encodeURIComponent(vendorId)}&cdn_url=eq.${encodeURIComponent(gUrl)}&select=id`, {
+            headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
+          }).catch(() => null);
+
+          if (checkMediaRes && checkMediaRes.ok) {
+            const mRows = await checkMediaRes.json();
+            if (Array.isArray(mRows) && mRows.length > 0) mId = mRows[0].id;
+          }
+
+          if (!mId) {
+            const uniquePath = `cloche/vendors/gallery/${vendorId}/${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+            const newMediaRes = await fetch(`${url}/rest/v1/media`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                apikey: apiKey,
+                Authorization: `Bearer ${apiKey}`,
+                Prefer: "return=representation",
+              },
+              body: JSON.stringify({
+                user_id: vendor.user_id,
+                vendor_id: vendorId,
+                media_type: "image",
+                bucket_name: "cloudinary",
+                file_path: uniquePath,
+                mime_type: "image/jpeg",
+                file_size_bytes: 1024,
+                cdn_url: gUrl,
+                original_name: "gallery.jpg",
+              }),
+            }).catch(() => null);
+
+            if (newMediaRes && newMediaRes.ok) {
+              const mData = await newMediaRes.json();
+              if (Array.isArray(mData) && mData.length > 0) mId = mData[0].id;
+            }
+          }
+
+          if (mId) {
+            await fetch(`${url}/rest/v1/vendor_gallery`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                apikey: apiKey,
+                Authorization: `Bearer ${apiKey}`,
+                Prefer: "return=representation",
+              },
+              body: JSON.stringify({
+                vendor_id: vendorId,
+                media_id: mId,
+                caption: `Showcase Photo ${idx + 1}`,
+                is_cover: false,
+                sort_order: idx,
+              }),
+            }).catch(() => null);
+          }
         }
       }
     }

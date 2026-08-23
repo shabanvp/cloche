@@ -25,6 +25,8 @@ export interface VendorProfileData {
   colorTheme?: string;
   gallery_layout?: string;
   galleryLayout?: string;
+  galleryImages?: string[];
+  gallery_images?: string[];
   intro_video?: string;
   intro_video_url?: string;
   address?: string;
@@ -433,6 +435,8 @@ export async function fetchAuthenticatedVendorFromDb(): Promise<VendorProfileDat
               colorTheme: p.color_theme || "emerald",
               gallery_layout: p.gallery_layout || "grid",
               galleryLayout: p.gallery_layout || "grid",
+              galleryImages: p.galleryImages || p.gallery_images || json.data?.gallery || [],
+              gallery_images: p.gallery_images || p.galleryImages || json.data?.gallery || [],
               intro_video: p.intro_video_url || p.intro_video || "",
               intro_video_url: p.intro_video_url || p.intro_video || "",
               phone: c.phone || v.phone || "",

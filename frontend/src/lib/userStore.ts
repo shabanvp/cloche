@@ -70,6 +70,7 @@ export async function fetchAuthenticatedUser(): Promise<string> {
       const resolved = resolveUserDisplayName(res.user);
       if (resolved && resolved !== "User" && typeof window !== "undefined") {
         localStorage.setItem("userName", resolved);
+        if (res.user.email) localStorage.setItem("userEmail", res.user.email);
       }
       return resolved;
     }
@@ -80,6 +81,42 @@ export async function fetchAuthenticatedUser(): Promise<string> {
   return resolveUserDisplayName();
 }
 
+export interface UserProfileData {
+  name: string;
+  email: string;
+  phone: string;
+  city: string;
+  weddingDate: string;
+}
+
+export async function fetchAuthenticatedUserProfile(): Promise<UserProfileData | null> {
+  try {
+    const res = await getCurrentUser();
+    if (res?.success && res.user) {
+      const u = res.user;
+      const profile: UserProfileData = {
+        name: resolveUserDisplayName(u),
+        email: u.email || "",
+        phone: u.phone || "",
+        city: u.city || "",
+        weddingDate: u.weddingDate || u.wedding_date || "",
+      };
+
+      if (typeof window !== "undefined") {
+        if (profile.name && profile.name !== "User") localStorage.setItem("userName", profile.name);
+        if (profile.email) localStorage.setItem("userEmail", profile.email);
+        if (profile.phone) localStorage.setItem("userPhone", profile.phone);
+        if (profile.city) localStorage.setItem("userCity", profile.city);
+        if (profile.weddingDate) localStorage.setItem("weddingDate", profile.weddingDate);
+      }
+      return profile;
+    }
+  } catch (e) {
+    console.error("fetchAuthenticatedUserProfile error", e);
+  }
+  return null;
+}
+
 export function clearUserSessionCache(): void {
   if (typeof window !== "undefined") {
     localStorage.removeItem("userName");
@@ -87,5 +124,8 @@ export function clearUserSessionCache(): void {
     localStorage.removeItem("user_name");
     localStorage.removeItem("userEmail");
     localStorage.removeItem("email");
+    localStorage.removeItem("userPhone");
+    localStorage.removeItem("userCity");
+    localStorage.removeItem("weddingDate");
   }
 }
