@@ -21,7 +21,7 @@ export async function GET(req: Request) {
 
     // 2. Fetch user profile defaults
     const { data: userRows } = await supabaseFetch(
-      `users?id=eq.${encodeURIComponent(authUser.userId)}&select=id,full_name,preferences`
+      `users?id=eq.${encodeURIComponent(authUser.userId)}&select=id,full_name`
     );
     const userRow = Array.isArray(userRows) && userRows.length > 0 ? userRows[0] : null;
 
@@ -44,8 +44,8 @@ export async function GET(req: Request) {
       userId: authUser.userId,
       estimatedBudget: Number(userPref?.estimated_budget || parsedStylePrefs?.estimatedBudget || 1500000),
       guestCount: Number(userPref?.guest_count || parsedStylePrefs?.guestCount || 400),
-      preferredCity: userPref?.preferred_city || userRow?.preferences?.city || "Thrissur",
-      weddingDate: userPref?.wedding_date || userRow?.preferences?.wedding_date || "",
+      preferredCity: userPref?.preferred_city || "Thrissur",
+      weddingDate: userPref?.wedding_date || "",
       budgetBreakdown: parsedStylePrefs?.budgetBreakdown || [
         { category: "Venue & Accommodation", percentage: 40, amount: 600000, note: "Main banquet hall / lawn & guest stay" },
         { category: "Catering & Sadya", percentage: 25, amount: 375000, note: "Traditional banana leaf Sadya & live counters" },
@@ -137,20 +137,7 @@ export async function POST(req: Request) {
       });
     }
 
-    // Also update users.preferences for synchronization
-    const { data: uRows } = await supabaseFetch(
-      `users?id=eq.${encodeURIComponent(authUser.userId)}&select=preferences`
-    );
-    const currentPrefs = (Array.isArray(uRows) && uRows[0]?.preferences) || {};
-    const updatedPrefs = {
-      ...currentPrefs,
-      ...(weddingDate ? { wedding_date: weddingDate } : {}),
-      ...(preferredCity ? { city: preferredCity } : {}),
-    };
-    await supabaseFetch(`users?id=eq.${encodeURIComponent(authUser.userId)}`, {
-      method: "PATCH",
-      body: JSON.stringify({ preferences: updatedPrefs }),
-    });
+
 
     return NextResponse.json({
       success: true,

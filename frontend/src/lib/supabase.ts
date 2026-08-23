@@ -1137,7 +1137,6 @@ export async function updateCustomerUserProfileInDb(userId: string, profileData:
     "password_hash",
     "is_active",
     "is_verified",
-    "preferences",
     "updated_at",
   ];
 

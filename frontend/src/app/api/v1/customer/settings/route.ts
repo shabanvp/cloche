@@ -14,8 +14,14 @@ export async function GET(req: Request) {
     }
 
     const { data: users, error } = await supabaseFetch(
-      `users?id=eq.${encodeURIComponent(authUser.userId)}&select=id,email,full_name,name,phone,avatar_url,preferences,created_at`
+      `users?id=eq.${encodeURIComponent(authUser.userId)}&select=id,email,full_name,name,phone,avatar_url,created_at`
     );
+
+    const { data: userPrefs } = await supabaseFetch(
+      `user_preferences?user_id=eq.${encodeURIComponent(authUser.userId)}&select=preferred_city,wedding_date`
+    );
+
+    const prefRecord = Array.isArray(userPrefs) && userPrefs.length > 0 ? userPrefs[0] : null;
 
     if (error || !users || users.length === 0) {
       return NextResponse.json(
@@ -27,8 +33,8 @@ export async function GET(req: Request) {
             email: authUser.email,
             full_name: authUser.fullName,
             phone: authUser.phone || "",
-            city: authUser.city || "Kochi",
-            wedding_date: authUser.weddingDate || "",
+            city: prefRecord?.preferred_city || authUser.city || "Kochi",
+            wedding_date: prefRecord?.wedding_date || authUser.weddingDate || "",
           },
         },
         { status: 200 }
@@ -36,15 +42,14 @@ export async function GET(req: Request) {
     }
 
     const u = users[0];
-    const prefs = u.preferences || {};
     return NextResponse.json(
       {
         success: true,
         statusCode: 200,
         data: {
           ...u,
-          city: prefs.city || u.city || authUser.city || "",
-          wedding_date: prefs.wedding_date || u.wedding_date || authUser.weddingDate || "",
+          city: prefRecord?.preferred_city || authUser.city || "",
+          wedding_date: prefRecord?.wedding_date || authUser.weddingDate || "",
         },
       },
       { status: 200 }
@@ -68,7 +73,7 @@ export async function PATCH(req: Request) {
     }
 
     const body = await req.json();
-    const { action, profile, passwordData, preferences, is_active } = body;
+    const { action, profile, passwordData, is_active } = body;
 
     // 1. Password Change Action
     if (action === "change_password") {
@@ -110,44 +115,47 @@ export async function PATCH(req: Request) {
       );
     }
 
-    // 3. Profile & Preferences Update Action
-    const updatePayload: Record<string, any> = {};
-
+    // 3. Profile Update Action (Core users table: full_name, name, phone, avatar_url)
+    const userUpdatePayload: Record<string, any> = {};
     if (profile) {
-      if (profile.full_name !== undefined) updatePayload.full_name = String(profile.full_name).trim();
-      if (profile.name !== undefined) updatePayload.name = String(profile.name).trim();
-      if (profile.phone !== undefined) updatePayload.phone = String(profile.phone).trim();
-      if (profile.avatar_url !== undefined) updatePayload.avatar_url = profile.avatar_url;
+      if (profile.full_name !== undefined) userUpdatePayload.full_name = String(profile.full_name).trim();
+      if (profile.name !== undefined) userUpdatePayload.name = String(profile.name).trim();
+      if (profile.phone !== undefined) userUpdatePayload.phone = String(profile.phone).trim();
+      if (profile.avatar_url !== undefined) userUpdatePayload.avatar_url = profile.avatar_url;
     }
 
-    const currentPrefs = preferences || {};
-    const updatedPrefs = {
-      ...currentPrefs,
-      ...(profile?.city !== undefined ? { city: String(profile.city).trim() } : {}),
-      ...(profile?.wedding_date !== undefined ? { wedding_date: profile.wedding_date } : {}),
-    };
-    if (Object.keys(updatedPrefs).length > 0) {
-      updatePayload.preferences = updatedPrefs;
+    if (Object.keys(userUpdatePayload).length > 0) {
+      await updateCustomerUserProfileInDb(authUser.userId, userUpdatePayload);
     }
 
-    if (Object.keys(updatePayload).length === 0) {
-      return NextResponse.json(
-        { success: false, statusCode: 400, error: { code: "NO_FIELDS", message: "No profile fields to update." } },
-        { status: 400 }
+    // 4. Wedding City & Date Update Action (user_preferences table)
+    if (profile?.city !== undefined || profile?.wedding_date !== undefined) {
+      const { data: existingPrefs } = await supabaseFetch(
+        `user_preferences?user_id=eq.${encodeURIComponent(authUser.userId)}&select=id`
       );
-    }
 
-    const { data, error } = await updateCustomerUserProfileInDb(authUser.userId, updatePayload);
+      const prefPayload: Record<string, any> = {
+        updated_at: new Date().toISOString(),
+      };
+      if (profile.city !== undefined) prefPayload.preferred_city = String(profile.city).trim();
+      if (profile.wedding_date !== undefined) prefPayload.wedding_date = String(profile.wedding_date).trim();
 
-    if (error) {
-      return NextResponse.json(
-        { success: false, statusCode: 500, error: { code: "UPDATE_FAILED", message: error.message } },
-        { status: 500 }
-      );
+      if (Array.isArray(existingPrefs) && existingPrefs.length > 0) {
+        await supabaseFetch(`user_preferences?id=eq.${encodeURIComponent(existingPrefs[0].id)}`, {
+          method: "PATCH",
+          body: JSON.stringify(prefPayload),
+        });
+      } else {
+        prefPayload.user_id = authUser.userId;
+        await supabaseFetch(`user_preferences`, {
+          method: "POST",
+          body: JSON.stringify(prefPayload),
+        });
+      }
     }
 
     return NextResponse.json(
-      { success: true, statusCode: 200, message: "Profile settings saved successfully!", data },
+      { success: true, statusCode: 200, message: "Profile settings saved successfully!" },
       { status: 200 }
     );
   } catch (err: any) {

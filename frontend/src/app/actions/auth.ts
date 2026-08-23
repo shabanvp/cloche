@@ -387,7 +387,7 @@ export async function getCurrentUser() {
   const { url, anonKey } = getSupabaseConfig();
   if (url && anonKey && (email || userId)) {
     const filter = userId ? `id=eq.${encodeURIComponent(userId)}` : `email=eq.${encodeURIComponent(email!)}`;
-    const dbRes = await fetch(`${url}/rest/v1/users?${filter}&select=id,email,full_name,name,phone,preferences`, {
+    const dbRes = await fetch(`${url}/rest/v1/users?${filter}&select=id,email,full_name,name,phone`, {
       headers: { apikey: anonKey, Authorization: `Bearer ${anonKey}` },
       cache: "no-store",
     }).catch(() => null);
@@ -397,7 +397,23 @@ export async function getCurrentUser() {
       if (Array.isArray(rows) && rows.length > 0) {
         const u = rows[0];
         const dbName = u.full_name || u.name || (u.email ? u.email.split("@")[0] : "User");
-        const prefs = u.preferences || {};
+
+        let userCity = "";
+        let userWeddingDate = "";
+        try {
+          const prefRes = await fetch(`${url}/rest/v1/user_preferences?user_id=eq.${encodeURIComponent(u.id)}&select=preferred_city,wedding_date`, {
+            headers: { apikey: anonKey, Authorization: `Bearer ${anonKey}` },
+            cache: "no-store",
+          });
+          if (prefRes.ok) {
+            const prefRows = await prefRes.json();
+            if (Array.isArray(prefRows) && prefRows.length > 0) {
+              userCity = prefRows[0].preferred_city || "";
+              userWeddingDate = prefRows[0].wedding_date || "";
+            }
+          }
+        } catch (e) {}
+
         return {
           success: true,
           user: {
@@ -407,9 +423,9 @@ export async function getCurrentUser() {
             name: dbName,
             fullName: dbName,
             phone: u.phone || "",
-            city: prefs.city || u.city || "",
-            wedding_date: prefs.wedding_date || u.wedding_date || "",
-            weddingDate: prefs.wedding_date || u.wedding_date || "",
+            city: userCity,
+            wedding_date: userWeddingDate,
+            weddingDate: userWeddingDate,
           },
         };
       }

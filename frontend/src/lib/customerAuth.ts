@@ -102,7 +102,7 @@ export async function getAuthenticatedCustomerUser(req?: Request): Promise<Authe
     if (url && apiKey) {
       try {
         const filter = userId ? `id=eq.${encodeURIComponent(userId)}` : `email=eq.${encodeURIComponent(email!)}`;
-        const dbRes = await fetch(`${url}/rest/v1/users?${filter}&select=id,email,full_name,name,phone,preferences`, {
+        const dbRes = await fetch(`${url}/rest/v1/users?${filter}&select=id,email,full_name,name,phone`, {
           headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
           cache: "no-store",
         });
@@ -111,14 +111,31 @@ export async function getAuthenticatedCustomerUser(req?: Request): Promise<Authe
           const rows = await dbRes.json();
           if (Array.isArray(rows) && rows.length > 0) {
             const u = rows[0];
-            const prefs = u.preferences || {};
+            
+            // Try fetching preferred_city and wedding_date from user_preferences table
+            let prefCity = city;
+            let prefWeddingDate = weddingDate;
+            try {
+              const prefRes = await fetch(`${url}/rest/v1/user_preferences?user_id=eq.${encodeURIComponent(u.id)}&select=preferred_city,wedding_date`, {
+                headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
+                cache: "no-store",
+              });
+              if (prefRes.ok) {
+                const prefRows = await prefRes.json();
+                if (Array.isArray(prefRows) && prefRows.length > 0) {
+                  prefCity = prefRows[0].preferred_city || prefCity;
+                  prefWeddingDate = prefRows[0].wedding_date || prefWeddingDate;
+                }
+              }
+            } catch (e) {}
+
             return {
               userId: u.id,
               email: u.email,
               fullName: u.full_name || u.name || (u.email ? u.email.split("@")[0] : "Customer"),
               phone: u.phone || phone || undefined,
-              city: prefs.city || u.city || city || undefined,
-              weddingDate: prefs.wedding_date || u.wedding_date || weddingDate || undefined,
+              city: prefCity || undefined,
+              weddingDate: prefWeddingDate || undefined,
               roles: ["customer"],
             };
           }

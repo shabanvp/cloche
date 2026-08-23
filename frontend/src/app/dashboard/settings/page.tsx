@@ -65,11 +65,11 @@ function SettingsContent() {
         setPhone(u.phone || "");
         setCity(u.city || "Kochi");
         setWeddingDate(u.wedding_date || "");
-        if (u.preferences) {
-          setEmailNotifs(u.preferences.emailNotifs ?? true);
-          setInAppNotifs(u.preferences.inAppNotifs ?? true);
-          setMarketingNotifs(u.preferences.marketingNotifs ?? false);
-          setPublicVisibility(u.preferences.publicVisibility ?? true);
+        if (u) {
+          setEmailNotifs(true);
+          setInAppNotifs(true);
+          setMarketingNotifs(false);
+          setPublicVisibility(true);
         }
       }
     } catch (e) {
@@ -95,12 +95,6 @@ function SettingsContent() {
             phone,
             city,
             wedding_date: weddingDate,
-          },
-          preferences: {
-            emailNotifs,
-            inAppNotifs,
-            marketingNotifs,
-            publicVisibility,
           },
         }),
       }).then((r) => r.json());
