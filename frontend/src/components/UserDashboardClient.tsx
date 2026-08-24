@@ -22,6 +22,7 @@ import {
   Mail,
   Phone,
   ShieldCheck,
+  ArrowLeft,
 } from "lucide-react";
 import { getWishlistItems, removeWishlistItem, syncWishlistWithServer, WishlistItem } from "@/lib/wishlistStore";
 import { fetchAuthenticatedUser, fetchAuthenticatedUserProfile, resolveUserDisplayName } from "@/lib/userStore";
@@ -51,8 +52,13 @@ interface BudgetItem {
   actual: number;
 }
 
-export function UserDashboardClient() {
-  const [activeTab, setActiveTab] = useState<DashboardTab>("profile");
+interface UserDashboardClientProps {
+  initialTab?: DashboardTab;
+}
+
+export function UserDashboardClient({ initialTab }: UserDashboardClientProps = {}) {
+  const [activeTab, setActiveTab] = useState<DashboardTab>(initialTab || "profile");
+  const [mobileActiveTab, setMobileActiveTab] = useState<DashboardTab | null>(initialTab || null);
   const [userName, setUserName] = useState(() => resolveUserDisplayName());
   const firstName = userName ? userName.trim().split(" ")[0] : "Planner";
   const [userEmail, setUserEmail] = useState(() => {
@@ -249,6 +255,44 @@ export function UserDashboardClient() {
     { id: "settings", label: "Account Settings", icon: Settings },
   ];
 
+  const handleSelectTab = (tabId: DashboardTab) => {
+    setActiveTab(tabId);
+    setMobileActiveTab(tabId);
+    if (typeof window !== "undefined") {
+      window.history.pushState({}, "", `/user/dashboard?tab=${tabId}`);
+    }
+  };
+
+  const handleMobileBack = () => {
+    setMobileActiveTab(null);
+    if (typeof window !== "undefined") {
+      window.history.pushState({}, "", "/user/dashboard");
+    }
+  };
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const tabParam = params.get("tab");
+      if (
+        tabParam &&
+        [
+          "profile",
+          "saved-vendors",
+          "saved-venues",
+          "saved-inspirations",
+          "checklist",
+          "budget",
+          "enquiries",
+          "settings",
+        ].includes(tabParam)
+      ) {
+        setActiveTab(tabParam as DashboardTab);
+        setMobileActiveTab(tabParam as DashboardTab);
+      }
+    }
+  }, []);
+
   return (
     <div className="min-h-screen bg-[#FBF9F5] py-6 sm:py-8 px-4 sm:px-6 lg:px-8 pb-28 sm:pb-8 font-sans">
       <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8">
@@ -289,14 +333,14 @@ export function UserDashboardClient() {
             {/* Quick Action Pills */}
             <div className="flex items-center gap-2.5 sm:gap-3 pt-1 sm:pt-0">
               <button
-                onClick={() => setActiveTab("checklist")}
+                onClick={() => handleSelectTab("checklist")}
                 className="flex-1 sm:flex-initial justify-center bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs font-bold px-4 py-2.5 rounded-full transition-all flex items-center gap-1.5 cursor-pointer"
               >
                 <CheckSquare className="w-3.5 h-3.5 text-gold" />
                 <span>Checklist ({checklistProgress}%)</span>
               </button>
               <button
-                onClick={() => setActiveTab("budget")}
+                onClick={() => handleSelectTab("budget")}
                 className="flex-1 sm:flex-initial justify-center bg-gold hover:bg-amber-600 text-white text-xs font-bold px-4 py-2.5 rounded-full transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
               >
                 <DollarSign className="w-3.5 h-3.5" />
@@ -310,7 +354,7 @@ export function UserDashboardClient() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 sm:gap-8">
 
           {/* Left Sidebar Navigation */}
-          <aside className="md:col-span-1">
+          <aside className={`md:col-span-1 ${mobileActiveTab !== null ? "hidden md:block" : "block"}`}>
             <div className="bg-white rounded-3xl p-3 sm:p-4 shadow-xs border border-gold/15 sticky top-24 space-y-2">
               <div className="px-3 py-2 sm:px-4 sm:py-3 border-b border-gold/10 flex items-center justify-between">
                 <div>
@@ -329,7 +373,7 @@ export function UserDashboardClient() {
                   return (
                     <button
                       key={tab.id}
-                      onClick={() => setActiveTab(tab.id)}
+                      onClick={() => handleSelectTab(tab.id)}
                       className={`w-full flex items-center justify-between p-3 sm:px-3.5 sm:py-3 rounded-2xl text-xs font-semibold transition-all cursor-pointer border ${
                         isActive
                           ? "bg-[#0F4C45] text-white shadow-xs border-[#0F4C45]"
@@ -384,7 +428,28 @@ export function UserDashboardClient() {
           </aside>
 
           {/* Right Main Content Area */}
-          <main className="md:col-span-3 space-y-6">
+          <main className={`md:col-span-3 space-y-6 ${mobileActiveTab === null ? "hidden md:block" : "block"}`}>
+
+            {/* Dedicated Mobile Top Header with Back Arrow */}
+            {mobileActiveTab !== null && (
+              <div className="md:hidden bg-white border border-gold/15 p-4 rounded-3xl flex items-center justify-between shadow-2xs">
+                <button
+                  onClick={handleMobileBack}
+                  className="flex items-center gap-2 text-xs font-bold text-[#0F4C45] bg-[#FAF7F2] hover:bg-gold/10 px-3.5 py-2 rounded-full border border-gold/20 transition-all cursor-pointer"
+                >
+                  <ArrowLeft className="w-4 h-4 text-[#0F4C45]" />
+                  <span>Back to Dashboard</span>
+                </button>
+                <div className="text-right">
+                  <span className="text-xs font-bold text-charcoal font-display block">
+                    {navTabs.find((t) => t.id === activeTab)?.label || "Planning Hub"}
+                  </span>
+                  <span className="text-[10px] text-gold font-bold uppercase tracking-wider">
+                    Planning Hub
+                  </span>
+                </div>
+              </div>
+            )}
 
             {/* TAB 1: PROFILE */}
             {activeTab === "profile" && (
