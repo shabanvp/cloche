@@ -24,7 +24,6 @@ import { MehendiOverviewSection } from "./sections/MehendiOverviewSection";
 import { MehendiProfileSection } from "./sections/MehendiProfileSection";
 import { MehendiGallerySection } from "./sections/MehendiGallerySection";
 import { MehendiPricingSection } from "./sections/MehendiPricingSection";
-import { MehendiAppointmentsSection } from "./sections/MehendiAppointmentsSection";
 import { MehendiEnquiriesSection } from "./sections/MehendiEnquiriesSection";
 import { MehendiOffersSection } from "./sections/MehendiOffersSection";
 import { MehendiAnalyticsSection } from "./sections/MehendiAnalyticsSection";
@@ -66,7 +65,6 @@ export function MehendiVendorDashboard() {
     { id: "profile", label: "Profile", icon: Store, desc: "Business details, contact info, outstation travel radius & working hours" },
     { id: "gallery", label: "Design Gallery", icon: Palette, desc: "Bridal, Arabic, Rajasthani, Indo-Arabic, Minimal/Party" },
     { id: "pricing", label: "Packages & Pricing", icon: Package, desc: "Bridal packages, party rates, per-hand rates & outstation charges" },
-    { id: "appointments", label: "Appointments", icon: Calendar, desc: "Calendar view of upcoming bookings & pre-bridal trial sessions" },
     { id: "enquiries", label: "Enquiries", icon: Inbox, desc: "Inbox of customer messages, bride leads & quote replies" },
     { id: "offers", label: "Offers", icon: Tag, desc: "Create & manage seasonal or festive discount coupons" },
     { id: "analytics", label: "Analytics", icon: BarChart3, desc: "Profile views, conversion rate & most-viewed design trends" },
@@ -89,8 +87,6 @@ export function MehendiVendorDashboard() {
         return <MehendiGallerySection />;
       case "pricing":
         return <MehendiPricingSection />;
-      case "appointments":
-        return <MehendiAppointmentsSection />;
       case "enquiries":
         return <MehendiEnquiriesSection />;
       case "offers":

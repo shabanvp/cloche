@@ -97,10 +97,10 @@ export function ProfileSection({ categoryConfig, vendorName }: ProfileSectionPro
     setIsSaving(false);
     if (res.success) {
       setIsSaved(true);
-      showVendorToast("Profile saved successfully to database!");
+      showVendorToast("Profile saved successfully.");
       setTimeout(() => setIsSaved(false), 3000);
     } else {
-      showVendorToast("Failed to save profile. Please check database connection.", "error");
+      showVendorToast("Failed to save profile. Please try again.", "error");
     }
   };
 
@@ -128,7 +128,7 @@ export function ProfileSection({ categoryConfig, vendorName }: ProfileSectionPro
         >
           {isSaving ? (
             <>
-              <Loader2 className="w-4 h-4 text-gold animate-spin" /> Saving to Database...
+              <Loader2 className="w-4 h-4 text-gold animate-spin" /> Saving...
             </>
           ) : isSaved ? (
             <>

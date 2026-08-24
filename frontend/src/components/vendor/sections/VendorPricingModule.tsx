@@ -126,7 +126,7 @@ export function VendorPricingModule({ categoryConfig }: VendorPricingModuleProps
       });
 
       if (res.ok) {
-        showVendorToast("Package saved to database successfully!");
+        showVendorToast("Package saved successfully!");
         setNewPkgName("");
         setNewPkgPrice("");
         setIsAddModalOpen(false);

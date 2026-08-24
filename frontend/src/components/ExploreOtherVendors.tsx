@@ -197,7 +197,7 @@ export function ExploreOtherVendors({ category, currentVendorId, currentVendorNa
               Explore Other {meta.headingLabel}
             </h2>
             <p className="text-xs text-[#7A6E65] mt-0.5">
-              Live verified {meta.headingLabel.toLowerCase()} from our database
+              Live verified {meta.headingLabel.toLowerCase()} across Kerala
             </p>
           </div>
 
@@ -337,7 +337,7 @@ export function ExploreOtherVendors({ category, currentVendorId, currentVendorNa
                 </div>
               ) : (
                 <div className="py-12 text-center text-xs text-[#7A6E65]">
-                  No other {meta.headingLabel} listed in Supabase database yet.
+                  No other {meta.headingLabel} listed yet.
                 </div>
               )}
             </div>

@@ -120,7 +120,6 @@ export function MehendiOverviewSection({ artistName, businessName, onNavigate }:
   }, []);
 
   const stats = [
-    { title: "Bookings This Week", value: bookingsCount.toString(), change: bookingsCount > 0 ? "Confirmed dates" : "0 confirmed", icon: Calendar, color: "text-[#0d3b30]", bg: "bg-[#0d3b30]/10", target: "appointments" },
     { title: "New Enquiries", value: enquiriesCount.toString(), change: enquiriesCount > 0 ? "Active leads" : "0 new", icon: Inbox, color: "text-[#C8A96A]", bg: "bg-[#C8A96A]/20", target: "enquiries" },
     { title: "Recent Profile Views", value: viewsCount.toLocaleString("en-IN"), change: "Total views", icon: Eye, color: "text-[#0d3b30]", bg: "bg-[#0d3b30]/10", target: "analytics" },
     { title: "Artist Rating", value: rating, change: `${reviewsCount} verified reviews`, icon: Star, color: "text-amber-500", bg: "bg-amber-100", target: "overview" },
@@ -138,14 +137,14 @@ export function MehendiOverviewSection({ artistName, businessName, onNavigate }:
               <span className="bg-[#C8A96A] text-[#072B27] text-[10px] font-extrabold uppercase tracking-widest px-3 py-0.5 rounded-full shadow-xs">
                 Mehendi Artist Studio
               </span>
-              <span className="text-xs text-white/80">• Peak Wedding Season</span>
+              <span className="text-xs text-white/80">• Active Storefront</span>
             </div>
 
             <h1 className="text-2xl sm:text-3xl font-serif font-bold text-white">
               Welcome back, {artistName || "Marwar Henna Artistry"}
             </h1>
             <p className="text-xs sm:text-sm text-white/85 max-w-xl leading-relaxed">
-              Your mehendi storefront is active! You have <strong className="text-[#C8A96A]">18 new bride enquiries</strong> and 4 upcoming bookings scheduled this week.
+              Your mehendi storefront is active! Manage your design gallery, respond to customer leads, and track studio analytics below.
             </p>
           </div>
 
@@ -166,8 +165,8 @@ export function MehendiOverviewSection({ artistName, businessName, onNavigate }:
         </div>
       </div>
 
-      {/* Top Stat Cards Home Base */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Top Stat Cards Home Base (3 cols) */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {stats.map((stat) => {
           const Icon = stat.icon;
           return (
@@ -191,108 +190,75 @@ export function MehendiOverviewSection({ artistName, businessName, onNavigate }:
         })}
       </div>
 
-      {/* Main Grid: Recent Enquiries Feed & Upcoming Schedule */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Recent Enquiries Inbox Feed (2 cols) */}
-        <div className="lg:col-span-2 bg-white rounded-3xl border border-gold/15 p-6 shadow-xs space-y-4">
+        <div className="lg:col-span-2 bg-white rounded-3xl border border-gold/15 p-6 sm:p-8 shadow-xs space-y-5">
           <div className="flex items-center justify-between border-b border-gold/10 pb-4">
             <div>
               <h3 className="font-serif font-bold text-lg text-charcoal flex items-center gap-2">
                 <Inbox className="w-5 h-5 text-[#0d3b30]" /> Recent Bride Enquiries
               </h3>
-              <p className="text-xs text-charcoal/60">Couples & brides requesting mehendi quotes</p>
+              <p className="text-xs text-charcoal/60">Bridal & party mehendi leads requesting package quotes</p>
             </div>
             <button 
               onClick={() => onNavigate("enquiries")}
               className="text-xs font-bold text-[#0d3b30] hover:underline flex items-center gap-1 cursor-pointer"
             >
-              Open Inbox <ArrowUpRight className="w-3.5 h-3.5" />
+              View All Leads <ArrowUpRight className="w-3.5 h-3.5" />
             </button>
           </div>
 
           <div className="space-y-3">
-            {recentEnquiries.map((lead) => (
-              <div 
-                key={lead.id} 
-                onClick={() => onNavigate("enquiries")}
-                className="p-4 rounded-2xl bg-[#FAF7F2]/70 hover:bg-[#FAF7F2] border border-gold/10 hover:border-gold/30 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 cursor-pointer group"
-              >
-                <div className="flex items-start gap-3.5">
-                  <div className="w-10 h-10 rounded-full bg-[#0d3b30] text-[#C8A96A] font-bold font-serif text-sm flex items-center justify-center shrink-0 shadow-xs">
-                    {lead.name.charAt(0)}
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-bold text-charcoal group-hover:text-[#0d3b30] transition-colors">{lead.name}</h4>
-                    <p className="text-xs font-medium text-charcoal/70">{lead.type}</p>
-                    <div className="flex items-center gap-3 mt-1.5 text-[11px] text-charcoal/50">
-                      <span className="flex items-center gap-1"><Calendar className="w-3 h-3 text-[#0d3b30]" /> {lead.date}</span>
-                      <span className="flex items-center gap-1"><Clock className="w-3 h-3 text-[#C8A96A]" /> {lead.time}</span>
+            {recentEnquiries.length > 0 ? (
+              recentEnquiries.map((lead) => (
+                <div 
+                  key={lead.id} 
+                  onClick={() => onNavigate("enquiries")}
+                  className="p-4 rounded-2xl bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] border border-gold/10 hover:border-gold/30 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 cursor-pointer"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-full bg-[#0d3b30] text-white font-bold font-serif text-sm flex items-center justify-center shrink-0">
+                      {lead.name.charAt(0)}
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-charcoal">{lead.name}</h4>
+                      <p className="text-xs text-charcoal/70">{lead.type}</p>
+                      <div className="flex items-center gap-3 mt-1 text-[11px] text-charcoal/50">
+                        <span className="flex items-center gap-1"><Calendar className="w-3 h-3 text-[#0d3b30]" /> {lead.date}</span>
+                        <span className="flex items-center gap-1"><Clock className="w-3 h-3 text-[#C8A96A]" /> {lead.time}</span>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
-                  <div className="text-right hidden sm:block">
-                    <p className="text-xs font-bold text-[#0d3b30]">{lead.budget}</p>
+                  <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
                     <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
                       {lead.status}
                     </span>
+                    <button className="text-xs font-bold text-white bg-[#0d3b30] hover:bg-[#072B27] px-3.5 py-1.5 rounded-xl transition-colors cursor-pointer shadow-xs">
+                      Reply
+                    </button>
                   </div>
-                  <button className="text-xs font-bold text-white bg-[#0d3b30] hover:bg-[#072B27] px-3.5 py-1.5 rounded-xl transition-colors cursor-pointer shadow-xs">
-                    Reply
-                  </button>
                 </div>
+              ))
+            ) : (
+              <div className="p-8 text-center bg-[#FAF7F2]/40 border border-gold/10 rounded-xl space-y-2">
+                <InboxIcon className="w-6 h-6 text-[#0d3b30]/60 mx-auto" />
+                <p className="text-xs font-bold text-charcoal">No Recent Customer Leads</p>
+                <p className="text-[11px] text-charcoal/60">New enquiries from wedding couples will appear here automatically.</p>
               </div>
-            ))}
+            )}
           </div>
         </div>
 
-        {/* Upcoming Bookings & Henna Quality Badge (1 col) */}
-        <div className="space-y-6">
-          {/* Upcoming Schedule Card */}
-          <div className="bg-white rounded-3xl border border-gold/15 p-6 shadow-xs space-y-4">
-            <div className="flex items-center justify-between border-b border-gold/10 pb-3">
-              <h3 className="font-serif font-bold text-base text-charcoal flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-[#C8A96A]" /> Upcoming Bookings
-              </h3>
-              <button 
-                onClick={() => onNavigate("appointments")}
-                className="text-[11px] font-bold text-[#0d3b30] hover:underline cursor-pointer"
-              >
-                Full Calendar
-              </button>
-            </div>
-
-            <div className="space-y-3">
-              {upcomingBookings.map((b) => (
-                <div key={b.id} className="p-3.5 rounded-2xl border border-gold/15 bg-[#FAF7F2]/50 space-y-1">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-charcoal">{b.bride}</span>
-                    <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
-                      {b.status}
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-charcoal/70 font-medium">{b.function}</p>
-                  <p className="text-[10px] text-charcoal/50 flex items-center gap-1 pt-0.5">
-                    <Clock className="w-3 h-3 text-[#C8A96A]" /> {b.date} • {b.time}
-                  </p>
-                </div>
-              ))}
-            </div>
+        <div className="bg-[#FAF7F2] rounded-3xl border border-gold/25 p-6 text-center space-y-3 flex flex-col justify-center">
+          <div className="w-12 h-12 rounded-2xl bg-[#0d3b30] text-[#C8A96A] mx-auto flex items-center justify-center shadow-md">
+            <Award className="w-6 h-6" />
           </div>
-
-          {/* Stain Guarantee Trust Shield */}
-          <div className="bg-[#FAF7F2] rounded-3xl border border-gold/25 p-5 text-center space-y-3">
-            <div className="w-12 h-12 rounded-2xl bg-[#0d3b30] text-[#C8A96A] mx-auto flex items-center justify-center shadow-md">
-              <Award className="w-6 h-6" />
-            </div>
-            <h4 className="font-serif font-bold text-sm text-charcoal">100% Organic Stain Guarantee</h4>
-            <p className="text-xs text-charcoal/60 leading-relaxed">
-              Your profile features verified chemical-free organic henna cones, deep stain guarantees, and bride reviews.
-            </p>
-            <div className="pt-2 border-t border-gold/15 flex items-center justify-center gap-2 text-xs font-bold text-[#0d3b30]">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Verified Henna Artist
-            </div>
+          <h4 className="font-serif font-bold text-base text-charcoal">100% Organic Stain Guarantee</h4>
+          <p className="text-xs text-charcoal/60 leading-relaxed">
+            Your storefront features verified chemical-free organic henna cones, deep stain guarantees, and bride reviews.
+          </p>
+          <div className="pt-3 border-t border-gold/15 flex items-center justify-center gap-2 text-xs font-bold text-[#0d3b30]">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Verified Henna Artist
           </div>
         </div>
       </div>

@@ -479,15 +479,7 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
                 </a>
               )}
 
-              {actionButtons.bookAppointment && (
-                <button
-                  onClick={() => setActiveModal("appointment")}
-                  style={{ borderColor: activeTheme.primary, color: activeTheme.primary }}
-                  className="px-5 py-3 rounded-2xl border-2 text-xs sm:text-sm font-bold flex items-center gap-2 hover:bg-gold/10 transition-all cursor-pointer"
-                >
-                  <Calendar className="w-4 h-4" /> Book Appointment
-                </button>
-              )}
+
 
               {actionButtons.getQuote && (
                 <button
@@ -921,66 +913,7 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
         </div>
       )}
 
-      {/* ── APPOINTMENT MODAL ── */}
-      {activeModal === "appointment" && (
-        <div
-          onClick={() => setActiveModal(null)}
-          className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4"
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full border border-gold/25 shadow-2xl space-y-4 animate-in fade-in zoom-in-95 duration-200"
-          >
-            <div className="flex items-center justify-between border-b border-gold/15 pb-3">
-              <h3 className="font-serif font-bold text-xl text-charcoal">Book an Appointment</h3>
-              <button onClick={() => setActiveModal(null)} className="text-charcoal/40 hover:text-charcoal p-1">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <p className="text-xs text-charcoal/70">
-              Schedule a personalized private consultation or trial visit at <strong>{displayName}</strong>.
-            </p>
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                alert("Appointment request submitted! The store will confirm your time slot.");
-                setActiveModal(null);
-              }}
-              className="space-y-3 text-xs"
-            >
-              <div>
-                <label className="font-bold text-charcoal/70 block mb-1">Your Name</label>
-                <input required type="text" placeholder="Full name" className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2" />
-              </div>
-              <div>
-                <label className="font-bold text-charcoal/70 block mb-1">Phone Number</label>
-                <input required type="tel" placeholder="+91" className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2" />
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="font-bold text-charcoal/70 block mb-1">Preferred Date</label>
-                  <input required type="date" className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-3 py-2 text-xs" />
-                </div>
-                <div>
-                  <label className="font-bold text-charcoal/70 block mb-1">Preferred Time</label>
-                  <select className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-3 py-2 text-xs font-bold">
-                    <option>Morning (10 AM - 1 PM)</option>
-                    <option>Afternoon (1 PM - 4 PM)</option>
-                    <option>Evening (4 PM - 8 PM)</option>
-                  </select>
-                </div>
-              </div>
-              <button
-                type="submit"
-                style={{ backgroundColor: activeTheme.primary }}
-                className="w-full py-3 rounded-xl text-white font-bold text-xs shadow-md mt-2 cursor-pointer"
-              >
-                Confirm Appointment Request
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
+
 
       {/* ── QUOTE MODAL ── */}
       {activeModal === "quote" && (

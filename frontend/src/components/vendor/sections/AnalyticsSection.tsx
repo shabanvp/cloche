@@ -103,7 +103,7 @@ export function AnalyticsSection({ categoryConfig }: AnalyticsSectionProps) {
         </div>
 
         <div className="flex items-center gap-2 bg-[#FAF7F2] p-1.5 rounded-xl border border-gold/15 text-xs font-bold text-charcoal">
-          <button className="bg-[#0F4C45] text-white px-3 py-1.5 rounded-lg shadow-xs">Live Database Stats</button>
+          <button className="bg-[#0F4C45] text-white px-3 py-1.5 rounded-lg shadow-xs">Live Analytics Overview</button>
         </div>
       </div>
 

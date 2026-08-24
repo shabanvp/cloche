@@ -509,7 +509,7 @@ export function MehendiCustomizeStoreSection({
       const res = await syncVendorProfileWithDatabase(payload);
       if (res.success) {
         setSaved(true);
-        showVendorToast("✓ Mehendi storefront customization saved & synchronized!", "success");
+        showVendorToast("Mehendi storefront customization saved successfully.", "success");
         setTimeout(() => setSaved(false), 3500);
       } else {
         showVendorToast("Unable to save storefront customization. Please try again.", "error");
@@ -986,17 +986,7 @@ export function MehendiCustomizeStoreSection({
                   />
                 </label>
 
-                <label className="p-3 bg-[#FAF7F2] rounded-xl border border-gold/15 flex items-center justify-between cursor-pointer">
-                  <span className="font-bold text-charcoal flex items-center gap-1.5">
-                    <Calendar className="w-3.5 h-3.5 text-[#0F4C45]" /> Book Appointment
-                  </span>
-                  <input
-                    type="checkbox"
-                    checked={actionButtons.bookAppointment}
-                    onChange={(e) => setActionButtons((prev) => ({ ...prev, bookAppointment: e.target.checked }))}
-                    className="rounded accent-[#0F4C45] w-4 h-4"
-                  />
-                </label>
+
 
                 <label className="p-3 bg-[#FAF7F2] rounded-xl border border-gold/15 flex items-center justify-between cursor-pointer">
                   <span className="font-bold text-charcoal flex items-center gap-1.5">

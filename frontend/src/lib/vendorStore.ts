@@ -76,7 +76,6 @@ export interface VendorProfileData {
   actionButtons?: {
     callNow?: boolean;
     whatsapp?: boolean;
-    bookAppointment?: boolean;
     viewCollection?: boolean;
     getQuote?: boolean;
     visitStore?: boolean;
@@ -84,7 +83,6 @@ export interface VendorProfileData {
   action_buttons?: {
     callNow?: boolean;
     whatsapp?: boolean;
-    bookAppointment?: boolean;
     viewCollection?: boolean;
     getQuote?: boolean;
     visitStore?: boolean;
@@ -485,8 +483,8 @@ export async function fetchAuthenticatedVendorFromDb(): Promise<VendorProfileDat
               collections_count: p.collections_count || p.collectionsCount || "50+ Sets",
               citiesServed: p.cities_served || p.citiesServed || "Kochi, Calicut, Trivandrum",
               cities_served: p.cities_served || p.citiesServed || "Kochi, Calicut, Trivandrum",
-              actionButtons: p.action_buttons || p.actionButtons || { callNow: true, whatsapp: true, bookAppointment: true, viewCollection: true, getQuote: true, visitStore: true },
-              action_buttons: p.action_buttons || p.actionButtons || { callNow: true, whatsapp: true, bookAppointment: true, viewCollection: true, getQuote: true, visitStore: true },
+              actionButtons: p.action_buttons || p.actionButtons || { callNow: true, whatsapp: true, viewCollection: true, getQuote: true, visitStore: true },
+              action_buttons: p.action_buttons || p.actionButtons || { callNow: true, whatsapp: true, viewCollection: true, getQuote: true, visitStore: true },
               openingTime: p.opening_time || p.openingTime || "10:00 AM",
               opening_time: p.opening_time || p.openingTime || "10:00 AM",
               closingTime: p.closing_time || p.closingTime || "08:00 PM",

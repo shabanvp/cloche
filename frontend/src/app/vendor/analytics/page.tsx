@@ -118,7 +118,7 @@ export default function VendorAnalyticsPage() {
             <div className="flex items-center justify-between border-b border-gold/10 pb-4">
               <div>
                 <h3 className="text-lg font-display font-bold text-charcoal">Profile Traffic & Inquiry Growth</h3>
-                <p className="text-xs text-charcoal/60 mt-0.5">Monthly breakdown calculated from database records.</p>
+                <p className="text-xs text-charcoal/60 mt-0.5">Monthly breakdown calculated from overall storefront traffic.</p>
               </div>
               <span className="bg-[#0F4C45]/10 text-[#0F4C45] text-xs font-bold px-3 py-1 rounded-full">
                 Live Data
