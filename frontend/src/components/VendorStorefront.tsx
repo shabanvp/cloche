@@ -336,25 +336,171 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
     setQuoteLoading(true);
     setTimeout(() => {
       setQuoteLoading(false);
-      setQuoteSubmitted(true);
     }, 800);
   };
+
+  const [isFullPreview, setIsFullPreview] = useState(false);
+
+  // Compact Live Storefront Preview (used inside Customize Storefront pages)
+  if (previewMode && !isFullPreview) {
+    return (
+      <div className="w-full bg-[#FAF7F2] text-charcoal font-sans rounded-3xl border border-gold/25 shadow-md overflow-hidden transition-all mb-6">
+        {/* PREVIEW TOP BAR */}
+        <div className="bg-[#0F4C45] text-white px-4 py-2.5 text-xs font-bold flex items-center justify-between border-b border-gold/20">
+          <span className="flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-[#C8A96A]" /> Live Storefront Preview (Updates in real time)
+          </span>
+          <div className="flex items-center gap-3">
+            <span
+              style={{ color: activeTheme.accent }}
+              className="text-[10px] uppercase font-extrabold tracking-wider bg-black/40 px-2.5 py-0.5 rounded-full border border-white/10"
+            >
+              {activeTheme.label} Theme
+            </span>
+            <button
+              onClick={() => setIsFullPreview(true)}
+              className="text-[11px] bg-white/15 hover:bg-white/25 text-white px-3 py-1 rounded-lg transition-all flex items-center gap-1 cursor-pointer font-semibold border border-white/20"
+            >
+              <Eye className="w-3.5 h-3.5 text-[#C8A96A]" /> Expand Full View
+            </button>
+          </div>
+        </div>
+
+        {/* COMPACT HERO BANNER */}
+        <div className="relative overflow-hidden bg-charcoal">
+          <div className="relative h-[200px] sm:h-[240px] w-full overflow-hidden">
+            <img src={coverUrl} alt={displayName} className="w-full h-full object-cover" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
+          </div>
+
+          {/* Profile Card Overlay */}
+          <div className="absolute bottom-4 left-4 right-4 flex items-end gap-4 z-10">
+            {/* Logo Badge */}
+            <div
+              style={{ backgroundColor: activeTheme.primary }}
+              className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl border-2 border-white overflow-hidden shadow-xl shrink-0 flex items-center justify-center text-white"
+            >
+              {logoUrl ? (
+                <img src={logoUrl} alt={displayName} className="w-full h-full object-cover" />
+              ) : (
+                <span className="font-serif text-xl sm:text-2xl font-bold tracking-wider">{initials}</span>
+              )}
+            </div>
+
+            {/* Profile Info */}
+            <div className="flex-1 min-w-0 text-white drop-shadow-md space-y-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 className="text-xl sm:text-2xl font-serif font-bold text-white leading-tight">
+                  {displayName}
+                </h3>
+                <span className="inline-flex items-center gap-1 bg-white/95 text-[#0F4C45] text-[10px] font-extrabold px-2.5 py-0.5 rounded-full shadow-xs">
+                  <ShieldCheck className="w-3 h-3 text-[#0F4C45]" /> Verified Partner
+                </span>
+              </div>
+
+              {tagline ? (
+                <p style={{ color: activeTheme.accent }} className="text-xs font-semibold italic truncate">
+                  "{tagline}"
+                </p>
+              ) : (
+                <p className="text-xs text-white/90 font-medium truncate">
+                  {categoryLabel}{location ? ` • ${location}` : ""}
+                </p>
+              )}
+
+              {/* Store Highlights Badges */}
+              {storeHighlights.length > 0 && (
+                <div className="flex flex-wrap items-center gap-1 pt-1">
+                  {storeHighlights.slice(0, 4).map((badge) => (
+                    <span
+                      key={badge}
+                      style={{ borderColor: activeTheme.accent }}
+                      className="bg-black/60 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full border shadow-2xs flex items-center gap-1"
+                    >
+                      <Sparkles className="w-2.5 h-2.5 text-[#C8A96A]" /> {badge}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* COMPACT ACTION BUTTONS BAR */}
+        <div className="p-4 bg-white border-t border-gold/15 space-y-3">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+            {actionButtons.callNow && (
+              <div
+                style={{ backgroundColor: activeTheme.primary }}
+                className="w-full px-3 py-2.5 rounded-xl text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-xs text-center"
+              >
+                <Phone className="w-3.5 h-3.5 shrink-0" /> <span>Call Now</span>
+              </div>
+            )}
+            {actionButtons.whatsapp && (
+              <div
+                style={{ backgroundColor: activeTheme.secondary }}
+                className="w-full px-3 py-2.5 rounded-xl text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-xs text-center"
+              >
+                <MessageCircle className="w-3.5 h-3.5 shrink-0" /> <span>WhatsApp Us</span>
+              </div>
+            )}
+            {actionButtons.getQuote && (
+              <div
+                style={{ backgroundColor: activeTheme.accent, color: activeTheme.secondary }}
+                className="w-full px-3 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-xs text-center"
+              >
+                <FileText className="w-3.5 h-3.5 shrink-0" /> <span>Get Custom Quote</span>
+              </div>
+            )}
+            {actionButtons.visitStore && (
+              <div className="w-full px-3 py-2.5 rounded-xl bg-[#FAF7F2] border border-gold/25 text-charcoal text-xs font-bold flex items-center justify-center gap-1.5 text-center">
+                <Building className="w-3.5 h-3.5 text-[#0F4C45] shrink-0" /> <span>Get Directions</span>
+              </div>
+            )}
+          </div>
+
+          {/* BUSINESS HOURS LIVE PREVIEW CHIP */}
+          {(workingHours.workingDays || workingHours.openingTime || workingHours.closingTime || workingHours.weeklyOff || workingHours.rawString) && (
+            <div className="flex items-center justify-between text-[11px] bg-[#FAF7F2] border border-gold/15 p-2.5 rounded-xl text-charcoal/80 font-medium">
+              <span className="flex items-center gap-1.5 font-semibold text-[#0F4C45]">
+                <Clock className="w-3.5 h-3.5 text-[#0F4C45]" /> Operating Schedule:
+              </span>
+              <span className="font-bold text-charcoal">
+                {workingHours.workingDays ? `${workingHours.workingDays}: ` : ""}
+                {[workingHours.openingTime, workingHours.closingTime].filter(Boolean).join(" - ") || workingHours.rawString || "Open All Days"}
+                {workingHours.weeklyOff ? ` (Off: ${workingHours.weeklyOff})` : ""}
+              </span>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full bg-[#FBF8F1] text-charcoal font-sans antialiased min-h-screen pb-24">
       
-      {/* PREVIEW BANNER (IF IN DASHBOARD PREVIEW MODE) */}
+      {/* PREVIEW BANNER (IF IN DASHBOARD FULL PREVIEW MODE) */}
       {previewMode && (
         <div className="bg-[#0B3B36] text-white px-4 py-2 text-xs font-bold flex items-center justify-between border-b border-gold/20">
           <span className="flex items-center gap-1.5">
-            <Eye className="w-3.5 h-3.5 text-[#C8A96A]" /> Live Storefront Preview (Exact Customer View)
+            <Eye className="w-3.5 h-3.5 text-[#C8A96A]" /> Full Storefront View (Expanded)
           </span>
-          <span
-            style={{ color: activeTheme.accent }}
-            className="text-[10px] uppercase tracking-wider bg-black/40 px-2.5 py-0.5 rounded-full border border-white/10"
-          >
-            {activeTheme.label} Theme
-          </span>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setIsFullPreview(false)}
+              className="text-[10px] uppercase font-bold bg-white/20 hover:bg-white/30 text-white px-2.5 py-0.5 rounded-full border border-white/20 transition-all cursor-pointer"
+            >
+              Switch to Compact Preview
+            </button>
+            <span
+              style={{ color: activeTheme.accent }}
+              className="text-[10px] uppercase tracking-wider bg-black/40 px-2.5 py-0.5 rounded-full border border-white/10"
+            >
+              {activeTheme.label} Theme
+            </span>
+          </div>
         </div>
       )}
 
