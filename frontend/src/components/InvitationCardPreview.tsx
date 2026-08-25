@@ -2,31 +2,6 @@
 
 import React from "react";
 import { DigitalInviteTemplate } from "@/lib/digitalInvitationsData";
-import { RoyalPalaceTemplate } from "./invitation-templates/RoyalPalaceTemplate";
-import { FloralGardenTemplate } from "./invitation-templates/FloralGardenTemplate";
-import { WatercolorTemplate } from "./invitation-templates/WatercolorTemplate";
-import { KeralaHeritageTemplate } from "./invitation-templates/KeralaHeritageTemplate";
-import { SouthIndianTempleTemplate } from "./invitation-templates/SouthIndianTempleTemplate";
-import { IslamicLuxuryTemplate } from "./invitation-templates/IslamicLuxuryTemplate";
-import { ChristianCathedralTemplate } from "./invitation-templates/ChristianCathedralTemplate";
-import { BeachWeddingTemplate } from "./invitation-templates/BeachWeddingTemplate";
-import { MountainWeddingTemplate } from "./invitation-templates/MountainWeddingTemplate";
-import { VintageLetterTemplate } from "./invitation-templates/VintageLetterTemplate";
-import { RoyalScrollTemplate } from "./invitation-templates/RoyalScrollTemplate";
-import { PassportInvitationTemplate } from "./invitation-templates/PassportInvitationTemplate";
-import { BoardingPassTemplate } from "./invitation-templates/BoardingPassTemplate";
-import { NewspaperAnnouncementTemplate } from "./invitation-templates/NewspaperAnnouncementTemplate";
-import { MagazineCoverTemplate } from "./invitation-templates/MagazineCoverTemplate";
-import { ScrapbookTemplate } from "./invitation-templates/ScrapbookTemplate";
-import { PhotoAlbumTemplate } from "./invitation-templates/PhotoAlbumTemplate";
-import { BotanicalMinimalTemplate } from "./invitation-templates/BotanicalMinimalTemplate";
-import { LuxuryBlackGoldTemplate } from "./invitation-templates/LuxuryBlackGoldTemplate";
-import { CelestialTemplate } from "./invitation-templates/CelestialTemplate";
-import { MandalaTemplate } from "./invitation-templates/MandalaTemplate";
-import { PeacockThemeTemplate } from "./invitation-templates/PeacockThemeTemplate";
-import { LotusThemeTemplate } from "./invitation-templates/LotusThemeTemplate";
-import { ArtDecoTemplate } from "./invitation-templates/ArtDecoTemplate";
-import { ContemporaryAbstractTemplate } from "./invitation-templates/ContemporaryAbstractTemplate";
 
 interface CustomInviteData {
   brideName?: string;
@@ -42,6 +17,7 @@ interface CustomInviteData {
   selectedThemeColor?: string;
   selectedFont?: string;
   couplePhotoUrl?: string;
+  customMessage?: string;
 }
 
 interface InvitationCardPreviewProps {
@@ -57,75 +33,145 @@ export function InvitationCardPreview({
   pageIndex = 0,
   compact = false,
 }: InvitationCardPreviewProps) {
-  // Use custom inputs or template's specific unique sample data
-  const props = {
-    brideName: customData?.brideName || template.sampleBride || "Diya",
-    groomName: customData?.groomName || template.sampleGroom || "Aarav",
-    brideParents: customData?.brideParents || template.sampleBrideParents || "Maharaja & Maharani Singhania",
-    groomParents: customData?.groomParents || template.sampleGroomParents || "Mr. & Mrs. Rathore",
-    weddingDate: customData?.weddingDate || template.sampleDate || "November 24, 2026",
-    weddingTime: customData?.weddingTime || template.sampleTime || "6:00 PM Onwards",
-    venueName: customData?.venueName || template.sampleVenue || "The Oberoi Udaivilas",
-    venueAddress: customData?.venueAddress || template.sampleAddress || "Udaipur, Rajasthan",
-    phone: customData?.phone || template.samplePhone || "+91 98111 22334",
-    couplePhotoUrl: customData?.couplePhotoUrl,
-    compact,
-    pageTitle: template.pages[pageIndex]?.title || template.pages[0]?.title,
-    pageDescription: template.pages[pageIndex]?.description || template.pages[0]?.description,
-  };
+  // Use custom user inputs or fallback to template's realistic sample data
+  const brideName = customData?.brideName || template.sampleBride || "Diya";
+  const groomName = customData?.groomName || template.sampleGroom || "Aarav";
+  const brideParents = customData?.brideParents || template.sampleBrideParents || "Maharaja & Maharani Singhania";
+  const groomParents = customData?.groomParents || template.sampleGroomParents || "Mr. & Mrs. Rathore";
+  const weddingDate = customData?.weddingDate || template.sampleDate || "November 24, 2026";
+  const weddingTime = customData?.weddingTime || template.sampleTime || "6:00 PM Onwards";
+  const venueName = customData?.venueName || template.sampleVenue || "The Oberoi Udaivilas";
+  const venueAddress = customData?.venueAddress || template.sampleAddress || "Udaipur, Rajasthan";
 
-  switch (template.family) {
-    case "royal-palace":
-      return <RoyalPalaceTemplate {...props} />;
-    case "floral-garden":
-      return <FloralGardenTemplate {...props} />;
-    case "watercolor":
-      return <WatercolorTemplate {...props} />;
-    case "kerala-heritage":
-      return <KeralaHeritageTemplate {...props} />;
-    case "south-indian-temple":
-      return <SouthIndianTempleTemplate {...props} />;
-    case "islamic-luxury":
-      return <IslamicLuxuryTemplate {...props} />;
-    case "christian-cathedral":
-      return <ChristianCathedralTemplate {...props} />;
-    case "beach-wedding":
-      return <BeachWeddingTemplate {...props} />;
-    case "mountain-wedding":
-      return <MountainWeddingTemplate {...props} />;
-    case "vintage-letter":
-      return <VintageLetterTemplate {...props} />;
-    case "royal-scroll":
-      return <RoyalScrollTemplate {...props} />;
-    case "passport-invitation":
-      return <PassportInvitationTemplate {...props} />;
-    case "boarding-pass":
-      return <BoardingPassTemplate {...props} />;
-    case "newspaper-announcement":
-      return <NewspaperAnnouncementTemplate {...props} />;
-    case "magazine-cover":
-      return <MagazineCoverTemplate {...props} />;
-    case "scrapbook":
-      return <ScrapbookTemplate {...props} />;
-    case "photo-album":
-      return <PhotoAlbumTemplate {...props} />;
-    case "botanical-minimal":
-      return <BotanicalMinimalTemplate {...props} />;
-    case "luxury-black-gold":
-      return <LuxuryBlackGoldTemplate {...props} />;
-    case "celestial":
-      return <CelestialTemplate {...props} />;
-    case "mandala":
-      return <MandalaTemplate {...props} />;
-    case "peacock-theme":
-      return <PeacockThemeTemplate {...props} />;
-    case "lotus-theme":
-      return <LotusThemeTemplate {...props} />;
-    case "art-deco":
-      return <ArtDecoTemplate {...props} />;
-    case "contemporary-abstract":
-      return <ContemporaryAbstractTemplate {...props} />;
-    default:
-      return <RoyalPalaceTemplate {...props} />;
-  }
+  const pos = template.textFieldPositions;
+
+  return (
+    <div
+      id="invitation-card-canvas"
+      className="relative aspect-[3/4] w-full rounded-2xl overflow-hidden shadow-2xl bg-slate-900 border border-amber-400/30 select-none group"
+    >
+      {/* 1. Original Background Artwork Asset */}
+      <img
+        src={template.backgroundImage}
+        alt={template.name}
+        className="absolute inset-0 w-full h-full object-cover z-0 transition-transform duration-700 group-hover:scale-105"
+      />
+
+      {/* Subtle Overlay to ensure high readability */}
+      <div className="absolute inset-0 bg-black/10 z-5 pointer-events-none" />
+
+      {/* 2. Positioned Text Overlays per Template Configuration */}
+      <div className="absolute inset-0 z-10 pointer-events-none">
+        
+        {/* Badge Title */}
+        {pos.badgeTitle && (
+          <div
+            style={{
+              top: pos.badgeTitle.top,
+              left: pos.badgeTitle.left,
+              width: pos.badgeTitle.width || "80%",
+              transform: "translate(-50%, -50%)",
+              textAlign: pos.badgeTitle.textAlign,
+              color: pos.badgeTitle.color,
+              fontFamily: pos.badgeTitle.fontFamily,
+            }}
+            className={`absolute ${pos.badgeTitle.fontSize} ${pos.badgeTitle.fontWeight || ""} ${pos.badgeTitle.letterSpacing || ""} ${pos.badgeTitle.textTransform || ""}`}
+          >
+            {template.collection} SUITE
+          </div>
+        )}
+
+        {/* Couple Names */}
+        {pos.coupleNames && (
+          <div
+            style={{
+              top: pos.coupleNames.top,
+              left: pos.coupleNames.left,
+              width: pos.coupleNames.width || "85%",
+              transform: "translate(-50%, -50%)",
+              textAlign: pos.coupleNames.textAlign,
+              color: pos.coupleNames.color,
+              fontFamily: pos.coupleNames.fontFamily,
+            }}
+            className={`absolute ${pos.coupleNames.fontSize} ${pos.coupleNames.fontWeight || "font-bold"} leading-tight tracking-tight drop-shadow-md`}
+          >
+            {brideName} <span className="font-normal italic text-lg sm:text-2xl opacity-90">&</span> {groomName}
+          </div>
+        )}
+
+        {/* Family Blessing */}
+        {pos.familyBlessing && (
+          <div
+            style={{
+              top: pos.familyBlessing.top,
+              left: pos.familyBlessing.left,
+              width: pos.familyBlessing.width || "80%",
+              transform: "translate(-50%, -50%)",
+              textAlign: pos.familyBlessing.textAlign,
+              color: pos.familyBlessing.color,
+              fontFamily: pos.familyBlessing.fontFamily,
+            }}
+            className={`absolute ${pos.familyBlessing.fontSize} ${pos.familyBlessing.fontWeight || ""} italic opacity-95`}
+          >
+            Together with {brideParents} & {groomParents}
+          </div>
+        )}
+
+        {/* Ceremony Details */}
+        {pos.ceremonyDetails && (
+          <div
+            style={{
+              top: pos.ceremonyDetails.top,
+              left: pos.ceremonyDetails.left,
+              width: pos.ceremonyDetails.width || "80%",
+              transform: "translate(-50%, -50%)",
+              textAlign: pos.ceremonyDetails.textAlign,
+              color: pos.ceremonyDetails.color,
+              fontFamily: pos.ceremonyDetails.fontFamily,
+            }}
+            className={`absolute ${pos.ceremonyDetails.fontSize} ${pos.ceremonyDetails.fontWeight || ""} ${pos.ceremonyDetails.letterSpacing || ""}`}
+          >
+            SHUBH VIVAH CELEBRATION
+          </div>
+        )}
+
+        {/* Date & Time */}
+        {pos.date && (
+          <div
+            style={{
+              top: pos.date.top,
+              left: pos.date.left,
+              width: pos.date.width || "80%",
+              transform: "translate(-50%, -50%)",
+              textAlign: pos.date.textAlign,
+              color: pos.date.color,
+              fontFamily: pos.date.fontFamily,
+            }}
+            className={`absolute ${pos.date.fontSize} ${pos.date.fontWeight || "font-bold"} tracking-wider drop-shadow-xs`}
+          >
+            {weddingDate} • {weddingTime}
+          </div>
+        )}
+
+        {/* Venue & Address */}
+        {pos.venue && (
+          <div
+            style={{
+              top: pos.venue.top,
+              left: pos.venue.left,
+              width: pos.venue.width || "80%",
+              transform: "translate(-50%, -50%)",
+              textAlign: pos.venue.textAlign,
+              color: pos.venue.color,
+              fontFamily: pos.venue.fontFamily,
+            }}
+            className={`absolute ${pos.venue.fontSize} ${pos.venue.fontWeight || ""} opacity-90 truncate`}
+          >
+            {venueName}, {venueAddress}
+          </div>
+        )}
+
+      </div>
+    </div>
+  );
 }

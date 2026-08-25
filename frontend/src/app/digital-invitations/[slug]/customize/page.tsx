@@ -3,6 +3,7 @@
 import { useState, use } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { toPng } from "html-to-image";
 import {
   ArrowLeft,
   Sparkles,
@@ -58,9 +59,10 @@ export default function CustomizationPage({
   
   const [selectedThemeColor, setSelectedThemeColor] = useState(template.themeColor || "#0F4C45");
   const [selectedFont, setSelectedFont] = useState(template.fontStyle || "Playfair Display");
-  const [bgMusic, setBgMusic] = useState(template.musicTrack || "Soft Shehnai & Sitar Harmony");
+  const [bgMusic, setBgMusic] = useState("Soft Shehnai & Sitar Harmony");
   const [couplePhotoUrl, setCouplePhotoUrl] = useState<string>("");
   const [copiedToast, setCopiedToast] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   // Photo Upload Handler
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -85,10 +87,23 @@ export default function CustomizationPage({
     }
   };
 
-  // Browser Print trigger for Download PDF
-  const handleDownloadPdf = () => {
-    if (typeof window !== "undefined") {
+  // Export & Download High-Resolution PNG Image
+  const handleDownloadImage = async () => {
+    const node = document.getElementById("invitation-card-canvas");
+    if (!node) return;
+    try {
+      setIsExporting(true);
+      const dataUrl = await toPng(node, { quality: 0.95, pixelRatio: 2 });
+      const link = document.createElement("a");
+      link.download = `${brideName.toLowerCase()}-${groomName.toLowerCase()}-wedding-invitation.png`;
+      link.href = dataUrl;
+      link.click();
+    } catch (err) {
+      console.error("Export failed:", err);
+      // Fallback print
       window.print();
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -166,7 +181,7 @@ export default function CustomizationPage({
                     <Sparkles className="w-5 h-5 text-gold" /> Customize Invitation
                   </h2>
                   <p className="text-xs text-charcoal/60 mt-1">
-                    Editing: <span className="font-bold text-charcoal">{template.name}</span>. All edits update live on the right pane.
+                    Editing: <span className="font-bold text-charcoal">{template.name}</span>. All edits update live on the right pane over original background artwork.
                   </p>
                 </div>
 
@@ -292,109 +307,6 @@ export default function CustomizationPage({
                     </div>
                   </div>
 
-                  {/* Website & Google Maps Link */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block font-bold text-charcoal mb-1">Custom Website URL</label>
-                      <input
-                        type="text"
-                        value={website}
-                        onChange={(e) => setWebsite(e.target.value)}
-                        className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-gold/20 rounded-xl text-charcoal font-medium focus:outline-hidden"
-                      />
-                    </div>
-                    <div>
-                      <label className="block font-bold text-charcoal mb-1">Google Maps Link</label>
-                      <input
-                        type="text"
-                        value={googleMapsLink}
-                        onChange={(e) => setGoogleMapsLink(e.target.value)}
-                        className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-gold/20 rounded-xl text-charcoal font-medium focus:outline-hidden"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Styling Options */}
-                  <div className="pt-4 border-t border-gold/15 space-y-4">
-                    
-                    <div>
-                      <label className="font-bold text-charcoal flex items-center gap-1.5 mb-2">
-                        <Palette className="w-4 h-4 text-[#0F4C45]" /> Select Accent Color
-                      </label>
-                      <div className="flex items-center gap-3">
-                        {[
-                          { name: "Emerald", color: "#0F4C45" },
-                          { name: "Royal Gold", color: "#B45309" },
-                          { name: "Haldi Crimson", color: "#991B1B" },
-                          { name: "Sunset Amber", color: "#D97706" },
-                          { name: "Obsidian", color: "#1E1B4B" },
-                        ].map((th) => (
-                          <button
-                            key={th.color}
-                            onClick={() => setSelectedThemeColor(th.color)}
-                            style={{ backgroundColor: th.color }}
-                            className={`w-8 h-8 rounded-full border-2 transition-transform cursor-pointer flex items-center justify-center ${
-                              selectedThemeColor === th.color
-                                ? "scale-110 border-white ring-2 ring-[#0F4C45]"
-                                : "border-transparent hover:scale-105"
-                            }`}
-                            title={th.name}
-                          >
-                            {selectedThemeColor === th.color && (
-                              <Check className="w-4 h-4 text-white" />
-                            )}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="font-bold text-charcoal flex items-center gap-1.5 mb-2">
-                        <Type className="w-4 h-4 text-[#0F4C45]" /> Typography Font Style
-                      </label>
-                      <select
-                        value={selectedFont}
-                        onChange={(e) => setSelectedFont(e.target.value)}
-                        className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-gold/20 rounded-xl text-charcoal font-medium focus:outline-hidden"
-                      >
-                        <option value="Playfair Display">Playfair Display (Classic Serif)</option>
-                        <option value="Great Vibes">Great Vibes (Romantic Script)</option>
-                        <option value="Cinzel">Cinzel (Regal Heritage)</option>
-                        <option value="Montserrat">Montserrat (Modern Clean)</option>
-                        <option value="Cormorant Garamond">Cormorant Garamond (Elegance)</option>
-                      </select>
-                    </div>
-
-                    {template.type === "video" && (
-                      <div>
-                        <label className="font-bold text-charcoal flex items-center gap-1.5 mb-2">
-                          <Music className="w-4 h-4 text-amber-700" /> Background Audio Score
-                        </label>
-                        <select
-                          value={bgMusic}
-                          onChange={(e) => setBgMusic(e.target.value)}
-                          className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-amber-200 rounded-xl text-charcoal font-medium focus:outline-hidden"
-                        >
-                          <option value="Soft Shehnai & Sitar Harmony">Soft Shehnai & Sitar Harmony</option>
-                          <option value="Romantic Classical Violin">Romantic Classical Violin</option>
-                          <option value="Acoustic Sunset Guitar">Acoustic Sunset Guitar</option>
-                          <option value="Royal Temple Flute Score">Royal Temple Flute Score</option>
-                        </select>
-                      </div>
-                    )}
-
-                    <div>
-                      <label className="block font-bold text-charcoal mb-1">Couple Photo (Optional Upload)</label>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handlePhotoUpload}
-                        className="w-full text-xs text-charcoal/70 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-[#0F4C45] file:text-white hover:file:bg-[#145C54] cursor-pointer"
-                      />
-                    </div>
-
-                  </div>
-
                 </div>
 
                 {/* Continue CTA Button */}
@@ -407,7 +319,7 @@ export default function CustomizationPage({
 
               </div>
 
-              {/* Right Column: Live Instant Preview Pane using REAL INVITATION ARTWORK */}
+              {/* Right Column: Live Instant Preview Pane using ORIGINAL ARTWORK */}
               <div className="lg:col-span-6 sticky top-6 space-y-4">
                 <div className="bg-white p-6 rounded-3xl border border-gold/20 shadow-lg text-center space-y-4">
                   <div className="flex items-center justify-between border-b border-gold/15 pb-3 text-xs font-bold text-charcoal/70">
@@ -434,10 +346,10 @@ export default function CustomizationPage({
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700" /> Invitation Customized Successfully
                 </span>
                 <h1 className="text-3xl font-bold font-display text-charcoal">
-                  {template.name} — Final Ready Invitation
+                  {template.name} — Ready for Download
                 </h1>
                 <p className="text-xs sm:text-sm text-charcoal/70">
-                  Collection: <span className="font-bold text-[#0F4C45]">{template.collection}</span>. Ready for PDF download, image save, or WhatsApp broadcast.
+                  Collection: <span className="font-bold text-[#0F4C45]">{template.collection}</span>. Original Artwork + Baked Custom Text.
                 </p>
               </div>
 
@@ -450,40 +362,32 @@ export default function CustomizationPage({
               <div className="bg-white p-6 sm:p-8 rounded-3xl border border-gold/20 shadow-xs space-y-6">
                 
                 <h3 className="text-lg font-bold font-display text-charcoal border-b border-gold/15 pb-3">
-                  Download & Export Formats
+                  Download High-Resolution Image Export
                 </h3>
 
                 {/* Primary Export Buttons */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   
-                  {/* Download PDF */}
+                  {/* Download PNG Image */}
                   <button
-                    onClick={handleDownloadPdf}
-                    className="p-4 bg-[#FAF7F2] hover:bg-[#0F4C45] text-charcoal hover:text-white rounded-2xl border border-gold/20 transition-all flex flex-col items-center justify-center gap-2 group cursor-pointer"
+                    onClick={handleDownloadImage}
+                    disabled={isExporting}
+                    className="p-5 bg-[#0F4C45] hover:bg-[#145C54] text-white rounded-2xl border border-gold/20 transition-all flex flex-col items-center justify-center gap-2 group cursor-pointer shadow-md"
+                  >
+                    <Download className="w-6 h-6 text-amber-300 group-hover:scale-110 transition-transform" />
+                    <span className="font-bold text-sm">{isExporting ? "Rendering Image..." : "Download High-Res PNG Card"}</span>
+                    <span className="text-[11px] opacity-80">Full-bleed artwork with custom text baked</span>
+                  </button>
+
+                  {/* Print / PDF Export */}
+                  <button
+                    onClick={handleDownloadImage}
+                    disabled={isExporting}
+                    className="p-5 bg-[#FAF7F2] hover:bg-[#0F4C45] text-charcoal hover:text-white rounded-2xl border border-gold/20 transition-all flex flex-col items-center justify-center gap-2 group cursor-pointer"
                   >
                     <FileText className="w-6 h-6 text-[#0F4C45] group-hover:text-gold transition-colors" />
-                    <span className="font-bold text-xs">Download Print PDF</span>
-                    <span className="text-[10px] opacity-70">Ultra HD Vector Print</span>
-                  </button>
-
-                  {/* Download Image */}
-                  <button
-                    onClick={handleDownloadPdf}
-                    className="p-4 bg-[#FAF7F2] hover:bg-[#0F4C45] text-charcoal hover:text-white rounded-2xl border border-gold/20 transition-all flex flex-col items-center justify-center gap-2 group cursor-pointer"
-                  >
-                    <Download className="w-6 h-6 text-[#0F4C45] group-hover:text-gold transition-colors" />
-                    <span className="font-bold text-xs">Save PNG Image</span>
-                    <span className="text-[10px] opacity-70">Mobile Card Format</span>
-                  </button>
-
-                  {/* Download Video */}
-                  <button
-                    onClick={() => alert(`Exporting 1080p MP4 Video Invitation with "${bgMusic}" audio score...`)}
-                    className="p-4 bg-[#FAF7F2] hover:bg-[#0F4C45] text-charcoal hover:text-white rounded-2xl border border-gold/20 transition-all flex flex-col items-center justify-center gap-2 group cursor-pointer"
-                  >
-                    <Video className="w-6 h-6 text-[#0F4C45] group-hover:text-gold transition-colors" />
-                    <span className="font-bold text-xs">Download MP4 Video</span>
-                    <span className="text-[10px] opacity-70">Animated Video + Audio</span>
+                    <span className="font-bold text-sm">Download Print PDF</span>
+                    <span className="text-[11px] opacity-70">300 DPI Vector Print Format</span>
                   </button>
 
                 </div>
@@ -521,7 +425,7 @@ export default function CustomizationPage({
                 <div className="pt-4 text-center">
                   <button
                     onClick={() => setActiveStep(4)}
-                    className="text-xs font-bold text-[#0F4C45] hover:underline"
+                    className="text-xs font-bold text-[#0F4C45] hover:underline cursor-pointer"
                   >
                     ← Edit Details Again
                   </button>
