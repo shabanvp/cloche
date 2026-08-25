@@ -238,6 +238,20 @@ export async function PUT(req: Request) {
     const categoryDetails = body.categoryDetails;
     const changeSummary = body.changeSummary;
 
+    const sfWH = profile.storefront?.workingHours || body.storefront?.workingHours || profile.workingHours || body.workingHours || {};
+    const workingHoursVal =
+      typeof profile.working_hours === "string" ? profile.working_hours :
+      typeof profile.workingHours === "string" ? profile.workingHours :
+      typeof body.working_hours === "string" ? body.working_hours :
+      typeof body.workingHours === "string" ? body.workingHours :
+      (sfWH.openingTime || sfWH.closingTime ? `${sfWH.openingTime || "10:00 AM"} - ${sfWH.closingTime || "08:00 PM"}` : null);
+
+    const openingTimeVal = sfWH.openingTime || profile.opening_time || profile.openingTime || body.openingTime || null;
+    const closingTimeVal = sfWH.closingTime || profile.closing_time || profile.closingTime || body.closingTime || null;
+    const workingDaysVal = sfWH.workingDays || profile.working_days || profile.workingDays || body.workingDays || null;
+    const weeklyOffVal = sfWH.weeklyOff || profile.weekly_off || profile.weeklyOff || body.weeklyOff || null;
+    const holidayNoticeVal = sfWH.holidayNotice || profile.holiday_notice || profile.holidayNotice || body.holidayNotice || null;
+
     // 1. Fetch authenticated vendor core record
     const vendorRes = await fetch(`${url}/rest/v1/vendors?id=eq.${encodeURIComponent(auth.vendorId)}&select=id,user_id,publication_status,category_id`, {
       headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
@@ -470,20 +484,6 @@ export async function PUT(req: Request) {
         starting_price: profile.startingPrice || profile.starting_price || null,
         updated_at: new Date().toISOString(),
       };
-
-      const sfWH = profile.storefront?.workingHours || body.storefront?.workingHours || profile.workingHours || body.workingHours || {};
-      const workingHoursVal =
-        typeof profile.working_hours === "string" ? profile.working_hours :
-        typeof profile.workingHours === "string" ? profile.workingHours :
-        typeof body.working_hours === "string" ? body.working_hours :
-        typeof body.workingHours === "string" ? body.workingHours :
-        (sfWH.openingTime || sfWH.closingTime ? `${sfWH.openingTime || "10:00 AM"} - ${sfWH.closingTime || "08:00 PM"}` : null);
-
-      const openingTimeVal = sfWH.openingTime || profile.opening_time || profile.openingTime || body.openingTime || null;
-      const closingTimeVal = sfWH.closingTime || profile.closing_time || profile.closingTime || body.closingTime || null;
-      const workingDaysVal = sfWH.workingDays || profile.working_days || profile.workingDays || body.workingDays || null;
-      const weeklyOffVal = sfWH.weeklyOff || profile.weekly_off || profile.weeklyOff || body.weeklyOff || null;
-      const holidayNoticeVal = sfWH.holidayNotice || profile.holiday_notice || profile.holidayNotice || body.holidayNotice || null;
 
       if (workingHoursVal) profilePayload.working_hours = workingHoursVal;
       if (workingDaysVal) profilePayload.working_days = workingDaysVal;
