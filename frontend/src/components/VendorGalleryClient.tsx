@@ -23,7 +23,7 @@ interface VendorGalleryClientProps {
   category?: string;
 }
 
-export function VendorGalleryClient({ identifier }: VendorGalleryClientProps) {
+export function VendorGalleryClient({ identifier, category }: VendorGalleryClientProps) {
   const [vendor, setVendor] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
