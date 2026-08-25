@@ -802,20 +802,6 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
               </div>
             </div>
           )}
-                {workingHours.weeklyOff && (
-                  <div className="flex justify-between py-1 border-b border-gray-50">
-                    <span className="text-charcoal/60 font-medium">Weekly Holiday:</span>
-                    <span className="font-bold text-charcoal">{workingHours.weeklyOff}</span>
-                  </div>
-                )}
-                {workingHours.holidayNotice && (
-                  <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 font-semibold text-[11px] mt-2">
-                    🔔 {workingHours.holidayNotice}
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
 
           {/* 2. DIRECT INQUIRY & BOOKING CARD */}
           <div className="bg-white p-6 rounded-3xl border border-gold/20 shadow-md space-y-4">
