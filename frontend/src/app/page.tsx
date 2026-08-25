@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Footer } from "@/components/Footer";
 import { AdBanner } from "@/components/AdBanner";
 import { AutocompleteSearch } from "@/components/AutocompleteSearch";
+import { DigitalInvitationsSection } from "@/components/DigitalInvitationsSection";
 import { Sparkles, MapPin, Calendar, BookHeart, Plus, ArrowRight, Star, Heart, Flame } from "lucide-react";
 import { RealWeddingStoryDb } from "@/lib/realWeddings";
 
@@ -401,6 +402,9 @@ export default function Home() {
             ) : null}
           </div>
         </section>
+
+        {/* Digital Wedding Invitations Section */}
+        <DigitalInvitationsSection />
 
         {/* App Banner */}
         <section className="max-w-7xl mx-auto px-4 sm:px-6 my-12">
