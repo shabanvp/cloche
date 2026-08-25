@@ -601,13 +601,6 @@ export function VenueCustomizeStoreSection({
             weeklyOff: weeklyHolidays.trim(),
             holidayNotice: publicHolidayAvailability.trim(),
           },
-          policies: {
-            rentalPolicy: advanceBookingRequired.trim(),
-            securityDepositPolicy: advancePaymentPolicy.trim(),
-            cancellationPolicy: cancellationPolicy.trim(),
-            refundPolicy: refundPolicy.trim(),
-            damagePolicy: decorationRules.trim(),
-          },
           socialLinks: {
             instagram: instagram.trim(),
             facebook: facebook.trim(),
@@ -751,13 +744,6 @@ export function VenueCustomizeStoreSection({
               weeklyOff: weeklyHolidays,
               holidayNotice: publicHolidayAvailability,
             },
-            policies: {
-              rentalPolicy: advanceBookingRequired,
-              securityDepositPolicy: advancePaymentPolicy,
-              cancellationPolicy: cancellationPolicy,
-              refundPolicy: refundPolicy,
-              damagePolicy: decorationRules,
-            },
           }}
           storefront={{
             theme: colorTheme,
@@ -784,13 +770,6 @@ export function VenueCustomizeStoreSection({
               closingTime: closingTime,
               weeklyOff: weeklyHolidays,
               holidayNotice: publicHolidayAvailability,
-            },
-            policies: {
-              rentalPolicy: advanceBookingRequired,
-              securityDepositPolicy: advancePaymentPolicy,
-              cancellationPolicy: cancellationPolicy,
-              refundPolicy: refundPolicy,
-              damagePolicy: decorationRules,
             },
             socialLinks: {
               instagram: instagram.trim(),
