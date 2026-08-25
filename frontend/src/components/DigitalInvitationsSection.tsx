@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { ArrowRight, Sparkles, Flame } from "lucide-react";
 import { DIGITAL_INVITE_TEMPLATES } from "@/lib/digitalInvitationsData";
+import { InvitationCardPreview } from "@/components/InvitationCardPreview";
 
 export function DigitalInvitationsSection() {
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -17,13 +18,12 @@ export function DigitalInvitationsSection() {
       const el = scrollRef.current;
       if (!el) return;
 
-      // Only auto-scroll on mobile views
       if (window.innerWidth >= 768) return;
 
       const firstChild = el.firstElementChild as HTMLElement;
       if (!firstChild) return;
 
-      const cardWidth = firstChild.offsetWidth + 16; // width + gap
+      const cardWidth = firstChild.offsetWidth + 16;
       const maxScrollLeft = el.scrollWidth - el.clientWidth;
 
       if (el.scrollLeft >= maxScrollLeft - 10) {
@@ -68,10 +68,7 @@ export function DigitalInvitationsSection() {
           </Link>
         </div>
 
-        {/* Templates Display:
-            Mobile: 1 card per screen (w-[88vw]), auto-scroll 4s, scroll snap.
-            Desktop: 3 featured cards in a responsive grid.
-        */}
+        {/* Templates Display — Renders real invitation design cards */}
         <div
           ref={scrollRef}
           onMouseEnter={() => setIsPaused(true)}
@@ -86,57 +83,47 @@ export function DigitalInvitationsSection() {
             <Link
               key={template.id}
               href={`/digital-invitations/${template.slug}`}
-              className="flex-shrink-0 w-[88vw] sm:w-[320px] md:w-auto snap-center bg-white rounded-2xl overflow-hidden border border-gold/15 shadow-xs hover:shadow-md transition-all group flex flex-col justify-between"
+              className="flex-shrink-0 w-[88vw] sm:w-[320px] md:w-auto snap-center bg-white rounded-2xl overflow-hidden border border-gold/15 shadow-xs hover:shadow-md transition-all group flex flex-col justify-between p-3"
             >
               <div>
-                {/* Template Preview Image Container */}
-                <div className="relative aspect-[3/4] md:aspect-[4/3] overflow-hidden bg-gray-100">
-                  <img
-                    src={template.image}
-                    alt={template.name}
-                    loading="lazy"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                  
+                {/* Real Invitation Design Card */}
+                <div className="relative aspect-[3/4] overflow-hidden rounded-xl">
+                  <InvitationCardPreview template={template} compact />
+
                   {/* Free / Premium / Badge */}
                   {template.badge && (
-                    <div className="absolute top-3 right-3">
+                    <div className="absolute top-2 right-2 z-20">
                       {template.badge === "Free" && (
-                        <span className="bg-emerald-700 text-white text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full shadow-sm">
+                        <span className="bg-emerald-700 text-white text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full shadow-sm">
                           Free
                         </span>
                       )}
                       {template.badge === "Premium" && (
-                        <span className="bg-amber-600 text-white text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full shadow-sm border border-amber-300">
+                        <span className="bg-amber-600 text-white text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full shadow-sm border border-amber-300">
                           Premium
                         </span>
                       )}
                       {template.badge === "New" && (
-                        <span className="bg-[#0F4C45] text-white text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full shadow-sm">
+                        <span className="bg-[#0F4C45] text-white text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full shadow-sm">
                           New
                         </span>
                       )}
                       {template.badge === "Trending" && (
-                        <span className="bg-rose-600 text-white text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full shadow-sm flex items-center gap-1">
-                          <Flame className="w-3 h-3" /> Trending
+                        <span className="bg-rose-600 text-white text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full shadow-sm flex items-center gap-0.5">
+                          <Flame className="w-2.5 h-2.5" /> Trending
                         </span>
                       )}
                     </div>
                   )}
-
-                  {/* Category Tag */}
-                  <div className="absolute bottom-3 left-3 bg-white/95 backdrop-blur-xs px-2.5 py-1 rounded-full text-[10px] font-bold text-charcoal shadow-xs border border-gold/10">
-                    {template.category}
-                  </div>
                 </div>
 
-                {/* Card Info */}
-                <div className="p-4 space-y-1">
-                  <h3 className="font-bold text-base md:text-lg font-display text-charcoal group-hover:text-[#0F4C45] transition-colors line-clamp-1">
+                {/* Card Meta */}
+                <div className="p-3 space-y-0.5 text-left">
+                  <h3 className="font-bold text-sm sm:text-base font-display text-charcoal group-hover:text-[#0F4C45] transition-colors line-clamp-1">
                     {template.name}
                   </h3>
-                  <p className="text-xs text-charcoal/60 line-clamp-1">
-                    {template.style}
+                  <p className="text-[11px] text-charcoal/60 line-clamp-1">
+                    {template.collection} • {template.style}
                   </p>
                 </div>
               </div>

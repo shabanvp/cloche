@@ -7,29 +7,22 @@ import {
   ArrowLeft,
   Sparkles,
   Download,
-  Share2,
   Copy,
   Send,
   Music,
   Palette,
   Type,
-  Calendar,
-  MapPin,
   Check,
   Eye,
   CheckCircle2,
   FileText,
   Video,
-  Globe,
-  Mail,
-  PhoneCall,
-  ExternalLink,
 } from "lucide-react";
 import { Footer } from "@/components/Footer";
 import {
   DIGITAL_INVITE_TEMPLATES,
-  DigitalInviteTemplate,
 } from "@/lib/digitalInvitationsData";
+import { InvitationCardPreview } from "@/components/InvitationCardPreview";
 
 export default function CustomizationPage({
   params,
@@ -48,7 +41,7 @@ export default function CustomizationPage({
   // Active Step: 4 = Customizer Studio, 5 = Final Export & Share Preview
   const [activeStep, setActiveStep] = useState<4 | 5>(4);
 
-  // All 12+ Editable Fields Required by Specification
+  // Editable Fields
   const [brideName, setBrideName] = useState("Ananya");
   const [groomName, setGroomName] = useState("Rahul");
   const [brideParents, setBrideParents] = useState("Mr. & Mrs. Kapoor");
@@ -97,6 +90,23 @@ export default function CustomizationPage({
     if (typeof window !== "undefined") {
       window.print();
     }
+  };
+
+  // Bundle custom fields into live data object
+  const liveCustomData = {
+    brideName,
+    groomName,
+    brideParents,
+    groomParents,
+    weddingDate,
+    weddingTime,
+    venueName,
+    venueAddress,
+    rsvpDeadline,
+    phone,
+    selectedThemeColor,
+    selectedFont,
+    couplePhotoUrl,
   };
 
   return (
@@ -251,7 +261,7 @@ export default function CustomizationPage({
                     </div>
                   </div>
 
-                  {/* Contact Info (RSVP, Phone, Email) */}
+                  {/* Contact Info */}
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
                       <label className="block font-bold text-charcoal mb-1">RSVP Date</label>
@@ -304,7 +314,7 @@ export default function CustomizationPage({
                     </div>
                   </div>
 
-                  {/* Styling Options: Theme Color, Font, & Music */}
+                  {/* Styling Options */}
                   <div className="pt-4 border-t border-gold/15 space-y-4">
                     
                     <div>
@@ -397,7 +407,7 @@ export default function CustomizationPage({
 
               </div>
 
-              {/* Right Column: Live Instant Preview Pane */}
+              {/* Right Column: Live Instant Preview Pane using REAL INVITATION ARTWORK */}
               <div className="lg:col-span-6 sticky top-6 space-y-4">
                 <div className="bg-white p-6 rounded-3xl border border-gold/20 shadow-lg text-center space-y-4">
                   <div className="flex items-center justify-between border-b border-gold/15 pb-3 text-xs font-bold text-charcoal/70">
@@ -408,54 +418,8 @@ export default function CustomizationPage({
                   </div>
 
                   {/* Rendered Live Card Container */}
-                  <div
-                    style={{ borderColor: selectedThemeColor }}
-                    className={`relative aspect-[3/4] max-w-sm mx-auto rounded-2xl overflow-hidden shadow-2xl bg-gradient-to-b ${template.bgGradient} p-6 text-white flex flex-col justify-between text-center border-4`}
-                  >
-                    {/* Header */}
-                    <div className="space-y-1 pt-2">
-                      <p className="text-[10px] uppercase tracking-widest text-gold font-bold">{template.collection} Collection</p>
-                      <h3
-                        style={{ fontFamily: selectedFont }}
-                        className="text-2xl font-bold text-amber-100 drop-shadow-xs"
-                      >
-                        {brideName || "Bride"} & {groomName || "Groom"}
-                      </h3>
-                      <p className="text-[11px] text-white/80 italic">
-                        With blessings from {brideParents} & {groomParents}
-                      </p>
-                    </div>
-
-                    {/* Optional Photo */}
-                    {couplePhotoUrl && (
-                      <div className="w-20 h-20 rounded-full overflow-hidden mx-auto border-2 border-gold shadow-md">
-                        <img src={couplePhotoUrl} alt="Couple" className="w-full h-full object-cover" />
-                      </div>
-                    )}
-
-                    {/* Event Body */}
-                    <div className="bg-black/30 backdrop-blur-xs p-3.5 rounded-xl border border-white/10 space-y-1 my-auto">
-                      <p className="text-xs font-bold text-gold">{template.style}</p>
-                      <p className="text-[11px] text-white/90">
-                        Request the pleasure of your company on our wedding celebration!
-                      </p>
-                    </div>
-
-                    {/* Details Footer */}
-                    <div className="space-y-1.5 pt-2 text-[11px] text-white/90 border-t border-white/10">
-                      <div className="flex items-center justify-center gap-1.5">
-                        <Calendar className="w-3 h-3 text-gold" />
-                        <span className="font-semibold">{weddingDate} • {weddingTime}</span>
-                      </div>
-                      <div className="flex items-center justify-center gap-1.5">
-                        <MapPin className="w-3 h-3 text-gold" />
-                        <span className="line-clamp-1">{venueName}, {venueAddress}</span>
-                      </div>
-                      <p className="text-[10px] text-white/70">
-                        RSVP: {phone} • {email}
-                      </p>
-                    </div>
-
+                  <div className="max-w-sm mx-auto">
+                    <InvitationCardPreview template={template} customData={liveCustomData} />
                   </div>
                 </div>
               </div>
@@ -479,40 +443,7 @@ export default function CustomizationPage({
 
               {/* Final Invitation Card Render */}
               <div className="bg-white p-8 rounded-3xl border border-gold/20 shadow-xl max-w-md mx-auto">
-                <div
-                  style={{ borderColor: selectedThemeColor }}
-                  className={`relative aspect-[3/4] rounded-2xl overflow-hidden shadow-2xl bg-gradient-to-b ${template.bgGradient} p-6 text-white flex flex-col justify-between text-center border-4`}
-                >
-                  <div className="space-y-2 pt-2">
-                    <p className="text-[10px] uppercase tracking-widest text-gold font-bold">{template.collection} Suite</p>
-                    <h2
-                      style={{ fontFamily: selectedFont }}
-                      className="text-3xl font-bold text-amber-100"
-                    >
-                      {brideName} & {groomName}
-                    </h2>
-                    <p className="text-xs text-white/80 italic">
-                      Together with {brideParents} & {groomParents}
-                    </p>
-                  </div>
-
-                  {couplePhotoUrl && (
-                    <div className="w-24 h-24 rounded-full overflow-hidden mx-auto border-2 border-gold shadow-md">
-                      <img src={couplePhotoUrl} alt="Couple" className="w-full h-full object-cover" />
-                    </div>
-                  )}
-
-                  <div className="bg-black/30 backdrop-blur-xs p-4 rounded-xl border border-white/10 my-auto space-y-1">
-                    <h3 className="text-sm font-bold text-gold font-display">{template.name}</h3>
-                    <p className="text-xs text-white/90">Request the honor of your presence</p>
-                  </div>
-
-                  <div className="space-y-1.5 pt-2 text-xs text-white/90 border-t border-white/10">
-                    <p className="font-bold text-amber-200">{weddingDate} • {weddingTime}</p>
-                    <p className="text-[11px]">{venueName}, {venueAddress}</p>
-                    <p className="text-[10px] text-white/70">RSVP: {phone} • {email}</p>
-                  </div>
-                </div>
+                <InvitationCardPreview template={template} customData={liveCustomData} />
               </div>
 
               {/* Step 5 Export Actions Grid */}

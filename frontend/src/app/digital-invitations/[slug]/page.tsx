@@ -9,19 +9,16 @@ import {
   Edit3,
   Eye,
   CheckCircle2,
-  Share2,
   Music,
   Layers,
   Heart,
-  Calendar,
-  MapPin,
   X,
 } from "lucide-react";
 import { Footer } from "@/components/Footer";
 import {
   DIGITAL_INVITE_TEMPLATES,
-  DigitalInviteTemplate,
 } from "@/lib/digitalInvitationsData";
+import { InvitationCardPreview } from "@/components/InvitationCardPreview";
 
 export default function TemplateDetailsPage({
   params,
@@ -40,8 +37,6 @@ export default function TemplateDetailsPage({
   const [activePageIndex, setActivePageIndex] = useState(0);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
-
-  const activePage = template.pages[activePageIndex] || template.pages[0];
 
   return (
     <div className="min-h-screen bg-[#FBF9F5] font-sans flex flex-col justify-between">
@@ -80,65 +75,30 @@ export default function TemplateDetailsPage({
         <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 md:py-12">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-12 items-start">
             
-            {/* Left Column: Large Preview & Page Switcher Tabs */}
+            {/* Left Column: Large Real Invitation Preview & Page Switcher Tabs */}
             <div className="lg:col-span-7 space-y-6">
               
-              {/* Main Preview Frame */}
+              {/* Main Real Invitation Artwork Frame */}
               <div className="bg-white p-4 sm:p-6 rounded-3xl border border-gold/20 shadow-lg relative overflow-hidden">
-                <div className={`relative aspect-[3/4] max-w-md mx-auto rounded-2xl overflow-hidden shadow-inner bg-gradient-to-b ${activePage.bgStyle} p-6 text-white flex flex-col justify-between text-center`}>
-                  
-                  {/* Decorative Header */}
-                  <div className="space-y-2 pt-4">
-                    <span className="text-[10px] uppercase tracking-widest text-gold font-bold bg-black/30 px-3 py-1 rounded-full backdrop-blur-xs inline-block">
-                      {template.category} • {template.badge}
-                    </span>
-                    <h2 className="text-2xl font-bold font-display text-amber-100 tracking-wide">
-                      Ananya & Rahul
-                    </h2>
-                    <p className="text-xs text-white/80 italic font-serif">
-                      are getting married!
-                    </p>
-                  </div>
-
-                  {/* Dynamic Page Content */}
-                  <div className="my-auto py-6 space-y-3 bg-black/20 backdrop-blur-xs p-4 rounded-xl border border-white/10">
-                    <h3 className="text-lg font-bold text-gold font-display">
-                      {activePage.title}
-                    </h3>
-                    <p className="text-xs text-white/90 leading-relaxed font-sans">
-                      {activePage.description}
-                    </p>
-                  </div>
-
-                  {/* Footer Event Details */}
-                  <div className="space-y-2 pb-2 text-[11px] text-white/80">
-                    <div className="flex items-center justify-center gap-2">
-                      <Calendar className="w-3.5 h-3.5 text-gold" />
-                      <span>December 18, 2026 • 6:30 PM</span>
-                    </div>
-                    <div className="flex items-center justify-center gap-2">
-                      <MapPin className="w-3.5 h-3.5 text-gold" />
-                      <span>Celestia Grand Palace, Udaipur</span>
-                    </div>
-                  </div>
-
+                <div className="max-w-md mx-auto">
+                  <InvitationCardPreview template={template} pageIndex={activePageIndex} />
                 </div>
 
                 {/* Video Indicator Banner */}
                 {template.type === "video" && (
-                  <div className="mt-4 bg-amber-50 border border-amber-200 rounded-xl p-3 flex items-center justify-between text-xs text-amber-900 font-medium">
+                  <div className="mt-4 max-w-md mx-auto bg-amber-50 border border-amber-200 rounded-xl p-3 flex items-center justify-between text-xs text-amber-900 font-medium">
                     <span className="flex items-center gap-2">
                       <Music className="w-4 h-4 text-amber-700" />
-                      Music: {template.musicTrack || "Shehnai & Flute Score"}
+                      Music Score: {template.musicTrack || "Royal Shehnai & Flute Score"}
                     </span>
                     <span className="font-bold text-amber-800 uppercase text-[10px]">HD Video</span>
                   </div>
                 )}
               </div>
 
-              {/* Multi-Page Tabs (if multiple pages exist) */}
+              {/* Multi-Page Tabs */}
               {template.pages.length > 1 && (
-                <div className="bg-white p-4 rounded-2xl border border-gold/15 space-y-3">
+                <div className="bg-white p-4 rounded-2xl border border-gold/15 space-y-3 max-w-md mx-auto">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold uppercase tracking-wider text-charcoal/60 flex items-center gap-1.5">
                       <Layers className="w-3.5 h-3.5 text-[#0F4C45]" /> Invitation Card Pages ({template.pages.length}):
@@ -176,7 +136,7 @@ export default function TemplateDetailsPage({
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
                     <span className="bg-[#0F4C45]/10 text-[#0F4C45] text-xs font-extrabold px-3 py-1 rounded-full uppercase tracking-wider">
-                      {template.category}
+                      {template.collection}
                     </span>
                     <span className="bg-amber-100 text-amber-900 text-xs font-extrabold px-3 py-1 rounded-full border border-amber-300">
                       {template.badge}
@@ -186,31 +146,31 @@ export default function TemplateDetailsPage({
                     {template.name}
                   </h1>
                   <p className="text-xs sm:text-sm text-charcoal/70">
-                    Style: <span className="font-semibold text-charcoal">{template.style}</span>
+                    Artwork Style: <span className="font-semibold text-charcoal">{template.style}</span>
                   </p>
                 </div>
 
                 {/* Features List */}
                 <div className="space-y-3 border-t border-gold/10 pt-4">
                   <h4 className="text-xs font-bold uppercase tracking-wider text-charcoal/50">
-                    Included Features
+                    Template Design & Customization
                   </h4>
                   <ul className="space-y-2 text-xs sm:text-sm text-charcoal/80">
                     <li className="flex items-center gap-2">
                       <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                      <span>Instant Real-Time Text & Date Editing</span>
+                      <span>Customizable Bride & Groom Names, Parents, Date, & Venue</span>
                     </li>
                     <li className="flex items-center gap-2">
                       <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                      <span>High-Resolution Digital PDF & Image Downloads</span>
+                      <span>Same Artwork & Typography Rendered Across Editor & Downloads</span>
                     </li>
                     <li className="flex items-center gap-2">
                       <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                      <span>Direct WhatsApp 1-Click Sharing with Guests</span>
+                      <span>High-Resolution Digital PDF, PNG, & MP4 Video Export</span>
                     </li>
                     <li className="flex items-center gap-2">
                       <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                      <span>Custom Color Schemes & Typography Fonts</span>
+                      <span>Direct WhatsApp 1-Click Guest Distribution</span>
                     </li>
                   </ul>
                 </div>
@@ -222,7 +182,7 @@ export default function TemplateDetailsPage({
                     className="w-full py-3.5 bg-[#0F4C45] hover:bg-[#145C54] text-white font-bold text-sm rounded-xl shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer"
                   >
                     <Edit3 className="w-4 h-4 text-gold" />
-                    <span>Customize Invitation</span>
+                    <span>Customize This Design</span>
                   </Link>
 
                   <button
@@ -245,11 +205,11 @@ export default function TemplateDetailsPage({
       {/* Full-Screen Live Preview Modal */}
       {isPreviewOpen && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl relative border border-gold/30 p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+          <div className="bg-white w-full max-w-md rounded-3xl overflow-hidden shadow-2xl relative border border-gold/30 p-6 space-y-4 max-h-[90vh] overflow-y-auto">
             
             <div className="flex items-center justify-between border-b border-gold/15 pb-3">
               <span className="text-sm font-bold font-display text-charcoal flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-gold" /> {template.name} — Full Live Preview
+                <Sparkles className="w-4 h-4 text-gold" /> {template.name} — Preview
               </span>
               <button
                 onClick={() => setIsPreviewOpen(false)}
@@ -260,32 +220,20 @@ export default function TemplateDetailsPage({
             </div>
 
             {/* Modal Content Frame */}
-            <div className={`aspect-[3/4] rounded-2xl overflow-hidden shadow-md bg-gradient-to-b ${activePage.bgStyle} p-6 text-white flex flex-col justify-between text-center`}>
-              <div className="space-y-2 pt-2">
-                <p className="text-[11px] uppercase tracking-widest text-gold font-bold">Official Wedding Invite</p>
-                <h2 className="text-3xl font-bold font-display text-amber-100">Ananya & Rahul</h2>
-              </div>
-              <div className="my-auto space-y-2 bg-black/20 backdrop-blur-xs p-4 rounded-xl border border-white/10">
-                <h3 className="text-lg font-bold text-gold font-display">{activePage.title}</h3>
-                <p className="text-xs text-white/90">{activePage.description}</p>
-              </div>
-              <div className="text-xs text-white/80 space-y-1">
-                <p className="font-semibold text-amber-200">Dec 18, 2026 • Celestia Grand Palace, Udaipur</p>
-              </div>
-            </div>
+            <InvitationCardPreview template={template} pageIndex={activePageIndex} />
 
             <div className="flex gap-3 pt-2">
               <button
                 onClick={() => setIsPreviewOpen(false)}
                 className="flex-1 py-2.5 bg-gray-100 hover:bg-gray-200 text-charcoal font-bold text-xs rounded-xl"
               >
-                Close Preview
+                Close
               </button>
               <Link
                 href={`/digital-invitations/${template.slug}/customize`}
                 className="flex-1 py-2.5 bg-[#0F4C45] hover:bg-[#145C54] text-white font-bold text-xs rounded-xl text-center"
               >
-                Start Customizing →
+                Customize Design →
               </Link>
             </div>
 

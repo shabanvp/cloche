@@ -9,7 +9,6 @@ import {
   Search,
   Heart,
   Filter,
-  Grid,
   Sparkle,
 } from "lucide-react";
 import { Footer } from "@/components/Footer";
@@ -19,6 +18,7 @@ import {
   DIGITAL_INVITATION_CATEGORIES,
   DIGITAL_INVITATION_FILTERS,
 } from "@/lib/digitalInvitationsData";
+import { InvitationCardPreview } from "@/components/InvitationCardPreview";
 
 export function DigitalInvitationsClient() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -44,22 +44,18 @@ export function DigitalInvitationsClient() {
 
   const filteredTemplates = useMemo(() => {
     return DIGITAL_INVITE_TEMPLATES.filter((tpl) => {
-      // Search filter
       const matchesSearch =
         tpl.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         tpl.collection.toLowerCase().includes(searchQuery.toLowerCase()) ||
         tpl.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
         tpl.style.toLowerCase().includes(searchQuery.toLowerCase());
 
-      // Collection filter (20 Collections)
       const matchesCollection =
         selectedCollection === "All" || tpl.collection === selectedCollection;
 
-      // Category filter
       const matchesCategory =
         selectedCategory === "All" || tpl.category === selectedCategory;
 
-      // Filter pill (Trending, Premium, Free, New)
       const matchesFilter =
         selectedFilter === "All" || tpl.badge === selectedFilter;
 
@@ -87,13 +83,13 @@ export function DigitalInvitationsClient() {
 
             <div className="max-w-3xl space-y-2">
               <span className="bg-gold/20 text-gold text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full border border-gold/30 inline-flex items-center gap-1">
-                <Sparkles className="w-3 h-3 text-gold" /> 20 Exclusive Collections • 100+ Original Templates
+                <Sparkles className="w-3 h-3 text-gold" /> 20 Exclusive Collections • Real Invitation Designs
               </span>
               <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold font-display tracking-tight text-white">
-                Digital Wedding Invitation Marketplace
+                Digital Wedding Invitation Library
               </h1>
               <p className="text-sm sm:text-base text-white/80 font-light leading-relaxed">
-                Explore 100+ original invitation designs crafted across 20 luxury collections — from Royal Palace Gold to Kerala Backwaters, Modern Minimalist, & Celestial Night Skies.
+                Browse real invitation artwork across 20 handcrafted collections. Select any invitation design to customize couple details, venue, & typography.
               </p>
             </div>
           </div>
@@ -111,7 +107,7 @@ export function DigitalInvitationsClient() {
                 <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-charcoal/40" />
                 <input
                   type="text"
-                  placeholder="Search 100+ templates, collections, styles..."
+                  placeholder="Search templates, collections, styles..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-10 pr-4 py-2.5 bg-[#FAF7F2] border border-gold/20 rounded-xl text-xs sm:text-sm text-charcoal placeholder:text-charcoal/40 focus:outline-hidden focus:border-[#0F4C45]"
@@ -146,7 +142,7 @@ export function DigitalInvitationsClient() {
                   <Sparkle className="w-3.5 h-3.5 text-gold" /> Filter by Collection (20 Collections):
                 </h3>
                 <span className="text-xs font-semibold text-[#0F4C45]">
-                  Showing {filteredTemplates.length} of {DIGITAL_INVITE_TEMPLATES.length} Templates
+                  Showing {filteredTemplates.length} Templates
                 </span>
               </div>
               
@@ -187,7 +183,7 @@ export function DigitalInvitationsClient() {
 
           </div>
 
-          {/* Templates Grid */}
+          {/* Templates Grid displaying REAL INVITATION ARTWORK */}
           {visibleTemplates.length > 0 ? (
             <div className="space-y-8">
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
@@ -197,26 +193,21 @@ export function DigitalInvitationsClient() {
                     <Link
                       key={template.id}
                       href={`/digital-invitations/${template.slug}`}
-                      className="bg-white rounded-2xl overflow-hidden border border-gold/15 shadow-xs hover:shadow-md transition-all group flex flex-col justify-between"
+                      className="bg-white rounded-2xl overflow-hidden border border-gold/15 shadow-xs hover:shadow-md transition-all group flex flex-col justify-between p-3"
                     >
                       <div>
-                        {/* Image Preview Container */}
-                        <div className="relative aspect-[3/4] overflow-hidden bg-gray-100">
-                          <img
-                            src={template.image}
-                            alt={template.name}
-                            loading="lazy"
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                          />
+                        {/* Real Invitation Design Render */}
+                        <div className="relative aspect-[3/4] overflow-hidden rounded-xl">
+                          <InvitationCardPreview template={template} compact />
 
                           {/* Favorite Button */}
                           <button
                             onClick={(e) => toggleFavorite(e, template.id)}
-                            className="absolute top-3 left-3 bg-white/90 backdrop-blur-xs p-2 rounded-full shadow-md text-charcoal/70 hover:text-rose-600 transition-colors"
+                            className="absolute top-2 left-2 z-20 bg-white/90 backdrop-blur-xs p-1.5 rounded-full shadow-md text-charcoal/70 hover:text-rose-600 transition-colors"
                             title="Save to Favorites"
                           >
                             <Heart
-                              className={`w-4 h-4 ${
+                              className={`w-3.5 h-3.5 ${
                                 isFav ? "text-rose-600 fill-rose-600" : ""
                               }`}
                             />
@@ -224,50 +215,45 @@ export function DigitalInvitationsClient() {
 
                           {/* Badge */}
                           {template.badge && (
-                            <div className="absolute top-3 right-3">
+                            <div className="absolute top-2 right-2 z-20">
                               {template.badge === "Free" && (
-                                <span className="bg-emerald-700 text-white text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full shadow-sm">
+                                <span className="bg-emerald-700 text-white text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full shadow-sm">
                                   Free
                                 </span>
                               )}
                               {template.badge === "Premium" && (
-                                <span className="bg-amber-600 text-white text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full shadow-sm border border-amber-300">
+                                <span className="bg-amber-600 text-white text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full shadow-sm border border-amber-300">
                                   Premium
                                 </span>
                               )}
                               {template.badge === "New" && (
-                                <span className="bg-[#0F4C45] text-white text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full shadow-sm">
+                                <span className="bg-[#0F4C45] text-white text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full shadow-sm">
                                   New
                                 </span>
                               )}
                               {template.badge === "Trending" && (
-                                <span className="bg-rose-600 text-white text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full shadow-sm flex items-center gap-1">
-                                  <Flame className="w-3 h-3" /> Trending
+                                <span className="bg-rose-600 text-white text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full shadow-sm flex items-center gap-0.5">
+                                  <Flame className="w-2.5 h-2.5" /> Trending
                                 </span>
                               )}
                             </div>
                           )}
-
-                          {/* Collection Tag */}
-                          <div className="absolute bottom-3 left-3 bg-white/95 backdrop-blur-xs px-2.5 py-1 rounded-full text-[10px] font-bold text-charcoal shadow-xs border border-gold/10">
-                            {template.collection}
-                          </div>
                         </div>
 
                         {/* Info */}
-                        <div className="p-4 space-y-1">
-                          <h3 className="font-bold text-base font-display text-charcoal group-hover:text-[#0F4C45] transition-colors line-clamp-1">
+                        <div className="p-3 space-y-0.5 text-left">
+                          <h3 className="font-bold text-sm sm:text-base font-display text-charcoal group-hover:text-[#0F4C45] transition-colors line-clamp-1">
                             {template.name}
                           </h3>
-                          <p className="text-xs text-charcoal/60 line-clamp-1">
-                            {template.style}
+                          <p className="text-[11px] text-charcoal/60 line-clamp-1">
+                            {template.collection} • {template.style}
                           </p>
                         </div>
                       </div>
 
-                      <div className="px-4 pb-4 pt-1">
+                      <div className="px-2 pb-2 pt-1">
                         <span className="w-full block text-center py-2 bg-[#FAF7F2] group-hover:bg-[#0F4C45] text-[#0F4C45] group-hover:text-white font-bold text-xs rounded-xl transition-colors">
-                          Customize Template →
+                          Customize Design →
                         </span>
                       </div>
                     </Link>
