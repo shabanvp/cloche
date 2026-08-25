@@ -1,0 +1,27 @@
+import type { Metadata } from "next";
+import { fetchPublicVendorProfileFromDb } from "@/lib/supabase";
+import { VendorGalleryClient } from "@/components/VendorGalleryClient";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+interface Props {
+  params: Promise<{ id: string }>;
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id } = await params;
+  const { data: profile } = await fetchPublicVendorProfileFromDb(id);
+  if (!profile) {
+    return { title: "Groom Studio Gallery | Cloche" };
+  }
+  return {
+    title: `${profile.name} — Groom Wear Collection | Cloche`,
+    description: profile.about || `Explore groom wear collection of ${profile.name} on Cloche.`,
+  };
+}
+
+export default async function GroomWearGalleryPage({ params }: Props) {
+  const { id } = await params;
+  return <VendorGalleryClient identifier={id} category="groom-wear" />;
+}

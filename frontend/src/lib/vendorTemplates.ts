@@ -45,6 +45,8 @@ export type VendorProfileConfig = {
   district: string;
   address: string;
   businessHours: string;
+  workingHours?: any;
+  working_hours?: string;
   mapCoordinates?: string;
   
   // Section Toggles

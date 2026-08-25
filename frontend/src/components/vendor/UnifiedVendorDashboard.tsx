@@ -180,7 +180,7 @@ export function UnifiedVendorDashboard({ categoryKey = "caterers", initialTab = 
       { id: "venue-analytics", label: "Venue Performance Analytics", icon: BarChart3, desc: "Profile views & popular wedding months" },
       { id: "offers", label: "Offers & Deals", icon: Tag, desc: "Seasonal packages, weekday discounts & early bird wedding deals" },
       { id: "subscription", label: "Subscription", icon: CreditCard, desc: "Current plan details & membership billing" },
-      { id: "customize-store", label: "Customize Store", icon: StorePalette, desc: "Venue logo, cover photo, badges, facilities, policies, brand theme & live preview" },
+      { id: "customize-store", label: "Customize Store", icon: StorePalette, desc: "Venue logo, cover photo, badges, facilities, brand theme & live preview" },
     ];
   } else {
     navItems = [

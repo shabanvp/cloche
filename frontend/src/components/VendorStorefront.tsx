@@ -77,24 +77,24 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
 
   // Vendor Visuals
   const rawCover =
-    sf.coverImage ||
     vendor?.cover_image ||
     vendor?.coverImage ||
     vendor?.image ||
+    sf.coverImage ||
     "";
-  const coverUrl = rawCover && !rawCover.includes("images.unsplash.com") ? rawCover : "";
+  const coverUrl = rawCover && !rawCover.includes("images.unsplash.com") ? rawCover : (sf.coverImage || "");
 
   const logoUrl =
-    sf.logo ||
     vendor?.logo_url ||
     vendor?.logo ||
+    sf.logo ||
     "";
 
   const displayName =
-    sf.businessName ||
     vendor?.business_name ||
     vendor?.boutique_name ||
     vendor?.name ||
+    sf.businessName ||
     "Verified Wedding Partner";
 
   const initials = useMemo(() => {
@@ -107,14 +107,15 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
       .toUpperCase() || "CL";
   }, [displayName]);
 
-  const tagline = sf.tagline || vendor?.tagline || vendor?.subtitle || "";
+  const tagline = vendor?.tagline || vendor?.subtitle || sf.tagline || "";
   const categoryLabel = vendor?.categoryLabel || vendor?.category || "Wedding Partner";
   const location =
+    vendor?.address ||
     vendor?.location ||
-    [vendor?.city || "Kochi", vendor?.state || "Kerala"].filter(Boolean).join(", ") ||
-    "Kochi, Kerala";
+    [vendor?.city, vendor?.state].filter(Boolean).join(", ") ||
+    "";
 
-  const about = sf.about || vendor?.about || vendor?.description || "";
+  const about = vendor?.about || vendor?.description || sf.about || "";
 
   // Store Highlights (Badges)
   const storeHighlights: string[] = useMemo(() => {
@@ -124,7 +125,7 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
     if (Array.isArray(vendor?.venueHighlights) && vendor.venueHighlights.length > 0) return vendor.venueHighlights;
     if (Array.isArray(vendor?.mehendiHighlights) && vendor.mehendiHighlights.length > 0) return vendor.mehendiHighlights;
     if (Array.isArray(vendor?.decorHighlights) && vendor.decorHighlights.length > 0) return vendor.decorHighlights;
-    return ["Verified Partner", "Premium Quality", "Dedicated Support"];
+    return [];
   }, [sf.storeHighlights, vendor]);
 
   // Featured Collections
@@ -155,28 +156,57 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
   const businessInfo = useMemo(() => {
     const b = sf.businessInfo || {};
     return {
-      experienceYears: b.experienceYears || vendor?.experienceYears || vendor?.experience_years || vendor?.yearsInBusiness || "8+",
+      experienceYears: b.experienceYears || vendor?.experienceYears || vendor?.experience_years || vendor?.yearsInBusiness || "",
       rentalAvailable: b.rentalAvailable ?? vendor?.rentalAvailable ?? vendor?.rental_available ?? false,
-      homeDeliveryAvailable: b.homeDeliveryAvailable ?? vendor?.homeDeliveryAvailable ?? vendor?.home_delivery_available ?? true,
+      homeDeliveryAvailable: b.homeDeliveryAvailable ?? vendor?.homeDeliveryAvailable ?? vendor?.home_delivery_available ?? false,
       homeTrialAvailable: b.homeTrialAvailable ?? vendor?.homeTrialAvailable ?? vendor?.home_trial_available ?? false,
       customJewelleryAvailable: b.customJewelleryAvailable ?? vendor?.customJewelleryAvailable ?? vendor?.custom_jewellery_available ?? false,
-      collectionsCount: b.collectionsCount || vendor?.collectionsCount || vendor?.collections_count || "50+",
+      collectionsCount: b.collectionsCount || vendor?.collectionsCount || vendor?.collections_count || "",
       guestCapacity: b.guestCapacity || vendor?.guestCapacity || vendor?.guest_capacity || "",
       parkingCapacity: b.parkingCapacity || vendor?.parkingCapacity || vendor?.parking_capacity || "",
     };
   }, [sf.businessInfo, vendor]);
 
-  // Working Hours
+  // Working Hours (Reads from sf.workingHours, vendor.workingHours, vendor.working_hours, or categoryDetail)
   const workingHours = useMemo(() => {
-    const w = sf.workingHours || {};
+    const w = (typeof sf.workingHours === "object" && sf.workingHours !== null ? sf.workingHours : {}) as Record<string, any>;
+    const vW = (typeof vendor?.workingHours === "object" && vendor.workingHours !== null ? vendor.workingHours : {}) as Record<string, any>;
+
+    const days = w.workingDays || vW.workingDays || vendor?.working_days || vendor?.workingDays || "";
+    const open = w.openingTime || vW.openingTime || vendor?.opening_time || vendor?.openingTime || "";
+    const close = w.closingTime || vW.closingTime || vendor?.closing_time || vendor?.closingTime || "";
+    const off = w.weeklyOff || vW.weeklyOff || vendor?.weekly_off || vendor?.weeklyOff || vendor?.weeklyHolidays || vendor?.weekly_holidays || "";
+    const notice = w.holidayNotice || vW.holidayNotice || vendor?.holiday_notice || vendor?.holidayNotice || vendor?.publicHolidayAvailability || vendor?.public_holiday_availability || "";
+
+    const rawStr = typeof vendor?.workingHours === "string" ? vendor.workingHours : typeof vendor?.working_hours === "string" ? vendor.working_hours : (w.rawString || vW.rawString || "");
+
     return {
-      workingDays: w.workingDays || vendor?.workingDays || vendor?.working_days || "Mon - Sat",
-      openingTime: w.openingTime || vendor?.openingTime || vendor?.opening_time || "09:30 AM",
-      closingTime: w.closingTime || vendor?.closingTime || vendor?.closing_time || "08:30 PM",
-      weeklyOff: w.weeklyOff || vendor?.weeklyOff || vendor?.weekly_off || vendor?.weeklyHolidays || "Sunday",
-      holidayNotice: w.holidayNotice || vendor?.holidayNotice || vendor?.holiday_notice || vendor?.publicHolidayAvailability || "",
+      workingDays: days,
+      openingTime: open,
+      closingTime: close,
+      weeklyOff: off,
+      holidayNotice: notice,
+      rawString: rawStr,
     };
   }, [sf.workingHours, vendor]);
+
+  // Gallery href resolution to avoid 404
+  const galleryHref = useMemo(() => {
+    const cat = (vendor?.categorySlug || vendor?.category || "").toLowerCase();
+    const idVal = vendor?.id || vendor?.slug || "preview";
+    if (cat.includes("venue")) return `/venues/${idVal}/gallery`;
+    if (cat.includes("photo")) return `/photographers/${idVal}/gallery`;
+    if (cat.includes("makeup")) return `/makeup-artists/${idVal}/gallery`;
+    if (cat.includes("decor") || cat.includes("planner")) return `/decor-planning/${idVal}/gallery`;
+    if (cat.includes("mehendi") || cat.includes("mehndi")) return `/mehendi-artists/${idVal}/gallery`;
+    if (cat.includes("bridal")) return `/bridal-wear/${idVal}/gallery`;
+    if (cat.includes("groom")) return `/groom-wear/${idVal}/gallery`;
+    if (cat.includes("wedding-story") || cat.includes("wedding-studio")) return `/wedding-story/${idVal}/gallery`;
+    if (cat.includes("jewel")) return `/jewellery/${idVal}/gallery`;
+    if (cat.includes("invite") || cat.includes("card")) return `/invitations/${idVal}/gallery`;
+    if (cat.includes("cater")) return `/catering/${idVal}/gallery`;
+    return `/vendors/${cat || "general"}/${idVal}/gallery`;
+  }, [vendor]);
 
   // Automatically record view event for trending analytics engine
   React.useEffect(() => {
@@ -188,18 +218,6 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
       }).catch(() => null);
     }
   }, [vendor?.id, previewMode]);
-
-  // Policies
-  const policies = useMemo(() => {
-    const p = sf.policies || {};
-    return {
-      rentalPolicy: p.rentalPolicy || vendor?.rentalPolicy || vendor?.rental_policy || "Original Government ID required for verification. Minimum 24h advance reservation.",
-      securityDepositPolicy: p.securityDepositPolicy || vendor?.securityDepositPolicy || vendor?.security_deposit_policy || "100% refundable security deposit upon timely return and inspection.",
-      cancellationPolicy: p.cancellationPolicy || vendor?.cancellationPolicy || vendor?.cancellation_policy || "Free cancellation up to 7 days prior to event date.",
-      returnPolicy: p.returnPolicy || vendor?.returnPolicy || vendor?.return_policy || "",
-      damagePolicy: p.damagePolicy || vendor?.damagePolicy || vendor?.damage_policy || "",
-    };
-  }, [sf.policies, vendor]);
 
   // Gallery Layout & Photos (ONLY real photos uploaded by vendor, ZERO demo / unsplash images)
   const galleryLayout = sf.galleryLayout || vendor?.galleryLayout || vendor?.gallery_layout || "grid";
@@ -282,7 +300,7 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
   }, [sf.gallery, vendor]);
 
   // Contact Info
-  const phone = sf.contactInfo?.phone || vendor?.phone || "+91 98470 12345";
+  const phone = sf.contactInfo?.phone || vendor?.phone || "";
   const whatsapp = sf.contactInfo?.whatsapp || vendor?.whatsapp || phone;
   const email = sf.contactInfo?.email || vendor?.email || "";
   const address = sf.contactInfo?.address || vendor?.address || location;
@@ -294,8 +312,8 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
   const website = sf.socialLinks?.website || vendor?.website || vendor?.socialLinks?.website || "";
 
   // Ratings
-  const rating = Number(vendor?.rating || 4.9).toFixed(1);
-  const reviewsCount = vendor?.reviews || vendor?.userReviews?.length || 18;
+  const rating = Number(vendor?.rating || 0).toFixed(1);
+  const reviewsCount = Number(vendor?.reviews || vendor?.userReviews?.length || 0);
 
   // Handlers
   const handleShare = () => {
@@ -318,25 +336,171 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
     setQuoteLoading(true);
     setTimeout(() => {
       setQuoteLoading(false);
-      setQuoteSubmitted(true);
     }, 800);
   };
+
+  const [isFullPreview, setIsFullPreview] = useState(false);
+
+  // Compact Live Storefront Preview (used inside Customize Storefront pages)
+  if (previewMode && !isFullPreview) {
+    return (
+      <div className="w-full bg-[#FAF7F2] text-charcoal font-sans rounded-3xl border border-gold/25 shadow-md overflow-hidden transition-all mb-6">
+        {/* PREVIEW TOP BAR */}
+        <div className="bg-[#0F4C45] text-white px-4 py-2.5 text-xs font-bold flex items-center justify-between border-b border-gold/20">
+          <span className="flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-[#C8A96A]" /> Live Storefront Preview (Updates in real time)
+          </span>
+          <div className="flex items-center gap-3">
+            <span
+              style={{ color: activeTheme.accent }}
+              className="text-[10px] uppercase font-extrabold tracking-wider bg-black/40 px-2.5 py-0.5 rounded-full border border-white/10"
+            >
+              {activeTheme.label} Theme
+            </span>
+            <button
+              onClick={() => setIsFullPreview(true)}
+              className="text-[11px] bg-white/15 hover:bg-white/25 text-white px-3 py-1 rounded-lg transition-all flex items-center gap-1 cursor-pointer font-semibold border border-white/20"
+            >
+              <Eye className="w-3.5 h-3.5 text-[#C8A96A]" /> Expand Full View
+            </button>
+          </div>
+        </div>
+
+        {/* COMPACT HERO BANNER */}
+        <div className="relative overflow-hidden bg-charcoal">
+          <div className="relative h-[200px] sm:h-[240px] w-full overflow-hidden">
+            <img src={coverUrl} alt={displayName} className="w-full h-full object-cover" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
+          </div>
+
+          {/* Profile Card Overlay */}
+          <div className="absolute bottom-4 left-4 right-4 flex items-end gap-4 z-10">
+            {/* Logo Badge */}
+            <div
+              style={{ backgroundColor: activeTheme.primary }}
+              className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl border-2 border-white overflow-hidden shadow-xl shrink-0 flex items-center justify-center text-white"
+            >
+              {logoUrl ? (
+                <img src={logoUrl} alt={displayName} className="w-full h-full object-cover" />
+              ) : (
+                <span className="font-serif text-xl sm:text-2xl font-bold tracking-wider">{initials}</span>
+              )}
+            </div>
+
+            {/* Profile Info */}
+            <div className="flex-1 min-w-0 text-white drop-shadow-md space-y-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 className="text-xl sm:text-2xl font-serif font-bold text-white leading-tight">
+                  {displayName}
+                </h3>
+                <span className="inline-flex items-center gap-1 bg-white/95 text-[#0F4C45] text-[10px] font-extrabold px-2.5 py-0.5 rounded-full shadow-xs">
+                  <ShieldCheck className="w-3 h-3 text-[#0F4C45]" /> Verified Partner
+                </span>
+              </div>
+
+              {tagline ? (
+                <p style={{ color: activeTheme.accent }} className="text-xs font-semibold italic truncate">
+                  "{tagline}"
+                </p>
+              ) : (
+                <p className="text-xs text-white/90 font-medium truncate">
+                  {categoryLabel}{location ? ` • ${location}` : ""}
+                </p>
+              )}
+
+              {/* Store Highlights Badges */}
+              {storeHighlights.length > 0 && (
+                <div className="flex flex-wrap items-center gap-1 pt-1">
+                  {storeHighlights.slice(0, 4).map((badge) => (
+                    <span
+                      key={badge}
+                      style={{ borderColor: activeTheme.accent }}
+                      className="bg-black/60 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full border shadow-2xs flex items-center gap-1"
+                    >
+                      <Sparkles className="w-2.5 h-2.5 text-[#C8A96A]" /> {badge}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* COMPACT ACTION BUTTONS BAR */}
+        <div className="p-4 bg-white border-t border-gold/15 space-y-3">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+            {actionButtons.callNow && (
+              <div
+                style={{ backgroundColor: activeTheme.primary }}
+                className="w-full px-3 py-2.5 rounded-xl text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-xs text-center"
+              >
+                <Phone className="w-3.5 h-3.5 shrink-0" /> <span>Call Now</span>
+              </div>
+            )}
+            {actionButtons.whatsapp && (
+              <div
+                style={{ backgroundColor: activeTheme.secondary }}
+                className="w-full px-3 py-2.5 rounded-xl text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-xs text-center"
+              >
+                <MessageCircle className="w-3.5 h-3.5 shrink-0" /> <span>WhatsApp Us</span>
+              </div>
+            )}
+            {actionButtons.getQuote && (
+              <div
+                style={{ backgroundColor: activeTheme.accent, color: activeTheme.secondary }}
+                className="w-full px-3 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-xs text-center"
+              >
+                <FileText className="w-3.5 h-3.5 shrink-0" /> <span>Get Custom Quote</span>
+              </div>
+            )}
+            {actionButtons.visitStore && (
+              <div className="w-full px-3 py-2.5 rounded-xl bg-[#FAF7F2] border border-gold/25 text-charcoal text-xs font-bold flex items-center justify-center gap-1.5 text-center">
+                <Building className="w-3.5 h-3.5 text-[#0F4C45] shrink-0" /> <span>Get Directions</span>
+              </div>
+            )}
+          </div>
+
+          {/* BUSINESS HOURS LIVE PREVIEW CHIP */}
+          {(workingHours.workingDays || workingHours.openingTime || workingHours.closingTime || workingHours.weeklyOff || workingHours.rawString) && (
+            <div className="flex items-center justify-between text-[11px] bg-[#FAF7F2] border border-gold/15 p-2.5 rounded-xl text-charcoal/80 font-medium">
+              <span className="flex items-center gap-1.5 font-semibold text-[#0F4C45]">
+                <Clock className="w-3.5 h-3.5 text-[#0F4C45]" /> Operating Schedule:
+              </span>
+              <span className="font-bold text-charcoal">
+                {workingHours.workingDays ? `${workingHours.workingDays}: ` : ""}
+                {[workingHours.openingTime, workingHours.closingTime].filter(Boolean).join(" - ") || workingHours.rawString || "Open All Days"}
+                {workingHours.weeklyOff ? ` (Off: ${workingHours.weeklyOff})` : ""}
+              </span>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full bg-[#FBF8F1] text-charcoal font-sans antialiased min-h-screen pb-24">
       
-      {/* PREVIEW BANNER (IF IN DASHBOARD PREVIEW MODE) */}
+      {/* PREVIEW BANNER (IF IN DASHBOARD FULL PREVIEW MODE) */}
       {previewMode && (
         <div className="bg-[#0B3B36] text-white px-4 py-2 text-xs font-bold flex items-center justify-between border-b border-gold/20">
           <span className="flex items-center gap-1.5">
-            <Eye className="w-3.5 h-3.5 text-[#C8A96A]" /> Live Storefront Preview (Exact Customer View)
+            <Eye className="w-3.5 h-3.5 text-[#C8A96A]" /> Full Storefront View (Expanded)
           </span>
-          <span
-            style={{ color: activeTheme.accent }}
-            className="text-[10px] uppercase tracking-wider bg-black/40 px-2.5 py-0.5 rounded-full border border-white/10"
-          >
-            {activeTheme.label} Theme
-          </span>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setIsFullPreview(false)}
+              className="text-[10px] uppercase font-bold bg-white/20 hover:bg-white/30 text-white px-2.5 py-0.5 rounded-full border border-white/20 transition-all cursor-pointer"
+            >
+              Switch to Compact Preview
+            </button>
+            <span
+              style={{ color: activeTheme.accent }}
+              className="text-[10px] uppercase tracking-wider bg-black/40 px-2.5 py-0.5 rounded-full border border-white/10"
+            >
+              {activeTheme.label} Theme
+            </span>
+          </div>
         </div>
       )}
 
@@ -401,9 +565,11 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
                 <span className="inline-flex items-center gap-1 bg-white/95 backdrop-blur-md text-[#0F4C45] text-[11px] font-extrabold px-3 py-0.5 rounded-full shadow-xs">
                   <ShieldCheck className="w-3.5 h-3.5 text-[#0F4C45]" /> Verified Partner
                 </span>
-                <span className="inline-flex items-center gap-1 bg-amber-400/90 text-charcoal text-[11px] font-extrabold px-2.5 py-0.5 rounded-full shadow-xs">
-                  <Star className="w-3 h-3 fill-current text-charcoal" /> {rating} ({reviewsCount})
-                </span>
+                {reviewsCount > 0 && (
+                  <span className="inline-flex items-center gap-1 bg-amber-400/90 text-charcoal text-[11px] font-extrabold px-2.5 py-0.5 rounded-full shadow-xs">
+                    <Star className="w-3 h-3 fill-current text-charcoal" /> {rating} ({reviewsCount})
+                  </span>
+                )}
               </div>
 
               {tagline ? (
@@ -412,7 +578,7 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
                 </p>
               ) : (
                 <p className="text-xs sm:text-sm text-white/90 font-medium">
-                  {categoryLabel} • {location}
+                  {categoryLabel}{location ? ` • ${location}` : ""}
                 </p>
               )}
 
@@ -452,88 +618,93 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
         <div className="lg:col-span-8 space-y-6 sm:space-y-8">
           
           {/* A. STOREFRONT CONTACT & INTERACTIVE ACTION BUTTONS */}
-          <div className="bg-white rounded-3xl p-5 sm:p-6 border border-gold/15 shadow-sm space-y-4">
-            <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#0F4C45] block">
-              QUICK STOREFRONT ACTIONS
-            </span>
-            <div className="flex flex-wrap items-center gap-2.5">
-              {actionButtons.callNow && (
+          <div className="bg-white rounded-3xl p-4 sm:p-5 border border-gold/15 shadow-sm">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {actionButtons.callNow && phone && (
                 <a
                   href={previewMode ? "#" : `tel:${phone}`}
                   style={{ backgroundColor: activeTheme.primary }}
-                  className="px-5 py-3 rounded-2xl text-white text-xs sm:text-sm font-bold flex items-center gap-2 shadow-md hover:opacity-90 transition-all cursor-pointer"
+                  className="w-full px-4 py-3.5 rounded-2xl text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2 shadow-xs hover:opacity-90 transition-all cursor-pointer text-center"
                 >
-                  <Phone className="w-4 h-4" /> Call Now ({phone})
+                  <Phone className="w-4 h-4 shrink-0" /> <span>Call Now</span>
                 </a>
               )}
 
-              {actionButtons.whatsapp && (
+              {actionButtons.whatsapp && whatsapp && (
                 <a
                   href={previewMode ? "#" : `https://wa.me/${whatsapp.replace(/[^0-9]/g, "")}?text=Hi%20${encodeURIComponent(displayName)},%20I%20saw%20your%20storefront%20on%20Cloche!`}
                   target="_blank"
                   rel="noopener noreferrer"
                   style={{ backgroundColor: activeTheme.secondary }}
-                  className="px-5 py-3 rounded-2xl text-white text-xs sm:text-sm font-bold flex items-center gap-2 shadow-md hover:opacity-90 transition-all cursor-pointer"
+                  className="w-full px-4 py-3.5 rounded-2xl text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2 shadow-xs hover:opacity-90 transition-all cursor-pointer text-center"
                 >
-                  <MessageCircle className="w-4 h-4" /> WhatsApp Us
+                  <MessageCircle className="w-4 h-4 shrink-0" /> <span>WhatsApp Us</span>
                 </a>
               )}
-
-
 
               {actionButtons.getQuote && (
                 <button
                   onClick={() => setActiveModal("quote")}
                   style={{ backgroundColor: activeTheme.accent, color: activeTheme.secondary }}
-                  className="px-5 py-3 rounded-2xl text-xs sm:text-sm font-bold flex items-center gap-2 shadow-md hover:opacity-90 transition-all cursor-pointer"
+                  className="w-full px-4 py-3.5 rounded-2xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 shadow-xs hover:opacity-90 transition-all cursor-pointer text-center"
                 >
-                  <FileText className="w-4 h-4" /> Get Custom Quote
+                  <FileText className="w-4 h-4 shrink-0" /> <span>Get Custom Quote</span>
                 </button>
               )}
 
-              {actionButtons.visitStore && (
+              {actionButtons.visitStore && (address || location) && (
                 <a
-                  href={previewMode ? "#" : `https://maps.google.com/?q=${encodeURIComponent(address)}`}
+                  href={previewMode ? "#" : `https://maps.google.com/?q=${encodeURIComponent(address || location)}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="px-5 py-3 rounded-2xl bg-[#FAF7F2] border border-gold/25 text-charcoal text-xs sm:text-sm font-bold flex items-center gap-2 hover:bg-gold/15 transition-all"
+                  className="w-full px-4 py-3.5 rounded-2xl bg-[#FAF7F2] border border-gold/25 text-charcoal text-xs sm:text-sm font-bold flex items-center justify-center gap-2 hover:bg-gold/15 transition-all text-center"
                 >
-                  <Building className="w-4 h-4 text-[#0F4C45]" /> Get Directions
+                  <Building className="w-4 h-4 text-[#0F4C45] shrink-0" /> <span>Get Directions</span>
                 </a>
               )}
             </div>
           </div>
 
           {/* B. BUSINESS SNAPSHOT CARDS */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-            <div className="p-4 rounded-2xl bg-white border border-gold/15 shadow-2xs space-y-1">
-              <span className="text-[10px] uppercase font-bold text-charcoal/50 block">Experience</span>
-              <span style={{ color: activeTheme.primary }} className="font-serif font-bold text-lg sm:text-xl block">
-                {businessInfo.experienceYears} Years
-              </span>
-            </div>
+          {(businessInfo.experienceYears || businessInfo.collectionsCount || businessInfo.guestCapacity || businessInfo.parkingCapacity) && (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+              {businessInfo.experienceYears && (
+                <div className="p-4 rounded-2xl bg-white border border-gold/15 shadow-2xs space-y-1">
+                  <span className="text-[10px] uppercase font-bold text-charcoal/50 block">Experience</span>
+                  <span style={{ color: activeTheme.primary }} className="font-serif font-bold text-lg sm:text-xl block">
+                    {businessInfo.experienceYears} {businessInfo.experienceYears.toLowerCase().includes("year") ? "" : "Years"}
+                  </span>
+                </div>
+              )}
 
-            <div className="p-4 rounded-2xl bg-white border border-gold/15 shadow-2xs space-y-1">
-              <span className="text-[10px] uppercase font-bold text-charcoal/50 block">Rental Service</span>
-              <span className="font-bold text-xs sm:text-sm text-charcoal block">
-                {businessInfo.rentalAvailable ? "✓ Available" : "✗ Sale Only"}
-              </span>
-            </div>
+              {businessInfo.collectionsCount && (
+                <div className="p-4 rounded-2xl bg-white border border-gold/15 shadow-2xs space-y-1">
+                  <span className="text-[10px] uppercase font-bold text-charcoal/50 block">Collections Count</span>
+                  <span style={{ color: activeTheme.primary }} className="font-serif font-bold text-lg sm:text-xl block">
+                    {businessInfo.collectionsCount}
+                  </span>
+                </div>
+              )}
 
-            <div className="p-4 rounded-2xl bg-white border border-gold/15 shadow-2xs space-y-1">
-              <span className="text-[10px] uppercase font-bold text-charcoal/50 block">Home Trial / Delivery</span>
-              <span className="font-bold text-xs sm:text-sm text-charcoal block">
-                {businessInfo.homeDeliveryAvailable ? "✓ Available" : "✗ Store Pickup"}
-              </span>
-            </div>
+              {businessInfo.guestCapacity && (
+                <div className="p-4 rounded-2xl bg-white border border-gold/15 shadow-2xs space-y-1">
+                  <span className="text-[10px] uppercase font-bold text-charcoal/50 block">Guest Capacity</span>
+                  <span style={{ color: activeTheme.primary }} className="font-serif font-bold text-lg sm:text-xl block">
+                    {businessInfo.guestCapacity}
+                  </span>
+                </div>
+              )}
 
-            <div className="p-4 rounded-2xl bg-white border border-gold/15 shadow-2xs space-y-1">
-              <span className="text-[10px] uppercase font-bold text-charcoal/50 block">Collections Count</span>
-              <span style={{ color: activeTheme.primary }} className="font-serif font-bold text-lg sm:text-xl block">
-                {businessInfo.collectionsCount}
-              </span>
+              {businessInfo.parkingCapacity && (
+                <div className="p-4 rounded-2xl bg-white border border-gold/15 shadow-2xs space-y-1">
+                  <span className="text-[10px] uppercase font-bold text-charcoal/50 block">Parking</span>
+                  <span style={{ color: activeTheme.primary }} className="font-serif font-bold text-lg sm:text-xl block">
+                    {businessInfo.parkingCapacity}
+                  </span>
+                </div>
+              )}
             </div>
-          </div>
+          )}
 
           {/* C. PINNED FEATURED COLLECTIONS */}
           {featuredCollections.length > 0 && (
@@ -644,11 +815,7 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
               {/* View All Portfolio Redirect Action */}
               <div className="pt-1 flex justify-center">
                 <Link
-                  href={
-                    (vendor?.category || "").toLowerCase().includes("venue")
-                      ? `/venues/${vendor?.slug || vendor?.id || "preview"}/gallery`
-                      : `/vendors/${vendor?.slug || vendor?.id || "preview"}/gallery`
-                  }
+                  href={galleryHref}
                   className="w-full sm:w-auto px-8 py-3 rounded-2xl bg-white border border-gold/25 text-charcoal font-bold text-xs hover:bg-[#FAF7F2] hover:border-gold/40 shadow-xs transition-all flex items-center justify-center gap-2 group cursor-pointer"
                 >
                   <span>View All Portfolio ({galleryPhotos.length})</span>
@@ -733,60 +900,36 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
             </div>
           )}
 
-          {/* G. STORE POLICIES */}
-          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-gold/15 shadow-sm space-y-4">
-            <h2 className="font-serif text-2xl font-bold text-charcoal flex items-center gap-2">
-              <ShieldCheck style={{ color: activeTheme.primary }} className="w-5 h-5" /> Store Policies &amp; Terms
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-              <div className="p-4 bg-[#FAF7F2] rounded-2xl border border-gold/15 space-y-1">
-                <span className="font-bold text-charcoal block flex items-center gap-1.5">
-                  <ShieldCheck className="w-3.5 h-3.5 text-[#0F4C45]" /> Rental &amp; Booking Terms
-                </span>
-                <p className="text-charcoal/70 leading-relaxed">{policies.rentalPolicy}</p>
-              </div>
-
-              <div className="p-4 bg-[#FAF7F2] rounded-2xl border border-gold/15 space-y-1">
-                <span className="font-bold text-charcoal block flex items-center gap-1.5">
-                  <FileText className="w-3.5 h-3.5 text-[#0F4C45]" /> Security Deposit Release
-                </span>
-                <p className="text-charcoal/70 leading-relaxed">{policies.securityDepositPolicy}</p>
-              </div>
-
-              {policies.cancellationPolicy && (
-                <div className="p-4 bg-[#FAF7F2] rounded-2xl border border-gold/15 space-y-1 sm:col-span-2">
-                  <span className="font-bold text-charcoal block flex items-center gap-1.5">
-                    <Clock className="w-3.5 h-3.5 text-[#0F4C45]" /> Cancellation &amp; Rescheduling Policy
-                  </span>
-                  <p className="text-charcoal/70 leading-relaxed">{policies.cancellationPolicy}</p>
-                </div>
-              )}
-            </div>
-          </div>
-
         </div>
 
         {/* RIGHT COLUMN (4 COLS): Timings, Location, Inquiry Card */}
         <aside className="lg:col-span-4 space-y-6">
           
           {/* 1. BUSINESS TIMINGS CARD */}
-          <div className="bg-white p-6 rounded-3xl border border-gold/15 shadow-sm space-y-4 text-xs">
+          <div className="bg-[#FAF7F2] p-6 rounded-3xl border border-gold/15 shadow-sm space-y-4 text-xs">
             <h3 className="font-serif font-bold text-lg text-charcoal flex items-center gap-2 border-b border-gold/10 pb-3">
               <Clock style={{ color: activeTheme.primary }} className="w-4 h-4" /> Business Hours
             </h3>
             <div className="space-y-2">
-              <div className="flex justify-between py-1 border-b border-gray-50">
+              <div className="flex justify-between py-1 border-b border-gray-100/60">
                 <span className="text-charcoal/60 font-medium">Working Days:</span>
-                <span className="font-bold text-charcoal">{workingHours.workingDays}</span>
+                <span className="font-bold text-charcoal">{workingHours.workingDays || "Monday - Saturday"}</span>
               </div>
-              <div className="flex justify-between py-1 border-b border-gray-50">
+
+              <div className="flex justify-between py-1 border-b border-gray-100/60">
                 <span className="text-charcoal/60 font-medium">Store Hours:</span>
-                <span className="font-bold text-[#0F4C45]">{workingHours.openingTime} - {workingHours.closingTime}</span>
+                <span className="font-bold text-[#0F4C45]">
+                  {[workingHours.openingTime, workingHours.closingTime].filter(Boolean).join(" - ") || workingHours.rawString || "10:00 AM - 08:00 PM"}
+                </span>
               </div>
-              <div className="flex justify-between py-1 border-b border-gray-50">
-                <span className="text-charcoal/60 font-medium">Weekly Holiday:</span>
-                <span className="font-bold text-charcoal">{workingHours.weeklyOff}</span>
-              </div>
+
+              {workingHours.weeklyOff && (
+                <div className="flex justify-between py-1 border-b border-gray-100/60">
+                  <span className="text-charcoal/60 font-medium">Weekly Holiday:</span>
+                  <span className="font-bold text-charcoal">{workingHours.weeklyOff}</span>
+                </div>
+              )}
+
               {workingHours.holidayNotice && (
                 <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 font-semibold text-[11px] mt-2">
                   🔔 {workingHours.holidayNotice}
@@ -871,24 +1014,6 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
                 </button>
               </form>
             )}
-          </div>
-
-          {/* 3. STORE LOCATION CARD */}
-          <div className="bg-white p-6 rounded-3xl border border-gold/15 shadow-sm space-y-3 text-xs">
-            <h3 className="font-serif font-bold text-lg text-charcoal flex items-center gap-2 border-b border-gold/10 pb-2">
-              <MapPin style={{ color: activeTheme.primary }} className="w-4 h-4" /> Store Location
-            </h3>
-            <p className="text-charcoal/80 leading-relaxed font-medium">
-              {address}
-            </p>
-            <a
-              href={previewMode ? "#" : `https://maps.google.com/?q=${encodeURIComponent(address)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-[#0F4C45] hover:underline pt-1"
-            >
-              <span>Open in Google Maps</span> <ExternalLink className="w-3 h-3" />
-            </a>
           </div>
 
         </aside>

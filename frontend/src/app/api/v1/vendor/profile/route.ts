@@ -8,11 +8,11 @@ function getCategoryTable(categorySlug: string): string {
   if (slug.includes("photo") || slug.includes("video")) return "photographer_details";
   if (slug.includes("makeup")) return "makeup_details";
   if (slug.includes("cater")) return "catering_details";
-  if (slug.includes("decor")) return "decorator_details";
-  if (slug.includes("bridal") || slug.includes("boutique")) return "bridal_wear_details";
+  if (slug.includes("decor") || slug.includes("planner")) return "decorator_details";
+  if (slug.includes("bridal") || slug.includes("boutique") || slug.includes("groom") || slug.includes("wedding-story") || slug.includes("wedding-studio")) return "bridal_wear_details";
   if (slug.includes("jewel")) return "jewellery_details";
   if (slug.includes("mehendi") || slug.includes("mehndi")) return "mehndi_details";
-  if (slug.includes("invite") || slug.includes("card")) return "invitation_details";
+  if (slug.includes("invite") || slug.includes("card") || slug.includes("e-invite") || slug.includes("digital-invitation")) return "invitation_details";
   if (slug.includes("entertain") || slug.includes("dhol") || slug.includes("choreo")) return "entertainment_details";
   return "category_extension_template";
 }
@@ -237,6 +237,20 @@ export async function PUT(req: Request) {
     const address = typeof rawAddress === "object" && rawAddress !== null ? rawAddress : {};
     const categoryDetails = body.categoryDetails;
     const changeSummary = body.changeSummary;
+
+    const sfWH = profile.storefront?.workingHours || body.storefront?.workingHours || profile.workingHours || body.workingHours || {};
+    const workingHoursVal =
+      typeof profile.working_hours === "string" ? profile.working_hours :
+      typeof profile.workingHours === "string" ? profile.workingHours :
+      typeof body.working_hours === "string" ? body.working_hours :
+      typeof body.workingHours === "string" ? body.workingHours :
+      (sfWH.openingTime || sfWH.closingTime ? `${sfWH.openingTime || "10:00 AM"} - ${sfWH.closingTime || "08:00 PM"}` : null);
+
+    const openingTimeVal = sfWH.openingTime || profile.opening_time || profile.openingTime || body.openingTime || null;
+    const closingTimeVal = sfWH.closingTime || profile.closing_time || profile.closingTime || body.closingTime || null;
+    const workingDaysVal = sfWH.workingDays || profile.working_days || profile.workingDays || body.workingDays || null;
+    const weeklyOffVal = sfWH.weeklyOff || profile.weekly_off || profile.weeklyOff || body.weeklyOff || null;
+    const holidayNoticeVal = sfWH.holidayNotice || profile.holiday_notice || profile.holidayNotice || body.holidayNotice || null;
 
     // 1. Fetch authenticated vendor core record
     const vendorRes = await fetch(`${url}/rest/v1/vendors?id=eq.${encodeURIComponent(auth.vendorId)}&select=id,user_id,publication_status,category_id`, {
@@ -471,6 +485,8 @@ export async function PUT(req: Request) {
         updated_at: new Date().toISOString(),
       };
 
+      if (workingHoursVal) profilePayload.working_hours = workingHoursVal;
+
       if (logoMediaId) profilePayload.logo_media_id = logoMediaId;
       if (coverMediaId) profilePayload.cover_media_id = coverMediaId;
       if (profile.gstNumber || profile.gst_number) profilePayload.gst_number = profile.gstNumber || profile.gst_number;
@@ -622,11 +638,10 @@ export async function PUT(req: Request) {
       ...(profile?.diningCapacity || profile?.dining_capacity ? { dining_capacity: profile.diningCapacity || profile.dining_capacity } : {}),
       ...(profile?.parkingCapacity || profile?.parking_capacity ? { parking_capacity: profile.parkingCapacity || profile.parking_capacity } : {}),
       ...(profile?.languagesSpoken || profile?.languages_spoken ? { languages_spoken: profile.languagesSpoken || profile.languages_spoken } : {}),
-      ...(profile?.contactActions || profile?.contact_actions ? { contact_actions: profile.contactActions || profile.contact_actions } : {}),
-      ...(profile?.openingTime || profile?.opening_time ? { opening_time: profile.openingTime || profile.opening_time } : {}),
-      ...(profile?.closingTime || profile?.closing_time ? { closing_time: profile.closingTime || profile.closing_time } : {}),
-      ...(profile?.weeklyHolidays || profile?.weekly_holidays ? { weekly_holidays: profile.weeklyHolidays || profile.weekly_holidays } : {}),
-      ...(profile?.publicHolidayAvailability || profile?.public_holiday_availability ? { public_holiday_availability: profile.publicHolidayAvailability || profile.public_holiday_availability } : {}),
+      ...(openingTimeVal ? { opening_time: openingTimeVal } : {}),
+      ...(closingTimeVal ? { closing_time: closingTimeVal } : {}),
+      ...(weeklyOffVal ? { weekly_holidays: weeklyOffVal, weekly_off: weeklyOffVal } : {}),
+      ...(holidayNoticeVal ? { public_holiday_availability: holidayNoticeVal, holiday_notice: holidayNoticeVal } : {}),
       ...(profile?.venueVisitTimings || profile?.venue_visit_timings ? { venue_visit_timings: profile.venueVisitTimings || profile.venue_visit_timings } : {}),
       ...(profile?.advanceAppointmentRequired !== undefined || profile?.advance_appointment_required !== undefined ? { advance_appointment_required: Boolean(profile?.advanceAppointmentRequired ?? profile?.advance_appointment_required) } : {}),
       ...(profile?.advanceBookingRequired || profile?.advance_booking_required ? { advance_booking_required: profile.advanceBookingRequired || profile.advance_booking_required } : {}),

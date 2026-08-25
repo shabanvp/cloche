@@ -490,13 +490,6 @@ export function MehendiCustomizeStoreSection({
             weeklyOff: weeklyHolidays.trim(),
             holidayNotice: appointmentNotice.trim(),
           },
-          policies: {
-            rentalPolicy: advanceBookingRequired.trim(),
-            securityDepositPolicy: stainCarePolicy.trim(),
-            cancellationPolicy: cancellationPolicy.trim(),
-            refundPolicy: groupBookingPolicy.trim(),
-            damagePolicy: travelPolicy.trim(),
-          },
           socialLinks: {
             instagram: instagram.trim(),
             facebook: facebook.trim(),
@@ -639,13 +632,6 @@ export function MehendiCustomizeStoreSection({
               weeklyOff: weeklyHolidays,
               holidayNotice: appointmentNotice,
             },
-            policies: {
-              rentalPolicy: advanceBookingRequired,
-              securityDepositPolicy: stainCarePolicy,
-              cancellationPolicy: cancellationPolicy,
-              refundPolicy: groupBookingPolicy,
-              damagePolicy: travelPolicy,
-            },
           }}
           storefront={{
             theme: colorTheme,
@@ -673,13 +659,6 @@ export function MehendiCustomizeStoreSection({
               closingTime: closingTime,
               weeklyOff: weeklyHolidays,
               holidayNotice: appointmentNotice,
-            },
-            policies: {
-              rentalPolicy: advanceBookingRequired,
-              securityDepositPolicy: stainCarePolicy,
-              cancellationPolicy: cancellationPolicy,
-              refundPolicy: groupBookingPolicy,
-              damagePolicy: travelPolicy,
             },
             socialLinks: {
               instagram: instagram.trim(),

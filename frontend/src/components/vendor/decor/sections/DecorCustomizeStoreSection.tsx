@@ -517,13 +517,6 @@ export function DecorCustomizeStoreSection({
             weeklyOff: weeklyHolidays.trim(),
             holidayNotice: consultationNotice.trim(),
           },
-          policies: {
-            rentalPolicy: advanceBookingRequired.trim(),
-            securityDepositPolicy: advancePaymentPolicy.trim(),
-            cancellationPolicy: cancellationPolicy.trim(),
-            refundPolicy: setupTeardownPolicy.trim(),
-            damagePolicy: propertyDamagePolicy.trim(),
-          },
           socialLinks: {
             instagram: instagram.trim(),
             facebook: facebook.trim(),
@@ -666,13 +659,6 @@ export function DecorCustomizeStoreSection({
               weeklyOff: weeklyHolidays,
               holidayNotice: consultationNotice,
             },
-            policies: {
-              rentalPolicy: advanceBookingRequired,
-              securityDepositPolicy: advancePaymentPolicy,
-              cancellationPolicy: cancellationPolicy,
-              refundPolicy: setupTeardownPolicy,
-              damagePolicy: propertyDamagePolicy,
-            },
           }}
           storefront={{
             theme: colorTheme,
@@ -700,13 +686,6 @@ export function DecorCustomizeStoreSection({
               closingTime: closingTime,
               weeklyOff: weeklyHolidays,
               holidayNotice: consultationNotice,
-            },
-            policies: {
-              rentalPolicy: advanceBookingRequired,
-              securityDepositPolicy: advancePaymentPolicy,
-              cancellationPolicy: cancellationPolicy,
-              refundPolicy: setupTeardownPolicy,
-              damagePolicy: propertyDamagePolicy,
             },
             socialLinks: {
               instagram: instagram.trim(),

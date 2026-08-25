@@ -1,33 +1,32 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { bridalBoutiqueVendors } from "@/lib/bridalAndInvitationData";
-import { BridalWearDetailClient } from "@/components/BridalWearDetailClient";
+import { fetchPublicVendorProfileFromDb } from "@/lib/supabase";
+import { BoutiqueProfileClient } from "@/components/BoutiqueProfileClient";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 interface Props {
   params: Promise<{ id: string }>;
 }
 
-export function generateStaticParams() {
-  return bridalBoutiqueVendors.map((b) => ({ id: b.id }));
-}
-
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
-  const boutique = bridalBoutiqueVendors.find((b) => b.id === id);
-  if (!boutique) return { title: "Boutique Not Found | Cloche" };
+  const { data: profile } = await fetchPublicVendorProfileFromDb(id);
+  if (!profile) return { title: "Boutique Not Found | Cloche" };
   return {
-    title: `${boutique.name} | Cloche Bridal Wear`,
-    description: boutique.about,
+    title: `${profile.name} | Cloche Bridal Wear`,
+    description: profile.about || `Explore ${profile.name} on Cloche.`,
   };
 }
 
 export default async function BridalWearDetailPage({ params }: Props) {
   const { id } = await params;
-  const boutique = bridalBoutiqueVendors.find((b) => b.id === id);
+  const { data: profile } = await fetchPublicVendorProfileFromDb(id);
 
-  if (!boutique) {
+  if (!profile) {
     notFound();
   }
 
-  return <BridalWearDetailClient boutique={boutique} />;
+  return <BoutiqueProfileClient profile={profile} />;
 }

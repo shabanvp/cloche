@@ -652,7 +652,7 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-white/10 pb-4">
             <div>
               <span className="bg-gold text-charcoal text-[10px] font-bold uppercase tracking-widest px-3 py-0.5 rounded-full">
-                STORE LOCATION & INFO
+                CONTACT & INFO
               </span>
               <h3 className="font-display text-xl font-bold text-white mt-2">{businessName}</h3>
               <p className="text-xs text-white/80 mt-1">{address}</p>
@@ -669,7 +669,7 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-white/80 pt-1">
-            <div><strong>Store Hours:</strong> {config?.businessHours || "Mon – Sat: 10:00 AM – 8:00 PM | Sun: 11:00 AM – 5:00 PM"}</div>
+            <div><strong>Store Hours:</strong> {config?.businessHours || (typeof config?.workingHours === "string" ? config.workingHours : "") || config?.working_hours || "Mon – Sat: 10:00 AM – 8:00 PM | Sun: 11:00 AM – 5:00 PM"}</div>
             <div><strong>Contact Email:</strong> {email}</div>
             <div><strong>Phone Number:</strong> {phone}</div>
             <div><strong>Instagram:</strong> {instagram}</div>

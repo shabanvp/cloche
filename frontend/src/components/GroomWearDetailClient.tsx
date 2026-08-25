@@ -490,7 +490,7 @@ export function GroomWearDetailClient({ vendor }: { vendor: GroomWearVendor }) {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-white/10 pb-4">
               <div>
                 <span className="bg-[#C8A96A] text-[#1A1410] text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full">
-                  STORE LOCATION & INFO
+                  CONTACT & INFO
                 </span>
                 <h3 className="font-serif text-2xl font-bold text-white mt-2">{vendor.name}</h3>
                 <p className="text-xs text-white/80 mt-1">{vendor.location}</p>
@@ -507,7 +507,7 @@ export function GroomWearDetailClient({ vendor }: { vendor: GroomWearVendor }) {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-white/80 pt-2">
-              <div><strong>Store Hours:</strong> Mon – Sat: 10:00 AM – 8:00 PM | Sun: 11:00 AM – 5:00 PM</div>
+              <div><strong>Store Hours:</strong> {typeof vendor.workingHours === "object" && vendor.workingHours !== null ? [vendor.workingHours.openingTime, vendor.workingHours.closingTime].filter(Boolean).join(" - ") || vendor.workingHours.workingDays : vendor.workingHours || vendor.working_hours || vendor.businessHours || "Mon – Sat: 10:00 AM – 8:00 PM | Sun: 11:00 AM – 5:00 PM"}</div>
               <div><strong>Contact Email:</strong> contact@groomwear.in</div>
               <div><strong>Phone Number:</strong> +91 98470 55443</div>
               <div><strong>Instagram:</strong> @groomwear_official</div>
