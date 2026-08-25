@@ -471,6 +471,27 @@ export async function PUT(req: Request) {
         updated_at: new Date().toISOString(),
       };
 
+      const sfWH = profile.storefront?.workingHours || body.storefront?.workingHours || profile.workingHours || body.workingHours || {};
+      const workingHoursVal =
+        typeof profile.working_hours === "string" ? profile.working_hours :
+        typeof profile.workingHours === "string" ? profile.workingHours :
+        typeof body.working_hours === "string" ? body.working_hours :
+        typeof body.workingHours === "string" ? body.workingHours :
+        (sfWH.openingTime || sfWH.closingTime ? `${sfWH.openingTime || "10:00 AM"} - ${sfWH.closingTime || "08:00 PM"}` : null);
+
+      const openingTimeVal = sfWH.openingTime || profile.opening_time || profile.openingTime || body.openingTime || null;
+      const closingTimeVal = sfWH.closingTime || profile.closing_time || profile.closingTime || body.closingTime || null;
+      const workingDaysVal = sfWH.workingDays || profile.working_days || profile.workingDays || body.workingDays || null;
+      const weeklyOffVal = sfWH.weeklyOff || profile.weekly_off || profile.weeklyOff || body.weeklyOff || null;
+      const holidayNoticeVal = sfWH.holidayNotice || profile.holiday_notice || profile.holidayNotice || body.holidayNotice || null;
+
+      if (workingHoursVal) profilePayload.working_hours = workingHoursVal;
+      if (workingDaysVal) profilePayload.working_days = workingDaysVal;
+      if (openingTimeVal) profilePayload.opening_time = openingTimeVal;
+      if (closingTimeVal) profilePayload.closing_time = closingTimeVal;
+      if (weeklyOffVal) profilePayload.weekly_off = weeklyOffVal;
+      if (holidayNoticeVal) profilePayload.holiday_notice = holidayNoticeVal;
+
       if (logoMediaId) profilePayload.logo_media_id = logoMediaId;
       if (coverMediaId) profilePayload.cover_media_id = coverMediaId;
       if (profile.gstNumber || profile.gst_number) profilePayload.gst_number = profile.gstNumber || profile.gst_number;
@@ -622,11 +643,10 @@ export async function PUT(req: Request) {
       ...(profile?.diningCapacity || profile?.dining_capacity ? { dining_capacity: profile.diningCapacity || profile.dining_capacity } : {}),
       ...(profile?.parkingCapacity || profile?.parking_capacity ? { parking_capacity: profile.parkingCapacity || profile.parking_capacity } : {}),
       ...(profile?.languagesSpoken || profile?.languages_spoken ? { languages_spoken: profile.languagesSpoken || profile.languages_spoken } : {}),
-      ...(profile?.contactActions || profile?.contact_actions ? { contact_actions: profile.contactActions || profile.contact_actions } : {}),
-      ...(profile?.openingTime || profile?.opening_time ? { opening_time: profile.openingTime || profile.opening_time } : {}),
-      ...(profile?.closingTime || profile?.closing_time ? { closing_time: profile.closingTime || profile.closing_time } : {}),
-      ...(profile?.weeklyHolidays || profile?.weekly_holidays ? { weekly_holidays: profile.weeklyHolidays || profile.weekly_holidays } : {}),
-      ...(profile?.publicHolidayAvailability || profile?.public_holiday_availability ? { public_holiday_availability: profile.publicHolidayAvailability || profile.public_holiday_availability } : {}),
+      ...(openingTimeVal ? { opening_time: openingTimeVal } : {}),
+      ...(closingTimeVal ? { closing_time: closingTimeVal } : {}),
+      ...(weeklyOffVal ? { weekly_holidays: weeklyOffVal, weekly_off: weeklyOffVal } : {}),
+      ...(holidayNoticeVal ? { public_holiday_availability: holidayNoticeVal, holiday_notice: holidayNoticeVal } : {}),
       ...(profile?.venueVisitTimings || profile?.venue_visit_timings ? { venue_visit_timings: profile.venueVisitTimings || profile.venue_visit_timings } : {}),
       ...(profile?.advanceAppointmentRequired !== undefined || profile?.advance_appointment_required !== undefined ? { advance_appointment_required: Boolean(profile?.advanceAppointmentRequired ?? profile?.advance_appointment_required) } : {}),
       ...(profile?.advanceBookingRequired || profile?.advance_booking_required ? { advance_booking_required: profile.advanceBookingRequired || profile.advance_booking_required } : {}),

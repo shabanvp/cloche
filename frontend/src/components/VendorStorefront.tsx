@@ -472,18 +472,15 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
         <div className="lg:col-span-8 space-y-6 sm:space-y-8">
           
           {/* A. STOREFRONT CONTACT & INTERACTIVE ACTION BUTTONS */}
-          <div className="bg-white rounded-3xl p-5 sm:p-6 border border-gold/15 shadow-sm space-y-4">
-            <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#0F4C45] block">
-              QUICK STOREFRONT ACTIONS
-            </span>
-            <div className="flex flex-wrap items-center gap-2.5">
+          <div className="bg-white rounded-3xl p-4 sm:p-5 border border-gold/15 shadow-sm">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {actionButtons.callNow && phone && (
                 <a
                   href={previewMode ? "#" : `tel:${phone}`}
                   style={{ backgroundColor: activeTheme.primary }}
-                  className="px-5 py-3 rounded-2xl text-white text-xs sm:text-sm font-bold flex items-center gap-2 shadow-md hover:opacity-90 transition-all cursor-pointer"
+                  className="w-full px-4 py-3.5 rounded-2xl text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2 shadow-xs hover:opacity-90 transition-all cursor-pointer text-center"
                 >
-                  <Phone className="w-4 h-4" /> Call Now ({phone})
+                  <Phone className="w-4 h-4 shrink-0" /> <span>Call Now</span>
                 </a>
               )}
 
@@ -493,9 +490,9 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
                   target="_blank"
                   rel="noopener noreferrer"
                   style={{ backgroundColor: activeTheme.secondary }}
-                  className="px-5 py-3 rounded-2xl text-white text-xs sm:text-sm font-bold flex items-center gap-2 shadow-md hover:opacity-90 transition-all cursor-pointer"
+                  className="w-full px-4 py-3.5 rounded-2xl text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2 shadow-xs hover:opacity-90 transition-all cursor-pointer text-center"
                 >
-                  <MessageCircle className="w-4 h-4" /> WhatsApp Us
+                  <MessageCircle className="w-4 h-4 shrink-0" /> <span>WhatsApp Us</span>
                 </a>
               )}
 
@@ -503,20 +500,20 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
                 <button
                   onClick={() => setActiveModal("quote")}
                   style={{ backgroundColor: activeTheme.accent, color: activeTheme.secondary }}
-                  className="px-5 py-3 rounded-2xl text-xs sm:text-sm font-bold flex items-center gap-2 shadow-md hover:opacity-90 transition-all cursor-pointer"
+                  className="w-full px-4 py-3.5 rounded-2xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 shadow-xs hover:opacity-90 transition-all cursor-pointer text-center"
                 >
-                  <FileText className="w-4 h-4" /> Get Custom Quote
+                  <FileText className="w-4 h-4 shrink-0" /> <span>Get Custom Quote</span>
                 </button>
               )}
 
-              {actionButtons.visitStore && address && (
+              {actionButtons.visitStore && (address || location) && (
                 <a
-                  href={previewMode ? "#" : `https://maps.google.com/?q=${encodeURIComponent(address)}`}
+                  href={previewMode ? "#" : `https://maps.google.com/?q=${encodeURIComponent(address || location)}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="px-5 py-3 rounded-2xl bg-[#FAF7F2] border border-gold/25 text-charcoal text-xs sm:text-sm font-bold flex items-center gap-2 hover:bg-gold/15 transition-all"
+                  className="w-full px-4 py-3.5 rounded-2xl bg-[#FAF7F2] border border-gold/25 text-charcoal text-xs sm:text-sm font-bold flex items-center justify-center gap-2 hover:bg-gold/15 transition-all text-center"
                 >
-                  <Building className="w-4 h-4 text-[#0F4C45]" /> Get Directions
+                  <Building className="w-4 h-4 text-[#0F4C45] shrink-0" /> <span>Get Directions</span>
                 </a>
               )}
             </div>
@@ -878,25 +875,6 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
                   <span>Submit Inquiry Directly</span>
                 </button>
               </form>
-            )}
-          </div>
-
-          {/* 3. STORE LOCATION CARD */}
-          <div className="bg-white p-6 rounded-3xl border border-gold/15 shadow-sm space-y-3 text-xs">
-            <h3 className="font-serif font-bold text-lg text-charcoal flex items-center gap-2 border-b border-gold/10 pb-2">
-              <MapPin style={{ color: activeTheme.primary }} className="w-4 h-4" /> Store Location
-            </h3>
-            <p className="text-charcoal/80 leading-relaxed font-medium">
-              {address}
-            </p>
-            <a
-              href={previewMode ? "#" : `https://maps.google.com/?q=${encodeURIComponent(address)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-[#0F4C45] hover:underline pt-1"
-            >
-              <span>Open in Google Maps</span> <ExternalLink className="w-3 h-3" />
-            </a>
           </div>
 
         </aside>

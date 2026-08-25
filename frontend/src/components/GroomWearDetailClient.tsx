@@ -490,7 +490,7 @@ export function GroomWearDetailClient({ vendor }: { vendor: GroomWearVendor }) {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-white/10 pb-4">
               <div>
                 <span className="bg-[#C8A96A] text-[#1A1410] text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full">
-                  STORE LOCATION & INFO
+                  CONTACT & INFO
                 </span>
                 <h3 className="font-serif text-2xl font-bold text-white mt-2">{vendor.name}</h3>
                 <p className="text-xs text-white/80 mt-1">{vendor.location}</p>

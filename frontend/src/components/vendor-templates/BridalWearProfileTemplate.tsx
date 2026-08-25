@@ -652,7 +652,7 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-white/10 pb-4">
             <div>
               <span className="bg-gold text-charcoal text-[10px] font-bold uppercase tracking-widest px-3 py-0.5 rounded-full">
-                STORE LOCATION & INFO
+                CONTACT & INFO
               </span>
               <h3 className="font-display text-xl font-bold text-white mt-2">{businessName}</h3>
               <p className="text-xs text-white/80 mt-1">{address}</p>

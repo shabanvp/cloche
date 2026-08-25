@@ -1352,10 +1352,19 @@ export async function fetchPublicVendorProfileFromDb(identifier: string) {
   const cityVal = profile.city || address.city || "";
   const stateVal = profile.state || address.state || "";
   const serviceAreasVal = vendor.service_areas || profile.service_areas || "";
-  const workingHoursVal = vendor.working_hours || profile.working_hours || "";
-  const experienceYearsVal = vendor.experience_years || profile.experience || profile.years_of_experience || "";
-
   const sfRaw = typeof profile.storefront === "object" && profile.storefront !== null ? profile.storefront : {};
+  const rawSfWH = typeof sfRaw.workingHours === "object" && sfRaw.workingHours !== null ? sfRaw.workingHours : {};
+
+  const workingHoursVal =
+    vendor.working_hours ||
+    profile.working_hours ||
+    profile.workingHours ||
+    (rawSfWH.openingTime || rawSfWH.closingTime
+      ? `${rawSfWH.openingTime || "10:00 AM"} - ${rawSfWH.closingTime || "08:00 PM"}`
+      : categoryDetail.opening_time
+      ? `${categoryDetail.opening_time} - ${categoryDetail.closing_time || "08:00 PM"}`
+      : "");
+  const experienceYearsVal = vendor.experience_years || profile.experience || profile.years_of_experience || "";
 
   const sfHighlights =
     sfRaw.storeHighlights ||
@@ -1363,20 +1372,12 @@ export async function fetchPublicVendorProfileFromDb(identifier: string) {
     categoryDetail.mehendi_highlights ||
     categoryDetail.decor_highlights ||
     profile.store_highlights ||
-    profile.storeHighlights ||
     [];
 
-  const sfCollections =
-    sfRaw.featuredCollections ||
-    categoryDetail.featured_halls ||
-    categoryDetail.featured_packages ||
-    categoryDetail.featured_themes ||
-    profile.featured_collections ||
-    profile.featuredCollections ||
-    [];
+  const sfCollections = sfRaw.featuredCollections || categoryDetail.featured_halls || profile.featured_collections || [];
 
   const sfBusinessInfo = {
-    experienceYears: sfRaw.businessInfo?.experienceYears || categoryDetail.years_in_business || experienceYearsVal,
+    experienceYears: sfRaw.businessInfo?.experienceYears || categoryDetail.years_in_business || profile.experience || "",
     rentalAvailable: sfRaw.businessInfo?.rentalAvailable ?? profile.rental_available ?? profile.rentalAvailable ?? false,
     homeDeliveryAvailable: sfRaw.businessInfo?.homeDeliveryAvailable ?? profile.home_delivery_available ?? profile.homeDeliveryAvailable ?? false,
     homeTrialAvailable: sfRaw.businessInfo?.homeTrialAvailable ?? profile.home_trial_available ?? profile.homeTrialAvailable ?? false,
@@ -1387,11 +1388,12 @@ export async function fetchPublicVendorProfileFromDb(identifier: string) {
   };
 
   const sfWorkingHours = {
-    workingDays: sfRaw.workingHours?.workingDays || profile.working_days || profile.workingDays || "",
-    openingTime: sfRaw.workingHours?.openingTime || categoryDetail.opening_time || profile.opening_time || "",
-    closingTime: sfRaw.workingHours?.closingTime || categoryDetail.closing_time || profile.closing_time || "",
-    weeklyOff: sfRaw.workingHours?.weeklyOff || profile.weekly_off || profile.weeklyOff || categoryDetail.weekly_holidays || "",
-    holidayNotice: sfRaw.workingHours?.holidayNotice || profile.holiday_notice || profile.holidayNotice || "",
+    workingDays: rawSfWH.workingDays || profile.working_days || profile.workingDays || categoryDetail.working_days || "",
+    openingTime: rawSfWH.openingTime || profile.opening_time || profile.openingTime || categoryDetail.opening_time || "",
+    closingTime: rawSfWH.closingTime || profile.closing_time || profile.closingTime || categoryDetail.closing_time || "",
+    weeklyOff: rawSfWH.weeklyOff || profile.weekly_off || profile.weeklyOff || categoryDetail.weekly_holidays || "",
+    holidayNotice: rawSfWH.holidayNotice || profile.holiday_notice || profile.holidayNotice || categoryDetail.public_holiday_availability || "",
+    rawString: workingHoursVal,
   };
 
   const dbBusinessName = profile.business_name || vendor.boutique_name || vendor.name || "";
