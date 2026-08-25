@@ -178,10 +178,10 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
     const off = w.weeklyOff || vW.weeklyOff || vendor?.weekly_off || vendor?.weeklyOff || vendor?.weeklyHolidays || "";
     const notice = w.holidayNotice || vW.holidayNotice || vendor?.holiday_notice || vendor?.holidayNotice || vendor?.publicHolidayAvailability || "";
 
-    const rawStr = typeof vendor?.workingHours === "string" ? vendor.workingHours : typeof vendor?.working_hours === "string" ? vendor.working_hours : "";
+    const rawStr = typeof vendor?.workingHours === "string" ? vendor.workingHours : typeof vendor?.working_hours === "string" ? vendor.working_hours : (w.rawString || "");
 
     return {
-      workingDays: days || (rawStr ? "Operating Hours" : ""),
+      workingDays: days,
       openingTime: open,
       closingTime: close,
       weeklyOff: off,

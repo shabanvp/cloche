@@ -255,11 +255,18 @@ export function CustomizeStoreSection({ categoryConfig, vendorName, onBack }: Cu
       setActionButtons({ ...actionButtons, ...act });
     }
 
-    if (identity.openingTime || identity.opening_time) setOpeningTime(identity.openingTime || identity.opening_time || "");
-    if (identity.closingTime || identity.closing_time) setClosingTime(identity.closingTime || identity.closing_time || "");
-    if (identity.workingDays || identity.working_days) setWorkingDays(identity.workingDays || identity.working_days || "");
-    if (identity.weeklyOff || identity.weekly_off) setWeeklyOff(identity.weeklyOff || identity.weekly_off || "");
-    if (identity.holidayNotice || identity.holiday_notice) setHolidayNotice(identity.holidayNotice || identity.holiday_notice || "");
+    const whObj = typeof identity.storefront?.workingHours === "object" && identity.storefront?.workingHours !== null ? identity.storefront.workingHours : (typeof identity.workingHours === "object" && identity.workingHours !== null ? identity.workingHours : {});
+    const openVal = whObj.openingTime || identity.openingTime || identity.opening_time || "";
+    const closeVal = whObj.closingTime || identity.closingTime || identity.closing_time || "";
+    const daysVal = whObj.workingDays || identity.workingDays || identity.working_days || "";
+    const offVal = whObj.weeklyOff || identity.weeklyOff || identity.weekly_off || "";
+    const noticeVal = whObj.holidayNotice || identity.holidayNotice || identity.holiday_notice || "";
+
+    if (openVal) setOpeningTime(openVal);
+    if (closeVal) setClosingTime(closeVal);
+    if (daysVal) setWorkingDays(daysVal);
+    if (offVal) setWeeklyOff(offVal);
+    if (noticeVal) setHolidayNotice(noticeVal);
   };
 
   useEffect(() => {

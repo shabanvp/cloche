@@ -486,11 +486,6 @@ export async function PUT(req: Request) {
       };
 
       if (workingHoursVal) profilePayload.working_hours = workingHoursVal;
-      if (workingDaysVal) profilePayload.working_days = workingDaysVal;
-      if (openingTimeVal) profilePayload.opening_time = openingTimeVal;
-      if (closingTimeVal) profilePayload.closing_time = closingTimeVal;
-      if (weeklyOffVal) profilePayload.weekly_off = weeklyOffVal;
-      if (holidayNoticeVal) profilePayload.holiday_notice = holidayNoticeVal;
 
       if (logoMediaId) profilePayload.logo_media_id = logoMediaId;
       if (coverMediaId) profilePayload.cover_media_id = coverMediaId;
