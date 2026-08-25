@@ -22,6 +22,7 @@ import {
   Mail,
   Phone,
   ShieldCheck,
+  ArrowLeft,
 } from "lucide-react";
 import { getWishlistItems, removeWishlistItem, syncWishlistWithServer, WishlistItem } from "@/lib/wishlistStore";
 import { fetchAuthenticatedUser, fetchAuthenticatedUserProfile, resolveUserDisplayName } from "@/lib/userStore";
@@ -51,9 +52,15 @@ interface BudgetItem {
   actual: number;
 }
 
-export function UserDashboardClient() {
-  const [activeTab, setActiveTab] = useState<DashboardTab>("profile");
+interface UserDashboardClientProps {
+  initialTab?: DashboardTab;
+}
+
+export function UserDashboardClient({ initialTab }: UserDashboardClientProps = {}) {
+  const [activeTab, setActiveTab] = useState<DashboardTab>(initialTab || "profile");
+  const [mobileActiveTab, setMobileActiveTab] = useState<DashboardTab | null>(initialTab || null);
   const [userName, setUserName] = useState(() => resolveUserDisplayName());
+  const firstName = userName ? userName.trim().split(" ")[0] : "Planner";
   const [userEmail, setUserEmail] = useState(() => {
     if (typeof window !== "undefined") {
       return localStorage.getItem("userEmail") || localStorage.getItem("email") || "";
@@ -248,49 +255,93 @@ export function UserDashboardClient() {
     { id: "settings", label: "Account Settings", icon: Settings },
   ];
 
+  const handleSelectTab = (tabId: DashboardTab) => {
+    setActiveTab(tabId);
+    setMobileActiveTab(tabId);
+    if (typeof window !== "undefined") {
+      window.history.pushState({}, "", `/user/dashboard?tab=${tabId}`);
+    }
+  };
+
+  const handleMobileBack = () => {
+    setMobileActiveTab(null);
+    if (typeof window !== "undefined") {
+      window.history.pushState({}, "", "/user/dashboard");
+    }
+  };
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const tabParam = params.get("tab");
+      if (
+        tabParam &&
+        [
+          "profile",
+          "saved-vendors",
+          "saved-venues",
+          "saved-inspirations",
+          "checklist",
+          "budget",
+          "enquiries",
+          "settings",
+        ].includes(tabParam)
+      ) {
+        setActiveTab(tabParam as DashboardTab);
+        setMobileActiveTab(tabParam as DashboardTab);
+      }
+    }
+  }, []);
+
   return (
-    <div className="min-h-screen bg-[#FBF9F5] py-8 px-4 sm:px-6 lg:px-8 font-sans">
-      <div className="max-w-7xl mx-auto space-y-8">
+    <div className="min-h-screen bg-[#FBF9F5] py-6 sm:py-8 px-4 sm:px-6 lg:px-8 pb-28 sm:pb-8 font-sans">
+      <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8">
 
         {/* Top User Welcome Header */}
-        <div className="bg-gradient-to-r from-[#0F4C45] via-[#145C54] to-charcoal rounded-3xl p-6 sm:p-8 text-white shadow-md relative overflow-hidden border border-gold/20">
+        <div className="bg-gradient-to-r from-[#0F4C45] via-[#145C54] to-charcoal rounded-3xl p-5 sm:p-8 text-white shadow-md relative overflow-hidden border border-gold/20">
           <div className="absolute top-0 right-0 w-80 h-80 bg-gold/10 rounded-full -translate-y-1/2 translate-x-1/3 blur-3xl" />
-          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div className="flex items-center gap-4">
-              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gold/20 border-2 border-gold/40 text-gold flex items-center justify-center text-2xl sm:text-3xl font-display font-bold shadow-inner">
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-5 sm:gap-6">
+            
+            {/* User Info Block */}
+            <div className="flex items-center gap-3.5 sm:gap-5">
+              <div className="w-14 h-14 sm:w-20 sm:h-20 rounded-full bg-gold/20 border-2 border-gold/40 text-gold flex items-center justify-center text-xl sm:text-3xl font-display font-bold shadow-inner shrink-0">
                 {userName.charAt(0).toUpperCase()}
               </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h1 className="text-2xl sm:text-3xl font-bold font-display tracking-tight text-white">
-                    Welcome back, {userName}!
+
+              <div className="space-y-1 min-w-0 flex-1">
+                <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+                  <h1 className="text-xl sm:text-3xl font-bold font-display tracking-tight text-white leading-snug">
+                    <span className="sm:hidden">Welcome back, {firstName}!</span>
+                    <span className="hidden sm:inline">Welcome back, {userName}!</span>
                   </h1>
-                  <span className="bg-gold/20 text-gold text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border border-gold/30 flex items-center gap-1">
+                  <span className="bg-gold/20 text-gold text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border border-gold/30 flex items-center gap-1 shrink-0">
                     <ShieldCheck className="w-3 h-3 text-gold" /> Verified Member
                   </span>
                 </div>
-                <p className="text-xs sm:text-sm text-white/80 font-light mt-1 flex items-center gap-4 flex-wrap">
+
+                <p className="text-xs sm:text-sm text-white/80 font-light flex items-center gap-3 sm:gap-4 flex-wrap">
                   <span className="flex items-center gap-1">
-                    <Calendar className="w-3.5 h-3.5 text-gold" /> Wedding: {weddingDate || "Not Set"}
+                    <Calendar className="w-3.5 h-3.5 text-gold shrink-0" /> Wedding: {weddingDate || "Not Set"}
                   </span>
                   <span className="flex items-center gap-1">
-                    <MapPin className="w-3.5 h-3.5 text-gold" /> Location: {city || "Not Set"}
+                    <MapPin className="w-3.5 h-3.5 text-gold shrink-0" /> Location: {city || "Not Set"}
                   </span>
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-3">
+            {/* Quick Action Pills */}
+            <div className="flex items-center gap-2.5 sm:gap-3 pt-1 sm:pt-0">
               <button
-                onClick={() => setActiveTab("checklist")}
-                className="bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs font-bold px-4 py-2.5 rounded-full transition-all flex items-center gap-1.5"
+                onClick={() => handleSelectTab("checklist")}
+                className="flex-1 sm:flex-initial justify-center bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs font-bold px-4 py-2.5 rounded-full transition-all flex items-center gap-1.5 cursor-pointer"
               >
                 <CheckSquare className="w-3.5 h-3.5 text-gold" />
                 <span>Checklist ({checklistProgress}%)</span>
               </button>
               <button
-                onClick={() => setActiveTab("budget")}
-                className="bg-gold hover:bg-amber-600 text-white text-xs font-bold px-4 py-2.5 rounded-full transition-all shadow-sm flex items-center gap-1.5"
+                onClick={() => handleSelectTab("budget")}
+                className="flex-1 sm:flex-initial justify-center bg-gold hover:bg-amber-600 text-white text-xs font-bold px-4 py-2.5 rounded-full transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
               >
                 <DollarSign className="w-3.5 h-3.5" />
                 <span>Planner</span>
@@ -300,47 +351,63 @@ export function UserDashboardClient() {
         </div>
 
         {/* Dashboard Main Grid (Sidebar Nav + Active Content) */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 sm:gap-8">
 
           {/* Left Sidebar Navigation */}
-          <aside className="md:col-span-1">
-            <div className="bg-white rounded-3xl p-3 shadow-xs border border-gold/15 sticky top-24 space-y-1">
-              <div className="px-4 py-3 border-b border-gold/10">
-                <span className="text-[10px] font-bold text-gold uppercase tracking-widest block">User Navigation</span>
-                <p className="text-xs font-semibold text-charcoal">Wedding Command Desk</p>
+          <aside className={`md:col-span-1 ${mobileActiveTab !== null ? "hidden md:block" : "block"}`}>
+            <div className="bg-white rounded-3xl p-3 sm:p-4 shadow-xs border border-gold/15 sticky top-24 space-y-2">
+              <div className="px-3 py-2 sm:px-4 sm:py-3 border-b border-gold/10 flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] font-bold text-gold uppercase tracking-widest block">Planning Hub</span>
+                  <p className="text-xs font-semibold text-charcoal">Your Wedding Workspace</p>
+                </div>
+                <span className="text-[10px] font-bold bg-[#FAF7F2] text-[#0F4C45] px-2.5 py-0.5 rounded-full border border-gold/20 hidden sm:inline-block">
+                  Menu
+                </span>
               </div>
 
-              {navTabs.map((tab) => {
-                const Icon = tab.icon;
-                const isActive = activeTab === tab.id;
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`w-full flex items-center justify-between px-3.5 py-3 rounded-2xl text-xs font-semibold transition-all cursor-pointer ${
-                      isActive
-                        ? "bg-[#0F4C45] text-white shadow-xs"
-                        : "text-charcoal/70 hover:bg-[#FAF7F2] hover:text-[#0F4C45]"
-                    }`}
-                  >
-                    <div className="flex items-center gap-2.5">
-                      <Icon className={`w-4 h-4 ${isActive ? "text-gold" : "text-[#0F4C45]"}`} />
-                      <span>{tab.label}</span>
-                    </div>
-                    {tab.count !== undefined && (
-                      <span
-                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                          isActive ? "bg-white/20 text-white" : "bg-gray-100 text-charcoal/70"
-                        }`}
-                      >
-                        {tab.count}
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
+              <div className="space-y-1.5 pt-1">
+                {navTabs.map((tab) => {
+                  const Icon = tab.icon;
+                  const isActive = activeTab === tab.id;
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => handleSelectTab(tab.id)}
+                      className={`w-full flex items-center justify-between p-3 sm:px-3.5 sm:py-3 rounded-2xl text-xs font-semibold transition-all cursor-pointer border ${
+                        isActive
+                          ? "bg-[#0F4C45] text-white shadow-xs border-[#0F4C45]"
+                          : "bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] text-charcoal border-gold/10 hover:border-gold/30"
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
+                            isActive ? "bg-white/15 text-gold" : "bg-white text-[#0F4C45] shadow-2xs border border-gold/10"
+                          }`}
+                        >
+                          <Icon className="w-4 h-4" />
+                        </div>
+                        <span className="font-semibold text-xs">{tab.label}</span>
+                      </div>
 
-              <div className="pt-3 border-t border-gold/10 px-2">
+                      {tab.count !== undefined && (
+                        <span
+                          className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full shrink-0 ${
+                            isActive
+                              ? "bg-white/20 text-white"
+                              : "bg-white text-[#0F4C45] border border-gold/20 shadow-2xs"
+                          }`}
+                        >
+                          {tab.count}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="pt-2 border-t border-gold/10 px-1">
                 <button
                   onClick={async () => {
                     await logout();
@@ -349,9 +416,11 @@ export function UserDashboardClient() {
                       window.location.href = "/login?logout=success";
                     }
                   }}
-                  className="w-full flex items-center gap-2 px-3.5 py-2.5 rounded-2xl text-xs font-bold text-rose-600 hover:bg-rose-50 transition-all cursor-pointer"
+                  className="w-full flex items-center gap-3 p-3 rounded-2xl text-xs font-bold text-rose-600 bg-rose-50/50 hover:bg-rose-50 border border-rose-100 transition-all cursor-pointer"
                 >
-                  <LogOut className="w-4 h-4" />
+                  <div className="w-8 h-8 rounded-xl bg-white flex items-center justify-center shrink-0 shadow-2xs border border-rose-100">
+                    <LogOut className="w-4 h-4 text-rose-600" />
+                  </div>
                   <span>Sign Out</span>
                 </button>
               </div>
@@ -359,7 +428,28 @@ export function UserDashboardClient() {
           </aside>
 
           {/* Right Main Content Area */}
-          <main className="md:col-span-3 space-y-6">
+          <main className={`md:col-span-3 space-y-6 ${mobileActiveTab === null ? "hidden md:block" : "block"}`}>
+
+            {/* Dedicated Mobile Top Header with Back Arrow */}
+            {mobileActiveTab !== null && (
+              <div className="md:hidden bg-white border border-gold/15 p-4 rounded-3xl flex items-center justify-between shadow-2xs">
+                <button
+                  onClick={handleMobileBack}
+                  className="flex items-center gap-2 text-xs font-bold text-[#0F4C45] bg-[#FAF7F2] hover:bg-gold/10 px-3.5 py-2 rounded-full border border-gold/20 transition-all cursor-pointer"
+                >
+                  <ArrowLeft className="w-4 h-4 text-[#0F4C45]" />
+                  <span>Back to Dashboard</span>
+                </button>
+                <div className="text-right">
+                  <span className="text-xs font-bold text-charcoal font-display block">
+                    {navTabs.find((t) => t.id === activeTab)?.label || "Planning Hub"}
+                  </span>
+                  <span className="text-[10px] text-gold font-bold uppercase tracking-wider">
+                    Planning Hub
+                  </span>
+                </div>
+              </div>
+            )}
 
             {/* TAB 1: PROFILE */}
             {activeTab === "profile" && (
