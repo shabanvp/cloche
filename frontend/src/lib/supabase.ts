@@ -1256,16 +1256,17 @@ export async function fetchPublicVendorProfileFromDb(identifier: string) {
   const categorySlug = (vendor.vendor_categories?.slug || vendor.category || "").toLowerCase();
 
   const getCategoryTableName = (slug: string): string => {
-    if (slug.includes("venue")) return "venue_details";
-    if (slug.includes("photo") || slug.includes("video")) return "photographer_details";
-    if (slug.includes("makeup")) return "makeup_details";
-    if (slug.includes("cater")) return "catering_details";
-    if (slug.includes("decor")) return "decorator_details";
-    if (slug.includes("bridal") || slug.includes("boutique")) return "bridal_wear_details";
-    if (slug.includes("jewel")) return "jewellery_details";
-    if (slug.includes("mehendi") || slug.includes("mehndi")) return "mehndi_details";
-    if (slug.includes("invite") || slug.includes("card")) return "invitation_details";
-    if (slug.includes("entertain") || slug.includes("dhol") || slug.includes("choreo")) return "entertainment_details";
+    const s = (slug || "").toLowerCase();
+    if (s.includes("venue")) return "venue_details";
+    if (s.includes("photo") || s.includes("video")) return "photographer_details";
+    if (s.includes("makeup")) return "makeup_details";
+    if (s.includes("cater")) return "catering_details";
+    if (s.includes("decor") || s.includes("planner")) return "decorator_details";
+    if (s.includes("bridal") || s.includes("boutique") || s.includes("groom") || s.includes("wedding-story") || s.includes("wedding-studio")) return "bridal_wear_details";
+    if (s.includes("jewel")) return "jewellery_details";
+    if (s.includes("mehendi") || s.includes("mehndi")) return "mehndi_details";
+    if (s.includes("invite") || s.includes("card") || s.includes("e-invite") || s.includes("digital-invitation")) return "invitation_details";
+    if (s.includes("entertain") || s.includes("dhol") || s.includes("choreo")) return "entertainment_details";
     return "catering_details";
   };
 
@@ -1401,18 +1402,23 @@ export async function fetchPublicVendorProfileFromDb(identifier: string) {
     damagePolicy: sfRaw.policies?.damagePolicy || profile.damage_policy || profile.damagePolicy || "",
   };
 
+  const dbBusinessName = profile.business_name || vendor.boutique_name || vendor.name || "";
+
   const mergedStorefront = {
     ...sfRaw,
+    businessName: dbBusinessName || sfRaw.businessName || "Unnamed Vendor",
     theme: profile.color_theme || sfRaw.theme || "emerald",
     brandColors: sfRaw.brandColors || null,
-    coverImage: coverUrl,
-    logo: logoUrl,
+    coverImage: coverUrl || sfRaw.coverImage || "",
+    logo: logoUrl || sfRaw.logo || "",
     tagline: profile.tagline || sfRaw.tagline || "",
     about: profile.about || profile.description || sfRaw.about || "",
     storeHighlights: sfHighlights,
     featuredCollections: sfCollections,
     galleryLayout: profile.gallery_layout || sfRaw.galleryLayout || "grid",
-    gallery: sfRaw.gallery || gallery.map((item) => ({ url: item.image_url || item.url, caption: item.caption })),
+    gallery: gallery.map((item) => ({ url: item.image_url || item.url, caption: item.caption })).length > 0
+      ? gallery.map((item) => ({ url: item.image_url || item.url, caption: item.caption }))
+      : sfRaw.gallery || [],
     actionButtons: sfRaw.actionButtons || profile.action_buttons || profile.actionButtons || {
       callNow: true,
       whatsapp: true,
@@ -1424,7 +1430,14 @@ export async function fetchPublicVendorProfileFromDb(identifier: string) {
     businessInfo: sfBusinessInfo,
     workingHours: sfWorkingHours,
     policies: sfPolicies,
-    socialLinks: sfRaw.socialLinks || socialLinks,
+    socialLinks: Object.keys(socialLinks).length > 0 ? socialLinks : sfRaw.socialLinks || {},
+    contactInfo: {
+      phone: contact.phone || vendor.phone || sfRaw.contactInfo?.phone || "",
+      whatsapp: contact.whatsapp || contact.phone || vendor.whatsapp || sfRaw.contactInfo?.whatsapp || "",
+      email: contact.email || vendor.email || sfRaw.contactInfo?.email || "",
+      address: fullAddress || address.address_line1 || sfRaw.contactInfo?.address || "",
+      googleMaps: (address.latitude && address.longitude ? `https://www.google.com/maps?q=${address.latitude},${address.longitude}` : address.google_maps_url) || sfRaw.contactInfo?.googleMaps || "",
+    },
   };
 
   return {

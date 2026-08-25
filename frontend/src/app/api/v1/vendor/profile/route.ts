@@ -8,11 +8,11 @@ function getCategoryTable(categorySlug: string): string {
   if (slug.includes("photo") || slug.includes("video")) return "photographer_details";
   if (slug.includes("makeup")) return "makeup_details";
   if (slug.includes("cater")) return "catering_details";
-  if (slug.includes("decor")) return "decorator_details";
-  if (slug.includes("bridal") || slug.includes("boutique")) return "bridal_wear_details";
+  if (slug.includes("decor") || slug.includes("planner")) return "decorator_details";
+  if (slug.includes("bridal") || slug.includes("boutique") || slug.includes("groom") || slug.includes("wedding-story") || slug.includes("wedding-studio")) return "bridal_wear_details";
   if (slug.includes("jewel")) return "jewellery_details";
   if (slug.includes("mehendi") || slug.includes("mehndi")) return "mehndi_details";
-  if (slug.includes("invite") || slug.includes("card")) return "invitation_details";
+  if (slug.includes("invite") || slug.includes("card") || slug.includes("e-invite") || slug.includes("digital-invitation")) return "invitation_details";
   if (slug.includes("entertain") || slug.includes("dhol") || slug.includes("choreo")) return "entertainment_details";
   return "category_extension_template";
 }

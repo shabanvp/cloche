@@ -77,24 +77,24 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
 
   // Vendor Visuals
   const rawCover =
-    sf.coverImage ||
     vendor?.cover_image ||
     vendor?.coverImage ||
     vendor?.image ||
+    sf.coverImage ||
     "";
-  const coverUrl = rawCover && !rawCover.includes("images.unsplash.com") ? rawCover : "";
+  const coverUrl = rawCover && !rawCover.includes("images.unsplash.com") ? rawCover : (sf.coverImage || "");
 
   const logoUrl =
-    sf.logo ||
     vendor?.logo_url ||
     vendor?.logo ||
+    sf.logo ||
     "";
 
   const displayName =
-    sf.businessName ||
     vendor?.business_name ||
     vendor?.boutique_name ||
     vendor?.name ||
+    sf.businessName ||
     "Verified Wedding Partner";
 
   const initials = useMemo(() => {
@@ -107,14 +107,15 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
       .toUpperCase() || "CL";
   }, [displayName]);
 
-  const tagline = sf.tagline || vendor?.tagline || vendor?.subtitle || "";
+  const tagline = vendor?.tagline || vendor?.subtitle || sf.tagline || "";
   const categoryLabel = vendor?.categoryLabel || vendor?.category || "Wedding Partner";
   const location =
+    vendor?.address ||
     vendor?.location ||
-    [vendor?.city || "Kochi", vendor?.state || "Kerala"].filter(Boolean).join(", ") ||
-    "Kochi, Kerala";
+    [vendor?.city, vendor?.state].filter(Boolean).join(", ") ||
+    "";
 
-  const about = sf.about || vendor?.about || vendor?.description || "";
+  const about = vendor?.about || vendor?.description || sf.about || "";
 
   // Store Highlights (Badges)
   const storeHighlights: string[] = useMemo(() => {

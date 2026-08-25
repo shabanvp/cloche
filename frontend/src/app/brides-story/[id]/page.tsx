@@ -1,30 +1,33 @@
-import { StoryBoutiqueDetailClient } from "@/components/StoryBoutiqueDetailClient";
-import { StoryBoutiqueVendorProfile } from "@/lib/storyBoutiqueTypes";
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { fetchPublicVendorProfileFromDb } from "@/lib/supabase";
+import { BoutiqueProfileClient } from "@/components/BoutiqueProfileClient";
 
-export default async function BrideStoryDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
-  const mockProfile: StoryBoutiqueVendorProfile = {
-    id: id || "bride-boutique-1",
-    boutique_name: "Aurora Bridal Story Couture",
-    owner_name: "Fathima Rahman",
-    category: "brides-story",
-    categoryLabel: "Bride's Story Boutique",
-    targetAudience: "bride",
-    phone: "+91 95678 11223",
-    whatsapp: "+91 95678 11223",
-    email: "info@aurorabridal.in",
-    city: "Bandra",
-    district: "Ernakulam",
-    openingTime: "10:00 AM",
-    closingTime: "08:00 PM",
-    description: "Exclusive luxury bridal lehengas, silk sarees, Nikah dresses, Christian bridal gowns and custom bridal fittings.",
-    logo: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80",
-    coverImage: "https://images.unsplash.com/photo-1549417229-aa67d3263c09?auto=format&fit=crop&w=1200&q=80",
-    isVerified: true,
-    rating: 4.9,
-    reviewsCount: 128,
-  };
-
-  return <StoryBoutiqueDetailClient boutique={mockProfile} />;
+interface Props {
+  params: Promise<{ id: string }>;
 }
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id } = await params;
+  const { data: profile } = await fetchPublicVendorProfileFromDb(id);
+  if (!profile) return { title: "Bridal Studio Not Found | Cloche" };
+  return {
+    title: `${profile.name} | Cloche Bridal Studio`,
+    description: profile.about || `Explore ${profile.name} on Cloche.`,
+  };
+}
+
+export default async function BrideStoryDetailPage({ params }: Props) {
+  const { id } = await params;
+  const { data: profile } = await fetchPublicVendorProfileFromDb(id);
+
+  if (!profile) {
+    notFound();
+  }
+
+  return <BoutiqueProfileClient profile={profile} />;
+}
+
