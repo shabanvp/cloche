@@ -41,20 +41,20 @@ export default function CustomizationPage({
   // Active Step: 4 = Customizer Studio, 5 = Final Export & Share Preview
   const [activeStep, setActiveStep] = useState<4 | 5>(4);
 
-  // Editable Fields
-  const [brideName, setBrideName] = useState("Ananya");
-  const [groomName, setGroomName] = useState("Rahul");
-  const [brideParents, setBrideParents] = useState("Mr. & Mrs. Kapoor");
-  const [groomParents, setGroomParents] = useState("Mr. & Mrs. Sharma");
-  const [weddingDate, setWeddingDate] = useState("2026-12-18");
-  const [weddingTime, setWeddingTime] = useState("6:30 PM Onwards");
-  const [venueName, setVenueName] = useState("Celestia Grand Palace");
-  const [venueAddress, setVenueAddress] = useState("Lake City Road, Udaipur, Rajasthan");
-  const [rsvpDeadline, setRsvpDeadline] = useState("November 15, 2026");
-  const [phone, setPhone] = useState("+91 98765 43210");
-  const [email, setEmail] = useState("rsvp@ananyarahul2026.com");
-  const [website, setWebsite] = useState("https://cloche.com/w/ananya-rahul");
-  const [googleMapsLink, setGoogleMapsLink] = useState("https://maps.google.com/?q=Celestia+Grand+Palace+Udaipur");
+  // Editable Fields Initialized with Template-Specific Sample Data
+  const [brideName, setBrideName] = useState(template.sampleBride || "Diya");
+  const [groomName, setGroomName] = useState(template.sampleGroom || "Aarav");
+  const [brideParents, setBrideParents] = useState(template.sampleBrideParents || "Maharaja & Maharani Singhania");
+  const [groomParents, setGroomParents] = useState(template.sampleGroomParents || "Mr. & Mrs. Rathore");
+  const [weddingDate, setWeddingDate] = useState(template.sampleDate || "November 24, 2026");
+  const [weddingTime, setWeddingTime] = useState(template.sampleTime || "6:00 PM Onwards");
+  const [venueName, setVenueName] = useState(template.sampleVenue || "The Oberoi Udaivilas");
+  const [venueAddress, setVenueAddress] = useState(template.sampleAddress || "Udaipur, Rajasthan");
+  const [rsvpDeadline, setRsvpDeadline] = useState("November 01, 2026");
+  const [phone, setPhone] = useState(template.samplePhone || "+91 98111 22334");
+  const [email, setEmail] = useState("rsvp@wedding2026.com");
+  const [website, setWebsite] = useState(`https://cloche.com/w/${template.sampleBride.toLowerCase()}-${template.sampleGroom.toLowerCase()}`);
+  const [googleMapsLink, setGoogleMapsLink] = useState(`https://maps.google.com/?q=${encodeURIComponent(template.sampleVenue)}`);
   
   const [selectedThemeColor, setSelectedThemeColor] = useState(template.themeColor || "#0F4C45");
   const [selectedFont, setSelectedFont] = useState(template.fontStyle || "Playfair Display");

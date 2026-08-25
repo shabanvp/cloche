@@ -57,17 +57,17 @@ export function InvitationCardPreview({
   pageIndex = 0,
   compact = false,
 }: InvitationCardPreviewProps) {
-  // Custom inputs or template defaults
+  // Use custom inputs or template's specific unique sample data
   const props = {
-    brideName: customData?.brideName || "Ananya",
-    groomName: customData?.groomName || "Rahul",
-    brideParents: customData?.brideParents || "Mr. & Mrs. Kapoor",
-    groomParents: customData?.groomParents || "Mr. & Mrs. Sharma",
-    weddingDate: customData?.weddingDate || "2026-12-18",
-    weddingTime: customData?.weddingTime || "6:30 PM Onwards",
-    venueName: customData?.venueName || "Celestia Grand Palace",
-    venueAddress: customData?.venueAddress || "Udaipur, Rajasthan",
-    phone: customData?.phone || "+91 98765 43210",
+    brideName: customData?.brideName || template.sampleBride || "Diya",
+    groomName: customData?.groomName || template.sampleGroom || "Aarav",
+    brideParents: customData?.brideParents || template.sampleBrideParents || "Maharaja & Maharani Singhania",
+    groomParents: customData?.groomParents || template.sampleGroomParents || "Mr. & Mrs. Rathore",
+    weddingDate: customData?.weddingDate || template.sampleDate || "November 24, 2026",
+    weddingTime: customData?.weddingTime || template.sampleTime || "6:00 PM Onwards",
+    venueName: customData?.venueName || template.sampleVenue || "The Oberoi Udaivilas",
+    venueAddress: customData?.venueAddress || template.sampleAddress || "Udaipur, Rajasthan",
+    phone: customData?.phone || template.samplePhone || "+91 98111 22334",
     couplePhotoUrl: customData?.couplePhotoUrl,
     compact,
     pageTitle: template.pages[pageIndex]?.title || template.pages[0]?.title,
