@@ -875,6 +875,7 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
                   <span>Submit Inquiry Directly</span>
                 </button>
               </form>
+            )}
           </div>
 
         </aside>
