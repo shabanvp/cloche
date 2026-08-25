@@ -506,6 +506,7 @@ export function GroomWearDetailClient({ vendor }: { vendor: GroomWearVendor }) {
               </a>
             </div>
 
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-white/80 pt-2">
               <div><strong>Store Hours:</strong> {typeof vendor.workingHours === "object" && vendor.workingHours !== null ? [vendor.workingHours.openingTime, vendor.workingHours.closingTime].filter(Boolean).join(" - ") || vendor.workingHours.workingDays : vendor.workingHours || vendor.working_hours || vendor.businessHours || "Mon – Sat: 10:00 AM – 8:00 PM | Sun: 11:00 AM – 5:00 PM"}</div>
               <div><strong>Contact Email:</strong> contact@groomwear.in</div>
               <div><strong>Phone Number:</strong> +91 98470 55443</div>
