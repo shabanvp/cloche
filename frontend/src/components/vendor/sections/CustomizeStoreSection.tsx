@@ -185,23 +185,6 @@ export function CustomizeStoreSection({ categoryConfig, vendorName, onBack }: Cu
   const [weeklyOff, setWeeklyOff] = useState<string>("Sunday");
   const [holidayNotice, setHolidayNotice] = useState<string>("Open on wedding season dates by prior appointment");
 
-  // 8. Store Policies
-  const [rentalPolicy, setRentalPolicy] = useState<string>(
-    "Minimum 2-day rental with valid government ID verification."
-  );
-  const [returnPolicy, setReturnPolicy] = useState<string>(
-    "Return by 05:00 PM on designated date. Late fee applies."
-  );
-  const [cancellationPolicy, setCancellationPolicy] = useState<string>(
-    "Full refund 7+ days prior to event date."
-  );
-  const [securityDepositPolicy, setSecurityDepositPolicy] = useState<string>(
-    "100% refundable within 24 hours of safe return inspection."
-  );
-  const [damagePolicy, setDamagePolicy] = useState<string>(
-    "Normal wear & tear accepted. Missing stones/breakage deducted at actuals."
-  );
-
   // Loading & Upload states
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const [isUploadingCover, setIsUploadingCover] = useState(false);
@@ -277,12 +260,6 @@ export function CustomizeStoreSection({ categoryConfig, vendorName, onBack }: Cu
     if (identity.workingDays || identity.working_days) setWorkingDays(identity.workingDays || identity.working_days || "");
     if (identity.weeklyOff || identity.weekly_off) setWeeklyOff(identity.weeklyOff || identity.weekly_off || "");
     if (identity.holidayNotice || identity.holiday_notice) setHolidayNotice(identity.holidayNotice || identity.holiday_notice || "");
-
-    if (identity.rentalPolicy || identity.rental_policy) setRentalPolicy(identity.rentalPolicy || identity.rental_policy || "");
-    if (identity.returnPolicy || identity.return_policy) setReturnPolicy(identity.returnPolicy || identity.return_policy || "");
-    if (identity.cancellationPolicy || identity.cancellation_policy) setCancellationPolicy(identity.cancellationPolicy || identity.cancellation_policy || "");
-    if (identity.securityDepositPolicy || identity.security_deposit_policy) setSecurityDepositPolicy(identity.securityDepositPolicy || identity.security_deposit_policy || "");
-    if (identity.damagePolicy || identity.damage_policy) setDamagePolicy(identity.damagePolicy || identity.damage_policy || "");
   };
 
   useEffect(() => {
@@ -617,13 +594,6 @@ export function CustomizeStoreSection({ categoryConfig, vendorName, onBack }: Cu
               weeklyOff: weeklyOff,
               holidayNotice: holidayNotice,
             },
-            policies: {
-              rentalPolicy: rentalPolicy,
-              securityDepositPolicy: securityDepositPolicy,
-              returnPolicy: returnPolicy,
-              cancellationPolicy: cancellationPolicy,
-              damagePolicy: damagePolicy,
-            },
           }}
           storefront={{
             theme: colorTheme,
@@ -651,13 +621,6 @@ export function CustomizeStoreSection({ categoryConfig, vendorName, onBack }: Cu
               closingTime: closingTime,
               weeklyOff: weeklyOff,
               holidayNotice: holidayNotice,
-            },
-            policies: {
-              rentalPolicy: rentalPolicy,
-              securityDepositPolicy: securityDepositPolicy,
-              returnPolicy: returnPolicy,
-              cancellationPolicy: cancellationPolicy,
-              damagePolicy: damagePolicy,
             },
             socialLinks: {
               instagram: instagram.trim(),
@@ -1042,83 +1005,7 @@ export function CustomizeStoreSection({ categoryConfig, vendorName, onBack }: Cu
           )}
         </div>
 
-        {/* Section 6: Store Policies */}
-        <div className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-xs">
-          <button
-            type="button"
-            onClick={() => toggleAccordion("policies")}
-            className="w-full p-5 text-left font-serif font-bold text-base text-charcoal flex items-center justify-between bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] transition-colors"
-          >
-            <div className="flex items-center gap-3">
-              <FileText style={{ color: activeTheme.primary }} className="w-5 h-5" />
-              <div>
-                <span className="block">6. Store Policies</span>
-                <span className="text-xs font-sans font-normal text-charcoal/60">
-                  Rental terms, return window, cancellation & damage policies
-                </span>
-              </div>
-            </div>
-            {openAccordions.policies ? <ChevronUp className="w-4 h-4 text-charcoal/40" /> : <ChevronDown className="w-4 h-4 text-charcoal/40" />}
-          </button>
-
-          {openAccordions.policies && (
-            <div className="p-5 border-t border-gold/10 space-y-4 text-xs animate-in fade-in duration-200">
-              <div className="space-y-3">
-                <div>
-                  <label className="block font-bold text-charcoal mb-1">Rental Policy</label>
-                  <textarea
-                    rows={2}
-                    value={rentalPolicy}
-                    onChange={(e) => setRentalPolicy(e.target.value)}
-                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-bold text-charcoal mb-1">Return Policy</label>
-                  <textarea
-                    rows={2}
-                    value={returnPolicy}
-                    onChange={(e) => setReturnPolicy(e.target.value)}
-                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-bold text-charcoal mb-1">Cancellation Policy</label>
-                  <textarea
-                    rows={2}
-                    value={cancellationPolicy}
-                    onChange={(e) => setCancellationPolicy(e.target.value)}
-                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-bold text-charcoal mb-1">Security Deposit Policy</label>
-                  <textarea
-                    rows={2}
-                    value={securityDepositPolicy}
-                    onChange={(e) => setSecurityDepositPolicy(e.target.value)}
-                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-bold text-charcoal mb-1">Damage Policy</label>
-                  <textarea
-                    rows={2}
-                    value={damagePolicy}
-                    onChange={(e) => setDamagePolicy(e.target.value)}
-                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Section 7: Brand Theme Colors */}
+        {/* Section 6: Brand Theme Colors */}
         <div className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-xs">
           <button
             type="button"

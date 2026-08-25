@@ -35,11 +35,6 @@ export function JewelleryDetailClient({ vendor }: { vendor: JewelleryVendor }) {
     closingTime: v.closingTime || v.closing_time || "08:00 PM",
     weeklyOff: v.weeklyOff || v.weekly_off || "Sunday",
     holidayNotice: v.holidayNotice || v.holiday_notice || "Open on festive wedding dates by prior appointment",
-    rentalPolicy: v.rentalPolicy || v.rental_policy || "Minimum 2-day rental with valid government ID verification.",
-    returnPolicy: v.returnPolicy || v.return_policy || "Return by 05:00 PM on designated date. Late fee applies.",
-    cancellationPolicy: v.cancellationPolicy || v.cancellation_policy || "Full refund 7+ days prior to event date.",
-    securityDepositPolicy: v.securityDepositPolicy || v.security_deposit_policy || "100% refundable within 24 hours of safe return inspection.",
-    damagePolicy: v.damagePolicy || v.damage_policy || "Normal wear & tear accepted. Missing stones/breakage deducted at actuals.",
     stats: [
       { icon: "sparkles", value: "100%", label: "Certified Jewels" },
       { icon: "building", value: "800+", label: "Unique Designs" },

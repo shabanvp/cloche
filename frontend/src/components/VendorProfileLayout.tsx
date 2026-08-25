@@ -1256,38 +1256,7 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
             </div>
           )}
 
-          {/* Store & Rental Policies Accordion (Jewellery Only) */}
-          {isJewellery && (vendor.rentalPolicy || vendor.rental_policy || vendor.returnPolicy || vendor.return_policy || vendor.securityDepositPolicy || vendor.security_deposit_policy) && (
-            <div className="pt-4 border-t border-black/5 space-y-3">
-              <span className="text-xs font-serif font-bold text-[#1A1410] block">Store & Rental Policies</span>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-                {(vendor.rentalPolicy || vendor.rental_policy) && (
-                  <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
-                    <span className="font-bold text-[#0F4C45] block">Rental Terms</span>
-                    <p className="text-[#5A6561] leading-relaxed">{vendor.rentalPolicy || vendor.rental_policy}</p>
-                  </div>
-                )}
-                {(vendor.returnPolicy || vendor.return_policy) && (
-                  <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
-                    <span className="font-bold text-[#0F4C45] block">Return & Overdue Policy</span>
-                    <p className="text-[#5A6561] leading-relaxed">{vendor.returnPolicy || vendor.return_policy}</p>
-                  </div>
-                )}
-                {(vendor.cancellationPolicy || vendor.cancellation_policy) && (
-                  <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
-                    <span className="font-bold text-[#0F4C45] block">Cancellation & Refund</span>
-                    <p className="text-[#5A6561] leading-relaxed">{vendor.cancellationPolicy || vendor.cancellation_policy}</p>
-                  </div>
-                )}
-                {(vendor.securityDepositPolicy || vendor.security_deposit_policy) && (
-                  <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
-                    <span className="font-bold text-[#0F4C45] block">Security Deposit Guarantee</span>
-                    <p className="text-[#5A6561] leading-relaxed">{vendor.securityDepositPolicy || vendor.security_deposit_policy}</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
+
 
           {/* Social Media Channels */}
           {(vendor.instagram || vendor.facebook || vendor.youtube || vendor.website) && (

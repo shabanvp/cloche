@@ -129,12 +129,22 @@ export function VendorGalleryClient({ identifier }: VendorGalleryClientProps) {
 
   // Back link URL
   const backUrl = useMemo(() => {
-    if (vendor?.category && vendor.category.toLowerCase().includes("venue")) {
-      return `/venues/${identifier}`;
-    }
-    if (vendor?.slug) return `/vendors/${vendor.slug}`;
-    return `/vendors/${identifier}`;
-  }, [vendor, identifier]);
+    const cat = (category || vendor?.categorySlug || vendor?.category || "").toLowerCase();
+    const idVal = identifier || vendor?.slug || vendor?.id || "";
+    if (cat.includes("venue")) return `/venues/${idVal}`;
+    if (cat.includes("photo")) return `/photographers/${idVal}`;
+    if (cat.includes("makeup")) return `/makeup-artists/${idVal}`;
+    if (cat.includes("decor") || cat.includes("planner")) return `/decor-planning/${idVal}`;
+    if (cat.includes("mehendi") || cat.includes("mehndi")) return `/mehendi-artists/${idVal}`;
+    if (cat.includes("bridal")) return `/bridal-wear/${idVal}`;
+    if (cat.includes("groom")) return `/groom-wear/${idVal}`;
+    if (cat.includes("wedding-story") || cat.includes("wedding-studio")) return `/wedding-story/${idVal}`;
+    if (cat.includes("jewel")) return `/jewellery/${idVal}`;
+    if (cat.includes("invite") || cat.includes("card")) return `/invitations/${idVal}`;
+    if (cat.includes("cater")) return `/catering/${idVal}`;
+    if (cat.includes("boutique")) return `/boutiques/${idVal}`;
+    return `/vendors/${cat || "general"}/${idVal}`;
+  }, [category, vendor, identifier]);
 
   // Lightbox Navigation
   const goToNext = useCallback(() => {

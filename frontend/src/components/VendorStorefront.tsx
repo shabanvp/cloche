@@ -167,17 +167,46 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
     };
   }, [sf.businessInfo, vendor]);
 
-  // Working Hours
+  // Working Hours (Reads from sf.workingHours, vendor.workingHours, vendor.working_hours, or categoryDetail)
   const workingHours = useMemo(() => {
-    const w = sf.workingHours || {};
+    const w = (typeof sf.workingHours === "object" && sf.workingHours !== null ? sf.workingHours : {}) as Record<string, any>;
+    const vW = (typeof vendor?.workingHours === "object" && vendor.workingHours !== null ? vendor.workingHours : {}) as Record<string, any>;
+
+    const days = w.workingDays || vW.workingDays || vendor?.working_days || vendor?.workingDays || "";
+    const open = w.openingTime || vW.openingTime || vendor?.opening_time || vendor?.openingTime || "";
+    const close = w.closingTime || vW.closingTime || vendor?.closing_time || vendor?.closingTime || "";
+    const off = w.weeklyOff || vW.weeklyOff || vendor?.weekly_off || vendor?.weeklyOff || vendor?.weeklyHolidays || "";
+    const notice = w.holidayNotice || vW.holidayNotice || vendor?.holiday_notice || vendor?.holidayNotice || vendor?.publicHolidayAvailability || "";
+
+    const rawStr = typeof vendor?.workingHours === "string" ? vendor.workingHours : typeof vendor?.working_hours === "string" ? vendor.working_hours : "";
+
     return {
-      workingDays: w.workingDays || vendor?.workingDays || vendor?.working_days || "",
-      openingTime: w.openingTime || vendor?.openingTime || vendor?.opening_time || "",
-      closingTime: w.closingTime || vendor?.closingTime || vendor?.closing_time || "",
-      weeklyOff: w.weeklyOff || vendor?.weeklyOff || vendor?.weekly_off || vendor?.weeklyHolidays || "",
-      holidayNotice: w.holidayNotice || vendor?.holidayNotice || vendor?.holiday_notice || vendor?.publicHolidayAvailability || "",
+      workingDays: days || (rawStr ? "Operating Hours" : ""),
+      openingTime: open,
+      closingTime: close,
+      weeklyOff: off,
+      holidayNotice: notice,
+      rawString: rawStr,
     };
   }, [sf.workingHours, vendor]);
+
+  // Gallery href resolution to avoid 404
+  const galleryHref = useMemo(() => {
+    const cat = (vendor?.categorySlug || vendor?.category || "").toLowerCase();
+    const idVal = vendor?.id || vendor?.slug || "preview";
+    if (cat.includes("venue")) return `/venues/${idVal}/gallery`;
+    if (cat.includes("photo")) return `/photographers/${idVal}/gallery`;
+    if (cat.includes("makeup")) return `/makeup-artists/${idVal}/gallery`;
+    if (cat.includes("decor") || cat.includes("planner")) return `/decor-planning/${idVal}/gallery`;
+    if (cat.includes("mehendi") || cat.includes("mehndi")) return `/mehendi-artists/${idVal}/gallery`;
+    if (cat.includes("bridal")) return `/bridal-wear/${idVal}/gallery`;
+    if (cat.includes("groom")) return `/groom-wear/${idVal}/gallery`;
+    if (cat.includes("wedding-story") || cat.includes("wedding-studio")) return `/wedding-story/${idVal}/gallery`;
+    if (cat.includes("jewel")) return `/jewellery/${idVal}/gallery`;
+    if (cat.includes("invite") || cat.includes("card")) return `/invitations/${idVal}/gallery`;
+    if (cat.includes("cater")) return `/catering/${idVal}/gallery`;
+    return `/vendors/${cat || "general"}/${idVal}/gallery`;
+  }, [vendor]);
 
   // Automatically record view event for trending analytics engine
   React.useEffect(() => {
@@ -189,18 +218,6 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
       }).catch(() => null);
     }
   }, [vendor?.id, previewMode]);
-
-  // Policies
-  const policies = useMemo(() => {
-    const p = sf.policies || {};
-    return {
-      rentalPolicy: p.rentalPolicy || vendor?.rentalPolicy || vendor?.rental_policy || "",
-      securityDepositPolicy: p.securityDepositPolicy || vendor?.securityDepositPolicy || vendor?.security_deposit_policy || "",
-      cancellationPolicy: p.cancellationPolicy || vendor?.cancellationPolicy || vendor?.cancellation_policy || "",
-      returnPolicy: p.returnPolicy || vendor?.returnPolicy || vendor?.return_policy || "",
-      damagePolicy: p.damagePolicy || vendor?.damagePolicy || vendor?.damage_policy || "",
-    };
-  }, [sf.policies, vendor]);
 
   // Gallery Layout & Photos (ONLY real photos uploaded by vendor, ZERO demo / unsplash images)
   const galleryLayout = sf.galleryLayout || vendor?.galleryLayout || vendor?.gallery_layout || "grid";
@@ -655,11 +672,7 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
               {/* View All Portfolio Redirect Action */}
               <div className="pt-1 flex justify-center">
                 <Link
-                  href={
-                    (vendor?.category || "").toLowerCase().includes("venue")
-                      ? `/venues/${vendor?.slug || vendor?.id || "preview"}/gallery`
-                      : `/vendors/${vendor?.slug || vendor?.id || "preview"}/gallery`
-                  }
+                  href={galleryHref}
                   className="w-full sm:w-auto px-8 py-3 rounded-2xl bg-white border border-gold/25 text-charcoal font-bold text-xs hover:bg-[#FAF7F2] hover:border-gold/40 shadow-xs transition-all flex items-center justify-center gap-2 group cursor-pointer"
                 >
                   <span>View All Portfolio ({galleryPhotos.length})</span>
@@ -744,87 +757,51 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
             </div>
           )}
 
-          {/* G. STORE POLICIES */}
-          {(policies.rentalPolicy || policies.securityDepositPolicy || policies.cancellationPolicy || policies.returnPolicy || policies.damagePolicy) && (
-            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-gold/15 shadow-sm space-y-4">
-              <h2 className="font-serif text-2xl font-bold text-charcoal flex items-center gap-2">
-                <ShieldCheck style={{ color: activeTheme.primary }} className="w-5 h-5" /> Store Policies &amp; Terms
-              </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                {policies.rentalPolicy && (
-                  <div className="p-4 bg-[#FAF7F2] rounded-2xl border border-gold/15 space-y-1">
-                    <span className="font-bold text-charcoal block flex items-center gap-1.5">
-                      <ShieldCheck className="w-3.5 h-3.5 text-[#0F4C45]" /> Rental &amp; Booking Terms
-                    </span>
-                    <p className="text-charcoal/70 leading-relaxed">{policies.rentalPolicy}</p>
-                  </div>
-                )}
-
-                {policies.securityDepositPolicy && (
-                  <div className="p-4 bg-[#FAF7F2] rounded-2xl border border-gold/15 space-y-1">
-                    <span className="font-bold text-charcoal block flex items-center gap-1.5">
-                      <FileText className="w-3.5 h-3.5 text-[#0F4C45]" /> Security Deposit Release
-                    </span>
-                    <p className="text-charcoal/70 leading-relaxed">{policies.securityDepositPolicy}</p>
-                  </div>
-                )}
-
-                {policies.cancellationPolicy && (
-                  <div className="p-4 bg-[#FAF7F2] rounded-2xl border border-gold/15 space-y-1 sm:col-span-2">
-                    <span className="font-bold text-charcoal block flex items-center gap-1.5">
-                      <Clock className="w-3.5 h-3.5 text-[#0F4C45]" /> Cancellation &amp; Rescheduling Policy
-                    </span>
-                    <p className="text-charcoal/70 leading-relaxed">{policies.cancellationPolicy}</p>
-                  </div>
-                )}
-
-                {policies.returnPolicy && (
-                  <div className="p-4 bg-[#FAF7F2] rounded-2xl border border-gold/15 space-y-1">
-                    <span className="font-bold text-charcoal block flex items-center gap-1.5">
-                      <FileText className="w-3.5 h-3.5 text-[#0F4C45]" /> Return Policy
-                    </span>
-                    <p className="text-charcoal/70 leading-relaxed">{policies.returnPolicy}</p>
-                  </div>
-                )}
-
-                {policies.damagePolicy && (
-                  <div className="p-4 bg-[#FAF7F2] rounded-2xl border border-gold/15 space-y-1">
-                    <span className="font-bold text-charcoal block flex items-center gap-1.5">
-                      <ShieldCheck className="w-3.5 h-3.5 text-[#0F4C45]" /> Damage Policy
-                    </span>
-                    <p className="text-charcoal/70 leading-relaxed">{policies.damagePolicy}</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
         </div>
 
         {/* RIGHT COLUMN (4 COLS): Timings, Location, Inquiry Card */}
         <aside className="lg:col-span-4 space-y-6">
           
           {/* 1. BUSINESS TIMINGS CARD */}
-          {(workingHours.workingDays || workingHours.openingTime || workingHours.closingTime || workingHours.weeklyOff || workingHours.holidayNotice) && (
-            <div className="bg-white p-6 rounded-3xl border border-gold/15 shadow-sm space-y-4 text-xs">
+          {(workingHours.workingDays || workingHours.openingTime || workingHours.closingTime || workingHours.weeklyOff || workingHours.holidayNotice || workingHours.rawString) && (
+            <div className="bg-[#FAF7F2] p-6 rounded-3xl border border-gold/15 shadow-sm space-y-4 text-xs">
               <h3 className="font-serif font-bold text-lg text-charcoal flex items-center gap-2 border-b border-gold/10 pb-3">
                 <Clock style={{ color: activeTheme.primary }} className="w-4 h-4" /> Business Hours
               </h3>
               <div className="space-y-2">
                 {workingHours.workingDays && (
-                  <div className="flex justify-between py-1 border-b border-gray-50">
+                  <div className="flex justify-between py-1 border-b border-gray-100/60">
                     <span className="text-charcoal/60 font-medium">Working Days:</span>
                     <span className="font-bold text-charcoal">{workingHours.workingDays}</span>
                   </div>
                 )}
-                {(workingHours.openingTime || workingHours.closingTime) && (
-                  <div className="flex justify-between py-1 border-b border-gray-50">
+                {(workingHours.openingTime || workingHours.closingTime) ? (
+                  <div className="flex justify-between py-1 border-b border-gray-100/60">
                     <span className="text-charcoal/60 font-medium">Store Hours:</span>
                     <span className="font-bold text-[#0F4C45]">
                       {[workingHours.openingTime, workingHours.closingTime].filter(Boolean).join(" - ")}
                     </span>
                   </div>
+                ) : workingHours.rawString ? (
+                  <div className="flex justify-between py-1 border-b border-gray-100/60">
+                    <span className="text-charcoal/60 font-medium">Store Hours:</span>
+                    <span className="font-bold text-[#0F4C45]">{workingHours.rawString}</span>
+                  </div>
+                ) : null}
+                {workingHours.weeklyOff && (
+                  <div className="flex justify-between py-1 border-b border-gray-100/60">
+                    <span className="text-charcoal/60 font-medium">Weekly Holiday:</span>
+                    <span className="font-bold text-charcoal">{workingHours.weeklyOff}</span>
+                  </div>
                 )}
+                {workingHours.holidayNotice && (
+                  <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 font-semibold text-[11px] mt-2">
+                    🔔 {workingHours.holidayNotice}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
                 {workingHours.weeklyOff && (
                   <div className="flex justify-between py-1 border-b border-gray-50">
                     <span className="text-charcoal/60 font-medium">Weekly Holiday:</span>

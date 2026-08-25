@@ -1394,14 +1394,6 @@ export async function fetchPublicVendorProfileFromDb(identifier: string) {
     holidayNotice: sfRaw.workingHours?.holidayNotice || profile.holiday_notice || profile.holidayNotice || "",
   };
 
-  const sfPolicies = {
-    rentalPolicy: sfRaw.policies?.rentalPolicy || profile.rental_policy || profile.rentalPolicy || "",
-    securityDepositPolicy: sfRaw.policies?.securityDepositPolicy || profile.security_deposit_policy || profile.securityDepositPolicy || "",
-    returnPolicy: sfRaw.policies?.returnPolicy || profile.return_policy || profile.returnPolicy || "",
-    cancellationPolicy: sfRaw.policies?.cancellationPolicy || categoryDetail.cancellation_policy || profile.cancellation_policy || "",
-    damagePolicy: sfRaw.policies?.damagePolicy || profile.damage_policy || profile.damagePolicy || "",
-  };
-
   const dbBusinessName = profile.business_name || vendor.boutique_name || vendor.name || "";
 
   const mergedStorefront = {
@@ -1429,7 +1421,6 @@ export async function fetchPublicVendorProfileFromDb(identifier: string) {
     },
     businessInfo: sfBusinessInfo,
     workingHours: sfWorkingHours,
-    policies: sfPolicies,
     socialLinks: Object.keys(socialLinks).length > 0 ? socialLinks : sfRaw.socialLinks || {},
     contactInfo: {
       phone: contact.phone || vendor.phone || sfRaw.contactInfo?.phone || "",
@@ -1570,10 +1561,6 @@ export async function fetchPublicVendorProfileFromDb(identifier: string) {
       homeTrialAvailable: sfBusinessInfo.homeTrialAvailable,
       customJewelleryAvailable: sfBusinessInfo.customJewelleryAvailable,
       collectionsCount: sfBusinessInfo.collectionsCount,
-      rentalPolicy: sfPolicies.rentalPolicy,
-      securityDepositPolicy: sfPolicies.securityDepositPolicy,
-      returnPolicy: sfPolicies.returnPolicy,
-      damagePolicy: sfPolicies.damagePolicy,
       workingDays: sfWorkingHours.workingDays,
       weeklyOff: sfWorkingHours.weeklyOff,
       holidayNotice: sfWorkingHours.holidayNotice,
