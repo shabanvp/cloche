@@ -205,6 +205,7 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
     if (cat.includes("jewel")) return `/jewellery/${idVal}/gallery`;
     if (cat.includes("invite") || cat.includes("card")) return `/invitations/${idVal}/gallery`;
     if (cat.includes("cater")) return `/catering/${idVal}/gallery`;
+    return `/vendors/${cat || "general"}/${idVal}/gallery`;
   }, [vendor]);
 
   // Category-tailored Package & Pricing Section Title
