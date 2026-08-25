@@ -15,6 +15,9 @@ export type GroomWearVendor = {
   amenities: { name: string; icon: string }[];
   tags?: string[];
   userReviews: { author: string; date: string; rating: number; text: string }[];
+  workingHours?: any;
+  working_hours?: string;
+  businessHours?: string;
 };
 
 export const groomWearVendors: GroomWearVendor[] = [
