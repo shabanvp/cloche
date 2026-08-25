@@ -906,45 +906,37 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
         <aside className="lg:col-span-4 space-y-6">
           
           {/* 1. BUSINESS TIMINGS CARD */}
-          {(workingHours.workingDays || workingHours.openingTime || workingHours.closingTime || workingHours.weeklyOff || workingHours.holidayNotice || workingHours.rawString) && (
-            <div className="bg-[#FAF7F2] p-6 rounded-3xl border border-gold/15 shadow-sm space-y-4 text-xs">
-              <h3 className="font-serif font-bold text-lg text-charcoal flex items-center gap-2 border-b border-gold/10 pb-3">
-                <Clock style={{ color: activeTheme.primary }} className="w-4 h-4" /> Business Hours
-              </h3>
-              <div className="space-y-2">
-                {workingHours.workingDays && (
-                  <div className="flex justify-between py-1 border-b border-gray-100/60">
-                    <span className="text-charcoal/60 font-medium">Working Days:</span>
-                    <span className="font-bold text-charcoal">{workingHours.workingDays}</span>
-                  </div>
-                )}
-                {(workingHours.openingTime || workingHours.closingTime) ? (
-                  <div className="flex justify-between py-1 border-b border-gray-100/60">
-                    <span className="text-charcoal/60 font-medium">Store Hours:</span>
-                    <span className="font-bold text-[#0F4C45]">
-                      {[workingHours.openingTime, workingHours.closingTime].filter(Boolean).join(" - ")}
-                    </span>
-                  </div>
-                ) : workingHours.rawString ? (
-                  <div className="flex justify-between py-1 border-b border-gray-100/60">
-                    <span className="text-charcoal/60 font-medium">Store Hours:</span>
-                    <span className="font-bold text-[#0F4C45]">{workingHours.rawString}</span>
-                  </div>
-                ) : null}
-                {workingHours.weeklyOff && (
-                  <div className="flex justify-between py-1 border-b border-gray-100/60">
-                    <span className="text-charcoal/60 font-medium">Weekly Holiday:</span>
-                    <span className="font-bold text-charcoal">{workingHours.weeklyOff}</span>
-                  </div>
-                )}
-                {workingHours.holidayNotice && (
-                  <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 font-semibold text-[11px] mt-2">
-                    🔔 {workingHours.holidayNotice}
-                  </div>
-                )}
+          <div className="bg-[#FAF7F2] p-6 rounded-3xl border border-gold/15 shadow-sm space-y-4 text-xs">
+            <h3 className="font-serif font-bold text-lg text-charcoal flex items-center gap-2 border-b border-gold/10 pb-3">
+              <Clock style={{ color: activeTheme.primary }} className="w-4 h-4" /> Business Hours
+            </h3>
+            <div className="space-y-2">
+              <div className="flex justify-between py-1 border-b border-gray-100/60">
+                <span className="text-charcoal/60 font-medium">Working Days:</span>
+                <span className="font-bold text-charcoal">{workingHours.workingDays || "Monday - Saturday"}</span>
               </div>
+
+              <div className="flex justify-between py-1 border-b border-gray-100/60">
+                <span className="text-charcoal/60 font-medium">Store Hours:</span>
+                <span className="font-bold text-[#0F4C45]">
+                  {[workingHours.openingTime, workingHours.closingTime].filter(Boolean).join(" - ") || workingHours.rawString || "10:00 AM - 08:00 PM"}
+                </span>
+              </div>
+
+              {workingHours.weeklyOff && (
+                <div className="flex justify-between py-1 border-b border-gray-100/60">
+                  <span className="text-charcoal/60 font-medium">Weekly Holiday:</span>
+                  <span className="font-bold text-charcoal">{workingHours.weeklyOff}</span>
+                </div>
+              )}
+
+              {workingHours.holidayNotice && (
+                <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 font-semibold text-[11px] mt-2">
+                  🔔 {workingHours.holidayNotice}
+                </div>
+              )}
             </div>
-          )}
+          </div>
 
           {/* 2. DIRECT INQUIRY & BOOKING CARD */}
           <div className="bg-white p-6 rounded-3xl border border-gold/20 shadow-md space-y-4">

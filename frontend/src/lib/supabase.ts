@@ -1286,7 +1286,7 @@ export async function fetchPublicVendorProfileFromDb(identifier: string) {
     bookingsRes,
     categoryExtRes,
   ] = await Promise.all([
-    supabaseFetch(`vendor_profiles?vendor_id=eq.${encodeURIComponent(vendorId)}&select=*`),
+    supabaseFetch(`vendor_profiles?or=(vendor_id.eq.${encodeURIComponent(vendorId)},id.eq.${encodeURIComponent(vendorId)})&select=*`),
     supabaseFetch(`vendor_contacts?vendor_id=eq.${encodeURIComponent(vendorId)}&order=is_primary.desc,created_at.asc&select=*`),
     supabaseFetch(`vendor_addresses?vendor_id=eq.${encodeURIComponent(vendorId)}&order=created_at.asc&select=*`),
     supabaseFetch(`vendor_business_hours?vendor_id=eq.${encodeURIComponent(vendorId)}&select=*`),
@@ -1397,11 +1397,11 @@ export async function fetchPublicVendorProfileFromDb(identifier: string) {
   };
 
   const sfWorkingHours = {
-    workingDays: rawSfWH.workingDays || profile.working_days || profile.workingDays || categoryDetail.working_days || "",
-    openingTime: rawSfWH.openingTime || profile.opening_time || profile.openingTime || categoryDetail.opening_time || "",
-    closingTime: rawSfWH.closingTime || profile.closing_time || profile.closingTime || categoryDetail.closing_time || "",
-    weeklyOff: rawSfWH.weeklyOff || profile.weekly_off || profile.weeklyOff || categoryDetail.weekly_holidays || "",
-    holidayNotice: rawSfWH.holidayNotice || profile.holiday_notice || profile.holidayNotice || categoryDetail.public_holiday_availability || "",
+    workingDays: rawSfWH.workingDays || profile.working_days || profile.workingDays || categoryDetail.working_days || vendor.working_days || "",
+    openingTime: rawSfWH.openingTime || profile.opening_time || profile.openingTime || categoryDetail.opening_time || vendor.opening_time || "",
+    closingTime: rawSfWH.closingTime || profile.closing_time || profile.closingTime || categoryDetail.closing_time || vendor.closing_time || "",
+    weeklyOff: rawSfWH.weeklyOff || profile.weekly_off || profile.weeklyOff || categoryDetail.weekly_holidays || categoryDetail.weekly_off || vendor.weekly_off || "",
+    holidayNotice: rawSfWH.holidayNotice || profile.holiday_notice || profile.holidayNotice || categoryDetail.public_holiday_availability || categoryDetail.holiday_notice || vendor.holiday_notice || "",
     rawString: workingHoursVal,
   };
 
