@@ -214,13 +214,15 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
     if (c.includes("makeup")) return "Bridal Makeup Packages";
     if (c.includes("mehendi") || c.includes("mehndi")) return "Mehendi Packages";
     if (c.includes("photo") || c.includes("video")) return "Photography Packages";
-    if (c.includes("decor") || c.includes("planner") || c.includes("planning")) return "Decoration Packages";
+    if (c.includes("planner") || c.includes("planning")) return "Planning Packages";
+    if (c.includes("decor")) return "Decoration Packages";
     if (c.includes("cater") || c.includes("food")) return "Catering Packages";
     if (c.includes("jewel")) return "Collections & Pricing";
     if (c.includes("invite") || c.includes("card") || c.includes("invitation")) return "Invitation Packages";
     if (c.includes("venue")) return "Venue Packages";
-    if (c.includes("bridal") || c.includes("boutique")) return "Bridal Collections";
+    if (c.includes("bridal")) return "Bridal Collections";
     if (c.includes("groom")) return "Groom Collections";
+    if (c.includes("boutique")) return "Bridal Collections";
     if (c.includes("wedding-story") || c.includes("wedding-studio")) return "Wedding Collections";
     return "Curated Packages & Pricing";
   }, [vendor]);
@@ -392,18 +394,6 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
 
           {/* Profile Card Overlay */}
           <div className="absolute bottom-4 left-4 right-4 flex items-end gap-4 z-10">
-            {/* Logo Badge */}
-            <div
-              style={{ backgroundColor: activeTheme.primary }}
-              className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl border-2 border-white overflow-hidden shadow-xl shrink-0 flex items-center justify-center text-white"
-            >
-              {logoUrl ? (
-                <img src={logoUrl} alt={displayName} className="w-full h-full object-cover" />
-              ) : (
-                <span className="font-serif text-xl sm:text-2xl font-bold tracking-wider">{initials}</span>
-              )}
-            </div>
-
             {/* Profile Info */}
             <div className="flex-1 min-w-0 text-white drop-shadow-md space-y-1">
               <div className="flex items-center gap-2 flex-wrap">
@@ -560,19 +550,6 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
 
           {/* Hero Profile Details Card */}
           <div className="absolute bottom-4 sm:bottom-6 left-4 sm:left-6 right-4 sm:right-6 flex flex-col sm:flex-row items-start sm:items-end gap-4 sm:gap-6 z-10">
-            
-            {/* Logo Badge */}
-            <div
-              style={{ backgroundColor: activeTheme.primary }}
-              className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl sm:rounded-3xl border-2 sm:border-4 border-white overflow-hidden shadow-2xl shrink-0 flex items-center justify-center text-white relative"
-            >
-              {logoUrl ? (
-                <img src={logoUrl} alt={displayName} className="w-full h-full object-cover" />
-              ) : (
-                <span className="font-serif text-2xl sm:text-3xl font-bold tracking-wider">{initials}</span>
-              )}
-            </div>
-
             {/* Profile Info */}
             <div className="flex-1 min-w-0 text-white drop-shadow-md space-y-1.5">
               <div className="flex items-center gap-2.5 flex-wrap">
@@ -796,23 +773,18 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
           {/* E. STOREFRONT PORTFOLIO & GALLERY */}
           {galleryPhotos.length > 0 && (
             <div className="bg-white rounded-3xl p-6 sm:p-8 border border-gold/15 shadow-sm space-y-6">
-              <div className="flex items-center justify-between border-b border-gold/10 pb-4">
-                <div>
-                  <h2 className="font-serif text-2xl font-bold text-charcoal tracking-tight">Portfolio &amp; Showcase</h2>
-                  <p className="text-xs text-charcoal/60 mt-0.5 font-medium">High-resolution authentic work crafted by {displayName}</p>
-                </div>
-                <span className="text-[11px] font-extrabold text-[#0F4C45] bg-[#FAF7F2] px-3.5 py-1 rounded-full border border-gold/25 shadow-2xs tracking-wide">
-                  {galleryPhotos.length} {galleryPhotos.length === 1 ? "Photo" : "Photos"}
-                </span>
+              <div className="border-b border-gold/10 pb-4">
+                <h2 className="font-serif text-2xl font-bold text-charcoal tracking-tight">Portfolio &amp; Showcase</h2>
+                <p className="text-xs text-charcoal/60 mt-0.5 font-medium">High-resolution authentic work crafted by {displayName}</p>
               </div>
 
               {/* Fixed Preview Grid Layout: 3x2 Desktop (6), 2x3 Tablet (6), 2x2 Mobile (4) */}
-              <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
                 {galleryPhotos.slice(0, 6).map((photo, i) => (
                   <div
                     key={i}
                     onClick={() => setSelectedPhoto(photo.url)}
-                    className={`relative aspect-[4/3] rounded-2xl overflow-hidden border border-gold/20 shadow-xs hover:shadow-md transition-all duration-300 cursor-pointer group bg-gray-100 ${
+                    className={`relative aspect-[4/3] rounded-3xl overflow-hidden border border-gold/20 shadow-xs hover:shadow-md transition-all duration-300 cursor-pointer group bg-gray-100 ${
                       i >= 4 ? "hidden md:block" : ""
                     }`}
                   >
@@ -830,10 +802,10 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
               </div>
 
               {/* View Portfolio Redirect Action */}
-              <div className="pt-2 flex justify-center">
+              <div className="pt-3 flex justify-center">
                 <Link
                   href={galleryHref}
-                  className="w-full sm:w-auto px-8 py-3 rounded-2xl bg-white border border-gold/25 text-charcoal font-bold text-xs hover:bg-[#FAF7F2] hover:border-gold/40 shadow-xs transition-all flex items-center justify-center gap-2 group cursor-pointer"
+                  className="px-10 py-3.5 rounded-2xl bg-white border border-gold/25 text-charcoal font-bold text-xs hover:bg-[#FAF7F2] hover:border-gold/40 shadow-xs transition-all flex items-center justify-center gap-2 group cursor-pointer"
                 >
                   <span>View Portfolio</span>
                   <ArrowRight className="w-4 h-4 text-[#0F4C45] group-hover:translate-x-1 transition-transform" />
@@ -858,18 +830,13 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
           {/* F. SERVICES & PACKAGES (DYNAMIC CATEGORY HEADING) */}
           {vendor?.packages && vendor.packages.length > 0 && (
             <div className="bg-white rounded-3xl p-6 sm:p-8 border border-gold/20 shadow-md space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-gold/15 pb-4">
-                <div>
-                  <h2 className="font-serif text-2xl font-bold text-charcoal tracking-tight">
-                    {packageSectionTitle}
-                  </h2>
-                  <p className="text-xs text-charcoal/60 mt-0.5 font-medium">
-                    Transparent curated offerings with verified inclusions and standard pricing
-                  </p>
-                </div>
-                <span className="self-start sm:self-auto text-[11px] font-extrabold text-[#0F4C45] bg-[#FAF7F2] px-3.5 py-1.5 rounded-full border border-gold/25 shadow-2xs shrink-0">
-                  {vendor.packages.length} {vendor.packages.length === 1 ? "Option Available" : "Options Available"}
-                </span>
+              <div className="border-b border-gold/15 pb-4">
+                <h2 className="font-serif text-2xl font-bold text-charcoal tracking-tight">
+                  {packageSectionTitle}
+                </h2>
+                <p className="text-xs text-charcoal/60 mt-0.5 font-medium">
+                  Transparent curated offerings with verified inclusions and standard pricing
+                </p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
