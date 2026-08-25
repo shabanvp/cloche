@@ -175,10 +175,10 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
     const days = w.workingDays || vW.workingDays || vendor?.working_days || vendor?.workingDays || "";
     const open = w.openingTime || vW.openingTime || vendor?.opening_time || vendor?.openingTime || "";
     const close = w.closingTime || vW.closingTime || vendor?.closing_time || vendor?.closingTime || "";
-    const off = w.weeklyOff || vW.weeklyOff || vendor?.weekly_off || vendor?.weeklyOff || vendor?.weeklyHolidays || "";
-    const notice = w.holidayNotice || vW.holidayNotice || vendor?.holiday_notice || vendor?.holidayNotice || vendor?.publicHolidayAvailability || "";
+    const off = w.weeklyOff || vW.weeklyOff || vendor?.weekly_off || vendor?.weeklyOff || vendor?.weeklyHolidays || vendor?.weekly_holidays || "";
+    const notice = w.holidayNotice || vW.holidayNotice || vendor?.holiday_notice || vendor?.holidayNotice || vendor?.publicHolidayAvailability || vendor?.public_holiday_availability || "";
 
-    const rawStr = typeof vendor?.workingHours === "string" ? vendor.workingHours : typeof vendor?.working_hours === "string" ? vendor.working_hours : (w.rawString || "");
+    const rawStr = typeof vendor?.workingHours === "string" ? vendor.workingHours : typeof vendor?.working_hours === "string" ? vendor.working_hours : (w.rawString || vW.rawString || "");
 
     return {
       workingDays: days,

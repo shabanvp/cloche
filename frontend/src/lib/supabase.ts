@@ -1352,7 +1352,16 @@ export async function fetchPublicVendorProfileFromDb(identifier: string) {
   const cityVal = profile.city || address.city || "";
   const stateVal = profile.state || address.state || "";
   const serviceAreasVal = vendor.service_areas || profile.service_areas || "";
-  const sfRaw = typeof profile.storefront === "object" && profile.storefront !== null ? profile.storefront : {};
+  let sfRaw: Record<string, any> = {};
+  if (typeof profile.storefront === "object" && profile.storefront !== null) {
+    sfRaw = profile.storefront;
+  } else if (typeof profile.storefront === "string") {
+    try {
+      sfRaw = JSON.parse(profile.storefront);
+    } catch (e) {
+      sfRaw = {};
+    }
+  }
   const rawSfWH = typeof sfRaw.workingHours === "object" && sfRaw.workingHours !== null ? sfRaw.workingHours : {};
 
   const workingHoursVal =
@@ -1466,7 +1475,7 @@ export async function fetchPublicVendorProfileFromDb(identifier: string) {
       website: socialLinks.website || contact.website || "",
       serviceAreas: serviceAreasVal,
       service_areas: serviceAreasVal,
-      workingHours: workingHoursVal,
+      workingHours: sfWorkingHours,
       working_hours: workingHoursVal,
       experienceYears: experienceYearsVal,
       experience_years: experienceYearsVal,
