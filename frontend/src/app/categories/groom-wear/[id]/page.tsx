@@ -1,33 +1,32 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { groomWearVendors } from "@/lib/groomWearData";
-import { GroomWearDetailClient } from "@/components/GroomWearDetailClient";
+import { fetchPublicVendorProfileFromDb } from "@/lib/supabase";
+import { BoutiqueProfileClient } from "@/components/BoutiqueProfileClient";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 interface Props {
   params: Promise<{ id: string }>;
 }
 
-export function generateStaticParams() {
-  return groomWearVendors.map((v) => ({ id: v.id }));
-}
-
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
-  const vendor = groomWearVendors.find((v) => v.id === id);
-  if (!vendor) return { title: "Vendor Not Found | Cloche" };
+  const { data: profile } = await fetchPublicVendorProfileFromDb(id);
+  if (!profile) return { title: "Vendor Not Found | Cloche" };
   return {
-    title: `${vendor.name} | Cloche Groom Wear`,
-    description: vendor.about,
+    title: `${profile.name} | Cloche Groom Wear`,
+    description: profile.about || `Explore ${profile.name} on Cloche.`,
   };
 }
 
 export default async function GroomWearDetailPage({ params }: Props) {
   const { id } = await params;
-  const vendor = groomWearVendors.find((v) => v.id === id);
+  const { data: profile } = await fetchPublicVendorProfileFromDb(id);
 
-  if (!vendor) {
+  if (!profile) {
     notFound();
   }
 
-  return <GroomWearDetailClient vendor={vendor} />;
+  return <BoutiqueProfileClient profile={profile} />;
 }

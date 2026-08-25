@@ -124,7 +124,7 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
     if (Array.isArray(vendor?.venueHighlights) && vendor.venueHighlights.length > 0) return vendor.venueHighlights;
     if (Array.isArray(vendor?.mehendiHighlights) && vendor.mehendiHighlights.length > 0) return vendor.mehendiHighlights;
     if (Array.isArray(vendor?.decorHighlights) && vendor.decorHighlights.length > 0) return vendor.decorHighlights;
-    return ["Verified Partner", "Premium Quality", "Dedicated Support"];
+    return [];
   }, [sf.storeHighlights, vendor]);
 
   // Featured Collections
@@ -155,12 +155,12 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
   const businessInfo = useMemo(() => {
     const b = sf.businessInfo || {};
     return {
-      experienceYears: b.experienceYears || vendor?.experienceYears || vendor?.experience_years || vendor?.yearsInBusiness || "8+",
+      experienceYears: b.experienceYears || vendor?.experienceYears || vendor?.experience_years || vendor?.yearsInBusiness || "",
       rentalAvailable: b.rentalAvailable ?? vendor?.rentalAvailable ?? vendor?.rental_available ?? false,
-      homeDeliveryAvailable: b.homeDeliveryAvailable ?? vendor?.homeDeliveryAvailable ?? vendor?.home_delivery_available ?? true,
+      homeDeliveryAvailable: b.homeDeliveryAvailable ?? vendor?.homeDeliveryAvailable ?? vendor?.home_delivery_available ?? false,
       homeTrialAvailable: b.homeTrialAvailable ?? vendor?.homeTrialAvailable ?? vendor?.home_trial_available ?? false,
       customJewelleryAvailable: b.customJewelleryAvailable ?? vendor?.customJewelleryAvailable ?? vendor?.custom_jewellery_available ?? false,
-      collectionsCount: b.collectionsCount || vendor?.collectionsCount || vendor?.collections_count || "50+",
+      collectionsCount: b.collectionsCount || vendor?.collectionsCount || vendor?.collections_count || "",
       guestCapacity: b.guestCapacity || vendor?.guestCapacity || vendor?.guest_capacity || "",
       parkingCapacity: b.parkingCapacity || vendor?.parkingCapacity || vendor?.parking_capacity || "",
     };
@@ -170,10 +170,10 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
   const workingHours = useMemo(() => {
     const w = sf.workingHours || {};
     return {
-      workingDays: w.workingDays || vendor?.workingDays || vendor?.working_days || "Mon - Sat",
-      openingTime: w.openingTime || vendor?.openingTime || vendor?.opening_time || "09:30 AM",
-      closingTime: w.closingTime || vendor?.closingTime || vendor?.closing_time || "08:30 PM",
-      weeklyOff: w.weeklyOff || vendor?.weeklyOff || vendor?.weekly_off || vendor?.weeklyHolidays || "Sunday",
+      workingDays: w.workingDays || vendor?.workingDays || vendor?.working_days || "",
+      openingTime: w.openingTime || vendor?.openingTime || vendor?.opening_time || "",
+      closingTime: w.closingTime || vendor?.closingTime || vendor?.closing_time || "",
+      weeklyOff: w.weeklyOff || vendor?.weeklyOff || vendor?.weekly_off || vendor?.weeklyHolidays || "",
       holidayNotice: w.holidayNotice || vendor?.holidayNotice || vendor?.holiday_notice || vendor?.publicHolidayAvailability || "",
     };
   }, [sf.workingHours, vendor]);
@@ -193,9 +193,9 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
   const policies = useMemo(() => {
     const p = sf.policies || {};
     return {
-      rentalPolicy: p.rentalPolicy || vendor?.rentalPolicy || vendor?.rental_policy || "Original Government ID required for verification. Minimum 24h advance reservation.",
-      securityDepositPolicy: p.securityDepositPolicy || vendor?.securityDepositPolicy || vendor?.security_deposit_policy || "100% refundable security deposit upon timely return and inspection.",
-      cancellationPolicy: p.cancellationPolicy || vendor?.cancellationPolicy || vendor?.cancellation_policy || "Free cancellation up to 7 days prior to event date.",
+      rentalPolicy: p.rentalPolicy || vendor?.rentalPolicy || vendor?.rental_policy || "",
+      securityDepositPolicy: p.securityDepositPolicy || vendor?.securityDepositPolicy || vendor?.security_deposit_policy || "",
+      cancellationPolicy: p.cancellationPolicy || vendor?.cancellationPolicy || vendor?.cancellation_policy || "",
       returnPolicy: p.returnPolicy || vendor?.returnPolicy || vendor?.return_policy || "",
       damagePolicy: p.damagePolicy || vendor?.damagePolicy || vendor?.damage_policy || "",
     };
@@ -282,7 +282,7 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
   }, [sf.gallery, vendor]);
 
   // Contact Info
-  const phone = sf.contactInfo?.phone || vendor?.phone || "+91 98470 12345";
+  const phone = sf.contactInfo?.phone || vendor?.phone || "";
   const whatsapp = sf.contactInfo?.whatsapp || vendor?.whatsapp || phone;
   const email = sf.contactInfo?.email || vendor?.email || "";
   const address = sf.contactInfo?.address || vendor?.address || location;
@@ -294,8 +294,8 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
   const website = sf.socialLinks?.website || vendor?.website || vendor?.socialLinks?.website || "";
 
   // Ratings
-  const rating = Number(vendor?.rating || 4.9).toFixed(1);
-  const reviewsCount = vendor?.reviews || vendor?.userReviews?.length || 18;
+  const rating = Number(vendor?.rating || 0).toFixed(1);
+  const reviewsCount = Number(vendor?.reviews || vendor?.userReviews?.length || 0);
 
   // Handlers
   const handleShare = () => {
@@ -401,9 +401,11 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
                 <span className="inline-flex items-center gap-1 bg-white/95 backdrop-blur-md text-[#0F4C45] text-[11px] font-extrabold px-3 py-0.5 rounded-full shadow-xs">
                   <ShieldCheck className="w-3.5 h-3.5 text-[#0F4C45]" /> Verified Partner
                 </span>
-                <span className="inline-flex items-center gap-1 bg-amber-400/90 text-charcoal text-[11px] font-extrabold px-2.5 py-0.5 rounded-full shadow-xs">
-                  <Star className="w-3 h-3 fill-current text-charcoal" /> {rating} ({reviewsCount})
-                </span>
+                {reviewsCount > 0 && (
+                  <span className="inline-flex items-center gap-1 bg-amber-400/90 text-charcoal text-[11px] font-extrabold px-2.5 py-0.5 rounded-full shadow-xs">
+                    <Star className="w-3 h-3 fill-current text-charcoal" /> {rating} ({reviewsCount})
+                  </span>
+                )}
               </div>
 
               {tagline ? (
@@ -412,7 +414,7 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
                 </p>
               ) : (
                 <p className="text-xs sm:text-sm text-white/90 font-medium">
-                  {categoryLabel} • {location}
+                  {categoryLabel}{location ? ` • ${location}` : ""}
                 </p>
               )}
 
@@ -457,7 +459,7 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
               QUICK STOREFRONT ACTIONS
             </span>
             <div className="flex flex-wrap items-center gap-2.5">
-              {actionButtons.callNow && (
+              {actionButtons.callNow && phone && (
                 <a
                   href={previewMode ? "#" : `tel:${phone}`}
                   style={{ backgroundColor: activeTheme.primary }}
@@ -467,7 +469,7 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
                 </a>
               )}
 
-              {actionButtons.whatsapp && (
+              {actionButtons.whatsapp && whatsapp && (
                 <a
                   href={previewMode ? "#" : `https://wa.me/${whatsapp.replace(/[^0-9]/g, "")}?text=Hi%20${encodeURIComponent(displayName)},%20I%20saw%20your%20storefront%20on%20Cloche!`}
                   target="_blank"
@@ -479,8 +481,6 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
                 </a>
               )}
 
-
-
               {actionButtons.getQuote && (
                 <button
                   onClick={() => setActiveModal("quote")}
@@ -491,7 +491,7 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
                 </button>
               )}
 
-              {actionButtons.visitStore && (
+              {actionButtons.visitStore && address && (
                 <a
                   href={previewMode ? "#" : `https://maps.google.com/?q=${encodeURIComponent(address)}`}
                   target="_blank"
@@ -505,35 +505,45 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
           </div>
 
           {/* B. BUSINESS SNAPSHOT CARDS */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-            <div className="p-4 rounded-2xl bg-white border border-gold/15 shadow-2xs space-y-1">
-              <span className="text-[10px] uppercase font-bold text-charcoal/50 block">Experience</span>
-              <span style={{ color: activeTheme.primary }} className="font-serif font-bold text-lg sm:text-xl block">
-                {businessInfo.experienceYears} Years
-              </span>
-            </div>
+          {(businessInfo.experienceYears || businessInfo.collectionsCount || businessInfo.guestCapacity || businessInfo.parkingCapacity) && (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+              {businessInfo.experienceYears && (
+                <div className="p-4 rounded-2xl bg-white border border-gold/15 shadow-2xs space-y-1">
+                  <span className="text-[10px] uppercase font-bold text-charcoal/50 block">Experience</span>
+                  <span style={{ color: activeTheme.primary }} className="font-serif font-bold text-lg sm:text-xl block">
+                    {businessInfo.experienceYears} {businessInfo.experienceYears.toLowerCase().includes("year") ? "" : "Years"}
+                  </span>
+                </div>
+              )}
 
-            <div className="p-4 rounded-2xl bg-white border border-gold/15 shadow-2xs space-y-1">
-              <span className="text-[10px] uppercase font-bold text-charcoal/50 block">Rental Service</span>
-              <span className="font-bold text-xs sm:text-sm text-charcoal block">
-                {businessInfo.rentalAvailable ? "✓ Available" : "✗ Sale Only"}
-              </span>
-            </div>
+              {businessInfo.collectionsCount && (
+                <div className="p-4 rounded-2xl bg-white border border-gold/15 shadow-2xs space-y-1">
+                  <span className="text-[10px] uppercase font-bold text-charcoal/50 block">Collections Count</span>
+                  <span style={{ color: activeTheme.primary }} className="font-serif font-bold text-lg sm:text-xl block">
+                    {businessInfo.collectionsCount}
+                  </span>
+                </div>
+              )}
 
-            <div className="p-4 rounded-2xl bg-white border border-gold/15 shadow-2xs space-y-1">
-              <span className="text-[10px] uppercase font-bold text-charcoal/50 block">Home Trial / Delivery</span>
-              <span className="font-bold text-xs sm:text-sm text-charcoal block">
-                {businessInfo.homeDeliveryAvailable ? "✓ Available" : "✗ Store Pickup"}
-              </span>
-            </div>
+              {businessInfo.guestCapacity && (
+                <div className="p-4 rounded-2xl bg-white border border-gold/15 shadow-2xs space-y-1">
+                  <span className="text-[10px] uppercase font-bold text-charcoal/50 block">Guest Capacity</span>
+                  <span style={{ color: activeTheme.primary }} className="font-serif font-bold text-lg sm:text-xl block">
+                    {businessInfo.guestCapacity}
+                  </span>
+                </div>
+              )}
 
-            <div className="p-4 rounded-2xl bg-white border border-gold/15 shadow-2xs space-y-1">
-              <span className="text-[10px] uppercase font-bold text-charcoal/50 block">Collections Count</span>
-              <span style={{ color: activeTheme.primary }} className="font-serif font-bold text-lg sm:text-xl block">
-                {businessInfo.collectionsCount}
-              </span>
+              {businessInfo.parkingCapacity && (
+                <div className="p-4 rounded-2xl bg-white border border-gold/15 shadow-2xs space-y-1">
+                  <span className="text-[10px] uppercase font-bold text-charcoal/50 block">Parking</span>
+                  <span style={{ color: activeTheme.primary }} className="font-serif font-bold text-lg sm:text-xl block">
+                    {businessInfo.parkingCapacity}
+                  </span>
+                </div>
+              )}
             </div>
-          </div>
+          )}
 
           {/* C. PINNED FEATURED COLLECTIONS */}
           {featuredCollections.length > 0 && (
@@ -734,35 +744,59 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
           )}
 
           {/* G. STORE POLICIES */}
-          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-gold/15 shadow-sm space-y-4">
-            <h2 className="font-serif text-2xl font-bold text-charcoal flex items-center gap-2">
-              <ShieldCheck style={{ color: activeTheme.primary }} className="w-5 h-5" /> Store Policies &amp; Terms
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-              <div className="p-4 bg-[#FAF7F2] rounded-2xl border border-gold/15 space-y-1">
-                <span className="font-bold text-charcoal block flex items-center gap-1.5">
-                  <ShieldCheck className="w-3.5 h-3.5 text-[#0F4C45]" /> Rental &amp; Booking Terms
-                </span>
-                <p className="text-charcoal/70 leading-relaxed">{policies.rentalPolicy}</p>
-              </div>
+          {(policies.rentalPolicy || policies.securityDepositPolicy || policies.cancellationPolicy || policies.returnPolicy || policies.damagePolicy) && (
+            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-gold/15 shadow-sm space-y-4">
+              <h2 className="font-serif text-2xl font-bold text-charcoal flex items-center gap-2">
+                <ShieldCheck style={{ color: activeTheme.primary }} className="w-5 h-5" /> Store Policies &amp; Terms
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                {policies.rentalPolicy && (
+                  <div className="p-4 bg-[#FAF7F2] rounded-2xl border border-gold/15 space-y-1">
+                    <span className="font-bold text-charcoal block flex items-center gap-1.5">
+                      <ShieldCheck className="w-3.5 h-3.5 text-[#0F4C45]" /> Rental &amp; Booking Terms
+                    </span>
+                    <p className="text-charcoal/70 leading-relaxed">{policies.rentalPolicy}</p>
+                  </div>
+                )}
 
-              <div className="p-4 bg-[#FAF7F2] rounded-2xl border border-gold/15 space-y-1">
-                <span className="font-bold text-charcoal block flex items-center gap-1.5">
-                  <FileText className="w-3.5 h-3.5 text-[#0F4C45]" /> Security Deposit Release
-                </span>
-                <p className="text-charcoal/70 leading-relaxed">{policies.securityDepositPolicy}</p>
-              </div>
+                {policies.securityDepositPolicy && (
+                  <div className="p-4 bg-[#FAF7F2] rounded-2xl border border-gold/15 space-y-1">
+                    <span className="font-bold text-charcoal block flex items-center gap-1.5">
+                      <FileText className="w-3.5 h-3.5 text-[#0F4C45]" /> Security Deposit Release
+                    </span>
+                    <p className="text-charcoal/70 leading-relaxed">{policies.securityDepositPolicy}</p>
+                  </div>
+                )}
 
-              {policies.cancellationPolicy && (
-                <div className="p-4 bg-[#FAF7F2] rounded-2xl border border-gold/15 space-y-1 sm:col-span-2">
-                  <span className="font-bold text-charcoal block flex items-center gap-1.5">
-                    <Clock className="w-3.5 h-3.5 text-[#0F4C45]" /> Cancellation &amp; Rescheduling Policy
-                  </span>
-                  <p className="text-charcoal/70 leading-relaxed">{policies.cancellationPolicy}</p>
-                </div>
-              )}
+                {policies.cancellationPolicy && (
+                  <div className="p-4 bg-[#FAF7F2] rounded-2xl border border-gold/15 space-y-1 sm:col-span-2">
+                    <span className="font-bold text-charcoal block flex items-center gap-1.5">
+                      <Clock className="w-3.5 h-3.5 text-[#0F4C45]" /> Cancellation &amp; Rescheduling Policy
+                    </span>
+                    <p className="text-charcoal/70 leading-relaxed">{policies.cancellationPolicy}</p>
+                  </div>
+                )}
+
+                {policies.returnPolicy && (
+                  <div className="p-4 bg-[#FAF7F2] rounded-2xl border border-gold/15 space-y-1">
+                    <span className="font-bold text-charcoal block flex items-center gap-1.5">
+                      <FileText className="w-3.5 h-3.5 text-[#0F4C45]" /> Return Policy
+                    </span>
+                    <p className="text-charcoal/70 leading-relaxed">{policies.returnPolicy}</p>
+                  </div>
+                )}
+
+                {policies.damagePolicy && (
+                  <div className="p-4 bg-[#FAF7F2] rounded-2xl border border-gold/15 space-y-1">
+                    <span className="font-bold text-charcoal block flex items-center gap-1.5">
+                      <ShieldCheck className="w-3.5 h-3.5 text-[#0F4C45]" /> Damage Policy
+                    </span>
+                    <p className="text-charcoal/70 leading-relaxed">{policies.damagePolicy}</p>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
+          )}
 
         </div>
 
@@ -770,30 +804,40 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
         <aside className="lg:col-span-4 space-y-6">
           
           {/* 1. BUSINESS TIMINGS CARD */}
-          <div className="bg-white p-6 rounded-3xl border border-gold/15 shadow-sm space-y-4 text-xs">
-            <h3 className="font-serif font-bold text-lg text-charcoal flex items-center gap-2 border-b border-gold/10 pb-3">
-              <Clock style={{ color: activeTheme.primary }} className="w-4 h-4" /> Business Hours
-            </h3>
-            <div className="space-y-2">
-              <div className="flex justify-between py-1 border-b border-gray-50">
-                <span className="text-charcoal/60 font-medium">Working Days:</span>
-                <span className="font-bold text-charcoal">{workingHours.workingDays}</span>
+          {(workingHours.workingDays || workingHours.openingTime || workingHours.closingTime || workingHours.weeklyOff || workingHours.holidayNotice) && (
+            <div className="bg-white p-6 rounded-3xl border border-gold/15 shadow-sm space-y-4 text-xs">
+              <h3 className="font-serif font-bold text-lg text-charcoal flex items-center gap-2 border-b border-gold/10 pb-3">
+                <Clock style={{ color: activeTheme.primary }} className="w-4 h-4" /> Business Hours
+              </h3>
+              <div className="space-y-2">
+                {workingHours.workingDays && (
+                  <div className="flex justify-between py-1 border-b border-gray-50">
+                    <span className="text-charcoal/60 font-medium">Working Days:</span>
+                    <span className="font-bold text-charcoal">{workingHours.workingDays}</span>
+                  </div>
+                )}
+                {(workingHours.openingTime || workingHours.closingTime) && (
+                  <div className="flex justify-between py-1 border-b border-gray-50">
+                    <span className="text-charcoal/60 font-medium">Store Hours:</span>
+                    <span className="font-bold text-[#0F4C45]">
+                      {[workingHours.openingTime, workingHours.closingTime].filter(Boolean).join(" - ")}
+                    </span>
+                  </div>
+                )}
+                {workingHours.weeklyOff && (
+                  <div className="flex justify-between py-1 border-b border-gray-50">
+                    <span className="text-charcoal/60 font-medium">Weekly Holiday:</span>
+                    <span className="font-bold text-charcoal">{workingHours.weeklyOff}</span>
+                  </div>
+                )}
+                {workingHours.holidayNotice && (
+                  <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 font-semibold text-[11px] mt-2">
+                    🔔 {workingHours.holidayNotice}
+                  </div>
+                )}
               </div>
-              <div className="flex justify-between py-1 border-b border-gray-50">
-                <span className="text-charcoal/60 font-medium">Store Hours:</span>
-                <span className="font-bold text-[#0F4C45]">{workingHours.openingTime} - {workingHours.closingTime}</span>
-              </div>
-              <div className="flex justify-between py-1 border-b border-gray-50">
-                <span className="text-charcoal/60 font-medium">Weekly Holiday:</span>
-                <span className="font-bold text-charcoal">{workingHours.weeklyOff}</span>
-              </div>
-              {workingHours.holidayNotice && (
-                <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 font-semibold text-[11px] mt-2">
-                  🔔 {workingHours.holidayNotice}
-                </div>
-              )}
             </div>
-          </div>
+          )}
 
           {/* 2. DIRECT INQUIRY & BOOKING CARD */}
           <div className="bg-white p-6 rounded-3xl border border-gold/20 shadow-md space-y-4">

@@ -1348,11 +1348,84 @@ export async function fetchPublicVendorProfileFromDb(identifier: string) {
     .join(", ");
 
   const ownerName = contact.contact_name || vendor.owner_name || profile.owner_name || "";
-  const cityVal = profile.city || address.city || "Kochi";
-  const stateVal = profile.state || address.state || "Kerala";
+  const cityVal = profile.city || address.city || "";
+  const stateVal = profile.state || address.state || "";
   const serviceAreasVal = vendor.service_areas || profile.service_areas || "";
   const workingHoursVal = vendor.working_hours || profile.working_hours || "";
   const experienceYearsVal = vendor.experience_years || profile.experience || profile.years_of_experience || "";
+
+  const sfRaw = typeof profile.storefront === "object" && profile.storefront !== null ? profile.storefront : {};
+
+  const sfHighlights =
+    sfRaw.storeHighlights ||
+    categoryDetail.venue_highlights ||
+    categoryDetail.mehendi_highlights ||
+    categoryDetail.decor_highlights ||
+    profile.store_highlights ||
+    profile.storeHighlights ||
+    [];
+
+  const sfCollections =
+    sfRaw.featuredCollections ||
+    categoryDetail.featured_halls ||
+    categoryDetail.featured_packages ||
+    categoryDetail.featured_themes ||
+    profile.featured_collections ||
+    profile.featuredCollections ||
+    [];
+
+  const sfBusinessInfo = {
+    experienceYears: sfRaw.businessInfo?.experienceYears || categoryDetail.years_in_business || experienceYearsVal,
+    rentalAvailable: sfRaw.businessInfo?.rentalAvailable ?? profile.rental_available ?? profile.rentalAvailable ?? false,
+    homeDeliveryAvailable: sfRaw.businessInfo?.homeDeliveryAvailable ?? profile.home_delivery_available ?? profile.homeDeliveryAvailable ?? false,
+    homeTrialAvailable: sfRaw.businessInfo?.homeTrialAvailable ?? profile.home_trial_available ?? profile.homeTrialAvailable ?? false,
+    customJewelleryAvailable: sfRaw.businessInfo?.customJewelleryAvailable ?? profile.custom_jewellery_available ?? profile.customJewelleryAvailable ?? false,
+    collectionsCount: sfRaw.businessInfo?.collectionsCount || profile.collections_count || profile.collectionsCount || "",
+    guestCapacity: sfRaw.businessInfo?.guestCapacity || categoryDetail.guest_capacity || profile.guest_capacity || "",
+    parkingCapacity: sfRaw.businessInfo?.parkingCapacity || categoryDetail.parking_capacity || profile.parking_capacity || "",
+  };
+
+  const sfWorkingHours = {
+    workingDays: sfRaw.workingHours?.workingDays || profile.working_days || profile.workingDays || "",
+    openingTime: sfRaw.workingHours?.openingTime || categoryDetail.opening_time || profile.opening_time || "",
+    closingTime: sfRaw.workingHours?.closingTime || categoryDetail.closing_time || profile.closing_time || "",
+    weeklyOff: sfRaw.workingHours?.weeklyOff || profile.weekly_off || profile.weeklyOff || categoryDetail.weekly_holidays || "",
+    holidayNotice: sfRaw.workingHours?.holidayNotice || profile.holiday_notice || profile.holidayNotice || "",
+  };
+
+  const sfPolicies = {
+    rentalPolicy: sfRaw.policies?.rentalPolicy || profile.rental_policy || profile.rentalPolicy || "",
+    securityDepositPolicy: sfRaw.policies?.securityDepositPolicy || profile.security_deposit_policy || profile.securityDepositPolicy || "",
+    returnPolicy: sfRaw.policies?.returnPolicy || profile.return_policy || profile.returnPolicy || "",
+    cancellationPolicy: sfRaw.policies?.cancellationPolicy || categoryDetail.cancellation_policy || profile.cancellation_policy || "",
+    damagePolicy: sfRaw.policies?.damagePolicy || profile.damage_policy || profile.damagePolicy || "",
+  };
+
+  const mergedStorefront = {
+    ...sfRaw,
+    theme: profile.color_theme || sfRaw.theme || "emerald",
+    brandColors: sfRaw.brandColors || null,
+    coverImage: coverUrl,
+    logo: logoUrl,
+    tagline: profile.tagline || sfRaw.tagline || "",
+    about: profile.about || profile.description || sfRaw.about || "",
+    storeHighlights: sfHighlights,
+    featuredCollections: sfCollections,
+    galleryLayout: profile.gallery_layout || sfRaw.galleryLayout || "grid",
+    gallery: sfRaw.gallery || gallery.map((item) => ({ url: item.image_url || item.url, caption: item.caption })),
+    actionButtons: sfRaw.actionButtons || profile.action_buttons || profile.actionButtons || {
+      callNow: true,
+      whatsapp: true,
+      bookAppointment: true,
+      viewCollection: true,
+      getQuote: true,
+      visitStore: true,
+    },
+    businessInfo: sfBusinessInfo,
+    workingHours: sfWorkingHours,
+    policies: sfPolicies,
+    socialLinks: sfRaw.socialLinks || socialLinks,
+  };
 
   return {
     data: {
@@ -1374,12 +1447,12 @@ export async function fetchPublicVendorProfileFromDb(identifier: string) {
       coverImage: coverUrl,
       logo: logoUrl,
       logo_url: logoUrl,
-      tagline: profile.tagline || "",
-      subtitle: profile.tagline || "",
-      about: profile.about || profile.description || "",
-      description: profile.about || profile.description || "",
-      colorTheme: profile.color_theme || "emerald",
-      galleryLayout: profile.gallery_layout || "grid",
+      tagline: profile.tagline || sfRaw.tagline || "",
+      subtitle: profile.tagline || sfRaw.tagline || "",
+      about: profile.about || profile.description || sfRaw.about || "",
+      description: profile.about || profile.description || sfRaw.about || "",
+      colorTheme: profile.color_theme || sfRaw.theme || "emerald",
+      galleryLayout: profile.gallery_layout || sfRaw.galleryLayout || "grid",
       introVideo: profile.intro_video_url || profile.intro_video || "",
       instagram: socialLinks.instagram || contact.instagram || "",
       facebook: socialLinks.facebook || contact.facebook || "",
@@ -1410,11 +1483,11 @@ export async function fetchPublicVendorProfileFromDb(identifier: string) {
       cateringSpecialities: categoryDetail.catering_specialities || profile.catering_specialities || [],
       categoryDetails: categoryDetail,
       // Venue specific fields
-      storeHighlights: categoryDetail.venue_highlights || profile.store_highlights || profile.storeHighlights || [],
-      venueHighlights: categoryDetail.venue_highlights || profile.store_highlights || profile.storeHighlights || [],
+      storeHighlights: sfHighlights,
+      venueHighlights: sfHighlights,
       featuredHalls: categoryDetail.featured_halls || profile.featured_halls || profile.featuredHalls || [],
       facilities: categoryDetail.facilities || profile.facilities || [],
-      yearsInBusiness: categoryDetail.years_in_business || profile.experience_years || vendor.experience_years || "",
+      yearsInBusiness: categoryDetail.years_in_business || experienceYearsVal,
       guestCapacity: categoryDetail.guest_capacity || profile.guest_capacity || profile.guestCapacity || "",
       minGuestCapacity: categoryDetail.min_guest_capacity || "",
       numberOfHalls: categoryDetail.number_of_halls || "",
@@ -1443,18 +1516,18 @@ export async function fetchPublicVendorProfileFromDb(identifier: string) {
       eventTimingRules: categoryDetail.event_timing_rules || profile.event_timing_rules || "",
       hallImages: categoryDetail.hall_images || [],
       // Mehendi Artist specific fields
-      mehendiHighlights: categoryDetail.mehendi_highlights || profile.mehendi_highlights || profile.mehendiHighlights || [],
-      mehendi_highlights: categoryDetail.mehendi_highlights || profile.mehendi_highlights || profile.mehendiHighlights || [],
+      mehendiHighlights: sfHighlights,
+      mehendi_highlights: sfHighlights,
       featuredPackages: categoryDetail.featured_packages || profile.featured_packages || profile.featuredPackages || [],
       featured_packages: categoryDetail.featured_packages || profile.featured_packages || profile.featuredPackages || [],
       maxBridesPerDay: categoryDetail.max_brides_per_day || profile.max_brides_per_day || profile.maxBridesPerDay || "",
       max_brides_per_day: categoryDetail.max_brides_per_day || profile.max_brides_per_day || profile.maxBridesPerDay || "",
-      organicHennaCertified: Boolean(categoryDetail.organic_henna_certified ?? profile.organic_henna_certified ?? true),
-      organic_henna_certified: Boolean(categoryDetail.organic_henna_certified ?? profile.organic_henna_certified ?? true),
+      organicHennaCertified: Boolean(categoryDetail.organic_henna_certified ?? profile.organic_henna_certified ?? false),
+      organic_henna_certified: Boolean(categoryDetail.organic_henna_certified ?? profile.organic_henna_certified ?? false),
       teamSize: categoryDetail.team_size || profile.team_size || profile.teamSize || "",
       team_size: categoryDetail.team_size || profile.team_size || profile.teamSize || "",
-      outstationAvailable: Boolean(categoryDetail.outstation_available ?? profile.outstation_available ?? true),
-      outstation_available: Boolean(categoryDetail.outstation_available ?? profile.outstation_available ?? true),
+      outstationAvailable: Boolean(categoryDetail.outstation_available ?? profile.outstation_available ?? false),
+      outstation_available: Boolean(categoryDetail.outstation_available ?? profile.outstation_available ?? false),
       stainCarePolicy: categoryDetail.stain_care_policy || profile.stain_care_policy || profile.stainCarePolicy || "",
       stain_care_policy: categoryDetail.stain_care_policy || profile.stain_care_policy || profile.stainCarePolicy || "",
       groupBookingPolicy: categoryDetail.group_booking_policy || profile.group_booking_policy || profile.groupBookingPolicy || "",
@@ -1462,8 +1535,8 @@ export async function fetchPublicVendorProfileFromDb(identifier: string) {
       travelPolicy: categoryDetail.travel_policy || profile.travel_policy || profile.travelPolicy || "",
       travel_policy: categoryDetail.travel_policy || profile.travel_policy || profile.travelPolicy || "",
       // Wedding Decorator specific fields
-      decorHighlights: categoryDetail.decor_highlights || profile.decor_highlights || profile.decorHighlights || [],
-      decor_highlights: categoryDetail.decor_highlights || profile.decor_highlights || profile.decorHighlights || [],
+      decorHighlights: sfHighlights,
+      decor_highlights: sfHighlights,
       featuredThemes: categoryDetail.featured_themes || profile.featured_themes || profile.featuredThemes || [],
       featured_themes: categoryDetail.featured_themes || profile.featured_themes || profile.featuredThemes || [],
       eventsCompleted: categoryDetail.events_completed || profile.events_completed || profile.eventsCompleted || "",
@@ -1474,62 +1547,23 @@ export async function fetchPublicVendorProfileFromDb(identifier: string) {
       setup_teardown_policy: categoryDetail.setup_teardown_policy || profile.setup_teardown_policy || profile.setupTeardownPolicy || "",
       propertyDamagePolicy: categoryDetail.property_damage_policy || profile.property_damage_policy || profile.propertyDamagePolicy || "",
       property_damage_policy: categoryDetail.property_damage_policy || profile.property_damage_policy || profile.propertyDamagePolicy || "",
-      siteSurveyAvailable: Boolean(categoryDetail.site_survey_available ?? profile.site_survey_available ?? true),
-      site_survey_available: Boolean(categoryDetail.site_survey_available ?? profile.site_survey_available ?? true),
-      storefront: profile.storefront || {
-        theme: profile.color_theme || "emerald",
-        coverImage: coverUrl,
-        logo: logoUrl,
-        tagline: profile.tagline || "",
-        about: profile.about || profile.description || "",
-        storeHighlights: categoryDetail.venue_highlights || profile.store_highlights || profile.storeHighlights || [],
-        featuredCollections: categoryDetail.featured_halls || profile.featured_collections || [],
-        galleryLayout: profile.gallery_layout || "grid",
-        actionButtons: profile.action_buttons || profile.actionButtons || {},
-        businessInfo: {
-          experienceYears: experienceYearsVal,
-          rentalAvailable: profile.rental_available ?? profile.rentalAvailable ?? false,
-          homeDeliveryAvailable: profile.home_delivery_available ?? profile.homeDeliveryAvailable ?? true,
-          homeTrialAvailable: profile.home_trial_available ?? profile.homeTrialAvailable ?? false,
-          customJewelleryAvailable: profile.custom_jewellery_available ?? profile.customJewelleryAvailable ?? false,
-          collectionsCount: profile.collections_count || profile.collectionsCount || "",
-        },
-        workingHours: {
-          workingDays: profile.working_days || profile.workingDays || "",
-          openingTime: categoryDetail.opening_time || profile.opening_time || "",
-          closingTime: categoryDetail.closing_time || profile.closing_time || "",
-          weeklyOff: profile.weekly_off || profile.weeklyOff || categoryDetail.weekly_holidays || "",
-          holidayNotice: profile.holiday_notice || profile.holidayNotice || "",
-        },
-        policies: {
-          rentalPolicy: profile.rental_policy || profile.rentalPolicy || "",
-          securityDepositPolicy: profile.security_deposit_policy || profile.securityDepositPolicy || "",
-          returnPolicy: profile.return_policy || profile.returnPolicy || "",
-          cancellationPolicy: categoryDetail.cancellation_policy || profile.cancellation_policy || "",
-          damagePolicy: profile.damage_policy || profile.damagePolicy || "",
-        },
-        socialLinks,
-      },
-      featuredCollections: profile.storefront?.featuredCollections || profile.featured_collections || categoryDetail.featured_halls || profile.featured_halls || [],
-      actionButtons: profile.storefront?.actionButtons || profile.action_buttons || profile.actionButtons || {
-        callNow: true,
-        whatsapp: true,
-        viewCollection: true,
-        getQuote: true,
-        visitStore: true,
-      },
-      rentalAvailable: profile.storefront?.businessInfo?.rentalAvailable ?? profile.rental_available ?? profile.rentalAvailable ?? false,
-      homeDeliveryAvailable: profile.storefront?.businessInfo?.homeDeliveryAvailable ?? profile.home_delivery_available ?? profile.homeDeliveryAvailable ?? true,
-      homeTrialAvailable: profile.storefront?.businessInfo?.homeTrialAvailable ?? profile.home_trial_available ?? profile.homeTrialAvailable ?? false,
-      customJewelleryAvailable: profile.storefront?.businessInfo?.customJewelleryAvailable ?? profile.custom_jewellery_available ?? profile.customJewelleryAvailable ?? false,
-      collectionsCount: profile.storefront?.businessInfo?.collectionsCount || profile.collections_count || profile.collectionsCount || "",
-      rentalPolicy: profile.storefront?.policies?.rentalPolicy || profile.rental_policy || profile.rentalPolicy || "",
-      securityDepositPolicy: profile.storefront?.policies?.securityDepositPolicy || profile.security_deposit_policy || profile.securityDepositPolicy || "",
-      returnPolicy: profile.storefront?.policies?.returnPolicy || profile.return_policy || profile.returnPolicy || "",
-      damagePolicy: profile.storefront?.policies?.damagePolicy || profile.damage_policy || profile.damagePolicy || "",
-      workingDays: profile.storefront?.workingHours?.workingDays || profile.working_days || profile.workingDays || "",
-      weeklyOff: profile.storefront?.workingHours?.weeklyOff || profile.weekly_off || profile.weeklyOff || "",
-      holidayNotice: profile.storefront?.workingHours?.holidayNotice || profile.holiday_notice || profile.holidayNotice || "",
+      siteSurveyAvailable: Boolean(categoryDetail.site_survey_available ?? profile.site_survey_available ?? false),
+      site_survey_available: Boolean(categoryDetail.site_survey_available ?? profile.site_survey_available ?? false),
+      storefront: mergedStorefront,
+      featuredCollections: sfCollections,
+      actionButtons: mergedStorefront.actionButtons,
+      rentalAvailable: sfBusinessInfo.rentalAvailable,
+      homeDeliveryAvailable: sfBusinessInfo.homeDeliveryAvailable,
+      homeTrialAvailable: sfBusinessInfo.homeTrialAvailable,
+      customJewelleryAvailable: sfBusinessInfo.customJewelleryAvailable,
+      collectionsCount: sfBusinessInfo.collectionsCount,
+      rentalPolicy: sfPolicies.rentalPolicy,
+      securityDepositPolicy: sfPolicies.securityDepositPolicy,
+      returnPolicy: sfPolicies.returnPolicy,
+      damagePolicy: sfPolicies.damagePolicy,
+      workingDays: sfWorkingHours.workingDays,
+      weeklyOff: sfWorkingHours.weeklyOff,
+      holidayNotice: sfWorkingHours.holidayNotice,
       stats: [
         { icon: "star", value: reviews.length > 0 ? averageRating.toFixed(1) : "N/A", label: "Average Rating" },
         { icon: "users", value: reviews.length > 0 ? String(reviews.length) : "0", label: "Review Count" },
