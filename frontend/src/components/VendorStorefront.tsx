@@ -205,7 +205,23 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
     if (cat.includes("jewel")) return `/jewellery/${idVal}/gallery`;
     if (cat.includes("invite") || cat.includes("card")) return `/invitations/${idVal}/gallery`;
     if (cat.includes("cater")) return `/catering/${idVal}/gallery`;
-    return `/vendors/${cat || "general"}/${idVal}/gallery`;
+  }, [vendor]);
+
+  // Category-tailored Package & Pricing Section Title
+  const packageSectionTitle = useMemo(() => {
+    const c = (vendor?.categorySlug || vendor?.categoryLabel || vendor?.category || "").toLowerCase();
+    if (c.includes("makeup")) return "Bridal Makeup Packages";
+    if (c.includes("mehendi") || c.includes("mehndi")) return "Mehendi Packages";
+    if (c.includes("photo") || c.includes("video")) return "Photography Packages";
+    if (c.includes("decor") || c.includes("planner") || c.includes("planning")) return "Decoration Packages";
+    if (c.includes("cater") || c.includes("food")) return "Catering Packages";
+    if (c.includes("jewel")) return "Collections & Pricing";
+    if (c.includes("invite") || c.includes("card") || c.includes("invitation")) return "Invitation Packages";
+    if (c.includes("venue")) return "Venue Packages";
+    if (c.includes("bridal") || c.includes("boutique")) return "Bridal Collections";
+    if (c.includes("groom")) return "Groom Collections";
+    if (c.includes("wedding-story") || c.includes("wedding-studio")) return "Wedding Collections";
+    return "Curated Packages & Pricing";
   }, [vendor]);
 
   // Automatically record view event for trending analytics engine
@@ -776,16 +792,16 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
             </div>
           )}
 
-          {/* E. STOREFRONT PORTFOLIO & GALLERY (FIXED PREVIEW GRID: 6 Desktop/Tablet, 4 Mobile) */}
+          {/* E. STOREFRONT PORTFOLIO & GALLERY */}
           {galleryPhotos.length > 0 && (
-            <div className="space-y-5">
-              <div className="flex items-center justify-between">
+            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-gold/15 shadow-sm space-y-6">
+              <div className="flex items-center justify-between border-b border-gold/10 pb-4">
                 <div>
-                  <h2 className="font-serif text-2xl font-bold text-charcoal">Portfolio &amp; Showcase</h2>
-                  <p className="text-xs text-charcoal/60">High-resolution authentic imagery crafted by {displayName}</p>
+                  <h2 className="font-serif text-2xl font-bold text-charcoal tracking-tight">Portfolio &amp; Showcase</h2>
+                  <p className="text-xs text-charcoal/60 mt-0.5 font-medium">High-resolution authentic work crafted by {displayName}</p>
                 </div>
-                <span className="text-xs font-bold text-[#0F4C45] bg-white px-3 py-1 rounded-full border border-gold/20">
-                  {galleryPhotos.length} Photos
+                <span className="text-[11px] font-extrabold text-[#0F4C45] bg-[#FAF7F2] px-3.5 py-1 rounded-full border border-gold/25 shadow-2xs tracking-wide">
+                  {galleryPhotos.length} {galleryPhotos.length === 1 ? "Photo" : "Photos"}
                 </span>
               </div>
 
@@ -812,13 +828,13 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
                 ))}
               </div>
 
-              {/* View All Portfolio Redirect Action */}
-              <div className="pt-1 flex justify-center">
+              {/* View Portfolio Redirect Action */}
+              <div className="pt-2 flex justify-center">
                 <Link
                   href={galleryHref}
                   className="w-full sm:w-auto px-8 py-3 rounded-2xl bg-white border border-gold/25 text-charcoal font-bold text-xs hover:bg-[#FAF7F2] hover:border-gold/40 shadow-xs transition-all flex items-center justify-center gap-2 group cursor-pointer"
                 >
-                  <span>View All Portfolio ({galleryPhotos.length})</span>
+                  <span>View Portfolio</span>
                   <ArrowRight className="w-4 h-4 text-[#0F4C45] group-hover:translate-x-1 transition-transform" />
                 </Link>
               </div>
@@ -838,61 +854,80 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
             </div>
           )}
 
-          {/* F. SERVICES & PACKAGES (IF DEFINED) */}
+          {/* F. SERVICES & PACKAGES (DYNAMIC CATEGORY HEADING) */}
           {vendor?.packages && vendor.packages.length > 0 && (
-            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-gold/15 shadow-sm space-y-6">
-              <div className="flex items-center justify-between border-b border-gold/10 pb-4">
+            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-gold/20 shadow-md space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-gold/15 pb-4">
                 <div>
-                  <h2 className="font-serif text-2xl font-bold text-charcoal">Curated Packages &amp; Pricing</h2>
-                  <p className="text-xs text-charcoal/60 mt-0.5">Transparent wedding packages with verified inclusions</p>
+                  <h2 className="font-serif text-2xl font-bold text-charcoal tracking-tight">
+                    {packageSectionTitle}
+                  </h2>
+                  <p className="text-xs text-charcoal/60 mt-0.5 font-medium">
+                    Transparent curated offerings with verified inclusions and standard pricing
+                  </p>
                 </div>
-                <span className="text-xs font-bold text-[#0F4C45] bg-[#FAF7F2] px-3 py-1 rounded-full border border-gold/20">
-                  {vendor.packages.length} Packages
+                <span className="self-start sm:self-auto text-[11px] font-extrabold text-[#0F4C45] bg-[#FAF7F2] px-3.5 py-1.5 rounded-full border border-gold/25 shadow-2xs shrink-0">
+                  {vendor.packages.length} {vendor.packages.length === 1 ? "Option Available" : "Options Available"}
                 </span>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 {vendor.packages.map((pkg: any, idx: number) => (
                   <div
                     key={idx}
-                    className="p-5 rounded-2xl bg-[#FAF7F2] border border-gold/15 space-y-3 flex flex-col justify-between hover:shadow-md transition-shadow"
+                    className="p-6 rounded-3xl bg-[#FAF7F2]/80 border border-gold/20 space-y-4 flex flex-col justify-between hover:shadow-lg hover:border-gold/40 transition-all duration-300 relative group overflow-hidden"
                   >
-                    <div className="space-y-1.5">
-                      <div className="flex items-center justify-between">
-                        <h4 className="font-serif font-bold text-base text-charcoal">{pkg.name}</h4>
+                    {/* Top Decorative Accent Line */}
+                    <div
+                      style={{ backgroundColor: activeTheme.primary }}
+                      className="absolute top-0 left-0 right-0 h-1.5 opacity-80 group-hover:opacity-100 transition-opacity"
+                    />
+
+                    <div className="space-y-3">
+                      <div className="flex items-start justify-between gap-2 pt-1">
+                        <h3 className="font-serif font-bold text-lg text-charcoal leading-snug">{pkg.name}</h3>
                         {pkg.isPopular && (
-                          <span className="bg-[#C8A96A] text-[#082F2C] text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full">
+                          <span className="bg-[#C8A96A] text-[#082F2C] text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full shrink-0 shadow-xs">
                             Most Popular
                           </span>
                         )}
                       </div>
-                      {pkg.tagline && <p className="text-xs text-charcoal/60">{pkg.tagline}</p>}
-                      <div className="text-lg font-serif font-bold text-[#0F4C45] pt-1">
-                        {pkg.price}
-                        {pkg.originalPrice && (
-                          <span className="text-xs text-charcoal/40 line-through ml-2 font-sans font-normal">
-                            {pkg.originalPrice}
-                          </span>
-                        )}
+
+                      {pkg.tagline && <p className="text-xs text-charcoal/65 font-medium italic">{pkg.tagline}</p>}
+
+                      <div className="pt-2 border-t border-gold/10">
+                        <span className="text-[10px] uppercase font-bold text-charcoal/50 block tracking-wider">Pricing</span>
+                        <div className="text-2xl font-serif font-bold text-[#0F4C45] flex items-baseline gap-2">
+                          <span>{pkg.price}</span>
+                          {pkg.originalPrice && (
+                            <span className="text-xs text-charcoal/40 line-through font-sans font-normal">
+                              {pkg.originalPrice}
+                            </span>
+                          )}
+                        </div>
                       </div>
+
                       {pkg.features && Array.isArray(pkg.features) && (
-                        <ul className="space-y-1 pt-2 border-t border-gold/10 text-xs text-charcoal/70">
-                          {pkg.features.map((feat: string, fIdx: number) => (
-                            <li key={fIdx} className="flex items-center gap-1.5">
-                              <CheckCircle2 className="w-3 h-3 text-[#0F4C45] shrink-0" />
-                              <span>{feat}</span>
-                            </li>
-                          ))}
-                        </ul>
+                        <div className="pt-2">
+                          <span className="text-[10px] uppercase font-bold text-charcoal/50 block tracking-wider mb-2">Package Inclusions</span>
+                          <ul className="space-y-2 text-xs text-charcoal/85">
+                            {pkg.features.map((feat: string, fIdx: number) => (
+                              <li key={fIdx} className="flex items-start gap-2">
+                                <CheckCircle2 className="w-3.5 h-3.5 text-[#0F4C45] shrink-0 mt-0.5" />
+                                <span className="font-medium leading-normal">{feat}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
                       )}
                     </div>
 
                     <button
                       onClick={() => setActiveModal("quote")}
                       style={{ backgroundColor: activeTheme.primary }}
-                      className="w-full py-2.5 rounded-xl text-white text-xs font-bold shadow-2xs hover:opacity-90 transition-all cursor-pointer text-center"
+                      className="w-full py-3 rounded-2xl text-white text-xs font-bold shadow-sm hover:opacity-95 transition-all cursor-pointer text-center tracking-wide mt-2"
                     >
-                      Inquire for this Package
+                      Inquire for Package
                     </button>
                   </div>
                 ))}
@@ -941,9 +976,8 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
           {/* 2. DIRECT INQUIRY & BOOKING CARD */}
           <div className="bg-white p-6 rounded-3xl border border-gold/20 shadow-md space-y-4">
             <div className="text-center space-y-1">
-              <span className="text-2xl">✨</span>
-              <h3 className="font-serif font-bold text-lg text-charcoal">Contact {displayName}</h3>
-              <p className="text-xs text-charcoal/60">
+              <h3 className="font-serif font-bold text-xl text-charcoal">Contact {displayName}</h3>
+              <p className="text-xs text-charcoal/60 font-medium">
                 Get response directly from the store manager within 2 hours.
               </p>
             </div>
