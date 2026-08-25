@@ -20,6 +20,10 @@ import {
   CheckCircle2,
   FileText,
   Video,
+  Globe,
+  Mail,
+  PhoneCall,
+  ExternalLink,
 } from "lucide-react";
 import { Footer } from "@/components/Footer";
 import {
@@ -41,10 +45,10 @@ export default function CustomizationPage({
     notFound();
   }
 
-  // Active Tab: 4 = Customizer Studio, 5 = Final Export & Share Preview
+  // Active Step: 4 = Customizer Studio, 5 = Final Export & Share Preview
   const [activeStep, setActiveStep] = useState<4 | 5>(4);
 
-  // Form Customizer State
+  // All 12+ Editable Fields Required by Specification
   const [brideName, setBrideName] = useState("Ananya");
   const [groomName, setGroomName] = useState("Rahul");
   const [brideParents, setBrideParents] = useState("Mr. & Mrs. Kapoor");
@@ -54,14 +58,18 @@ export default function CustomizationPage({
   const [venueName, setVenueName] = useState("Celestia Grand Palace");
   const [venueAddress, setVenueAddress] = useState("Lake City Road, Udaipur, Rajasthan");
   const [rsvpDeadline, setRsvpDeadline] = useState("November 15, 2026");
-  const [contactNumber, setContactNumber] = useState("+91 98765 43210");
+  const [phone, setPhone] = useState("+91 98765 43210");
+  const [email, setEmail] = useState("rsvp@ananyarahul2026.com");
+  const [website, setWebsite] = useState("https://cloche.com/w/ananya-rahul");
+  const [googleMapsLink, setGoogleMapsLink] = useState("https://maps.google.com/?q=Celestia+Grand+Palace+Udaipur");
+  
   const [selectedThemeColor, setSelectedThemeColor] = useState(template.themeColor || "#0F4C45");
   const [selectedFont, setSelectedFont] = useState(template.fontStyle || "Playfair Display");
   const [bgMusic, setBgMusic] = useState(template.musicTrack || "Soft Shehnai & Sitar Harmony");
   const [couplePhotoUrl, setCouplePhotoUrl] = useState<string>("");
   const [copiedToast, setCopiedToast] = useState(false);
 
-  // Handle Photo File Upload
+  // Photo Upload Handler
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const url = URL.createObjectURL(e.target.files[0]);
@@ -71,16 +79,14 @@ export default function CustomizationPage({
 
   // WhatsApp Share URL generator
   const getWhatsAppShareUrl = () => {
-    const text = `✨ *Wedding Invitation* ✨\n\nYou're cordially invited to celebrate the wedding of *${brideName} & ${groomName}*!\n\n📅 *Date:* ${weddingDate} at ${weddingTime}\n📍 *Venue:* ${venueName}, ${venueAddress}\n\nView the invitation & RSVP here:\n${typeof window !== "undefined" ? window.location.origin : ""}/digital-invitations/${template.slug}`;
+    const text = `✨ *Wedding Invitation — ${template.collection}* ✨\n\nYou're cordially invited to celebrate the wedding of *${brideName} & ${groomName}*!\n\n📅 *Date:* ${weddingDate} at ${weddingTime}\n📍 *Venue:* ${venueName}, ${venueAddress}\n\n🌐 *View Invitation & RSVP:* ${website}\n🗺️ *Google Maps Location:* ${googleMapsLink}\n\nWarm regards from ${brideParents} & ${groomParents}.`;
     return `https://wa.me/?text=${encodeURIComponent(text)}`;
   };
 
   // Copy Link Handler
   const handleCopyLink = () => {
     if (typeof window !== "undefined") {
-      navigator.clipboard.writeText(
-        `${window.location.origin}/digital-invitations/${template.slug}`
-      );
+      navigator.clipboard.writeText(website);
       setCopiedToast(true);
       setTimeout(() => setCopiedToast(false), 3000);
     }
@@ -116,7 +122,7 @@ export default function CustomizationPage({
                     : "text-charcoal/70 hover:text-[#0F4C45]"
                 }`}
               >
-                Step 4: Customizer
+                Step 4: Customizer Studio
               </button>
               <button
                 onClick={() => setActiveStep(5)}
@@ -143,21 +149,24 @@ export default function CustomizationPage({
               <div className="lg:col-span-6 bg-white p-6 sm:p-8 rounded-3xl border border-gold/20 shadow-xs space-y-6">
                 
                 <div className="border-b border-gold/15 pb-4">
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-gold bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200 inline-block mb-1.5">
+                    {template.collection} Collection
+                  </span>
                   <h2 className="text-xl sm:text-2xl font-bold font-display text-charcoal flex items-center gap-2">
-                    <Sparkles className="w-5 h-5 text-gold" /> Customize Your Invitation
+                    <Sparkles className="w-5 h-5 text-gold" /> Customize Invitation
                   </h2>
                   <p className="text-xs text-charcoal/60 mt-1">
-                    Fill in the couple & event details. Preview updates instantly on the right.
+                    Editing: <span className="font-bold text-charcoal">{template.name}</span>. All edits update live on the right pane.
                   </p>
                 </div>
 
                 {/* Form Fields */}
                 <div className="space-y-4 text-xs sm:text-sm">
                   
-                  {/* Couple Names */}
+                  {/* Bride & Groom Names */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block font-bold text-charcoal mb-1">Bride's Name</label>
+                      <label className="block font-bold text-charcoal mb-1">Bride's Name *</label>
                       <input
                         type="text"
                         value={brideName}
@@ -166,7 +175,7 @@ export default function CustomizationPage({
                       />
                     </div>
                     <div>
-                      <label className="block font-bold text-charcoal mb-1">Groom's Name</label>
+                      <label className="block font-bold text-charcoal mb-1">Groom's Name *</label>
                       <input
                         type="text"
                         value={groomName}
@@ -201,7 +210,7 @@ export default function CustomizationPage({
                   {/* Date & Time */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block font-bold text-charcoal mb-1">Wedding Date</label>
+                      <label className="block font-bold text-charcoal mb-1">Wedding Date *</label>
                       <input
                         type="text"
                         value={weddingDate}
@@ -210,7 +219,7 @@ export default function CustomizationPage({
                       />
                     </div>
                     <div>
-                      <label className="block font-bold text-charcoal mb-1">Ceremony Time</label>
+                      <label className="block font-bold text-charcoal mb-1">Ceremony Time *</label>
                       <input
                         type="text"
                         value={weddingTime}
@@ -220,10 +229,10 @@ export default function CustomizationPage({
                     </div>
                   </div>
 
-                  {/* Venue Details */}
+                  {/* Venue & Address */}
                   <div className="space-y-3">
                     <div>
-                      <label className="block font-bold text-charcoal mb-1">Venue Name</label>
+                      <label className="block font-bold text-charcoal mb-1">Venue Name *</label>
                       <input
                         type="text"
                         value={venueName}
@@ -232,7 +241,7 @@ export default function CustomizationPage({
                       />
                     </div>
                     <div>
-                      <label className="block font-bold text-charcoal mb-1">Venue Address</label>
+                      <label className="block font-bold text-charcoal mb-1">Venue Address & City *</label>
                       <input
                         type="text"
                         value={venueAddress}
@@ -242,34 +251,65 @@ export default function CustomizationPage({
                     </div>
                   </div>
 
-                  {/* RSVP & Contact */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Contact Info (RSVP, Phone, Email) */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
-                      <label className="block font-bold text-charcoal mb-1">RSVP Deadline</label>
+                      <label className="block font-bold text-charcoal mb-1">RSVP Date</label>
                       <input
                         type="text"
                         value={rsvpDeadline}
                         onChange={(e) => setRsvpDeadline(e.target.value)}
-                        className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-gold/20 rounded-xl text-charcoal font-medium focus:outline-hidden focus:border-[#0F4C45]"
+                        className="w-full px-3 py-2.5 bg-[#FAF7F2] border border-gold/20 rounded-xl text-charcoal font-medium focus:outline-hidden"
                       />
                     </div>
                     <div>
-                      <label className="block font-bold text-charcoal mb-1">Contact Number</label>
+                      <label className="block font-bold text-charcoal mb-1">Phone *</label>
                       <input
                         type="text"
-                        value={contactNumber}
-                        onChange={(e) => setContactNumber(e.target.value)}
-                        className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-gold/20 rounded-xl text-charcoal font-medium focus:outline-hidden focus:border-[#0F4C45]"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        className="w-full px-3 py-2.5 bg-[#FAF7F2] border border-gold/20 rounded-xl text-charcoal font-medium focus:outline-hidden"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-bold text-charcoal mb-1">Email</label>
+                      <input
+                        type="text"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="w-full px-3 py-2.5 bg-[#FAF7F2] border border-gold/20 rounded-xl text-charcoal font-medium focus:outline-hidden"
                       />
                     </div>
                   </div>
 
-                  {/* Styling Options: Theme Color & Font */}
+                  {/* Website & Google Maps Link */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block font-bold text-charcoal mb-1">Custom Website URL</label>
+                      <input
+                        type="text"
+                        value={website}
+                        onChange={(e) => setWebsite(e.target.value)}
+                        className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-gold/20 rounded-xl text-charcoal font-medium focus:outline-hidden"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-bold text-charcoal mb-1">Google Maps Link</label>
+                      <input
+                        type="text"
+                        value={googleMapsLink}
+                        onChange={(e) => setGoogleMapsLink(e.target.value)}
+                        className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-gold/20 rounded-xl text-charcoal font-medium focus:outline-hidden"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Styling Options: Theme Color, Font, & Music */}
                   <div className="pt-4 border-t border-gold/15 space-y-4">
                     
                     <div>
                       <label className="font-bold text-charcoal flex items-center gap-1.5 mb-2">
-                        <Palette className="w-4 h-4 text-[#0F4C45]" /> Select Theme Color Accent
+                        <Palette className="w-4 h-4 text-[#0F4C45]" /> Select Accent Color
                       </label>
                       <div className="flex items-center gap-3">
                         {[
@@ -277,7 +317,7 @@ export default function CustomizationPage({
                           { name: "Royal Gold", color: "#B45309" },
                           { name: "Haldi Crimson", color: "#991B1B" },
                           { name: "Sunset Amber", color: "#D97706" },
-                          { name: "Classic Slate", color: "#334155" },
+                          { name: "Obsidian", color: "#1E1B4B" },
                         ].map((th) => (
                           <button
                             key={th.color}
@@ -300,7 +340,7 @@ export default function CustomizationPage({
 
                     <div>
                       <label className="font-bold text-charcoal flex items-center gap-1.5 mb-2">
-                        <Type className="w-4 h-4 text-[#0F4C45]" /> Font Typography Style
+                        <Type className="w-4 h-4 text-[#0F4C45]" /> Typography Font Style
                       </label>
                       <select
                         value={selectedFont}
@@ -315,11 +355,10 @@ export default function CustomizationPage({
                       </select>
                     </div>
 
-                    {/* Music track selector for video / animated templates */}
                     {template.type === "video" && (
                       <div>
                         <label className="font-bold text-charcoal flex items-center gap-1.5 mb-2">
-                          <Music className="w-4 h-4 text-amber-700" /> Background Music Track
+                          <Music className="w-4 h-4 text-amber-700" /> Background Audio Score
                         </label>
                         <select
                           value={bgMusic}
@@ -334,9 +373,8 @@ export default function CustomizationPage({
                       </div>
                     )}
 
-                    {/* Photo Upload (Optional) */}
                     <div>
-                      <label className="block font-bold text-charcoal mb-1">Couple Photo (Optional)</label>
+                      <label className="block font-bold text-charcoal mb-1">Couple Photo (Optional Upload)</label>
                       <input
                         type="file"
                         accept="image/*"
@@ -366,17 +404,17 @@ export default function CustomizationPage({
                     <span className="flex items-center gap-1.5 text-[#0F4C45]">
                       <Eye className="w-4 h-4 text-gold" /> Live Instant Preview
                     </span>
-                    <span className="text-[11px] font-semibold text-gold uppercase">{template.name}</span>
+                    <span className="text-[11px] font-semibold text-gold uppercase">{template.collection} • {template.name}</span>
                   </div>
 
-                  {/* Rendered Live Card */}
+                  {/* Rendered Live Card Container */}
                   <div
                     style={{ borderColor: selectedThemeColor }}
-                    className="relative aspect-[3/4] max-w-sm mx-auto rounded-2xl overflow-hidden shadow-inner bg-gradient-to-b from-charcoal via-[#0F4C45] to-emerald-950 p-6 text-white flex flex-col justify-between text-center border-4"
+                    className={`relative aspect-[3/4] max-w-sm mx-auto rounded-2xl overflow-hidden shadow-2xl bg-gradient-to-b ${template.bgGradient} p-6 text-white flex flex-col justify-between text-center border-4`}
                   >
                     {/* Header */}
                     <div className="space-y-1 pt-2">
-                      <p className="text-[10px] uppercase tracking-widest text-gold font-bold">Wedding Invitation</p>
+                      <p className="text-[10px] uppercase tracking-widest text-gold font-bold">{template.collection} Collection</p>
                       <h3
                         style={{ fontFamily: selectedFont }}
                         className="text-2xl font-bold text-amber-100 drop-shadow-xs"
@@ -384,7 +422,7 @@ export default function CustomizationPage({
                         {brideName || "Bride"} & {groomName || "Groom"}
                       </h3>
                       <p className="text-[11px] text-white/80 italic">
-                        Blessed by {brideParents} & {groomParents}
+                        With blessings from {brideParents} & {groomParents}
                       </p>
                     </div>
 
@@ -399,7 +437,7 @@ export default function CustomizationPage({
                     <div className="bg-black/30 backdrop-blur-xs p-3.5 rounded-xl border border-white/10 space-y-1 my-auto">
                       <p className="text-xs font-bold text-gold">{template.style}</p>
                       <p className="text-[11px] text-white/90">
-                        Join us to celebrate our special day with love and joy!
+                        Request the pleasure of your company on our wedding celebration!
                       </p>
                     </div>
 
@@ -414,7 +452,7 @@ export default function CustomizationPage({
                         <span className="line-clamp-1">{venueName}, {venueAddress}</span>
                       </div>
                       <p className="text-[10px] text-white/70">
-                        RSVP by {rsvpDeadline} • Contact: {contactNumber}
+                        RSVP: {phone} • {email}
                       </p>
                     </div>
 
@@ -429,24 +467,24 @@ export default function CustomizationPage({
               
               <div className="text-center space-y-2">
                 <span className="bg-emerald-100 text-emerald-900 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider inline-flex items-center gap-1">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700" /> Customization Complete
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700" /> Invitation Customized Successfully
                 </span>
                 <h1 className="text-3xl font-bold font-display text-charcoal">
-                  Your Digital Invitation is Ready!
+                  {template.name} — Final Ready Invitation
                 </h1>
                 <p className="text-xs sm:text-sm text-charcoal/70">
-                  Download high-res formats or share instantly with your guests via WhatsApp & Web.
+                  Collection: <span className="font-bold text-[#0F4C45]">{template.collection}</span>. Ready for PDF download, image save, or WhatsApp broadcast.
                 </p>
               </div>
 
-              {/* Completed Invitation Card Frame */}
+              {/* Final Invitation Card Render */}
               <div className="bg-white p-8 rounded-3xl border border-gold/20 shadow-xl max-w-md mx-auto">
                 <div
                   style={{ borderColor: selectedThemeColor }}
-                  className="relative aspect-[3/4] rounded-2xl overflow-hidden shadow-2xl bg-gradient-to-b from-charcoal via-[#0F4C45] to-emerald-950 p-6 text-white flex flex-col justify-between text-center border-4"
+                  className={`relative aspect-[3/4] rounded-2xl overflow-hidden shadow-2xl bg-gradient-to-b ${template.bgGradient} p-6 text-white flex flex-col justify-between text-center border-4`}
                 >
                   <div className="space-y-2 pt-2">
-                    <p className="text-[10px] uppercase tracking-widest text-gold font-bold">Official Wedding Invite</p>
+                    <p className="text-[10px] uppercase tracking-widest text-gold font-bold">{template.collection} Suite</p>
                     <h2
                       style={{ fontFamily: selectedFont }}
                       className="text-3xl font-bold text-amber-100"
@@ -472,16 +510,16 @@ export default function CustomizationPage({
                   <div className="space-y-1.5 pt-2 text-xs text-white/90 border-t border-white/10">
                     <p className="font-bold text-amber-200">{weddingDate} • {weddingTime}</p>
                     <p className="text-[11px]">{venueName}, {venueAddress}</p>
-                    <p className="text-[10px] text-white/70">RSVP: {contactNumber}</p>
+                    <p className="text-[10px] text-white/70">RSVP: {phone} • {email}</p>
                   </div>
                 </div>
               </div>
 
-              {/* Step 5 Export & Share Action Grid */}
+              {/* Step 5 Export Actions Grid */}
               <div className="bg-white p-6 sm:p-8 rounded-3xl border border-gold/20 shadow-xs space-y-6">
                 
                 <h3 className="text-lg font-bold font-display text-charcoal border-b border-gold/15 pb-3">
-                  Download & Share Options
+                  Download & Export Formats
                 </h3>
 
                 {/* Primary Export Buttons */}
@@ -493,8 +531,8 @@ export default function CustomizationPage({
                     className="p-4 bg-[#FAF7F2] hover:bg-[#0F4C45] text-charcoal hover:text-white rounded-2xl border border-gold/20 transition-all flex flex-col items-center justify-center gap-2 group cursor-pointer"
                   >
                     <FileText className="w-6 h-6 text-[#0F4C45] group-hover:text-gold transition-colors" />
-                    <span className="font-bold text-xs">Download PDF</span>
-                    <span className="text-[10px] opacity-70">High-Res Print Quality</span>
+                    <span className="font-bold text-xs">Download Print PDF</span>
+                    <span className="text-[10px] opacity-70">Ultra HD Vector Print</span>
                   </button>
 
                   {/* Download Image */}
@@ -503,26 +541,26 @@ export default function CustomizationPage({
                     className="p-4 bg-[#FAF7F2] hover:bg-[#0F4C45] text-charcoal hover:text-white rounded-2xl border border-gold/20 transition-all flex flex-col items-center justify-center gap-2 group cursor-pointer"
                   >
                     <Download className="w-6 h-6 text-[#0F4C45] group-hover:text-gold transition-colors" />
-                    <span className="font-bold text-xs">Download Image</span>
-                    <span className="text-[10px] opacity-70">PNG / Card Format</span>
+                    <span className="font-bold text-xs">Save PNG Image</span>
+                    <span className="text-[10px] opacity-70">Mobile Card Format</span>
                   </button>
 
-                  {/* Download Video (if video template) */}
+                  {/* Download Video */}
                   <button
-                    onClick={() => alert("Downloading HD Video Invitation with audio score...")}
+                    onClick={() => alert(`Exporting 1080p MP4 Video Invitation with "${bgMusic}" audio score...`)}
                     className="p-4 bg-[#FAF7F2] hover:bg-[#0F4C45] text-charcoal hover:text-white rounded-2xl border border-gold/20 transition-all flex flex-col items-center justify-center gap-2 group cursor-pointer"
                   >
                     <Video className="w-6 h-6 text-[#0F4C45] group-hover:text-gold transition-colors" />
-                    <span className="font-bold text-xs">Download Video</span>
-                    <span className="text-[10px] opacity-70">HD MP4 Format</span>
+                    <span className="font-bold text-xs">Download MP4 Video</span>
+                    <span className="text-[10px] opacity-70">Animated Video + Audio</span>
                   </button>
 
                 </div>
 
-                {/* Share Options */}
+                {/* WhatsApp & Share Options */}
                 <div className="pt-4 border-t border-gold/15 space-y-4">
                   <h4 className="text-xs font-bold uppercase tracking-wider text-charcoal/50">
-                    Instant Guest Distribution
+                    Instant Guest Broadcast & Share Links
                   </h4>
 
                   <div className="flex flex-col sm:flex-row gap-4">
@@ -534,7 +572,7 @@ export default function CustomizationPage({
                       className="flex-1 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm rounded-xl shadow-md flex items-center justify-center gap-2 transition-all"
                     >
                       <Send className="w-4 h-4" />
-                      <span>Send via WhatsApp</span>
+                      <span>Send Broadcast via WhatsApp</span>
                     </a>
 
                     {/* Copy Link Button */}
@@ -543,7 +581,7 @@ export default function CustomizationPage({
                       className="flex-1 py-3.5 bg-white border border-gold/30 hover:bg-[#FAF7F2] text-[#0F4C45] font-bold text-sm rounded-xl shadow-xs flex items-center justify-center gap-2 transition-all cursor-pointer"
                     >
                       <Copy className="w-4 h-4 text-gold" />
-                      <span>{copiedToast ? "Link Copied!" : "Copy Share Link"}</span>
+                      <span>{copiedToast ? "Web Link Copied!" : "Copy Shareable Link"}</span>
                     </button>
                   </div>
                 </div>
