@@ -25,6 +25,7 @@ interface CustomInviteData {
   couplePhotoUrl?: string;
   customMessage?: string;
   customPositions?: TextPositionOffsets;
+  textScale?: number;
 }
 
 interface InvitationCardPreviewProps {
@@ -54,6 +55,7 @@ export function InvitationCardPreview({
   const venueName = customData?.venueName || template.sampleVenue || "The Oberoi Udaivilas";
   const venueAddress = customData?.venueAddress || template.sampleAddress || "Udaipur, Rajasthan";
 
+  const userTextScale = customData?.textScale || 1.0;
   const pos = template.textFieldPositions;
   const offsets = customData?.customPositions || {};
 
@@ -72,11 +74,11 @@ export function InvitationCardPreview({
     nameScale = 0.88;
   }
 
-  // Parse cqi value e.g. "5.2cqi" -> 5.2
+  // Parse cqi value e.g. "5.2cqi" -> 5.2 and apply user scale multiplier
   const getScaledCqi = (cqiStr: string, scale: number = 1.0) => {
     const numeric = parseFloat(cqiStr);
     if (isNaN(numeric)) return cqiStr;
-    return `${(numeric * scale).toFixed(2)}cqi`;
+    return `${(numeric * scale * userTextScale).toFixed(2)}cqi`;
   };
 
   // Calculate final top/left percentage considering default + user offset
@@ -142,17 +144,17 @@ export function InvitationCardPreview({
       style={{ containerType: "inline-size" }}
       className="relative aspect-[3/4] w-full rounded-2xl overflow-hidden shadow-2xl bg-slate-900 border border-amber-400/30 select-none group @container"
     >
-      {/* 1. Original Background Artwork Asset */}
+      {/* 1. Original Background Artwork Asset (NO HOVER ZOOM) */}
       <img
         src={template.backgroundImage}
         alt={template.name}
-        className="absolute inset-0 w-full h-full object-cover z-0 transition-transform duration-700 group-hover:scale-105"
+        className="absolute inset-0 w-full h-full object-cover z-0"
       />
 
       {/* Subtle Overlay for maximum contrast */}
       <div className="absolute inset-0 bg-black/10 z-5 pointer-events-none" />
 
-      {/* 2. Positioned Text Overlays per Template Configuration (NO BADGE TITLE LABELS) */}
+      {/* 2. Positioned Text Overlays per Template Configuration */}
       <div className="absolute inset-0 z-10">
         
         {/* Couple Names */}
@@ -194,7 +196,7 @@ export function InvitationCardPreview({
               textAlign: pos.familyBlessing.textAlign,
               color: pos.familyBlessing.color,
               fontFamily: pos.familyBlessing.fontFamily,
-              fontSize: pos.familyBlessing.fontSize,
+              fontSize: getScaledCqi(pos.familyBlessing.fontSize, 1.0),
               lineHeight: 1.25,
             }}
             className={`absolute ${pos.familyBlessing.fontWeight || ""} italic opacity-95 break-words transition-shadow ${
@@ -220,7 +222,7 @@ export function InvitationCardPreview({
               textAlign: pos.ceremonyDetails.textAlign,
               color: pos.ceremonyDetails.color,
               fontFamily: pos.ceremonyDetails.fontFamily,
-              fontSize: pos.ceremonyDetails.fontSize,
+              fontSize: getScaledCqi(pos.ceremonyDetails.fontSize, 1.0),
               lineHeight: 1.2,
             }}
             className={`absolute ${pos.ceremonyDetails.fontWeight || ""} ${pos.ceremonyDetails.letterSpacing || ""} transition-shadow ${
@@ -246,7 +248,7 @@ export function InvitationCardPreview({
               textAlign: pos.date.textAlign,
               color: pos.date.color,
               fontFamily: pos.date.fontFamily,
-              fontSize: pos.date.fontSize,
+              fontSize: getScaledCqi(pos.date.fontSize, 1.0),
               lineHeight: 1.2,
             }}
             className={`absolute ${pos.date.fontWeight || "font-bold"} tracking-wider drop-shadow-xs transition-shadow ${
@@ -272,7 +274,7 @@ export function InvitationCardPreview({
               textAlign: pos.venue.textAlign,
               color: pos.venue.color,
               fontFamily: pos.venue.fontFamily,
-              fontSize: pos.venue.fontSize,
+              fontSize: getScaledCqi(pos.venue.fontSize, 1.0),
               lineHeight: 1.2,
             }}
             className={`absolute ${pos.venue.fontWeight || ""} opacity-90 truncate transition-shadow ${

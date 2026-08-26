@@ -10,14 +10,12 @@ import {
   Download,
   Copy,
   Send,
-  Music,
   Palette,
   Type,
   Check,
   Eye,
   CheckCircle2,
   FileText,
-  Video,
   RotateCcw,
   Move,
 } from "lucide-react";
@@ -53,11 +51,10 @@ export default function CustomizationPage({
   const [weddingTime, setWeddingTime] = useState(template.sampleTime || "6:00 PM Onwards");
   const [venueName, setVenueName] = useState(template.sampleVenue || "The Oberoi Udaivilas");
   const [venueAddress, setVenueAddress] = useState(template.sampleAddress || "Udaipur, Rajasthan");
-  const [website, setWebsite] = useState(`https://cloche.com/w/${template.sampleBride.toLowerCase()}-${template.sampleGroom.toLowerCase()}`);
-  const [googleMapsLink, setGoogleMapsLink] = useState(`https://maps.google.com/?q=${encodeURIComponent(template.sampleVenue)}`);
   
   const [selectedThemeColor, setSelectedThemeColor] = useState(template.themeColor || "#0F4C45");
   const [selectedFont, setSelectedFont] = useState(template.fontStyle || "Playfair Display");
+  const [textScale, setTextScale] = useState<number>(1.0);
   const [couplePhotoUrl, setCouplePhotoUrl] = useState<string>("");
   const [copiedToast, setCopiedToast] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
@@ -76,6 +73,7 @@ export default function CustomizationPage({
   // Reset to default layout coordinates
   const handleResetPositions = () => {
     setCustomPositions({});
+    setTextScale(1.0);
   };
 
   // Photo Upload Handler
@@ -88,14 +86,15 @@ export default function CustomizationPage({
 
   // WhatsApp Share URL generator
   const getWhatsAppShareUrl = () => {
-    const text = `✨ *Wedding Invitation — ${template.collection}* ✨\n\nYou're cordially invited to celebrate the wedding of *${brideName} & ${groomName}*!\n\n📅 *Date:* ${weddingDate} at ${weddingTime}\n📍 *Venue:* ${venueName}, ${venueAddress}\n\n🌐 *View Invitation & RSVP:* ${website}\n🗺️ *Google Maps Location:* ${googleMapsLink}\n\nWarm regards from ${brideParents} & ${groomParents}.`;
+    const text = `✨ *Wedding Invitation — ${template.collection}* ✨\n\nYou're cordially invited to celebrate the wedding of *${brideName} & ${groomName}*!\n\n📅 *Date:* ${weddingDate} at ${weddingTime}\n📍 *Venue:* ${venueName}, ${venueAddress}\n\nWarm regards from ${brideParents} & ${groomParents}.`;
     return `https://wa.me/?text=${encodeURIComponent(text)}`;
   };
 
   // Copy Link Handler
   const handleCopyLink = () => {
     if (typeof window !== "undefined") {
-      navigator.clipboard.writeText(website);
+      const shareUrl = window.location.href;
+      navigator.clipboard.writeText(shareUrl);
       setCopiedToast(true);
       setTimeout(() => setCopiedToast(false), 3000);
     }
@@ -134,6 +133,7 @@ export default function CustomizationPage({
     selectedFont,
     couplePhotoUrl,
     customPositions,
+    textScale,
   };
 
   return (
@@ -197,7 +197,7 @@ export default function CustomizationPage({
                   </p>
                 </div>
 
-                {/* Form Fields (RSVP/Phone/Email Removed) */}
+                {/* Form Fields */}
                 <div className="space-y-4 text-xs sm:text-sm">
                   
                   {/* Bride & Groom Names */}
@@ -288,25 +288,29 @@ export default function CustomizationPage({
                     </div>
                   </div>
 
-                  {/* Website & Google Maps Link */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block font-bold text-charcoal mb-1">Custom Website URL</label>
-                      <input
-                        type="text"
-                        value={website}
-                        onChange={(e) => setWebsite(e.target.value)}
-                        className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-gold/20 rounded-xl text-charcoal font-medium focus:outline-hidden"
-                      />
+                  {/* Text Size / Scale Adjustment Controls */}
+                  <div className="pt-4 border-t border-gold/15 space-y-3">
+                    <div className="flex items-center justify-between font-bold text-charcoal">
+                      <span className="flex items-center gap-1.5 text-[#0F4C45]">
+                        <Type className="w-4 h-4 text-gold" /> Text Size / Scale Adjustment
+                      </span>
+                      <span className="text-[11px] font-bold text-[#0F4C45] bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                        {Math.round(textScale * 100)}%
+                      </span>
                     </div>
-                    <div>
-                      <label className="block font-bold text-charcoal mb-1">Google Maps Link</label>
+
+                    <div className="flex items-center gap-3 bg-[#FAF7F2] p-3 rounded-xl border border-gold/20">
+                      <span className="text-xs font-bold text-charcoal/60">Smaller</span>
                       <input
-                        type="text"
-                        value={googleMapsLink}
-                        onChange={(e) => setGoogleMapsLink(e.target.value)}
-                        className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-gold/20 rounded-xl text-charcoal font-medium focus:outline-hidden"
+                        type="range"
+                        min="0.7"
+                        max="1.5"
+                        step="0.05"
+                        value={textScale}
+                        onChange={(e) => setTextScale(parseFloat(e.target.value))}
+                        className="w-full accent-[#0F4C45] cursor-pointer h-2 bg-amber-200/60 rounded-lg"
                       />
+                      <span className="text-sm font-bold text-charcoal">Larger</span>
                     </div>
                   </div>
 
@@ -333,13 +337,13 @@ export default function CustomizationPage({
                     {/* Reset Layout Position Button */}
                     <button
                       onClick={handleResetPositions}
-                      disabled={Object.keys(customPositions).length === 0}
+                      disabled={Object.keys(customPositions).length === 0 && textScale === 1.0}
                       className={`inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-lg border transition-all ${
-                        Object.keys(customPositions).length > 0
+                        Object.keys(customPositions).length > 0 || textScale !== 1.0
                           ? "bg-amber-50 text-amber-900 border-amber-300 hover:bg-amber-100 cursor-pointer"
                           : "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed opacity-60"
                       }`}
-                      title="Reset text positioning to template default"
+                      title="Reset text positioning and size to template default"
                     >
                       <RotateCcw className="w-3 h-3" /> Reset Layout
                     </button>
