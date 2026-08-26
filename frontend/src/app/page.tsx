@@ -253,13 +253,15 @@ export default function Home() {
             </Link>
           </div>
 
-          {/* Stacked on mobile, 2 or 3 columns grid on Laptop */}
+          {/* Grid: 4 cards on Mobile (< md), 6 cards on Laptop/Desktop (>= md) */}
           <div className="space-y-4 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-6">
-            {categories.map((cat) => (
+            {categories.slice(0, 6).map((cat, idx) => (
               <Link 
                 key={cat.title} 
                 href={cat.href} 
-                className={`${cat.bgColor} rounded-2xl overflow-hidden flex h-36 md:h-44 shadow-sm hover:shadow-md transition-all group`}
+                className={`${cat.bgColor} rounded-2xl overflow-hidden flex h-36 md:h-44 shadow-sm hover:shadow-md transition-all group ${
+                  idx >= 4 ? "hidden md:flex" : "flex"
+                }`}
               >
                 <div className="flex-1 p-5 md:p-6 flex flex-col justify-center">
                   <div className="flex items-center gap-1 font-bold text-on-primary-container text-lg md:text-xl font-display group-hover:text-primary transition-colors">
@@ -278,9 +280,11 @@ export default function Home() {
             ))}
           </div>
 
-          <Link href="/categories" className="md:hidden w-full text-center py-4 text-primary font-bold text-sm flex items-center justify-center gap-1 mt-4">
-            View All Categories <span className="material-symbols-outlined text-[18px]">chevron_right</span>
-          </Link>
+          <div className="mt-6 text-center">
+            <Link href="/categories" className="inline-flex items-center gap-1.5 px-6 py-3 rounded-full bg-[#FAF7F2] border border-gold/20 text-primary font-bold text-sm hover:bg-[#F3EDE2] transition-colors shadow-sm">
+              View All Categories <span className="material-symbols-outlined text-[18px]">chevron_right</span>
+            </Link>
+          </div>
         </section>
 
         {/* Sponsored Homepage Banner */}
