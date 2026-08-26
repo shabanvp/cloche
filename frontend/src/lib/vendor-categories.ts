@@ -7,6 +7,8 @@ import {
   UtensilsCrossed, 
   Mail, 
   Gem,
+  Shirt,
+  Store,
   LucideIcon
 } from "lucide-react";
 
@@ -999,30 +1001,149 @@ export const VENDOR_CATEGORIES: Record<string, VendorCategoryConfig> = {
         badge: "Buy Fine Jewellery"
       }
     ]
+  },
+  "bridal-studio": {
+    id: "bridal-studio",
+    name: "BRIDAL STUDIO",
+    badge: "Bridal Couture & Lehengas",
+    icon: Sparkles,
+    media: {
+      title: "Bridal Collections",
+      subtitle: "Bespoke bridal lehengas, silk sarees, Nikah dresses & ceremony gowns",
+      itemTypeLabel: "Bridal Outfit / Lehenga",
+      tags: ["All", "Bridal Lehengas", "Silk Sarees", "Gowns", "Nikah Couture"],
+      emptyPrompt: "No bridal outfits added yet. Showcase your luxury bridal collections!"
+    },
+    pricing: {
+      title: "Bridal Packages & Pricing",
+      subtitle: "Outfit purchase/rental rates, trial sessions & custom fitting fees",
+      itemTypeLabel: "Outfit Package",
+      pricingFields: ["Bridal Lehenga Price", "3-Day Rental Charge", "Custom Fitting Fee", "Home Trial Fee"],
+      emptyPrompt: "No bridal pricing packages configured yet. Add your outfit rates."
+    },
+    sampleMedia: [
+      {
+        id: "bs-1",
+        title: "Velvet Royal Maroon Bridal Lehenga",
+        category: "Bridal Lehengas",
+        image: "https://images.unsplash.com/photo-1594552072238-b8a33785b261?q=80&w=800&auto=format&fit=crop",
+        details: "Hand-Embroidered Zardozi • Custom Fits Available"
+      }
+    ],
+    samplePricing: [
+      {
+        id: "bsp-1",
+        name: "Signature Zardozi Bridal Lehenga",
+        price: "₹85,000",
+        unit: "per outfit",
+        features: ["Bespoke Measurements", "Dupatta Draping Included", "Custom Color Dyeing", "Free Fitting Revisions"],
+        popular: true,
+        badge: "Bride Favorite"
+      }
+    ]
+  },
+  "groom-studio": {
+    id: "groom-studio",
+    name: "GROOM STUDIO",
+    badge: "Groom Couture & Sherwanis",
+    icon: Shirt,
+    media: {
+      title: "Groom Collections",
+      subtitle: "Bespoke sherwanis, bandhgalas, tuxedos, Jodhpuri suits & kurtas",
+      itemTypeLabel: "Groom Ensemble",
+      tags: ["All", "Sherwanis", "Bandhgalas", "Tuxedos", "Jodhpuri Suits"],
+      emptyPrompt: "No groom ensembles added yet. Showcase your bespoke groom couture!"
+    },
+    pricing: {
+      title: "Groom Packages & Pricing",
+      subtitle: "Bespoke tailoring fees, rental charges & accessory packages",
+      itemTypeLabel: "Groom Package",
+      pricingFields: ["Sherwani Purchase Price", "Tuxedo Rental Charge", "Custom Tailoring Charge", "Safas & Accessories"],
+      emptyPrompt: "No groom pricing packages configured yet. Set up custom suit and sherwani rates."
+    },
+    sampleMedia: [
+      {
+        id: "gs-1",
+        title: "Royal Raw Silk Embroidered Sherwani",
+        category: "Sherwanis",
+        image: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?q=80&w=800&auto=format&fit=crop",
+        details: "Includes Safa, Stole & Matching Mojaris"
+      }
+    ],
+    samplePricing: [
+      {
+        id: "gsp-1",
+        name: "Bespoke Silk Sherwani Set",
+        price: "₹45,000",
+        unit: "per set",
+        features: ["Tailored Fit Guarantee", "Matching Safa Included", "Premium Silk Fabric", "Free Alterations"],
+        popular: true,
+        badge: "Top Seller"
+      }
+    ]
+  },
+  "wedding-studio": {
+    id: "wedding-studio",
+    name: "WEDDING STUDIO",
+    badge: "Couple & Ceremony Couture",
+    icon: Store,
+    media: {
+      title: "Wedding Collections",
+      subtitle: "Complete bridal & groom ceremonial couture, wedding edits & couple ensembles",
+      itemTypeLabel: "Wedding Ensemble",
+      tags: ["All", "Bridal Couture", "Groom Couture", "Couple Ensembles", "Ceremony Edits"],
+      emptyPrompt: "No wedding studio collections added yet. Showcase your bridal and groom wedding edits!"
+    },
+    pricing: {
+      title: "Wedding Packages & Pricing",
+      subtitle: "Couple ensemble packages, bridal & groom combos & wedding edits",
+      itemTypeLabel: "Studio Package",
+      pricingFields: ["Couple Combo Rate", "Bridal Studio Rate", "Groom Studio Rate", "Styling Session Charge"],
+      emptyPrompt: "No studio packages configured yet. Add couple ensemble rates and combo deals."
+    },
+    sampleMedia: [
+      {
+        id: "ws-1",
+        title: "Royal Heritage Couple Wedding Edit",
+        category: "Couple Ensembles",
+        image: "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=800&auto=format&fit=crop",
+        details: "Matching Pastel Tones • Full Bridal Lehenga & Groom Sherwani"
+      }
+    ],
+    samplePricing: [
+      {
+        id: "wsp-1",
+        name: "Royal Bride & Groom Couple Ensemble",
+        price: "₹1,20,000",
+        unit: "couple package",
+        features: ["Complete Bridal Lehenga", "Matching Groom Sherwani Set", "Styling & Fitting Sessions", "Complimentary Accessories"],
+        popular: true,
+        badge: "Best Value"
+      }
+    ]
   }
 };
 
 export function getCategoryConfig(categoryKey: string): VendorCategoryConfig | null {
   const norm = normalizeCategory(categoryKey);
-  if (norm) {
-    if (VENDOR_CATEGORIES[norm.slug]) {
-      return VENDOR_CATEGORIES[norm.slug];
-    }
-    if (norm.slug === "decor-planning" && VENDOR_CATEGORIES.planners) {
-      return VENDOR_CATEGORIES.planners;
-    }
-    if (norm.slug === "invitation-designers" && VENDOR_CATEGORIES.invitations) {
-      return VENDOR_CATEGORIES.invitations;
-    }
-    if (norm.slug === "wedding-planners" && VENDOR_CATEGORIES.planners) {
-      return VENDOR_CATEGORIES.planners;
-    }
+  if (norm && VENDOR_CATEGORIES[norm.slug]) {
+    return VENDOR_CATEGORIES[norm.slug];
   }
 
-  // Direct lookup check
+  // Direct lookup check & alias mapping
   const rawKey = (categoryKey || "").toLowerCase().trim();
   if (VENDOR_CATEGORIES[rawKey]) {
     return VENDOR_CATEGORIES[rawKey];
+  }
+
+  if (rawKey.includes("bride") || rawKey.includes("bridal") || rawKey.includes("boutique")) {
+    return VENDOR_CATEGORIES["bridal-studio"];
+  }
+  if (rawKey.includes("groom") || rawKey.includes("sherwani")) {
+    return VENDOR_CATEGORIES["groom-studio"];
+  }
+  if (rawKey.includes("wedding") && rawKey.includes("studio")) {
+    return VENDOR_CATEGORIES["wedding-studio"];
   }
 
   // Strictly return null for unrecognized categories — NO SILENT FALLBACK TO VENUES

@@ -148,12 +148,18 @@ export function UnifiedVendorDashboard({ categoryKey = "caterers", initialTab = 
   const isVenue = activeCategoryKey === "venues" || vendorCategoryName.toLowerCase().includes("venue");
   const isDecor = activeCategoryKey === "planners" || activeCategoryKey === "decor" || vendorCategoryName.toLowerCase().includes("decor") || vendorCategoryName.toLowerCase().includes("planner");
   const isBoutiqueStory =
+    activeCategoryKey === "bridal-studio" ||
+    activeCategoryKey === "groom-studio" ||
+    activeCategoryKey === "wedding-studio" ||
+    activeCategoryKey === "bridal-wear" ||
+    activeCategoryKey === "groom-wear" ||
     activeCategoryKey === "brides-story" ||
     activeCategoryKey === "grooms-story" ||
     activeCategoryKey === "wedding-story" ||
     activeCategoryKey === "boutiques" ||
     vendorCategoryName.toLowerCase().includes("story") ||
-    vendorCategoryName.toLowerCase().includes("boutique");
+    vendorCategoryName.toLowerCase().includes("boutique") ||
+    vendorCategoryName.toLowerCase().includes("studio");
 
   // Navigation items matching requested structure
   let navItems;
