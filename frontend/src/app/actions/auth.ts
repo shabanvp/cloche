@@ -22,80 +22,76 @@ function decodeJwtUnsafe(token: string): any {
 export async function login(formData: FormData) {
   const email = (formData.get("email") as string || "").trim().toLowerCase();
   const password = formData.get("password") as string;
-  const role = (formData.get("role") as string) || "customer";
+  const requestedRole = ((formData.get("role") as string) || "customer").toLowerCase();
+
+  console.log(`[AUTH:LOGIN_ATTEMPT] email="${email}" requestedRole="${requestedRole}" timestamp=${new Date().toISOString()}`);
+
+  if (!email || !password) {
+    return { success: false, error: "Email and password are required." };
+  }
 
   try {
     const { url, anonKey, serviceKey } = getSupabaseConfig();
     const apiKey = serviceKey || anonKey;
     
-    // 1. Primary Authentication: Check custom database users table first
+    let user: any = null;
+    let authResult: any = null;
+    let userRoles: string[] = [];
+    let isVendorAccount = false;
+    let vendorRecord: any = null;
+
+    // 1. Primary Authentication: Query custom database users table
     if (url && apiKey) {
       const userRes = await fetch(
-        `${url}/rest/v1/users?email=eq.${encodeURIComponent(email)}&select=id,email,password_hash,full_name,name,phone,city,wedding_date,is_active,user_roles(roles(name))`,
+        `${url}/rest/v1/users?email=eq.${encodeURIComponent(email)}&select=id,email,password_hash,full_name,name,phone,city,wedding_date,is_active,is_verified,vendors(id,business_name,publication_status),user_roles(roles(name))`,
         {
           headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
           cache: "no-store",
         }
-      ).catch(() => null);
+      ).catch((err) => {
+        console.error("[AUTH:DB_ERROR] Failed to query users table:", err);
+        return null;
+      });
 
       if (userRes && userRes.ok) {
         const users = await userRes.json();
         if (Array.isArray(users) && users.length > 0) {
-          const user = users[0];
-
-          if (user.password_hash && verifyPassword(password, user.password_hash)) {
-            let userRoles: string[] = [role];
-            if (Array.isArray(user.user_roles) && user.user_roles.length > 0) {
-              const rolesList = user.user_roles.map((ur: any) => ur.roles?.name).filter(Boolean);
-              if (rolesList.length > 0) userRoles = rolesList;
-            }
-
-            const displayName = user.full_name || user.name || email.split("@")[0];
-            const token = signJwtToken({
-              userId: user.id,
-              email: user.email,
-              fullName: displayName,
-              roles: userRoles,
-            });
-
-            const cookieStore = await cookies();
-            const activeRole = (role === "vendor" || role === "partner") ? "vendor" : (role === "admin" ? "admin" : "user");
-            const userObj = {
-              id: user.id,
-              email: user.email,
-              full_name: displayName,
-              name: displayName,
-              fullName: displayName,
-              phone: user.phone || "",
-              city: user.city || "",
-              wedding_date: user.wedding_date || "",
-              weddingDate: user.wedding_date || "",
-              roles: [activeRole],
-              role: activeRole,
-            };
-
-            cookieStore.set(AUTH_COOKIE_NAME, token, { httpOnly: true, path: "/", maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 });
-            cookieStore.set("auth_token", token, { path: "/", maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 });
-            cookieStore.set("user_role", activeRole, { path: "/", maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 });
-            cookieStore.set("user_data", JSON.stringify(userObj), { path: "/", maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 });
-
-            return { success: true, user: userObj };
-          }
+          user = users[0];
+          console.log(`[AUTH:USER_FOUND] user_id=${user.id} email=${user.email} is_active=${user.is_active} is_verified=${user.is_verified}`);
         }
       }
     }
 
-    // 2. Supabase GoTrue Auth Fallback
-    const authResult = await signInWithSupabaseAuth(email, password);
-    if (!authResult.error && authResult.user) {
-      const authUser = authResult.user;
-      let userRoles: string[] = [role];
-      let displayName = authUser.user_metadata?.full_name || email.split("@")[0];
-      let customUserId = authUser.id;
+    // 2. Parallel check against Supabase GoTrue Auth
+    authResult = await signInWithSupabaseAuth(email, password);
 
-      // Update custom table password_hash to keep DB in sync
+    // Evaluate Password Authenticity across DB hash & Supabase Auth
+    let isPasswordValid = false;
+    if (user?.password_hash && verifyPassword(password, user.password_hash)) {
+      isPasswordValid = true;
+      console.log(`[AUTH:PASS_VERIFY] Password verified via public.users hash match.`);
+
+      // If Supabase Auth failed (out of sync), sync Supabase Auth user password
+      if (authResult.error && url && (serviceKey || apiKey) && user.id) {
+        console.log(`[AUTH:SYNC] Syncing Supabase Auth user password for id=${user.id}`);
+        await fetch(`${url}/auth/v1/admin/users/${user.id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            apikey: serviceKey || apiKey,
+            Authorization: `Bearer ${serviceKey || apiKey}`,
+          },
+          body: JSON.stringify({ password: password, email_confirm: true }),
+        }).catch(() => null);
+      }
+    } else if (!authResult.error && authResult.user) {
+      isPasswordValid = true;
+      console.log(`[AUTH:PASS_VERIFY] Password verified via Supabase Auth.`);
+
+      // If public.users password_hash was out of sync or missing, update it
       if (url && apiKey) {
         const syncHash = hashPassword(password);
+        console.log(`[AUTH:SYNC] Syncing public.users password_hash for email=${email}`);
         await fetch(`${url}/rest/v1/users?email=eq.${encodeURIComponent(email)}`, {
           method: "PATCH",
           headers: {
@@ -106,65 +102,129 @@ export async function login(formData: FormData) {
           body: JSON.stringify({ password_hash: syncHash, is_active: true, is_verified: true }),
         }).catch(() => null);
       }
-
-      const token = authResult.session?.access_token || authUser.id;
-      const cookieStore = await cookies();
-      const normalizedRole = role === "customer" ? "user" : role;
-      const userObj = { id: customUserId, email: authUser.email, full_name: displayName, name: displayName, fullName: displayName, roles: [normalizedRole] };
-
-      cookieStore.set(AUTH_COOKIE_NAME, token, { httpOnly: true, path: "/", maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 });
-      cookieStore.set("auth_token", token, { path: "/", maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 });
-      cookieStore.set("user_role", normalizedRole, { path: "/", maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 });
-      cookieStore.set("user_data", JSON.stringify(userObj), { path: "/", maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 });
-
-      return { success: true, user: userObj };
     }
 
-    // 2. Fallback to Render API endpoint
-    let endpoint = `${API_BASE_URL}/auth/login-user`;
-    const payload: any = { password };
-    
-    if (role === 'vendor' || role === 'partner') {
-      endpoint = `${API_BASE_URL}/auth/login`;
-      payload.identifier = email;
-    } else if (role === 'admin') {
-      endpoint = `${API_BASE_URL}/admin/login`;
-      payload.email = email;
-    } else {
-      endpoint = `${API_BASE_URL}/auth/login-user`;
-      payload.email = email;
+    // SCENARIO 1: User exists nowhere
+    if (!user && (authResult.error || !authResult.user)) {
+      console.warn(`[AUTH:FAIL] email=${email} reason=USER_NOT_FOUND`);
+      return { success: false, error: "No account found with this email address. Please sign up first." };
     }
 
-    const res = await fetch(endpoint, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
+    // SCENARIO 2: User exists but password is incorrect
+    if (!isPasswordValid) {
+      console.warn(`[AUTH:FAIL] email=${email} reason=INCORRECT_PASSWORD`);
+      return { success: false, error: "Incorrect password. Please check your password and try again." };
+    }
+
+    // If user record wasn't found in DB originally but Supabase Auth succeeded, attempt refetch
+    if (!user && url && apiKey) {
+      const reFetchRes = await fetch(
+        `${url}/rest/v1/users?email=eq.${encodeURIComponent(email)}&select=id,email,password_hash,full_name,name,phone,city,wedding_date,is_active,is_verified,vendors(id,business_name,publication_status),user_roles(roles(name))`,
+        { headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` }, cache: "no-store" }
+      ).catch(() => null);
+      if (reFetchRes && reFetchRes.ok) {
+        const rows = await reFetchRes.json();
+        if (Array.isArray(rows) && rows.length > 0) user = rows[0];
+      }
+    }
+
+    const userId = user?.id || authResult?.user?.id;
+    const userEmail = user?.email || email;
+    const displayName = user?.full_name || user?.name || authResult?.user?.user_metadata?.full_name || email.split("@")[0];
+
+    // SCENARIO 3: Account is inactive/disabled
+    if (user && user.is_active === false) {
+      console.warn(`[AUTH:FAIL] userId=${userId} email=${userEmail} reason=ACCOUNT_DISABLED`);
+      return { success: false, error: "Your account has been deactivated. Please contact customer support." };
+    }
+
+    // Resolve Roles and Vendor Profile
+    if (user) {
+      if (Array.isArray(user.user_roles) && user.user_roles.length > 0) {
+        userRoles = user.user_roles.map((ur: any) => ur.roles?.name).filter(Boolean);
+      }
+      if (Array.isArray(user.vendors) && user.vendors.length > 0) {
+        isVendorAccount = true;
+        vendorRecord = user.vendors[0];
+        if (!userRoles.includes("vendor")) userRoles.push("vendor");
+      }
+    }
+
+    if (userRoles.length === 0) {
+      userRoles = [requestedRole === "vendor" || requestedRole === "partner" ? "vendor" : "customer"];
+    }
+
+    // Ensure all authenticated users have customer access
+    if (!userRoles.includes("customer") && !userRoles.includes("user")) {
+      userRoles.push("customer");
+    }
+
+    console.log(`[AUTH:ROLE_RESOLVED] userId=${userId} email=${userEmail} roles=[${userRoles.join(",")}] requestedRole="${requestedRole}"`);
+
+    // SCENARIO 4: Role/Portal Authorization Checks
+    if (requestedRole === "vendor" || requestedRole === "partner") {
+      if (!userRoles.includes("vendor") && !isVendorAccount) {
+        console.warn(`[AUTH:FAIL] userId=${userId} email=${userEmail} reason=ROLE_MISMATCH_NOT_VENDOR`);
+        return {
+          success: false,
+          error: "This email is registered as a customer account. Please log in through the user portal or register as a vendor.",
+        };
+      }
+      if (vendorRecord && vendorRecord.publication_status === "suspended") {
+        console.warn(`[AUTH:FAIL] userId=${userId} email=${userEmail} reason=VENDOR_SUSPENDED`);
+        return {
+          success: false,
+          error: "Your vendor account is suspended. Please contact support.",
+        };
+      }
+    } else if (requestedRole === "admin") {
+      if (!userRoles.includes("admin") && !userRoles.includes("super_admin")) {
+        console.warn(`[AUTH:FAIL] userId=${userId} email=${userEmail} reason=ROLE_MISMATCH_NOT_ADMIN`);
+        return {
+          success: false,
+          error: "Access denied. Admin authorization required.",
+        };
+      }
+    }
+
+    // SCENARIO 5: Successful Authentication & Session Cookie Creation
+    const activeRole = (requestedRole === "vendor" || requestedRole === "partner")
+      ? "vendor"
+      : (requestedRole === "admin" ? "admin" : "user");
+
+    const token = signJwtToken({
+      userId,
+      email: userEmail,
+      fullName: displayName,
+      roles: userRoles,
     });
 
-    const data = await res.json();
+    const cookieStore = await cookies();
+    const userObj = {
+      id: userId,
+      email: userEmail,
+      full_name: displayName,
+      name: displayName,
+      fullName: displayName,
+      phone: user?.phone || "",
+      city: user?.city || "",
+      wedding_date: user?.wedding_date || "",
+      weddingDate: user?.wedding_date || "",
+      roles: userRoles,
+      role: activeRole,
+    };
 
-    if (!res.ok || !data.success) {
-      return { error: data.message || "Invalid email or password" };
-    }
+    // Clean up stale cookies & write fresh session cookies
+    cookieStore.set(AUTH_COOKIE_NAME, token, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 });
+    cookieStore.set("auth_token", token, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 });
+    cookieStore.set("user_role", activeRole, { httpOnly: false, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 });
+    cookieStore.set("user_data", encodeURIComponent(JSON.stringify(userObj)), { httpOnly: false, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 });
 
-    const fallbackCookieStore = await cookies();
-    const fetchedUser = data.user || data.data?.user || { email };
-    if (!fetchedUser.full_name && !fetchedUser.name) {
-      fetchedUser.name = email.split("@")[0];
-      fetchedUser.full_name = email.split("@")[0];
-    }
-
-    const normalizedRole = role === "customer" ? "user" : role;
-    if (data.token) {
-      fallbackCookieStore.set("auth_token", data.token, { path: "/", maxAge: 7 * 24 * 60 * 60 });
-      fallbackCookieStore.set(AUTH_COOKIE_NAME, data.token, { path: "/", maxAge: 7 * 24 * 60 * 60 });
-    }
-    fallbackCookieStore.set("user_role", normalizedRole, { path: "/", maxAge: 7 * 24 * 60 * 60 });
-    fallbackCookieStore.set("user_data", JSON.stringify(fetchedUser), { path: "/", maxAge: 7 * 24 * 60 * 60 });
-
-    return { success: true, user: fetchedUser };
+    console.log(`[AUTH:SUCCESS] userId=${userId} email=${userEmail} activeRole=${activeRole}`);
+    return { success: true, user: userObj, token };
   } catch (error: any) {
-    return { error: "An unexpected error occurred." };
+    console.error("[AUTH:CRITICAL_ERROR]", error);
+    return { success: false, error: "An unexpected server error occurred during login. Please try again." };
   }
 }
 
@@ -177,13 +237,24 @@ export async function signup(formData: FormData) {
     const role = (formData.get("account_type") as string) === "vendor" ? "vendor" : "customer";
 
     const { url, anonKey, serviceKey } = getSupabaseConfig();
+    const apiKey = serviceKey || anonKey;
 
-    // 1. Insert into Supabase database if configured
-    if (url && (serviceKey || anonKey)) {
-      const apiKey = serviceKey || anonKey;
+    // Check if user already exists
+    if (url && apiKey) {
+      const checkRes = await fetch(`${url}/rest/v1/users?email=eq.${encodeURIComponent(email)}&select=id`, {
+        headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
+      });
+      if (checkRes.ok) {
+        const existing = await checkRes.json();
+        if (Array.isArray(existing) && existing.length > 0) {
+          return { success: false, error: "An account with this email address already exists. Please log in instead." };
+        }
+      }
+    }
+
+    if (url && apiKey) {
       const passwordHash = hashPassword(password);
 
-      // Create Supabase Auth user as single source of truth for auth
       let authUserId: string | null = null;
       const authAdminRes = await fetch(`${url}/auth/v1/admin/users`, {
         method: "POST",
@@ -239,7 +310,6 @@ export async function signup(formData: FormData) {
         if (Array.isArray(inserted) && inserted.length > 0) {
           const newUser = inserted[0];
           
-          // Role lookup & insertion
           let roleId: string | null = null;
           const roleRes = await fetch(`${url}/rest/v1/roles?name=eq.${encodeURIComponent(role)}&select=id`, {
             headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
@@ -247,26 +317,6 @@ export async function signup(formData: FormData) {
           if (roleRes && roleRes.ok) {
             const roles = await roleRes.json();
             if (Array.isArray(roles) && roles.length > 0) roleId = roles[0].id;
-          }
-          if (!roleId) {
-            const customerRoleRes = await fetch(`${url}/rest/v1/roles?name=eq.customer&select=id`, {
-              headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
-            }).catch(() => null);
-            if (customerRoleRes && customerRoleRes.ok) {
-              const customerRoles = await customerRoleRes.json();
-              if (Array.isArray(customerRoles) && customerRoles.length > 0) roleId = customerRoles[0].id;
-            }
-          }
-          if (!roleId) {
-            const newRoleRes = await fetch(`${url}/rest/v1/roles`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json", apikey: apiKey, Authorization: `Bearer ${apiKey}`, Prefer: "return=representation" },
-              body: JSON.stringify({ name: role, description: `${role} role` }),
-            }).catch(() => null);
-            if (newRoleRes && newRoleRes.ok) {
-              const newRoles = await newRoleRes.json();
-              if (Array.isArray(newRoles) && newRoles.length > 0) roleId = newRoles[0].id;
-            }
           }
 
           if (roleId) {
@@ -284,60 +334,22 @@ export async function signup(formData: FormData) {
             roles: [role],
           });
 
-          // Session creation
-          const tokenHash = hashSessionToken(token);
-          const expiresAt = new Date(Date.now() + SESSION_EXPIRY_DAYS * 24 * 60 * 60 * 1000).toISOString();
-          await fetch(`${url}/rest/v1/sessions`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json", apikey: apiKey, Authorization: `Bearer ${apiKey}` },
-            body: JSON.stringify({
-              user_id: newUser.id,
-              token_hash: tokenHash,
-              user_agent: "Next.js Server Action",
-              ip_address: "127.0.0.1",
-              expires_at: expiresAt,
-            }),
-          }).catch(() => null);
-
           const cookieStore = await cookies();
           const userObj = { id: newUser.id, email: newUser.email, full_name: name, name: name, fullName: name, phone: phone || newUser.phone || "", roles: [role] };
           
           cookieStore.set(AUTH_COOKIE_NAME, token, { httpOnly: true, path: "/", maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 });
           cookieStore.set("auth_token", token, { path: "/", maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 });
           cookieStore.set("user_role", role, { path: "/", maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 });
-          cookieStore.set("user_data", JSON.stringify(userObj), { path: "/", maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 });
+          cookieStore.set("user_data", encodeURIComponent(JSON.stringify(userObj)), { path: "/", maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 });
 
           return { success: true, user: userObj, token };
         }
       }
     }
 
-    // 2. Fallback to Render API endpoint
-    const endpoint = `${API_BASE_URL}/auth/signup`;
-    
-    const res = await fetch(endpoint, {
-      method: "POST",
-      body: formData,
-    });
-
-    const data = await res.json();
-
-    if (!res.ok || !data.success) {
-      return { error: data.message || "Signup failed" };
-    }
-
-    const cookieStore = await cookies();
-    const newUserObj = data.user || data.data?.user || { full_name: name, name: name, fullName: name, email, role };
-    if (data.token) {
-      cookieStore.set("auth_token", data.token, { path: "/", maxAge: 30 * 24 * 60 * 60 });
-      cookieStore.set(AUTH_COOKIE_NAME, data.token, { path: "/", maxAge: 30 * 24 * 60 * 60 });
-    }
-    cookieStore.set("user_data", JSON.stringify(newUserObj), { path: "/", maxAge: 30 * 24 * 60 * 60 });
-    cookieStore.set("user_role", role, { path: "/", maxAge: 30 * 24 * 60 * 60 });
-
-    return { success: true, user: newUserObj, ...data };
+    return { success: false, error: "Failed to create account. Please try again." };
   } catch (error: any) {
-    return { error: "An unexpected error occurred." };
+    return { success: false, error: "An unexpected error occurred during signup." };
   }
 }
 
@@ -367,7 +379,6 @@ export async function getCurrentUser() {
   let email: string | null = null;
   let userId: string | null = null;
 
-  // 1. Try local verified JWT token
   if (token) {
     const verified = verifyJwtToken(token);
     if (verified && verified.fullName) {
@@ -404,10 +415,10 @@ export async function getCurrentUser() {
     }
   }
 
-  // 2. Try parsing user_data cookie
   if (userDataCookie) {
     try {
-      const parsed = JSON.parse(userDataCookie);
+      const decodedCookie = decodeURIComponent(userDataCookie);
+      const parsed = JSON.parse(decodedCookie);
       const nameVal = parsed.full_name || parsed.fullName || parsed.name || parsed.owner_name;
       if (nameVal && typeof nameVal === "string" && nameVal.trim() && nameVal !== "User") {
         return {
@@ -426,7 +437,6 @@ export async function getCurrentUser() {
     } catch (e) {}
   }
 
-  // 3. Query Supabase database directly by email or userId to fetch fresh profile
   const { url, anonKey } = getSupabaseConfig();
   if (url && anonKey && (email || userId)) {
     const filter = userId ? `id=eq.${encodeURIComponent(userId)}` : `email=eq.${encodeURIComponent(email!)}`;
@@ -475,7 +485,6 @@ export async function getCurrentUser() {
     }
   }
 
-  // 4. Email fallback
   if (email && email.includes("@")) {
     const emailName = email.split("@")[0];
     const formatted = emailName.charAt(0).toUpperCase() + emailName.slice(1);
@@ -510,7 +519,6 @@ export async function resetPasswordAction(email: string, newPassword?: string) {
     const passwordToSet = newPassword || "ClochePass2026!";
     const newHash = hashPassword(passwordToSet);
 
-    // 1. Update custom users table
     await fetch(`${url}/rest/v1/users?email=eq.${encodeURIComponent(cleanEmail)}`, {
       method: "PATCH",
       headers: {
@@ -521,7 +529,6 @@ export async function resetPasswordAction(email: string, newPassword?: string) {
       body: JSON.stringify({ password_hash: newHash, is_active: true, is_verified: true }),
     }).catch(() => null);
 
-    // 2. Lookup & update Supabase Auth User
     const authLookupRes = await fetch(`${url}/auth/v1/admin/users`, {
       headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
     }).catch(() => null);
@@ -540,17 +547,6 @@ export async function resetPasswordAction(email: string, newPassword?: string) {
             Authorization: `Bearer ${apiKey}`,
           },
           body: JSON.stringify({ password: passwordToSet, email_confirm: true }),
-        }).catch(() => null);
-      } else {
-        // Create in Supabase Auth if missing
-        await fetch(`${url}/auth/v1/admin/users`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            apikey: apiKey,
-            Authorization: `Bearer ${apiKey}`,
-          },
-          body: JSON.stringify({ email: cleanEmail, password: passwordToSet, email_confirm: true }),
         }).catch(() => null);
       }
     }
