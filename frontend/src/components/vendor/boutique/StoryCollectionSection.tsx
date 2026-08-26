@@ -337,7 +337,7 @@ export function StoryCollectionSection({
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1">
+      <div className="flex items-center gap-2 overflow-x-auto scrollbar-none [ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden pb-1">
         {["All", ...categoryOptions].map((cat) => (
           <button
             key={cat}
@@ -489,7 +489,7 @@ export function StoryCollectionSection({
               {/* Photo Upload */}
               <div className="space-y-2">
                 <label className="text-xs font-semibold text-gray-700 uppercase tracking-wider">Multiple Photos</label>
-                <div className="flex items-center gap-3 overflow-x-auto pb-2">
+                <div className="flex items-center gap-3 overflow-x-auto scrollbar-none [ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden pb-2">
                   {formImages.map((img, idx) => (
                     <div key={idx} className="relative w-20 h-24 rounded-xl overflow-hidden border border-gray-200 shrink-0 group">
                       <img src={img} alt={`Upload ${idx}`} className="w-full h-full object-cover" />
