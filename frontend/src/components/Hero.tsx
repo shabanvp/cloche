@@ -60,8 +60,9 @@ export function Hero({ title, subtitle, imageUrl }: HeroProps) {
                     className="h-full w-full min-w-0 cursor-pointer appearance-none border-none bg-transparent pr-8 text-[14px] font-medium text-charcoal focus:outline-none sm:text-[15px]"
                   >
                     <option>All Categories</option>
-                    <option>Bridal Wear</option>
-                    <option>Groom Wear</option>
+                    <option>Bridal Studio</option>
+                    <option>Groom Studio</option>
+                    <option>Wedding Studio</option>
                     <option>Jewellery</option>
                     <option>Wedding Planners</option>
                   </select>
@@ -76,7 +77,8 @@ export function Hero({ title, subtitle, imageUrl }: HeroProps) {
             
               <div className="mt-3 grid max-w-full grid-cols-2 gap-2 px-0.5 text-center text-[11px] font-medium text-charcoal/65 sm:mt-4 sm:flex sm:flex-wrap sm:items-center sm:gap-3 sm:text-left sm:text-[12px]">
                 <span className="col-span-2 text-left text-charcoal/65 sm:col-span-1 sm:mr-1">Popular searches:</span>
-                <span className="cursor-pointer rounded-full bg-[#f7f4ef] px-3 py-1.5 transition-colors hover:bg-[#eee8df] sm:shrink-0 sm:px-4 sm:py-2">Bridal wear</span>
+                <span className="cursor-pointer rounded-full bg-[#f7f4ef] px-3 py-1.5 transition-colors hover:bg-[#eee8df] sm:shrink-0 sm:px-4 sm:py-2">Bridal Studio</span>
+                <span className="cursor-pointer rounded-full bg-[#f7f4ef] px-3 py-1.5 transition-colors hover:bg-[#eee8df] sm:shrink-0 sm:px-4 sm:py-2">Groom Studio</span>
                 <span className="cursor-pointer rounded-full bg-[#f7f4ef] px-3 py-1.5 transition-colors hover:bg-[#eee8df] sm:shrink-0 sm:px-4 sm:py-2">Jewellery</span>
                 <span className="cursor-pointer rounded-full bg-[#f7f4ef] px-3 py-1.5 transition-colors hover:bg-[#eee8df] sm:shrink-0 sm:px-4 sm:py-2">Wedding planners</span>
                 <span className="cursor-pointer rounded-full bg-[#f7f4ef] px-3 py-1.5 transition-colors hover:bg-[#eee8df] sm:shrink-0 sm:px-4 sm:py-2">Makeup artists</span>

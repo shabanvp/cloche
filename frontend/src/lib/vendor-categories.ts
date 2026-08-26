@@ -333,12 +333,12 @@ export const VENDOR_CATEGORIES_DATA: Record<string, CategoryConfig> = {
     ],
     vendors: []
   },
-  "bridal-wear": {
-    slug: "bridal-wear",
-    title: "Bridal Wear & Lehengas",
-    subtitle: "Discover bespoke designer bridal lehengas, sarees, gowns & bridal boutiques",
+  "bridal-studio": {
+    slug: "bridal-studio",
+    title: "Bridal Studio & Couture",
+    subtitle: "Discover bespoke designer bridal lehengas, sarees, gowns & bridal studio creations",
     heroImage: "https://images.unsplash.com/photo-1594552072238-b8a33785b261?q=80&w=1200&auto=format&fit=crop",
-    searchPlaceholder: "Search bridal wear, lehengas, sarees...",
+    searchPlaceholder: "Search bridal studios, lehengas, sarees...",
     priceSuffix: " / outfit",
     subFilters: [
       { label: "All", value: "all" },
@@ -347,19 +347,19 @@ export const VENDOR_CATEGORIES_DATA: Record<string, CategoryConfig> = {
       { label: "Gowns", value: "gown" }
     ],
     subCategories: [
-      { id: "all", name: "All Bridal Wear" },
+      { id: "all", name: "All Bridal Collections" },
       { id: "lehenga", name: "Bridal Lehengas" },
       { id: "saree", name: "Sarees & Silks" },
       { id: "gown", name: "Gowns" }
     ],
     vendors: []
   },
-  "groom-wear": {
-    slug: "groom-wear",
-    title: "Groom Wear & Sherwanis",
+  "groom-studio": {
+    slug: "groom-studio",
+    title: "Groom Studio & Sherwanis",
     subtitle: "Tailored sherwanis, bandhgalas, tuxedos, indo-western suits & kurtas",
     heroImage: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?q=80&w=1200&auto=format&fit=crop",
-    searchPlaceholder: "Search groom wear, sherwanis, suits...",
+    searchPlaceholder: "Search groom studios, sherwanis, suits...",
     priceSuffix: " / outfit",
     subFilters: [
       { label: "All", value: "all" },
@@ -368,74 +368,106 @@ export const VENDOR_CATEGORIES_DATA: Record<string, CategoryConfig> = {
       { label: "Kurtas", value: "kurta" }
     ],
     subCategories: [
-      { id: "all", name: "All Groom Wear" },
+      { id: "all", name: "All Groom Collections" },
       { id: "sherwani", name: "Sherwanis" },
       { id: "suit", name: "Suits & Tuxedos" },
       { id: "kurta", name: "Kurtas" }
     ],
     vendors: []
   },
-  "brides-story": {
-    slug: "brides-story",
-    title: "Bride's Story",
-    subtitle: "Exclusive bridal lehengas, silk sarees, Nikah dresses, gowns & ceremony couture",
-    heroImage: "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?q=80&w=1200&auto=format&fit=crop",
-    searchPlaceholder: "Search bridal wear by lehenga, saree, gown, fabric or city...",
+  "wedding-studio": {
+    slug: "wedding-studio",
+    title: "Wedding Studio & Couple Couture",
+    subtitle: "Complete bridal & groom ceremonial couture, wedding edits & couple ensembles",
+    heroImage: "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=1200&auto=format&fit=crop",
+    searchPlaceholder: "Search wedding studios, couple couture...",
     priceSuffix: " / outfit",
     subFilters: [
       { label: "All", value: "all" },
-      { label: "Bridal Lehenga", value: "lehenga" },
-      { label: "Bridal Saree", value: "saree" },
-      { label: "Bridal Gown", value: "gown" },
-      { label: "Reception Dress", value: "reception" }
+      { label: "Bridal Collections", value: "bridal" },
+      { label: "Groom Collections", value: "groom" },
+      { label: "Couple Edits", value: "couple" }
     ],
     subCategories: [
-      { id: "all", name: "All Bridal Wear" },
-      { id: "lehenga", name: "Bridal Lehengas" },
-      { id: "saree", name: "Bridal Sarees" },
-      { id: "gown", name: "Bridal Gowns" },
-      { id: "reception", name: "Reception Wear" }
+      { id: "all", name: "All Wedding Collections" },
+      { id: "bridal", name: "Bridal Collections" },
+      { id: "groom", name: "Groom Collections" }
+    ],
+    vendors: []
+  },
+  "bridal-wear": {
+    slug: "bridal-studio",
+    title: "Bridal Studio & Couture",
+    subtitle: "Discover bespoke designer bridal lehengas, sarees, gowns & bridal studio creations",
+    heroImage: "https://images.unsplash.com/photo-1594552072238-b8a33785b261?q=80&w=1200&auto=format&fit=crop",
+    searchPlaceholder: "Search bridal studios, lehengas, sarees...",
+    priceSuffix: " / outfit",
+    subFilters: [
+      { label: "All", value: "all" },
+      { label: "Bridal Lehengas", value: "lehenga" }
+    ],
+    subCategories: [
+      { id: "all", name: "All Bridal Collections" }
+    ],
+    vendors: []
+  },
+  "groom-wear": {
+    slug: "groom-studio",
+    title: "Groom Studio & Sherwanis",
+    subtitle: "Tailored sherwanis, bandhgalas, tuxedos, indo-western suits & kurtas",
+    heroImage: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?q=80&w=1200&auto=format&fit=crop",
+    searchPlaceholder: "Search groom studios, sherwanis, suits...",
+    priceSuffix: " / outfit",
+    subFilters: [
+      { label: "All", value: "all" }
+    ],
+    subCategories: [
+      { id: "all", name: "All Groom Collections" }
+    ],
+    vendors: []
+  },
+  "brides-story": {
+    slug: "bridal-studio",
+    title: "Bridal Studio & Couture",
+    subtitle: "Exclusive bridal lehengas, silk sarees, Nikah dresses, gowns & ceremony couture",
+    heroImage: "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?q=80&w=1200&auto=format&fit=crop",
+    searchPlaceholder: "Search bridal studio collections...",
+    priceSuffix: " / outfit",
+    subFilters: [
+      { label: "All", value: "all" }
+    ],
+    subCategories: [
+      { id: "all", name: "All Bridal Collections" }
     ],
     vendors: []
   },
   "grooms-story": {
-    slug: "grooms-story",
-    title: "Groom's Story",
+    slug: "groom-studio",
+    title: "Groom Studio & Sherwanis",
     subtitle: "Bespoke sherwanis, tuxedos, suits, Jodhpuri sets & ceremonial groom wear",
     heroImage: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1200&auto=format&fit=crop",
-    searchPlaceholder: "Search groom wear by sherwani, suit, tuxedo, fabric or city...",
+    searchPlaceholder: "Search groom studio collections...",
     priceSuffix: " / outfit",
     subFilters: [
-      { label: "All", value: "all" },
-      { label: "Sherwani", value: "sherwani" },
-      { label: "Suit & Tuxedo", value: "suit" },
-      { label: "Indo-Western", value: "indo-western" }
+      { label: "All", value: "all" }
     ],
     subCategories: [
-      { id: "all", name: "All Groom Wear" },
-      { id: "sherwani", name: "Sherwanis" },
-      { id: "suit", name: "Suits & Tuxedos" },
-      { id: "indo-western", name: "Indo-Western" }
+      { id: "all", name: "All Groom Collections" }
     ],
     vendors: []
   },
   "wedding-story": {
-    slug: "wedding-story",
-    title: "Wedding Story",
+    slug: "wedding-studio",
+    title: "Wedding Studio & Couple Couture",
     subtitle: "Complete bridal & groom ceremonial couture, wedding edits & couple ensembles",
     heroImage: "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=1200&auto=format&fit=crop",
-    searchPlaceholder: "Search couple wedding couture, bridal & groom wear...",
+    searchPlaceholder: "Search couple wedding couture...",
     priceSuffix: " / outfit",
     subFilters: [
-      { label: "All", value: "all" },
-      { label: "Bridal Wear", value: "bridal" },
-      { label: "Groom Wear", value: "groom" },
-      { label: "Couple Edits", value: "couple" }
+      { label: "All", value: "all" }
     ],
     subCategories: [
-      { id: "all", name: "All Ensembles" },
-      { id: "bridal", name: "Bridal Collections" },
-      { id: "groom", name: "Groom Collections" }
+      { id: "all", name: "All Ensembles" }
     ],
     vendors: []
   }
@@ -447,26 +479,20 @@ export function getPublicCategoryConfig(categorySlug?: string): CategoryConfig {
     return VENDOR_CATEGORIES_DATA[s];
   }
   
-  if (s === "brides-story" || s === "bride-story" || s === "bridal-story" || s === "bridal-studio" || s === "bridal studio") {
-    return VENDOR_CATEGORIES_DATA["brides-story"];
+  if (s === "bridal-studio" || s === "bridal studio" || s === "bride studio" || s === "bride-studio" || s === "bridal-wear" || s === "bridalwear" || s === "brides-story" || s.includes("bridal")) {
+    return VENDOR_CATEGORIES_DATA["bridal-studio"];
   }
-  if (s === "grooms-story" || s === "groom-story" || s === "groom-studio" || s === "groom studio") {
-    return VENDOR_CATEGORIES_DATA["grooms-story"];
+  if (s === "groom-studio" || s === "groom studio" || s === "groom-wear" || s === "groomwear" || s === "grooms-story" || s.includes("groom")) {
+    return VENDOR_CATEGORIES_DATA["groom-studio"];
   }
-  if (s === "wedding-story" || s === "weddingstory" || s === "wedding-studio" || s === "wedding studio") {
-    return VENDOR_CATEGORIES_DATA["wedding-story"];
-  }
-  if (s === "bridal-wear" || s === "bridal-boutique" || s === "boutiques" || s.includes("bridal") || s.includes("wear") || s.includes("boutique")) {
-    return VENDOR_CATEGORIES_DATA["bridal-wear"] || VENDOR_CATEGORIES_DATA["boutiques"];
+  if (s === "wedding-studio" || s === "wedding studio" || s === "wedding-story" || s === "weddingstory" || s.includes("wedding-studio")) {
+    return VENDOR_CATEGORIES_DATA["wedding-studio"];
   }
   if (s === "catering" || s === "caterer" || s === "caterers" || s.includes("cater")) {
     return VENDOR_CATEGORIES_DATA["catering"] || VENDOR_CATEGORIES_DATA["caterers"];
   }
   if (s === "decor-planning" || s === "decorators" || s === "decorator" || s === "planners" || s === "wedding-planner" || s.includes("decor") || s.includes("plan")) {
     return VENDOR_CATEGORIES_DATA["decor-planning"] || VENDOR_CATEGORIES_DATA["planners"];
-  }
-  if (s === "groom-wear" || s.includes("groom")) {
-    return VENDOR_CATEGORIES_DATA["groom-wear"];
   }
   if (s === "jewellery" || s === "jewellery-store" || s === "jewelry" || s.includes("jewel")) {
     return VENDOR_CATEGORIES_DATA["jewellery"];
@@ -487,7 +513,7 @@ export function getPublicCategoryConfig(categorySlug?: string): CategoryConfig {
     return VENDOR_CATEGORIES_DATA["venues"];
   }
 
-  return VENDOR_CATEGORIES_DATA.venues;
+  return VENDOR_CATEGORIES_DATA["wedding-studio"] || VENDOR_CATEGORIES_DATA.venues;
 }
 
 

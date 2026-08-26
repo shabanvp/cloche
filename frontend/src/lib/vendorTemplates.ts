@@ -2,8 +2,9 @@ export type CategoryType =
   | "Wedding Venues"
   | "Wedding Venue"
   | "Photographers"
-  | "Bridal Wear"
-  | "Groom Wear"
+  | "Bridal Studio"
+  | "Groom Studio"
+  | "Wedding Studio"
   | "Makeup Artists"
   | "Mehendi Artists"
   | "Decor & Planning"
@@ -195,7 +196,7 @@ export const DEFAULT_VENDOR_CONFIGS: Record<string, VendorProfileConfig> = {
   "v-22": {
     id: "cfg-aurelia",
     vendorId: "v-22",
-    category: "Bridal Wear",
+    category: "Bridal Studio",
     businessName: "Aurelia Brides Couture",
     tagline: "Handcrafted Zardozi Lehengas & Heritage Silk Ensembles",
     logo: "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=400&q=80",
@@ -239,7 +240,7 @@ export const DEFAULT_VENDOR_CONFIGS: Record<string, VendorProfileConfig> = {
   "kalki-couture": {
     id: "cfg-kalki",
     vendorId: "kalki-couture",
-    category: "Bridal Wear",
+    category: "Bridal Studio",
     businessName: "Kalki Couture",
     tagline: "Contemporary Bridal Lehengas & Luxury Indo-Western Couture",
     logo: "https://images.unsplash.com/photo-1594938298596-70f594f74246?auto=format&fit=crop&w=400&q=80",
@@ -314,7 +315,7 @@ function createDefaultConfig(vendorId: string, category: CategoryType): VendorPr
     defaultHours = "Tue – Sun: 9:00 AM – 7:00 PM (Mon Closed)";
   } else if (category === "Decor & Planning") {
     defaultHours = "Mon – Sat: 10:00 AM – 7:00 PM";
-  } else if (category === "Bridal Wear" || category === "Groom Wear") {
+  } else if (category.includes("Studio") || category.includes("Wear")) {
     defaultHours = "Mon – Sat: 10:00 AM – 8:00 PM | Sun: 11:00 AM – 5:00 PM";
   }
 

@@ -21,7 +21,9 @@ const POPULAR_QUICK_SEARCHES = [
   { label: "Photographers", query: "Photographer" },
   { label: "Venues", query: "Venue" },
   { label: "Makeup Artists", query: "Makeup" },
-  { label: "Bridal Wear", query: "Bridal" },
+  { label: "Bridal Studio", query: "Bridal Studio" },
+  { label: "Groom Studio", query: "Groom Studio" },
+  { label: "Wedding Studio", query: "Wedding Studio" },
   { label: "Catering", query: "Catering" },
 ];
 
@@ -36,8 +38,9 @@ function resolveDetailHref(id: string | number, category: string): string {
   if (cat.includes("jewel")) return `/jewellery/${idStr}`;
   if (cat.includes("invitat")) return `/invitations/${idStr}`;
   if (cat.includes("mehendi")) return `/mehendi-artists/${idStr}`;
-  if (cat.includes("bridal")) return `/bridal-wear/${idStr}`;
-  if (cat.includes("groom")) return `/groom-wear/${idStr}`;
+  if (cat.includes("bridal")) return `/categories/bridal-studio/${idStr}`;
+  if (cat.includes("groom")) return `/categories/groom-studio/${idStr}`;
+  if (cat.includes("wedding-studio") || cat.includes("wedding studio")) return `/categories/wedding-studio/${idStr}`;
   return `/boutiques/${idStr}`;
 }
 

@@ -36,11 +36,12 @@ function resolveCategory(boutique: Boutique): string {
   if (tags.includes("rental services") || tags.includes("rental") || name.includes("rental") || name.includes("rent")) return "Rental Services";
   if (tags.includes("gift store") || tags.includes("gift") || tags.includes("favor") || name.includes("gift")) return "Gift Store";
   if (tags.includes("honeymoon planners") || tags.includes("honeymoon") || tags.includes("travel") || name.includes("tour")) return "Honeymoon Planners";
-  if (tags.includes("groom wear") || tags.includes("groom") || name.includes("sherwani") || name.includes("tuxedo")) return "Groom Wear";
+  if (tags.includes("groom studio") || tags.includes("groom wear") || tags.includes("groom") || name.includes("sherwani") || name.includes("tuxedo")) return "Groom Studio";
+  if (tags.includes("wedding studio") || name.includes("wedding studio")) return "Wedding Studio";
   if (tags.includes("jewel") || name.includes("jewel") || name.includes("gold") || name.includes("diamond")) return "Jewellery";
   if (tags.includes("catering") || name.includes("cater") || name.includes("food")) return "Catering";
   if (tags.includes("mehendi") || name.includes("mehendi") || name.includes("henna")) return "Mehendi Artist";
-  return "Bridal Wear";
+  return "Bridal Studio";
 }
 
 function resolveDetailHref(boutique: Boutique): string {
@@ -54,8 +55,9 @@ function resolveDetailHref(boutique: Boutique): string {
   if (category.includes("jewel")) return `/jewellery/${id}`;
   if (category.includes("invitat")) return `/invitations/${id}`;
   if (category.includes("mehendi")) return `/mehendi-artists/${id}`;
-  if (category.includes("bridal")) return `/bridal-wear/${id}`;
-  if (category.includes("groom")) return `/groom-wear/${id}`;
+  if (category.includes("bridal")) return `/categories/bridal-studio/${id}`;
+  if (category.includes("groom")) return `/categories/groom-studio/${id}`;
+  if (category.includes("wedding-studio") || category.includes("wedding studio")) return `/categories/wedding-studio/${id}`;
   return `/boutiques/${id}`;
 }
 
@@ -67,8 +69,9 @@ const CATEGORY_FILTERS = [
   "Planners",
   "Catering",
   "Mehendi",
-  "Bridal Wear",
-  "Groom Wear",
+  "Bridal Studio",
+  "Groom Studio",
+  "Wedding Studio",
   "Jewellery",
   "Invitations",
   "Videographer",
@@ -92,8 +95,9 @@ const FILTER_MATCH: Record<CategoryFilter, string> = {
   Planners: "plan",
   Catering: "cater",
   Mehendi: "mehendi",
-  "Bridal Wear": "bridal",
-  "Groom Wear": "groom",
+  "Bridal Studio": "bridal",
+  "Groom Studio": "groom",
+  "Wedding Studio": "wedding",
   Jewellery: "jewel",
   Invitations: "invitat",
   Videographer: "video",
