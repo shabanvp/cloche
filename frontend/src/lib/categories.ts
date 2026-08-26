@@ -57,7 +57,7 @@ export type CategoryCard = {
 };
 
 const sharedThumb = {
-  weddingVenue: "https://images.unsplash.com/photo-1519167758481-83f552bb8c74?auto=format&fit=crop&w=1200&q=80",
+  weddingVenue: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=1200&q=80",
   couplePortrait: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=80",
   bridalMakeup: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=1200&q=80",
   floralDecor: "https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=1200&q=80",
@@ -72,6 +72,70 @@ const sharedThumb = {
   travel: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80",
   rental: "https://images.unsplash.com/photo-1494526585095-c41746248156?auto=format&fit=crop&w=1200&q=80",
 };
+
+export interface HomepageCategoryItem {
+  label: string;
+  href: string;
+  img: string;
+  alt: string;
+}
+
+export const HOMEPAGE_CATEGORY_STRIP: HomepageCategoryItem[] = [
+  {
+    label: "Photographers",
+    href: "/photographers",
+    img: "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=400&q=80",
+    alt: "Wedding Photographers"
+  },
+  {
+    label: "Invitations",
+    href: "/categories/invitations",
+    img: "https://images.unsplash.com/photo-1513519245088-0e12902e5a38?auto=format&fit=crop&w=400&q=80",
+    alt: "Wedding Invitations"
+  },
+  {
+    label: "Catering",
+    href: "/categories/catering",
+    img: "https://images.unsplash.com/photo-1555244162-803834f70033?auto=format&fit=crop&w=400&q=80",
+    alt: "Wedding Catering"
+  },
+  {
+    label: "Bridal Studio",
+    href: "/categories/bridal-studio",
+    img: "https://images.unsplash.com/photo-1594552072238-b8a33785b261?auto=format&fit=crop&w=400&q=80",
+    alt: "Bridal Studio"
+  },
+  {
+    label: "Venues",
+    href: "/venues",
+    img: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=400&q=80",
+    alt: "Wedding Venues"
+  },
+  {
+    label: "Wedding Studio",
+    href: "/categories/wedding-studio",
+    img: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=400&q=80",
+    alt: "Wedding Studio"
+  },
+  {
+    label: "Makeup",
+    href: "/makeup",
+    img: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=400&q=80",
+    alt: "Bridal Makeup"
+  },
+  {
+    label: "Groom Studio",
+    href: "/categories/groom-studio",
+    img: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=400&q=80",
+    alt: "Groom Studio"
+  },
+  {
+    label: "Decor",
+    href: "/categories/decor-planning",
+    img: "https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=400&q=80",
+    alt: "Wedding Decor"
+  }
+];
 
 export const categories: CategoryCard[] = [
   {
