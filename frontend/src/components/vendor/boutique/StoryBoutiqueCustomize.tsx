@@ -127,21 +127,59 @@ export function StoryBoutiqueCustomize({ categoryKey, vendorName }: StoryBoutiqu
   }, [categoryKey]);
 
   function populateForm(data: any) {
+    if (!data) return;
     setVendorData(data);
-    setStudioName(data.boutique_name || data.name || vendorName);
-    setAboutStudio(data.description || data.about || "");
-    setLogoUrl(data.logo || data.logo_url || "");
-    setCoverUrl(data.coverImage || data.cover_image || "");
-    setPhone(data.phone || data.contact_number || "");
-    setWhatsapp(data.whatsapp || data.phone || "");
-    setEmail(data.email || "");
-    setAddress(data.address || "");
-    setCity(data.city || "");
-    setDistrict(data.district || "");
-    setGoogleMapsLocation(data.googleMapsLocation || data.maps_url || "");
+    if (data.boutique_name || data.business_name || data.name) setStudioName(data.boutique_name || data.business_name || data.name || vendorName);
+    if (data.description || data.about) setAboutStudio(data.description || data.about || "");
+    if (data.logo || data.logo_url) setLogoUrl(data.logo || data.logo_url || "");
+    if (data.coverImage || data.cover_image) setCoverUrl(data.coverImage || data.cover_image || "");
+    if (data.phone || data.contact_number) setPhone(data.phone || data.contact_number || "");
+    if (data.whatsapp) setWhatsapp(data.whatsapp || data.phone || "");
+    if (data.email) setEmail(data.email || "");
+    if (data.address) setAddress(data.address || "");
+    if (data.city) setCity(data.city || "");
+    if (data.district || data.state) setDistrict(data.district || data.state || "");
+    if (data.googleMapsLocation || data.maps_url || data.google_maps_url || data.googleMaps) {
+      setGoogleMapsLocation(data.googleMapsLocation || data.maps_url || data.google_maps_url || data.googleMaps || "");
+    }
     if (data.instagram) setInstagram(data.instagram);
     if (data.facebook) setFacebook(data.facebook);
     if (data.website) setWebsite(data.website);
+
+    // Business Hours
+    const wh = typeof data.storefront?.workingHours === "object" && data.storefront?.workingHours !== null ? data.storefront.workingHours : (typeof data.workingHours === "object" && data.workingHours !== null ? data.workingHours : {});
+    if (wh.openingTime || data.openingTime || data.opening_time) setOpeningTime(wh.openingTime || data.openingTime || data.opening_time || "10:00 AM");
+    if (wh.closingTime || data.closingTime || data.closing_time) setClosingTime(wh.closingTime || data.closingTime || data.closing_time || "08:00 PM");
+    if (wh.workingDays || data.workingDays || data.working_days) setWorkingDays(wh.workingDays || data.workingDays || data.working_days || "Monday - Saturday");
+    if (wh.weeklyOff || data.weeklyOff || data.weekly_off) setWeeklyOff(wh.weeklyOff || data.weeklyOff || data.weekly_off || "Sunday");
+
+    // Policies
+    const pol = typeof data.storefront?.policies === "object" && data.storefront?.policies !== null ? data.storefront.policies : {};
+    if (pol.rentalDuration || data.rentalDuration || data.rental_duration) setRentalDuration(pol.rentalDuration || data.rentalDuration || data.rental_duration || "3 Days");
+    if (pol.securityDeposit || data.securityDeposit || data.security_deposit) setSecurityDeposit(pol.securityDeposit || data.securityDeposit || data.security_deposit || "₹10,000 (Refundable upon return)");
+    if (pol.returnPolicy || data.returnPolicy || data.return_policy) setReturnPolicy(pol.returnPolicy || data.returnPolicy || data.return_policy || "");
+    if (pol.cancellationPolicy || data.cancellationPolicy || data.cancellation_policy) setCancellationPolicy(pol.cancellationPolicy || data.cancellationPolicy || data.cancellation_policy || "");
+    if (pol.damagePolicy || data.damagePolicy || data.damage_policy) setDamagePolicy(pol.damagePolicy || data.damagePolicy || data.damage_policy || "");
+
+    // Services & Availability Flags
+    if (data.rentalAvailable !== undefined || data.rental_available !== undefined) {
+      setServices((prev) => ({
+        ...prev,
+        rentalAvailable: Boolean(data.rentalAvailable ?? data.rental_available),
+      }));
+    }
+    if (data.purchaseAvailable !== undefined || data.purchase_available !== undefined) {
+      setServices((prev) => ({
+        ...prev,
+        purchaseAvailable: Boolean(data.purchaseAvailable ?? data.purchase_available),
+      }));
+    }
+
+    // Gallery
+    if (Array.isArray(data.galleryImages || data.gallery_images || data.gallery)) {
+      const g = data.galleryImages || data.gallery_images || data.gallery;
+      setGalleryImages(g.map((x: any) => (typeof x === "string" ? x : x?.url || x?.image_url || x?.image)).filter(Boolean));
+    }
   }
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -265,9 +303,17 @@ export function StoryBoutiqueCustomize({ categoryKey, vendorName }: StoryBoutiqu
         returnPolicy,
         cancellationPolicy,
         damagePolicy,
+        rentalAvailable: services.rentalAvailable,
+        purchaseAvailable: services.purchaseAvailable,
+        rental_available: services.rentalAvailable,
+        purchase_available: services.purchaseAvailable,
         instagram,
         facebook,
         website,
+        businessInfo: {
+          rentalAvailable: services.rentalAvailable,
+          purchaseAvailable: services.purchaseAvailable,
+        },
         storefront: {
           theme: "emerald",
           coverImage: coverUrl,
@@ -286,6 +332,10 @@ export function StoryBoutiqueCustomize({ categoryKey, vendorName }: StoryBoutiqu
             returnPolicy,
             cancellationPolicy,
             damagePolicy,
+          },
+          businessInfo: {
+            rentalAvailable: services.rentalAvailable,
+            purchaseAvailable: services.purchaseAvailable,
           },
           socialLinks: {
             instagram,

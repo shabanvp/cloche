@@ -746,6 +746,29 @@ export async function PUT(req: Request) {
     if (categoryDetails && Object.keys(categoryDetails).length > 0) completion += 20;
     const finalCompletion = Math.min(100, completion);
 
+    const bNameVal = profile?.business_name || profile?.businessName || profile?.boutique_name || profile?.name;
+    const descVal = profile?.about || profile?.description;
+    const logoUrlVal = profile?.logo || profile?.logo_url;
+    const coverUrlVal = profile?.coverImage || profile?.cover_image;
+
+    const vendorPatchPayload: Record<string, any> = {
+      profile_completion_percentage: finalCompletion,
+      onboarding_stage: finalCompletion >= 80 ? "services_added" : "business_details_added",
+      updated_at: new Date().toISOString(),
+    };
+
+    if (bNameVal) {
+      vendorPatchPayload.name = bNameVal;
+      vendorPatchPayload.boutique_name = bNameVal;
+    }
+    if (descVal) vendorPatchPayload.description = descVal;
+    if (logoUrlVal) vendorPatchPayload.logo_url = logoUrlVal;
+    if (coverUrlVal) vendorPatchPayload.cover_image = coverUrlVal;
+    if (contact?.phone) vendorPatchPayload.phone = contact.phone;
+    if (contact?.whatsapp) vendorPatchPayload.whatsapp = contact.whatsapp;
+    if (contact?.email) vendorPatchPayload.email = contact.email;
+    if (workingHoursVal) vendorPatchPayload.working_hours = workingHoursVal;
+
     await fetch(`${url}/rest/v1/vendors?id=eq.${encodeURIComponent(vendorId)}`, {
       method: "PATCH",
       headers: {
@@ -753,11 +776,8 @@ export async function PUT(req: Request) {
         apikey: apiKey,
         Authorization: `Bearer ${apiKey}`,
       },
-      body: JSON.stringify({
-        profile_completion_percentage: finalCompletion,
-        onboarding_stage: finalCompletion >= 80 ? "services_added" : "business_details_added",
-      }),
-    });
+      body: JSON.stringify(vendorPatchPayload),
+    }).catch(() => null);
 
     return NextResponse.json(
       {
