@@ -110,7 +110,7 @@ export default function Home() {
     // Fetch real published real wedding stories
     async function loadStories() {
       try {
-        const res = await fetch("/api/v1/public/real-weddings?limit=6");
+        const res = await fetch("/api/v1/public/real-weddings?limit=3");
         const data = await res.json();
         if (data.success && Array.isArray(data.stories)) {
           setStories(data.stories);
@@ -502,7 +502,7 @@ export default function Home() {
             </div>
           ) : stories.length > 0 ? (
             <div className="flex overflow-x-auto hide-scrollbar gap-4 px-6 md:grid md:grid-cols-3 md:gap-6 md:overflow-visible">
-              {stories.map((story) => (
+              {stories.slice(0, 3).map((story) => (
                 <Link key={story.id} href={`/real-weddings/${story.slug}`} className="flex-shrink-0 w-80 md:w-auto group">
                   <div className="rounded-2xl overflow-hidden h-52 shadow-sm group-hover:shadow-md transition-all relative bg-gray-100">
                     <img 
