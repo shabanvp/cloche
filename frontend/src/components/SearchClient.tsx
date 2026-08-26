@@ -30,8 +30,9 @@ export function SearchClient() {
 
   const categories = [
     { label: "All", value: "All" },
-    { label: "Bridal Wear", value: "Bridal" },
-    { label: "Groom Wear", value: "Groom" },
+    { label: "Bridal Studio", value: "Bridal Studio" },
+    { label: "Groom Studio", value: "Groom Studio" },
+    { label: "Wedding Studio", value: "Wedding Studio" },
     { label: "Photographers", value: "Photography" },
     { label: "Videographer", value: "Videographer" },
     { label: "Makeup & Hair", value: "Makeup" },

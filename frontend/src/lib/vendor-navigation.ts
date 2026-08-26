@@ -12,11 +12,38 @@ export interface VendorCategoryTitles {
 export function getCategoryMenuTitles(category: string = ""): VendorCategoryTitles {
   const cat = (category || "").toLowerCase().trim();
 
-  // 1. Apparel & Jewellery
+  // 1. Bridal Studio, Groom Studio, Wedding Studio, Apparel & Jewellery
+  if (cat.includes("bridal studio") || cat === "bridal-studio") {
+    return {
+      mediaTitle: "Bridal Collections",
+      mediaSubtitle: "Manage your luxury bridal couture, lehengas & gowns",
+      pricingTitle: "Bridal Packages & Pricing",
+      pricingSubtitle: "Set outfit pricing, rental rates & customization fees",
+    };
+  }
+
+  if (cat.includes("groom studio") || cat === "groom-studio") {
+    return {
+      mediaTitle: "Groom Collections",
+      mediaSubtitle: "Manage your luxury sherwanis, tuxedos & ceremonial suits",
+      pricingTitle: "Groom Packages & Pricing",
+      pricingSubtitle: "Set outfit pricing, tailored stitching & rental rates",
+    };
+  }
+
+  if (cat.includes("wedding studio") || cat === "wedding-studio") {
+    return {
+      mediaTitle: "Wedding Collections",
+      mediaSubtitle: "Manage your couple wedding couture & ceremonial ensembles",
+      pricingTitle: "Wedding Packages & Pricing",
+      pricingSubtitle: "Configure wedding packages, couple edits & custom fittings",
+    };
+  }
+
   if (cat.includes("bridal") || cat.includes("groom") || cat.includes("wear") || cat.includes("boutique")) {
     return {
       mediaTitle: "Collections",
-      mediaSubtitle: "Manage your designer outfits, lehengas & bridal wear",
+      mediaSubtitle: "Manage your designer outfits, lehengas & ceremonial wear",
       pricingTitle: "Collections & Pricing",
       pricingSubtitle: "Set outfit pricing, rental rates & customization fees",
     };

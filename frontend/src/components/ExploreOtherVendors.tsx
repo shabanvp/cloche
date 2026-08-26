@@ -90,19 +90,27 @@ export function normalizeCategoryMeta(categorySlug: string) {
       getItemHref: (id: string) => `/categories/decor-planning/${id}`,
     };
   }
-  if (slug.includes("groom") || slug.includes("sherwani") || slug.includes("suit")) {
+  if (slug.includes("groom")) {
     return {
-      key: "groom-wear",
-      headingLabel: "Groom Wear Designers",
-      seeAllHref: "/groom-wear",
-      getItemHref: (id: string) => `/groom-wear/${id}`,
+      key: "groom-studio",
+      headingLabel: "Groom Studios & Designers",
+      seeAllHref: "/categories/groom-studio",
+      getItemHref: (id: string) => `/categories/groom-studio/${id}`,
+    };
+  }
+  if (slug.includes("wedding-studio") || slug.includes("wedding")) {
+    return {
+      key: "wedding-studio",
+      headingLabel: "Wedding Studios",
+      seeAllHref: "/categories/wedding-studio",
+      getItemHref: (id: string) => `/categories/wedding-studio/${id}`,
     };
   }
   return {
-    key: "bridal-wear",
-    headingLabel: "Bridal Wear Boutiques",
-    seeAllHref: "/bridal-wear",
-    getItemHref: (id: string) => `/bridal-wear/${id}`,
+    key: "bridal-studio",
+    headingLabel: "Bridal Studios & Boutiques",
+    seeAllHref: "/categories/bridal-studio",
+    getItemHref: (id: string) => `/categories/bridal-studio/${id}`,
   };
 }
 

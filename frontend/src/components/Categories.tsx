@@ -4,8 +4,9 @@ import Link from "next/link";
 import { Camera, Gem, MapPinned, MoreHorizontal, Scissors, Shirt, Sparkles, UserRoundCheck } from "lucide-react";
 
 const CATEGORIES = [
-  { name: "Bridal Wear", icon: Sparkles, href: "/categories/bridal-wear" },
-  { name: "Groom Wear", icon: Shirt, href: "/categories/groom-wear" },
+  { name: "Bridal Studio", icon: Sparkles, href: "/categories/bridal-studio" },
+  { name: "Groom Studio", icon: Shirt, href: "/categories/groom-studio" },
+  { name: "Wedding Studio", icon: Sparkles, href: "/categories/wedding-studio" },
   { name: "Jewellery", icon: Gem, href: "/categories/jewellery" },
   { name: "Makeup & Hair", icon: Scissors, href: "/makeup" },
   { name: "Wedding Planners", icon: UserRoundCheck, href: "/categories/decor-planning" },

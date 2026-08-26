@@ -145,15 +145,15 @@ export default function Home() {
       alt: "Wedding Catering"
     },
     {
-      label: "Bridal Wear",
-      href: "/categories/bridal-wear",
+      label: "Bridal Studio",
+      href: "/categories/bridal-studio",
       img: "https://lh3.googleusercontent.com/aida-public/AB6AXuAEsY487mYFYvQkZCNfBcXsTzh1p5Yw4tRBQd_WTibQv72oGWZf2uTN8XzzW_Gv54COfSRIcj4brm8yydAp-aU43QT-AnIhikqUubUlu0TlLArULUjbT-lGAJbiYHlcAo85I3afH1s7monPfzLPp-11EVvmfl5CIZS3nyVlGTIZbozNQFrAKpDAFyy_8giP4chciVm0kfKj8XWC_ublaoicYNcafYSjpEXCSMZlZ8MA-RdOPuD-hbUJFoC7URHDwuD1pWjOz1Po3l2D",
-      alt: "Bridal Wear"
+      alt: "Bridal Studio"
     },
     {
       label: "Venues",
       href: "/venues",
-      img: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?q=80&w=400&auto=format&fit=crop",
+      img: "https://images.unsplash.com/photo-1519167758481-83f552bb8c74?q=80&w=400&auto=format&fit=crop",
       alt: "Wedding Venues"
     },
     {
@@ -163,10 +163,10 @@ export default function Home() {
       alt: "Bridal Makeup"
     },
     {
-      label: "Groom Wear",
-      href: "/categories/groom-wear",
+      label: "Groom Studio",
+      href: "/categories/groom-studio",
       img: "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=400&q=80",
-      alt: "Groom Wear"
+      alt: "Groom Studio"
     },
     {
       label: "Decor",
@@ -202,12 +202,12 @@ export default function Home() {
       alt: "Bridal Makeup"
     },
     {
-      title: "Bridal Wear",
+      title: "Bridal Studio",
       subtitle: "Lehengas, Kanchipuram Saris & Gowns",
-      href: "/categories/bridal-wear",
+      href: "/categories/bridal-studio",
       bgColor: "bg-[#EAF3E3]",
       img: "https://images.unsplash.com/photo-1594552072238-b8a33785b261?auto=format&fit=crop&w=800&q=80",
-      alt: "Bridal Wear"
+      alt: "Bridal Studio"
     },
     {
       title: "Catering",
