@@ -24,6 +24,8 @@ export async function login(formData: FormData) {
   const password = formData.get("password") as string;
   const requestedRole = ((formData.get("role") as string) || "customer").toLowerCase();
 
+  console.log(`[AUTH_DEBUG:SUBMIT] Email: "${email}" | RequestedRole: "${requestedRole}"`);
+
   if (!email || !password) {
     return { success: false, error: "Email and password are required." };
   }
@@ -69,6 +71,9 @@ export async function login(formData: FormData) {
     // 2. Parallel check against Supabase GoTrue Auth
     authResult = await signInWithSupabaseAuth(email, password);
 
+    console.log(`[AUTH_DEBUG:SUPABASE_AUTH] Response: ${authResult.error ? `FAIL (Code: ${authResult.error.status || authResult.error.code || 'AUTH_ERR'}, Message: "${authResult.error.message}")` : `SUCCESS (User ID: ${authResult.user?.id})`}`);
+    console.log(`[AUTH_DEBUG:USER_LOOKUP] Result: ${user ? `FOUND (User ID: ${user.id}, Active: ${user.is_active})` : "NOT_FOUND"}`);
+
     // Evaluate Password Authenticity across DB hash & Supabase Auth
     let isPasswordValid = false;
     if (user?.password_hash && verifyPassword(password, user.password_hash)) {
@@ -106,11 +111,13 @@ export async function login(formData: FormData) {
 
     // SCENARIO 1: User exists nowhere
     if (!user && (authResult.error || !authResult.user)) {
+      console.warn(`[AUTH_DEBUG:FAIL] Email: "${email}" | Reason: USER_NOT_FOUND`);
       return { success: false, error: "No account found with this email address. Please sign up first." };
     }
 
     // SCENARIO 2: User exists but password is incorrect
     if (!isPasswordValid) {
+      console.warn(`[AUTH_DEBUG:FAIL] Email: "${email}" | Reason: INCORRECT_PASSWORD`);
       return { success: false, error: "Incorrect password. Please check your password and try again." };
     }
 
@@ -132,6 +139,7 @@ export async function login(formData: FormData) {
 
     // SCENARIO 3: Account is inactive/disabled
     if (user && user.is_active === false) {
+      console.warn(`[AUTH_DEBUG:FAIL] User ID: "${userId}" | Reason: ACCOUNT_DISABLED`);
       return { success: false, error: "Your account has been deactivated. Please contact customer support." };
     }
 
@@ -143,6 +151,8 @@ export async function login(formData: FormData) {
         if (!userRoles.includes("vendor")) userRoles.push("vendor");
       }
     }
+
+    console.log(`[AUTH_DEBUG:VENDOR_LOOKUP] Result: ${isVendorAccount ? `VENDOR_FOUND (Vendor ID: ${vendorRecord?.id}, Status: ${vendorRecord?.status}, Publication: ${vendorRecord?.publication_status})` : "NO_VENDOR_RECORD"}`);
 
     if (userRoles.length === 0) {
       userRoles = [requestedRole === "vendor" || requestedRole === "partner" ? "vendor" : "customer"];
@@ -156,12 +166,14 @@ export async function login(formData: FormData) {
     // SCENARIO 4: Role/Portal Authorization Checks
     if (requestedRole === "vendor" || requestedRole === "partner") {
       if (!userRoles.includes("vendor") && !isVendorAccount) {
+        console.warn(`[AUTH_DEBUG:FAIL] User ID: "${userId}" | Reason: NOT_A_VENDOR`);
         return {
           success: false,
           error: "This email is registered as a customer account. Please log in through the user portal or register as a vendor.",
         };
       }
       if (vendorRecord && vendorRecord.publication_status === "suspended") {
+        console.warn(`[AUTH_DEBUG:FAIL] User ID: "${userId}" | Reason: VENDOR_SUSPENDED`);
         return {
           success: false,
           error: "Your vendor account is suspended. Please contact support.",
@@ -169,6 +181,7 @@ export async function login(formData: FormData) {
       }
     } else if (requestedRole === "admin") {
       if (!userRoles.includes("admin") && !userRoles.includes("super_admin")) {
+        console.warn(`[AUTH_DEBUG:FAIL] User ID: "${userId}" | Reason: NOT_AN_ADMIN`);
         return {
           success: false,
           error: "Access denied. Admin authorization required.",
@@ -208,8 +221,10 @@ export async function login(formData: FormData) {
     cookieStore.set("user_role", activeRole, { httpOnly: false, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 });
     cookieStore.set("user_data", encodeURIComponent(JSON.stringify(userObj)), { httpOnly: false, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 });
 
+    console.log(`[AUTH_DEBUG:SUCCESS] User ID: "${userId}" | ActiveRole: "${activeRole}"`);
     return { success: true, user: userObj, token };
   } catch (error: any) {
+    console.error("[AUTH_DEBUG:CRITICAL_ERROR]", error);
     return { success: false, error: "An unexpected server error occurred during login. Please try again." };
   }
 }
