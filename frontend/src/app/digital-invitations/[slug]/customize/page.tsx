@@ -18,12 +18,14 @@ import {
   CheckCircle2,
   FileText,
   Video,
+  RotateCcw,
+  Move,
 } from "lucide-react";
 import { Footer } from "@/components/Footer";
 import {
   DIGITAL_INVITE_TEMPLATES,
 } from "@/lib/digitalInvitationsData";
-import { InvitationCardPreview } from "@/components/InvitationCardPreview";
+import { InvitationCardPreview, TextPositionOffsets } from "@/components/InvitationCardPreview";
 
 export default function CustomizationPage({
   params,
@@ -51,18 +53,30 @@ export default function CustomizationPage({
   const [weddingTime, setWeddingTime] = useState(template.sampleTime || "6:00 PM Onwards");
   const [venueName, setVenueName] = useState(template.sampleVenue || "The Oberoi Udaivilas");
   const [venueAddress, setVenueAddress] = useState(template.sampleAddress || "Udaipur, Rajasthan");
-  const [rsvpDeadline, setRsvpDeadline] = useState("November 01, 2026");
-  const [phone, setPhone] = useState(template.samplePhone || "+91 98111 22334");
-  const [email, setEmail] = useState("rsvp@wedding2026.com");
   const [website, setWebsite] = useState(`https://cloche.com/w/${template.sampleBride.toLowerCase()}-${template.sampleGroom.toLowerCase()}`);
   const [googleMapsLink, setGoogleMapsLink] = useState(`https://maps.google.com/?q=${encodeURIComponent(template.sampleVenue)}`);
   
   const [selectedThemeColor, setSelectedThemeColor] = useState(template.themeColor || "#0F4C45");
   const [selectedFont, setSelectedFont] = useState(template.fontStyle || "Playfair Display");
-  const [bgMusic, setBgMusic] = useState("Soft Shehnai & Sitar Harmony");
   const [couplePhotoUrl, setCouplePhotoUrl] = useState<string>("");
   const [copiedToast, setCopiedToast] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+
+  // Custom Draggable Text Position Offsets State
+  const [customPositions, setCustomPositions] = useState<TextPositionOffsets>({});
+
+  // Handler for user dragging text elements
+  const handlePositionChange = (fieldKey: keyof TextPositionOffsets, x: number, y: number) => {
+    setCustomPositions((prev) => ({
+      ...prev,
+      [fieldKey]: { x, y },
+    }));
+  };
+
+  // Reset to default layout coordinates
+  const handleResetPositions = () => {
+    setCustomPositions({});
+  };
 
   // Photo Upload Handler
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -100,7 +114,6 @@ export default function CustomizationPage({
       link.click();
     } catch (err) {
       console.error("Export failed:", err);
-      // Fallback print
       window.print();
     } finally {
       setIsExporting(false);
@@ -117,11 +130,10 @@ export default function CustomizationPage({
     weddingTime,
     venueName,
     venueAddress,
-    rsvpDeadline,
-    phone,
     selectedThemeColor,
     selectedFont,
     couplePhotoUrl,
+    customPositions,
   };
 
   return (
@@ -181,11 +193,11 @@ export default function CustomizationPage({
                     <Sparkles className="w-5 h-5 text-gold" /> Customize Invitation
                   </h2>
                   <p className="text-xs text-charcoal/60 mt-1">
-                    Editing: <span className="font-bold text-charcoal">{template.name}</span>. All edits update live on the right pane over original background artwork.
+                    Editing: <span className="font-bold text-charcoal">{template.name}</span>.
                   </p>
                 </div>
 
-                {/* Form Fields */}
+                {/* Form Fields (RSVP/Phone/Email Removed) */}
                 <div className="space-y-4 text-xs sm:text-sm">
                   
                   {/* Bride & Groom Names */}
@@ -276,33 +288,24 @@ export default function CustomizationPage({
                     </div>
                   </div>
 
-                  {/* Contact Info */}
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {/* Website & Google Maps Link */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block font-bold text-charcoal mb-1">RSVP Date</label>
+                      <label className="block font-bold text-charcoal mb-1">Custom Website URL</label>
                       <input
                         type="text"
-                        value={rsvpDeadline}
-                        onChange={(e) => setRsvpDeadline(e.target.value)}
-                        className="w-full px-3 py-2.5 bg-[#FAF7F2] border border-gold/20 rounded-xl text-charcoal font-medium focus:outline-hidden"
+                        value={website}
+                        onChange={(e) => setWebsite(e.target.value)}
+                        className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-gold/20 rounded-xl text-charcoal font-medium focus:outline-hidden"
                       />
                     </div>
                     <div>
-                      <label className="block font-bold text-charcoal mb-1">Phone *</label>
+                      <label className="block font-bold text-charcoal mb-1">Google Maps Link</label>
                       <input
                         type="text"
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
-                        className="w-full px-3 py-2.5 bg-[#FAF7F2] border border-gold/20 rounded-xl text-charcoal font-medium focus:outline-hidden"
-                      />
-                    </div>
-                    <div>
-                      <label className="block font-bold text-charcoal mb-1">Email</label>
-                      <input
-                        type="text"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className="w-full px-3 py-2.5 bg-[#FAF7F2] border border-gold/20 rounded-xl text-charcoal font-medium focus:outline-hidden"
+                        value={googleMapsLink}
+                        onChange={(e) => setGoogleMapsLink(e.target.value)}
+                        className="w-full px-3.5 py-2.5 bg-[#FAF7F2] border border-gold/20 rounded-xl text-charcoal font-medium focus:outline-hidden"
                       />
                     </div>
                   </div>
@@ -319,19 +322,43 @@ export default function CustomizationPage({
 
               </div>
 
-              {/* Right Column: Live Instant Preview Pane using ORIGINAL ARTWORK */}
+              {/* Right Column: Live Instant Preview Pane with Draggable Repositioning */}
               <div className="lg:col-span-6 sticky top-6 space-y-4">
                 <div className="bg-white p-6 rounded-3xl border border-gold/20 shadow-lg text-center space-y-4">
                   <div className="flex items-center justify-between border-b border-gold/15 pb-3 text-xs font-bold text-charcoal/70">
                     <span className="flex items-center gap-1.5 text-[#0F4C45]">
-                      <Eye className="w-4 h-4 text-gold" /> Live Instant Preview
+                      <Eye className="w-4 h-4 text-gold" /> Live Drag & Drop Layout Studio
                     </span>
-                    <span className="text-[11px] font-semibold text-gold uppercase">{template.collection} • {template.name}</span>
+                    
+                    {/* Reset Layout Position Button */}
+                    <button
+                      onClick={handleResetPositions}
+                      disabled={Object.keys(customPositions).length === 0}
+                      className={`inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-lg border transition-all ${
+                        Object.keys(customPositions).length > 0
+                          ? "bg-amber-50 text-amber-900 border-amber-300 hover:bg-amber-100 cursor-pointer"
+                          : "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed opacity-60"
+                      }`}
+                      title="Reset text positioning to template default"
+                    >
+                      <RotateCcw className="w-3 h-3" /> Reset Layout
+                    </button>
                   </div>
+
+                  {/* Drag Helper Notice */}
+                  <p className="text-[11px] text-charcoal/60 flex items-center justify-center gap-1.5 bg-amber-50/80 py-1.5 px-3 rounded-xl border border-amber-200/60">
+                    <Move className="w-3.5 h-3.5 text-gold shrink-0" />
+                    <span>Click & drag any text block on the card below to fine-tune its position.</span>
+                  </p>
 
                   {/* Rendered Live Card Container */}
                   <div className="max-w-sm mx-auto">
-                    <InvitationCardPreview template={template} customData={liveCustomData} />
+                    <InvitationCardPreview
+                      template={template}
+                      customData={liveCustomData}
+                      interactive={true}
+                      onPositionChange={handlePositionChange}
+                    />
                   </div>
                 </div>
               </div>
@@ -349,13 +376,13 @@ export default function CustomizationPage({
                   {template.name} — Ready for Download
                 </h1>
                 <p className="text-xs sm:text-sm text-charcoal/70">
-                  Collection: <span className="font-bold text-[#0F4C45]">{template.collection}</span>. Original Artwork + Baked Custom Text.
+                  Collection: <span className="font-bold text-[#0F4C45]">{template.collection}</span>. Custom text & layout adjustments baked into export.
                 </p>
               </div>
 
-              {/* Final Invitation Card Render */}
+              {/* Final Invitation Card Render (Renders exact custom positions!) */}
               <div className="bg-white p-8 rounded-3xl border border-gold/20 shadow-xl max-w-md mx-auto">
-                <InvitationCardPreview template={template} customData={liveCustomData} />
+                <InvitationCardPreview template={template} customData={liveCustomData} interactive={false} />
               </div>
 
               {/* Step 5 Export Actions Grid */}

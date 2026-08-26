@@ -35,7 +35,6 @@ export interface DigitalInviteTemplate {
   
   // Structured text overlay positioning over fixed background artwork
   textFieldPositions: {
-    badgeTitle?: TemplateTextFieldPosition;
     coupleNames: TemplateTextFieldPosition;
     familyBlessing?: TemplateTextFieldPosition;
     ceremonyDetails?: TemplateTextFieldPosition;
@@ -73,18 +72,6 @@ export const DIGITAL_INVITE_TEMPLATES: DigitalInviteTemplate[] = [
     fontStyle: "Cinzel",
     backgroundImage: "/images/invitation-art/royal_palace_arch_bg.jpg",
     textFieldPositions: {
-      badgeTitle: {
-        top: "39%",
-        left: "50%",
-        width: "75%",
-        textAlign: "center",
-        color: "#FDE047",
-        fontFamily: "Cinzel, serif",
-        fontSize: "2.2cqi",
-        fontWeight: "font-extrabold",
-        letterSpacing: "tracking-[0.18em]",
-        textTransform: "uppercase",
-      },
       coupleNames: {
         top: "47%",
         left: "50%",
@@ -163,18 +150,6 @@ export const DIGITAL_INVITE_TEMPLATES: DigitalInviteTemplate[] = [
     fontStyle: "Cormorant Garamond",
     backgroundImage: "/images/invitation-art/peacock_teal_tapestry_bg.jpg",
     textFieldPositions: {
-      badgeTitle: {
-        top: "22%",
-        left: "74%",
-        width: "42%",
-        textAlign: "center",
-        color: "#B45309",
-        fontFamily: "Cinzel, serif",
-        fontSize: "2.0cqi",
-        fontWeight: "font-extrabold",
-        letterSpacing: "tracking-widest",
-        textTransform: "uppercase",
-      },
       coupleNames: {
         top: "35%",
         left: "74%",
@@ -240,18 +215,6 @@ export const DIGITAL_INVITE_TEMPLATES: DigitalInviteTemplate[] = [
     fontStyle: "Great Vibes",
     backgroundImage: "/images/invitation-art/floral_wreath_blush_bg.jpg",
     textFieldPositions: {
-      badgeTitle: {
-        top: "28%",
-        left: "50%",
-        width: "65%",
-        textAlign: "center",
-        color: "#9F1239",
-        fontFamily: "Cinzel, serif",
-        fontSize: "2.2cqi",
-        fontWeight: "font-bold",
-        letterSpacing: "tracking-widest",
-        textTransform: "uppercase",
-      },
       coupleNames: {
         top: "41%",
         left: "50%",
@@ -316,18 +279,6 @@ export const DIGITAL_INVITE_TEMPLATES: DigitalInviteTemplate[] = [
     fontStyle: "Playfair Display",
     backgroundImage: "/images/invitation-art/kerala_kasavu_marigold_bg.jpg",
     textFieldPositions: {
-      badgeTitle: {
-        top: "33%",
-        left: "50%",
-        width: "55%",
-        textAlign: "center",
-        color: "#047857",
-        fontFamily: "Playfair Display, serif",
-        fontSize: "2.2cqi",
-        fontWeight: "font-extrabold",
-        letterSpacing: "tracking-widest",
-        textTransform: "uppercase",
-      },
       coupleNames: {
         top: "43%",
         left: "50%",
@@ -394,18 +345,6 @@ export const DIGITAL_INVITE_TEMPLATES: DigitalInviteTemplate[] = [
     fontStyle: "Cinzel",
     backgroundImage: "/images/invitation-art/mandala_maroon_gold_bg.jpg",
     textFieldPositions: {
-      badgeTitle: {
-        top: "38%",
-        left: "50%",
-        width: "44%",
-        textAlign: "center",
-        color: "#FDE047",
-        fontFamily: "Cinzel, serif",
-        fontSize: "2.0cqi",
-        fontWeight: "font-extrabold",
-        letterSpacing: "tracking-widest",
-        textTransform: "uppercase",
-      },
       coupleNames: {
         top: "47%",
         left: "50%",
@@ -471,18 +410,6 @@ export const DIGITAL_INVITE_TEMPLATES: DigitalInviteTemplate[] = [
     fontStyle: "Playfair Display",
     backgroundImage: "/images/invitation-art/celestial_starlight_navy_bg.jpg",
     textFieldPositions: {
-      badgeTitle: {
-        top: "32%",
-        left: "50%",
-        width: "65%",
-        textAlign: "center",
-        color: "#FDE047",
-        fontFamily: "Cinzel, serif",
-        fontSize: "2.2cqi",
-        fontWeight: "font-extrabold",
-        letterSpacing: "tracking-[0.18em]",
-        textTransform: "uppercase",
-      },
       coupleNames: {
         top: "43%",
         left: "50%",
@@ -548,18 +475,6 @@ export const DIGITAL_INVITE_TEMPLATES: DigitalInviteTemplate[] = [
     fontStyle: "Cinzel",
     backgroundImage: "/images/invitation-art/black_marble_art_deco_bg.jpg",
     textFieldPositions: {
-      badgeTitle: {
-        top: "28%",
-        left: "50%",
-        width: "60%",
-        textAlign: "center",
-        color: "#FDE047",
-        fontFamily: "Cinzel, serif",
-        fontSize: "2.2cqi",
-        fontWeight: "font-extrabold",
-        letterSpacing: "tracking-[0.18em]",
-        textTransform: "uppercase",
-      },
       coupleNames: {
         top: "40%",
         left: "50%",
@@ -625,18 +540,6 @@ export const DIGITAL_INVITE_TEMPLATES: DigitalInviteTemplate[] = [
     fontStyle: "Montserrat",
     backgroundImage: "/images/invitation-art/botanical_minimal_white_bg.jpg",
     textFieldPositions: {
-      badgeTitle: {
-        top: "28%",
-        left: "50%",
-        width: "60%",
-        textAlign: "center",
-        color: "#854D0E",
-        fontFamily: "Cinzel, serif",
-        fontSize: "2.2cqi",
-        fontWeight: "font-bold",
-        letterSpacing: "tracking-[0.18em]",
-        textTransform: "uppercase",
-      },
       coupleNames: {
         top: "40%",
         left: "50%",
