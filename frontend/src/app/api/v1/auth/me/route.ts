@@ -29,22 +29,19 @@ export async function GET(req: Request) {
       );
     }
 
-    // Fetch fresh user profile from DB
+    // Fetch fresh user profile from DB (using valid PostgREST select string)
     const userRes = await fetch(
-      `${url}/rest/v1/users?id=eq.${encodeURIComponent(authUser.userId)}&select=id,email,full_name,phone,avatar_url,is_verified,created_at,user_roles(roles(name))`,
+      `${url}/rest/v1/users?id=eq.${encodeURIComponent(authUser.userId)}&select=id,email,full_name,name,phone,avatar_url,is_verified,created_at`,
       {
         headers: { apikey: anonKey, Authorization: `Bearer ${anonKey}` },
       }
-    );
+    ).catch(() => null);
 
-    if (userRes.ok) {
+    if (userRes && userRes.ok) {
       const users = await userRes.json();
       if (Array.isArray(users) && users.length > 0) {
         const u = users[0];
-        let roles = authUser.roles;
-        if (Array.isArray(u.user_roles) && u.user_roles.length > 0) {
-          roles = u.user_roles.map((ur: any) => ur.roles?.name).filter(Boolean);
-        }
+        const displayName = u.full_name || u.name || authUser.fullName || u.email.split("@")[0];
 
         return NextResponse.json(
           {
@@ -54,11 +51,11 @@ export async function GET(req: Request) {
               user: {
                 id: u.id,
                 email: u.email,
-                fullName: u.full_name,
+                fullName: displayName,
                 phone: u.phone,
                 avatarUrl: u.avatar_url,
                 isVerified: u.is_verified,
-                roles: roles.length > 0 ? roles : ["customer"],
+                roles: authUser.roles && authUser.roles.length > 0 ? authUser.roles : ["customer"],
                 createdAt: u.created_at,
               },
             },
