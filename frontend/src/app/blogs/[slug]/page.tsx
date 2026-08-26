@@ -21,7 +21,7 @@ const blogPosts: BlogPost[] = [
     category: "Planning",
     date: "July 28, 2026",
     readTime: "5 min read",
-    image: "https://images.unsplash.com/photo-1519167758481-83f552bb8c74?auto=format&fit=crop&w=1200&q=80",
+    image: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=1200&q=80",
     content: "Choosing your wedding venue is one of the most important decisions you will make. It defines the backdrop, guest capacity, aesthetics, and date. First, define your budget. Second, consider guest count. Third, ensure the venue suits your design theme. Finally, evaluate indoor vs outdoor preferences.",
   },
   {

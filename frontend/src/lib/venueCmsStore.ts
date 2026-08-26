@@ -243,7 +243,7 @@ export function transformRegisteredToCmsData(reg: any): VenueCmsData {
   const cover = reg.image || reg.coverImage || "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1200&q=80";
   const galleryPhotos = Array.isArray(reg.images) && reg.images.length > 0
     ? reg.images
-    : [cover, "https://images.unsplash.com/photo-1519167758481-83f552bb8c74?auto=format&fit=crop&w=800&q=80"];
+    : [cover, "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=800&q=80"];
 
   return {
     id: targetId,
@@ -488,7 +488,7 @@ export function convertCmsToVenueDetail(cms: VenueCmsData): any {
     ? realUserPhotos
     : allPhotos.length > 0
     ? allPhotos
-    : ["https://images.unsplash.com/photo-1519167758481-83f552bb8c74?auto=format&fit=crop&w=1200&q=80"];
+    : ["https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=1200&q=80"];
 
   // Ensure main cover image is at index 0
   if (coverUrl && finalImagesList.includes(coverUrl)) {
@@ -517,7 +517,7 @@ export function convertCmsToVenueDetail(cms: VenueCmsData): any {
     reviewsList: cms.reviewsList || [],
     faqs: cms.faqs || [],
     similar: [
-      { id: "palace-estate", name: "The Palace Estate", city: "Udaipur", rating: 4.8, reviews: 138, image: "https://images.unsplash.com/photo-1519167758481-83f552bb8c74?auto=format&fit=crop&w=400&q=80" },
+      { id: "palace-estate", name: "The Palace Estate", city: "Udaipur", rating: 4.8, reviews: 138, image: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=400&q=80" },
       { id: "sapphire-lake-palace", name: "Sapphire Lake Palace", city: "Udaipur", rating: 4.9, reviews: 94, image: "https://images.unsplash.com/photo-1570544820323-66a7e58ce1d8?auto=format&fit=crop&w=400&q=80" },
       { id: "celestia-grand-palace", name: "Celestia Grand Palace", city: "Delhi", rating: 4.7, reviews: 110, image: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=400&q=80" },
       { id: "moonstone-fort-resort", name: "Moonstone Fort Resort", city: "Sawai Madhopur", rating: 4.9, reviews: 75, image: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=400&q=80" },

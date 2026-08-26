@@ -128,7 +128,7 @@ function VendorOffersContent() {
     setFormDiscountType("percentage");
     setFormDiscountVal("15");
     setFormCouponCode("");
-    setFormBanner("https://images.unsplash.com/photo-1519167758481-83f552bb8c74?auto=format&fit=crop&w=1200&q=80");
+    setFormBanner("https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=1200&q=80");
     setFormStatus("active");
     setFormStartDate(new Date().toISOString().split("T")[0]);
     setFormEndDate("2026-12-31");
@@ -382,7 +382,7 @@ function VendorOffersContent() {
                   <div key={off.id} className="bg-white rounded-2xl border border-gold/15 p-4 shadow-xs space-y-3 relative flex flex-col justify-between">
                     <div className="space-y-2">
                       <div className="relative h-32 rounded-xl overflow-hidden bg-gray-100 border border-gold/15">
-                        <img src={off.banner || "https://images.unsplash.com/photo-1519167758481-83f552bb8c74?auto=format&fit=crop&w=800&q=80"} alt={off.name} className="w-full h-full object-cover" />
+                        <img src={off.banner || "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=800&q=80"} alt={off.name} className="w-full h-full object-cover" />
                         <span className="absolute top-2 left-2 bg-[#0F4C45] text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow-xs">
                           {off.type.replace(/_/g, " ").toUpperCase()}
                         </span>

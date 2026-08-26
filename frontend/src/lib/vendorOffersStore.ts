@@ -191,7 +191,7 @@ export function saveVendorOffer(offer: Partial<VendorOffer> & { name: string; ve
     discountValue: offer.discountValue || "10",
     packageIds: offer.packageIds && offer.packageIds.length > 0 ? offer.packageIds : ["all"],
     couponCode: offer.couponCode || "",
-    banner: offer.banner || "https://images.unsplash.com/photo-1519167758481-83f552bb8c74?auto=format&fit=crop&w=1200&q=80",
+    banner: offer.banner || "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=1200&q=80",
     mobileBanner: offer.mobileBanner || offer.banner,
     squareBanner: offer.squareBanner || offer.banner,
     status: offer.status || "active",

@@ -8,6 +8,7 @@ import { AdBanner } from "@/components/AdBanner";
 import { AutocompleteSearch } from "@/components/AutocompleteSearch";
 import { DigitalInvitationsSection } from "@/components/DigitalInvitationsSection";
 import { Sparkles, MapPin, Calendar, BookHeart, Plus, ArrowRight, Star, Heart, Flame } from "lucide-react";
+import { HOMEPAGE_CATEGORY_STRIP } from "@/lib/categories";
 import { RealWeddingStoryDb } from "@/lib/realWeddings";
 
 export const dynamic = "force-dynamic";
@@ -125,64 +126,13 @@ export default function Home() {
     loadStories();
   }, []);
 
-  const popularSearches = [
-    {
-      label: "Photographers",
-      href: "/photographers",
-      img: "https://lh3.googleusercontent.com/aida-public/AB6AXuAhu3icOJFqvCTS0Yc-P5E3dS49T9gfcnLUGMEJUhz1FH0rWgdSyks60a9D_mvFEwxqsDf-7NZqI2xdlVSWq7JNTdhk55a9ApAXK3tSrQ0LuAKMF_ERJTfXOe_plw1o4cWStgv3avsNJmKjj0TMI7Qh58nWN7PXxcshFJWIXmlUuaJM70m2qvh9dYeyCNM8tnlyWufnjAyXgQK3b0GDo5eomlGyLjh1VFgmzxgJx1sy5BxDx8uBwxXCpuwKcZjZkw6S_C_Tyd_KWhRG",
-      alt: "Wedding Photographer"
-    },
-    {
-      label: "Invitations",
-      href: "/invitations",
-      img: "https://lh3.googleusercontent.com/aida-public/AB6AXuCZAPbI_YUAMNRWikML7wsySzfjqEypSebODZuEtNr3ZGtyb6q_i5zWAfnhu5c76vzUNisHAj9nGpYaOro-C8D97o9kwmiYH7F9MtyqUWawQPDlHBNyTreVuBhB6JViI9JhamJ_6-okzLqjL5ZZOiJHQ3NRv3MQoYMaMcZ_L3HGRmxHD6IYa08ijWYMuTk6GUN6O-U1Sd0v-2RdUFoC9DObKocGyGm_zLg5T3q3QLDST-MD3cnfXaPhxA0k8qgUQG6JrbAstOv951YD",
-      alt: "Wedding Invitations"
-    },
-    {
-      label: "Catering",
-      href: "/categories/catering",
-      img: "https://lh3.googleusercontent.com/aida-public/AB6AXuAIttErFBHy9QscHEJk0OBcJyKoRuebpySjvFYxChzwBGdF0_CkESZFpAz7RwTeD47dIGBsebzVOM7njZsd3DIrvBXKh0Fnp8TIns3bKInyycQ5URRN8M-lQ-4gHSayBikcseL_SS7X8HPen8XdGz4b5KuheFjT3QYrN64ogJ0w4iYaaTUIOq0Fqc_uA7ed6IiNT5xz4zF2hQOjD_CNhCdT_4z7AdZ6GDEucyEYoVM_oM9xqSKVyWfhHh-jbFiuepkEs-ayDg8RQRgV",
-      alt: "Wedding Catering"
-    },
-    {
-      label: "Bridal Studio",
-      href: "/categories/bridal-studio",
-      img: "https://lh3.googleusercontent.com/aida-public/AB6AXuAEsY487mYFYvQkZCNfBcXsTzh1p5Yw4tRBQd_WTibQv72oGWZf2uTN8XzzW_Gv54COfSRIcj4brm8yydAp-aU43QT-AnIhikqUubUlu0TlLArULUjbT-lGAJbiYHlcAo85I3afH1s7monPfzLPp-11EVvmfl5CIZS3nyVlGTIZbozNQFrAKpDAFyy_8giP4chciVm0kfKj8XWC_ublaoicYNcafYSjpEXCSMZlZ8MA-RdOPuD-hbUJFoC7URHDwuD1pWjOz1Po3l2D",
-      alt: "Bridal Studio"
-    },
-    {
-      label: "Venues",
-      href: "/venues",
-      img: "https://images.unsplash.com/photo-1519167758481-83f552bb8c74?q=80&w=400&auto=format&fit=crop",
-      alt: "Wedding Venues"
-    },
-    {
-      label: "Makeup",
-      href: "/makeup",
-      img: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=400&q=80",
-      alt: "Bridal Makeup"
-    },
-    {
-      label: "Groom Studio",
-      href: "/categories/groom-studio",
-      img: "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=400&q=80",
-      alt: "Groom Studio"
-    },
-    {
-      label: "Decor",
-      href: "/categories/decor-planning",
-      img: "https://images.unsplash.com/photo-1519225421980-715cb0215aed?q=80&w=400&auto=format&fit=crop",
-      alt: "Wedding Decor"
-    }
-  ];
-
   const categories = [
     {
       title: "Venues",
       subtitle: "Banquet Halls, Lawns, Resorts...",
       href: "/venues",
       bgColor: "bg-[#E3EAF3]",
-      img: "https://lh3.googleusercontent.com/aida-public/AB6AXuDwImcvhKSNtY87jO7yUWDMGtC2wvA3zoPaGIT3jcrypuyx5VXIDR6QO2_N2252Yn5fh7UP4Hvwwu15tAYkGwVd65vIRmMZtjMrCFWMR8fmdQUy9Lr9E02Dd7ULRUKFoL0rh4BvtIUHiS_LV3mbhjdbd65tgwEGVwbXIHOITSxmU6sOk1GSjoTaNsTiToKmb2IrC4YnTSN-xeFiBq02iS1bts-wz5YLu9d6jMR1jB2AXrfS23xcT9V9zsyr5iEzT4Xxkdo9VgP3trFh",
+      img: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=800&q=80",
       alt: "Wedding Venues"
     },
     {
@@ -190,7 +140,7 @@ export default function Home() {
       subtitle: "Wedding & Pre-wedding Photography",
       href: "/photographers",
       bgColor: "bg-[#FCEFE3]",
-      img: "https://lh3.googleusercontent.com/aida-public/AB6AXuAXFaF6d056sykk48Tz6L5q9m1bVeLNZLe9rnljhUzM9UeIMi1Px322dGknokkhTOoF8LYbSEKq71TcBIjp9sXQiWXf40yP6gfdIjBlRSZFnKgwSB3nsdN2Ss1hdte3lNz9j_p-SCXGvq0tW5DCYm6bGgqsWLnQnFYgqx_TyxehrfezZ3ci1bLZ3gmFuAfaroY0BgHbhGVP9bHx2WmeeoPm45MQYdogWmzMfGuOY-pDhvXBXeiaravjlgykew9aGeueN_nH4dBq0lJr",
+      img: "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=800&q=80",
       alt: "Wedding Photographers"
     },
     {
@@ -198,7 +148,7 @@ export default function Home() {
       subtitle: "Bridal Makeup, Hair & Family Styling",
       href: "/makeup",
       bgColor: "bg-[#F6E5E5]",
-      img: "https://lh3.googleusercontent.com/aida-public/AB6AXuAEYzOP_1Ub5JM0qYXF-kaJm2njnRsiVDwCImcpFQaRm-QwUwmvdjYzb-ua-KBG67BZvPTxJI0DqCS6VYnthiW-FUrcIpSnXFeQaOvfDkadu6a3WJnHmCZhve8oBlJ2cI5vDhQbq4C3VLHLPbjZMS61WB93IZGpFiCVtuWSbJHdpzT3f3BY8sNllRsxJhp2UmbppTGSyo9wlK_iRiOTMP7g5fQNBm-65h4XJQXdZFi20hbgOkfTDgf_8v7QMhQLKy0Z6iWbzSxOW29p",
+      img: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=800&q=80",
       alt: "Bridal Makeup"
     },
     {
@@ -208,6 +158,22 @@ export default function Home() {
       bgColor: "bg-[#EAF3E3]",
       img: "https://images.unsplash.com/photo-1594552072238-b8a33785b261?auto=format&fit=crop&w=800&q=80",
       alt: "Bridal Studio"
+    },
+    {
+      title: "Groom Studio",
+      subtitle: "Bespoke Sherwanis, Tuxedos & Suits",
+      href: "/categories/groom-studio",
+      bgColor: "bg-[#EBEFF3]",
+      img: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=800&q=80",
+      alt: "Groom Studio"
+    },
+    {
+      title: "Wedding Studio",
+      subtitle: "Couple Couture & Ceremonial Outfits",
+      href: "/categories/wedding-studio",
+      bgColor: "bg-[#F7EBE5]",
+      img: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=80",
+      alt: "Wedding Studio"
     },
     {
       title: "Catering",
@@ -262,8 +228,8 @@ export default function Home() {
           </div>
           
           {/* Responsive Layout: Scrollable on mobile (< md), Full clean grid on Laptop/Desktop (>= md) */}
-          <div className="flex overflow-x-auto hide-scrollbar gap-4 px-6 md:grid md:grid-cols-4 lg:grid-cols-8 md:gap-6 md:overflow-visible">
-            {popularSearches.map((item) => (
+          <div className="flex overflow-x-auto hide-scrollbar gap-4 px-6 md:grid md:grid-cols-4 lg:grid-cols-9 md:gap-6 md:overflow-visible">
+            {HOMEPAGE_CATEGORY_STRIP.map((item) => (
               <Link key={item.label} href={item.href} className="flex-shrink-0 flex flex-col items-center gap-2.5 group cursor-pointer">
                 <div className="w-20 h-20 md:w-24 md:h-24 rounded-2xl overflow-hidden shadow-sm border border-gold/10 ring-2 ring-transparent group-hover:ring-primary group-hover:shadow-md transition-all">
                   <img className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" src={item.img} alt={item.alt} />

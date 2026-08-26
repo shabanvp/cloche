@@ -35,7 +35,7 @@ export const decorVendors: DecorVendor[] = [
     reviews: 128,
     location: "Delhi NCR, India",
     price: "₹3,500,000",
-    image: "https://images.unsplash.com/photo-1519167758481-83f552bb8c74?auto=format&fit=crop&w=800&q=80",
+    image: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=800&q=80",
     isFeatured: true,
     isVerified: true,
     about: "The Wedding Canvas is a luxury wedding decor and planning company known for crafting breathtaking experiences with impeccable attention to detail and personalized service.",
@@ -168,11 +168,11 @@ export const decorVendors: DecorVendor[] = [
     reviews: 58,
     location: "Hyderabad, Telangana",
     price: "₹1,80,000",
-    image: "https://images.unsplash.com/photo-1519167758481-83f552bb8c74?auto=format&fit=crop&w=800&q=80",
+    image: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=800&q=80",
     isVerified: true,
     about: "Budget-friendly yet royal decor setups designed for weddings, mehendi functions, and sangeet stages.",
     portfolio: [
-      "https://images.unsplash.com/photo-1519167758481-83f552bb8c74?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=800&q=80",
     ],
     services: [
       { name: "Stage Design", icon: "architecture" },

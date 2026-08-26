@@ -108,7 +108,7 @@ export const DEFAULT_VENDOR_CONFIGS: Record<string, VendorProfileConfig> = {
     businessName: "Grand Solitaire Island Resort",
     tagline: "Luxury Waterfront Island Wedding Destination",
     logo: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=400&q=80",
-    coverImage: "https://images.unsplash.com/photo-1519167758481-83f552bb8c74?auto=format&fit=crop&w=1600&q=80",
+    coverImage: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=1600&q=80",
     aboutText: "Situated on the serene Bolgatty Island, Grand Solitaire Island Resort offers 100,000 sq.ft of luxurious indoor & outdoor wedding spaces with backwater views.",
     phone: "+91 484 266 1234",
     whatsapp: "+91 98950 11223",
@@ -139,7 +139,7 @@ export const DEFAULT_VENDOR_CONFIGS: Record<string, VendorProfileConfig> = {
       cateringOption: "In-house Catering",
     },
     galleryImages: [
-      "https://images.unsplash.com/photo-1519167758481-83f552bb8c74?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=800&q=80",
       "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=800&q=80",
       "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80",
     ],
@@ -325,8 +325,8 @@ function createDefaultConfig(vendorId: string, category: CategoryType): VendorPr
     category,
     businessName: formattedName || "Boutique Partner",
     tagline: `Exclusive ${category} Specialist`,
-    logo: "https://images.unsplash.com/photo-1519167758481-83f552bb8c74?auto=format&fit=crop&w=400&q=80",
-    coverImage: "https://images.unsplash.com/photo-1519167758481-83f552bb8c74?auto=format&fit=crop&w=1600&q=80",
+    logo: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=400&q=80",
+    coverImage: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=1600&q=80",
     aboutText: `Welcome to ${formattedName}. We provide bespoke ${category.toLowerCase()} services tailored to your wedding vision.`,
     phone: vendorPhone,
     whatsapp: vendorPhone,
@@ -350,7 +350,7 @@ function createDefaultConfig(vendorId: string, category: CategoryType): VendorPr
       awardsOrFAQ: true,
     },
     galleryImages: [
-      "https://images.unsplash.com/photo-1519167758481-83f552bb8c74?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=800&q=80",
       "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=800&q=80"
     ],
     packagesList: [
