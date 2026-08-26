@@ -104,7 +104,7 @@ export function LoginClient() {
       activeTab="login"
       subtitle={requestedRole === "admin" ? "Administrative\nAccess Portal" : "Curated Luxury\nFor Your Wedding"}
       hideTabs={requestedRole === "admin"}
-      showSocial={requestedRole !== "admin"}
+      showSocial={false}
       footerText="Don't have an account?"
       footerLink={requestedRole === "admin" ? "/signup?role=admin" : "/signup"}
       footerLinkLabel="Create one"

@@ -42,8 +42,8 @@ export function AuthShell({
   };
 
   return (
-    <main className="h-screen w-screen overflow-hidden fixed inset-0 z-50 flex items-center justify-center bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.9),rgba(250,246,239,0.96)_45%,rgba(245,239,229,1))] px-4 text-charcoal sm:px-6">
-      <div className="mx-auto flex h-full w-full max-w-[460px] flex-col items-center justify-center">
+    <main className="min-h-screen w-full overflow-y-auto z-50 flex items-center justify-center bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.9),rgba(250,246,239,0.96)_45%,rgba(245,239,229,1))] px-4 py-8 text-charcoal sm:px-6">
+      <div className="mx-auto flex w-full max-w-[460px] flex-col items-center justify-center my-auto">
         <div className="w-full max-w-[420px] rounded-[26px] border border-[#E6DDCF] bg-[linear-gradient(180deg,rgba(255,255,255,0.82),rgba(248,244,236,0.94))] px-5 py-6 shadow-[0_18px_60px_rgba(28,27,23,0.08)] backdrop-blur-sm sm:px-7 sm:py-7">
           <div className="mb-4 flex flex-col items-center text-center">
             <div className="mb-2 flex h-11 w-11 items-center justify-center rounded-full border border-[#D7C2A0] bg-[#FBF7EF] shadow-[0_8px_20px_rgba(15,76,69,0.08)]">
@@ -106,7 +106,7 @@ export function AuthShell({
             )}
 
             {footerText && footerLink && footerLinkLabel && (
-              <div className="text-center">
+              <div className="text-center pt-2">
                 <p className="text-[14px] text-[#4B463E]">
                   {footerText}{" "}
                   <Link href={footerLink} className="font-semibold text-[#0F4C45] underline decoration-[#0F4C45]/25 underline-offset-4">
