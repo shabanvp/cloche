@@ -10,34 +10,9 @@ import {
   LucideIcon
 } from "lucide-react";
 
-export const VENDOR_REGISTRATION_CATEGORIES: string[] = [
-  "Bride Studio",
-  "Bridal Studio",
-  "Groom Studio",
-  "Wedding Studio",
-  "Wedding Decorators",
-  "Mehendi Artist",
-  "Makeup Artist",
-  "Photography",
-  "Videography",
-  "Catering",
-  "Wedding Venue",
-  "Rental Store",
-  "Jewellery",
-  "Invitation Designer",
-  "Wedding Planner",
-  "Choreographer",
-  "DJ & Music",
-  "Entertainment",
-  "Travel",
-  "Event Management",
-  "Honeymoon Planner",
-  "Gift Shop",
-  "Cake Designer",
-  "Car Rental",
-  "Flower Decoration",
-  "Other",
-];
+import { VENDOR_REGISTRATION_CATEGORIES, normalizeCategory } from "./categories";
+export { VENDOR_REGISTRATION_CATEGORIES };
+
 
 // ==========================================
 // 1. PUBLIC CATEGORY LISTING TYPES & DATA
@@ -1027,30 +1002,29 @@ export const VENDOR_CATEGORIES: Record<string, VendorCategoryConfig> = {
   }
 };
 
-export function getCategoryConfig(categoryKey: string): VendorCategoryConfig {
-  const normalizedKey = (categoryKey || "").toLowerCase().trim();
-  
-  if (normalizedKey.includes("photo") || normalizedKey.includes("video") || normalizedKey.includes("film")) {
-    return VENDOR_CATEGORIES.photographers;
+export function getCategoryConfig(categoryKey: string): VendorCategoryConfig | null {
+  const norm = normalizeCategory(categoryKey);
+  if (norm) {
+    if (VENDOR_CATEGORIES[norm.slug]) {
+      return VENDOR_CATEGORIES[norm.slug];
+    }
+    if (norm.slug === "decor-planning" && VENDOR_CATEGORIES.planners) {
+      return VENDOR_CATEGORIES.planners;
+    }
+    if (norm.slug === "invitation-designers" && VENDOR_CATEGORIES.invitations) {
+      return VENDOR_CATEGORIES.invitations;
+    }
+    if (norm.slug === "wedding-planners" && VENDOR_CATEGORIES.planners) {
+      return VENDOR_CATEGORIES.planners;
+    }
   }
-  if (normalizedKey.includes("makeup") || normalizedKey.includes("beauty")) {
-    return VENDOR_CATEGORIES.makeup;
+
+  // Direct lookup check
+  const rawKey = (categoryKey || "").toLowerCase().trim();
+  if (VENDOR_CATEGORIES[rawKey]) {
+    return VENDOR_CATEGORIES[rawKey];
   }
-  if (normalizedKey.includes("mehendi") || normalizedKey.includes("henna")) {
-    return VENDOR_CATEGORIES.mehendi;
-  }
-  if (normalizedKey.includes("planner") || normalizedKey.includes("decor") || normalizedKey.includes("event")) {
-    return VENDOR_CATEGORIES.planners;
-  }
-  if (normalizedKey.includes("cater") || normalizedKey.includes("food")) {
-    return VENDOR_CATEGORIES.caterers;
-  }
-  if (normalizedKey.includes("invitation") || normalizedKey.includes("card")) {
-    return VENDOR_CATEGORIES.invitations;
-  }
-  if (normalizedKey.includes("jewel") || normalizedKey.includes("ornament")) {
-    return VENDOR_CATEGORIES.jewellery;
-  }
-  
-  return VENDOR_CATEGORIES.venues;
+
+  // Strictly return null for unrecognized categories — NO SILENT FALLBACK TO VENUES
+  return null;
 }

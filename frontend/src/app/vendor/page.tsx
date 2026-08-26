@@ -3,30 +3,36 @@
 import { useState, useEffect } from "react";
 import { UnifiedVendorDashboard } from "@/components/vendor/UnifiedVendorDashboard";
 import { MehendiVendorDashboard } from "@/components/vendor/mehendi/MehendiVendorDashboard";
-import { fetchAuthenticatedVendorFromDb, getActiveVendorIdentity, normalizeVendorCategoryKey } from "@/lib/vendorStore";
+import { VendorCategoryErrorState } from "@/components/vendor/VendorCategoryErrorState";
+import { fetchAuthenticatedVendorFromDb, getActiveVendorIdentity, normalizeVendorCategoryKey, VendorProfileData } from "@/lib/vendorStore";
+import { normalizeCategory } from "@/lib/categories";
 
 export default function VendorDashboardPage() {
+  const [vendorProfile, setVendorProfile] = useState<VendorProfileData | null>(null);
   const [categoryKey, setCategoryKey] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     // 1. Check cached identity first for immediate render
     const cached = getActiveVendorIdentity();
     if (cached && cached.category) {
+      setVendorProfile(cached);
       setCategoryKey(normalizeVendorCategoryKey(cached.category));
     }
 
     // 2. Fetch authoritative database record for the logged-in account
     fetchAuthenticatedVendorFromDb().then((profile) => {
       if (profile && profile.category) {
+        setVendorProfile(profile);
         setCategoryKey(normalizeVendorCategoryKey(profile.category));
-      } else if (!categoryKey) {
-        // Fallback default
-        setCategoryKey("photographers");
       }
+      setLoading(false);
+    }).catch(() => {
+      setLoading(false);
     });
   }, []);
 
-  if (!categoryKey) {
+  if (loading && !categoryKey) {
     return (
       <div className="min-h-screen bg-[#F8F6F2] flex items-center justify-center p-8 font-sans">
         <div className="text-center space-y-3">
@@ -37,9 +43,24 @@ export default function VendorDashboardPage() {
     );
   }
 
+  const rawCat = vendorProfile?.category || "";
+  const normCat = normalizeCategory(rawCat);
+
+  // If raw category exists but cannot be normalized to a canonical category, show Error State
+  if (rawCat && !normCat) {
+    return (
+      <VendorCategoryErrorState
+        rawCategory={rawCat}
+        vendorName={vendorProfile?.boutique_name || vendorProfile?.name || "Vendor Partner"}
+        vendorCode={vendorProfile?.id ? `VND-${vendorProfile.id.substring(0, 8).toUpperCase()}` : "VND-ACCOUNT"}
+      />
+    );
+  }
+
   if (categoryKey === "mehendi") {
     return <MehendiVendorDashboard />;
   }
 
-  return <UnifiedVendorDashboard categoryKey={categoryKey} />;
+  return <UnifiedVendorDashboard categoryKey={categoryKey || "venues"} />;
 }
+

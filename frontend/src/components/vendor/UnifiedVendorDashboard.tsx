@@ -19,7 +19,8 @@ import {
   ArrowLeft,
   Settings
 } from "lucide-react";
-import { VENDOR_CATEGORIES, VendorCategoryConfig } from "@/lib/vendor-categories";
+import { VENDOR_CATEGORIES, VendorCategoryConfig, getCategoryConfig } from "@/lib/vendor-categories";
+import { VendorCategoryErrorState } from "./VendorCategoryErrorState";
 import { OverviewSection } from "./sections/OverviewSection";
 import { ProfileSection } from "./sections/ProfileSection";
 import { EnquiriesSection } from "./sections/EnquiriesSection";
@@ -120,7 +121,19 @@ export function UnifiedVendorDashboard({ categoryKey = "caterers", initialTab = 
     };
   }, []);
 
-  const categoryConfig: VendorCategoryConfig = VENDOR_CATEGORIES[activeCategoryKey] || VENDOR_CATEGORIES.caterers || VENDOR_CATEGORIES.photographers;
+  const resolvedCategoryConfig = getCategoryConfig(activeCategoryKey) || VENDOR_CATEGORIES[activeCategoryKey];
+
+  if (!resolvedCategoryConfig) {
+    return (
+      <VendorCategoryErrorState
+        rawCategory={activeCategoryKey || vendorData?.category}
+        vendorName={vendorData?.name || vendorData?.boutique_name || "Vendor Partner"}
+        vendorCode={vendorData?.id ? `VND-${vendorData.id.substring(0, 8).toUpperCase()}` : "VND-ACCOUNT"}
+      />
+    );
+  }
+
+  const categoryConfig: VendorCategoryConfig = resolvedCategoryConfig;
 
   const mediaTabId = categoryConfig.media.title.toLowerCase().replace(/[^a-z]/g, "");
   const pricingTabId = categoryConfig.pricing.title.toLowerCase().replace(/[^a-z]/g, "");

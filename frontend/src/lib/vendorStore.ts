@@ -1,5 +1,7 @@
 "use client";
 
+import { normalizeCategory } from "./categories";
+
 export interface VendorProfileData {
   id: string;
   user_id?: string;
@@ -201,23 +203,16 @@ export interface VendorProfileData {
 }
 
 /**
- * Normalizes raw category string from DB/API into canonical category key
+ * Normalizes raw category string from DB/API into canonical category key.
+ * Returns the raw string or "unrecognized" if unmapped (no silent fallback).
  */
 export function normalizeVendorCategoryKey(rawCategory: string): string {
-  const slug = (rawCategory || "").toLowerCase().trim();
-  if (slug.includes("bride") && (slug.includes("story") || slug.includes("studio"))) return "brides-story";
-  if (slug.includes("groom") && (slug.includes("story") || slug.includes("studio"))) return "grooms-story";
-  if (slug.includes("wedding") && (slug.includes("story") || slug.includes("studio"))) return "wedding-story";
-  if (slug.includes("photo") || slug.includes("camera") || slug.includes("video")) return "photographers";
-  if (slug.includes("mehendi") || slug.includes("henna") || slug.includes("mehndi")) return "mehendi";
-  if (slug.includes("venue") || slug.includes("palace") || slug.includes("lawn") || slug.includes("banquet") || slug.includes("car")) return "venues";
-  if (slug.includes("makeup") || slug.includes("glam") || slug.includes("beauty")) return "makeup";
-  if (slug.includes("cater") || slug.includes("food") || slug.includes("dining") || slug.includes("cake") || slug.includes("baker") || slug.includes("dessert")) return "caterers";
-  if (slug.includes("invite") || slug.includes("card") || slug.includes("papyrus") || slug.includes("gift")) return "invitations";
-  if (slug.includes("jewel") || slug.includes("polki") || slug.includes("gold") || slug.includes("ornament")) return "jewellery";
-  if (slug.includes("decor") || slug.includes("planner") || slug.includes("flower") || slug.includes("rental") || slug.includes("choreo") || slug.includes("dj") || slug.includes("band") || slug.includes("entertain")) return "planners";
-  if (slug.includes("boutique") || slug.includes("bridal") || slug.includes("wear") || slug.includes("groom") || slug.includes("sherwani") || slug.includes("suit")) return "boutiques";
-  return "caterers";
+  if (!rawCategory) return "unrecognized";
+  const norm = normalizeCategory(rawCategory);
+  if (norm) {
+    return norm.slug;
+  }
+  return rawCategory.toLowerCase().trim() || "unrecognized";
 }
 
 /**

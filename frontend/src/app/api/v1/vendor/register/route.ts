@@ -13,70 +13,18 @@ function generateSlug(text: string): string {
   return base ? `${base}-${randomSuffix}` : `vendor-${Date.now()}`;
 }
 
-import { VENDOR_REGISTRATION_CATEGORIES } from "@/lib/vendor-categories";
+import { VENDOR_REGISTRATION_CATEGORIES, CANONICAL_VENDOR_CATEGORIES, normalizeCategory } from "@/lib/categories";
 
 const PRIMARY_CATEGORIES = VENDOR_REGISTRATION_CATEGORIES;
 
 export async function GET() {
-  const { url, serviceKey, anonKey } = getSupabaseConfig();
-  const apiKey = serviceKey || anonKey;
-
-  try {
-    if (url && apiKey) {
-      const res = await fetch(`${url}/rest/v1/vendor_categories?is_active=eq.true&select=id,name,slug&order=name.asc`, {
-        headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
-      });
-      if (res.ok) {
-        const categories: Array<{ id: string; name: string; slug: string }> = await res.json();
-        
-        // Map legacy DB names to updated studio category names
-        const mapped = categories.map((c) => {
-          let name = c.name;
-          if (name === "Bridal Boutique" || name === "Bride's Story") name = "Bridal Studio";
-          if (name === "Groom Wear" || name === "Groom's Story") name = "Groom Studio";
-          if (name === "Wedding Story") name = "Wedding Studio";
-          return { ...c, name };
-        });
-
-        // Ensure Bridal Studio, Groom Studio, and Wedding Studio options exist
-        const requiredStudios = [
-          { id: "bridal-studio", name: "Bridal Studio", slug: "bridal-studio" },
-          { id: "groom-studio", name: "Groom Studio", slug: "groom-studio" },
-          { id: "wedding-studio", name: "Wedding Studio", slug: "wedding-studio" },
-        ];
-
-        for (const studio of requiredStudios) {
-          if (!mapped.some((c) => c.name === studio.name)) {
-            mapped.push(studio);
-          }
-        }
-
-        const primarySet = new Set(PRIMARY_CATEGORIES);
-        const filtered = mapped.filter((c) => primarySet.has(c.name));
-
-        const seen = new Set<string>();
-        const uniquePrimary = filtered.filter((c) => {
-          if (seen.has(c.name)) return false;
-          seen.add(c.name);
-          return true;
-        });
-
-        // Sort according to PRIMARY_CATEGORIES order
-        uniquePrimary.sort((a, b) => PRIMARY_CATEGORIES.indexOf(a.name) - PRIMARY_CATEGORIES.indexOf(b.name));
-
-        return NextResponse.json({ success: true, statusCode: 200, data: uniquePrimary });
-      }
-    }
-  } catch (err: any) {}
-
-  // Fallback if DB fetch fails
-  const fallbackData = PRIMARY_CATEGORIES.map((name) => ({
-    id: name,
-    name,
-    slug: name.toLowerCase().replace(/[^a-z0-9]/g, "-"),
+  const canonicalData = CANONICAL_VENDOR_CATEGORIES.map((c) => ({
+    id: c.slug,
+    name: c.title,
+    slug: c.slug,
   }));
 
-  return NextResponse.json({ success: true, statusCode: 200, data: fallbackData });
+  return NextResponse.json({ success: true, statusCode: 200, data: canonicalData });
 }
 
 export async function POST(req: Request) {
@@ -163,6 +111,23 @@ export async function POST(req: Request) {
           success: false,
           statusCode: 400,
           error: { code: "VALIDATION_ERROR", message: "Business name, email, and password are required." },
+        },
+        { status: 400 }
+      );
+    }
+
+    const submittedCategory = (category_id || category || "").toString().trim();
+    const normalizedCat = normalizeCategory(submittedCategory);
+
+    if (!submittedCategory || !normalizedCat) {
+      return NextResponse.json(
+        {
+          success: false,
+          statusCode: 400,
+          error: {
+            code: "INVALID_CATEGORY",
+            message: "Selected vendor category is invalid or not recognized by the canonical category system.",
+          },
         },
         { status: 400 }
       );
@@ -377,21 +342,15 @@ export async function POST(req: Request) {
       }
     }
 
-    // Step 3: Exact lookup of vendor category_id from vendor_categories
-    const submittedCategory = (category_id || category || "").toString().trim();
-
-    if (!submittedCategory) {
-      return NextResponse.json(
-        { success: false, statusCode: 400, error: { code: "INVALID_CATEGORY", message: "Vendor category is required." } },
-        { status: 400 }
-      );
-    }
+    // Step 3: Exact lookup of canonical vendor category_id from vendor_categories
+    const canonicalSlug = normalizedCat.slug;
+    const canonicalTitle = normalizedCat.title;
 
     let categoryId: string | null = null;
-    let categoryName: string = submittedCategory;
+    let categoryName: string = canonicalTitle;
 
     const catRes = await fetch(
-      `${url}/rest/v1/vendor_categories?or=(id.eq.${encodeURIComponent(submittedCategory)},slug.eq.${encodeURIComponent(submittedCategory)},name.eq.${encodeURIComponent(submittedCategory)})&select=id,name,slug&limit=1`,
+      `${url}/rest/v1/vendor_categories?or=(slug.eq.${encodeURIComponent(canonicalSlug)},name.eq.${encodeURIComponent(canonicalTitle)},slug.eq.${encodeURIComponent(submittedCategory)},name.eq.${encodeURIComponent(submittedCategory)})&select=id,name,slug&limit=1`,
       { headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` } }
     );
 
@@ -399,12 +358,12 @@ export async function POST(req: Request) {
       const cats = await catRes.json();
       if (Array.isArray(cats) && cats.length > 0) {
         categoryId = cats[0].id;
-        categoryName = cats[0].name || submittedCategory;
+        categoryName = cats[0].name || canonicalTitle;
       }
     }
 
     if (!categoryId) {
-      // 1. Attempt to auto-insert new vendor category into Supabase vendor_categories table
+      // 1. Attempt to auto-insert canonical vendor category into Supabase vendor_categories table
       const createCatRes = await fetch(`${url}/rest/v1/vendor_categories`, {
         method: "POST",
         headers: {
@@ -414,8 +373,8 @@ export async function POST(req: Request) {
           Prefer: "return=representation",
         },
         body: JSON.stringify({
-          name: submittedCategory,
-          slug: generateSlug(submittedCategory),
+          name: canonicalTitle,
+          slug: canonicalSlug,
           is_active: true,
         }),
       }).catch(() => null);
@@ -424,7 +383,7 @@ export async function POST(req: Request) {
         const createdCats = await createCatRes.json().catch(() => []);
         if (Array.isArray(createdCats) && createdCats.length > 0) {
           categoryId = createdCats[0].id;
-          categoryName = createdCats[0].name || submittedCategory;
+          categoryName = createdCats[0].name || canonicalTitle;
         }
       }
     }

@@ -32,7 +32,7 @@ type FieldErrors = Partial<Record<FieldName, string>>;
 const rawBaseUrl = process.env.NEXT_PUBLIC_API_URL || "https://cloche-backend.onrender.com";
 const API_BASE_URL = rawBaseUrl.endsWith("/api") ? rawBaseUrl : `${rawBaseUrl}/api`;
 
-import { VENDOR_REGISTRATION_CATEGORIES } from "@/lib/vendor-categories";
+import { VENDOR_REGISTRATION_CATEGORIES, normalizeCategory } from "@/lib/categories";
 
 const VENDOR_CATEGORIES = VENDOR_REGISTRATION_CATEGORIES;
 
@@ -108,6 +108,12 @@ const validateVendorForm = (formData: FormData) => {
   addRequiredTextError(errors, formData, "boutique_name", "Business name");
   addRequiredTextError(errors, formData, "owner_name", "Owner name");
   addRequiredTextError(errors, formData, "category", "Vendor category");
+
+  const selectedCategory = textValue(formData, "category");
+  if (selectedCategory && !normalizeCategory(selectedCategory)) {
+    errors.category = "Select a recognized vendor category from the dropdown list.";
+  }
+
   addRequiredTextError(errors, formData, "email", "Email address");
   addRequiredTextError(errors, formData, "phone", "Mobile number");
   addRequiredTextError(errors, formData, "address", "Business address");
