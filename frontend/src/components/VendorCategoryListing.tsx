@@ -289,6 +289,9 @@ export function VendorCategoryListing({
                 if (norm.includes("photo") || norm.includes("video")) return "photographers";
                 if (norm.includes("venue")) return "venues";
                 if (norm.includes("jewel")) return "jewellery";
+                if (norm.includes("wedding-story") || norm.includes("wedding-studio")) return "wedding-story";
+                if (norm.includes("brides-story") || norm.includes("bridal-studio")) return "brides-story";
+                if (norm.includes("grooms-story") || norm.includes("groom-studio")) return "grooms-story";
                 if (norm.includes("bridal")) return "bridal-wear";
                 if (norm.includes("groom")) return "groom-wear";
                 if (norm.includes("decor")) return "decor-planning";
