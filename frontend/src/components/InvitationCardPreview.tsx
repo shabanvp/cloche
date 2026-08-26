@@ -45,10 +45,30 @@ export function InvitationCardPreview({
 
   const pos = template.textFieldPositions;
 
+  // Auto-scale couple name font size based on name length to prevent overlap or spill
+  const fullNamesText = `${brideName} & ${groomName}`;
+  const charLength = fullNamesText.length;
+  let nameScale = 1.0;
+  if (charLength > 36) {
+    nameScale = 0.65;
+  } else if (charLength > 26) {
+    nameScale = 0.78;
+  } else if (charLength > 20) {
+    nameScale = 0.88;
+  }
+
+  // Parse cqi value e.g. "5.2cqi" -> 5.2
+  const getScaledCqi = (cqiStr: string, scale: number = 1.0) => {
+    const numeric = parseFloat(cqiStr);
+    if (isNaN(numeric)) return cqiStr;
+    return `${(numeric * scale).toFixed(2)}cqi`;
+  };
+
   return (
     <div
       id="invitation-card-canvas"
-      className="relative aspect-[3/4] w-full rounded-2xl overflow-hidden shadow-2xl bg-slate-900 border border-amber-400/30 select-none group"
+      style={{ containerType: "inline-size" }}
+      className="relative aspect-[3/4] w-full rounded-2xl overflow-hidden shadow-2xl bg-slate-900 border border-amber-400/30 select-none group @container"
     >
       {/* 1. Original Background Artwork Asset */}
       <img
@@ -57,7 +77,7 @@ export function InvitationCardPreview({
         className="absolute inset-0 w-full h-full object-cover z-0 transition-transform duration-700 group-hover:scale-105"
       />
 
-      {/* Subtle Overlay to ensure high readability */}
+      {/* Subtle Overlay for maximum contrast */}
       <div className="absolute inset-0 bg-black/10 z-5 pointer-events-none" />
 
       {/* 2. Positioned Text Overlays per Template Configuration */}
@@ -74,8 +94,10 @@ export function InvitationCardPreview({
               textAlign: pos.badgeTitle.textAlign,
               color: pos.badgeTitle.color,
               fontFamily: pos.badgeTitle.fontFamily,
+              fontSize: pos.badgeTitle.fontSize,
+              lineHeight: 1.2,
             }}
-            className={`absolute ${pos.badgeTitle.fontSize} ${pos.badgeTitle.fontWeight || ""} ${pos.badgeTitle.letterSpacing || ""} ${pos.badgeTitle.textTransform || ""}`}
+            className={`absolute ${pos.badgeTitle.fontWeight || ""} ${pos.badgeTitle.letterSpacing || ""} ${pos.badgeTitle.textTransform || ""}`}
           >
             {template.collection} SUITE
           </div>
@@ -87,15 +109,17 @@ export function InvitationCardPreview({
             style={{
               top: pos.coupleNames.top,
               left: pos.coupleNames.left,
-              width: pos.coupleNames.width || "85%",
+              width: pos.coupleNames.width || "80%",
               transform: "translate(-50%, -50%)",
               textAlign: pos.coupleNames.textAlign,
               color: pos.coupleNames.color,
               fontFamily: pos.coupleNames.fontFamily,
+              fontSize: getScaledCqi(pos.coupleNames.fontSize, nameScale),
+              lineHeight: 1.15,
             }}
-            className={`absolute ${pos.coupleNames.fontSize} ${pos.coupleNames.fontWeight || "font-bold"} leading-tight tracking-tight drop-shadow-md`}
+            className={`absolute ${pos.coupleNames.fontWeight || "font-bold"} tracking-tight drop-shadow-md break-words`}
           >
-            {brideName} <span className="font-normal italic text-lg sm:text-2xl opacity-90">&</span> {groomName}
+            {brideName} <span className="font-normal italic opacity-90">&</span> {groomName}
           </div>
         )}
 
@@ -110,8 +134,10 @@ export function InvitationCardPreview({
               textAlign: pos.familyBlessing.textAlign,
               color: pos.familyBlessing.color,
               fontFamily: pos.familyBlessing.fontFamily,
+              fontSize: pos.familyBlessing.fontSize,
+              lineHeight: 1.25,
             }}
-            className={`absolute ${pos.familyBlessing.fontSize} ${pos.familyBlessing.fontWeight || ""} italic opacity-95`}
+            className={`absolute ${pos.familyBlessing.fontWeight || ""} italic opacity-95 break-words`}
           >
             Together with {brideParents} & {groomParents}
           </div>
@@ -128,8 +154,10 @@ export function InvitationCardPreview({
               textAlign: pos.ceremonyDetails.textAlign,
               color: pos.ceremonyDetails.color,
               fontFamily: pos.ceremonyDetails.fontFamily,
+              fontSize: pos.ceremonyDetails.fontSize,
+              lineHeight: 1.2,
             }}
-            className={`absolute ${pos.ceremonyDetails.fontSize} ${pos.ceremonyDetails.fontWeight || ""} ${pos.ceremonyDetails.letterSpacing || ""}`}
+            className={`absolute ${pos.ceremonyDetails.fontWeight || ""} ${pos.ceremonyDetails.letterSpacing || ""}`}
           >
             SHUBH VIVAH CELEBRATION
           </div>
@@ -146,8 +174,10 @@ export function InvitationCardPreview({
               textAlign: pos.date.textAlign,
               color: pos.date.color,
               fontFamily: pos.date.fontFamily,
+              fontSize: pos.date.fontSize,
+              lineHeight: 1.2,
             }}
-            className={`absolute ${pos.date.fontSize} ${pos.date.fontWeight || "font-bold"} tracking-wider drop-shadow-xs`}
+            className={`absolute ${pos.date.fontWeight || "font-bold"} tracking-wider drop-shadow-xs`}
           >
             {weddingDate} • {weddingTime}
           </div>
@@ -164,8 +194,10 @@ export function InvitationCardPreview({
               textAlign: pos.venue.textAlign,
               color: pos.venue.color,
               fontFamily: pos.venue.fontFamily,
+              fontSize: pos.venue.fontSize,
+              lineHeight: 1.2,
             }}
-            className={`absolute ${pos.venue.fontSize} ${pos.venue.fontWeight || ""} opacity-90 truncate`}
+            className={`absolute ${pos.venue.fontWeight || ""} opacity-90 truncate`}
           >
             {venueName}, {venueAddress}
           </div>
