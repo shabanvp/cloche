@@ -20,7 +20,24 @@ function getCategoryTable(categorySlug: string): string {
 export async function GET(req: Request) {
   try {
     const auth = await requireAuthenticatedVendor(req);
-    if (auth.response) return auth.response;
+    if (auth.response) {
+      return NextResponse.json(
+        {
+          success: true,
+          statusCode: 200,
+          data: {
+            vendor: null,
+            profile: null,
+            contacts: [],
+            addresses: [],
+            socialLinks: [],
+            categoryDetails: null,
+            versions: [],
+          },
+        },
+        { status: 200 }
+      );
+    }
 
     const { url, serviceKey, anonKey } = getSupabaseConfig();
     const apiKey = serviceKey || anonKey;

@@ -9,11 +9,11 @@ export async function GET(req: Request) {
     if (!authUser) {
       return NextResponse.json(
         {
-          success: false,
-          statusCode: 401,
-          error: { code: "UNAUTHORIZED", message: "Not authenticated or session expired." },
+          success: true,
+          statusCode: 200,
+          data: { user: null },
         },
-        { status: 401 }
+        { status: 200 }
       );
     }
 

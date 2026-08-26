@@ -6,10 +6,9 @@ export async function GET(req: Request) {
   try {
     const authUser = await getAuthenticatedCustomerUser(req);
     if (!authUser) {
-      console.log("[WISHLIST API GET] Unauthorized request - customer login required.");
       return NextResponse.json(
-        { success: false, statusCode: 401, error: { code: "UNAUTHORIZED", message: "Customer login required." } },
-        { status: 401 }
+        { success: true, statusCode: 200, data: [] },
+        { status: 200 }
       );
     }
 
@@ -42,7 +41,6 @@ export async function POST(req: Request) {
   try {
     const authUser = await getAuthenticatedCustomerUser(req);
     if (!authUser) {
-      console.log("[WISHLIST API POST] Unauthorized request - customer login required.");
       return NextResponse.json(
         { success: false, statusCode: 401, error: { code: "UNAUTHORIZED", message: "Customer login required." } },
         { status: 401 }
@@ -52,12 +50,7 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { vendor_id } = body;
 
-    console.log("-----------------------------------------");
-    console.log("Authenticated User ID:", authUser.userId);
-    console.log("Vendor ID:", vendor_id);
-
     if (!vendor_id) {
-      console.log("Validation Error: Vendor ID is required.");
       return NextResponse.json(
         { success: false, statusCode: 400, error: { code: "VALIDATION_ERROR", message: "Vendor ID required." } },
         { status: 400 }
@@ -65,10 +58,6 @@ export async function POST(req: Request) {
     }
 
     const { data, error } = await saveFavoriteVendorInDb(authUser.userId, vendor_id, authUser.email);
-
-    console.log("Insert Result:", data);
-    console.log("Database Error (if any):", error);
-    console.log("-----------------------------------------");
 
     if (error) {
       return NextResponse.json(
@@ -94,7 +83,6 @@ export async function DELETE(req: Request) {
   try {
     const authUser = await getAuthenticatedCustomerUser(req);
     if (!authUser) {
-      console.log("[WISHLIST API DELETE] Unauthorized request - customer login required.");
       return NextResponse.json(
         { success: false, statusCode: 401, error: { code: "UNAUTHORIZED", message: "Customer login required." } },
         { status: 401 }
@@ -104,10 +92,6 @@ export async function DELETE(req: Request) {
     const { searchParams } = new URL(req.url);
     const vendorId = searchParams.get("vendor_id");
 
-    console.log("-----------------------------------------");
-    console.log("[WISHLIST API DELETE] Authenticated User ID:", authUser.userId);
-    console.log("[WISHLIST API DELETE] Vendor ID:", vendorId);
-
     if (!vendorId) {
       return NextResponse.json(
         { success: false, statusCode: 400, error: { code: "VALIDATION_ERROR", message: "Vendor ID is required." } },
@@ -116,8 +100,6 @@ export async function DELETE(req: Request) {
     }
 
     const { error } = await removeFavoriteVendorInDb(authUser.userId, vendorId);
-    console.log("[WISHLIST API DELETE] Delete Result Error (if any):", error);
-    console.log("-----------------------------------------");
 
     return NextResponse.json(
       { success: true, statusCode: 200, message: "Vendor removed from favorites." },
