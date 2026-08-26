@@ -80,8 +80,6 @@ export async function login(formData: FormData) {
             cookieStore.set("user_data", JSON.stringify(userObj), { path: "/", maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 });
 
             return { success: true, user: userObj };
-          } else if (user.password_hash) {
-            return { error: "Invalid email or password." };
           }
         }
       }
@@ -94,6 +92,20 @@ export async function login(formData: FormData) {
       let userRoles: string[] = [role];
       let displayName = authUser.user_metadata?.full_name || email.split("@")[0];
       let customUserId = authUser.id;
+
+      // Update custom table password_hash to keep DB in sync
+      if (url && apiKey) {
+        const syncHash = hashPassword(password);
+        await fetch(`${url}/rest/v1/users?email=eq.${encodeURIComponent(email)}`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            apikey: apiKey,
+            Authorization: `Bearer ${apiKey}`,
+          },
+          body: JSON.stringify({ password_hash: syncHash, is_active: true, is_verified: true }),
+        }).catch(() => null);
+      }
 
       const token = authResult.session?.access_token || authUser.id;
       const cookieStore = await cookies();

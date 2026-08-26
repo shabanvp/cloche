@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { hashPassword } from "@/lib/auth";
-import { getSupabaseConfig } from "@/lib/supabase";
+import { getSupabaseConfig, signUpWithSupabaseAuth, deleteAdminSupabaseUser } from "@/lib/supabase";
 
 function generateSlug(text: string): string {
   const base = text
@@ -86,6 +86,7 @@ export async function POST(req: Request) {
   let insertedVendorId: string | null = null;
   let insertedProfileId: string | null = null;
   let insertedVersionId: string | null = null;
+  let createdAuthUserId: string | null = null;
 
   const { url, serviceKey, anonKey } = getSupabaseConfig();
   const apiKey = serviceKey || anonKey;
@@ -200,6 +201,9 @@ export async function POST(req: Request) {
           headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
         }).catch(() => null);
       }
+      if (createdAuthUserId) {
+        await deleteAdminSupabaseUser(createdAuthUserId).catch(() => null);
+      }
     };
 
     // Step 1: Check if user or vendor already exists for this email
@@ -230,6 +234,39 @@ export async function POST(req: Request) {
     const passwordHash = hashPassword(userPassword);
     let targetUserId: string = "";
 
+    // 1A. Create Supabase Auth User via Admin API
+    let authUserId: string | null = null;
+    const authAdminRes = await fetch(`${url}/auth/v1/admin/users`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        apikey: apiKey,
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        email: userEmail,
+        password: userPassword,
+        email_confirm: true,
+        user_metadata: { full_name: owner || businessName, role: "vendor" },
+      }),
+    }).catch(() => null);
+
+    if (authAdminRes && authAdminRes.ok) {
+      const authData = await authAdminRes.json().catch(() => null);
+      if (authData?.id) {
+        authUserId = authData.id;
+        createdAuthUserId = authUserId;
+      }
+    }
+
+    if (!authUserId) {
+      const authResult = await signUpWithSupabaseAuth(userEmail, userPassword, { full_name: owner || businessName, role: "vendor" });
+      if (authResult.user?.id) {
+        authUserId = authResult.user.id;
+        createdAuthUserId = authUserId;
+      }
+    }
+
     if (existingUser) {
       targetUserId = existingUser.id;
       console.log(`${logPrefix} Reusing existing user record (${targetUserId}) for vendor registration...`);
@@ -241,12 +278,27 @@ export async function POST(req: Request) {
           Authorization: `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
+          password_hash: passwordHash,
           is_verified: true,
           is_active: true,
         }),
       });
     } else {
       console.log(`${logPrefix} Step 1: Inserting user record...`);
+      const userPayload: any = {
+        email: userEmail,
+        password_hash: passwordHash,
+        full_name: owner || businessName,
+        name: owner || businessName,
+        phone: userPhone || null,
+        is_active: true,
+        is_verified: true,
+      };
+
+      if (authUserId) {
+        userPayload.id = authUserId;
+      }
+
       const userInsertRes = await fetch(`${url}/rest/v1/users`, {
         method: "POST",
         headers: {
@@ -255,19 +307,12 @@ export async function POST(req: Request) {
           Authorization: `Bearer ${apiKey}`,
           Prefer: "return=representation",
         },
-        body: JSON.stringify({
-          email: userEmail,
-          password_hash: passwordHash,
-          full_name: owner || businessName,
-          name: owner || businessName,
-          phone: userPhone || null,
-          is_active: true,
-          is_verified: true,
-        }),
+        body: JSON.stringify(userPayload),
       });
 
       if (!userInsertRes.ok) {
         const errText = await userInsertRes.text();
+        await rollback(`user table insert failed: ${errText}`);
         return NextResponse.json(
           { success: false, statusCode: 500, error: { code: "USER_CREATION_FAILED", message: errText } },
           { status: 500 }
