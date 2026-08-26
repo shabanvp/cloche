@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { VendorCategoryConfig } from "@/lib/vendor-categories";
 import { fetchAuthenticatedVendorFromDb } from "@/lib/vendorStore";
+import { VendorPublishChecklist } from "../VendorPublishChecklist";
 
 interface OverviewSectionProps {
   categoryConfig: VendorCategoryConfig;
@@ -27,6 +28,7 @@ interface OverviewSectionProps {
 
 export function OverviewSection({ categoryConfig, vendorName, onNavigate }: OverviewSectionProps) {
   const [isLoading, setIsLoading] = useState(true);
+  const [publicationStatus, setPublicationStatus] = useState<string>("draft");
   const [enquiriesCount, setEnquiriesCount] = useState(0);
   const [bookingsCount, setBookingsCount] = useState(0);
   const [viewsCount, setViewsCount] = useState(0);
@@ -69,6 +71,7 @@ export function OverviewSection({ categoryConfig, vendorName, onNavigate }: Over
         if (profRes && profRes.ok) {
           const profJson = await profRes.json();
           const v = profJson.data?.vendor || {};
+          setPublicationStatus(v.publication_status || v.publicationStatus || "draft");
           setViewsCount(v.view_count || 0);
           setRating(v.rating ? `${v.rating} ★` : "New Partner");
           setReviewsCount(v.reviews_count || 0);
@@ -149,6 +152,13 @@ export function OverviewSection({ categoryConfig, vendorName, onNavigate }: Over
           </div>
         </div>
       </div>
+
+      {/* Vendor Publish Checklist & Draft Banner */}
+      <VendorPublishChecklist
+        publicationStatus={publicationStatus}
+        onPublishedSuccess={() => setPublicationStatus("published")}
+        onNavigateTab={onNavigate}
+      />
 
       {/* Metric Cards Grid (3 cols) */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

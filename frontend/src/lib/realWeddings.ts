@@ -342,7 +342,7 @@ export async function searchRegisteredVendors(
     
     // First try Supabase REST
     const res = await supabaseFetch(
-      `vendors?select=id,vendor_code,vendor_profiles(business_name,slug,city),vendor_categories(name,slug)&status=eq.active&limit=30`
+      `vendors?select=id,vendor_code,vendor_profiles(business_name,slug,city),vendor_categories(name,slug)&status=eq.active&publication_status=eq.published&limit=30`
     );
 
     if (res.data && Array.isArray(res.data) && res.data.length > 0) {

@@ -111,9 +111,9 @@ export async function recomputeAllTrendingScores(): Promise<TrendingRecomputeRes
   const startTime = Date.now();
 
   try {
-    // 1. Fetch all active vendors from database
+    // 1. Fetch all published vendors from database
     const vendorsRes = await supabaseFetch(
-      `vendors?select=id,category_id,is_verified,profile_completion_percentage,created_at,vendor_categories(name,slug)`
+      `vendors?select=id,category_id,is_verified,profile_completion_percentage,created_at,vendor_categories(name,slug)&status=eq.active&publication_status=eq.published`
     );
 
     if (vendorsRes.error || !Array.isArray(vendorsRes.data)) {

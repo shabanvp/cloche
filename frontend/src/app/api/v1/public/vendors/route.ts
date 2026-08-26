@@ -82,7 +82,7 @@ export async function GET(req: Request) {
     }
 
     // Build PostgREST query
-    let filter = `deleted_at=is.null&status=eq.active`;
+    let filter = `deleted_at=is.null&status=eq.active&publication_status=eq.published`;
     
     // Add category filter if provided
     if (categorySlug && categorySlug.toLowerCase() !== "all") {
