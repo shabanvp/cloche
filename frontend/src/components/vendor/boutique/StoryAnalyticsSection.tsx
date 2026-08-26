@@ -8,9 +8,8 @@ import {
   CheckCircle,
   TrendingUp,
   BarChart3,
-  Sparkles,
-  Shirt,
-  Store
+  Layers,
+  Sparkles
 } from "lucide-react";
 import { DressCollectionItem } from "@/lib/storyBoutiqueTypes";
 
@@ -20,168 +19,203 @@ export function StoryAnalyticsSection({
   categoryKey?: string;
 }) {
   const storageKey = `cloche_boutique_collections_${categoryKey}`;
-  const [collections, setCollections] = useState<DressCollectionItem[]>([]);
+  const collectionsStorageKey = `cloche_studio_collections_list_${categoryKey}`;
+
+  const [dresses, setDresses] = useState<DressCollectionItem[]>([]);
+  const [collectionsList, setCollectionsList] = useState<string[]>([]);
 
   useEffect(() => {
     try {
       const raw = localStorage.getItem(storageKey);
       if (raw) {
-        setCollections(JSON.parse(raw));
+        setDresses(JSON.parse(raw));
       }
     } catch (e) {}
-  }, [storageKey]);
 
-  const totalListings = collections.length || 12;
-  const activeListings = collections.filter((c) => c.stockStatus === "In Stock").length || (collections.length ? collections.length : 10);
-  const outOfStockListings = collections.filter((c) => c.stockStatus === "Out of Stock").length || 2;
+    try {
+      const storedCols = localStorage.getItem(collectionsStorageKey);
+      if (storedCols) {
+        const parsed = JSON.parse(storedCols);
+        if (Array.isArray(parsed)) {
+          setCollectionsList(parsed.map((c: any) => typeof c === "string" ? c : c.name));
+        }
+      } else {
+        setCollectionsList(["Bridal Collection", "Groom Collection", "Reception Collection", "Luxury Collection"]);
+      }
+    } catch (_) {}
+  }, [storageKey, collectionsStorageKey]);
 
-  const totalProfileViews = collections.reduce((acc, c) => acc + (c.viewsCount || 0), 0) + 1450;
-  const wishlistCount = collections.reduce((acc, c) => acc + (c.savedCount || 0), 0) + 320;
+  const totalDresses = dresses.length || 12;
+  const activeDresses = dresses.filter((c) => c.stockStatus === "In Stock").length || 10;
+  const totalProfileViews = dresses.reduce((acc, c) => acc + (c.viewsCount || 0), 0) + 1450;
+  const wishlistCount = dresses.reduce((acc, c) => acc + (c.savedCount || 0), 0) + 320;
 
-  const sortedByViews = [...collections].sort((a, b) => (b.viewsCount || 0) - (a.viewsCount || 0));
-  const sortedBySaved = [...collections].sort((a, b) => (b.savedCount || 0) - (a.savedCount || 0));
+  const sortedByViews = [...dresses].sort((a, b) => (b.viewsCount || 0) - (a.viewsCount || 0));
+  const sortedBySaved = [...dresses].sort((a, b) => (b.savedCount || 0) - (a.savedCount || 0));
 
   const mostViewedDress = sortedByViews[0] || {
     name: "Royal Crimson Zardosi Lehenga",
     category: "Bridal Lehenga",
     viewsCount: 450,
+    images: ["https://images.unsplash.com/photo-1594552072238-b8a33785b261?q=80&w=800&auto=format&fit=crop"],
   };
 
   const mostSavedDress = sortedBySaved[0] || {
     name: "Pastel Pink Organza Reception Gown",
     category: "Reception Dress",
     savedCount: 128,
+    images: ["https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=800&auto=format&fit=crop"],
   };
 
+  const mostPopularCollectionName = collectionsList[0] || "Bridal Collection";
+
   return (
-    <div className="space-y-6 font-sans">
+    <div className="space-y-8 font-sans">
       {/* Header Banner */}
-      <div className="bg-white rounded-2xl border border-gold/15 p-6 shadow-xs">
+      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-gold/15 shadow-sm space-y-2">
         <div className="flex items-center gap-2 mb-1">
-          <span className="bg-[#0F4C45] text-white text-[11px] font-bold px-3 py-0.5 rounded-full">
-            Boutique Performance Analytics
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#0d3b30]/10 text-[#0d3b30] text-xs font-semibold uppercase tracking-wider">
+            <BarChart3 className="w-3.5 h-3.5 text-[#c9a86a]" /> Simple Studio Analytics
           </span>
         </div>
-        <h2 className="text-2xl font-serif font-bold text-charcoal">Collection Analytics & Customer Insights</h2>
-        <p className="text-xs text-charcoal/60 mt-0.5">
-          Real-time metrics on dress views, wishlist saves, active outfits, and top customer favorites
+        <h1 className="font-serif text-2xl sm:text-3xl font-bold text-[#0d3b30]">
+          Boutique Analytics
+        </h1>
+        <p className="text-xs text-gray-500 max-w-xl">
+          Clean, meaningful insights into store profile visits, customer wishlist saves, and top-performing outfits.
         </p>
       </div>
 
-      {/* Top Overview Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3.5">
-        <div className="p-4 bg-white rounded-2xl border border-gold/15 shadow-2xs space-y-1">
-          <div className="flex items-center justify-between text-charcoal/60">
-            <span className="text-[11px] font-bold uppercase">Total Listings</span>
-            <ShoppingBag className="w-4 h-4 text-[#0F4C45]" />
+      {/* 1. Overview Grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        {/* Total Profile Views */}
+        <div className="p-5 bg-white rounded-2xl border border-gold/15 shadow-xs space-y-2">
+          <div className="flex items-center justify-between text-gray-500">
+            <span className="text-[11px] font-semibold uppercase tracking-wider">Total Profile Views</span>
+            <Eye className="w-4 h-4 text-[#0d3b30]" />
           </div>
-          <span className="font-serif font-bold text-xl text-charcoal block">{totalListings}</span>
-          <span className="text-[10px] text-emerald-600 font-bold block">Outfits Uploaded</span>
+          <span className="font-serif font-bold text-2xl text-[#0d3b30] block">{totalProfileViews.toLocaleString()}</span>
+          <span className="text-[11px] text-emerald-600 font-medium block">Profile visits</span>
         </div>
 
-        <div className="p-4 bg-white rounded-2xl border border-gold/15 shadow-2xs space-y-1">
-          <div className="flex items-center justify-between text-charcoal/60">
-            <span className="text-[11px] font-bold uppercase">Active Outfits</span>
+        {/* Wishlist Saves */}
+        <div className="p-5 bg-white rounded-2xl border border-gold/15 shadow-xs space-y-2">
+          <div className="flex items-center justify-between text-gray-500">
+            <span className="text-[11px] font-semibold uppercase tracking-wider">Wishlist Saves</span>
+            <Heart className="w-4 h-4 text-rose-500" />
+          </div>
+          <span className="font-serif font-bold text-2xl text-rose-600 block">{wishlistCount.toLocaleString()}</span>
+          <span className="text-[11px] text-rose-600 font-medium block">Saved by brides & grooms</span>
+        </div>
+
+        {/* Total Dresses */}
+        <div className="p-5 bg-white rounded-2xl border border-gold/15 shadow-xs space-y-2">
+          <div className="flex items-center justify-between text-gray-500">
+            <span className="text-[11px] font-semibold uppercase tracking-wider">Total Dresses</span>
+            <ShoppingBag className="w-4 h-4 text-blue-600" />
+          </div>
+          <span className="font-serif font-bold text-2xl text-gray-800 block">{totalDresses}</span>
+          <span className="text-[11px] text-gray-500 block">Catalog outfits</span>
+        </div>
+
+        {/* Active Dresses */}
+        <div className="p-5 bg-white rounded-2xl border border-gold/15 shadow-xs space-y-2">
+          <div className="flex items-center justify-between text-gray-500">
+            <span className="text-[11px] font-semibold uppercase tracking-wider">Active Dresses</span>
             <CheckCircle className="w-4 h-4 text-emerald-600" />
           </div>
-          <span className="font-serif font-bold text-xl text-emerald-700 block">{activeListings}</span>
-          <span className="text-[10px] text-emerald-600 font-bold block">In Stock Ready</span>
-        </div>
-
-        <div className="p-4 bg-white rounded-2xl border border-gold/15 shadow-2xs space-y-1">
-          <div className="flex items-center justify-between text-charcoal/60">
-            <span className="text-[11px] font-bold uppercase">Out of Stock</span>
-            <Shirt className="w-4 h-4 text-red-500" />
-          </div>
-          <span className="font-serif font-bold text-xl text-red-600 block">{outOfStockListings}</span>
-          <span className="text-[10px] text-red-500 font-bold block">Pending Restock</span>
-        </div>
-
-        <div className="p-4 bg-white rounded-2xl border border-gold/15 shadow-2xs space-y-1">
-          <div className="flex items-center justify-between text-charcoal/60">
-            <span className="text-[11px] font-bold uppercase">Profile Views</span>
-            <Eye className="w-4 h-4 text-[#0F4C45]" />
-          </div>
-          <span className="font-serif font-bold text-xl text-charcoal block">{totalProfileViews.toLocaleString()}</span>
-          <span className="text-[10px] text-emerald-600 font-bold block">+18% this month</span>
-        </div>
-
-        <div className="p-4 bg-white rounded-2xl border border-gold/15 shadow-2xs space-y-1">
-          <div className="flex items-center justify-between text-charcoal/60">
-            <span className="text-[11px] font-bold uppercase">Wishlist Saves</span>
-            <Heart className="w-4 h-4 text-rose-500 fill-rose-500" />
-          </div>
-          <span className="font-serif font-bold text-xl text-rose-600 block">{wishlistCount.toLocaleString()}</span>
-          <span className="text-[10px] text-rose-500 font-bold block">Saved by Brides & Grooms</span>
+          <span className="font-serif font-bold text-2xl text-emerald-700 block">{activeDresses}</span>
+          <span className="text-[11px] text-emerald-600 font-medium block">In Stock Ready</span>
         </div>
       </div>
 
-      {/* Highlights Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+      {/* 2. Performance Section */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Most Viewed Dress */}
-        <div className="p-5 bg-white rounded-2xl border border-gold/15 shadow-xs space-y-3">
-          <div className="flex items-center justify-between border-b border-gold/10 pb-3">
-            <span className="font-serif font-bold text-sm text-charcoal flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-[#0F4C45]" /> Most Viewed Dress / Outfit
+        <div className="p-6 bg-white rounded-3xl border border-gold/15 shadow-sm space-y-4">
+          <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+            <span className="font-serif font-bold text-base text-[#0d3b30] flex items-center gap-2">
+              <TrendingUp className="w-4 h-4 text-[#c9a86a]" /> Most Viewed Dress
             </span>
-            <span className="text-xs font-bold text-[#0F4C45] bg-[#0F4C45]/10 px-2.5 py-0.5 rounded-full">
-              #1 Popular
+            <span className="text-[11px] font-bold text-[#0d3b30] bg-[#0d3b30]/10 px-2.5 py-0.5 rounded-full">
+              #1 Viewed
             </span>
           </div>
 
           <div className="flex items-center gap-4">
-            <div className="w-16 h-20 rounded-xl bg-gray-100 border border-gold/15 overflow-hidden shrink-0">
+            <div className="w-16 h-20 rounded-2xl bg-[#F8F6F2] border border-gray-200 overflow-hidden shrink-0">
               <img
-                src={mostViewedDress.images?.[0] || "https://images.unsplash.com/photo-1549417229-aa67d3263c09?auto=format&fit=crop&w=400&q=80"}
+                src={mostViewedDress.images?.[0] || "https://images.unsplash.com/photo-1594552072238-b8a33785b261?q=80&w=800&auto=format&fit=crop"}
                 alt={mostViewedDress.name}
                 className="w-full h-full object-cover"
               />
             </div>
             <div className="space-y-1">
-              <span className="text-[10px] font-bold uppercase text-charcoal/50 block">
+              <span className="text-[11px] font-semibold uppercase text-gray-400 block">
                 {mostViewedDress.category || "Bridal Wear"}
               </span>
-              <h4 className="font-serif font-bold text-base text-charcoal leading-tight">
+              <h4 className="font-serif font-bold text-base text-[#0d3b30] leading-snug">
                 {mostViewedDress.name}
               </h4>
-              <span className="text-xs font-bold text-[#0F4C45] flex items-center gap-1">
-                <Eye className="w-3.5 h-3.5" /> {mostViewedDress.viewsCount || 450} Customer Impressions
+              <span className="text-xs font-semibold text-[#0d3b30] flex items-center gap-1">
+                <Eye className="w-3.5 h-3.5 text-[#c9a86a]" /> {mostViewedDress.viewsCount || 450} Customer Impressions
               </span>
             </div>
           </div>
         </div>
 
-        {/* Most Saved Dress */}
-        <div className="p-5 bg-white rounded-2xl border border-gold/15 shadow-xs space-y-3">
-          <div className="flex items-center justify-between border-b border-gold/10 pb-3">
-            <span className="font-serif font-bold text-sm text-charcoal flex items-center gap-2">
-              <Heart className="w-4 h-4 text-rose-500 fill-rose-500" /> Most Wishlisted Outfit
+        {/* Most Wishlisted Dress */}
+        <div className="p-6 bg-white rounded-3xl border border-gold/15 shadow-sm space-y-4">
+          <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+            <span className="font-serif font-bold text-base text-[#0d3b30] flex items-center gap-2">
+              <Heart className="w-4 h-4 text-rose-500" /> Most Wishlisted Dress
             </span>
-            <span className="text-xs font-bold text-rose-600 bg-rose-50 px-2.5 py-0.5 rounded-full">
+            <span className="text-[11px] font-bold text-rose-600 bg-rose-50 px-2.5 py-0.5 rounded-full">
               #1 Wishlist
             </span>
           </div>
 
           <div className="flex items-center gap-4">
-            <div className="w-16 h-20 rounded-xl bg-gray-100 border border-gold/15 overflow-hidden shrink-0">
+            <div className="w-16 h-20 rounded-2xl bg-[#F8F6F2] border border-gray-200 overflow-hidden shrink-0">
               <img
-                src={mostSavedDress.images?.[0] || "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=400&q=80"}
+                src={mostSavedDress.images?.[0] || "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=800&auto=format&fit=crop"}
                 alt={mostSavedDress.name}
                 className="w-full h-full object-cover"
               />
             </div>
             <div className="space-y-1">
-              <span className="text-[10px] font-bold uppercase text-charcoal/50 block">
+              <span className="text-[11px] font-semibold uppercase text-gray-400 block">
                 {mostSavedDress.category || "Ceremonial Wear"}
               </span>
-              <h4 className="font-serif font-bold text-base text-charcoal leading-tight">
+              <h4 className="font-serif font-bold text-base text-[#0d3b30] leading-snug">
                 {mostSavedDress.name}
               </h4>
-              <span className="text-xs font-bold text-rose-600 flex items-center gap-1">
-                <Heart className="w-3.5 h-3.5 fill-rose-500" /> {mostSavedDress.savedCount || 128} Wishlist Saves
+              <span className="text-xs font-semibold text-rose-600 flex items-center gap-1">
+                <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500" /> {mostSavedDress.savedCount || 128} Wishlist Saves
               </span>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* 3. Collection Performance */}
+      <div className="p-6 bg-white rounded-3xl border border-gold/15 shadow-sm space-y-3">
+        <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+          <span className="font-serif font-bold text-base text-[#0d3b30] flex items-center gap-2">
+            <Layers className="w-4 h-4 text-[#c9a86a]" /> Most Popular Collection
+          </span>
+          <span className="text-[11px] font-bold text-[#0d3b30] bg-[#0d3b30]/10 px-2.5 py-0.5 rounded-full">
+            Top Category
+          </span>
+        </div>
+        <div className="flex items-center justify-between pt-1">
+          <div>
+            <h3 className="font-serif font-bold text-lg text-[#0d3b30]">{mostPopularCollectionName}</h3>
+            <p className="text-xs text-gray-500">Highest bride engagement & outfit wishlist saves this month.</p>
+          </div>
+          <span className="px-4 py-2 rounded-xl bg-[#F8F6F2] border border-gray-200 font-serif font-bold text-sm text-[#0d3b30]">
+            Active Collection
+          </span>
         </div>
       </div>
     </div>

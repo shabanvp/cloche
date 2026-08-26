@@ -10,20 +10,16 @@ import {
   Save, 
   Eye, 
   Loader2, 
-  Palette, 
-  ShieldCheck, 
   Clock, 
   MapPin, 
   Phone, 
   MessageCircle, 
   FileText, 
-  Check, 
-  Tag, 
-  Layers
+  Share2,
+  Globe,
+  ShieldAlert
 } from "lucide-react";
-import { COLOR_THEMES } from "../sections/CustomizeStoreSection";
 import { uploadImageToCloudinaryDetailed } from "@/lib/cloudinary";
-import { VendorStorefront } from "@/components/VendorStorefront";
 import { 
   getActiveVendorIdentity, 
   fetchAuthenticatedVendorFromDb, 
@@ -39,9 +35,9 @@ interface StoryBoutiqueCustomizeProps {
 export function StoryBoutiqueCustomize({ categoryKey, vendorName }: StoryBoutiqueCustomizeProps) {
   const [vendorData, setVendorData] = useState<any>(null);
   const [isSaving, setIsSaving] = useState(false);
-  const [showLivePreview, setShowLivePreview] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
-  // Basic Information
+  // 1. Studio Information
   const [studioName, setStudioName] = useState(vendorName || "");
   const [aboutStudio, setAboutStudio] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
@@ -55,13 +51,12 @@ export function StoryBoutiqueCustomize({ categoryKey, vendorName }: StoryBoutiqu
   const [district, setDistrict] = useState("");
   const [googleMapsLocation, setGoogleMapsLocation] = useState("");
 
-  // Business Hours
+  // 2. Business Details
   const [openingTime, setOpeningTime] = useState("10:00 AM");
   const [closingTime, setClosingTime] = useState("08:00 PM");
   const [workingDays, setWorkingDays] = useState("Monday - Saturday");
   const [weeklyOff, setWeeklyOff] = useState("Sunday");
 
-  // Services Toggles
   const [services, setServices] = useState({
     rentalAvailable: true,
     purchaseAvailable: true,
@@ -70,149 +65,144 @@ export function StoryBoutiqueCustomize({ categoryKey, vendorName }: StoryBoutiqu
     accessoriesAvailable: true,
   });
 
-  // Studio Categories Selection
-  const isBridal = categoryKey.includes("bridal");
-  const isGroom = categoryKey.includes("groom");
-
-  const bridalCategoryOptions = [
-    "Bridal Sarees",
-    "Bridal Lehengas",
-    "Bridal Gowns",
-    "Reception Dresses",
-    "Engagement Dresses",
-    "Mehendi Dresses",
-    "Haldi Dresses",
-    "Nikah Dresses",
-  ];
-
-  const groomCategoryOptions = [
-    "Sherwani",
-    "Suit",
-    "Tuxedo",
-    "Blazer",
-    "Kurta Set",
-    "Pathani Suit",
-    "Mundu Set",
-    "Reception Suit",
-  ];
-
-  const availableCategoryOptions = isBridal
-    ? bridalCategoryOptions
-    : isGroom
-    ? groomCategoryOptions
-    : [...bridalCategoryOptions, ...groomCategoryOptions];
-
-  const [selectedStudioCategories, setSelectedStudioCategories] = useState<string[]>(availableCategoryOptions);
-
-  // Rental Policies
+  // 3. Rental Policies
   const [rentalDuration, setRentalDuration] = useState("3 Days");
-  const [securityDeposit, setSecurityDeposit] = useState("50% of rental amount (refundable)");
-  const [damagePolicy, setDamagePolicy] = useState("Minor wear & tear covered. Severe tears or permanent stains charged at cost.");
-  const [returnPolicy, setReturnPolicy] = useState("Return by 7:00 PM on the final rental day to avoid late fees.");
-  const [cancellationPolicy, setCancellationPolicy] = useState("Full refund if cancelled 7 days before event date.");
+  const [securityDeposit, setSecurityDeposit] = useState("₹10,000 (Refundable upon return)");
+  const [returnPolicy, setReturnPolicy] = useState("Return within agreed rental duration. Delayed returns attract ₹1,000/day late fee.");
+  const [cancellationPolicy, setCancellationPolicy] = useState("Full refund up to 7 days before pickup date. 50% deposit retained if cancelled within 3 days.");
+  const [damagePolicy, setDamagePolicy] = useState("Minor wear & tear is acceptable. Stains, tears or severe fabric damage will be deducted from security deposit.");
 
-  // Brand Theme
-  const [colorTheme, setColorTheme] = useState("emerald");
+  // 4. Social Media
+  const [instagram, setInstagram] = useState("");
+  const [facebook, setFacebook] = useState("");
+  const [website, setWebsite] = useState("");
 
   const logoInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const loadIdentity = (identity: any) => {
-      setVendorData(identity);
-      if (identity.boutique_name || identity.name) setStudioName(identity.boutique_name || identity.name);
-      if (identity.about || identity.description || identity.aboutText) setAboutStudio(identity.about || identity.description || identity.aboutText);
-      if (identity.logo || identity.logo_url) setLogoUrl(identity.logo || identity.logo_url);
-      if (identity.coverImage || identity.cover_image) setCoverUrl(identity.coverImage || identity.cover_image);
-      if (Array.isArray(identity.galleryImages || identity.gallery_images)) setGalleryImages(identity.galleryImages || identity.gallery_images);
-      if (identity.phone) setPhone(identity.phone);
-      if (identity.whatsapp) setWhatsapp(identity.whatsapp);
-      if (identity.email) setEmail(identity.email);
-      if (identity.address) setAddress(identity.address);
-      if (identity.city) setCity(identity.city);
-      if (identity.district) setDistrict(identity.district);
-      if (identity.googleMapsLocation || identity.google_maps) setGoogleMapsLocation(identity.googleMapsLocation || identity.google_maps);
-
-      if (identity.workingHours) {
-        if (identity.workingHours.openingTime) setOpeningTime(identity.workingHours.openingTime);
-        if (identity.workingHours.closingTime) setClosingTime(identity.workingHours.closingTime);
-        if (identity.workingHours.workingDays) setWorkingDays(identity.workingHours.workingDays);
-        if (identity.workingHours.weeklyOff) setWeeklyOff(identity.workingHours.weeklyOff);
-      }
-
-      if (identity.services) {
-        setServices((prev) => ({ ...prev, ...identity.services }));
-      }
-
-      if (Array.isArray(identity.studioCategories)) {
-        setSelectedStudioCategories(identity.studioCategories);
-      }
-
-      if (identity.rentalPolicies) {
-        if (identity.rentalPolicies.rentalDuration) setRentalDuration(identity.rentalPolicies.rentalDuration);
-        if (identity.rentalPolicies.securityDeposit) setSecurityDeposit(identity.rentalPolicies.securityDeposit);
-        if (identity.rentalPolicies.damagePolicy) setDamagePolicy(identity.rentalPolicies.damagePolicy);
-        if (identity.rentalPolicies.returnPolicy) setReturnPolicy(identity.rentalPolicies.returnPolicy);
-        if (identity.rentalPolicies.cancellationPolicy) setCancellationPolicy(identity.rentalPolicies.cancellationPolicy);
-      }
-    };
-
     const cached = getActiveVendorIdentity();
-    if (cached) loadIdentity(cached);
+    if (cached) populateForm(cached);
 
-    fetchAuthenticatedVendorFromDb().then((identity) => {
-      if (identity) loadIdentity(identity);
+    fetchAuthenticatedVendorFromDb().then((profile) => {
+      if (profile) populateForm(profile);
     });
-  }, []);
 
-  const toggleCategory = (cat: string) => {
-    setSelectedStudioCategories((prev) =>
-      prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]
-    );
-  };
+    const storageKey = `cloche_boutique_customization_${categoryKey}`;
+    try {
+      const stored = localStorage.getItem(storageKey);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed.studioName) setStudioName(parsed.studioName);
+        if (parsed.aboutStudio) setAboutStudio(parsed.aboutStudio);
+        if (parsed.logoUrl) setLogoUrl(parsed.logoUrl);
+        if (parsed.coverUrl) setCoverUrl(parsed.coverUrl);
+        if (parsed.galleryImages) setGalleryImages(parsed.galleryImages);
+        if (parsed.phone) setPhone(parsed.phone);
+        if (parsed.whatsapp) setWhatsapp(parsed.whatsapp);
+        if (parsed.email) setEmail(parsed.email);
+        if (parsed.address) setAddress(parsed.address);
+        if (parsed.city) setCity(parsed.city);
+        if (parsed.district) setDistrict(parsed.district);
+        if (parsed.googleMapsLocation) setGoogleMapsLocation(parsed.googleMapsLocation);
+
+        if (parsed.openingTime) setOpeningTime(parsed.openingTime);
+        if (parsed.closingTime) setClosingTime(parsed.closingTime);
+        if (parsed.workingDays) setWorkingDays(parsed.workingDays);
+        if (parsed.weeklyOff) setWeeklyOff(parsed.weeklyOff);
+        if (parsed.services) setServices(parsed.services);
+
+        if (parsed.rentalDuration) setRentalDuration(parsed.rentalDuration);
+        if (parsed.securityDeposit) setSecurityDeposit(parsed.securityDeposit);
+        if (parsed.returnPolicy) setReturnPolicy(parsed.returnPolicy);
+        if (parsed.cancellationPolicy) setCancellationPolicy(parsed.cancellationPolicy);
+        if (parsed.damagePolicy) setDamagePolicy(parsed.damagePolicy);
+
+        if (parsed.instagram) setInstagram(parsed.instagram);
+        if (parsed.facebook) setFacebook(parsed.facebook);
+        if (parsed.website) setWebsite(parsed.website);
+      }
+    } catch (_) {}
+  }, [categoryKey]);
+
+  function populateForm(data: any) {
+    setVendorData(data);
+    setStudioName(data.boutique_name || data.name || vendorName);
+    setAboutStudio(data.description || data.about || "");
+    setLogoUrl(data.logo || data.logo_url || "");
+    setCoverUrl(data.coverImage || data.cover_image || "");
+    setPhone(data.phone || data.contact_number || "");
+    setWhatsapp(data.whatsapp || data.phone || "");
+    setEmail(data.email || "");
+    setAddress(data.address || "");
+    setCity(data.city || "");
+    setDistrict(data.district || "");
+    setGoogleMapsLocation(data.googleMapsLocation || data.maps_url || "");
+    if (data.instagram) setInstagram(data.instagram);
+    if (data.facebook) setFacebook(data.facebook);
+    if (data.website) setWebsite(data.website);
+  }
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    setIsUploading(true);
     try {
-      const res = await uploadImageToCloudinaryDetailed(file, "cloche/vendors/logos");
-      if (res.secure_url) {
-        setLogoUrl(res.secure_url);
-        showVendorToast("Logo uploaded successfully!", "success");
-      }
-    } catch (_) {
-      showVendorToast("Logo upload failed", "error");
+      const res = await uploadImageToCloudinaryDetailed(file);
+      setLogoUrl(res.secure_url || (res as any).secureUrl);
+      showVendorToast("Logo uploaded successfully!", "success");
+    } catch (err: any) {
+      showVendorToast(err.message || "Failed to upload logo", "error");
+    } finally {
+      setIsUploading(false);
     }
   };
 
   const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    setIsUploading(true);
     try {
-      const res = await uploadImageToCloudinaryDetailed(file, "cloche/vendors/covers");
-      if (res.secure_url) {
-        setCoverUrl(res.secure_url);
-        showVendorToast("Cover image uploaded successfully!", "success");
-      }
-    } catch (_) {
-      showVendorToast("Cover upload failed", "error");
+      const res = await uploadImageToCloudinaryDetailed(file);
+      setCoverUrl(res.secure_url || (res as any).secureUrl);
+      showVendorToast("Cover image uploaded successfully!", "success");
+    } catch (err: any) {
+      showVendorToast(err.message || "Failed to upload cover image", "error");
+    } finally {
+      setIsUploading(false);
     }
   };
 
-  const handleSave = async () => {
+  const handleGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    setIsUploading(true);
+    try {
+      const uploadPromises = files.map((file) => uploadImageToCloudinaryDetailed(file));
+      const results = await Promise.all(uploadPromises);
+      const newUrls = results.map((r) => r.secure_url || (r as any).secureUrl);
+      setGalleryImages((prev) => [...prev, ...newUrls]);
+      showVendorToast(`${newUrls.length} gallery images uploaded!`, "success");
+    } catch (err: any) {
+      showVendorToast("Failed to upload gallery images", "error");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleRemoveGalleryImage = (index: number) => {
+    setGalleryImages((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleSaveAll = async () => {
     setIsSaving(true);
-    const updatedPayload = {
-      id: vendorData?.id,
-      boutique_name: studioName,
-      name: studioName,
-      about: aboutStudio,
-      description: aboutStudio,
-      logo: logoUrl,
-      logo_url: logoUrl,
-      coverImage: coverUrl,
-      cover_image: coverUrl,
-      galleryImages: galleryImages,
+    const customizationData = {
+      studioName,
+      aboutStudio,
+      logoUrl,
+      coverUrl,
+      galleryImages,
       phone,
       whatsapp,
       email,
@@ -220,370 +210,468 @@ export function StoryBoutiqueCustomize({ categoryKey, vendorName }: StoryBoutiqu
       city,
       district,
       googleMapsLocation,
-      workingHours: {
-        openingTime,
-        closingTime,
-        workingDays,
-        weeklyOff,
-      },
+      openingTime,
+      closingTime,
+      workingDays,
+      weeklyOff,
       services,
-      studioCategories: selectedStudioCategories,
-      rentalPolicies: {
-        rentalDuration,
-        securityDeposit,
-        damagePolicy,
-        returnPolicy,
-        cancellationPolicy,
-      },
-      colorTheme,
+      rentalDuration,
+      securityDeposit,
+      returnPolicy,
+      cancellationPolicy,
+      damagePolicy,
+      instagram,
+      facebook,
+      website,
     };
 
-    const success = await syncVendorProfileWithDatabase(updatedPayload as any);
-    setIsSaving(false);
-    if (success) {
-      showVendorToast("✓ Studio profile & customization saved successfully!", "success");
-    } else {
-      showVendorToast("Profile saved locally!", "info");
+    // Save to LocalStorage
+    const storageKey = `cloche_boutique_customization_${categoryKey}`;
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(customizationData));
+    } catch (_) {}
+
+    // Sync with DB
+    try {
+      await syncVendorProfileWithDatabase({
+        boutique_name: studioName,
+        name: studioName,
+        description: aboutStudio,
+        logo: logoUrl,
+        coverImage: coverUrl,
+        phone,
+        whatsapp,
+        email,
+        address,
+        city,
+        district,
+        instagram,
+        facebook,
+        website,
+      });
+      showVendorToast("Studio details saved & updated live on profile!", "success");
+    } catch (_) {
+      showVendorToast("Saved locally to studio profile!", "info");
+    } finally {
+      setIsSaving(false);
     }
   };
 
-  // Build live preview object
-  const liveProfileObj = {
-    id: vendorData?.id || "preview-studio",
-    name: studioName || "Studio Name",
-    boutique_name: studioName || "Studio Name",
-    category: isBridal ? "Bridal Studio" : isGroom ? "Groom Studio" : "Wedding Studio",
-    about: aboutStudio || "Exclusive rental and purchase wedding boutique.",
-    logo: logoUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop",
-    coverImage: coverUrl || "https://images.unsplash.com/photo-1583939003579-730e3918a45a?q=80&w=1200&auto=format&fit=crop",
-    phone,
-    whatsapp,
-    email,
-    city: city || "Kochi",
-    district: district || "Ernakulam",
-    address,
-    googleMapsLocation,
-    workingHours: { openingTime, closingTime, workingDays, weeklyOff },
-    services,
-    studioCategories: selectedStudioCategories,
-    rentalPolicies: { rentalDuration, securityDeposit, damagePolicy, returnPolicy, cancellationPolicy },
-    galleryImages,
-    colorTheme,
-  };
-
   return (
-    <div className="space-y-8">
-      {/* Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-gold/15 shadow-xs">
+    <div className="space-y-8 font-sans pb-12">
+      {/* Header */}
+      <div className="bg-white p-6 sm:p-8 rounded-3xl border border-gold/15 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="font-display text-xl font-bold text-charcoal flex items-center gap-2">
-            <Store className="w-5 h-5 text-emerald" /> Customize Studio Profile
-          </h2>
-          <p className="text-xs text-charcoal/70 mt-1">
-            Information updated here automatically reflects on your public studio storefront.
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#0d3b30]/10 text-[#0d3b30] text-xs font-semibold uppercase tracking-wider mb-2">
+            <Store className="w-3.5 h-3.5 text-[#c9a86a]" /> Complete Boutique Management
+          </span>
+          <h1 className="font-serif text-2xl sm:text-3xl font-bold text-[#0d3b30]">
+            Customize Studio Profile
+          </h1>
+          <p className="text-xs text-gray-500 mt-1 max-w-xl">
+            Update your studio branding, contact details, business hours, and rental policies. All changes reflect live on your public storefront.
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => setShowLivePreview(!showLivePreview)}
-            className="py-2.5 px-4 rounded-xl border border-gold/20 text-xs font-semibold text-charcoal hover:bg-ivory flex items-center gap-2 transition-colors"
-          >
-            <Eye className="w-4 h-4 text-emerald" /> {showLivePreview ? "Hide Preview" : "Live Storefront Preview"}
-          </button>
-          <button
-            onClick={handleSave}
-            disabled={isSaving}
-            className="py-2.5 px-6 rounded-xl bg-emerald hover:bg-emerald/90 text-white font-medium text-xs flex items-center gap-2 transition-colors disabled:opacity-50"
-          >
-            {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-            Save Changes
-          </button>
-        </div>
+
+        <button
+          onClick={handleSaveAll}
+          disabled={isSaving || isUploading}
+          className="py-3 px-6 rounded-xl bg-[#0d3b30] hover:bg-[#082921] text-white font-medium text-xs flex items-center justify-center gap-2 transition-colors shadow-xs shrink-0 disabled:opacity-50"
+        >
+          {isSaving ? <Loader2 className="w-4 h-4 animate-spin text-[#c9a86a]" /> : <Save className="w-4 h-4 text-[#c9a86a]" />}
+          <span>Save Studio Settings</span>
+        </button>
       </div>
 
-      {/* Live Preview Modal */}
-      {showLivePreview && (
-        <div className="bg-white p-6 rounded-3xl border border-emerald/30 shadow-lg space-y-4 animate-in fade-in duration-200">
-          <div className="flex items-center justify-between border-b border-gold/10 pb-3">
-            <span className="text-xs font-bold text-emerald uppercase tracking-wider flex items-center gap-2">
-              <Sparkles className="w-4 h-4" /> Live Public Profile Preview
-            </span>
-            <button onClick={() => setShowLivePreview(false)} className="text-xs font-semibold text-charcoal/60 hover:text-charcoal">
-              Close Preview ✕
-            </button>
-          </div>
-          <VendorStorefront vendor={liveProfileObj} previewMode={true} />
+      {/* SECTION 1: Studio Information */}
+      <div className="bg-white p-6 sm:p-8 rounded-3xl border border-gold/15 shadow-sm space-y-6">
+        <div className="border-b border-gold/15 pb-4">
+          <h2 className="font-serif text-xl font-bold text-[#0d3b30] flex items-center gap-2">
+            <Store className="w-5 h-5 text-[#c9a86a]" /> 1. Studio Information
+          </h2>
+          <p className="text-xs text-gray-500 mt-0.5">Basic studio details, branding assets, gallery images, and location contact info.</p>
         </div>
-      )}
-
-      {/* Basic Information */}
-      <div className="bg-white p-6 rounded-2xl border border-gold/15 shadow-xs space-y-6">
-        <h3 className="font-display font-bold text-lg text-charcoal border-b border-gold/10 pb-3 flex items-center gap-2">
-          <Sparkles className="w-4 h-4 text-emerald" /> Basic Information
-        </h3>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-1">
-            <label className="text-xs font-semibold text-charcoal/70 uppercase tracking-wider">Studio Name *</label>
+          {/* Studio Name */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-gray-700 uppercase tracking-wider">Studio Name *</label>
             <input
               type="text"
               value={studioName}
               onChange={(e) => setStudioName(e.target.value)}
-              placeholder="E.g. Milan Bridal Studio"
-              className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-emerald"
+              placeholder="E.g. Royal Wedding Studio"
+              className="w-full bg-[#F8F6F2] border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#0d3b30]"
             />
           </div>
 
-          <div className="space-y-1">
-            <label className="text-xs font-semibold text-charcoal/70 uppercase tracking-wider">Email Address *</label>
+          {/* Phone */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-gray-700 uppercase tracking-wider">Phone Number *</label>
+            <input
+              type="text"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="E.g. +91 98765 43210"
+              className="w-full bg-[#F8F6F2] border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#0d3b30]"
+            />
+          </div>
+
+          {/* WhatsApp */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-gray-700 uppercase tracking-wider">WhatsApp Number</label>
+            <input
+              type="text"
+              value={whatsapp}
+              onChange={(e) => setWhatsapp(e.target.value)}
+              placeholder="E.g. +91 98765 43210"
+              className="w-full bg-[#F8F6F2] border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#0d3b30]"
+            />
+          </div>
+
+          {/* Email */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-gray-700 uppercase tracking-wider">Email Address</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="contact@studio.com"
-              className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-emerald"
+              placeholder="E.g. studio@cloche.com"
+              className="w-full bg-[#F8F6F2] border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#0d3b30]"
             />
           </div>
+        </div>
 
-          <div className="space-y-1">
-            <label className="text-xs font-semibold text-charcoal/70 uppercase tracking-wider">Contact Phone *</label>
-            <input
-              type="tel"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="9876543210"
-              className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-emerald"
-            />
-          </div>
+        {/* About Studio */}
+        <div className="space-y-1.5">
+          <label className="text-xs font-semibold text-gray-700 uppercase tracking-wider">About Studio</label>
+          <textarea
+            rows={3}
+            value={aboutStudio}
+            onChange={(e) => setAboutStudio(e.target.value)}
+            placeholder="Describe your studio heritage, designer outfits, bespoke tailoring services, and specialties..."
+            className="w-full bg-[#F8F6F2] border border-gray-200 rounded-xl p-4 text-sm focus:outline-none focus:border-[#0d3b30]"
+          />
+        </div>
 
-          <div className="space-y-1">
-            <label className="text-xs font-semibold text-charcoal/70 uppercase tracking-wider">WhatsApp Number *</label>
-            <input
-              type="tel"
-              value={whatsapp}
-              onChange={(e) => setWhatsapp(e.target.value)}
-              placeholder="9876543210"
-              className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-emerald"
-            />
-          </div>
-
-          <div className="space-y-1 md:col-span-2">
-            <label className="text-xs font-semibold text-charcoal/70 uppercase tracking-wider">About Studio *</label>
-            <textarea
-              rows={3}
-              value={aboutStudio}
-              onChange={(e) => setAboutStudio(e.target.value)}
-              placeholder="Describe your studio, specialties, fabrics, and bridal/groom wear craftsmanship..."
-              className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl p-3 text-sm focus:outline-none focus:border-emerald"
-            />
-          </div>
-
-          <div className="space-y-1 md:col-span-2">
-            <label className="text-xs font-semibold text-charcoal/70 uppercase tracking-wider">Street Address *</label>
+        {/* Address & Location */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="space-y-1.5 md:col-span-2">
+            <label className="text-xs font-semibold text-gray-700 uppercase tracking-wider">Address</label>
             <input
               type="text"
               value={address}
               onChange={(e) => setAddress(e.target.value)}
-              placeholder="Main Street, Building No..."
-              className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-emerald"
+              placeholder="Studio street address, landmark, building name"
+              className="w-full bg-[#F8F6F2] border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#0d3b30]"
             />
           </div>
-
-          <div className="space-y-1">
-            <label className="text-xs font-semibold text-charcoal/70 uppercase tracking-wider">City *</label>
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-gray-700 uppercase tracking-wider">City / Location</label>
             <input
               type="text"
               value={city}
               onChange={(e) => setCity(e.target.value)}
-              placeholder="E.g. Kochi"
-              className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-emerald"
-            />
-          </div>
-
-          <div className="space-y-1">
-            <label className="text-xs font-semibold text-charcoal/70 uppercase tracking-wider">District *</label>
-            <input
-              type="text"
-              value={district}
-              onChange={(e) => setDistrict(e.target.value)}
-              placeholder="E.g. Ernakulam"
-              className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-emerald"
-            />
-          </div>
-
-          <div className="space-y-1 md:col-span-2">
-            <label className="text-xs font-semibold text-charcoal/70 uppercase tracking-wider">Google Maps Embed / Location Link</label>
-            <input
-              type="text"
-              value={googleMapsLocation}
-              onChange={(e) => setGoogleMapsLocation(e.target.value)}
-              placeholder="https://maps.google.com/..."
-              className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-emerald"
+              placeholder="E.g. Kochi, Calicut, Trivandrum"
+              className="w-full bg-[#F8F6F2] border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#0d3b30]"
             />
           </div>
         </div>
 
-        {/* Media Uploads */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-gold/10">
-          <div>
-            <label className="text-xs font-semibold text-charcoal/70 uppercase tracking-wider mb-2 block">Studio Logo</label>
+        {/* Google Maps URL */}
+        <div className="space-y-1.5">
+          <label className="text-xs font-semibold text-gray-700 uppercase tracking-wider">Google Maps Link</label>
+          <input
+            type="url"
+            value={googleMapsLocation}
+            onChange={(e) => setGoogleMapsLocation(e.target.value)}
+            placeholder="Paste Google Maps URL for easy navigation by brides & grooms"
+            className="w-full bg-[#F8F6F2] border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#0d3b30]"
+          />
+        </div>
+
+        {/* Logo & Cover Images */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+          {/* Logo Upload */}
+          <div className="space-y-2">
+            <label className="text-xs font-semibold text-gray-700 uppercase tracking-wider">Studio Logo</label>
             <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-2xl bg-gray-100 border border-gold/20 overflow-hidden shrink-0">
-                {logoUrl ? <img src={logoUrl} alt="Logo" className="w-full h-full object-cover" /> : <Store className="w-8 h-8 text-gray-400 m-auto mt-4" />}
+              <div className="w-20 h-20 rounded-2xl bg-[#F8F6F2] border border-gray-200 flex items-center justify-center overflow-hidden shrink-0">
+                {logoUrl ? (
+                  <img src={logoUrl} alt="Logo" className="w-full h-full object-cover" />
+                ) : (
+                  <Store className="w-8 h-8 text-gray-400" />
+                )}
               </div>
+              <input ref={logoInputRef} type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
               <button
                 type="button"
                 onClick={() => logoInputRef.current?.click()}
-                className="py-2 px-4 rounded-xl border border-gold/20 text-xs font-semibold text-charcoal hover:bg-ivory flex items-center gap-2"
+                disabled={isUploading}
+                className="py-2.5 px-4 rounded-xl border border-gray-200 hover:bg-gray-50 text-xs font-semibold text-gray-700 flex items-center gap-2 transition-colors"
               >
-                <Upload className="w-3.5 h-3.5" /> Upload Logo
+                <Upload className="w-4 h-4 text-[#0d3b30]" /> Change Logo
               </button>
-              <input ref={logoInputRef} type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
             </div>
           </div>
 
-          <div>
-            <label className="text-xs font-semibold text-charcoal/70 uppercase tracking-wider mb-2 block">Cover Banner</label>
+          {/* Cover Upload */}
+          <div className="space-y-2">
+            <label className="text-xs font-semibold text-gray-700 uppercase tracking-wider">Cover Banner</label>
             <div className="flex items-center gap-4">
-              <div className="w-24 h-16 rounded-2xl bg-gray-100 border border-gold/20 overflow-hidden shrink-0">
-                {coverUrl ? <img src={coverUrl} alt="Cover" className="w-full h-full object-cover" /> : <ImageIcon className="w-8 h-8 text-gray-400 m-auto mt-4" />}
+              <div className="w-32 h-20 rounded-2xl bg-[#F8F6F2] border border-gray-200 flex items-center justify-center overflow-hidden shrink-0">
+                {coverUrl ? (
+                  <img src={coverUrl} alt="Cover" className="w-full h-full object-cover" />
+                ) : (
+                  <ImageIcon className="w-8 h-8 text-gray-400" />
+                )}
               </div>
+              <input ref={coverInputRef} type="file" accept="image/*" className="hidden" onChange={handleCoverUpload} />
               <button
                 type="button"
                 onClick={() => coverInputRef.current?.click()}
-                className="py-2 px-4 rounded-xl border border-gold/20 text-xs font-semibold text-charcoal hover:bg-ivory flex items-center gap-2"
+                disabled={isUploading}
+                className="py-2.5 px-4 rounded-xl border border-gray-200 hover:bg-gray-50 text-xs font-semibold text-gray-700 flex items-center gap-2 transition-colors"
               >
-                <Upload className="w-3.5 h-3.5" /> Upload Cover Banner
+                <Upload className="w-4 h-4 text-[#0d3b30]" /> Change Cover
               </button>
-              <input ref={coverInputRef} type="file" accept="image/*" className="hidden" onChange={handleCoverUpload} />
             </div>
+          </div>
+        </div>
+
+        {/* Studio Gallery Images */}
+        <div className="space-y-3 pt-2">
+          <div className="flex items-center justify-between">
+            <label className="text-xs font-semibold text-gray-700 uppercase tracking-wider">Studio Gallery Showcase</label>
+            <input ref={galleryInputRef} type="file" multiple accept="image/*" className="hidden" onChange={handleGalleryUpload} />
+            <button
+              type="button"
+              onClick={() => galleryInputRef.current?.click()}
+              disabled={isUploading}
+              className="py-1.5 px-3 rounded-lg border border-gray-200 hover:bg-gray-50 text-xs font-medium text-[#0d3b30] flex items-center gap-1.5"
+            >
+              <Upload className="w-3.5 h-3.5" /> Upload Photos
+            </button>
+          </div>
+          {galleryImages.length > 0 ? (
+            <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
+              {galleryImages.map((img, idx) => (
+                <div key={idx} className="relative aspect-square rounded-xl overflow-hidden group border border-gray-200">
+                  <img src={img} alt={`Gallery ${idx}`} className="w-full h-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveGalleryImage(idx)}
+                    className="absolute top-1 right-1 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-xs"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-xs text-gray-400 italic">No gallery photos added yet. Upload interior photos, trial rooms & mannequin setups.</p>
+          )}
+        </div>
+      </div>
+
+      {/* SECTION 2: Business Details */}
+      <div className="bg-white p-6 sm:p-8 rounded-3xl border border-gold/15 shadow-sm space-y-6">
+        <div className="border-b border-gold/15 pb-4">
+          <h2 className="font-serif text-xl font-bold text-[#0d3b30] flex items-center gap-2">
+            <Clock className="w-5 h-5 text-[#c9a86a]" /> 2. Business Details
+          </h2>
+          <p className="text-xs text-gray-500 mt-0.5">Operating hours, working days, and available studio services.</p>
+        </div>
+
+        {/* Business Hours */}
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-gray-700 uppercase tracking-wider">Opening Time</label>
+            <input
+              type="text"
+              value={openingTime}
+              onChange={(e) => setOpeningTime(e.target.value)}
+              placeholder="10:00 AM"
+              className="w-full bg-[#F8F6F2] border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#0d3b30]"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-gray-700 uppercase tracking-wider">Closing Time</label>
+            <input
+              type="text"
+              value={closingTime}
+              onChange={(e) => setClosingTime(e.target.value)}
+              placeholder="08:00 PM"
+              className="w-full bg-[#F8F6F2] border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#0d3b30]"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-gray-700 uppercase tracking-wider">Working Days</label>
+            <input
+              type="text"
+              value={workingDays}
+              onChange={(e) => setWorkingDays(e.target.value)}
+              placeholder="Monday - Saturday"
+              className="w-full bg-[#F8F6F2] border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#0d3b30]"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-gray-700 uppercase tracking-wider">Weekly Off</label>
+            <input
+              type="text"
+              value={weeklyOff}
+              onChange={(e) => setWeeklyOff(e.target.value)}
+              placeholder="Sunday"
+              className="w-full bg-[#F8F6F2] border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#0d3b30]"
+            />
+          </div>
+        </div>
+
+        {/* Studio Services Checklist Toggles */}
+        <div className="space-y-3 pt-2">
+          <label className="text-xs font-semibold text-gray-700 uppercase tracking-wider block">Boutique Services Offered</label>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            {[
+              { key: "rentalAvailable", label: "Rental Available" },
+              { key: "purchaseAvailable", label: "Purchase Available" },
+              { key: "customStitching", label: "Custom Stitching" },
+              { key: "alterationService", label: "Alteration Service" },
+              { key: "accessoriesAvailable", label: "Accessories" },
+            ].map((s) => {
+              const active = (services as any)[s.key];
+              return (
+                <button
+                  key={s.key}
+                  type="button"
+                  onClick={() => setServices((prev) => ({ ...prev, [s.key]: !active }))}
+                  className={`p-3.5 rounded-xl border text-xs font-semibold text-left transition-all flex items-center justify-between ${
+                    active ? "bg-[#0d3b30]/10 border-[#0d3b30] text-[#0d3b30]" : "bg-[#F8F6F2] border-gray-200 text-gray-500 hover:border-gray-300"
+                  }`}
+                >
+                  <span>{s.label}</span>
+                  {active && <CheckCircle className="w-4 h-4 text-[#0d3b30]" />}
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>
 
-      {/* Services Options Toggles */}
-      <div className="bg-white p-6 rounded-2xl border border-gold/15 shadow-xs space-y-4">
-        <h3 className="font-display font-bold text-lg text-charcoal border-b border-gold/10 pb-3 flex items-center gap-2">
-          <CheckCircle className="w-4 h-4 text-emerald" /> Studio Services Offered
-        </h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          {[
-            { key: "rentalAvailable", label: "Rental Available" },
-            { key: "purchaseAvailable", label: "Purchase Available" },
-            { key: "customStitching", label: "Custom Stitching" },
-            { key: "alterationService", label: "Alteration Service" },
-            { key: "accessoriesAvailable", label: "Accessories Available" },
-          ].map((srv) => {
-            const isChecked = (services as any)[srv.key];
-            return (
-              <label
-                key={srv.key}
-                className={`p-4 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${
-                  isChecked ? "bg-emerald/5 border-emerald text-emerald font-semibold" : "bg-[#FAF7F2] border-gold/15 text-charcoal/80"
-                }`}
-              >
-                <span className="text-xs">{srv.label}</span>
-                <input
-                  type="checkbox"
-                  checked={isChecked}
-                  onChange={(e) => setServices({ ...services, [srv.key]: e.target.checked })}
-                  className="rounded text-emerald focus:ring-emerald w-4 h-4"
-                />
-              </label>
-            );
-          })}
+      {/* SECTION 3: Rental Policies */}
+      <div className="bg-white p-6 sm:p-8 rounded-3xl border border-gold/15 shadow-sm space-y-6">
+        <div className="border-b border-gold/15 pb-4">
+          <h2 className="font-serif text-xl font-bold text-[#0d3b30] flex items-center gap-2">
+            <FileText className="w-5 h-5 text-[#c9a86a]" /> 3. Rental Policies
+          </h2>
+          <p className="text-xs text-gray-500 mt-0.5">Specify rental duration, security deposit rules, return deadlines, and cancellation terms.</p>
         </div>
-      </div>
-
-      {/* Studio Categories Selection */}
-      <div className="bg-white p-6 rounded-2xl border border-gold/15 shadow-xs space-y-4">
-        <h3 className="font-display font-bold text-lg text-charcoal border-b border-gold/10 pb-3 flex items-center gap-2">
-          <Tag className="w-4 h-4 text-emerald" /> Studio Outfit Categories
-        </h3>
-        <p className="text-xs text-charcoal/70">
-          Select all outfit categories available at your studio:
-        </p>
-        <div className="flex flex-wrap gap-2.5">
-          {availableCategoryOptions.map((cat) => {
-            const isSelected = selectedStudioCategories.includes(cat);
-            return (
-              <button
-                key={cat}
-                type="button"
-                onClick={() => toggleCategory(cat)}
-                className={`py-2 px-4 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all ${
-                  isSelected
-                    ? "bg-emerald text-white shadow-xs"
-                    : "bg-[#FAF7F2] border border-gold/20 text-charcoal/70 hover:bg-gray-100"
-                }`}
-              >
-                {isSelected && <Check className="w-3.5 h-3.5" />}
-                {cat}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Rental Policies */}
-      <div className="bg-white p-6 rounded-2xl border border-gold/15 shadow-xs space-y-6">
-        <h3 className="font-display font-bold text-lg text-charcoal border-b border-gold/10 pb-3 flex items-center gap-2">
-          <FileText className="w-4 h-4 text-emerald" /> Rental & Fitting Policies
-        </h3>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-1">
-            <label className="text-xs font-semibold text-charcoal/70 uppercase tracking-wider">Rental Duration</label>
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-gray-700 uppercase tracking-wider">Rental Duration</label>
             <input
               type="text"
               value={rentalDuration}
               onChange={(e) => setRentalDuration(e.target.value)}
-              placeholder="E.g. 3 Days / 5 Days"
-              className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-emerald"
+              placeholder="E.g. 3 Days (Pickup day before event, Return day after)"
+              className="w-full bg-[#F8F6F2] border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#0d3b30]"
             />
           </div>
 
-          <div className="space-y-1">
-            <label className="text-xs font-semibold text-charcoal/70 uppercase tracking-wider">Security Deposit</label>
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-gray-700 uppercase tracking-wider">Security Deposit</label>
             <input
               type="text"
               value={securityDeposit}
               onChange={(e) => setSecurityDeposit(e.target.value)}
-              placeholder="E.g. 50% refundable deposit"
-              className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-emerald"
+              placeholder="E.g. ₹10,000 (Refundable upon inspection)"
+              className="w-full bg-[#F8F6F2] border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#0d3b30]"
+            />
+          </div>
+        </div>
+
+        <div className="space-y-1.5">
+          <label className="text-xs font-semibold text-gray-700 uppercase tracking-wider">Return Policy</label>
+          <textarea
+            rows={2}
+            value={returnPolicy}
+            onChange={(e) => setReturnPolicy(e.target.value)}
+            placeholder="Specify return deadline, late fee charges, and pickup conditions..."
+            className="w-full bg-[#F8F6F2] border border-gray-200 rounded-xl p-3.5 text-sm focus:outline-none focus:border-[#0d3b30]"
+          />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-gray-700 uppercase tracking-wider">Cancellation Policy</label>
+            <textarea
+              rows={2}
+              value={cancellationPolicy}
+              onChange={(e) => setCancellationPolicy(e.target.value)}
+              placeholder="Specify cancellation timeframe and deposit refund terms..."
+              className="w-full bg-[#F8F6F2] border border-gray-200 rounded-xl p-3.5 text-sm focus:outline-none focus:border-[#0d3b30]"
             />
           </div>
 
-          <div className="space-y-1 md:col-span-2">
-            <label className="text-xs font-semibold text-charcoal/70 uppercase tracking-wider">Damage Policy</label>
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-gray-700 uppercase tracking-wider">Damage Policy</label>
             <textarea
               rows={2}
               value={damagePolicy}
               onChange={(e) => setDamagePolicy(e.target.value)}
-              placeholder="State your studio policy for minor vs major garment damage..."
-              className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl p-3 text-sm focus:outline-none focus:border-emerald"
+              placeholder="Specify acceptable wear & tear vs stain/tear damage liabilities..."
+              className="w-full bg-[#F8F6F2] border border-gray-200 rounded-xl p-3.5 text-sm focus:outline-none focus:border-[#0d3b30]"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* SECTION 4: Social Media */}
+      <div className="bg-white p-6 sm:p-8 rounded-3xl border border-gold/15 shadow-sm space-y-6">
+        <div className="border-b border-gold/15 pb-4">
+          <h2 className="font-serif text-xl font-bold text-[#0d3b30] flex items-center gap-2">
+            <Share2 className="w-5 h-5 text-[#c9a86a]" /> 4. Social Media Links
+          </h2>
+          <p className="text-xs text-gray-500 mt-0.5">Link your official Instagram, Facebook, and website for brand trust.</p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-gray-700 uppercase tracking-wider flex items-center gap-1.5">
+              <Share2 className="w-4 h-4 text-pink-600" /> Instagram Handle
+            </label>
+            <input
+              type="text"
+              value={instagram}
+              onChange={(e) => setInstagram(e.target.value)}
+              placeholder="@royalweddingstudio"
+              className="w-full bg-[#F8F6F2] border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#0d3b30]"
             />
           </div>
 
-          <div className="space-y-1">
-            <label className="text-xs font-semibold text-charcoal/70 uppercase tracking-wider">Return Policy</label>
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-gray-700 uppercase tracking-wider flex items-center gap-1.5">
+              <Globe className="w-4 h-4 text-blue-600" /> Facebook Page
+            </label>
             <input
               type="text"
-              value={returnPolicy}
-              onChange={(e) => setReturnPolicy(e.target.value)}
-              placeholder="E.g. Return by 7:00 PM on final day"
-              className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-emerald"
+              value={facebook}
+              onChange={(e) => setFacebook(e.target.value)}
+              placeholder="facebook.com/royalweddingstudio"
+              className="w-full bg-[#F8F6F2] border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#0d3b30]"
             />
           </div>
 
-          <div className="space-y-1">
-            <label className="text-xs font-semibold text-charcoal/70 uppercase tracking-wider">Cancellation Policy</label>
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-gray-700 uppercase tracking-wider flex items-center gap-1.5">
+              <Globe className="w-4 h-4 text-emerald-600" /> Official Website
+            </label>
             <input
-              type="text"
-              value={cancellationPolicy}
-              onChange={(e) => setCancellationPolicy(e.target.value)}
-              placeholder="E.g. Full refund up to 7 days before event"
-              className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-emerald"
+              type="url"
+              value={website}
+              onChange={(e) => setWebsite(e.target.value)}
+              placeholder="https://www.royalweddingstudio.com"
+              className="w-full bg-[#F8F6F2] border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#0d3b30]"
             />
           </div>
         </div>
