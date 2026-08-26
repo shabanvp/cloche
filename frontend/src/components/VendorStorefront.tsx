@@ -227,6 +227,20 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
     return "Curated Packages & Pricing";
   }, [vendor]);
 
+  const isStudioBoutique = useMemo(() => {
+    const c = (vendor?.categorySlug || vendor?.categoryLabel || vendor?.category || "").toLowerCase();
+    return c.includes("studio") || c.includes("boutique") || c.includes("story") || c.includes("bridal") || c.includes("groom");
+  }, [vendor]);
+
+  const rentalInfo = useMemo(() => {
+    return {
+      duration: vendor?.rentalDuration || sf.rentalDuration || "3 Days (Pickup day before event, Return day after)",
+      deposit: vendor?.securityDeposit || sf.securityDeposit || "₹10,000 (Refundable upon return inspection)",
+      returnPolicy: vendor?.returnPolicy || sf.returnPolicy || "Return within agreed rental duration. Delayed returns attract ₹1,000/day late fee.",
+      damagePolicy: vendor?.damagePolicy || sf.damagePolicy || "Minor wear & tear accepted. Severe fabric damage or stains deducted from security deposit.",
+    };
+  }, [vendor, sf]);
+
   // Automatically record view event for trending analytics engine
   React.useEffect(() => {
     if (vendor?.id && !previewMode) {
@@ -940,6 +954,31 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
               )}
             </div>
           </div>
+
+          {/* 1B. RENTAL POLICIES & TERMS CARD (FOR WEDDING STUDIOS & BOUTIQUES) */}
+          {isStudioBoutique && (
+            <div className="bg-[#FAF7F2] p-6 rounded-3xl border border-gold/15 shadow-sm space-y-4 text-xs">
+              <h3 className="font-serif font-bold text-lg text-charcoal flex items-center gap-2 border-b border-gold/10 pb-3">
+                <FileText style={{ color: activeTheme.primary }} className="w-4 h-4" /> Rental Information & Terms
+              </h3>
+              <div className="space-y-3">
+                <div className="space-y-0.5">
+                  <span className="text-[10px] font-semibold uppercase text-charcoal/50 block">Standard Rental Duration</span>
+                  <span className="font-bold text-[#0F4C45] block">{rentalInfo.duration}</span>
+                </div>
+
+                <div className="space-y-0.5 border-t border-gray-100/80 pt-2">
+                  <span className="text-[10px] font-semibold uppercase text-charcoal/50 block">Security Deposit</span>
+                  <span className="font-bold text-charcoal block">{rentalInfo.deposit}</span>
+                </div>
+
+                <div className="space-y-0.5 border-t border-gray-100/80 pt-2">
+                  <span className="text-[10px] font-semibold uppercase text-charcoal/50 block">Return & Late Fee Policy</span>
+                  <p className="text-charcoal/70 leading-relaxed text-[11px]">{rentalInfo.returnPolicy}</p>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* 2. DIRECT INQUIRY & BOOKING CARD */}
           <div className="bg-white p-6 rounded-3xl border border-gold/20 shadow-md space-y-4">
