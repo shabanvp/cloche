@@ -507,19 +507,55 @@ export async function PUT(req: Request) {
       if (logoMediaId) profilePayload.logo_media_id = logoMediaId;
       if (coverMediaId) profilePayload.cover_media_id = coverMediaId;
       if (profile.gstNumber || profile.gst_number) profilePayload.gst_number = profile.gstNumber || profile.gst_number;
-      if (profile.storefront || body.storefront) profilePayload.storefront = profile.storefront || body.storefront;
-
       console.log(`[IMAGE_FLOW] PUT profile write: vendor_id=${vendorId}, logoMediaId=${logoMediaId}, coverMediaId=${coverMediaId}`);
 
-      const patchRes = await fetch(`${url}/rest/v1/vendor_profiles?vendor_id=eq.${encodeURIComponent(vendorId)}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          apikey: apiKey,
-          Authorization: `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify(profilePayload),
-      });
+      // Check if profile row exists for this vendor
+      const checkProfileRes = await fetch(
+        `${url}/rest/v1/vendor_profiles?or=(vendor_id.eq.${encodeURIComponent(vendorId)},id.eq.${encodeURIComponent(vendorId)})&select=id,vendor_id`,
+        { headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` } }
+      ).catch(() => null);
+
+      let existingProfileRow: any = null;
+      if (checkProfileRes && checkProfileRes.ok) {
+        const rows = await checkProfileRes.json();
+        if (Array.isArray(rows) && rows.length > 0) {
+          existingProfileRow = rows[0];
+        }
+      }
+
+      let patchRes: Response | null = null;
+      if (existingProfileRow) {
+        const filter = existingProfileRow.vendor_id
+          ? `vendor_id=eq.${encodeURIComponent(existingProfileRow.vendor_id)}`
+          : `id=eq.${encodeURIComponent(existingProfileRow.id)}`;
+
+        patchRes = await fetch(`${url}/rest/v1/vendor_profiles?${filter}`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            apikey: apiKey,
+            Authorization: `Bearer ${apiKey}`,
+          },
+          body: JSON.stringify(profilePayload),
+        });
+      } else {
+        // Upsert / Insert new profile row
+        const newProfilePayload = {
+          id: vendorId,
+          vendor_id: vendorId,
+          ...profilePayload,
+        };
+        patchRes = await fetch(`${url}/rest/v1/vendor_profiles`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            apikey: apiKey,
+            Authorization: `Bearer ${apiKey}`,
+            Prefer: "resolution=merge-duplicates",
+          },
+          body: JSON.stringify(newProfilePayload),
+        });
+      }
 
       // Also persist directly via Postgres DB Pool if configured
       try {
@@ -534,22 +570,7 @@ export async function PUT(req: Request) {
         }
       } catch (_) {}
 
-      if (!patchRes.ok && (profilePayload.gst_number || profilePayload.storefront)) {
-        const errText = await patchRes.clone().text();
-        if (errText.includes("PGRST204") || errText.includes("gst_number") || errText.includes("storefront")) {
-          delete profilePayload.gst_number;
-          await fetch(`${url}/rest/v1/vendor_profiles?vendor_id=eq.${encodeURIComponent(vendorId)}`, {
-            method: "PATCH",
-            headers: {
-              "Content-Type": "application/json",
-              apikey: apiKey,
-              Authorization: `Bearer ${apiKey}`,
-            },
-            body: JSON.stringify(profilePayload),
-          });
-        }
-      }
-      console.log(`[IMAGE_FLOW] PUT profile patch status:`, patchRes.status);
+      console.log(`[IMAGE_FLOW] PUT profile patch/post status:`, patchRes?.status);
     }
 
     // 3. Upsert contact, address, and social details for the authenticated vendor

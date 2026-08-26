@@ -280,7 +280,7 @@ export function StoryBoutiqueCustomize({ categoryKey, vendorName }: StoryBoutiqu
 
     // Sync with DB
     try {
-      await syncVendorProfileWithDatabase({
+      const res = await syncVendorProfileWithDatabase({
         boutique_name: studioName,
         business_name: studioName,
         name: studioName,
@@ -360,7 +360,12 @@ export function StoryBoutiqueCustomize({ categoryKey, vendorName }: StoryBoutiqu
           },
         },
       });
-      showVendorToast("Studio details saved & updated live on profile!", "success");
+
+      if (res && res.success) {
+        showVendorToast("Studio details saved & updated live on profile!", "success");
+      } else {
+        showVendorToast("Saved locally to studio profile!", "info");
+      }
     } catch (_) {
       showVendorToast("Saved locally to studio profile!", "info");
     } finally {
