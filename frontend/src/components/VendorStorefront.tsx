@@ -572,6 +572,19 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
 
   const about = vendor?.about || vendor?.description || sf.about || "";
 
+  // Contact Information (Live dynamic values managed by vendor in dashboard)
+  const phone = vendor?.phone || sf.contactInfo?.phone || "";
+  const whatsapp = vendor?.whatsapp || sf.contactInfo?.whatsapp || phone || "";
+  const email = vendor?.email || sf.contactInfo?.email || "";
+  const address = vendor?.address || sf.contactInfo?.address || location || "";
+  const googleMaps = vendor?.googleMaps || vendor?.maps_url || vendor?.google_maps_url || sf.contactInfo?.googleMaps || "";
+
+  // Social Media Links (Live dynamic values managed by vendor in dashboard)
+  const instagram = vendor?.instagram || sf.socialLinks?.instagram || vendor?.socialLinks?.instagram || "";
+  const facebook = vendor?.facebook || sf.socialLinks?.facebook || vendor?.socialLinks?.facebook || "";
+  const youtube = vendor?.youtube || sf.socialLinks?.youtube || vendor?.socialLinks?.youtube || "";
+  const website = vendor?.website || sf.socialLinks?.website || vendor?.socialLinks?.website || "";
+
   // Store Highlights (Badges)
   const storeHighlights: string[] = useMemo(() => {
     if (Array.isArray(sf.storeHighlights) && sf.storeHighlights.length > 0) return sf.storeHighlights;
@@ -613,12 +626,14 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
     return {
       experienceYears: b.experienceYears || vendor?.experienceYears || vendor?.experience_years || vendor?.yearsInBusiness || "",
       rentalAvailable: b.rentalAvailable ?? vendor?.rentalAvailable ?? vendor?.rental_available ?? false,
+      purchaseAvailable: b.purchaseAvailable ?? vendor?.purchaseAvailable ?? vendor?.purchase_available ?? false,
       homeDeliveryAvailable: b.homeDeliveryAvailable ?? vendor?.homeDeliveryAvailable ?? vendor?.home_delivery_available ?? false,
       homeTrialAvailable: b.homeTrialAvailable ?? vendor?.homeTrialAvailable ?? vendor?.home_trial_available ?? false,
       customJewelleryAvailable: b.customJewelleryAvailable ?? vendor?.customJewelleryAvailable ?? vendor?.custom_jewellery_available ?? false,
       collectionsCount: b.collectionsCount || vendor?.collectionsCount || vendor?.collections_count || "",
       guestCapacity: b.guestCapacity || vendor?.guestCapacity || vendor?.guest_capacity || "",
       parkingCapacity: b.parkingCapacity || vendor?.parkingCapacity || vendor?.parking_capacity || "",
+      languagesSpoken: b.languagesSpoken || vendor?.languagesSpoken || vendor?.languages_spoken || "",
     };
   }, [sf.businessInfo, vendor]);
 
@@ -788,18 +803,6 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
 
     return list;
   }, [sf.gallery, vendor]);
-
-  // Contact Info
-  const phone = sf.contactInfo?.phone || vendor?.phone || "";
-  const whatsapp = sf.contactInfo?.whatsapp || vendor?.whatsapp || phone;
-  const email = sf.contactInfo?.email || vendor?.email || "";
-  const address = sf.contactInfo?.address || vendor?.address || location;
-
-  // Social Links
-  const instagram = sf.socialLinks?.instagram || vendor?.instagram || vendor?.socialLinks?.instagram || "";
-  const facebook = sf.socialLinks?.facebook || vendor?.facebook || vendor?.socialLinks?.facebook || "";
-  const youtube = sf.socialLinks?.youtube || vendor?.youtube || vendor?.socialLinks?.youtube || "";
-  const website = sf.socialLinks?.website || vendor?.website || vendor?.socialLinks?.website || "";
 
   // Ratings
   const rating = Number(vendor?.rating || 0).toFixed(1);
@@ -1117,9 +1120,9 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
                 </button>
               )}
 
-              {actionButtons.visitStore && (address || location) && (
+              {actionButtons.visitStore && (googleMaps || address || location) && (
                 <a
-                  href={previewMode ? "#" : `https://maps.google.com/?q=${encodeURIComponent(address || location)}`}
+                  href={previewMode ? "#" : (googleMaps || `https://maps.google.com/?q=${encodeURIComponent(address || location)}`)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-full px-4 py-3.5 rounded-2xl bg-[#FAF7F2] border border-gold/25 text-charcoal text-xs sm:text-sm font-bold flex items-center justify-center gap-2 hover:bg-gold/15 transition-all text-center"
