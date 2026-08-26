@@ -199,12 +199,14 @@ export default function Home() {
         
         {/* Hero Section */}
         <section className="relative h-[480px] md:h-[520px] w-full flex flex-col justify-end">
-          <div className="absolute inset-0 overflow-hidden rounded-b-3xl">
-            <div 
-              className="absolute inset-0 bg-cover bg-center" 
-              style={{backgroundImage: 'url(https://lh3.googleusercontent.com/aida-public/AB6AXuDkuPHXhU7sXzDUvYbDriFUJ917zikz7COlOrOswDvuY6_7v5cQOlZuew5k-nQKjcfUP1uCWfNAZ_E3pzW0ZhxB3iG_Qgee-9xeWqV3kmcxYZjS4lZH63iptxjO4EQc-c1trOo4OB45RTiLcgN_4gKPeu41g5AiHIMElHe-KXqWqvejj3L13jYUx7jf5JgJ76IE74Db2TjqXh0ocXwWUZwTja1cDHAcysRGBp85vCe6HOhaQ8V2U10qxMCfXK6vEIuyz0bq1Y5eq9PQ)'}}
-            ></div>
-            <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent"></div>
+          <div className="absolute inset-0 overflow-hidden rounded-b-3xl bg-charcoal">
+            <img
+              src="https://lh3.googleusercontent.com/aida-public/AB6AXuDkuPHXhU7sXzDUvYbDriFUJ917zikz7COlOrOswDvuY6_7v5cQOlZuew5k-nQKjcfUP1uCWfNAZ_E3pzW0ZhxB3iG_Qgee-9xeWqV3kmcxYZjS4lZH63iptxjO4EQc-c1trOo4OB45RTiLcgN_4gKPeu41g5AiHIMElHe-KXqWqvejj3L13jYUx7jf5JgJ76IE74Db2TjqXh0ocXwWUZwTja1cDHAcysRGBp85vCe6HOhaQ8V2U10qxMCfXK6vEIuyz0bq1Y5eq9PQ=s0"
+              alt="Real Wedding Celebration"
+              className="w-full h-full object-cover object-center filter contrast-[1.06] brightness-[1.03] saturate-[1.05]"
+              loading="eager"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/35 to-black/10"></div>
           </div>
           
           <div className="relative z-10 max-w-7xl mx-auto w-full p-6 md:p-10 space-y-4">
@@ -251,13 +253,15 @@ export default function Home() {
             </Link>
           </div>
 
-          {/* Stacked on mobile, 2 or 3 columns grid on Laptop */}
+          {/* Grid: 4 cards on Mobile (< md), 6 cards on Laptop/Desktop (>= md) */}
           <div className="space-y-4 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-6">
-            {categories.map((cat) => (
+            {categories.slice(0, 6).map((cat, idx) => (
               <Link 
                 key={cat.title} 
                 href={cat.href} 
-                className={`${cat.bgColor} rounded-2xl overflow-hidden flex h-36 md:h-44 shadow-sm hover:shadow-md transition-all group`}
+                className={`${cat.bgColor} rounded-2xl overflow-hidden flex h-36 md:h-44 shadow-sm hover:shadow-md transition-all group ${
+                  idx >= 4 ? "hidden md:flex" : "flex"
+                }`}
               >
                 <div className="flex-1 p-5 md:p-6 flex flex-col justify-center">
                   <div className="flex items-center gap-1 font-bold text-on-primary-container text-lg md:text-xl font-display group-hover:text-primary transition-colors">
@@ -276,29 +280,23 @@ export default function Home() {
             ))}
           </div>
 
-          <Link href="/categories" className="md:hidden w-full text-center py-4 text-primary font-bold text-sm flex items-center justify-center gap-1 mt-4">
-            View All Categories <span className="material-symbols-outlined text-[18px]">chevron_right</span>
-          </Link>
+          <div className="mt-6 text-center">
+            <Link href="/categories" className="inline-flex items-center gap-1.5 px-6 py-3 rounded-full bg-[#FAF7F2] border border-gold/20 text-primary font-bold text-sm hover:bg-[#F3EDE2] transition-colors shadow-sm">
+              View All Categories <span className="material-symbols-outlined text-[18px]">chevron_right</span>
+            </Link>
+          </div>
         </section>
 
         {/* Sponsored Homepage Banner */}
         <AdBanner placement="Homepage Between Categories" />
 
-        {/* ── 🔥 TRENDING THIS WEEK SECTION ── */}
+        {/* ── TRENDING THIS WEEK SECTION ── */}
         <section className="py-12 bg-[#FAF7F2] my-8 border-y border-gold/15">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="mb-8">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="bg-amber-100 text-amber-800 text-[11px] font-bold uppercase tracking-widest px-2.5 py-0.5 rounded-full flex items-center gap-1 border border-amber-300">
-                  <Flame className="w-3.5 h-3.5 text-amber-500 fill-amber-500" /> Live Rankings
-                </span>
-              </div>
+            <div className="mb-6">
               <h2 className="text-2xl md:text-3xl font-bold text-charcoal font-display">
-                🔥 Trending This Week
+                Trending This Week
               </h2>
-              <p className="text-xs md:text-sm text-charcoal/70 mt-1">
-                Most engaged wedding partners based on verified user views, inquiries, and authentic reviews.
-              </p>
             </div>
 
             {vendorsLoading ? (
@@ -414,10 +412,9 @@ export default function Home() {
 
         {/* ── REAL FEATURED VENDORS (DEDUPLICATED & STANDARDIZED) ── */}
         <section className="py-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mb-6 flex justify-between items-end">
+          <div className="mb-6 flex justify-between items-center">
             <div>
               <h2 className="text-2xl font-bold text-on-surface font-display">Featured Vendors</h2>
-              <p className="text-xs md:text-sm text-outline mt-1">Handpicked luxury boutiques &amp; wedding experts across Kerala</p>
             </div>
             <Link href="/boutiques" className="text-primary text-sm font-bold hover:underline">View All</Link>
           </div>
@@ -486,10 +483,9 @@ export default function Home() {
 
         {/* ── REAL WEDDING STORIES (FETCHED LIVE FROM DATABASE) ── */}
         <section className="py-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mb-6 flex justify-between items-end">
+          <div className="mb-6 flex justify-between items-center">
             <div>
               <h2 className="text-2xl font-bold text-on-surface font-display">Real Wedding Stories</h2>
-              <p className="text-xs md:text-sm text-outline mt-1">Get inspired by authentic real wedding celebrations in Kerala</p>
             </div>
             <Link href="/real-weddings" className="text-primary text-sm font-bold hover:underline">View All Stories</Link>
           </div>

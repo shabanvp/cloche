@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { ArrowRight, Eye, EyeOff, Lock, Mail, LogOut } from "lucide-react";
+import { ArrowRight, Eye, EyeOff, Lock, Mail } from "lucide-react";
 import { login } from "@/app/actions/auth";
 import { AuthShell } from "@/components/AuthShell";
 
@@ -48,20 +48,26 @@ export function LoginClient() {
     const formData = new FormData(e.currentTarget);
     formData.append("role", requestedRole);
 
-    const res = await login(formData);
+    try {
+      const res = await login(formData);
 
-    if (res.success) {
-      const userObj = (res.user as any) || {};
-      const userRoles: string[] = Array.isArray(userObj.roles) ? userObj.roles : [userObj.role || requestedRole];
-      const normalizedRoles = userRoles.map((r) => (r || "").toLowerCase());
+      if (res && res.success) {
+        const userObj = (res.user as any) || {};
+        const activeRole = (userObj.role || requestedRole).toLowerCase();
 
-      if (requestedRole === "admin") {
-        window.location.href = "/admin";
+        if (requestedRole === "admin" || activeRole === "admin" || activeRole === "super_admin") {
+          window.location.href = "/admin";
+        } else if (activeRole === "vendor" || activeRole === "partner") {
+          window.location.href = "/vendor/dashboard";
+        } else {
+          window.location.href = "/user/dashboard";
+        }
       } else {
-        window.location.href = "/user/dashboard";
+        setErrorMsg(res?.error || "Invalid email or password. Please try again.");
+        setIsSubmitting(false);
       }
-    } else {
-      setErrorMsg(res.error || "Invalid credentials. Please try again.");
+    } catch (err: any) {
+      setErrorMsg("An unexpected connection error occurred. Please try again.");
       setIsSubmitting(false);
     }
   };
@@ -98,7 +104,7 @@ export function LoginClient() {
       activeTab="login"
       subtitle={requestedRole === "admin" ? "Administrative\nAccess Portal" : "Curated Luxury\nFor Your Wedding"}
       hideTabs={requestedRole === "admin"}
-      showSocial={requestedRole !== "admin"}
+      showSocial={false}
       footerText="Don't have an account?"
       footerLink={requestedRole === "admin" ? "/signup?role=admin" : "/signup"}
       footerLinkLabel="Create one"
@@ -111,83 +117,94 @@ export function LoginClient() {
       )}
 
       {showLogoutMsg && (
-        <div className="flex items-center gap-2 rounded-xl border border-emerald/30 bg-emerald/10 p-3 text-xs font-semibold text-[#0F4C45] animate-in fade-in">
-          <LogOut className="h-4 w-4 shrink-0 text-[#0F4C45]" />
-          <span>Logged out successfully. See you again soon!</span>
+        <div className="p-3 text-xs font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200 rounded-xl">
+          Logged out successfully.
         </div>
       )}
 
       {showUnauthorizedMsg && (
-        <div className="flex items-center gap-2 rounded-xl border border-amber-500/30 bg-amber-50 p-3 text-xs font-semibold text-amber-800 animate-in fade-in">
-          <Lock className="h-4 w-4 shrink-0 text-amber-600" />
-          <span>Please log in to access your dashboard.</span>
+        <div className="p-3 text-xs font-semibold text-amber-800 bg-amber-50 border border-amber-200 rounded-xl">
+          Please log in to access your dashboard.
         </div>
       )}
 
-      {resendStatus && (
-        <div className="rounded-xl border border-emerald/30 bg-emerald/10 p-3.5 text-xs font-semibold text-[#0F4C45] animate-in fade-in">
-          {resendStatus}
-        </div>
-      )}
+      <form className="space-y-3" onSubmit={handleSubmit}>
+        {errorMsg && (
+          <div className="space-y-2 p-3 text-xs font-semibold text-rose-700 bg-rose-50 border border-rose-200 rounded-xl">
+            <div>{errorMsg}</div>
+            {errorMsg.toLowerCase().includes("verify") && (
+              <div className="pt-2 border-t border-rose-200/60 space-y-2">
+                <p className="text-[11px] font-medium text-rose-800">Need to resend verification link?</p>
+                <div className="flex gap-2">
+                  <input
+                    type="email"
+                    placeholder="Confirm your email"
+                    value={resendEmail}
+                    onChange={(e) => setResendEmail(e.target.value)}
+                    className="flex-1 px-2.5 py-1 text-xs border border-rose-300 rounded-lg bg-white text-charcoal outline-none focus:border-rose-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleResendVerification}
+                    disabled={isResending || !resendEmail}
+                    className="px-3 py-1 bg-[#0F4C45] text-white text-xs font-bold rounded-lg disabled:opacity-50 hover:bg-[#0B3B2D] transition-colors"
+                  >
+                    {isResending ? "Sending..." : "Resend"}
+                  </button>
+                </div>
+                {resendStatus && (
+                  <p className={`text-[11px] font-bold ${resendStatus.includes("sent") ? "text-emerald-700" : "text-rose-800"}`}>
+                    {resendStatus}
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        )}
 
-      {errorMsg && (
-        <div className="rounded-xl border border-rose-200 bg-rose-50 p-3.5 text-xs font-semibold text-rose-700 animate-in fade-in space-y-2">
-          <p>{errorMsg}</p>
-          {(errorMsg.toLowerCase().includes("verify") || errorMsg.toLowerCase().includes("verification")) && (
-            <button
-              type="button"
-              disabled={isResending}
-              onClick={handleResendVerification}
-              className="mt-1 inline-block bg-[#0F4C45] text-white px-3 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-wider hover:bg-[#135951] transition-all cursor-pointer"
-            >
-              {isResending ? "Resending Link..." : "Resend Verification Link"}
-            </button>
-          )}
-        </div>
-      )}
-
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="space-y-1.5">
-          <label className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#3E3A33]" htmlFor="email">
-            {requestedRole === "admin" ? "Admin Email Address" : "Email Address"}
+        <div className="space-y-1">
+          <label className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#3E3A33]" htmlFor="login-email">
+            Email Address
           </label>
-          <div className="flex min-h-11 items-center gap-2.5 rounded-[14px] border border-[#D9CEBF] bg-[#FBF7EF] px-3.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.85)] transition-colors focus-within:border-[#0F4C45] focus-within:shadow-[0_0_0_3px_rgba(15,76,69,0.08)]">
+          <div className="flex min-h-11 items-center gap-2.5 rounded-[13px] border border-[#D9CEBF] bg-[#FBF7EF] px-3.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.85)] transition-colors focus-within:border-[#0F4C45] focus-within:shadow-[0_0_0_3px_rgba(15,76,69,0.08)]">
             <Mail className="h-4 w-4 shrink-0 text-[#8E7D62]" />
             <input
-              id="email"
+              id="login-email"
               name="email"
               type="email"
               required
-              onChange={(e) => setResendEmail(e.target.value)}
-              placeholder={requestedRole === "admin" ? "admin@cloche.com" : "olivia.bennett@gmail.com"}
+              placeholder="olivia@example.com"
               className="w-full bg-transparent text-[14px] text-[#1E1B16] outline-none placeholder:text-[#A79B8B]"
             />
           </div>
         </div>
 
-        <div className="space-y-1.5">
-          <div className="flex items-end justify-between gap-4">
-            <label className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#3E3A33]" htmlFor="password">
+        <div className="space-y-1">
+          <div className="flex items-center justify-between">
+            <label className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#3E3A33]" htmlFor="login-password">
               Password
             </label>
-            <Link href={`/forgot-password?role=${requestedRole}`} className="text-[12px] text-[#4D4A43] transition-colors hover:text-[#0F4C45]">
+            <Link
+              href={requestedRole === "admin" ? "/forgot-password?role=admin" : "/forgot-password"}
+              className="text-[12px] text-[#4B463E] hover:text-[#0F4C45] transition-colors"
+            >
               Forgot?
             </Link>
           </div>
-          <div className="flex min-h-11 items-center gap-2.5 rounded-[14px] border border-[#D9CEBF] bg-[#FBF7EF] px-3.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.85)] transition-colors focus-within:border-[#0F4C45] focus-within:shadow-[0_0_0_3px_rgba(15,76,69,0.08)]">
+          <div className="flex min-h-11 items-center gap-2.5 rounded-[13px] border border-[#D9CEBF] bg-[#FBF7EF] px-3.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.85)] transition-colors focus-within:border-[#0F4C45] focus-within:shadow-[0_0_0_3px_rgba(15,76,69,0.08)]">
             <Lock className="h-4 w-4 shrink-0 text-[#8E7D62]" />
             <input
-              id="password"
+              id="login-password"
               name="password"
               type={showPassword ? "text" : "password"}
               required
-              placeholder="••••••••••"
+              placeholder="••••••••••••"
               className="w-full bg-transparent text-[14px] text-[#1E1B16] outline-none placeholder:text-[#A79B8B]"
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="text-[#8E7D62] transition-colors hover:text-[#0F4C45]"
+              className="text-[#8E7D62] hover:text-[#0F4C45] transition-colors"
               aria-label={showPassword ? "Hide password" : "Show password"}
             >
               {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -198,18 +215,20 @@ export function LoginClient() {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="relative mt-2 flex min-h-11 w-full items-center justify-center gap-2 rounded-[14px] bg-[#0F4C45] px-4 font-semibold text-white shadow-[0_8px_20px_rgba(15,76,69,0.22)] transition-transform hover:bg-[#135951] active:scale-[0.99] disabled:opacity-70"
+          className="mt-2 flex h-12 w-full items-center justify-center gap-2 rounded-[14px] bg-[#0F4C45] text-[15px] font-semibold text-white shadow-[0_10px_24px_rgba(15,76,69,0.22)] transition-all hover:bg-[#0B3B2D] hover:shadow-[0_12px_28px_rgba(15,76,69,0.28)] hover:-translate-y-0.5 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
         >
-          <span className="text-[15px]">{isSubmitting ? "Signing In..." : requestedRole === "admin" ? "Admin Sign In" : "Sign In"}</span>
+          <span>{isSubmitting ? "Signing In..." : "Sign In"}</span>
           <ArrowRight className="h-4 w-4" />
         </button>
+      </form>
 
-        <div className="pt-2 text-center">
-          <Link href="/vendor/login" className="text-xs font-semibold text-[#0F4C45] hover:underline">
+      {requestedRole !== "admin" && (
+        <div className="mt-3 text-center">
+          <Link href="/vendor/login" className="text-[12px] font-semibold text-[#0F4C45] hover:underline">
             Are you a vendor? Sign in to Vendor Portal
           </Link>
         </div>
-      </form>
+      )}
     </AuthShell>
   );
 }

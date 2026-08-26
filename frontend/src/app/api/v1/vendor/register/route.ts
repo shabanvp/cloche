@@ -235,6 +235,21 @@ export async function POST(req: Request) {
     if (existingUser) {
       targetUserId = existingUser.id;
       console.log(`${logPrefix} Reusing existing user record (${targetUserId}) for vendor registration...`);
+
+      // Keep Supabase Auth user password 100% in sync with new vendor password
+      await fetch(`${url}/auth/v1/admin/users/${encodeURIComponent(targetUserId)}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: apiKey,
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          password: userPassword,
+          email_confirm: true,
+        }),
+      }).catch(() => null);
+
       await fetch(`${url}/rest/v1/users?id=eq.${encodeURIComponent(targetUserId)}`, {
         method: "PATCH",
         headers: {

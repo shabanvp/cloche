@@ -385,7 +385,7 @@ export async function fetchAuthenticatedVendorFromDb(): Promise<VendorProfileDat
 
         if (res.ok) {
           const json = await res.json();
-          if (json.success && json.data) {
+          if (json.success && json.data && json.data.vendor) {
             const v = json.data.vendor || {};
             const p = json.data.profile || {};
             const c = Array.isArray(json.data.contacts) && json.data.contacts.length > 0 ? json.data.contacts[0] : {};

@@ -2,10 +2,7 @@
 
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
-import { Apple } from "lucide-react";
 import type { ReactNode } from "react";
-
-const AuthMotion = motion.section;
 
 type AuthShellProps = {
   activeTab: "login" | "signup";
@@ -15,11 +12,9 @@ type AuthShellProps = {
   footerText?: string;
   footerLink?: string;
   footerLinkLabel?: string;
+  onGoogleSignIn?: () => void;
   children: ReactNode;
 };
-
-const tabBase =
-  "relative flex h-14 min-h-11 flex-1 items-center justify-center text-[18px] font-semibold transition-colors";
 
 export function AuthShell({
   activeTab,
@@ -29,13 +24,26 @@ export function AuthShell({
   footerText,
   footerLink,
   footerLinkLabel,
+  onGoogleSignIn,
   children,
 }: AuthShellProps) {
   const reduceMotion = useReducedMotion();
 
+  const handleDefaultGoogleSignIn = () => {
+    if (onGoogleSignIn) {
+      onGoogleSignIn();
+      return;
+    }
+    if (typeof window !== "undefined") {
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://fumfjbcixcudjrnezfjl.supabase.co";
+      const redirectUrl = encodeURIComponent(`${window.location.origin}/auth/callback`);
+      window.location.href = `${supabaseUrl}/auth/v1/authorize?provider=google&redirect_to=${redirectUrl}`;
+    }
+  };
+
   return (
-    <main className="h-screen w-screen overflow-hidden fixed inset-0 z-50 flex items-center justify-center bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.9),rgba(250,246,239,0.96)_45%,rgba(245,239,229,1))] px-4 text-charcoal sm:px-6">
-      <div className="mx-auto flex h-full w-full max-w-[460px] flex-col items-center justify-center">
+    <main className="min-h-screen w-full overflow-y-auto z-50 flex items-center justify-center bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.9),rgba(250,246,239,0.96)_45%,rgba(245,239,229,1))] px-4 py-8 text-charcoal sm:px-6">
+      <div className="mx-auto flex w-full max-w-[460px] flex-col items-center justify-center my-auto">
         <div className="w-full max-w-[420px] rounded-[26px] border border-[#E6DDCF] bg-[linear-gradient(180deg,rgba(255,255,255,0.82),rgba(248,244,236,0.94))] px-5 py-6 shadow-[0_18px_60px_rgba(28,27,23,0.08)] backdrop-blur-sm sm:px-7 sm:py-7">
           <div className="mb-4 flex flex-col items-center text-center">
             <div className="mb-2 flex h-11 w-11 items-center justify-center rounded-full border border-[#D7C2A0] bg-[#FBF7EF] shadow-[0_8px_20px_rgba(15,76,69,0.08)]">
@@ -79,40 +87,26 @@ export function AuthShell({
 
             {showSocial && (
               <div className="pt-1">
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 mb-3">
                   <div className="h-px flex-1 bg-[#DDD3C5]" />
-                  <span className="text-[12px] text-[#3C372F]">or continue with</span>
+                  <span className="text-[12px] text-[#3C372F] font-medium">or continue with</span>
                   <div className="h-px flex-1 bg-[#DDD3C5]" />
                 </div>
 
-                <div className="mt-3 grid grid-cols-3 gap-3">
-                  <button
-                    type="button"
-                    className="flex h-14 items-center justify-center rounded-xl border border-[#D8CEC0] bg-[#FBF8F1] text-[#0F4C45] shadow-[0_4px_12px_rgba(28,27,23,0.04)] transition-transform hover:-translate-y-0.5 active:scale-[0.98]"
-                    aria-label="Continue with Google"
-                  >
-                    <GoogleMark />
-                  </button>
-                  <button
-                    type="button"
-                    className="flex h-14 items-center justify-center rounded-xl border border-[#D8CEC0] bg-[#FBF8F1] text-[#0F4C45] shadow-[0_4px_12px_rgba(28,27,23,0.04)] transition-transform hover:-translate-y-0.5 active:scale-[0.98]"
-                    aria-label="Continue with Apple"
-                  >
-                    <Apple className="h-6 w-6 text-black" />
-                  </button>
-                  <button
-                    type="button"
-                    className="flex h-14 items-center justify-center rounded-xl border border-[#D8CEC0] bg-[#FBF8F1] text-[#0F4C45] shadow-[0_4px_12px_rgba(28,27,23,0.04)] transition-transform hover:-translate-y-0.5 active:scale-[0.98]"
-                    aria-label="Continue with Facebook"
-                  >
-                    <FacebookMark />
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  onClick={handleDefaultGoogleSignIn}
+                  className="w-full flex h-12 items-center justify-center gap-3 rounded-xl border border-[#D8CEC0] bg-white text-[#0F4C45] font-semibold text-sm shadow-[0_4px_12px_rgba(28,27,23,0.06)] transition-all hover:bg-[#FAF8F5] hover:border-[#C8A96A] hover:-translate-y-0.5 active:scale-[0.98]"
+                  aria-label="Sign in with Google"
+                >
+                  <GoogleMark />
+                  <span>Sign in with Google</span>
+                </button>
               </div>
             )}
 
             {footerText && footerLink && footerLinkLabel && (
-              <div className="text-center">
+              <div className="text-center pt-2">
                 <p className="text-[14px] text-[#4B463E]">
                   {footerText}{" "}
                   <Link href={footerLink} className="font-semibold text-[#0F4C45] underline decoration-[#0F4C45]/25 underline-offset-4">
@@ -130,20 +124,11 @@ export function AuthShell({
 
 function GoogleMark() {
   return (
-    <svg viewBox="0 0 24 24" className="h-9 w-9" aria-hidden="true">
+    <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
       <path fill="#EA4335" d="M12 10.2v3.95h5.62c-.25 1.28-1.46 3.74-5.62 3.74a6.53 6.53 0 1 1 0-13.06c1.87 0 3.12.8 3.84 1.5l2.62-2.52C16.95 1.44 14.7.5 12 .5 5.93.5 1 5.43 1 11.5S5.93 22.5 12 22.5c6.32 0 10.51-4.44 10.51-10.69 0-.72-.08-1.27-.18-1.82H12Z" />
       <path fill="#4285F4" d="M23 11.9c0-.68-.06-1.19-.18-1.72H12v3.25h6.4c-.13.8-.66 2.01-1.88 2.82l-.02.11 2.71 2.1.19.02C21.72 16.56 23 14.56 23 11.9Z" />
       <path fill="#FBBC05" d="m4.66 14.2-.2.11-2.8 2.17-.07.16C2.98 19.16 7.12 22.5 12 22.5c3.37 0 6.2-1.1 8.28-2.96l-3.95-3.07c-1.06.74-2.49 1.26-4.33 1.26a6.53 6.53 0 0 1-6.15-4.54l-.19.01Z" />
       <path fill="#34A853" d="M12 4.44c2.03 0 3.4.87 4.18 1.6l3.06-2.99C18.2 1.25 15.97.5 12 .5 7.12.5 2.98 3.84 1.59 8.84l3.07 2.39A6.53 6.53 0 0 1 12 4.44Z" />
-    </svg>
-  );
-}
-
-function FacebookMark() {
-  return (
-    <svg viewBox="0 0 24 24" className="h-9 w-9" aria-hidden="true">
-      <circle cx="12" cy="12" r="10" fill="#1877F2" />
-      <path fill="#fff" d="M13.5 8.5h1.6V6.2h-1.9c-2 0-3.2 1.2-3.2 3.2v1.4H8v2.3h2V18h2.5v-5h2l.3-2.3h-2.3v-1.1c0-.7.2-1.1 1-1.1Z" />
     </svg>
   );
 }

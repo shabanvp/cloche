@@ -44,19 +44,11 @@ export function DigitalInvitationsSection() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
-        <div className="flex items-end justify-between mb-6 gap-4">
+        <div className="flex items-center justify-between mb-6 gap-4">
           <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="bg-amber-100 text-amber-900 text-[10px] sm:text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border border-amber-300 flex items-center gap-1">
-                <Sparkles className="w-3 h-3 text-gold" /> Instant Customization
-              </span>
-            </div>
             <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-charcoal font-display">
-              💌 Digital Wedding Invitations
+              Digital Wedding Invitations
             </h2>
-            <p className="text-[11px] sm:text-xs text-charcoal/70 mt-0.5">
-              Create beautiful digital wedding invitations in minutes.
-            </p>
           </div>
 
           <Link
