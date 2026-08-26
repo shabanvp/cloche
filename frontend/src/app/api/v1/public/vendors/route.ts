@@ -21,11 +21,11 @@ const CATEGORY_SYNONYMS: Record<string, string[]> = {
   "decor-planning": ["decorators", "decorator", "planners", "wedding-planner", "flower-decoration", "decor-planning", "decor"],
   decorators: ["decorators", "decorator", "planners", "wedding-planner", "flower-decoration", "decor-planning", "decor"],
   decorator: ["decorators", "decorator", "planners", "wedding-planner", "flower-decoration", "decor-planning", "decor"],
-  "bridal-wear": ["bridal-wear", "bridal-boutique", "boutiques", "bridal-studio", "brides-story"],
-  "bridal-boutique": ["bridal-wear", "bridal-boutique", "boutiques", "bridal-studio", "brides-story"],
-  "bridal-studio": ["bridal-wear", "bridal-boutique", "boutiques", "bridal-studio", "brides-story"],
-  "brides-story": ["bridal-wear", "bridal-boutique", "boutiques", "bridal-studio", "brides-story"],
-  boutiques: ["bridal-wear", "bridal-boutique", "boutiques", "bridal-studio", "brides-story"],
+  "bridal-wear": ["bridal-studio", "bridal-wear", "bridal-boutique", "boutiques", "brides-story", "bridal_studio", "bridalwear"],
+  "bridal-boutique": ["bridal-studio", "bridal-wear", "bridal-boutique", "boutiques", "brides-story", "bridal_studio", "bridalwear"],
+  "bridal-studio": ["bridal-studio", "bridal-wear", "bridal-boutique", "boutiques", "brides-story", "bridal_studio", "bridalwear"],
+  "brides-story": ["bridal-studio", "bridal-wear", "bridal-boutique", "boutiques", "brides-story", "bridal_studio", "bridalwear"],
+  boutiques: ["bridal-studio", "bridal-wear", "bridal-boutique", "boutiques", "brides-story", "bridal_studio", "bridalwear"],
   jewellery: ["jewellery", "jewellery-store", "jewelry"],
   "jewellery-store": ["jewellery", "jewellery-store", "jewelry"],
   jewelry: ["jewellery", "jewellery-store", "jewelry"],
@@ -38,11 +38,11 @@ const CATEGORY_SYNONYMS: Record<string, string[]> = {
   "invitation-designer": ["invitations", "invitation-designer", "invitation", "digital-invitations", "e-invites"],
   "digital-invitations": ["invitations", "invitation-designer", "invitation", "digital-invitations", "e-invites"],
   "e-invites": ["invitations", "invitation-designer", "invitation", "digital-invitations", "e-invites"],
-  "groom-wear": ["groom-wear", "groom-studio", "grooms-story"],
-  "groom-studio": ["groom-wear", "groom-studio", "grooms-story"],
-  "grooms-story": ["groom-wear", "groom-studio", "grooms-story"],
-  "wedding-studio": ["wedding-story", "wedding-studio"],
-  "wedding-story": ["wedding-story", "wedding-studio"],
+  "groom-wear": ["groom-studio", "groom-wear", "grooms-story", "groom_studio", "groomwear"],
+  "groom-studio": ["groom-studio", "groom-wear", "grooms-story", "groom_studio", "groomwear"],
+  "grooms-story": ["groom-studio", "groom-wear", "grooms-story", "groom_studio", "groomwear"],
+  "wedding-studio": ["wedding-studio", "wedding-story", "wedding_studio"],
+  "wedding-story": ["wedding-studio", "wedding-story", "wedding_studio"],
   "djs-bands": ["djs-bands", "entertainment", "wedding-entertainment-legacy", "choreographer"],
   entertainment: ["djs-bands", "entertainment", "wedding-entertainment-legacy", "choreographer"],
   "cake-designer": ["cake-designer", "cakes"],
@@ -81,8 +81,8 @@ export async function GET(req: Request) {
       );
     }
 
-    // Build PostgREST query
-    let filter = `deleted_at=is.null&status=eq.active&publication_status=eq.published`;
+    // Build PostgREST query: Active vendors are visible on public pages
+    let filter = `deleted_at=is.null&status=eq.active`;
     
     // Add category filter if provided
     if (categorySlug && categorySlug.toLowerCase() !== "all") {
@@ -91,9 +91,14 @@ export async function GET(req: Request) {
       const allCats = Array.isArray(catRes.data) ? catRes.data : [];
       const matchedCatIds = allCats
         .filter((c: any) => {
-          const cSlug = (c.slug || "").toLowerCase();
+          const rawSlug = (c.slug || "").toLowerCase();
+          const cleanSlug = rawSlug.replace(/-\d+$/, "");
           const cName = (c.name || "").toLowerCase();
-          return matchingSlugs.includes(cSlug) || matchingSlugs.some((ms) => cSlug.includes(ms) || cName.includes(ms));
+          return (
+            matchingSlugs.includes(rawSlug) ||
+            matchingSlugs.includes(cleanSlug) ||
+            matchingSlugs.some((ms) => rawSlug.includes(ms) || cleanSlug.includes(ms) || cName.includes(ms.replace(/-/g, " ")))
+          );
         })
         .map((c: any) => c.id);
 
