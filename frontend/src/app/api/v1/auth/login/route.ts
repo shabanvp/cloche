@@ -3,7 +3,6 @@ import { getSupabaseConfig, signInWithSupabaseAuth } from "@/lib/supabase";
 import { AUTH_COOKIE_NAME, SESSION_EXPIRY_DAYS, signJwtToken, verifyPassword, hashPassword } from "@/lib/auth";
 
 export async function POST(req: Request) {
-  const startTime = Date.now();
   try {
     const body = await req.json();
     const { email, password, role } = body;
@@ -31,22 +30,30 @@ export async function POST(req: Request) {
       );
     }
 
-    console.log(`[LOGIN_API:ATTEMPT] email="${cleanEmail}" requestedRole="${requestedRole}" timestamp=${new Date().toISOString()}`);
-
     let customUser: any = null;
     let authResult: any = null;
     let userRoles: string[] = [];
     let isVendorAccount = false;
     let vendorRecord: any = null;
 
-    // 1. Query custom database users table
-    const userRes = await fetch(
-      `${url}/rest/v1/users?email=eq.${encodeURIComponent(cleanEmail)}&select=id,email,password_hash,full_name,name,phone,city,wedding_date,is_active,is_verified,vendors(id,business_name,publication_status),user_roles(roles(name))`,
+    // 1. Query custom database users table (case-insensitive lookup)
+    let userRes = await fetch(
+      `${url}/rest/v1/users?email=eq.${encodeURIComponent(cleanEmail)}&select=id,email,password_hash,full_name,name,phone,is_active,is_verified,vendors(id,status,publication_status)`,
       {
         headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
         cache: "no-store",
       }
     ).catch(() => null);
+
+    if (!userRes || !userRes.ok) {
+      userRes = await fetch(
+        `${url}/rest/v1/users?email=ilike.${encodeURIComponent(cleanEmail)}&select=id,email,password_hash,full_name,name,phone,is_active,is_verified,vendors(id,status,publication_status)`,
+        {
+          headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
+          cache: "no-store",
+        }
+      ).catch(() => null);
+    }
 
     if (userRes && userRes.ok) {
       const users = await userRes.json();
@@ -62,7 +69,6 @@ export async function POST(req: Request) {
     let isPasswordValid = false;
     if (customUser?.password_hash && verifyPassword(password, customUser.password_hash)) {
       isPasswordValid = true;
-      console.log(`[LOGIN_API:PASS_VERIFY] Password verified via public.users hash match.`);
 
       // Sync Supabase Auth user password if out of sync
       if (authResult.error && (serviceKey || apiKey) && customUser.id) {
@@ -78,7 +84,6 @@ export async function POST(req: Request) {
       }
     } else if (!authResult.error && authResult.user) {
       isPasswordValid = true;
-      console.log(`[LOGIN_API:PASS_VERIFY] Password verified via Supabase Auth.`);
 
       // Sync public.users password_hash if out of sync
       const syncHash = hashPassword(password);
@@ -95,7 +100,6 @@ export async function POST(req: Request) {
 
     // SCENARIO 1: Account Not Found
     if (!customUser && (authResult.error || !authResult.user)) {
-      console.warn(`[LOGIN_API:FAIL] email=${cleanEmail} reason=USER_NOT_FOUND`);
       return NextResponse.json(
         { success: false, statusCode: 404, error: { code: "USER_NOT_FOUND", message: "No account found with this email address. Please sign up first." } },
         { status: 404 }
@@ -104,7 +108,6 @@ export async function POST(req: Request) {
 
     // SCENARIO 2: Password Mismatch
     if (!isPasswordValid) {
-      console.warn(`[LOGIN_API:FAIL] email=${cleanEmail} reason=INCORRECT_PASSWORD`);
       return NextResponse.json(
         { success: false, statusCode: 401, error: { code: "INVALID_CREDENTIALS", message: "Incorrect password. Please check your password and try again." } },
         { status: 401 }
@@ -114,7 +117,7 @@ export async function POST(req: Request) {
     // Refetch user record if initially absent
     if (!customUser) {
       const reFetchRes = await fetch(
-        `${url}/rest/v1/users?email=eq.${encodeURIComponent(cleanEmail)}&select=id,email,password_hash,full_name,name,phone,city,wedding_date,is_active,is_verified,vendors(id,business_name,publication_status),user_roles(roles(name))`,
+        `${url}/rest/v1/users?email=ilike.${encodeURIComponent(cleanEmail)}&select=id,email,password_hash,full_name,name,phone,is_active,is_verified,vendors(id,status,publication_status)`,
         { headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` }, cache: "no-store" }
       ).catch(() => null);
       if (reFetchRes && reFetchRes.ok) {
@@ -128,7 +131,6 @@ export async function POST(req: Request) {
 
     // SCENARIO 3: Deactivated Account
     if (customUser && customUser.is_active === false) {
-      console.warn(`[LOGIN_API:FAIL] userId=${userId} email=${cleanEmail} reason=ACCOUNT_DISABLED`);
       return NextResponse.json(
         { success: false, statusCode: 403, error: { code: "ACCOUNT_DISABLED", message: "Your account has been deactivated. Please contact customer support." } },
         { status: 403 }
@@ -137,9 +139,6 @@ export async function POST(req: Request) {
 
     // Role Resolution
     if (customUser) {
-      if (Array.isArray(customUser.user_roles) && customUser.user_roles.length > 0) {
-        userRoles = customUser.user_roles.map((ur: any) => ur.roles?.name).filter(Boolean);
-      }
       if (Array.isArray(customUser.vendors) && customUser.vendors.length > 0) {
         isVendorAccount = true;
         vendorRecord = customUser.vendors[0];
@@ -155,19 +154,15 @@ export async function POST(req: Request) {
       userRoles.push("customer");
     }
 
-    console.log(`[LOGIN_API:ROLE_RESOLVED] userId=${userId} email=${cleanEmail} roles=[${userRoles.join(",")}] requestedRole="${requestedRole}"`);
-
     // SCENARIO 4: Role/Portal Authorization Checks
     if (requestedRole === "vendor" || requestedRole === "partner") {
       if (!userRoles.includes("vendor") && !isVendorAccount) {
-        console.warn(`[LOGIN_API:FAIL] userId=${userId} email=${cleanEmail} reason=ROLE_MISMATCH_NOT_VENDOR`);
         return NextResponse.json(
           { success: false, statusCode: 403, error: { code: "ROLE_MISMATCH", message: "This email is registered as a customer account. Please log in through the user portal or register as a vendor." } },
           { status: 403 }
         );
       }
       if (vendorRecord && vendorRecord.publication_status === "suspended") {
-        console.warn(`[LOGIN_API:FAIL] userId=${userId} email=${cleanEmail} reason=VENDOR_SUSPENDED`);
         return NextResponse.json(
           { success: false, statusCode: 403, error: { code: "VENDOR_SUSPENDED", message: "Your vendor account is suspended. Please contact support." } },
           { status: 403 }
@@ -175,7 +170,6 @@ export async function POST(req: Request) {
       }
     } else if (requestedRole === "admin") {
       if (!userRoles.includes("admin") && !userRoles.includes("super_admin")) {
-        console.warn(`[LOGIN_API:FAIL] userId=${userId} email=${cleanEmail} reason=ROLE_MISMATCH_NOT_ADMIN`);
         return NextResponse.json(
           { success: false, statusCode: 403, error: { code: "UNAUTHORIZED_ROLE", message: "Access denied. Admin authorization required." } },
           { status: 403 }
@@ -204,8 +198,6 @@ export async function POST(req: Request) {
       roles: userRoles,
       role: primaryRole,
     };
-
-    console.log(`[LOGIN_API:SUCCESS] userId=${userId} email=${cleanEmail} roles=[${userRoles.join(",")}] ms=${Date.now() - startTime}`);
 
     const response = NextResponse.json(
       {
@@ -260,7 +252,6 @@ export async function POST(req: Request) {
 
     return response;
   } catch (err: any) {
-    console.error("[LOGIN_API:CRITICAL_ERROR]", err);
     return NextResponse.json(
       { success: false, statusCode: 500, error: { code: "SERVER_ERROR", message: "An unexpected server error occurred." } },
       { status: 500 }

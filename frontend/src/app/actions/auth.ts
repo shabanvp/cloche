@@ -24,8 +24,6 @@ export async function login(formData: FormData) {
   const password = formData.get("password") as string;
   const requestedRole = ((formData.get("role") as string) || "customer").toLowerCase();
 
-  console.log(`[AUTH:LOGIN_ATTEMPT] email="${email}" requestedRole="${requestedRole}" timestamp=${new Date().toISOString()}`);
-
   if (!email || !password) {
     return { success: false, error: "Email and password are required." };
   }
@@ -40,24 +38,30 @@ export async function login(formData: FormData) {
     let isVendorAccount = false;
     let vendorRecord: any = null;
 
-    // 1. Primary Authentication: Query custom database users table
+    // 1. Primary Authentication: Query custom database users table (case-insensitive lookup)
     if (url && apiKey) {
-      const userRes = await fetch(
-        `${url}/rest/v1/users?email=eq.${encodeURIComponent(email)}&select=id,email,password_hash,full_name,name,phone,city,wedding_date,is_active,is_verified,vendors(id,business_name,publication_status),user_roles(roles(name))`,
+      let userRes = await fetch(
+        `${url}/rest/v1/users?email=eq.${encodeURIComponent(email)}&select=id,email,password_hash,full_name,name,phone,is_active,is_verified,vendors(id,status,publication_status)`,
         {
           headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
           cache: "no-store",
         }
-      ).catch((err) => {
-        console.error("[AUTH:DB_ERROR] Failed to query users table:", err);
-        return null;
-      });
+      ).catch(() => null);
+
+      if (!userRes || !userRes.ok) {
+        userRes = await fetch(
+          `${url}/rest/v1/users?email=ilike.${encodeURIComponent(email)}&select=id,email,password_hash,full_name,name,phone,is_active,is_verified,vendors(id,status,publication_status)`,
+          {
+            headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
+            cache: "no-store",
+          }
+        ).catch(() => null);
+      }
 
       if (userRes && userRes.ok) {
         const users = await userRes.json();
         if (Array.isArray(users) && users.length > 0) {
           user = users[0];
-          console.log(`[AUTH:USER_FOUND] user_id=${user.id} email=${user.email} is_active=${user.is_active} is_verified=${user.is_verified}`);
         }
       }
     }
@@ -69,11 +73,9 @@ export async function login(formData: FormData) {
     let isPasswordValid = false;
     if (user?.password_hash && verifyPassword(password, user.password_hash)) {
       isPasswordValid = true;
-      console.log(`[AUTH:PASS_VERIFY] Password verified via public.users hash match.`);
 
       // If Supabase Auth failed (out of sync), sync Supabase Auth user password
       if (authResult.error && url && (serviceKey || apiKey) && user.id) {
-        console.log(`[AUTH:SYNC] Syncing Supabase Auth user password for id=${user.id}`);
         await fetch(`${url}/auth/v1/admin/users/${user.id}`, {
           method: "PUT",
           headers: {
@@ -86,12 +88,10 @@ export async function login(formData: FormData) {
       }
     } else if (!authResult.error && authResult.user) {
       isPasswordValid = true;
-      console.log(`[AUTH:PASS_VERIFY] Password verified via Supabase Auth.`);
 
       // If public.users password_hash was out of sync or missing, update it
       if (url && apiKey) {
         const syncHash = hashPassword(password);
-        console.log(`[AUTH:SYNC] Syncing public.users password_hash for email=${email}`);
         await fetch(`${url}/rest/v1/users?email=eq.${encodeURIComponent(email)}`, {
           method: "PATCH",
           headers: {
@@ -106,20 +106,18 @@ export async function login(formData: FormData) {
 
     // SCENARIO 1: User exists nowhere
     if (!user && (authResult.error || !authResult.user)) {
-      console.warn(`[AUTH:FAIL] email=${email} reason=USER_NOT_FOUND`);
       return { success: false, error: "No account found with this email address. Please sign up first." };
     }
 
     // SCENARIO 2: User exists but password is incorrect
     if (!isPasswordValid) {
-      console.warn(`[AUTH:FAIL] email=${email} reason=INCORRECT_PASSWORD`);
       return { success: false, error: "Incorrect password. Please check your password and try again." };
     }
 
     // If user record wasn't found in DB originally but Supabase Auth succeeded, attempt refetch
     if (!user && url && apiKey) {
       const reFetchRes = await fetch(
-        `${url}/rest/v1/users?email=eq.${encodeURIComponent(email)}&select=id,email,password_hash,full_name,name,phone,city,wedding_date,is_active,is_verified,vendors(id,business_name,publication_status),user_roles(roles(name))`,
+        `${url}/rest/v1/users?email=ilike.${encodeURIComponent(email)}&select=id,email,password_hash,full_name,name,phone,is_active,is_verified,vendors(id,status,publication_status)`,
         { headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` }, cache: "no-store" }
       ).catch(() => null);
       if (reFetchRes && reFetchRes.ok) {
@@ -134,15 +132,11 @@ export async function login(formData: FormData) {
 
     // SCENARIO 3: Account is inactive/disabled
     if (user && user.is_active === false) {
-      console.warn(`[AUTH:FAIL] userId=${userId} email=${userEmail} reason=ACCOUNT_DISABLED`);
       return { success: false, error: "Your account has been deactivated. Please contact customer support." };
     }
 
     // Resolve Roles and Vendor Profile
     if (user) {
-      if (Array.isArray(user.user_roles) && user.user_roles.length > 0) {
-        userRoles = user.user_roles.map((ur: any) => ur.roles?.name).filter(Boolean);
-      }
       if (Array.isArray(user.vendors) && user.vendors.length > 0) {
         isVendorAccount = true;
         vendorRecord = user.vendors[0];
@@ -159,19 +153,15 @@ export async function login(formData: FormData) {
       userRoles.push("customer");
     }
 
-    console.log(`[AUTH:ROLE_RESOLVED] userId=${userId} email=${userEmail} roles=[${userRoles.join(",")}] requestedRole="${requestedRole}"`);
-
     // SCENARIO 4: Role/Portal Authorization Checks
     if (requestedRole === "vendor" || requestedRole === "partner") {
       if (!userRoles.includes("vendor") && !isVendorAccount) {
-        console.warn(`[AUTH:FAIL] userId=${userId} email=${userEmail} reason=ROLE_MISMATCH_NOT_VENDOR`);
         return {
           success: false,
           error: "This email is registered as a customer account. Please log in through the user portal or register as a vendor.",
         };
       }
       if (vendorRecord && vendorRecord.publication_status === "suspended") {
-        console.warn(`[AUTH:FAIL] userId=${userId} email=${userEmail} reason=VENDOR_SUSPENDED`);
         return {
           success: false,
           error: "Your vendor account is suspended. Please contact support.",
@@ -179,7 +169,6 @@ export async function login(formData: FormData) {
       }
     } else if (requestedRole === "admin") {
       if (!userRoles.includes("admin") && !userRoles.includes("super_admin")) {
-        console.warn(`[AUTH:FAIL] userId=${userId} email=${userEmail} reason=ROLE_MISMATCH_NOT_ADMIN`);
         return {
           success: false,
           error: "Access denied. Admin authorization required.",
@@ -207,9 +196,8 @@ export async function login(formData: FormData) {
       name: displayName,
       fullName: displayName,
       phone: user?.phone || "",
-      city: user?.city || "",
-      wedding_date: user?.wedding_date || "",
-      weddingDate: user?.wedding_date || "",
+      city: "",
+      wedding_date: "",
       roles: userRoles,
       role: activeRole,
     };
@@ -220,10 +208,8 @@ export async function login(formData: FormData) {
     cookieStore.set("user_role", activeRole, { httpOnly: false, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 });
     cookieStore.set("user_data", encodeURIComponent(JSON.stringify(userObj)), { httpOnly: false, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60 });
 
-    console.log(`[AUTH:SUCCESS] userId=${userId} email=${userEmail} activeRole=${activeRole}`);
     return { success: true, user: userObj, token };
   } catch (error: any) {
-    console.error("[AUTH:CRITICAL_ERROR]", error);
     return { success: false, error: "An unexpected server error occurred during login. Please try again." };
   }
 }
@@ -239,9 +225,8 @@ export async function signup(formData: FormData) {
     const { url, anonKey, serviceKey } = getSupabaseConfig();
     const apiKey = serviceKey || anonKey;
 
-    // Check if user already exists
     if (url && apiKey) {
-      const checkRes = await fetch(`${url}/rest/v1/users?email=eq.${encodeURIComponent(email)}&select=id`, {
+      const checkRes = await fetch(`${url}/rest/v1/users?email=ilike.${encodeURIComponent(email)}&select=id`, {
         headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
       });
       if (checkRes.ok) {
@@ -439,7 +424,7 @@ export async function getCurrentUser() {
 
   const { url, anonKey } = getSupabaseConfig();
   if (url && anonKey && (email || userId)) {
-    const filter = userId ? `id=eq.${encodeURIComponent(userId)}` : `email=eq.${encodeURIComponent(email!)}`;
+    const filter = userId ? `id=eq.${encodeURIComponent(userId)}` : `email=ilike.${encodeURIComponent(email!)}`;
     const dbRes = await fetch(`${url}/rest/v1/users?${filter}&select=id,email,full_name,name,phone`, {
       headers: { apikey: anonKey, Authorization: `Bearer ${anonKey}` },
       cache: "no-store",
@@ -451,22 +436,6 @@ export async function getCurrentUser() {
         const u = rows[0];
         const dbName = u.full_name || u.name || (u.email ? u.email.split("@")[0] : "User");
 
-        let userCity = "";
-        let userWeddingDate = "";
-        try {
-          const prefRes = await fetch(`${url}/rest/v1/user_preferences?user_id=eq.${encodeURIComponent(u.id)}&select=preferred_city,wedding_date`, {
-            headers: { apikey: anonKey, Authorization: `Bearer ${anonKey}` },
-            cache: "no-store",
-          });
-          if (prefRes.ok) {
-            const prefRows = await prefRes.json();
-            if (Array.isArray(prefRows) && prefRows.length > 0) {
-              userCity = prefRows[0].preferred_city || "";
-              userWeddingDate = prefRows[0].wedding_date || "";
-            }
-          }
-        } catch (e) {}
-
         return {
           success: true,
           user: {
@@ -476,9 +445,8 @@ export async function getCurrentUser() {
             name: dbName,
             fullName: dbName,
             phone: u.phone || "",
-            city: userCity,
-            wedding_date: userWeddingDate,
-            weddingDate: userWeddingDate,
+            city: "",
+            wedding_date: "",
           },
         };
       }
@@ -519,7 +487,7 @@ export async function resetPasswordAction(email: string, newPassword?: string) {
     const passwordToSet = newPassword || "ClochePass2026!";
     const newHash = hashPassword(passwordToSet);
 
-    await fetch(`${url}/rest/v1/users?email=eq.${encodeURIComponent(cleanEmail)}`, {
+    await fetch(`${url}/rest/v1/users?email=ilike.${encodeURIComponent(cleanEmail)}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
