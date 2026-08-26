@@ -2,7 +2,7 @@
 
 import { cookies } from "next/headers";
 import { verifyJwtToken, hashPassword, verifyPassword, signJwtToken, hashSessionToken, AUTH_COOKIE_NAME, SESSION_EXPIRY_DAYS } from "@/lib/auth";
-import { getSupabaseConfig, signInWithSupabaseAuth } from "@/lib/supabase";
+import { getSupabaseConfig, signInWithSupabaseAuth, signUpWithSupabaseAuth } from "@/lib/supabase";
 
 const rawBaseUrl = process.env.NEXT_PUBLIC_API_URL || "https://cloche-backend.onrender.com";
 const API_BASE_URL = rawBaseUrl.endsWith('/api') ? rawBaseUrl : `${rawBaseUrl}/api`;
@@ -182,15 +182,46 @@ export async function signup(formData: FormData) {
     if (url && (serviceKey || anonKey)) {
       const apiKey = serviceKey || anonKey;
       const passwordHash = hashPassword(password);
-      const userPayload = {
+
+      // Create Supabase Auth user as single source of truth for auth
+      let authUserId: string | null = null;
+      const authAdminRes = await fetch(`${url}/auth/v1/admin/users`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: apiKey,
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          email,
+          password,
+          email_confirm: true,
+          user_metadata: { full_name: name, role },
+        }),
+      }).catch(() => null);
+
+      if (authAdminRes && authAdminRes.ok) {
+        const authData = await authAdminRes.json().catch(() => null);
+        if (authData?.id) authUserId = authData.id;
+      }
+      if (!authUserId) {
+        const authResult = await signUpWithSupabaseAuth(email, password, { full_name: name, role });
+        if (authResult.user?.id) authUserId = authResult.user.id;
+      }
+
+      const userPayload: any = {
         email,
         password_hash: passwordHash,
         full_name: name,
         name: name,
         phone: phone || null,
         is_active: true,
-        is_verified: false,
+        is_verified: true,
       };
+
+      if (authUserId) {
+        userPayload.id = authUserId;
+      }
 
       const insertRes = await fetch(`${url}/rest/v1/users`, {
         method: "POST",
