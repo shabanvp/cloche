@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -51,26 +51,26 @@ export function DigitalInvitationsClient() {
           </div>
         </section>
 
-        {/* Main Content Area — Direct Invitation Template Grid */}
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        {/* Main Content Area — 2-Column Mobile Image Grid / 4-Column Desktop Cards */}
+        <main className="max-w-7xl mx-auto px-3 sm:px-6 py-6 sm:py-8">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
             {DIGITAL_INVITE_TEMPLATES.map((template) => {
               const isFav = favorites.has(template.id);
               return (
                 <Link
                   key={template.id}
-                  href={`/digital-invitations/${template.slug}`}
-                  className="bg-white rounded-2xl overflow-hidden border border-gold/15 shadow-xs hover:shadow-md transition-all group flex flex-col justify-between p-3"
+                  href={`/digital-invitations/${template.slug}/customize`}
+                  className="bg-white rounded-2xl overflow-hidden border border-gold/15 shadow-xs hover:shadow-md transition-all group flex flex-col justify-between p-1.5 sm:p-3"
                 >
                   <div>
-                    {/* Real Invitation Design Render */}
+                    {/* Real Invitation Design Render Tile */}
                     <div className="relative aspect-[3/4] overflow-hidden rounded-xl">
                       <InvitationCardPreview template={template} compact />
 
-                      {/* Favorite Button */}
+                      {/* Favorite Heart Button */}
                       <button
                         onClick={(e) => toggleFavorite(e, template.id)}
-                        className="absolute top-2 left-2 z-20 bg-white/90 backdrop-blur-xs p-1.5 rounded-full shadow-md text-charcoal/70 hover:text-rose-600 transition-colors"
+                        className="absolute top-2 left-2 z-20 bg-white/90 backdrop-blur-xs p-1.5 rounded-full shadow-md text-charcoal/70 hover:text-rose-600 transition-colors cursor-pointer"
                         title="Save to Favorites"
                       >
                         <Heart
@@ -80,26 +80,26 @@ export function DigitalInvitationsClient() {
                         />
                       </button>
 
-                      {/* Badge */}
+                      {/* Badge Overlay */}
                       {template.badge && (
                         <div className="absolute top-2 right-2 z-20">
                           {template.badge === "Free" && (
-                            <span className="bg-emerald-700 text-white text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full shadow-sm">
+                            <span className="bg-emerald-700 text-white text-[8px] sm:text-[9px] font-extrabold uppercase tracking-wider px-1.5 sm:px-2 py-0.5 rounded-full shadow-sm">
                               Free
                             </span>
                           )}
                           {template.badge === "Premium" && (
-                            <span className="bg-amber-600 text-white text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full shadow-sm border border-amber-300">
+                            <span className="bg-amber-600 text-white text-[8px] sm:text-[9px] font-extrabold uppercase tracking-wider px-1.5 sm:px-2 py-0.5 rounded-full shadow-sm border border-amber-300">
                               Premium
                             </span>
                           )}
                           {template.badge === "New" && (
-                            <span className="bg-[#0F4C45] text-white text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full shadow-sm">
+                            <span className="bg-[#0F4C45] text-white text-[8px] sm:text-[9px] font-extrabold uppercase tracking-wider px-1.5 sm:px-2 py-0.5 rounded-full shadow-sm">
                               New
                             </span>
                           )}
                           {template.badge === "Trending" && (
-                            <span className="bg-rose-600 text-white text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full shadow-sm flex items-center gap-0.5">
+                            <span className="bg-rose-600 text-white text-[8px] sm:text-[9px] font-extrabold uppercase tracking-wider px-1.5 sm:px-2 py-0.5 rounded-full shadow-sm flex items-center gap-0.5">
                               <Flame className="w-2.5 h-2.5" /> Trending
                             </span>
                           )}
@@ -107,8 +107,8 @@ export function DigitalInvitationsClient() {
                       )}
                     </div>
 
-                    {/* Info */}
-                    <div className="p-3 space-y-0.5 text-left">
+                    {/* Info (DESKTOP ONLY — Hidden on Mobile for Clean 2-Column Image Grid) */}
+                    <div className="hidden sm:block p-3 space-y-0.5 text-left">
                       <h3 className="font-bold text-sm sm:text-base font-display text-charcoal group-hover:text-[#0F4C45] transition-colors line-clamp-1">
                         {template.name}
                       </h3>
@@ -118,7 +118,8 @@ export function DigitalInvitationsClient() {
                     </div>
                   </div>
 
-                  <div className="px-2 pb-2 pt-1">
+                  {/* Button (DESKTOP ONLY — Hidden on Mobile) */}
+                  <div className="hidden sm:block px-2 pb-2 pt-1">
                     <span className="w-full block text-center py-2 bg-[#FAF7F2] group-hover:bg-[#0F4C45] text-[#0F4C45] group-hover:text-white font-bold text-xs rounded-xl transition-colors">
                       Customize Design →
                     </span>
