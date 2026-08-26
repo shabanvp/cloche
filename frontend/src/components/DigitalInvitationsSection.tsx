@@ -41,7 +41,7 @@ export function DigitalInvitationsSection() {
 
   return (
     <section className="py-8 sm:py-10 bg-[#FAF7F2] border-y border-gold/15 my-6 sm:my-8 w-full">
-      <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-8 lg:px-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
         <div className="flex items-end justify-between mb-6 gap-4">
@@ -68,7 +68,7 @@ export function DigitalInvitationsSection() {
           </Link>
         </div>
 
-        {/* Templates Display — Full Width Desktop Grid / Preserved Mobile Carousel */}
+        {/* Templates Display — Standardized Padding Grid */}
         <div
           ref={scrollRef}
           onMouseEnter={() => setIsPaused(true)}
@@ -77,7 +77,7 @@ export function DigitalInvitationsSection() {
           onTouchEnd={() => {
             setTimeout(() => setIsPaused(false), 3000);
           }}
-          className="flex overflow-x-auto hide-scrollbar snap-x snap-mandatory gap-3 -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-4 md:gap-5 lg:gap-6 md:overflow-visible pb-2"
+          className="flex overflow-x-auto hide-scrollbar snap-x snap-mandatory gap-3 md:grid md:grid-cols-4 md:gap-5 md:overflow-visible pb-2"
         >
           {featuredTemplates.map((template) => (
             <Link
