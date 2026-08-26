@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Mail, CheckCircle2, Loader2 } from "lucide-react";
 import { AuthShell } from "@/components/AuthShell";
+import { resetPasswordAction } from "@/app/actions/auth";
 
 function ForgotPasswordForm() {
   const searchParams = useSearchParams();
@@ -13,6 +14,7 @@ function ForgotPasswordForm() {
   const [email, setEmail] = useState("");
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
 
   const getSubtitle = () => {
     if (roleParam === "admin") return "Administrative\nPassword Reset";
@@ -26,13 +28,19 @@ function ForgotPasswordForm() {
     return "/login";
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
+    setErrorMsg("");
+
+    const res = await resetPasswordAction(email);
+    setIsSubmitting(false);
+
+    if (res?.success) {
       setIsSubmitted(true);
-    }, 800);
+    } else {
+      setErrorMsg(res?.error || "Failed to initiate password reset.");
+    }
   };
 
   return (
