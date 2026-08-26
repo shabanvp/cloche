@@ -8,6 +8,7 @@
  */
 
 import crypto from "crypto";
+import bcrypt from "bcryptjs";
 
 const JWT_SECRET = process.env.JWT_SECRET || process.env.NEXT_AUTH_SECRET || "cloche_master_jwt_secret_key_2026_super_secure_key_84920";
 const AUTH_COOKIE_NAME = "cloche_auth_token";
@@ -32,13 +33,32 @@ export function hashPassword(password: string): string {
 }
 
 /**
- * Verify a plain-text password against a stored PBKDF2 salt:hash string
+ * Verify a plain-text password against a stored hash (PBKDF2 or Bcrypt)
  */
 export function verifyPassword(password: string, storedHash: string): boolean {
-  if (!storedHash || !storedHash.includes(":")) return false;
-  const [salt, originalHash] = storedHash.split(":");
-  const hashToVerify = crypto.pbkdf2Sync(password, salt, 100000, 64, "sha512").toString("hex");
-  return crypto.timingSafeEqual(Buffer.from(originalHash, "hex"), Buffer.from(hashToVerify, "hex"));
+  if (!storedHash || typeof storedHash !== "string") return false;
+
+  // 1. Support legacy Bcrypt hashes ($2a$, $2b$, $2y$)
+  if (storedHash.startsWith("$2a$") || storedHash.startsWith("$2b$") || storedHash.startsWith("$2y$")) {
+    try {
+      return bcrypt.compareSync(password, storedHash);
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // 2. Support PBKDF2 (salt:hash)
+  if (storedHash.includes(":")) {
+    try {
+      const [salt, originalHash] = storedHash.split(":");
+      const hashToVerify = crypto.pbkdf2Sync(password, salt, 100000, 64, "sha512").toString("hex");
+      return crypto.timingSafeEqual(Buffer.from(originalHash, "hex"), Buffer.from(hashToVerify, "hex"));
+    } catch (e) {
+      return false;
+    }
+  }
+
+  return false;
 }
 
 /**
