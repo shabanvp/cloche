@@ -113,6 +113,12 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
   const [similarStudios, setSimilarStudios] = useState<any[]>([]);
   const [similarStudiosLoading, setSimilarStudiosLoading] = useState(true);
 
+  // Boutique Collections & Lightbox State
+  const [activeCollectionModal, setActiveCollectionModal] = useState<any | null>(null);
+  const [wishlistOutfits, setWishlistOutfits] = useState<Set<string>>(new Set());
+
+
+
   // Average Rating Calculation
   const averageRatingScore = useMemo(() => {
     if (reviewsList.length === 0) return Number(vendor?.rating || 4.8);
@@ -209,6 +215,142 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
     const raw = propStorefront || vendor?.storefront || vendor?.storefront_config || {};
     return typeof raw === "object" ? raw : {};
   }, [propStorefront, vendor]);
+
+  // Canonical Collections created by this Wedding Studio
+  const boutiqueCollectionsList = useMemo(() => {
+    if (Array.isArray(vendor?.collections) && vendor.collections.length > 0) return vendor.collections;
+    if (Array.isArray(sf?.collections) && sf.collections.length > 0) return sf.collections;
+    return [
+      {
+        id: "col-1",
+        name: "Royal Zardozi Bridal Collection",
+        category: "Bridal",
+        description: "Hand-embroidered zardozi maroon & crimson lehengas with pure silk dupattas for ceremonial weddings.",
+        coverImage: "https://images.unsplash.com/photo-1594223274512-ad4803739b7c?q=80&w=800&auto=format&fit=crop",
+        outfitCount: 18,
+        outfits: [
+          {
+            id: "out-101",
+            name: "Crimson Velvet Zardozi Lehenga",
+            price: "₹18,500 / 3 Days",
+            category: "Bride",
+            sizes: ["S", "M", "L", "XL"],
+            image: "https://images.unsplash.com/photo-1594223274512-ad4803739b7c?q=80&w=800&auto=format&fit=crop",
+          },
+          {
+            id: "out-102",
+            name: "Emerald & Gold Raw Silk Lehenga",
+            price: "₹16,000 / 3 Days",
+            category: "Bride",
+            sizes: ["M", "L"],
+            image: "https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?q=80&w=800&auto=format&fit=crop",
+          },
+          {
+            id: "out-103",
+            name: "Deep Maroon Royal Bridal Gown",
+            price: "₹21,000 / 3 Days",
+            category: "Bride",
+            sizes: ["S", "M", "L"],
+            image: "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=800&auto=format&fit=crop",
+          },
+          {
+            id: "out-104",
+            name: "Pastel Pink Designer Wedding Lehenga",
+            price: "₹15,500 / 3 Days",
+            category: "Bride",
+            sizes: ["M", "L", "XL"],
+            image: "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?q=80&w=800&auto=format&fit=crop",
+          },
+        ],
+      },
+      {
+        id: "col-2",
+        name: "Luxe Groom Velvet Sherwani Collection",
+        category: "Groom",
+        description: "Royal velvet & raw silk sherwanis complete with embroidered safa, stolen dupatta, and ceremonial footwear.",
+        coverImage: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=800&auto=format&fit=crop",
+        outfitCount: 14,
+        outfits: [
+          {
+            id: "out-201",
+            name: "Ivory & Gold Raw Silk Sherwani",
+            price: "₹14,500 / 3 Days",
+            category: "Groom",
+            sizes: ["38", "40", "42", "44"],
+            image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=800&auto=format&fit=crop",
+          },
+          {
+            id: "out-202",
+            name: "Royal Navy Blue Velvet Indo-Western Suit",
+            price: "₹13,000 / 3 Days",
+            category: "Groom",
+            sizes: ["40", "42"],
+            image: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=800&auto=format&fit=crop",
+          },
+          {
+            id: "out-203",
+            name: "Black Velvet Embellished Jodhpuri Set",
+            price: "₹12,500 / 3 Days",
+            category: "Groom",
+            sizes: ["38", "40", "42"],
+            image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=800&auto=format&fit=crop",
+          },
+        ],
+      },
+      {
+        id: "col-3",
+        name: "Ceremonial Couple Matching Ensemble",
+        category: "Couple",
+        description: "Coordinated bride and groom ceremonial outfits styled with matching embroidery motifs and color palettes.",
+        coverImage: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=800&auto=format&fit=crop",
+        outfitCount: 10,
+        outfits: [
+          {
+            id: "out-301",
+            name: "Crimson & Gold Coordinated Couple Set",
+            price: "₹28,000 / 3 Days (Pair)",
+            category: "Couple",
+            sizes: ["Bride M / Groom 40", "Bride L / Groom 42"],
+            image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=800&auto=format&fit=crop",
+          },
+          {
+            id: "out-302",
+            name: "Pastel Mint & Cream Reception Pair",
+            price: "₹25,000 / 3 Days (Pair)",
+            category: "Couple",
+            sizes: ["Bride S / Groom 38", "Bride M / Groom 40"],
+            image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=800&auto=format&fit=crop",
+          },
+        ],
+      },
+      {
+        id: "col-4",
+        name: "Reception & Indo-Western Couture",
+        category: "Reception",
+        description: "Modern evening gowns, cocktail sarees, tuxedo suits, and Indo-Western fusion wear for sangeet & reception.",
+        coverImage: "https://images.unsplash.com/photo-1566174053879-31528523f8ae?q=80&w=800&auto=format&fit=crop",
+        outfitCount: 16,
+        outfits: [
+          {
+            id: "out-401",
+            name: "Emerald Green Satin Reception Ball Gown",
+            price: "₹17,500 / 3 Days",
+            category: "Bride",
+            sizes: ["S", "M", "L"],
+            image: "https://images.unsplash.com/photo-1566174053879-31528523f8ae?q=80&w=800&auto=format&fit=crop",
+          },
+          {
+            id: "out-402",
+            name: "Midnight Tuxedo Suit with Velvet Lapel",
+            price: "₹11,000 / 3 Days",
+            category: "Groom",
+            sizes: ["38", "40", "42", "44"],
+            image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=800&auto=format&fit=crop",
+          },
+        ],
+      },
+    ];
+  }, [vendor, sf]);
 
   // Color Theme Resolution
   const themeId = sf.theme || vendor?.colorTheme || vendor?.color_theme || "emerald";
@@ -821,6 +963,82 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
                   <Building className="w-4 h-4 text-[#0F4C45] shrink-0" /> <span>Get Directions</span>
                 </a>
               )}
+            </div>
+          </div>
+
+          {/* B. BOUTIQUE SHOWROOM FEATURED COLLECTIONS */}
+          <div className="bg-white rounded-3xl p-5 sm:p-6 border border-gold/15 shadow-sm space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gold/10 pb-4">
+              <div>
+                <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-[#0F4C45]/10 text-[#0F4C45] text-[10px] font-bold uppercase tracking-wider mb-1">
+                  <Sparkles className="w-3.5 h-3.5 text-[#C8A96A]" /> Digital Showroom
+                </span>
+                <h2 className="font-serif font-bold text-xl sm:text-2xl text-charcoal">
+                  Our Collections
+                </h2>
+                <p className="text-xs text-charcoal/60">
+                  Explore signature rental collections crafted by {displayName}
+                </p>
+              </div>
+
+              <Link
+                href={`/wedding-story/${vendor?.slug || vendor?.id || "boutique"}/collections`}
+                className="py-2 px-3.5 rounded-xl border border-gold/30 text-charcoal hover:bg-[#0F4C45] hover:text-white font-bold text-xs transition-all flex items-center gap-1.5 shrink-0 self-start sm:self-center"
+              >
+                <span>View All Collections</span>
+                <ChevronRight className="w-4 h-4" />
+              </Link>
+            </div>
+
+            {/* Featured Collections Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {boutiqueCollectionsList.slice(0, 4).map((col: any) => (
+                <div
+                  key={col.id}
+                  onClick={() => setActiveCollectionModal(col)}
+                  className="bg-[#FAF7F2] rounded-2xl border border-gold/15 hover:border-gold/40 shadow-2xs hover:shadow-md transition-all overflow-hidden cursor-pointer group flex flex-col justify-between"
+                >
+                  <div>
+                    <div className="relative aspect-[16/10] w-full overflow-hidden bg-charcoal">
+                      <img
+                        src={col.coverImage}
+                        alt={col.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                      <span className="absolute top-3 left-3 bg-black/60 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-white/20">
+                        {col.category || "Rental Collection"}
+                      </span>
+                      <span className="absolute bottom-3 right-3 bg-white/95 backdrop-blur-md text-charcoal text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow-xs">
+                        {col.outfitCount || (col.outfits ? col.outfits.length : 12)} Outfits
+                      </span>
+                    </div>
+
+                    <div className="p-4 space-y-1.5">
+                      <h3 className="font-serif font-bold text-base text-charcoal group-hover:text-[#0F4C45] transition-colors">
+                        {col.name}
+                      </h3>
+                      <p className="text-xs text-charcoal/70 line-clamp-2 leading-relaxed">
+                        {col.description}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="px-4 pb-4 pt-1 flex items-center justify-between text-xs font-bold text-[#0F4C45] border-t border-gold/10">
+                    <span>Tap to Browse Outfits</span>
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="pt-2 text-center">
+              <Link
+                href={`/wedding-story/${vendor?.slug || vendor?.id || "boutique"}/collections`}
+                className="inline-flex items-center justify-center gap-2 w-full py-3 rounded-2xl bg-[#0F4C45] text-white font-bold text-xs shadow-md hover:bg-[#12584E] transition-all"
+              >
+                <span>View All Collections ({boutiqueCollectionsList.length})</span>
+                <ChevronRight className="w-4 h-4" />
+              </Link>
             </div>
           </div>
 
@@ -1442,6 +1660,111 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
         </section>
 
       </div>
+
+      {/* ── COLLECTION OUTFITS LIGHTBOX MODAL ── */}
+      {activeCollectionModal && (
+        <div
+          onClick={() => setActiveCollectionModal(null)}
+          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-3xl max-w-4xl w-full border border-gold/25 shadow-2xl overflow-hidden my-8 animate-in fade-in zoom-in-95 duration-200"
+          >
+            {/* Header */}
+            <div className="bg-[#FAF7F2] p-5 sm:p-6 border-b border-gold/15 flex items-start justify-between gap-4">
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-wider bg-[#0F4C45]/10 text-[#0F4C45] px-2.5 py-0.5 rounded-full inline-block mb-1">
+                  {activeCollectionModal.category} Collection • {displayName}
+                </span>
+                <h3 className="font-serif font-bold text-xl sm:text-2xl text-charcoal">
+                  {activeCollectionModal.name}
+                </h3>
+                <p className="text-xs text-charcoal/70 mt-1">
+                  {activeCollectionModal.description}
+                </p>
+              </div>
+
+              <button
+                onClick={() => setActiveCollectionModal(null)}
+                className="bg-white p-2 rounded-full border border-gold/20 text-charcoal/60 hover:text-charcoal hover:bg-gold/10 transition-colors shrink-0 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Outfits Grid */}
+            <div className="p-5 sm:p-6 max-h-[65vh] overflow-y-auto space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                {(activeCollectionModal.outfits || []).map((outfit: any) => {
+                  const isLiked = wishlistOutfits.has(outfit.id);
+                  return (
+                    <div
+                      key={outfit.id}
+                      className="bg-[#FAF7F2] rounded-2xl border border-gold/15 overflow-hidden shadow-2xs space-y-3 flex flex-col justify-between"
+                    >
+                      <div>
+                        <div className="relative aspect-[3/4] w-full overflow-hidden bg-charcoal">
+                          <img
+                            src={outfit.image}
+                            alt={outfit.name}
+                            className="w-full h-full object-cover"
+                          />
+                          <button
+                            onClick={() => {
+                              const next = new Set(wishlistOutfits);
+                              if (isLiked) next.delete(outfit.id);
+                              else next.add(outfit.id);
+                              setWishlistOutfits(next);
+                            }}
+                            className="absolute top-3 right-3 bg-white/80 backdrop-blur-md p-2 rounded-full shadow-xs hover:bg-white text-rose-500 transition-all cursor-pointer"
+                          >
+                            <Heart className={`w-4 h-4 ${isLiked ? "fill-rose-500" : ""}`} />
+                          </button>
+                          <span className="absolute bottom-3 left-3 bg-black/60 backdrop-blur-md text-white text-[10px] font-bold px-2 py-0.5 rounded-md">
+                            {outfit.category}
+                          </span>
+                        </div>
+
+                        <div className="p-3.5 space-y-1.5">
+                          <h4 className="font-bold text-xs text-charcoal line-clamp-1">{outfit.name}</h4>
+                          <p className="text-xs font-bold text-[#0F4C45]">{outfit.price}</p>
+
+                          {outfit.sizes && (
+                            <div className="flex flex-wrap items-center gap-1 pt-1">
+                              <span className="text-[10px] font-semibold text-charcoal/50">Sizes:</span>
+                              {outfit.sizes.map((s: string) => (
+                                <span
+                                  key={s}
+                                  className="text-[10px] font-bold bg-white border border-gold/20 text-charcoal px-1.5 py-0.2 rounded"
+                                >
+                                  {s}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="p-3.5 pt-0">
+                        <a
+                          href={`https://wa.me/${(whatsapp || "+919847055443").replace(/[^0-9]/g, "")}?text=Hi%20${encodeURIComponent(displayName)},%20I%20am%20interested%20in%20renting%20the%20${encodeURIComponent(outfit.name)}%20(${encodeURIComponent(outfit.price)})%20from%20your%20${encodeURIComponent(activeCollectionModal.name)}.`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{ backgroundColor: activeTheme.primary }}
+                          className="block w-full py-2.5 rounded-xl text-center text-white font-bold text-[11px] shadow-2xs hover:opacity-90 transition-all"
+                        >
+                          Inquire on WhatsApp
+                        </a>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── PHOTO LIGHTBOX MODAL ── */}
       {selectedPhoto && (
