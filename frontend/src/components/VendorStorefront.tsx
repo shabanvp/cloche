@@ -688,11 +688,13 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
   }, [vendor]);
 
   const rentalInfo = useMemo(() => {
+    const p = (typeof sf.policies === "object" && sf.policies !== null ? sf.policies : {}) as Record<string, any>;
     return {
-      duration: vendor?.rentalDuration || sf.rentalDuration || "3 Days (Pickup day before event, Return day after)",
-      deposit: vendor?.securityDeposit || sf.securityDeposit || "₹10,000 (Refundable upon return inspection)",
-      returnPolicy: vendor?.returnPolicy || sf.returnPolicy || "Return within agreed rental duration. Delayed returns attract ₹1,000/day late fee.",
-      damagePolicy: vendor?.damagePolicy || sf.damagePolicy || "Minor wear & tear accepted. Severe fabric damage or stains deducted from security deposit.",
+      duration: vendor?.rentalDuration || vendor?.rental_policy || vendor?.rental_duration || sf.rentalDuration || p.rentalDuration || "3 Days (Pickup day before event, Return day after)",
+      deposit: vendor?.securityDeposit || vendor?.security_deposit || sf.securityDeposit || p.securityDeposit || "₹10,000 (Refundable upon return inspection)",
+      returnPolicy: vendor?.returnPolicy || vendor?.return_policy || sf.returnPolicy || p.returnPolicy || "Return within agreed rental duration. Delayed returns attract ₹1,000/day late fee.",
+      cancellationPolicy: vendor?.cancellationPolicy || vendor?.cancellation_policy || sf.cancellationPolicy || p.cancellationPolicy || "",
+      damagePolicy: vendor?.damagePolicy || vendor?.damage_policy || sf.damagePolicy || p.damagePolicy || "",
     };
   }, [vendor, sf]);
 
@@ -1507,6 +1509,20 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
                   <span className="text-[10px] font-semibold uppercase text-charcoal/50 block">Return & Late Fee Policy</span>
                   <p className="text-charcoal/70 leading-relaxed text-[11px]">{rentalInfo.returnPolicy}</p>
                 </div>
+
+                {rentalInfo.cancellationPolicy && (
+                  <div className="space-y-0.5 border-t border-gray-100/80 pt-2">
+                    <span className="text-[10px] font-semibold uppercase text-charcoal/50 block">Cancellation Policy</span>
+                    <p className="text-charcoal/70 leading-relaxed text-[11px]">{rentalInfo.cancellationPolicy}</p>
+                  </div>
+                )}
+
+                {rentalInfo.damagePolicy && (
+                  <div className="space-y-0.5 border-t border-gray-100/80 pt-2">
+                    <span className="text-[10px] font-semibold uppercase text-charcoal/50 block">Damage & Stain Policy</span>
+                    <p className="text-charcoal/70 leading-relaxed text-[11px]">{rentalInfo.damagePolicy}</p>
+                  </div>
+                )}
               </div>
             </div>
           )}
