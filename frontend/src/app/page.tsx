@@ -110,7 +110,7 @@ export default function Home() {
     // Fetch real published real wedding stories
     async function loadStories() {
       try {
-        const res = await fetch("/api/v1/public/real-weddings?limit=6");
+        const res = await fetch("/api/v1/public/real-weddings?limit=3");
         const data = await res.json();
         if (data.success && Array.isArray(data.stories)) {
           setStories(data.stories);
@@ -222,13 +222,13 @@ export default function Home() {
         </section>
 
         {/* Popular Searches */}
-        <section className="py-10 max-w-7xl mx-auto">
-          <div className="px-6 mb-6">
+        <section className="py-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="mb-6">
             <h2 className="text-2xl font-bold text-on-surface font-display">Popular Searches</h2>
           </div>
           
           {/* Responsive Layout: Scrollable on mobile (< md), Full clean grid on Laptop/Desktop (>= md) */}
-          <div className="flex overflow-x-auto hide-scrollbar gap-4 px-6 md:grid md:grid-cols-4 lg:grid-cols-9 md:gap-6 md:overflow-visible">
+          <div className="flex overflow-x-auto hide-scrollbar gap-4 md:grid md:grid-cols-4 lg:grid-cols-9 md:gap-6 md:overflow-visible">
             {HOMEPAGE_CATEGORY_STRIP.map((item) => (
               <Link key={item.label} href={item.href} className="flex-shrink-0 flex flex-col items-center gap-2.5 group cursor-pointer">
                 <div className="w-20 h-20 md:w-24 md:h-24 rounded-2xl overflow-hidden shadow-sm border border-gold/10 ring-2 ring-transparent group-hover:ring-primary group-hover:shadow-md transition-all">
@@ -243,8 +243,8 @@ export default function Home() {
         </section>
 
         {/* Wedding Categories */}
-        <section className="py-8 max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="flex justify-between items-center px-2 mb-6">
+        <section className="py-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold text-on-surface font-display">Wedding Categories</h2>
             <Link href="/categories" className="hidden md:flex items-center gap-1 text-primary font-bold text-sm hover:underline">
               View All Categories <span className="material-symbols-outlined text-[18px]">chevron_right</span>
@@ -286,7 +286,7 @@ export default function Home() {
 
         {/* ── 🔥 TRENDING THIS WEEK SECTION ── */}
         <section className="py-12 bg-[#FAF7F2] my-8 border-y border-gold/15">
-          <div className="max-w-7xl mx-auto px-6">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="mb-8">
               <div className="flex items-center gap-2 mb-1">
                 <span className="bg-amber-100 text-amber-800 text-[11px] font-bold uppercase tracking-widest px-2.5 py-0.5 rounded-full flex items-center gap-1 border border-amber-300">
@@ -302,13 +302,13 @@ export default function Home() {
             </div>
 
             {vendorsLoading ? (
-              <div className="flex overflow-x-auto hide-scrollbar snap-x snap-mandatory gap-4 -mx-6 px-6 md:mx-0 md:px-0 md:grid md:grid-cols-4 md:gap-6 md:overflow-visible pb-2">
+              <div className="flex overflow-x-auto hide-scrollbar snap-x snap-mandatory gap-4 md:grid md:grid-cols-4 md:gap-6 md:overflow-visible pb-2">
                 {[1, 2, 3, 4].map((i) => (
                   <div key={i} className="flex-shrink-0 w-72 sm:w-[300px] md:w-auto h-72 rounded-2xl bg-gray-200/60 animate-pulse snap-start" />
                 ))}
               </div>
             ) : trendingVendors.length > 0 ? (
-              <div className="flex overflow-x-auto hide-scrollbar snap-x snap-mandatory gap-4 -mx-6 px-6 md:mx-0 md:px-0 md:grid md:grid-cols-4 md:gap-6 md:overflow-visible pb-2">
+              <div className="flex overflow-x-auto hide-scrollbar snap-x snap-mandatory gap-4 md:grid md:grid-cols-4 md:gap-6 md:overflow-visible pb-2">
                 {trendingVendors.map((vendor, index) => (
                   <Link
                     key={vendor.id}
@@ -373,7 +373,7 @@ export default function Home() {
         <DigitalInvitationsSection />
 
         {/* App Banner */}
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 my-12">
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 my-12">
           <div className="p-8 md:p-14 rounded-3xl bg-primary text-white relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8 shadow-xl">
             <div className="relative z-10 space-y-6 max-w-xl">
               <span className="bg-gold/20 text-gold px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider inline-block">
@@ -404,7 +404,7 @@ export default function Home() {
               </Link>
             </div>
 
-            <div className="relative z-10 hidden lg:flex flex-col items-center justify-center p-8 bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl text-center min-w-[260px]">
+            <div className="relative z-10 hidden lg:flex flex-col items-center justify-center p-8 bg-[#0B3B2D]/80 backdrop-blur-md border border-white/20 rounded-3xl text-center min-w-[260px]">
               <span className="material-symbols-outlined text-6xl text-gold mb-2">qr_code_2</span>
               <p className="font-bold text-sm">Scan to Install App</p>
               <p className="text-xs text-white/70 mt-1">Available on iOS & Android</p>
@@ -413,8 +413,8 @@ export default function Home() {
         </section>
 
         {/* ── REAL FEATURED VENDORS (DEDUPLICATED & STANDARDIZED) ── */}
-        <section className="py-10 max-w-7xl mx-auto">
-          <div className="px-6 mb-6 flex justify-between items-end">
+        <section className="py-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="mb-6 flex justify-between items-end">
             <div>
               <h2 className="text-2xl font-bold text-on-surface font-display">Featured Vendors</h2>
               <p className="text-xs md:text-sm text-outline mt-1">Handpicked luxury boutiques &amp; wedding experts across Kerala</p>
@@ -423,13 +423,13 @@ export default function Home() {
           </div>
 
           {vendorsLoading ? (
-            <div className="flex overflow-x-auto hide-scrollbar snap-x snap-mandatory gap-4 -mx-6 px-6 md:mx-0 md:px-0 md:grid md:grid-cols-4 md:gap-6 md:overflow-visible pb-2">
+            <div className="flex overflow-x-auto hide-scrollbar snap-x snap-mandatory gap-4 md:grid md:grid-cols-4 md:gap-6 md:overflow-visible pb-2">
               {[1, 2, 3, 4].map((i) => (
                 <div key={i} className="flex-shrink-0 w-72 sm:w-[300px] md:w-auto h-72 rounded-2xl bg-gray-100 animate-pulse border border-gold/10 snap-start" />
               ))}
             </div>
           ) : featuredVendors.length > 0 ? (
-            <div className="flex overflow-x-auto hide-scrollbar snap-x snap-mandatory gap-4 -mx-6 px-6 md:mx-0 md:px-0 md:grid md:grid-cols-4 md:gap-6 md:overflow-visible pb-2">
+            <div className="flex overflow-x-auto hide-scrollbar snap-x snap-mandatory gap-4 md:grid md:grid-cols-4 md:gap-6 md:overflow-visible pb-2">
               {featuredVendors.map((vendor) => (
                 <Link 
                   key={vendor.id} 
@@ -463,7 +463,7 @@ export default function Home() {
                         {vendor.name}
                       </h3>
                       <p className="text-xs text-charcoal/60 flex items-center gap-1">
-                        <MapPin className="w-3 h-3 text-[#0F4C45]" /> {vendor.city || "Kerala"}
+                        <MapPin className="w-3.5 h-3.5 text-[#0F4C45]" /> {vendor.city || "Kerala"}
                       </p>
                     </div>
                   </div>
@@ -475,18 +475,18 @@ export default function Home() {
               ))}
             </div>
           ) : (
-            <div className="px-6 py-8 text-center bg-white rounded-2xl border border-gold/15 max-w-md mx-auto">
+            <div className="py-8 text-center bg-white rounded-2xl border border-gold/15 max-w-md mx-auto">
               <p className="text-xs text-charcoal/60">Explore verified boutiques and registered wedding venues.</p>
               <Link href="/boutiques" className="inline-block mt-3 bg-[#0F4C45] text-white text-xs font-bold px-5 py-2 rounded-full">
-                Browse All Vendors
+                Browse Directory
               </Link>
             </div>
           )}
         </section>
 
         {/* ── REAL WEDDING STORIES (FETCHED LIVE FROM DATABASE) ── */}
-        <section className="py-10 max-w-7xl mx-auto">
-          <div className="px-6 mb-6 flex justify-between items-end">
+        <section className="py-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="mb-6 flex justify-between items-end">
             <div>
               <h2 className="text-2xl font-bold text-on-surface font-display">Real Wedding Stories</h2>
               <p className="text-xs md:text-sm text-outline mt-1">Get inspired by authentic real wedding celebrations in Kerala</p>
@@ -495,14 +495,14 @@ export default function Home() {
           </div>
 
           {storiesLoading ? (
-            <div className="flex overflow-x-auto gap-4 px-6 md:grid md:grid-cols-3 md:gap-6">
+            <div className="flex overflow-x-auto hide-scrollbar gap-4 md:grid md:grid-cols-3 md:gap-6 md:overflow-visible">
               {[1, 2, 3].map((i) => (
                 <div key={i} className="flex-shrink-0 w-80 md:w-auto h-72 rounded-2xl bg-gray-100 animate-pulse border border-gold/10" />
               ))}
             </div>
           ) : stories.length > 0 ? (
-            <div className="flex overflow-x-auto hide-scrollbar gap-4 px-6 md:grid md:grid-cols-3 md:gap-6 md:overflow-visible">
-              {stories.map((story) => (
+            <div className="flex overflow-x-auto hide-scrollbar gap-4 md:grid md:grid-cols-3 md:gap-6 md:overflow-visible">
+              {stories.slice(0, 3).map((story) => (
                 <Link key={story.id} href={`/real-weddings/${story.slug}`} className="flex-shrink-0 w-80 md:w-auto group">
                   <div className="rounded-2xl overflow-hidden h-52 shadow-sm group-hover:shadow-md transition-all relative bg-gray-100">
                     <img 
@@ -540,7 +540,7 @@ export default function Home() {
             </div>
           ) : (
             /* Honest Editorial Invitation when 0 published stories exist */
-            <div className="mx-6 p-8 sm:p-12 bg-white rounded-3xl border border-gold/20 shadow-md text-center max-w-2xl lg:mx-auto space-y-4">
+            <div className="p-8 sm:p-12 bg-white rounded-3xl border border-gold/20 shadow-md text-center max-w-2xl mx-auto space-y-4">
               <div className="w-14 h-14 rounded-full bg-[#FAF7F2] border border-gold/30 text-[#0F4C45] flex items-center justify-center mx-auto shadow-inner">
                 <BookHeart className="w-7 h-7" />
               </div>
