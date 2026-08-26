@@ -218,28 +218,52 @@ export function CustomizeStoreSection({ categoryConfig, vendorName, onBack }: Cu
   const populateFromIdentity = (identity: any) => {
     if (!identity) return;
     setVendorData(identity);
-    if (identity.logo || identity.logo_url) setLogoUrl(identity.logo || identity.logo_url || "");
-    if (identity.coverImage || identity.cover_image) setCoverUrl(identity.coverImage || identity.cover_image || "");
-    if (identity.tagline) setTagline(identity.tagline || "");
-    if (identity.about || identity.description) setAbout(identity.about || identity.description || "");
-    if (identity.color_theme || identity.colorTheme) setColorTheme(identity.color_theme || identity.colorTheme || "emerald");
-    if (identity.gallery_layout || identity.galleryLayout) setGalleryLayout(identity.gallery_layout || identity.galleryLayout || "grid");
+    const sf = (identity && typeof identity.storefront === "object" && identity.storefront !== null) ? identity.storefront : {};
+    const sfWh = sf.workingHours || {};
+    const sfSl = sf.socialLinks || {};
 
-    if (identity.instagram) setInstagram(identity.instagram || "");
-    if (identity.facebook) setFacebook(identity.facebook || "");
-    if (identity.youtube) setYoutube(identity.youtube || "");
-    if (identity.website) setWebsite(identity.website || "");
+    const logoVal = identity.logo || identity.logo_url || sf.logo || "";
+    if (logoVal) setLogoUrl(logoVal);
 
-    if (Array.isArray(identity.storeHighlights || identity.store_highlights)) {
-      setStoreHighlights(identity.storeHighlights || identity.store_highlights);
+    const coverVal = identity.coverImage || identity.cover_image || sf.coverImage || "";
+    if (coverVal) setCoverUrl(coverVal);
+
+    const taglineVal = identity.tagline || sf.tagline || "";
+    if (taglineVal) setTagline(taglineVal);
+
+    const aboutVal = identity.about || identity.description || sf.about || "";
+    if (aboutVal) setAbout(aboutVal);
+
+    const themeVal = identity.color_theme || identity.colorTheme || sf.theme || "emerald";
+    if (themeVal) setColorTheme(themeVal);
+
+    const layoutVal = identity.gallery_layout || identity.galleryLayout || sf.galleryLayout || "grid";
+    if (layoutVal) setGalleryLayout(layoutVal);
+
+    if (identity.instagram || sfSl.instagram) setInstagram(identity.instagram || sfSl.instagram || "");
+    if (identity.facebook || sfSl.facebook) setFacebook(identity.facebook || sfSl.facebook || "");
+    if (identity.youtube || sfSl.youtube) setYoutube(identity.youtube || sfSl.youtube || "");
+    if (identity.website || sfSl.website) setWebsite(identity.website || sfSl.website || "");
+
+    const rawHighlights = identity.storeHighlights || identity.store_highlights || sf.storeHighlights;
+    if (Array.isArray(rawHighlights)) setStoreHighlights(rawHighlights);
+
+    const rawFeat = identity.featuredCollections || identity.featured_collections || sf.featuredCollections;
+    if (Array.isArray(rawFeat)) setFeaturedCollections(rawFeat);
+
+    const rawGallery = Array.isArray(identity.galleryImages) && identity.galleryImages.length > 0
+      ? identity.galleryImages
+      : Array.isArray(identity.gallery_images) && identity.gallery_images.length > 0
+      ? identity.gallery_images
+      : Array.isArray(sf.gallery)
+      ? sf.gallery.map((x: any) => typeof x === "string" ? x : x?.url || x?.image_url)
+      : Array.isArray(identity.gallery)
+      ? identity.gallery
+      : null;
+    if (Array.isArray(rawGallery)) {
+      setGalleryImages(rawGallery.map((x: any) => (typeof x === "string" ? x : x?.url || x?.image_url || x?.image)).filter(Boolean));
     }
-    if (Array.isArray(identity.featuredCollections || identity.featured_collections)) {
-      setFeaturedCollections(identity.featuredCollections || identity.featured_collections);
-    }
-    if (Array.isArray(identity.galleryImages || identity.gallery_images || identity.gallery)) {
-      const g = identity.galleryImages || identity.gallery_images || identity.gallery;
-      setGalleryImages(g.map((x: any) => (typeof x === "string" ? x : x?.url || x?.image_url || x?.image)).filter(Boolean));
-    }
+
     if (identity.experienceYears || identity.experience_years || identity.experience) {
       setExperienceYears(identity.experienceYears || identity.experience_years || identity.experience || "");
     }
@@ -255,12 +279,11 @@ export function CustomizeStoreSection({ categoryConfig, vendorName, onBack }: Cu
       setActionButtons({ ...actionButtons, ...act });
     }
 
-    const whObj = typeof identity.storefront?.workingHours === "object" && identity.storefront?.workingHours !== null ? identity.storefront.workingHours : (typeof identity.workingHours === "object" && identity.workingHours !== null ? identity.workingHours : {});
-    const openVal = whObj.openingTime || identity.openingTime || identity.opening_time || "";
-    const closeVal = whObj.closingTime || identity.closingTime || identity.closing_time || "";
-    const daysVal = whObj.workingDays || identity.workingDays || identity.working_days || "";
-    const offVal = whObj.weeklyOff || identity.weeklyOff || identity.weekly_off || "";
-    const noticeVal = whObj.holidayNotice || identity.holidayNotice || identity.holiday_notice || "";
+    const openVal = sfWh.openingTime || identity.openingTime || identity.opening_time || "";
+    const closeVal = sfWh.closingTime || identity.closingTime || identity.closing_time || "";
+    const daysVal = sfWh.workingDays || identity.workingDays || identity.working_days || "";
+    const offVal = sfWh.weeklyOff || identity.weeklyOff || identity.weekly_off || "";
+    const noticeVal = sfWh.holidayNotice || identity.holidayNotice || identity.holiday_notice || "";
 
     if (openVal) setOpeningTime(openVal);
     if (closeVal) setClosingTime(closeVal);

@@ -88,78 +88,87 @@ export function StoryBoutiqueCustomize({ categoryKey, vendorName }: StoryBoutiqu
     fetchAuthenticatedVendorFromDb().then((profile) => {
       if (profile) populateForm(profile);
     });
-
-    const storageKey = `cloche_boutique_customization_${categoryKey}`;
-    try {
-      const stored = localStorage.getItem(storageKey);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (parsed.studioName) setStudioName(parsed.studioName);
-        if (parsed.aboutStudio) setAboutStudio(parsed.aboutStudio);
-        if (parsed.logoUrl) setLogoUrl(parsed.logoUrl);
-        if (parsed.coverUrl) setCoverUrl(parsed.coverUrl);
-        if (parsed.galleryImages) setGalleryImages(parsed.galleryImages);
-        if (parsed.phone) setPhone(parsed.phone);
-        if (parsed.whatsapp) setWhatsapp(parsed.whatsapp);
-        if (parsed.email) setEmail(parsed.email);
-        if (parsed.address) setAddress(parsed.address);
-        if (parsed.city) setCity(parsed.city);
-        if (parsed.district) setDistrict(parsed.district);
-        if (parsed.googleMapsLocation) setGoogleMapsLocation(parsed.googleMapsLocation);
-
-        if (parsed.openingTime) setOpeningTime(parsed.openingTime);
-        if (parsed.closingTime) setClosingTime(parsed.closingTime);
-        if (parsed.workingDays) setWorkingDays(parsed.workingDays);
-        if (parsed.weeklyOff) setWeeklyOff(parsed.weeklyOff);
-        if (parsed.services) setServices(parsed.services);
-
-        if (parsed.rentalDuration) setRentalDuration(parsed.rentalDuration);
-        if (parsed.securityDeposit) setSecurityDeposit(parsed.securityDeposit);
-        if (parsed.returnPolicy) setReturnPolicy(parsed.returnPolicy);
-        if (parsed.cancellationPolicy) setCancellationPolicy(parsed.cancellationPolicy);
-        if (parsed.damagePolicy) setDamagePolicy(parsed.damagePolicy);
-
-        if (parsed.instagram) setInstagram(parsed.instagram);
-        if (parsed.facebook) setFacebook(parsed.facebook);
-        if (parsed.website) setWebsite(parsed.website);
-      }
-    } catch (_) {}
   }, [categoryKey]);
 
   function populateForm(data: any) {
     if (!data) return;
     setVendorData(data);
-    if (data.boutique_name || data.business_name || data.name) setStudioName(data.boutique_name || data.business_name || data.name || vendorName);
-    if (data.description || data.about) setAboutStudio(data.description || data.about || "");
-    if (data.logo || data.logo_url) setLogoUrl(data.logo || data.logo_url || "");
-    if (data.coverImage || data.cover_image) setCoverUrl(data.coverImage || data.cover_image || "");
-    if (data.phone || data.contact_number) setPhone(data.phone || data.contact_number || "");
-    if (data.whatsapp) setWhatsapp(data.whatsapp || data.phone || "");
-    if (data.email) setEmail(data.email || "");
-    if (data.address) setAddress(data.address || "");
-    if (data.city) setCity(data.city || "");
-    if (data.district || data.state) setDistrict(data.district || data.state || "");
-    if (data.googleMapsLocation || data.maps_url || data.google_maps_url || data.googleMaps) {
-      setGoogleMapsLocation(data.googleMapsLocation || data.maps_url || data.google_maps_url || data.googleMaps || "");
-    }
-    if (data.instagram) setInstagram(data.instagram);
-    if (data.facebook) setFacebook(data.facebook);
-    if (data.website) setWebsite(data.website);
+    const sf = (data && typeof data.storefront === "object" && data.storefront !== null) ? data.storefront : {};
+    const sfWh = sf.workingHours || {};
+    const sfPol = sf.policies || {};
+    const sfCi = sf.contactInfo || {};
+    const sfSl = sf.socialLinks || {};
+
+    const nameVal = sf.studioName || data.boutique_name || data.business_name || data.name || vendorName;
+    if (nameVal) setStudioName(nameVal);
+
+    const aboutVal = sf.about || data.description || data.about;
+    if (aboutVal) setAboutStudio(aboutVal);
+
+    const logoVal = sf.logo || data.logo || data.logo_url;
+    if (logoVal) setLogoUrl(logoVal);
+
+    const coverVal = sf.coverImage || data.coverImage || data.cover_image;
+    if (coverVal) setCoverUrl(coverVal);
+
+    const phoneVal = sfCi.phone || data.phone || data.contact_number;
+    if (phoneVal) setPhone(phoneVal);
+
+    const whatsappVal = sfCi.whatsapp || data.whatsapp || data.phone;
+    if (whatsappVal) setWhatsapp(whatsappVal);
+
+    const emailVal = sfCi.email || data.email;
+    if (emailVal) setEmail(emailVal);
+
+    const addressVal = sfCi.address || data.address;
+    if (addressVal) setAddress(addressVal);
+
+    const cityVal = sfCi.city || data.city;
+    if (cityVal) setCity(cityVal);
+
+    const districtVal = sfCi.district || data.district || data.state;
+    if (districtVal) setDistrict(districtVal);
+
+    const mapsVal = sfCi.googleMaps || data.googleMapsLocation || data.maps_url || data.google_maps_url || data.googleMaps;
+    if (mapsVal) setGoogleMapsLocation(mapsVal);
+
+    const instaVal = sfSl.instagram || data.instagram;
+    if (instaVal) setInstagram(instaVal);
+
+    const fbVal = sfSl.facebook || data.facebook;
+    if (fbVal) setFacebook(fbVal);
+
+    const webVal = sfSl.website || data.website;
+    if (webVal) setWebsite(webVal);
 
     // Business Hours
-    const wh = typeof data.storefront?.workingHours === "object" && data.storefront?.workingHours !== null ? data.storefront.workingHours : (typeof data.workingHours === "object" && data.workingHours !== null ? data.workingHours : {});
-    if (wh.openingTime || data.openingTime || data.opening_time) setOpeningTime(wh.openingTime || data.openingTime || data.opening_time || "10:00 AM");
-    if (wh.closingTime || data.closingTime || data.closing_time) setClosingTime(wh.closingTime || data.closingTime || data.closing_time || "08:00 PM");
-    if (wh.workingDays || data.workingDays || data.working_days) setWorkingDays(wh.workingDays || data.workingDays || data.working_days || "Monday - Saturday");
-    if (wh.weeklyOff || data.weeklyOff || data.weekly_off) setWeeklyOff(wh.weeklyOff || data.weeklyOff || data.weekly_off || "Sunday");
+    const openVal = sfWh.openingTime || data.openingTime || data.opening_time;
+    if (openVal) setOpeningTime(openVal);
+
+    const closeVal = sfWh.closingTime || data.closingTime || data.closing_time;
+    if (closeVal) setClosingTime(closeVal);
+
+    const daysVal = sfWh.workingDays || data.workingDays || data.working_days;
+    if (daysVal) setWorkingDays(daysVal);
+
+    const offVal = sfWh.weeklyOff || data.weeklyOff || data.weekly_off;
+    if (offVal) setWeeklyOff(offVal);
 
     // Policies
-    const pol = typeof data.storefront?.policies === "object" && data.storefront?.policies !== null ? data.storefront.policies : {};
-    if (pol.rentalDuration || data.rentalDuration || data.rental_duration) setRentalDuration(pol.rentalDuration || data.rentalDuration || data.rental_duration || "3 Days");
-    if (pol.securityDeposit || data.securityDeposit || data.security_deposit) setSecurityDeposit(pol.securityDeposit || data.securityDeposit || data.security_deposit || "₹10,000 (Refundable upon return)");
-    if (pol.returnPolicy || data.returnPolicy || data.return_policy) setReturnPolicy(pol.returnPolicy || data.returnPolicy || data.return_policy || "");
-    if (pol.cancellationPolicy || data.cancellationPolicy || data.cancellation_policy) setCancellationPolicy(pol.cancellationPolicy || data.cancellationPolicy || data.cancellation_policy || "");
-    if (pol.damagePolicy || data.damagePolicy || data.damage_policy) setDamagePolicy(pol.damagePolicy || data.damagePolicy || data.damage_policy || "");
+    const durVal = sfPol.rentalDuration || data.rentalDuration || data.rental_duration;
+    if (durVal) setRentalDuration(durVal);
+
+    const depVal = sfPol.securityDeposit || data.securityDeposit || data.security_deposit;
+    if (depVal) setSecurityDeposit(depVal);
+
+    const retVal = sfPol.returnPolicy || data.returnPolicy || data.return_policy;
+    if (retVal) setReturnPolicy(retVal);
+
+    const cancVal = sfPol.cancellationPolicy || data.cancellationPolicy || data.cancellation_policy;
+    if (cancVal) setCancellationPolicy(cancVal);
+
+    const damVal = sfPol.damagePolicy || data.damagePolicy || data.damage_policy;
+    if (damVal) setDamagePolicy(damVal);
 
     // Services & Availability Flags
     if (data.rentalAvailable !== undefined || data.rental_available !== undefined) {
@@ -176,9 +185,9 @@ export function StoryBoutiqueCustomize({ categoryKey, vendorName }: StoryBoutiqu
     }
 
     // Gallery
-    if (Array.isArray(data.galleryImages || data.gallery_images || data.gallery)) {
-      const g = data.galleryImages || data.gallery_images || data.gallery;
-      setGalleryImages(g.map((x: any) => (typeof x === "string" ? x : x?.url || x?.image_url || x?.image)).filter(Boolean));
+    const rawGallery = Array.isArray(data.galleryImages) && data.galleryImages.length > 0 ? data.galleryImages : Array.isArray(data.gallery_images) && data.gallery_images.length > 0 ? data.gallery_images : Array.isArray(sf.gallery) ? sf.gallery.map((x: any) => typeof x === "string" ? x : x?.url || x?.image_url) : Array.isArray(data.gallery) ? data.gallery : [];
+    if (Array.isArray(rawGallery) && rawGallery.length > 0) {
+      setGalleryImages(rawGallery.map((x: any) => (typeof x === "string" ? x : x?.url || x?.image_url || x?.image)).filter(Boolean));
     }
   }
 

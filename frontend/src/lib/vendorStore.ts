@@ -392,12 +392,18 @@ export async function fetchAuthenticatedVendorFromDb(): Promise<VendorProfileDat
             const a = Array.isArray(json.data.addresses) && json.data.addresses.length > 0 ? json.data.addresses[0] : {};
             const s = Array.isArray(json.data.socialLinks) ? json.data.socialLinks : [];
 
-            const instaLink = s.find((item: any) => item.platform === "instagram")?.url || "";
-            const facebookLink = s.find((item: any) => item.platform === "facebook")?.url || "";
-            const youtubeLink = s.find((item: any) => item.platform === "youtube")?.url || "";
-            const webLink = s.find((item: any) => item.platform === "website")?.url || "";
+            const sf = (p && typeof p.storefront === "object" && p.storefront !== null) ? p.storefront : {};
+            const sfWh = sf.workingHours || {};
+            const sfPol = sf.policies || {};
+            const sfCi = sf.contactInfo || {};
+            const sfSl = sf.socialLinks || {};
 
-            const bName = p.business_name || v.boutique_name || v.name || "";
+            const instaLink = s.find((item: any) => item.platform === "instagram")?.url || sfSl.instagram || "";
+            const facebookLink = s.find((item: any) => item.platform === "facebook")?.url || sfSl.facebook || "";
+            const youtubeLink = s.find((item: any) => item.platform === "youtube")?.url || sfSl.youtube || "";
+            const webLink = s.find((item: any) => item.platform === "website")?.url || sfSl.website || "";
+
+            const bName = sf.studioName || p.business_name || v.boutique_name || v.name || "";
             const catObj = v.category;
             const catName = (typeof catObj === "object" && catObj !== null)
               ? (catObj.name || catObj.slug || "")
@@ -412,7 +418,11 @@ export async function fetchAuthenticatedVendorFromDb(): Promise<VendorProfileDat
             const guestCapacityVal = catDetails.guest_capacity || p.guest_capacity || p.guestCapacity || "";
             const cateringSpecialitiesVal = catDetails.catering_specialities || p.catering_specialities || p.cateringSpecialities || [];
 
-            const resolvedVendor: VendorProfileData = {
+            const galFromSf = Array.isArray(sf.gallery) ? sf.gallery.map((x: any) => typeof x === "string" ? x : x?.url || x?.image_url).filter(Boolean) : [];
+            const galFromP = Array.isArray(p.galleryImages) && p.galleryImages.length > 0 ? p.galleryImages : Array.isArray(p.gallery_images) && p.gallery_images.length > 0 ? p.gallery_images : Array.isArray(json.data?.gallery) ? json.data.gallery : [];
+            const resolvedGallery = galFromP.length > 0 ? galFromP : galFromSf;
+
+            const resolvedVendor: VendorProfileData & Record<string, any> = {
               id: v.id || "",
               user_id: v.user_id || "",
               name: bName,
@@ -420,32 +430,35 @@ export async function fetchAuthenticatedVendorFromDb(): Promise<VendorProfileDat
               owner_name: ownerNameVal,
               ownerName: ownerNameVal,
               category: catName,
-              logo: p.logo_url || v.logo_url || "",
-              logo_url: p.logo_url || v.logo_url || "",
-              coverImage: p.cover_image || v.cover_image || "",
-              cover_image: p.cover_image || v.cover_image || "",
-              description: p.about || v.description || "",
-              tagline: p.tagline || v.tagline || "",
-              color_theme: p.color_theme || "emerald",
-              colorTheme: p.color_theme || "emerald",
+              logo: p.logo_url || v.logo_url || sf.logo || "",
+              logo_url: p.logo_url || v.logo_url || sf.logo || "",
+              coverImage: p.cover_image || v.cover_image || sf.coverImage || "",
+              cover_image: p.cover_image || v.cover_image || sf.coverImage || "",
+              description: p.about || v.description || sf.about || "",
+              about: p.about || v.description || sf.about || "",
+              tagline: p.tagline || v.tagline || sf.tagline || "",
+              color_theme: p.color_theme || sf.theme || "emerald",
+              colorTheme: p.color_theme || sf.theme || "emerald",
               gallery_layout: p.gallery_layout || "grid",
               galleryLayout: p.gallery_layout || "grid",
-              galleryImages: p.galleryImages || p.gallery_images || json.data?.gallery || [],
-              gallery_images: p.gallery_images || p.galleryImages || json.data?.gallery || [],
+              galleryImages: resolvedGallery,
+              gallery_images: resolvedGallery,
               intro_video: p.intro_video_url || p.intro_video || "",
               intro_video_url: p.intro_video_url || p.intro_video || "",
-              phone: c.phone || v.phone || "",
-              whatsapp: c.whatsapp || v.whatsapp || c.phone || "",
-              email: c.email || v.email || "",
-              city: p.city || a.city || v.city || "",
-              district: p.state || a.state || v.district || "",
-              address: a.address_line1 || p.address || "",
+              phone: c.phone || sfCi.phone || v.phone || "",
+              whatsapp: c.whatsapp || sfCi.whatsapp || v.whatsapp || c.phone || "",
+              email: c.email || sfCi.email || v.email || "",
+              city: p.city || a.city || v.city || sfCi.city || "",
+              district: p.state || a.state || v.district || sfCi.district || "",
+              address: a.address_line1 || p.address || sfCi.address || "",
+              googleMapsLocation: sfCi.googleMaps || v.maps_url || v.google_maps_url || "",
+              maps_url: sfCi.googleMaps || v.maps_url || v.google_maps_url || "",
               instagram: instaLink,
               facebook: facebookLink,
               youtube: youtubeLink,
               website: webLink,
-              workingHours: v.working_hours || p.working_hours || "",
-              working_hours: v.working_hours || p.working_hours || "",
+              workingHours: v.working_hours || p.working_hours || sfWh.workingDays || "",
+              working_hours: v.working_hours || p.working_hours || sfWh.workingDays || "",
               serviceAreas: v.service_areas || p.service_areas || "",
               service_areas: v.service_areas || p.service_areas || "",
               experience: v.experience_years || p.experience_years || "",
@@ -462,10 +475,10 @@ export async function fetchAuthenticatedVendorFromDb(): Promise<VendorProfileDat
               guest_capacity: guestCapacityVal,
               cateringSpecialities: Array.isArray(cateringSpecialitiesVal) ? cateringSpecialitiesVal : [],
               catering_specialities: Array.isArray(cateringSpecialitiesVal) ? cateringSpecialitiesVal : [],
-              storeHighlights: p.store_highlights || p.storeHighlights || [],
-              store_highlights: p.store_highlights || p.storeHighlights || [],
-              featuredCollections: p.featured_collections || p.featuredCollections || [],
-              featured_collections: p.featured_collections || p.featuredCollections || [],
+              storeHighlights: p.store_highlights || p.storeHighlights || sf.storeHighlights || [],
+              store_highlights: p.store_highlights || p.storeHighlights || sf.storeHighlights || [],
+              featuredCollections: p.featured_collections || p.featuredCollections || sf.featuredCollections || [],
+              featured_collections: p.featured_collections || p.featuredCollections || sf.featuredCollections || [],
               rentalAvailable: Boolean(p.rental_available ?? p.rentalAvailable ?? true),
               rental_available: Boolean(p.rental_available ?? p.rentalAvailable ?? true),
               homeTrialAvailable: Boolean(p.home_trial_available ?? p.homeTrialAvailable ?? false),
@@ -480,16 +493,22 @@ export async function fetchAuthenticatedVendorFromDb(): Promise<VendorProfileDat
               cities_served: p.cities_served || p.citiesServed || "Kochi, Calicut, Trivandrum",
               actionButtons: p.action_buttons || p.actionButtons || { callNow: true, whatsapp: true, viewCollection: true, getQuote: true, visitStore: true },
               action_buttons: p.action_buttons || p.actionButtons || { callNow: true, whatsapp: true, viewCollection: true, getQuote: true, visitStore: true },
-              openingTime: p.opening_time || p.openingTime || "10:00 AM",
-              opening_time: p.opening_time || p.openingTime || "10:00 AM",
-              closingTime: p.closing_time || p.closingTime || "08:00 PM",
-              closing_time: p.closing_time || p.closingTime || "08:00 PM",
-              workingDays: p.working_days || p.workingDays || "Monday - Saturday",
-              working_days: p.working_days || p.workingDays || "Monday - Saturday",
-              weeklyOff: p.weekly_off || p.weeklyOff || "Sunday",
-              weekly_off: p.weekly_off || p.weeklyOff || "Sunday",
+              openingTime: p.opening_time || p.openingTime || sfWh.openingTime || "10:00 AM",
+              opening_time: p.opening_time || p.openingTime || sfWh.openingTime || "10:00 AM",
+              closingTime: p.closing_time || p.closingTime || sfWh.closingTime || "08:00 PM",
+              closing_time: p.closing_time || p.closingTime || sfWh.closingTime || "08:00 PM",
+              workingDays: p.working_days || p.workingDays || sfWh.workingDays || "Monday - Saturday",
+              working_days: p.working_days || p.workingDays || sfWh.workingDays || "Monday - Saturday",
+              weeklyOff: p.weekly_off || p.weeklyOff || sfWh.weeklyOff || "Sunday",
+              weekly_off: p.weekly_off || p.weeklyOff || sfWh.weeklyOff || "Sunday",
               holidayNotice: p.holiday_notice || p.holidayNotice || "Open on festive wedding dates by appointment",
               holiday_notice: p.holiday_notice || p.holidayNotice || "Open on festive wedding dates by appointment",
+              rentalDuration: sfPol.rentalDuration || p.rental_policy || "3 Days",
+              securityDeposit: sfPol.securityDeposit || p.security_deposit || "",
+              returnPolicy: sfPol.returnPolicy || p.return_policy || "",
+              cancellationPolicy: sfPol.cancellationPolicy || p.cancellation_policy || "",
+              damagePolicy: sfPol.damagePolicy || p.damage_policy || "",
+              storefront: sf,
               plan: v.plan || (v.isVerified ? "Verified Partner" : "Registered Partner"),
               planCode: v.planCode || "free",
               isSubscribed: Boolean(v.isSubscribed),

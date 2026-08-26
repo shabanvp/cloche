@@ -214,32 +214,45 @@ export function MehendiCustomizeStoreSection({
   }, []);
 
   const hydrateFields = (data: Partial<VendorProfileData> & Record<string, any>) => {
-    if (data.logo || data.logo_url) setLogoUrl(data.logo || data.logo_url || "");
-    if (data.coverImage || data.cover_image) setCoverUrl(data.coverImage || data.cover_image || "");
-    if (data.tagline) setTagline(data.tagline || "");
-    if (data.about || data.description) setAbout(data.about || data.description || "");
-    if (data.colorTheme || data.color_theme) setColorTheme(data.colorTheme || data.color_theme || "henna");
+    const sf = (data && typeof data.storefront === "object" && data.storefront !== null) ? data.storefront : {};
+    const sfSl = sf.socialLinks || {};
 
+    const logoVal = data.logo || data.logo_url || sf.logo || "";
+    if (logoVal) setLogoUrl(logoVal);
 
-    const gallery = Array.isArray(data.galleryImages)
+    const coverVal = data.coverImage || data.cover_image || sf.coverImage || "";
+    if (coverVal) setCoverUrl(coverVal);
+
+    const taglineVal = data.tagline || sf.tagline || "";
+    if (taglineVal) setTagline(taglineVal);
+
+    const aboutVal = data.about || data.description || sf.about || "";
+    if (aboutVal) setAbout(aboutVal);
+
+    const themeVal = data.colorTheme || data.color_theme || sf.theme || "henna";
+    if (themeVal) setColorTheme(themeVal);
+
+    const gallery = Array.isArray(data.galleryImages) && data.galleryImages.length > 0
       ? data.galleryImages
-      : Array.isArray(data.gallery_images)
+      : Array.isArray(data.gallery_images) && data.gallery_images.length > 0
       ? data.gallery_images
+      : Array.isArray(sf.gallery)
+      ? sf.gallery.map((x: any) => typeof x === "string" ? x : x?.url || x?.image_url)
       : null;
     if (gallery) setGalleryImages(gallery);
 
     // Social Links
-    if (data.instagram) setInstagram(data.instagram || "");
-    if (data.facebook) setFacebook(data.facebook || "");
-    if (data.website) setWebsite(data.website || "");
-    if (data.youtube) setYoutube(data.youtube || "");
+    if (data.instagram || sfSl.instagram) setInstagram(data.instagram || sfSl.instagram || "");
+    if (data.facebook || sfSl.facebook) setFacebook(data.facebook || sfSl.facebook || "");
+    if (data.website || sfSl.website) setWebsite(data.website || sfSl.website || "");
+    if (data.youtube || sfSl.youtube) setYoutube(data.youtube || sfSl.youtube || "");
 
     // Mehendi Highlights
-    const rawHighlights = data.mehendiHighlights || data.mehendi_highlights || data.storeHighlights || data.store_highlights;
+    const rawHighlights = data.mehendiHighlights || data.mehendi_highlights || data.storeHighlights || data.store_highlights || sf.storeHighlights;
     if (Array.isArray(rawHighlights) && rawHighlights.length > 0) setMehendiHighlights(rawHighlights);
 
     // Featured Packages
-    const rawPackages = data.featuredPackages || data.featured_packages || data.featuredCollections || data.featured_collections;
+    const rawPackages = data.featuredPackages || data.featured_packages || data.featuredCollections || data.featured_collections || sf.featuredPackages;
     if (Array.isArray(rawPackages) && rawPackages.length > 0) setFeaturedPackages(rawPackages);
 
     // Artist Info
