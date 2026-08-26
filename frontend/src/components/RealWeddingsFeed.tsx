@@ -118,82 +118,8 @@ export function RealWeddingsFeed() {
   return (
     <div className="min-h-screen bg-[#FBF8F1] text-charcoal pb-24">
       
-      {/* 1. EDITORIAL HEADER BANNER */}
-      <section className="bg-[#0B3B36] text-[#F7F3EC] py-12 px-4 sm:px-6 lg:px-12 border-b border-[#C8A96A]/20">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
-          <div className="space-y-2 max-w-2xl">
-            <span className="bg-[#C8A96A] text-[#082F2C] text-[10px] font-bold uppercase tracking-[0.25em] px-3 py-1 rounded-full inline-block shadow">
-              CLOCHE EDITORIAL MAGAZINE
-            </span>
-            <h1 className="font-display text-4xl sm:text-6xl font-bold leading-tight tracking-tight">
-              Real Weddings
-            </h1>
-            <p className="text-sm sm:text-base text-[#F7F3EC]/80 leading-relaxed font-sans">
-              Discover authentic celebrations, inspiring love stories, and the verified artisans &amp; vendors who crafted them across Kerala.
-            </p>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setIsSubmitModalOpen(true)}
-              className="bg-[#C8A96A] hover:bg-[#b89859] text-[#082F2C] px-6 py-3 rounded-full font-bold text-xs uppercase tracking-wider transition-all shadow-md flex items-center gap-2 cursor-pointer"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Submit Your Wedding</span>
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {/* 2. CONTROLS BAR: SEARCH, STYLE FILTER & SORT */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 mt-8">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-4 bg-white p-3.5 sm:p-4 rounded-2xl border border-gold/20 shadow-sm">
-          
-          {/* Style Pills */}
-          <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-1 md:pb-0 scrollbar-none">
-            {STYLES_FILTER.map((st) => (
-              <button
-                key={st}
-                onClick={() => setFilterStyle(st)}
-                className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
-                  filterStyle === st
-                    ? "bg-[#0F4C45] text-white shadow-xs"
-                    : "bg-[#FAF7F2] text-charcoal/70 hover:bg-gold/10 hover:text-charcoal border border-gold/15"
-                }`}
-              >
-                {st}
-              </button>
-            ))}
-          </div>
-
-          {/* Search & Sort */}
-          <div className="flex items-center gap-2.5 w-full md:w-auto">
-            <div className="relative flex-1 md:w-64">
-              <Search className="w-3.5 h-3.5 text-charcoal/40 absolute left-3 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                placeholder="Search real stories..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-[#FAF7F2] border border-gold/20 rounded-full pl-8 pr-4 py-1.5 text-xs text-charcoal focus:outline-none focus:border-[#0F4C45]"
-              />
-            </div>
-
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as any)}
-              className="bg-[#FAF7F2] border border-gold/20 rounded-full px-3 py-1.5 text-xs font-bold text-charcoal focus:outline-none focus:border-[#0F4C45] shrink-0"
-            >
-              <option value="newest">Latest Stories</option>
-              <option value="popular">Most Liked</option>
-              <option value="views">Most Viewed</option>
-            </select>
-          </div>
-        </div>
-      </section>
-
       {/* 3. MAIN CONTENT: HERO STORY OR HONEST EMPTY STATE */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 mt-8">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 pt-8">
         {loading ? (
           <div className="text-center py-24 space-y-4">
             <Loader2 className="w-8 h-8 animate-spin text-[#0F4C45] mx-auto" />
