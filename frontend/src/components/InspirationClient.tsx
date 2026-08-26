@@ -810,45 +810,6 @@ export function InspirationClient() {
         {/* ── EXPLORE TAB FEED ── */}
         {activeTab === "explore" && (
           <>
-            {/* Curated Section Highlights Carousel */}
-            {activeCategory === "All" && !searchQuery && budgetFilter === "all" && !fetchState.loading && (
-              <div className="mb-4 md:mb-7 space-y-2">
-                <div className="flex items-center justify-between px-1">
-                  <span className="text-[11px] md:text-xs font-extrabold uppercase tracking-wider text-[#0F4C45] flex items-center gap-1.5">
-                    <Sparkles className="w-3.5 h-3.5 text-[#C8A96A]" />
-                    <span>Curated Kerala Collections</span>
-                  </span>
-                  <span className="text-[11px] text-charcoal/50 font-medium hidden sm:inline">Swipe to browse collection →</span>
-                </div>
-                <div className="flex overflow-x-auto gap-2.5 sm:gap-3.5 pb-2 pt-1 scrollbar-none snap-x snap-mandatory -mx-1 px-1">
-                  {[
-                    { id: "Bridal Looks", title: "Bridal & Kasavu", emoji: "👰", img: "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=400&q=80" },
-                    { id: "Stage Designs", title: "Stage & Mandap", emoji: "🌸", img: "https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=400&q=80" },
-                    { id: "Traditional Kerala Weddings", title: "Kerala Traditions", emoji: "🌴", img: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=400&q=80" },
-                    { id: "Wedding Photos", title: "Photography", emoji: "📸", img: "https://images.unsplash.com/photo-1606800052052-a08af7148866?auto=format&fit=crop&w=400&q=80" },
-                    { id: "Color Themes", title: "Colour Stories", emoji: "🎨", img: "https://images.unsplash.com/photo-1513279922550-250c2129b13a?auto=format&fit=crop&w=400&q=80" },
-                    { id: "Destination Weddings", title: "Destination", emoji: "🏖", img: "https://images.unsplash.com/photo-1544078751-58fee2d8a03b?auto=format&fit=crop&w=400&q=80" },
-                    { id: "Mehendi Designs", title: "Henna Art", emoji: "🌿", img: "https://images.unsplash.com/photo-1560707303-4e980ce876ad?auto=format&fit=crop&w=400&q=80" },
-                    { id: "Groom Looks", title: "Groom Wear", emoji: "🤵", img: "https://images.unsplash.com/photo-1507676184212-d03ab07a01bf?auto=format&fit=crop&w=400&q=80" },
-                  ].map((col) => (
-                    <button
-                      key={col.id}
-                      onClick={() => {
-                        setActiveCategory(col.id);
-                      }}
-                      className="w-28 sm:w-36 h-36 sm:h-44 shrink-0 snap-start rounded-[18px] sm:rounded-[22px] overflow-hidden relative group cursor-pointer shadow-xs active:scale-95 transition-all text-left border border-gold/20"
-                    >
-                      <img src={col.img} alt={col.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
-                      <div className="absolute bottom-0 left-0 right-0 p-2.5 sm:p-3 text-white space-y-0.5">
-                        <span className="text-sm sm:text-base">{col.emoji}</span>
-                        <p className="text-[11px] sm:text-xs font-bold leading-tight drop-shadow-xs line-clamp-1">{col.title}</p>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
 
             {/* Skeletons while loading */}
             {fetchState.loading && (
