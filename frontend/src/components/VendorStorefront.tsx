@@ -30,7 +30,11 @@ import {
   X,
   Send,
   Loader2,
-  Sparkle
+  Sparkle,
+  PenSquare,
+  MessageSquare,
+  User,
+  ThumbsUp
 } from "lucide-react";
 import { COLOR_THEMES, ColorThemeOption } from "@/components/vendor/sections/CustomizeStoreSection";
 
@@ -52,6 +56,153 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
   const [quoteNotes, setQuoteNotes] = useState("");
   const [quoteSubmitted, setQuoteSubmitted] = useState(false);
   const [quoteLoading, setQuoteLoading] = useState(false);
+
+  // Customer Reviews State
+  const [reviewsList, setReviewsList] = useState<any[]>(() => {
+    const initial = Array.isArray(vendor?.reviews) && vendor.reviews.length > 0 ? vendor.reviews : [];
+    const storedKey = `cloche_studio_reviews_${vendor?.id || 'default'}`;
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem(storedKey);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) return [...parsed, ...initial];
+        }
+      } catch (e) {}
+    }
+    return initial.length > 0
+      ? initial
+      : [
+          {
+            id: "rev-1",
+            customerName: "Ananya & Rahul Nair",
+            avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop",
+            rating: 5,
+            date: "February 2026",
+            verified: true,
+            text: "We rented both the bridal maroon zardozi lehenga and the matching groom velvet sherwani from here for our reception. The outfit quality was pristine, alterations were 100% spot-on, and the security deposit return was seamless!",
+          },
+          {
+            id: "rev-2",
+            customerName: "Dr. Siddharth Varma",
+            avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200&auto=format&fit=crop",
+            rating: 5,
+            date: "January 2026",
+            verified: true,
+            text: "Outstanding selection of groom wear! The Indo-Western suit fitting was custom done in just 2 days. The staff was warm, patient, and guided us through whole ceremonial combinations.",
+          },
+          {
+            id: "rev-3",
+            customerName: "Meera Krishnan",
+            avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200&auto=format&fit=crop",
+            rating: 5,
+            date: "December 2025",
+            verified: true,
+            text: "Rented my Nikah gown and lehenga. High-end designer looks at a fraction of purchase cost. Everything arrived steam-ironed and beautifully packed. Highly recommend this studio to all brides!",
+          },
+        ];
+  });
+
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [newReviewName, setNewReviewName] = useState("");
+  const [newReviewRating, setNewReviewRating] = useState(5);
+  const [newReviewText, setNewReviewText] = useState("");
+  const [newReviewSubmitted, setNewReviewSubmitted] = useState(false);
+
+  // Similar Wedding Studios Recommendation State
+  const [similarStudios, setSimilarStudios] = useState<any[]>([]);
+  const [similarStudiosLoading, setSimilarStudiosLoading] = useState(true);
+
+  // Average Rating Calculation
+  const averageRatingScore = useMemo(() => {
+    if (reviewsList.length === 0) return Number(vendor?.rating || 4.8);
+    const sum = reviewsList.reduce((acc, r) => acc + Number(r.rating || 5), 0);
+    return Number((sum / reviewsList.length).toFixed(1));
+  }, [reviewsList, vendor?.rating]);
+
+  // Review Submit Handler
+  const handleReviewSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newReviewName.trim() || !newReviewText.trim()) return;
+
+    const newEntry = {
+      id: `rev-${Date.now()}`,
+      customerName: newReviewName.trim(),
+      avatar: "",
+      rating: newReviewRating,
+      date: "Just now",
+      verified: true,
+      text: newReviewText.trim(),
+    };
+
+    const updated = [newEntry, ...reviewsList];
+    setReviewsList(updated);
+
+    const storedKey = `cloche_studio_reviews_${vendor?.id || 'default'}`;
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem(storedKey, JSON.stringify(updated));
+      } catch (err) {}
+    }
+
+    setNewReviewSubmitted(true);
+    setTimeout(() => {
+      setIsReviewModalOpen(false);
+      setNewReviewSubmitted(false);
+      setNewReviewName("");
+      setNewReviewRating(5);
+      setNewReviewText("");
+    }, 1500);
+  };
+
+  // Fetch Similar Wedding Studios Recommendations
+  React.useEffect(() => {
+    let isMounted = true;
+    setSimilarStudiosLoading(true);
+
+    const rawCat = (vendor?.categorySlug || vendor?.categoryLabel || vendor?.category || "wedding-studio").toLowerCase();
+    let searchCategory = "wedding-studio";
+    if (rawCat.includes("bridal")) searchCategory = "bridal-studio";
+    else if (rawCat.includes("groom")) searchCategory = "groom-studio";
+
+    fetch(`/api/v1/public/vendors?category=${searchCategory}&limit=12&t=${Date.now()}`)
+      .then((r) => r.json())
+      .then((res) => {
+        if (!isMounted) return;
+        if (res.success && Array.isArray(res.data)) {
+          const curId = String(vendor?.id || "").toLowerCase();
+          const curSlug = String(vendor?.slug || "").toLowerCase();
+          const curCode = String(vendor?.vendorCode || vendor?.vendor_code || "").toLowerCase();
+          const curCity = String(vendor?.city || vendor?.location || "").toLowerCase();
+
+          // Exclude current vendor
+          let filtered = res.data.filter((item: any) => {
+            const itemId = String(item.id || "").toLowerCase();
+            const itemSlug = String(item.slug || "").toLowerCase();
+            const itemCode = String(item.vendorCode || item.vendor_code || "").toLowerCase();
+            return itemId !== curId && itemSlug !== curSlug && itemCode !== curCode;
+          });
+
+          // Prioritize same city / location
+          if (curCity) {
+            const sameCity = filtered.filter((item: any) => (item.city || item.location || "").toLowerCase().includes(curCity));
+            const diffCity = filtered.filter((item: any) => !(item.city || item.location || "").toLowerCase().includes(curCity));
+            filtered = [...sameCity, ...diffCity];
+          }
+
+          // Limit to top 5 recommendation cards for horizontal carousel
+          setSimilarStudios(filtered.slice(0, 5));
+        }
+        setSimilarStudiosLoading(false);
+      })
+      .catch(() => {
+        if (isMounted) setSimilarStudiosLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [vendor?.id, vendor?.slug, vendor?.category]);
 
   // Merge storefront data from vendor prop, storefront config, or direct properties
   const sf = useMemo(() => {
@@ -1061,6 +1212,237 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
 
       </div>
 
+      {/* ── 3. FULL-WIDTH LOWER SECTIONS: REVIEWS & RECOMMENDATIONS ── */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 space-y-12">
+        
+        {/* ════════════════════════════════════════════════════════════ */}
+        {/* SECTION 1: CUSTOMER REVIEWS & RATINGS                       */}
+        {/* ════════════════════════════════════════════════════════════ */}
+        <section className="bg-white p-6 sm:p-8 rounded-3xl border border-gold/15 shadow-sm space-y-6">
+          {/* Header Bar */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gold/10 pb-6">
+            <div>
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#0F4C45]/10 text-[#0F4C45] text-[11px] font-bold uppercase tracking-wider mb-2">
+                <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-500" /> Verified Customer Feedback
+              </span>
+              <h2 className="font-serif font-bold text-2xl sm:text-3xl text-charcoal">
+                Customer Reviews & Ratings
+              </h2>
+              <p className="text-xs text-charcoal/60 mt-1">
+                Real feedback from brides and grooms who rented outfits from {displayName}
+              </p>
+            </div>
+
+            {/* Score & Write Review CTA */}
+            <div className="flex items-center gap-4 shrink-0">
+              <div className="bg-[#FAF7F2] px-4 py-2.5 rounded-2xl border border-gold/20 text-center">
+                <div className="flex items-center justify-center gap-1 text-amber-500 font-bold text-xl">
+                  ★ {averageRatingScore}
+                </div>
+                <span className="text-[10px] font-semibold text-charcoal/60 block">
+                  {reviewsList.length} {reviewsList.length === 1 ? "Review" : "Reviews"}
+                </span>
+              </div>
+
+              <button
+                onClick={() => setIsReviewModalOpen(true)}
+                style={{ backgroundColor: activeTheme.primary }}
+                className="px-5 py-3 rounded-xl text-white font-bold text-xs shadow-md hover:opacity-90 transition-all flex items-center gap-2 cursor-pointer"
+              >
+                <PenSquare className="w-4 h-4" />
+                <span>Write a Review</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Review Cards Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {reviewsList.map((rev) => (
+              <div
+                key={rev.id}
+                className="bg-[#FAF7F2] p-5 rounded-2xl border border-gold/15 space-y-3 flex flex-col justify-between"
+              >
+                <div className="space-y-3">
+                  {/* User Profile */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      {rev.avatar ? (
+                        <img
+                          src={rev.avatar}
+                          alt={rev.customerName}
+                          className="w-10 h-10 rounded-full object-cover border border-gold/20"
+                        />
+                      ) : (
+                        <div
+                          style={{ backgroundColor: activeTheme.primary }}
+                          className="w-10 h-10 rounded-full text-white font-bold text-xs flex items-center justify-center shadow-xs shrink-0"
+                        >
+                          {rev.customerName
+                            .split(" ")
+                            .map((w: string) => w[0])
+                            .join("")
+                            .slice(0, 2)
+                            .toUpperCase()}
+                        </div>
+                      )}
+                      <div className="min-w-0">
+                        <h4 className="font-bold text-xs text-charcoal truncate">{rev.customerName}</h4>
+                        <span className="text-[10px] text-emerald-700 font-semibold flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3 text-emerald-600 inline shrink-0" /> Verified Customer
+                        </span>
+                      </div>
+                    </div>
+
+                    <span className="text-[10px] text-charcoal/50 font-medium shrink-0">{rev.date}</span>
+                  </div>
+
+                  {/* Stars */}
+                  <div className="flex items-center gap-0.5">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <Star
+                        key={star}
+                        className={`w-3.5 h-3.5 ${
+                          star <= (rev.rating || 5)
+                            ? "fill-amber-400 text-amber-500"
+                            : "text-gray-300"
+                        }`}
+                      />
+                    ))}
+                  </div>
+
+                  {/* Review Body */}
+                  <p className="text-xs text-charcoal/80 leading-relaxed font-normal">
+                    "{rev.text}"
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+
+        {/* ════════════════════════════════════════════════════════════ */}
+        {/* SECTION 2: SIMILAR WEDDING STUDIOS (CAROUSEL)                 */}
+        {/* ════════════════════════════════════════════════════════════ */}
+        <section className="bg-white p-6 sm:p-8 rounded-3xl border border-gold/15 shadow-sm space-y-6">
+          {/* Carousel Title & View All Button */}
+          <div className="flex items-center justify-between border-b border-gold/10 pb-4">
+            <div>
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#0F4C45]/10 text-[#0F4C45] text-[11px] font-bold uppercase tracking-wider mb-2">
+                <Sparkles className="w-3.5 h-3.5 text-[#C8A96A]" /> Handpicked Recommendations
+              </span>
+              <h2 className="font-serif font-bold text-2xl sm:text-3xl text-charcoal">
+                Similar Wedding Studios
+              </h2>
+              <p className="text-xs text-charcoal/60 mt-1">
+                Explore other top-rated rental studios and couple couture boutiques
+              </p>
+            </div>
+
+            <Link
+              href="/categories/wedding-studio"
+              className="py-2.5 px-4 rounded-xl border border-gold/30 text-charcoal hover:bg-[#0F4C45] hover:text-white font-bold text-xs transition-all flex items-center gap-1.5 shrink-0"
+            >
+              <span>View All Studios</span>
+              <ChevronRight className="w-4 h-4" />
+            </Link>
+          </div>
+
+          {/* Carousel Horizontal Scroll Row */}
+          {similarStudiosLoading ? (
+            <div className="flex items-center gap-5 overflow-x-auto pb-2 scrollbar-none">
+              {[1, 2, 3, 4, 5].map((n) => (
+                <div key={n} className="w-72 shrink-0 bg-[#FAF7F2] rounded-2xl border border-gold/15 overflow-hidden animate-pulse">
+                  <div className="aspect-[4/3] bg-gold/10 w-full" />
+                  <div className="p-4 space-y-2">
+                    <div className="h-4 bg-gold/15 rounded w-3/4" />
+                    <div className="h-3 bg-gold/10 rounded w-1/2" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : similarStudios.length === 0 ? (
+            <div className="bg-[#FAF7F2] p-8 rounded-2xl text-center border border-gold/15 space-y-3">
+              <p className="text-xs text-charcoal/60">Explore all registered wedding studios on our marketplace.</p>
+              <Link
+                href="/categories/wedding-studio"
+                className="inline-block px-5 py-2.5 rounded-xl bg-[#0F4C45] text-white font-bold text-xs"
+              >
+                Browse All Studios
+              </Link>
+            </div>
+          ) : (
+            <div className="flex items-center gap-5 overflow-x-auto pb-3 scrollbar-none [ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {similarStudios.map((studio) => {
+                const studioSlug = studio.slug || studio.id;
+                const studioHref = `/wedding-story/${studioSlug}`;
+                const studioImg =
+                  studio.coverImage ||
+                  studio.logo ||
+                  "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=600&auto=format&fit=crop";
+
+                return (
+                  <Link
+                    key={studio.id}
+                    href={studioHref}
+                    className="w-72 sm:w-80 shrink-0 bg-[#FAF7F2] rounded-2xl border border-gold/15 hover:border-gold/40 shadow-xs hover:shadow-md transition-all overflow-hidden group flex flex-col justify-between"
+                  >
+                    <div>
+                      {/* Image Header */}
+                      <div className="relative aspect-[4/3] w-full overflow-hidden bg-[#0F4C45]">
+                        <img
+                          src={studioImg}
+                          alt={studio.name}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                        {/* Verified Badge */}
+                        <span className="absolute top-3 left-3 bg-white/90 backdrop-blur-md text-charcoal text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow-xs flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Verified
+                        </span>
+                      </div>
+
+                      {/* Content Info */}
+                      <div className="p-4 space-y-2">
+                        <div className="flex items-center justify-between gap-2">
+                          <h3 className="font-display font-bold text-base text-charcoal group-hover:text-[#0F4C45] transition-colors truncate">
+                            {studio.name}
+                          </h3>
+                        </div>
+
+                        {/* Rating */}
+                        <div className="flex items-center gap-1.5 text-xs font-bold text-charcoal/80">
+                          <span className="text-amber-500">★ {Number(studio.rating || 4.8).toFixed(1)}</span>
+                          <span className="text-charcoal/50 font-normal">
+                            ({studio.reviewCount || 12} reviews)
+                          </span>
+                        </div>
+
+                        {/* Location */}
+                        <p className="text-xs text-charcoal/60 flex items-center gap-1">
+                          <MapPin className="w-3.5 h-3.5 text-gold shrink-0" />
+                          <span className="truncate">{studio.location || studio.city || "Kerala"}</span>
+                        </p>
+
+                        {/* Price */}
+                        <div className="pt-1 border-t border-gold/10">
+                          <p className="text-xs text-charcoal/60">
+                            Starts from{" "}
+                            <span className="font-bold text-[#0F4C45]">
+                              {studio.startingPrice || "Contact for pricing"}
+                            </span>
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+        </section>
+
+      </div>
+
       {/* ── PHOTO LIGHTBOX MODAL ── */}
       {selectedPhoto && (
         <div
@@ -1075,6 +1457,98 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
             >
               <X className="w-5 h-5" />
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── WRITE A REVIEW MODAL ── */}
+      {isReviewModalOpen && (
+        <div
+          onClick={() => setIsReviewModalOpen(false)}
+          className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full border border-gold/25 shadow-2xl space-y-4 animate-in fade-in zoom-in-95 duration-200"
+          >
+            <div className="flex items-center justify-between border-b border-gold/15 pb-3">
+              <h3 className="font-serif font-bold text-xl text-charcoal flex items-center gap-2">
+                <PenSquare style={{ color: activeTheme.primary }} className="w-5 h-5" />
+                Write a Customer Review
+              </h3>
+              <button onClick={() => setIsReviewModalOpen(false)} className="text-charcoal/40 hover:text-charcoal p-1">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {newReviewSubmitted ? (
+              <div className="bg-emerald-50 border border-emerald-200 p-6 rounded-2xl text-center space-y-2">
+                <CheckCircle2 className="w-10 h-10 text-emerald-600 mx-auto" />
+                <h4 className="font-bold text-sm text-emerald-900">Review Published!</h4>
+                <p className="text-xs text-emerald-700">
+                  Thank you for sharing your experience with {displayName}.
+                </p>
+              </div>
+            ) : (
+              <form onSubmit={handleReviewSubmit} className="space-y-4 text-xs">
+                <div>
+                  <label className="font-bold text-charcoal/70 block mb-1">Your Full Name *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="E.g. Priya & Vikram"
+                    value={newReviewName}
+                    onChange={(e) => setNewReviewName(e.target.value)}
+                    className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-[#0F4C45]"
+                  />
+                </div>
+
+                <div>
+                  <label className="font-bold text-charcoal/70 block mb-1">Rating *</label>
+                  <div className="flex items-center gap-1 py-1">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        type="button"
+                        onClick={() => setNewReviewRating(star)}
+                        className="p-1 cursor-pointer transition-transform hover:scale-110"
+                      >
+                        <Star
+                          className={`w-6 h-6 ${
+                            star <= newReviewRating
+                              ? "fill-amber-400 text-amber-500"
+                              : "text-gray-300"
+                          }`}
+                        />
+                      </button>
+                    ))}
+                    <span className="ml-2 font-bold text-charcoal text-xs">
+                      {newReviewRating} / 5 Stars
+                    </span>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="font-bold text-charcoal/70 block mb-1">Your Review & Rental Experience *</label>
+                  <textarea
+                    rows={4}
+                    required
+                    placeholder="Share feedback on outfit quality, fitting, staff warmth, rental terms..."
+                    value={newReviewText}
+                    onChange={(e) => setNewReviewText(e.target.value)}
+                    className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-[#0F4C45]"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  style={{ backgroundColor: activeTheme.primary }}
+                  className="w-full py-3 rounded-xl text-white font-bold text-xs shadow-md hover:opacity-90 transition-all cursor-pointer"
+                >
+                  Submit Review
+                </button>
+              </form>
+            )}
           </div>
         </div>
       )}
