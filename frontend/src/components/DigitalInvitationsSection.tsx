@@ -36,12 +36,12 @@ export function DigitalInvitationsSection() {
     return () => clearInterval(interval);
   }, [isPaused]);
 
-  // Featured 4 compact templates for desktop layout
+  // Featured 4 templates for desktop layout
   const featuredTemplates = DIGITAL_INVITE_TEMPLATES.slice(0, 4);
 
   return (
-    <section className="py-8 sm:py-10 bg-[#FAF7F2] border-y border-gold/15 my-6 sm:my-8">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6">
+    <section className="py-8 sm:py-10 bg-[#FAF7F2] border-y border-gold/15 my-6 sm:my-8 w-full">
+      <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-8 lg:px-12">
         
         {/* Section Header */}
         <div className="flex items-end justify-between mb-6 gap-4">
@@ -51,7 +51,7 @@ export function DigitalInvitationsSection() {
                 <Sparkles className="w-3 h-3 text-gold" /> Instant Customization
               </span>
             </div>
-            <h2 className="text-xl sm:text-2xl font-bold text-charcoal font-display">
+            <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-charcoal font-display">
               💌 Digital Wedding Invitations
             </h2>
             <p className="text-[11px] sm:text-xs text-charcoal/70 mt-0.5">
@@ -61,14 +61,14 @@ export function DigitalInvitationsSection() {
 
           <Link
             href="/digital-invitations"
-            className="hidden sm:flex items-center gap-1.5 text-[#0F4C45] font-bold text-xs hover:underline shrink-0"
+            className="hidden sm:flex items-center gap-1.5 text-[#0F4C45] font-bold text-xs sm:text-sm hover:underline shrink-0"
           >
             <span>View All</span>
-            <ArrowRight className="w-3.5 h-3.5 text-gold" />
+            <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gold" />
           </Link>
         </div>
 
-        {/* Templates Display — Compact Card Row */}
+        {/* Templates Display — Full Width Desktop Grid / Preserved Mobile Carousel */}
         <div
           ref={scrollRef}
           onMouseEnter={() => setIsPaused(true)}
@@ -77,13 +77,13 @@ export function DigitalInvitationsSection() {
           onTouchEnd={() => {
             setTimeout(() => setIsPaused(false), 3000);
           }}
-          className="flex overflow-x-auto hide-scrollbar snap-x snap-mandatory gap-3 -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-4 md:gap-4 md:overflow-visible pb-2"
+          className="flex overflow-x-auto hide-scrollbar snap-x snap-mandatory gap-3 -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-4 md:gap-5 lg:gap-6 md:overflow-visible pb-2"
         >
           {featuredTemplates.map((template) => (
             <Link
               key={template.id}
               href={`/digital-invitations/${template.slug}/customize`}
-              className="flex-shrink-0 w-[210px] sm:w-[220px] md:w-auto snap-center bg-white rounded-2xl overflow-hidden border border-gold/15 shadow-xs hover:shadow-md transition-all group flex flex-col justify-between p-2 sm:p-2.5 max-w-[240px] mx-auto"
+              className="flex-shrink-0 w-[210px] sm:w-[240px] md:w-full snap-center bg-white rounded-2xl overflow-hidden border border-gold/15 shadow-xs hover:shadow-md transition-all group flex flex-col justify-between p-2 sm:p-3"
             >
               <div>
                 {/* Real Invitation Design Card */}
@@ -92,25 +92,25 @@ export function DigitalInvitationsSection() {
 
                   {/* Free / Premium / Badge */}
                   {template.badge && (
-                    <div className="absolute top-1.5 right-1.5 z-20">
+                    <div className="absolute top-2 right-2 z-20">
                       {template.badge === "Free" && (
-                        <span className="bg-emerald-700 text-white text-[8px] font-extrabold uppercase tracking-wider px-1.5 py-0.5 rounded-full shadow-sm">
+                        <span className="bg-emerald-700 text-white text-[8px] sm:text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full shadow-sm">
                           Free
                         </span>
                       )}
                       {template.badge === "Premium" && (
-                        <span className="bg-amber-600 text-white text-[8px] font-extrabold uppercase tracking-wider px-1.5 py-0.5 rounded-full shadow-sm border border-amber-300">
+                        <span className="bg-amber-600 text-white text-[8px] sm:text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full shadow-sm border border-amber-300">
                           Premium
                         </span>
                       )}
                       {template.badge === "New" && (
-                        <span className="bg-[#0F4C45] text-white text-[8px] font-extrabold uppercase tracking-wider px-1.5 py-0.5 rounded-full shadow-sm">
+                        <span className="bg-[#0F4C45] text-white text-[8px] sm:text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full shadow-sm">
                           New
                         </span>
                       )}
                       {template.badge === "Trending" && (
-                        <span className="bg-rose-600 text-white text-[8px] font-extrabold uppercase tracking-wider px-1.5 py-0.5 rounded-full shadow-sm flex items-center gap-0.5">
-                          <Flame className="w-2 h-2" /> Trending
+                        <span className="bg-rose-600 text-white text-[8px] sm:text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full shadow-sm flex items-center gap-0.5">
+                          <Flame className="w-2.5 h-2.5" /> Trending
                         </span>
                       )}
                     </div>
@@ -118,11 +118,11 @@ export function DigitalInvitationsSection() {
                 </div>
 
                 {/* Card Meta */}
-                <div className="p-2 space-y-0.5 text-left">
+                <div className="p-2 sm:p-2.5 space-y-0.5 text-left">
                   <h3 className="font-bold text-xs sm:text-sm font-display text-charcoal group-hover:text-[#0F4C45] transition-colors line-clamp-1">
                     {template.name}
                   </h3>
-                  <p className="text-[10px] text-charcoal/60 line-clamp-1">
+                  <p className="text-[10px] sm:text-[11px] text-charcoal/60 line-clamp-1">
                     {template.collection} • {template.style}
                   </p>
                 </div>
