@@ -593,6 +593,38 @@ export function VendorRegisterClient() {
           </div>
         </div>
 
+        {/* Dynamic Studio Specific Category Specification Options */}
+        {(selectedCategory === "Bridal Studio" || selectedCategory === "Groom Studio" || selectedCategory === "Wedding Studio" || selectedCategory.includes("Studio") || selectedCategory.includes("Wear")) && (
+          <>
+            <h3 className="font-display text-xl text-charcoal mb-4 border-b border-gold/10 pb-2">Studio Collections & Outfit Specialties</h3>
+            <p className="text-xs text-charcoal/70 mb-4">
+              Select the outfit specialties offered by your boutique:
+            </p>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-10 bg-emerald/5 p-6 rounded-2xl border border-emerald/10">
+              {(selectedCategory === "Bridal Studio" || selectedCategory === "Wedding Studio") && (
+                <>
+                  {["Bridal Sarees", "Bridal Lehengas", "Bridal Gowns", "Reception Dresses", "Engagement Dresses", "Mehendi Dresses", "Haldi Dresses", "Nikah Dresses"].map((opt) => (
+                    <label key={opt} className="flex items-center gap-2 text-xs font-medium text-charcoal cursor-pointer bg-white p-2.5 rounded-xl border border-emerald/20 hover:bg-emerald/10 transition-colors">
+                      <input type="checkbox" defaultChecked name="studio_specialties" value={opt} className="rounded text-emerald focus:ring-emerald" />
+                      <span>{opt}</span>
+                    </label>
+                  ))}
+                </>
+              )}
+              {(selectedCategory === "Groom Studio" || selectedCategory === "Wedding Studio") && (
+                <>
+                  {["Sherwani", "Suit", "Tuxedo", "Blazer", "Kurta Set", "Pathani Suit", "Mundu Set", "Reception Suit"].map((opt) => (
+                    <label key={opt} className="flex items-center gap-2 text-xs font-medium text-charcoal cursor-pointer bg-white p-2.5 rounded-xl border border-emerald/20 hover:bg-emerald/10 transition-colors">
+                      <input type="checkbox" defaultChecked name="studio_specialties" value={opt} className="rounded text-emerald focus:ring-emerald" />
+                      <span>{opt}</span>
+                    </label>
+                  ))}
+                </>
+              )}
+            </div>
+          </>
+        )}
+
         {/* Dynamic Venue Specific Registration Fields */}
         {selectedCategory === "Wedding Venue" && (
           <>

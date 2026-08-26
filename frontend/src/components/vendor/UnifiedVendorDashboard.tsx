@@ -16,7 +16,8 @@ import {
   ChevronRight,
   ShieldCheck,
   Star,
-  ArrowLeft
+  ArrowLeft,
+  Settings
 } from "lucide-react";
 import { VENDOR_CATEGORIES, VendorCategoryConfig } from "@/lib/vendor-categories";
 import { OverviewSection } from "./sections/OverviewSection";
@@ -29,6 +30,10 @@ import { CustomizeStoreSection } from "./sections/CustomizeStoreSection";
 import { DecorCustomizeStoreSection } from "./decor/sections/DecorCustomizeStoreSection";
 import { StoryCollectionSection } from "./boutique/StoryCollectionSection";
 import { StoryAnalyticsSection } from "./boutique/StoryAnalyticsSection";
+import { StoryBoutiqueOverview } from "./boutique/StoryBoutiqueOverview";
+import { StoryBoutiqueCustomize } from "./boutique/StoryBoutiqueCustomize";
+import { StoryBoutiqueCollectionsManager } from "./boutique/StoryBoutiqueCollectionsManager";
+import { StoryBoutiqueSettings } from "./boutique/StoryBoutiqueSettings";
 import { VendorMediaModule } from "./sections/VendorMediaModule";
 import { VendorPricingModule } from "./sections/VendorPricingModule";
 import { VendorCoverHeader } from "./VendorCoverHeader";
@@ -141,12 +146,12 @@ export function UnifiedVendorDashboard({ categoryKey = "caterers", initialTab = 
   let navItems;
   if (isBoutiqueStory) {
     navItems = [
-      { id: "overview", label: "Overview", icon: LayoutDashboard, desc: "Boutique performance overview, views & analytics" },
-      { id: "profile", label: "Boutique Profile", icon: Store, desc: "Address, shop hours, map location, contact details & bio" },
-      { id: "story-collections", label: "Dress Collections", icon: ShoppingBag, desc: "Upload outfits, set purchase/rental prices, fabrics & stock status" },
-      { id: "story-analytics", label: "Analytics & Wishlist", icon: BarChart3, desc: "Profile views, wishlist saves, most viewed outfits & active inventory" },
-      { id: "subscription", label: "Subscription", icon: CreditCard, desc: "Current plan details & membership billing" },
-      { id: "customize-store", label: "Customize Store", icon: StorePalette, desc: "Logo, cover banner, brand color theme & live storefront preview" },
+      { id: "overview", label: "Dashboard", icon: LayoutDashboard, desc: "Studio performance overview & metrics" },
+      { id: "customize-store", label: "Customize Studio", icon: StorePalette, desc: "Studio profile, working hours, services, studio categories & rental policies" },
+      { id: "collections-manager", label: "Collections", icon: Layers, desc: "Add, edit and manage outfit collections" },
+      { id: "story-collections", label: "Dresses", icon: ShoppingBag, desc: "Upload outfits, set prices, sizes, colors, fabric & stock status" },
+      { id: "story-analytics", label: "Analytics", icon: BarChart3, desc: "Profile views, wishlist saves & outfit popularity insights" },
+      { id: "settings", label: "Settings", icon: Settings, desc: "Password, notifications & account settings" },
     ];
   } else if (isJewellery) {
     navItems = [
@@ -204,9 +209,17 @@ export function UnifiedVendorDashboard({ categoryKey = "caterers", initialTab = 
   const renderActiveSection = () => {
     switch (activeTab) {
       case "overview":
-        return <OverviewSection categoryConfig={categoryConfig} vendorName={vendorName} onNavigate={(t) => setActiveTab(t)} />;
+        return isBoutiqueStory ? (
+          <StoryBoutiqueOverview categoryKey={activeCategoryKey} onNavigate={(t) => setActiveTab(t)} />
+        ) : (
+          <OverviewSection categoryConfig={categoryConfig} vendorName={vendorName} onNavigate={(t) => setActiveTab(t)} />
+        );
       case "profile":
         return <ProfileSection categoryConfig={categoryConfig} vendorName={vendorName} />;
+      case "collections-manager":
+        return <StoryBoutiqueCollectionsManager categoryKey={activeCategoryKey} />;
+      case "settings":
+        return <StoryBoutiqueSettings />;
       // Jewellery routes
       case "inventory":
         return <JewelleryInventorySection />;
@@ -260,7 +273,9 @@ export function UnifiedVendorDashboard({ categoryKey = "caterers", initialTab = 
       case "subscription":
         return <SubscriptionSection categoryConfig={categoryConfig} />;
       case "customize-store":
-        return isVenue ? (
+        return isBoutiqueStory ? (
+          <StoryBoutiqueCustomize categoryKey={activeCategoryKey} vendorName={vendorName} />
+        ) : isVenue ? (
           <VenueCustomizeStoreSection vendorName={vendorName} categoryConfig={categoryConfig} onBack={() => setActiveTab(null)} />
         ) : isDecor ? (
           <DecorCustomizeStoreSection vendorName={vendorName} onBack={() => setActiveTab(null)} />
