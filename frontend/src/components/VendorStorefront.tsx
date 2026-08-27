@@ -1159,13 +1159,15 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
               </Link>
             </div>
 
-            {/* Featured Collections Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {boutiqueCollectionsList.slice(0, 4).map((col: any) => (
+            {/* Featured Collections: Mobile Carousel (5 items), Desktop Grid (4 items) */}
+            <div className="flex overflow-x-auto hide-scrollbar snap-x snap-mandatory gap-4 pb-2 md:grid md:grid-cols-4 md:gap-4 md:overflow-visible">
+              {boutiqueCollectionsList.slice(0, 5).map((col: any, idx: number) => (
                 <div
-                  key={col.id}
+                  key={col.id || idx}
                   onClick={() => setActiveCollectionModal(col)}
-                  className="bg-[#FAF7F2] rounded-2xl border border-gold/15 hover:border-gold/40 shadow-2xs hover:shadow-md transition-all overflow-hidden cursor-pointer group flex flex-col justify-between"
+                  className={`flex-shrink-0 w-[240px] sm:w-[260px] md:w-auto snap-start bg-[#FAF7F2] rounded-2xl border border-gold/15 hover:border-gold/40 shadow-2xs hover:shadow-md transition-all overflow-hidden cursor-pointer group flex flex-col justify-between ${
+                    idx >= 4 ? "md:hidden" : ""
+                  }`}
                 >
                   <div>
                     <div className="relative aspect-[16/10] w-full overflow-hidden bg-charcoal">
@@ -1182,18 +1184,15 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
                       </span>
                     </div>
 
-                    <div className="p-4 space-y-1.5">
-                      <h3 className="font-serif font-bold text-base text-charcoal group-hover:text-[#0F4C45] transition-colors">
+                    <div className="p-3.5">
+                      <h3 className="font-serif font-bold text-sm text-charcoal group-hover:text-[#0F4C45] transition-colors line-clamp-1">
                         {col.name}
                       </h3>
-                      <p className="text-xs text-charcoal/70 line-clamp-2 leading-relaxed">
-                        {col.description}
-                      </p>
                     </div>
                   </div>
 
-                  <div className="px-4 pb-4 pt-1 flex items-center justify-between text-xs font-bold text-[#0F4C45] border-t border-gold/10">
-                    <span>Tap to Browse Outfits</span>
+                  <div className="px-3.5 pb-3.5 pt-1 flex items-center justify-between text-xs font-bold text-[#0F4C45] border-t border-gold/10">
+                    <span>Browse Outfits</span>
                     <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                   </div>
                 </div>
