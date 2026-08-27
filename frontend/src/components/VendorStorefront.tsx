@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from "react";
 import Link from "next/link";
+import { cleanVendorText } from "@/lib/vendorStore";
 import {
   ArrowRight,
   Sparkles,
@@ -219,7 +220,8 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
   // Dynamic Studio Category Configuration & Labels
   const studioCategoryConfig = useMemo(() => {
     const norm = (vendor?.categorySlug || vendor?.categoryLabel || vendor?.category || "").toLowerCase();
-    const studioDisplayName = vendor?.business_name || vendor?.boutique_name || vendor?.name || sf?.displayName || sf?.businessName || "Studio";
+    const rawName = vendor?.business_name || vendor?.boutique_name || vendor?.name || sf?.displayName || sf?.businessName || "Studio";
+    const studioDisplayName = cleanVendorText(rawName);
 
     if (norm.includes("bridal") || norm.includes("bride")) {
       return {

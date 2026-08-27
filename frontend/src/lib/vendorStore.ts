@@ -2,6 +2,16 @@
 
 import { normalizeCategory } from "./categories";
 
+export function cleanVendorText(text: string | null | undefined): string {
+  if (!text || typeof text !== "string") return "";
+  return text
+    .replace(/\s*VERIFIED_PROOF_\d+/gi, "")
+    .replace(/\s*VERIFIED_PROOF/gi, "")
+    .replace(/\s*DUMMY_\d+/gi, "")
+    .replace(/\s*TEST_TOKEN_\d+/gi, "")
+    .trim();
+}
+
 export interface VendorProfileData {
   id: string;
   user_id?: string;

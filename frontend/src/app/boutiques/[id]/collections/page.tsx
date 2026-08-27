@@ -4,6 +4,7 @@ import Image from "next/image";
 import { ArrowLeft, MapPin, ShoppingBag } from "lucide-react";
 import { Footer } from "@/components/Footer";
 import { getBoutiqueDetails, getBoutiqueProducts } from "@/services/api";
+import { cleanVendorText } from "@/lib/vendorStore";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -12,7 +13,8 @@ interface Props {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
   const boutique = await getBoutiqueDetails(id);
-  const name = (boutique as any)?.boutique_name || (boutique as any)?.name || "Bridal Boutique";
+  const rawName = (boutique as any)?.boutique_name || (boutique as any)?.name || "Bridal Boutique";
+  const name = cleanVendorText(rawName);
   
   return {
     title: `${name} Collections | Cloche Bridal Wear`,
@@ -26,7 +28,8 @@ export default async function BoutiqueCollectionsPage({ params }: Props) {
   // Fetch boutique info from Supabase DB
   const boutiqueApi = await getBoutiqueDetails(id);
 
-  const boutiqueName = (boutiqueApi as any)?.boutique_name || (boutiqueApi as any)?.name || "Bridal Boutique";
+  const rawBoutiqueName = (boutiqueApi as any)?.boutique_name || (boutiqueApi as any)?.name || "Bridal Boutique";
+  const boutiqueName = cleanVendorText(rawBoutiqueName);
   const location = (boutiqueApi as any)?.city || (boutiqueApi as any)?.district || "Kerala";
   const backUrl = `/boutiques/${id}`;
 

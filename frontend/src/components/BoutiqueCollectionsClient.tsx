@@ -4,6 +4,7 @@ import React, { useState, useMemo } from "react";
 import Link from "next/link";
 import { ArrowLeft, MapPin, ShoppingBag, Heart, Sparkles, X, ChevronRight, MessageCircle } from "lucide-react";
 import { Footer } from "@/components/Footer";
+import { cleanVendorText } from "@/lib/vendorStore";
 
 interface BoutiqueCollectionsClientProps {
   boutique: any;
@@ -12,7 +13,8 @@ interface BoutiqueCollectionsClientProps {
 }
 
 export function BoutiqueCollectionsClient({ boutique, initialProducts = [], boutiqueId }: BoutiqueCollectionsClientProps) {
-  const boutiqueName = boutique?.boutique_name || boutique?.business_name || boutique?.name || "Wedding Studio";
+  const rawBoutiqueName = boutique?.boutique_name || boutique?.business_name || boutique?.name || "Wedding Studio";
+  const boutiqueName = cleanVendorText(rawBoutiqueName);
   const location = boutique?.city || boutique?.district || boutique?.address || "Kerala";
   const whatsappNumber = boutique?.phone || boutique?.whatsapp || "+919847055443";
   const backUrl = `/wedding-story/${boutique?.slug || boutiqueId}`;
