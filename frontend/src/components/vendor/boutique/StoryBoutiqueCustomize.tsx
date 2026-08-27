@@ -271,13 +271,6 @@ export function StoryBoutiqueCustomize({ categoryKey, vendorName }: StoryBoutiqu
       facebook,
       website,
     };
-
-    // Save to LocalStorage
-    const storageKey = `cloche_boutique_customization_${categoryKey}`;
-    try {
-      localStorage.setItem(storageKey, JSON.stringify(customizationData));
-    } catch (_) {}
-
     // Sync with DB
     try {
       const res = await syncVendorProfileWithDatabase({

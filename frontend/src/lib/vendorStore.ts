@@ -295,6 +295,40 @@ export async function syncVendorProfileWithDatabase(
           { platform: "youtube", url: profileData.youtube || "" },
           { platform: "website", url: profileData.website || "" },
         ],
+        storefront: {
+          businessName: profileData.boutique_name || profileData.name,
+          studioName: profileData.boutique_name || profileData.name,
+          about: profileData.description,
+          logo: profileData.logo || profileData.logo_url,
+          coverImage: profileData.coverImage || profileData.cover_image,
+          contactInfo: {
+            phone: profileData.phone,
+            whatsapp: profileData.whatsapp || profileData.phone,
+            email: profileData.email,
+            address: profileData.address,
+            city: profileData.city,
+            district: profileData.district,
+            googleMaps: profileData.maps_url || profileData.googleMapsLocation,
+          },
+          workingHours: {
+            openingTime: profileData.opening_time || profileData.openingTime,
+            closingTime: profileData.closing_time || profileData.closingTime,
+            workingDays: profileData.working_days || profileData.workingDays,
+            weeklyOff: profileData.weekly_off || profileData.weeklyOff,
+          },
+          policies: {
+            rentalDuration: profileData.rentalDuration,
+            securityDeposit: profileData.securityDeposit,
+            returnPolicy: profileData.returnPolicy,
+            cancellationPolicy: profileData.cancellationPolicy,
+            damagePolicy: profileData.damagePolicy,
+          },
+          socialLinks: {
+            instagram: profileData.instagram,
+            facebook: profileData.facebook,
+            website: profileData.website,
+          },
+        },
         ...profileData,
       };
 
