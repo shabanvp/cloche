@@ -61,48 +61,7 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
 
   // Customer Reviews State
   const [reviewsList, setReviewsList] = useState<any[]>(() => {
-    const initial = Array.isArray(vendor?.reviews) && vendor.reviews.length > 0 ? vendor.reviews : [];
-    const storedKey = `cloche_studio_reviews_${vendor?.id || 'default'}`;
-    if (typeof window !== "undefined") {
-      try {
-        const saved = localStorage.getItem(storedKey);
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed) && parsed.length > 0) return [...parsed, ...initial];
-        }
-      } catch (e) {}
-    }
-    return initial.length > 0
-      ? initial
-      : [
-          {
-            id: "rev-1",
-            customerName: "Ananya & Rahul Nair",
-            avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop",
-            rating: 5,
-            date: "February 2026",
-            verified: true,
-            text: "We rented both the bridal maroon zardozi lehenga and the matching groom velvet sherwani from here for our reception. The outfit quality was pristine, alterations were 100% spot-on, and the security deposit return was seamless!",
-          },
-          {
-            id: "rev-2",
-            customerName: "Dr. Siddharth Varma",
-            avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200&auto=format&fit=crop",
-            rating: 5,
-            date: "January 2026",
-            verified: true,
-            text: "Outstanding selection of groom wear! The Indo-Western suit fitting was custom done in just 2 days. The staff was warm, patient, and guided us through whole ceremonial combinations.",
-          },
-          {
-            id: "rev-3",
-            customerName: "Meera Krishnan",
-            avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200&auto=format&fit=crop",
-            rating: 5,
-            date: "December 2025",
-            verified: true,
-            text: "Rented my Nikah gown and lehenga. High-end designer looks at a fraction of purchase cost. Everything arrived steam-ironed and beautifully packed. Highly recommend this studio to all brides!",
-          },
-        ];
+    return Array.isArray(vendor?.reviews) ? vendor.reviews : [];
   });
 
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
@@ -145,13 +104,6 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
 
     const updated = [newEntry, ...reviewsList];
     setReviewsList(updated);
-
-    const storedKey = `cloche_studio_reviews_${vendor?.id || 'default'}`;
-    if (typeof window !== "undefined") {
-      try {
-        localStorage.setItem(storedKey, JSON.stringify(updated));
-      } catch (err) {}
-    }
 
     setNewReviewSubmitted(true);
     setTimeout(() => {
@@ -264,258 +216,8 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
     if (Array.isArray(vendor?.collections) && vendor.collections.length > 0) return vendor.collections;
     if (Array.isArray(sf?.collections) && sf.collections.length > 0) return sf.collections;
 
-    // BRIDAL STUDIO COLLECTIONS (100% Bridal & Bride Outfits)
-    if (studioCategoryConfig.type === "bridal") {
-      return [
-        {
-          id: "col-b1",
-          name: "Royal Zardozi Bridal Lehenga Collection",
-          category: "Bridal",
-          description: "Hand-embroidered zardozi maroon & crimson lehengas with pure silk dupattas for ceremonial weddings.",
-          coverImage: "https://images.unsplash.com/photo-1594223274512-ad4803739b7c?q=80&w=800&auto=format&fit=crop",
-          outfitCount: 18,
-          outfits: [
-            {
-              id: "out-b101",
-              name: "Crimson Velvet Zardozi Lehenga",
-              price: "₹18,500 / 3 Days",
-              category: "Bride",
-              sizes: ["S", "M", "L", "XL"],
-              image: "https://images.unsplash.com/photo-1594223274512-ad4803739b7c?q=80&w=800&auto=format&fit=crop",
-            },
-            {
-              id: "out-b102",
-              name: "Emerald & Gold Raw Silk Lehenga",
-              price: "₹16,000 / 3 Days",
-              category: "Bride",
-              sizes: ["M", "L"],
-              image: "https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?q=80&w=800&auto=format&fit=crop",
-            },
-            {
-              id: "out-b103",
-              name: "Deep Maroon Royal Bridal Gown",
-              price: "₹21,000 / 3 Days",
-              category: "Bride",
-              sizes: ["S", "M", "L"],
-              image: "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=800&auto=format&fit=crop",
-            },
-            {
-              id: "out-b104",
-              name: "Pastel Pink Designer Wedding Lehenga",
-              price: "₹15,500 / 3 Days",
-              category: "Bride",
-              sizes: ["M", "L", "XL"],
-              image: "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?q=80&w=800&auto=format&fit=crop",
-            },
-          ],
-        },
-        {
-          id: "col-b2",
-          name: "Kanjeevaram & Heritage Silk Sarees",
-          category: "Saree",
-          description: "Pure Kanjeevaram silk sarees woven with gold zari borders for muhurtham and temple ceremonies.",
-          coverImage: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?q=80&w=800&auto=format&fit=crop",
-          outfitCount: 15,
-          outfits: [
-            {
-              id: "out-b201",
-              name: "Royal Red Kanjeevaram Zari Saree",
-              price: "₹12,500 / 3 Days",
-              category: "Bride",
-              sizes: ["Free Size"],
-              image: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?q=80&w=800&auto=format&fit=crop",
-            },
-            {
-              id: "out-b202",
-              name: "Golden Yellow Temple Silk Saree",
-              price: "₹11,000 / 3 Days",
-              category: "Bride",
-              sizes: ["Free Size"],
-              image: "https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?q=80&w=800&auto=format&fit=crop",
-            },
-          ],
-        },
-        {
-          id: "col-b3",
-          name: "Reception Gowns & Fusion Indo-Western",
-          category: "Reception",
-          description: "Modern trails, ball gowns, glitter sequin lehengas, and cocktail ensembles for reception & sangeet.",
-          coverImage: "https://images.unsplash.com/photo-1566174053879-31528523f8ae?q=80&w=800&auto=format&fit=crop",
-          outfitCount: 16,
-          outfits: [
-            {
-              id: "out-b301",
-              name: "Emerald Green Satin Reception Ball Gown",
-              price: "₹17,500 / 3 Days",
-              category: "Bride",
-              sizes: ["S", "M", "L"],
-              image: "https://images.unsplash.com/photo-1566174053879-31528523f8ae?q=80&w=800&auto=format&fit=crop",
-            },
-            {
-              id: "out-b302",
-              name: "Rose Gold Sequin Trail Gown",
-              price: "₹19,000 / 3 Days",
-              category: "Bride",
-              sizes: ["S", "M"],
-              image: "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=800&auto=format&fit=crop",
-            },
-          ],
-        },
-        {
-          id: "col-b4",
-          name: "Sangeet & Mehendi Anarkali Suits",
-          category: "Mehendi",
-          description: "Vibrant yellow, mint green, and pastel floral heavy embroidered anarkali sets and sharara suits.",
-          coverImage: "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?q=80&w=800&auto=format&fit=crop",
-          outfitCount: 12,
-          outfits: [
-            {
-              id: "out-b401",
-              name: "Mustard Yellow Silk Sharara Set",
-              price: "₹9,500 / 3 Days",
-              category: "Bride",
-              sizes: ["S", "M", "L"],
-              image: "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?q=80&w=800&auto=format&fit=crop",
-            },
-          ],
-        },
-      ];
-    }
-
-    // GROOM STUDIO COLLECTIONS (100% Groom Outfits)
-    if (studioCategoryConfig.type === "groom") {
-      return [
-        {
-          id: "col-g1",
-          name: "Luxe Groom Velvet Sherwani Collection",
-          category: "Sherwani",
-          description: "Royal velvet & raw silk sherwanis complete with embroidered safa, stolen dupatta, and ceremonial footwear.",
-          coverImage: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=800&auto=format&fit=crop",
-          outfitCount: 14,
-          outfits: [
-            {
-              id: "out-g101",
-              name: "Ivory & Gold Raw Silk Sherwani",
-              price: "₹14,500 / 3 Days",
-              category: "Groom",
-              sizes: ["38", "40", "42", "44"],
-              image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=800&auto=format&fit=crop",
-            },
-            {
-              id: "out-g102",
-              name: "Maroon Velvet Royal Zardozi Sherwani",
-              price: "₹16,500 / 3 Days",
-              category: "Groom",
-              sizes: ["40", "42", "44"],
-              image: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=800&auto=format&fit=crop",
-            },
-          ],
-        },
-        {
-          id: "col-g2",
-          name: "Royal Jodhpuri & Bandhgala Suits",
-          category: "Jodhpuri",
-          description: "Handcrafted bandhgala jackets, jodhpuri suits, and structured velvet coats for sangeet & reception.",
-          coverImage: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=800&auto=format&fit=crop",
-          outfitCount: 12,
-          outfits: [
-            {
-              id: "out-g201",
-              name: "Black Velvet Embellished Jodhpuri Set",
-              price: "₹12,500 / 3 Days",
-              category: "Groom",
-              sizes: ["38", "40", "42"],
-              image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=800&auto=format&fit=crop",
-            },
-          ],
-        },
-        {
-          id: "col-g3",
-          name: "Reception Tuxedos & Indo-Western Couture",
-          category: "Tuxedo",
-          description: "Tailored Italian fabric tuxedos, double-breasted suits, and velvet lapel blazers for evening receptions.",
-          coverImage: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=800&auto=format&fit=crop",
-          outfitCount: 16,
-          outfits: [
-            {
-              id: "out-g301",
-              name: "Midnight Tuxedo Suit with Velvet Lapel",
-              price: "₹11,000 / 3 Days",
-              category: "Groom",
-              sizes: ["38", "40", "42", "44"],
-              image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=800&auto=format&fit=crop",
-            },
-          ],
-        },
-      ];
-    }
-
-    // WEDDING STUDIO COMBINED COLLECTIONS
-    return [
-      {
-        id: "col-1",
-        name: "Royal Zardozi Bridal Collection",
-        category: "Bridal",
-        description: "Hand-embroidered zardozi maroon & crimson lehengas with pure silk dupattas for ceremonial weddings.",
-        coverImage: "https://images.unsplash.com/photo-1594223274512-ad4803739b7c?q=80&w=800&auto=format&fit=crop",
-        outfitCount: 18,
-        outfits: [
-          {
-            id: "out-101",
-            name: "Crimson Velvet Zardozi Lehenga",
-            price: "₹18,500 / 3 Days",
-            category: "Bride",
-            sizes: ["S", "M", "L", "XL"],
-            image: "https://images.unsplash.com/photo-1594223274512-ad4803739b7c?q=80&w=800&auto=format&fit=crop",
-          },
-          {
-            id: "out-102",
-            name: "Emerald & Gold Raw Silk Lehenga",
-            price: "₹16,000 / 3 Days",
-            category: "Bride",
-            sizes: ["M", "L"],
-            image: "https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?q=80&w=800&auto=format&fit=crop",
-          },
-        ],
-      },
-      {
-        id: "col-2",
-        name: "Luxe Groom Velvet Sherwani Collection",
-        category: "Groom",
-        description: "Royal velvet & raw silk sherwanis complete with embroidered safa, stolen dupatta, and ceremonial footwear.",
-        coverImage: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=800&auto=format&fit=crop",
-        outfitCount: 14,
-        outfits: [
-          {
-            id: "out-201",
-            name: "Ivory & Gold Raw Silk Sherwani",
-            price: "₹14,500 / 3 Days",
-            category: "Groom",
-            sizes: ["38", "40", "42", "44"],
-            image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=800&auto=format&fit=crop",
-          },
-        ],
-      },
-      {
-        id: "col-3",
-        name: "Ceremonial Couple Matching Ensemble",
-        category: "Couple",
-        description: "Coordinated bride and groom ceremonial outfits styled with matching embroidery motifs and color palettes.",
-        coverImage: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=800&auto=format&fit=crop",
-        outfitCount: 10,
-        outfits: [
-          {
-            id: "out-301",
-            name: "Crimson & Gold Coordinated Couple Set",
-            price: "₹28,000 / 3 Days (Pair)",
-            category: "Couple",
-            sizes: ["Bride M / Groom 40", "Bride L / Groom 42"],
-            image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=800&auto=format&fit=crop",
-          },
-        ],
-      },
-    ];
-  }, [vendor, sf, studioCategoryConfig.type]);
+    return [];
+  }, [vendor, sf]);
 
   // Color Theme Resolution
   const themeId = sf.theme || vendor?.colorTheme || vendor?.color_theme || "emerald";
@@ -708,9 +410,9 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
   const rentalInfo = useMemo(() => {
     const p = (typeof sf.policies === "object" && sf.policies !== null ? sf.policies : {}) as Record<string, any>;
     return {
-      duration: vendor?.rentalDuration || vendor?.rental_policy || vendor?.rental_duration || sf.rentalDuration || p.rentalDuration || "3 Days (Pickup day before event, Return day after)",
-      deposit: vendor?.securityDeposit || vendor?.security_deposit || sf.securityDeposit || p.securityDeposit || "₹10,000 (Refundable upon return inspection)",
-      returnPolicy: vendor?.returnPolicy || vendor?.return_policy || sf.returnPolicy || p.returnPolicy || "Return within agreed rental duration. Delayed returns attract ₹1,000/day late fee.",
+      duration: vendor?.rentalDuration || vendor?.rental_policy || vendor?.rental_duration || sf.rentalDuration || p.rentalDuration || "",
+      deposit: vendor?.securityDeposit || vendor?.security_deposit || sf.securityDeposit || p.securityDeposit || "",
+      returnPolicy: vendor?.returnPolicy || vendor?.return_policy || sf.returnPolicy || p.returnPolicy || "",
       cancellationPolicy: vendor?.cancellationPolicy || vendor?.cancellation_policy || sf.cancellationPolicy || p.cancellationPolicy || "",
       damagePolicy: vendor?.damagePolicy || vendor?.damage_policy || sf.damagePolicy || p.damagePolicy || "",
     };
