@@ -18,6 +18,7 @@ import {
   Tag,
   Star,
   Heart,
+  Bookmark,
   Share2,
   ExternalLink,
   ChevronRight,
@@ -1136,76 +1137,96 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
           </div>
 
           {/* B. BOUTIQUE SHOWROOM FEATURED COLLECTIONS */}
-          <div className="bg-white rounded-3xl p-5 sm:p-6 border border-gold/15 shadow-sm space-y-5">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gold/10 pb-4">
-              <div>
-                <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-[#0F4C45]/10 text-[#0F4C45] text-[10px] font-bold uppercase tracking-wider mb-1">
-                  <Sparkles className="w-3.5 h-3.5 text-[#C8A96A]" /> Digital Showroom
-                </span>
-                <h2 className="font-serif font-bold text-xl sm:text-2xl text-charcoal">
-                  {studioCategoryConfig.collectionsTitle}
-                </h2>
-                <p className="text-xs text-charcoal/60">
-                  {studioCategoryConfig.collectionsSubtitle}
-                </p>
-              </div>
+          <div className="bg-white rounded-3xl p-4 sm:p-6 border border-gold/15 shadow-sm space-y-4">
+            <div className="flex items-center justify-between border-b border-gold/10 pb-3">
+              <h2 className="font-serif font-bold text-xl sm:text-2xl text-charcoal tracking-tight">
+                Collections
+              </h2>
 
               <Link
                 href={`/wedding-story/${vendor?.slug || vendor?.id || "boutique"}/collections`}
-                className="py-2 px-3.5 rounded-xl border border-gold/30 text-charcoal hover:bg-[#0F4C45] hover:text-white font-bold text-xs transition-all flex items-center gap-1.5 shrink-0 self-start sm:self-center"
+                className="hidden md:flex items-center gap-1 text-xs font-bold text-[#0F4C45] hover:underline"
               >
-                <span>View All Collections</span>
+                <span>View all</span>
                 <ChevronRight className="w-4 h-4" />
               </Link>
             </div>
 
-            {/* Featured Collections: Mobile Carousel (5 items), Desktop Grid (4 items) */}
-            <div className="flex overflow-x-auto hide-scrollbar snap-x snap-mandatory gap-4 pb-2 md:grid md:grid-cols-4 md:gap-4 md:overflow-visible">
-              {boutiqueCollectionsList.slice(0, 5).map((col: any, idx: number) => (
-                <div
-                  key={col.id || idx}
-                  onClick={() => setActiveCollectionModal(col)}
-                  className={`flex-shrink-0 w-[240px] sm:w-[260px] md:w-auto snap-start bg-[#FAF7F2] rounded-2xl border border-gold/15 hover:border-gold/40 shadow-2xs hover:shadow-md transition-all overflow-hidden cursor-pointer group flex flex-col justify-between ${
-                    idx >= 4 ? "md:hidden" : ""
-                  }`}
-                >
-                  <div>
-                    <div className="relative aspect-[16/10] w-full overflow-hidden bg-charcoal">
+            {/* Mobile Carousel (2 portrait cards per view), Desktop Grid (4 items) */}
+            <div className="flex overflow-x-auto hide-scrollbar snap-x snap-mandatory gap-3.5 pb-2 md:grid md:grid-cols-4 md:gap-5 md:overflow-visible">
+              {boutiqueCollectionsList.slice(0, 5).map((col: any, idx: number) => {
+                const outfitPrice = col.price || col.startingPrice || col.outfits?.[0]?.price || "₹18,500 / 3 Days";
+                const categoryName = col.category || col.subCategory || col.name || "Design Collection";
+                const isBookmarked = wishlistOutfits.has(col.id);
+
+                return (
+                  <div
+                    key={col.id || idx}
+                    onClick={() => setActiveCollectionModal(col)}
+                    className={`flex-shrink-0 w-[165px] sm:w-[220px] md:w-auto snap-start cursor-pointer group flex flex-col justify-between space-y-2 ${
+                      idx >= 4 ? "md:hidden" : ""
+                    }`}
+                  >
+                    {/* Tall Portrait Image Container (Matching Screenshot UI) */}
+                    <div className="relative aspect-[3/4.2] w-full overflow-hidden rounded-2xl bg-charcoal shadow-2xs">
                       <img
                         src={col.coverImage}
                         alt={col.name}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        loading="lazy"
                       />
-                      <span className="absolute top-3 left-3 bg-black/60 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-white/20">
-                        {col.category || "Rental Collection"}
-                      </span>
-                      <span className="absolute bottom-3 right-3 bg-white/95 backdrop-blur-md text-charcoal text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow-xs">
-                        {col.outfitCount || (col.outfits ? col.outfits.length : 12)} Outfits
-                      </span>
                     </div>
 
-                    <div className="p-3.5">
-                      <h3 className="font-serif font-bold text-sm text-charcoal group-hover:text-[#0F4C45] transition-colors line-clamp-1">
-                        {col.name}
-                      </h3>
+                    {/* Card Content Details Below Image */}
+                    <div className="space-y-0.5 px-0.5">
+                      {/* Line 1: Subtitle / Outfit Category Name */}
+                      <p className="text-xs text-charcoal/60 truncate font-sans">
+                        {categoryName}
+                      </p>
+
+                      {/* Line 2: Brand / Studio Name + Bookmark Icon */}
+                      <div className="flex items-center justify-between gap-1">
+                        <h3 className="font-bold text-sm text-charcoal truncate font-sans group-hover:text-[#0F4C45] transition-colors">
+                          {displayName}
+                        </h3>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const next = new Set(wishlistOutfits);
+                            if (isBookmarked) next.delete(col.id);
+                            else next.add(col.id);
+                            setWishlistOutfits(next);
+                          }}
+                          className="text-charcoal/60 hover:text-[#0F4C45] transition-colors shrink-0 p-0.5 cursor-pointer"
+                          aria-label="Bookmark collection"
+                        >
+                          <Bookmark className={`w-4 h-4 ${isBookmarked ? "fill-[#0F4C45] text-[#0F4C45]" : ""}`} />
+                        </button>
+                      </div>
+
+                      {/* Line 3: Location */}
+                      <p className="text-xs text-charcoal/60 font-sans">
+                        {location || "Kerala"}
+                      </p>
+
+                      {/* Line 4: Price */}
+                      <p className="font-bold text-sm text-charcoal font-sans pt-0.5">
+                        {outfitPrice.startsWith("₹") ? outfitPrice : `₹${outfitPrice}`}
+                      </p>
                     </div>
                   </div>
-
-                  <div className="px-3.5 pb-3.5 pt-1 flex items-center justify-between text-xs font-bold text-[#0F4C45] border-t border-gold/10">
-                    <span>Browse Outfits</span>
-                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
-            <div className="pt-2 text-center">
+            {/* "View all" Button (Exact Outlined Style matching Screenshot UI) */}
+            <div className="pt-2">
               <Link
                 href={`/wedding-story/${vendor?.slug || vendor?.id || "boutique"}/collections`}
-                className="inline-flex items-center justify-center gap-2 w-full py-3 rounded-2xl bg-[#0F4C45] text-white font-bold text-xs shadow-md hover:bg-[#12584E] transition-all"
+                className="w-full py-3 rounded-xl border border-[#D79A38] bg-white text-[#D79A38] font-bold text-sm hover:bg-[#FFF9EE] transition-all text-center flex items-center justify-center shadow-2xs cursor-pointer"
               >
-                <span>View All Collections ({boutiqueCollectionsList.length})</span>
-                <ChevronRight className="w-4 h-4" />
+                View all
               </Link>
             </div>
           </div>
