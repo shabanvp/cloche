@@ -798,7 +798,11 @@ export async function PUT(req: Request) {
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify(vendorPatchPayload),
-    }).catch(() => null);
+    });
+
+    // Clear Next.js cache to ensure public profiles update instantly across all categories
+    const { revalidatePath } = await import("next/cache");
+    revalidatePath("/", "layout");
 
     return NextResponse.json(
       {
