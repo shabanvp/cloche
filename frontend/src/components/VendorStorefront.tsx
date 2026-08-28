@@ -879,24 +879,40 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
                       />
                     </div>
 
-                    {/* Card Content Details Below Image (Product Name, Shop Name, Place, Price) */}
+                    {/* Card Content Details Below Image */}
                     <div className="space-y-0.5 px-0.5">
-                      {/* 1. Product Name */}
+                      {/* Line 1: Subtitle / Outfit Category Name */}
                       <p className="text-xs text-charcoal/60 truncate font-sans">
-                        {col.name || categoryName}
+                        {categoryName}
                       </p>
 
-                      {/* 2. Shop Name / Boutique Name */}
-                      <h3 className="font-bold text-sm text-charcoal truncate font-sans group-hover:text-[#0F4C45] transition-colors">
-                        {displayName}
-                      </h3>
+                      {/* Line 2: Brand / Studio Name + Bookmark Icon */}
+                      <div className="flex items-center justify-between gap-1">
+                        <h3 className="font-bold text-sm text-charcoal truncate font-sans group-hover:text-[#0F4C45] transition-colors">
+                          {displayName}
+                        </h3>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const next = new Set(wishlistOutfits);
+                            if (isBookmarked) next.delete(col.id);
+                            else next.add(col.id);
+                            setWishlistOutfits(next);
+                          }}
+                          className="text-charcoal/60 hover:text-[#0F4C45] transition-colors shrink-0 p-0.5 cursor-pointer"
+                          aria-label="Bookmark collection"
+                        >
+                          <Bookmark className={`w-4 h-4 ${isBookmarked ? "fill-[#0F4C45] text-[#0F4C45]" : ""}`} />
+                        </button>
+                      </div>
 
-                      {/* 3. Place of the Boutique (City only) */}
-                      <p className="text-xs text-charcoal/60 font-sans truncate">
-                        {vendor?.city || sf?.city || vendor?.district || "Kerala"}
+                      {/* Line 3: Location */}
+                      <p className="text-xs text-charcoal/60 font-sans">
+                        {location || "Kerala"}
                       </p>
 
-                      {/* 4. Price */}
+                      {/* Line 4: Price */}
                       <p className="font-bold text-sm text-charcoal font-sans pt-0.5">
                         {outfitPrice.startsWith("₹") ? outfitPrice : `₹${outfitPrice}`}
                       </p>
