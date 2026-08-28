@@ -489,12 +489,9 @@ export async function PUT(req: Request) {
     // 2. Update Vendor Profile in vendor_profiles table
     if (profile && typeof profile === "object") {
       const profilePayload: Record<string, any> = {
-        business_name: profile.businessName || profile.business_name,
+        business_name: profile.businessName || profile.business_name || null,
         tagline: profile.tagline || null,
         about: profile.about || profile.description || null,
-        color_theme: profile.color_theme || profile.colorTheme || null,
-        gallery_layout: profile.gallery_layout || profile.galleryLayout || null,
-        intro_video_url: profile.intro_video_url || profile.intro_video || profile.introVideo || null,
         city: profile.city || "Kochi",
         state: profile.state || "Kerala",
         pincode: profile.pincode || null,
@@ -502,11 +499,8 @@ export async function PUT(req: Request) {
         updated_at: new Date().toISOString(),
       };
 
-      if (workingHoursVal) profilePayload.working_hours = workingHoursVal;
-
       if (logoMediaId) profilePayload.logo_media_id = logoMediaId;
       if (coverMediaId) profilePayload.cover_media_id = coverMediaId;
-      if (profile.gstNumber || profile.gst_number) profilePayload.gst_number = profile.gstNumber || profile.gst_number;
       console.log(`[IMAGE_FLOW] PUT profile write: vendor_id=${vendorId}, logoMediaId=${logoMediaId}, coverMediaId=${coverMediaId}`);
 
       // Check if profile row exists for this vendor
@@ -557,18 +551,13 @@ export async function PUT(req: Request) {
         });
       }
 
-      // Also persist directly via Postgres DB Pool if configured
-      try {
-        const { getDbPool } = await import("@/lib/db");
-        const pool = getDbPool();
-        const sfData = profile.storefront || body.storefront;
-        if (sfData) {
-          await pool.query(
-            "UPDATE vendor_profiles SET storefront = $1, updated_at = NOW() WHERE vendor_id = $2 OR id = $2;",
-            [JSON.stringify(sfData), vendorId]
-          ).catch(() => null);
-        }
-      } catch (_) {}
+      if (!patchRes || !patchRes.ok) {
+        const errorText = patchRes ? await patchRes.text() : 'Unknown Network Error';
+        console.error('[IMAGE_FLOW] PUT profile patch/post failed:', patchRes?.status, errorText);
+        return NextResponse.json({ success: false, statusCode: patchRes?.status || 500, error: { message: 'Database Save Failed: ' + errorText } }, { status: patchRes?.status || 500 });
+      }
+
+      // Dual-write to Render DB removed as per architecture constraints (Supabase is the sole DB)
 
       console.log(`[IMAGE_FLOW] PUT profile patch/post status:`, patchRes?.status);
     }
@@ -663,6 +652,25 @@ export async function PUT(req: Request) {
       ...(profile?.serviceLocations || profile?.service_locations ? { service_locations: profile.serviceLocations || profile.service_locations } : {}),
       ...(profile?.guestCapacity || profile?.guest_capacity ? { guest_capacity: profile.guestCapacity || profile.guest_capacity } : {}),
       ...(profile?.cateringSpecialities || profile?.catering_specialities ? { catering_specialities: profile.cateringSpecialities || profile.catering_specialities } : {}),
+      
+      // Bridal / Groom Wear specific extension fields
+      ...(profile?.rentalAvailable !== undefined || profile?.rental_available !== undefined ? { rental_available: Boolean(profile?.rentalAvailable ?? profile?.rental_available) } : {}),
+      ...(profile?.customStitching !== undefined || profile?.custom_stitching !== undefined ? { custom_stitching: Boolean(profile?.customStitching ?? profile?.custom_stitching) } : {}),
+      ...(profile?.outfitTypes || profile?.outfit_types ? { outfit_types: profile.outfitTypes || profile.outfit_types } : {}),
+      ...(profile?.leadTimeWeeks || profile?.lead_time_weeks ? { lead_time_weeks: profile.leadTimeWeeks || profile.lead_time_weeks } : {}),
+      ...(profile?.rentalDuration || profile?.rental_duration ? { rental_duration: profile.rentalDuration || profile.rental_duration } : {}),
+      ...(profile?.securityDepositPolicy || profile?.security_deposit_policy ? { security_deposit_policy: profile.securityDepositPolicy || profile.security_deposit_policy } : {}),
+      ...(profile?.damagePolicy || profile?.damage_policy ? { damage_policy: profile.damagePolicy || profile.damage_policy } : {}),
+      ...(profile?.returnPolicy || profile?.return_policy ? { return_policy: profile.returnPolicy || profile.return_policy } : {}),
+      ...(profile?.storeHighlights || profile?.store_highlights ? { store_highlights: profile.storeHighlights || profile.store_highlights } : {}),
+      ...(profile?.featuredCollections || profile?.featured_collections ? { featured_collections: profile.featuredCollections || profile.featured_collections } : {}),
+      
+      ...(openingTimeVal ? { opening_time: openingTimeVal } : {}),
+      ...(closingTimeVal ? { closing_time: closingTimeVal } : {}),
+      ...(workingDaysVal ? { working_days: workingDaysVal } : {}),
+      ...(weeklyOffVal ? { weekly_holidays: weeklyOffVal, weekly_off: weeklyOffVal } : {}),
+      ...(holidayNoticeVal ? { public_holiday_availability: holidayNoticeVal, holiday_notice: holidayNoticeVal } : {}),
+
       // Venue specific extension fields
       ...(profile?.venueHighlights || profile?.venue_highlights || profile?.storeHighlights || profile?.store_highlights ? { venue_highlights: profile.venueHighlights || profile.venue_highlights || profile.storeHighlights || profile.store_highlights } : {}),
       ...(profile?.featuredHalls || profile?.featured_halls ? { featured_halls: profile.featuredHalls || profile.featured_halls } : {}),
@@ -676,10 +684,6 @@ export async function PUT(req: Request) {
       ...(profile?.diningCapacity || profile?.dining_capacity ? { dining_capacity: profile.diningCapacity || profile.dining_capacity } : {}),
       ...(profile?.parkingCapacity || profile?.parking_capacity ? { parking_capacity: profile.parkingCapacity || profile.parking_capacity } : {}),
       ...(profile?.languagesSpoken || profile?.languages_spoken ? { languages_spoken: profile.languagesSpoken || profile.languages_spoken } : {}),
-      ...(openingTimeVal ? { opening_time: openingTimeVal } : {}),
-      ...(closingTimeVal ? { closing_time: closingTimeVal } : {}),
-      ...(weeklyOffVal ? { weekly_holidays: weeklyOffVal, weekly_off: weeklyOffVal } : {}),
-      ...(holidayNoticeVal ? { public_holiday_availability: holidayNoticeVal, holiday_notice: holidayNoticeVal } : {}),
       ...(profile?.venueVisitTimings || profile?.venue_visit_timings ? { venue_visit_timings: profile.venueVisitTimings || profile.venue_visit_timings } : {}),
       ...(profile?.advanceAppointmentRequired !== undefined || profile?.advance_appointment_required !== undefined ? { advance_appointment_required: Boolean(profile?.advanceAppointmentRequired ?? profile?.advance_appointment_required) } : {}),
       ...(profile?.advanceBookingRequired || profile?.advance_booking_required ? { advance_booking_required: profile.advanceBookingRequired || profile.advance_booking_required } : {}),

@@ -185,6 +185,12 @@ export function CustomizeStoreSection({ categoryConfig, vendorName, onBack }: Cu
   const [weeklyOff, setWeeklyOff] = useState<string>("Sunday");
   const [holidayNotice, setHolidayNotice] = useState<string>("Open on wedding season dates by prior appointment");
 
+  // 8. Rental Policies
+  const [rentalDuration, setRentalDuration] = useState<string>("3 Days");
+  const [securityDepositPolicy, setSecurityDepositPolicy] = useState<string>("Refundable deposit required");
+  const [damagePolicy, setDamagePolicy] = useState<string>("Minor wear and tear allowed. Major damage will be deducted from deposit.");
+  const [returnPolicy, setReturnPolicy] = useState<string>("Must be returned by noon on the 4th day");
+
   // Loading & Upload states
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const [isUploadingCover, setIsUploadingCover] = useState(false);
@@ -290,6 +296,11 @@ export function CustomizeStoreSection({ categoryConfig, vendorName, onBack }: Cu
     if (daysVal) setWorkingDays(daysVal);
     if (offVal) setWeeklyOff(offVal);
     if (noticeVal) setHolidayNotice(noticeVal);
+
+    if (identity.rentalDuration || identity.rental_duration) setRentalDuration(identity.rentalDuration || identity.rental_duration);
+    if (identity.securityDepositPolicy || identity.security_deposit_policy) setSecurityDepositPolicy(identity.securityDepositPolicy || identity.security_deposit_policy);
+    if (identity.damagePolicy || identity.damage_policy) setDamagePolicy(identity.damagePolicy || identity.damage_policy);
+    if (identity.returnPolicy || identity.return_policy) setReturnPolicy(identity.returnPolicy || identity.return_policy);
   };
 
   useEffect(() => {
@@ -406,81 +417,28 @@ export function CustomizeStoreSection({ categoryConfig, vendorName, onBack }: Cu
         tagline: tagline.trim(),
         about: about.trim(),
         description: about.trim(),
-        color_theme: colorTheme,
-        colorTheme: colorTheme,
-        gallery_layout: galleryLayout,
-        galleryLayout: galleryLayout,
 
         instagram: instagram.trim(),
         facebook: facebook.trim(),
         youtube: youtube.trim(),
         website: website.trim(),
-        storeHighlights,
-        store_highlights: storeHighlights,
-        featuredCollections,
-        featured_collections: featuredCollections,
-        experienceYears: experienceYears.trim(),
-        experience_years: experienceYears.trim(),
-        experience: experienceYears.trim(),
+        
         rentalAvailable,
         rental_available: rentalAvailable,
-        homeTrialAvailable,
-        home_trial_available: homeTrialAvailable,
-        homeDeliveryAvailable,
-        home_delivery_available: homeDeliveryAvailable,
-        customJewelleryAvailable,
-        custom_jewellery_available: customJewelleryAvailable,
-        collectionsCount: collectionsCount.trim(),
-        collections_count: collectionsCount.trim(),
-        citiesServed: citiesServed.trim(),
-        cities_served: citiesServed.trim(),
-        actionButtons,
-        action_buttons: actionButtons,
-        openingTime: openingTime.trim(),
-        opening_time: openingTime.trim(),
-        closingTime: closingTime.trim(),
-        closing_time: closingTime.trim(),
-        workingDays: workingDays.trim(),
-        working_days: workingDays.trim(),
-        weeklyOff: weeklyOff.trim(),
-        weekly_off: weeklyOff.trim(),
-        holidayNotice: holidayNotice.trim(),
-        holiday_notice: holidayNotice.trim(),
-        storefront: {
-          theme: colorTheme,
-          brandColors: activeTheme,
-          coverImage: coverUrl,
-          logo: logoUrl,
-          tagline: tagline.trim(),
-          about: about.trim(),
-          storeHighlights,
-          featuredCollections,
-          galleryLayout: galleryLayout,
-          gallery: galleryImages.map((url, i) => ({ url, caption: `Showcase Photo ${i + 1}` })),
-          actionButtons,
-          businessInfo: {
-            experienceYears: experienceYears.trim(),
-            rentalAvailable,
-            homeDeliveryAvailable,
-            homeTrialAvailable,
-            customJewelleryAvailable,
-            collectionsCount: collectionsCount.trim(),
-            citiesServed: citiesServed.trim(),
-          },
-          workingHours: {
-            workingDays: workingDays.trim(),
-            openingTime: openingTime.trim(),
-            closingTime: closingTime.trim(),
-            weeklyOff: weeklyOff.trim(),
-            holidayNotice: holidayNotice.trim(),
-          },
-          socialLinks: {
-            instagram: instagram.trim(),
-            facebook: facebook.trim(),
-            youtube: youtube.trim(),
-            website: website.trim(),
-          },
-        },
+
+        openingTime: openingTime,
+        closingTime: closingTime,
+        workingDays: workingDays,
+        weeklyOff: weeklyOff,
+        holidayNotice: holidayNotice,
+
+        rentalDuration: rentalDuration,
+        securityDepositPolicy: securityDepositPolicy,
+        damagePolicy: damagePolicy,
+        returnPolicy: returnPolicy,
+
+        storeHighlights: storeHighlights,
+        featuredCollections: featuredCollections,
       };
 
       const res = await syncVendorProfileWithDatabase(payload);
@@ -580,60 +538,14 @@ export function CustomizeStoreSection({ categoryConfig, vendorName, onBack }: Cu
             subtitle: tagline,
             about: about,
             description: about,
-            colorTheme: colorTheme,
-            galleryLayout: galleryLayout,
-            galleryImages: galleryImages,
             gallery: galleryImages.map((url, i) => ({ url, caption: `Showcase Photo ${i + 1}` })),
             startingPrice: "₹25,000",
             phone: "+91 98470 12345",
             whatsapp: "+91 98470 12345",
             email: "store@cloche.com",
             address: `${currentLocation}, Kerala`,
-            storeHighlights: storeHighlights,
-            featuredCollections: featuredCollections,
-            actionButtons: actionButtons,
             businessInfo: {
-              experienceYears: experienceYears,
               rentalAvailable: rentalAvailable,
-              homeDeliveryAvailable: homeDeliveryAvailable,
-              homeTrialAvailable: homeTrialAvailable,
-              customJewelleryAvailable: customJewelleryAvailable,
-              collectionsCount: collectionsCount,
-            },
-            workingHours: {
-              workingDays: workingDays,
-              openingTime: openingTime,
-              closingTime: closingTime,
-              weeklyOff: weeklyOff,
-              holidayNotice: holidayNotice,
-            },
-          }}
-          storefront={{
-            theme: colorTheme,
-            brandColors: activeTheme,
-            coverImage: coverUrl,
-            logo: logoUrl,
-            tagline: tagline,
-            about: about,
-            storeHighlights: storeHighlights,
-            featuredCollections: featuredCollections,
-            galleryLayout: galleryLayout,
-            gallery: galleryImages.map((url, i) => ({ url, caption: `Showcase Photo ${i + 1}` })),
-            actionButtons: actionButtons,
-            businessInfo: {
-              experienceYears: experienceYears,
-              rentalAvailable: rentalAvailable,
-              homeDeliveryAvailable: homeDeliveryAvailable,
-              homeTrialAvailable: homeTrialAvailable,
-              customJewelleryAvailable: customJewelleryAvailable,
-              collectionsCount: collectionsCount,
-            },
-            workingHours: {
-              workingDays: workingDays,
-              openingTime: openingTime,
-              closingTime: closingTime,
-              weeklyOff: weeklyOff,
-              holidayNotice: holidayNotice,
             },
             socialLinks: {
               instagram: instagram.trim(),
@@ -647,429 +559,9 @@ export function CustomizeStoreSection({ categoryConfig, vendorName, onBack }: Cu
 
       {/* ACCORDION FORM CONFIGURATOR SECTIONS */}
       <div className="space-y-4">
-        {/* Section 1: Store Highlights Badges */}
-        <div className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-xs">
-          <button
-            type="button"
-            onClick={() => toggleAccordion("highlights")}
-            className="w-full p-5 text-left font-serif font-bold text-base text-charcoal flex items-center justify-between bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] transition-colors"
-          >
-            <div className="flex items-center gap-3">
-              <Award style={{ color: activeTheme.primary }} className="w-5 h-5" />
-              <div>
-                <span className="block">1. Store Highlights</span>
-                <span className="text-xs font-sans font-normal text-charcoal/60">
-                  Select trust & feature badges to display under your store name
-                </span>
-              </div>
-            </div>
-            {openAccordions.highlights ? <ChevronUp className="w-4 h-4 text-charcoal/40" /> : <ChevronDown className="w-4 h-4 text-charcoal/40" />}
-          </button>
 
-          {openAccordions.highlights && (
-            <div className="p-5 border-t border-gold/10 space-y-4 text-xs animate-in fade-in duration-200">
-              <p className="text-charcoal/70 leading-relaxed">
-                Click to toggle store highlight badges on your public storefront:
-              </p>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                {STORE_HIGHLIGHT_OPTIONS.map((badge) => {
-                  const isSelected = storeHighlights.includes(badge);
-                  return (
-                    <button
-                      key={badge}
-                      type="button"
-                      onClick={() => toggleHighlight(badge)}
-                      style={{
-                        backgroundColor: isSelected ? activeTheme.primary : "#FAF7F2",
-                        color: isSelected ? "#FFFFFF" : "#2D2520",
-                        borderColor: isSelected ? activeTheme.primary : "#E8DFD1",
-                      }}
-                      className="p-3 rounded-xl border text-xs font-bold text-left transition-all flex items-center justify-between cursor-pointer"
-                    >
-                      <span>{badge}</span>
-                      {isSelected && <Check className="w-3.5 h-3.5 text-white" />}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-        </div>
 
-        {/* Section 2: Featured Collections (Reorderable) */}
-        <div className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-xs">
-          <button
-            type="button"
-            onClick={() => toggleAccordion("featuredCollections")}
-            className="w-full p-5 text-left font-serif font-bold text-base text-charcoal flex items-center justify-between bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] transition-colors"
-          >
-            <div className="flex items-center gap-3">
-              <Tag style={{ color: activeTheme.primary }} className="w-5 h-5" />
-              <div>
-                <span className="block">2. Featured Collections</span>
-                <span className="text-xs font-sans font-normal text-charcoal/60">
-                  Select and pin collections in your preferred display order
-                </span>
-              </div>
-            </div>
-            {openAccordions.featuredCollections ? <ChevronUp className="w-4 h-4 text-charcoal/40" /> : <ChevronDown className="w-4 h-4 text-charcoal/40" />}
-          </button>
-
-          {openAccordions.featuredCollections && (
-            <div className="p-5 border-t border-gold/10 space-y-4 text-xs animate-in fade-in duration-200">
-              <div>
-                <span className="font-bold text-charcoal block mb-2">Available Collections (Click to Pin/Unpin):</span>
-                <div className="flex flex-wrap gap-2">
-                  {ALL_COLLECTION_OPTIONS.map((col) => {
-                    const isPinned = featuredCollections.includes(col);
-                    return (
-                      <button
-                        key={col}
-                        type="button"
-                        onClick={() => toggleFeaturedCollection(col)}
-                        className={`px-3 py-1.5 rounded-xl border text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                          isPinned
-                            ? "bg-[#0F4C45] text-white border-[#0F4C45]"
-                            : "bg-[#FAF7F2] text-charcoal border-gold/20 hover:bg-gold/15"
-                        }`}
-                      >
-                        {col} {isPinned ? "✓" : "+"}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {featuredCollections.length > 0 && (
-                <div className="pt-3 border-t border-gold/10 space-y-2">
-                  <span className="font-bold text-charcoal block">Pinned Order (Use arrows to reorder):</span>
-                  <div className="space-y-1.5">
-                    {featuredCollections.map((col, idx) => (
-                      <div
-                        key={col}
-                        className="p-3 bg-[#FAF7F2] rounded-xl border border-gold/15 flex items-center justify-between text-xs"
-                      >
-                        <span className="font-bold text-charcoal">
-                          {idx + 1}. {col}
-                        </span>
-                        <div className="flex items-center gap-1">
-                          <button
-                            type="button"
-                            disabled={idx === 0}
-                            onClick={() => moveCollection(idx, "up")}
-                            className="p-1 rounded bg-white text-charcoal hover:bg-gray-100 disabled:opacity-30 cursor-pointer"
-                          >
-                            <ArrowUp className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            type="button"
-                            disabled={idx === featuredCollections.length - 1}
-                            onClick={() => moveCollection(idx, "down")}
-                            className="p-1 rounded bg-white text-charcoal hover:bg-gray-100 disabled:opacity-30 cursor-pointer"
-                          >
-                            <ArrowDown className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Section 3: Business Information */}
-        <div className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-xs">
-          <button
-            type="button"
-            onClick={() => toggleAccordion("businessInfo")}
-            className="w-full p-5 text-left font-serif font-bold text-base text-charcoal flex items-center justify-between bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] transition-colors"
-          >
-            <div className="flex items-center gap-3">
-              <Building style={{ color: activeTheme.primary }} className="w-5 h-5" />
-              <div>
-                <span className="block">3. Business Information</span>
-                <span className="text-xs font-sans font-normal text-charcoal/60">
-                  Experience, services availability & coverage areas
-                </span>
-              </div>
-            </div>
-            {openAccordions.businessInfo ? <ChevronUp className="w-4 h-4 text-charcoal/40" /> : <ChevronDown className="w-4 h-4 text-charcoal/40" />}
-          </button>
-
-          {openAccordions.businessInfo && (
-            <div className="p-5 border-t border-gold/10 space-y-4 text-xs animate-in fade-in duration-200">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block font-bold text-charcoal mb-1">Years of Experience</label>
-                  <input
-                    type="text"
-                    value={experienceYears}
-                    onChange={(e) => setExperienceYears(e.target.value)}
-                    placeholder="e.g. 8"
-                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-bold text-charcoal mb-1">Number of Collections</label>
-                  <input
-                    type="text"
-                    value={collectionsCount}
-                    onChange={(e) => setCollectionsCount(e.target.value)}
-                    placeholder="e.g. 50+ Sets"
-                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
-                  />
-                </div>
-
-                <div className="sm:col-span-2">
-                  <label className="block font-bold text-charcoal mb-1">Cities / Coverage Areas Served</label>
-                  <input
-                    type="text"
-                    value={citiesServed}
-                    onChange={(e) => setCitiesServed(e.target.value)}
-                    placeholder="e.g. Kochi, Trivandrum, Kozhikode, Thrissur"
-                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
-                  />
-                </div>
-              </div>
-
-              {/* Service Flags Toggles */}
-              <div className="pt-2 grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                <label className="p-3 bg-[#FAF7F2] rounded-xl border border-gold/15 flex items-center justify-between cursor-pointer">
-                  <span className="font-bold text-charcoal">Rental Available</span>
-                  <input
-                    type="checkbox"
-                    checked={rentalAvailable}
-                    onChange={(e) => setRentalAvailable(e.target.checked)}
-                    className="rounded accent-[#0F4C45] w-4 h-4"
-                  />
-                </label>
-
-                <label className="p-3 bg-[#FAF7F2] rounded-xl border border-gold/15 flex items-center justify-between cursor-pointer">
-                  <span className="font-bold text-charcoal">Home Trial</span>
-                  <input
-                    type="checkbox"
-                    checked={homeTrialAvailable}
-                    onChange={(e) => setHomeTrialAvailable(e.target.checked)}
-                    className="rounded accent-[#0F4C45] w-4 h-4"
-                  />
-                </label>
-
-                <label className="p-3 bg-[#FAF7F2] rounded-xl border border-gold/15 flex items-center justify-between cursor-pointer">
-                  <span className="font-bold text-charcoal">Home Delivery</span>
-                  <input
-                    type="checkbox"
-                    checked={homeDeliveryAvailable}
-                    onChange={(e) => setHomeDeliveryAvailable(e.target.checked)}
-                    className="rounded accent-[#0F4C45] w-4 h-4"
-                  />
-                </label>
-
-                <label className="p-3 bg-[#FAF7F2] rounded-xl border border-gold/15 flex items-center justify-between cursor-pointer">
-                  <span className="font-bold text-charcoal">Custom Jewellery</span>
-                  <input
-                    type="checkbox"
-                    checked={customJewelleryAvailable}
-                    onChange={(e) => setCustomJewelleryAvailable(e.target.checked)}
-                    className="rounded accent-[#0F4C45] w-4 h-4"
-                  />
-                </label>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Section 4: Contact Action Buttons */}
-        <div className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-xs">
-          <button
-            type="button"
-            onClick={() => toggleAccordion("actionButtons")}
-            className="w-full p-5 text-left font-serif font-bold text-base text-charcoal flex items-center justify-between bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] transition-colors"
-          >
-            <div className="flex items-center gap-3">
-              <Phone style={{ color: activeTheme.primary }} className="w-5 h-5" />
-              <div>
-                <span className="block">4. Contact Action Buttons</span>
-                <span className="text-xs font-sans font-normal text-charcoal/60">
-                  Configure primary call-to-action buttons for customers
-                </span>
-              </div>
-            </div>
-            {openAccordions.actionButtons ? <ChevronUp className="w-4 h-4 text-charcoal/40" /> : <ChevronDown className="w-4 h-4 text-charcoal/40" />}
-          </button>
-
-          {openAccordions.actionButtons && (
-            <div className="p-5 border-t border-gold/10 space-y-3 text-xs animate-in fade-in duration-200">
-              <p className="text-charcoal/70">Enable or disable primary customer action buttons:</p>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {[
-                  { key: "callNow", label: "Call Now", icon: Phone },
-                  { key: "whatsapp", label: "WhatsApp", icon: MessageCircle },
-                  { key: "viewCollection", label: "View Collection", icon: Layers },
-                  { key: "getQuote", label: "Get Quote", icon: FileText },
-                  { key: "visitStore", label: "Visit Store", icon: Building },
-                ].map((btn) => {
-                  const Icon = btn.icon;
-                  const isChecked = (actionButtons as any)[btn.key];
-                  return (
-                    <label
-                      key={btn.key}
-                      className="p-3 bg-[#FAF7F2] rounded-xl border border-gold/15 flex items-center justify-between cursor-pointer"
-                    >
-                      <span className="font-bold text-charcoal flex items-center gap-1.5">
-                        <Icon className="w-3.5 h-3.5 text-[#0F4C45]" /> {btn.label}
-                      </span>
-                      <input
-                        type="checkbox"
-                        checked={isChecked}
-                        onChange={(e) =>
-                          setActionButtons({ ...actionButtons, [btn.key]: e.target.checked })
-                        }
-                        className="rounded accent-[#0F4C45] w-4 h-4"
-                      />
-                    </label>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Section 5: Working Hours */}
-        <div className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-xs">
-          <button
-            type="button"
-            onClick={() => toggleAccordion("workingHours")}
-            className="w-full p-5 text-left font-serif font-bold text-base text-charcoal flex items-center justify-between bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] transition-colors"
-          >
-            <div className="flex items-center gap-3">
-              <Clock style={{ color: activeTheme.primary }} className="w-5 h-5" />
-              <div>
-                <span className="block">5. Working Hours</span>
-                <span className="text-xs font-sans font-normal text-charcoal/60">
-                  Store operating times, working days & weekly holidays
-                </span>
-              </div>
-            </div>
-            {openAccordions.workingHours ? <ChevronUp className="w-4 h-4 text-charcoal/40" /> : <ChevronDown className="w-4 h-4 text-charcoal/40" />}
-          </button>
-
-          {openAccordions.workingHours && (
-            <div className="p-5 border-t border-gold/10 space-y-4 text-xs animate-in fade-in duration-200">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block font-bold text-charcoal mb-1">Opening Time</label>
-                  <input
-                    type="text"
-                    value={openingTime}
-                    onChange={(e) => setOpeningTime(e.target.value)}
-                    placeholder="10:00 AM"
-                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-bold text-charcoal mb-1">Closing Time</label>
-                  <input
-                    type="text"
-                    value={closingTime}
-                    onChange={(e) => setClosingTime(e.target.value)}
-                    placeholder="08:00 PM"
-                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-bold text-charcoal mb-1">Working Days</label>
-                  <input
-                    type="text"
-                    value={workingDays}
-                    onChange={(e) => setWorkingDays(e.target.value)}
-                    placeholder="Monday - Saturday"
-                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-bold text-charcoal mb-1">Weekly Off</label>
-                  <input
-                    type="text"
-                    value={weeklyOff}
-                    onChange={(e) => setWeeklyOff(e.target.value)}
-                    placeholder="Sunday"
-                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
-                  />
-                </div>
-
-                <div className="sm:col-span-2">
-                  <label className="block font-bold text-charcoal mb-1">Holiday / Festive Notice</label>
-                  <input
-                    type="text"
-                    value={holidayNotice}
-                    onChange={(e) => setHolidayNotice(e.target.value)}
-                    placeholder="e.g. Open on wedding season dates by prior appointment"
-                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Section 6: Brand Theme Colors */}
-        <div className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-xs">
-          <button
-            type="button"
-            onClick={() => toggleAccordion("theme")}
-            className="w-full p-5 text-left font-serif font-bold text-base text-charcoal flex items-center justify-between bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] transition-colors"
-          >
-            <div className="flex items-center gap-3">
-              <Palette style={{ color: activeTheme.primary }} className="w-5 h-5" />
-              <div>
-                <span className="block">7. Brand Color Theme</span>
-                <span className="text-xs font-sans font-normal text-charcoal/60">
-                  Select your luxury signature palette for buttons, badges & accents
-                </span>
-              </div>
-            </div>
-            {openAccordions.theme ? <ChevronUp className="w-4 h-4 text-charcoal/40" /> : <ChevronDown className="w-4 h-4 text-charcoal/40" />}
-          </button>
-
-          {openAccordions.theme && (
-            <div className="p-5 border-t border-gold/10 space-y-4 text-xs animate-in fade-in duration-200">
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {COLOR_THEMES.map((theme) => (
-                  <button
-                    key={theme.id}
-                    type="button"
-                    onClick={() => setColorTheme(theme.id)}
-                    className={`p-3.5 rounded-xl border text-left flex flex-col justify-between space-y-2 transition-all cursor-pointer ${
-                      colorTheme === theme.id
-                        ? "border-2 shadow-xs bg-[#FAF7F2]"
-                        : "border-gold/15 hover:border-gold/30 bg-white"
-                    }`}
-                    style={{ borderColor: colorTheme === theme.id ? theme.primary : undefined }}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="font-serif font-bold text-xs text-charcoal">{theme.label}</span>
-                      {colorTheme === theme.id && <Check className="w-3.5 h-3.5 text-[#0F4C45]" />}
-                    </div>
-
-                    <div className="flex items-center gap-1.5 pt-1">
-                      <div className="w-5 h-5 rounded-full border border-black/10" style={{ backgroundColor: theme.primary }} />
-                      <div className="w-5 h-5 rounded-full border border-black/10" style={{ backgroundColor: theme.accent }} />
-                      <div className="w-5 h-5 rounded-full border border-black/10" style={{ backgroundColor: theme.secondary }} />
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Section 8: Brand Logo, Cover & Tagline */}
+        {/* Section 1: Brand Logo, Cover & Tagline */}
         <div className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-xs">
           <button
             type="button"
@@ -1079,7 +571,7 @@ export function CustomizeStoreSection({ categoryConfig, vendorName, onBack }: Cu
             <div className="flex items-center gap-3">
               <ImageIcon style={{ color: activeTheme.primary }} className="w-5 h-5" />
               <div>
-                <span className="block">8. Logo, Cover Image & Tagline</span>
+                <span className="block">1. Logo, Cover Image & Tagline</span>
                 <span className="text-xs font-sans font-normal text-charcoal/60">
                   Update primary brand visual assets
                 </span>
@@ -1132,6 +624,221 @@ export function CustomizeStoreSection({ categoryConfig, vendorName, onBack }: Cu
                     placeholder="e.g. Royal Bridal Jewels & Heritage Temple Ornaments"
                     className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
                   />
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Section 2: Business Information */}
+        <div className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-xs">
+          <button
+            type="button"
+            onClick={() => toggleAccordion("businessInfo")}
+            className="w-full p-5 text-left font-serif font-bold text-base text-charcoal flex items-center justify-between bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <Building style={{ color: activeTheme.primary }} className="w-5 h-5" />
+              <div>
+                <span className="block">2. Business Information</span>
+                <span className="text-xs font-sans font-normal text-charcoal/60">
+                  Experience, services availability & coverage areas
+                </span>
+              </div>
+            </div>
+            {openAccordions.businessInfo ? <ChevronUp className="w-4 h-4 text-charcoal/40" /> : <ChevronDown className="w-4 h-4 text-charcoal/40" />}
+          </button>
+
+          {openAccordions.businessInfo && (
+            <div className="p-5 border-t border-gold/10 space-y-4 text-xs animate-in fade-in duration-200">
+              {/* Service Flags Toggles */}
+              <div className="pt-2 grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                <label className="p-3 bg-[#FAF7F2] rounded-xl border border-gold/15 flex items-center justify-between cursor-pointer">
+                  <span className="font-bold text-charcoal">Rental Available</span>
+                  <input
+                    type="checkbox"
+                    checked={rentalAvailable}
+                    onChange={(e) => setRentalAvailable(e.target.checked)}
+                    className="rounded accent-[#0F4C45] w-4 h-4"
+                  />
+                </label>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Section 3: Business Hours */}
+        <div className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-xs">
+          <button
+            type="button"
+            onClick={() => toggleAccordion("workingHours")}
+            className="w-full p-5 text-left font-serif font-bold text-base text-charcoal flex items-center justify-between bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <Clock style={{ color: activeTheme.primary }} className="w-5 h-5" />
+              <div>
+                <span className="block">3. Business Hours</span>
+                <span className="text-xs font-sans font-normal text-charcoal/60">
+                  Set your standard operating hours
+                </span>
+              </div>
+            </div>
+            {openAccordions.workingHours ? <ChevronUp className="w-4 h-4 text-charcoal/40" /> : <ChevronDown className="w-4 h-4 text-charcoal/40" />}
+          </button>
+          {openAccordions.workingHours && (
+            <div className="p-5 border-t border-gold/10 space-y-4 text-xs animate-in fade-in duration-200">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block font-bold text-charcoal mb-1">Opening Time</label>
+                  <input type="time" value={openingTime} onChange={(e) => setOpeningTime(e.target.value)} className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none" />
+                </div>
+                <div>
+                  <label className="block font-bold text-charcoal mb-1">Closing Time</label>
+                  <input type="time" value={closingTime} onChange={(e) => setClosingTime(e.target.value)} className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none" />
+                </div>
+                <div>
+                  <label className="block font-bold text-charcoal mb-1">Working Days</label>
+                  <input type="text" value={workingDays} onChange={(e) => setWorkingDays(e.target.value)} placeholder="e.g. Monday - Saturday" className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none" />
+                </div>
+                <div>
+                  <label className="block font-bold text-charcoal mb-1">Weekly Off</label>
+                  <input type="text" value={weeklyOff} onChange={(e) => setWeeklyOff(e.target.value)} placeholder="e.g. Sunday" className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none" />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="block font-bold text-charcoal mb-1">Holiday Notice</label>
+                  <input type="text" value={holidayNotice} onChange={(e) => setHolidayNotice(e.target.value)} placeholder="e.g. Open on wedding season dates by prior appointment" className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none" />
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Section 4: Rental Policies */}
+        <div className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-xs">
+          <button
+            type="button"
+            onClick={() => toggleAccordion("policies")}
+            className="w-full p-5 text-left font-serif font-bold text-base text-charcoal flex items-center justify-between bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <ShieldCheck style={{ color: activeTheme.primary }} className="w-5 h-5" />
+              <div>
+                <span className="block">4. Rental Policies</span>
+                <span className="text-xs font-sans font-normal text-charcoal/60">
+                  Duration, deposits, damage & return policies
+                </span>
+              </div>
+            </div>
+            {openAccordions.policies ? <ChevronUp className="w-4 h-4 text-charcoal/40" /> : <ChevronDown className="w-4 h-4 text-charcoal/40" />}
+          </button>
+          {openAccordions.policies && (
+            <div className="p-5 border-t border-gold/10 space-y-4 text-xs animate-in fade-in duration-200">
+              <div className="grid grid-cols-1 gap-4">
+                <div>
+                  <label className="block font-bold text-charcoal mb-1">Rental Duration</label>
+                  <input type="text" value={rentalDuration} onChange={(e) => setRentalDuration(e.target.value)} placeholder="e.g. 3 Days" className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none" />
+                </div>
+                <div>
+                  <label className="block font-bold text-charcoal mb-1">Security Deposit</label>
+                  <input type="text" value={securityDepositPolicy} onChange={(e) => setSecurityDepositPolicy(e.target.value)} placeholder="e.g. Refundable deposit required" className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none" />
+                </div>
+                <div>
+                  <label className="block font-bold text-charcoal mb-1">Damage Policy</label>
+                  <textarea rows={2} value={damagePolicy} onChange={(e) => setDamagePolicy(e.target.value)} placeholder="e.g. Minor wear and tear allowed. Major damage deducted from deposit." className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none" />
+                </div>
+                <div>
+                  <label className="block font-bold text-charcoal mb-1">Return Policy</label>
+                  <textarea rows={2} value={returnPolicy} onChange={(e) => setReturnPolicy(e.target.value)} placeholder="e.g. Must be returned by noon on the 4th day" className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none" />
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Section 5: Store Highlights */}
+        <div className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-xs">
+          <button
+            type="button"
+            onClick={() => toggleAccordion("highlights")}
+            className="w-full p-5 text-left font-serif font-bold text-base text-charcoal flex items-center justify-between bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <Sparkles style={{ color: activeTheme.primary }} className="w-5 h-5" />
+              <div>
+                <span className="block">5. Store Highlights</span>
+                <span className="text-xs font-sans font-normal text-charcoal/60">
+                  Select badges to display on your profile
+                </span>
+              </div>
+            </div>
+            {openAccordions.highlights ? <ChevronUp className="w-4 h-4 text-charcoal/40" /> : <ChevronDown className="w-4 h-4 text-charcoal/40" />}
+          </button>
+          {openAccordions.highlights && (
+            <div className="p-5 border-t border-gold/10 text-xs animate-in fade-in duration-200">
+              <div className="flex flex-wrap gap-2">
+                {STORE_HIGHLIGHT_OPTIONS.map((badge) => {
+                  const isActive = storeHighlights.includes(badge);
+                  return (
+                    <button
+                      key={badge}
+                      type="button"
+                      onClick={() => toggleHighlight(badge)}
+                      className={`px-3 py-1.5 rounded-full border transition-all flex items-center gap-1 ${
+                        isActive
+                          ? "border-[#0F4C45] bg-[#0F4C45]/5 text-[#0F4C45] font-bold shadow-sm"
+                          : "border-gold/20 bg-white text-charcoal/60 hover:border-gold/50"
+                      }`}
+                    >
+                      {isActive && <CheckCircle className="w-3 h-3" />}
+                      {badge}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Section 6: Featured Collections */}
+        <div className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-xs">
+          <button
+            type="button"
+            onClick={() => toggleAccordion("featuredCollections")}
+            className="w-full p-5 text-left font-serif font-bold text-base text-charcoal flex items-center justify-between bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <Tag style={{ color: activeTheme.primary }} className="w-5 h-5" />
+              <div>
+                <span className="block">6. Featured Collections</span>
+                <span className="text-xs font-sans font-normal text-charcoal/60">
+                  Manage your showcased categories
+                </span>
+              </div>
+            </div>
+            {openAccordions.featuredCollections ? <ChevronUp className="w-4 h-4 text-charcoal/40" /> : <ChevronDown className="w-4 h-4 text-charcoal/40" />}
+          </button>
+          {openAccordions.featuredCollections && (
+            <div className="p-5 border-t border-gold/10 space-y-4 text-xs animate-in fade-in duration-200">
+              <div className="space-y-2">
+                <span className="font-bold text-charcoal block">Select Collections</span>
+                <div className="flex flex-wrap gap-2">
+                  {ALL_COLLECTION_OPTIONS.map((col) => {
+                    const isActive = featuredCollections.includes(col);
+                    return (
+                      <button
+                        key={col}
+                        type="button"
+                        onClick={() => toggleFeaturedCollection(col)}
+                        className={`px-3 py-1.5 rounded-full border transition-all ${
+                          isActive
+                            ? "border-[#0F4C45] bg-[#0F4C45] text-white font-bold shadow-sm"
+                            : "border-gold/20 bg-white text-charcoal/60 hover:border-gold/50"
+                        }`}
+                      >
+                        {col}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             </div>
