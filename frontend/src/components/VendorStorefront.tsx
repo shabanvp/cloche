@@ -1135,43 +1135,35 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
             </div>
           </div>
 
-          {/* B. BOUTIQUE SHOWROOM FEATURED COLLECTIONS (WedMeGood Style Shop Grid) */}
-          <div className="bg-white rounded-3xl p-5 sm:p-6 border border-gold/15 shadow-sm space-y-5">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gold/10 pb-4">
-              <div>
-                <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-[#0F4C45]/10 text-[#0F4C45] text-[10px] font-bold uppercase tracking-wider mb-1">
-                  <Sparkles className="w-3.5 h-3.5 text-[#C8A96A]" /> Digital Showroom
-                </span>
-                <h2 className="font-serif font-bold text-xl sm:text-2xl text-charcoal">
-                  Collections
-                </h2>
-                <p className="text-xs text-charcoal/60">
-                  Explore signature bridal, groom, and ceremonial outfit collections
-                </p>
-              </div>
+          {/* B. BOUTIQUE SHOWROOM FEATURED COLLECTIONS (Clean WedMeGood Style Shop Grid) */}
+          <div className="bg-white rounded-3xl p-5 sm:p-6 border border-gold/15 shadow-sm space-y-4">
+            <div className="flex items-center justify-between border-b border-gold/10 pb-3">
+              <h2 className="font-serif font-bold text-xl sm:text-2xl text-charcoal">
+                Collections
+              </h2>
 
               <Link
                 href={`/wedding-story/${vendor?.slug || vendor?.id || "boutique"}/collections`}
-                className="py-2 px-3.5 rounded-xl border border-gold/30 text-charcoal hover:bg-[#0F4C45] hover:text-white font-bold text-xs transition-all flex items-center gap-1.5 shrink-0 self-start sm:self-center"
+                className="py-1.5 px-3 rounded-xl border border-gold/30 text-charcoal hover:bg-[#0F4C45] hover:text-white font-bold text-xs transition-all flex items-center gap-1 shrink-0"
               >
-                <span>View All Collections</span>
+                <span>View All</span>
                 <ChevronRight className="w-4 h-4" />
               </Link>
             </div>
 
             {/* WedMeGood Style Collections Layout: 4 Cards on Desktop Grid, Scrollable Carousel on Mobile */}
-            <div className="flex overflow-x-auto hide-scrollbar snap-x snap-mandatory gap-4 sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 sm:overflow-visible pb-2">
+            <div className="flex overflow-x-auto hide-scrollbar snap-x snap-mandatory gap-3.5 sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 sm:overflow-visible pb-2">
               {boutiqueCollectionsList.slice(0, 4).map((col: any) => {
                 const outfitName = col.name || col.outfitName || col.title || "Signature Couture Collection";
                 const shopName = displayName || "Luxury Boutique";
-                const boutiqueCity = location || vendor?.city || "Kerala";
+                const boutiqueCity = vendor?.city || vendor?.district || (vendor?.address ? vendor.address.split(",").pop()?.trim() : "") || "Kerala";
                 const priceText = col.price || (col.outfits && col.outfits[0]?.price) || vendor?.startingPrice || "Contact for Pricing";
 
                 return (
                   <div
                     key={col.id}
                     onClick={() => setActiveCollectionModal(col)}
-                    className="flex-shrink-0 w-64 sm:w-auto snap-start cursor-pointer group flex flex-col justify-between"
+                    className="flex-shrink-0 w-[210px] sm:w-auto snap-start cursor-pointer group flex flex-col justify-between"
                   >
                     <div>
                       {/* Clean Portrait Image matching Image 1 */}
@@ -1184,14 +1176,14 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
                       </div>
 
                       {/* Clean Stacked Information Block matching Image 1 */}
-                      <div className="pt-3 px-1 space-y-1">
+                      <div className="pt-2.5 px-1 space-y-0.5">
                         <p className="text-xs text-charcoal/70 line-clamp-1 font-medium">
                           {outfitName}
                         </p>
-                        <h3 className="font-bold text-sm sm:text-base text-charcoal group-hover:text-[#0F4C45] transition-colors line-clamp-1">
+                        <h3 className="font-bold text-sm text-charcoal group-hover:text-[#0F4C45] transition-colors line-clamp-1">
                           {shopName}
                         </h3>
-                        <p className="text-xs text-charcoal/50 flex items-center gap-1 font-medium">
+                        <p className="text-xs text-charcoal/50 flex items-center gap-1 font-medium capitalize">
                           {boutiqueCity}
                         </p>
                         {priceText && (
@@ -1206,7 +1198,7 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
               })}
             </div>
 
-            <div className="pt-2 text-center">
+            <div className="pt-1 text-center">
               <Link
                 href={`/wedding-story/${vendor?.slug || vendor?.id || "boutique"}/collections`}
                 className="inline-flex items-center justify-center gap-2 w-full py-3 rounded-2xl bg-[#0F4C45] text-white font-bold text-xs shadow-md hover:bg-[#12584E] transition-all"
