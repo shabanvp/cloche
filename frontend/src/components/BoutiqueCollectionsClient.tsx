@@ -371,45 +371,51 @@ export function BoutiqueCollectionsClient({ boutique, initialProducts = [], bout
           ))}
         </div>
 
-        {/* Collections Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {filteredCollections.map((col: any) => (
-            <div
-              key={col.id}
-              onClick={() => setSelectedCollection(col)}
-              className="bg-white rounded-3xl border border-gold/15 hover:border-gold/40 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden cursor-pointer group flex flex-col justify-between"
-            >
-              <div>
-                <div className="relative aspect-[16/10] w-full overflow-hidden bg-charcoal">
-                  <img
-                    src={col.coverImage}
-                    alt={col.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                  <span className="absolute top-4 left-4 bg-black/60 backdrop-blur-md text-white text-xs font-bold px-3 py-1 rounded-full border border-white/20">
-                    {col.category} Collection
-                  </span>
-                  <span className="absolute bottom-4 right-4 bg-white/95 backdrop-blur-md text-charcoal text-xs font-bold px-3 py-1 rounded-full shadow-sm">
-                    {col.outfitCount || (col.outfits ? col.outfits.length : 12)} Outfits
-                  </span>
-                </div>
+        {/* Collections Grid (WedMeGood 4-Card Grid on Desktop & Responsive Stack) */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
+          {filteredCollections.map((col: any) => {
+            const outfitName = col.name || col.outfitName || col.title || "Signature Couture Collection";
+            const shopName = boutiqueName || "Luxury Boutique";
+            const boutiqueCity = location || "Kerala";
+            const priceText = col.price || (col.outfits && col.outfits[0]?.price) || "Contact for Pricing";
 
-                <div className="p-6 space-y-2">
-                  <h3 className="font-serif font-bold text-xl text-charcoal group-hover:text-[#0F4C45] transition-colors">
-                    {col.name}
-                  </h3>
-                  <p className="text-xs text-charcoal/70 leading-relaxed">
-                    {col.description}
-                  </p>
+            return (
+              <div
+                key={col.id}
+                onClick={() => setSelectedCollection(col)}
+                className="cursor-pointer group flex flex-col justify-between"
+              >
+                <div>
+                  {/* Clean Portrait Image matching Image 1 */}
+                  <div className="relative aspect-[3/4] w-full rounded-2xl overflow-hidden bg-charcoal/5 shadow-xs border border-gold/15">
+                    <img
+                      src={col.coverImage || (col.outfits && col.outfits[0]?.image)}
+                      alt={outfitName}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                  </div>
+
+                  {/* Clean Stacked Information Block matching Image 1 */}
+                  <div className="pt-3 px-1 space-y-1">
+                    <p className="text-xs text-charcoal/70 line-clamp-1 font-medium">
+                      {outfitName}
+                    </p>
+                    <h3 className="font-bold text-sm sm:text-base text-charcoal group-hover:text-[#0F4C45] transition-colors line-clamp-1">
+                      {shopName}
+                    </h3>
+                    <p className="text-xs text-charcoal/50 flex items-center gap-1 font-medium">
+                      {boutiqueCity}
+                    </p>
+                    {priceText && (
+                      <p className="text-xs sm:text-sm font-bold text-[#0F4C45] pt-0.5">
+                        {priceText}
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
-
-              <div className="px-6 pb-6 pt-2 flex items-center justify-between text-xs font-bold text-[#0F4C45] border-t border-gold/10">
-                <span>Tap to Explore All Outfits</span>
-                <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
       </main>

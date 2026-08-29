@@ -1135,7 +1135,7 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
             </div>
           </div>
 
-          {/* B. BOUTIQUE SHOWROOM FEATURED COLLECTIONS */}
+          {/* B. BOUTIQUE SHOWROOM FEATURED COLLECTIONS (WedMeGood Style Shop Grid) */}
           <div className="bg-white rounded-3xl p-5 sm:p-6 border border-gold/15 shadow-sm space-y-5">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gold/10 pb-4">
               <div>
@@ -1143,10 +1143,10 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
                   <Sparkles className="w-3.5 h-3.5 text-[#C8A96A]" /> Digital Showroom
                 </span>
                 <h2 className="font-serif font-bold text-xl sm:text-2xl text-charcoal">
-                  {studioCategoryConfig.collectionsTitle}
+                  Collections
                 </h2>
                 <p className="text-xs text-charcoal/60">
-                  {studioCategoryConfig.collectionsSubtitle}
+                  Explore signature bridal, groom, and ceremonial outfit collections
                 </p>
               </div>
 
@@ -1159,45 +1159,51 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
               </Link>
             </div>
 
-            {/* Featured Collections Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {boutiqueCollectionsList.slice(0, 4).map((col: any) => (
-                <div
-                  key={col.id}
-                  onClick={() => setActiveCollectionModal(col)}
-                  className="bg-[#FAF7F2] rounded-2xl border border-gold/15 hover:border-gold/40 shadow-2xs hover:shadow-md transition-all overflow-hidden cursor-pointer group flex flex-col justify-between"
-                >
-                  <div>
-                    <div className="relative aspect-[16/10] w-full overflow-hidden bg-charcoal">
-                      <img
-                        src={col.coverImage}
-                        alt={col.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      />
-                      <span className="absolute top-3 left-3 bg-black/60 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-white/20">
-                        {col.category || "Rental Collection"}
-                      </span>
-                      <span className="absolute bottom-3 right-3 bg-white/95 backdrop-blur-md text-charcoal text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow-xs">
-                        {col.outfitCount || (col.outfits ? col.outfits.length : 12)} Outfits
-                      </span>
-                    </div>
+            {/* WedMeGood Style Collections Layout: 4 Cards on Desktop Grid, Scrollable Carousel on Mobile */}
+            <div className="flex overflow-x-auto hide-scrollbar snap-x snap-mandatory gap-4 sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 sm:overflow-visible pb-2">
+              {boutiqueCollectionsList.slice(0, 4).map((col: any) => {
+                const outfitName = col.name || col.outfitName || col.title || "Signature Couture Collection";
+                const shopName = displayName || "Luxury Boutique";
+                const boutiqueCity = location || vendor?.city || "Kerala";
+                const priceText = col.price || (col.outfits && col.outfits[0]?.price) || vendor?.startingPrice || "Contact for Pricing";
 
-                    <div className="p-4 space-y-1.5">
-                      <h3 className="font-serif font-bold text-base text-charcoal group-hover:text-[#0F4C45] transition-colors">
-                        {col.name}
-                      </h3>
-                      <p className="text-xs text-charcoal/70 line-clamp-2 leading-relaxed">
-                        {col.description}
-                      </p>
+                return (
+                  <div
+                    key={col.id}
+                    onClick={() => setActiveCollectionModal(col)}
+                    className="flex-shrink-0 w-64 sm:w-auto snap-start cursor-pointer group flex flex-col justify-between"
+                  >
+                    <div>
+                      {/* Clean Portrait Image matching Image 1 */}
+                      <div className="relative aspect-[3/4] w-full rounded-2xl overflow-hidden bg-charcoal/5 shadow-xs border border-gold/15">
+                        <img
+                          src={col.coverImage || (col.outfits && col.outfits[0]?.image)}
+                          alt={outfitName}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                      </div>
+
+                      {/* Clean Stacked Information Block matching Image 1 */}
+                      <div className="pt-3 px-1 space-y-1">
+                        <p className="text-xs text-charcoal/70 line-clamp-1 font-medium">
+                          {outfitName}
+                        </p>
+                        <h3 className="font-bold text-sm sm:text-base text-charcoal group-hover:text-[#0F4C45] transition-colors line-clamp-1">
+                          {shopName}
+                        </h3>
+                        <p className="text-xs text-charcoal/50 flex items-center gap-1 font-medium">
+                          {boutiqueCity}
+                        </p>
+                        {priceText && (
+                          <p className="text-xs sm:text-sm font-bold text-[#0F4C45] pt-0.5">
+                            {priceText}
+                          </p>
+                        )}
+                      </div>
                     </div>
                   </div>
-
-                  <div className="px-4 pb-4 pt-1 flex items-center justify-between text-xs font-bold text-[#0F4C45] border-t border-gold/10">
-                    <span>Tap to Browse Outfits</span>
-                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             <div className="pt-2 text-center">
