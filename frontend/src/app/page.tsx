@@ -10,6 +10,7 @@ import { DigitalInvitationsSection } from "@/components/DigitalInvitationsSectio
 import { Sparkles, MapPin, Calendar, BookHeart, Plus, ArrowRight, Star, Heart, Flame } from "lucide-react";
 import { HOMEPAGE_CATEGORY_STRIP } from "@/lib/categories";
 import { RealWeddingStoryDb } from "@/lib/realWeddings";
+import { VendorCardSkeleton } from "@/components/skeletons/VendorCardSkeleton";
 
 export const dynamic = "force-dynamic";
 
@@ -34,63 +35,74 @@ export default function Home() {
   const [stories, setStories] = useState<RealWeddingStoryDb[]>([]);
   const [storiesLoading, setStoriesLoading] = useState(true);
 
-  // Fetch real registered vendors & boutiques with strict deduplication
+  // Fetch real registered vendors, boutiques, and real wedding stories concurrently
   useEffect(() => {
-    async function loadVendors() {
-      try {
-        const res = await fetch("/api/v1/public/vendors?limit=12");
-        const data = await res.json();
-        let allPublicVendors: VendorItem[] = [];
+    let isMounted = true;
 
-        if (data.success && Array.isArray(data.data) && data.data.length > 0) {
-          allPublicVendors = data.data.map((v: any) => ({
-            id: v.id,
-            slug: v.slug || v.id,
-            name: v.name || "Verified Vendor",
-            category: v.category || "Wedding Expert",
-            categorySlug: v.categorySlug || "vendors",
-            city: v.city || "Kerala",
-            rating: Number(v.rating || 0),
-            reviewCount: Number(v.reviewCount || 0),
-            startingPrice: v.startingPrice || "Contact for pricing",
-            coverImage:
-              v.coverImage ||
-              v.logo ||
-              "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=80",
-          }));
+    async function loadData() {
+      try {
+        const [vRes, bRes, sRes] = await Promise.all([
+          fetch("/api/v1/public/vendors?limit=12").catch(() => null),
+          fetch("/api/boutiques").catch(() => null),
+          fetch("/api/v1/public/real-weddings?limit=3").catch(() => null),
+        ]);
+
+        if (!isMounted) return;
+
+        // Process vendors & boutiques
+        let allPublicVendors: VendorItem[] = [];
+        if (vRes) {
+          try {
+            const data = await vRes.json();
+            if (data.success && Array.isArray(data.data) && data.data.length > 0) {
+              allPublicVendors = data.data.map((v: any) => ({
+                id: v.id,
+                slug: v.slug || v.id,
+                name: v.name || "Verified Vendor",
+                category: v.category || "Wedding Expert",
+                categorySlug: v.categorySlug || "vendors",
+                city: v.city || "Kerala",
+                rating: Number(v.rating || 0),
+                reviewCount: Number(v.reviewCount || 0),
+                startingPrice: v.startingPrice || "Contact for pricing",
+                coverImage:
+                  v.coverImage ||
+                  v.logo ||
+                  "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=80",
+              }));
+            }
+          } catch (e) {}
         }
 
-        // Fetch fallback boutiques for unique featured section listings
         let boutiqueVendors: VendorItem[] = [];
-        try {
-          const bRes = await fetch("/api/boutiques");
-          const bData = await bRes.json();
-          if (Array.isArray(bData) && bData.length > 0) {
-            boutiqueVendors = bData.map((b: any) => ({
-              id: String(b.id),
-              slug: b.slug || String(b.id),
-              name: b.name || b.boutique_name || "Luxury Boutique",
-              category: b.category || "Wedding Vendor",
-              categorySlug: "venues",
-              city: b.city || "Kerala",
-              rating: Number(b.rating || 0),
-              reviewCount: Number(b.review_count || 0),
-              startingPrice: b.starting_price ? `₹${Number(b.starting_price).toLocaleString("en-IN")}` : "Contact for pricing",
-              coverImage:
-                b.cover_image ||
-                b.logo ||
-                "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=800&q=80",
-            }));
-          }
-        } catch (bErr) {
-          console.error("Boutiques fetch error:", bErr);
+        if (bRes) {
+          try {
+            const bData = await bRes.json();
+            if (Array.isArray(bData) && bData.length > 0) {
+              boutiqueVendors = bData.map((b: any) => ({
+                id: String(b.id),
+                slug: b.slug || String(b.id),
+                name: b.name || b.boutique_name || "Luxury Boutique",
+                category: b.category || "Wedding Vendor",
+                categorySlug: "venues",
+                city: b.city || "Kerala",
+                rating: Number(b.rating || 0),
+                reviewCount: Number(b.review_count || 0),
+                startingPrice: b.starting_price ? `₹${Number(b.starting_price).toLocaleString("en-IN")}` : "Contact for pricing",
+                coverImage:
+                  b.cover_image ||
+                  b.logo ||
+                  "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=800&q=80",
+              }));
+            }
+          } catch (e) {}
         }
 
         // Set Trending Vendors (Top 4)
         const trending = allPublicVendors.length > 0 ? allPublicVendors.slice(0, 4) : boutiqueVendors.slice(0, 4);
         setTrendingVendors(trending);
 
-        // Deduplicate Featured Vendors so no vendor in Trending appears in Featured
+        // Deduplicate Featured Vendors
         const trendingIds = new Set(trending.map((t) => String(t.id).toLowerCase()));
         const trendingSlugs = new Set(trending.map((t) => (t.slug || "").toLowerCase()));
 
@@ -100,30 +112,31 @@ export default function Home() {
         );
 
         setFeaturedVendors(deduplicatedFeatured.slice(0, 4));
-      } catch (err) {
-        console.error("Failed to fetch vendors:", err);
-      } finally {
-        setVendorsLoading(false);
-      }
-    }
 
-    // Fetch real published real wedding stories
-    async function loadStories() {
-      try {
-        const res = await fetch("/api/v1/public/real-weddings?limit=3");
-        const data = await res.json();
-        if (data.success && Array.isArray(data.stories)) {
-          setStories(data.stories);
+        // Process real wedding stories
+        if (sRes) {
+          try {
+            const sData = await sRes.json();
+            if (sData.success && Array.isArray(sData.stories)) {
+              setStories(sData.stories);
+            }
+          } catch (e) {}
         }
       } catch (err) {
-        console.error("Failed to fetch real wedding stories:", err);
+        console.error("Failed to load homepage data:", err);
       } finally {
-        setStoriesLoading(false);
+        if (isMounted) {
+          setVendorsLoading(false);
+          setStoriesLoading(false);
+        }
       }
     }
 
-    loadVendors();
-    loadStories();
+    loadData();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const categories = [
@@ -205,6 +218,9 @@ export default function Home() {
               alt="Real Wedding Celebration"
               className="w-full h-full object-cover object-center filter contrast-[1.06] brightness-[1.03] saturate-[1.05]"
               loading="eager"
+              decoding="async"
+              // @ts-ignore
+              fetchPriority="high"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/35 to-black/10"></div>
           </div>
@@ -302,7 +318,7 @@ export default function Home() {
             {vendorsLoading ? (
               <div className="flex overflow-x-auto hide-scrollbar snap-x snap-mandatory gap-4 md:grid md:grid-cols-4 md:gap-6 md:overflow-visible pb-2">
                 {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="flex-shrink-0 w-72 sm:w-[300px] md:w-auto h-72 rounded-2xl bg-gray-200/60 animate-pulse snap-start" />
+                  <VendorCardSkeleton key={i} />
                 ))}
               </div>
             ) : trendingVendors.length > 0 ? (
@@ -422,7 +438,7 @@ export default function Home() {
           {vendorsLoading ? (
             <div className="flex overflow-x-auto hide-scrollbar snap-x snap-mandatory gap-4 md:grid md:grid-cols-4 md:gap-6 md:overflow-visible pb-2">
               {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="flex-shrink-0 w-72 sm:w-[300px] md:w-auto h-72 rounded-2xl bg-gray-100 animate-pulse border border-gold/10 snap-start" />
+                <VendorCardSkeleton key={i} />
               ))}
             </div>
           ) : featuredVendors.length > 0 ? (

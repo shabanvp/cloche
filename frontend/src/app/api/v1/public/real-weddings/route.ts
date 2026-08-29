@@ -21,13 +21,21 @@ export async function GET(req: Request) {
       offset,
     });
 
-    return NextResponse.json({
-      success: true,
-      stories,
-      total,
-      limit,
-      offset,
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        stories,
+        total,
+        limit,
+        offset,
+      },
+      {
+        status: 200,
+        headers: {
+          "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
+        },
+      }
+    );
   } catch (err: any) {
     console.error("[GET /api/v1/public/real-weddings] Error:", err);
     return NextResponse.json(
