@@ -339,40 +339,39 @@ export function BoutiqueCollectionsClient({ boutique, initialProducts = [], bout
       </header>
 
       {/* Main Container */}
-      <main className="flex-grow max-w-6xl mx-auto w-full px-4 sm:px-6 py-8 pb-24 space-y-8">
+      <main className="flex-grow max-w-6xl mx-auto w-full px-4 sm:px-6 py-6 pb-24 space-y-6">
         
-        {/* Title Header */}
-        <div className="border-b border-gold/15 pb-6 space-y-2">
-          <div className="flex items-center gap-2 text-xs font-bold text-[#0F4C45] uppercase tracking-widest">
-            <ShoppingBag className="w-4 h-4 text-gold" /> EXCLUSIVE BOUTIQUE SHOWROOM
+        {/* Compact Title & Filter Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gold/15 pb-4">
+          <div>
+            <h1 className="font-serif text-xl sm:text-2xl font-bold text-charcoal">
+              Collections
+            </h1>
+            <p className="text-xs text-charcoal/60 mt-0.5">
+              {boutiqueName} • {location}
+            </p>
           </div>
-          <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-charcoal">
-            {boutiqueName} Collections
-          </h1>
-          <p className="text-xs sm:text-sm text-charcoal/70 flex items-center gap-1">
-            <MapPin className="w-3.5 h-3.5 text-gold shrink-0" /> Handcrafted bridal, groom, and ceremonial rental collections in {location}.
-          </p>
+
+          {/* Category Tabs Filter */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+            {categoryTabs.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setActiveCategory(cat)}
+                className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+                  activeCategory === cat
+                    ? "bg-[#0F4C45] text-white shadow-xs"
+                    : "bg-white text-charcoal/70 border border-gold/20 hover:border-gold"
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
         </div>
 
-        {/* Category Tabs Filter */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
-          {categoryTabs.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setActiveCategory(cat)}
-              className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
-                activeCategory === cat
-                  ? "bg-[#0F4C45] text-white shadow-md"
-                  : "bg-white text-charcoal/70 border border-gold/20 hover:border-gold"
-              }`}
-            >
-              {cat === "All" ? "All Collections" : `${cat} Collections`}
-            </button>
-          ))}
-        </div>
-
-        {/* Collections Grid (WedMeGood 4-Card Grid on Desktop & Responsive Stack) */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
+        {/* Collections Grid (WedMeGood Style 2 Columns on Mobile, 3 on Tablet, 4 on Desktop) */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3.5 sm:gap-5">
           {filteredCollections.map((col: any) => {
             const outfitName = col.name || col.outfitName || col.title || "Signature Couture Collection";
             const shopName = boutiqueName || "Luxury Boutique";
@@ -396,14 +395,14 @@ export function BoutiqueCollectionsClient({ boutique, initialProducts = [], bout
                   </div>
 
                   {/* Clean Stacked Information Block matching Image 1 */}
-                  <div className="pt-3 px-1 space-y-1">
+                  <div className="pt-2.5 px-1 space-y-0.5">
                     <p className="text-xs text-charcoal/70 line-clamp-1 font-medium">
                       {outfitName}
                     </p>
-                    <h3 className="font-bold text-sm sm:text-base text-charcoal group-hover:text-[#0F4C45] transition-colors line-clamp-1">
+                    <h3 className="font-bold text-sm text-charcoal group-hover:text-[#0F4C45] transition-colors line-clamp-1">
                       {shopName}
                     </h3>
-                    <p className="text-xs text-charcoal/50 flex items-center gap-1 font-medium">
+                    <p className="text-xs text-charcoal/50 flex items-center gap-1 font-medium capitalize">
                       {boutiqueCity}
                     </p>
                     {priceText && (
