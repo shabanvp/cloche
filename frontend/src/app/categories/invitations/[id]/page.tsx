@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { fetchPublicVendorProfileFromDb } from "@/lib/supabase";
-import { BoutiqueProfileClient } from "@/components/BoutiqueProfileClient";
+import { VendorProfileDispatcher } from "@/components/VendorProfileDispatcher";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -15,7 +15,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { data: profile } = await fetchPublicVendorProfileFromDb(id);
   if (!profile) return { title: "Designer Not Found | Cloche" };
   return {
-    title: `${profile.name} | Cloche Invitation Designers`,
+    title: `${profile.name} | Cloche Wedding Invitations`,
     description: profile.about || `Explore ${profile.name} on Cloche.`,
   };
 }
@@ -28,5 +28,5 @@ export default async function InvitationsDetailPage({ params }: Props) {
     notFound();
   }
 
-  return <BoutiqueProfileClient profile={profile} />;
+  return <VendorProfileDispatcher profile={profile} forcedCategory="invitations" />;
 }

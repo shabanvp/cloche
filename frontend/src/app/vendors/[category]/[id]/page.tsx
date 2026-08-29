@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { fetchPublicVendorProfileFromDb } from "@/lib/supabase";
-import { BoutiqueProfileClient } from "@/components/BoutiqueProfileClient";
+import { VendorProfileDispatcher } from "@/components/VendorProfileDispatcher";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -21,8 +21,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function DynamicVendorDetailPage({ params }: Props) {
-  const { id } = await params;
+  const { category, id } = await params;
   const { data: profile } = await fetchPublicVendorProfileFromDb(id);
   if (!profile) notFound();
-  return <BoutiqueProfileClient profile={profile} />;
+  return <VendorProfileDispatcher profile={profile} forcedCategory={category} />;
 }
