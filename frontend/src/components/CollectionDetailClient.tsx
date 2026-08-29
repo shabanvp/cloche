@@ -4,28 +4,15 @@ import React, { useState, useMemo } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
-  Heart,
   Share2,
-  Calendar,
-  CheckCircle2,
-  Sparkles,
-  MapPin,
-  Clock,
-  Shirt,
-  Scissors,
-  Truck,
-  Star,
-  Eye,
-  X,
-  Phone,
-  MessageCircle,
-  ChevronLeft,
   ChevronRight,
-  ShieldCheck,
-  Award,
-  Filter,
-  UserCheck,
-  Layers
+  ChevronDown,
+  ChevronUp,
+  MessageCircle,
+  Phone,
+  MapPin,
+  Eye,
+  Filter
 } from "lucide-react";
 import { WishlistButton } from "@/components/WishlistButton";
 import { BookingModal } from "@/components/BookingModal";
@@ -92,16 +79,14 @@ export function CollectionDetailClient({
   // ── 1. STATE ──
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [activeCategoryFilter, setActiveCategoryFilter] = useState("All");
-  const [selectedOutfitModal, setSelectedOutfitModal] = useState<OutfitItem | null>(null);
+  const [openAccordion, setOpenAccordion] = useState<string | null>("details");
   const [isCopied, setIsCopied] = useState(false);
-  const [lightboxImage, setLightboxImage] = useState<string | null>(null);
 
   // Derive outfits array safely
   const rawOutfits: OutfitItem[] = useMemo(() => {
     if (collection.outfits && collection.outfits.length > 0) {
       return collection.outfits;
     }
-    // Fallback demonstration outfits if backend object is minimal
     return [
       {
         id: "outfit-1",
@@ -146,55 +131,11 @@ export function CollectionDetailClient({
         fabric: "Georgette & Satin",
         sizes: ["S", "M", "Custom Fit"],
         rentalAvailable: true
-      },
-      {
-        id: "outfit-5",
-        name: `${collection.name} - Marigold Floral Haldi Attire`,
-        category: "Haldi",
-        image: "https://images.unsplash.com/photo-1595777457583-95e059d581b8?q=80&w=800&auto=format&fit=crop",
-        price: "₹11,500 / 3 Days",
-        description: "Vibrant marigold yellow organza saree with mirrorwork borders.",
-        fabric: "Chiffon & Organza",
-        sizes: ["Free Size"],
-        rentalAvailable: true
-      },
-      {
-        id: "outfit-6",
-        name: `${collection.name} - Emerald Mehendi Anarkali`,
-        category: "Mehendi",
-        image: "https://images.unsplash.com/photo-1566174053879-31528523f8ae?q=80&w=800&auto=format&fit=crop",
-        price: "₹14,000 / 3 Days",
-        description: "Rich emerald green flared anarkali suit with gold threadwork accent.",
-        fabric: "Chanderi Silk",
-        sizes: ["S", "M", "L"],
-        rentalAvailable: true
-      },
-      {
-        id: "outfit-7",
-        name: `${collection.name} - Royal Pearl & Polki Belt`,
-        category: "Accessories",
-        image: "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?q=80&w=800&auto=format&fit=crop",
-        price: "₹4,500 / 3 Days",
-        description: "Handcrafted bridal waist belt with polki stones and freshwater pearls.",
-        fabric: "Brass & Pearls",
-        sizes: ["Adjustable"],
-        rentalAvailable: true
-      },
-      {
-        id: "outfit-8",
-        name: `${collection.name} - Velvet Sherwani Set for Groom`,
-        category: "Groom",
-        image: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?q=80&w=800&auto=format&fit=crop",
-        price: "₹21,000 / 3 Days",
-        description: "Deep maroon velvet sherwani set with embroidered collar and churidar.",
-        fabric: "Micro Velvet",
-        sizes: ["38", "40", "42", "44"],
-        rentalAvailable: true
       }
     ];
   }, [collection]);
 
-  // All gallery photos derived from coverImage + outfits
+  // Gallery photos array
   const galleryImages = useMemo(() => {
     const images = [collection.coverImage];
     rawOutfits.forEach(o => {
@@ -216,7 +157,10 @@ export function CollectionDetailClient({
     );
   }, [rawOutfits, activeCategoryFilter]);
 
-  // Share link handler
+  const handleNextImage = () => {
+    setActiveImageIndex(prev => (prev === galleryImages.length - 1 ? 0 : prev + 1));
+  };
+
   const handleShare = () => {
     if (typeof window !== "undefined") {
       navigator.clipboard.writeText(window.location.href);
@@ -225,18 +169,20 @@ export function CollectionDetailClient({
     }
   };
 
+  const toggleAccordion = (section: string) => {
+    setOpenAccordion(prev => (prev === section ? null : section));
+  };
+
   const formattedCity = boutique.city || boutique.address?.split(",").pop()?.trim() || "Kerala";
   const whatsappUrl = `https://wa.me/${(boutique.whatsappNumber || "919000000000").replace(/[^0-9]/g, "")}?text=${encodeURIComponent(
     `Hi ${boutique.name}, I am interested in your collection "${collection.name}" on Cloche!`
   )}`;
 
   return (
-    <div className="min-h-screen bg-[#FBF8F1] flex flex-col font-sans text-charcoal pb-24 lg:pb-12">
+    <div className="min-h-screen bg-white flex flex-col font-sans text-charcoal pb-24 lg:pb-12">
       
-      {/* ──────────────────────────────────────────────────────────
-          SECTION 1: LUXURY COLLECTION HEADER & BREADCRUMB
-      ────────────────────────────────────────────────────────── */}
-      <header className="bg-white border-b border-gold/15 sticky top-0 z-40 shadow-2xs backdrop-blur-md bg-white/95">
+      {/* ── TOP NAV BAR ── */}
+      <header className="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-2xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between gap-4">
           <Link
             href={`/boutiques/${boutique.slug || boutique.id || "studio"}`}
@@ -247,7 +193,7 @@ export function CollectionDetailClient({
           </Link>
 
           <div className="text-center truncate hidden sm:block">
-            <h1 className="font-serif font-bold text-base md:text-lg text-charcoal truncate">
+            <h1 className="font-serif font-bold text-base text-charcoal truncate">
               {collection.name}
             </h1>
             <p className="text-[11px] text-charcoal/60 truncate">
@@ -258,8 +204,8 @@ export function CollectionDetailClient({
           <div className="flex items-center gap-2">
             <button
               onClick={handleShare}
-              className="p-2 rounded-full border border-gold/20 text-charcoal hover:bg-gold/10 transition-colors relative cursor-pointer"
-              title="Share Collection"
+              className="p-2 rounded-full border border-gray-200 text-charcoal hover:bg-gray-100 transition-colors relative cursor-pointer"
+              title="Share"
             >
               <Share2 className="w-4 h-4" />
               {isCopied && (
@@ -283,232 +229,184 @@ export function CollectionDetailClient({
         </div>
       </header>
 
-      {/* ──────────────────────────────────────────────────────────
-          MAIN CONTAINER: 10 SECTIONS
-      ────────────────────────────────────────────────────────── */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 space-y-10 sm:space-y-12">
+      {/* ── MAIN WEDMEGOOD DETAIL CONTAINER ── */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-8 pb-12 space-y-12">
         
-        {/* ── SECTION 1 META BANNER (TITLE, RATING, BADGES) ── */}
-        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-gold/15 shadow-sm space-y-4">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#0F4C45]/10 text-[#0F4C45] text-xs font-bold">
-              <Sparkles className="w-3.5 h-3.5 text-[#C8A96A]" /> Premium Collection
-            </span>
+        {/* DESKTOP & MOBILE DETAIL HERO LAYOUT (MATCHING IMAGE 1 & IMAGE 2) */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          
+          {/* LEFT SIDE: TALL PORTRAIT MAIN IMAGE + NEXT BUTTON (MATCHING IMAGE 1 & IMAGE 2) */}
+          <div className="lg:col-span-7 space-y-4">
+            <div className="relative aspect-[3/4] w-full max-w-xl mx-auto rounded-2xl overflow-hidden bg-charcoal/5 shadow-xs border border-gray-200 group">
+              <img
+                src={galleryImages[activeImageIndex] || collection.coverImage}
+                alt={collection.name}
+                className="w-full h-full object-cover"
+              />
 
-            {boutique.verified !== false && (
-              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold border border-emerald-200">
-                <ShieldCheck className="w-3.5 h-3.5" /> Verified Boutique
-              </span>
-            )}
-
-            <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-amber-50 text-amber-800 text-xs font-bold border border-amber-200">
-              <Layers className="w-3.5 h-3.5" /> {rawOutfits.length} Outfits Available
-            </span>
-          </div>
-
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-            <div>
-              <h1 className="font-serif font-bold text-2xl sm:text-3xl lg:text-4xl text-charcoal">
-                {collection.name}
-              </h1>
-              <div className="flex flex-wrap items-center gap-3 mt-2 text-xs text-charcoal/70 font-medium">
-                <Link
-                  href={`/boutiques/${boutique.slug || boutique.id || "studio"}`}
-                  className="text-[#0F4C45] hover:underline font-bold"
+              {/* Next Image Floating Arrow Button on Right Edge (Matching Image 1) */}
+              {galleryImages.length > 1 && (
+                <button
+                  onClick={handleNextImage}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 shadow-md flex items-center justify-center text-charcoal hover:bg-white hover:scale-110 transition-all cursor-pointer z-10"
+                  title="Next Photo"
                 >
-                  By {boutique.name}
-                </Link>
-                <span>•</span>
-                <span className="flex items-center gap-1">
-                  <MapPin className="w-3.5 h-3.5 text-[#C8A96A]" /> {formattedCity}
-                </span>
-                <span>•</span>
-                <span className="flex items-center gap-1 text-amber-600 font-bold">
-                  <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                  {boutique.rating || 4.9} ({boutique.reviewCount || 48} Reviews)
-                </span>
-                <span>•</span>
-                <span className="text-charcoal/50">Updated {collection.lastUpdated || "2 days ago"}</span>
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+              )}
+
+              {/* Mobile Carousel Indicators (Matching Image 2) */}
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-10 sm:hidden">
+                {galleryImages.map((_, idx) => (
+                  <span
+                    key={idx}
+                    className={`w-2 h-2 rounded-full transition-all ${
+                      activeImageIndex === idx ? "bg-white w-4" : "bg-white/50"
+                    }`}
+                  />
+                ))}
               </div>
             </div>
+          </div>
 
-            <div className="shrink-0 flex items-center gap-3">
-              <BookingModal
-                boutiqueId={Number(boutique.id || 1)}
-                boutiqueName={boutique.name}
-              />
+          {/* RIGHT SIDE: THUMBNAILS, STACKED TEXT & ACCORDIONS (MATCHING IMAGE 1 & IMAGE 2) */}
+          <div className="lg:col-span-5 space-y-6">
+            
+            {/* Horizontal Thumbnail Strip (Desktop - Matching Image 1 Top Right) */}
+            {galleryImages.length > 1 && (
+              <div className="hidden lg:flex items-center gap-3 overflow-x-auto pb-2">
+                {galleryImages.map((img, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setActiveImageIndex(idx)}
+                    className={`relative aspect-[3/4] w-20 rounded-xl overflow-hidden shrink-0 border-2 transition-all cursor-pointer ${
+                      activeImageIndex === idx
+                        ? "border-[#64D264] ring-2 ring-[#64D264]/20 scale-105"
+                        : "border-gray-200 opacity-70 hover:opacity-100"
+                    }`}
+                  >
+                    <img src={img} alt={`Thumb ${idx + 1}`} className="w-full h-full object-cover" />
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Stacked Product Information Block (Matching Image 1 & 2) */}
+            <div className="space-y-1">
+              <p className="text-xs sm:text-sm text-charcoal/60 font-medium">
+                {collection.name}
+              </p>
+
+              <h1 className="font-bold text-xl sm:text-2xl text-charcoal">
+                {boutique.name}
+              </h1>
+
+              <p className="text-xs text-charcoal/50 font-medium">
+                {formattedCity}
+              </p>
+
+              <p className="font-bold text-2xl text-charcoal pt-2">
+                {collection.priceRange || "₹4,47,500"}
+              </p>
             </div>
+
+            {/* Desktop Action Button: Bright Green Pill Button (Matching Image 1) */}
+            <div className="hidden sm:block pt-2">
+              <a
+                href={whatsappUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-2.5 w-full py-3.5 px-6 rounded-full bg-[#64D264] hover:bg-[#52C052] text-white font-bold text-sm sm:text-base shadow-md transition-all cursor-pointer"
+              >
+                <MessageCircle className="w-5 h-5 fill-white text-[#64D264]" />
+                <span>Chat with Designer</span>
+              </a>
+            </div>
+
+            {/* Divider Line (Matching Image 1 & 2) */}
+            <div className="border-t border-gray-200 pt-4 space-y-3">
+              
+              {/* Accordion 1: Product Details */}
+              <div className="border-b border-gray-100 pb-3">
+                <button
+                  onClick={() => toggleAccordion("details")}
+                  className="w-full flex items-center justify-between py-2 text-left font-bold text-sm text-charcoal cursor-pointer"
+                >
+                  <span>Product Details</span>
+                  {openAccordion === "details" ? (
+                    <ChevronUp className="w-4 h-4 text-charcoal/60" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4 text-charcoal/60" />
+                  )}
+                </button>
+
+                {openAccordion === "details" && (
+                  <div className="pt-2 text-xs text-charcoal/80 leading-relaxed font-normal space-y-2">
+                    <p>
+                      {collection.story || collection.description || "Inspired by regal Indian heritage, this exclusive collection brings together centuries of embroidery craftsmanship with contemporary silhouettes."}
+                    </p>
+                    <p><span className="font-bold text-charcoal">Ideal For:</span> {collection.idealFor?.join(", ") || "Bride, Reception, Sangeet, Engagement"}</p>
+                    <p><span className="font-bold text-charcoal">Outfits Available:</span> {rawOutfits.length} Signature Pieces</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Accordion 2: Fabric Details */}
+              <div className="border-b border-gray-100 pb-3">
+                <button
+                  onClick={() => toggleAccordion("fabric")}
+                  className="w-full flex items-center justify-between py-2 text-left font-bold text-sm text-charcoal cursor-pointer"
+                >
+                  <span>Fabric details</span>
+                  {openAccordion === "fabric" ? (
+                    <ChevronUp className="w-4 h-4 text-charcoal/60" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4 text-charcoal/60" />
+                  )}
+                </button>
+
+                {openAccordion === "fabric" && (
+                  <div className="pt-2 text-xs text-charcoal/80 leading-relaxed font-normal space-y-1">
+                    <p><span className="font-bold text-charcoal">Craftsmanship:</span> Authentic Zardozi & Threadwork Embroidery</p>
+                    <p><span className="font-bold text-charcoal">Material:</span> Pure Raw Silk, Organza & Micro Velvet</p>
+                    <p><span className="font-bold text-charcoal">Service:</span> Custom Tailoring & Fitting Included</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Accordion 3: How to order? (Matching Image 1 & 2) */}
+              <div className="pb-2">
+                <button
+                  onClick={() => toggleAccordion("order")}
+                  className="w-full flex items-center justify-between py-2 text-left font-bold text-sm text-charcoal cursor-pointer"
+                >
+                  <span>How to order?</span>
+                  {openAccordion === "order" ? (
+                    <ChevronUp className="w-4 h-4 text-charcoal/60" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4 text-charcoal/60" />
+                  )}
+                </button>
+
+                {openAccordion === "order" && (
+                  <div className="pt-2 text-xs text-charcoal/80 leading-relaxed font-normal">
+                    <p>Use the "Chat with Designer" button to get in touch with the designer.</p>
+                  </div>
+                )}
+              </div>
+
+            </div>
+
           </div>
         </div>
 
-        {/* ──────────────────────────────────────────────────────────
-            SECTION 2: FEATURED HERO IMAGE & GALLERY THUMBNAILS
-        ────────────────────────────────────────────────────────── */}
-        <section className="bg-white rounded-3xl p-4 sm:p-6 border border-gold/15 shadow-sm space-y-4">
-          <div className="relative aspect-[16/10] sm:aspect-[16/9] w-full rounded-2xl overflow-hidden bg-charcoal/5 group border border-gold/10">
-            <img
-              src={galleryImages[activeImageIndex] || collection.coverImage}
-              alt={collection.name}
-              className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-700 cursor-pointer"
-              onClick={() => setLightboxImage(galleryImages[activeImageIndex] || collection.coverImage)}
-            />
-
-            <button
-              onClick={() => setLightboxImage(galleryImages[activeImageIndex] || collection.coverImage)}
-              className="absolute top-4 right-4 bg-black/60 backdrop-blur-md text-white p-2 rounded-full hover:bg-black/80 transition-all cursor-pointer"
-              title="Expand Fullscreen"
-            >
-              <Eye className="w-4 h-4" />
-            </button>
-
-            {/* Navigation Arrows */}
-            {galleryImages.length > 1 && (
-              <>
-                <button
-                  onClick={() => setActiveImageIndex(prev => (prev === 0 ? galleryImages.length - 1 : prev - 1))}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 backdrop-blur-md p-2 rounded-full hover:bg-white transition-all shadow-md cursor-pointer"
-                >
-                  <ChevronLeft className="w-5 h-5 text-charcoal" />
-                </button>
-                <button
-                  onClick={() => setActiveImageIndex(prev => (prev === galleryImages.length - 1 ? 0 : prev + 1))}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 backdrop-blur-md p-2 rounded-full hover:bg-white transition-all shadow-md cursor-pointer"
-                >
-                  <ChevronRight className="w-5 h-5 text-charcoal" />
-                </button>
-              </>
-            )}
-          </div>
-
-          {/* Thumbnail Strip */}
-          {galleryImages.length > 1 && (
-            <div className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-none">
-              {galleryImages.map((img, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setActiveImageIndex(idx)}
-                  className={`relative w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden shrink-0 border-2 transition-all cursor-pointer ${
-                    activeImageIndex === idx ? "border-[#0F4C45] ring-2 ring-[#0F4C45]/20 scale-105" : "border-gold/20 opacity-70 hover:opacity-100"
-                  }`}
-                >
-                  <img src={img} alt={`Thumb ${idx + 1}`} className="w-full h-full object-cover" />
-                </button>
-              ))}
-            </div>
-          )}
-        </section>
-
-        {/* ──────────────────────────────────────────────────────────
-            SECTION 3: COLLECTION STORY & SPECIFICATIONS
-        ────────────────────────────────────────────────────────── */}
-        <section className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8">
-          
-          {/* Story & Description (7 cols) */}
-          <div className="lg:col-span-7 bg-white rounded-3xl p-6 sm:p-8 border border-gold/15 shadow-sm space-y-5">
-            <div>
-              <span className="text-[10px] uppercase font-bold text-[#0F4C45] tracking-widest block mb-1">
-                The Heritage Story
-              </span>
-              <h2 className="font-serif font-bold text-xl sm:text-2xl text-charcoal">
-                About The Collection
-              </h2>
-            </div>
-
-            <p className="text-sm text-charcoal/80 leading-relaxed font-light">
-              {collection.story || collection.description || (
-                `Inspired by regal Indian heritage, this exclusive collection from ${boutique.name} brings together centuries of embroidery craftsmanship with contemporary silhouettes. Designed for grand celebrations, each outfit is hand-embroidered by master artisans in Kerala.`
-              )}
-            </p>
-
-            <div className="bg-[#FAF7F2] rounded-2xl p-4 sm:p-5 border border-gold/15 space-y-3">
-              <h3 className="font-serif font-bold text-sm text-charcoal flex items-center gap-2">
-                <Award className="w-4 h-4 text-[#C8A96A]" /> Atelier Craftsmanship Highlights
-              </h3>
-              <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-charcoal/70">
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                  Authentic Zardozi & Gota Work
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                  Premium Pure Silk & Organza
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                  Personal Fitting & Trial Session
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                  Sanitized 3 to 7-Day Rentals
-                </li>
-              </ul>
-            </div>
-          </div>
-
-          {/* Quick Specifications (5 cols) */}
-          <div className="lg:col-span-5 bg-white rounded-3xl p-6 sm:p-8 border border-gold/15 shadow-sm space-y-4 flex flex-col justify-between">
-            <div>
-              <span className="text-[10px] uppercase font-bold text-[#0F4C45] tracking-widest block mb-1">
-                Essential Details
-              </span>
-              <h2 className="font-serif font-bold text-xl text-charcoal mb-4">
-                Collection Specifications
-              </h2>
-
-              <dl className="space-y-3 text-xs">
-                <div className="flex justify-between py-2 border-b border-gold/10">
-                  <dt className="text-charcoal/60 font-medium">Ideal For</dt>
-                  <dd className="font-bold text-charcoal text-right">
-                    {collection.idealFor?.join(", ") || "Bride, Reception, Sangeet, Engagement"}
-                  </dd>
-                </div>
-                <div className="flex justify-between py-2 border-b border-gold/10">
-                  <dt className="text-charcoal/60 font-medium">Price Range</dt>
-                  <dd className="font-bold text-[#0F4C45] text-right">
-                    {collection.priceRange || "₹14,500 – ₹45,000"}
-                  </dd>
-                </div>
-                <div className="flex justify-between py-2 border-b border-gold/10">
-                  <dt className="text-charcoal/60 font-medium">Rental Available</dt>
-                  <dd className="font-bold text-emerald-700 text-right">
-                    Available (3 to 7 Days)
-                  </dd>
-                </div>
-                <div className="flex justify-between py-2 border-b border-gold/10">
-                  <dt className="text-charcoal/60 font-medium">Custom Stitching</dt>
-                  <dd className="font-bold text-charcoal text-right">
-                    Provided (Fitting Included)
-                  </dd>
-                </div>
-                <div className="flex justify-between py-2 border-b border-gold/10">
-                  <dt className="text-charcoal/60 font-medium">Delivery Time</dt>
-                  <dd className="font-bold text-charcoal text-right">
-                    {collection.deliveryTime || "7–10 Days Standard Delivery"}
-                  </dd>
-                </div>
-                <div className="flex justify-between py-2">
-                  <dt className="text-charcoal/60 font-medium">Languages Spoken</dt>
-                  <dd className="font-bold text-charcoal text-right">
-                    {collection.languages?.join(", ") || "English, Malayalam, Hindi"}
-                  </dd>
-                </div>
-              </dl>
-            </div>
-          </div>
-        </section>
-
-        {/* ──────────────────────────────────────────────────────────
-            SECTION 4: CATEGORY FILTERS CHIPS
-        ────────────────────────────────────────────────────────── */}
-        <section className="bg-white rounded-3xl p-5 sm:p-6 border border-gold/15 shadow-sm space-y-4">
+        {/* ── OUTFIT GALLERY GRID (DESKTOP 4 COLS, TABLET 3 COLS, MOBILE 2 COLS) ── */}
+        <section className="border-t border-gray-200 pt-8 space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <h2 className="font-serif font-bold text-xl text-charcoal flex items-center gap-2">
-                <Filter className="w-4 h-4 text-[#0F4C45]" /> Explore Outfits
+              <h2 className="font-bold text-xl text-charcoal flex items-center gap-2">
+                <Filter className="w-4 h-4 text-[#0F4C45]" /> Collection Outfits ({filteredOutfits.length})
               </h2>
-              <p className="text-xs text-charcoal/60">
-                Filter by ceremonial event category ({filteredOutfits.length} items)
-              </p>
             </div>
 
             {/* Filter Chips */}
@@ -529,10 +427,7 @@ export function CollectionDetailClient({
             </div>
           </div>
 
-          {/* ──────────────────────────────────────────────────────────
-              SECTION 5: OUTFIT GALLERY (RESPONSIVE MASONRY GRID)
-          ────────────────────────────────────────────────────────── */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3.5 sm:gap-5 pt-2">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3.5 sm:gap-5">
             {filteredOutfits.map(outfit => (
               <Link
                 key={outfit.id}
@@ -547,13 +442,10 @@ export function CollectionDetailClient({
                       loading="lazy"
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
-
-                    {/* Category Badge */}
                     <span className="absolute top-2.5 left-2.5 bg-black/60 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-white/20">
                       {outfit.category}
                     </span>
 
-                    {/* Quick View Button Overlay */}
                     <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                       <span className="bg-white/90 backdrop-blur-md text-charcoal font-bold text-xs px-3 py-1.5 rounded-full shadow-md flex items-center gap-1.5">
                         <Eye className="w-3.5 h-3.5 text-[#0F4C45]" /> View Outfit
@@ -580,348 +472,19 @@ export function CollectionDetailClient({
           </div>
         </section>
 
-        {/* ──────────────────────────────────────────────────────────
-            SECTION 7: FEATURED SERVICES CARDS
-        ────────────────────────────────────────────────────────── */}
-        <section className="bg-white rounded-3xl p-6 sm:p-8 border border-gold/15 shadow-sm space-y-6">
-          <div className="text-center max-w-xl mx-auto">
-            <span className="text-[10px] uppercase font-bold text-[#0F4C45] tracking-widest block mb-1">
-              Atelier Experiences
-            </span>
-            <h2 className="font-serif font-bold text-xl sm:text-2xl text-charcoal">
-              Boutique Services & Guarantees
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
-            <div className="p-5 rounded-2xl bg-[#FAF7F2] border border-gold/15 space-y-2">
-              <div className="w-10 h-10 rounded-xl bg-[#0F4C45]/10 text-[#0F4C45] flex items-center gap-2 justify-center font-bold">
-                👑
-              </div>
-              <h3 className="font-serif font-bold text-base text-charcoal">Bridal & Groom Styling</h3>
-              <p className="text-xs text-charcoal/70 leading-relaxed font-light">
-                Personalized wedding lookbook curation by senior bridal stylists tailored to your wedding theme.
-              </p>
-            </div>
-
-            <div className="p-5 rounded-2xl bg-[#FAF7F2] border border-gold/15 space-y-2">
-              <div className="w-10 h-10 rounded-xl bg-[#0F4C45]/10 text-[#0F4C45] flex items-center justify-center font-bold">
-                ✂️
-              </div>
-              <h3 className="font-serif font-bold text-base text-charcoal">Custom Stitching & Alterations</h3>
-              <p className="text-xs text-charcoal/70 leading-relaxed font-light">
-                Bespoke fitting and precision alterations guaranteed for a flawless silhouette on your big day.
-              </p>
-            </div>
-
-            <div className="p-5 rounded-2xl bg-[#FAF7F2] border border-gold/15 space-y-2">
-              <div className="w-10 h-10 rounded-xl bg-[#0F4C45]/10 text-[#0F4C45] flex items-center justify-center font-bold">
-                🔄
-              </div>
-              <h3 className="font-serif font-bold text-base text-charcoal">Sanitized Rental Options</h3>
-              <p className="text-xs text-charcoal/70 leading-relaxed font-light">
-                Flexible 3 to 7-day rental packages with professional dry-cleaning and hygienic vacuum sealing.
-              </p>
-            </div>
-
-            <div className="p-5 rounded-2xl bg-[#FAF7F2] border border-gold/15 space-y-2">
-              <div className="w-10 h-10 rounded-xl bg-[#0F4C45]/10 text-[#0F4C45] flex items-center justify-center font-bold">
-                ✨
-              </div>
-              <h3 className="font-serif font-bold text-base text-charcoal">VIP In-Studio Trial Session</h3>
-              <p className="text-xs text-charcoal/70 leading-relaxed font-light">
-                Private trial lounge access with trial outfits, bridal jewelry pairing, and refreshments.
-              </p>
-            </div>
-
-            <div className="p-5 rounded-2xl bg-[#FAF7F2] border border-gold/15 space-y-2">
-              <div className="w-10 h-10 rounded-xl bg-[#0F4C45]/10 text-[#0F4C45] flex items-center justify-center font-bold">
-                💬
-              </div>
-              <h3 className="font-serif font-bold text-base text-charcoal">1-on-1 Designer Consultation</h3>
-              <p className="text-xs text-charcoal/70 leading-relaxed font-light">
-                Direct consultation with lead designers for custom color matching and bridal embroidery.
-              </p>
-            </div>
-
-            <div className="p-5 rounded-2xl bg-[#FAF7F2] border border-gold/15 space-y-2">
-              <div className="w-10 h-10 rounded-xl bg-[#0F4C45]/10 text-[#0F4C45] flex items-center justify-center font-bold">
-                🚚
-              </div>
-              <h3 className="font-serif font-bold text-base text-charcoal">Doorstep Pickup & Delivery</h3>
-              <p className="text-xs text-charcoal/70 leading-relaxed font-light">
-                Insured white-glove courier delivery and post-event doorstep pickup across Kerala.
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* ──────────────────────────────────────────────────────────
-            SECTION 8: CUSTOMER REVIEWS & RATING DISTRIBUTION
-        ────────────────────────────────────────────────────────── */}
-        <section className="bg-white rounded-3xl p-6 sm:p-8 border border-gold/15 shadow-sm space-y-6">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-gold/10 pb-6">
-            <div>
-              <span className="text-[10px] uppercase font-bold text-[#0F4C45] tracking-widest block mb-1">
-                Verified Bride & Groom Experiences
-              </span>
-              <h2 className="font-serif font-bold text-xl sm:text-2xl text-charcoal">
-                Customer Reviews
-              </h2>
-            </div>
-
-            <div className="flex items-center gap-4 bg-[#FAF7F2] px-5 py-3 rounded-2xl border border-gold/15">
-              <div className="text-center">
-                <span className="font-serif font-bold text-2xl text-charcoal block">
-                  {boutique.rating || 4.9}
-                </span>
-                <div className="flex items-center gap-0.5 text-amber-400">
-                  <Star className="w-3.5 h-3.5 fill-amber-400" />
-                  <Star className="w-3.5 h-3.5 fill-amber-400" />
-                  <Star className="w-3.5 h-3.5 fill-amber-400" />
-                  <Star className="w-3.5 h-3.5 fill-amber-400" />
-                  <Star className="w-3.5 h-3.5 fill-amber-400" />
-                </div>
-              </div>
-              <div className="h-8 w-px bg-gold/20" />
-              <div className="text-xs text-charcoal/70">
-                <p className="font-bold text-charcoal">100% Satisfaction</p>
-                <p>{boutique.reviewCount || 48} Verified Reviews</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-            <div className="p-5 rounded-2xl bg-[#FAF7F2] border border-gold/15 space-y-2">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="font-bold text-xs text-charcoal">Ananya S.</span>
-                  <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">
-                    Verified Bride
-                  </span>
-                </div>
-                <div className="flex text-amber-400">
-                  <Star className="w-3.5 h-3.5 fill-amber-400" />
-                  <Star className="w-3.5 h-3.5 fill-amber-400" />
-                  <Star className="w-3.5 h-3.5 fill-amber-400" />
-                  <Star className="w-3.5 h-3.5 fill-amber-400" />
-                  <Star className="w-3.5 h-3.5 fill-amber-400" />
-                </div>
-              </div>
-              <p className="text-xs text-charcoal/80 leading-relaxed font-light">
-                "The collection fitting was absolute perfection! The velvet embroidery looked stunning in our wedding photos. Highly recommended!"
-              </p>
-              <p className="text-[10px] text-charcoal/40 pt-1">Rented for Kerala Wedding • 2 weeks ago</p>
-            </div>
-
-            <div className="p-5 rounded-2xl bg-[#FAF7F2] border border-gold/15 space-y-2">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="font-bold text-xs text-charcoal">Rahul & Neha M.</span>
-                  <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">
-                    Verified Couple
-                  </span>
-                </div>
-                <div className="flex text-amber-400">
-                  <Star className="w-3.5 h-3.5 fill-amber-400" />
-                  <Star className="w-3.5 h-3.5 fill-amber-400" />
-                  <Star className="w-3.5 h-3.5 fill-amber-400" />
-                  <Star className="w-3.5 h-3.5 fill-amber-400" />
-                  <Star className="w-3.5 h-3.5 fill-amber-400" />
-                </div>
-              </div>
-              <p className="text-xs text-charcoal/80 leading-relaxed font-light">
-                "Excellent service from the boutique. The trial session made us feel completely relaxed. Delivery was right on schedule."
-              </p>
-              <p className="text-[10px] text-charcoal/40 pt-1">Rented for Reception • 1 month ago</p>
-            </div>
-          </div>
-        </section>
-
-        {/* ──────────────────────────────────────────────────────────
-            SECTION 9: SIMILAR COLLECTIONS CAROUSEL
-        ────────────────────────────────────────────────────────── */}
-        {similarCollections.length > 0 && (
-          <section className="bg-white rounded-3xl p-6 sm:p-8 border border-gold/15 shadow-sm space-y-4">
-            <div>
-              <span className="text-[10px] uppercase font-bold text-[#0F4C45] tracking-widest block mb-1">
-                More Showroom Creations
-              </span>
-              <h2 className="font-serif font-bold text-xl sm:text-2xl text-charcoal">
-                Similar Collections
-              </h2>
-            </div>
-
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {similarCollections.map(sim => (
-                <Link
-                  key={sim.id}
-                  href={`/collections/${sim.id}`}
-                  className="group cursor-pointer block"
-                >
-                  <div className="relative aspect-[3/4] w-full rounded-2xl overflow-hidden bg-charcoal/5 border border-gold/15 mb-2">
-                    <img
-                      src={sim.coverImage}
-                      alt={sim.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                  </div>
-                  <h3 className="font-bold text-xs sm:text-sm text-charcoal group-hover:text-[#0F4C45] transition-colors line-clamp-1">
-                    {sim.name}
-                  </h3>
-                  <p className="text-[11px] text-charcoal/50">
-                    {sim.outfitCount || 12} Outfits Available
-                  </p>
-                </Link>
-              ))}
-            </div>
-          </section>
-        )}
       </main>
 
-      {/* ──────────────────────────────────────────────────────────
-          SECTION 6: OUTFIT QUICK VIEW MODAL
-      ────────────────────────────────────────────────────────── */}
-      {selectedOutfitModal && (
-        <div
-          onClick={() => setSelectedOutfitModal(null)}
-          className="fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto"
+      {/* ── MOBILE STICKY BOTTOM BUTTON (MATCHING IMAGE 2) ── */}
+      <div className="fixed bottom-0 inset-x-0 z-40 bg-white border-t border-gray-200 p-3 sm:hidden shadow-lg">
+        <a
+          href={whatsappUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center justify-center gap-2 w-full py-3.5 px-6 rounded-full bg-[#64D264] hover:bg-[#52C052] text-white font-bold text-sm shadow-md transition-all cursor-pointer"
         >
-          <div
-            onClick={e => e.stopPropagation()}
-            className="bg-white rounded-3xl max-w-3xl w-full border border-gold/25 shadow-2xl overflow-hidden my-8 animate-in fade-in zoom-in-95 duration-200"
-          >
-            <div className="bg-[#FAF7F2] p-4 sm:p-6 border-b border-gold/15 flex items-start justify-between gap-4">
-              <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider bg-[#0F4C45]/10 text-[#0F4C45] px-2.5 py-0.5 rounded-full inline-block mb-1">
-                  {selectedOutfitModal.category} • {boutique.name}
-                </span>
-                <h3 className="font-serif font-bold text-xl sm:text-2xl text-charcoal">
-                  {selectedOutfitModal.name}
-                </h3>
-              </div>
-
-              <button
-                onClick={() => setSelectedOutfitModal(null)}
-                className="bg-white p-2 rounded-full border border-gold/20 text-charcoal/60 hover:text-charcoal hover:bg-gold/10 transition-colors shrink-0 cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="p-5 sm:p-6 grid grid-cols-1 sm:grid-cols-2 gap-6 items-center">
-              <div className="relative aspect-[3/4] w-full rounded-2xl overflow-hidden bg-charcoal/5 border border-gold/15">
-                <img
-                  src={selectedOutfitModal.image}
-                  alt={selectedOutfitModal.name}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-
-              <div className="space-y-4">
-                {selectedOutfitModal.price && (
-                  <div>
-                    <span className="text-[10px] uppercase font-bold text-charcoal/60 block">Price / Package</span>
-                    <span className="font-serif text-2xl font-bold text-[#0F4C45]">
-                      {selectedOutfitModal.price}
-                    </span>
-                  </div>
-                )}
-
-                <p className="text-xs text-charcoal/80 leading-relaxed font-light">
-                  {selectedOutfitModal.description || "Handcrafted couture outfit with intricate embroidery, custom fitting, and sanitized rental package."}
-                </p>
-
-                <div className="space-y-1 text-xs">
-                  <p><span className="font-bold text-charcoal">Fabric:</span> {selectedOutfitModal.fabric || "Pure Raw Silk"}</p>
-                  <p><span className="font-bold text-charcoal">Available Sizes:</span> {(selectedOutfitModal.sizes || ["S", "M", "L", "Custom"]).join(", ")}</p>
-                  <p><span className="font-bold text-charcoal">Status:</span> <span className="text-emerald-700 font-bold">Ready for Trial & Rental</span></p>
-                </div>
-
-                <div className="pt-2 space-y-2">
-                  <BookingModal
-                    boutiqueId={Number(boutique.id || 1)}
-                    boutiqueName={boutique.name}
-                  />
-
-                  <a
-                    href={whatsappUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center justify-center gap-2 w-full py-2.5 rounded-full bg-emerald-600 text-white font-bold text-xs hover:bg-emerald-700 transition-colors shadow-xs"
-                  >
-                    <MessageCircle className="w-4 h-4" /> Enquire on WhatsApp
-                  </a>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Lightbox Image Modal */}
-      {lightboxImage && (
-        <div
-          onClick={() => setLightboxImage(null)}
-          className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4"
-        >
-          <div className="relative max-w-4xl max-h-[85vh] w-full h-full flex items-center justify-center">
-            <img src={lightboxImage} alt="Expanded View" className="max-w-full max-h-full object-contain rounded-2xl shadow-2xl" />
-            <button
-              onClick={() => setLightboxImage(null)}
-              className="absolute top-4 right-4 bg-white/20 text-white p-2 rounded-full hover:bg-white/40 transition-colors cursor-pointer"
-            >
-              <X className="w-6 h-6" />
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* ──────────────────────────────────────────────────────────
-          SECTION 10: BOTTOM ACTION BAR (MOBILE STICKY & DESKTOP FIXED)
-      ────────────────────────────────────────────────────────── */}
-      <div className="fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-gold/20 shadow-2xl p-3 sm:px-6">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2 shrink-0">
-            <WishlistButton
-              product={{
-                id: String(collection.id),
-                product_name: collection.name,
-                boutique_name: boutique.name,
-                category: collection.category || "Collection",
-                price: collection.priceRange || 0,
-                image_url: collection.coverImage
-              } as any}
-            />
-
-            <a
-              href={whatsappUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-2.5 rounded-full bg-emerald-600 text-white hover:bg-emerald-700 transition-colors shadow-2xs"
-              title="WhatsApp Enquire"
-            >
-              <MessageCircle className="w-5 h-5" />
-            </a>
-
-            {boutique.phoneNumber && (
-              <a
-                href={`tel:${boutique.phoneNumber}`}
-                className="p-2.5 rounded-full bg-[#0F4C45] text-white hover:bg-[#12584E] transition-colors shadow-2xs"
-                title="Call Studio"
-              >
-                <Phone className="w-5 h-5" />
-              </a>
-            )}
-          </div>
-
-          <div className="flex-grow max-w-xs">
-            <BookingModal
-              boutiqueId={Number(boutique.id || 1)}
-              boutiqueName={boutique.name}
-            />
-          </div>
-        </div>
+          <MessageCircle className="w-5 h-5 fill-white text-[#64D264]" />
+          <span>Chat with Designer</span>
+        </a>
       </div>
 
       <Footer />

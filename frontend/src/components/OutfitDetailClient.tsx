@@ -4,21 +4,15 @@ import React, { useState } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
-  Heart,
   Share2,
-  Calendar,
-  Sparkles,
-  MapPin,
-  CheckCircle2,
-  Phone,
-  MessageCircle,
   ChevronRight,
-  ShieldCheck,
-  Award,
-  Ruler,
-  Clock,
-  Truck,
-  RotateCcw
+  ChevronDown,
+  ChevronUp,
+  MessageCircle,
+  Phone,
+  MapPin,
+  Calendar,
+  Heart
 } from "lucide-react";
 import { WishlistButton } from "@/components/WishlistButton";
 import { BookingModal } from "@/components/BookingModal";
@@ -69,16 +63,24 @@ export function OutfitDetailClient({
 }: OutfitDetailProps) {
   const galleryImages = outfit.gallery && outfit.gallery.length > 0 
     ? outfit.gallery 
-    : [outfit.image];
+    : [
+        outfit.image,
+        "https://images.unsplash.com/photo-1546804764-9147f7157769?q=80&w=800&auto=format&fit=crop",
+        "https://images.unsplash.com/photo-1610030469983-98e550d6193c?q=80&w=800&auto=format&fit=crop"
+      ];
 
-  const [activeImage, setActiveImage] = useState(galleryImages[0] || outfit.image);
-  const [selectedSize, setSelectedSize] = useState(outfit.sizes?.[0] || "Custom Fit");
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [openAccordion, setOpenAccordion] = useState<string | null>("details");
   const [isCopied, setIsCopied] = useState(false);
 
   const formattedCity = boutique.city || boutique.address?.split(",").pop()?.trim() || "Kerala";
   const whatsappUrl = `https://wa.me/${(boutique.whatsappNumber || "919000000000").replace(/[^0-9]/g, "")}?text=${encodeURIComponent(
-    `Hi ${boutique.name}, I am interested in renting/purchasing the outfit "${outfit.name}" from your ${collection.name} on Cloche!`
+    `Hi ${boutique.name}, I am interested in your outfit "${outfit.name}" from ${collection.name} on Cloche!`
   )}`;
+
+  const handleNextImage = () => {
+    setActiveImageIndex(prev => (prev === galleryImages.length - 1 ? 0 : prev + 1));
+  };
 
   const handleShare = () => {
     if (typeof window !== "undefined") {
@@ -88,10 +90,15 @@ export function OutfitDetailClient({
     }
   };
 
+  const toggleAccordion = (section: string) => {
+    setOpenAccordion(prev => (prev === section ? null : section));
+  };
+
   return (
-    <div className="min-h-screen bg-[#FBF8F1] flex flex-col font-sans text-charcoal pb-24 lg:pb-12">
-      {/* Sticky Sub-Header */}
-      <header className="bg-white border-b border-gold/15 sticky top-0 z-40 shadow-2xs backdrop-blur-md bg-white/95">
+    <div className="min-h-screen bg-white flex flex-col font-sans text-charcoal pb-24 lg:pb-12">
+      
+      {/* ── TOP NAV BAR ── */}
+      <header className="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-2xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between gap-4">
           <Link
             href={`/collections/${collection.id}`}
@@ -102,10 +109,7 @@ export function OutfitDetailClient({
           </Link>
 
           <div className="text-center truncate hidden sm:block">
-            <h1 className="font-serif font-bold text-base text-charcoal truncate">
-              {outfit.name}
-            </h1>
-            <p className="text-[11px] text-charcoal/60 truncate">
+            <p className="text-xs text-charcoal/60 truncate">
               {collection.name} • {boutique.name}
             </p>
           </div>
@@ -113,7 +117,8 @@ export function OutfitDetailClient({
           <div className="flex items-center gap-2">
             <button
               onClick={handleShare}
-              className="p-2 rounded-full border border-gold/20 text-charcoal hover:bg-gold/10 transition-colors relative cursor-pointer"
+              className="p-2 rounded-full border border-gray-200 text-charcoal hover:bg-gray-100 transition-colors relative cursor-pointer"
+              title="Share"
             >
               <Share2 className="w-4 h-4" />
               {isCopied && (
@@ -137,44 +142,60 @@ export function OutfitDetailClient({
         </div>
       </header>
 
-      {/* Main Container */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 space-y-10 sm:space-y-12">
+      {/* ── MAIN WEDMEGOOD DETAIL CONTAINER ── */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-8 pb-12 space-y-12">
         
-        {/* Breadcrumb */}
-        <div className="flex items-center gap-2 text-xs text-charcoal/60 font-medium overflow-x-auto pb-1 scrollbar-none">
-          <Link href="/" className="hover:text-[#0F4C45]">Home</Link>
-          <ChevronRight className="w-3 h-3 text-gold" />
-          <Link href={`/boutiques/${boutique.slug || boutique.id || "studio"}`} className="hover:text-[#0F4C45]">{boutique.name}</Link>
-          <ChevronRight className="w-3 h-3 text-gold" />
-          <Link href={`/collections/${collection.id}`} className="hover:text-[#0F4C45]">{collection.name}</Link>
-          <ChevronRight className="w-3 h-3 text-gold" />
-          <span className="text-charcoal font-bold truncate">{outfit.name}</span>
-        </div>
-
-        {/* 2-Column Product Layout */}
+        {/* DESKTOP & MOBILE DETAIL LAYOUT (MATCHING IMAGE 1 & IMAGE 2) */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
-          {/* Left Column: Gallery (7 Cols) */}
+          {/* LEFT SIDE: TALL PORTRAIT MAIN IMAGE + NEXT BUTTON (IMAGE 1 & IMAGE 2) */}
           <div className="lg:col-span-7 space-y-4">
-            <div className="relative aspect-[3/4] w-full rounded-3xl overflow-hidden bg-white border border-gold/15 shadow-sm">
+            <div className="relative aspect-[3/4] w-full max-w-xl mx-auto rounded-2xl overflow-hidden bg-charcoal/5 shadow-xs border border-gray-200 group">
               <img
-                src={activeImage}
+                src={galleryImages[activeImageIndex] || outfit.image}
                 alt={outfit.name}
                 className="w-full h-full object-cover"
               />
-              <span className="absolute top-4 left-4 bg-black/60 backdrop-blur-md text-white text-xs font-bold px-3.5 py-1 rounded-full border border-white/20">
-                {outfit.category || "Couture"}
-              </span>
-            </div>
 
+              {/* Next Image Floating Arrow Button on Right Edge (Matching Image 1) */}
+              {galleryImages.length > 1 && (
+                <button
+                  onClick={handleNextImage}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 shadow-md flex items-center justify-center text-charcoal hover:bg-white hover:scale-110 transition-all cursor-pointer z-10"
+                  title="Next Photo"
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+              )}
+
+              {/* Mobile Carousel Indicators (Matching Image 2) */}
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-10 sm:hidden">
+                {galleryImages.map((_, idx) => (
+                  <span
+                    key={idx}
+                    className={`w-2 h-2 rounded-full transition-all ${
+                      activeImageIndex === idx ? "bg-white w-4" : "bg-white/50"
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* RIGHT SIDE: THUMBNAILS, STACKED TEXT & ACCORDIONS (MATCHING IMAGE 1 & IMAGE 2) */}
+          <div className="lg:col-span-5 space-y-6">
+            
+            {/* Horizontal Thumbnail Strip (Desktop - Matching Image 1 Top Right) */}
             {galleryImages.length > 1 && (
-              <div className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-none">
+              <div className="hidden lg:flex items-center gap-3 overflow-x-auto pb-2">
                 {galleryImages.map((img, idx) => (
                   <button
                     key={idx}
-                    onClick={() => setActiveImage(img)}
-                    className={`relative w-20 h-24 rounded-xl overflow-hidden shrink-0 border-2 transition-all cursor-pointer ${
-                      activeImage === img ? "border-[#0F4C45] ring-2 ring-[#0F4C45]/20 scale-105" : "border-gold/20 opacity-70 hover:opacity-100"
+                    onClick={() => setActiveImageIndex(idx)}
+                    className={`relative aspect-[3/4] w-20 rounded-xl overflow-hidden shrink-0 border-2 transition-all cursor-pointer ${
+                      activeImageIndex === idx
+                        ? "border-[#64D264] ring-2 ring-[#64D264]/20 scale-105"
+                        : "border-gray-200 opacity-70 hover:opacity-100"
                     }`}
                   >
                     <img src={img} alt={`Thumb ${idx + 1}`} className="w-full h-full object-cover" />
@@ -182,103 +203,120 @@ export function OutfitDetailClient({
                 ))}
               </div>
             )}
-          </div>
 
-          {/* Right Column: Outfit Details & Actions (5 Cols) */}
-          <div className="lg:col-span-5 bg-white rounded-3xl p-6 sm:p-8 border border-gold/15 shadow-sm space-y-6">
-            <div>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-[#0F4C45] bg-[#0F4C45]/10 px-3 py-1 rounded-full inline-block mb-2">
-                {outfit.category || "Bridal Couture"} • {boutique.name}
-              </span>
-              <h1 className="font-serif font-bold text-2xl sm:text-3xl text-charcoal">
+            {/* Stacked Product Information Block (Matching Image 1 & 2) */}
+            <div className="space-y-1">
+              <p className="text-xs sm:text-sm text-charcoal/60 font-medium">
                 {outfit.name}
+              </p>
+
+              <h1 className="font-bold text-xl sm:text-2xl text-charcoal">
+                {boutique.name}
               </h1>
-              <p className="text-xs text-charcoal/60 mt-1 flex items-center gap-1 font-medium">
-                <MapPin className="w-3.5 h-3.5 text-[#C8A96A]" /> Available at {boutique.name}, {formattedCity}
+
+              <p className="text-xs text-charcoal/50 font-medium">
+                {formattedCity}
+              </p>
+
+              <p className="font-bold text-2xl text-charcoal pt-2">
+                {outfit.price || "₹4,47,500"}
               </p>
             </div>
 
-            <div className="p-4 rounded-2xl bg-[#FAF7F2] border border-gold/15 space-y-1">
-              <span className="text-[10px] uppercase font-bold text-charcoal/50 block">Rental Price Package</span>
-              <span className="font-serif font-bold text-2xl text-[#0F4C45] block">
-                {outfit.price || "₹18,500 / 3-Day Rental"}
-              </span>
-              <p className="text-[11px] text-emerald-700 font-bold flex items-center gap-1 pt-1">
-                <CheckCircle2 className="w-3.5 h-3.5" /> Professional Dry Cleaning & Custom Alterations Included
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <span className="text-xs font-bold text-charcoal flex items-center gap-1.5">
-                <Ruler className="w-4 h-4 text-[#C8A96A]" /> Select Size / Fit Option
-              </span>
-              <div className="flex flex-wrap gap-2">
-                {(outfit.sizes || ["S", "M", "L", "XL", "Custom Fit"]).map(size => (
-                  <button
-                    key={size}
-                    onClick={() => setSelectedSize(size)}
-                    className={`px-3.5 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
-                      selectedSize === size
-                        ? "bg-[#0F4C45] text-white border-[#0F4C45] shadow-xs"
-                        : "bg-white text-charcoal/70 border-gold/20 hover:border-gold"
-                    }`}
-                  >
-                    {size}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="space-y-2 text-xs border-t border-b border-gold/10 py-4">
-              <h3 className="font-serif font-bold text-sm text-charcoal">Description & Craftsmanship</h3>
-              <p className="text-charcoal/80 leading-relaxed font-light">
-                {outfit.description || "Handcrafted couture outfit with intricate threadwork embroidery, premium lining, and custom trial session guaranteed."}
-              </p>
-            </div>
-
-            {/* Atelier Guarantees */}
-            <dl className="grid grid-cols-2 gap-3 text-xs">
-              <div className="p-3 rounded-xl bg-[#FAF7F2] border border-gold/10">
-                <dt className="text-charcoal/50 text-[10px] uppercase font-bold">Fabric</dt>
-                <dd className="font-bold text-charcoal pt-0.5">{outfit.fabric || "Pure Raw Silk"}</dd>
-              </div>
-              <div className="p-3 rounded-xl bg-[#FAF7F2] border border-gold/10">
-                <dt className="text-charcoal/50 text-[10px] uppercase font-bold">Embroidery</dt>
-                <dd className="font-bold text-charcoal pt-0.5">{outfit.workType || "Hand Zardozi"}</dd>
-              </div>
-              <div className="p-3 rounded-xl bg-[#FAF7F2] border border-gold/10">
-                <dt className="text-charcoal/50 text-[10px] uppercase font-bold">Rental Duration</dt>
-                <dd className="font-bold text-charcoal pt-0.5">{outfit.rentalDuration || "3 to 7 Days"}</dd>
-              </div>
-              <div className="p-3 rounded-xl bg-[#FAF7F2] border border-gold/10">
-                <dt className="text-charcoal/50 text-[10px] uppercase font-bold">Delivery</dt>
-                <dd className="font-bold text-charcoal pt-0.5">Doorstep Pickup</dd>
-              </div>
-            </dl>
-
-            {/* Actions */}
-            <div className="space-y-2.5 pt-2">
-              <BookingModal
-                boutiqueId={Number(boutique.id || 1)}
-                boutiqueName={boutique.name}
-              />
-
+            {/* Desktop Action Button: Bright Green Pill Button (Matching Image 1) */}
+            <div className="hidden sm:block pt-2">
               <a
                 href={whatsappUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-2 w-full py-3 rounded-2xl bg-emerald-600 text-white font-bold text-xs hover:bg-emerald-700 transition-colors shadow-xs"
+                className="inline-flex items-center justify-center gap-2.5 w-full py-3.5 px-6 rounded-full bg-[#64D264] hover:bg-[#52C052] text-white font-bold text-sm sm:text-base shadow-md transition-all cursor-pointer"
               >
-                <MessageCircle className="w-4 h-4" /> Enquire on WhatsApp
+                <MessageCircle className="w-5 h-5 fill-white text-[#64D264]" />
+                <span>Chat with Designer</span>
               </a>
             </div>
+
+            {/* Divider Line (Matching Image 1 & 2) */}
+            <div className="border-t border-gray-200 pt-4 space-y-3">
+              
+              {/* Accordion 1: Product Details */}
+              <div className="border-b border-gray-100 pb-3">
+                <button
+                  onClick={() => toggleAccordion("details")}
+                  className="w-full flex items-center justify-between py-2 text-left font-bold text-sm text-charcoal cursor-pointer"
+                >
+                  <span>Product Details</span>
+                  {openAccordion === "details" ? (
+                    <ChevronUp className="w-4 h-4 text-charcoal/60" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4 text-charcoal/60" />
+                  )}
+                </button>
+
+                {openAccordion === "details" && (
+                  <div className="pt-2 text-xs text-charcoal/80 leading-relaxed font-normal space-y-2">
+                    <p>
+                      {outfit.description || "Handcrafted couture outfit with intricate threadwork embroidery, premium lining, and custom trial session guaranteed."}
+                    </p>
+                    <p><span className="font-bold text-charcoal">Category:</span> {outfit.category || "Bridal Lehenga"}</p>
+                    <p><span className="font-bold text-charcoal">Collection:</span> {collection.name}</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Accordion 2: Fabric Details */}
+              <div className="border-b border-gray-100 pb-3">
+                <button
+                  onClick={() => toggleAccordion("fabric")}
+                  className="w-full flex items-center justify-between py-2 text-left font-bold text-sm text-charcoal cursor-pointer"
+                >
+                  <span>Fabric details</span>
+                  {openAccordion === "fabric" ? (
+                    <ChevronUp className="w-4 h-4 text-charcoal/60" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4 text-charcoal/60" />
+                  )}
+                </button>
+
+                {openAccordion === "fabric" && (
+                  <div className="pt-2 text-xs text-charcoal/80 leading-relaxed font-normal space-y-1">
+                    <p><span className="font-bold text-charcoal">Primary Fabric:</span> {outfit.fabric || "Pure Raw Silk & Organza"}</p>
+                    <p><span className="font-bold text-charcoal">Embroidery Work:</span> {outfit.workType || "Hand Zardozi & Threadwork"}</p>
+                    <p><span className="font-bold text-charcoal">Lining & Fitting:</span> Custom Atelier Fitting Provided</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Accordion 3: How to order? (Matching Image 1 & 2) */}
+              <div className="pb-2">
+                <button
+                  onClick={() => toggleAccordion("order")}
+                  className="w-full flex items-center justify-between py-2 text-left font-bold text-sm text-charcoal cursor-pointer"
+                >
+                  <span>How to order?</span>
+                  {openAccordion === "order" ? (
+                    <ChevronUp className="w-4 h-4 text-charcoal/60" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4 text-charcoal/60" />
+                  )}
+                </button>
+
+                {openAccordion === "order" && (
+                  <div className="pt-2 text-xs text-charcoal/80 leading-relaxed font-normal">
+                    <p>Use the "Chat with Designer" button to get in touch with the designer.</p>
+                  </div>
+                )}
+              </div>
+
+            </div>
+
           </div>
         </div>
 
-        {/* More Outfits from Collection */}
+        {/* MORE FROM THIS COLLECTION */}
         {moreOutfits.length > 0 && (
-          <section className="bg-white rounded-3xl p-6 sm:p-8 border border-gold/15 shadow-sm space-y-4">
-            <h2 className="font-serif font-bold text-xl text-charcoal">
+          <section className="border-t border-gray-200 pt-10 space-y-4">
+            <h2 className="font-bold text-lg sm:text-xl text-charcoal">
               More from {collection.name}
             </h2>
 
@@ -289,7 +327,7 @@ export function OutfitDetailClient({
                   href={`/collections/${collection.id}/outfits/${item.id}`}
                   className="group cursor-pointer block"
                 >
-                  <div className="relative aspect-[3/4] w-full rounded-2xl overflow-hidden bg-charcoal/5 border border-gold/15 mb-2">
+                  <div className="relative aspect-[3/4] w-full rounded-2xl overflow-hidden bg-charcoal/5 border border-gray-200 mb-2">
                     <img
                       src={item.image}
                       alt={item.name}
@@ -311,47 +349,17 @@ export function OutfitDetailClient({
         )}
       </main>
 
-      {/* Sticky Mobile Action Bar */}
-      <div className="fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-gold/20 shadow-2xl p-3 sm:px-6">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2 shrink-0">
-            <WishlistButton
-              product={{
-                id: String(outfit.id),
-                product_name: outfit.name,
-                boutique_name: boutique.name,
-                category: outfit.category || "Outfit",
-                price: outfit.price || 0,
-                image_url: outfit.image
-              } as any}
-            />
-
-            <a
-              href={whatsappUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-2.5 rounded-full bg-emerald-600 text-white hover:bg-emerald-700 transition-colors shadow-2xs"
-            >
-              <MessageCircle className="w-5 h-5" />
-            </a>
-
-            {boutique.phoneNumber && (
-              <a
-                href={`tel:${boutique.phoneNumber}`}
-                className="p-2.5 rounded-full bg-[#0F4C45] text-white hover:bg-[#12584E] transition-colors shadow-2xs"
-              >
-                <Phone className="w-5 h-5" />
-              </a>
-            )}
-          </div>
-
-          <div className="flex-grow max-w-xs">
-            <BookingModal
-              boutiqueId={Number(boutique.id || 1)}
-              boutiqueName={boutique.name}
-            />
-          </div>
-        </div>
+      {/* ── MOBILE STICKY BOTTOM BUTTON (MATCHING IMAGE 2) ── */}
+      <div className="fixed bottom-0 inset-x-0 z-40 bg-white border-t border-gray-200 p-3 sm:hidden shadow-lg">
+        <a
+          href={whatsappUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center justify-center gap-2 w-full py-3.5 px-6 rounded-full bg-[#64D264] hover:bg-[#52C052] text-white font-bold text-sm shadow-md transition-all cursor-pointer"
+        >
+          <MessageCircle className="w-5 h-5 fill-white text-[#64D264]" />
+          <span>Chat with Designer</span>
+        </a>
       </div>
 
       <Footer />
