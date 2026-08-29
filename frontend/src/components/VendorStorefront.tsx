@@ -1160,10 +1160,10 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
                 const priceText = col.price || (col.outfits && col.outfits[0]?.price) || vendor?.startingPrice || "Contact for Pricing";
 
                 return (
-                  <div
+                  <Link
                     key={col.id}
-                    onClick={() => setActiveCollectionModal(col)}
-                    className="flex-shrink-0 w-[210px] sm:w-auto snap-start cursor-pointer group flex flex-col justify-between"
+                    href={`/collections/${col.id}`}
+                    className="flex-shrink-0 w-[210px] sm:w-auto snap-start cursor-pointer group flex flex-col justify-between block"
                   >
                     <div>
                       {/* Clean Portrait Image matching Image 1 */}
@@ -1193,7 +1193,7 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
                         )}
                       </div>
                     </div>
-                  </div>
+                  </Link>
                 );
               })}
             </div>

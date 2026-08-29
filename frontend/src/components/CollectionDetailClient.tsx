@@ -534,10 +534,10 @@ export function CollectionDetailClient({
           ────────────────────────────────────────────────────────── */}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3.5 sm:gap-5 pt-2">
             {filteredOutfits.map(outfit => (
-              <div
+              <Link
                 key={outfit.id}
-                onClick={() => setSelectedOutfitModal(outfit)}
-                className="group bg-[#FAF7F2] rounded-2xl overflow-hidden border border-gold/15 hover:border-[#0F4C45]/40 shadow-xs hover:shadow-lg transition-all duration-300 cursor-pointer flex flex-col justify-between"
+                href={`/collections/${collection.id}/outfits/${outfit.id}`}
+                className="group bg-[#FAF7F2] rounded-2xl overflow-hidden border border-gold/15 hover:border-[#0F4C45]/40 shadow-xs hover:shadow-lg transition-all duration-300 cursor-pointer flex flex-col justify-between block"
               >
                 <div>
                   <div className="relative aspect-[3/4] w-full overflow-hidden bg-charcoal/5">
@@ -556,7 +556,7 @@ export function CollectionDetailClient({
                     {/* Quick View Button Overlay */}
                     <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                       <span className="bg-white/90 backdrop-blur-md text-charcoal font-bold text-xs px-3 py-1.5 rounded-full shadow-md flex items-center gap-1.5">
-                        <Eye className="w-3.5 h-3.5 text-[#0F4C45]" /> Quick View
+                        <Eye className="w-3.5 h-3.5 text-[#0F4C45]" /> View Outfit
                       </span>
                     </div>
                   </div>
@@ -575,7 +575,7 @@ export function CollectionDetailClient({
                     )}
                   </div>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         </section>

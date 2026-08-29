@@ -343,10 +343,10 @@ export function BoutiqueCollectionsClient({ boutique, initialProducts = [], bout
             const priceText = col.price || (col.outfits && col.outfits[0]?.price) || "Contact for Pricing";
 
             return (
-              <div
+              <Link
                 key={col.id}
-                onClick={() => setSelectedCollection(col)}
-                className="cursor-pointer group flex flex-col justify-between"
+                href={`/collections/${col.id}`}
+                className="cursor-pointer group flex flex-col justify-between block"
               >
                 <div>
                   {/* Clean Portrait Image matching Image 1 */}
@@ -376,114 +376,11 @@ export function BoutiqueCollectionsClient({ boutique, initialProducts = [], bout
                     )}
                   </div>
                 </div>
-              </div>
+              </Link>
             );
           })}
         </div>
-
       </main>
-
-      {/* SELECTED COLLECTION OUTFITS LIGHTBOX */}
-      {selectedCollection && (
-        <div
-          onClick={() => setSelectedCollection(null)}
-          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto"
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className="bg-white rounded-3xl max-w-4xl w-full border border-gold/25 shadow-2xl overflow-hidden my-8 animate-in fade-in zoom-in-95 duration-200"
-          >
-            <div className="bg-[#FAF7F2] p-5 sm:p-6 border-b border-gold/15 flex items-start justify-between gap-4">
-              <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider bg-[#0F4C45]/10 text-[#0F4C45] px-2.5 py-0.5 rounded-full inline-block mb-1">
-                  {selectedCollection.category} Collection • {boutiqueName}
-                </span>
-                <h3 className="font-serif font-bold text-xl sm:text-2xl text-charcoal">
-                  {selectedCollection.name}
-                </h3>
-                <p className="text-xs text-charcoal/70 mt-1">
-                  {selectedCollection.description}
-                </p>
-              </div>
-
-              <button
-                onClick={() => setSelectedCollection(null)}
-                className="bg-white p-2 rounded-full border border-gold/20 text-charcoal/60 hover:text-charcoal hover:bg-gold/10 transition-colors shrink-0 cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="p-5 sm:p-6 max-h-[65vh] overflow-y-auto space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                {(selectedCollection.outfits || []).map((outfit: any) => {
-                  const isLiked = wishlist.has(outfit.id);
-                  return (
-                    <div
-                      key={outfit.id}
-                      className="bg-[#FAF7F2] rounded-2xl border border-gold/15 overflow-hidden shadow-2xs space-y-3 flex flex-col justify-between"
-                    >
-                      <div>
-                        <div className="relative aspect-[3/4] w-full overflow-hidden bg-charcoal">
-                          <img
-                            src={outfit.image}
-                            alt={outfit.name}
-                            className="w-full h-full object-cover"
-                          />
-                          <button
-                            onClick={() => {
-                              const next = new Set(wishlist);
-                              if (isLiked) next.delete(outfit.id);
-                              else next.add(outfit.id);
-                              setWishlist(next);
-                            }}
-                            className="absolute top-3 right-3 bg-white/80 backdrop-blur-md p-2 rounded-full shadow-xs hover:bg-white text-rose-500 transition-all cursor-pointer"
-                          >
-                            <Heart className={`w-4 h-4 ${isLiked ? "fill-rose-500" : ""}`} />
-                          </button>
-                          <span className="absolute bottom-3 left-3 bg-black/60 backdrop-blur-md text-white text-[10px] font-bold px-2 py-0.5 rounded-md">
-                            {outfit.category}
-                          </span>
-                        </div>
-
-                        <div className="p-3.5 space-y-1.5">
-                          <h4 className="font-bold text-xs text-charcoal line-clamp-1">{outfit.name}</h4>
-                          <p className="text-xs font-bold text-[#0F4C45]">{outfit.price}</p>
-
-                          {outfit.sizes && (
-                            <div className="flex flex-wrap items-center gap-1 pt-1">
-                              <span className="text-[10px] font-semibold text-charcoal/50">Sizes:</span>
-                              {outfit.sizes.map((s: string) => (
-                                <span
-                                  key={s}
-                                  className="text-[10px] font-bold bg-white border border-gold/20 text-charcoal px-1.5 py-0.2 rounded"
-                                >
-                                  {s}
-                                </span>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="p-3.5 pt-0">
-                        <a
-                          href={`https://wa.me/${whatsappNumber.replace(/[^0-9]/g, "")}?text=Hi%20${encodeURIComponent(boutiqueName)},%20I%20am%20interested%20in%20renting%20the%20${encodeURIComponent(outfit.name)}%20(${encodeURIComponent(outfit.price)})%20from%20your%20${encodeURIComponent(selectedCollection.name)}.`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="block w-full py-2.5 rounded-xl text-center bg-[#0F4C45] text-white font-bold text-[11px] shadow-2xs hover:bg-[#12584E] transition-all"
-                        >
-                          Inquire on WhatsApp
-                        </a>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       <Footer />
     </div>
