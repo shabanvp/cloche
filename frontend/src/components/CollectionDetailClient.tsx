@@ -181,7 +181,7 @@ export function CollectionDetailClient({
       <header className="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-2xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-4">
           <Link
-            href={`/boutiques/${boutique.slug || boutique.id || "studio"}`}
+            href={`/wedding-story/${boutique.slug || boutique.id || "studio"}`}
             className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#0F4C45]/10 text-[#0F4C45] hover:bg-[#0F4C45] hover:text-white transition-all text-xs font-bold shrink-0"
           >
             <ArrowLeft className="w-4 h-4" />
