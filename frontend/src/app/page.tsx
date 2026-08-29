@@ -234,7 +234,7 @@ export default function Home() {
             {HOMEPAGE_CATEGORY_STRIP.map((item) => (
               <Link key={item.label} href={item.href} className="flex-shrink-0 flex flex-col items-center gap-2.5 group cursor-pointer">
                 <div className="w-20 h-20 md:w-24 md:h-24 rounded-2xl overflow-hidden shadow-sm border border-gold/10 ring-2 ring-transparent group-hover:ring-primary group-hover:shadow-md transition-all">
-                  <img className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" src={item.img} alt={item.alt} loading="lazy" decoding="async" />
+                  <img className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" src={item.img} alt={item.alt} />
                 </div>
                 <span className="text-xs md:text-sm font-semibold text-on-surface text-center group-hover:text-primary transition-colors">
                   {item.label}
@@ -274,8 +274,6 @@ export default function Home() {
                     className="w-full h-full object-cover rounded-l-[40%] group-hover:scale-105 transition-transform duration-500" 
                     src={cat.img} 
                     alt={cat.alt} 
-                    loading="lazy"
-                    decoding="async"
                   />
                 </div>
               </Link>

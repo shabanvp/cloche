@@ -18,7 +18,6 @@ import {
   Tag,
   Star,
   Heart,
-  Bookmark,
   Share2,
   ExternalLink,
   ChevronRight,
@@ -61,7 +60,48 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
 
   // Customer Reviews State
   const [reviewsList, setReviewsList] = useState<any[]>(() => {
-    return Array.isArray(vendor?.reviews) ? vendor.reviews : [];
+    const initial = Array.isArray(vendor?.reviews) && vendor.reviews.length > 0 ? vendor.reviews : [];
+    const storedKey = `cloche_studio_reviews_${vendor?.id || 'default'}`;
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem(storedKey);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) return [...parsed, ...initial];
+        }
+      } catch (e) {}
+    }
+    return initial.length > 0
+      ? initial
+      : [
+          {
+            id: "rev-1",
+            customerName: "Ananya & Rahul Nair",
+            avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop",
+            rating: 5,
+            date: "February 2026",
+            verified: true,
+            text: "We rented both the bridal maroon zardozi lehenga and the matching groom velvet sherwani from here for our reception. The outfit quality was pristine, alterations were 100% spot-on, and the security deposit return was seamless!",
+          },
+          {
+            id: "rev-2",
+            customerName: "Dr. Siddharth Varma",
+            avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200&auto=format&fit=crop",
+            rating: 5,
+            date: "January 2026",
+            verified: true,
+            text: "Outstanding selection of groom wear! The Indo-Western suit fitting was custom done in just 2 days. The staff was warm, patient, and guided us through whole ceremonial combinations.",
+          },
+          {
+            id: "rev-3",
+            customerName: "Meera Krishnan",
+            avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200&auto=format&fit=crop",
+            rating: 5,
+            date: "December 2025",
+            verified: true,
+            text: "Rented my Nikah gown and lehenga. High-end designer looks at a fraction of purchase cost. Everything arrived steam-ironed and beautifully packed. Highly recommend this studio to all brides!",
+          },
+        ];
   });
 
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
@@ -104,6 +144,13 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
 
     const updated = [newEntry, ...reviewsList];
     setReviewsList(updated);
+
+    const storedKey = `cloche_studio_reviews_${vendor?.id || 'default'}`;
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem(storedKey, JSON.stringify(updated));
+      } catch (err) {}
+    }
 
     setNewReviewSubmitted(true);
     setTimeout(() => {
@@ -216,8 +263,258 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
     if (Array.isArray(vendor?.collections) && vendor.collections.length > 0) return vendor.collections;
     if (Array.isArray(sf?.collections) && sf.collections.length > 0) return sf.collections;
 
-    return [];
-  }, [vendor, sf]);
+    // BRIDAL STUDIO COLLECTIONS (100% Bridal & Bride Outfits)
+    if (studioCategoryConfig.type === "bridal") {
+      return [
+        {
+          id: "col-b1",
+          name: "Royal Zardozi Bridal Lehenga Collection",
+          category: "Bridal",
+          description: "Hand-embroidered zardozi maroon & crimson lehengas with pure silk dupattas for ceremonial weddings.",
+          coverImage: "https://images.unsplash.com/photo-1594223274512-ad4803739b7c?q=80&w=800&auto=format&fit=crop",
+          outfitCount: 18,
+          outfits: [
+            {
+              id: "out-b101",
+              name: "Crimson Velvet Zardozi Lehenga",
+              price: "₹18,500 / 3 Days",
+              category: "Bride",
+              sizes: ["S", "M", "L", "XL"],
+              image: "https://images.unsplash.com/photo-1594223274512-ad4803739b7c?q=80&w=800&auto=format&fit=crop",
+            },
+            {
+              id: "out-b102",
+              name: "Emerald & Gold Raw Silk Lehenga",
+              price: "₹16,000 / 3 Days",
+              category: "Bride",
+              sizes: ["M", "L"],
+              image: "https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?q=80&w=800&auto=format&fit=crop",
+            },
+            {
+              id: "out-b103",
+              name: "Deep Maroon Royal Bridal Gown",
+              price: "₹21,000 / 3 Days",
+              category: "Bride",
+              sizes: ["S", "M", "L"],
+              image: "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=800&auto=format&fit=crop",
+            },
+            {
+              id: "out-b104",
+              name: "Pastel Pink Designer Wedding Lehenga",
+              price: "₹15,500 / 3 Days",
+              category: "Bride",
+              sizes: ["M", "L", "XL"],
+              image: "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?q=80&w=800&auto=format&fit=crop",
+            },
+          ],
+        },
+        {
+          id: "col-b2",
+          name: "Kanjeevaram & Heritage Silk Sarees",
+          category: "Saree",
+          description: "Pure Kanjeevaram silk sarees woven with gold zari borders for muhurtham and temple ceremonies.",
+          coverImage: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?q=80&w=800&auto=format&fit=crop",
+          outfitCount: 15,
+          outfits: [
+            {
+              id: "out-b201",
+              name: "Royal Red Kanjeevaram Zari Saree",
+              price: "₹12,500 / 3 Days",
+              category: "Bride",
+              sizes: ["Free Size"],
+              image: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?q=80&w=800&auto=format&fit=crop",
+            },
+            {
+              id: "out-b202",
+              name: "Golden Yellow Temple Silk Saree",
+              price: "₹11,000 / 3 Days",
+              category: "Bride",
+              sizes: ["Free Size"],
+              image: "https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?q=80&w=800&auto=format&fit=crop",
+            },
+          ],
+        },
+        {
+          id: "col-b3",
+          name: "Reception Gowns & Fusion Indo-Western",
+          category: "Reception",
+          description: "Modern trails, ball gowns, glitter sequin lehengas, and cocktail ensembles for reception & sangeet.",
+          coverImage: "https://images.unsplash.com/photo-1566174053879-31528523f8ae?q=80&w=800&auto=format&fit=crop",
+          outfitCount: 16,
+          outfits: [
+            {
+              id: "out-b301",
+              name: "Emerald Green Satin Reception Ball Gown",
+              price: "₹17,500 / 3 Days",
+              category: "Bride",
+              sizes: ["S", "M", "L"],
+              image: "https://images.unsplash.com/photo-1566174053879-31528523f8ae?q=80&w=800&auto=format&fit=crop",
+            },
+            {
+              id: "out-b302",
+              name: "Rose Gold Sequin Trail Gown",
+              price: "₹19,000 / 3 Days",
+              category: "Bride",
+              sizes: ["S", "M"],
+              image: "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=800&auto=format&fit=crop",
+            },
+          ],
+        },
+        {
+          id: "col-b4",
+          name: "Sangeet & Mehendi Anarkali Suits",
+          category: "Mehendi",
+          description: "Vibrant yellow, mint green, and pastel floral heavy embroidered anarkali sets and sharara suits.",
+          coverImage: "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?q=80&w=800&auto=format&fit=crop",
+          outfitCount: 12,
+          outfits: [
+            {
+              id: "out-b401",
+              name: "Mustard Yellow Silk Sharara Set",
+              price: "₹9,500 / 3 Days",
+              category: "Bride",
+              sizes: ["S", "M", "L"],
+              image: "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?q=80&w=800&auto=format&fit=crop",
+            },
+          ],
+        },
+      ];
+    }
+
+    // GROOM STUDIO COLLECTIONS (100% Groom Outfits)
+    if (studioCategoryConfig.type === "groom") {
+      return [
+        {
+          id: "col-g1",
+          name: "Luxe Groom Velvet Sherwani Collection",
+          category: "Sherwani",
+          description: "Royal velvet & raw silk sherwanis complete with embroidered safa, stolen dupatta, and ceremonial footwear.",
+          coverImage: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=800&auto=format&fit=crop",
+          outfitCount: 14,
+          outfits: [
+            {
+              id: "out-g101",
+              name: "Ivory & Gold Raw Silk Sherwani",
+              price: "₹14,500 / 3 Days",
+              category: "Groom",
+              sizes: ["38", "40", "42", "44"],
+              image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=800&auto=format&fit=crop",
+            },
+            {
+              id: "out-g102",
+              name: "Maroon Velvet Royal Zardozi Sherwani",
+              price: "₹16,500 / 3 Days",
+              category: "Groom",
+              sizes: ["40", "42", "44"],
+              image: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=800&auto=format&fit=crop",
+            },
+          ],
+        },
+        {
+          id: "col-g2",
+          name: "Royal Jodhpuri & Bandhgala Suits",
+          category: "Jodhpuri",
+          description: "Handcrafted bandhgala jackets, jodhpuri suits, and structured velvet coats for sangeet & reception.",
+          coverImage: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=800&auto=format&fit=crop",
+          outfitCount: 12,
+          outfits: [
+            {
+              id: "out-g201",
+              name: "Black Velvet Embellished Jodhpuri Set",
+              price: "₹12,500 / 3 Days",
+              category: "Groom",
+              sizes: ["38", "40", "42"],
+              image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=800&auto=format&fit=crop",
+            },
+          ],
+        },
+        {
+          id: "col-g3",
+          name: "Reception Tuxedos & Indo-Western Couture",
+          category: "Tuxedo",
+          description: "Tailored Italian fabric tuxedos, double-breasted suits, and velvet lapel blazers for evening receptions.",
+          coverImage: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=800&auto=format&fit=crop",
+          outfitCount: 16,
+          outfits: [
+            {
+              id: "out-g301",
+              name: "Midnight Tuxedo Suit with Velvet Lapel",
+              price: "₹11,000 / 3 Days",
+              category: "Groom",
+              sizes: ["38", "40", "42", "44"],
+              image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=800&auto=format&fit=crop",
+            },
+          ],
+        },
+      ];
+    }
+
+    // WEDDING STUDIO COMBINED COLLECTIONS
+    return [
+      {
+        id: "col-1",
+        name: "Royal Zardozi Bridal Collection",
+        category: "Bridal",
+        description: "Hand-embroidered zardozi maroon & crimson lehengas with pure silk dupattas for ceremonial weddings.",
+        coverImage: "https://images.unsplash.com/photo-1594223274512-ad4803739b7c?q=80&w=800&auto=format&fit=crop",
+        outfitCount: 18,
+        outfits: [
+          {
+            id: "out-101",
+            name: "Crimson Velvet Zardozi Lehenga",
+            price: "₹18,500 / 3 Days",
+            category: "Bride",
+            sizes: ["S", "M", "L", "XL"],
+            image: "https://images.unsplash.com/photo-1594223274512-ad4803739b7c?q=80&w=800&auto=format&fit=crop",
+          },
+          {
+            id: "out-102",
+            name: "Emerald & Gold Raw Silk Lehenga",
+            price: "₹16,000 / 3 Days",
+            category: "Bride",
+            sizes: ["M", "L"],
+            image: "https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?q=80&w=800&auto=format&fit=crop",
+          },
+        ],
+      },
+      {
+        id: "col-2",
+        name: "Luxe Groom Velvet Sherwani Collection",
+        category: "Groom",
+        description: "Royal velvet & raw silk sherwanis complete with embroidered safa, stolen dupatta, and ceremonial footwear.",
+        coverImage: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=800&auto=format&fit=crop",
+        outfitCount: 14,
+        outfits: [
+          {
+            id: "out-201",
+            name: "Ivory & Gold Raw Silk Sherwani",
+            price: "₹14,500 / 3 Days",
+            category: "Groom",
+            sizes: ["38", "40", "42", "44"],
+            image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=800&auto=format&fit=crop",
+          },
+        ],
+      },
+      {
+        id: "col-3",
+        name: "Ceremonial Couple Matching Ensemble",
+        category: "Couple",
+        description: "Coordinated bride and groom ceremonial outfits styled with matching embroidery motifs and color palettes.",
+        coverImage: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=800&auto=format&fit=crop",
+        outfitCount: 10,
+        outfits: [
+          {
+            id: "out-301",
+            name: "Crimson & Gold Coordinated Couple Set",
+            price: "₹28,000 / 3 Days (Pair)",
+            category: "Couple",
+            sizes: ["Bride M / Groom 40", "Bride L / Groom 42"],
+            image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=800&auto=format&fit=crop",
+          },
+        ],
+      },
+    ];
+  }, [vendor, sf, studioCategoryConfig.type]);
 
   // Color Theme Resolution
   const themeId = sf.theme || vendor?.colorTheme || vendor?.color_theme || "emerald";
@@ -410,9 +707,9 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
   const rentalInfo = useMemo(() => {
     const p = (typeof sf.policies === "object" && sf.policies !== null ? sf.policies : {}) as Record<string, any>;
     return {
-      duration: vendor?.rentalDuration || vendor?.rental_policy || vendor?.rental_duration || sf.rentalDuration || p.rentalDuration || "",
-      deposit: vendor?.securityDeposit || vendor?.security_deposit || sf.securityDeposit || p.securityDeposit || "",
-      returnPolicy: vendor?.returnPolicy || vendor?.return_policy || sf.returnPolicy || p.returnPolicy || "",
+      duration: vendor?.rentalDuration || vendor?.rental_policy || vendor?.rental_duration || sf.rentalDuration || p.rentalDuration || "3 Days (Pickup day before event, Return day after)",
+      deposit: vendor?.securityDeposit || vendor?.security_deposit || sf.securityDeposit || p.securityDeposit || "₹10,000 (Refundable upon return inspection)",
+      returnPolicy: vendor?.returnPolicy || vendor?.return_policy || sf.returnPolicy || p.returnPolicy || "Return within agreed rental duration. Delayed returns attract ₹1,000/day late fee.",
       cancellationPolicy: vendor?.cancellationPolicy || vendor?.cancellation_policy || sf.cancellationPolicy || p.cancellationPolicy || "",
       damagePolicy: vendor?.damagePolicy || vendor?.damage_policy || sf.damagePolicy || p.damagePolicy || "",
     };
@@ -839,96 +1136,77 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
           </div>
 
           {/* B. BOUTIQUE SHOWROOM FEATURED COLLECTIONS */}
-          <div className="bg-white rounded-3xl p-4 sm:p-6 border border-gold/15 shadow-sm space-y-4">
-            <div className="flex items-center justify-between border-b border-gold/10 pb-3">
-              <h2 className="font-serif font-bold text-xl sm:text-2xl text-charcoal tracking-tight">
-                Collections
-              </h2>
+          <div className="bg-white rounded-3xl p-5 sm:p-6 border border-gold/15 shadow-sm space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gold/10 pb-4">
+              <div>
+                <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-[#0F4C45]/10 text-[#0F4C45] text-[10px] font-bold uppercase tracking-wider mb-1">
+                  <Sparkles className="w-3.5 h-3.5 text-[#C8A96A]" /> Digital Showroom
+                </span>
+                <h2 className="font-serif font-bold text-xl sm:text-2xl text-charcoal">
+                  {studioCategoryConfig.collectionsTitle}
+                </h2>
+                <p className="text-xs text-charcoal/60">
+                  {studioCategoryConfig.collectionsSubtitle}
+                </p>
+              </div>
 
               <Link
                 href={`/wedding-story/${vendor?.slug || vendor?.id || "boutique"}/collections`}
-                className="hidden md:flex items-center gap-1 text-xs font-bold text-[#0F4C45] hover:underline"
+                className="py-2 px-3.5 rounded-xl border border-gold/30 text-charcoal hover:bg-[#0F4C45] hover:text-white font-bold text-xs transition-all flex items-center gap-1.5 shrink-0 self-start sm:self-center"
               >
-                <span>View all</span>
+                <span>View All Collections</span>
                 <ChevronRight className="w-4 h-4" />
               </Link>
             </div>
 
-            {/* Mobile Carousel (2 portrait cards per view), Desktop Grid (4 items) */}
-            <div className="flex overflow-x-auto hide-scrollbar snap-x snap-mandatory gap-3.5 pb-2 md:grid md:grid-cols-4 md:gap-5 md:overflow-visible">
-              {boutiqueCollectionsList.slice(0, 5).map((col: any, idx: number) => {
-                const outfitPrice = col.price || col.startingPrice || col.outfits?.[0]?.price || "₹18,500 / 3 Days";
-                const categoryName = col.category || col.subCategory || col.name || "Design Collection";
-                const isBookmarked = wishlistOutfits.has(col.id);
-
-                return (
-                  <div
-                    key={col.id || idx}
-                    onClick={() => setActiveCollectionModal(col)}
-                    className={`flex-shrink-0 w-[165px] sm:w-[220px] md:w-auto snap-start cursor-pointer group flex flex-col justify-between space-y-2 ${
-                      idx >= 4 ? "md:hidden" : ""
-                    }`}
-                  >
-                    {/* Tall Portrait Image Container (Matching Screenshot UI) */}
-                    <div className="relative aspect-[3/4.2] w-full overflow-hidden rounded-2xl bg-charcoal shadow-2xs">
+            {/* Featured Collections Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {boutiqueCollectionsList.slice(0, 4).map((col: any) => (
+                <div
+                  key={col.id}
+                  onClick={() => setActiveCollectionModal(col)}
+                  className="bg-[#FAF7F2] rounded-2xl border border-gold/15 hover:border-gold/40 shadow-2xs hover:shadow-md transition-all overflow-hidden cursor-pointer group flex flex-col justify-between"
+                >
+                  <div>
+                    <div className="relative aspect-[16/10] w-full overflow-hidden bg-charcoal">
                       <img
                         src={col.coverImage}
                         alt={col.name}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        loading="lazy"
                       />
+                      <span className="absolute top-3 left-3 bg-black/60 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-white/20">
+                        {col.category || "Rental Collection"}
+                      </span>
+                      <span className="absolute bottom-3 right-3 bg-white/95 backdrop-blur-md text-charcoal text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow-xs">
+                        {col.outfitCount || (col.outfits ? col.outfits.length : 12)} Outfits
+                      </span>
                     </div>
 
-                    {/* Card Content Details Below Image */}
-                    <div className="space-y-0.5 px-0.5">
-                      {/* Line 1: Subtitle / Outfit Category Name */}
-                      <p className="text-xs text-charcoal/60 truncate font-sans">
-                        {categoryName}
-                      </p>
-
-                      {/* Line 2: Brand / Studio Name + Bookmark Icon */}
-                      <div className="flex items-center justify-between gap-1">
-                        <h3 className="font-bold text-sm text-charcoal truncate font-sans group-hover:text-[#0F4C45] transition-colors">
-                          {displayName}
-                        </h3>
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            const next = new Set(wishlistOutfits);
-                            if (isBookmarked) next.delete(col.id);
-                            else next.add(col.id);
-                            setWishlistOutfits(next);
-                          }}
-                          className="text-charcoal/60 hover:text-[#0F4C45] transition-colors shrink-0 p-0.5 cursor-pointer"
-                          aria-label="Bookmark collection"
-                        >
-                          <Bookmark className={`w-4 h-4 ${isBookmarked ? "fill-[#0F4C45] text-[#0F4C45]" : ""}`} />
-                        </button>
-                      </div>
-
-                      {/* Line 3: Location */}
-                      <p className="text-xs text-charcoal/60 font-sans">
-                        {location || "Kerala"}
-                      </p>
-
-                      {/* Line 4: Price */}
-                      <p className="font-bold text-sm text-charcoal font-sans pt-0.5">
-                        {outfitPrice.startsWith("₹") ? outfitPrice : `₹${outfitPrice}`}
+                    <div className="p-4 space-y-1.5">
+                      <h3 className="font-serif font-bold text-base text-charcoal group-hover:text-[#0F4C45] transition-colors">
+                        {col.name}
+                      </h3>
+                      <p className="text-xs text-charcoal/70 line-clamp-2 leading-relaxed">
+                        {col.description}
                       </p>
                     </div>
                   </div>
-                );
-              })}
+
+                  <div className="px-4 pb-4 pt-1 flex items-center justify-between text-xs font-bold text-[#0F4C45] border-t border-gold/10">
+                    <span>Tap to Browse Outfits</span>
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </div>
+              ))}
             </div>
 
-            {/* "View all" Button (Exact Outlined Style matching Screenshot UI) */}
-            <div className="pt-2">
+            <div className="pt-2 text-center">
               <Link
                 href={`/wedding-story/${vendor?.slug || vendor?.id || "boutique"}/collections`}
-                className="w-full py-3 rounded-xl border border-[#D79A38] bg-white text-[#D79A38] font-bold text-sm hover:bg-[#FFF9EE] transition-all text-center flex items-center justify-center shadow-2xs cursor-pointer"
+                className="inline-flex items-center justify-center gap-2 w-full py-3 rounded-2xl bg-[#0F4C45] text-white font-bold text-xs shadow-md hover:bg-[#12584E] transition-all"
               >
-                View all
+                <span>View All Collections ({boutiqueCollectionsList.length})</span>
+                <ChevronRight className="w-4 h-4" />
               </Link>
             </div>
           </div>
