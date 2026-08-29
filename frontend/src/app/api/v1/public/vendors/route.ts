@@ -60,6 +60,24 @@ function getMatchingSlugs(inputSlug: string): string[] {
   return [norm];
 }
 
+let cachedCategories: { data: any[]; timestamp: number } | null = null;
+const CAT_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+async function getCachedVendorCategories(): Promise<any[]> {
+  const now = Date.now();
+  if (cachedCategories && now - cachedCategories.timestamp < CAT_CACHE_TTL) {
+    return cachedCategories.data;
+  }
+  try {
+    const catRes = await supabaseFetch(`vendor_categories?select=id,name,slug`);
+    const data = Array.isArray(catRes.data) ? catRes.data : [];
+    cachedCategories = { data, timestamp: now };
+    return data;
+  } catch (err) {
+    return cachedCategories?.data || [];
+  }
+}
+
 export async function GET(req: Request) {
   const startTime = Date.now();
   try {
@@ -87,8 +105,7 @@ export async function GET(req: Request) {
     // Add category filter if provided
     if (categorySlug && categorySlug.toLowerCase() !== "all") {
       const matchingSlugs = getMatchingSlugs(categorySlug);
-      const catRes = await supabaseFetch(`vendor_categories?select=id,name,slug`);
-      const allCats = Array.isArray(catRes.data) ? catRes.data : [];
+      const allCats = await getCachedVendorCategories();
       const matchedCatIds = allCats
         .filter((c: any) => {
           const rawSlug = (c.slug || "").toLowerCase();
