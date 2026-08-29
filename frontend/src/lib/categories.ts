@@ -83,6 +83,8 @@ export interface HomepageCategoryItem {
   href: string;
   img: string;
   alt: string;
+  vendorCount?: string;
+  badge?: string;
 }
 
 export const HOMEPAGE_CATEGORY_STRIP: HomepageCategoryItem[] = [
@@ -90,55 +92,67 @@ export const HOMEPAGE_CATEGORY_STRIP: HomepageCategoryItem[] = [
     label: "Photographers",
     href: "/photographers",
     img: "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=400&q=80",
-    alt: "Wedding Photographers"
+    alt: "Wedding Photographers",
+    vendorCount: "320 Vendors",
+    badge: "Trending",
   },
   {
     label: "Invitations",
     href: "/categories/invitations",
     img: "https://images.unsplash.com/photo-1513519245088-0e12902e5a38?auto=format&fit=crop&w=400&q=80",
-    alt: "Wedding Invitations"
+    alt: "Wedding Invitations",
+    vendorCount: "180+ Designs",
+    badge: "Popular",
   },
   {
     label: "Catering",
     href: "/categories/catering",
     img: "https://images.unsplash.com/photo-1555244162-803834f70033?auto=format&fit=crop&w=400&q=80",
-    alt: "Wedding Catering"
+    alt: "Wedding Catering",
+    vendorCount: "150 Caterers",
   },
   {
     label: "Bridal Studio",
     href: "/categories/bridal-studio",
     img: "https://images.unsplash.com/photo-1594552072238-b8a33785b261?auto=format&fit=crop&w=400&q=80",
-    alt: "Bridal Studio"
+    alt: "Bridal Studio",
+    vendorCount: "210 Studios",
+    badge: "Most Booked",
   },
   {
     label: "Venues",
     href: "/venues",
     img: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=400&q=80",
-    alt: "Wedding Venues"
+    alt: "Wedding Venues",
+    vendorCount: "240 Venues",
   },
   {
     label: "Wedding Studio",
     href: "/categories/wedding-studio",
     img: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=400&q=80",
-    alt: "Wedding Studio"
+    alt: "Wedding Studio",
+    vendorCount: "190 Studios",
   },
   {
     label: "Makeup",
     href: "/makeup",
     img: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=400&q=80",
-    alt: "Bridal Makeup"
+    alt: "Bridal Makeup",
+    vendorCount: "280 Artists",
   },
   {
     label: "Groom Studio",
     href: "/categories/groom-studio",
     img: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=400&q=80",
-    alt: "Groom Studio"
+    alt: "Groom Studio",
+    vendorCount: "140 Studios",
   },
   {
     label: "Decor",
     href: "/categories/decor-planning",
     img: "https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=400&q=80",
-    alt: "Wedding Decor"
+    alt: "Wedding Decor",
+    vendorCount: "175 Planners",
   }
 ];
 

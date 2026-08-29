@@ -98,7 +98,7 @@ export function normalizeCategoryMeta(categorySlug: string) {
       getItemHref: (id: string) => `/categories/groom-studio/${id}`,
     };
   }
-  if (slug.includes("wedding-studio") || slug.includes("wedding")) {
+  if (slug.includes("wedding-studio") || slug === "wedding studio") {
     return {
       key: "wedding-studio",
       headingLabel: "Wedding Studios",
@@ -106,11 +106,19 @@ export function normalizeCategoryMeta(categorySlug: string) {
       getItemHref: (id: string) => `/categories/wedding-studio/${id}`,
     };
   }
+  if (slug.includes("bridal-studio") || slug.includes("bridal")) {
+    return {
+      key: "bridal-studio",
+      headingLabel: "Bridal Studios & Boutiques",
+      seeAllHref: "/categories/bridal-studio",
+      getItemHref: (id: string) => `/categories/bridal-studio/${id}`,
+    };
+  }
   return {
-    key: "bridal-studio",
-    headingLabel: "Bridal Studios & Boutiques",
-    seeAllHref: "/categories/bridal-studio",
-    getItemHref: (id: string) => `/categories/bridal-studio/${id}`,
+    key: slug || "vendors",
+    headingLabel: `${categorySlug.charAt(0).toUpperCase()}${categorySlug.slice(1)} Vendors`,
+    seeAllHref: `/categories/${slug || "vendors"}`,
+    getItemHref: (id: string) => `/vendors/${id}`,
   };
 }
 

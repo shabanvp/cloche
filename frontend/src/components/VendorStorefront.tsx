@@ -120,10 +120,19 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
     let isMounted = true;
     setSimilarStudiosLoading(true);
 
-    const rawCat = (vendor?.categorySlug || vendor?.categoryLabel || vendor?.category || "wedding-studio").toLowerCase();
+    const rawCat = (vendor?.categorySlug || vendor?.categoryLabel || vendor?.category || "").toLowerCase();
     let searchCategory = "wedding-studio";
     if (rawCat.includes("bridal")) searchCategory = "bridal-studio";
     else if (rawCat.includes("groom")) searchCategory = "groom-studio";
+    else if (rawCat.includes("venue")) searchCategory = "venues";
+    else if (rawCat.includes("photo") || rawCat.includes("camera") || rawCat.includes("video")) searchCategory = "photographers";
+    else if (rawCat.includes("makeup") || rawCat.includes("beauty")) searchCategory = "makeup";
+    else if (rawCat.includes("mehendi") || rawCat.includes("henna") || rawCat.includes("mehndi")) searchCategory = "mehendi";
+    else if (rawCat.includes("cater") || rawCat.includes("food")) searchCategory = "catering";
+    else if (rawCat.includes("decor") || rawCat.includes("planner")) searchCategory = "decor-planning";
+    else if (rawCat.includes("jewel") || rawCat.includes("gold") || rawCat.includes("polki")) searchCategory = "jewellery";
+    else if (rawCat.includes("invite") || rawCat.includes("card")) searchCategory = "invitations";
+    else if (rawCat) searchCategory = rawCat;
 
     fetch(`/api/v1/public/vendors?category=${searchCategory}&limit=12&t=${Date.now()}`)
       .then((r) => r.json())

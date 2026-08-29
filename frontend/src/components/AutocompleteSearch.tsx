@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Search, Loader2, ChevronRight, Store, MapPin, Sparkles, Building2, Camera, ArrowRight, AlertCircle } from "lucide-react";
+import { Search, Loader2, ChevronRight, Store, MapPin, Sparkles, Building2, Camera, ArrowRight, AlertCircle, Clock } from "lucide-react";
 
 interface SearchResultItem {
   id: string | number;
@@ -65,6 +65,37 @@ export function AutocompleteSearch({
   const [hasError, setHasError] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState<number>(-1);
+  const [recentSearches, setRecentSearches] = useState<string[]>([]);
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("cloche_recent_searches");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) setRecentSearches(parsed.slice(0, 5));
+      }
+    } catch {}
+  }, []);
+
+  const saveRecentSearch = (term: string) => {
+    if (!term || term.trim().length < 2) return;
+    const clean = term.trim();
+    setRecentSearches((prev) => {
+      const filtered = prev.filter((s) => s.toLowerCase() !== clean.toLowerCase());
+      const updated = [clean, ...filtered].slice(0, 5);
+      try {
+        localStorage.setItem("cloche_recent_searches", JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+  };
+
+  const clearRecentSearches = () => {
+    setRecentSearches([]);
+    try {
+      localStorage.removeItem("cloche_recent_searches");
+    } catch {}
+  };
 
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -365,23 +396,56 @@ export function AutocompleteSearch({
               )}
             </div>
           ) : (
-            /* Empty Query Quick Category Discovery */
-            <div className="p-4 space-y-3">
-              <div className="flex items-center gap-1.5 text-xs font-bold text-charcoal/60 uppercase tracking-wider">
-                <Sparkles className="w-3.5 h-3.5 text-gold" />
-                Popular Quick Searches
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {POPULAR_QUICK_SEARCHES.map((searchItem) => (
-                  <button
-                    key={searchItem.label}
-                    type="button"
-                    onClick={() => setQuery(searchItem.query)}
-                    className="px-3.5 py-1.5 bg-[#FAF7F2] hover:bg-[#0F4C45] hover:text-white rounded-full text-xs font-bold text-charcoal/80 transition-all border border-gold/15"
-                  >
-                    {searchItem.label}
-                  </button>
-                ))}
+            /* Empty Query Quick Category & Recent Searches */
+            <div className="p-4 space-y-4">
+              {recentSearches.length > 0 && (
+                <div className="space-y-2 pb-3 border-b border-gold/15">
+                  <div className="flex items-center justify-between text-xs font-bold text-charcoal/60 uppercase tracking-wider">
+                    <span className="flex items-center gap-1.5">
+                      <Clock className="w-3.5 h-3.5 text-[#A97B3E]" />
+                      Recent Searches
+                    </span>
+                    <button
+                      type="button"
+                      onClick={clearRecentSearches}
+                      className="text-[10px] text-amber-800 hover:underline lowercase font-normal"
+                    >
+                      Clear history
+                    </button>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {recentSearches.map((item, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => setQuery(item)}
+                        className="px-3 py-1.5 bg-[#FAF7F2] hover:bg-[#EBE4D8] text-[#0F4C45] rounded-full text-xs font-medium transition-all flex items-center gap-1.5 border border-[#EBE4D8]"
+                      >
+                        <Clock className="w-3 h-3 text-[#A97B3E]" />
+                        <span>{item}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <div className="flex items-center gap-1.5 text-xs font-bold text-charcoal/60 uppercase tracking-wider">
+                  <Sparkles className="w-3.5 h-3.5 text-gold" />
+                  Popular Quick Searches
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {POPULAR_QUICK_SEARCHES.map((searchItem) => (
+                    <button
+                      key={searchItem.label}
+                      type="button"
+                      onClick={() => setQuery(searchItem.query)}
+                      className="px-3.5 py-1.5 bg-[#FAF7F2] hover:bg-[#0F4C45] hover:text-white rounded-full text-xs font-bold text-charcoal/80 transition-all border border-gold/15"
+                    >
+                      {searchItem.label}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           )}

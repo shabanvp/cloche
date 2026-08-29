@@ -6,24 +6,26 @@ import { Sparkles, ArrowRight, X, ExternalLink } from "lucide-react";
 import { getActiveCampaignsByPlacement, trackAdImpression, trackAdClick, Campaign } from "@/lib/adStore";
 
 type AdBannerProps = {
-  placement: string;
+  placement?: string;
+  position?: string;
   category?: string;
   className?: string;
   compact?: boolean;
 };
 
-export function AdBanner({ placement, category, className = "", compact = false }: AdBannerProps) {
+export function AdBanner({ placement, position, category, className = "", compact = false }: AdBannerProps) {
+  const activePlacement = placement || position || "Homepage Banner";
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
-    const active = getActiveCampaignsByPlacement(placement, category);
+    const active = getActiveCampaignsByPlacement(activePlacement, category);
     if (active.length > 0) {
       const selected = active[Math.floor(Math.random() * active.length)];
       setCampaign(selected);
       trackAdImpression(selected.id);
     }
-  }, [placement, category]);
+  }, [activePlacement, category]);
 
   if (!campaign || dismissed) return null;
 

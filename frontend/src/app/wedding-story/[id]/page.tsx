@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { fetchPublicVendorProfileFromDb } from "@/lib/supabase";
-import { BoutiqueProfileClient } from "@/components/BoutiqueProfileClient";
+import { VendorProfileDispatcher } from "@/components/VendorProfileDispatcher";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -13,7 +13,7 @@ interface Props {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
   const { data: profile } = await fetchPublicVendorProfileFromDb(id);
-  if (!profile) return { title: "Wedding Studio Not Found | Cloche" };
+  if (!profile) return { title: "Studio Not Found | Cloche" };
   return {
     title: `${profile.name} | Cloche Wedding Studio`,
     description: profile.about || `Explore ${profile.name} on Cloche.`,
@@ -23,11 +23,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function WeddingStoryDetailPage({ params }: Props) {
   const { id } = await params;
   const { data: profile } = await fetchPublicVendorProfileFromDb(id);
-
-  if (!profile) {
-    notFound();
-  }
-
-  return <BoutiqueProfileClient profile={profile} />;
+  if (!profile) notFound();
+  return <VendorProfileDispatcher profile={profile} forcedCategory="wedding-studio" />;
 }
-
