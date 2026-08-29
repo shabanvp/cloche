@@ -312,64 +312,28 @@ export function BoutiqueCollectionsClient({ boutique, initialProducts = [], bout
 
   return (
     <div className="min-h-screen bg-[#FBF8F1] flex flex-col font-sans text-charcoal">
-      {/* Sub-Header */}
+      {/* Sub-Header Navbar */}
       <header className="sticky top-0 z-40 bg-[#FBF8F1]/95 backdrop-blur-md border-b border-gold/15 px-4 py-3 sm:px-6">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <Link
             href={backUrl}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#0F4C45]/10 text-[#0F4C45] hover:bg-[#0F4C45] hover:text-white transition-colors text-xs font-bold shadow-2xs"
+            className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#0F4C45]/10 text-[#0F4C45] hover:bg-[#0F4C45] hover:text-white transition-colors text-xs font-bold shadow-2xs"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Profile</span>
           </Link>
 
-          <span className="font-serif font-bold text-base sm:text-lg text-charcoal text-center truncate max-w-xs sm:max-w-md">
-            {boutiqueName}
+          <span className="font-serif font-bold text-lg sm:text-xl text-charcoal text-center">
+            Collections
           </span>
 
-          <a
-            href={`https://wa.me/${whatsappNumber.replace(/[^0-9]/g, "")}?text=Hi%20${encodeURIComponent(boutiqueName)},%20I%20am%20browsing%20your%20collections%20on%20Cloche!`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="p-2 rounded-full bg-emerald-600 text-white hover:bg-emerald-700 transition-colors shadow-2xs"
-          >
-            <MessageCircle className="w-4 h-4" />
-          </a>
+          {/* Balanced Spacer (No Message Icon) */}
+          <div className="w-20" />
         </div>
       </header>
 
       {/* Main Container */}
-      <main className="flex-grow max-w-6xl mx-auto w-full px-4 sm:px-6 py-6 pb-24 space-y-6">
-        
-        {/* Compact Title & Filter Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gold/15 pb-4">
-          <div>
-            <h1 className="font-serif text-xl sm:text-2xl font-bold text-charcoal">
-              Collections
-            </h1>
-            <p className="text-xs text-charcoal/60 mt-0.5">
-              {boutiqueName} • {location}
-            </p>
-          </div>
-
-          {/* Category Tabs Filter */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-            {categoryTabs.map((cat) => (
-              <button
-                key={cat}
-                onClick={() => setActiveCategory(cat)}
-                className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
-                  activeCategory === cat
-                    ? "bg-[#0F4C45] text-white shadow-xs"
-                    : "bg-white text-charcoal/70 border border-gold/20 hover:border-gold"
-                }`}
-              >
-                {cat}
-              </button>
-            ))}
-          </div>
-        </div>
-
+      <main className="flex-grow max-w-6xl mx-auto w-full px-4 sm:px-6 py-6 pb-24">
         {/* Collections Grid (WedMeGood Style 2 Columns on Mobile, 3 on Tablet, 4 on Desktop) */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3.5 sm:gap-5">
           {filteredCollections.map((col: any) => {
