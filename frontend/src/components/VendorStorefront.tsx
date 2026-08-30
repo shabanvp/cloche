@@ -1039,16 +1039,168 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
 
       {/* ── 1. LUXURY STOREFRONT HERO HEADER ── */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6">
-        <div className="relative rounded-[28px] sm:rounded-[36px] overflow-hidden shadow-xl border border-gold/20 bg-charcoal">
+          {/* ── 1. LUXURY STOREFRONT HERO HEADER (DESKTOP 2-COLUMN GRID & MOBILE HERO) ── */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6">
+        
+        {/* DESKTOP/LAPTOP HERO LAYOUT (Matches Reference Image Exactly) */}
+        <div className="hidden lg:grid grid-cols-12 gap-8 items-start">
           
+          {/* Left Column (Cover Image Card with Control Pills) */}
+          <div className="col-span-7 relative w-full h-[460px] xl:h-[500px] rounded-3xl overflow-hidden shadow-xl bg-charcoal group border border-gold/20">
+            <img src={coverUrl} alt={displayName} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
+
+            {/* Top Floating Action Buttons */}
+            <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-10">
+              <Link
+                href={previewMode ? "#" : "/boutiques"}
+                className="w-10 h-10 rounded-full bg-black/40 text-white backdrop-blur-md hover:bg-black/60 transition-colors flex items-center justify-center border border-white/20"
+                aria-label="Back"
+              >
+                <ArrowRight className="w-5 h-5 rotate-180" />
+              </Link>
+
+              <button
+                onClick={() => setIsWishlisted(!isWishlisted)}
+                className="w-10 h-10 rounded-full bg-black/40 text-white backdrop-blur-md hover:bg-black/60 transition-colors flex items-center justify-center border border-white/20 cursor-pointer"
+                aria-label="Wishlist"
+              >
+                <Heart className={`w-5 h-5 ${isWishlisted ? "text-rose-500 fill-rose-500" : "text-white"}`} />
+              </button>
+            </div>
+
+            {/* Bottom Floating Photo Counter Controls */}
+            <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between z-10">
+              <button
+                onClick={() => galleryPhotos.length > 0 && setSelectedPhoto(galleryPhotos[0].url)}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-black/60 backdrop-blur-md text-white text-xs font-bold hover:bg-black/80 transition-colors border border-white/20 cursor-pointer"
+              >
+                <ImageIcon className="h-3.5 w-3.5" />
+                <span>View All Photos ({galleryPhotos.length})</span>
+              </button>
+
+              <div className="rounded-full bg-black/60 px-3.5 py-1.5 text-xs font-bold text-white backdrop-blur-md border border-white/20">
+                1/{galleryPhotos.length || 1}
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column (Vendor Details & Pricing Card) */}
+          <div className="col-span-5 rounded-3xl border border-gold/15 bg-white shadow-lg p-6 min-h-[460px] flex flex-col justify-between">
+            <div className="space-y-4">
+              {/* Category Badge & Vendor Logo */}
+              <div className="flex items-center justify-between">
+                <span className="px-3.5 py-1.5 rounded-full bg-[#FAF7F2] border border-gold/20 text-xs font-extrabold text-[#0F4C45] uppercase tracking-wider">
+                  {categoryLabel || "WEDDING VENUES"}
+                </span>
+                <div className="relative h-12 w-12 rounded-xl overflow-hidden bg-[#0F4C45] border-2 border-white shadow-sm flex items-center justify-center text-white shrink-0">
+                  {vendor?.logo || vendor?.logo_url ? (
+                    <img src={vendor.logo || vendor.logo_url} alt={displayName} className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="font-serif text-sm font-bold tracking-wider">
+                      {displayName.slice(0, 2).toUpperCase()}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Title & Verified Checkmark */}
+              <div>
+                <div className="flex items-center gap-2">
+                  <h1 className="font-serif text-2xl xl:text-3xl font-bold text-charcoal leading-tight">
+                    {displayName}
+                  </h1>
+                  <CheckCircle2 className="h-6 w-6 shrink-0 fill-[#0F4C45] text-white" />
+                </div>
+                {(vendor?.ownerName || vendor?.owner_name) && (
+                  <p className="text-xs text-charcoal/60 font-medium flex items-center gap-1 mt-1">
+                    <User className="h-3.5 w-3.5 text-[#0F4C45]" /> Owner / Managed by {vendor.ownerName || vendor.owner_name}
+                  </p>
+                )}
+              </div>
+
+              {/* Tagline */}
+              {tagline && (
+                <p className="text-xs font-semibold italic text-[#0F4C45]">
+                  "{tagline}"
+                </p>
+              )}
+
+              {/* Rating & Location Line */}
+              <div className="flex items-center gap-2.5 text-xs text-charcoal/70 font-medium">
+                <div className="flex items-center gap-1 font-bold text-charcoal">
+                  <Star className="h-4 w-4 fill-[#C8A96A] text-[#C8A96A]" />
+                  {reviewsCount > 0 ? (
+                    <>
+                      <span>{rating}</span>
+                      <span className="text-charcoal/50 font-normal">({reviewsCount})</span>
+                    </>
+                  ) : (
+                    <span className="text-xs font-bold text-[#0F4C45] bg-[#FAF7F2] px-2 py-0.5 rounded-full border border-gold/20">New</span>
+                  )}
+                </div>
+                <span>•</span>
+                <div className="flex items-center gap-1 truncate">
+                  <MapPin className="h-3.5 w-3.5 text-[#0F4C45] shrink-0" />
+                  <span className="truncate">{location || "Kerala"}</span>
+                </div>
+              </div>
+
+              {/* Starting Price Box */}
+              <div className="p-4 rounded-2xl bg-[#FAF7F2] border border-gold/15 flex items-center justify-between">
+                <div>
+                  <div className="text-[11px] text-charcoal/60 uppercase tracking-wider font-bold">Starting Price</div>
+                  <div className="text-xl font-serif font-bold text-[#0F4C45]">
+                    {vendor?.startingPriceLabel || vendor?.startingPrice || "Contact for pricing"}
+                  </div>
+                </div>
+                <span className="text-xs text-charcoal/50 font-medium">Per Event / Package</span>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="space-y-3 pt-4 border-t border-gold/10">
+              <button
+                onClick={() => setActiveModal("quote")}
+                className="w-full py-3.5 rounded-2xl bg-[#C8A96A] text-[#0F4C45] font-bold text-sm hover:bg-[#b89859] transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer"
+              >
+                <Mail className="h-4 w-4" /> Get Instant Quote
+              </button>
+
+              <div className="grid grid-cols-2 gap-3">
+                {phone && (
+                  <a
+                    href={previewMode ? "#" : `tel:${phone}`}
+                    className="py-3 rounded-2xl bg-[#0F4C45] text-white font-bold text-xs hover:bg-[#12584E] transition-all flex items-center justify-center gap-2 shadow-xs cursor-pointer"
+                  >
+                    <Phone className="h-4 w-4" /> Call
+                  </a>
+                )}
+                {whatsapp && (
+                  <a
+                    href={previewMode ? "#" : `https://wa.me/${whatsapp.replace(/[^0-9]/g, "")}?text=Hi%20${encodeURIComponent(displayName)},%20I%20saw%20your%20storefront%20on%20Cloche!`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="py-3 rounded-2xl bg-[#0F4C45] text-white font-bold text-xs hover:bg-[#12584E] transition-all flex items-center justify-center gap-2 shadow-xs cursor-pointer"
+                  >
+                    <MessageSquare className="h-4 w-4" /> WhatsApp
+                  </a>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* MOBILE COMPACT HERO LAYOUT (Unchanged for Mobile Views) */}
+        <div className="lg:hidden relative rounded-[28px] overflow-hidden shadow-xl border border-gold/20 bg-charcoal">
           {/* Cover Photo */}
-          <div className="relative h-[280px] sm:h-[400px] lg:h-[460px] w-full overflow-hidden">
+          <div className="relative h-[280px] sm:h-[400px] w-full overflow-hidden">
             <img src={coverUrl} alt={displayName} className="w-full h-full object-cover" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
           </div>
 
           {/* Top Quick Actions Bar */}
-          <div className="absolute top-4 sm:top-6 left-4 sm:left-6 right-4 sm:right-6 flex items-center justify-between z-10">
+          <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-10">
             <Link
               href={previewMode ? "#" : "/boutiques"}
               className="bg-black/50 hover:bg-black/70 backdrop-blur-md text-white text-xs font-bold px-3.5 py-2 rounded-full border border-white/20 flex items-center gap-1.5 transition-all"
@@ -1075,11 +1227,10 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
           </div>
 
           {/* Hero Profile Details Card */}
-          <div className="absolute bottom-4 sm:bottom-6 left-4 sm:left-6 right-4 sm:right-6 flex flex-col sm:flex-row items-start sm:items-end gap-4 sm:gap-6 z-10">
-            {/* Profile Info */}
+          <div className="absolute bottom-4 left-4 right-4 flex flex-col items-start gap-4 z-10">
             <div className="flex-1 min-w-0 text-white drop-shadow-md space-y-1.5">
               <div className="flex items-center gap-2.5 flex-wrap">
-                <h1 className="text-2xl sm:text-4xl font-serif font-bold text-white leading-tight">
+                <h1 className="text-2xl font-serif font-bold text-white leading-tight">
                   {displayName}
                 </h1>
                 <span className="inline-flex items-center gap-1 bg-white/95 backdrop-blur-md text-[#0F4C45] text-[11px] font-extrabold px-3 py-0.5 rounded-full shadow-xs">
@@ -1093,42 +1244,18 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
               </div>
 
               {tagline ? (
-                <p style={{ color: activeTheme.accent }} className="text-xs sm:text-sm font-semibold italic">
+                <p style={{ color: activeTheme.accent }} className="text-xs font-semibold italic">
                   "{tagline}"
                 </p>
               ) : (
-                <p className="text-xs sm:text-sm text-white/90 font-medium">
+                <p className="text-xs text-white/90 font-medium">
                   {categoryLabel}{location ? ` • ${location}` : ""}
                 </p>
               )}
-
-              {/* Dynamic Store Highlights Badges */}
-              {storeHighlights.length > 0 && (
-                <div className="flex flex-wrap items-center gap-1.5 pt-1">
-                  {storeHighlights.map((badge) => (
-                    <span
-                      key={badge}
-                      style={{ borderColor: activeTheme.accent }}
-                      className="bg-black/60 backdrop-blur-md text-white text-[10px] sm:text-[11px] font-bold px-3 py-0.5 rounded-full border shadow-2xs flex items-center gap-1"
-                    >
-                      <Sparkles className="w-3 h-3 text-[#C8A96A]" /> {badge}
-                    </span>
-                  ))}
-                </div>
-              )}
             </div>
-
-            {/* Price Tag if available */}
-            {vendor?.startingPrice && (
-              <div className="bg-white/95 backdrop-blur-md rounded-2xl p-3 sm:p-4 text-charcoal shadow-lg shrink-0 border border-gold/20 text-right hidden lg:block">
-                <span className="text-[10px] uppercase font-bold text-charcoal/60 block">Starting Package</span>
-                <span style={{ color: activeTheme.primary }} className="font-serif text-xl font-bold block">
-                  {vendor.startingPrice}
-                </span>
-              </div>
-            )}
           </div>
         </div>
+      </div>
       </div>
 
       {/* ── 2. MAIN STOREFRONT CONTENT LAYOUT ── */}
