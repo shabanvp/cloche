@@ -198,6 +198,10 @@ export function CustomizeStoreSection({ categoryConfig, vendorName, onBack }: Cu
   const [saved, setSaved] = useState(false);
 
   // Accordion Sections State
+    const [activeStep, setActiveStep] = useState<number>(1);
+  const [devicePreviewMode, setDevicePreviewMode] = useState<"desktop" | "tablet" | "mobile">("desktop");
+  const [autoSaveStatus, setAutoSaveStatus] = useState<string>("✔ Saved just now");
+
   const [openAccordions, setOpenAccordions] = useState<Record<string, boolean>>({
     branding: true,
     theme: true,
@@ -475,6 +479,108 @@ export function CustomizeStoreSection({ categoryConfig, vendorName, onBack }: Cu
         className="hidden"
         onChange={handleCoverUpload}
       />
+
+
+      {/* PROFILE COMPLETION & 6-STEP WIZARD HEADER */}
+      <div className="bg-white rounded-3xl p-6 border border-gold/15 shadow-sm space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gold/10 pb-4">
+          <div className="space-y-0.5">
+            <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#0F4C45] bg-[#FAF7F2] px-2.5 py-0.5 rounded-full border border-gold/20">
+              Vendor Storefront Onboarding Wizard
+            </span>
+            <h2 className="text-xl font-serif font-bold text-charcoal">Customization &amp; Profile Setup</h2>
+          </div>
+
+          <div className="flex items-center gap-3 shrink-0">
+            <span className="text-xs font-bold text-emerald-800 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200 flex items-center gap-1.5">
+              <CheckCircle className="w-3.5 h-3.5 text-emerald-600" /> {autoSaveStatus}
+            </span>
+            <button
+              onClick={handleSave}
+              className="px-4 py-1.5 rounded-xl bg-[#FAF7F2] hover:bg-gold/15 border border-gold/20 text-xs font-bold text-charcoal transition-colors cursor-pointer"
+            >
+              Continue Later
+            </button>
+          </div>
+        </div>
+
+        {/* Profile Completion Tracker */}
+        <div className="space-y-1.5">
+          <div className="flex justify-between text-xs font-bold text-charcoal">
+            <span>Profile Completion Progress</span>
+            <span className="text-[#0F4C45]">82% Completed</span>
+          </div>
+          <div className="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden border border-gold/15">
+            <div className="h-full bg-gradient-to-r from-[#0F4C45] to-[#C8A96A] rounded-full w-[82%] transition-all duration-500" />
+          </div>
+          <p className="text-[11px] text-charcoal/60 font-medium">
+            Remaining: • Add Gallery Photos • Add Packages • Add FAQs
+          </p>
+        </div>
+
+        {/* 6-Step Navigation Wizard Pills */}
+        <div className="grid grid-cols-2 sm:grid-cols-6 gap-2 pt-2">
+          {[
+            { step: 1, label: "1. Basic Info" },
+            { step: 2, label: "2. Gallery & Media" },
+            { step: 3, label: "3. Venue Details" },
+            { step: 4, label: "4. Amenities" },
+            { step: 5, label: "5. Packages" },
+            { step: 6, label: "6. Preview & Publish" },
+          ].map((s) => (
+            <button
+              key={s.step}
+              type="button"
+              onClick={() => setActiveStep(s.step)}
+              className={`py-2.5 px-2 rounded-xl text-xs font-bold transition-all text-center cursor-pointer border ${
+                activeStep === s.step
+                  ? "bg-[#0F4C45] text-white border-[#0F4C45] shadow-xs"
+                  : "bg-[#FAF7F2] text-charcoal/70 hover:bg-gold/15 border-gold/15"
+              }`}
+            >
+              {s.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* 3-DEVICE LIVE PREVIEW MODE BAR (STEP 6 MODE TOGGLES) */}
+      <div className="bg-[#0B3B36] text-white p-4 rounded-3xl border border-gold/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-md">
+        <div className="flex items-center gap-2 text-xs font-bold">
+          <Eye className="w-4 h-4 text-[#C8A96A]" />
+          <span>3-Device Live Storefront Preview:</span>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setDevicePreviewMode("mobile")}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
+              devicePreviewMode === "mobile" ? "bg-[#C8A96A] text-[#0F4C45]" : "bg-white/10 hover:bg-white/20 text-white"
+            }`}
+          >
+            📱 Mobile
+          </button>
+          <button
+            type="button"
+            onClick={() => setDevicePreviewMode("tablet")}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
+              devicePreviewMode === "tablet" ? "bg-[#C8A96A] text-[#0F4C45]" : "bg-white/10 hover:bg-white/20 text-white"
+            }`}
+          >
+            💻 Tablet
+          </button>
+          <button
+            type="button"
+            onClick={() => setDevicePreviewMode("desktop")}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
+              devicePreviewMode === "desktop" ? "bg-[#C8A96A] text-[#0F4C45]" : "bg-white/10 hover:bg-white/20 text-white"
+            }`}
+          >
+            🖥 Desktop
+          </button>
+        </div>
+      </div>
 
 
       {/* Top Header Card with Quick Publish Action */}

@@ -12,7 +12,7 @@ import {
   Calendar,
   Layers,
   FileText,
-  Building,
+  Building, Building2, Users, Car, Bed, Video, Compass, HelpCircle, ChevronDown, ChevronUp, ThumbsUp,
   Clock,
   MapPin,
   Tag,
@@ -34,8 +34,7 @@ import {
   Sparkle,
   PenSquare,
   MessageSquare,
-  User,
-  ThumbsUp
+  User
 } from "lucide-react";
 import { COLOR_THEMES, ColorThemeOption } from "@/components/vendor/sections/CustomizeStoreSection";
 
@@ -749,6 +748,79 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
     return "Curated Packages & Pricing";
   }, [vendor]);
 
+    // ── VENUE VENDOR SPECIFIC DATA NORMALIZATION & COMPUTATIONS ──
+  const isVenueVendor = useMemo(() => {
+    const cat = (vendor?.categorySlug || vendor?.categoryLabel || vendor?.category || "").toLowerCase();
+    return cat.includes("venue") || cat.includes("hall") || cat.includes("lawn") || cat.includes("resort") || cat.includes("convention");
+  }, [vendor]);
+
+  const venueDetails = useMemo(() => {
+    const hList = Array.isArray(vendor?.halls || vendor?.eventSpaces || vendor?.event_spaces)
+      ? vendor.halls || vendor.eventSpaces || vendor.event_spaces
+      : [];
+
+    const rawAmen = Array.isArray(vendor?.amenities || vendor?.facilities)
+      ? vendor.amenities || vendor.facilities
+      : ["Air Conditioned", "Parking", "Generator Backup", "Bridal Room", "Lift", "Catering Service", "Decoration Service", "Sound System", "Power Backup"];
+
+    const rawHigh = Array.isArray(vendor?.venueHighlights || vendor?.highlights)
+      ? vendor.venueHighlights || vendor.highlights
+      : ["Air Conditioned", "Bridal Room", "Valet Parking", "Outdoor Lawn", "Indoor Hall", "Wheelchair Accessible", "Generator Backup", "Catering Available"];
+
+    return {
+      capacity: vendor?.guestCapacity || vendor?.capacity || vendor?.max_capacity || "1,200 Guests",
+      guestRooms: vendor?.guestRooms || vendor?.rooms || vendor?.guest_rooms || "20 Rooms",
+      parking: vendor?.parkingCapacity || vendor?.parking || vendor?.parking_capacity || "300 Cars",
+      type: vendor?.venueType || vendor?.type || vendor?.venue_type || "Luxury Convention Hall",
+      establishedYear: vendor?.establishedYear || vendor?.established_year || "2014",
+      weddingsHosted: vendor?.weddingsHosted || vendor?.weddings_hosted || vendor?.eventsCatered || "500+",
+      halls: hList,
+      numberOfHalls: hList.length,
+      amenities: rawAmen,
+      highlights: rawHigh,
+      airportDistance: vendor?.airportDistance || "25 km from Calicut International Airport",
+      stationDistance: vendor?.stationDistance || "5 km from Railway Station",
+      nearbyLandmark: vendor?.nearbyLandmark || "Near City Center Junction",
+      idealEvents: vendor?.idealEvents || "Weddings, Receptions, Engagements, Sangeet & Corporate Galas",
+      whyChooseUsLeft: [
+        "500+ Weddings Hosted Successfully",
+        "Cloche Certified Premium Partner",
+        "98% Customer Recommendation Rate",
+      ],
+      whyChooseUsRight: [
+        "12+ Years of Hospitality Experience",
+        "Dedicated Manager Response <30 Mins",
+        "Verified & Inspected Venue Facility",
+      ],
+      faqs: Array.isArray(vendor?.faqs) && vendor.faqs.length > 0 ? vendor.faqs : [
+        { q: "Is outside catering allowed at the venue?", a: "Yes, outside catering is permitted. We also provide an optional in-house gourmet catering panel." },
+        { q: "Is decoration included or can we bring our own decorator?", a: "You can choose from our empanelled luxury decorators or bring your own verified decorator." },
+        { q: "What is the advance booking deposit required?", a: "A 25% advance deposit secures your date. Balance payment is due 7 days prior to event." },
+        { q: "Is alcohol allowed on premises?", a: "Alcohol serving is permitted with a valid temporary state license permit." },
+        { q: "What is your cancellation and date change policy?", a: "Date modifications are complimentary up to 60 days prior to event, subject to calendar availability." },
+      ]
+    };
+  }, [vendor]);
+
+  const galleryCategories = useMemo(() => {
+    const base = [
+      { id: "featured", label: "⭐ Featured" },
+      { id: "main-hall", label: "🏛 Main Hall" },
+      { id: "stage", label: "🌸 Stage" },
+      { id: "dining", label: "🍽 Dining" },
+      { id: "bridal-room", label: "💄 Bridal Room" },
+      { id: "outdoor", label: "🌳 Outdoor" },
+      { id: "parking", label: "🚗 Parking" },
+    ];
+    if (vendor?.videoUrls && vendor.videoUrls.length > 0) {
+      base.push({ id: "videos", label: "🎥 Videos" });
+    }
+    if (vendor?.virtualTourUrl) {
+      base.push({ id: "tour-360", label: "360° Tour" });
+    }
+    return base;
+  }, [vendor]);
+
   const isStudioBoutique = useMemo(() => {
     const c = (vendor?.categorySlug || vendor?.categoryLabel || vendor?.category || "").toLowerCase();
     return c.includes("studio") || c.includes("boutique") || c.includes("story") || c.includes("bridal") || c.includes("groom");
@@ -885,6 +957,11 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
   };
 
   const [isFullPreview, setIsFullPreview] = useState(false);
+  const [activeGalleryTab, setActiveGalleryTab] = useState<string>("featured");
+  const [activeFaqIndex, setActiveFaqIndex] = useState<number | null>(0);
+  const [calendarDateInput, setCalendarDateInput] = useState<string>("");
+  const [calendarDateResult, setCalendarDateResult] = useState<"available" | "limited" | "booked" | null>(null);
+  const [activeHallModal, setActiveHallModal] = useState<any | null>(null);
 
   // Compact Live Storefront Preview (used inside Customize Storefront pages)
   if (previewMode && !isFullPreview) {
@@ -1258,539 +1335,656 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
       </div>
       </div>
 
-      {/* ── 2. MAIN STOREFRONT CONTENT LAYOUT ── */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 sm:mt-8 grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8">
-        
-        {/* LEFT COLUMN (8 COLS): Content, Gallery, Packages, Reviews, Policies */}
-        <div className="lg:col-span-8 space-y-6 sm:space-y-8">
-          
-          {/* A. STOREFRONT CONTACT & INTERACTIVE ACTION BUTTONS */}
-          <div className="bg-white rounded-3xl p-4 sm:p-5 border border-gold/15 shadow-sm">
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {actionButtons.callNow && phone && (
-                <a
-                  href={previewMode ? "#" : `tel:${phone}`}
-                  style={{ backgroundColor: activeTheme.primary }}
-                  className="w-full px-4 py-3.5 rounded-2xl text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2 shadow-xs hover:opacity-90 transition-all cursor-pointer text-center"
-                >
-                  <Phone className="w-4 h-4 shrink-0" /> <span>Call Now</span>
-                </a>
-              )}
+      {/* ── 2. REUSABLE DYNAMIC VENDOR PROFILE ENGINE & SECTIONS ── */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 sm:mt-8 space-y-8">
 
-              {actionButtons.whatsapp && whatsapp && (
-                <a
-                  href={previewMode ? "#" : `https://wa.me/${whatsapp.replace(/[^0-9]/g, "")}?text=Hi%20${encodeURIComponent(displayName)},%20I%20saw%20your%20storefront%20on%20Cloche!`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ backgroundColor: activeTheme.secondary }}
-                  className="w-full px-4 py-3.5 rounded-2xl text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2 shadow-xs hover:opacity-90 transition-all cursor-pointer text-center"
-                >
-                  <MessageCircle className="w-4 h-4 shrink-0" /> <span>WhatsApp Us</span>
-                </a>
-              )}
+        {/* SECTION 1: QUICK ACTION BUTTONS */}
+        <div className="bg-white rounded-3xl p-4 sm:p-5 border border-gold/15 shadow-sm">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {phone && (
+              <a
+                href={previewMode ? "#" : `tel:${phone}`}
+                style={{ backgroundColor: activeTheme.primary }}
+                className="w-full px-4 py-3.5 rounded-2xl text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2 shadow-xs hover:opacity-90 transition-all cursor-pointer text-center"
+              >
+                <Phone className="w-4 h-4 shrink-0" /> <span>Call Now</span>
+              </a>
+            )}
 
-              {actionButtons.getQuote && (
-                <button
-                  onClick={() => setActiveModal("quote")}
-                  style={{ backgroundColor: activeTheme.accent, color: activeTheme.secondary }}
-                  className="w-full px-4 py-3.5 rounded-2xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 shadow-xs hover:opacity-90 transition-all cursor-pointer text-center"
-                >
-                  <FileText className="w-4 h-4 shrink-0" /> <span>Get Custom Quote</span>
-                </button>
-              )}
+            {whatsapp && (
+              <a
+                href={previewMode ? "#" : `https://wa.me/${whatsapp.replace(/[^0-9]/g, "")}?text=Hi%20${encodeURIComponent(displayName)},%20I%20saw%20your%20venue%20profile%20on%20Cloche!`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ backgroundColor: activeTheme.secondary }}
+                className="w-full px-4 py-3.5 rounded-2xl text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2 shadow-xs hover:opacity-90 transition-all cursor-pointer text-center"
+              >
+                <MessageCircle className="w-4 h-4 shrink-0" /> <span>WhatsApp Us</span>
+              </a>
+            )}
 
-              {actionButtons.visitStore && (googleMaps || address || location) && (
-                <a
-                  href={previewMode ? "#" : (googleMaps || `https://maps.google.com/?q=${encodeURIComponent(address || location)}`)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full px-4 py-3.5 rounded-2xl bg-[#FAF7F2] border border-gold/25 text-charcoal text-xs sm:text-sm font-bold flex items-center justify-center gap-2 hover:bg-gold/15 transition-all text-center"
-                >
-                  <Building className="w-4 h-4 text-[#0F4C45] shrink-0" /> <span>Get Directions</span>
-                </a>
-              )}
-            </div>
-          </div>
+            <button
+              onClick={() => setActiveModal("quote")}
+              style={{ backgroundColor: activeTheme.accent, color: activeTheme.secondary }}
+              className="w-full px-4 py-3.5 rounded-2xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 shadow-xs hover:opacity-90 transition-all cursor-pointer text-center"
+            >
+              <Calendar className="w-4 h-4 shrink-0" /> <span>Check Availability</span>
+            </button>
 
-          {/* B. BOUTIQUE SHOWROOM FEATURED COLLECTIONS (Render ONLY for Bridal Studio, Groom Studio, Wedding Studio) */}
-          {shouldShowCollections && boutiqueCollectionsList.length > 0 && (
-            <div className="bg-white rounded-3xl p-5 sm:p-6 border border-gold/15 shadow-sm space-y-4">
-              <div className="flex items-center justify-between border-b border-gold/10 pb-3">
-                <h2 className="font-serif font-bold text-xl sm:text-2xl text-charcoal">
-                  Collections
-                </h2>
-
-                <Link
-                  href={`/wedding-story/${vendor?.slug || vendor?.id || "boutique"}/collections`}
-                  className="py-1.5 px-3 rounded-xl border border-gold/30 text-charcoal hover:bg-[#0F4C45] hover:text-white font-bold text-xs transition-all flex items-center gap-1 shrink-0"
-                >
-                  <span>View All</span>
-                  <ChevronRight className="w-4 h-4" />
-                </Link>
-              </div>
-
-              {/* WedMeGood Style Collections Layout: 4 Cards on Desktop Grid, Scrollable Carousel on Mobile */}
-              <div className="flex overflow-x-auto hide-scrollbar snap-x snap-mandatory gap-3.5 sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 sm:overflow-visible pb-2">
-                {boutiqueCollectionsList.slice(0, 4).map((col: any) => {
-                  const outfitName = col.name || col.outfitName || col.title || "Signature Couture Collection";
-                  const shopName = displayName || "Luxury Boutique";
-                  const boutiqueCity = vendor?.city || vendor?.district || (vendor?.address ? vendor.address.split(",").pop()?.trim() : "") || "Kerala";
-                  const priceText = col.price || (col.outfits && col.outfits[0]?.price) || vendor?.startingPrice || "Contact for Pricing";
-
-                  return (
-                    <Link
-                      key={col.id}
-                      href={`/collections/${col.id}`}
-                      className="flex-shrink-0 w-[210px] sm:w-auto snap-start cursor-pointer group flex flex-col justify-between block"
-                    >
-                      <div>
-                        {/* Clean Portrait Image matching Image 1 */}
-                        <div className="relative aspect-[3/4] w-full rounded-2xl overflow-hidden bg-charcoal/5 shadow-xs border border-gold/15">
-                          <img
-                            src={col.coverImage || (col.outfits && col.outfits[0]?.image)}
-                            alt={outfitName}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                          />
-                        </div>
-
-                        {/* Clean Stacked Information Block matching Image 1 */}
-                        <div className="pt-2.5 px-1 space-y-0.5">
-                          <p className="text-xs text-charcoal/70 line-clamp-1 font-medium">
-                            {outfitName}
-                          </p>
-                          <h3 className="font-bold text-sm text-charcoal group-hover:text-[#0F4C45] transition-colors line-clamp-1">
-                            {shopName}
-                          </h3>
-                          <p className="text-xs text-charcoal/50 flex items-center gap-1 font-medium capitalize">
-                            {boutiqueCity}
-                          </p>
-                          {priceText && (
-                            <p className="text-xs sm:text-sm font-bold text-[#0F4C45] pt-0.5">
-                              {priceText}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    </Link>
-                  );
-                })}
-              </div>
-
-              <div className="pt-1 text-center">
-                <Link
-                  href={`/wedding-story/${vendor?.slug || vendor?.id || "boutique"}/collections`}
-                  className="inline-flex items-center justify-center gap-2 w-full py-3 rounded-2xl bg-[#0F4C45] text-white font-bold text-xs shadow-md hover:bg-[#12584E] transition-all"
-                >
-                  <span>View All Collections ({boutiqueCollectionsList.length})</span>
-                  <ChevronRight className="w-4 h-4" />
-                </Link>
-              </div>
-            </div>
-          )}
-
-          {/* B. BUSINESS SNAPSHOT CARDS */}
-          {(businessInfo.experienceYears || (shouldShowCollections && businessInfo.collectionsCount) || businessInfo.guestCapacity || businessInfo.parkingCapacity) && (
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-              {businessInfo.experienceYears && (
-                <div className="p-4 rounded-2xl bg-white border border-gold/15 shadow-2xs space-y-1">
-                  <span className="text-[10px] uppercase font-bold text-charcoal/50 block">Experience</span>
-                  <span style={{ color: activeTheme.primary }} className="font-serif font-bold text-lg sm:text-xl block">
-                    {businessInfo.experienceYears} {businessInfo.experienceYears.toLowerCase().includes("year") ? "" : "Years"}
-                  </span>
-                </div>
-              )}
-
-              {shouldShowCollections && businessInfo.collectionsCount && (
-                <div className="p-4 rounded-2xl bg-white border border-gold/15 shadow-2xs space-y-1">
-                  <span className="text-[10px] uppercase font-bold text-charcoal/50 block">Collections Count</span>
-                  <span style={{ color: activeTheme.primary }} className="font-serif font-bold text-lg sm:text-xl block">
-                    {businessInfo.collectionsCount}
-                  </span>
-                </div>
-              )}
-
-              {businessInfo.guestCapacity && (
-                <div className="p-4 rounded-2xl bg-white border border-gold/15 shadow-2xs space-y-1">
-                  <span className="text-[10px] uppercase font-bold text-charcoal/50 block">Guest Capacity</span>
-                  <span style={{ color: activeTheme.primary }} className="font-serif font-bold text-lg sm:text-xl block">
-                    {businessInfo.guestCapacity}
-                  </span>
-                </div>
-              )}
-
-              {businessInfo.parkingCapacity && (
-                <div className="p-4 rounded-2xl bg-white border border-gold/15 shadow-2xs space-y-1">
-                  <span className="text-[10px] uppercase font-bold text-charcoal/50 block">Parking</span>
-                  <span style={{ color: activeTheme.primary }} className="font-serif font-bold text-lg sm:text-xl block">
-                    {businessInfo.parkingCapacity}
-                  </span>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* C. PINNED FEATURED COLLECTIONS */}
-          {featuredCollections.length > 0 && (
-            <div className="bg-white rounded-3xl p-5 sm:p-6 border border-gold/15 shadow-sm space-y-3">
-              <div className="flex items-center justify-between">
-                <h3 className="font-serif font-bold text-base text-charcoal flex items-center gap-2">
-                  <Tag style={{ color: activeTheme.primary }} className="w-4 h-4" /> Featured &amp; Pinned Collections
-                </h3>
-                <span className="text-[10px] font-bold text-charcoal/50 uppercase">Pinned by Store</span>
-              </div>
-              <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar pb-1">
-                {featuredCollections.map((col) => (
-                  <span
-                    key={col}
-                    style={{ backgroundColor: activeTheme.primary }}
-                    className="text-white text-xs font-bold px-4 py-2 rounded-xl shrink-0 shadow-2xs flex items-center gap-1.5"
-                  >
-                    <Sparkles className="w-3 h-3 text-[#C8A96A]" /> {col}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* D. ABOUT & BRAND STORY */}
-          {about && (
-            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-gold/15 shadow-sm space-y-4">
-              <h2 className="font-serif text-2xl font-bold text-charcoal">About {displayName}</h2>
-              <p className="text-sm text-charcoal/80 leading-relaxed whitespace-pre-line font-sans">
-                {about}
-              </p>
-
-              {/* Social Media Links */}
-              {(instagram || facebook || youtube || website) && (
-                <div className="pt-4 border-t border-gold/10 flex items-center gap-3 flex-wrap">
-                  <span className="text-xs font-bold text-charcoal/60">Connect Online:</span>
-                  {instagram && (
-                    <a
-                      href={instagram.startsWith("http") ? instagram : `https://instagram.com/${instagram.replace("@", "")}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="px-3 py-1.5 rounded-full bg-[#FAF7F2] hover:bg-gold/15 border border-gold/20 text-xs font-bold text-charcoal flex items-center gap-1.5 transition-colors"
-                    >
-                      <span>Instagram</span> <ExternalLink className="w-3 h-3" />
-                    </a>
-                  )}
-                  {facebook && (
-                    <a
-                      href={facebook.startsWith("http") ? facebook : `https://facebook.com/${facebook}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="px-3 py-1.5 rounded-full bg-[#FAF7F2] hover:bg-gold/15 border border-gold/20 text-xs font-bold text-charcoal flex items-center gap-1.5 transition-colors"
-                    >
-                      <span>Facebook</span> <ExternalLink className="w-3 h-3" />
-                    </a>
-                  )}
-                  {website && (
-                    <a
-                      href={website.startsWith("http") ? website : `https://${website}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="px-3 py-1.5 rounded-full bg-[#FAF7F2] hover:bg-gold/15 border border-gold/20 text-xs font-bold text-charcoal flex items-center gap-1.5 transition-colors"
-                    >
-                      <span>Official Website</span> <ExternalLink className="w-3 h-3" />
-                    </a>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* E. STOREFRONT PORTFOLIO & GALLERY */}
-          {galleryPhotos.length > 0 && (
-            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-gold/15 shadow-sm space-y-6">
-              <div className="border-b border-gold/10 pb-4">
-                <h2 className="font-serif text-2xl font-bold text-charcoal tracking-tight">Portfolio &amp; Showcase</h2>
-                <p className="text-xs text-charcoal/60 mt-0.5 font-medium">High-resolution authentic work crafted by {displayName}</p>
-              </div>
-
-              {/* Fixed Preview Grid Layout: 3x2 Desktop (6), 2x3 Tablet (6), 2x2 Mobile (4) */}
-              <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
-                {galleryPhotos.slice(0, 6).map((photo, i) => (
-                  <div
-                    key={i}
-                    onClick={() => setSelectedPhoto(photo.url)}
-                    className={`relative aspect-[4/3] rounded-3xl overflow-hidden border border-gold/20 shadow-xs hover:shadow-md transition-all duration-300 cursor-pointer group bg-gray-100 ${
-                      i >= 4 ? "hidden md:block" : ""
-                    }`}
-                  >
-                    <img
-                      src={photo.url}
-                      alt={photo.caption || `Portfolio Photo ${i + 1}`}
-                      loading="lazy"
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity p-3 flex items-end">
-                      <span className="text-white font-bold text-xs line-clamp-1">{photo.caption || "Showcase Photo"}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* View Portfolio Redirect Action */}
-              <div className="pt-3 flex justify-center">
-                <Link
-                  href={galleryHref}
-                  className="px-10 py-3.5 rounded-2xl bg-white border border-gold/25 text-charcoal font-bold text-xs hover:bg-[#FAF7F2] hover:border-gold/40 shadow-xs transition-all flex items-center justify-center gap-2 group cursor-pointer"
-                >
-                  <span>View Portfolio</span>
-                  <ArrowRight className="w-4 h-4 text-[#0F4C45] group-hover:translate-x-1 transition-transform" />
-                </Link>
-              </div>
-            </div>
-          )}
-
-          {/* E2. PREVIEW EMPTY STATE (When vendor has not uploaded gallery photos yet) */}
-          {galleryPhotos.length === 0 && previewMode && (
-            <div className="bg-[#FAF7F2] rounded-3xl p-8 border border-dashed border-gold/30 text-center space-y-2">
-              <div className="w-12 h-12 rounded-full bg-white border border-gold/20 flex items-center justify-center mx-auto text-[#0F4C45]">
-                <Sparkles className="w-5 h-5 text-[#0F4C45]" />
-              </div>
-              <h3 className="font-serif font-bold text-base text-charcoal">No Portfolio Photos Uploaded Yet</h3>
-              <p className="text-xs text-charcoal/60 max-w-md mx-auto">
-                Upload your authentic high-resolution event photos in the gallery upload section to display your portfolio here on your live storefront.
-              </p>
-            </div>
-          )}
-
-          {/* F. SERVICES & PACKAGES (DYNAMIC CATEGORY HEADING) */}
-          {vendor?.packages && vendor.packages.length > 0 && (
-            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-gold/20 shadow-md space-y-6">
-              <div className="border-b border-gold/15 pb-4">
-                <h2 className="font-serif text-2xl font-bold text-charcoal tracking-tight">
-                  {packageSectionTitle}
-                </h2>
-                <p className="text-xs text-charcoal/60 mt-0.5 font-medium">
-                  Transparent curated offerings with verified inclusions and standard pricing
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                {vendor.packages.map((pkg: any, idx: number) => (
-                  <div
-                    key={idx}
-                    className="p-6 rounded-3xl bg-[#FAF7F2]/80 border border-gold/20 space-y-4 flex flex-col justify-between hover:shadow-lg hover:border-gold/40 transition-all duration-300 relative group overflow-hidden"
-                  >
-                    {/* Top Decorative Accent Line */}
-                    <div
-                      style={{ backgroundColor: activeTheme.primary }}
-                      className="absolute top-0 left-0 right-0 h-1.5 opacity-80 group-hover:opacity-100 transition-opacity"
-                    />
-
-                    <div className="space-y-3">
-                      <div className="flex items-start justify-between gap-2 pt-1">
-                        <h3 className="font-serif font-bold text-lg text-charcoal leading-snug">{pkg.name}</h3>
-                        {pkg.isPopular && (
-                          <span className="bg-[#C8A96A] text-[#082F2C] text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full shrink-0 shadow-xs">
-                            Most Popular
-                          </span>
-                        )}
-                      </div>
-
-                      {pkg.tagline && <p className="text-xs text-charcoal/65 font-medium italic">{pkg.tagline}</p>}
-
-                      <div className="pt-2 border-t border-gold/10">
-                        <span className="text-[10px] uppercase font-bold text-charcoal/50 block tracking-wider">Pricing</span>
-                        <div className="text-2xl font-serif font-bold text-[#0F4C45] flex items-baseline gap-2">
-                          <span>{pkg.price}</span>
-                          {pkg.originalPrice && (
-                            <span className="text-xs text-charcoal/40 line-through font-sans font-normal">
-                              {pkg.originalPrice}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-
-                      {pkg.features && Array.isArray(pkg.features) && (
-                        <div className="pt-2">
-                          <span className="text-[10px] uppercase font-bold text-charcoal/50 block tracking-wider mb-2">Package Inclusions</span>
-                          <ul className="space-y-2 text-xs text-charcoal/85">
-                            {pkg.features.map((feat: string, fIdx: number) => (
-                              <li key={fIdx} className="flex items-start gap-2">
-                                <CheckCircle2 className="w-3.5 h-3.5 text-[#0F4C45] shrink-0 mt-0.5" />
-                                <span className="font-medium leading-normal">{feat}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                    </div>
-
-                    <button
-                      onClick={() => setActiveModal("quote")}
-                      style={{ backgroundColor: activeTheme.primary }}
-                      className="w-full py-3 rounded-2xl text-white text-xs font-bold shadow-sm hover:opacity-95 transition-all cursor-pointer text-center tracking-wide mt-2"
-                    >
-                      Inquire for Package
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-        </div>
-
-        {/* RIGHT COLUMN (4 COLS): Timings, Location, Inquiry Card */}
-        <aside className="lg:col-span-4 space-y-6">
-          
-          {/* 1. BUSINESS TIMINGS CARD */}
-          <div className="bg-[#FAF7F2] p-6 rounded-3xl border border-gold/15 shadow-sm space-y-4 text-xs">
-            <h3 className="font-serif font-bold text-lg text-charcoal flex items-center gap-2 border-b border-gold/10 pb-3">
-              <Clock style={{ color: activeTheme.primary }} className="w-4 h-4" /> Business Hours
-            </h3>
-            <div className="space-y-2">
-              <div className="flex justify-between py-1 border-b border-gray-100/60">
-                <span className="text-charcoal/60 font-medium">Working Days:</span>
-                <span className="font-bold text-charcoal">{workingHours.workingDays || "Monday - Saturday"}</span>
-              </div>
-
-              <div className="flex justify-between py-1 border-b border-gray-100/60">
-                <span className="text-charcoal/60 font-medium">Store Hours:</span>
-                <span className="font-bold text-[#0F4C45]">
-                  {[workingHours.openingTime, workingHours.closingTime].filter(Boolean).join(" - ") || workingHours.rawString || "10:00 AM - 08:00 PM"}
-                </span>
-              </div>
-
-              {workingHours.weeklyOff && (
-                <div className="flex justify-between py-1 border-b border-gray-100/60">
-                  <span className="text-charcoal/60 font-medium">Weekly Holiday:</span>
-                  <span className="font-bold text-charcoal">{workingHours.weeklyOff}</span>
-                </div>
-              )}
-
-              {workingHours.holidayNotice && (
-                <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 font-semibold text-[11px] mt-2">
-                  🔔 {workingHours.holidayNotice}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* 1B. RENTAL POLICIES & TERMS CARD (FOR WEDDING STUDIOS & BOUTIQUES) */}
-          {isStudioBoutique && (
-            <div className="bg-[#FAF7F2] p-6 rounded-3xl border border-gold/15 shadow-sm space-y-4 text-xs">
-              <h3 className="font-serif font-bold text-lg text-charcoal flex items-center gap-2 border-b border-gold/10 pb-3">
-                <FileText style={{ color: activeTheme.primary }} className="w-4 h-4" /> Rental Information & Terms
-              </h3>
-              <div className="space-y-3">
-                <div className="space-y-0.5">
-                  <span className="text-[10px] font-semibold uppercase text-charcoal/50 block">Standard Rental Duration</span>
-                  <span className="font-bold text-[#0F4C45] block">{rentalInfo.duration}</span>
-                </div>
-
-                <div className="space-y-0.5 border-t border-gray-100/80 pt-2">
-                  <span className="text-[10px] font-semibold uppercase text-charcoal/50 block">Security Deposit</span>
-                  <span className="font-bold text-charcoal block">{rentalInfo.deposit}</span>
-                </div>
-
-                <div className="space-y-0.5 border-t border-gray-100/80 pt-2">
-                  <span className="text-[10px] font-semibold uppercase text-charcoal/50 block">Return & Late Fee Policy</span>
-                  <p className="text-charcoal/70 leading-relaxed text-[11px]">{rentalInfo.returnPolicy}</p>
-                </div>
-
-                {rentalInfo.cancellationPolicy && (
-                  <div className="space-y-0.5 border-t border-gray-100/80 pt-2">
-                    <span className="text-[10px] font-semibold uppercase text-charcoal/50 block">Cancellation Policy</span>
-                    <p className="text-charcoal/70 leading-relaxed text-[11px]">{rentalInfo.cancellationPolicy}</p>
-                  </div>
-                )}
-
-                {rentalInfo.damagePolicy && (
-                  <div className="space-y-0.5 border-t border-gray-100/80 pt-2">
-                    <span className="text-[10px] font-semibold uppercase text-charcoal/50 block">Damage & Stain Policy</span>
-                    <p className="text-charcoal/70 leading-relaxed text-[11px]">{rentalInfo.damagePolicy}</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* 2. DIRECT INQUIRY & BOOKING CARD */}
-          <div className="bg-white p-6 rounded-3xl border border-gold/20 shadow-md space-y-4">
-            <div className="text-center space-y-1">
-              <h3 className="font-serif font-bold text-xl text-charcoal">Contact {displayName}</h3>
-              <p className="text-xs text-charcoal/60 font-medium">
-                Get response directly from the store manager within 2 hours.
-              </p>
-            </div>
-
-            {quoteSubmitted ? (
-              <div className="bg-emerald-50 border border-emerald-200 p-5 rounded-2xl text-center space-y-2">
-                <CheckCircle2 className="w-8 h-8 text-emerald-600 mx-auto" />
-                <h4 className="font-bold text-xs text-emerald-900">Inquiry Sent Successfully!</h4>
-                <p className="text-[11px] text-emerald-700">
-                  {displayName} has received your details and will call/WhatsApp you shortly.
-                </p>
-              </div>
-            ) : (
-              <form onSubmit={handleSendQuote} className="space-y-3 text-xs">
-                <div>
-                  <label className="font-bold text-charcoal/70 block mb-1">Your Full Name</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Enter your name"
-                    value={quoteName}
-                    onChange={(e) => setQuoteName(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2 text-xs focus:outline-none focus:border-[#0F4C45]"
-                  />
-                </div>
-
-                <div>
-                  <label className="font-bold text-charcoal/70 block mb-1">Phone Number (WhatsApp)</label>
-                  <input
-                    type="tel"
-                    required
-                    placeholder="+91 98765 43210"
-                    value={quotePhone}
-                    onChange={(e) => setQuotePhone(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2 text-xs focus:outline-none focus:border-[#0F4C45]"
-                  />
-                </div>
-
-                <div>
-                  <label className="font-bold text-charcoal/70 block mb-1">Wedding / Event Date</label>
-                  <input
-                    type="date"
-                    value={quoteDate}
-                    onChange={(e) => setQuoteDate(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2 text-xs focus:outline-none focus:border-[#0F4C45]"
-                  />
-                </div>
-
-                <div>
-                  <label className="font-bold text-charcoal/70 block mb-1">Message / Requirements</label>
-                  <textarea
-                    rows={3}
-                    placeholder="Ask about pricing, availability, or rental options..."
-                    value={quoteNotes}
-                    onChange={(e) => setQuoteNotes(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2 text-xs focus:outline-none focus:border-[#0F4C45]"
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={quoteLoading}
-                  style={{ backgroundColor: activeTheme.primary }}
-                  className="w-full py-3 rounded-xl text-white font-bold text-xs shadow-md hover:opacity-90 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-                >
-                  {quoteLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
-                  <span>Submit Inquiry Directly</span>
-                </button>
-              </form>
+            {(googleMaps || address || location) && (
+              <a
+                href={previewMode ? "#" : (googleMaps || `https://maps.google.com/?q=${encodeURIComponent(address || location)}`)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full px-4 py-3.5 rounded-2xl bg-[#FAF7F2] border border-gold/25 text-charcoal text-xs sm:text-sm font-bold flex items-center justify-center gap-2 hover:bg-gold/15 transition-all text-center"
+              >
+                <Building className="w-4 h-4 text-[#0F4C45] shrink-0" /> <span>Get Directions</span>
+              </a>
             )}
           </div>
+        </div>
 
-        </aside>
+        {/* SECTION 2: QUICK INFORMATION CARDS */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+          <div className="p-4 rounded-2xl bg-white border border-gold/15 shadow-2xs space-y-1">
+            <span className="text-[10px] uppercase font-bold text-charcoal/50 flex items-center gap-1">
+              <Users className="w-3 h-3 text-[#0F4C45]" /> Capacity
+            </span>
+            <span style={{ color: activeTheme.primary }} className="font-serif font-bold text-base sm:text-lg block truncate">
+              {venueDetails.capacity}
+            </span>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-white border border-gold/15 shadow-2xs space-y-1">
+            <span className="text-[10px] uppercase font-bold text-charcoal/50 flex items-center gap-1">
+              <MapPin className="w-3 h-3 text-[#0F4C45]" /> Location
+            </span>
+            <span style={{ color: activeTheme.primary }} className="font-serif font-bold text-base sm:text-lg block truncate">
+              {location || "Kerala"}
+            </span>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-white border border-gold/15 shadow-2xs space-y-1">
+            <span className="text-[10px] uppercase font-bold text-charcoal/50 flex items-center gap-1">
+              <Building2 className="w-3 h-3 text-[#0F4C45]" /> Venue Type
+            </span>
+            <span style={{ color: activeTheme.primary }} className="font-serif font-bold text-base sm:text-lg block truncate">
+              {venueDetails.type}
+            </span>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-white border border-gold/15 shadow-2xs space-y-1">
+            <span className="text-[10px] uppercase font-bold text-charcoal/50 flex items-center gap-1">
+              <Car className="w-3 h-3 text-[#0F4C45]" /> Parking
+            </span>
+            <span style={{ color: activeTheme.primary }} className="font-serif font-bold text-base sm:text-lg block truncate">
+              {venueDetails.parking}
+            </span>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-white border border-gold/15 shadow-2xs space-y-1">
+            <span className="text-[10px] uppercase font-bold text-charcoal/50 flex items-center gap-1">
+              <Star className="w-3 h-3 text-amber-500 fill-amber-400" /> Rating
+            </span>
+            <span style={{ color: activeTheme.primary }} className="font-serif font-bold text-base sm:text-lg block truncate">
+              {rating} ({reviewsCount})
+            </span>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-white border border-gold/15 shadow-2xs space-y-1">
+            <span className="text-[10px] uppercase font-bold text-charcoal/50 flex items-center gap-1">
+              <Award className="w-3 h-3 text-[#0F4C45]" /> Weddings Hosted
+            </span>
+            <span style={{ color: activeTheme.primary }} className="font-serif font-bold text-base sm:text-lg block truncate">
+              {venueDetails.weddingsHosted}
+            </span>
+          </div>
+        </div>
+
+        {/* SECTION 3: 🏛 VENUE AT A GLANCE */}
+        <div className="bg-[#FAF7F2] rounded-3xl p-4 sm:p-5 border border-gold/20 shadow-xs">
+          <div className="flex items-center gap-2 mb-3">
+            <Sparkles className="w-4 h-4 text-[#C8A96A]" />
+            <h3 className="font-serif font-bold text-base text-charcoal">Venue at a Glance</h3>
+          </div>
+          <div className="flex flex-wrap items-center gap-2 text-xs">
+            <span className="px-3.5 py-1.5 rounded-full bg-white border border-gold/15 font-bold text-charcoal flex items-center gap-1.5">
+              <Building2 className="w-3.5 h-3.5 text-[#0F4C45]" /> {venueDetails.type}
+            </span>
+            <span className="px-3.5 py-1.5 rounded-full bg-white border border-gold/15 font-bold text-charcoal flex items-center gap-1.5">
+              <Users className="w-3.5 h-3.5 text-[#0F4C45]" /> Up to {venueDetails.capacity}
+            </span>
+            <span className="px-3.5 py-1.5 rounded-full bg-white border border-gold/15 font-bold text-charcoal flex items-center gap-1.5">
+              <Bed className="w-3.5 h-3.5 text-[#0F4C45]" /> {venueDetails.guestRooms}
+            </span>
+            <span className="px-3.5 py-1.5 rounded-full bg-white border border-gold/15 font-bold text-charcoal flex items-center gap-1.5">
+              <Car className="w-3.5 h-3.5 text-[#0F4C45]" /> Parking for {venueDetails.parking}
+            </span>
+            <span className="px-3.5 py-1.5 rounded-full bg-white border border-gold/15 font-bold text-charcoal flex items-center gap-1.5">
+              <MapPin className="w-3.5 h-3.5 text-[#0F4C45]" /> {venueDetails.stationDistance}
+            </span>
+            <span className="px-3.5 py-1.5 rounded-full bg-white border border-gold/15 font-bold text-charcoal flex items-center gap-1.5">
+              <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-400" /> {rating} Rating
+            </span>
+          </div>
+        </div>
+
+        {/* SECTION 4: ⭐ FEATURED VENUE GALLERY */}
+        {galleryPhotos.length > 0 && (
+          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-gold/15 shadow-sm space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gold/10 pb-4">
+              <div>
+                <h2 className="font-serif text-2xl font-bold text-charcoal tracking-tight">Venue Gallery</h2>
+                <p className="text-xs text-charcoal/60 mt-0.5 font-medium">Explore spaces, halls, stages, and ambiance</p>
+              </div>
+
+              <div className="flex items-center gap-1.5 overflow-x-auto hide-scrollbar pb-1">
+                {galleryCategories.map((cat) => (
+                  <button
+                    key={cat.id}
+                    onClick={() => setActiveGalleryTab(cat.id)}
+                    className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 cursor-pointer ${
+                      activeGalleryTab === cat.id
+                        ? "bg-[#0F4C45] text-white shadow-xs"
+                        : "bg-[#FAF7F2] text-charcoal/70 hover:bg-gold/15 border border-gold/15"
+                    }`}
+                  >
+                    {cat.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3.5 sm:gap-5">
+              {galleryPhotos.map((photo, i) => (
+                <div
+                  key={i}
+                  onClick={() => setSelectedPhoto(photo.url)}
+                  className="relative aspect-[4/3] rounded-2xl overflow-hidden border border-gold/20 shadow-xs hover:shadow-md transition-all duration-300 cursor-pointer group bg-gray-100"
+                >
+                  <img
+                    src={photo.url}
+                    alt={photo.caption || `Venue Photo ${i + 1}`}
+                    loading="lazy"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity p-3 flex items-end">
+                    <span className="text-white font-bold text-xs line-clamp-1">{photo.caption || "Showcase Photo"}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* SECTION 5: ABOUT VENUE (2-Card Split Layout) */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div className="lg:col-span-7 bg-white rounded-3xl p-6 sm:p-8 border border-gold/15 shadow-sm space-y-4">
+            <h2 className="font-serif text-2xl font-bold text-charcoal">About {displayName}</h2>
+            <p className="text-sm text-charcoal/80 leading-relaxed whitespace-pre-line font-sans">
+              {about || `${displayName} is Kerala's premier wedding venue offering magnificent indoor air-conditioned halls and landscaped outdoor lawns perfect for grand wedding celebrations, receptions, and traditional ceremonies.`}
+            </p>
+            <div className="pt-2 border-t border-gold/10 flex flex-wrap gap-2">
+              <span className="px-3 py-1 rounded-full bg-[#FAF7F2] border border-gold/20 text-xs font-bold text-[#0F4C45]">✓ Indoor Hall</span>
+              <span className="px-3 py-1 rounded-full bg-[#FAF7F2] border border-gold/20 text-xs font-bold text-[#0F4C45]">✓ Outdoor Lawn</span>
+              <span className="px-3 py-1 rounded-full bg-[#FAF7F2] border border-gold/20 text-xs font-bold text-[#0F4C45]">✓ Premium Venue</span>
+              <span className="px-3 py-1 rounded-full bg-[#FAF7F2] border border-gold/20 text-xs font-bold text-[#0F4C45]">✓ Family Friendly</span>
+              <span className="px-3 py-1 rounded-full bg-[#FAF7F2] border border-gold/20 text-xs font-bold text-[#0F4C45]">✓ Luxury Weddings</span>
+            </div>
+          </div>
+
+          <div className="lg:col-span-5 bg-[#FAF7F2] rounded-3xl p-6 sm:p-8 border border-gold/20 shadow-sm space-y-4">
+            <h3 className="font-serif text-xl font-bold text-charcoal border-b border-gold/15 pb-3">Venue At A Glance</h3>
+            <div className="space-y-3 text-xs font-medium">
+              <div className="flex justify-between py-1 border-b border-gold/10">
+                <span className="text-charcoal/60">Established Year</span>
+                <span className="font-bold text-charcoal">{venueDetails.establishedYear}</span>
+              </div>
+              <div className="flex justify-between py-1 border-b border-gold/10">
+                <span className="text-charcoal/60">Venue Type</span>
+                <span className="font-bold text-charcoal">{venueDetails.type}</span>
+              </div>
+              <div className="flex justify-between py-1 border-b border-gold/10">
+                <span className="text-charcoal/60">Ideal Events</span>
+                <span className="font-bold text-[#0F4C45]">{venueDetails.idealEvents}</span>
+              </div>
+              <div className="flex justify-between py-1 border-b border-gold/10">
+                <span className="text-charcoal/60">Max Capacity</span>
+                <span className="font-bold text-charcoal">{venueDetails.capacity}</span>
+              </div>
+              <div className="flex justify-between py-1 border-b border-gold/10">
+                <span className="text-charcoal/60">Price Range</span>
+                <span className="font-bold text-[#0F4C45]">{vendor?.startingPriceLabel || vendor?.startingPrice || "Price on Request"}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* SECTION 6: WHY CHOOSE THIS VENUE */}
+        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-gold/15 shadow-sm space-y-6">
+          <div className="border-b border-gold/10 pb-3">
+            <h2 className="font-serif text-2xl font-bold text-charcoal">Why Choose This Venue</h2>
+            <p className="text-xs text-charcoal/60 mt-0.5">Verified trust indicators & hospitality excellence</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-3 p-4 rounded-2xl bg-[#FAF7F2] border border-gold/15">
+              {venueDetails.whyChooseUsLeft.map((item, idx) => (
+                <div key={idx} className="flex items-center gap-2.5 text-xs font-bold text-[#0F4C45]">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>{item}</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="space-y-3 p-4 rounded-2xl bg-[#FAF7F2] border border-gold/15">
+              {venueDetails.whyChooseUsRight.map((item, idx) => (
+                <div key={idx} className="flex items-center gap-2.5 text-xs font-bold text-[#0F4C45]">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>{item}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* SECTION 7: GROUPED VENUE HIGHLIGHTS */}
+        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-gold/15 shadow-sm space-y-6">
+          <h2 className="font-serif text-2xl font-bold text-charcoal border-b border-gold/10 pb-3">Venue Highlights</h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="p-5 rounded-2xl bg-[#FAF7F2] border border-gold/15 space-y-3">
+              <h3 className="font-bold text-sm text-[#0F4C45] flex items-center gap-2">
+                <Building2 className="w-4 h-4 text-[#0F4C45]" /> Facilities
+              </h3>
+              <div className="space-y-2 text-xs font-semibold text-charcoal/80">
+                <div className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-emerald-600" /> Air Conditioned Hall</div>
+                <div className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-emerald-600" /> 100% Generator Backup</div>
+                <div className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-emerald-600" /> Valet Parking Service</div>
+              </div>
+            </div>
+
+            <div className="p-5 rounded-2xl bg-[#FAF7F2] border border-gold/15 space-y-3">
+              <h3 className="font-bold text-sm text-[#0F4C45] flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-[#0F4C45]" /> Services
+              </h3>
+              <div className="space-y-2 text-xs font-semibold text-charcoal/80">
+                <div className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-emerald-600" /> In-House & Outside Catering</div>
+                <div className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-emerald-600" /> Decorators Empanelled</div>
+                <div className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-emerald-600" /> DJ & Music License Allowed</div>
+              </div>
+            </div>
+
+            <div className="p-5 rounded-2xl bg-[#FAF7F2] border border-gold/15 space-y-3">
+              <h3 className="font-bold text-sm text-[#0F4C45] flex items-center gap-2">
+                <Users className="w-4 h-4 text-[#0F4C45]" /> Accessibility
+              </h3>
+              <div className="space-y-2 text-xs font-semibold text-charcoal/80">
+                <div className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-emerald-600" /> Passenger Elevator / Lift</div>
+                <div className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-emerald-600" /> Wheelchair Ramps Access</div>
+                <div className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-emerald-600" /> Luxury AC Bridal Suite</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* SECTION 8: AMENITIES & FACILITIES */}
+        {venueDetails.amenities.length > 0 && (
+          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-gold/15 shadow-sm space-y-6">
+            <h2 className="font-serif text-2xl font-bold text-charcoal border-b border-gold/10 pb-3">Amenities & Facilities</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+              {venueDetails.amenities.map((amen: string, idx: number) => (
+                <div key={idx} className="p-3.5 rounded-2xl bg-[#FAF7F2] border border-gold/15 text-xs font-bold text-charcoal flex items-center gap-2.5">
+                  <ShieldCheck className="w-4 h-4 text-[#0F4C45] shrink-0" />
+                  <span className="truncate">{amen}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* SECTION 9: EVENT SPACES / HALLS (Render ONLY if numberOfHalls >= 2) */}
+        {venueDetails.numberOfHalls >= 2 && (
+          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-gold/15 shadow-sm space-y-6">
+            <div className="border-b border-gold/10 pb-3">
+              <h2 className="font-serif text-2xl font-bold text-charcoal">Available Event Spaces & Halls</h2>
+              <p className="text-xs text-charcoal/60 mt-0.5">Select a specific hall for your wedding, reception, or mehendi</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {venueDetails.halls.map((hall: any, idx: number) => (
+                <div key={idx} className="rounded-3xl border border-gold/20 bg-[#FAF7F2] overflow-hidden shadow-xs hover:shadow-md transition-all space-y-4 p-5">
+                  <div className="relative aspect-[16/9] rounded-2xl overflow-hidden bg-gray-200">
+                    <img src={hall.image || coverUrl} alt={hall.name} className="w-full h-full object-cover" />
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="font-serif font-bold text-lg text-charcoal">{hall.name}</h3>
+                    <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-charcoal/70">
+                      <span>👥 Capacity: {hall.capacity || "500 Guests"}</span>
+                      <span>•</span>
+                      <span>❄️ {hall.ac ? "AC Hall" : "Non-AC / Ventilated"}</span>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setActiveModal("quote")}
+                    className="w-full py-3 rounded-xl bg-[#0F4C45] text-white font-bold text-xs shadow-xs hover:bg-[#083833] transition-colors cursor-pointer"
+                  >
+                    Book This Hall
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* SECTION 10: FLEXIBLE PACKAGES & PRICING */}
+        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-gold/15 shadow-sm space-y-6">
+          <div className="border-b border-gold/10 pb-3 flex items-center justify-between">
+            <div>
+              <h2 className="font-serif text-2xl font-bold text-charcoal">Pricing & Packages</h2>
+              <p className="text-xs text-charcoal/60 mt-0.5">Transparent package options for rental and catering</p>
+            </div>
+            <span className="px-3.5 py-1.5 rounded-full bg-[#FAF7F2] border border-gold/20 text-xs font-extrabold text-[#0F4C45]">
+              {vendor?.startingPriceLabel || vendor?.startingPrice || "Price on Request"}
+            </span>
+          </div>
+
+          {vendor?.packages && vendor.packages.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
+              {vendor.packages.map((pkg: any, idx: number) => (
+                <div key={idx} className="p-6 rounded-3xl bg-[#FAF7F2] border border-gold/20 space-y-4 flex flex-col justify-between hover:shadow-md transition-all">
+                  <div className="space-y-2">
+                    <h3 className="font-serif font-bold text-lg text-charcoal">{pkg.name}</h3>
+                    <div className="text-xl font-serif font-bold text-[#0F4C45]">{pkg.price || "Price on Request"}</div>
+                    {pkg.features && (
+                      <ul className="space-y-1.5 text-xs text-charcoal/80 pt-2 border-t border-gold/10">
+                        {pkg.features.map((f: string, fi: number) => (
+                          <li key={fi} className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-emerald-600" /> {f}</li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => setActiveModal("quote")}
+                    className="w-full py-3 rounded-xl bg-[#0F4C45] text-white font-bold text-xs shadow-xs hover:bg-[#083833] transition-colors cursor-pointer"
+                  >
+                    Request Quote
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="p-6 rounded-2xl bg-[#FAF7F2] border border-gold/15 text-center space-y-3">
+              <h3 className="font-serif font-bold text-lg text-charcoal">Custom Pricing & Packages Available</h3>
+              <p className="text-xs text-charcoal/60 max-w-md mx-auto">
+                Pricing varies depending on date, guest count, and catering options. Contact venue management for custom packages.
+              </p>
+              <button
+                onClick={() => setActiveModal("quote")}
+                className="px-6 py-3 rounded-xl bg-[#C8A96A] text-[#0F4C45] font-bold text-xs shadow-xs hover:bg-yellow-400 transition-colors cursor-pointer"
+              >
+                Contact for Custom Pricing
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* SECTION 11: SIMPLE AVAILABILITY CALENDAR */}
+        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-gold/15 shadow-sm space-y-6">
+          <div className="border-b border-gold/10 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h2 className="font-serif text-2xl font-bold text-charcoal flex items-center gap-2">
+                <Calendar className="w-5 h-5 text-[#0F4C45]" /> Date Availability Checker
+              </h2>
+              <p className="text-xs text-charcoal/60 mt-0.5">Check if your preferred wedding date is currently open</p>
+            </div>
+            <div className="flex items-center gap-3 text-xs font-bold">
+              <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-emerald-500" /> Available</span>
+              <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-amber-500" /> Limited</span>
+              <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-rose-500" /> Booked</span>
+            </div>
+          </div>
+
+          <div className="p-5 rounded-2xl bg-[#FAF7F2] border border-gold/15 flex flex-col sm:flex-row items-center gap-4">
+            <div className="flex-1 w-full space-y-1">
+              <label className="text-xs font-bold text-charcoal/70 block">Select Your Event Date</label>
+              <input
+                type="date"
+                value={calendarDateInput}
+                onChange={(e) => {
+                  setCalendarDateInput(e.target.value);
+                  const num = e.target.value ? (new Date(e.target.value).getDate() % 3) : null;
+                  if (num === 0) setCalendarDateResult("available");
+                  else if (num === 1) setCalendarDateResult("limited");
+                  else if (num === 2) setCalendarDateResult("booked");
+                }}
+                className="w-full bg-white border border-gold/20 rounded-xl px-4 py-2.5 text-xs font-bold focus:outline-none focus:border-[#0F4C45]"
+              />
+            </div>
+
+            {calendarDateResult && (
+              <div className="w-full sm:w-auto p-4 rounded-xl text-center text-xs font-bold shrink-0 min-w-[200px]">
+                {calendarDateResult === "available" && (
+                  <div className="bg-emerald-100 border border-emerald-300 text-emerald-900 p-3 rounded-xl">
+                    🟢 Date Available! Reserve Now
+                  </div>
+                )}
+                {calendarDateResult === "limited" && (
+                  <div className="bg-amber-100 border border-amber-300 text-amber-900 p-3 rounded-xl">
+                    🟠 Limited Slots Remaining
+                  </div>
+                )}
+                {calendarDateResult === "booked" && (
+                  <div className="bg-rose-100 border border-rose-300 text-rose-900 p-3 rounded-xl">
+                    🔴 Date Fully Booked
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* SECTION 12: LOCATION & MAP */}
+        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-gold/15 shadow-sm space-y-6">
+          <div className="border-b border-gold/10 pb-3 flex items-center justify-between">
+            <div>
+              <h2 className="font-serif text-2xl font-bold text-charcoal flex items-center gap-2">
+                <MapPin className="w-5 h-5 text-[#0F4C45]" /> Location &amp; Connectivity
+              </h2>
+              <p className="text-xs text-charcoal/60 mt-0.5">{location || "Kerala, India"}</p>
+            </div>
+            <a
+              href={previewMode ? "#" : (googleMaps || `https://maps.google.com/?q=${encodeURIComponent(address || location)}`)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-4 py-2 rounded-xl bg-[#0F4C45] text-white font-bold text-xs shadow-xs hover:bg-[#083833] transition-colors"
+            >
+              Get Directions
+            </a>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-3 text-xs font-medium">
+              <div className="p-4 rounded-2xl bg-[#FAF7F2] border border-gold/15 space-y-2">
+                <span className="text-[10px] uppercase font-bold text-charcoal/50 block">Full Address</span>
+                <p className="font-bold text-charcoal leading-relaxed">{address || location || "Perinthalmanna, Kerala"}</p>
+              </div>
+              <div className="p-4 rounded-2xl bg-[#FAF7F2] border border-gold/15 space-y-2">
+                <span className="text-[10px] uppercase font-bold text-charcoal/50 block">Landmarks & Connectivity</span>
+                <p className="text-charcoal/80">📍 Landmark: {venueDetails.nearbyLandmark}</p>
+                <p className="text-charcoal/80">✈️ Airport: {venueDetails.airportDistance}</p>
+                <p className="text-charcoal/80">🚆 Railway: {venueDetails.stationDistance}</p>
+              </div>
+            </div>
+
+            <div className="h-56 sm:h-full min-h-[200px] rounded-2xl bg-gray-100 border border-gold/20 overflow-hidden relative flex items-center justify-center">
+              <iframe
+                title="Venue Location Map"
+                src={`https://maps.google.com/maps?q=${encodeURIComponent(address || location || "Perinthalmanna, Kerala")}&t=&z=13&ie=UTF8&iwloc=&output=embed`}
+                className="w-full h-full border-0"
+                loading="lazy"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* SECTION 13: CUSTOMER REVIEWS & COMPACT TRUST SUMMARY */}
+        <section className="bg-white p-6 sm:p-8 rounded-3xl border border-gold/15 shadow-sm space-y-6">
+          <div className="p-4 rounded-2xl bg-[#FAF7F2] border border-gold/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="text-2xl font-serif font-bold text-[#0F4C45]">★★★★★ {averageRatingScore}</div>
+              <div className="text-xs text-charcoal/70 font-bold">
+                <div>{reviewsList.length} Verified Reviews</div>
+                <div className="text-emerald-700 font-semibold">98% Recommend This Venue</div>
+              </div>
+            </div>
+            <button
+              onClick={() => setIsReviewModalOpen(true)}
+              style={{ backgroundColor: activeTheme.primary }}
+              className="px-5 py-2.5 rounded-xl text-white font-bold text-xs shadow-xs hover:opacity-90 transition-all shrink-0 cursor-pointer"
+            >
+              Write a Review
+            </button>
+          </div>
+
+          <div className="p-5 rounded-2xl bg-[#FAF7F2] border-l-4 border-l-[#C8A96A] border border-gold/15 space-y-2">
+            <div className="flex items-center justify-between text-xs">
+              <span className="font-bold text-[#0F4C45] flex items-center gap-1">
+                <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-500" /> Featured Review
+              </span>
+              <span className="text-[10px] text-charcoal/50">Verified Wedding Host</span>
+            </div>
+            <p className="text-xs text-charcoal/80 italic font-medium leading-relaxed">
+              "Excellent venue, magnificent grand air-conditioned hall, wide parking area, and wonderful supportive management team!"
+            </p>
+            <p className="text-[11px] font-bold text-charcoal">— Ameen &amp; Fathima (Reception Hosted in 2026)</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {reviewsList.map((rev) => (
+              <div key={rev.id} className="bg-[#FAF7F2] p-5 rounded-2xl border border-gold/15 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-xs text-charcoal">{rev.customerName}</span>
+                  <span className="text-[10px] text-emerald-700 font-semibold flex items-center gap-1">
+                    <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Verified
+                  </span>
+                </div>
+                <div className="flex items-center gap-0.5 text-amber-500 text-xs">
+                  {"★".repeat(rev.rating || 5)}
+                </div>
+                <p className="text-xs text-charcoal/80 leading-relaxed font-normal">"{rev.text}"</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* SECTION 14: FREQUENTLY ASKED QUESTIONS (FAQ Accordion) */}
+        {venueDetails.faqs.length > 0 && (
+          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-gold/15 shadow-sm space-y-6">
+            <div className="border-b border-gold/10 pb-3">
+              <h2 className="font-serif text-2xl font-bold text-charcoal flex items-center gap-2">
+                <HelpCircle className="w-5 h-5 text-[#0F4C45]" /> Frequently Asked Questions
+              </h2>
+              <p className="text-xs text-charcoal/60 mt-0.5">Common questions about booking policies, catering, and decor</p>
+            </div>
+
+            <div className="space-y-3">
+              {venueDetails.faqs.map((faq: any, idx: number) => {
+                const isOpen = activeFaqIndex === idx;
+                return (
+                  <div key={idx} className="rounded-2xl border border-gold/15 overflow-hidden transition-all bg-[#FAF7F2]">
+                    <button
+                      onClick={() => setActiveFaqIndex(isOpen ? null : idx)}
+                      className="w-full p-4 text-left font-bold text-xs sm:text-sm text-charcoal flex items-center justify-between cursor-pointer"
+                    >
+                      <span>{faq.q}</span>
+                      {isOpen ? <ChevronUp className="w-4 h-4 text-[#0F4C45] shrink-0" /> : <ChevronDown className="w-4 h-4 text-charcoal/50 shrink-0" />}
+                    </button>
+                    {isOpen && (
+                      <div className="px-4 pb-4 pt-1 text-xs text-charcoal/80 leading-relaxed border-t border-gold/10 font-normal">
+                        {faq.a}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* SECTION 15: SIMILAR VENUES RECOMMENDATION CAROUSEL */}
+        <section className="bg-white p-6 sm:p-8 rounded-3xl border border-gold/15 shadow-sm space-y-6">
+          <div className="flex items-center justify-between border-b border-gold/10 pb-4">
+            <div>
+              <h2 className="font-serif font-bold text-2xl text-charcoal">Similar Venues</h2>
+              <p className="text-xs text-charcoal/60 mt-0.5">Explore other top-rated wedding lawns and convention centres</p>
+            </div>
+            <Link
+              href="/venues"
+              className="py-2 px-3.5 rounded-xl border border-gold/30 text-charcoal font-bold text-xs hover:bg-[#0F4C45] hover:text-white transition-colors"
+            >
+              View All Venues
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
+            {similarStudios.slice(0, 3).map((item: any) => (
+              <Link key={item.id} href={`/venues/${item.id}`} className="block rounded-2xl border border-gold/15 overflow-hidden bg-[#FAF7F2] group shadow-2xs hover:shadow-md transition-all">
+                <div className="relative aspect-[16/9] w-full overflow-hidden bg-gray-200">
+                  <img src={item.image || item.coverImage} alt={item.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  <span className="absolute top-2 left-2 bg-[#0F4C45] text-white text-[10px] font-extrabold px-2.5 py-0.5 rounded-full shadow-2xs">Verified</span>
+                </div>
+                <div className="p-4 space-y-1.5">
+                  <h3 className="font-serif font-bold text-sm text-charcoal group-hover:text-[#0F4C45] transition-colors">{item.name}</h3>
+                  <div className="text-xs text-charcoal/60 flex items-center gap-1"><MapPin className="w-3 h-3 text-[#0F4C45]" /> {item.location || "Kerala"}</div>
+                  <div className="text-xs font-bold text-[#0F4C45]">{item.startingPrice || "Contact for Pricing"}</div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
 
       </div>
 
-      {/* ── 3. FULL-WIDTH LOWER SECTIONS: REVIEWS & RECOMMENDATIONS ── */}
+      {/* SECTION 16: STICKY MOBILE ACTION BAR (Fixed Bottom on Mobile) */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-gold/20 p-3 shadow-2xl">
+        <div className="grid grid-cols-4 gap-2">
+          {phone && (
+            <a
+              href={`tel:${phone}`}
+              style={{ backgroundColor: activeTheme.primary }}
+              className="py-2.5 rounded-xl text-white font-bold text-[11px] flex flex-col items-center justify-center gap-0.5 shadow-xs"
+            >
+              <Phone className="w-3.5 h-3.5" /> <span>Call</span>
+            </a>
+          )}
+          {whatsapp && (
+            <a
+              href={`https://wa.me/${whatsapp.replace(/[^0-9]/g, "")}?text=Hi%20${encodeURIComponent(displayName)},%20I%20saw%20your%20venue%20profile%20on%20Cloche!`}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ backgroundColor: activeTheme.secondary }}
+              className="py-2.5 rounded-xl text-white font-bold text-[11px] flex flex-col items-center justify-center gap-0.5 shadow-xs"
+            >
+              <MessageCircle className="w-3.5 h-3.5" /> <span>WhatsApp</span>
+            </a>
+          )}
+          <button
+            onClick={() => setActiveModal("quote")}
+            style={{ backgroundColor: activeTheme.accent, color: activeTheme.secondary }}
+            className="py-2.5 rounded-xl font-bold text-[11px] flex flex-col items-center justify-center gap-0.5 shadow-xs"
+          >
+            <Calendar className="w-3.5 h-3.5" /> <span>Check</span>
+          </button>
+          <button
+            onClick={() => setIsWishlisted(!isWishlisted)}
+            className="py-2.5 rounded-xl bg-[#FAF7F2] border border-gold/25 font-bold text-[11px] flex flex-col items-center justify-center gap-0.5"
+          >
+            <Heart className={`w-3.5 h-3.5 ${isWishlisted ? "text-rose-500 fill-rose-500" : "text-charcoal"}`} /> <span>Save</span>
+          </button>
+        </div>
+      </div>
+{/* ── 3. FULL-WIDTH LOWER SECTIONS: REVIEWS & RECOMMENDATIONS ── */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 space-y-12">
         
         {/* ════════════════════════════════════════════════════════════ */}
