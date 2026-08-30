@@ -63,7 +63,8 @@ export function GroomWearDetailClient({ vendor }: { vendor: GroomWearVendor }) {
     }
   };
 
-  const initials = vendor.name
+  const storeName = vendor?.name || "Groom Wear Studio";
+  const initials = storeName
     .split(" ")
     .map((w) => w[0])
     .join("")
@@ -71,11 +72,12 @@ export function GroomWearDetailClient({ vendor }: { vendor: GroomWearVendor }) {
     .toUpperCase();
 
   // Similar groom wear stores fallback
-  const similarStores = groomWearVendors.filter((v) => v.id !== vendor.id).slice(0, 4);
+  const similarStores = (groomWearVendors || []).filter((v) => v.id !== vendor?.id).slice(0, 4);
 
+  const collections = Array.isArray(vendor?.collections) ? vendor.collections : [];
   const heroImages = [
-    vendor.image,
-    ...vendor.collections.map((c) => c.image),
+    vendor?.image || (vendor as any)?.coverImage,
+    ...collections.map((c) => c?.image),
   ].filter(Boolean);
 
   return (
