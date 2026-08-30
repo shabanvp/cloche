@@ -258,8 +258,49 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
     };
   }, [vendor, sf]);
 
+  // Business Rule: Collections are rendered ONLY for Bridal Studio, Groom Studio, or Wedding Studio.
+  const shouldShowCollections = useMemo(() => {
+    const norm = (
+      vendor?.categorySlug ||
+      vendor?.categoryLabel ||
+      vendor?.category ||
+      vendor?.vendorCategory ||
+      vendor?.type ||
+      ""
+    ).toString().toLowerCase().trim();
+
+    const isBridal =
+      norm.includes("bridal-studio") ||
+      norm.includes("bridal_studio") ||
+      norm.includes("bridal-wear") ||
+      norm.includes("bridal_wear") ||
+      norm === "bridal studio" ||
+      norm === "bridal wear" ||
+      norm === "bridal";
+
+    const isGroom =
+      norm.includes("groom-studio") ||
+      norm.includes("groom_studio") ||
+      norm.includes("groom-wear") ||
+      norm.includes("groom_wear") ||
+      norm === "groom studio" ||
+      norm === "groom wear" ||
+      norm === "groom";
+
+    const isWeddingStudio =
+      norm.includes("wedding-studio") ||
+      norm.includes("wedding_studio") ||
+      norm === "wedding studio" ||
+      norm === "boutique" ||
+      norm === "boutiques";
+
+    return isBridal || isGroom || isWeddingStudio;
+  }, [vendor]);
+
   // Canonical Collections created by this Specific Studio
   const boutiqueCollectionsList = useMemo(() => {
+    if (!shouldShowCollections) return [];
+
     if (Array.isArray(vendor?.collections) && vendor.collections.length > 0) return vendor.collections;
     if (Array.isArray(sf?.collections) && sf.collections.length > 0) return sf.collections;
 
@@ -1135,82 +1176,84 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
             </div>
           </div>
 
-          {/* B. BOUTIQUE SHOWROOM FEATURED COLLECTIONS (Clean WedMeGood Style Shop Grid) */}
-          <div className="bg-white rounded-3xl p-5 sm:p-6 border border-gold/15 shadow-sm space-y-4">
-            <div className="flex items-center justify-between border-b border-gold/10 pb-3">
-              <h2 className="font-serif font-bold text-xl sm:text-2xl text-charcoal">
-                Collections
-              </h2>
+          {/* B. BOUTIQUE SHOWROOM FEATURED COLLECTIONS (Render ONLY for Bridal Studio, Groom Studio, Wedding Studio) */}
+          {shouldShowCollections && boutiqueCollectionsList.length > 0 && (
+            <div className="bg-white rounded-3xl p-5 sm:p-6 border border-gold/15 shadow-sm space-y-4">
+              <div className="flex items-center justify-between border-b border-gold/10 pb-3">
+                <h2 className="font-serif font-bold text-xl sm:text-2xl text-charcoal">
+                  Collections
+                </h2>
 
-              <Link
-                href={`/wedding-story/${vendor?.slug || vendor?.id || "boutique"}/collections`}
-                className="py-1.5 px-3 rounded-xl border border-gold/30 text-charcoal hover:bg-[#0F4C45] hover:text-white font-bold text-xs transition-all flex items-center gap-1 shrink-0"
-              >
-                <span>View All</span>
-                <ChevronRight className="w-4 h-4" />
-              </Link>
-            </div>
+                <Link
+                  href={`/wedding-story/${vendor?.slug || vendor?.id || "boutique"}/collections`}
+                  className="py-1.5 px-3 rounded-xl border border-gold/30 text-charcoal hover:bg-[#0F4C45] hover:text-white font-bold text-xs transition-all flex items-center gap-1 shrink-0"
+                >
+                  <span>View All</span>
+                  <ChevronRight className="w-4 h-4" />
+                </Link>
+              </div>
 
-            {/* WedMeGood Style Collections Layout: 4 Cards on Desktop Grid, Scrollable Carousel on Mobile */}
-            <div className="flex overflow-x-auto hide-scrollbar snap-x snap-mandatory gap-3.5 sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 sm:overflow-visible pb-2">
-              {boutiqueCollectionsList.slice(0, 4).map((col: any) => {
-                const outfitName = col.name || col.outfitName || col.title || "Signature Couture Collection";
-                const shopName = displayName || "Luxury Boutique";
-                const boutiqueCity = vendor?.city || vendor?.district || (vendor?.address ? vendor.address.split(",").pop()?.trim() : "") || "Kerala";
-                const priceText = col.price || (col.outfits && col.outfits[0]?.price) || vendor?.startingPrice || "Contact for Pricing";
+              {/* WedMeGood Style Collections Layout: 4 Cards on Desktop Grid, Scrollable Carousel on Mobile */}
+              <div className="flex overflow-x-auto hide-scrollbar snap-x snap-mandatory gap-3.5 sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 sm:overflow-visible pb-2">
+                {boutiqueCollectionsList.slice(0, 4).map((col: any) => {
+                  const outfitName = col.name || col.outfitName || col.title || "Signature Couture Collection";
+                  const shopName = displayName || "Luxury Boutique";
+                  const boutiqueCity = vendor?.city || vendor?.district || (vendor?.address ? vendor.address.split(",").pop()?.trim() : "") || "Kerala";
+                  const priceText = col.price || (col.outfits && col.outfits[0]?.price) || vendor?.startingPrice || "Contact for Pricing";
 
-                return (
-                  <Link
-                    key={col.id}
-                    href={`/collections/${col.id}`}
-                    className="flex-shrink-0 w-[210px] sm:w-auto snap-start cursor-pointer group flex flex-col justify-between block"
-                  >
-                    <div>
-                      {/* Clean Portrait Image matching Image 1 */}
-                      <div className="relative aspect-[3/4] w-full rounded-2xl overflow-hidden bg-charcoal/5 shadow-xs border border-gold/15">
-                        <img
-                          src={col.coverImage || (col.outfits && col.outfits[0]?.image)}
-                          alt={outfitName}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        />
-                      </div>
+                  return (
+                    <Link
+                      key={col.id}
+                      href={`/collections/${col.id}`}
+                      className="flex-shrink-0 w-[210px] sm:w-auto snap-start cursor-pointer group flex flex-col justify-between block"
+                    >
+                      <div>
+                        {/* Clean Portrait Image matching Image 1 */}
+                        <div className="relative aspect-[3/4] w-full rounded-2xl overflow-hidden bg-charcoal/5 shadow-xs border border-gold/15">
+                          <img
+                            src={col.coverImage || (col.outfits && col.outfits[0]?.image)}
+                            alt={outfitName}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          />
+                        </div>
 
-                      {/* Clean Stacked Information Block matching Image 1 */}
-                      <div className="pt-2.5 px-1 space-y-0.5">
-                        <p className="text-xs text-charcoal/70 line-clamp-1 font-medium">
-                          {outfitName}
-                        </p>
-                        <h3 className="font-bold text-sm text-charcoal group-hover:text-[#0F4C45] transition-colors line-clamp-1">
-                          {shopName}
-                        </h3>
-                        <p className="text-xs text-charcoal/50 flex items-center gap-1 font-medium capitalize">
-                          {boutiqueCity}
-                        </p>
-                        {priceText && (
-                          <p className="text-xs sm:text-sm font-bold text-[#0F4C45] pt-0.5">
-                            {priceText}
+                        {/* Clean Stacked Information Block matching Image 1 */}
+                        <div className="pt-2.5 px-1 space-y-0.5">
+                          <p className="text-xs text-charcoal/70 line-clamp-1 font-medium">
+                            {outfitName}
                           </p>
-                        )}
+                          <h3 className="font-bold text-sm text-charcoal group-hover:text-[#0F4C45] transition-colors line-clamp-1">
+                            {shopName}
+                          </h3>
+                          <p className="text-xs text-charcoal/50 flex items-center gap-1 font-medium capitalize">
+                            {boutiqueCity}
+                          </p>
+                          {priceText && (
+                            <p className="text-xs sm:text-sm font-bold text-[#0F4C45] pt-0.5">
+                              {priceText}
+                            </p>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
+                    </Link>
+                  );
+                })}
+              </div>
 
-            <div className="pt-1 text-center">
-              <Link
-                href={`/wedding-story/${vendor?.slug || vendor?.id || "boutique"}/collections`}
-                className="inline-flex items-center justify-center gap-2 w-full py-3 rounded-2xl bg-[#0F4C45] text-white font-bold text-xs shadow-md hover:bg-[#12584E] transition-all"
-              >
-                <span>View All Collections ({boutiqueCollectionsList.length})</span>
-                <ChevronRight className="w-4 h-4" />
-              </Link>
+              <div className="pt-1 text-center">
+                <Link
+                  href={`/wedding-story/${vendor?.slug || vendor?.id || "boutique"}/collections`}
+                  className="inline-flex items-center justify-center gap-2 w-full py-3 rounded-2xl bg-[#0F4C45] text-white font-bold text-xs shadow-md hover:bg-[#12584E] transition-all"
+                >
+                  <span>View All Collections ({boutiqueCollectionsList.length})</span>
+                  <ChevronRight className="w-4 h-4" />
+                </Link>
+              </div>
             </div>
-          </div>
+          )}
 
           {/* B. BUSINESS SNAPSHOT CARDS */}
-          {(businessInfo.experienceYears || businessInfo.collectionsCount || businessInfo.guestCapacity || businessInfo.parkingCapacity) && (
+          {(businessInfo.experienceYears || (shouldShowCollections && businessInfo.collectionsCount) || businessInfo.guestCapacity || businessInfo.parkingCapacity) && (
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
               {businessInfo.experienceYears && (
                 <div className="p-4 rounded-2xl bg-white border border-gold/15 shadow-2xs space-y-1">
@@ -1221,7 +1264,7 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
                 </div>
               )}
 
-              {businessInfo.collectionsCount && (
+              {shouldShowCollections && businessInfo.collectionsCount && (
                 <div className="p-4 rounded-2xl bg-white border border-gold/15 shadow-2xs space-y-1">
                   <span className="text-[10px] uppercase font-bold text-charcoal/50 block">Collections Count</span>
                   <span style={{ color: activeTheme.primary }} className="font-serif font-bold text-lg sm:text-xl block">
