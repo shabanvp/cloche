@@ -7,266 +7,580 @@ import { Footer } from "@/components/Footer";
 import { AdBanner } from "@/components/AdBanner";
 import { AutocompleteSearch } from "@/components/AutocompleteSearch";
 import { DigitalInvitationsSection } from "@/components/DigitalInvitationsSection";
-import { WhyChooseClocheSection } from "@/components/homepage/WhyChooseClocheSection";
-import { TrendingVendorsSection, TrendingVendor } from "@/components/homepage/TrendingVendorsSection";
-import { FeaturedVendorsSection } from "@/components/homepage/FeaturedVendorsSection";
-import { WeddingInspirationSection } from "@/components/homepage/WeddingInspirationSection";
-import { CuratedShopSection } from "@/components/homepage/CuratedShopSection";
-import { RealWeddingsHighlightSection } from "@/components/homepage/RealWeddingsHighlightSection";
-import { PlanningToolsSection } from "@/components/homepage/PlanningToolsSection";
-import { DealsOffersSection } from "@/components/homepage/DealsOffersSection";
-import { MobileAppDownloadSection } from "@/components/homepage/MobileAppDownloadSection";
-import { SuccessStoriesSection } from "@/components/homepage/SuccessStoriesSection";
-import { Sparkles, ArrowRight } from "lucide-react";
-import { HOMEPAGE_CATEGORY_STRIP, CANONICAL_VENDOR_CATEGORIES } from "@/lib/categories";
+import { Sparkles, MapPin, Calendar, BookHeart, Plus, ArrowRight, Star, Heart, Flame } from "lucide-react";
+import { HOMEPAGE_CATEGORY_STRIP } from "@/lib/categories";
+import { RealWeddingStoryDb } from "@/lib/realWeddings";
+import { VendorCardSkeleton } from "@/components/skeletons/VendorCardSkeleton";
 
 export const dynamic = "force-dynamic";
 
+interface VendorItem {
+  id: string;
+  slug: string;
+  name: string;
+  category: string;
+  categorySlug?: string;
+  city: string;
+  rating: number;
+  reviewCount?: number;
+  startingPrice: string;
+  coverImage?: string;
+  logo?: string;
+}
+
 export default function Home() {
-  const [trendingVendors, setTrendingVendors] = useState<TrendingVendor[]>([]);
+  const [trendingVendors, setTrendingVendors] = useState<VendorItem[]>([]);
+  const [featuredVendors, setFeaturedVendors] = useState<VendorItem[]>([]);
+  const [vendorsLoading, setVendorsLoading] = useState(true);
+  const [stories, setStories] = useState<RealWeddingStoryDb[]>([]);
+  const [storiesLoading, setStoriesLoading] = useState(true);
 
+  // Fetch real registered vendors, boutiques, and real wedding stories concurrently
   useEffect(() => {
-    async function loadVendors() {
-      try {
-        const res = await fetch("/api/v1/public/vendors?limit=8");
-        const data = await res.json();
+    let isMounted = true;
 
-        if (data.success && Array.isArray(data.data) && data.data.length > 0) {
-          const mapped: TrendingVendor[] = data.data.map((v: any, idx: number) => ({
-            id: v.id,
-            slug: v.slug || v.id,
-            name: v.name || "Verified Vendor",
-            category: v.category || "Wedding Expert",
-            city: v.city || "Kerala",
-            rating: Number(v.rating || 4.8),
-            reviewCount: Number(v.reviewCount || 45),
-            startingPrice: v.startingPrice || "Contact for pricing",
-            coverImage:
-              v.coverImage ||
-              v.logo ||
-              "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=80",
-            responseTime: "< 1 hr response",
-            tagline: "Curated premium wedding specialization & luxury service",
-            isVerified: true,
-            isTrending: true,
-            adminBadge: idx % 4 === 0 ? "Editor's Choice" : idx % 4 === 1 ? "Trending" : idx % 4 === 2 ? "Premium" : "Featured",
-          }));
-          setTrendingVendors(mapped);
+    async function loadData() {
+      try {
+        const [vRes, bRes, sRes] = await Promise.all([
+          fetch("/api/v1/public/vendors?limit=12").catch(() => null),
+          fetch("/api/boutiques").catch(() => null),
+          fetch("/api/v1/public/real-weddings?limit=3").catch(() => null),
+        ]);
+
+        if (!isMounted) return;
+
+        // Process vendors & boutiques
+        let allPublicVendors: VendorItem[] = [];
+        if (vRes) {
+          try {
+            const data = await vRes.json();
+            if (data.success && Array.isArray(data.data) && data.data.length > 0) {
+              allPublicVendors = data.data.map((v: any) => ({
+                id: v.id,
+                slug: v.slug || v.id,
+                name: v.name || "Verified Vendor",
+                category: v.category || "Wedding Expert",
+                categorySlug: v.categorySlug || "vendors",
+                city: v.city || "Kerala",
+                rating: Number(v.rating || 0),
+                reviewCount: Number(v.reviewCount || 0),
+                startingPrice: v.startingPrice || "Contact for pricing",
+                coverImage:
+                  v.coverImage ||
+                  v.logo ||
+                  "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=80",
+              }));
+            }
+          } catch (e) {}
+        }
+
+        let boutiqueVendors: VendorItem[] = [];
+        if (bRes) {
+          try {
+            const bData = await bRes.json();
+            if (Array.isArray(bData) && bData.length > 0) {
+              boutiqueVendors = bData.map((b: any) => ({
+                id: String(b.id),
+                slug: b.slug || String(b.id),
+                name: b.name || b.boutique_name || "Luxury Boutique",
+                category: b.category || "Wedding Vendor",
+                categorySlug: "venues",
+                city: b.city || "Kerala",
+                rating: Number(b.rating || 0),
+                reviewCount: Number(b.review_count || 0),
+                startingPrice: b.starting_price ? `₹${Number(b.starting_price).toLocaleString("en-IN")}` : "Contact for pricing",
+                coverImage:
+                  b.cover_image ||
+                  b.logo ||
+                  "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=800&q=80",
+              }));
+            }
+          } catch (e) {}
+        }
+
+        // Set Trending Vendors (Top 4)
+        const trending = allPublicVendors.length > 0 ? allPublicVendors.slice(0, 4) : boutiqueVendors.slice(0, 4);
+        setTrendingVendors(trending);
+
+        // Deduplicate Featured Vendors
+        const trendingIds = new Set(trending.map((t) => String(t.id).toLowerCase()));
+        const trendingSlugs = new Set(trending.map((t) => (t.slug || "").toLowerCase()));
+
+        const candidates = [...allPublicVendors.slice(4), ...boutiqueVendors];
+        const deduplicatedFeatured = candidates.filter(
+          (v) => !trendingIds.has(String(v.id).toLowerCase()) && !trendingSlugs.has((v.slug || "").toLowerCase())
+        );
+
+        setFeaturedVendors(deduplicatedFeatured.slice(0, 4));
+
+        // Process real wedding stories
+        if (sRes) {
+          try {
+            const sData = await sRes.json();
+            if (sData.success && Array.isArray(sData.stories)) {
+              setStories(sData.stories);
+            }
+          } catch (e) {}
         }
       } catch (err) {
-        console.error("Failed to fetch homepage vendors:", err);
+        console.error("Failed to load homepage data:", err);
+      } finally {
+        if (isMounted) {
+          setVendorsLoading(false);
+          setStoriesLoading(false);
+        }
       }
     }
 
-    loadVendors();
+    loadData();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
+
+  const categories = [
+    {
+      title: "Venues",
+      subtitle: "Banquet Halls, Lawns, Resorts...",
+      href: "/venues",
+      bgColor: "bg-[#E3EAF3]",
+      img: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=800&q=80",
+      alt: "Wedding Venues"
+    },
+    {
+      title: "Photographers",
+      subtitle: "Wedding & Pre-wedding Photography",
+      href: "/photographers",
+      bgColor: "bg-[#FCEFE3]",
+      img: "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=800&q=80",
+      alt: "Wedding Photographers"
+    },
+    {
+      title: "Makeup",
+      subtitle: "Bridal Makeup, Hair & Family Styling",
+      href: "/makeup",
+      bgColor: "bg-[#F6E5E5]",
+      img: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=800&q=80",
+      alt: "Bridal Makeup"
+    },
+    {
+      title: "Bridal Studio",
+      subtitle: "Lehengas, Kanchipuram Saris & Gowns",
+      href: "/categories/bridal-studio",
+      bgColor: "bg-[#EAF3E3]",
+      img: "https://images.unsplash.com/photo-1594552072238-b8a33785b261?auto=format&fit=crop&w=800&q=80",
+      alt: "Bridal Studio"
+    },
+    {
+      title: "Groom Studio",
+      subtitle: "Bespoke Sherwanis, Tuxedos & Suits",
+      href: "/categories/groom-studio",
+      bgColor: "bg-[#EBEFF3]",
+      img: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=800&q=80",
+      alt: "Groom Studio"
+    },
+    {
+      title: "Wedding Studio",
+      subtitle: "Couple Couture & Ceremonial Outfits",
+      href: "/categories/wedding-studio",
+      bgColor: "bg-[#F7EBE5]",
+      img: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=80",
+      alt: "Wedding Studio"
+    },
+    {
+      title: "Catering",
+      subtitle: "Traditional Sadya, Buffet & Feasts",
+      href: "/categories/catering",
+      bgColor: "bg-[#F3EAF6]",
+      img: "https://images.unsplash.com/photo-1555244162-803834f70033?q=80&w=800&auto=format&fit=crop",
+      alt: "Catering"
+    },
+    {
+      title: "Decor & Planning",
+      subtitle: "Stage Decor, Florals & Planners",
+      href: "/categories/decor-planning",
+      bgColor: "bg-[#F6F3E5]",
+      img: "https://images.unsplash.com/photo-1519225421980-715cb0215aed?q=80&w=800&auto=format&fit=crop",
+      alt: "Decor and Planning"
+    }
+  ];
 
   return (
     <>
-      <main className="min-h-screen bg-[#FAF7F2] text-[#2B2B2B]">
+      <main className="pb-20">
         
-        {/* ── SECTION 1 — HERO ── */}
-        <div className="relative min-h-[580px] sm:min-h-[640px] flex items-center justify-center bg-charcoal overflow-hidden pt-12 pb-16">
-          {/* Hero Background Image */}
-          <div className="absolute inset-0 z-0">
-            <Image
-              src="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=2000&q=85"
-              alt="Cloche Luxury Wedding Backdrop"
-              fill
-              priority
-              quality={90}
-              className="object-cover object-center opacity-40 scale-105 transition-transform duration-1000"
+        {/* Hero Section */}
+        <section className="relative h-[480px] md:h-[520px] w-full flex flex-col justify-end">
+          <div className="absolute inset-0 overflow-hidden rounded-b-3xl bg-charcoal">
+            <img
+              src="https://lh3.googleusercontent.com/aida-public/AB6AXuDkuPHXhU7sXzDUvYbDriFUJ917zikz7COlOrOswDvuY6_7v5cQOlZuew5k-nQKjcfUP1uCWfNAZ_E3pzW0ZhxB3iG_Qgee-9xeWqV3kmcxYZjS4lZH63iptxjO4EQc-c1trOo4OB45RTiLcgN_4gKPeu41g5AiHIMElHe-KXqWqvejj3L13jYUx7jf5JgJ76IE74Db2TjqXh0ocXwWUZwTja1cDHAcysRGBp85vCe6HOhaQ8V2U10qxMCfXK6vEIuyz0bq1Y5eq9PQ=s0"
+              alt="Real Wedding Celebration"
+              className="w-full h-full object-cover object-center filter contrast-[1.06] brightness-[1.03] saturate-[1.05]"
+              loading="eager"
+              decoding="async"
+              // @ts-ignore
+              fetchPriority="high"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-charcoal via-charcoal/60 to-transparent" />
-            <div className="absolute inset-0 bg-gradient-to-r from-charcoal/80 via-transparent to-charcoal/80" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/35 to-black/10"></div>
           </div>
-
-          {/* Hero Content Overlay */}
-          <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 text-center space-y-6">
-            
-            {/* Seasonal Tag Pill */}
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-gold/30 text-gold text-xs font-bold uppercase tracking-widest shadow-md">
-              <Sparkles className="w-3.5 h-3.5 text-gold" />
-              <span>Wedding Season 2026 • Kerala's Premier Luxury Platform</span>
-            </div>
-
-            {/* Main Headline */}
-            <h1 className="font-serif text-3xl sm:text-5xl lg:text-6xl font-bold text-ivory tracking-tight leading-tight">
-              Find Everything For Your <br className="hidden sm:block" />
-              <span className="bg-gradient-to-r from-gold via-amber-200 to-gold bg-clip-text text-transparent">
-                Dream Wedding
-              </span>
+          
+          <div className="relative z-10 max-w-7xl mx-auto w-full p-6 md:p-10 space-y-4">
+            <h1 className="text-white text-4xl md:text-5xl font-extrabold tracking-tight font-display max-w-2xl">
+              Where Every Wedding Begins
             </h1>
-
-            <p className="text-sm sm:text-base text-white/80 max-w-2xl mx-auto font-sans font-light leading-relaxed">
-              Discover vetted photographers, luxury venues, bridal boutiques, and custom digital invitations across Kerala.
+            <p className="text-white/90 text-lg md:text-xl max-w-xl font-light">
+              Find the best wedding vendors with thousands of trusted reviews
             </p>
-
-            {/* Primary Search CTA with Autocomplete & Recent Searches */}
-            <div className="max-w-2xl mx-auto pt-2">
-              <AutocompleteSearch
-                placeholder="Search for photographers, venues, makeup artists, or boutiques..."
-                className="shadow-2xl"
-                inputClassName="py-4 text-base rounded-full shadow-lg"
-              />
+            
+            <div className="mt-6 max-w-xl">
+              <AutocompleteSearch placeholder="Search for vendors, venues, or boutiques..." />
             </div>
-
-            {/* SECTION 2 — POPULAR SEARCHES STRIP */}
-            <div className="pt-6">
-              <span className="text-xs text-white/60 font-semibold tracking-wider uppercase block mb-3">
-                Popular Searches Strip
-              </span>
-              <div className="flex items-center justify-center gap-2 sm:gap-3 flex-wrap">
-                {HOMEPAGE_CATEGORY_STRIP.slice(0, 6).map((cat) => (
-                  <Link
-                    key={cat.label}
-                    href={cat.href}
-                    className="group relative px-4 py-2 rounded-full bg-white/15 hover:bg-white/25 backdrop-blur-md border border-gold/20 text-white text-xs font-semibold transition-all hover:scale-105 flex items-center gap-2 shadow-xs"
-                  >
-                    <span>{cat.label}</span>
-                    {cat.vendorCount && (
-                      <span className="text-[10px] text-gold font-bold bg-black/30 px-1.5 py-0.5 rounded-full">
-                        {cat.vendorCount}
-                      </span>
-                    )}
-                    {cat.badge && (
-                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                    )}
-                  </Link>
-                ))}
-              </div>
-            </div>
-
-          </div>
-        </div>
-
-        {/* Promotional Top Ad Banner */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <AdBanner placement="homepage_top" position="homepage_top" />
-        </div>
-
-        {/* ── SECTION 3 — WEDDING CATEGORIES GRID ── */}
-        <section className="py-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-end mb-8">
-            <div>
-              <span className="text-xs font-semibold tracking-widest uppercase text-[#A97B3E]">
-                Explore Directory
-              </span>
-              <h2 className="font-display text-2xl sm:text-3xl lg:text-4xl font-bold text-[#0F4C45] tracking-tight mt-1">
-                Wedding Categories
-              </h2>
-            </div>
-            <Link
-              href="/categories"
-              className="text-xs sm:text-sm font-bold text-[#0F4C45] hover:text-[#A97B3E] transition-colors flex items-center gap-1 group"
-            >
-              <span>View All Categories</span>
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </Link>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-            {CANONICAL_VENDOR_CATEGORIES.slice(0, 8).map((cat, idx) => {
-              const Icon = cat.icon;
-              const matchingStrip = HOMEPAGE_CATEGORY_STRIP.find(
-                (s) => s.label.toLowerCase().includes(cat.title.toLowerCase()) || cat.title.toLowerCase().includes(s.label.toLowerCase())
-              );
-              const vendorCount = matchingStrip?.vendorCount || "200+ Vendors";
-              const isMostBooked = idx === 0 || idx === 3;
-
-              return (
-                <Link
-                  key={cat.slug}
-                  href={`/categories/${cat.slug}`}
-                  className="group relative bg-white rounded-3xl p-5 border border-[#EBE4D8] shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col justify-between hover:-translate-y-1.5"
-                >
-                  {/* Category Image Header */}
-                  <div className="relative h-36 w-full rounded-2xl overflow-hidden mb-4 bg-gray-100">
-                    <img
-                      src={cat.image}
-                      alt={cat.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      loading="lazy"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                    
-                    {/* Badge */}
-                    <div className="absolute top-2.5 left-2.5 z-10 flex gap-1">
-                      {isMostBooked && (
-                        <span className="bg-[#0F4C45] text-white text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full shadow-sm">
-                          Most Booked
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="absolute bottom-2.5 left-2.5 z-10 text-white font-bold text-xs flex items-center gap-1.5">
-                      <div className="w-6 h-6 rounded-lg bg-white/20 backdrop-blur-md flex items-center justify-center">
-                        <Icon className="w-3.5 h-3.5 text-white" />
-                      </div>
-                      <span>{vendorCount}</span>
-                    </div>
-                  </div>
-
-                  {/* Card Meta */}
-                  <div className="space-y-1">
-                    <h3 className="font-display font-bold text-base text-[#0F4C45] group-hover:text-[#A97B3E] transition-colors">
-                      {cat.title}
-                    </h3>
-                    <p className="text-xs text-[#7A776E] line-clamp-2 leading-relaxed">
-                      {cat.description}
-                    </p>
-                  </div>
-
-                  <div className="pt-3 border-t border-[#EBE4D8]/60 mt-3 flex items-center justify-between text-xs font-bold text-[#0F4C45] group-hover:text-[#A97B3E]">
-                    <span>Explore</span>
-                    <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-                  </div>
-                </Link>
-              );
-            })}
           </div>
         </section>
 
-        {/* ── NEW SECTION 1 — WHY CHOOSE CLOCHE (TRUST CARDS) ── */}
-        <WhyChooseClocheSection />
+        {/* Popular Searches */}
+        <section className="py-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold text-on-surface font-display">Popular Searches</h2>
+          </div>
+          
+          {/* Responsive Layout: Scrollable on mobile (< md), Full clean grid on Laptop/Desktop (>= md) */}
+          <div className="flex overflow-x-auto hide-scrollbar gap-4 md:grid md:grid-cols-4 lg:grid-cols-9 md:gap-6 md:overflow-visible">
+            {HOMEPAGE_CATEGORY_STRIP.map((item) => (
+              <Link key={item.label} href={item.href} className="flex-shrink-0 flex flex-col items-center gap-2.5 group cursor-pointer">
+                <div className="w-20 h-20 md:w-24 md:h-24 rounded-2xl overflow-hidden shadow-sm border border-gold/10 ring-2 ring-transparent group-hover:ring-primary group-hover:shadow-md transition-all">
+                  <img className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" src={item.img} alt={item.alt} />
+                </div>
+                <span className="text-xs md:text-sm font-semibold text-on-surface text-center group-hover:text-primary transition-colors">
+                  {item.label}
+                </span>
+              </Link>
+            ))}
+          </div>
+        </section>
 
-        {/* ── SECTION 4 — TRENDING VENDORS ── */}
-        <TrendingVendorsSection initialVendors={trendingVendors} />
+        {/* Wedding Categories */}
+        <section className="py-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold text-on-surface font-display">Wedding Categories</h2>
+            <Link href="/categories" className="hidden md:flex items-center gap-1 text-primary font-bold text-sm hover:underline">
+              View All Categories <span className="material-symbols-outlined text-[18px]">chevron_right</span>
+            </Link>
+          </div>
 
-        {/* ── SECTION 5 — FEATURED VENDORS ── */}
-        <FeaturedVendorsSection />
+          {/* Grid: 4 cards on Mobile (< md), 6 cards on Laptop/Desktop (>= md) */}
+          <div className="space-y-4 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-6">
+            {categories.slice(0, 6).map((cat, idx) => (
+              <Link 
+                key={cat.title} 
+                href={cat.href} 
+                className={`${cat.bgColor} rounded-2xl overflow-hidden flex h-36 md:h-44 shadow-sm hover:shadow-md transition-all group ${
+                  idx >= 4 ? "hidden md:flex" : "flex"
+                }`}
+              >
+                <div className="flex-1 p-5 md:p-6 flex flex-col justify-center">
+                  <div className="flex items-center gap-1 font-bold text-on-primary-container text-lg md:text-xl font-display group-hover:text-primary transition-colors">
+                    {cat.title} <span className="material-symbols-outlined text-sm md:text-base">expand_more</span>
+                  </div>
+                  <p className="text-on-surface-variant text-xs md:text-sm mt-1.5 line-clamp-2">{cat.subtitle}</p>
+                </div>
+                <div className="w-1/2 relative overflow-hidden">
+                  <img 
+                    className="w-full h-full object-cover rounded-l-[40%] group-hover:scale-105 transition-transform duration-500" 
+                    src={cat.img} 
+                    alt={cat.alt} 
+                  />
+                </div>
+              </Link>
+            ))}
+          </div>
 
-        {/* ── SECTION 6 — DIGITAL INVITATIONS ── */}
+          <div className="mt-6 text-center">
+            <Link href="/categories" className="inline-flex items-center gap-1.5 px-6 py-3 rounded-full bg-[#FAF7F2] border border-gold/20 text-primary font-bold text-sm hover:bg-[#F3EDE2] transition-colors shadow-sm">
+              View All Categories <span className="material-symbols-outlined text-[18px]">chevron_right</span>
+            </Link>
+          </div>
+        </section>
+
+        {/* Sponsored Homepage Banner */}
+        <AdBanner placement="Homepage Between Categories" />
+
+        {/* ── TRENDING THIS WEEK SECTION ── */}
+        <section className="py-12 bg-[#FAF7F2] my-8 border-y border-gold/15">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="mb-6">
+              <h2 className="text-2xl md:text-3xl font-bold text-charcoal font-display">
+                Trending This Week
+              </h2>
+            </div>
+
+            {vendorsLoading ? (
+              <div className="flex overflow-x-auto hide-scrollbar snap-x snap-mandatory gap-4 md:grid md:grid-cols-4 md:gap-6 md:overflow-visible pb-2">
+                {[1, 2, 3, 4].map((i) => (
+                  <VendorCardSkeleton key={i} />
+                ))}
+              </div>
+            ) : trendingVendors.length > 0 ? (
+              <div className="flex overflow-x-auto hide-scrollbar snap-x snap-mandatory gap-4 md:grid md:grid-cols-4 md:gap-6 md:overflow-visible pb-2">
+                {trendingVendors.map((vendor, index) => (
+                  <Link
+                    key={vendor.id}
+                    href={`/boutiques/${vendor.slug}`}
+                    className="flex-shrink-0 w-72 sm:w-[300px] md:w-auto snap-start bg-white rounded-2xl overflow-hidden shadow-xs hover:shadow-md border border-gold/15 transition-all group flex flex-col justify-between"
+                  >
+                    <div>
+                      <div className="relative h-48 overflow-hidden bg-gray-100">
+                        <img
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          src={vendor.coverImage}
+                          alt={vendor.name}
+                          loading="lazy"
+                        />
+                        {/* Rank Badge */}
+                        <div className="absolute top-3 left-3 bg-[#0F4C45] text-white text-xs font-extrabold px-3 py-1 rounded-full shadow-md flex items-center gap-1 border border-white/20">
+                          <span>#{index + 1}</span>
+                        </div>
+                        {/* Rating Badge / New Badge */}
+                        <div className="absolute top-3 right-3 bg-white/95 backdrop-blur-xs px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm">
+                          {vendor.rating > 0 && (vendor.reviewCount ?? 0) > 0 ? (
+                            <>
+                              <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
+                              <span className="text-xs font-bold text-charcoal">{vendor.rating.toFixed(1)}</span>
+                            </>
+                          ) : (
+                            <span className="text-[11px] font-bold text-[#0F4C45] px-1">New</span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="p-5 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[11px] font-bold text-gold uppercase tracking-wider">
+                            {vendor.category}
+                          </span>
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
+                            <Flame className="w-3 h-3 text-amber-500" /> Trending
+                          </span>
+                        </div>
+                        <h3 className="font-bold text-base md:text-lg font-display text-charcoal group-hover:text-primary transition-colors line-clamp-1">
+                          {vendor.name}
+                        </h3>
+                        <p className="text-xs text-charcoal/60 flex items-center gap-1">
+                          <MapPin className="w-3 h-3 text-[#0F4C45]" /> {vendor.city || "Kerala"}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="px-5 pb-5 pt-2 border-t border-gold/10 flex items-center justify-between">
+                      <span className="text-xs text-charcoal/50 font-medium">Starting from</span>
+                      <span className="text-sm font-bold text-[#0F4C45]">{vendor.startingPrice}</span>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            ) : null}
+          </div>
+        </section>
+
+        {/* Digital Wedding Invitations Section */}
         <DigitalInvitationsSection />
 
-        {/* ── NEW SECTION 2 — WEDDING INSPIRATION GALLERY ── */}
-        <WeddingInspirationSection />
+        {/* App Banner */}
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 my-12">
+          <div className="p-8 md:p-14 rounded-3xl bg-primary text-white relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8 shadow-xl">
+            <div className="relative z-10 space-y-6 max-w-xl">
+              <span className="bg-gold/20 text-gold px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider inline-block">
+                Mobile Convenience
+              </span>
+              <h2 className="text-3xl md:text-4xl font-bold font-display leading-tight">
+                Download The CLOCHE Mobile App Today!
+              </h2>
+              <ul className="space-y-3">
+                <li className="flex items-center gap-3">
+                  <span className="material-symbols-outlined text-gold">flare</span>
+                  <span className="text-sm md:text-base font-medium">Save & Share Wedding Ideas</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <span className="material-symbols-outlined text-gold">favorite</span>
+                  <span className="text-sm md:text-base font-medium">Shortlist Top Boutiques & Vendors</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <span className="material-symbols-outlined text-gold">checklist</span>
+                  <span className="text-sm md:text-base font-medium">Get Free Interactive Checklist</span>
+                </li>
+              </ul>
+              <Link 
+                href="/download" 
+                className="inline-block bg-white text-primary px-8 py-3.5 rounded-full font-bold text-sm shadow-lg hover:bg-gray-100 transition-all hover:scale-105 active:scale-95"
+              >
+                Download App
+              </Link>
+            </div>
 
-        {/* ── SECTION 7 — WEDDING SHOP ── */}
-        <CuratedShopSection />
+            <div className="relative z-10 hidden lg:flex flex-col items-center justify-center p-8 bg-[#0B3B2D]/80 backdrop-blur-md border border-white/20 rounded-3xl text-center min-w-[260px]">
+              <span className="material-symbols-outlined text-6xl text-gold mb-2">qr_code_2</span>
+              <p className="font-bold text-sm">Scan to Install App</p>
+              <p className="text-xs text-white/70 mt-1">Available on iOS & Android</p>
+            </div>
+          </div>
+        </section>
 
-        {/* ── NEW SECTION 3 — REAL WEDDINGS TRUST HIGHLIGHT ── */}
-        <RealWeddingsHighlightSection />
+        {/* ── REAL FEATURED VENDORS (DEDUPLICATED & STANDARDIZED) ── */}
+        <section className="py-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="mb-6 flex justify-between items-center">
+            <div>
+              <h2 className="text-2xl font-bold text-on-surface font-display">Featured Vendors</h2>
+            </div>
+            <Link href="/boutiques" className="text-primary text-sm font-bold hover:underline">View All</Link>
+          </div>
 
-        {/* ── SECTION 8 — WEDDING PLANNING TOOLS ── */}
-        <PlanningToolsSection />
+          {vendorsLoading ? (
+            <div className="flex overflow-x-auto hide-scrollbar snap-x snap-mandatory gap-4 md:grid md:grid-cols-4 md:gap-6 md:overflow-visible pb-2">
+              {[1, 2, 3, 4].map((i) => (
+                <VendorCardSkeleton key={i} />
+              ))}
+            </div>
+          ) : featuredVendors.length > 0 ? (
+            <div className="flex overflow-x-auto hide-scrollbar snap-x snap-mandatory gap-4 md:grid md:grid-cols-4 md:gap-6 md:overflow-visible pb-2">
+              {featuredVendors.map((vendor) => (
+                <Link 
+                  key={vendor.id} 
+                  href={`/boutiques/${vendor.slug}`} 
+                  className="flex-shrink-0 w-72 sm:w-[300px] md:w-auto snap-start bg-white rounded-2xl overflow-hidden shadow-xs hover:shadow-md border border-gold/15 transition-all group flex flex-col justify-between"
+                >
+                  <div>
+                    <div className="relative h-48 overflow-hidden bg-gray-100">
+                      <img 
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                        src={vendor.coverImage} 
+                        alt={vendor.name} 
+                        loading="lazy"
+                      />
+                      <div className="absolute top-3 right-3 bg-white/95 backdrop-blur-xs px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm">
+                        {vendor.rating > 0 && (vendor.reviewCount ?? 0) > 0 ? (
+                          <>
+                            <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
+                            <span className="text-xs font-bold text-charcoal">{vendor.rating.toFixed(1)}</span>
+                          </>
+                        ) : (
+                          <span className="text-[11px] font-bold text-[#0F4C45] px-1">New</span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="p-5 space-y-2">
+                      <span className="text-[11px] font-bold text-gold uppercase tracking-wider block">
+                        {vendor.category}
+                      </span>
+                      <h3 className="font-bold text-base md:text-lg font-display text-charcoal group-hover:text-primary transition-colors line-clamp-1">
+                        {vendor.name}
+                      </h3>
+                      <p className="text-xs text-charcoal/60 flex items-center gap-1">
+                        <MapPin className="w-3.5 h-3.5 text-[#0F4C45]" /> {vendor.city || "Kerala"}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="px-5 pb-5 pt-2 border-t border-gold/10 flex items-center justify-between">
+                    <span className="text-xs text-charcoal/50 font-medium">Starting from</span>
+                    <span className="text-sm font-bold text-[#0F4C45]">{vendor.startingPrice}</span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="py-8 text-center bg-white rounded-2xl border border-gold/15 max-w-md mx-auto">
+              <p className="text-xs text-charcoal/60">Explore verified boutiques and registered wedding venues.</p>
+              <Link href="/boutiques" className="inline-block mt-3 bg-[#0F4C45] text-white text-xs font-bold px-5 py-2 rounded-full">
+                Browse Directory
+              </Link>
+            </div>
+          )}
+        </section>
 
-        {/* ── SECTION 9 — DEALS & OFFERS ── */}
-        <DealsOffersSection />
+        {/* ── REAL WEDDING STORIES (FETCHED LIVE FROM DATABASE) ── */}
+        <section className="py-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="mb-6 flex justify-between items-center">
+            <div>
+              <h2 className="text-2xl font-bold text-on-surface font-display">Real Wedding Stories</h2>
+            </div>
+            <Link href="/real-weddings" className="text-primary text-sm font-bold hover:underline">View All Stories</Link>
+          </div>
 
-        {/* ── SECTION 10 — DOWNLOAD APP STRIP ── */}
-        <MobileAppDownloadSection />
-
-        {/* ── SECTION 11 — SUCCESS STORIES & TESTIMONIALS ── */}
-        <SuccessStoriesSection />
+          {storiesLoading ? (
+            <div className="flex overflow-x-auto hide-scrollbar gap-4 md:grid md:grid-cols-3 md:gap-6 md:overflow-visible">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="flex-shrink-0 w-80 md:w-auto h-72 rounded-2xl bg-gray-100 animate-pulse border border-gold/10" />
+              ))}
+            </div>
+          ) : stories.length > 0 ? (
+            <div className="flex overflow-x-auto hide-scrollbar gap-4 md:grid md:grid-cols-3 md:gap-6 md:overflow-visible">
+              {stories.slice(0, 3).map((story) => (
+                <Link key={story.id} href={`/real-weddings/${story.slug}`} className="flex-shrink-0 w-80 md:w-auto group">
+                  <div className="rounded-2xl overflow-hidden h-52 shadow-sm group-hover:shadow-md transition-all relative bg-gray-100">
+                    <img 
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                      src={story.cover_image_url} 
+                      alt={story.title} 
+                    />
+                    <span className="absolute top-3 left-3 bg-[#0F4C45]/90 backdrop-blur-xs text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full">
+                      {story.style}
+                    </span>
+                  </div>
+                  <div className="py-4 space-y-1">
+                    <div className="flex items-center justify-between text-xs text-outline">
+                      <span className="flex items-center gap-1 font-semibold">
+                        <MapPin className="w-3 h-3 text-[#0F4C45]" /> {story.city || "Kerala"}
+                      </span>
+                      {story.wedding_date && (
+                        <span className="flex items-center gap-1">
+                          <Calendar className="w-3 h-3 text-[#0F4C45]" /> {story.wedding_date}
+                        </span>
+                      )}
+                    </div>
+                    <h3 className="font-bold text-on-surface text-base md:text-lg leading-tight font-display group-hover:text-primary transition-colors line-clamp-2">
+                      {story.title}
+                    </h3>
+                    {story.couple_names && (
+                      <p className="text-xs font-bold text-[#0F4C45]">{story.couple_names}</p>
+                    )}
+                    <p className="text-xs text-outline line-clamp-2 leading-relaxed">
+                      {story.short_story || story.story_text}
+                    </p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            /* Honest Editorial Invitation when 0 published stories exist */
+            <div className="p-8 sm:p-12 bg-white rounded-3xl border border-gold/20 shadow-md text-center max-w-2xl mx-auto space-y-4">
+              <div className="w-14 h-14 rounded-full bg-[#FAF7F2] border border-gold/30 text-[#0F4C45] flex items-center justify-center mx-auto shadow-inner">
+                <BookHeart className="w-7 h-7" />
+              </div>
+              <div className="space-y-1.5">
+                <h3 className="font-serif text-xl sm:text-2xl font-bold text-charcoal">
+                  Share Your Real Wedding Story
+                </h3>
+                <p className="text-xs sm:text-sm text-charcoal/70 max-w-md mx-auto leading-relaxed">
+                  Celebrate your love story on Cloche and give authentic credit to the photographers, decorators, and artisans who crafted your day.
+                </p>
+              </div>
+              <Link
+                href="/real-weddings"
+                className="inline-flex items-center gap-2 bg-[#0F4C45] hover:bg-[#12584E] text-white text-xs font-bold px-6 py-3 rounded-full shadow-md transition-all"
+              >
+                <span>Submit Your Wedding</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+          )}
+        </section>
 
         {/* Mobile Sticky Sponsored Banner */}
-        <AdBanner placement="Mobile Sticky Banner" position="Mobile Sticky Banner" />
+        <AdBanner placement="Mobile Sticky Banner" />
 
       </main>
-
-      {/* ── SECTION 12 — LUXURY FOOTER ── */}
       <Footer />
     </>
   );
 }
+
