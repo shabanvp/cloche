@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { fetchPublicVendorProfileFromDb } from "@/lib/supabase";
-import { BoutiqueProfileClient } from "@/components/BoutiqueProfileClient";
+import { VendorProfileDispatcher } from "@/components/VendorProfileDispatcher";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -38,5 +38,5 @@ export default async function BoutiqueProfilePage({ params }: Props) {
     about: "Premier bridal couture and bespoke wedding studio specializing in handcrafted zardozi and raw silk ensembles."
   };
 
-  return <BoutiqueProfileClient profile={cleanProfile} />;
+  return <VendorProfileDispatcher profile={cleanProfile} />;
 }

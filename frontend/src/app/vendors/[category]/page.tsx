@@ -1,7 +1,7 @@
 import { VendorCategoryListing } from "@/components/VendorCategoryListing";
 import { VENDOR_CATEGORIES_DATA } from "@/lib/vendor-categories";
 import { fetchPublicVendorProfileFromDb } from "@/lib/supabase";
-import { BoutiqueProfileClient } from "@/components/BoutiqueProfileClient";
+import { VendorProfileDispatcher } from "@/components/VendorProfileDispatcher";
 import { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
@@ -55,7 +55,7 @@ export default async function VendorCategoryPage({
   // 2. Otherwise check if it's an individual vendor storefront slug / id
   const { data: profile } = await fetchPublicVendorProfileFromDb(slug);
   if (profile) {
-    return <BoutiqueProfileClient profile={profile} />;
+    return <VendorProfileDispatcher profile={profile} />;
   }
 
   // 3. Fallback to category listing

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { fetchPublicVendorProfileFromDb } from "@/lib/supabase";
-import { BoutiqueProfileClient } from "@/components/BoutiqueProfileClient";
+import { VendorProfileDispatcher } from "@/components/VendorProfileDispatcher";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -24,5 +24,5 @@ export default async function GroomWearDetailPage({ params }: Props) {
   const { id } = await params;
   const { data: profile } = await fetchPublicVendorProfileFromDb(id);
   if (!profile) notFound();
-  return <BoutiqueProfileClient profile={profile} />;
+  return <VendorProfileDispatcher profile={profile} forcedCategory="groom-studio" />;
 }
