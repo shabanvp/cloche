@@ -1925,34 +1925,33 @@ Thank you!`;
       {/* ── WEDMEGOOD-STYLE STICKY MOBILE ACTION BAR ── */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/98 backdrop-blur-md border-t border-gold/20 px-3 py-2.5 pb-safe shadow-2xl space-y-1">
         <div className="flex items-center gap-2">
+          {/* Message Primary Button */}
           <button
             onClick={() => handleCheckAvailability()}
-            className="flex-1 min-h-[48px] py-3 rounded-2xl bg-[#0F4C45] text-white font-bold text-sm flex items-center justify-center gap-2 shadow-md active:scale-95 transition-all text-center cursor-pointer"
+            className="flex-1 min-h-[48px] py-3 rounded-2xl bg-[#0F4C45] text-white font-bold text-sm flex items-center justify-center gap-2 shadow-md active:scale-95 transition-all text-center cursor-pointer hover:bg-[#09312d]"
           >
-            <MessageSquare className="w-4 h-4 shrink-0" /> <span>Message / Get Quote</span>
+            <MessageSquare className="w-4 h-4 shrink-0" /> <span>Message</span>
           </button>
 
-          {whatsapp && (
-            <a
-              href={`https://wa.me/${whatsapp.replace(/[^0-9]/g, "")}?text=Hi%20${encodeURIComponent(displayName)},%20I%20saw%20your%20profile%20on%20Cloche!`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-12 min-h-[48px] rounded-2xl bg-[#25D366] text-white font-bold flex items-center justify-center shadow-md active:scale-95 transition-all shrink-0"
-              title="WhatsApp"
-            >
-              <MessageCircle className="w-5 h-5" />
-            </a>
-          )}
+          {/* WhatsApp Direct Chat Button */}
+          <a
+            href={`https://wa.me/${(whatsapp || phone || "").replace(/[^0-9]/g, "") || "919000000000"}?text=Hi%20${encodeURIComponent(displayName)},%20I%20saw%20your%20profile%20on%20Cloche!`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-12 min-h-[48px] rounded-2xl bg-[#25D366] text-white font-bold flex items-center justify-center shadow-md active:scale-95 transition-all shrink-0 hover:bg-emerald-600"
+            title="WhatsApp Chat"
+          >
+            <MessageCircle className="w-5 h-5" />
+          </a>
 
-          {phone && (
-            <a
-              href={`tel:${phone}`}
-              className="w-12 min-h-[48px] rounded-2xl bg-white border border-[#0F4C45] text-[#0F4C45] font-bold flex items-center justify-center shadow-xs active:scale-95 transition-all shrink-0"
-              title="Call"
-            >
-              <Phone className="w-5 h-5" />
-            </a>
-          )}
+          {/* Phone Dialer Call Button */}
+          <a
+            href={`tel:${(phone || whatsapp || "").replace(/[^0-9]/g, "") || "+919000000000"}`}
+            className="w-12 min-h-[48px] rounded-2xl bg-white border border-[#0F4C45] text-[#0F4C45] font-bold flex items-center justify-center shadow-xs active:scale-95 transition-all shrink-0 hover:bg-emerald-50"
+            title="Call Vendor"
+          >
+            <Phone className="w-5 h-5" />
+          </a>
         </div>
 
         <div className="flex items-center justify-between text-[10px] px-1 font-semibold text-charcoal/60">
