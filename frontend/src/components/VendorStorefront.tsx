@@ -973,6 +973,21 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
   const reviewsCount = Number(vendor?.reviews || vendor?.userReviews?.length || 0);
 
   // Handlers
+    const handleCheckAvailability = (dateOverride?: string) => {
+    const targetDate = dateOverride || calendarDateInput || quoteDate || new Date(Date.now() + 86400000 * 30).toISOString().split("T")[0];
+    const userDisplayName = quoteName ? quoteName.trim() : "Bride / Groom";
+    const autoMessage = `Hi ${displayName}, my name is ${userDisplayName}. I am interested in booking ${displayName} for an event on ${targetDate}. Is your venue available on this date? Please let me know availability and pricing details. Thank you!`;
+
+    setQuoteDate(targetDate);
+    setQuoteNotes(autoMessage);
+
+    const cleanNum = whatsapp ? whatsapp.replace(/[^0-9]/g, "") : (phone ? phone.replace(/[^0-9]/g, "") : "");
+    if (cleanNum && !previewMode) {
+      window.open(`https://wa.me/${cleanNum}?text=${encodeURIComponent(autoMessage)}`, "_blank");
+    }
+    setActiveModal("quote");
+  };
+
   const handleShare = () => {
     if (previewMode) return;
     const url = typeof window !== "undefined" ? window.location.href : "";
@@ -1156,7 +1171,7 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
       )}
 
       {/* ── 1. LUXURY STOREFRONT HERO HEADER ── */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6">
+      <div className="max-w-7xl mx-auto px-0 sm:px-6 lg:px-8 pt-0 sm:pt-6">
           {/* ── 1. LUXURY STOREFRONT HERO HEADER (DESKTOP 2-COLUMN GRID & MOBILE HERO) ── */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6">
         
@@ -1310,7 +1325,7 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
         </div>
 
         {/* MOBILE COMPACT HERO LAYOUT (Unchanged for Mobile Views) */}
-        <div className="lg:hidden relative rounded-[28px] overflow-hidden shadow-xl border border-gold/20 bg-charcoal">
+        <div className="lg:hidden relative w-full rounded-none sm:rounded-3xl overflow-hidden shadow-xl border-b border-gold/20 bg-charcoal">
           {/* Cover Photo */}
           <div className="relative h-[280px] sm:h-[400px] w-full overflow-hidden">
             <img src={coverUrl} alt={displayName} className="w-full h-full object-cover" />
@@ -1405,11 +1420,11 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
             )}
 
             <button
-              onClick={() => setActiveModal("quote")}
+              onClick={() => handleCheckAvailability()}
               style={{ backgroundColor: activeTheme.accent, color: activeTheme.secondary }}
               className="w-full min-h-[48px] px-3 py-3 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 shadow-2xs active:scale-95 transition-all cursor-pointer text-center"
             >
-              <Mail className="w-4 h-4 shrink-0" /> <span>Get Quote</span>
+              <Calendar className="w-4 h-4 shrink-0" /> <span>Check Availability</span>
             </button>
           </div>
         </div>
@@ -1742,6 +1757,13 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
                   className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-4 py-3 text-xs font-bold focus:outline-none focus:border-[#0F4C45] min-h-[48px]"
                 />
               </div>
+
+              <button
+                onClick={() => handleCheckAvailability(calendarDateInput)}
+                className="w-full sm:w-auto min-h-[48px] px-6 py-3 rounded-xl bg-[#0F4C45] text-white font-bold text-xs shadow-2xs hover:bg-[#083833] transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-95 shrink-0"
+              >
+                <Calendar className="w-4 h-4" /> Check Availability &amp; Message
+              </button>
 
               {calendarDateResult && (
                 <div className="w-full sm:w-auto text-center text-xs font-bold shrink-0">
