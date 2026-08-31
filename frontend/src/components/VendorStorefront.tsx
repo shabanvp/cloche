@@ -1785,52 +1785,7 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
           </div>
         </section>
 
-        {/* SECTION 10: LOCATION & MAP */}
-        {(googleMaps || address || location) && (
-          <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-3.5">
-            <div className="border-b border-gold/10 pb-2.5 flex items-center justify-between">
-              <div>
-                <h2 className="font-serif text-lg font-bold text-charcoal flex items-center gap-2">
-                  <MapPin className="w-4.5 h-4.5 text-[#0F4C45]" /> Location &amp; Directions
-                </h2>
-                <p className="text-xs text-charcoal/60 mt-0.5">{location || "Kerala, India"}</p>
-              </div>
-              <a
-                href={previewMode ? "#" : (googleMaps || `https://maps.google.com/?q=${encodeURIComponent(address || location)}`)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-3.5 py-2 min-h-[40px] rounded-xl bg-[#0F4C45] text-white font-bold text-xs shadow-2xs hover:bg-[#083833] transition-colors flex items-center gap-1.5 active:scale-95"
-              >
-                Get Directions
-              </a>
-            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-              <div className="space-y-2 text-xs font-medium">
-                <div className="p-3 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1">
-                  <span className="text-[10px] uppercase font-bold text-charcoal/50 block">Address</span>
-                  <p className="font-bold text-charcoal leading-relaxed">{address || location || "Kerala, India"}</p>
-                </div>
-                {categoryType === "venue" && (
-                  <div className="p-3 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1">
-                    <span className="text-[10px] uppercase font-bold text-charcoal/50 block">Landmarks</span>
-                    <p className="text-charcoal/80">📍 Landmark: {venueDetails.nearbyLandmark}</p>
-                    <p className="text-charcoal/80">✈️ Airport: {venueDetails.airportDistance}</p>
-                  </div>
-                )}
-              </div>
-
-              <div className="h-[180px] rounded-xl bg-gray-100 border border-gold/20 overflow-hidden relative">
-                <iframe
-                  title="Vendor Location Map"
-                  src={`https://maps.google.com/maps?q=${encodeURIComponent(address || location || "Kerala, India")}&t=&z=13&ie=UTF8&iwloc=&output=embed`}
-                  className="w-full h-full border-0"
-                  loading="lazy"
-                />
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* SECTION 11: FREQUENTLY ASKED QUESTIONS (MATCHING SCREENSHOT 2) */}
         {venueDetails.faqs.length > 0 && (
