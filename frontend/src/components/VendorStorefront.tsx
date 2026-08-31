@@ -1599,55 +1599,7 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
         )}
 
         
-{/* SECTION 3: CHECK AVAILABILITY & ENQUIRY COMPOSER WIDGET */}
-        {categoryType === "venue" && (
-          <div className="bg-white rounded-2xl p-4.5 sm:p-5 border border-gold/15 shadow-2xs space-y-3.5">
-            <div>
-              <h2 className="font-serif text-lg font-bold text-charcoal flex items-center gap-2">
-                <Calendar className="w-4.5 h-4.5 text-[#0F4C45]" /> Check Availability
-              </h2>
-              <p className="text-xs text-charcoal/60 mt-0.5">Select your preferred event date to send an enquiry to the vendor</p>
-            </div>
-
-            <div className="flex flex-col sm:flex-row items-center gap-3">
-              <input
-                type="date"
-                value={calendarDateInput}
-                onChange={(e) => {
-                  setCalendarDateInput(e.target.value);
-                  if (e.target.value) setDateErrorMsg(null);
-                }}
-                className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-4 py-3 text-xs font-bold focus:outline-none focus:border-[#0F4C45] min-h-[48px]"
-              />
-
-              <button
-                onClick={() => handleCheckAvailability(calendarDateInput)}
-                className="w-full sm:w-auto min-h-[48px] px-6 py-3 rounded-xl bg-[#0F4C45] text-white font-bold text-xs shadow-2xs hover:bg-[#083833] transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-95 shrink-0"
-              >
-                <Calendar className="w-4 h-4" /> Check Availability &amp; Message
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* SECTION 5: REQUIRE CUSTOM QUOTE BANNER */}
-        <div className="bg-gradient-to-r from-[#FAF7F2] via-white to-[#FAF7F2] rounded-2xl p-4 border border-rose-200/80 shadow-2xs flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2.5">
-            <span className="text-xl">💍</span>
-            <div>
-              <div className="font-serif font-bold text-sm text-charcoal">Require Custom quote?</div>
-              <div className="text-[11px] text-charcoal/60 font-medium">Get customized wedding package pricing</div>
-            </div>
-          </div>
-          <button
-            onClick={() => handleCheckAvailability()}
-            className="px-4 py-2 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 font-extrabold text-xs hover:bg-rose-100 transition-colors shrink-0 cursor-pointer active:scale-95"
-          >
-            Chat Now
-          </button>
-        </div>
-
-        {/* SECTION 6: ABOUT & OFFERS (WEDMEGOOD REFERENCE STYLE) */}
+{/* SECTION 6: ABOUT & OFFERS (WEDMEGOOD REFERENCE STYLE) */}
         <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
           <div className="border-b border-gold/10 pb-3 space-y-1">
             <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">About</h2>
@@ -1803,6 +1755,55 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
 
 
 
+        {/* SECTION 3: CHECK AVAILABILITY & ENQUIRY COMPOSER WIDGET */}
+        {categoryType === "venue" && (
+          <div className="bg-white rounded-2xl p-4.5 sm:p-5 border border-gold/15 shadow-2xs space-y-3.5">
+            <div>
+              <h2 className="font-serif text-lg font-bold text-charcoal flex items-center gap-2">
+                <Calendar className="w-4.5 h-4.5 text-[#0F4C45]" /> Check Availability
+              </h2>
+              <p className="text-xs text-charcoal/60 mt-0.5">Select your preferred event date to send an enquiry to the vendor</p>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-center gap-3">
+              <input
+                type="date"
+                value={calendarDateInput}
+                onChange={(e) => {
+                  setCalendarDateInput(e.target.value);
+                  if (e.target.value) setDateErrorMsg(null);
+                }}
+                className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-4 py-3 text-xs font-bold focus:outline-none focus:border-[#0F4C45] min-h-[48px]"
+              />
+
+              <button
+                onClick={() => handleCheckAvailability(calendarDateInput)}
+                className="w-full sm:w-auto min-h-[48px] px-6 py-3 rounded-xl bg-[#0F4C45] text-white font-bold text-xs shadow-2xs hover:bg-[#083833] transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-95 shrink-0"
+              >
+                <Calendar className="w-4 h-4" /> Check Availability &amp; Message
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* SECTION 5: REQUIRE CUSTOM QUOTE BANNER */}
+        <div className="bg-gradient-to-r from-[#FAF7F2] via-white to-[#FAF7F2] rounded-2xl p-4 border border-rose-200/80 shadow-2xs flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5">
+            <span className="text-xl">💍</span>
+            <div>
+              <div className="font-serif font-bold text-sm text-charcoal">Require Custom quote?</div>
+              <div className="text-[11px] text-charcoal/60 font-medium">Get customized wedding package pricing</div>
+            </div>
+          </div>
+          <button
+            onClick={() => handleCheckAvailability()}
+            className="px-4 py-2 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 font-extrabold text-xs hover:bg-rose-100 transition-colors shrink-0 cursor-pointer active:scale-95"
+          >
+            Chat Now
+          </button>
+        </div>
+
+        
         {/* SECTION 11: FREQUENTLY ASKED QUESTIONS (MATCHING SCREENSHOT 2) */}
         {venueDetails.faqs.length > 0 && (
           <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-3.5">
