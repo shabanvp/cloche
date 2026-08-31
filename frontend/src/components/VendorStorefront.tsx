@@ -1021,15 +1021,33 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
     setDateErrorMsg(null);
     setEnquirySent(false);
 
-    let msg = "";
-    if (selectedDate && selectedDate.trim()) {
-      const formattedDate = formatDateSafe(selectedDate);
-      msg = `Hi ${displayName},\n\nI'm interested in booking your venue for my wedding.\n\nPreferred Event Date:\n${formattedDate}\n\nCould you please let me know if this date is available and share your pricing, packages, and any other relevant details?\n\nLooking forward to hearing from you.\n\nThank you!`;
-    } else {
-      msg = `Hi ${displayName},\n\nI'm interested in your wedding services and package pricing. Could you please share your brochure, pricing details, and availability?\n\nThank you!`;
+    let existingCount = chatMessages.length;
+    if (typeof window !== "undefined" && vendor?.id) {
+      try {
+        const storedKey = `cloche_vendor_chat_${vendor.id}`;
+        const saved = localStorage.getItem(storedKey);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed)) existingCount = parsed.length;
+        }
+      } catch (e) {}
     }
 
-    setEnquiryMessage(msg);
+    // Only pre-fill automated template if there are NO existing messages!
+    if (existingCount === 0) {
+      let msg = "";
+      if (selectedDate && selectedDate.trim()) {
+        const formattedDate = formatDateSafe(selectedDate);
+        msg = `Hi ${displayName},\n\nI'm interested in booking your venue for my wedding.\n\nPreferred Event Date:\n${formattedDate}\n\nCould you please let me know if this date is available and share your pricing, packages, and any other relevant details?\n\nLooking forward to hearing from you.\n\nThank you!`;
+      } else {
+        msg = `Hi ${displayName},\n\nI'm interested in your wedding services and package pricing. Could you please share your brochure, pricing details, and availability?\n\nThank you!`;
+      }
+      setEnquiryMessage(msg);
+    } else {
+      // Existing chat thread -> keep composer clean for follow-up message
+      setEnquiryMessage("");
+    }
+
     setActiveModal("chat");
   };
 
