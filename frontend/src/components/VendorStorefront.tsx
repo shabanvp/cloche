@@ -98,6 +98,22 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
   const [enquiryMessage, setEnquiryMessage] = useState<string>("");
   const [enquirySent, setEnquirySent] = useState<boolean>(false);
   const [chatMessages, setChatMessages] = useState<Array<{ id: string; sender: "user" | "vendor"; text: string; time: string }>>([]);
+
+  // Auto-load persistent chat history for this vendor
+  React.useEffect(() => {
+    if (typeof window !== "undefined" && vendor?.id) {
+      try {
+        const storedKey = `cloche_vendor_chat_${vendor.id}`;
+        const saved = localStorage.getItem(storedKey);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setChatMessages(parsed);
+          }
+        }
+      } catch (e) {}
+    }
+  }, [vendor?.id, activeModal]);
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
 
   const formatDateSafe = (dateStr: string) => {
@@ -2212,7 +2228,7 @@ Thank you!`;
         </div>
       )}
 
-      {/* ── CLOCHE IN-APP FULL-SCREEN END-TO-END ENCRYPTED CHAT SCREEN ── */}
+      {/* ── CLOCHE IN-APP FULL-SCREEN CHAT & ENQUIRY SCREEN ── */}
       {activeModal === "chat" && (
         <div className="fixed inset-0 z-[9999] bg-[#FAF7F2] w-screen h-screen flex flex-col overflow-hidden animate-in fade-in duration-200">
           
@@ -2240,10 +2256,6 @@ Thank you!`;
                   <div className="text-[11px] text-emerald-200 font-medium flex items-center gap-1.5 mt-0.5">
                     <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                     <span>Active Now</span>
-                    <span>•</span>
-                    <span className="flex items-center gap-1 text-gold font-semibold">
-                      🔒 End-to-End Encrypted
-                    </span>
                   </div>
                 </div>
               </div>
@@ -2257,23 +2269,12 @@ Thank you!`;
             </button>
           </div>
 
-          {/* Encrypted Security Notice Banner */}
-          <div className="bg-[#FAF7F2] border-b border-gold/15 px-4 py-2 text-center shrink-0">
-            <div className="inline-flex items-center gap-1.5 text-[11px] text-charcoal/70 bg-white px-3 py-1 rounded-full border border-gold/20 shadow-2xs font-medium">
-              🔒 Messages are 256-bit End-to-End Encrypted. Only you &amp; {displayName} can read them.
-            </div>
-          </div>
-
-          {/* Chat Messages Body Area */}
-          <div className="flex-1 bg-[#F5F2EB] p-4 overflow-y-auto space-y-4">
+          {/* Chat Messages Body Area (Clean Thread View) */}
+          <div className="flex-1 bg-[#F5F2EB] p-4 overflow-y-auto space-y-3">
             {chatMessages.length === 0 ? (
-              <div className="text-center py-8 space-y-2 max-w-sm mx-auto">
-                <div className="w-14 h-14 rounded-full bg-[#0F4C45]/10 border border-[#0F4C45]/20 text-[#0F4C45] flex items-center justify-center mx-auto text-2xl shadow-2xs">
-                  🔒
-                </div>
-                <h4 className="font-serif font-bold text-base text-charcoal">Direct Vendor Encryption</h4>
-                <p className="text-xs text-charcoal/60 leading-relaxed">
-                  Your enquiry below is pre-filled with your preferred event date. You can edit the message before sending to {displayName}.
+              <div className="text-center py-6 space-y-1 max-w-sm mx-auto">
+                <p className="text-xs text-charcoal/60 leading-relaxed font-medium">
+                  Send your enquiry below. Your message will be stored here and delivered directly to {displayName}.
                 </p>
               </div>
             ) : (
@@ -2283,21 +2284,16 @@ Thank you!`;
                   className={`flex flex-col ${msg.sender === "user" ? "items-end" : "items-start"} space-y-1 animate-in fade-in duration-300`}
                 >
                   <div
-                    className={`p-4 rounded-2xl text-xs sm:text-sm leading-relaxed max-w-[88%] sm:max-w-[75%] shadow-xs ${
+                    className={`p-3.5 rounded-2xl text-xs sm:text-sm leading-relaxed max-w-[88%] sm:max-w-[75%] shadow-xs ${
                       msg.sender === "user"
                         ? "bg-[#0F4C45] text-white rounded-tr-none font-sans"
                         : "bg-white text-charcoal border border-gold/20 rounded-tl-none font-sans"
                     }`}
                   >
                     <p className="whitespace-pre-wrap">{msg.text}</p>
-                    <div className={`flex items-center justify-end gap-1.5 mt-2 text-[10px] ${msg.sender === "user" ? "text-emerald-200" : "text-charcoal/50"}`}>
+                    <div className={`flex items-center justify-end gap-1 mt-1.5 text-[10px] ${msg.sender === "user" ? "text-emerald-200" : "text-charcoal/50"}`}>
                       <span>{msg.time}</span>
-                      {msg.sender === "user" && (
-                        <span className="flex items-center gap-0.5">
-                          <span>✓✓</span>
-                          <span>🔒</span>
-                        </span>
-                      )}
+                      {msg.sender === "user" && <span>✓✓</span>}
                     </div>
                   </div>
                 </div>
@@ -2305,15 +2301,12 @@ Thank you!`;
             )}
           </div>
 
-          {/* Full-Screen Message Composer Box */}
+          {/* Clean Message Composer Box */}
           <div className="bg-white border-t border-gold/20 p-3 sm:p-4 shrink-0 shadow-lg">
             <div className="max-w-4xl mx-auto space-y-2">
               <div className="bg-[#FAF7F2] rounded-2xl p-3 border border-gold/25 space-y-2 relative shadow-inner">
                 <div className="flex items-center justify-between text-[10px] font-bold text-charcoal/60 uppercase tracking-wider">
                   <span>Enquiry Message (Editable)</span>
-                  <span className="text-[#0F4C45] flex items-center gap-1 font-semibold">
-                    🔒 Encrypted Payload
-                  </span>
                 </div>
 
                 <textarea
@@ -2336,24 +2329,23 @@ Thank you!`;
                       const nowTime = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
                       const newMsg = { id: `user-${Date.now()}`, sender: "user" as const, text: userMsgText, time: nowTime };
 
-                      // Save user message to thread state
+                      // Save user message to state & localStorage
                       const updatedMessages = [...chatMessages, newMsg];
                       setChatMessages(updatedMessages);
                       setEnquirySent(true);
                       setEnquiryMessage("");
 
-                      // Persist to localStorage for Vendor Portal messaging
                       try {
                         const key = `cloche_vendor_chat_${vendor?.id || "default"}`;
                         localStorage.setItem(key, JSON.stringify(updatedMessages));
                       } catch (e) {}
 
-                      // Simulate encrypted vendor response after 1.5s
+                      // Simulate vendor response after 1.5s & save to localStorage
                       setTimeout(() => {
                         const vendorReply = {
                           id: `vendor-${Date.now()}`,
                           sender: "vendor" as const,
-                          text: `Hi! Thank you for reaching out to ${displayName}. We have received your encrypted enquiry for ${formatDateSafe(calendarDateInput)}. Our team is reviewing availability and will reply shortly with full details & package options. 🔒`,
+                          text: `Hi! Thank you for reaching out to ${displayName}. We have received your enquiry for ${formatDateSafe(calendarDateInput)}. Our team is reviewing availability and will reply with full details & package options shortly.`,
                           time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
                         };
                         setChatMessages((prev) => {
@@ -2368,7 +2360,7 @@ Thank you!`;
                     }}
                     className="px-5 py-2.5 rounded-full bg-[#25D366] hover:bg-emerald-600 text-white font-extrabold text-xs shadow-md active:scale-95 transition-all cursor-pointer flex items-center gap-2 shrink-0"
                   >
-                    <span>Send Encrypted Message</span>
+                    <span>Send Message</span>
                     <Send className="w-4 h-4" />
                   </button>
                 </div>
