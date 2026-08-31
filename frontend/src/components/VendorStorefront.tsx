@@ -1832,68 +1832,103 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
           </div>
         )}
 
-        {/* SECTION 11: FREQUENTLY ASKED QUESTIONS */}
+        {/* SECTION 11: FREQUENTLY ASKED QUESTIONS (MATCHING SCREENSHOT 2) */}
         {venueDetails.faqs.length > 0 && (
-          <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-3">
-            <div>
-              <h2 className="font-serif text-lg font-bold text-charcoal flex items-center gap-2">
-                <HelpCircle className="w-4.5 h-4.5 text-[#0F4C45]" /> Frequently Asked Questions
-              </h2>
-              <p className="text-xs text-charcoal/60 mt-0.5">Common questions about policies, booking, and services</p>
-            </div>
+          <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-3.5">
+            <h2 className="font-serif text-lg font-bold text-charcoal border-b border-gold/10 pb-2.5">
+              Frequently Asked Questions
+            </h2>
 
-            <div className="space-y-2">
-              {venueDetails.faqs.map((faq: any, idx: number) => {
-                const isOpen = activeFaqIndex === idx;
-                return (
-                  <div key={idx} className="rounded-xl border border-gold/15 overflow-hidden transition-all bg-[#FAF7F2]">
-                    <button
-                      onClick={() => setActiveFaqIndex(isOpen ? null : idx)}
-                      className="w-full p-3 text-left font-bold text-xs text-charcoal flex items-center justify-between cursor-pointer min-h-[44px]"
-                    >
-                      <span>{faq.q}</span>
-                      {isOpen ? <ChevronUp className="w-4 h-4 text-[#0F4C45] shrink-0" /> : <ChevronDown className="w-4 h-4 text-charcoal/50 shrink-0" />}
-                    </button>
-                    {isOpen && (
-                      <div className="px-3.5 pb-3 pt-1 text-xs text-charcoal/80 leading-relaxed border-t border-gold/10 font-normal">
-                        {faq.a}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
+            <div className="space-y-3">
+              {venueDetails.faqs.map((faq: any, idx: number) => (
+                <div key={idx} className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1">
+                  <h3 className="font-bold text-xs sm:text-sm text-charcoal leading-snug">{faq.q}</h3>
+                  <p className="text-xs text-charcoal/70 leading-relaxed font-normal">{faq.a}</p>
+                </div>
+              ))}
             </div>
           </div>
         )}
 
-        {/* SECTION 12: SIMILAR VENUES CAROUSEL */}
-        <section className="bg-white p-4 sm:p-6 rounded-2xl border border-gold/15 shadow-sm space-y-4">
-          <div className="flex items-center justify-between border-b border-gold/10 pb-3">
-            <div>
-              <h2 className="font-serif font-bold text-lg sm:text-xl text-charcoal">Similar {categoryLabel || "Venues"}</h2>
-              <p className="text-xs text-charcoal/60 mt-0.5">Explore other top-rated {categoryLabel || "venues"}</p>
-            </div>
+        {/* SECTION 12: BROWSE SIMILAR VENDORS (MATCHING SCREENSHOT 3) */}
+        <section className="bg-white p-4.5 sm:p-6 rounded-2xl border border-gold/15 shadow-2xs space-y-4">
+          <div className="flex items-center justify-between border-b border-gold/10 pb-2.5">
+            <h2 className="font-serif font-bold text-lg sm:text-xl text-charcoal">Browse similar vendors</h2>
             <Link
               href="/venues"
-              className="py-1.5 px-3 rounded-lg border border-gold/30 text-charcoal font-bold text-xs hover:bg-[#0F4C45] hover:text-white transition-colors"
+              className="text-xs font-bold text-[#0F4C45] hover:underline"
             >
               View All
             </Link>
           </div>
 
-          <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 sm:grid sm:grid-cols-2 md:grid-cols-3 hide-scrollbar pb-1">
+          <div className="space-y-4">
             {similarStudios.slice(0, 3).map((item: any) => (
-              <Link key={item.id} href={`/wedding-story/${item.slug || item.id}`} className="w-[85vw] sm:w-full shrink-0 snap-start block rounded-xl border border-gold/15 overflow-hidden bg-[#FAF7F2] group shadow-2xs hover:shadow-md transition-all active:scale-95">
-                <div className="relative aspect-[16/9] w-full overflow-hidden bg-gray-200">
+              <div key={item.id} className="rounded-2xl border border-gold/15 bg-white overflow-hidden shadow-2xs p-3 space-y-2.5">
+                {/* Hero Photo with Crown Badge & Bookmark */}
+                <div className="relative aspect-[16/9] w-full rounded-xl overflow-hidden bg-gray-200 group">
                   <img src={item.image || item.coverImage || item.logo} alt={item.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                  <span className="absolute top-2 left-2 bg-[#0F4C45] text-white text-[10px] font-extrabold px-2.5 py-0.5 rounded-full shadow-2xs">Verified</span>
+                  
+                  {/* Crown Badge */}
+                  <span className="absolute top-2.5 left-2.5 bg-amber-500 text-white text-xs p-1.5 rounded-lg shadow-2xs">
+                    👑
+                  </span>
+
+                  {/* Bookmark Button */}
+                  <button className="absolute top-2.5 right-2.5 w-8 h-8 rounded-full bg-white/80 backdrop-blur-md flex items-center justify-center text-charcoal/70 hover:text-rose-500 transition-colors">
+                    <Heart className="w-4 h-4" />
+                  </button>
+
+                  {/* Slider Dots */}
+                  <div className="absolute bottom-2.5 left-0 right-0 flex justify-center gap-1">
+                    <span className="w-2 h-2 rounded-full bg-white shadow-2xs" />
+                    <span className="w-2 h-2 rounded-full bg-white/60" />
+                    <span className="w-2 h-2 rounded-full bg-white/60" />
+                  </div>
                 </div>
-                <div className="p-3 space-y-1">
-                  <h3 className="font-serif font-bold text-sm text-charcoal group-hover:text-[#0F4C45] transition-colors">{item.name}</h3>
-                  <div className="text-xs text-charcoal/60 flex items-center gap-1"><MapPin className="w-3 h-3 text-[#0F4C45]" /> {item.location || "Kerala"}</div>
-                  <div className="text-xs font-bold text-[#0F4C45]">{item.startingPrice || "Contact for Pricing"}</div>
+
+                {/* Subtitle Details */}
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between text-xs text-charcoal/70">
+                    <span className="font-medium">{item.location || "Kerala, India"}</span>
+                    <span className="font-bold text-amber-600 flex items-center gap-1">
+                      <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" /> 4.9 (60)
+                    </span>
+                  </div>
+
+                  <h3 className="font-serif font-bold text-base text-charcoal leading-snug">{item.name}</h3>
+
+                  <div className="text-xs font-semibold text-charcoal/80 flex items-center justify-between pt-1">
+                    <span>Veg</span>
+                    <span className="font-bold text-[#0F4C45]">{item.startingPrice || "₹ 1,800 per plate"}</span>
+                  </div>
+
+                  <div className="text-[11px] text-charcoal/60 flex items-center gap-2 pt-0.5">
+                    <span>👥 150 - 500 pax</span>
+                    <span>•</span>
+                    <span className="truncate">🏛 Banquet Halls, Lawns</span>
+                  </div>
                 </div>
-              </Link>
+
+                {/* Action Buttons */}
+                <div className="flex items-center gap-2 pt-1 border-t border-gold/10">
+                  <button
+                    onClick={() => handleCheckAvailability()}
+                    className="flex-1 py-2.5 rounded-full border border-rose-500 text-rose-600 font-extrabold text-xs flex items-center justify-center gap-1.5 hover:bg-rose-50 transition-colors active:scale-95 cursor-pointer"
+                  >
+                    <MessageSquare className="w-3.5 h-3.5" /> Message
+                  </button>
+                  {phone && (
+                    <a
+                      href={`tel:${phone}`}
+                      className="w-9 h-9 rounded-full border border-emerald-600 text-emerald-700 font-bold flex items-center justify-center hover:bg-emerald-50 transition-colors shrink-0 active:scale-95"
+                      title="Call"
+                    >
+                      <Phone className="w-4 h-4" />
+                    </a>
+                  )}
+                </div>
+              </div>
             ))}
           </div>
         </section>

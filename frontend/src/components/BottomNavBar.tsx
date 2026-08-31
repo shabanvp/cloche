@@ -14,7 +14,21 @@ export function BottomNavBar({ activeTab }: BottomNavBarProps = {}) {
   const pathname = usePathname();
   const [isAuraOpen, setIsAuraOpen] = useState(false);
 
-  if (pathname === "/login" || pathname === "/signup") return null;
+    const isVendorDetailPage =
+    pathname.includes("/venues/") ||
+    pathname.includes("/wedding-story/") ||
+    pathname.includes("/photographers/") ||
+    pathname.includes("/makeup-artists/") ||
+    pathname.includes("/decor-planning/") ||
+    pathname.includes("/bridal-wear/") ||
+    pathname.includes("/groom-wear/") ||
+    pathname.includes("/jewellery/") ||
+    pathname.includes("/caterers/") ||
+    pathname.includes("/invitations/") ||
+    pathname.includes("/boutiques/") ||
+    (pathname.startsWith("/vendors/") && pathname !== "/vendors");
+
+  if (pathname === "/login" || pathname === "/signup" || isVendorDetailPage) return null;
 
   const isActive = (tab: string, href: string) => {
     if (activeTab) return activeTab === tab;
