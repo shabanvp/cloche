@@ -845,20 +845,36 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
       ? vendor.halls || vendor.eventSpaces || vendor.event_spaces
       : [];
 
-    const rawAmen = Array.isArray(vendor?.amenities || vendor?.facilities)
-      ? vendor.amenities || vendor.facilities
+    const rawAmen = Array.isArray(vendor?.facilities || vendor?.amenities) && (vendor.facilities || vendor.amenities).length > 0
+      ? vendor.facilities || vendor.amenities
+      : Array.isArray(sf?.facilities) && sf.facilities.length > 0
+      ? sf.facilities
       : ["Air Conditioned", "Parking", "Generator Backup", "Bridal Room", "Lift", "Catering Service", "Decoration Service", "Sound System", "Power Backup"];
 
-    const rawHigh = Array.isArray(vendor?.venueHighlights || vendor?.highlights)
+    const rawHigh = Array.isArray(vendor?.venueHighlights || vendor?.highlights) && (vendor.venueHighlights || vendor.highlights).length > 0
       ? vendor.venueHighlights || vendor.highlights
+      : Array.isArray(sf?.storeHighlights) && sf.storeHighlights.length > 0
+      ? sf.storeHighlights
       : ["Air Conditioned", "Bridal Room", "Valet Parking", "Outdoor Lawn", "Indoor Hall", "Wheelchair Accessible", "Generator Backup", "Catering Available"];
 
+    const faqsList = Array.isArray(vendor?.faqs) && vendor.faqs.length > 0
+      ? vendor.faqs
+      : Array.isArray(sf?.faqs) && sf.faqs.length > 0
+      ? sf.faqs
+      : [
+          { q: "Is outside catering allowed at the venue?", a: "Yes, outside catering is permitted. We also provide an optional in-house gourmet catering panel." },
+          { q: "Is decoration included or can we bring our own decorator?", a: "You can choose from our empanelled luxury decorators or bring your own verified decorator." },
+          { q: "What is the advance booking deposit required?", a: "A 25% advance deposit secures your date. Balance payment is due 7 days prior to event." },
+          { q: "Is alcohol allowed on premises?", a: "Alcohol serving is permitted with a valid temporary state license permit." },
+          { q: "What is your cancellation and date change policy?", a: "Date modifications are complimentary up to 60 days prior to event, subject to calendar availability." },
+        ];
+
     return {
-      capacity: vendor?.guestCapacity || vendor?.capacity || vendor?.max_capacity || "1,200 Guests",
-      guestRooms: vendor?.guestRooms || vendor?.rooms || vendor?.guest_rooms || "20 Rooms",
-      parking: vendor?.parkingCapacity || vendor?.parking || vendor?.parking_capacity || "300 Cars",
-      type: vendor?.venueType || vendor?.type || vendor?.venue_type || "Luxury Convention Hall",
-      establishedYear: vendor?.establishedYear || vendor?.established_year || "2014",
+      capacity: vendor?.guestCapacity || vendor?.capacity || vendor?.max_capacity || sf?.guestCapacity || "1,200 Guests",
+      guestRooms: vendor?.roomsCount || vendor?.numberOfRooms || vendor?.guestRooms || vendor?.rooms || vendor?.guest_rooms || sf?.roomsCount || "20 Rooms",
+      parking: vendor?.parkingCapacity || vendor?.parking || vendor?.parking_capacity || sf?.parkingCapacity || "300 Cars",
+      type: vendor?.venueType || vendor?.type || vendor?.venue_type || sf?.venueType || "Luxury Convention Hall",
+      establishedYear: vendor?.yearStarted || vendor?.establishedYear || vendor?.established_year || vendor?.yearsInBusiness || vendor?.years_in_business || sf?.yearStarted || "2014",
       weddingsHosted: vendor?.weddingsHosted || vendor?.weddings_hosted || vendor?.eventsCatered || "500+",
       halls: hList,
       numberOfHalls: hList.length,
@@ -878,15 +894,9 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
         "Dedicated Manager Response <30 Mins",
         "Verified & Inspected Venue Facility",
       ],
-      faqs: Array.isArray(vendor?.faqs) && vendor.faqs.length > 0 ? vendor.faqs : [
-        { q: "Is outside catering allowed at the venue?", a: "Yes, outside catering is permitted. We also provide an optional in-house gourmet catering panel." },
-        { q: "Is decoration included or can we bring our own decorator?", a: "You can choose from our empanelled luxury decorators or bring your own verified decorator." },
-        { q: "What is the advance booking deposit required?", a: "A 25% advance deposit secures your date. Balance payment is due 7 days prior to event." },
-        { q: "Is alcohol allowed on premises?", a: "Alcohol serving is permitted with a valid temporary state license permit." },
-        { q: "What is your cancellation and date change policy?", a: "Date modifications are complimentary up to 60 days prior to event, subject to calendar availability." },
-      ]
+      faqs: faqsList
     };
-  }, [vendor]);
+  }, [vendor, sf]);
 
   const galleryCategories = useMemo(() => {
     const base = [
@@ -1542,55 +1552,76 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
           </div>
         </div>
 
-        {/* SECTION 2: PRICING INFO (WEDMEGOOD CLEAN LIST ROWS) */}
+        {/* SECTION 2: PRICING INFO (DYNAMIC BASED ON SUPABASE CUSTOMIZATION) */}
         <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
           <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal flex items-center justify-between border-b border-gold/10 pb-2.5">
             <span>Pricing Info</span>
             <span className="text-xs font-bold text-[#0F4C45] bg-[#FAF7F2] px-3 py-1 rounded-full border border-gold/20">
-              {vendor?.startingPriceLabel || vendor?.startingPrice || "Price on Request"}
+              {Boolean(vendor?.contactForPricing ?? vendor?.contact_for_pricing ?? sf?.contactForPricing ?? false)
+                ? "Contact for Pricing"
+                : vendor?.startingPriceLabel || vendor?.startingPrice || "Price on Request"}
             </span>
           </h2>
 
-          <div className="space-y-3 text-xs">
-            <div className="flex items-center justify-between py-2 border-b border-dashed border-gold/20">
-              <div className="space-y-0.5">
-                <div className="font-bold text-charcoal flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-600 inline-block" /> Veg price (taxes extra)
-                </div>
-                <div className="text-[11px] text-charcoal/50">starting price per plate</div>
-              </div>
-              <div className="text-right">
-                <div className="font-serif font-bold text-sm text-[#0F4C45]">₹ 2,000</div>
-                <div className="text-[10px] text-charcoal/50">per plate</div>
-              </div>
+          {Boolean(vendor?.contactForPricing ?? vendor?.contact_for_pricing ?? sf?.contactForPricing ?? false) ? (
+            <div className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/15 text-center space-y-1">
+              <p className="font-serif font-bold text-sm text-[#0F4C45]">Custom Pricing Available Upon Request</p>
+              <p className="text-xs text-charcoal/60">Contact the venue manager directly for custom dates, seasonal discounts, and guest package rates.</p>
             </div>
+          ) : (
+            <div className="space-y-3 text-xs">
+              <div className="flex items-center justify-between py-2 border-b border-dashed border-gold/20">
+                <div className="space-y-0.5">
+                  <div className="font-bold text-charcoal flex items-center gap-1.5">
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-600 inline-block" /> Veg price (taxes extra)
+                  </div>
+                  <div className="text-[11px] text-charcoal/50">starting price per plate</div>
+                </div>
+                <div className="text-right">
+                  <div className="font-serif font-bold text-sm text-[#0F4C45]">
+                    {vendor?.vegPrice || vendor?.veg_price || sf?.vegPrice
+                      ? `₹ ${Number(vendor?.vegPrice || vendor?.veg_price || sf?.vegPrice).toLocaleString("en-IN")}`
+                      : "₹ 1,200"}
+                  </div>
+                  <div className="text-[10px] text-charcoal/50">per plate</div>
+                </div>
+              </div>
 
-            <div className="flex items-center justify-between py-2 border-b border-dashed border-gold/20">
-              <div className="space-y-0.5">
-                <div className="font-bold text-charcoal flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-rose-600 inline-block" /> Non Veg price (taxes extra)
+              <div className="flex items-center justify-between py-2 border-b border-dashed border-gold/20">
+                <div className="space-y-0.5">
+                  <div className="font-bold text-charcoal flex items-center gap-1.5">
+                    <span className="w-2.5 h-2.5 rounded-full bg-rose-600 inline-block" /> Non Veg price (taxes extra)
+                  </div>
+                  <div className="text-[11px] text-charcoal/50">starting price per plate</div>
                 </div>
-                <div className="text-[11px] text-charcoal/50">starting price per plate</div>
+                <div className="text-right">
+                  <div className="font-serif font-bold text-sm text-[#0F4C45]">
+                    {vendor?.nonVegPrice || vendor?.non_veg_price || sf?.nonVegPrice
+                      ? `₹ ${Number(vendor?.nonVegPrice || vendor?.non_veg_price || sf?.nonVegPrice).toLocaleString("en-IN")}`
+                      : "₹ 1,500"}
+                  </div>
+                  <div className="text-[10px] text-charcoal/50">per plate</div>
+                </div>
               </div>
-              <div className="text-right">
-                <div className="font-serif font-bold text-sm text-[#0F4C45]">₹ 2,500</div>
-                <div className="text-[10px] text-charcoal/50">per plate</div>
-              </div>
-            </div>
 
-            <div className="flex items-center justify-between py-2">
-              <div className="space-y-0.5">
-                <div className="font-bold text-charcoal flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-[#C8A96A]" /> Starting Price of Decor
+              <div className="flex items-center justify-between py-2">
+                <div className="space-y-0.5">
+                  <div className="font-bold text-charcoal flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-[#C8A96A]" /> Starting Price of Decor
+                  </div>
+                  <div className="text-[11px] text-charcoal/50">custom decoration setup</div>
                 </div>
-                <div className="text-[11px] text-charcoal/50">custom decoration setup</div>
-              </div>
-              <div className="text-right">
-                <div className="font-serif font-bold text-sm text-[#0F4C45]">₹ 50,000</div>
-                <div className="text-[10px] text-charcoal/50">starting decor package</div>
+                <div className="text-right">
+                  <div className="font-serif font-bold text-sm text-[#0F4C45]">
+                    {vendor?.decorStartingPrice || vendor?.decor_starting_price || sf?.decorStartingPrice
+                      ? `₹ ${Number(vendor?.decorStartingPrice || vendor?.decor_starting_price || sf?.decorStartingPrice).toLocaleString("en-IN")}`
+                      : "₹ 50,000"}
+                  </div>
+                  <div className="text-[10px] text-charcoal/50">starting decor package</div>
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* SECTION 4: PORTFOLIO (CLEAN 4-PHOTO GRID & SLIDER - NO FILTER CHIPS) */}
@@ -1646,8 +1677,10 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
         <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
           <div className="border-b border-gold/10 pb-3 space-y-1">
             <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">About</h2>
-            <div className="text-xs font-bold text-[#0F4C45]">Been on Cloche Since 11 years 3 months</div>
-            <p className="text-xs text-charcoal/60 italic font-medium">Luxurious Weddings Within Reach at {displayName}!</p>
+            <div className="text-xs font-bold text-[#0F4C45]">
+              {venueDetails.establishedYear ? `Established in ${venueDetails.establishedYear}` : "Cloche Verified Partner"}
+            </div>
+            {tagline && <p className="text-xs text-charcoal/60 italic font-medium">"{tagline}"</p>}
           </div>
 
           <div className="space-y-2">
@@ -1656,46 +1689,99 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
             }`}>
               {about || `Situated in a prime central location, ${displayName} is a premier venue that offers top-notch hospitality for a wide range of wedding events, staycations, and grand celebrations.`}
             </p>
-            <button
-              onClick={() => setIsAboutExpanded(!isAboutExpanded)}
-              className="text-xs font-extrabold text-[#0F4C45] hover:underline flex items-center gap-1 cursor-pointer"
-            >
-              {isAboutExpanded ? "Read Less ▲" : "Read More >"}
-            </button>
+            {about && about.length > 180 && (
+              <button
+                onClick={() => setIsAboutExpanded(!isAboutExpanded)}
+                className="text-xs font-extrabold text-[#0F4C45] hover:underline flex items-center gap-1 cursor-pointer"
+              >
+                {isAboutExpanded ? "Read Less ▲" : "Read More >"}
+              </button>
+            )}
           </div>
 
-          {/* Offers List (WedMeGood Reference Style) */}
+          {/* Offers List (WedMeGood Reference Style - Dynamic Facilities) */}
           <div className="pt-3 border-t border-gold/10 space-y-2.5">
             <div className="font-bold text-xs text-charcoal flex items-center gap-1.5">
               <span>😊</span> Offers &amp; Facilities
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-charcoal/80 font-medium">
-              <div className="flex items-center gap-2"><Bed className="w-3.5 h-3.5 text-[#0F4C45]" /> {venueDetails.guestRooms}</div>
-              <div className="flex items-center gap-2"><Building className="w-3.5 h-3.5 text-[#0F4C45]" /> Indoor space</div>
-              <div className="flex items-center gap-2"><Building2 className="w-3.5 h-3.5 text-[#0F4C45]" /> Outdoor space</div>
-              <div className="flex items-center gap-2"><Compass className="w-3.5 h-3.5 text-[#0F4C45]" /> Terrace / Rooftop space</div>
+              <div className="flex items-center gap-2"><Bed className="w-3.5 h-3.5 text-[#0F4C45]" /> {venueDetails.guestRooms} Guest Rooms</div>
+              {(vendor?.hasIndoorSpace ?? vendor?.has_indoor_space ?? sf?.hasIndoorSpace ?? true) && (
+                <div className="flex items-center gap-2"><Building className="w-3.5 h-3.5 text-[#0F4C45]" /> Indoor Climate-Controlled Hall</div>
+              )}
+              {(vendor?.hasOutdoorSpace ?? vendor?.has_outdoor_space ?? sf?.hasOutdoorSpace ?? true) && (
+                <div className="flex items-center gap-2"><Building2 className="w-3.5 h-3.5 text-[#0F4C45]" /> Outdoor Lawn &amp; Garden Space</div>
+              )}
+              {(vendor?.hasRooftopSpace ?? vendor?.has_rooftop_space ?? sf?.hasRooftopSpace ?? false) && (
+                <div className="flex items-center gap-2"><Compass className="w-3.5 h-3.5 text-[#0F4C45]" /> Terrace / Rooftop Space</div>
+              )}
+              {(vendor?.hasBridalRoom ?? vendor?.has_bridal_room ?? sf?.hasBridalRoom ?? true) && (
+                <div className="flex items-center gap-2"><Sparkles className="w-3.5 h-3.5 text-[#0F4C45]" /> AC Bridal Suite</div>
+              )}
+              {(vendor?.hasGroomRoom ?? vendor?.has_groom_room ?? sf?.hasGroomRoom ?? true) && (
+                <div className="flex items-center gap-2"><User className="w-3.5 h-3.5 text-[#0F4C45]" /> Groom Preparation Room</div>
+              )}
               <div className="flex items-center gap-2"><Clock className="w-3.5 h-3.5 text-[#0F4C45]" /> Started in {venueDetails.establishedYear}</div>
-              <div className="flex items-center gap-2"><Car className="w-3.5 h-3.5 text-[#0F4C45]" /> Sufficient parking available for {venueDetails.parking}</div>
+              <div className="flex items-center gap-2"><Car className="w-3.5 h-3.5 text-[#0F4C45]" /> Parking for {venueDetails.parking}</div>
             </div>
           </div>
         </div>
 
-        {/* SECTION 7: POLICIES CHECKLIST (WEDMEGOOD REFERENCE STYLE) */}
+        {/* SECTION 7: POLICIES CHECKLIST (DYNAMIC BASED ON SAVED VENDOR POLICY SWITCHES) */}
         <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-3.5">
           <div className="flex items-center gap-2 border-b border-gold/10 pb-2.5">
             <FileText className="w-4.5 h-4.5 text-[#C8A96A]" />
             <h2 className="font-serif text-lg font-bold text-charcoal">Policies</h2>
           </div>
 
-          <div className="space-y-2 text-xs font-semibold text-charcoal/80">
-            <div className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-600 shrink-0" /> Inhouse &amp; outside catering allowed</div>
-            <div className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-600 shrink-0" /> Decorators from empanelled list only</div>
-            <div className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-600 shrink-0" /> Less than 50 Pax allowed</div>
-            <div className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-600 shrink-0" /> In house alcohol available</div>
-            <div className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-600 shrink-0" /> Outside alcohol permitted</div>
-            <div className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-600 shrink-0" /> In house DJ available</div>
-            <div className="flex items-center gap-2 text-rose-600"><X className="w-4 h-4 text-rose-500 shrink-0" /> Outside DJ not permitted</div>
-          </div>
+          {(() => {
+            const pSwitches = vendor?.policySwitches || vendor?.policy_switches || sf?.policySwitches || {};
+            const decorText = vendor?.decorationPolicy || vendor?.decoration_rules || sf?.decorationPolicy || "";
+            const cancelText = vendor?.cancellationPolicyText || vendor?.cancellation_policy || sf?.cancellationPolicyText || "";
+            return (
+              <div className="space-y-2 text-xs font-semibold text-charcoal/80">
+                <div className="flex items-center gap-2">
+                  {pSwitches.inhouseCatering !== false ? <Check className="w-4 h-4 text-emerald-600 shrink-0" /> : <X className="w-4 h-4 text-rose-500 shrink-0" />}
+                  <span>In-house Catering {pSwitches.inhouseCatering !== false ? "available" : "not available"}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  {pSwitches.outsideCatering !== false ? <Check className="w-4 h-4 text-emerald-600 shrink-0" /> : <X className="w-4 h-4 text-rose-500 shrink-0" />}
+                  <span>Outside Catering {pSwitches.outsideCatering !== false ? "permitted" : "not permitted"}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  {pSwitches.outsideDecorator !== false ? <Check className="w-4 h-4 text-emerald-600 shrink-0" /> : <X className="w-4 h-4 text-rose-500 shrink-0" />}
+                  <span>Outside Decorators {pSwitches.outsideDecorator !== false ? "permitted" : "from empanelled list only"}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  {pSwitches.outsideAlcohol !== false ? <Check className="w-4 h-4 text-emerald-600 shrink-0" /> : <X className="w-4 h-4 text-rose-500 shrink-0" />}
+                  <span>Outside Alcohol {pSwitches.outsideAlcohol !== false ? "permitted (with permit)" : "not permitted"}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  {pSwitches.inhouseDj !== false ? <Check className="w-4 h-4 text-emerald-600 shrink-0" /> : <X className="w-4 h-4 text-rose-500 shrink-0" />}
+                  <span>In-house DJ &amp; Sound {pSwitches.inhouseDj !== false ? "available" : "not available"}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  {pSwitches.outsideDj !== false ? <Check className="w-4 h-4 text-emerald-600 shrink-0" /> : <X className="w-4 h-4 text-rose-500 shrink-0" />}
+                  <span>Outside DJ {pSwitches.outsideDj !== false ? "permitted" : "not permitted"}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  {pSwitches.lessThan50Pax !== false ? <Check className="w-4 h-4 text-emerald-600 shrink-0" /> : <X className="w-4 h-4 text-rose-500 shrink-0" />}
+                  <span>Small gatherings (&lt;50 Pax) {pSwitches.lessThan50Pax !== false ? "allowed" : "not allowed"}</span>
+                </div>
+
+                {decorText && (
+                  <div className="pt-2 border-t border-dashed border-gold/20 text-charcoal/70 font-normal">
+                    <span className="font-bold text-charcoal">Decoration Policy:</span> {decorText}
+                  </div>
+                )}
+                {cancelText && (
+                  <div className="pt-1 text-charcoal/70 font-normal">
+                    <span className="font-bold text-charcoal">Cancellation Policy:</span> {cancelText}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
         </div>
 
         {/* SECTION 8: AMENITIES ICON GRID */}
