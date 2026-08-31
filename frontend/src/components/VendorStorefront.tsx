@@ -1549,12 +1549,12 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
           </div>
         )}
 
-        {/* SECTION 4: VENUE ALBUMS & FEATURED GALLERY */}
+        {/* SECTION 4: PORTFOLIO (UPLOADED PHOTOS BY VENDOR - NO SUBTITLE) */}
         {galleryPhotos.length > 0 && (
           <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
             <div className="flex items-center justify-between border-b border-gold/10 pb-3">
               <div className="flex items-center gap-2">
-                <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">Albums</h2>
+                <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">Portfolio</h2>
                 <span className="px-2.5 py-0.5 rounded-full bg-gold/15 text-[#0F4C45] text-xs font-extrabold">
                   {galleryPhotos.length} photos
                 </span>
@@ -1563,7 +1563,7 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
                 onClick={() => setSelectedPhoto(galleryPhotos[0].url)}
                 className="text-xs font-extrabold text-[#0F4C45] hover:underline flex items-center gap-1 cursor-pointer"
               >
-                View All Albums <ChevronRight className="w-3.5 h-3.5" />
+                View All Photos <ChevronRight className="w-3.5 h-3.5" />
               </button>
             </div>
 
@@ -1586,18 +1586,15 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
               </div>
             )}
 
-            {/* Album Thumbnails Layout (WedMeGood Reference Style) */}
+            {/* Portfolio Grid Layout */}
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
               <div
                 onClick={() => setSelectedPhoto(galleryPhotos[0].url)}
                 className="relative col-span-1 row-span-2 aspect-[4/3] rounded-xl overflow-hidden border border-gold/20 shadow-2xs cursor-pointer group bg-gray-100"
               >
-                <img src={galleryPhotos[0].url} alt="Main Portfolio" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                <img src={galleryPhotos[0].url} alt="Portfolio Main" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                 <div className="absolute top-2 left-2 bg-black/60 backdrop-blur-md text-white text-[10px] font-bold px-2 py-0.5 rounded border border-white/20 flex items-center gap-1">
                   <ImageIcon className="w-3 h-3" /> {galleryPhotos.length}
-                </div>
-                <div className="absolute bottom-2 left-2 right-2 bg-black/60 backdrop-blur-md text-white font-bold text-xs p-1.5 rounded text-center">
-                  Portfolio Showcase
                 </div>
               </div>
 
