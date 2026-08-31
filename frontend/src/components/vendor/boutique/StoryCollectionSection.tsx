@@ -528,15 +528,16 @@ export function StoryCollectionSection({
                   />
                 </div>
 
-                {/* Category */}
+                {/* Category (Mandatory) */}
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-gray-700 uppercase tracking-wider">Category</label>
+                  <label className="text-xs font-semibold text-gray-700 uppercase tracking-wider">Category *</label>
                   <select
+                    required
                     value={formCategory}
                     onChange={(e) => setFormCategory(e.target.value)}
                     className="w-full bg-[#F8F6F2] border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#0d3b30]"
                   >
-                    {categoryOptions.map((cat) => (
+                    {["Bridal", "Groom", "Reception", "Traditional", "Jewellery", "Accessories", "Mehendi", "Engagement", ...categoryOptions].filter((v, i, a) => a.indexOf(v) === i).map((cat) => (
                       <option key={cat} value={cat}>{cat}</option>
                     ))}
                   </select>
@@ -544,18 +545,16 @@ export function StoryCollectionSection({
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Collection */}
+                {/* Collection Name (Optional) */}
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-gray-700 uppercase tracking-wider">Collection</label>
-                  <select
+                  <label className="text-xs font-semibold text-gray-700 uppercase tracking-wider">Collection Name (Optional)</label>
+                  <input
+                    type="text"
                     value={formCollection}
                     onChange={(e) => setFormCollection(e.target.value)}
+                    placeholder="E.g. Royal Heritage 2026 (Optional)"
                     className="w-full bg-[#F8F6F2] border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#0d3b30]"
-                  >
-                    {collectionsList.map((col) => (
-                      <option key={col} value={col}>{col}</option>
-                    ))}
-                  </select>
+                  />
                 </div>
 
                 {/* Stock Status */}

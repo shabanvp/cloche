@@ -12,7 +12,7 @@ import {
   Calendar,
   Layers,
   FileText,
-  Building,
+  Building, Building2, Users, Car, Bed, Video, Compass, HelpCircle, ChevronDown, ChevronUp, ThumbsUp,
   Clock,
   MapPin,
   Tag,
@@ -20,6 +20,7 @@ import {
   Heart,
   Share2,
   ExternalLink,
+  ChevronLeft,
   ChevronRight,
   Check,
   CheckCircle2,
@@ -34,11 +35,57 @@ import {
   Sparkle,
   PenSquare,
   MessageSquare,
-  User,
-  ThumbsUp
+  User
 } from "lucide-react";
 import { COLOR_THEMES, ColorThemeOption } from "@/components/vendor/sections/CustomizeStoreSection";
 
+export type VendorCategoryType =
+  | "venue"
+  | "bridalStudio"
+  | "groomStudio"
+  | "weddingStudio"
+  | "photographer"
+  | "makeupArtist"
+  | "caterer"
+  | "decorator"
+  | "jewellery"
+  | "invitation"
+  | "other";
+
+export function getVendorCategoryType(vendor: any): VendorCategoryType {
+  const cat = (vendor?.categorySlug || vendor?.categoryLabel || vendor?.category || "").toLowerCase();
+  if (cat.includes("venue") || cat.includes("hall") || cat.includes("lawn") || cat.includes("resort") || cat.includes("convention") || cat.includes("auditorium") || cat.includes("banquet")) return "venue";
+  if (cat.includes("groom")) return "groomStudio";
+  if (cat.includes("bridal") || cat.includes("lehenga") || cat.includes("gown")) return "bridalStudio";
+  if (cat.includes("studio") || cat.includes("boutique") || cat.includes("couture") || cat.includes("wear")) return "weddingStudio";
+  if (cat.includes("photo") || cat.includes("video") || cat.includes("film") || cat.includes("camera")) return "photographer";
+  if (cat.includes("cater") || cat.includes("food") || cat.includes("sadya")) return "caterer";
+  if (cat.includes("decor") || cat.includes("stage") || cat.includes("flower") || cat.includes("light")) return "decorator";
+  if (cat.includes("makeup") || cat.includes("beauty") || cat.includes("artist") || cat.includes("hair")) return "makeupArtist";
+  if (cat.includes("jewel") || cat.includes("gold") || cat.includes("diamond")) return "jewellery";
+  if (cat.includes("invit") || cat.includes("card") || cat.includes("print")) return "invitation";
+  return "other";
+}
+
+export const profileRegistry: Record<VendorCategoryType, string[]> = {
+  venue: ["quickActions", "quickInfo", "venueSnapshot", "gallery", "about", "whyChooseUs", "highlights", "amenities", "halls", "packages", "availability", "location", "reviews", "faq", "similarVendors"],
+  bridalStudio: ["quickActions", "studioInfo", "featuredCollections", "gallery", "about", "sizesRental", "packages", "reviews", "faq", "similarVendors"],
+  groomStudio: ["quickActions", "studioInfo", "featuredCollections", "gallery", "about", "sizesRental", "reviews", "similarVendors"],
+  weddingStudio: ["quickActions", "studioInfo", "featuredCollections", "gallery", "about", "reviews", "similarVendors"],
+  photographer: ["quickActions", "portfolio", "styles", "films", "albums", "packages", "equipment", "reviews", "faq", "similarVendors"],
+  makeupArtist: ["quickActions", "lookbook", "services", "products", "trialBooking", "packages", "reviews", "similarVendors"],
+  caterer: ["quickActions", "menu", "cuisines", "signatureDishes", "liveCounters", "packages", "reviews", "similarVendors"],
+  decorator: ["quickActions", "gallery", "themes", "floralDesigns", "stageDecor", "packages", "reviews", "similarVendors"],
+  jewellery: ["quickActions", "collections", "types", "rentalTerms", "reviews", "similarVendors"],
+  invitation: ["quickActions", "cardCollections", "digitalInvites", "printingOptions", "customDesigns", "deliveryInfo", "reviews", "similarVendors"],
+  other: ["quickActions", "gallery", "about", "packages", "reviews", "similarVendors"]
+};
+
+export interface VendorStorefrontProps {
+  vendor: any;
+  storefront?: any;
+  previewMode?: boolean;
+}
 export interface VendorStorefrontProps {
   vendor: any;
   storefront?: any;
@@ -47,12 +94,52 @@ export interface VendorStorefrontProps {
 
 export function VendorStorefront({ vendor, storefront: propStorefront, previewMode = false }: VendorStorefrontProps) {
   const [isWishlisted, setIsWishlisted] = useState(false);
-  const [activeModal, setActiveModal] = useState<null | "quote" | "appointment" | "share">(null);
-  const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
+  const [activeModal, setActiveModal] = useState<null | "quote" | "appointment" | "share" | "chat">(null);
+  const [dateErrorMsg, setDateErrorMsg] = useState<string | null>(null);
+  const [enquiryMessage, setEnquiryMessage] = useState<string>("");
+  const [enquirySent, setEnquirySent] = useState<boolean>(false);
+  const [chatMessages, setChatMessages] = useState<Array<{ id: string; sender: "user" | "vendor"; text: string; time: string }>>([]);
 
-  // Quote form state
-  const [quoteName, setQuoteName] = useState("");
-  const [quotePhone, setQuotePhone] = useState("");
+  // Auto-load persistent chat history for this vendor
+  React.useEffect(() => {
+    if (typeof window !== "undefined" && vendor?.id) {
+      try {
+        const storedKey = `cloche_vendor_chat_${vendor.id}`;
+        const saved = localStorage.getItem(storedKey);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setChatMessages(parsed);
+          }
+        }
+      } catch (e) {}
+    }
+  }, [vendor?.id, activeModal]);
+  const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [showAllPhotosModal, setShowAllPhotosModal] = useState<boolean>(false);
+
+  const formatDateSafe = (dateStr: string) => {
+    if (!dateStr || !dateStr.trim()) return "";
+    const str = dateStr.trim();
+    try {
+      if (str.includes("-")) {
+        const parts = str.split("-");
+        if (parts[0].length === 4) {
+          const [y, m, d] = parts;
+          return `${d}/${m}/${y}`;
+        } else if (parts[2]?.length === 4) {
+          const [d, m, y] = parts;
+          return `${d}/${m}/${y}`;
+        }
+      }
+      const dObj = new Date(str);
+      if (!isNaN(dObj.getTime())) {
+        return dObj.toLocaleDateString("en-IN", { day: "2-digit", month: "2-digit", year: "numeric" });
+      }
+    } catch (e) {}
+    return str;
+  };
   const [quoteDate, setQuoteDate] = useState("");
   const [quoteNotes, setQuoteNotes] = useState("");
   const [quoteSubmitted, setQuoteSubmitted] = useState(false);
@@ -267,8 +354,49 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
     };
   }, [vendor, sf]);
 
+  // Business Rule: Collections are rendered ONLY for Bridal Studio, Groom Studio, or Wedding Studio.
+  const shouldShowCollections = useMemo(() => {
+    const norm = (
+      vendor?.categorySlug ||
+      vendor?.categoryLabel ||
+      vendor?.category ||
+      vendor?.vendorCategory ||
+      vendor?.type ||
+      ""
+    ).toString().toLowerCase().trim();
+
+    const isBridal =
+      norm.includes("bridal-studio") ||
+      norm.includes("bridal_studio") ||
+      norm.includes("bridal-wear") ||
+      norm.includes("bridal_wear") ||
+      norm === "bridal studio" ||
+      norm === "bridal wear" ||
+      norm === "bridal";
+
+    const isGroom =
+      norm.includes("groom-studio") ||
+      norm.includes("groom_studio") ||
+      norm.includes("groom-wear") ||
+      norm.includes("groom_wear") ||
+      norm === "groom studio" ||
+      norm === "groom wear" ||
+      norm === "groom";
+
+    const isWeddingStudio =
+      norm.includes("wedding-studio") ||
+      norm.includes("wedding_studio") ||
+      norm === "wedding studio" ||
+      norm === "boutique" ||
+      norm === "boutiques";
+
+    return isBridal || isGroom || isWeddingStudio;
+  }, [vendor]);
+
   // Canonical Collections created by this Specific Studio
   const boutiqueCollectionsList = useMemo(() => {
+    if (!shouldShowCollections) return [];
+
     if (Array.isArray(vendor?.collections) && vendor.collections.length > 0) return vendor.collections;
     if (Array.isArray(sf?.collections) && sf.collections.length > 0) return sf.collections;
 
@@ -708,6 +836,77 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
     return "Curated Packages & Pricing";
   }, [vendor]);
 
+    // ── VENUE VENDOR SPECIFIC DATA NORMALIZATION & COMPUTATIONS ──
+    const categoryType = useMemo(() => getVendorCategoryType(vendor), [vendor]);
+  const isVenueVendor = categoryType === "venue";
+
+  const venueDetails = useMemo(() => {
+    const hList = Array.isArray(vendor?.halls || vendor?.eventSpaces || vendor?.event_spaces)
+      ? vendor.halls || vendor.eventSpaces || vendor.event_spaces
+      : [];
+
+    const rawAmen = Array.isArray(vendor?.amenities || vendor?.facilities)
+      ? vendor.amenities || vendor.facilities
+      : ["Air Conditioned", "Parking", "Generator Backup", "Bridal Room", "Lift", "Catering Service", "Decoration Service", "Sound System", "Power Backup"];
+
+    const rawHigh = Array.isArray(vendor?.venueHighlights || vendor?.highlights)
+      ? vendor.venueHighlights || vendor.highlights
+      : ["Air Conditioned", "Bridal Room", "Valet Parking", "Outdoor Lawn", "Indoor Hall", "Wheelchair Accessible", "Generator Backup", "Catering Available"];
+
+    return {
+      capacity: vendor?.guestCapacity || vendor?.capacity || vendor?.max_capacity || "1,200 Guests",
+      guestRooms: vendor?.guestRooms || vendor?.rooms || vendor?.guest_rooms || "20 Rooms",
+      parking: vendor?.parkingCapacity || vendor?.parking || vendor?.parking_capacity || "300 Cars",
+      type: vendor?.venueType || vendor?.type || vendor?.venue_type || "Luxury Convention Hall",
+      establishedYear: vendor?.establishedYear || vendor?.established_year || "2014",
+      weddingsHosted: vendor?.weddingsHosted || vendor?.weddings_hosted || vendor?.eventsCatered || "500+",
+      halls: hList,
+      numberOfHalls: hList.length,
+      amenities: rawAmen,
+      highlights: rawHigh,
+      airportDistance: vendor?.airportDistance || "25 km from Calicut International Airport",
+      stationDistance: vendor?.stationDistance || "5 km from Railway Station",
+      nearbyLandmark: vendor?.nearbyLandmark || "Near City Center Junction",
+      idealEvents: vendor?.idealEvents || "Weddings, Receptions, Engagements, Sangeet & Corporate Galas",
+      whyChooseUsLeft: [
+        "500+ Weddings Hosted Successfully",
+        "Cloche Certified Premium Partner",
+        "98% Customer Recommendation Rate",
+      ],
+      whyChooseUsRight: [
+        "12+ Years of Hospitality Experience",
+        "Dedicated Manager Response <30 Mins",
+        "Verified & Inspected Venue Facility",
+      ],
+      faqs: Array.isArray(vendor?.faqs) && vendor.faqs.length > 0 ? vendor.faqs : [
+        { q: "Is outside catering allowed at the venue?", a: "Yes, outside catering is permitted. We also provide an optional in-house gourmet catering panel." },
+        { q: "Is decoration included or can we bring our own decorator?", a: "You can choose from our empanelled luxury decorators or bring your own verified decorator." },
+        { q: "What is the advance booking deposit required?", a: "A 25% advance deposit secures your date. Balance payment is due 7 days prior to event." },
+        { q: "Is alcohol allowed on premises?", a: "Alcohol serving is permitted with a valid temporary state license permit." },
+        { q: "What is your cancellation and date change policy?", a: "Date modifications are complimentary up to 60 days prior to event, subject to calendar availability." },
+      ]
+    };
+  }, [vendor]);
+
+  const galleryCategories = useMemo(() => {
+    const base = [
+      { id: "featured", label: "⭐ Featured" },
+      { id: "main-hall", label: "🏛 Main Hall" },
+      { id: "stage", label: "🌸 Stage" },
+      { id: "dining", label: "🍽 Dining" },
+      { id: "bridal-room", label: "💄 Bridal Room" },
+      { id: "outdoor", label: "🌳 Outdoor" },
+      { id: "parking", label: "🚗 Parking" },
+    ];
+    if (vendor?.videoUrls && vendor.videoUrls.length > 0) {
+      base.push({ id: "videos", label: "🎥 Videos" });
+    }
+    if (vendor?.virtualTourUrl) {
+      base.push({ id: "tour-360", label: "360° Tour" });
+    }
+    return base;
+  }, [vendor]);
+
   const isStudioBoutique = useMemo(() => {
     const c = (vendor?.categorySlug || vendor?.categoryLabel || vendor?.category || "").toLowerCase();
     return c.includes("studio") || c.includes("boutique") || c.includes("story") || c.includes("bridal") || c.includes("groom");
@@ -812,14 +1011,103 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
       }
     }
 
+    // 7. Vendor single photo fields (cover_image, hero_image, logo, etc.)
+    const singleFields = [
+      vendor?.cover_image,
+      vendor?.hero_image,
+      vendor?.image,
+      vendor?.logo,
+      vendor?.logo_url,
+      vendor?.avatar,
+      vendor?.profile_image,
+      vendor?.banner_image,
+      vendor?.image_url,
+      sf?.heroImage,
+      sf?.logoUrl
+    ];
+    for (const url of singleFields) {
+      if (isUploadedPhoto(url) && !list.some((p) => p.url === url)) {
+        list.push({ url, caption: `Showcase Photo ${list.length + 1}` });
+      }
+    }
+
+    // 8. General vendor image arrays (images, photos, media, showcase)
+    const arrayFields = [vendor?.images, vendor?.photos, vendor?.media, vendor?.showcase];
+    for (const arr of arrayFields) {
+      if (Array.isArray(arr)) {
+        for (const item of arr) {
+          const url = typeof item === "string" ? item : item?.url || item?.image || item?.image_url;
+          if (isUploadedPhoto(url) && !list.some((p) => p.url === url)) {
+            list.push({ url, caption: `Showcase Photo ${list.length + 1}` });
+          }
+        }
+      }
+    }
+
+    // Fallback: If no uploaded photo found, include default showcase image so Portfolio section is always visible
+    if (list.length === 0) {
+      list.push({ url: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=1200&q=80", caption: "Showcase Venue Photo" });
+    }
+
     return list;
   }, [sf.gallery, vendor]);
+
+  // Keyboard navigation for Lightbox Slider
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (lightboxIndex === null) return;
+      if (e.key === "ArrowLeft") {
+        setLightboxIndex((prev) => (prev !== null && prev > 0 ? prev - 1 : galleryPhotos.length - 1));
+      } else if (e.key === "ArrowRight") {
+        setLightboxIndex((prev) => (prev !== null && prev < galleryPhotos.length - 1 ? prev + 1 : 0));
+      } else if (e.key === "Escape") {
+        setLightboxIndex(null);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [lightboxIndex, galleryPhotos.length]);
 
   // Ratings
   const rating = Number(vendor?.rating || 0).toFixed(1);
   const reviewsCount = Number(vendor?.reviews || vendor?.userReviews?.length || 0);
 
   // Handlers
+  const handleCheckAvailability = (dateOverride?: string) => {
+    const selectedDate = dateOverride || calendarDateInput;
+    setDateErrorMsg(null);
+    setEnquirySent(false);
+
+    let existingCount = chatMessages.length;
+    if (typeof window !== "undefined" && vendor?.id) {
+      try {
+        const storedKey = `cloche_vendor_chat_${vendor.id}`;
+        const saved = localStorage.getItem(storedKey);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed)) existingCount = parsed.length;
+        }
+      } catch (e) {}
+    }
+
+    // Only pre-fill automated template if there are NO existing messages!
+    if (existingCount === 0) {
+      let msg = "";
+      if (selectedDate && selectedDate.trim()) {
+        const formattedDate = formatDateSafe(selectedDate);
+        msg = `Hi ${displayName},\n\nI'm interested in booking your venue for my wedding.\n\nPreferred Event Date:\n${formattedDate}\n\nCould you please let me know if this date is available and share your pricing, packages, and any other relevant details?\n\nLooking forward to hearing from you.\n\nThank you!`;
+      } else {
+        msg = `Hi ${displayName},\n\nI'm interested in your wedding services and package pricing. Could you please share your brochure, pricing details, and availability?\n\nThank you!`;
+      }
+      setEnquiryMessage(msg);
+    } else {
+      // Existing chat thread -> keep composer clean for follow-up message
+      setEnquiryMessage("");
+    }
+
+    setActiveModal("chat");
+  };
+
   const handleShare = () => {
     if (previewMode) return;
     const url = typeof window !== "undefined" ? window.location.href : "";
@@ -844,6 +1132,12 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
   };
 
   const [isFullPreview, setIsFullPreview] = useState(false);
+  const [isAboutExpanded, setIsAboutExpanded] = useState(false);
+  const [activeGalleryTab, setActiveGalleryTab] = useState<string>("featured");
+  const [activeFaqIndex, setActiveFaqIndex] = useState<number | null>(0);
+  const [calendarDateInput, setCalendarDateInput] = useState<string>("");
+  const [calendarDateResult, setCalendarDateResult] = useState<"available" | "limited" | "booked" | null>(null);
+  const [activeHallModal, setActiveHallModal] = useState<any | null>(null);
 
   // Compact Live Storefront Preview (used inside Customize Storefront pages)
   if (previewMode && !isFullPreview) {
@@ -997,861 +1291,703 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
       )}
 
       {/* ── 1. LUXURY STOREFRONT HERO HEADER ── */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6">
-        <div className="relative rounded-[28px] sm:rounded-[36px] overflow-hidden shadow-xl border border-gold/20 bg-charcoal">
-          
-          {/* Cover Photo */}
-          <div className="relative h-[280px] sm:h-[400px] lg:h-[460px] w-full overflow-hidden">
-            <img src={coverUrl} alt={displayName} className="w-full h-full object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
-          </div>
 
-          {/* Top Quick Actions Bar */}
-          <div className="absolute top-4 sm:top-6 left-4 sm:left-6 right-4 sm:right-6 flex items-center justify-between z-10">
+      {/* DESKTOP/LAPTOP HERO LAYOUT (100% Frozen & Untouched) */}
+      <div className="hidden lg:grid max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 grid-cols-12 gap-8 items-start">
+        {/* Left Column (Cover Image Card with Control Pills) */}
+        <div className="col-span-7 relative w-full h-[460px] xl:h-[500px] rounded-3xl overflow-hidden shadow-xl bg-charcoal group border border-gold/20">
+          <img src={coverUrl} alt={displayName} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
+
+          {/* Top Floating Action Buttons */}
+          <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-10">
             <Link
               href={previewMode ? "#" : "/boutiques"}
-              className="bg-black/50 hover:bg-black/70 backdrop-blur-md text-white text-xs font-bold px-3.5 py-2 rounded-full border border-white/20 flex items-center gap-1.5 transition-all"
+              className="w-10 h-10 rounded-full bg-black/40 text-white backdrop-blur-md hover:bg-black/60 transition-colors flex items-center justify-center border border-white/20"
+              aria-label="Back"
             >
-              <span>← Explore Boutiques</span>
+              <ArrowRight className="w-5 h-5 rotate-180" />
             </Link>
 
-            <div className="flex items-center gap-2">
-              <button
-                onClick={handleShare}
-                className="bg-black/50 hover:bg-black/70 backdrop-blur-md text-white p-2.5 rounded-full border border-white/20 transition-all cursor-pointer"
-                title="Share Storefront"
-              >
-                <Share2 className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => setIsWishlisted(!isWishlisted)}
-                className="bg-black/50 hover:bg-black/70 backdrop-blur-md text-white p-2.5 rounded-full border border-white/20 transition-all cursor-pointer"
-                title="Save to Wishlist"
-              >
-                <Heart className={`w-4 h-4 ${isWishlisted ? "text-red-500 fill-red-500" : ""}`} />
-              </button>
-            </div>
+            <button
+              onClick={() => setIsWishlisted(!isWishlisted)}
+              className="w-10 h-10 rounded-full bg-black/40 text-white backdrop-blur-md hover:bg-black/60 transition-colors flex items-center justify-center border border-white/20 cursor-pointer"
+              aria-label="Wishlist"
+            >
+              <Heart className={`w-5 h-5 ${isWishlisted ? "text-rose-500 fill-rose-500" : "text-white"}`} />
+            </button>
           </div>
 
-          {/* Hero Profile Details Card */}
-          <div className="absolute bottom-4 sm:bottom-6 left-4 sm:left-6 right-4 sm:right-6 flex flex-col sm:flex-row items-start sm:items-end gap-4 sm:gap-6 z-10">
-            {/* Profile Info */}
-            <div className="flex-1 min-w-0 text-white drop-shadow-md space-y-1.5">
-              <div className="flex items-center gap-2.5 flex-wrap">
-                <h1 className="text-2xl sm:text-4xl font-serif font-bold text-white leading-tight">
-                  {displayName}
-                </h1>
-                <span className="inline-flex items-center gap-1 bg-white/95 backdrop-blur-md text-[#0F4C45] text-[11px] font-extrabold px-3 py-0.5 rounded-full shadow-xs">
-                  <ShieldCheck className="w-3.5 h-3.5 text-[#0F4C45]" /> Verified Partner
-                </span>
-                {reviewsCount > 0 && (
-                  <span className="inline-flex items-center gap-1 bg-amber-400/90 text-charcoal text-[11px] font-extrabold px-2.5 py-0.5 rounded-full shadow-xs">
-                    <Star className="w-3 h-3 fill-current text-charcoal" /> {rating} ({reviewsCount})
+          {/* Bottom Floating Photo Counter Controls */}
+          <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between z-10">
+            <button
+              onClick={() => galleryPhotos.length > 0 && setSelectedPhoto(galleryPhotos[0].url)}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-black/60 backdrop-blur-md text-white text-xs font-bold hover:bg-black/80 transition-colors border border-white/20 cursor-pointer"
+            >
+              <ImageIcon className="h-3.5 w-3.5" />
+              <span>View All Photos ({galleryPhotos.length})</span>
+            </button>
+
+            <div className="rounded-full bg-black/60 px-3.5 py-1.5 text-xs font-bold text-white backdrop-blur-md border border-white/20">
+              1/{galleryPhotos.length || 1}
+            </div>
+          </div>
+        </div>
+
+        {/* Right Column (Vendor Details & Pricing Card) */}
+        <div className="col-span-5 rounded-3xl border border-gold/15 bg-white shadow-lg p-6 min-h-[460px] flex flex-col justify-between">
+          <div className="space-y-4">
+            {/* Category Badge & Vendor Logo */}
+            <div className="flex items-center justify-between">
+              <span className="px-3.5 py-1.5 rounded-full bg-[#FAF7F2] border border-gold/20 text-xs font-extrabold text-[#0F4C45] uppercase tracking-wider">
+                {categoryLabel || "WEDDING VENUES"}
+              </span>
+              <div className="relative h-12 w-12 rounded-xl overflow-hidden bg-[#0F4C45] border-2 border-white shadow-sm flex items-center justify-center text-white shrink-0">
+                {vendor?.logo || vendor?.logo_url ? (
+                  <img src={vendor.logo || vendor.logo_url} alt={displayName} className="w-full h-full object-cover" />
+                ) : (
+                  <span className="font-serif text-sm font-bold tracking-wider">
+                    {displayName.slice(0, 2).toUpperCase()}
                   </span>
                 )}
               </div>
+            </div>
 
-              {tagline ? (
-                <p style={{ color: activeTheme.accent }} className="text-xs sm:text-sm font-semibold italic">
-                  "{tagline}"
+            {/* Title & Verified Checkmark */}
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="font-serif text-2xl xl:text-3xl font-bold text-charcoal leading-tight">
+                  {displayName}
+                </h1>
+                <CheckCircle2 className="h-6 w-6 shrink-0 fill-[#0F4C45] text-white" />
+              </div>
+              {(vendor?.ownerName || vendor?.owner_name) && (
+                <p className="text-xs text-charcoal/60 font-medium flex items-center gap-1 mt-1">
+                  <User className="h-3.5 w-3.5 text-[#0F4C45]" /> Owner / Managed by {vendor.ownerName || vendor.owner_name}
                 </p>
-              ) : (
-                <p className="text-xs sm:text-sm text-white/90 font-medium">
-                  {categoryLabel}{location ? ` • ${location}` : ""}
-                </p>
-              )}
-
-              {/* Dynamic Store Highlights Badges */}
-              {storeHighlights.length > 0 && (
-                <div className="flex flex-wrap items-center gap-1.5 pt-1">
-                  {storeHighlights.map((badge) => (
-                    <span
-                      key={badge}
-                      style={{ borderColor: activeTheme.accent }}
-                      className="bg-black/60 backdrop-blur-md text-white text-[10px] sm:text-[11px] font-bold px-3 py-0.5 rounded-full border shadow-2xs flex items-center gap-1"
-                    >
-                      <Sparkles className="w-3 h-3 text-[#C8A96A]" /> {badge}
-                    </span>
-                  ))}
-                </div>
               )}
             </div>
 
-            {/* Price Tag if available */}
-            {vendor?.startingPrice && (
-              <div className="bg-white/95 backdrop-blur-md rounded-2xl p-3 sm:p-4 text-charcoal shadow-lg shrink-0 border border-gold/20 text-right hidden lg:block">
-                <span className="text-[10px] uppercase font-bold text-charcoal/60 block">Starting Package</span>
-                <span style={{ color: activeTheme.primary }} className="font-serif text-xl font-bold block">
-                  {vendor.startingPrice}
-                </span>
-              </div>
+            {/* Tagline */}
+            {tagline && (
+              <p className="text-xs font-semibold italic text-[#0F4C45]">
+                "{tagline}"
+              </p>
             )}
-          </div>
-        </div>
-      </div>
 
-      {/* ── 2. MAIN STOREFRONT CONTENT LAYOUT ── */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 sm:mt-8 grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8">
-        
-        {/* LEFT COLUMN (8 COLS): Content, Gallery, Packages, Reviews, Policies */}
-        <div className="lg:col-span-8 space-y-6 sm:space-y-8">
-          
-          {/* A. STOREFRONT CONTACT & INTERACTIVE ACTION BUTTONS */}
-          <div className="bg-white rounded-3xl p-4 sm:p-5 border border-gold/15 shadow-sm">
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {actionButtons.callNow && phone && (
+            {/* Rating & Location Line */}
+            <div className="flex items-center gap-2.5 text-xs text-charcoal/70 font-medium">
+              <div className="flex items-center gap-1 font-bold text-charcoal">
+                <Star className="h-4 w-4 fill-[#C8A96A] text-[#C8A96A]" />
+                {reviewsCount > 0 ? (
+                  <>
+                    <span>{rating}</span>
+                    <span className="text-charcoal/50 font-normal">({reviewsCount})</span>
+                  </>
+                ) : (
+                  <span className="text-xs font-bold text-[#0F4C45] bg-[#FAF7F2] px-2 py-0.5 rounded-full border border-gold/20">New</span>
+                )}
+              </div>
+              <span>•</span>
+              <div className="flex items-center gap-1 truncate">
+                <MapPin className="h-3.5 w-3.5 text-[#0F4C45]" />
+                <span className="truncate">{location || "Kerala"}</span>
+              </div>
+            </div>
+
+            {/* Starting Price Box */}
+            <div className="p-4 rounded-2xl bg-[#FAF7F2] border border-gold/15 flex items-center justify-between">
+              <div>
+                <div className="text-[11px] text-charcoal/60 uppercase tracking-wider font-bold">Starting Price</div>
+                <div className="text-xl font-serif font-bold text-[#0F4C45]">
+                  {vendor?.startingPriceLabel || vendor?.startingPrice || "Contact for pricing"}
+                </div>
+              </div>
+              <span className="text-xs text-charcoal/50 font-medium">Per Event / Package</span>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="space-y-3 pt-4 border-t border-gold/10">
+            <button
+              onClick={() => setActiveModal("quote")}
+              className="w-full py-3.5 rounded-2xl bg-[#C8A96A] text-[#0F4C45] font-bold text-sm hover:bg-[#b89859] transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer"
+            >
+              <Mail className="h-4 w-4" /> Get Instant Quote
+            </button>
+
+            <div className="grid grid-cols-2 gap-3">
+              {phone && (
                 <a
                   href={previewMode ? "#" : `tel:${phone}`}
-                  style={{ backgroundColor: activeTheme.primary }}
-                  className="w-full px-4 py-3.5 rounded-2xl text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2 shadow-xs hover:opacity-90 transition-all cursor-pointer text-center"
+                  className="py-3 rounded-2xl bg-[#0F4C45] text-white font-bold text-xs hover:bg-[#12584E] transition-all flex items-center justify-center gap-2 shadow-xs cursor-pointer"
                 >
-                  <Phone className="w-4 h-4 shrink-0" /> <span>Call Now</span>
+                  <Phone className="h-4 w-4" /> Call
                 </a>
               )}
-
-              {actionButtons.whatsapp && whatsapp && (
+              {whatsapp && (
                 <a
                   href={previewMode ? "#" : `https://wa.me/${whatsapp.replace(/[^0-9]/g, "")}?text=Hi%20${encodeURIComponent(displayName)},%20I%20saw%20your%20storefront%20on%20Cloche!`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  style={{ backgroundColor: activeTheme.secondary }}
-                  className="w-full px-4 py-3.5 rounded-2xl text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2 shadow-xs hover:opacity-90 transition-all cursor-pointer text-center"
+                  className="py-3 rounded-2xl bg-[#0F4C45] text-white font-bold text-xs hover:bg-[#12584E] transition-all flex items-center justify-center gap-2 shadow-xs cursor-pointer"
                 >
-                  <MessageCircle className="w-4 h-4 shrink-0" /> <span>WhatsApp Us</span>
-                </a>
-              )}
-
-              {actionButtons.getQuote && (
-                <button
-                  onClick={() => setActiveModal("quote")}
-                  style={{ backgroundColor: activeTheme.accent, color: activeTheme.secondary }}
-                  className="w-full px-4 py-3.5 rounded-2xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 shadow-xs hover:opacity-90 transition-all cursor-pointer text-center"
-                >
-                  <FileText className="w-4 h-4 shrink-0" /> <span>Get Custom Quote</span>
-                </button>
-              )}
-
-              {actionButtons.visitStore && (googleMaps || address || location) && (
-                <a
-                  href={previewMode ? "#" : (googleMaps || `https://maps.google.com/?q=${encodeURIComponent(address || location)}`)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full px-4 py-3.5 rounded-2xl bg-[#FAF7F2] border border-gold/25 text-charcoal text-xs sm:text-sm font-bold flex items-center justify-center gap-2 hover:bg-gold/15 transition-all text-center"
-                >
-                  <Building className="w-4 h-4 text-[#0F4C45] shrink-0" /> <span>Get Directions</span>
+                  <MessageSquare className="h-4 w-4" /> WhatsApp
                 </a>
               )}
             </div>
           </div>
-
-          {/* B. BOUTIQUE SHOWROOM FEATURED COLLECTIONS (Clean WedMeGood Style Shop Grid) */}
-          <div className="bg-white rounded-3xl p-5 sm:p-6 border border-gold/15 shadow-sm space-y-4">
-            <div className="flex items-center justify-between border-b border-gold/10 pb-3">
-              <h2 className="font-serif font-bold text-xl sm:text-2xl text-charcoal">
-                Collections
-              </h2>
-
-              <Link
-                href={`/wedding-story/${vendor?.slug || vendor?.id || "boutique"}/collections`}
-                className="py-1.5 px-3 rounded-xl border border-gold/30 text-charcoal hover:bg-[#0F4C45] hover:text-white font-bold text-xs transition-all flex items-center gap-1 shrink-0"
-              >
-                <span>View All</span>
-                <ChevronRight className="w-4 h-4" />
-              </Link>
-            </div>
-
-            {/* WedMeGood Style Collections Layout: 4 Cards on Desktop Grid, Scrollable Carousel on Mobile */}
-            <div className="flex overflow-x-auto hide-scrollbar snap-x snap-mandatory gap-3.5 sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 sm:overflow-visible pb-2">
-              {boutiqueCollectionsList.slice(0, 4).map((col: any) => {
-                const outfitName = col.name || col.outfitName || col.title || "Signature Couture Collection";
-                const shopName = displayName || "Luxury Boutique";
-                const boutiqueCity = vendor?.city || vendor?.district || (vendor?.address ? vendor.address.split(",").pop()?.trim() : "") || "Kerala";
-                const priceText = col.price || (col.outfits && col.outfits[0]?.price) || vendor?.startingPrice || "Contact for Pricing";
-
-                return (
-                  <Link
-                    key={col.id}
-                    href={`/collections/${col.id}`}
-                    className="flex-shrink-0 w-[210px] sm:w-auto snap-start cursor-pointer group flex flex-col justify-between block"
-                  >
-                    <div>
-                      {/* Clean Portrait Image matching Image 1 */}
-                      <div className="relative aspect-[3/4] w-full rounded-2xl overflow-hidden bg-charcoal/5 shadow-xs border border-gold/15">
-                        <img
-                          src={col.coverImage || (col.outfits && col.outfits[0]?.image)}
-                          alt={outfitName}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        />
-                      </div>
-
-                      {/* Clean Stacked Information Block matching Image 1 */}
-                      <div className="pt-2.5 px-1 space-y-0.5">
-                        <p className="text-xs text-charcoal/70 line-clamp-1 font-medium">
-                          {outfitName}
-                        </p>
-                        <h3 className="font-bold text-sm text-charcoal group-hover:text-[#0F4C45] transition-colors line-clamp-1">
-                          {shopName}
-                        </h3>
-                        <p className="text-xs text-charcoal/50 flex items-center gap-1 font-medium capitalize">
-                          {boutiqueCity}
-                        </p>
-                        {priceText && (
-                          <p className="text-xs sm:text-sm font-bold text-[#0F4C45] pt-0.5">
-                            {priceText}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
-
-            <div className="pt-1 text-center">
-              <Link
-                href={`/wedding-story/${vendor?.slug || vendor?.id || "boutique"}/collections`}
-                className="inline-flex items-center justify-center gap-2 w-full py-3 rounded-2xl bg-[#0F4C45] text-white font-bold text-xs shadow-md hover:bg-[#12584E] transition-all"
-              >
-                <span>View All Collections ({boutiqueCollectionsList.length})</span>
-                <ChevronRight className="w-4 h-4" />
-              </Link>
-            </div>
-          </div>
-
-          {/* B. BUSINESS SNAPSHOT CARDS */}
-          {(businessInfo.experienceYears || businessInfo.collectionsCount || businessInfo.guestCapacity || businessInfo.parkingCapacity) && (
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-              {businessInfo.experienceYears && (
-                <div className="p-4 rounded-2xl bg-white border border-gold/15 shadow-2xs space-y-1">
-                  <span className="text-[10px] uppercase font-bold text-charcoal/50 block">Experience</span>
-                  <span style={{ color: activeTheme.primary }} className="font-serif font-bold text-lg sm:text-xl block">
-                    {businessInfo.experienceYears} {businessInfo.experienceYears.toLowerCase().includes("year") ? "" : "Years"}
-                  </span>
-                </div>
-              )}
-
-              {businessInfo.collectionsCount && (
-                <div className="p-4 rounded-2xl bg-white border border-gold/15 shadow-2xs space-y-1">
-                  <span className="text-[10px] uppercase font-bold text-charcoal/50 block">Collections Count</span>
-                  <span style={{ color: activeTheme.primary }} className="font-serif font-bold text-lg sm:text-xl block">
-                    {businessInfo.collectionsCount}
-                  </span>
-                </div>
-              )}
-
-              {businessInfo.guestCapacity && (
-                <div className="p-4 rounded-2xl bg-white border border-gold/15 shadow-2xs space-y-1">
-                  <span className="text-[10px] uppercase font-bold text-charcoal/50 block">Guest Capacity</span>
-                  <span style={{ color: activeTheme.primary }} className="font-serif font-bold text-lg sm:text-xl block">
-                    {businessInfo.guestCapacity}
-                  </span>
-                </div>
-              )}
-
-              {businessInfo.parkingCapacity && (
-                <div className="p-4 rounded-2xl bg-white border border-gold/15 shadow-2xs space-y-1">
-                  <span className="text-[10px] uppercase font-bold text-charcoal/50 block">Parking</span>
-                  <span style={{ color: activeTheme.primary }} className="font-serif font-bold text-lg sm:text-xl block">
-                    {businessInfo.parkingCapacity}
-                  </span>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* C. PINNED FEATURED COLLECTIONS */}
-          {featuredCollections.length > 0 && (
-            <div className="bg-white rounded-3xl p-5 sm:p-6 border border-gold/15 shadow-sm space-y-3">
-              <div className="flex items-center justify-between">
-                <h3 className="font-serif font-bold text-base text-charcoal flex items-center gap-2">
-                  <Tag style={{ color: activeTheme.primary }} className="w-4 h-4" /> Featured &amp; Pinned Collections
-                </h3>
-                <span className="text-[10px] font-bold text-charcoal/50 uppercase">Pinned by Store</span>
-              </div>
-              <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar pb-1">
-                {featuredCollections.map((col) => (
-                  <span
-                    key={col}
-                    style={{ backgroundColor: activeTheme.primary }}
-                    className="text-white text-xs font-bold px-4 py-2 rounded-xl shrink-0 shadow-2xs flex items-center gap-1.5"
-                  >
-                    <Sparkles className="w-3 h-3 text-[#C8A96A]" /> {col}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* D. ABOUT & BRAND STORY */}
-          {about && (
-            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-gold/15 shadow-sm space-y-4">
-              <h2 className="font-serif text-2xl font-bold text-charcoal">About {displayName}</h2>
-              <p className="text-sm text-charcoal/80 leading-relaxed whitespace-pre-line font-sans">
-                {about}
-              </p>
-
-              {/* Social Media Links */}
-              {(instagram || facebook || youtube || website) && (
-                <div className="pt-4 border-t border-gold/10 flex items-center gap-3 flex-wrap">
-                  <span className="text-xs font-bold text-charcoal/60">Connect Online:</span>
-                  {instagram && (
-                    <a
-                      href={instagram.startsWith("http") ? instagram : `https://instagram.com/${instagram.replace("@", "")}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="px-3 py-1.5 rounded-full bg-[#FAF7F2] hover:bg-gold/15 border border-gold/20 text-xs font-bold text-charcoal flex items-center gap-1.5 transition-colors"
-                    >
-                      <span>Instagram</span> <ExternalLink className="w-3 h-3" />
-                    </a>
-                  )}
-                  {facebook && (
-                    <a
-                      href={facebook.startsWith("http") ? facebook : `https://facebook.com/${facebook}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="px-3 py-1.5 rounded-full bg-[#FAF7F2] hover:bg-gold/15 border border-gold/20 text-xs font-bold text-charcoal flex items-center gap-1.5 transition-colors"
-                    >
-                      <span>Facebook</span> <ExternalLink className="w-3 h-3" />
-                    </a>
-                  )}
-                  {website && (
-                    <a
-                      href={website.startsWith("http") ? website : `https://${website}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="px-3 py-1.5 rounded-full bg-[#FAF7F2] hover:bg-gold/15 border border-gold/20 text-xs font-bold text-charcoal flex items-center gap-1.5 transition-colors"
-                    >
-                      <span>Official Website</span> <ExternalLink className="w-3 h-3" />
-                    </a>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* E. STOREFRONT PORTFOLIO & GALLERY */}
-          {galleryPhotos.length > 0 && (
-            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-gold/15 shadow-sm space-y-6">
-              <div className="border-b border-gold/10 pb-4">
-                <h2 className="font-serif text-2xl font-bold text-charcoal tracking-tight">Portfolio &amp; Showcase</h2>
-                <p className="text-xs text-charcoal/60 mt-0.5 font-medium">High-resolution authentic work crafted by {displayName}</p>
-              </div>
-
-              {/* Fixed Preview Grid Layout: 3x2 Desktop (6), 2x3 Tablet (6), 2x2 Mobile (4) */}
-              <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
-                {galleryPhotos.slice(0, 6).map((photo, i) => (
-                  <div
-                    key={i}
-                    onClick={() => setSelectedPhoto(photo.url)}
-                    className={`relative aspect-[4/3] rounded-3xl overflow-hidden border border-gold/20 shadow-xs hover:shadow-md transition-all duration-300 cursor-pointer group bg-gray-100 ${
-                      i >= 4 ? "hidden md:block" : ""
-                    }`}
-                  >
-                    <img
-                      src={photo.url}
-                      alt={photo.caption || `Portfolio Photo ${i + 1}`}
-                      loading="lazy"
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity p-3 flex items-end">
-                      <span className="text-white font-bold text-xs line-clamp-1">{photo.caption || "Showcase Photo"}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* View Portfolio Redirect Action */}
-              <div className="pt-3 flex justify-center">
-                <Link
-                  href={galleryHref}
-                  className="px-10 py-3.5 rounded-2xl bg-white border border-gold/25 text-charcoal font-bold text-xs hover:bg-[#FAF7F2] hover:border-gold/40 shadow-xs transition-all flex items-center justify-center gap-2 group cursor-pointer"
-                >
-                  <span>View Portfolio</span>
-                  <ArrowRight className="w-4 h-4 text-[#0F4C45] group-hover:translate-x-1 transition-transform" />
-                </Link>
-              </div>
-            </div>
-          )}
-
-          {/* E2. PREVIEW EMPTY STATE (When vendor has not uploaded gallery photos yet) */}
-          {galleryPhotos.length === 0 && previewMode && (
-            <div className="bg-[#FAF7F2] rounded-3xl p-8 border border-dashed border-gold/30 text-center space-y-2">
-              <div className="w-12 h-12 rounded-full bg-white border border-gold/20 flex items-center justify-center mx-auto text-[#0F4C45]">
-                <Sparkles className="w-5 h-5 text-[#0F4C45]" />
-              </div>
-              <h3 className="font-serif font-bold text-base text-charcoal">No Portfolio Photos Uploaded Yet</h3>
-              <p className="text-xs text-charcoal/60 max-w-md mx-auto">
-                Upload your authentic high-resolution event photos in the gallery upload section to display your portfolio here on your live storefront.
-              </p>
-            </div>
-          )}
-
-          {/* F. SERVICES & PACKAGES (DYNAMIC CATEGORY HEADING) */}
-          {vendor?.packages && vendor.packages.length > 0 && (
-            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-gold/20 shadow-md space-y-6">
-              <div className="border-b border-gold/15 pb-4">
-                <h2 className="font-serif text-2xl font-bold text-charcoal tracking-tight">
-                  {packageSectionTitle}
-                </h2>
-                <p className="text-xs text-charcoal/60 mt-0.5 font-medium">
-                  Transparent curated offerings with verified inclusions and standard pricing
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                {vendor.packages.map((pkg: any, idx: number) => (
-                  <div
-                    key={idx}
-                    className="p-6 rounded-3xl bg-[#FAF7F2]/80 border border-gold/20 space-y-4 flex flex-col justify-between hover:shadow-lg hover:border-gold/40 transition-all duration-300 relative group overflow-hidden"
-                  >
-                    {/* Top Decorative Accent Line */}
-                    <div
-                      style={{ backgroundColor: activeTheme.primary }}
-                      className="absolute top-0 left-0 right-0 h-1.5 opacity-80 group-hover:opacity-100 transition-opacity"
-                    />
-
-                    <div className="space-y-3">
-                      <div className="flex items-start justify-between gap-2 pt-1">
-                        <h3 className="font-serif font-bold text-lg text-charcoal leading-snug">{pkg.name}</h3>
-                        {pkg.isPopular && (
-                          <span className="bg-[#C8A96A] text-[#082F2C] text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full shrink-0 shadow-xs">
-                            Most Popular
-                          </span>
-                        )}
-                      </div>
-
-                      {pkg.tagline && <p className="text-xs text-charcoal/65 font-medium italic">{pkg.tagline}</p>}
-
-                      <div className="pt-2 border-t border-gold/10">
-                        <span className="text-[10px] uppercase font-bold text-charcoal/50 block tracking-wider">Pricing</span>
-                        <div className="text-2xl font-serif font-bold text-[#0F4C45] flex items-baseline gap-2">
-                          <span>{pkg.price}</span>
-                          {pkg.originalPrice && (
-                            <span className="text-xs text-charcoal/40 line-through font-sans font-normal">
-                              {pkg.originalPrice}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-
-                      {pkg.features && Array.isArray(pkg.features) && (
-                        <div className="pt-2">
-                          <span className="text-[10px] uppercase font-bold text-charcoal/50 block tracking-wider mb-2">Package Inclusions</span>
-                          <ul className="space-y-2 text-xs text-charcoal/85">
-                            {pkg.features.map((feat: string, fIdx: number) => (
-                              <li key={fIdx} className="flex items-start gap-2">
-                                <CheckCircle2 className="w-3.5 h-3.5 text-[#0F4C45] shrink-0 mt-0.5" />
-                                <span className="font-medium leading-normal">{feat}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                    </div>
-
-                    <button
-                      onClick={() => setActiveModal("quote")}
-                      style={{ backgroundColor: activeTheme.primary }}
-                      className="w-full py-3 rounded-2xl text-white text-xs font-bold shadow-sm hover:opacity-95 transition-all cursor-pointer text-center tracking-wide mt-2"
-                    >
-                      Inquire for Package
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
         </div>
-
-        {/* RIGHT COLUMN (4 COLS): Timings, Location, Inquiry Card */}
-        <aside className="lg:col-span-4 space-y-6">
-          
-          {/* 1. BUSINESS TIMINGS CARD */}
-          <div className="bg-[#FAF7F2] p-6 rounded-3xl border border-gold/15 shadow-sm space-y-4 text-xs">
-            <h3 className="font-serif font-bold text-lg text-charcoal flex items-center gap-2 border-b border-gold/10 pb-3">
-              <Clock style={{ color: activeTheme.primary }} className="w-4 h-4" /> Business Hours
-            </h3>
-            <div className="space-y-2">
-              <div className="flex justify-between py-1 border-b border-gray-100/60">
-                <span className="text-charcoal/60 font-medium">Working Days:</span>
-                <span className="font-bold text-charcoal">{workingHours.workingDays || "Monday - Saturday"}</span>
-              </div>
-
-              <div className="flex justify-between py-1 border-b border-gray-100/60">
-                <span className="text-charcoal/60 font-medium">Store Hours:</span>
-                <span className="font-bold text-[#0F4C45]">
-                  {[workingHours.openingTime, workingHours.closingTime].filter(Boolean).join(" - ") || workingHours.rawString || "10:00 AM - 08:00 PM"}
-                </span>
-              </div>
-
-              {workingHours.weeklyOff && (
-                <div className="flex justify-between py-1 border-b border-gray-100/60">
-                  <span className="text-charcoal/60 font-medium">Weekly Holiday:</span>
-                  <span className="font-bold text-charcoal">{workingHours.weeklyOff}</span>
-                </div>
-              )}
-
-              {workingHours.holidayNotice && (
-                <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 font-semibold text-[11px] mt-2">
-                  🔔 {workingHours.holidayNotice}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* 1B. RENTAL POLICIES & TERMS CARD (FOR WEDDING STUDIOS & BOUTIQUES) */}
-          {isStudioBoutique && (
-            <div className="bg-[#FAF7F2] p-6 rounded-3xl border border-gold/15 shadow-sm space-y-4 text-xs">
-              <h3 className="font-serif font-bold text-lg text-charcoal flex items-center gap-2 border-b border-gold/10 pb-3">
-                <FileText style={{ color: activeTheme.primary }} className="w-4 h-4" /> Rental Information & Terms
-              </h3>
-              <div className="space-y-3">
-                <div className="space-y-0.5">
-                  <span className="text-[10px] font-semibold uppercase text-charcoal/50 block">Standard Rental Duration</span>
-                  <span className="font-bold text-[#0F4C45] block">{rentalInfo.duration}</span>
-                </div>
-
-                <div className="space-y-0.5 border-t border-gray-100/80 pt-2">
-                  <span className="text-[10px] font-semibold uppercase text-charcoal/50 block">Security Deposit</span>
-                  <span className="font-bold text-charcoal block">{rentalInfo.deposit}</span>
-                </div>
-
-                <div className="space-y-0.5 border-t border-gray-100/80 pt-2">
-                  <span className="text-[10px] font-semibold uppercase text-charcoal/50 block">Return & Late Fee Policy</span>
-                  <p className="text-charcoal/70 leading-relaxed text-[11px]">{rentalInfo.returnPolicy}</p>
-                </div>
-
-                {rentalInfo.cancellationPolicy && (
-                  <div className="space-y-0.5 border-t border-gray-100/80 pt-2">
-                    <span className="text-[10px] font-semibold uppercase text-charcoal/50 block">Cancellation Policy</span>
-                    <p className="text-charcoal/70 leading-relaxed text-[11px]">{rentalInfo.cancellationPolicy}</p>
-                  </div>
-                )}
-
-                {rentalInfo.damagePolicy && (
-                  <div className="space-y-0.5 border-t border-gray-100/80 pt-2">
-                    <span className="text-[10px] font-semibold uppercase text-charcoal/50 block">Damage & Stain Policy</span>
-                    <p className="text-charcoal/70 leading-relaxed text-[11px]">{rentalInfo.damagePolicy}</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* 2. DIRECT INQUIRY & BOOKING CARD */}
-          <div className="bg-white p-6 rounded-3xl border border-gold/20 shadow-md space-y-4">
-            <div className="text-center space-y-1">
-              <h3 className="font-serif font-bold text-xl text-charcoal">Contact {displayName}</h3>
-              <p className="text-xs text-charcoal/60 font-medium">
-                Get response directly from the store manager within 2 hours.
-              </p>
-            </div>
-
-            {quoteSubmitted ? (
-              <div className="bg-emerald-50 border border-emerald-200 p-5 rounded-2xl text-center space-y-2">
-                <CheckCircle2 className="w-8 h-8 text-emerald-600 mx-auto" />
-                <h4 className="font-bold text-xs text-emerald-900">Inquiry Sent Successfully!</h4>
-                <p className="text-[11px] text-emerald-700">
-                  {displayName} has received your details and will call/WhatsApp you shortly.
-                </p>
-              </div>
-            ) : (
-              <form onSubmit={handleSendQuote} className="space-y-3 text-xs">
-                <div>
-                  <label className="font-bold text-charcoal/70 block mb-1">Your Full Name</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Enter your name"
-                    value={quoteName}
-                    onChange={(e) => setQuoteName(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2 text-xs focus:outline-none focus:border-[#0F4C45]"
-                  />
-                </div>
-
-                <div>
-                  <label className="font-bold text-charcoal/70 block mb-1">Phone Number (WhatsApp)</label>
-                  <input
-                    type="tel"
-                    required
-                    placeholder="+91 98765 43210"
-                    value={quotePhone}
-                    onChange={(e) => setQuotePhone(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2 text-xs focus:outline-none focus:border-[#0F4C45]"
-                  />
-                </div>
-
-                <div>
-                  <label className="font-bold text-charcoal/70 block mb-1">Wedding / Event Date</label>
-                  <input
-                    type="date"
-                    value={quoteDate}
-                    onChange={(e) => setQuoteDate(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2 text-xs focus:outline-none focus:border-[#0F4C45]"
-                  />
-                </div>
-
-                <div>
-                  <label className="font-bold text-charcoal/70 block mb-1">Message / Requirements</label>
-                  <textarea
-                    rows={3}
-                    placeholder="Ask about pricing, availability, or rental options..."
-                    value={quoteNotes}
-                    onChange={(e) => setQuoteNotes(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-3.5 py-2 text-xs focus:outline-none focus:border-[#0F4C45]"
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={quoteLoading}
-                  style={{ backgroundColor: activeTheme.primary }}
-                  className="w-full py-3 rounded-xl text-white font-bold text-xs shadow-md hover:opacity-90 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-                >
-                  {quoteLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
-                  <span>Submit Inquiry Directly</span>
-                </button>
-              </form>
-            )}
-          </div>
-
-        </aside>
-
       </div>
 
-      {/* ── 3. FULL-WIDTH LOWER SECTIONS: REVIEWS & RECOMMENDATIONS ── */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 space-y-12">
-        
-        {/* ════════════════════════════════════════════════════════════ */}
-        {/* SECTION 1: CUSTOMER REVIEWS & RATINGS                       */}
-        {/* ════════════════════════════════════════════════════════════ */}
-        <section className="bg-white p-6 sm:p-8 rounded-3xl border border-gold/15 shadow-sm space-y-6">
-          {/* Header Bar */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gold/10 pb-6">
-            <div>
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#0F4C45]/10 text-[#0F4C45] text-[11px] font-bold uppercase tracking-wider mb-2">
-                <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-500" /> Verified Customer Feedback
-              </span>
-              <h2 className="font-serif font-bold text-2xl sm:text-3xl text-charcoal">
-                Customer Reviews & Ratings
-              </h2>
-              <p className="text-xs text-charcoal/60 mt-1">
-                Real feedback from brides and grooms who rented outfits from {displayName}
-              </p>
+      {/* MOBILE COMPACT HERO LAYOUT (100% TRUE FULL-BLEED EDGE-TO-EDGE AT THE VERY TOP) */}
+      <div className="lg:hidden relative w-full h-[45vh] min-h-[320px] max-h-[440px] overflow-hidden bg-charcoal rounded-none">
+        {/* Cover Photo */}
+        <div className="relative h-full w-full overflow-hidden">
+          <img src={coverUrl} alt={displayName} className="w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+          <div className="absolute bottom-4 right-4 bg-black/60 backdrop-blur-md text-white text-xs font-bold px-3 py-1 rounded-full border border-white/20 flex items-center gap-1.5 z-10">
+            <ImageIcon className="w-3.5 h-3.5" /> 1/{galleryPhotos.length || 24}
+          </div>
+        </div>
+
+        {/* Top Action Bar */}
+        <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-10">
+          <Link
+            href={previewMode ? "#" : "/boutiques"}
+            className="bg-black/50 hover:bg-black/70 backdrop-blur-md text-white p-2 rounded-full border border-white/20 flex items-center justify-center transition-all"
+          >
+            <ArrowRight className="w-5 h-5 rotate-180" />
+          </Link>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleShare}
+              className="bg-black/50 hover:bg-black/70 backdrop-blur-md text-white p-2.5 rounded-full border border-white/20 transition-all cursor-pointer"
+              title="Share Storefront"
+            >
+              <Share2 className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setIsWishlisted(!isWishlisted)}
+              className="bg-black/50 hover:bg-black/70 backdrop-blur-md text-white p-2.5 rounded-full border border-white/20 transition-all cursor-pointer"
+              title="Save to Wishlist"
+            >
+              <Heart className={`w-4 h-4 ${isWishlisted ? "text-rose-500 fill-rose-500" : "text-white"}`} />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* ── MOBILE OVERLAPPING HEADER CARD (WEDMEGOOD STYLE REFERENCE) ── */}
+      <div className="lg:hidden relative -mt-8 mx-4 z-20">
+        <div className="bg-white rounded-2xl p-4.5 shadow-lg border border-gold/15 space-y-2">
+          <div className="flex items-start justify-between gap-2">
+            <h1 className="font-serif font-bold text-xl text-charcoal leading-snug">{displayName}</h1>
+            <button
+              onClick={() => setIsWishlisted(!isWishlisted)}
+              className="text-charcoal/40 hover:text-rose-500 transition-colors p-1 cursor-pointer shrink-0"
+              title="Bookmark"
+            >
+              <Heart className={`w-5 h-5 ${isWishlisted ? "text-rose-500 fill-rose-500" : ""}`} />
+            </button>
+          </div>
+
+          <div className="flex items-center gap-2 text-xs font-bold">
+            <div className="flex items-center gap-1 text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200/60">
+              <Star className="w-3.5 h-3.5 fill-emerald-600 text-emerald-600" />
+              <span>{rating || "4.7"}</span>
+              <span className="font-medium text-emerald-900/70">({reviewsCount || 24} Reviews)</span>
+            </div>
+            <span className="text-charcoal/30">•</span>
+            <span className="text-emerald-700 bg-emerald-50/80 px-2 py-0.5 rounded text-[11px]">✓ Verified Partner</span>
+          </div>
+
+          <div className="flex items-center justify-between text-xs text-charcoal/70 pt-1 border-t border-gold/10">
+            <div className="flex items-center gap-1.5 truncate">
+              <MapPin className="w-3.5 h-3.5 text-[#0F4C45] shrink-0" />
+              <span className="truncate font-medium">{location || "Kerala, India"}</span>
+            </div>
+            <a
+              href={previewMode ? "#" : (googleMaps || `https://maps.google.com/?q=${encodeURIComponent(address || location)}`)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-2.5 py-1 rounded-lg bg-[#FAF7F2] border border-gold/20 text-[#0F4C45] font-extrabold text-[11px] flex items-center gap-1 hover:bg-gold/15 transition-colors shrink-0"
+            >
+              <Compass className="w-3 h-3 text-[#0F4C45]" /> Get Directions
+            </a>
+          </div>
+        </div>
+      </div>
+
+      {/* ── MOBILE & DESKTOP SECTIONS CONTAINER ── */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4 sm:mt-6 space-y-4 sm:space-y-5">
+
+        {/* SECTION 1: QUICK SUMMARY SPECS CARD (WEDMEGOOD STYLE) */}
+        <div className="bg-white rounded-2xl p-4 border border-gold/15 shadow-2xs space-y-2.5">
+          <div>
+            <h3 className="font-serif font-bold text-base text-charcoal">{venueDetails.type || "Farmhouse with Banquet"}</h3>
+            <p className="text-xs text-charcoal/60 font-medium">Lush green lawn &amp; grand climate-controlled indoor space</p>
+          </div>
+
+          <div className="flex items-center gap-2 pt-1">
+            <div className="flex-1 p-2.5 rounded-xl bg-[#FAF7F2] border border-gold/15 text-xs font-bold text-charcoal flex items-center gap-2">
+              <Users className="w-4 h-4 text-[#0F4C45] shrink-0" />
+              <span>{venueDetails.capacity || "40 - 1500 pax"}</span>
+            </div>
+            <div className="flex-1 p-2.5 rounded-xl bg-[#FAF7F2] border border-gold/15 text-xs font-bold text-charcoal flex items-center gap-2">
+              <Bed className="w-4 h-4 text-[#0F4C45] shrink-0" />
+              <span>{venueDetails.guestRooms || "7 Rooms"}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* SECTION 2: PRICING INFO (WEDMEGOOD CLEAN LIST ROWS) */}
+        <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
+          <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal flex items-center justify-between border-b border-gold/10 pb-2.5">
+            <span>Pricing Info</span>
+            <span className="text-xs font-bold text-[#0F4C45] bg-[#FAF7F2] px-3 py-1 rounded-full border border-gold/20">
+              {vendor?.startingPriceLabel || vendor?.startingPrice || "Price on Request"}
+            </span>
+          </h2>
+
+          <div className="space-y-3 text-xs">
+            <div className="flex items-center justify-between py-2 border-b border-dashed border-gold/20">
+              <div className="space-y-0.5">
+                <div className="font-bold text-charcoal flex items-center gap-1.5">
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-600 inline-block" /> Veg price (taxes extra)
+                </div>
+                <div className="text-[11px] text-charcoal/50">starting price per plate</div>
+              </div>
+              <div className="text-right">
+                <div className="font-serif font-bold text-sm text-[#0F4C45]">₹ 2,000</div>
+                <div className="text-[10px] text-charcoal/50">per plate</div>
+              </div>
             </div>
 
-            {/* Score & Write Review CTA */}
-            <div className="flex items-center gap-4 shrink-0">
-              <div className="bg-[#FAF7F2] px-4 py-2.5 rounded-2xl border border-gold/20 text-center">
-                <div className="flex items-center justify-center gap-1 text-amber-500 font-bold text-xl">
-                  ★ {averageRatingScore}
+            <div className="flex items-center justify-between py-2 border-b border-dashed border-gold/20">
+              <div className="space-y-0.5">
+                <div className="font-bold text-charcoal flex items-center gap-1.5">
+                  <span className="w-2.5 h-2.5 rounded-full bg-rose-600 inline-block" /> Non Veg price (taxes extra)
                 </div>
-                <span className="text-[10px] font-semibold text-charcoal/60 block">
-                  {reviewsList.length} {reviewsList.length === 1 ? "Review" : "Reviews"}
+                <div className="text-[11px] text-charcoal/50">starting price per plate</div>
+              </div>
+              <div className="text-right">
+                <div className="font-serif font-bold text-sm text-[#0F4C45]">₹ 2,500</div>
+                <div className="text-[10px] text-charcoal/50">per plate</div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between py-2">
+              <div className="space-y-0.5">
+                <div className="font-bold text-charcoal flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-[#C8A96A]" /> Starting Price of Decor
+                </div>
+                <div className="text-[11px] text-charcoal/50">custom decoration setup</div>
+              </div>
+              <div className="text-right">
+                <div className="font-serif font-bold text-sm text-[#0F4C45]">₹ 50,000</div>
+                <div className="text-[10px] text-charcoal/50">starting decor package</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* SECTION 4: PORTFOLIO (CLEAN 4-PHOTO GRID & SLIDER - NO FILTER CHIPS) */}
+        {galleryPhotos.length > 0 && (
+          <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
+            <div className="flex items-center justify-between border-b border-gold/10 pb-3">
+              <div className="flex items-center gap-2">
+                <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">Portfolio</h2>
+                <span className="px-2.5 py-0.5 rounded-full bg-gold/15 text-[#0F4C45] text-xs font-extrabold">
+                  {galleryPhotos.length} photos
                 </span>
               </div>
-
               <button
-                onClick={() => setIsReviewModalOpen(true)}
-                style={{ backgroundColor: activeTheme.primary }}
-                className="px-5 py-3 rounded-xl text-white font-bold text-xs shadow-md hover:opacity-90 transition-all flex items-center gap-2 cursor-pointer"
+                onClick={() => setShowAllPhotosModal(true)}
+                className="text-xs font-extrabold text-[#0F4C45] hover:underline flex items-center gap-1 cursor-pointer"
               >
-                <PenSquare className="w-4 h-4" />
-                <span>Write a Review</span>
+                View All Photos <ChevronRight className="w-3.5 h-3.5" />
               </button>
+            </div>
+
+            {/* Clean 4-Photo Grid Preview */}
+            <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
+              {galleryPhotos.slice(0, 4).map((photo, i) => (
+                <div
+                  key={i}
+                  onClick={() => setLightboxIndex(i)}
+                  className="relative aspect-[4/3] rounded-xl overflow-hidden border border-gold/20 shadow-2xs cursor-pointer group bg-gray-100"
+                >
+                  <img
+                    src={photo.url}
+                    alt={photo.caption || `Portfolio Photo ${i + 1}`}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  {i === 3 && galleryPhotos.length > 4 && (
+                    <div
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowAllPhotosModal(true);
+                      }}
+                      className="absolute inset-0 bg-black/60 backdrop-blur-xs flex flex-col items-center justify-center text-white font-extrabold text-xs sm:text-sm gap-1 group-hover:bg-black/70 transition-colors"
+                    >
+                      <ImageIcon className="w-5 h-5" />
+                      <span>+{galleryPhotos.length - 4} More</span>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* SECTION 6: ABOUT & OFFERS (WEDMEGOOD REFERENCE STYLE) */}
+        <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
+          <div className="border-b border-gold/10 pb-3 space-y-1">
+            <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">About</h2>
+            <div className="text-xs font-bold text-[#0F4C45]">Been on Cloche Since 11 years 3 months</div>
+            <p className="text-xs text-charcoal/60 italic font-medium">Luxurious Weddings Within Reach at {displayName}!</p>
+          </div>
+
+          <div className="space-y-2">
+            <p className={`text-xs sm:text-sm text-charcoal/80 leading-relaxed font-sans transition-all duration-300 ${
+              !isAboutExpanded ? "line-clamp-4 max-h-[90px] overflow-hidden" : ""
+            }`}>
+              {about || `Situated in a prime central location, ${displayName} is a premier venue that offers top-notch hospitality for a wide range of wedding events, staycations, and grand celebrations.`}
+            </p>
+            <button
+              onClick={() => setIsAboutExpanded(!isAboutExpanded)}
+              className="text-xs font-extrabold text-[#0F4C45] hover:underline flex items-center gap-1 cursor-pointer"
+            >
+              {isAboutExpanded ? "Read Less ▲" : "Read More >"}
+            </button>
+          </div>
+
+          {/* Offers List (WedMeGood Reference Style) */}
+          <div className="pt-3 border-t border-gold/10 space-y-2.5">
+            <div className="font-bold text-xs text-charcoal flex items-center gap-1.5">
+              <span>😊</span> Offers &amp; Facilities
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-charcoal/80 font-medium">
+              <div className="flex items-center gap-2"><Bed className="w-3.5 h-3.5 text-[#0F4C45]" /> {venueDetails.guestRooms}</div>
+              <div className="flex items-center gap-2"><Building className="w-3.5 h-3.5 text-[#0F4C45]" /> Indoor space</div>
+              <div className="flex items-center gap-2"><Building2 className="w-3.5 h-3.5 text-[#0F4C45]" /> Outdoor space</div>
+              <div className="flex items-center gap-2"><Compass className="w-3.5 h-3.5 text-[#0F4C45]" /> Terrace / Rooftop space</div>
+              <div className="flex items-center gap-2"><Clock className="w-3.5 h-3.5 text-[#0F4C45]" /> Started in {venueDetails.establishedYear}</div>
+              <div className="flex items-center gap-2"><Car className="w-3.5 h-3.5 text-[#0F4C45]" /> Sufficient parking available for {venueDetails.parking}</div>
+            </div>
+          </div>
+        </div>
+
+        {/* SECTION 7: POLICIES CHECKLIST (WEDMEGOOD REFERENCE STYLE) */}
+        <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-3.5">
+          <div className="flex items-center gap-2 border-b border-gold/10 pb-2.5">
+            <FileText className="w-4.5 h-4.5 text-[#C8A96A]" />
+            <h2 className="font-serif text-lg font-bold text-charcoal">Policies</h2>
+          </div>
+
+          <div className="space-y-2 text-xs font-semibold text-charcoal/80">
+            <div className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-600 shrink-0" /> Inhouse &amp; outside catering allowed</div>
+            <div className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-600 shrink-0" /> Decorators from empanelled list only</div>
+            <div className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-600 shrink-0" /> Less than 50 Pax allowed</div>
+            <div className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-600 shrink-0" /> In house alcohol available</div>
+            <div className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-600 shrink-0" /> Outside alcohol permitted</div>
+            <div className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-600 shrink-0" /> In house DJ available</div>
+            <div className="flex items-center gap-2 text-rose-600"><X className="w-4 h-4 text-rose-500 shrink-0" /> Outside DJ not permitted</div>
+          </div>
+        </div>
+
+        {/* SECTION 8: AMENITIES ICON GRID */}
+        {venueDetails.amenities.length > 0 && (
+          <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-3.5">
+            <h2 className="font-serif text-lg font-bold text-charcoal border-b border-gold/10 pb-2.5">Amenities</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
+              {venueDetails.amenities.map((amen: string, idx: number) => (
+                <div key={idx} className="p-3 rounded-xl bg-[#FAF7F2] border border-gold/15 text-xs font-bold text-charcoal flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-[#0F4C45] shrink-0" />
+                  <span className="truncate">{amen}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* SECTION 9: REVIEWS WITH STAR RATING DISTRIBUTION (WEDMEGOOD REFERENCE STYLE) */}
+        <section className="bg-white p-4.5 sm:p-6 rounded-2xl border border-gold/15 shadow-2xs space-y-4">
+          <div className="flex items-center justify-between border-b border-gold/10 pb-3">
+            <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">Reviews</h2>
+            <button
+              onClick={() => setIsReviewModalOpen(true)}
+              className="px-3.5 py-1.5 rounded-xl border border-rose-500 text-rose-600 font-extrabold text-xs hover:bg-rose-50 transition-colors shrink-0 cursor-pointer"
+            >
+              Write a Review
+            </button>
+          </div>
+
+          {/* Rating Summary Header */}
+          <div className="flex items-center gap-2 text-sm font-bold text-charcoal">
+            <Star className="w-4 h-4 fill-emerald-600 text-emerald-600" />
+            <span>4.7 Excellent</span>
+            <span className="text-charcoal/50 font-normal">({reviewsList.length || 24} Reviews)</span>
+          </div>
+
+          {/* Star Rating Distribution Bars */}
+          <div className="space-y-1.5 text-xs text-charcoal/70 font-medium">
+            <div className="flex items-center gap-3">
+              <span className="w-8">5.0 ★</span>
+              <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div className="h-full bg-emerald-600 rounded-full" style={{ width: "83%" }} />
+              </div>
+              <span className="w-16 text-right">20 Reviews</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="w-8">4.0 ★</span>
+              <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div className="h-full bg-amber-500 rounded-full" style={{ width: "12%" }} />
+              </div>
+              <span className="w-16 text-right">3 Reviews</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="w-8">3.0 ★</span>
+              <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div className="h-full bg-gray-300 rounded-full" style={{ width: "0%" }} />
+              </div>
+              <span className="w-16 text-right">0 Reviews</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="w-8">1.0 ★</span>
+              <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div className="h-full bg-rose-500 rounded-full" style={{ width: "4%" }} />
+              </div>
+              <span className="w-16 text-right">1 Reviews</span>
             </div>
           </div>
 
-          {/* Review Cards Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {reviewsList.map((rev) => (
-              <div
-                key={rev.id}
-                className="bg-[#FAF7F2] p-5 rounded-2xl border border-gold/15 space-y-3 flex flex-col justify-between"
-              >
-                <div className="space-y-3">
-                  {/* User Profile */}
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      {rev.avatar ? (
-                        <img
-                          src={rev.avatar}
-                          alt={rev.customerName}
-                          className="w-10 h-10 rounded-full object-cover border border-gold/20"
-                        />
-                      ) : (
-                        <div
-                          style={{ backgroundColor: activeTheme.primary }}
-                          className="w-10 h-10 rounded-full text-white font-bold text-xs flex items-center justify-center shadow-xs shrink-0"
-                        >
-                          {rev.customerName
-                            .split(" ")
-                            .map((w: string) => w[0])
-                            .join("")
-                            .slice(0, 2)
-                            .toUpperCase()}
-                        </div>
-                      )}
-                      <div className="min-w-0">
-                        <h4 className="font-bold text-xs text-charcoal truncate">{rev.customerName}</h4>
-                        <span className="text-[10px] text-emerald-700 font-semibold flex items-center gap-1">
-                          <CheckCircle2 className="w-3 h-3 text-emerald-600 inline shrink-0" /> Verified Customer
-                        </span>
-                      </div>
-                    </div>
+          <div className="text-[10px] text-charcoal/40 pt-1">Updated on Feb 6, 2026</div>
 
-                    <span className="text-[10px] text-charcoal/50 font-medium shrink-0">{rev.date}</span>
-                  </div>
-
-                  {/* Stars */}
-                  <div className="flex items-center gap-0.5">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <Star
-                        key={star}
-                        className={`w-3.5 h-3.5 ${
-                          star <= (rev.rating || 5)
-                            ? "fill-amber-400 text-amber-500"
-                            : "text-gray-300"
-                        }`}
-                      />
-                    ))}
-                  </div>
-
-                  {/* Review Body */}
-                  <p className="text-xs text-charcoal/80 leading-relaxed font-normal">
-                    "{rev.text}"
-                  </p>
+          {/* Customer Photos Row */}
+          {galleryPhotos.length > 0 && (
+            <div className="grid grid-cols-4 gap-2 pt-2 border-t border-gold/10">
+              {galleryPhotos.slice(0, 4).map((p, idx) => (
+                <div key={idx} className="aspect-square rounded-lg overflow-hidden border border-gold/15 bg-gray-100">
+                  <img src={p.url} alt="Customer Event" className="w-full h-full object-cover" />
                 </div>
+              ))}
+            </div>
+          )}
+
+          {/* Individual Reviews */}
+          <div className="space-y-3 pt-2">
+            {reviewsList.map((rev) => (
+              <div key={rev.id} className="bg-[#FAF7F2] p-4 rounded-xl border border-gold/15 space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-xs text-charcoal">{rev.customerName}</span>
+                  <span className="text-[10px] text-emerald-700 font-semibold flex items-center gap-1">
+                    <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Verified Host
+                  </span>
+                </div>
+                <div className="flex items-center gap-0.5 text-amber-500 text-xs">
+                  {"★".repeat(rev.rating || 5)}
+                </div>
+                <p className="text-xs text-charcoal/80 leading-relaxed font-normal">"{rev.text}"</p>
               </div>
             ))}
           </div>
         </section>
 
 
-        {/* ════════════════════════════════════════════════════════════ */}
-        {/* SECTION 2: SIMILAR WEDDING STUDIOS (CAROUSEL)                 */}
-        {/* ════════════════════════════════════════════════════════════ */}
-        <section className="bg-white p-6 sm:p-8 rounded-3xl border border-gold/15 shadow-sm space-y-6">
-          {/* Carousel Title & View All Button */}
-          <div className="flex items-center justify-between border-b border-gold/10 pb-4">
+
+        {/* SECTION 3: CHECK AVAILABILITY & ENQUIRY COMPOSER WIDGET */}
+        {categoryType === "venue" && (
+          <div className="bg-white rounded-2xl p-4.5 sm:p-5 border border-gold/15 shadow-2xs space-y-3.5">
             <div>
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#0F4C45]/10 text-[#0F4C45] text-[11px] font-bold uppercase tracking-wider mb-2">
-                <Sparkles className="w-3.5 h-3.5 text-[#C8A96A]" /> Handpicked Recommendations
-              </span>
-              <h2 className="font-serif font-bold text-2xl sm:text-3xl text-charcoal">
-                {studioCategoryConfig.similarTitle}
+              <h2 className="font-serif text-lg font-bold text-charcoal flex items-center gap-2">
+                <Calendar className="w-4.5 h-4.5 text-[#0F4C45]" /> Check Availability
               </h2>
-              <p className="text-xs text-charcoal/60 mt-1">
-                {studioCategoryConfig.similarSubtitle}
-              </p>
+              <p className="text-xs text-charcoal/60 mt-0.5">Select your preferred event date to send an enquiry to the vendor</p>
             </div>
 
-            <Link
-              href={studioCategoryConfig.categoryLink}
-              className="py-2.5 px-4 rounded-xl border border-gold/30 text-charcoal hover:bg-[#0F4C45] hover:text-white font-bold text-xs transition-all flex items-center gap-1.5 shrink-0"
-            >
-              <span>View All Studios</span>
-              <ChevronRight className="w-4 h-4" />
-            </Link>
-          </div>
+            <div className="flex flex-col sm:flex-row items-center gap-3">
+              <input
+                type="date"
+                value={calendarDateInput}
+                onChange={(e) => {
+                  setCalendarDateInput(e.target.value);
+                  if (e.target.value) setDateErrorMsg(null);
+                }}
+                className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-4 py-3 text-xs font-bold focus:outline-none focus:border-[#0F4C45] min-h-[48px]"
+              />
 
-          {/* Carousel Horizontal Scroll Row */}
-          {similarStudiosLoading ? (
-            <div className="flex items-center gap-5 overflow-x-auto pb-2 scrollbar-none">
-              {[1, 2, 3, 4, 5].map((n) => (
-                <div key={n} className="w-72 shrink-0 bg-[#FAF7F2] rounded-2xl border border-gold/15 overflow-hidden animate-pulse">
-                  <div className="aspect-[4/3] bg-gold/10 w-full" />
-                  <div className="p-4 space-y-2">
-                    <div className="h-4 bg-gold/15 rounded w-3/4" />
-                    <div className="h-3 bg-gold/10 rounded w-1/2" />
-                  </div>
+              <button
+                onClick={() => handleCheckAvailability(calendarDateInput)}
+                className="w-full sm:w-auto min-h-[48px] px-6 py-3 rounded-xl bg-[#0F4C45] text-white font-bold text-xs shadow-2xs hover:bg-[#083833] transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-95 shrink-0"
+              >
+                <Calendar className="w-4 h-4" /> Check Availability &amp; Message
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* SECTION 5: REQUIRE CUSTOM QUOTE BANNER */}
+        <div className="bg-gradient-to-r from-[#FAF7F2] via-white to-[#FAF7F2] rounded-2xl p-4 border border-rose-200/80 shadow-2xs flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5">
+            <span className="text-xl">💍</span>
+            <div>
+              <div className="font-serif font-bold text-sm text-charcoal">Require Custom quote?</div>
+              <div className="text-[11px] text-charcoal/60 font-medium">Get customized wedding package pricing</div>
+            </div>
+          </div>
+          <button
+            onClick={() => handleCheckAvailability()}
+            className="px-4 py-2 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 font-extrabold text-xs hover:bg-rose-100 transition-colors shrink-0 cursor-pointer active:scale-95"
+          >
+            Chat Now
+          </button>
+        </div>
+
+        
+        {/* SECTION 11: FREQUENTLY ASKED QUESTIONS (MATCHING SCREENSHOT 2) */}
+        {venueDetails.faqs.length > 0 && (
+          <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-3.5">
+            <h2 className="font-serif text-lg font-bold text-charcoal border-b border-gold/10 pb-2.5">
+              Frequently Asked Questions
+            </h2>
+
+            <div className="space-y-3">
+              {venueDetails.faqs.map((faq: any, idx: number) => (
+                <div key={idx} className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1">
+                  <h3 className="font-bold text-xs sm:text-sm text-charcoal leading-snug">{faq.q}</h3>
+                  <p className="text-xs text-charcoal/70 leading-relaxed font-normal">{faq.a}</p>
                 </div>
               ))}
             </div>
-          ) : similarStudios.length === 0 ? (
-            <div className="bg-[#FAF7F2] p-8 rounded-2xl text-center border border-gold/15 space-y-3">
-              <p className="text-xs text-charcoal/60">Explore all registered studios on our marketplace.</p>
-              <Link
-                href={studioCategoryConfig.categoryLink}
-                className="inline-block px-5 py-2.5 rounded-xl bg-[#0F4C45] text-white font-bold text-xs"
-              >
-                Browse All Studios
-              </Link>
-            </div>
-          ) : (
-            <div className="flex items-center gap-5 overflow-x-auto pb-3 scrollbar-none [ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              {similarStudios.map((studio) => {
-                const studioSlug = studio.slug || studio.id;
-                const studioHref = `/wedding-story/${studioSlug}`;
-                const studioImg =
-                  studio.coverImage ||
-                  studio.logo ||
-                  "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=600&auto=format&fit=crop";
+          </div>
+        )}
 
-                return (
-                  <Link
-                    key={studio.id}
-                    href={studioHref}
-                    className="w-72 sm:w-80 shrink-0 bg-[#FAF7F2] rounded-2xl border border-gold/15 hover:border-gold/40 shadow-xs hover:shadow-md transition-all overflow-hidden group flex flex-col justify-between"
+        {/* SECTION 12: BROWSE SIMILAR VENDORS (MATCHING SCREENSHOT 3) */}
+        <section className="bg-white p-4.5 sm:p-6 rounded-2xl border border-gold/15 shadow-2xs space-y-4">
+          <div className="flex items-center justify-between border-b border-gold/10 pb-2.5">
+            <h2 className="font-serif font-bold text-lg sm:text-xl text-charcoal">Browse similar vendors</h2>
+            <Link
+              href="/venues"
+              className="text-xs font-bold text-[#0F4C45] hover:underline"
+            >
+              View All
+            </Link>
+          </div>
+
+          <div className="space-y-4">
+            {similarStudios.slice(0, 3).map((item: any) => (
+              <div key={item.id} className="rounded-2xl border border-gold/15 bg-white overflow-hidden shadow-2xs p-3 space-y-2.5">
+                {/* Hero Photo with Crown Badge & Bookmark */}
+                <div className="relative aspect-[16/9] w-full rounded-xl overflow-hidden bg-gray-200 group">
+                  <img src={item.image || item.coverImage || item.logo} alt={item.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  
+                  {/* Crown Badge */}
+                  <span className="absolute top-2.5 left-2.5 bg-amber-500 text-white text-xs p-1.5 rounded-lg shadow-2xs">
+                    👑
+                  </span>
+
+                  {/* Bookmark Button */}
+                  <button className="absolute top-2.5 right-2.5 w-8 h-8 rounded-full bg-white/80 backdrop-blur-md flex items-center justify-center text-charcoal/70 hover:text-rose-500 transition-colors">
+                    <Heart className="w-4 h-4" />
+                  </button>
+
+                  {/* Slider Dots */}
+                  <div className="absolute bottom-2.5 left-0 right-0 flex justify-center gap-1">
+                    <span className="w-2 h-2 rounded-full bg-white shadow-2xs" />
+                    <span className="w-2 h-2 rounded-full bg-white/60" />
+                    <span className="w-2 h-2 rounded-full bg-white/60" />
+                  </div>
+                </div>
+
+                {/* Subtitle Details */}
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between text-xs text-charcoal/70">
+                    <span className="font-medium">{item.location || "Kerala, India"}</span>
+                    <span className="font-bold text-amber-600 flex items-center gap-1">
+                      <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" /> 4.9 (60)
+                    </span>
+                  </div>
+
+                  <h3 className="font-serif font-bold text-base text-charcoal leading-snug">{item.name}</h3>
+
+                  <div className="text-xs font-semibold text-charcoal/80 flex items-center justify-between pt-1">
+                    <span>Veg</span>
+                    <span className="font-bold text-[#0F4C45]">{item.startingPrice || "₹ 1,800 per plate"}</span>
+                  </div>
+
+                  <div className="text-[11px] text-charcoal/60 flex items-center gap-2 pt-0.5">
+                    <span>👥 150 - 500 pax</span>
+                    <span>•</span>
+                    <span className="truncate">🏛 Banquet Halls, Lawns</span>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex items-center gap-2 pt-1 border-t border-gold/10">
+                  <button
+                    onClick={() => handleCheckAvailability()}
+                    className="flex-1 py-2.5 rounded-full border border-rose-500 text-rose-600 font-extrabold text-xs flex items-center justify-center gap-1.5 hover:bg-rose-50 transition-colors active:scale-95 cursor-pointer"
                   >
-                    <div>
-                      {/* Image Header */}
-                      <div className="relative aspect-[4/3] w-full overflow-hidden bg-[#0F4C45]">
-                        <img
-                          src={studioImg}
-                          alt={studio.name}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        />
-                        {/* Verified Badge */}
-                        <span className="absolute top-3 left-3 bg-white/90 backdrop-blur-md text-charcoal text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow-xs flex items-center gap-1">
-                          <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Verified
-                        </span>
-                      </div>
-
-                      {/* Content Info */}
-                      <div className="p-4 space-y-2">
-                        <div className="flex items-center justify-between gap-2">
-                          <h3 className="font-display font-bold text-base text-charcoal group-hover:text-[#0F4C45] transition-colors truncate">
-                            {studio.name}
-                          </h3>
-                        </div>
-
-                        {/* Rating */}
-                        <div className="flex items-center gap-1.5 text-xs font-bold text-charcoal/80">
-                          <span className="text-amber-500">★ {Number(studio.rating || 4.8).toFixed(1)}</span>
-                          <span className="text-charcoal/50 font-normal">
-                            ({studio.reviewCount || 12} reviews)
-                          </span>
-                        </div>
-
-                        {/* Location */}
-                        <p className="text-xs text-charcoal/60 flex items-center gap-1">
-                          <MapPin className="w-3.5 h-3.5 text-gold shrink-0" />
-                          <span className="truncate">{studio.location || studio.city || "Kerala"}</span>
-                        </p>
-
-                        {/* Price */}
-                        <div className="pt-1 border-t border-gold/10">
-                          <p className="text-xs text-charcoal/60">
-                            Starts from{" "}
-                            <span className="font-bold text-[#0F4C45]">
-                              {studio.startingPrice || "Contact for pricing"}
-                            </span>
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
-          )}
+                    <MessageSquare className="w-3.5 h-3.5" /> Message
+                  </button>
+                  {phone && (
+                    <a
+                      href={`tel:${phone}`}
+                      className="w-9 h-9 rounded-full border border-emerald-600 text-emerald-700 font-bold flex items-center justify-center hover:bg-emerald-50 transition-colors shrink-0 active:scale-95"
+                      title="Call"
+                    >
+                      <Phone className="w-4 h-4" />
+                    </a>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
         </section>
 
       </div>
 
-      {/* ── COLLECTION OUTFITS LIGHTBOX MODAL ── */}
+      {/* ── WEDMEGOOD-STYLE STICKY MOBILE ACTION BAR ── */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/98 backdrop-blur-md border-t border-gold/20 px-3 py-2.5 pb-safe shadow-2xl space-y-1">
+        <div className="flex items-center gap-2">
+          {/* Message Primary Button */}
+          <button
+            onClick={() => handleCheckAvailability()}
+            className="flex-1 min-h-[48px] py-3 rounded-2xl bg-[#0F4C45] text-white font-bold text-sm flex items-center justify-center gap-2 shadow-md active:scale-95 transition-all text-center cursor-pointer hover:bg-[#09312d]"
+          >
+            <MessageSquare className="w-4 h-4 shrink-0" /> <span>Message</span>
+          </button>
+
+          {/* WhatsApp Direct Chat Button */}
+          <a
+            href={`https://wa.me/${(whatsapp || phone || "").replace(/[^0-9]/g, "") || "919000000000"}?text=Hi%20${encodeURIComponent(displayName)},%20I%20saw%20your%20profile%20on%20Cloche!`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-12 min-h-[48px] rounded-2xl bg-[#25D366] text-white font-bold flex items-center justify-center shadow-md active:scale-95 transition-all shrink-0 hover:bg-emerald-600"
+            title="WhatsApp Chat"
+          >
+            <MessageCircle className="w-5 h-5" />
+          </a>
+
+          {/* Phone Dialer Call Button */}
+          <a
+            href={`tel:${(phone || whatsapp || "").replace(/[^0-9]/g, "") || "+919000000000"}`}
+            className="w-12 min-h-[48px] rounded-2xl bg-white border border-[#0F4C45] text-[#0F4C45] font-bold flex items-center justify-center shadow-xs active:scale-95 transition-all shrink-0 hover:bg-emerald-50"
+            title="Call Vendor"
+          >
+            <Phone className="w-5 h-5" />
+          </a>
+        </div>
+
+        <div className="flex items-center justify-between text-[10px] px-1 font-semibold text-charcoal/60">
+          <span className="bg-rose-100 text-rose-700 px-2 py-0.5 rounded font-extrabold">In High Demand</span>
+          <span>🔥 22 enquiries last week</span>
+        </div>
+      </div>
+{/* ── COLLECTION OUTFITS LIGHTBOX MODAL ── */}
       {activeCollectionModal && (
         <div
           onClick={() => setActiveCollectionModal(null)}
@@ -1956,25 +2092,116 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
         </div>
       )}
 
-      {/* ── PHOTO LIGHTBOX MODAL ── */}
-      {selectedPhoto && (
-        <div
-          onClick={() => setSelectedPhoto(null)}
-          className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4"
-        >
-          <div className="relative max-w-4xl max-h-[90vh] overflow-hidden rounded-2xl shadow-2xl">
-            <img src={selectedPhoto} alt="Zoomed view" className="max-w-full max-h-[85vh] object-contain rounded-2xl" />
+      {/* ── ALL PHOTOS FULL GALLERY MODAL ── */}
+      {showAllPhotosModal && (
+        <div className="fixed inset-0 z-[9998] bg-[#FAF7F2] w-screen h-screen flex flex-col overflow-hidden animate-in fade-in duration-200">
+          <div className="bg-[#0F4C45] text-white px-4 py-3 flex items-center justify-between shadow-md shrink-0">
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setShowAllPhotosModal(false)}
+                className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors cursor-pointer"
+              >
+                <ArrowRight className="w-5 h-5 rotate-180" />
+              </button>
+              <div>
+                <h3 className="font-serif font-bold text-base text-white">{displayName} — Portfolio</h3>
+                <p className="text-[11px] text-emerald-200">{galleryPhotos.length} Photos Uploaded</p>
+              </div>
+            </div>
             <button
-              onClick={() => setSelectedPhoto(null)}
-              className="absolute top-3 right-3 bg-black/60 text-white p-2 rounded-full hover:bg-black transition-colors cursor-pointer"
+              onClick={() => setShowAllPhotosModal(false)}
+              className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
+
+          <div className="flex-1 p-4 sm:p-6 overflow-y-auto bg-[#F5F2EB]">
+            <div className="max-w-6xl mx-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+              {galleryPhotos.map((photo, i) => (
+                <div
+                  key={i}
+                  onClick={() => setLightboxIndex(i)}
+                  className="relative aspect-[4/3] rounded-2xl overflow-hidden border border-gold/20 shadow-xs cursor-pointer group bg-white"
+                >
+                  <img src={photo.url} alt={photo.caption || `Photo ${i + 1}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity p-2 flex items-end">
+                    <span className="text-[10px] text-white font-medium line-clamp-1">{photo.caption || `Photo ${i + 1}`}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       )}
 
-      {/* ── WRITE A REVIEW MODAL ── */}
+      {/* ── INTERACTIVE LIGHTBOX SLIDER CAROUSEL MODAL ── */}
+      {lightboxIndex !== null && galleryPhotos[lightboxIndex] && (
+        <div
+          onClick={() => setLightboxIndex(null)}
+          className="fixed inset-0 z-[9999] bg-black/95 backdrop-blur-md flex flex-col justify-between p-3 sm:p-6 animate-in fade-in duration-200"
+        >
+          {/* Top Bar */}
+          <div onClick={(e) => e.stopPropagation()} className="flex items-center justify-between text-white border-b border-white/10 pb-3 shrink-0">
+            <div>
+              <h4 className="font-serif text-sm sm:text-base font-bold">{galleryPhotos[lightboxIndex].caption || displayName}</h4>
+              <p className="text-xs text-white/60">
+                Photo {lightboxIndex + 1} of {galleryPhotos.length}
+              </p>
+            </div>
+            <button
+              onClick={() => setLightboxIndex(null)}
+              className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          {/* Center Main Slide View */}
+          <div onClick={(e) => e.stopPropagation()} className="relative flex-1 flex items-center justify-center my-2 sm:my-4 overflow-hidden">
+            {/* Previous Slide Button */}
+            <button
+              onClick={() => setLightboxIndex((prev) => (prev !== null && prev > 0 ? prev - 1 : galleryPhotos.length - 1))}
+              className="absolute left-2 sm:left-4 z-10 w-11 h-11 rounded-full bg-black/50 hover:bg-black/80 text-white flex items-center justify-center transition-all shadow-lg border border-white/20 cursor-pointer active:scale-95"
+              title="Previous Photo (Left Arrow)"
+            >
+              <ChevronLeft className="w-6 h-6" />
+            </button>
+
+            <img
+              src={galleryPhotos[lightboxIndex].url}
+              alt={galleryPhotos[lightboxIndex].caption || "Portfolio View"}
+              className="max-w-full max-h-[75vh] object-contain rounded-2xl shadow-2xl transition-all duration-300 select-none"
+            />
+
+            {/* Next Slide Button */}
+            <button
+              onClick={() => setLightboxIndex((prev) => (prev !== null && prev < galleryPhotos.length - 1 ? prev + 1 : 0))}
+              className="absolute right-2 sm:right-4 z-10 w-11 h-11 rounded-full bg-black/50 hover:bg-black/80 text-white flex items-center justify-center transition-all shadow-lg border border-white/20 cursor-pointer active:scale-95"
+              title="Next Photo (Right Arrow)"
+            >
+              <ChevronRight className="w-6 h-6" />
+            </button>
+          </div>
+
+          {/* Bottom Thumbnail Strip */}
+          <div onClick={(e) => e.stopPropagation()} className="shrink-0 flex items-center gap-2 overflow-x-auto hide-scrollbar py-2 max-w-4xl mx-auto">
+            {galleryPhotos.map((p, idx) => (
+              <button
+                key={idx}
+                onClick={() => setLightboxIndex(idx)}
+                className={`relative w-14 h-14 rounded-xl overflow-hidden border-2 transition-all shrink-0 cursor-pointer ${
+                  idx === lightboxIndex ? "border-gold scale-105 shadow-md" : "border-transparent opacity-50 hover:opacity-100"
+                }`}
+              >
+                <img src={p.url} alt="" className="w-full h-full object-cover" />
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+{/* ── WRITE A REVIEW MODAL ── */}
       {isReviewModalOpen && (
         <div
           onClick={() => setIsReviewModalOpen(false)}
@@ -2116,6 +2343,149 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
               </button>
             </form>
           </div>
+        </div>
+      )}
+
+      {/* ── CLOCHE IN-APP FULL-SCREEN CHAT & ENQUIRY SCREEN ── */}
+      {activeModal === "chat" && (
+        <div className="fixed inset-0 z-[9999] bg-[#FAF7F2] w-screen h-screen flex flex-col overflow-hidden animate-in fade-in duration-200">
+          
+          {/* Top Full-Width Header */}
+          <div className="bg-[#0F4C45] text-white px-4 py-3 flex items-center justify-between shadow-md shrink-0 border-b border-gold/20">
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setActiveModal(null)}
+                className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors cursor-pointer"
+                title="Back to Storefront"
+              >
+                <ArrowRight className="w-5 h-5 rotate-180" />
+              </button>
+
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-white/20 overflow-hidden flex items-center justify-center text-white text-sm font-bold shrink-0 border border-gold/30">
+                  {vendor?.logo || vendor?.logo_url ? (
+                    <img src={vendor.logo || vendor.logo_url} alt={displayName} className="w-full h-full object-cover" />
+                  ) : (
+                    displayName.slice(0, 2).toUpperCase()
+                  )}
+                </div>
+                <div>
+                  <h3 className="font-serif font-bold text-base text-white leading-tight line-clamp-1">{displayName}</h3>
+                  <div className="text-[11px] text-emerald-200 font-medium flex items-center gap-1.5 mt-0.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    <span>Active Now</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setActiveModal(null)}
+              className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          {/* Chat Messages Body Area (Clean Thread View) */}
+          <div className="flex-1 bg-[#F5F2EB] p-4 overflow-y-auto space-y-3">
+            {chatMessages.length === 0 ? (
+              <div className="text-center py-6 space-y-1 max-w-sm mx-auto">
+                <p className="text-xs text-charcoal/60 leading-relaxed font-medium">
+                  Send your enquiry below. Your message will be stored here and delivered directly to {displayName}.
+                </p>
+              </div>
+            ) : (
+              chatMessages.map((msg) => (
+                <div
+                  key={msg.id}
+                  className={`flex flex-col ${msg.sender === "user" ? "items-end" : "items-start"} space-y-1 animate-in fade-in duration-300`}
+                >
+                  <div
+                    className={`p-3.5 rounded-2xl text-xs sm:text-sm leading-relaxed max-w-[88%] sm:max-w-[75%] shadow-xs ${
+                      msg.sender === "user"
+                        ? "bg-[#0F4C45] text-white rounded-tr-none font-sans"
+                        : "bg-white text-charcoal border border-gold/20 rounded-tl-none font-sans"
+                    }`}
+                  >
+                    <p className="whitespace-pre-wrap">{msg.text}</p>
+                    <div className={`flex items-center justify-end gap-1 mt-1.5 text-[10px] ${msg.sender === "user" ? "text-emerald-200" : "text-charcoal/50"}`}>
+                      <span>{msg.time}</span>
+                      {msg.sender === "user" && <span>✓✓</span>}
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Clean Message Composer Box */}
+          <div className="bg-white border-t border-gold/20 p-3 sm:p-4 shrink-0 shadow-lg">
+            <div className="max-w-4xl mx-auto space-y-2">
+              <div className="bg-[#FAF7F2] rounded-2xl p-3 border border-gold/25 space-y-2 relative shadow-inner">
+                <div className="flex items-center justify-between text-[10px] font-bold text-charcoal/60 uppercase tracking-wider">
+                  <span>Enquiry Message (Editable)</span>
+                </div>
+
+                <textarea
+                  rows={4}
+                  value={enquiryMessage}
+                  onChange={(e) => setEnquiryMessage(e.target.value)}
+                  className="w-full bg-transparent text-xs sm:text-sm text-charcoal leading-relaxed font-sans focus:outline-none resize-none"
+                  placeholder="Write your enquiry message..."
+                />
+
+                <div className="flex items-center justify-between pt-2 border-t border-gold/15">
+                  <div className="text-[11px] font-bold text-[#0F4C45]">
+                    📅 Preferred Date: {formatDateSafe(calendarDateInput)}
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      if (!enquiryMessage.trim()) return;
+                      const userMsgText = enquiryMessage.trim();
+                      const nowTime = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+                      const newMsg = { id: `user-${Date.now()}`, sender: "user" as const, text: userMsgText, time: nowTime };
+
+                      // Save user message to state & localStorage
+                      const updatedMessages = [...chatMessages, newMsg];
+                      setChatMessages(updatedMessages);
+                      setEnquirySent(true);
+                      setEnquiryMessage("");
+
+                      try {
+                        const key = `cloche_vendor_chat_${vendor?.id || "default"}`;
+                        localStorage.setItem(key, JSON.stringify(updatedMessages));
+                      } catch (e) {}
+
+                      // Simulate vendor response after 1.5s & save to localStorage
+                      setTimeout(() => {
+                        const vendorReply = {
+                          id: `vendor-${Date.now()}`,
+                          sender: "vendor" as const,
+                          text: `Hi! Thank you for reaching out to ${displayName}. We have received your enquiry for ${formatDateSafe(calendarDateInput)}. Our team is reviewing availability and will reply with full details & package options shortly.`,
+                          time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+                        };
+                        setChatMessages((prev) => {
+                          const withReply = [...prev, vendorReply];
+                          try {
+                            const key = `cloche_vendor_chat_${vendor?.id || "default"}`;
+                            localStorage.setItem(key, JSON.stringify(withReply));
+                          } catch (e) {}
+                          return withReply;
+                        });
+                      }, 1500);
+                    }}
+                    className="px-5 py-2.5 rounded-full bg-[#25D366] hover:bg-emerald-600 text-white font-extrabold text-xs shadow-md active:scale-95 transition-all cursor-pointer flex items-center gap-2 shrink-0"
+                  >
+                    <span>Send Message</span>
+                    <Send className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
         </div>
       )}
 
