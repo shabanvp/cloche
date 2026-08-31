@@ -30,14 +30,20 @@ import {
   ArrowLeft,
   Check,
   HelpCircle,
-  Compass,
   Users,
   Car,
-  Utensils
+  Utensils,
+  Plus,
+  Trash2,
+  Lock,
+  Star,
+  Info,
+  DollarSign,
+  ToggleLeft,
+  ToggleRight
 } from "lucide-react";
 import { VendorCategoryConfig } from "@/lib/vendor-categories";
 import { uploadImageToCloudinaryDetailed } from "@/lib/cloudinary";
-import { VendorStorefront } from "@/components/VendorStorefront";
 import {
   fetchAuthenticatedVendorFromDb,
   getActiveVendorIdentity,
@@ -52,76 +58,31 @@ export interface VenueCustomizeStoreSectionProps {
   onBack?: () => void;
 }
 
-function InstagramIcon({ className = "w-4 h-4" }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
-      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
-      <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
-    </svg>
-  );
-}
-
-function FacebookIcon({ className = "w-4 h-4" }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
-      <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
-    </svg>
-  );
-}
-
-function YoutubeIcon({ className = "w-4 h-4" }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
-      <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-1.96C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 1.96A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-1.96c.32-1.74.46-3.56.46-5.33s-.14-3.59-.46-5.28zM9.75 15.02V8.48l5.75 3.27-5.75 3.27z" />
-    </svg>
-  );
-}
-
-export interface ColorThemeOption {
+export interface FAQItem {
   id: string;
-  label: string;
-  primary: string;
-  secondary: string;
-  accent: string;
-  badgeBg: string;
-  badgeText: string;
+  question: string;
+  answer: string;
 }
 
-export const COLOR_THEMES: ColorThemeOption[] = [
-  { id: "emerald", label: "Emerald Green", primary: "#0F4C45", secondary: "#072B27", accent: "#C8A96A", badgeBg: "#0F4C45", badgeText: "#FFFFFF" },
-  { id: "rosegold", label: "Rose Gold", primary: "#B87333", secondary: "#915622", accent: "#E8A598", badgeBg: "#B87333", badgeText: "#FFFFFF" },
-  { id: "burgundy", label: "Burgundy", primary: "#800020", secondary: "#4A0012", accent: "#D4AF37", badgeBg: "#800020", badgeText: "#FFFFFF" },
-  { id: "beige", label: "Beige / Sand", primary: "#8C7355", secondary: "#604E38", accent: "#D4B896", badgeBg: "#8C7355", badgeText: "#FFFFFF" },
-  { id: "blackgold", label: "Black & Gold", primary: "#1A1A1A", secondary: "#0A0A0A", accent: "#C8A96A", badgeBg: "#1A1A1A", badgeText: "#C8A96A" },
-  { id: "softpink", label: "Soft Pink", primary: "#C27BA0", secondary: "#9E5A7E", accent: "#F4C2C2", badgeBg: "#C27BA0", badgeText: "#FFFFFF" },
+export const VENUE_FACILITIES_OPTIONS = [
+  { id: "indoor", label: "Indoor Venue" },
+  { id: "outdoor", label: "Outdoor Venue" },
+  { id: "terrace", label: "Terrace / Rooftop" },
+  { id: "parking", label: "Parking Available" },
+  { id: "ac", label: "Air Conditioned" },
+  { id: "generator", label: "Generator Backup" },
+  { id: "bridal_room", label: "Bridal Room" },
+  { id: "rooms_available", label: "Rooms Available" },
 ];
 
-export const VENUE_HIGHLIGHT_OPTIONS = [
-  "Premium Wedding Venue",
-  "Luxury Venue",
-  "Indoor AC Hall",
-  "Outdoor Lawn",
+export const VENUE_TYPE_OPTIONS = [
   "Banquet Hall",
-  "Destination Wedding",
-  "Beach Venue",
-  "Bridal Suite",
-  "Parking Available",
-  "Catering Available",
-  "Decoration Included",
-  "Wheelchair Accessible",
-  "Verified Partner",
-];
-
-export const ALL_VENUE_HALL_OPTIONS = [
-  "Grand Ballroom",
-  "Royal Hall",
-  "Emerald Hall",
-  "Crystal Hall",
-  "Garden Lawn",
-  "Banquet Hall",
-  "Outdoor Lawn",
-  "Poolside Venue",
+  "Heritage Resort & Palace",
+  "Luxury 5-Star Hotel",
+  "Beachfront Lawn",
+  "Farmhouse & Garden",
+  "Convention Center",
+  "Poolside Resort",
 ];
 
 export function VenueCustomizeStoreSection({
@@ -131,133 +92,145 @@ export function VenueCustomizeStoreSection({
 }: VenueCustomizeStoreSectionProps = {}) {
   const [vendorData, setVendorData] = useState<VendorProfileData | null>(null);
 
-  // 1. Branding & Identity
-  const [logoUrl, setLogoUrl] = useState<string>("");
-  const [coverUrl, setCoverUrl] = useState<string>("");
+  // 1. Basic Information
+  const [venueNameState, setVenueNameState] = useState<string>("");
   const [tagline, setTagline] = useState<string>("");
+  const [shortDescription, setShortDescription] = useState<string>("");
   const [about, setAbout] = useState<string>("");
-  const [colorTheme, setColorTheme] = useState<string>("emerald");
-  const [galleryLayout, setGalleryLayout] = useState<string>("grid");
-  const [galleryImages, setGalleryImages] = useState<string[]>([]);
-  const [hallImages, setHallImages] = useState<string[]>([]);
+  const [yearStarted, setYearStarted] = useState<string>("2014");
+  const [venueType, setVenueType] = useState<string>("Banquet Hall");
 
-  // 2. Social Links
-  const [instagram, setInstagram] = useState<string>("");
-  const [facebook, setFacebook] = useState<string>("");
-  const [youtube, setYoutube] = useState<string>("");
-  const [website, setWebsite] = useState<string>("");
+  // 2. Contact & Location
+  const [phone, setPhone] = useState<string>("");
+  const [whatsapp, setWhatsapp] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
+  const [address, setAddress] = useState<string>("");
+  const [district, setDistrict] = useState<string>("Kochi");
+  const [stateName, setStateName] = useState<string>("Kerala");
+  const [googleMapsUrl, setGoogleMapsUrl] = useState<string>("");
 
-  // 3. Venue Highlights
-  const [venueHighlights, setVenueHighlights] = useState<string[]>([
-    "Premium Wedding Venue",
-    "Indoor AC Hall",
-    "Outdoor Lawn",
-    "Bridal Suite",
-    "Parking Available",
+  // 3. Venue Details
+  const [guestCapacity, setGuestCapacity] = useState<string>("1,500");
+  const [roomsCount, setRoomsCount] = useState<string>("24");
+  const [parkingCapacity, setParkingCapacity] = useState<string>("350 Cars");
+  const [hasIndoorSpace, setHasIndoorSpace] = useState<boolean>(true);
+  const [hasOutdoorSpace, setHasOutdoorSpace] = useState<boolean>(true);
+  const [hasRooftopSpace, setHasRooftopSpace] = useState<boolean>(false);
+  const [hasBridalRoom, setHasBridalRoom] = useState<boolean>(true);
+  const [hasGroomRoom, setHasGroomRoom] = useState<boolean>(true);
+
+  // 4. Pricing Information
+  const [vegPrice, setVegPrice] = useState<string>("1200");
+  const [nonVegPrice, setNonVegPrice] = useState<string>("1500");
+  const [decorStartingPrice, setDecorStartingPrice] = useState<string>("50000");
+  const [contactForPricing, setContactForPricing] = useState<boolean>(false);
+
+  // 5. Portfolio (Images)
+  const [coverUrl, setCoverUrl] = useState<string>("");
+  const [logoUrl, setLogoUrl] = useState<string>("");
+  const [galleryImages, setGalleryImages] = useState<string[]>([
+    "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=800&q=80",
+    "https://images.unsplash.com/photo-1544078751-58fee2d8a03b?auto=format&fit=crop&w=800&q=80",
+    "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=800&q=80",
   ]);
 
-  // 4. Featured Halls (with reordering)
-  const [featuredHalls, setFeaturedHalls] = useState<string[]>([
-    "Grand Ballroom",
-    "Royal Hall",
-    "Garden Lawn",
-    "Outdoor Lawn",
+  // 6. Facilities & Offers Checkboxes
+  const [facilities, setFacilities] = useState<string[]>([
+    "indoor",
+    "outdoor",
+    "parking",
+    "ac",
+    "generator",
+    "bridal_room",
+    "rooms_available",
   ]);
 
-  // 5. Venue Information
-  const [yearsInBusiness, setYearsInBusiness] = useState<string>("12");
-  const [guestCapacity, setGuestCapacity] = useState<string>("1,500 Guests");
-  const [minGuestCapacity, setMinGuestCapacity] = useState<string>("150 Guests");
-  const [numberOfHalls, setNumberOfHalls] = useState<string>("3 Halls & 2 Lawns");
-  const [diningCapacity, setDiningCapacity] = useState<string>("600 Seated");
-  const [parkingCapacity, setParkingCapacity] = useState<string>("350 Cars & Valet");
-  const [serviceAreas, setServiceAreas] = useState<string>("Golf Course Road, Gurgaon, Delhi NCR");
-  const [languagesSpoken, setLanguagesSpoken] = useState<string>("English, Hindi, Punjabi");
+  // 7. Policies (Switches)
+  const [policySwitches, setPolicySwitches] = useState({
+    inhouseCatering: true,
+    outsideCatering: true,
+    outsideDecorator: true,
+    outsideAlcohol: true,
+    inhouseDj: true,
+    outsideDj: true,
+    lessThan50Pax: false,
+  });
+  const [decorationPolicy, setDecorationPolicy] = useState<string>(
+    "Empaneled luxury decorators available. Outside decorators permitted with prior approval & security deposit."
+  );
+  const [cancellationPolicyText, setCancellationPolicyText] = useState<string>(
+    "100% refund on cancellations 60+ days prior to event. 50% refund for cancellations 30-50 days prior."
+  );
 
-  // 6. Contact Action Buttons
-  const [actionButtons, setActionButtons] = useState({
-    callNow: true,
-    whatsapp: true,
-    bookVenueVisit: true,
-    requestQuote: true,
-    getDirections: true,
-    website: true,
+  // 8. Frequently Asked Questions (FAQ Manager)
+  const [faqs, setFaqs] = useState<FAQItem[]>([
+    {
+      id: "faq-1",
+      question: "What is the guest capacity of the main banquet hall?",
+      answer: "Our main Royal Ballroom comfortably accommodates up to 1,500 floating guests and 800 seated guests."
+    },
+    {
+      id: "faq-2",
+      question: "Do you allow outside catering teams?",
+      answer: "Yes, outside catering teams are permitted. We also offer 5-star in-house catering with customized live counter menus."
+    },
+    {
+      id: "faq-3",
+      question: "Is valet parking provided?",
+      answer: "Yes, dedicated valet parking is included for up to 350 vehicles with secure 24/7 CCTV surveillance."
+    }
+  ]);
+
+  // 9. Availability & Timings
+  const [availabilityNote, setAvailabilityNote] = useState<string>("Open for 2026-2027 Wedding Season Bookings");
+  const [blockedDates, setBlockedDates] = useState<string>("None (Contact venue manager for slot lock)");
+  const [openingTime, setOpeningTime] = useState<string>("09:00 AM");
+  const [closingTime, setClosingTime] = useState<string>("10:00 PM");
+  const [weeklyOff, setWeeklyOff] = useState<string>("Open All 7 Days");
+
+  // 10. Contact Preferences
+  const [contactPreferences, setContactPreferences] = useState({
+    enableCallButton: true,
+    enableWhatsappButton: true,
+    enableMessageButton: true,
   });
 
-  // 7. Working Hours & Venue Visit Timings
-  const [openingTime, setOpeningTime] = useState<string>("09:00 AM");
-  const [closingTime, setClosingTime] = useState<string>("09:00 PM");
-  const [weeklyHolidays, setWeeklyHolidays] = useState<string>("Open All 7 Days");
-  const [venueVisitTimings, setVenueVisitTimings] = useState<string>("10:00 AM - 06:00 PM (Daily)");
-  const [publicHolidayAvailability, setPublicHolidayAvailability] = useState<string>("Open for guided tours by prior appointment");
-  const [advanceAppointmentRequired, setAdvanceAppointmentRequired] = useState<boolean>(true);
-
-  // 8. Booking Policies & Venue Guidelines
-  const [advanceBookingRequired, setAdvanceBookingRequired] = useState<string>(
-    "Minimum 30 to 90 days advance booking recommended for peak wedding dates."
-  );
-  const [advancePaymentPolicy, setAdvancePaymentPolicy] = useState<string>(
-    "25% on booking confirmation, 50% 30 days prior, remaining 25% 7 days before event."
-  );
-  const [cancellationPolicy, setCancellationPolicy] = useState<string>(
-    "Full refund of advance if cancelled 60+ days prior to scheduled event date."
-  );
-  const [refundPolicy, setRefundPolicy] = useState<string>(
-    "100% security damage deposit refunded within 24 hours of successful post-event inspection."
-  );
-  const [decorationRules, setDecorationRules] = useState<string>(
-    "Empaneled luxury decorator list available. External decorators subject to venue approval & safety guidelines."
-  );
-  const [outsideCateringPolicy, setOutsideCateringPolicy] = useState<string>(
-    "In-house 5-star culinary team available. Outside catering permitted with kitchen utility charges."
-  );
-  const [outsidePhotographyPolicy, setOutsidePhotographyPolicy] = useState<string>(
-    "Unrestricted professional wedding photography & 4K drone videography permitted across all spaces."
-  );
-  const [noiseRestrictions, setNoiseRestrictions] = useState<string>(
-    "Indoor halls: 01:00 AM cutoff. Outdoor lawns: DJ / amplified sound permitted until 10:00 PM per city noise regulations."
-  );
-  const [alcoholPolicy, setAlcoholPolicy] = useState<string>(
-    "Permitted with standard 1-day excise license. Bartending counter setup & glassware support provided."
-  );
-  const [overtimeCharges, setOvertimeCharges] = useState<string>(
-    "₹15,000 per additional hour beyond booked slot time, subject to next slot availability."
-  );
-  const [eventTimingRules, setEventTimingRules] = useState<string>(
-    "Morning Slot: 06:00 AM - 03:00 PM | Evening Slot: 05:00 PM - 11:30 PM | Full Day: 06:00 AM - 11:30 PM"
-  );
-
-  // Accordion State
+  // Accordion Expand/Collapse State
   const [openAccordions, setOpenAccordions] = useState<Record<string, boolean>>({
-    highlights: true,
-    featuredHalls: true,
-    venueInfo: true,
-    actionButtons: false,
-    timings: false,
-    policies: false,
-    theme: false,
-    branding: false,
+    basicInfo: true,
+    contactLocation: true,
+    venueDetails: true,
+    pricing: true,
+    portfolio: true,
+    facilities: true,
+    policies: true,
+    faqs: true,
+    availability: false,
+    preferences: false,
+    systemFields: false,
   });
 
   const toggleAccordion = (section: string) => {
     setOpenAccordions((prev) => ({ ...prev, [section]: !prev[section] }));
   };
 
-  // Upload States
+  // Uploading & Saving State
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const [isUploadingCover, setIsUploadingCover] = useState(false);
   const [isUploadingGallery, setIsUploadingGallery] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
 
   const logoInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
 
-  // Initial Data Fetch & Hydration
+  // Initial Data Fetch
   useEffect(() => {
     const localVendor = getActiveVendorIdentity();
-    setVendorData(localVendor);
+    if (localVendor) {
+      setVendorData(localVendor);
+      hydrateFields(localVendor);
+    }
 
     async function loadDbVendor() {
       try {
@@ -265,12 +238,9 @@ export function VenueCustomizeStoreSection({
         if (dbVendor) {
           setVendorData(dbVendor);
           hydrateFields(dbVendor);
-        } else if (localVendor) {
-          hydrateFields(localVendor);
         }
       } catch (e) {
-        console.error("[VenueCustomizeStore] Error loading vendor:", e);
-        if (localVendor) hydrateFields(localVendor);
+        console.error("[VenueCustomizeStore] Error loading vendor from DB:", e);
       }
     }
 
@@ -279,161 +249,174 @@ export function VenueCustomizeStoreSection({
 
   const hydrateFields = (data: Partial<VendorProfileData> & Record<string, any>) => {
     const sf = (data && typeof data.storefront === "object" && data.storefront !== null) ? data.storefront : {};
-    const sfWh = sf.workingHours || {};
-    const sfSl = sf.socialLinks || {};
+    const sfContact = sf.contactInfo || {};
 
-    // Branding
-    const logoVal = data.logo || data.logo_url || sf.logo || "";
-    if (logoVal) setLogoUrl(logoVal);
-
-    const coverVal = data.coverImage || data.cover_image || sf.coverImage || "";
-    if (coverVal) setCoverUrl(coverVal);
+    // 1. Basic Info
+    const nameVal = data.name || data.boutique_name || sf.businessName || "";
+    if (nameVal) setVenueNameState(nameVal);
 
     const taglineVal = data.tagline || sf.tagline || "";
     if (taglineVal) setTagline(taglineVal);
 
+    const shortDescVal = data.subtitle || data.shortDescription || sf.subtitle || "";
+    if (shortDescVal) setShortDescription(shortDescVal);
+
     const aboutVal = data.about || data.description || sf.about || "";
     if (aboutVal) setAbout(aboutVal);
 
-    const themeVal = data.colorTheme || data.color_theme || sf.theme || "emerald";
-    if (themeVal) setColorTheme(themeVal);
+    const yearVal = data.yearStarted || data.years_in_business || data.experience_years || "";
+    if (yearVal) setYearStarted(String(yearVal));
+
+    const typeVal = data.venueType || data.venue_type || "";
+    if (typeVal) setVenueType(typeVal);
+
+    // 2. Contact & Location
+    if (data.phone || sfContact.phone) setPhone(data.phone || sfContact.phone || "");
+    if (data.whatsapp || sfContact.whatsapp) setWhatsapp(data.whatsapp || sfContact.whatsapp || "");
+    if (data.email || sfContact.email) setEmail(data.email || sfContact.email || "");
+    if (data.address || sfContact.address) setAddress(data.address || sfContact.address || "");
+    if (data.district || sfContact.district) setDistrict(data.district || sfContact.district || "");
+    if (data.state || sfContact.state) setStateName(data.state || sfContact.state || "");
+    if (data.googleMaps || data.google_maps_url || sfContact.googleMaps) {
+      setGoogleMapsUrl(data.googleMaps || data.google_maps_url || sfContact.googleMaps || "");
+    }
+
+    // 3. Venue Details
+    if (data.guestCapacity || data.guest_capacity || data.capacity) {
+      setGuestCapacity(String(data.guestCapacity || data.guest_capacity || data.capacity || ""));
+    }
+    if (data.roomsCount || data.rooms_count || data.numberOfRooms) {
+      setRoomsCount(String(data.roomsCount || data.rooms_count || data.numberOfRooms || ""));
+    }
+    if (data.parkingCapacity || data.parking_capacity) {
+      setParkingCapacity(String(data.parkingCapacity || data.parking_capacity || ""));
+    }
+    if (data.hasIndoorSpace !== undefined) setHasIndoorSpace(Boolean(data.hasIndoorSpace));
+    if (data.hasOutdoorSpace !== undefined) setHasOutdoorSpace(Boolean(data.hasOutdoorSpace));
+    if (data.hasRooftopSpace !== undefined) setHasRooftopSpace(Boolean(data.hasRooftopSpace));
+    if (data.hasBridalRoom !== undefined) setHasBridalRoom(Boolean(data.hasBridalRoom));
+    if (data.hasGroomRoom !== undefined) setHasGroomRoom(Boolean(data.hasGroomRoom));
+
+    // 4. Pricing Info
+    if (data.vegPrice || data.veg_price) setVegPrice(String(data.vegPrice || data.veg_price || ""));
+    if (data.nonVegPrice || data.non_veg_price) setNonVegPrice(String(data.nonVegPrice || data.non_veg_price || ""));
+    if (data.decorStartingPrice || data.decor_starting_price) {
+      setDecorStartingPrice(String(data.decorStartingPrice || data.decor_starting_price || ""));
+    }
+    if (data.contactForPricing !== undefined) setContactForPricing(Boolean(data.contactForPricing));
+
+    // 5. Portfolio Images
+    const coverVal = data.coverImage || data.cover_image || sf.coverImage || "";
+    if (coverVal) setCoverUrl(coverVal);
+
+    const logoVal = data.logo || data.logo_url || sf.logo || "";
+    if (logoVal) setLogoUrl(logoVal);
 
     const gallery = Array.isArray(data.galleryImages) && data.galleryImages.length > 0
       ? data.galleryImages
       : Array.isArray(data.gallery_images) && data.gallery_images.length > 0
       ? data.gallery_images
       : Array.isArray(sf.gallery)
-      ? sf.gallery.map((x: any) => typeof x === "string" ? x : x?.url || x?.image_url)
+      ? sf.gallery.map((x: any) => (typeof x === "string" ? x : x?.url || x?.image_url))
       : null;
     if (gallery) setGalleryImages(gallery);
 
-    const halls = Array.isArray(data.hallImages) ? data.hallImages : Array.isArray(data.hall_images) ? data.hall_images : null;
-    if (halls) setHallImages(halls);
+    // 6. Facilities
+    const facs = data.facilities || data.venue_facilities || sf.facilities;
+    if (Array.isArray(facs) && facs.length > 0) setFacilities(facs);
 
-    // Social Links
-    if (data.instagram || sfSl.instagram) setInstagram(data.instagram || sfSl.instagram || "");
-    if (data.facebook || sfSl.facebook) setFacebook(data.facebook || sfSl.facebook || "");
-    if (data.website || sfSl.website) setWebsite(data.website || sfSl.website || "");
-    if (data.youtube || sfSl.youtube) setYoutube(data.youtube || sfSl.youtube || "");
-
-    // Venue Highlights
-    const rawHighlights = data.venueHighlights || data.venue_highlights || data.storeHighlights || data.store_highlights || sf.storeHighlights;
-    if (Array.isArray(rawHighlights) && rawHighlights.length > 0) setVenueHighlights(rawHighlights);
-
-    // Featured Halls
-    const rawHalls = data.featuredHalls || data.featured_halls || sf.featuredHalls;
-    if (Array.isArray(rawHalls) && rawHalls.length > 0) setFeaturedHalls(rawHalls);
-
-    // Venue Information
-    if (data.yearsInBusiness || data.years_in_business || data.experience_years || data.experience) {
-      setYearsInBusiness(String(data.yearsInBusiness || data.years_in_business || data.experience_years || data.experience || ""));
-    }
-    if (data.guestCapacity || data.guest_capacity) setGuestCapacity(data.guestCapacity || data.guest_capacity || "");
-    if (data.minGuestCapacity || data.min_guest_capacity) setMinGuestCapacity(data.minGuestCapacity || data.min_guest_capacity || "");
-    if (data.numberOfHalls || data.number_of_halls) setNumberOfHalls(data.numberOfHalls || data.number_of_halls || "");
-    if (data.diningCapacity || data.dining_capacity) setDiningCapacity(data.diningCapacity || data.dining_capacity || "");
-    if (data.parkingCapacity || data.parking_capacity) setParkingCapacity(data.parkingCapacity || data.parking_capacity || "");
-    if (data.serviceAreas || data.service_areas) setServiceAreas(data.serviceAreas || data.service_areas || "");
-    if (data.languagesSpoken || data.languages_spoken) setLanguagesSpoken(data.languagesSpoken || data.languages_spoken || "");
-
-    // Contact Action Buttons
-    if (data.actionButtons || data.action_buttons) {
-      const act: Record<string, any> = (data.actionButtons || data.action_buttons || {}) as Record<string, any>;
-      setActionButtons({
-        callNow: Boolean(act.callNow ?? true),
-        whatsapp: Boolean(act.whatsapp ?? true),
-        bookVenueVisit: Boolean(act.bookVenueVisit ?? act.bookAppointment ?? true),
-        requestQuote: Boolean(act.requestQuote ?? act.getQuote ?? true),
-        getDirections: Boolean(act.getDirections ?? act.visitStore ?? true),
-        website: Boolean(act.website ?? true),
+    // 7. Policies Switches
+    if (data.policySwitches || data.policy_switches) {
+      const ps = (data.policySwitches || data.policy_switches) as any;
+      setPolicySwitches({
+        inhouseCatering: Boolean(ps.inhouseCatering ?? true),
+        outsideCatering: Boolean(ps.outsideCatering ?? true),
+        outsideDecorator: Boolean(ps.outsideDecorator ?? true),
+        outsideAlcohol: Boolean(ps.outsideAlcohol ?? true),
+        inhouseDj: Boolean(ps.inhouseDj ?? true),
+        outsideDj: Boolean(ps.outsideDj ?? true),
+        lessThan50Pax: Boolean(ps.lessThan50Pax ?? false),
       });
     }
+    if (data.decorationPolicy || data.decoration_policy) setDecorationPolicy(data.decorationPolicy || data.decoration_policy);
+    if (data.cancellationPolicyText || data.cancellation_policy) setCancellationPolicyText(data.cancellationPolicyText || data.cancellation_policy);
 
-    // Working Hours & Visit Timings
-    if (data.openingTime || data.opening_time) setOpeningTime(data.openingTime || data.opening_time || "");
-    if (data.closingTime || data.closing_time) setClosingTime(data.closingTime || data.closing_time || "");
-    if (data.weeklyHolidays || data.weekly_holidays) setWeeklyHolidays(data.weeklyHolidays || data.weekly_holidays || "");
-    if (data.venueVisitTimings || data.venue_visit_timings) setVenueVisitTimings(data.venueVisitTimings || data.venue_visit_timings || "");
-    if (data.publicHolidayAvailability || data.public_holiday_availability) {
-      setPublicHolidayAvailability(data.publicHolidayAvailability || data.public_holiday_availability || "");
-    }
-    if (data.advanceAppointmentRequired !== undefined || data.advance_appointment_required !== undefined) {
-      setAdvanceAppointmentRequired(Boolean(data.advanceAppointmentRequired ?? data.advance_appointment_required));
+    // 8. FAQs
+    const rawFaqs = data.faqs || data.faq_items || sf.faqs;
+    if (Array.isArray(rawFaqs) && rawFaqs.length > 0) {
+      const formatted = rawFaqs.map((item: any, idx: number) => ({
+        id: item.id || `faq-${idx}-${Date.now()}`,
+        question: item.question || item.q || "",
+        answer: item.answer || item.a || "",
+      }));
+      setFaqs(formatted);
     }
 
-    // Booking Policies
-    if (data.advanceBookingRequired || data.advance_booking_required) {
-      setAdvanceBookingRequired(data.advanceBookingRequired || data.advance_booking_required || "");
-    }
-    if (data.advancePaymentPolicy || data.advance_payment_policy) {
-      setAdvancePaymentPolicy(data.advancePaymentPolicy || data.advance_payment_policy || "");
-    }
-    if (data.cancellationPolicy || data.cancellation_policy) {
-      setCancellationPolicy(data.cancellationPolicy || data.cancellation_policy || "");
-    }
-    if (data.refundPolicy || data.refund_policy) {
-      setRefundPolicy(data.refundPolicy || data.refund_policy || "");
-    }
-    if (data.decorationRules || data.decoration_rules) {
-      setDecorationRules(data.decorationRules || data.decoration_rules || "");
-    }
-    if (data.outsideCateringPolicy || data.outside_catering_policy) {
-      setOutsideCateringPolicy(data.outsideCateringPolicy || data.outside_catering_policy || "");
-    }
-    if (data.outsidePhotographyPolicy || data.outside_photography_policy) {
-      setOutsidePhotographyPolicy(data.outsidePhotographyPolicy || data.outside_photography_policy || "");
-    }
-    if (data.noiseRestrictions || data.noise_restrictions) {
-      setNoiseRestrictions(data.noiseRestrictions || data.noise_restrictions || "");
-    }
-    if (data.alcoholPolicy || data.alcohol_policy) {
-      setAlcoholPolicy(data.alcoholPolicy || data.alcohol_policy || "");
-    }
-    if (data.overtimeCharges || data.overtime_charges) {
-      setOvertimeCharges(data.overtimeCharges || data.overtime_charges || "");
-    }
-    if (data.eventTimingRules || data.event_timing_rules) {
-      setEventTimingRules(data.eventTimingRules || data.event_timing_rules || "");
+    // 9. Availability
+    const availNote = data.availabilityNote || data.availability_note || "";
+    if (availNote) setAvailabilityNote(availNote);
+
+    const blockedD = data.blockedDates || data.blocked_dates || "";
+    if (blockedD) setBlockedDates(blockedD);
+
+    const openT = data.openingTime || data.opening_time || "";
+    if (openT) setOpeningTime(openT);
+
+    const closeT = data.closingTime || data.closing_time || "";
+    if (closeT) setClosingTime(closeT);
+
+    const weekOff = data.weeklyOff || data.weekly_off || "";
+    if (weekOff) setWeeklyOff(weekOff);
+
+    // 10. Contact Preferences
+    if (data.contactPreferences || data.contact_preferences) {
+      const cp = (data.contactPreferences || data.contact_preferences) as any;
+      setContactPreferences({
+        enableCallButton: Boolean(cp.enableCallButton ?? true),
+        enableWhatsappButton: Boolean(cp.enableWhatsappButton ?? true),
+        enableMessageButton: Boolean(cp.enableMessageButton ?? true),
+      });
     }
   };
 
-  const activeTheme = COLOR_THEMES.find((t) => t.id === colorTheme) || COLOR_THEMES[0];
-  const currentDisplayName = vendorName || vendorData?.name || vendorData?.boutique_name || "Wedding Venue";
-  const currentLocation = [vendorData?.city, vendorData?.district, vendorData?.address].filter(Boolean).join(", ");
-
-  const initials = currentDisplayName
-    .split(" ")
-    .map((w) => w[0])
-    .filter(Boolean)
-    .join("")
-    .slice(0, 2)
-    .toUpperCase() || "VP";
-
-  // Handlers for Highlights
-  const toggleHighlight = (badge: string) => {
-    setVenueHighlights((prev) =>
-      prev.includes(badge) ? prev.filter((b) => b !== badge) : [...prev, badge]
+  // Facility Toggle Handler
+  const toggleFacility = (facilityId: string) => {
+    setFacilities((prev) =>
+      prev.includes(facilityId) ? prev.filter((id) => id !== facilityId) : [...prev, facilityId]
     );
   };
 
-  // Handlers for Featured Halls
-  const toggleFeaturedHall = (hall: string) => {
-    setFeaturedHalls((prev) =>
-      prev.includes(hall) ? prev.filter((h) => h !== hall) : [...prev, hall]
+  // FAQ Handlers
+  const handleAddFaq = () => {
+    const newFaq: FAQItem = {
+      id: `faq-${Date.now()}`,
+      question: "New Venue Question?",
+      answer: "Provide detailed answer for venue guests here."
+    };
+    setFaqs((prev) => [...prev, newFaq]);
+  };
+
+  const handleUpdateFaq = (id: string, field: "question" | "answer", value: string) => {
+    setFaqs((prev) =>
+      prev.map((f) => (f.id === id ? { ...f, [field]: value } : f))
     );
   };
 
-  const moveHall = (index: number, direction: "up" | "down") => {
+  const handleDeleteFaq = (id: string) => {
+    setFaqs((prev) => prev.filter((f) => f.id !== id));
+  };
+
+  const handleMoveFaq = (index: number, direction: "up" | "down") => {
     const targetIndex = direction === "up" ? index - 1 : index + 1;
-    if (targetIndex < 0 || targetIndex >= featuredHalls.length) return;
-    const newHalls = [...featuredHalls];
-    const temp = newHalls[index];
-    newHalls[index] = newHalls[targetIndex];
-    newHalls[targetIndex] = temp;
-    setFeaturedHalls(newHalls);
+    if (targetIndex < 0 || targetIndex >= faqs.length) return;
+    const newFaqs = [...faqs];
+    const temp = newFaqs[index];
+    newFaqs[index] = newFaqs[targetIndex];
+    newFaqs[targetIndex] = temp;
+    setFaqs(newFaqs);
   };
 
-  // File Upload Handlers
+  // Portfolio Image Handlers
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -441,7 +424,7 @@ export function VenueCustomizeStoreSection({
       setIsUploadingLogo(true);
       const res = await uploadImageToCloudinaryDetailed(file);
       setLogoUrl(res.secure_url);
-      showVendorToast("✓ Venue Logo uploaded successfully", "success");
+      showVendorToast("✓ Venue Logo uploaded", "success");
     } catch (err: any) {
       showVendorToast(err?.message || "Failed to upload logo", "error");
     } finally {
@@ -456,15 +439,13 @@ export function VenueCustomizeStoreSection({
       setIsUploadingCover(true);
       const res = await uploadImageToCloudinaryDetailed(file);
       setCoverUrl(res.secure_url);
-      showVendorToast("✓ Venue Cover photo uploaded successfully", "success");
+      showVendorToast("✓ Cover image uploaded", "success");
     } catch (err: any) {
       showVendorToast(err?.message || "Failed to upload cover photo", "error");
     } finally {
       setIsUploadingCover(false);
     }
   };
-
-
 
   const handleGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -475,1168 +456,1185 @@ export function VenueCustomizeStoreSection({
       const results = await Promise.all(uploadPromises);
       const newUrls = results.map((r) => r.secure_url);
       setGalleryImages((prev) => [...prev, ...newUrls]);
-      showVendorToast(`✓ Added ${newUrls.length} photos to Venue Gallery`, "success");
+      showVendorToast(`✓ Uploaded ${newUrls.length} portfolio photo(s)`, "success");
     } catch (err: any) {
-      showVendorToast(err?.message || "Failed to upload gallery images", "error");
+      showVendorToast(err?.message || "Failed to upload portfolio images", "error");
     } finally {
       setIsUploadingGallery(false);
     }
   };
 
-  const handleRemoveGalleryImage = (index: number) => {
+  const handleDeleteGalleryImage = (index: number) => {
     setGalleryImages((prev) => prev.filter((_, i) => i !== index));
+    showVendorToast("Photo deleted from portfolio", "info");
   };
 
-  // Save All Changes
+  const handleMoveGalleryImage = (index: number, direction: "left" | "right") => {
+    const targetIndex = direction === "left" ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= galleryImages.length) return;
+    const newImages = [...galleryImages];
+    const temp = newImages[index];
+    newImages[index] = newImages[targetIndex];
+    newImages[targetIndex] = temp;
+    setGalleryImages(newImages);
+  };
+
+  const handleSelectCoverFromGallery = (url: string) => {
+    setCoverUrl(url);
+    showVendorToast("Set as primary cover photo", "success");
+  };
+
+  // Save All Venue Customization Changes
   const handleSave = async () => {
     try {
       setIsSaving(true);
 
-      const contactActionsArray = [
-        ...(actionButtons.callNow ? ["Call Now"] : []),
-        ...(actionButtons.whatsapp ? ["WhatsApp"] : []),
-        ...(actionButtons.bookVenueVisit ? ["Book Venue Visit"] : []),
-        ...(actionButtons.requestQuote ? ["Request Quote"] : []),
-        ...(actionButtons.getDirections ? ["Get Directions"] : []),
-        ...(actionButtons.website ? ["Website"] : []),
-      ];
+      const displayName = venueNameState.trim() || vendorName || "Royal Orchid Palace & Banquets";
+      const fullLocation = [address.trim(), district.trim(), stateName.trim()].filter(Boolean).join(", ");
 
       const payload: Partial<VendorProfileData> & Record<string, any> = {
-        // Branding & Identity
-        logo: logoUrl.trim(),
-        logo_url: logoUrl.trim(),
-        coverImage: coverUrl.trim(),
-        cover_image: coverUrl.trim(),
+        // 1. Basic Information
+        name: displayName,
+        boutique_name: displayName,
+        venueName: displayName,
         tagline: tagline.trim(),
+        subtitle: shortDescription.trim() || tagline.trim(),
+        shortDescription: shortDescription.trim(),
         about: about.trim(),
         description: about.trim(),
-        colorTheme,
-        color_theme: colorTheme,
+        yearStarted: yearStarted.trim(),
+        years_in_business: yearStarted.trim(),
+        venueType,
+        venue_type: venueType,
+
+        // 2. Contact & Location
+        phone: phone.trim(),
+        whatsapp: whatsapp.trim() || phone.trim(),
+        email: email.trim(),
+        address: address.trim(),
+        district: district.trim(),
+        state: stateName.trim(),
+        location: fullLocation,
+        googleMaps: googleMapsUrl.trim(),
+        google_maps_url: googleMapsUrl.trim(),
+
+        // 3. Venue Details
+        guestCapacity: guestCapacity.trim(),
+        capacity: guestCapacity.trim(),
+        roomsCount: roomsCount.trim(),
+        numberOfRooms: roomsCount.trim(),
+        parkingCapacity: parkingCapacity.trim(),
+        hasIndoorSpace,
+        hasOutdoorSpace,
+        hasRooftopSpace,
+        hasBridalRoom,
+        hasGroomRoom,
+
+        // 4. Pricing Information
+        vegPrice: vegPrice.trim(),
+        veg_price: vegPrice.trim(),
+        nonVegPrice: nonVegPrice.trim(),
+        non_veg_price: nonVegPrice.trim(),
+        decorStartingPrice: decorStartingPrice.trim(),
+        decor_starting_price: decorStartingPrice.trim(),
+        startingPrice: contactForPricing ? "Contact for Pricing" : vegPrice.trim() ? `₹${vegPrice.trim()} / plate` : "Contact for Pricing",
+        contactForPricing,
+
+        // 5. Portfolio Images
+        coverImage: coverUrl.trim() || galleryImages[0] || "",
+        cover_image: coverUrl.trim() || galleryImages[0] || "",
+        logo: logoUrl.trim(),
+        logo_url: logoUrl.trim(),
         galleryImages,
         gallery_images: galleryImages,
-        hallImages,
-        hall_images: hallImages,
 
-        // Social Links
-        instagram: instagram.trim(),
-        facebook: facebook.trim(),
-        youtube: youtube.trim(),
-        website: website.trim(),
+        // 6. Facilities & Offers
+        facilities,
+        venue_facilities: facilities,
 
-        // Venue Highlights
-        venueHighlights,
-        venue_highlights: venueHighlights,
-        storeHighlights: venueHighlights,
-        store_highlights: venueHighlights,
+        // 7. Policies
+        policySwitches,
+        policy_switches: policySwitches,
+        decorationPolicy: decorationPolicy.trim(),
+        cancellationPolicyText: cancellationPolicyText.trim(),
+        cancellation_policy: cancellationPolicyText.trim(),
 
-        // Featured Halls
-        featuredHalls,
-        featured_halls: featuredHalls,
+        // 8. Frequently Asked Questions
+        faqs,
+        faq_items: faqs,
 
-        // Venue Information
-        yearsInBusiness: yearsInBusiness.trim(),
-        years_in_business: yearsInBusiness.trim(),
-        guestCapacity: guestCapacity.trim(),
-        guest_capacity: guestCapacity.trim(),
-        minGuestCapacity: minGuestCapacity.trim(),
-        min_guest_capacity: minGuestCapacity.trim(),
-        numberOfHalls: numberOfHalls.trim(),
-        number_of_halls: numberOfHalls.trim(),
-        diningCapacity: diningCapacity.trim(),
-        dining_capacity: diningCapacity.trim(),
-        parkingCapacity: parkingCapacity.trim(),
-        parking_capacity: parkingCapacity.trim(),
-        serviceAreas: serviceAreas.trim(),
-        service_areas: serviceAreas.trim(),
-        languagesSpoken: languagesSpoken.trim(),
-        languages_spoken: languagesSpoken.trim(),
-
-        // Contact Action Buttons
-        actionButtons,
-        action_buttons: actionButtons,
-        contactActions: contactActionsArray,
-        contact_actions: contactActionsArray,
-
-        // Working Hours & Visit Timings
+        // 9. Availability & Timings
+        availabilityNote: availabilityNote.trim(),
+        blockedDates: blockedDates.trim(),
         openingTime: openingTime.trim(),
-        opening_time: openingTime.trim(),
         closingTime: closingTime.trim(),
-        closing_time: closingTime.trim(),
-        weeklyHolidays: weeklyHolidays.trim(),
-        weekly_holidays: weeklyHolidays.trim(),
-        venueVisitTimings: venueVisitTimings.trim(),
-        venue_visit_timings: venueVisitTimings.trim(),
-        publicHolidayAvailability: publicHolidayAvailability.trim(),
-        public_holiday_availability: publicHolidayAvailability.trim(),
-        advanceAppointmentRequired,
-        advance_appointment_required: advanceAppointmentRequired,
+        weeklyOff: weeklyOff.trim(),
+        working_hours: `${openingTime} - ${closingTime} (${weeklyOff})`,
 
-        // Booking Policies & Guidelines
-        advanceBookingRequired: advanceBookingRequired.trim(),
-        advance_booking_required: advanceBookingRequired.trim(),
-        advancePaymentPolicy: advancePaymentPolicy.trim(),
-        advance_payment_policy: advancePaymentPolicy.trim(),
-        cancellationPolicy: cancellationPolicy.trim(),
-        cancellation_policy: cancellationPolicy.trim(),
-        refundPolicy: refundPolicy.trim(),
-        refund_policy: refundPolicy.trim(),
-        decorationRules: decorationRules.trim(),
-        decoration_rules: decorationRules.trim(),
-        outsideCateringPolicy: outsideCateringPolicy.trim(),
-        outside_catering_policy: outsideCateringPolicy.trim(),
-        outsidePhotographyPolicy: outsidePhotographyPolicy.trim(),
-        outside_photography_policy: outsidePhotographyPolicy.trim(),
-        noiseRestrictions: noiseRestrictions.trim(),
-        noise_restrictions: noiseRestrictions.trim(),
-        alcoholPolicy: alcoholPolicy.trim(),
-        alcohol_policy: alcoholPolicy.trim(),
-        overtimeCharges: overtimeCharges.trim(),
-        overtime_charges: overtimeCharges.trim(),
-        eventTimingRules: eventTimingRules.trim(),
-        event_timing_rules: eventTimingRules.trim(),
-
-        storefront: {
-          theme: colorTheme,
-          brandColors: activeTheme,
-          coverImage: coverUrl,
-          logo: logoUrl,
-          tagline: tagline.trim(),
-          about: about.trim(),
-          storeHighlights: venueHighlights,
-          featuredCollections: featuredHalls,
-          galleryLayout: galleryLayout,
-          gallery: [...galleryImages, ...hallImages].map((url, i) => ({ url, caption: `Venue Photo ${i + 1}` })),
-          actionButtons,
-          businessInfo: {
-            experienceYears: yearsInBusiness.trim(),
-            guestCapacity: guestCapacity.trim(),
-            numberOfHalls: numberOfHalls.trim(),
-            parkingCapacity: parkingCapacity.trim(),
-            citiesServed: serviceAreas.trim(),
-          },
-          workingHours: {
-            workingDays: "All Days",
-            openingTime: openingTime.trim(),
-            closingTime: closingTime.trim(),
-            weeklyOff: weeklyHolidays.trim(),
-            holidayNotice: publicHolidayAvailability.trim(),
-          },
-          socialLinks: {
-            instagram: instagram.trim(),
-            facebook: facebook.trim(),
-            youtube: youtube.trim(),
-            website: website.trim(),
-          },
-        },
+        // 10. Contact Preferences
+        contactPreferences,
+        contact_preferences: contactPreferences,
       };
 
-      const res = await syncVendorProfileWithDatabase(payload);
-      if (res.success) {
-        setSaved(true);
-        showVendorToast("Venue storefront customization saved successfully.", "success");
-        setTimeout(() => setSaved(false), 3500);
-      } else {
-        showVendorToast("Unable to save storefront customization. Please try again.", "error");
-      }
-    } catch (err) {
-      console.error("[VenueCustomizeStore] Save error:", err);
-      showVendorToast("Unable to save storefront customization. Please try again.", "error");
+      // Persist to Supabase Database & Active Identity
+      await syncVendorProfileWithDatabase(payload);
+
+      showVendorToast("✓ Venue Store Customization saved successfully!", "success");
+    } catch (err: any) {
+      console.error("Save error:", err);
+      showVendorToast(err?.message || "Failed to save venue customization", "error");
     } finally {
       setIsSaving(false);
     }
   };
 
+  const displayNameHeader = venueNameState.trim() || vendorName || "Royal Orchid Palace & Banquets";
+  const displayLocationHeader = [district, stateName].filter(Boolean).join(", ") || "Kochi, Kerala";
+
   return (
-    <div className="space-y-6 animate-in fade-in duration-300 font-sans">
-
-      {/* Hidden File Inputs */}
-      <input
-        ref={logoInputRef}
-        type="file"
-        accept="image/png,image/jpeg,image/webp,image/jpg"
-        className="hidden"
-        onChange={handleLogoUpload}
-      />
-      <input
-        ref={coverInputRef}
-        type="file"
-        accept="image/png,image/jpeg,image/webp,image/jpg"
-        className="hidden"
-        onChange={handleCoverUpload}
-      />
-
-      <input
-        ref={galleryInputRef}
-        type="file"
-        multiple
-        accept="image/png,image/jpeg,image/webp,image/jpg"
-        className="hidden"
-        onChange={handleGalleryUpload}
-      />
-
-      {/* Top Header Card with Quick Publish Action */}
-      <div className="bg-white rounded-2xl p-6 border border-gold/15 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <Palette className="w-5 h-5 text-[#0F4C45]" />
-            <h2 className="text-xl font-serif font-bold text-charcoal">
-              Customize Venue Storefront &amp; Spaces
-            </h2>
+    <div className="space-y-6 max-w-5xl mx-auto pb-24">
+      
+      {/* ── STICKY TOP BAR ── */}
+      <div className="bg-white rounded-3xl p-5 border border-gold/15 shadow-sm sticky top-4 z-30 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+          {onBack && (
+            <button
+              onClick={onBack}
+              className="p-2 rounded-xl bg-[#FAF7F2] hover:bg-[#F3EDE2] text-charcoal transition-colors shrink-0"
+              title="Back to Dashboard"
+            >
+              <ArrowLeft className="w-4 h-4" />
+            </button>
+          )}
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="px-2.5 py-0.5 rounded-full bg-[#0F4C45]/10 text-[#0F4C45] text-[10px] font-extrabold uppercase tracking-widest">
+                Venue Customization Dashboard
+              </span>
+              <span className="text-xs text-charcoal/50 font-medium hidden sm:inline">• Live Supabase Sync</span>
+            </div>
+            <h1 className="text-lg sm:text-xl font-serif font-bold text-charcoal truncate">
+              {displayNameHeader}
+            </h1>
           </div>
-          <p className="text-xs text-charcoal/70">
-            Real-time visual editor. Colors, banner, hall highlights, capacity, and booking rules update immediately on your public storefront.
-          </p>
         </div>
 
+        <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+          <a
+            href={`/venues/${vendorData?.id || "venue-1"}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-4 py-2.5 rounded-2xl bg-[#FAF7F2] hover:bg-[#F3EDE2] border border-gold/20 text-[#0F4C45] text-xs font-bold transition-all flex items-center justify-center gap-1.5 shrink-0"
+          >
+            <Eye className="w-3.5 h-3.5" />
+            <span>Preview Live Profile</span>
+          </a>
+
+          <button
+            onClick={handleSave}
+            disabled={isSaving}
+            className="px-6 py-2.5 rounded-2xl bg-[#0F4C45] hover:bg-[#072B27] text-ivory text-xs font-bold transition-all shadow-md flex items-center justify-center gap-2 shrink-0 disabled:opacity-50 cursor-pointer"
+          >
+            {isSaving ? <Loader2 className="w-4 h-4 animate-spin text-gold" /> : <Save className="w-4 h-4 text-gold" />}
+            <span>{isSaving ? "Saving..." : "Save Changes"}</span>
+          </button>
+        </div>
+      </div>
+
+      {/* ── SECTION 1: BASIC INFORMATION ── */}
+      <div className="bg-white rounded-3xl border border-gold/15 overflow-hidden shadow-xs">
         <button
-          type="button"
-          disabled={isSaving || isUploadingLogo || isUploadingCover || isUploadingGallery}
-          onClick={handleSave}
-          className="px-6 py-2.5 rounded-xl bg-[#0F4C45] hover:bg-[#12584E] text-white text-xs font-bold shadow-sm transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50 shrink-0"
+          onClick={() => toggleAccordion("basicInfo")}
+          className="w-full p-5 sm:p-6 flex items-center justify-between text-left bg-white hover:bg-[#FAF7F2]/50 transition-colors"
         >
-          {isSaving ? (
-            <>
-              <Loader2 className="w-4 h-4 animate-spin" /> Saving Settings...
-            </>
-          ) : saved ? (
-            <>
-              <CheckCircle className="w-4 h-4 text-emerald-300" /> Saved to Live Store!
-            </>
-          ) : (
-            <>
-              <Save className="w-4 h-4" /> Save Customization
-            </>
-          )}
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-[#0F4C45]/10 text-[#0F4C45] flex items-center justify-center shrink-0">
+              <Building2 className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="font-serif font-bold text-base text-charcoal">1. Basic Information</h2>
+              <p className="text-xs text-charcoal/60">Venue name, tagline, type, year started, and about story</p>
+            </div>
+          </div>
+          {openAccordions.basicInfo ? <ChevronUp className="w-5 h-5 text-charcoal/40" /> : <ChevronDown className="w-5 h-5 text-charcoal/40" />}
         </button>
-      </div>
 
-      {/* LIVE STOREFRONT PREVIEW PANE (Exact Unified Component) */}
-      <div className="rounded-3xl border border-gold/20 shadow-md overflow-hidden transition-all">
-        <VendorStorefront
-          previewMode={true}
-          vendor={{
-            id: "preview-venue",
-            name: currentDisplayName,
-            business_name: currentDisplayName,
-            boutique_name: currentDisplayName,
-            category: "wedding-venues",
-            categoryLabel: "Wedding Venue",
-            location: currentLocation,
-            city: vendorData?.city || "Kochi",
-            state: "Kerala",
-            rating: 5.0,
-            reviews: 24,
-            image: coverUrl,
-            cover_image: coverUrl,
-            coverImage: coverUrl,
-            logo: logoUrl,
-            logo_url: logoUrl,
-            tagline: tagline,
-            subtitle: tagline,
-            about: about,
-            description: about,
-            colorTheme: colorTheme,
-            galleryLayout: galleryLayout,
-            galleryImages: galleryImages,
-            hallImages: hallImages,
-            gallery: [...galleryImages, ...hallImages].map((url, i) => ({ url, caption: `Venue Photo ${i + 1}` })),
-            startingPrice: "₹1,800 per plate",
-            phone: "+91 98470 12345",
-            whatsapp: "+91 98470 12345",
-            email: "venue@cloche.com",
-            address: `${currentLocation}, Kerala`,
-            storeHighlights: venueHighlights,
-            venueHighlights: venueHighlights,
-            featuredCollections: featuredHalls,
-            featuredHalls: featuredHalls,
-            actionButtons: actionButtons,
-            businessInfo: {
-              experienceYears: yearsInBusiness,
-              guestCapacity: guestCapacity,
-              numberOfHalls: numberOfHalls,
-              parkingCapacity: parkingCapacity,
-              citiesServed: serviceAreas,
-            },
-            workingHours: {
-              workingDays: "All Days",
-              openingTime: openingTime,
-              closingTime: closingTime,
-              weeklyOff: weeklyHolidays,
-              holidayNotice: publicHolidayAvailability,
-            },
-          }}
-          storefront={{
-            theme: colorTheme,
-            brandColors: activeTheme,
-            coverImage: coverUrl,
-            logo: logoUrl,
-            tagline: tagline,
-            about: about,
-            storeHighlights: venueHighlights,
-            featuredCollections: featuredHalls,
-            galleryLayout: galleryLayout,
-            gallery: [...galleryImages, ...hallImages].map((url, i) => ({ url, caption: `Venue Photo ${i + 1}` })),
-            actionButtons: actionButtons,
-            businessInfo: {
-              experienceYears: yearsInBusiness,
-              guestCapacity: guestCapacity,
-              numberOfHalls: numberOfHalls,
-              parkingCapacity: parkingCapacity,
-              citiesServed: serviceAreas,
-            },
-            workingHours: {
-              workingDays: "All Days",
-              openingTime: openingTime,
-              closingTime: closingTime,
-              weeklyOff: weeklyHolidays,
-              holidayNotice: publicHolidayAvailability,
-            },
-            socialLinks: {
-              instagram: instagram.trim(),
-              facebook: facebook.trim(),
-              youtube: youtube.trim(),
-              website: website.trim(),
-            },
-          }}
-        />
-      </div>
-
-      {/* ACCORDION FORM CONFIGURATOR SECTIONS */}
-      <div className="space-y-4">
-        {/* Section 1: Venue Highlights Badges */}
-        <div className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-xs">
-          <button
-            type="button"
-            onClick={() => toggleAccordion("highlights")}
-            className="w-full p-5 text-left font-serif font-bold text-base text-charcoal flex items-center justify-between bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] transition-colors"
-          >
-            <div className="flex items-center gap-3">
-              <Award style={{ color: activeTheme.primary }} className="w-5 h-5" />
+        {openAccordions.basicInfo && (
+          <div className="p-5 sm:p-6 border-t border-gold/10 space-y-4 bg-[#FAF7F2]/30">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <span className="block">1. Venue Highlights</span>
-                <span className="text-xs font-sans font-normal text-charcoal/60">
-                  Select key venue badges to display under your venue name
-                </span>
-              </div>
-            </div>
-            {openAccordions.highlights ? <ChevronUp className="w-4 h-4 text-charcoal/40" /> : <ChevronDown className="w-4 h-4 text-charcoal/40" />}
-          </button>
-
-          {openAccordions.highlights && (
-            <div className="p-5 border-t border-gold/10 space-y-4 text-xs animate-in fade-in duration-200">
-              <p className="text-charcoal/70 leading-relaxed">
-                Click to toggle venue highlight badges on your public storefront:
-              </p>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
-                {VENUE_HIGHLIGHT_OPTIONS.map((badge) => {
-                  const isSelected = venueHighlights.includes(badge);
-                  return (
-                    <button
-                      key={badge}
-                      type="button"
-                      onClick={() => toggleHighlight(badge)}
-                      style={{
-                        backgroundColor: isSelected ? activeTheme.primary : "#FAF7F2",
-                        color: isSelected ? "#FFFFFF" : "#2D2520",
-                        borderColor: isSelected ? activeTheme.primary : "#E8DFD1",
-                      }}
-                      className="p-3 rounded-xl border text-xs font-bold text-left transition-all flex items-center justify-between cursor-pointer"
-                    >
-                      <span>{badge}</span>
-                      {isSelected && <Check className="w-3.5 h-3.5 text-white" />}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Section 2: Featured Halls (Reorderable) */}
-        <div className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-xs">
-          <button
-            type="button"
-            onClick={() => toggleAccordion("featuredHalls")}
-            className="w-full p-5 text-left font-serif font-bold text-base text-charcoal flex items-center justify-between bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] transition-colors"
-          >
-            <div className="flex items-center gap-3">
-              <Building2 style={{ color: activeTheme.primary }} className="w-5 h-5" />
-              <div>
-                <span className="block">2. Featured Halls</span>
-                <span className="text-xs font-sans font-normal text-charcoal/60">
-                  Select and pin banquet halls & lawns in your preferred display order
-                </span>
-              </div>
-            </div>
-            {openAccordions.featuredHalls ? <ChevronUp className="w-4 h-4 text-charcoal/40" /> : <ChevronDown className="w-4 h-4 text-charcoal/40" />}
-          </button>
-
-          {openAccordions.featuredHalls && (
-            <div className="p-5 border-t border-gold/10 space-y-4 text-xs animate-in fade-in duration-200">
-              <div>
-                <span className="font-bold text-charcoal block mb-2">Available Halls & Spaces (Click to Pin/Unpin):</span>
-                <div className="flex flex-wrap gap-2">
-                  {ALL_VENUE_HALL_OPTIONS.map((hall) => {
-                    const isPinned = featuredHalls.includes(hall);
-                    return (
-                      <button
-                        key={hall}
-                        type="button"
-                        onClick={() => toggleFeaturedHall(hall)}
-                        className={`px-3 py-1.5 rounded-xl border text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                          isPinned
-                            ? "bg-[#0F4C45] text-white border-[#0F4C45]"
-                            : "bg-[#FAF7F2] text-charcoal border-gold/20 hover:bg-gold/15"
-                        }`}
-                      >
-                        {hall} {isPinned ? "✓" : "+"}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {featuredHalls.length > 0 && (
-                <div className="pt-3 border-t border-gold/10 space-y-2">
-                  <span className="font-bold text-charcoal block">Pinned Order (Use arrows to reorder):</span>
-                  <div className="space-y-1.5">
-                    {featuredHalls.map((hall, idx) => (
-                      <div
-                        key={hall}
-                        className="p-3 bg-[#FAF7F2] rounded-xl border border-gold/15 flex items-center justify-between text-xs"
-                      >
-                        <span className="font-bold text-charcoal flex items-center gap-2">
-                          <Building2 className="w-3.5 h-3.5 text-[#0F4C45]" /> {idx + 1}. {hall}
-                        </span>
-                        <div className="flex items-center gap-1">
-                          <button
-                            type="button"
-                            disabled={idx === 0}
-                            onClick={() => moveHall(idx, "up")}
-                            className="p-1 rounded bg-white text-charcoal hover:bg-gray-100 disabled:opacity-30 cursor-pointer"
-                          >
-                            <ArrowUp className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            type="button"
-                            disabled={idx === featuredHalls.length - 1}
-                            onClick={() => moveHall(idx, "down")}
-                            className="p-1 rounded bg-white text-charcoal hover:bg-gray-100 disabled:opacity-30 cursor-pointer"
-                          >
-                            <ArrowDown className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Section 3: Venue Information */}
-        <div className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-xs">
-          <button
-            type="button"
-            onClick={() => toggleAccordion("venueInfo")}
-            className="w-full p-5 text-left font-serif font-bold text-base text-charcoal flex items-center justify-between bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] transition-colors"
-          >
-            <div className="flex items-center gap-3">
-              <Layers style={{ color: activeTheme.primary }} className="w-5 h-5" />
-              <div>
-                <span className="block">3. Venue Information</span>
-                <span className="text-xs font-sans font-normal text-charcoal/60">
-                  Capacities, hall counts, operating districts & languages spoken
-                </span>
-              </div>
-            </div>
-            {openAccordions.venueInfo ? <ChevronUp className="w-4 h-4 text-charcoal/40" /> : <ChevronDown className="w-4 h-4 text-charcoal/40" />}
-          </button>
-
-          {openAccordions.venueInfo && (
-            <div className="p-5 border-t border-gold/10 space-y-4 text-xs animate-in fade-in duration-200">
-              <div className="space-y-1">
-                <div className="flex items-center justify-between">
-                  <label className="block font-bold text-charcoal">About Venue / Description</label>
-                  <span className={`text-[10px] ${about.length > 500 ? "text-red-500 font-bold" : "text-charcoal/50"}`}>
-                    {about.length}/500 chars
-                  </span>
-                </div>
-                <textarea
-                  rows={3}
-                  value={about}
-                  onChange={(e) => setAbout(e.target.value)}
-                  placeholder="Describe the architectural luxury, lawn ambiance, and 5-star hospitality of your wedding venue..."
-                  className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
+                <label className="block text-xs font-bold text-charcoal mb-1.5 uppercase tracking-wider">
+                  Venue Name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={venueNameState}
+                  onChange={(e) => setVenueNameState(e.target.value)}
+                  placeholder="e.g. Royal Orchid Palace & Banquets"
+                  className="w-full px-4 py-2.5 rounded-2xl bg-white border border-gold/20 text-xs font-semibold text-charcoal focus:outline-none focus:border-[#0F4C45]"
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                <div>
-                  <label className="block font-bold text-charcoal mb-1">Years in Business</label>
-                  <input
-                    type="text"
-                    value={yearsInBusiness}
-                    onChange={(e) => setYearsInBusiness(e.target.value)}
-                    placeholder="e.g. 12"
-                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-bold text-charcoal mb-1">Maximum Guest Capacity</label>
-                  <input
-                    type="text"
-                    value={guestCapacity}
-                    onChange={(e) => setGuestCapacity(e.target.value)}
-                    placeholder="e.g. 1,500 Guests"
-                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-bold text-charcoal mb-1">Minimum Guest Capacity</label>
-                  <input
-                    type="text"
-                    value={minGuestCapacity}
-                    onChange={(e) => setMinGuestCapacity(e.target.value)}
-                    placeholder="e.g. 150 Guests"
-                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-bold text-charcoal mb-1">Number of Halls & Spaces</label>
-                  <input
-                    type="text"
-                    value={numberOfHalls}
-                    onChange={(e) => setNumberOfHalls(e.target.value)}
-                    placeholder="e.g. 3 Halls & 2 Lawns"
-                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-bold text-charcoal mb-1">Dining / Seated Capacity</label>
-                  <input
-                    type="text"
-                    value={diningCapacity}
-                    onChange={(e) => setDiningCapacity(e.target.value)}
-                    placeholder="e.g. 600 Seated"
-                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-bold text-charcoal mb-1">Parking & Valet Capacity</label>
-                  <input
-                    type="text"
-                    value={parkingCapacity}
-                    onChange={(e) => setParkingCapacity(e.target.value)}
-                    placeholder="e.g. 350 Cars & Valet"
-                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
-                  />
-                </div>
-
-                <div className="sm:col-span-2">
-                  <label className="block font-bold text-charcoal mb-1">Operating Districts & Service Areas</label>
-                  <input
-                    type="text"
-                    value={serviceAreas}
-                    onChange={(e) => setServiceAreas(e.target.value)}
-                    placeholder="e.g. Golf Course Road, Gurgaon, South Delhi, NCR"
-                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-bold text-charcoal mb-1">Languages Spoken by Staff</label>
-                  <input
-                    type="text"
-                    value={languagesSpoken}
-                    onChange={(e) => setLanguagesSpoken(e.target.value)}
-                    placeholder="e.g. English, Hindi, Punjabi"
-                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Section 4: Contact Action Buttons */}
-        <div className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-xs">
-          <button
-            type="button"
-            onClick={() => toggleAccordion("actionButtons")}
-            className="w-full p-5 text-left font-serif font-bold text-base text-charcoal flex items-center justify-between bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] transition-colors"
-          >
-            <div className="flex items-center gap-3">
-              <Phone style={{ color: activeTheme.primary }} className="w-5 h-5" />
               <div>
-                <span className="block">4. Contact Action Buttons</span>
-                <span className="text-xs font-sans font-normal text-charcoal/60">
-                  Select which call-to-action buttons appear on your public storefront
-                </span>
-              </div>
-            </div>
-            {openAccordions.actionButtons ? <ChevronUp className="w-4 h-4 text-charcoal/40" /> : <ChevronDown className="w-4 h-4 text-charcoal/40" />}
-          </button>
-
-          {openAccordions.actionButtons && (
-            <div className="p-5 border-t border-gold/10 space-y-3 text-xs animate-in fade-in duration-200">
-              <p className="text-charcoal/70">
-                Enable or disable action buttons for visitors viewing your venue profile:
-              </p>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                <label className="p-3 bg-[#FAF7F2] rounded-xl border border-gold/15 flex items-center justify-between cursor-pointer">
-                  <span className="font-bold text-charcoal flex items-center gap-1.5">
-                    <Phone className="w-3.5 h-3.5 text-[#0F4C45]" /> Call Now
-                  </span>
-                  <input
-                    type="checkbox"
-                    checked={actionButtons.callNow}
-                    onChange={(e) => setActionButtons((prev) => ({ ...prev, callNow: e.target.checked }))}
-                    className="rounded accent-[#0F4C45] w-4 h-4"
-                  />
+                <label className="block text-xs font-bold text-charcoal mb-1.5 uppercase tracking-wider">
+                  Venue Type
                 </label>
+                <select
+                  value={venueType}
+                  onChange={(e) => setVenueType(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-2xl bg-white border border-gold/20 text-xs font-semibold text-charcoal focus:outline-none focus:border-[#0F4C45]"
+                >
+                  {VENUE_TYPE_OPTIONS.map((opt) => (
+                    <option key={opt} value={opt}>
+                      {opt}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
 
-                <label className="p-3 bg-[#FAF7F2] rounded-xl border border-gold/15 flex items-center justify-between cursor-pointer">
-                  <span className="font-bold text-charcoal flex items-center gap-1.5">
-                    <MessageCircle className="w-3.5 h-3.5 text-[#0F4C45]" /> WhatsApp
-                  </span>
-                  <input
-                    type="checkbox"
-                    checked={actionButtons.whatsapp}
-                    onChange={(e) => setActionButtons((prev) => ({ ...prev, whatsapp: e.target.checked }))}
-                    className="rounded accent-[#0F4C45] w-4 h-4"
-                  />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-bold text-charcoal mb-1.5 uppercase tracking-wider">
+                  Short Tagline
                 </label>
-
-
-
-                <label className="p-3 bg-[#FAF7F2] rounded-xl border border-gold/15 flex items-center justify-between cursor-pointer">
-                  <span className="font-bold text-charcoal flex items-center gap-1.5">
-                    <FileText className="w-3.5 h-3.5 text-[#0F4C45]" /> Request Quote
-                  </span>
-                  <input
-                    type="checkbox"
-                    checked={actionButtons.requestQuote}
-                    onChange={(e) => setActionButtons((prev) => ({ ...prev, requestQuote: e.target.checked }))}
-                    className="rounded accent-[#0F4C45] w-4 h-4"
-                  />
-                </label>
-
-                <label className="p-3 bg-[#FAF7F2] rounded-xl border border-gold/15 flex items-center justify-between cursor-pointer">
-                  <span className="font-bold text-charcoal flex items-center gap-1.5">
-                    <MapPin className="w-3.5 h-3.5 text-[#0F4C45]" /> Get Directions
-                  </span>
-                  <input
-                    type="checkbox"
-                    checked={actionButtons.getDirections}
-                    onChange={(e) => setActionButtons((prev) => ({ ...prev, getDirections: e.target.checked }))}
-                    className="rounded accent-[#0F4C45] w-4 h-4"
-                  />
-                </label>
-
-                <label className="p-3 bg-[#FAF7F2] rounded-xl border border-gold/15 flex items-center justify-between cursor-pointer">
-                  <span className="font-bold text-charcoal flex items-center gap-1.5">
-                    <Globe className="w-3.5 h-3.5 text-[#0F4C45]" /> Official Website
-                  </span>
-                  <input
-                    type="checkbox"
-                    checked={actionButtons.website}
-                    onChange={(e) => setActionButtons((prev) => ({ ...prev, website: e.target.checked }))}
-                    className="rounded accent-[#0F4C45] w-4 h-4"
-                  />
-                </label>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Section 5: Working Hours & Venue Visit Timings */}
-        <div className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-xs">
-          <button
-            type="button"
-            onClick={() => toggleAccordion("timings")}
-            className="w-full p-5 text-left font-serif font-bold text-base text-charcoal flex items-center justify-between bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] transition-colors"
-          >
-            <div className="flex items-center gap-3">
-              <Clock style={{ color: activeTheme.primary }} className="w-5 h-5" />
-              <div>
-                <span className="block">5. Working Hours & Venue Visit Timings</span>
-                <span className="text-xs font-sans font-normal text-charcoal/60">
-                  Office timings, weekly holidays & guided venue tour slots
-                </span>
-              </div>
-            </div>
-            {openAccordions.timings ? <ChevronUp className="w-4 h-4 text-charcoal/40" /> : <ChevronDown className="w-4 h-4 text-charcoal/40" />}
-          </button>
-
-          {openAccordions.timings && (
-            <div className="p-5 border-t border-gold/10 space-y-4 text-xs animate-in fade-in duration-200">
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                <div>
-                  <label className="block font-bold text-charcoal mb-1">Office Opening Time</label>
-                  <input
-                    type="text"
-                    value={openingTime}
-                    onChange={(e) => setOpeningTime(e.target.value)}
-                    placeholder="e.g. 09:00 AM"
-                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-bold text-charcoal mb-1">Office Closing Time</label>
-                  <input
-                    type="text"
-                    value={closingTime}
-                    onChange={(e) => setClosingTime(e.target.value)}
-                    placeholder="e.g. 09:00 PM"
-                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-bold text-charcoal mb-1">Weekly Holidays / Off Days</label>
-                  <input
-                    type="text"
-                    value={weeklyHolidays}
-                    onChange={(e) => setWeeklyHolidays(e.target.value)}
-                    placeholder="e.g. Open All 7 Days or Tuesday Off"
-                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
-                  />
-                </div>
-
-                <div className="sm:col-span-2">
-                  <label className="block font-bold text-charcoal mb-1">Guided Venue Visit Timings</label>
-                  <input
-                    type="text"
-                    value={venueVisitTimings}
-                    onChange={(e) => setVenueVisitTimings(e.target.value)}
-                    placeholder="e.g. 10:00 AM - 06:00 PM (Daily by appointment)"
-                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-bold text-charcoal mb-1">Public Holiday Availability</label>
-                  <input
-                    type="text"
-                    value={publicHolidayAvailability}
-                    onChange={(e) => setPublicHolidayAvailability(e.target.value)}
-                    placeholder="e.g. Open for tours by appointment"
-                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
-                  />
-                </div>
-
-
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Section 6: Booking Policies & Venue Guidelines */}
-        <div className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-xs">
-          <button
-            type="button"
-            onClick={() => toggleAccordion("policies")}
-            className="w-full p-5 text-left font-serif font-bold text-base text-charcoal flex items-center justify-between bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] transition-colors"
-          >
-            <div className="flex items-center gap-3">
-              <ShieldCheck style={{ color: activeTheme.primary }} className="w-5 h-5" />
-              <div>
-                <span className="block">6. Booking Policies & Venue Guidelines</span>
-                <span className="text-xs font-sans font-normal text-charcoal/60">
-                  Advance booking, payments, catering, decor & noise guidelines
-                </span>
-              </div>
-            </div>
-            {openAccordions.policies ? <ChevronUp className="w-4 h-4 text-charcoal/40" /> : <ChevronDown className="w-4 h-4 text-charcoal/40" />}
-          </button>
-
-          {openAccordions.policies && (
-            <div className="p-5 border-t border-gold/10 space-y-4 text-xs animate-in fade-in duration-200">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block font-bold text-charcoal mb-1">Advance Booking Lead Time</label>
-                  <input
-                    type="text"
-                    value={advanceBookingRequired}
-                    onChange={(e) => setAdvanceBookingRequired(e.target.value)}
-                    placeholder="e.g. Minimum 30 to 90 days advance booking recommended"
-                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-bold text-charcoal mb-1">Advance Payment Schedule</label>
-                  <input
-                    type="text"
-                    value={advancePaymentPolicy}
-                    onChange={(e) => setAdvancePaymentPolicy(e.target.value)}
-                    placeholder="e.g. 25% on booking, 50% 30 days prior, 25% 7 days prior"
-                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-bold text-charcoal mb-1">Cancellation Policy</label>
-                  <input
-                    type="text"
-                    value={cancellationPolicy}
-                    onChange={(e) => setCancellationPolicy(e.target.value)}
-                    placeholder="e.g. Full refund 60+ days prior to event"
-                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-bold text-charcoal mb-1">Security Deposit & Refund Policy</label>
-                  <input
-                    type="text"
-                    value={refundPolicy}
-                    onChange={(e) => setRefundPolicy(e.target.value)}
-                    placeholder="e.g. 100% deposit refunded within 24 hours of inspection"
-                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-bold text-charcoal mb-1">Decoration Policy</label>
-                  <input
-                    type="text"
-                    value={decorationRules}
-                    onChange={(e) => setDecorationRules(e.target.value)}
-                    placeholder="e.g. Empaneled decorators available; outside decor by approval"
-                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-bold text-charcoal mb-1">Outside Catering Policy</label>
-                  <input
-                    type="text"
-                    value={outsideCateringPolicy}
-                    onChange={(e) => setOutsideCateringPolicy(e.target.value)}
-                    placeholder="e.g. In-house catering team; outside caterers subject to royalty"
-                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-bold text-charcoal mb-1">Photography & Drone Policy</label>
-                  <input
-                    type="text"
-                    value={outsidePhotographyPolicy}
-                    onChange={(e) => setOutsidePhotographyPolicy(e.target.value)}
-                    placeholder="e.g. Unrestricted drone videography and professional cameras allowed"
-                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-bold text-charcoal mb-1">Music & Noise Timing Restrictions</label>
-                  <input
-                    type="text"
-                    value={noiseRestrictions}
-                    onChange={(e) => setNoiseRestrictions(e.target.value)}
-                    placeholder="e.g. Indoor: 01:00 AM; Outdoor lawn DJ cutoff: 10:00 PM"
-                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-bold text-charcoal mb-1">Alcohol Policy & Bar License</label>
-                  <input
-                    type="text"
-                    value={alcoholPolicy}
-                    onChange={(e) => setAlcoholPolicy(e.target.value)}
-                    placeholder="e.g. Allowed with standard 1-day excise bar permit"
-                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-bold text-charcoal mb-1">Overtime Charges</label>
-                  <input
-                    type="text"
-                    value={overtimeCharges}
-                    onChange={(e) => setOvertimeCharges(e.target.value)}
-                    placeholder="e.g. ₹15,000 per extra hour beyond slot cutoff"
-                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
-                  />
-                </div>
-
-                <div className="sm:col-span-2">
-                  <label className="block font-bold text-charcoal mb-1">Available Event Slot Rules</label>
-                  <input
-                    type="text"
-                    value={eventTimingRules}
-                    onChange={(e) => setEventTimingRules(e.target.value)}
-                    placeholder="e.g. Morning (06 AM - 03 PM) | Evening (05 PM - 11:30 PM) | Full Day (06 AM - 11:30 PM)"
-                    className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Section 7: Brand Color Theme */}
-        <div className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-xs">
-          <button
-            type="button"
-            onClick={() => toggleAccordion("theme")}
-            className="w-full p-5 text-left font-serif font-bold text-base text-charcoal flex items-center justify-between bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] transition-colors"
-          >
-            <div className="flex items-center gap-3">
-              <Palette style={{ color: activeTheme.primary }} className="w-5 h-5" />
-              <div>
-                <span className="block">7. Brand Color Theme</span>
-                <span className="text-xs font-sans font-normal text-charcoal/60">
-                  Select a cohesive luxury palette for buttons, badges, and accents
-                </span>
-              </div>
-            </div>
-            {openAccordions.theme ? <ChevronUp className="w-4 h-4 text-charcoal/40" /> : <ChevronDown className="w-4 h-4 text-charcoal/40" />}
-          </button>
-
-          {openAccordions.theme && (
-            <div className="p-5 border-t border-gold/10 space-y-4 text-xs animate-in fade-in duration-200">
-              <p className="text-charcoal/70">
-                Choose a signature theme that highlights your venue's aesthetic:
-              </p>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
-                {COLOR_THEMES.map((theme) => {
-                  const isSelected = colorTheme === theme.id;
-                  return (
-                    <button
-                      key={theme.id}
-                      type="button"
-                      onClick={() => setColorTheme(theme.id)}
-                      className={`p-3 rounded-2xl border text-left transition-all relative cursor-pointer ${
-                        isSelected
-                          ? "border-charcoal shadow-sm ring-2 ring-charcoal/20 bg-white"
-                          : "border-gold/20 bg-[#FAF7F2] hover:bg-gold/10"
-                      }`}
-                    >
-                      <div className="flex items-center gap-1.5 mb-2">
-                        <div
-                          style={{ backgroundColor: theme.primary }}
-                          className="w-4 h-4 rounded-full shadow-2xs shrink-0"
-                        />
-                        <div
-                          style={{ backgroundColor: theme.accent }}
-                          className="w-3 h-3 rounded-full shadow-2xs shrink-0"
-                        />
-                      </div>
-                      <span className="font-bold text-charcoal block text-[11px] leading-tight">
-                        {theme.label}
-                      </span>
-                      {isSelected && (
-                        <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-emerald-500" />
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Section 8: Logo, Cover Image & Branding */}
-        <div className="bg-white rounded-2xl border border-gold/15 overflow-hidden shadow-xs">
-          <button
-            type="button"
-            onClick={() => toggleAccordion("branding")}
-            className="w-full p-5 text-left font-serif font-bold text-base text-charcoal flex items-center justify-between bg-[#FAF7F2]/60 hover:bg-[#FAF7F2] transition-colors"
-          >
-            <div className="flex items-center gap-3">
-              <ImageIcon style={{ color: activeTheme.primary }} className="w-5 h-5" />
-              <div>
-                <span className="block">8. Logo, Cover Image & Branding Media</span>
-                <span className="text-xs font-sans font-normal text-charcoal/60">
-                  Venue logo, banner cover, tagline & social connections
-                </span>
-              </div>
-            </div>
-            {openAccordions.branding ? <ChevronUp className="w-4 h-4 text-charcoal/40" /> : <ChevronDown className="w-4 h-4 text-charcoal/40" />}
-          </button>
-
-          {openAccordions.branding && (
-            <div className="p-5 border-t border-gold/10 space-y-5 text-xs animate-in fade-in duration-200">
-              {/* Media Upload Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* Logo Upload Card */}
-                <div className="p-4 bg-[#FAF7F2] rounded-2xl border border-gold/15 flex flex-col items-center text-center space-y-3">
-                  <div className="w-20 h-20 rounded-2xl bg-white border border-gold/20 flex items-center justify-center overflow-hidden relative shadow-xs">
-                    {logoUrl ? (
-                      <img src={logoUrl} alt="Logo" className="w-full h-full object-cover" />
-                    ) : (
-                      <Building2 className="w-8 h-8 text-charcoal/30" />
-                    )}
-                  </div>
-                  <div>
-                    <span className="font-bold text-charcoal block">Venue Logo</span>
-                    <span className="text-[10px] text-charcoal/50">PNG, JPG, WebP (Square 1:1)</span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => logoInputRef.current?.click()}
-                    disabled={isUploadingLogo}
-                    className="w-full py-2 px-3 bg-white border border-gold/20 rounded-xl text-charcoal font-bold text-xs hover:bg-gold/10 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
-                  >
-                    {isUploadingLogo ? (
-                      <>
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" /> Uploading...
-                      </>
-                    ) : (
-                      <>
-                        <Upload className="w-3.5 h-3.5 text-[#0F4C45]" /> Upload Logo
-                      </>
-                    )}
-                  </button>
-                </div>
-
-                {/* Cover Photo Upload Card */}
-                <div className="p-4 bg-[#FAF7F2] rounded-2xl border border-gold/15 flex flex-col items-center text-center space-y-3">
-                  <div className="w-full h-20 rounded-2xl bg-white border border-gold/20 flex items-center justify-center overflow-hidden relative shadow-xs">
-                    {coverUrl ? (
-                      <img src={coverUrl} alt="Cover" className="w-full h-full object-cover" />
-                    ) : (
-                      <ImageIcon className="w-8 h-8 text-charcoal/30" />
-                    )}
-                  </div>
-                  <div>
-                    <span className="font-bold text-charcoal block">Cover Banner Photo</span>
-                    <span className="text-[10px] text-charcoal/50">Landscape (16:9 / 21:9)</span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => coverInputRef.current?.click()}
-                    disabled={isUploadingCover}
-                    className="w-full py-2 px-3 bg-white border border-gold/20 rounded-xl text-charcoal font-bold text-xs hover:bg-gold/10 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
-                  >
-                    {isUploadingCover ? (
-                      <>
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" /> Uploading...
-                      </>
-                    ) : (
-                      <>
-                        <Upload className="w-3.5 h-3.5 text-[#0F4C45]" /> Upload Cover
-                      </>
-                    )}
-                  </button>
-                </div>
-
-
-              </div>
-
-              {/* Tagline Input */}
-              <div>
-                <label className="block font-bold text-charcoal mb-1">Venue Tagline / Subtitle</label>
                 <input
                   type="text"
                   value={tagline}
                   onChange={(e) => setTagline(e.target.value)}
-                  placeholder="e.g. Royal Palaces, Majestic Lawns & Unforgettable Grand Celebrations"
-                  className="w-full p-2.5 bg-[#FAF7F2] border border-gold/15 rounded-xl outline-none"
+                  placeholder="e.g. Royal celebrations, lush lawns & 5-star wedding hospitality"
+                  className="w-full px-4 py-2.5 rounded-2xl bg-white border border-gold/20 text-xs font-semibold text-charcoal focus:outline-none focus:border-[#0F4C45]"
                 />
               </div>
 
-              {/* Venue Gallery Images */}
-              <div className="space-y-3 pt-2 border-t border-gold/10">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <span className="font-bold text-charcoal block">Venue Gallery Photos ({galleryImages.length})</span>
-                    <span className="text-[10px] text-charcoal/60">Upload high-resolution banquet and lawn photography</span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => galleryInputRef.current?.click()}
-                    disabled={isUploadingGallery}
-                    className="py-1.5 px-3 bg-[#0F4C45] text-white font-bold rounded-xl text-xs flex items-center gap-1.5 cursor-pointer"
-                  >
-                    {isUploadingGallery ? <Loader2 className="w-3 h-3 animate-spin" /> : <Upload className="w-3 h-3" />}
-                    Add Photos
-                  </button>
-                </div>
-
-                {galleryImages.length > 0 && (
-                  <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-2.5">
-                    {galleryImages.map((img, i) => (
-                      <div key={i} className="relative aspect-square rounded-xl overflow-hidden border border-gold/15 group">
-                        <img src={img} alt={`Gallery ${i + 1}`} className="w-full h-full object-cover" />
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveGalleryImage(i)}
-                          className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Social Media Links */}
-              <div className="space-y-3 pt-3 border-t border-gold/10">
-                <span className="font-bold text-charcoal block">Social Media & Online Presence:</span>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="flex items-center gap-2 bg-[#FAF7F2] p-2.5 rounded-xl border border-gold/15">
-                    <InstagramIcon className="w-4 h-4 text-[#0F4C45] shrink-0" />
-                    <input
-                      type="text"
-                      value={instagram}
-                      onChange={(e) => setInstagram(e.target.value)}
-                      placeholder="Instagram URL (e.g. instagram.com/royalorchid)"
-                      className="w-full bg-transparent outline-none text-xs"
-                    />
-                  </div>
-
-                  <div className="flex items-center gap-2 bg-[#FAF7F2] p-2.5 rounded-xl border border-gold/15">
-                    <FacebookIcon className="w-4 h-4 text-[#0F4C45] shrink-0" />
-                    <input
-                      type="text"
-                      value={facebook}
-                      onChange={(e) => setFacebook(e.target.value)}
-                      placeholder="Facebook Page URL"
-                      className="w-full bg-transparent outline-none text-xs"
-                    />
-                  </div>
-
-                  <div className="flex items-center gap-2 bg-[#FAF7F2] p-2.5 rounded-xl border border-gold/15">
-                    <Globe className="w-4 h-4 text-[#0F4C45] shrink-0" />
-                    <input
-                      type="text"
-                      value={website}
-                      onChange={(e) => setWebsite(e.target.value)}
-                      placeholder="Official Website URL"
-                      className="w-full bg-transparent outline-none text-xs"
-                    />
-                  </div>
-
-                  <div className="flex items-center gap-2 bg-[#FAF7F2] p-2.5 rounded-xl border border-gold/15">
-                    <YoutubeIcon className="w-4 h-4 text-[#0F4C45] shrink-0" />
-                    <input
-                      type="text"
-                      value={youtube}
-                      onChange={(e) => setYoutube(e.target.value)}
-                      placeholder="YouTube Channel URL"
-                      className="w-full bg-transparent outline-none text-xs"
-                    />
-                  </div>
-                </div>
+              <div>
+                <label className="block text-xs font-bold text-charcoal mb-1.5 uppercase tracking-wider">
+                  Year Established / Started
+                </label>
+                <input
+                  type="text"
+                  value={yearStarted}
+                  onChange={(e) => setYearStarted(e.target.value)}
+                  placeholder="e.g. 2014"
+                  className="w-full px-4 py-2.5 rounded-2xl bg-white border border-gold/20 text-xs font-semibold text-charcoal focus:outline-none focus:border-[#0F4C45]"
+                />
               </div>
             </div>
-          )}
-        </div>
+
+            <div>
+              <label className="block text-xs font-bold text-charcoal mb-1.5 uppercase tracking-wider">
+                Short Subtitle Description
+              </label>
+              <input
+                type="text"
+                value={shortDescription}
+                onChange={(e) => setShortDescription(e.target.value)}
+                placeholder="e.g. Grand banquet halls, lush outdoor lawns and 5-star wedding experiences."
+                className="w-full px-4 py-2.5 rounded-2xl bg-white border border-gold/20 text-xs font-semibold text-charcoal focus:outline-none focus:border-[#0F4C45]"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-charcoal mb-1.5 uppercase tracking-wider">
+                Detailed About Content
+              </label>
+              <textarea
+                rows={4}
+                value={about}
+                onChange={(e) => setAbout(e.target.value)}
+                placeholder="Provide complete description of your venue, architecture, ambiance, capacity, and legacy..."
+                className="w-full px-4 py-3 rounded-2xl bg-white border border-gold/20 text-xs text-charcoal focus:outline-none focus:border-[#0F4C45] leading-relaxed"
+              />
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* ── SECTION 2: CONTACT & LOCATION ── */}
+      <div className="bg-white rounded-3xl border border-gold/15 overflow-hidden shadow-xs">
+        <button
+          onClick={() => toggleAccordion("contactLocation")}
+          className="w-full p-5 sm:p-6 flex items-center justify-between text-left bg-white hover:bg-[#FAF7F2]/50 transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-[#0F4C45]/10 text-[#0F4C45] flex items-center justify-center shrink-0">
+              <MapPin className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="font-serif font-bold text-base text-charcoal">2. Contact & Location</h2>
+              <p className="text-xs text-charcoal/60">Phone number, WhatsApp, email, street address, district, state & map</p>
+            </div>
+          </div>
+          {openAccordions.contactLocation ? <ChevronUp className="w-5 h-5 text-charcoal/40" /> : <ChevronDown className="w-5 h-5 text-charcoal/40" />}
+        </button>
+
+        {openAccordions.contactLocation && (
+          <div className="p-5 sm:p-6 border-t border-gold/10 space-y-4 bg-[#FAF7F2]/30">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-xs font-bold text-charcoal mb-1.5 uppercase tracking-wider">
+                  Contact Number
+                </label>
+                <input
+                  type="text"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="e.g. +91 98765 43210"
+                  className="w-full px-4 py-2.5 rounded-2xl bg-white border border-gold/20 text-xs font-semibold text-charcoal focus:outline-none focus:border-[#0F4C45]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-charcoal mb-1.5 uppercase tracking-wider">
+                  WhatsApp Number
+                </label>
+                <input
+                  type="text"
+                  value={whatsapp}
+                  onChange={(e) => setWhatsapp(e.target.value)}
+                  placeholder="e.g. +91 98765 43210"
+                  className="w-full px-4 py-2.5 rounded-2xl bg-white border border-gold/20 text-xs font-semibold text-charcoal focus:outline-none focus:border-[#0F4C45]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-charcoal mb-1.5 uppercase tracking-wider">
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="e.g. events@royalpalace.com"
+                  className="w-full px-4 py-2.5 rounded-2xl bg-white border border-gold/20 text-xs font-semibold text-charcoal focus:outline-none focus:border-[#0F4C45]"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-xs font-bold text-charcoal mb-1.5 uppercase tracking-wider">
+                  District / City
+                </label>
+                <input
+                  type="text"
+                  value={district}
+                  onChange={(e) => setDistrict(e.target.value)}
+                  placeholder="e.g. Ernakulam / Kochi"
+                  className="w-full px-4 py-2.5 rounded-2xl bg-white border border-gold/20 text-xs font-semibold text-charcoal focus:outline-none focus:border-[#0F4C45]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-charcoal mb-1.5 uppercase tracking-wider">
+                  State
+                </label>
+                <input
+                  type="text"
+                  value={stateName}
+                  onChange={(e) => setStateName(e.target.value)}
+                  placeholder="e.g. Kerala"
+                  className="w-full px-4 py-2.5 rounded-2xl bg-white border border-gold/20 text-xs font-semibold text-charcoal focus:outline-none focus:border-[#0F4C45]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-charcoal mb-1.5 uppercase tracking-wider">
+                  Google Maps URL
+                </label>
+                <input
+                  type="text"
+                  value={googleMapsUrl}
+                  onChange={(e) => setGoogleMapsUrl(e.target.value)}
+                  placeholder="e.g. https://maps.google.com/..."
+                  className="w-full px-4 py-2.5 rounded-2xl bg-white border border-gold/20 text-xs font-semibold text-charcoal focus:outline-none focus:border-[#0F4C45]"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-charcoal mb-1.5 uppercase tracking-wider">
+                Full Street Address
+              </label>
+              <input
+                type="text"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                placeholder="e.g. Marine Drive Bypass, Near Rainbow Bridge, Kochi"
+                className="w-full px-4 py-2.5 rounded-2xl bg-white border border-gold/20 text-xs font-semibold text-charcoal focus:outline-none focus:border-[#0F4C45]"
+              />
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── SECTION 3: VENUE DETAILS ── */}
+      <div className="bg-white rounded-3xl border border-gold/15 overflow-hidden shadow-xs">
+        <button
+          onClick={() => toggleAccordion("venueDetails")}
+          className="w-full p-5 sm:p-6 flex items-center justify-between text-left bg-white hover:bg-[#FAF7F2]/50 transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-[#0F4C45]/10 text-[#0F4C45] flex items-center justify-center shrink-0">
+              <Users className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="font-serif font-bold text-base text-charcoal">3. Venue Details & Spaces</h2>
+              <p className="text-xs text-charcoal/60">Capacity, guest rooms, parking, indoor, outdoor & rooftop spaces</p>
+            </div>
+          </div>
+          {openAccordions.venueDetails ? <ChevronUp className="w-5 h-5 text-charcoal/40" /> : <ChevronDown className="w-5 h-5 text-charcoal/40" />}
+        </button>
+
+        {openAccordions.venueDetails && (
+          <div className="p-5 sm:p-6 border-t border-gold/10 space-y-4 bg-[#FAF7F2]/30">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-xs font-bold text-charcoal mb-1.5 uppercase tracking-wider">
+                  Guest Capacity (Max)
+                </label>
+                <input
+                  type="text"
+                  value={guestCapacity}
+                  onChange={(e) => setGuestCapacity(e.target.value)}
+                  placeholder="e.g. 1,500 Guests"
+                  className="w-full px-4 py-2.5 rounded-2xl bg-white border border-gold/20 text-xs font-semibold text-charcoal focus:outline-none focus:border-[#0F4C45]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-charcoal mb-1.5 uppercase tracking-wider">
+                  Number of Guest Rooms
+                </label>
+                <input
+                  type="text"
+                  value={roomsCount}
+                  onChange={(e) => setRoomsCount(e.target.value)}
+                  placeholder="e.g. 24 Rooms"
+                  className="w-full px-4 py-2.5 rounded-2xl bg-white border border-gold/20 text-xs font-semibold text-charcoal focus:outline-none focus:border-[#0F4C45]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-charcoal mb-1.5 uppercase tracking-wider">
+                  Parking Capacity
+                </label>
+                <input
+                  type="text"
+                  value={parkingCapacity}
+                  onChange={(e) => setParkingCapacity(e.target.value)}
+                  placeholder="e.g. 350 Cars & Valet"
+                  className="w-full px-4 py-2.5 rounded-2xl bg-white border border-gold/20 text-xs font-semibold text-charcoal focus:outline-none focus:border-[#0F4C45]"
+                />
+              </div>
+            </div>
+
+            <div className="pt-3 border-t border-gold/10">
+              <span className="block text-xs font-bold text-charcoal mb-3 uppercase tracking-wider">
+                Space Toggles & Dedicated Rooms
+              </span>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <label className="flex items-center gap-2.5 p-3 rounded-2xl bg-white border border-gold/15 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={hasIndoorSpace}
+                    onChange={(e) => setHasIndoorSpace(e.target.checked)}
+                    className="w-4 h-4 rounded text-[#0F4C45] focus:ring-[#0F4C45]"
+                  />
+                  <span className="text-xs font-bold text-charcoal">Indoor Space</span>
+                </label>
+
+                <label className="flex items-center gap-2.5 p-3 rounded-2xl bg-white border border-gold/15 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={hasOutdoorSpace}
+                    onChange={(e) => setHasOutdoorSpace(e.target.checked)}
+                    className="w-4 h-4 rounded text-[#0F4C45] focus:ring-[#0F4C45]"
+                  />
+                  <span className="text-xs font-bold text-charcoal">Outdoor Space</span>
+                </label>
+
+                <label className="flex items-center gap-2.5 p-3 rounded-2xl bg-white border border-gold/15 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={hasRooftopSpace}
+                    onChange={(e) => setHasRooftopSpace(e.target.checked)}
+                    className="w-4 h-4 rounded text-[#0F4C45] focus:ring-[#0F4C45]"
+                  />
+                  <span className="text-xs font-bold text-charcoal">Rooftop Space</span>
+                </label>
+
+                <label className="flex items-center gap-2.5 p-3 rounded-2xl bg-white border border-gold/15 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={hasBridalRoom}
+                    onChange={(e) => setHasBridalRoom(e.target.checked)}
+                    className="w-4 h-4 rounded text-[#0F4C45] focus:ring-[#0F4C45]"
+                  />
+                  <span className="text-xs font-bold text-charcoal">Bridal Room</span>
+                </label>
+
+                <label className="flex items-center gap-2.5 p-3 rounded-2xl bg-white border border-gold/15 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={hasGroomRoom}
+                    onChange={(e) => setHasGroomRoom(e.target.checked)}
+                    className="w-4 h-4 rounded text-[#0F4C45] focus:ring-[#0F4C45]"
+                  />
+                  <span className="text-xs font-bold text-charcoal">Groom Room</span>
+                </label>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── SECTION 4: PRICING INFORMATION ── */}
+      <div className="bg-white rounded-3xl border border-gold/15 overflow-hidden shadow-xs">
+        <button
+          onClick={() => toggleAccordion("pricing")}
+          className="w-full p-5 sm:p-6 flex items-center justify-between text-left bg-white hover:bg-[#FAF7F2]/50 transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-[#0F4C45]/10 text-[#0F4C45] flex items-center justify-center shrink-0">
+              <DollarSign className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="font-serif font-bold text-base text-charcoal">4. Pricing Information</h2>
+              <p className="text-xs text-charcoal/60">Veg price per plate, non-veg price per plate, decor starting price & quote toggle</p>
+            </div>
+          </div>
+          {openAccordions.pricing ? <ChevronUp className="w-5 h-5 text-charcoal/40" /> : <ChevronDown className="w-5 h-5 text-charcoal/40" />}
+        </button>
+
+        {openAccordions.pricing && (
+          <div className="p-5 sm:p-6 border-t border-gold/10 space-y-4 bg-[#FAF7F2]/30">
+            <div className="flex items-center justify-between p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20">
+              <div>
+                <h4 className="text-xs font-bold text-amber-900 uppercase tracking-wider">Contact For Pricing Mode</h4>
+                <p className="text-[11px] text-amber-800">If enabled, numerical prices will be hidden on public profile</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setContactForPricing(!contactForPricing)}
+                className={`p-1.5 rounded-full transition-colors cursor-pointer ${contactForPricing ? "bg-[#0F4C45] text-gold" : "bg-gray-200 text-gray-400"}`}
+              >
+                {contactForPricing ? <ToggleRight className="w-8 h-8" /> : <ToggleLeft className="w-8 h-8" />}
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-xs font-bold text-charcoal mb-1.5 uppercase tracking-wider">
+                  Veg Price Per Plate (₹)
+                </label>
+                <input
+                  type="text"
+                  value={vegPrice}
+                  onChange={(e) => setVegPrice(e.target.value)}
+                  placeholder="e.g. 1,200"
+                  disabled={contactForPricing}
+                  className="w-full px-4 py-2.5 rounded-2xl bg-white border border-gold/20 text-xs font-semibold text-charcoal focus:outline-none focus:border-[#0F4C45] disabled:opacity-40"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-charcoal mb-1.5 uppercase tracking-wider">
+                  Non-Veg Price Per Plate (₹)
+                </label>
+                <input
+                  type="text"
+                  value={nonVegPrice}
+                  onChange={(e) => setNonVegPrice(e.target.value)}
+                  placeholder="e.g. 1,500"
+                  disabled={contactForPricing}
+                  className="w-full px-4 py-2.5 rounded-2xl bg-white border border-gold/20 text-xs font-semibold text-charcoal focus:outline-none focus:border-[#0F4C45] disabled:opacity-40"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-charcoal mb-1.5 uppercase tracking-wider">
+                  Decoration Starting Price (₹)
+                </label>
+                <input
+                  type="text"
+                  value={decorStartingPrice}
+                  onChange={(e) => setDecorStartingPrice(e.target.value)}
+                  placeholder="e.g. 50,000"
+                  disabled={contactForPricing}
+                  className="w-full px-4 py-2.5 rounded-2xl bg-white border border-gold/20 text-xs font-semibold text-charcoal focus:outline-none focus:border-[#0F4C45] disabled:opacity-40"
+                />
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── SECTION 5: PORTFOLIO (GALLERY & IMAGES) ── */}
+      <div className="bg-white rounded-3xl border border-gold/15 overflow-hidden shadow-xs">
+        <button
+          onClick={() => toggleAccordion("portfolio")}
+          className="w-full p-5 sm:p-6 flex items-center justify-between text-left bg-white hover:bg-[#FAF7F2]/50 transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-[#0F4C45]/10 text-[#0F4C45] flex items-center justify-center shrink-0">
+              <ImageIcon className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="font-serif font-bold text-base text-charcoal">5. Portfolio & Gallery Manager</h2>
+              <p className="text-xs text-charcoal/60">Upload venue photos, reorder images, select cover photo, or delete</p>
+            </div>
+          </div>
+          {openAccordions.portfolio ? <ChevronUp className="w-5 h-5 text-charcoal/40" /> : <ChevronDown className="w-5 h-5 text-charcoal/40" />}
+        </button>
+
+        {openAccordions.portfolio && (
+          <div className="p-5 sm:p-6 border-t border-gold/10 space-y-5 bg-[#FAF7F2]/30">
+            
+            {/* Upload Buttons */}
+            <div className="flex flex-wrap gap-3">
+              <input
+                ref={galleryInputRef}
+                type="file"
+                multiple
+                accept="image/*"
+                onChange={handleGalleryUpload}
+                className="hidden"
+              />
+              <button
+                type="button"
+                onClick={() => galleryInputRef.current?.click()}
+                disabled={isUploadingGallery}
+                className="px-5 py-2.5 rounded-2xl bg-[#0F4C45] text-ivory text-xs font-bold hover:bg-[#072B27] transition-all flex items-center gap-2 cursor-pointer shadow-xs disabled:opacity-50"
+              >
+                {isUploadingGallery ? <Loader2 className="w-4 h-4 animate-spin text-gold" /> : <Upload className="w-4 h-4 text-gold" />}
+                <span>Upload Venue Gallery Images</span>
+              </button>
+
+              <input
+                ref={coverInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleCoverUpload}
+                className="hidden"
+              />
+              <button
+                type="button"
+                onClick={() => coverInputRef.current?.click()}
+                disabled={isUploadingCover}
+                className="px-5 py-2.5 rounded-2xl bg-white border border-gold/30 text-[#0F4C45] text-xs font-bold hover:bg-[#FAF7F2] transition-all flex items-center gap-2 cursor-pointer shadow-xs disabled:opacity-50"
+              >
+                {isUploadingCover ? <Loader2 className="w-4 h-4 animate-spin text-[#0F4C45]" /> : <ImageIcon className="w-4 h-4 text-[#0F4C45]" />}
+                <span>Upload Primary Cover Banner</span>
+              </button>
+            </div>
+
+            {/* Gallery Grid */}
+            <div>
+              <span className="block text-xs font-bold text-charcoal mb-3 uppercase tracking-wider">
+                Venue Gallery ({galleryImages.length} Photos)
+              </span>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                {galleryImages.map((img, idx) => {
+                  const isCover = coverUrl === img;
+                  return (
+                    <div key={idx} className="relative group rounded-2xl overflow-hidden border border-gold/15 bg-gray-100 aspect-video">
+                      <img src={img} alt={`Gallery ${idx}`} className="w-full h-full object-cover" />
+                      
+                      {isCover && (
+                        <div className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-[#0F4C45] text-[#C8A96A] text-[9px] font-extrabold uppercase tracking-wider flex items-center gap-1 shadow-md">
+                          <Star className="w-3 h-3 fill-[#C8A96A]" /> Primary Cover
+                        </div>
+                      )}
+
+                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 p-2">
+                        {!isCover && (
+                          <button
+                            type="button"
+                            onClick={() => handleSelectCoverFromGallery(img)}
+                            className="p-2 rounded-xl bg-white/90 text-[#0F4C45] hover:bg-white text-[10px] font-bold shadow-md cursor-pointer"
+                            title="Set as Cover Banner"
+                          >
+                            Set Cover
+                          </button>
+                        )}
+                        
+                        {idx > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => handleMoveGalleryImage(idx, "left")}
+                            className="p-2 rounded-xl bg-white/90 text-charcoal hover:bg-white shadow-md cursor-pointer"
+                            title="Move Left"
+                          >
+                            <ArrowLeft className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteGalleryImage(idx)}
+                          className="p-2 rounded-xl bg-red-500 text-white hover:bg-red-600 shadow-md cursor-pointer"
+                          title="Delete Photo"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── SECTION 6: ABOUT & FACILITIES / OFFERS ── */}
+      <div className="bg-white rounded-3xl border border-gold/15 overflow-hidden shadow-xs">
+        <button
+          onClick={() => toggleAccordion("facilities")}
+          className="w-full p-5 sm:p-6 flex items-center justify-between text-left bg-white hover:bg-[#FAF7F2]/50 transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-[#0F4C45]/10 text-[#0F4C45] flex items-center justify-center shrink-0">
+              <Sparkles className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="font-serif font-bold text-base text-charcoal">6. Offers & Facilities Checkboxes</h2>
+              <p className="text-xs text-charcoal/60">Checkboxes that automatically populate the Facilities card on public profile</p>
+            </div>
+          </div>
+          {openAccordions.facilities ? <ChevronUp className="w-5 h-5 text-charcoal/40" /> : <ChevronDown className="w-5 h-5 text-charcoal/40" />}
+        </button>
+
+        {openAccordions.facilities && (
+          <div className="p-5 sm:p-6 border-t border-gold/10 space-y-4 bg-[#FAF7F2]/30">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {VENUE_FACILITIES_OPTIONS.map((fac) => {
+                const checked = facilities.includes(fac.id);
+                return (
+                  <label
+                    key={fac.id}
+                    className={`flex items-center gap-2.5 p-3 rounded-2xl border transition-all cursor-pointer ${
+                      checked ? "bg-[#0F4C45]/10 border-[#0F4C45] text-[#0F4C45]" : "bg-white border-gold/15 text-charcoal"
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() => toggleFacility(fac.id)}
+                      className="w-4 h-4 rounded text-[#0F4C45] focus:ring-[#0F4C45]"
+                    />
+                    <span className="text-xs font-bold">{fac.label}</span>
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── SECTION 7: POLICIES ── */}
+      <div className="bg-white rounded-3xl border border-gold/15 overflow-hidden shadow-xs">
+        <button
+          onClick={() => toggleAccordion("policies")}
+          className="w-full p-5 sm:p-6 flex items-center justify-between text-left bg-white hover:bg-[#FAF7F2]/50 transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-[#0F4C45]/10 text-[#0F4C45] flex items-center justify-center shrink-0">
+              <FileText className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="font-serif font-bold text-base text-charcoal">7. Venue Policies & Guidelines</h2>
+              <p className="text-xs text-charcoal/60">Yes/No policy switches and rules for catering, decoration & alcohol</p>
+            </div>
+          </div>
+          {openAccordions.policies ? <ChevronUp className="w-5 h-5 text-charcoal/40" /> : <ChevronDown className="w-5 h-5 text-charcoal/40" />}
+        </button>
+
+        {openAccordions.policies && (
+          <div className="p-5 sm:p-6 border-t border-gold/10 space-y-4 bg-[#FAF7F2]/30">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {[
+                { key: "inhouseCatering", label: "In-house Catering" },
+                { key: "outsideCatering", label: "Outside Catering" },
+                { key: "outsideDecorator", label: "Outside Decorator" },
+                { key: "outsideAlcohol", label: "Outside Alcohol" },
+                { key: "inhouseDj", label: "In-house DJ" },
+                { key: "outsideDj", label: "Outside DJ" },
+                { key: "lessThan50Pax", label: "Less Than 50 Pax Permitted" },
+              ].map((pol) => {
+                const val = (policySwitches as any)[pol.key];
+                return (
+                  <div key={pol.key} className="flex items-center justify-between p-3.5 rounded-2xl bg-white border border-gold/15">
+                    <span className="text-xs font-bold text-charcoal">{pol.label}</span>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setPolicySwitches((prev) => ({
+                          ...prev,
+                          [pol.key]: !val,
+                        }))
+                      }
+                      className={`px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider transition-colors cursor-pointer ${
+                        val ? "bg-[#0F4C45] text-ivory" : "bg-gray-200 text-gray-600"
+                      }`}
+                    >
+                      {val ? "YES" : "NO"}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="space-y-4 pt-3 border-t border-gold/10">
+              <div>
+                <label className="block text-xs font-bold text-charcoal mb-1.5 uppercase tracking-wider">
+                  Decoration Policy Text
+                </label>
+                <textarea
+                  rows={2}
+                  value={decorationPolicy}
+                  onChange={(e) => setDecorationPolicy(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-2xl bg-white border border-gold/20 text-xs text-charcoal focus:outline-none focus:border-[#0F4C45]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-charcoal mb-1.5 uppercase tracking-wider">
+                  Cancellation Policy Text
+                </label>
+                <textarea
+                  rows={2}
+                  value={cancellationPolicyText}
+                  onChange={(e) => setCancellationPolicyText(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-2xl bg-white border border-gold/20 text-xs text-charcoal focus:outline-none focus:border-[#0F4C45]"
+                />
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── SECTION 8: FREQUENTLY ASKED QUESTIONS (FAQ MANAGER) ── */}
+      <div className="bg-white rounded-3xl border border-gold/15 overflow-hidden shadow-xs">
+        <button
+          onClick={() => toggleAccordion("faqs")}
+          className="w-full p-5 sm:p-6 flex items-center justify-between text-left bg-white hover:bg-[#FAF7F2]/50 transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-[#0F4C45]/10 text-[#0F4C45] flex items-center justify-center shrink-0">
+              <HelpCircle className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="font-serif font-bold text-base text-charcoal">8. Dynamic FAQ Manager</h2>
+              <p className="text-xs text-charcoal/60">Add, edit, reorder, or delete questions & answers on the public profile</p>
+            </div>
+          </div>
+          {openAccordions.faqs ? <ChevronUp className="w-5 h-5 text-charcoal/40" /> : <ChevronDown className="w-5 h-5 text-charcoal/40" />}
+        </button>
+
+        {openAccordions.faqs && (
+          <div className="p-5 sm:p-6 border-t border-gold/10 space-y-4 bg-[#FAF7F2]/30">
+            <div className="flex justify-between items-center">
+              <span className="text-xs font-bold text-charcoal uppercase tracking-wider">
+                Venue FAQs ({faqs.length})
+              </span>
+              <button
+                type="button"
+                onClick={handleAddFaq}
+                className="px-4 py-2 rounded-2xl bg-[#0F4C45] text-ivory text-xs font-bold hover:bg-[#072B27] transition-colors flex items-center gap-1.5 cursor-pointer"
+              >
+                <Plus className="w-3.5 h-3.5 text-gold" />
+                <span>Add FAQ</span>
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              {faqs.map((faq, idx) => (
+                <div key={faq.id} className="p-4 rounded-2xl bg-white border border-gold/15 space-y-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs font-bold text-[#0F4C45]">Question #{idx + 1}</span>
+                    <div className="flex items-center gap-1">
+                      {idx > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => handleMoveFaq(idx, "up")}
+                          className="p-1.5 rounded-lg bg-gray-100 text-charcoal hover:bg-gray-200 text-xs"
+                          title="Move Up"
+                        >
+                          <ArrowUp className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                      {idx < faqs.length - 1 && (
+                        <button
+                          type="button"
+                          onClick={() => handleMoveFaq(idx, "down")}
+                          className="p-1.5 rounded-lg bg-gray-100 text-charcoal hover:bg-gray-200 text-xs"
+                          title="Move Down"
+                        >
+                          <ArrowDown className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteFaq(faq.id)}
+                        className="p-1.5 rounded-lg bg-red-100 text-red-600 hover:bg-red-200 text-xs cursor-pointer ml-1"
+                        title="Delete FAQ"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <input
+                      type="text"
+                      value={faq.question}
+                      onChange={(e) => handleUpdateFaq(faq.id, "question", e.target.value)}
+                      placeholder="Question..."
+                      className="w-full px-3.5 py-2 rounded-xl bg-[#FAF7F2] border border-gold/20 text-xs font-semibold text-charcoal focus:outline-none focus:border-[#0F4C45]"
+                    />
+                  </div>
+
+                  <div>
+                    <textarea
+                      rows={2}
+                      value={faq.answer}
+                      onChange={(e) => handleUpdateFaq(faq.id, "answer", e.target.value)}
+                      placeholder="Answer..."
+                      className="w-full px-3.5 py-2 rounded-xl bg-[#FAF7F2] border border-gold/20 text-xs text-charcoal focus:outline-none focus:border-[#0F4C45]"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── SECTION 9: AVAILABILITY ── */}
+      <div className="bg-white rounded-3xl border border-gold/15 overflow-hidden shadow-xs">
+        <button
+          onClick={() => toggleAccordion("availability")}
+          className="w-full p-5 sm:p-6 flex items-center justify-between text-left bg-white hover:bg-[#FAF7F2]/50 transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-[#0F4C45]/10 text-[#0F4C45] flex items-center justify-center shrink-0">
+              <Calendar className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="font-serif font-bold text-base text-charcoal">9. Availability & Working Hours</h2>
+              <p className="text-xs text-charcoal/60">Available dates, blocked dates, and working hours for site visits</p>
+            </div>
+          </div>
+          {openAccordions.availability ? <ChevronUp className="w-5 h-5 text-charcoal/40" /> : <ChevronDown className="w-5 h-5 text-charcoal/40" />}
+        </button>
+
+        {openAccordions.availability && (
+          <div className="p-5 sm:p-6 border-t border-gold/10 space-y-4 bg-[#FAF7F2]/30">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-bold text-charcoal mb-1.5 uppercase tracking-wider">
+                  Available Booking Dates Note
+                </label>
+                <input
+                  type="text"
+                  value={availabilityNote}
+                  onChange={(e) => setAvailabilityNote(e.target.value)}
+                  placeholder="e.g. Open for 2026-2027 Wedding Season"
+                  className="w-full px-4 py-2.5 rounded-2xl bg-white border border-gold/20 text-xs font-semibold text-charcoal focus:outline-none focus:border-[#0F4C45]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-charcoal mb-1.5 uppercase tracking-wider">
+                  Blocked Dates / Maintenance
+                </label>
+                <input
+                  type="text"
+                  value={blockedDates}
+                  onChange={(e) => setBlockedDates(e.target.value)}
+                  placeholder="e.g. Mon-Wed Maintenance"
+                  className="w-full px-4 py-2.5 rounded-2xl bg-white border border-gold/20 text-xs font-semibold text-charcoal focus:outline-none focus:border-[#0F4C45]"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-xs font-bold text-charcoal mb-1.5 uppercase tracking-wider">
+                  Opening Time
+                </label>
+                <input
+                  type="text"
+                  value={openingTime}
+                  onChange={(e) => setOpeningTime(e.target.value)}
+                  placeholder="09:00 AM"
+                  className="w-full px-4 py-2.5 rounded-2xl bg-white border border-gold/20 text-xs font-semibold text-charcoal focus:outline-none focus:border-[#0F4C45]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-charcoal mb-1.5 uppercase tracking-wider">
+                  Closing Time
+                </label>
+                <input
+                  type="text"
+                  value={closingTime}
+                  onChange={(e) => setClosingTime(e.target.value)}
+                  placeholder="10:00 PM"
+                  className="w-full px-4 py-2.5 rounded-2xl bg-white border border-gold/20 text-xs font-semibold text-charcoal focus:outline-none focus:border-[#0F4C45]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-charcoal mb-1.5 uppercase tracking-wider">
+                  Weekly Off / Off Days
+                </label>
+                <input
+                  type="text"
+                  value={weeklyOff}
+                  onChange={(e) => setWeeklyOff(e.target.value)}
+                  placeholder="Open All 7 Days"
+                  className="w-full px-4 py-2.5 rounded-2xl bg-white border border-gold/20 text-xs font-semibold text-charcoal focus:outline-none focus:border-[#0F4C45]"
+                />
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── SECTION 10: CONTACT PREFERENCES ── */}
+      <div className="bg-white rounded-3xl border border-gold/15 overflow-hidden shadow-xs">
+        <button
+          onClick={() => toggleAccordion("preferences")}
+          className="w-full p-5 sm:p-6 flex items-center justify-between text-left bg-white hover:bg-[#FAF7F2]/50 transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-[#0F4C45]/10 text-[#0F4C45] flex items-center justify-center shrink-0">
+              <Phone className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="font-serif font-bold text-base text-charcoal">10. Contact Preferences & Action Buttons</h2>
+              <p className="text-xs text-charcoal/60">Enable or disable Call, WhatsApp, and Inquiry action buttons</p>
+            </div>
+          </div>
+          {openAccordions.preferences ? <ChevronUp className="w-5 h-5 text-charcoal/40" /> : <ChevronDown className="w-5 h-5 text-charcoal/40" />}
+        </button>
+
+        {openAccordions.preferences && (
+          <div className="p-5 sm:p-6 border-t border-gold/10 space-y-3 bg-[#FAF7F2]/30">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <label className="flex items-center justify-between p-3.5 rounded-2xl bg-white border border-gold/15 cursor-pointer">
+                <span className="text-xs font-bold text-charcoal">Call Button</span>
+                <input
+                  type="checkbox"
+                  checked={contactPreferences.enableCallButton}
+                  onChange={(e) =>
+                    setContactPreferences((prev) => ({
+                      ...prev,
+                      enableCallButton: e.target.checked,
+                    }))
+                  }
+                  className="w-4 h-4 rounded text-[#0F4C45] focus:ring-[#0F4C45]"
+                />
+              </label>
+
+              <label className="flex items-center justify-between p-3.5 rounded-2xl bg-white border border-gold/15 cursor-pointer">
+                <span className="text-xs font-bold text-charcoal">WhatsApp Button</span>
+                <input
+                  type="checkbox"
+                  checked={contactPreferences.enableWhatsappButton}
+                  onChange={(e) =>
+                    setContactPreferences((prev) => ({
+                      ...prev,
+                      enableWhatsappButton: e.target.checked,
+                    }))
+                  }
+                  className="w-4 h-4 rounded text-[#0F4C45] focus:ring-[#0F4C45]"
+                />
+              </label>
+
+              <label className="flex items-center justify-between p-3.5 rounded-2xl bg-white border border-gold/15 cursor-pointer">
+                <span className="text-xs font-bold text-charcoal">Send Inquiry Button</span>
+                <input
+                  type="checkbox"
+                  checked={contactPreferences.enableMessageButton}
+                  onChange={(e) =>
+                    setContactPreferences((prev) => ({
+                      ...prev,
+                      enableMessageButton: e.target.checked,
+                    }))
+                  }
+                  className="w-4 h-4 rounded text-[#0F4C45] focus:ring-[#0F4C45]"
+                />
+              </label>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── SECTION 11: UNEDITABLE SYSTEM FIELDS (READ ONLY DISPLAY) ── */}
+      <div className="bg-white rounded-3xl border border-gold/15 overflow-hidden shadow-xs opacity-90">
+        <button
+          onClick={() => toggleAccordion("systemFields")}
+          className="w-full p-5 sm:p-6 flex items-center justify-between text-left bg-gray-50 hover:bg-gray-100/60 transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-gray-200 text-gray-700 flex items-center justify-center shrink-0">
+              <Lock className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="font-serif font-bold text-base text-gray-800 flex items-center gap-2">
+                <span>System-Controlled Fields</span>
+                <span className="px-2 py-0.5 rounded-full bg-gray-200 text-gray-700 text-[10px] uppercase font-bold tracking-wider">
+                  Read Only
+                </span>
+              </h2>
+              <p className="text-xs text-gray-500">System metrics, ratings, verified badge & customer reviews</p>
+            </div>
+          </div>
+          {openAccordions.systemFields ? <ChevronUp className="w-5 h-5 text-gray-400" /> : <ChevronDown className="w-5 h-5 text-gray-400" />}
+        </button>
+
+        {openAccordions.systemFields && (
+          <div className="p-5 sm:p-6 border-t border-gray-200 bg-gray-50 space-y-4">
+            <div className="p-3.5 rounded-2xl bg-blue-50 border border-blue-200 text-blue-800 text-xs flex items-center gap-2">
+              <Info className="w-4 h-4 shrink-0 text-blue-600" />
+              <span>
+                These properties are automatically computed by Cloche and cannot be edited manually.
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+              <div className="p-3 rounded-2xl bg-white border border-gray-200 space-y-1">
+                <span className="text-gray-500 text-[10px] uppercase font-bold tracking-wider block">Overall Rating</span>
+                <span className="font-bold text-charcoal flex items-center gap-1">
+                  <Star className="w-3.5 h-3.5 fill-gold text-gold" /> {(vendorData as any)?.rating || 4.9} / 5.0
+                </span>
+              </div>
+
+              <div className="p-3 rounded-2xl bg-white border border-gray-200 space-y-1">
+                <span className="text-gray-500 text-[10px] uppercase font-bold tracking-wider block">Review Count</span>
+                <span className="font-bold text-charcoal">{(vendorData as any)?.reviews || (vendorData as any)?.reviewsCount || 156} Reviews</span>
+              </div>
+
+              <div className="p-3 rounded-2xl bg-white border border-gray-200 space-y-1">
+                <span className="text-gray-500 text-[10px] uppercase font-bold tracking-wider block">Verified Badge</span>
+                <span className="font-bold text-[#0F4C45] flex items-center gap-1">
+                  <ShieldCheck className="w-3.5 h-3.5 text-[#0F4C45]" /> Verified Partner
+                </span>
+              </div>
+
+              <div className="p-3 rounded-2xl bg-white border border-gray-200 space-y-1">
+                <span className="text-gray-500 text-[10px] uppercase font-bold tracking-wider block">Enquiries Last Week</span>
+                <span className="font-bold text-charcoal">42 Inquiries</span>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
     </div>
   );
 }
