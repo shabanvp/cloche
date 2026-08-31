@@ -20,6 +20,7 @@ import {
   Heart,
   Share2,
   ExternalLink,
+  ChevronLeft,
   ChevronRight,
   Check,
   CheckCircle2,
@@ -115,6 +116,8 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
     }
   }, [vendor?.id, activeModal]);
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [showAllPhotosModal, setShowAllPhotosModal] = useState<boolean>(false);
 
   const formatDateSafe = (dateStr: string) => {
     if (!dateStr || !dateStr.trim()) return "";
@@ -1049,6 +1052,22 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
     return list;
   }, [sf.gallery, vendor]);
 
+  // Keyboard navigation for Lightbox Slider
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (lightboxIndex === null) return;
+      if (e.key === "ArrowLeft") {
+        setLightboxIndex((prev) => (prev !== null && prev > 0 ? prev - 1 : galleryPhotos.length - 1));
+      } else if (e.key === "ArrowRight") {
+        setLightboxIndex((prev) => (prev !== null && prev < galleryPhotos.length - 1 ? prev + 1 : 0));
+      } else if (e.key === "Escape") {
+        setLightboxIndex(null);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [lightboxIndex, galleryPhotos.length]);
+
   // Ratings
   const rating = Number(vendor?.rating || 0).toFixed(1);
   const reviewsCount = Number(vendor?.reviews || vendor?.userReviews?.length || 0);
@@ -1574,7 +1593,7 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
           </div>
         </div>
 
-        {/* SECTION 4: PORTFOLIO (UPLOADED PHOTOS BY VENDOR - NO SUBTITLE) */}
+        {/* SECTION 4: PORTFOLIO (CLEAN 4-PHOTO GRID & SLIDER - NO FILTER CHIPS) */}
         {galleryPhotos.length > 0 && (
           <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
             <div className="flex items-center justify-between border-b border-gold/10 pb-3">
@@ -1585,59 +1604,45 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
                 </span>
               </div>
               <button
-                onClick={() => setSelectedPhoto(galleryPhotos[0].url)}
+                onClick={() => setShowAllPhotosModal(true)}
                 className="text-xs font-extrabold text-[#0F4C45] hover:underline flex items-center gap-1 cursor-pointer"
               >
                 View All Photos <ChevronRight className="w-3.5 h-3.5" />
               </button>
             </div>
 
-            {/* Category Filter Chips */}
-            {categoryType === "venue" && (
-              <div className="flex items-center gap-1.5 overflow-x-auto hide-scrollbar pb-1">
-                {galleryCategories.map((cat) => (
-                  <button
-                    key={cat.id}
-                    onClick={() => setActiveGalleryTab(cat.id)}
-                    className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 cursor-pointer active:scale-95 ${
-                      activeGalleryTab === cat.id
-                        ? "bg-[#0F4C45] text-white shadow-2xs"
-                        : "bg-[#FAF7F2] text-charcoal/70 hover:bg-gold/15 border border-gold/15"
-                    }`}
-                  >
-                    {cat.label}
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {/* Portfolio Grid Layout */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-              <div
-                onClick={() => setSelectedPhoto(galleryPhotos[0].url)}
-                className="relative col-span-1 row-span-2 aspect-[4/3] rounded-xl overflow-hidden border border-gold/20 shadow-2xs cursor-pointer group bg-gray-100"
-              >
-                <img src={galleryPhotos[0].url} alt="Portfolio Main" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                <div className="absolute top-2 left-2 bg-black/60 backdrop-blur-md text-white text-[10px] font-bold px-2 py-0.5 rounded border border-white/20 flex items-center gap-1">
-                  <ImageIcon className="w-3 h-3" /> {galleryPhotos.length}
-                </div>
-              </div>
-
-              {galleryPhotos.slice(1, 5).map((photo, i) => (
+            {/* Clean 4-Photo Grid Preview */}
+            <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
+              {galleryPhotos.slice(0, 4).map((photo, i) => (
                 <div
                   key={i}
-                  onClick={() => setSelectedPhoto(photo.url)}
-                  className="relative aspect-square rounded-xl overflow-hidden border border-gold/20 shadow-2xs cursor-pointer group bg-gray-100"
+                  onClick={() => setLightboxIndex(i)}
+                  className="relative aspect-[4/3] rounded-xl overflow-hidden border border-gold/20 shadow-2xs cursor-pointer group bg-gray-100"
                 >
-                  <img src={photo.url} alt={`Photo ${i + 2}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  <img
+                    src={photo.url}
+                    alt={photo.caption || `Portfolio Photo ${i + 1}`}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  {i === 3 && galleryPhotos.length > 4 && (
+                    <div
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowAllPhotosModal(true);
+                      }}
+                      className="absolute inset-0 bg-black/60 backdrop-blur-xs flex flex-col items-center justify-center text-white font-extrabold text-xs sm:text-sm gap-1 group-hover:bg-black/70 transition-colors"
+                    >
+                      <ImageIcon className="w-5 h-5" />
+                      <span>+{galleryPhotos.length - 4} More</span>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
           </div>
         )}
 
-        
-{/* SECTION 6: ABOUT & OFFERS (WEDMEGOOD REFERENCE STYLE) */}
+        {/* SECTION 6: ABOUT & OFFERS (WEDMEGOOD REFERENCE STYLE) */}
         <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
           <div className="border-b border-gold/10 pb-3 space-y-1">
             <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">About</h2>
@@ -2087,25 +2092,116 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
         </div>
       )}
 
-      {/* ── PHOTO LIGHTBOX MODAL ── */}
-      {selectedPhoto && (
-        <div
-          onClick={() => setSelectedPhoto(null)}
-          className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4"
-        >
-          <div className="relative max-w-4xl max-h-[90vh] overflow-hidden rounded-2xl shadow-2xl">
-            <img src={selectedPhoto} alt="Zoomed view" className="max-w-full max-h-[85vh] object-contain rounded-2xl" />
+      {/* ── ALL PHOTOS FULL GALLERY MODAL ── */}
+      {showAllPhotosModal && (
+        <div className="fixed inset-0 z-[9998] bg-[#FAF7F2] w-screen h-screen flex flex-col overflow-hidden animate-in fade-in duration-200">
+          <div className="bg-[#0F4C45] text-white px-4 py-3 flex items-center justify-between shadow-md shrink-0">
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setShowAllPhotosModal(false)}
+                className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors cursor-pointer"
+              >
+                <ArrowRight className="w-5 h-5 rotate-180" />
+              </button>
+              <div>
+                <h3 className="font-serif font-bold text-base text-white">{displayName} — Portfolio</h3>
+                <p className="text-[11px] text-emerald-200">{galleryPhotos.length} Photos Uploaded</p>
+              </div>
+            </div>
             <button
-              onClick={() => setSelectedPhoto(null)}
-              className="absolute top-3 right-3 bg-black/60 text-white p-2 rounded-full hover:bg-black transition-colors cursor-pointer"
+              onClick={() => setShowAllPhotosModal(false)}
+              className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
+
+          <div className="flex-1 p-4 sm:p-6 overflow-y-auto bg-[#F5F2EB]">
+            <div className="max-w-6xl mx-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+              {galleryPhotos.map((photo, i) => (
+                <div
+                  key={i}
+                  onClick={() => setLightboxIndex(i)}
+                  className="relative aspect-[4/3] rounded-2xl overflow-hidden border border-gold/20 shadow-xs cursor-pointer group bg-white"
+                >
+                  <img src={photo.url} alt={photo.caption || `Photo ${i + 1}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity p-2 flex items-end">
+                    <span className="text-[10px] text-white font-medium line-clamp-1">{photo.caption || `Photo ${i + 1}`}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       )}
 
-      {/* ── WRITE A REVIEW MODAL ── */}
+      {/* ── INTERACTIVE LIGHTBOX SLIDER CAROUSEL MODAL ── */}
+      {lightboxIndex !== null && galleryPhotos[lightboxIndex] && (
+        <div
+          onClick={() => setLightboxIndex(null)}
+          className="fixed inset-0 z-[9999] bg-black/95 backdrop-blur-md flex flex-col justify-between p-3 sm:p-6 animate-in fade-in duration-200"
+        >
+          {/* Top Bar */}
+          <div onClick={(e) => e.stopPropagation()} className="flex items-center justify-between text-white border-b border-white/10 pb-3 shrink-0">
+            <div>
+              <h4 className="font-serif text-sm sm:text-base font-bold">{galleryPhotos[lightboxIndex].caption || displayName}</h4>
+              <p className="text-xs text-white/60">
+                Photo {lightboxIndex + 1} of {galleryPhotos.length}
+              </p>
+            </div>
+            <button
+              onClick={() => setLightboxIndex(null)}
+              className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          {/* Center Main Slide View */}
+          <div onClick={(e) => e.stopPropagation()} className="relative flex-1 flex items-center justify-center my-2 sm:my-4 overflow-hidden">
+            {/* Previous Slide Button */}
+            <button
+              onClick={() => setLightboxIndex((prev) => (prev !== null && prev > 0 ? prev - 1 : galleryPhotos.length - 1))}
+              className="absolute left-2 sm:left-4 z-10 w-11 h-11 rounded-full bg-black/50 hover:bg-black/80 text-white flex items-center justify-center transition-all shadow-lg border border-white/20 cursor-pointer active:scale-95"
+              title="Previous Photo (Left Arrow)"
+            >
+              <ChevronLeft className="w-6 h-6" />
+            </button>
+
+            <img
+              src={galleryPhotos[lightboxIndex].url}
+              alt={galleryPhotos[lightboxIndex].caption || "Portfolio View"}
+              className="max-w-full max-h-[75vh] object-contain rounded-2xl shadow-2xl transition-all duration-300 select-none"
+            />
+
+            {/* Next Slide Button */}
+            <button
+              onClick={() => setLightboxIndex((prev) => (prev !== null && prev < galleryPhotos.length - 1 ? prev + 1 : 0))}
+              className="absolute right-2 sm:right-4 z-10 w-11 h-11 rounded-full bg-black/50 hover:bg-black/80 text-white flex items-center justify-center transition-all shadow-lg border border-white/20 cursor-pointer active:scale-95"
+              title="Next Photo (Right Arrow)"
+            >
+              <ChevronRight className="w-6 h-6" />
+            </button>
+          </div>
+
+          {/* Bottom Thumbnail Strip */}
+          <div onClick={(e) => e.stopPropagation()} className="shrink-0 flex items-center gap-2 overflow-x-auto hide-scrollbar py-2 max-w-4xl mx-auto">
+            {galleryPhotos.map((p, idx) => (
+              <button
+                key={idx}
+                onClick={() => setLightboxIndex(idx)}
+                className={`relative w-14 h-14 rounded-xl overflow-hidden border-2 transition-all shrink-0 cursor-pointer ${
+                  idx === lightboxIndex ? "border-gold scale-105 shadow-md" : "border-transparent opacity-50 hover:opacity-100"
+                }`}
+              >
+                <img src={p.url} alt="" className="w-full h-full object-cover" />
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+{/* ── WRITE A REVIEW MODAL ── */}
       {isReviewModalOpen && (
         <div
           onClick={() => setIsReviewModalOpen(false)}
