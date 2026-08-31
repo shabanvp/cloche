@@ -1426,9 +1426,9 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
               href={previewMode ? "#" : (googleMaps || `https://maps.google.com/?q=${encodeURIComponent(address || location)}`)}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[#0F4C45] font-extrabold flex items-center gap-1 hover:underline shrink-0"
+              className="px-2.5 py-1 rounded-lg bg-[#FAF7F2] border border-gold/20 text-[#0F4C45] font-extrabold text-[11px] flex items-center gap-1 hover:bg-gold/15 transition-colors shrink-0"
             >
-              <Compass className="w-3.5 h-3.5" /> Location
+              <Compass className="w-3 h-3 text-[#0F4C45]" /> Get Directions
             </a>
           </div>
         </div>
