@@ -1473,48 +1473,6 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
           </div>
         </div>
 
-        {/* SECTION 3: CHECK AVAILABILITY BOOKING WIDGET */}
-        {categoryType === "venue" && (
-          <div className="bg-white rounded-2xl p-4.5 sm:p-5 border border-gold/15 shadow-2xs space-y-3.5">
-            <div>
-              <h2 className="font-serif text-lg font-bold text-charcoal flex items-center gap-2">
-                <Calendar className="w-4.5 h-4.5 text-[#0F4C45]" /> Check Availability
-              </h2>
-              <p className="text-xs text-charcoal/60 mt-0.5">Select your event date to check date availability &amp; get quote</p>
-            </div>
-
-            <div className="flex flex-col sm:flex-row items-center gap-3">
-              <input
-                type="date"
-                value={calendarDateInput}
-                onChange={(e) => {
-                  setCalendarDateInput(e.target.value);
-                  const num = e.target.value ? (new Date(e.target.value).getDate() % 3) : null;
-                  if (num === 0) setCalendarDateResult("available");
-                  else if (num === 1) setCalendarDateResult("limited");
-                  else if (num === 2) setCalendarDateResult("booked");
-                }}
-                className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-4 py-3 text-xs font-bold focus:outline-none focus:border-[#0F4C45] min-h-[48px]"
-              />
-
-              <button
-                onClick={() => handleCheckAvailability(calendarDateInput)}
-                className="w-full sm:w-auto min-h-[48px] px-6 py-3 rounded-xl bg-[#0F4C45] text-white font-bold text-xs shadow-2xs hover:bg-[#083833] transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-95 shrink-0"
-              >
-                <Calendar className="w-4 h-4" /> Check Availability &amp; Message
-              </button>
-            </div>
-
-            {calendarDateResult && (
-              <div className="text-xs font-bold text-center">
-                {calendarDateResult === "available" && <div className="bg-emerald-100 border border-emerald-300 text-emerald-900 p-2.5 rounded-xl">🟢 Date Available! Reserve Now</div>}
-                {calendarDateResult === "limited" && <div className="bg-amber-100 border border-amber-300 text-amber-900 p-2.5 rounded-xl">🟠 Limited Slots Remaining</div>}
-                {calendarDateResult === "booked" && <div className="bg-rose-100 border border-rose-300 text-rose-900 p-2.5 rounded-xl">🔴 Date Fully Booked</div>}
-              </div>
-            )}
-          </div>
-        )}
-
         {/* SECTION 4: PORTFOLIO (UPLOADED PHOTOS BY VENDOR - NO SUBTITLE) */}
         {galleryPhotos.length > 0 && (
           <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
@@ -1574,6 +1532,49 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
                 </div>
               ))}
             </div>
+          </div>
+        )}
+
+        
+{/* SECTION 3: CHECK AVAILABILITY BOOKING WIDGET */}
+        {categoryType === "venue" && (
+          <div className="bg-white rounded-2xl p-4.5 sm:p-5 border border-gold/15 shadow-2xs space-y-3.5">
+            <div>
+              <h2 className="font-serif text-lg font-bold text-charcoal flex items-center gap-2">
+                <Calendar className="w-4.5 h-4.5 text-[#0F4C45]" /> Check Availability
+              </h2>
+              <p className="text-xs text-charcoal/60 mt-0.5">Select your event date to check date availability &amp; get quote</p>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-center gap-3">
+              <input
+                type="date"
+                value={calendarDateInput}
+                onChange={(e) => {
+                  setCalendarDateInput(e.target.value);
+                  const num = e.target.value ? (new Date(e.target.value).getDate() % 3) : null;
+                  if (num === 0) setCalendarDateResult("available");
+                  else if (num === 1) setCalendarDateResult("limited");
+                  else if (num === 2) setCalendarDateResult("booked");
+                }}
+                className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-4 py-3 text-xs font-bold focus:outline-none focus:border-[#0F4C45] min-h-[48px]"
+              />
+
+              <button
+                onClick={() => handleCheckAvailability(calendarDateInput)}
+                className="w-full sm:w-auto min-h-[48px] px-6 py-3 rounded-xl bg-[#0F4C45] text-white font-bold text-xs shadow-2xs hover:bg-[#083833] transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-95 shrink-0"
+              >
+                <Calendar className="w-4 h-4" /> Check Availability &amp; Message
+              </button>
+            </div>
+
+            {calendarDateResult && (
+              <div className="text-xs font-bold text-center">
+                {calendarDateResult === "available" && <div className="bg-emerald-100 border border-emerald-300 text-emerald-900 p-2.5 rounded-xl">🟢 Date Available! Reserve Now</div>}
+                {calendarDateResult === "limited" && <div className="bg-amber-100 border border-amber-300 text-amber-900 p-2.5 rounded-xl">🟠 Limited Slots Remaining</div>}
+                {calendarDateResult === "booked" && <div className="bg-rose-100 border border-rose-300 text-rose-900 p-2.5 rounded-xl">🔴 Date Fully Booked</div>}
+              </div>
+            )}
           </div>
         )}
 
