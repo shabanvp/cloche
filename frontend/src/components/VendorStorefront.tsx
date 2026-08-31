@@ -985,11 +985,24 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
     setDateErrorMsg(null);
     setEnquirySent(false);
 
-    const formattedDate = new Date(selectedDate).toLocaleDateString("en-IN", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    });
+    let formattedDate = selectedDate;
+    try {
+      if (selectedDate.includes("-")) {
+        const parts = selectedDate.split("-");
+        if (parts[0].length === 4) {
+          const [y, m, d] = parts;
+          formattedDate = `${d}/${m}/${y}`;
+        } else if (parts[2]?.length === 4) {
+          const [d, m, y] = parts;
+          formattedDate = `${d}/${m}/${y}`;
+        }
+      } else {
+        const dObj = new Date(selectedDate);
+        if (!isNaN(dObj.getTime())) {
+          formattedDate = dObj.toLocaleDateString("en-IN", { day: "2-digit", month: "2-digit", year: "numeric" });
+        }
+      }
+    } catch (e) {}
 
     const msg = `Hi ${displayName},
 
@@ -2171,6 +2184,105 @@ Thank you!`;
                 Send Request
               </button>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── CLOCHE IN-APP CHAT & ENQUIRY COMPOSER SCREEN (MATCHING REFERENCE SCREENSHOT 2) ── */}
+      {activeModal === "chat" && (
+        <div
+          onClick={() => setActiveModal(null)}
+          className="fixed inset-0 z-[9999] bg-black/75 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-3xl w-full max-w-lg h-[90vh] max-h-[720px] shadow-2xl border border-gold/20 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+          >
+            {/* Chat Top Header (Matching Reference Image) */}
+            <div className="bg-white px-4 py-3 border-b border-gray-200 flex items-center justify-between shadow-2xs shrink-0">
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setActiveModal(null)}
+                  className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-charcoal/70 hover:bg-gray-200 transition-colors cursor-pointer"
+                >
+                  <ArrowRight className="w-4 h-4 rotate-180" />
+                </button>
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-full bg-[#0F4C45] overflow-hidden flex items-center justify-center text-white text-xs font-bold shrink-0 border border-gold/20">
+                    {vendor?.logo || vendor?.logo_url ? (
+                      <img src={vendor.logo || vendor.logo_url} alt={displayName} className="w-full h-full object-cover" />
+                    ) : (
+                      displayName.slice(0, 2).toUpperCase()
+                    )}
+                  </div>
+                  <div>
+                    <h3 className="font-serif font-bold text-sm text-charcoal leading-tight line-clamp-1">{displayName}</h3>
+                    <div className="text-[10px] text-emerald-700 font-semibold flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> Active Now in Cloche
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setActiveModal(null)}
+                className="text-gray-400 hover:text-charcoal p-1 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Chat Body Background */}
+            <div className="flex-1 bg-[#F9F9F9] p-4 overflow-y-auto space-y-4">
+              <div className="text-center py-6 space-y-1">
+                <div className="w-12 h-12 rounded-full bg-emerald-50 border border-emerald-200 text-[#0F4C45] flex items-center justify-center mx-auto text-xl shadow-2xs">
+                  💬
+                </div>
+                <h4 className="font-serif font-bold text-sm text-charcoal">Cloche Vendor Enquiry</h4>
+                <p className="text-xs text-charcoal/60 max-w-xs mx-auto">
+                  Review or edit your enquiry below. Tapping Send delivers your message directly to {displayName}.
+                </p>
+              </div>
+
+              {enquirySent && (
+                <div className="bg-emerald-50 border border-emerald-300 text-emerald-900 p-4 rounded-2xl text-xs font-semibold text-center space-y-1 animate-in fade-in duration-300 shadow-2xs">
+                  <div className="text-lg font-bold">✓ Enquiry Sent!</div>
+                  <p>Your enquiry for {calendarDateInput} has been sent to {displayName}. The vendor will reply shortly in your Cloche messages.</p>
+                </div>
+              )}
+            </div>
+
+            {/* Message Composer Card (Matching Reference Screenshot 2) */}
+            <div className="p-3 bg-white border-t border-gray-200 shrink-0 space-y-2">
+              <div className="bg-[#FAF7F2] rounded-2xl p-3 border border-gold/20 space-y-2 relative shadow-inner">
+                <label className="text-[10px] uppercase font-bold text-charcoal/50 block">Your Enquiry Message (Editable)</label>
+                <textarea
+                  rows={6}
+                  value={enquiryMessage}
+                  onChange={(e) => setEnquiryMessage(e.target.value)}
+                  className="w-full bg-transparent text-xs text-charcoal leading-relaxed font-sans focus:outline-none resize-none"
+                  placeholder="Write your enquiry message..."
+                />
+                
+                <div className="flex items-center justify-between pt-2 border-t border-gold/15">
+                  <span className="text-[10px] text-charcoal/50 font-medium">Event Date: {calendarDateInput}</span>
+                  
+                  <button
+                    onClick={() => {
+                      if (!enquiryMessage.trim()) return;
+                      setEnquirySent(true);
+                      setTimeout(() => {
+                        setActiveModal(null);
+                      }, 1800);
+                    }}
+                    className="w-10 h-10 rounded-full bg-[#25D366] hover:bg-emerald-600 text-white flex items-center justify-center shadow-md active:scale-95 transition-all cursor-pointer shrink-0"
+                    title="Send Enquiry"
+                  >
+                    <Send className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}
