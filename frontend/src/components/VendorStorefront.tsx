@@ -1008,6 +1008,44 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
       }
     }
 
+    // 7. Vendor single photo fields (cover_image, hero_image, logo, etc.)
+    const singleFields = [
+      vendor?.cover_image,
+      vendor?.hero_image,
+      vendor?.image,
+      vendor?.logo,
+      vendor?.logo_url,
+      vendor?.avatar,
+      vendor?.profile_image,
+      vendor?.banner_image,
+      vendor?.image_url,
+      sf?.heroImage,
+      sf?.logoUrl
+    ];
+    for (const url of singleFields) {
+      if (isUploadedPhoto(url) && !list.some((p) => p.url === url)) {
+        list.push({ url, caption: `Showcase Photo ${list.length + 1}` });
+      }
+    }
+
+    // 8. General vendor image arrays (images, photos, media, showcase)
+    const arrayFields = [vendor?.images, vendor?.photos, vendor?.media, vendor?.showcase];
+    for (const arr of arrayFields) {
+      if (Array.isArray(arr)) {
+        for (const item of arr) {
+          const url = typeof item === "string" ? item : item?.url || item?.image || item?.image_url;
+          if (isUploadedPhoto(url) && !list.some((p) => p.url === url)) {
+            list.push({ url, caption: `Showcase Photo ${list.length + 1}` });
+          }
+        }
+      }
+    }
+
+    // Fallback: If no uploaded photo found, include default showcase image so Portfolio section is always visible
+    if (list.length === 0) {
+      list.push({ url: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=1200&q=80", caption: "Showcase Venue Photo" });
+    }
+
     return list;
   }, [sf.gallery, vendor]);
 
