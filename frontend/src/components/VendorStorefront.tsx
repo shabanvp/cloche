@@ -1016,46 +1016,18 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
   const reviewsCount = Number(vendor?.reviews || vendor?.userReviews?.length || 0);
 
   // Handlers
-    const handleCheckAvailability = (dateOverride?: string) => {
+  const handleCheckAvailability = (dateOverride?: string) => {
     const selectedDate = dateOverride || calendarDateInput;
-    if (!selectedDate || selectedDate.trim() === "") {
-      setDateErrorMsg("Please select your preferred event date.");
-      return;
-    }
     setDateErrorMsg(null);
     setEnquirySent(false);
 
-    let formattedDate = selectedDate;
-    try {
-      if (selectedDate.includes("-")) {
-        const parts = selectedDate.split("-");
-        if (parts[0].length === 4) {
-          const [y, m, d] = parts;
-          formattedDate = `${d}/${m}/${y}`;
-        } else if (parts[2]?.length === 4) {
-          const [d, m, y] = parts;
-          formattedDate = `${d}/${m}/${y}`;
-        }
-      } else {
-        const dObj = new Date(selectedDate);
-        if (!isNaN(dObj.getTime())) {
-          formattedDate = dObj.toLocaleDateString("en-IN", { day: "2-digit", month: "2-digit", year: "numeric" });
-        }
-      }
-    } catch (e) {}
-
-    const msg = `Hi ${displayName},
-
-I'm interested in booking your venue for my wedding.
-
-Preferred Event Date:
-${formattedDate}
-
-Could you please let me know if this date is available and share your pricing, packages, and any other relevant details?
-
-Looking forward to hearing from you.
-
-Thank you!`;
+    let msg = "";
+    if (selectedDate && selectedDate.trim()) {
+      const formattedDate = formatDateSafe(selectedDate);
+      msg = `Hi ${displayName},\n\nI'm interested in booking your venue for my wedding.\n\nPreferred Event Date:\n${formattedDate}\n\nCould you please let me know if this date is available and share your pricing, packages, and any other relevant details?\n\nLooking forward to hearing from you.\n\nThank you!`;
+    } else {
+      msg = `Hi ${displayName},\n\nI'm interested in your wedding services and package pricing. Could you please share your brochure, pricing details, and availability?\n\nThank you!`;
+    }
 
     setEnquiryMessage(msg);
     setActiveModal("chat");
@@ -1637,12 +1609,6 @@ Thank you!`;
                 <Calendar className="w-4 h-4" /> Check Availability &amp; Message
               </button>
             </div>
-
-            {dateErrorMsg && (
-              <div className="text-xs font-bold text-rose-700 bg-rose-50 border border-rose-200 p-3 rounded-xl flex items-center gap-2">
-                <span>⚠️</span> <span>{dateErrorMsg}</span>
-              </div>
-            )}
           </div>
         )}
 
