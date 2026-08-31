@@ -88,7 +88,10 @@ export interface VendorStorefrontProps {
 
 export function VendorStorefront({ vendor, storefront: propStorefront, previewMode = false }: VendorStorefrontProps) {
   const [isWishlisted, setIsWishlisted] = useState(false);
-  const [activeModal, setActiveModal] = useState<null | "quote" | "appointment" | "share">(null);
+  const [activeModal, setActiveModal] = useState<null | "quote" | "appointment" | "share" | "chat">(null);
+  const [dateErrorMsg, setDateErrorMsg] = useState<string | null>(null);
+  const [enquiryMessage, setEnquiryMessage] = useState<string>("");
+  const [enquirySent, setEnquirySent] = useState<boolean>(false);
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
 
   // Quote form state
@@ -974,18 +977,35 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
 
   // Handlers
     const handleCheckAvailability = (dateOverride?: string) => {
-    const targetDate = dateOverride || calendarDateInput || quoteDate || new Date(Date.now() + 86400000 * 30).toISOString().split("T")[0];
-    const userDisplayName = quoteName ? quoteName.trim() : "Bride / Groom";
-    const autoMessage = `Hi ${displayName}, my name is ${userDisplayName}. I am interested in booking ${displayName} for an event on ${targetDate}. Is your venue available on this date? Please let me know availability and pricing details. Thank you!`;
-
-    setQuoteDate(targetDate);
-    setQuoteNotes(autoMessage);
-
-    const cleanNum = whatsapp ? whatsapp.replace(/[^0-9]/g, "") : (phone ? phone.replace(/[^0-9]/g, "") : "");
-    if (cleanNum && !previewMode) {
-      window.open(`https://wa.me/${cleanNum}?text=${encodeURIComponent(autoMessage)}`, "_blank");
+    const selectedDate = dateOverride || calendarDateInput;
+    if (!selectedDate || selectedDate.trim() === "") {
+      setDateErrorMsg("Please select your preferred event date.");
+      return;
     }
-    setActiveModal("quote");
+    setDateErrorMsg(null);
+    setEnquirySent(false);
+
+    const formattedDate = new Date(selectedDate).toLocaleDateString("en-IN", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+
+    const msg = `Hi ${displayName},
+
+I'm interested in booking your venue for my wedding.
+
+Preferred Event Date:
+${formattedDate}
+
+Could you please let me know if this date is available and share your pricing, packages, and any other relevant details?
+
+Looking forward to hearing from you.
+
+Thank you!`;
+
+    setEnquiryMessage(msg);
+    setActiveModal("chat");
   };
 
   const handleShare = () => {
@@ -1536,14 +1556,14 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
         )}
 
         
-{/* SECTION 3: CHECK AVAILABILITY BOOKING WIDGET */}
+{/* SECTION 3: CHECK AVAILABILITY & ENQUIRY COMPOSER WIDGET */}
         {categoryType === "venue" && (
           <div className="bg-white rounded-2xl p-4.5 sm:p-5 border border-gold/15 shadow-2xs space-y-3.5">
             <div>
               <h2 className="font-serif text-lg font-bold text-charcoal flex items-center gap-2">
                 <Calendar className="w-4.5 h-4.5 text-[#0F4C45]" /> Check Availability
               </h2>
-              <p className="text-xs text-charcoal/60 mt-0.5">Select your event date to check date availability &amp; get quote</p>
+              <p className="text-xs text-charcoal/60 mt-0.5">Select your preferred event date to send an enquiry to the vendor</p>
             </div>
 
             <div className="flex flex-col sm:flex-row items-center gap-3">
@@ -1552,10 +1572,7 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
                 value={calendarDateInput}
                 onChange={(e) => {
                   setCalendarDateInput(e.target.value);
-                  const num = e.target.value ? (new Date(e.target.value).getDate() % 3) : null;
-                  if (num === 0) setCalendarDateResult("available");
-                  else if (num === 1) setCalendarDateResult("limited");
-                  else if (num === 2) setCalendarDateResult("booked");
+                  if (e.target.value) setDateErrorMsg(null);
                 }}
                 className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl px-4 py-3 text-xs font-bold focus:outline-none focus:border-[#0F4C45] min-h-[48px]"
               />
@@ -1568,11 +1585,9 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
               </button>
             </div>
 
-            {calendarDateResult && (
-              <div className="text-xs font-bold text-center">
-                {calendarDateResult === "available" && <div className="bg-emerald-100 border border-emerald-300 text-emerald-900 p-2.5 rounded-xl">🟢 Date Available! Reserve Now</div>}
-                {calendarDateResult === "limited" && <div className="bg-amber-100 border border-amber-300 text-amber-900 p-2.5 rounded-xl">🟠 Limited Slots Remaining</div>}
-                {calendarDateResult === "booked" && <div className="bg-rose-100 border border-rose-300 text-rose-900 p-2.5 rounded-xl">🔴 Date Fully Booked</div>}
+            {dateErrorMsg && (
+              <div className="text-xs font-bold text-rose-700 bg-rose-50 border border-rose-200 p-3 rounded-xl flex items-center gap-2">
+                <span>⚠️</span> <span>{dateErrorMsg}</span>
               </div>
             )}
           </div>
