@@ -2432,146 +2432,153 @@ export function VendorStorefront({ vendor, storefront: propStorefront, previewMo
         </div>
       )}
 
-      {/* ── CLOCHE IN-APP FULL-SCREEN CHAT & ENQUIRY SCREEN ── */}
+      {/* ── CLOCHE IN-APP CHAT & ENQUIRY SCREEN (DESKTOP OPTIMIZED, MOBILE FULLSCREEN) ── */}
       {activeModal === "chat" && (
-        <div className="fixed inset-0 z-[9999] bg-[#FAF7F2] w-screen h-screen flex flex-col overflow-hidden animate-in fade-in duration-200">
-          
-          {/* Top Full-Width Header */}
-          <div className="bg-[#0F4C45] text-white px-4 py-3 flex items-center justify-between shadow-md shrink-0 border-b border-gold/20">
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => setActiveModal(null)}
-                className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors cursor-pointer"
-                title="Back to Storefront"
-              >
-                <ArrowRight className="w-5 h-5 rotate-180" />
-              </button>
-
+        <div
+          onClick={() => setActiveModal(null)}
+          className="fixed inset-0 z-[9999] bg-black/60 md:bg-black/75 backdrop-blur-md flex items-center justify-center p-0 md:p-6 animate-in fade-in duration-200"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-[#FAF7F2] w-full h-full md:h-[90vh] md:max-h-[840px] md:max-w-2xl lg:max-w-3xl md:rounded-3xl shadow-2xl border border-gold/20 flex flex-col overflow-hidden relative"
+          >
+            {/* Top Header */}
+            <div className="bg-[#0F4C45] text-white px-4 py-3.5 flex items-center justify-between shadow-md shrink-0 border-b border-gold/20">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-white/20 overflow-hidden flex items-center justify-center text-white text-sm font-bold shrink-0 border border-gold/30">
-                  {vendor?.logo || vendor?.logo_url ? (
-                    <img src={vendor.logo || vendor.logo_url} alt={displayName} className="w-full h-full object-cover" />
-                  ) : (
-                    displayName.slice(0, 2).toUpperCase()
-                  )}
-                </div>
-                <div>
-                  <h3 className="font-serif font-bold text-base text-white leading-tight line-clamp-1">{displayName}</h3>
-                  <div className="text-[11px] text-emerald-200 font-medium flex items-center gap-1.5 mt-0.5">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                    <span>Active Now</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <button
-              onClick={() => setActiveModal(null)}
-              className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors cursor-pointer"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-
-          {/* Chat Messages Body Area (Clean Thread View) */}
-          <div className="flex-1 bg-[#F5F2EB] p-4 overflow-y-auto space-y-3">
-            {chatMessages.length === 0 ? (
-              <div className="text-center py-6 space-y-1 max-w-sm mx-auto">
-                <p className="text-xs text-charcoal/60 leading-relaxed font-medium">
-                  Send your enquiry below. Your message will be stored here and delivered directly to {displayName}.
-                </p>
-              </div>
-            ) : (
-              chatMessages.map((msg) => (
-                <div
-                  key={msg.id}
-                  className={`flex flex-col ${msg.sender === "user" ? "items-end" : "items-start"} space-y-1 animate-in fade-in duration-300`}
+                <button
+                  onClick={() => setActiveModal(null)}
+                  className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors cursor-pointer"
+                  title="Back to Storefront"
                 >
-                  <div
-                    className={`p-3.5 rounded-2xl text-xs sm:text-sm leading-relaxed max-w-[88%] sm:max-w-[75%] shadow-xs ${
-                      msg.sender === "user"
-                        ? "bg-[#0F4C45] text-white rounded-tr-none font-sans"
-                        : "bg-white text-charcoal border border-gold/20 rounded-tl-none font-sans"
-                    }`}
-                  >
-                    <p className="whitespace-pre-wrap">{msg.text}</p>
-                    <div className={`flex items-center justify-end gap-1 mt-1.5 text-[10px] ${msg.sender === "user" ? "text-emerald-200" : "text-charcoal/50"}`}>
-                      <span>{msg.time}</span>
-                      {msg.sender === "user" && <span>✓✓</span>}
+                  <ArrowRight className="w-5 h-5 rotate-180" />
+                </button>
+
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-white/20 overflow-hidden flex items-center justify-center text-white text-sm font-bold shrink-0 border border-gold/30">
+                    {vendor?.logo || vendor?.logo_url ? (
+                      <img src={vendor.logo || vendor.logo_url} alt={displayName} className="w-full h-full object-cover" />
+                    ) : (
+                      displayName.slice(0, 2).toUpperCase()
+                    )}
+                  </div>
+                  <div>
+                    <h3 className="font-serif font-bold text-base text-white leading-tight line-clamp-1">{displayName}</h3>
+                    <div className="text-[11px] text-emerald-200 font-medium flex items-center gap-1.5 mt-0.5">
+                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                      <span>Active Now</span>
                     </div>
                   </div>
                 </div>
-              ))
-            )}
-          </div>
+              </div>
 
-          {/* Clean Message Composer Box */}
-          <div className="bg-white border-t border-gold/20 p-3 sm:p-4 shrink-0 shadow-lg">
-            <div className="max-w-4xl mx-auto space-y-2">
-              <div className="bg-[#FAF7F2] rounded-2xl p-3 border border-gold/25 space-y-2 relative shadow-inner">
-                <div className="flex items-center justify-between text-[10px] font-bold text-charcoal/60 uppercase tracking-wider">
-                  <span>Enquiry Message (Editable)</span>
+              <button
+                onClick={() => setActiveModal(null)}
+                className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Chat Messages Body Area (Clean Thread View) */}
+            <div className="flex-1 bg-[#F5F2EB] p-4 sm:p-5 overflow-y-auto space-y-3.5">
+              {chatMessages.length === 0 ? (
+                <div className="text-center py-8 space-y-2 max-w-sm mx-auto">
+                  <p className="text-xs sm:text-sm text-charcoal/60 leading-relaxed font-medium">
+                    Send your enquiry below. Your message will be stored here and delivered directly to {displayName}.
+                  </p>
                 </div>
+              ) : (
+                chatMessages.map((msg) => (
+                  <div
+                    key={msg.id}
+                    className={`flex flex-col ${msg.sender === "user" ? "items-end" : "items-start"} space-y-1 animate-in fade-in duration-300`}
+                  >
+                    <div
+                      className={`p-3.5 sm:p-4 rounded-2xl text-xs sm:text-sm leading-relaxed max-w-[88%] sm:max-w-[78%] md:max-w-[70%] shadow-xs ${
+                        msg.sender === "user"
+                          ? "bg-[#0F4C45] text-white rounded-tr-none font-sans"
+                          : "bg-white text-charcoal border border-gold/20 rounded-tl-none font-sans"
+                      }`}
+                    >
+                      <p className="whitespace-pre-wrap">{msg.text}</p>
+                      <div className={`flex items-center justify-end gap-1 mt-1.5 text-[10px] ${msg.sender === "user" ? "text-emerald-200" : "text-charcoal/50"}`}>
+                        <span>{msg.time}</span>
+                        {msg.sender === "user" && <span>✓✓</span>}
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
 
-                <textarea
-                  rows={4}
-                  value={enquiryMessage}
-                  onChange={(e) => setEnquiryMessage(e.target.value)}
-                  className="w-full bg-transparent text-xs sm:text-sm text-charcoal leading-relaxed font-sans focus:outline-none resize-none"
-                  placeholder="Write your enquiry message..."
-                />
-
-                <div className="flex items-center justify-between pt-2 border-t border-gold/15">
-                  <div className="text-[11px] font-bold text-[#0F4C45]">
-                    📅 Preferred Date: {formatDateSafe(calendarDateInput)}
+            {/* Clean Message Composer Box */}
+            <div className="bg-white border-t border-gold/20 p-3 sm:p-4 shrink-0 shadow-lg">
+              <div className="space-y-2">
+                <div className="bg-[#FAF7F2] rounded-2xl p-3 border border-gold/25 space-y-2 relative shadow-inner">
+                  <div className="flex items-center justify-between text-[10px] font-bold text-charcoal/60 uppercase tracking-wider">
+                    <span>Enquiry Message (Editable)</span>
                   </div>
 
-                  <button
-                    onClick={() => {
-                      if (!enquiryMessage.trim()) return;
-                      const userMsgText = enquiryMessage.trim();
-                      const nowTime = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-                      const newMsg = { id: `user-${Date.now()}`, sender: "user" as const, text: userMsgText, time: nowTime };
+                  <textarea
+                    rows={3}
+                    value={enquiryMessage}
+                    onChange={(e) => setEnquiryMessage(e.target.value)}
+                    className="w-full bg-transparent text-xs sm:text-sm text-charcoal leading-relaxed font-sans focus:outline-none resize-none"
+                    placeholder="Write your enquiry message..."
+                  />
 
-                      // Save user message to state & localStorage
-                      const updatedMessages = [...chatMessages, newMsg];
-                      setChatMessages(updatedMessages);
-                      setEnquirySent(true);
-                      setEnquiryMessage("");
+                  <div className="flex items-center justify-between pt-2 border-t border-gold/15">
+                    <div className="text-[11px] font-bold text-[#0F4C45]">
+                      {calendarDateInput ? `📅 Preferred Date: ${formatDateSafe(calendarDateInput)}` : "💬 General Enquiry"}
+                    </div>
 
-                      try {
-                        const key = `cloche_vendor_chat_${vendor?.id || "default"}`;
-                        localStorage.setItem(key, JSON.stringify(updatedMessages));
-                      } catch (e) {}
+                    <button
+                      onClick={() => {
+                        if (!enquiryMessage.trim()) return;
+                        const userMsgText = enquiryMessage.trim();
+                        const nowTime = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+                        const newMsg = { id: `user-${Date.now()}`, sender: "user" as const, text: userMsgText, time: nowTime };
 
-                      // Simulate vendor response after 1.5s & save to localStorage
-                      setTimeout(() => {
-                        const vendorReply = {
-                          id: `vendor-${Date.now()}`,
-                          sender: "vendor" as const,
-                          text: `Hi! Thank you for reaching out to ${displayName}. We have received your enquiry for ${formatDateSafe(calendarDateInput)}. Our team is reviewing availability and will reply with full details & package options shortly.`,
-                          time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-                        };
-                        setChatMessages((prev) => {
-                          const withReply = [...prev, vendorReply];
-                          try {
-                            const key = `cloche_vendor_chat_${vendor?.id || "default"}`;
-                            localStorage.setItem(key, JSON.stringify(withReply));
-                          } catch (e) {}
-                          return withReply;
-                        });
-                      }, 1500);
-                    }}
-                    className="px-5 py-2.5 rounded-full bg-[#25D366] hover:bg-emerald-600 text-white font-extrabold text-xs shadow-md active:scale-95 transition-all cursor-pointer flex items-center gap-2 shrink-0"
-                  >
-                    <span>Send Message</span>
-                    <Send className="w-4 h-4" />
-                  </button>
+                        // Save user message to state & localStorage
+                        const updatedMessages = [...chatMessages, newMsg];
+                        setChatMessages(updatedMessages);
+                        setEnquirySent(true);
+                        setEnquiryMessage("");
+
+                        try {
+                          const key = `cloche_vendor_chat_${vendor?.id || "default"}`;
+                          localStorage.setItem(key, JSON.stringify(updatedMessages));
+                        } catch (e) {}
+
+                        // Simulate vendor response after 1.5s & save to localStorage
+                        setTimeout(() => {
+                          const vendorReply = {
+                            id: `vendor-${Date.now()}`,
+                            sender: "vendor" as const,
+                            text: `Hi! Thank you for reaching out to ${displayName}. We have received your enquiry. Our team is reviewing details and will reply with full pricing & package options shortly.`,
+                            time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+                          };
+                          setChatMessages((prev) => {
+                            const withReply = [...prev, vendorReply];
+                            try {
+                              const key = `cloche_vendor_chat_${vendor?.id || "default"}`;
+                              localStorage.setItem(key, JSON.stringify(withReply));
+                            } catch (e) {}
+                            return withReply;
+                          });
+                        }, 1500);
+                      }}
+                      className="px-5 py-2.5 rounded-full bg-[#25D366] hover:bg-emerald-600 text-white font-extrabold text-xs shadow-md active:scale-95 transition-all cursor-pointer flex items-center gap-2 shrink-0"
+                    >
+                      <span>Send Message</span>
+                      <Send className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
 
+          </div>
         </div>
       )}
 
