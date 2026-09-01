@@ -724,16 +724,39 @@ export async function PUT(req: Request) {
         updated_at: new Date().toISOString(),
       };
 
-      await fetch(`${url}/rest/v1/${extensionTable}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          apikey: apiKey,
-          Authorization: `Bearer ${apiKey}`,
-          Prefer: "resolution=merge-duplicates",
-        },
-        body: JSON.stringify(extPayload),
-      }).catch(() => null);
+      // Check if extension row exists in Supabase for this vendor
+      const checkExtRes = await fetch(
+        `${url}/rest/v1/${extensionTable}?vendor_id=eq.${encodeURIComponent(vendorId)}&select=id,vendor_id`,
+        { headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` } }
+      ).catch(() => null);
+
+      let extExists = false;
+      if (checkExtRes && checkExtRes.ok) {
+        const extRows = await checkExtRes.json();
+        if (Array.isArray(extRows) && extRows.length > 0) extExists = true;
+      }
+
+      if (extExists) {
+        await fetch(`${url}/rest/v1/${extensionTable}?vendor_id=eq.${encodeURIComponent(vendorId)}`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            apikey: apiKey,
+            Authorization: `Bearer ${apiKey}`,
+          },
+          body: JSON.stringify(extPayload),
+        }).catch((err) => console.error(`[PUT profile] Patch ${extensionTable} failed:`, err));
+      } else {
+        await fetch(`${url}/rest/v1/${extensionTable}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            apikey: apiKey,
+            Authorization: `Bearer ${apiKey}`,
+          },
+          body: JSON.stringify(extPayload),
+        }).catch((err) => console.error(`[PUT profile] Post ${extensionTable} failed:`, err));
+      }
     }
 
     // 5. Create Draft Version Metadata in vendor_profile_versions
