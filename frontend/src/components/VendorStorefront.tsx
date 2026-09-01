@@ -101,34 +101,27 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
 
   React.useEffect(() => {
     if (typeof window === "undefined") return;
-    const syncFromStorage = () => {
+    
+    // Only merge local storage if previewMode is true (live dashboard customization preview on same device)
+    if (previewMode) {
       try {
         const rawActive = localStorage.getItem("cloche_active_vendor_identity");
-        const rawCustom = initialVendor?.id ? localStorage.getItem(`cloche_vendor_customization_${initialVendor.id}`) : null;
         const activeData = rawActive ? JSON.parse(rawActive) : null;
-        const customData = rawCustom ? JSON.parse(rawCustom) : null;
-
-        if (customData) {
-          setLiveVendor((prev: any) => ({ ...prev, ...customData }));
-        } else if (activeData) {
+        if (activeData && (activeData.id === initialVendor?.id || !initialVendor?.id)) {
           setLiveVendor((prev: any) => ({ ...prev, ...activeData }));
         }
       } catch (e) {}
-    };
-
-    syncFromStorage();
+    }
 
     const handleUpdate = (e: any) => {
       if (e.detail) {
         setLiveVendor((prev: any) => ({ ...prev, ...e.detail }));
-      } else {
-        syncFromStorage();
       }
     };
 
     window.addEventListener("cloche_vendor_profile_updated", handleUpdate);
     return () => window.removeEventListener("cloche_vendor_profile_updated", handleUpdate);
-  }, [initialVendor?.id]);
+  }, [initialVendor?.id, previewMode]);
 
   const vendor = liveVendor;
   const [isWishlisted, setIsWishlisted] = useState(false);

@@ -258,6 +258,17 @@ export async function syncVendorProfileWithDatabase(
         }
         const tokenMatch = cookieStr.match(/(?:^|;\s*)auth_token=([^;]*)/);
         if (tokenMatch && tokenMatch[1]) extraHeaders["x-auth-token"] = tokenMatch[1];
+
+        // Mobile fallback for auth headers from localStorage
+        const activeRaw = localStorage.getItem("cloche_active_vendor_identity");
+        if (activeRaw) {
+          const activeVendor = JSON.parse(activeRaw);
+          if (activeVendor?.id && !extraHeaders["x-user-id"]) extraHeaders["x-user-id"] = activeVendor.id;
+          if (activeVendor?.email && !extraHeaders["x-user-email"]) extraHeaders["x-user-email"] = activeVendor.email;
+          if (activeVendor?.user_id && !extraHeaders["x-user-id"]) extraHeaders["x-user-id"] = activeVendor.user_id;
+        }
+        const storedToken = localStorage.getItem("auth_token");
+        if (storedToken && !extraHeaders["x-auth-token"]) extraHeaders["x-auth-token"] = storedToken;
       } catch (_) {}
 
       const payload = {
