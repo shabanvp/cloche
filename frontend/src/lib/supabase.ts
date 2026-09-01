@@ -1222,21 +1222,30 @@ async function resolvePublicVendor(identifier: string) {
   const id = encodeURIComponent(identifier);
 
   if (UUID_RE.test(identifier)) {
-    const byId = await supabaseFetch(`vendors?id=eq.${id}&deleted_at=is.null&status=eq.active&select=*,vendor_categories(name,slug)`);
+    const byId = await supabaseFetch(`vendors?id=eq.${id}&deleted_at=is.null&select=*,vendor_categories(name,slug)`);
     const vendor = firstRow(byId.data);
     if (vendor) return { vendor, error: null };
   }
 
-  const byCode = await supabaseFetch(`vendors?vendor_code=eq.${id}&deleted_at=is.null&status=eq.active&select=*,vendor_categories(name,slug)`);
+  const byCode = await supabaseFetch(`vendors?vendor_code=eq.${id}&deleted_at=is.null&select=*,vendor_categories(name,slug)`);
   const codeVendor = firstRow(byCode.data);
   if (codeVendor) return { vendor: codeVendor, error: null };
 
   const byProfileSlug = await supabaseFetch(`vendor_profiles?slug=eq.${id}&select=vendor_id`);
   const profileSlug = firstRow(byProfileSlug.data);
   if (profileSlug?.vendor_id) {
-    const byVendorId = await supabaseFetch(`vendors?id=eq.${encodeURIComponent(profileSlug.vendor_id)}&deleted_at=is.null&status=eq.active&select=*,vendor_categories(name,slug)`);
+    const byVendorId = await supabaseFetch(`vendors?id=eq.${encodeURIComponent(profileSlug.vendor_id)}&deleted_at=is.null&select=*,vendor_categories(name,slug)`);
     const vendor = firstRow(byVendorId.data);
     if (vendor) return { vendor, error: null };
+  }
+
+  // Fallback direct vendor_profiles id lookup
+  const byProfileId = await supabaseFetch(`vendor_profiles?id=eq.${id}&select=*,vendor_id`);
+  const profRow = firstRow(byProfileId.data);
+  if (profRow?.vendor_id) {
+    const byV = await supabaseFetch(`vendors?id=eq.${encodeURIComponent(profRow.vendor_id)}&select=*,vendor_categories(name,slug)`);
+    const v = firstRow(byV.data);
+    if (v) return { vendor: v, error: null };
   }
 
   return { vendor: null, error: byProfileSlug.error || byCode.error || null };
