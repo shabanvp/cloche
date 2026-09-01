@@ -1681,7 +1681,7 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
             </div>
 
             {/* Clean 4-Photo Grid Preview */}
-            <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 sm:gap-3">
               {galleryPhotos.slice(0, 4).map((photo, i) => (
                 <div
                   key={i}
