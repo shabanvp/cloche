@@ -489,10 +489,17 @@ export function VenueCustomizeStoreSection({
     try {
       setIsSaving(true);
 
-      const displayName = venueNameState.trim() || vendorName || "Royal Orchid Palace & Banquets";
+      const activeVendor = getActiveVendorIdentity() || {};
+      const targetId = vendorData?.id || activeVendor?.id || "venue-1";
+      const displayName = venueNameState.trim() || vendorName || activeVendor?.name || activeVendor?.boutique_name || "Royal Orchid Palace & Banquets";
       const fullLocation = [address.trim(), district.trim(), stateName.trim()].filter(Boolean).join(", ");
 
       const payload: Partial<VendorProfileData> & Record<string, any> = {
+        id: targetId,
+        category: "venue",
+        categorySlug: "venues",
+        categoryLabel: "Wedding Venues",
+
         // 1. Basic Information
         name: displayName,
         boutique_name: displayName,
@@ -576,7 +583,16 @@ export function VenueCustomizeStoreSection({
         contact_preferences: contactPreferences,
       };
 
-      // Persist to Supabase Database & Active Identity
+      // 1. Instantly save to local storage for immediate updates across all views
+      try {
+        const updatedVendor = { ...activeVendor, ...payload };
+        localStorage.setItem("cloche_active_vendor_identity", JSON.stringify(updatedVendor));
+        localStorage.setItem(`cloche_vendor_customization_${targetId}`, JSON.stringify(updatedVendor));
+        localStorage.setItem("cloche_venue_customization", JSON.stringify(updatedVendor));
+        window.dispatchEvent(new CustomEvent("cloche_vendor_profile_updated", { detail: updatedVendor }));
+      } catch (e) {}
+
+      // 2. Persist to Supabase Database
       await syncVendorProfileWithDatabase(payload);
 
       showVendorToast("✓ Venue Store Customization saved successfully!", "success");

@@ -92,7 +92,45 @@ export interface VendorStorefrontProps {
   previewMode?: boolean;
 }
 
-export function VendorStorefront({ vendor, storefront: propStorefront, previewMode = false }: VendorStorefrontProps) {
+export function VendorStorefront({ vendor: initialVendor, storefront: propStorefront, previewMode = false }: VendorStorefrontProps) {
+  const [liveVendor, setLiveVendor] = useState(initialVendor);
+
+  React.useEffect(() => {
+    setLiveVendor(initialVendor);
+  }, [initialVendor]);
+
+  React.useEffect(() => {
+    if (typeof window === "undefined") return;
+    const syncFromStorage = () => {
+      try {
+        const rawActive = localStorage.getItem("cloche_active_vendor_identity");
+        const rawCustom = initialVendor?.id ? localStorage.getItem(`cloche_vendor_customization_${initialVendor.id}`) : null;
+        const activeData = rawActive ? JSON.parse(rawActive) : null;
+        const customData = rawCustom ? JSON.parse(rawCustom) : null;
+
+        if (customData) {
+          setLiveVendor((prev: any) => ({ ...prev, ...customData }));
+        } else if (activeData) {
+          setLiveVendor((prev: any) => ({ ...prev, ...activeData }));
+        }
+      } catch (e) {}
+    };
+
+    syncFromStorage();
+
+    const handleUpdate = (e: any) => {
+      if (e.detail) {
+        setLiveVendor((prev: any) => ({ ...prev, ...e.detail }));
+      } else {
+        syncFromStorage();
+      }
+    };
+
+    window.addEventListener("cloche_vendor_profile_updated", handleUpdate);
+    return () => window.removeEventListener("cloche_vendor_profile_updated", handleUpdate);
+  }, [initialVendor?.id]);
+
+  const vendor = liveVendor;
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [activeModal, setActiveModal] = useState<null | "quote" | "appointment" | "share" | "chat">(null);
   const [dateErrorMsg, setDateErrorMsg] = useState<string | null>(null);
