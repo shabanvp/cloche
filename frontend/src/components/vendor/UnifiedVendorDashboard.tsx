@@ -196,13 +196,8 @@ export function UnifiedVendorDashboard({ categoryKey = "caterers", initialTab = 
       { id: "profile", label: "Profile", icon: Store, desc: "Business details, contact info, operating location & basic info" },
       { id: "venue-facilities", label: "Venue Facilities", icon: Layers, desc: "Manage banquet halls, outdoor lawns, bridal suites & guest capacity" },
       { id: "venue-packages", label: "Event Packages", icon: Package, desc: "Day/evening rental packages, plate rates, per-event pricing tiers" },
-      { id: "venue-payments", label: "Payment Management", icon: CreditCard, desc: "Advance payments, balance due dates, damage deposits & invoices" },
-      { id: "venue-staff", label: "Staff Management", icon: Users, desc: "Event coordinators, floor managers, banquet staff & security personnel" },
       { id: "venue-reviews", label: "Customer Reviews", icon: Star, desc: "Client reviews, couple testimonials & venue ratings" },
-      { id: "venue-documents", label: "Documents & Licenses", icon: FileText, desc: "Fire safety NOC, trade license, FSSAI / excise permits & contracts" },
-      { id: "venue-notifications", label: "Notifications Center", icon: Bell, desc: "Inquiry alerts & payment notifications" },
       { id: "venue-analytics", label: "Venue Performance Analytics", icon: BarChart3, desc: "Profile views & popular wedding months" },
-      { id: "offers", label: "Offers & Deals", icon: Tag, desc: "Seasonal packages, weekday discounts & early bird wedding deals" },
       { id: "subscription", label: "Subscription", icon: CreditCard, desc: "Current plan details & membership billing" },
       { id: "customize-store", label: "Customize Store", icon: StorePalette, desc: "Venue logo, cover photo, badges, facilities, brand theme & live preview" },
     ];
