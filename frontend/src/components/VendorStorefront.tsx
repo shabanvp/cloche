@@ -1998,7 +1998,7 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
             </Link>
           </div>
 
-          <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
             {similarStudios.slice(0, 3).map((item: any) => (
               <div key={item.id} className="rounded-2xl border border-gold/15 bg-white overflow-hidden shadow-2xs p-3 space-y-2.5">
                 {/* Hero Photo with Crown Badge & Bookmark */}
