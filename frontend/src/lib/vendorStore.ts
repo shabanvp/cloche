@@ -345,14 +345,16 @@ export async function syncVendorProfileWithDatabase(
 
       console.log("[RUNTIME_TRACE 2b] syncVendorProfileWithDatabase extraHeaders:", extraHeaders, "payload.profile.about:", payload.profile?.about);
 
+      const method = profileData.section ? "PATCH" : "PUT";
       const res = await fetch("/api/v1/vendor/profile", {
-        method: "PUT",
+        method,
         headers: extraHeaders,
         body: JSON.stringify(payload),
       });
 
       if (res.ok) {
         inFlightProfileFetch = null;
+        const json = await res.json().catch(() => ({}));
         try {
           const raw = localStorage.getItem("cloche_active_vendor_identity");
           const existing = raw ? JSON.parse(raw) : {};
@@ -369,10 +371,14 @@ export async function syncVendorProfileWithDatabase(
         } catch (_) {}
 
         await fetchAuthenticatedVendorFromDb();
-        return { success: true };
+        return { success: true, data: json.data || json };
+      } else {
+        const errJson = await res.json().catch(() => ({}));
+        return { success: false, data: errJson?.error || errJson };
       }
-    } catch (e) {
+    } catch (e: any) {
       console.error("[vendorStore] Sync error:", e);
+      return { success: false, data: { message: e.message } };
     }
   }
   return { success: false };

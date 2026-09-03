@@ -35,9 +35,13 @@ import {
   Sparkle,
   PenSquare,
   MessageSquare,
-  User
+  User,
+  Edit3,
+  LayoutDashboard,
 } from "lucide-react";
 import { COLOR_THEMES, ColorThemeOption } from "@/components/vendor/sections/CustomizeStoreSection";
+import { useVendorProfileEditor } from "@/hooks/useVendorProfileEditor";
+import { SectionDrawerLauncher } from "@/components/vendor/SectionDrawerLauncher";
 
 export type VendorCategoryType =
   | "venue"
@@ -86,14 +90,29 @@ export interface VendorStorefrontProps {
   storefront?: any;
   previewMode?: boolean;
 }
-export interface VendorStorefrontProps {
-  vendor: any;
-  storefront?: any;
-  previewMode?: boolean;
-}
 
 export function VendorStorefront({ vendor: initialVendor, storefront: propStorefront, previewMode = false }: VendorStorefrontProps) {
   const [liveVendor, setLiveVendor] = useState(initialVendor);
+  const vendor = liveVendor;
+
+  // ── INTEGRATE OWNER PROFILE LIVE EDITOR HOOK ──
+  const editorState = useVendorProfileEditor(vendor);
+  const {
+    isOwner,
+    editMode,
+    previewAsCustomer,
+    showOwnerControls,
+    activeSectionKey,
+    saveStatusMap,
+    lastSavedTime,
+    statusMessage,
+    setEditMode,
+    setPreviewAsCustomer,
+    openSectionEditor,
+    closeSectionEditor,
+    saveSection,
+    retrySectionSave,
+  } = editorState;
 
   if (typeof window !== "undefined") {
     console.log("[RUNTIME_TRACE 5d] VendorStorefront received initialVendor.about:", initialVendor?.about, "id:", initialVendor?.id);
@@ -123,11 +142,10 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
       }
     };
 
-    window.addEventListener("cloche_vendor_profile_updated", handleUpdate);
+  window.addEventListener("cloche_vendor_profile_updated", handleUpdate);
     return () => window.removeEventListener("cloche_vendor_profile_updated", handleUpdate);
   }, [initialVendor?.id, previewMode]);
 
-  const vendor = liveVendor;
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [activeModal, setActiveModal] = useState<null | "quote" | "appointment" | "share" | "chat">(null);
   const [dateErrorMsg, setDateErrorMsg] = useState<string | null>(null);
@@ -1311,6 +1329,61 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
 
   return (
     <div className="w-full bg-[#FBF8F1] text-charcoal font-sans antialiased min-h-screen pb-24">
+      
+      {/* ── STICKY OWNER MANAGEMENT TOOLBAR (VISIBLE ONLY FOR PROFILE OWNER) ── */}
+      {isOwner && (
+        <div className="sticky top-0 z-50 bg-[#0F4C45] text-white px-4 py-2.5 shadow-md border-b border-gold/30 flex flex-wrap items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-2">
+            <span className="bg-amber-400 text-charcoal font-bold px-2 py-0.5 rounded text-[10px] uppercase tracking-wide">
+              👑 Owner Mode
+            </span>
+            <span className="font-medium text-white/90">
+              Viewing Live Profile
+            </span>
+            {lastSavedTime && (
+              <span className="text-[11px] text-white/60 hidden md:inline ml-2">
+                Last saved: {lastSavedTime}
+              </span>
+            )}
+          </div>
+
+          <div className="flex items-center gap-3">
+            {/* Edit Mode Toggle */}
+            <button
+              onClick={() => setEditMode(!editMode)}
+              className={`px-3 py-1 rounded-full font-bold text-xs transition-all flex items-center gap-1.5 cursor-pointer ${
+                editMode
+                  ? "bg-amber-400 text-charcoal shadow-sm"
+                  : "bg-white/10 hover:bg-white/20 text-white border border-white/20"
+              }`}
+            >
+              <Edit3 className="w-3.5 h-3.5" />
+              <span>{editMode ? "Edit Mode ON" : "Edit Mode OFF"}</span>
+            </button>
+
+            {/* Preview as Customer Toggle */}
+            <button
+              onClick={() => setPreviewAsCustomer(!previewAsCustomer)}
+              className={`px-3 py-1 rounded-full font-bold text-xs transition-all flex items-center gap-1.5 cursor-pointer ${
+                previewAsCustomer
+                  ? "bg-emerald-600 text-white shadow-sm"
+                  : "bg-white/10 hover:bg-white/20 text-white border border-white/20"
+              }`}
+            >
+              <Eye className="w-3.5 h-3.5" />
+              <span>{previewAsCustomer ? "Customer Preview" : "Preview as Customer"}</span>
+            </button>
+
+            {/* Dashboard Link */}
+            <Link
+              href="/vendor/dashboard"
+              className="bg-white/10 hover:bg-white/20 text-white border border-white/20 px-3 py-1 rounded-full font-bold text-xs transition-all flex items-center gap-1.5 cursor-pointer"
+            >
+              <LayoutDashboard className="w-3.5 h-3.5" /> Dashboard
+            </Link>
+          </div>
+        </div>
+      )}
       
       {/* PREVIEW BANNER (IF IN DASHBOARD FULL PREVIEW MODE) */}
       {previewMode && (
@@ -2616,6 +2689,16 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
           </div>
         </div>
       )}
+
+      {/* SECTION DRAWER LAUNCHER FOR OWNER EDITING */}
+      <SectionDrawerLauncher
+        sectionKey={activeSectionKey}
+        vendor={vendor}
+        isOpen={Boolean(activeSectionKey)}
+        onClose={closeSectionEditor}
+        onSave={saveSection}
+        saveStatus={activeSectionKey ? saveStatusMap[activeSectionKey] || "idle" : "idle"}
+      />
 
     </div>
   );
