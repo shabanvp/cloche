@@ -637,7 +637,7 @@ export function VenueCustomizeStoreSection({
 
         <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
           <a
-            href={`/venues/${vendorData?.id || "venue-1"}`}
+            href={`/venues/${vendorData?.id || (typeof window !== "undefined" ? getActiveVendorIdentity()?.id : "") || "venue-1"}`}
             target="_blank"
             rel="noopener noreferrer"
             className="px-4 py-2.5 rounded-2xl bg-[#FAF7F2] hover:bg-[#F3EDE2] border border-gold/20 text-[#0F4C45] text-xs font-bold transition-all flex items-center justify-center gap-1.5 shrink-0"
