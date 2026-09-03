@@ -291,6 +291,9 @@ export async function PUT(req: Request) {
 
     const vendor = vendors[0];
     const vendorId = vendor.id;
+
+    console.log("[RUNTIME_TRACE 3a] Backend Incoming profile.about:", profile.about);
+    console.log("[RUNTIME_TRACE 3b] Backend Authenticated Vendor ID:", vendorId);
     let categorySlug = "general";
     if (vendor.category_id) {
       const categoryRes = await fetch(`${url}/rest/v1/vendor_categories?id=eq.${encodeURIComponent(vendor.category_id)}&select=slug`, {
@@ -558,7 +561,15 @@ export async function PUT(req: Request) {
         return NextResponse.json({ success: false, statusCode: patchRes?.status || 500, error: { message: 'Database Save Failed: ' + errorText } }, { status: patchRes?.status || 500 });
       }
 
-      // Dual-write to Render DB removed as per architecture constraints (Supabase is the sole DB)
+      // Read back updated row directly from Supabase DB to verify persistence
+      const readbackRes = await fetch(`${url}/rest/v1/vendor_profiles?or=(vendor_id.eq.${encodeURIComponent(vendorId)},id.eq.${encodeURIComponent(vendorId)})&select=*`, {
+        headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` }
+      }).catch(() => null);
+      if (readbackRes && readbackRes.ok) {
+        const rbRows = await readbackRes.json();
+        const rbRow = Array.isArray(rbRows) && rbRows.length > 0 ? rbRows[0] : null;
+        console.log("[RUNTIME_TRACE 4] DB Readback vendor_profiles row about:", rbRow?.about, "business_name:", rbRow?.business_name);
+      }
 
       console.log(`[IMAGE_FLOW] PUT profile patch/post status:`, patchRes?.status);
     }

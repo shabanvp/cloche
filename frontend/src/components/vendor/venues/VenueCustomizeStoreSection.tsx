@@ -583,6 +583,9 @@ export function VenueCustomizeStoreSection({
         contact_preferences: contactPreferences,
       };
 
+      console.log("[RUNTIME_TRACE 1] Form State About Description:", about.trim());
+      console.log("[RUNTIME_TRACE 2] Payload About Description:", payload.about, "targetId:", targetId);
+
       // 1. Instantly save to local storage for immediate updates across all views
       try {
         const updatedVendor = { ...activeVendor, ...payload };
@@ -593,7 +596,8 @@ export function VenueCustomizeStoreSection({
       } catch (e) {}
 
       // 2. Persist to Supabase Database
-      await syncVendorProfileWithDatabase(payload);
+      const syncResult = await syncVendorProfileWithDatabase(payload);
+      console.log("[RUNTIME_TRACE 2c] syncVendorProfileWithDatabase result:", syncResult);
 
       showVendorToast("✓ Venue Store Customization saved successfully!", "success");
     } catch (err: any) {

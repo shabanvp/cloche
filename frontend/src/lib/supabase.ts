@@ -1325,6 +1325,7 @@ export async function fetchPublicVendorProfileFromDb(identifier: string) {
   ]);
 
   console.log(`[DB:FETCH] public_vendor_profile vendor_id=${vendorId} extTable=${extTable} ms=${Date.now() - start}`);
+  console.log(`[RUNTIME_TRACE 5a] Storefront DB fetch request identifier=${identifier}, resolved vendorId=${vendorId}`);
 
   const profile: any = firstRow(profileRes.data) || {};
   const contact: any = firstRow(contactsRes.data) || {};
@@ -1465,6 +1466,10 @@ export async function fetchPublicVendorProfileFromDb(identifier: string) {
       googleMaps: (address.latitude && address.longitude ? `https://www.google.com/maps?q=${address.latitude},${address.longitude}` : address.google_maps_url) || sfRaw.contactInfo?.googleMaps || "",
     },
   };
+
+  const returnedAbout = profile.about || profile.description || sfRaw.about || "";
+  console.log(`[RUNTIME_TRACE 5b] Storefront DB profile row about:`, profile.about, "description:", profile.description, "sfRaw.about:", sfRaw.about);
+  console.log(`[RUNTIME_TRACE 5c] Storefront final returned about:`, returnedAbout);
 
   return {
     data: {

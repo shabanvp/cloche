@@ -343,6 +343,8 @@ export async function syncVendorProfileWithDatabase(
         ...profileData,
       };
 
+      console.log("[RUNTIME_TRACE 2b] syncVendorProfileWithDatabase extraHeaders:", extraHeaders, "payload.profile.about:", payload.profile?.about);
+
       const res = await fetch("/api/v1/vendor/profile", {
         method: "PUT",
         headers: extraHeaders,

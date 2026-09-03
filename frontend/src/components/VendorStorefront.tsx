@@ -95,6 +95,10 @@ export interface VendorStorefrontProps {
 export function VendorStorefront({ vendor: initialVendor, storefront: propStorefront, previewMode = false }: VendorStorefrontProps) {
   const [liveVendor, setLiveVendor] = useState(initialVendor);
 
+  if (typeof window !== "undefined") {
+    console.log("[RUNTIME_TRACE 5d] VendorStorefront received initialVendor.about:", initialVendor?.about, "id:", initialVendor?.id);
+  }
+
   React.useEffect(() => {
     setLiveVendor(initialVendor);
   }, [initialVendor]);
