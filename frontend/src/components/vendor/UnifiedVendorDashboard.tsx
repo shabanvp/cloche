@@ -29,6 +29,9 @@ import { AnalyticsSection } from "./sections/AnalyticsSection";
 import { SubscriptionSection } from "./sections/SubscriptionSection";
 import { CustomizeStoreSection } from "./sections/CustomizeStoreSection";
 import { DecorCustomizeStoreSection } from "./decor/sections/DecorCustomizeStoreSection";
+import { CateringCustomizeStoreSection } from "./catering/sections/CateringCustomizeStoreSection";
+import { MakeupCustomizeStoreSection } from "./makeup/sections/MakeupCustomizeStoreSection";
+import { MehendiCustomizeStoreSection } from "./mehendi/sections/MehendiCustomizeStoreSection";
 import { StoryCollectionSection } from "./boutique/StoryCollectionSection";
 import { StoryAnalyticsSection } from "./boutique/StoryAnalyticsSection";
 import { StoryBoutiqueOverview } from "./boutique/StoryBoutiqueOverview";
@@ -146,7 +149,10 @@ export function UnifiedVendorDashboard({ categoryKey = "caterers", initialTab = 
 
   const isJewellery = activeCategoryKey === "jewellery" || vendorCategoryName.toLowerCase().includes("jewel");
   const isVenue = activeCategoryKey === "venues" || vendorCategoryName.toLowerCase().includes("venue");
-  const isDecor = activeCategoryKey === "planners" || activeCategoryKey === "decor" || vendorCategoryName.toLowerCase().includes("decor") || vendorCategoryName.toLowerCase().includes("planner");
+  const isDecor = activeCategoryKey === "planners" || activeCategoryKey === "decor" || activeCategoryKey === "decor-planning" || vendorCategoryName.toLowerCase().includes("decor") || vendorCategoryName.toLowerCase().includes("planner");
+  const isCatering = activeCategoryKey === "catering" || activeCategoryKey === "caterers" || vendorCategoryName.toLowerCase().includes("cater");
+  const isMakeup = activeCategoryKey === "makeup" || activeCategoryKey === "makeup-artists" || vendorCategoryName.toLowerCase().includes("makeup");
+  const isMehendi = activeCategoryKey === "mehendi" || activeCategoryKey === "mehendi-artists" || vendorCategoryName.toLowerCase().includes("mehendi") || vendorCategoryName.toLowerCase().includes("mehndi");
   const isBoutiqueStory =
     activeCategoryKey === "bridal-studio" ||
     activeCategoryKey === "groom-studio" ||
@@ -161,7 +167,7 @@ export function UnifiedVendorDashboard({ categoryKey = "caterers", initialTab = 
     vendorCategoryName.toLowerCase().includes("boutique") ||
     vendorCategoryName.toLowerCase().includes("studio");
 
-  // Navigation items matching requested structure
+  // Navigation items matching requested trade structure
   let navItems;
   if (isBoutiqueStory) {
     navItems = [
@@ -200,6 +206,50 @@ export function UnifiedVendorDashboard({ categoryKey = "caterers", initialTab = 
       { id: "venue-analytics", label: "Venue Performance Analytics", icon: BarChart3, desc: "Profile views & popular wedding months" },
       { id: "subscription", label: "Subscription", icon: CreditCard, desc: "Current plan details & membership billing" },
       { id: "customize-store", label: "Customize Store", icon: StorePalette, desc: "Venue logo, cover photo, badges, facilities, brand theme & live preview" },
+    ];
+  } else if (isDecor) {
+    navItems = [
+      { id: "overview", label: "Overview", icon: LayoutDashboard, desc: "Business summary & performance insights" },
+      { id: "profile", label: "Profile", icon: Store, desc: "Business details, contact info, service area & working hours" },
+      { id: mediaTabId, label: "Services", icon: categoryConfig.icon, desc: "Mandaps, lighting, stage staging & floral artistry options" },
+      { id: pricingTabId, label: "Event Themes & Collections", icon: Package, desc: "Showcase themes, setup timing & props info" },
+      { id: "reviews", label: "Customer Reviews", icon: Star, desc: "Couple reviews & decor ratings" },
+      { id: "customize-store", label: "Customize Store", icon: StorePalette, desc: "Decor style specialities, event scale, themes & live preview" },
+      { id: "analytics", label: "Analytics", icon: BarChart3, desc: "Profile views & theme popularity" },
+      { id: "subscription", label: "Subscription", icon: CreditCard, desc: "Current plan details & membership billing" },
+    ];
+  } else if (isCatering) {
+    navItems = [
+      { id: "overview", label: "Overview", icon: LayoutDashboard, desc: "Business summary & catering leads" },
+      { id: "profile", label: "Profile", icon: Store, desc: "Business details, contact info & working hours" },
+      { id: mediaTabId, label: "Menu & Cuisine", icon: categoryConfig.icon, desc: "Cuisine ranges, dietary options & live counter menus" },
+      { id: pricingTabId, label: "Packages", icon: Package, desc: "Per-plate rates & guest capacity tiers" },
+      { id: "reviews", label: "Customer Reviews", icon: Star, desc: "Client reviews & food ratings" },
+      { id: "customize-store", label: "Customize Store", icon: StorePalette, desc: "Cuisine selection, signature dishes builder & live preview" },
+      { id: "analytics", label: "Analytics", icon: BarChart3, desc: "Profile views & menu popularity" },
+      { id: "subscription", label: "Subscription", icon: CreditCard, desc: "Current plan details & membership billing" },
+    ];
+  } else if (isMakeup) {
+    navItems = [
+      { id: "overview", label: "Overview", icon: LayoutDashboard, desc: "Business summary & booking inquiries" },
+      { id: "profile", label: "Profile", icon: Store, desc: "Business details, contact info & studio location" },
+      { id: mediaTabId, label: "Services", icon: categoryConfig.icon, desc: "HD bridal makeup, airbrush glam & party makeup rates" },
+      { id: pricingTabId, label: "Beauty Products & Brands", icon: Package, desc: "MAC, NARS, Bobbi Brown & skin prep details" },
+      { id: "reviews", label: "Customer Reviews", icon: Star, desc: "Bride reviews & testimonials" },
+      { id: "customize-store", label: "Customize Store", icon: StorePalette, desc: "Makeup styles, cosmetic brands, travel radius & Before/After gallery" },
+      { id: "analytics", label: "Analytics", icon: BarChart3, desc: "Profile views & look popularity" },
+      { id: "subscription", label: "Subscription", icon: CreditCard, desc: "Current plan details & membership billing" },
+    ];
+  } else if (isMehendi) {
+    navItems = [
+      { id: "overview", label: "Overview", icon: LayoutDashboard, desc: "Business summary & bridal mehendi bookings" },
+      { id: "profile", label: "Profile", icon: Store, desc: "Business details & studio contact info" },
+      { id: mediaTabId, label: "Mehendi Services", icon: categoryConfig.icon, desc: "Full bridal henna, guest party rates & application times" },
+      { id: pricingTabId, label: "Design Collections", icon: Package, desc: "Rajasthani portrait patterns & Arabic vines" },
+      { id: "reviews", label: "Customer Reviews", icon: Star, desc: "Bride reviews & stain testimonials" },
+      { id: "customize-store", label: "Customize Store", icon: StorePalette, desc: "Design styles, organic stain guarantee, artist team size & live preview" },
+      { id: "analytics", label: "Analytics", icon: BarChart3, desc: "Profile views & design saves" },
+      { id: "subscription", label: "Subscription", icon: CreditCard, desc: "Current plan details & membership billing" },
     ];
   } else {
     navItems = [
@@ -293,6 +343,12 @@ export function UnifiedVendorDashboard({ categoryKey = "caterers", initialTab = 
           <VenueCustomizeStoreSection vendorName={vendorName} categoryConfig={categoryConfig} onBack={() => setActiveTab(null)} />
         ) : isDecor ? (
           <DecorCustomizeStoreSection vendorName={vendorName} onBack={() => setActiveTab(null)} />
+        ) : isCatering ? (
+          <CateringCustomizeStoreSection vendorName={vendorName} onBack={() => setActiveTab(null)} />
+        ) : isMakeup ? (
+          <MakeupCustomizeStoreSection vendorName={vendorName} onBack={() => setActiveTab(null)} />
+        ) : isMehendi ? (
+          <MehendiCustomizeStoreSection vendorName={vendorName} onBack={() => setActiveTab(null)} />
         ) : (
           <CustomizeStoreSection categoryConfig={categoryConfig} vendorName={vendorName} onBack={() => setActiveTab(null)} />
         );

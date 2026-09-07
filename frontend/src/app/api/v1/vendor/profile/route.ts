@@ -724,8 +724,48 @@ export async function PUT(req: Request) {
       ...(profile?.outsidePhotographyPolicy || profile?.outside_photography_policy ? { outside_photography_policy: profile.outsidePhotographyPolicy || profile.outside_photography_policy } : {}),
       ...(profile?.noiseRestrictions || profile?.noise_restrictions ? { noise_restrictions: profile.noiseRestrictions || profile.noise_restrictions } : {}),
       ...(profile?.alcoholPolicy || profile?.alcohol_policy ? { alcohol_policy: profile.alcoholPolicy || profile.alcohol_policy } : {}),
-      ...(profile?.eventTimingRules || profile?.event_timing_rules ? { event_timing_rules: profile.eventTimingRules || profile.event_timing_rules } : {}),
-      ...(profile?.hallImages || profile?.hall_images ? { hall_images: profile.hallImages || profile.hall_images } : {}),
+      // Decor & Event Planning specific extension fields
+      ...(profile?.decorSpecialities || profile?.decor_specialities ? { decor_specialities: profile.decorSpecialities || profile.decor_specialities } : {}),
+      ...(profile?.eventTypesHandled || profile?.event_types_handled ? { event_types_handled: profile.eventTypesHandled || profile.event_types_handled } : {}),
+      ...(profile?.eventScaleCapacity || profile?.event_scale_capacity ? { event_scale_capacity: profile.eventScaleCapacity || profile.event_scale_capacity } : {}),
+      ...(profile?.featuredThemes || profile?.featured_themes ? { featured_themes: profile.featuredThemes || profile.featured_themes } : {}),
+      ...(profile?.setupTeardownPolicy || profile?.setup_teardown_policy ? { setup_teardown_policy: profile.setupTeardownPolicy || profile.setup_teardown_policy } : {}),
+      ...(profile?.propsOwnership || profile?.props_ownership ? { props_ownership: profile.propsOwnership || profile.props_ownership } : {}),
+      ...(profile?.decorHighlights || profile?.decor_highlights ? { decor_highlights: profile.decorHighlights || profile.decor_highlights } : {}),
+      ...(profile?.decorServices || profile?.decor_services ? { decor_services: profile.decorServices || profile.decor_services } : {}),
+
+      // Catering specific extension fields
+      ...(profile?.cuisineTypes || profile?.cuisine_types ? { cuisine_types: profile.cuisineTypes || profile.cuisine_types } : {}),
+      ...(profile?.dietaryOptions || profile?.dietary_options ? { dietary_options: profile.dietaryOptions || profile.dietary_options } : {}),
+      ...(profile?.serviceStyles || profile?.service_styles ? { service_styles: profile.serviceStyles || profile.service_styles } : {}),
+      ...(profile?.minGuests || profile?.min_guests ? { min_guests: profile.minGuests || profile.min_guests } : {}),
+      ...(profile?.maxGuests || profile?.max_guests ? { max_guests: profile.maxGuests || profile.max_guests } : {}),
+      ...(profile?.featuredDishes || profile?.featured_dishes ? { featured_dishes: profile.featuredDishes || profile.featured_dishes } : {}),
+      ...(profile?.menuCategories || profile?.menu_categories ? { menu_categories: profile.menuCategories || profile.menu_categories } : {}),
+      ...(profile?.staffingDetails || profile?.staffing_details ? { staffing_details: profile.staffingDetails || profile.staffing_details } : {}),
+      ...(profile?.cateringSpecialities || profile?.catering_specialities ? { catering_specialities: profile.cateringSpecialities || profile.catering_specialities } : {}),
+
+      // Makeup Artist specific extension fields
+      ...(profile?.makeupStyles || profile?.makeup_styles ? { makeup_styles: profile.makeupStyles || profile.makeup_styles } : {}),
+      ...(profile?.brandsUsed || profile?.brands_used ? { brands_used: profile.brandsUsed || profile.brands_used } : {}),
+      ...(profile?.trialPolicy || profile?.trial_policy ? { trial_policy: profile.trialPolicy || profile.trial_policy } : {}),
+      ...(profile?.locationAvailability || profile?.location_availability ? { location_availability: profile.locationAvailability || profile.location_availability } : {}),
+      ...(profile?.travelRadius || profile?.travel_radius ? { travel_radius: profile.travelRadius || profile.travel_radius } : {}),
+      ...(profile?.teamSize || profile?.team_size ? { team_size: profile.teamSize || profile.team_size } : {}),
+      ...(profile?.beforeAfterGallery || profile?.before_after_gallery ? { before_after_gallery: profile.beforeAfterGallery || profile.before_after_gallery } : {}),
+      ...(profile?.featuredLooks || profile?.featured_looks ? { featured_looks: profile.featuredLooks || profile.featured_looks } : {}),
+      ...(profile?.makeupHighlights || profile?.makeup_highlights ? { makeup_highlights: profile.makeupHighlights || profile.makeup_highlights } : {}),
+
+      // Mehendi Artist specific extension fields
+      ...(profile?.mehendiStyles || profile?.mehendi_styles ? { mehendi_styles: profile.mehendiStyles || profile.mehendi_styles } : {}),
+      ...(profile?.serviceTypes || profile?.service_types ? { service_types: profile.serviceTypes || profile.service_types } : {}),
+      ...(profile?.avgApplicationTime || profile?.avg_application_time ? { avg_application_time: profile.avgApplicationTime || profile.avg_application_time } : {}),
+      ...(profile?.artistsCount || profile?.artists_count ? { artists_count: profile.artistsCount || profile.artists_count } : {}),
+      ...(profile?.designCollections || profile?.design_collections ? { design_collections: profile.designCollections || profile.design_collections } : {}),
+      ...(profile?.featuredDesigns || profile?.featured_designs ? { featured_designs: profile.featuredDesigns || profile.featured_designs } : {}),
+      ...(profile?.stainCarePolicy || profile?.stain_care_policy ? { stain_care_policy: profile.stainCarePolicy || profile.stain_care_policy } : {}),
+      ...(profile?.organicHennaCertified !== undefined || profile?.organic_henna_certified !== undefined ? { organic_henna_certified: Boolean(profile?.organicHennaCertified ?? profile?.organic_henna_certified) } : {}),
+      ...(profile?.mehendiHighlights || profile?.mehendi_highlights ? { mehendi_highlights: profile.mehendiHighlights || profile.mehendi_highlights } : {})
     };
 
     if (Object.keys(mergedCategoryDetails).length > 0) {
