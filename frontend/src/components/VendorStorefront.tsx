@@ -1981,50 +1981,70 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
               </div>
               {/* Mobile Horizontal Swipe Carousel */}
               <div className="flex md:hidden overflow-x-auto snap-x snap-mandatory space-x-3.5 pb-2 -mx-4 px-4 scroll-smooth [webkit-scrollbar:none] [-ms-overflow-style:none] [scrollbar-width:none]">
-                {boutiqueCollectionsList.map((col: any) => (
-                  <div
-                    key={col.id}
-                    onClick={() => setActiveCollectionModal(col)}
-                    className="w-[82%] sm:w-[85%] shrink-0 snap-start bg-[#FAF7F2] rounded-2xl border border-gold/15 overflow-hidden shadow-2xs hover:border-[#0F4C45] hover:shadow-md transition-all cursor-pointer flex flex-col group"
-                  >
-                    <div className="relative aspect-[4/3] w-full overflow-hidden bg-charcoal">
+                {boutiqueCollectionsList.map((col: any) => {
+                  const locationTag = (col.location || col.city || vendor?.city || vendor?.location || "KERALA").toUpperCase();
+                  const categoryTag = (col.category || "GROOM").toUpperCase();
+
+                  return (
+                    <div
+                      key={col.id}
+                      onClick={() => setActiveCollectionModal(col)}
+                      className="w-[75%] sm:w-[80%] shrink-0 snap-start relative aspect-[3/4] rounded-2xl overflow-hidden shadow-md group cursor-pointer border border-gold/20"
+                    >
                       <img
                         src={col.coverImage}
                         alt={col.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                       />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/35 to-transparent transition-opacity group-hover:from-black/95" />
+                      <div className="absolute bottom-0 left-0 right-0 p-4 flex flex-col justify-end text-left z-10 space-y-0.5">
+                        <span className="text-[10px] font-bold text-[#D4B66E] uppercase tracking-[0.2em]">
+                          {locationTag}
+                        </span>
+                        <h3 className="font-serif font-bold text-base text-white uppercase tracking-wider leading-snug line-clamp-2 drop-shadow-xs">
+                          {col.name}
+                        </h3>
+                        <span className="text-[10px] font-medium text-white/75 uppercase tracking-[0.15em]">
+                          {categoryTag}
+                        </span>
+                      </div>
                     </div>
-                    <div className="p-3.5 text-center">
-                      <h3 className="font-serif font-bold text-sm text-charcoal group-hover:text-[#0F4C45] transition-colors truncate">
-                        {col.name}
-                      </h3>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               {/* Desktop Grid Layout */}
-              <div className="hidden md:grid grid-cols-2 lg:grid-cols-3 gap-4">
-                {boutiqueCollectionsList.map((col: any) => (
-                  <div
-                    key={col.id}
-                    onClick={() => setActiveCollectionModal(col)}
-                    className="bg-[#FAF7F2] rounded-2xl border border-gold/15 overflow-hidden shadow-2xs hover:border-[#0F4C45] hover:shadow-md transition-all cursor-pointer flex flex-col group"
-                  >
-                    <div className="relative aspect-[4/3] w-full overflow-hidden bg-charcoal">
+              <div className="hidden md:grid grid-cols-2 lg:grid-cols-3 gap-5">
+                {boutiqueCollectionsList.map((col: any) => {
+                  const locationTag = (col.location || col.city || vendor?.city || vendor?.location || "KERALA").toUpperCase();
+                  const categoryTag = (col.category || "GROOM").toUpperCase();
+
+                  return (
+                    <div
+                      key={col.id}
+                      onClick={() => setActiveCollectionModal(col)}
+                      className="relative aspect-[3/4] w-full rounded-2xl overflow-hidden shadow-md group cursor-pointer border border-gold/20 hover:border-[#0F4C45] hover:shadow-xl transition-all duration-500"
+                    >
                       <img
                         src={col.coverImage}
                         alt={col.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                       />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/35 to-transparent transition-opacity group-hover:from-black/95" />
+                      <div className="absolute bottom-0 left-0 right-0 p-5 flex flex-col justify-end text-left z-10 space-y-1">
+                        <span className="text-xs font-bold text-[#D4B66E] uppercase tracking-[0.2em]">
+                          {locationTag}
+                        </span>
+                        <h3 className="font-serif font-bold text-lg text-white uppercase tracking-wider leading-snug line-clamp-2 drop-shadow-xs">
+                          {col.name}
+                        </h3>
+                        <span className="text-xs font-medium text-white/75 uppercase tracking-[0.15em]">
+                          {categoryTag}
+                        </span>
+                      </div>
                     </div>
-                    <div className="p-4 text-center">
-                      <h3 className="font-serif font-bold text-base text-charcoal group-hover:text-[#0F4C45] transition-colors truncate">
-                        {col.name}
-                      </h3>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
 
@@ -2246,50 +2266,70 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
               </div>
               {/* Mobile Horizontal Swipe Carousel */}
               <div className="flex md:hidden overflow-x-auto snap-x snap-mandatory space-x-3.5 pb-2 -mx-4 px-4 scroll-smooth [webkit-scrollbar:none] [-ms-overflow-style:none] [scrollbar-width:none]">
-                {boutiqueCollectionsList.map((col: any) => (
-                  <div
-                    key={col.id}
-                    onClick={() => setActiveCollectionModal(col)}
-                    className="w-[82%] sm:w-[85%] shrink-0 snap-start bg-[#FAF7F2] rounded-2xl border border-gold/15 overflow-hidden shadow-2xs hover:border-[#0F4C45] hover:shadow-md transition-all cursor-pointer flex flex-col group"
-                  >
-                    <div className="relative aspect-[4/3] w-full overflow-hidden bg-charcoal">
+                {boutiqueCollectionsList.map((col: any) => {
+                  const locationTag = (col.location || col.city || vendor?.city || vendor?.location || "KERALA").toUpperCase();
+                  const categoryTag = (col.category || "BRIDAL").toUpperCase();
+
+                  return (
+                    <div
+                      key={col.id}
+                      onClick={() => setActiveCollectionModal(col)}
+                      className="w-[75%] sm:w-[80%] shrink-0 snap-start relative aspect-[3/4] rounded-2xl overflow-hidden shadow-md group cursor-pointer border border-gold/20"
+                    >
                       <img
                         src={col.coverImage}
                         alt={col.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                       />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/35 to-transparent transition-opacity group-hover:from-black/95" />
+                      <div className="absolute bottom-0 left-0 right-0 p-4 flex flex-col justify-end text-left z-10 space-y-0.5">
+                        <span className="text-[10px] font-bold text-[#D4B66E] uppercase tracking-[0.2em]">
+                          {locationTag}
+                        </span>
+                        <h3 className="font-serif font-bold text-base text-white uppercase tracking-wider leading-snug line-clamp-2 drop-shadow-xs">
+                          {col.name}
+                        </h3>
+                        <span className="text-[10px] font-medium text-white/75 uppercase tracking-[0.15em]">
+                          {categoryTag}
+                        </span>
+                      </div>
                     </div>
-                    <div className="p-3.5 text-center">
-                      <h3 className="font-serif font-bold text-sm text-charcoal group-hover:text-[#0F4C45] transition-colors truncate">
-                        {col.name}
-                      </h3>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               {/* Desktop Grid Layout */}
-              <div className="hidden md:grid grid-cols-2 lg:grid-cols-3 gap-4">
-                {boutiqueCollectionsList.map((col: any) => (
-                  <div
-                    key={col.id}
-                    onClick={() => setActiveCollectionModal(col)}
-                    className="bg-[#FAF7F2] rounded-2xl border border-gold/15 overflow-hidden shadow-2xs hover:border-[#0F4C45] hover:shadow-md transition-all cursor-pointer flex flex-col group"
-                  >
-                    <div className="relative aspect-[4/3] w-full overflow-hidden bg-charcoal">
+              <div className="hidden md:grid grid-cols-2 lg:grid-cols-3 gap-5">
+                {boutiqueCollectionsList.map((col: any) => {
+                  const locationTag = (col.location || col.city || vendor?.city || vendor?.location || "KERALA").toUpperCase();
+                  const categoryTag = (col.category || "BRIDAL").toUpperCase();
+
+                  return (
+                    <div
+                      key={col.id}
+                      onClick={() => setActiveCollectionModal(col)}
+                      className="relative aspect-[3/4] w-full rounded-2xl overflow-hidden shadow-md group cursor-pointer border border-gold/20 hover:border-[#0F4C45] hover:shadow-xl transition-all duration-500"
+                    >
                       <img
                         src={col.coverImage}
                         alt={col.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                       />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/35 to-transparent transition-opacity group-hover:from-black/95" />
+                      <div className="absolute bottom-0 left-0 right-0 p-5 flex flex-col justify-end text-left z-10 space-y-1">
+                        <span className="text-xs font-bold text-[#D4B66E] uppercase tracking-[0.2em]">
+                          {locationTag}
+                        </span>
+                        <h3 className="font-serif font-bold text-lg text-white uppercase tracking-wider leading-snug line-clamp-2 drop-shadow-xs">
+                          {col.name}
+                        </h3>
+                        <span className="text-xs font-medium text-white/75 uppercase tracking-[0.15em]">
+                          {categoryTag}
+                        </span>
+                      </div>
                     </div>
-                    <div className="p-4 text-center">
-                      <h3 className="font-serif font-bold text-base text-charcoal group-hover:text-[#0F4C45] transition-colors truncate">
-                        {col.name}
-                      </h3>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
 
@@ -2511,50 +2551,70 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
               </div>
               {/* Mobile Horizontal Swipe Carousel */}
               <div className="flex md:hidden overflow-x-auto snap-x snap-mandatory space-x-3.5 pb-2 -mx-4 px-4 scroll-smooth [webkit-scrollbar:none] [-ms-overflow-style:none] [scrollbar-width:none]">
-                {boutiqueCollectionsList.map((col: any) => (
-                  <div
-                    key={col.id}
-                    onClick={() => setActiveCollectionModal(col)}
-                    className="w-[82%] sm:w-[85%] shrink-0 snap-start bg-[#FAF7F2] rounded-2xl border border-gold/15 overflow-hidden shadow-2xs hover:border-[#0F4C45] hover:shadow-md transition-all cursor-pointer flex flex-col group"
-                  >
-                    <div className="relative aspect-[4/3] w-full overflow-hidden bg-charcoal">
+                {boutiqueCollectionsList.map((col: any) => {
+                  const locationTag = (col.location || col.city || vendor?.city || vendor?.location || "KERALA").toUpperCase();
+                  const categoryTag = (col.category || "COUTURE").toUpperCase();
+
+                  return (
+                    <div
+                      key={col.id}
+                      onClick={() => setActiveCollectionModal(col)}
+                      className="w-[75%] sm:w-[80%] shrink-0 snap-start relative aspect-[3/4] rounded-2xl overflow-hidden shadow-md group cursor-pointer border border-gold/20"
+                    >
                       <img
                         src={col.coverImage}
                         alt={col.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                       />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/35 to-transparent transition-opacity group-hover:from-black/95" />
+                      <div className="absolute bottom-0 left-0 right-0 p-4 flex flex-col justify-end text-left z-10 space-y-0.5">
+                        <span className="text-[10px] font-bold text-[#D4B66E] uppercase tracking-[0.2em]">
+                          {locationTag}
+                        </span>
+                        <h3 className="font-serif font-bold text-base text-white uppercase tracking-wider leading-snug line-clamp-2 drop-shadow-xs">
+                          {col.name}
+                        </h3>
+                        <span className="text-[10px] font-medium text-white/75 uppercase tracking-[0.15em]">
+                          {categoryTag}
+                        </span>
+                      </div>
                     </div>
-                    <div className="p-3.5 text-center">
-                      <h3 className="font-serif font-bold text-sm text-charcoal group-hover:text-[#0F4C45] transition-colors truncate">
-                        {col.name}
-                      </h3>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               {/* Desktop Grid Layout */}
-              <div className="hidden md:grid grid-cols-2 lg:grid-cols-3 gap-4">
-                {boutiqueCollectionsList.map((col: any) => (
-                  <div
-                    key={col.id}
-                    onClick={() => setActiveCollectionModal(col)}
-                    className="bg-[#FAF7F2] rounded-2xl border border-gold/15 overflow-hidden shadow-2xs hover:border-[#0F4C45] hover:shadow-md transition-all cursor-pointer flex flex-col group"
-                  >
-                    <div className="relative aspect-[4/3] w-full overflow-hidden bg-charcoal">
+              <div className="hidden md:grid grid-cols-2 lg:grid-cols-3 gap-5">
+                {boutiqueCollectionsList.map((col: any) => {
+                  const locationTag = (col.location || col.city || vendor?.city || vendor?.location || "KERALA").toUpperCase();
+                  const categoryTag = (col.category || "COUTURE").toUpperCase();
+
+                  return (
+                    <div
+                      key={col.id}
+                      onClick={() => setActiveCollectionModal(col)}
+                      className="relative aspect-[3/4] w-full rounded-2xl overflow-hidden shadow-md group cursor-pointer border border-gold/20 hover:border-[#0F4C45] hover:shadow-xl transition-all duration-500"
+                    >
                       <img
                         src={col.coverImage}
                         alt={col.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                       />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/35 to-transparent transition-opacity group-hover:from-black/95" />
+                      <div className="absolute bottom-0 left-0 right-0 p-5 flex flex-col justify-end text-left z-10 space-y-1">
+                        <span className="text-xs font-bold text-[#D4B66E] uppercase tracking-[0.2em]">
+                          {locationTag}
+                        </span>
+                        <h3 className="font-serif font-bold text-lg text-white uppercase tracking-wider leading-snug line-clamp-2 drop-shadow-xs">
+                          {col.name}
+                        </h3>
+                        <span className="text-xs font-medium text-white/75 uppercase tracking-[0.15em]">
+                          {categoryTag}
+                        </span>
+                      </div>
                     </div>
-                    <div className="p-4 text-center">
-                      <h3 className="font-serif font-bold text-base text-charcoal group-hover:text-[#0F4C45] transition-colors truncate">
-                        {col.name}
-                      </h3>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
 

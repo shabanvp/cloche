@@ -346,35 +346,24 @@ export function BoutiqueCollectionsClient({ boutique, initialProducts = [], bout
               <Link
                 key={col.id}
                 href={`/collections/${col.id}`}
-                className="cursor-pointer group flex flex-col justify-between block"
+                className="relative aspect-[3/4] w-full rounded-2xl overflow-hidden shadow-md group cursor-pointer border border-gold/20 hover:border-[#0F4C45] hover:shadow-xl transition-all duration-500 block"
               >
-                <div>
-                  {/* Clean Portrait Image matching Image 1 */}
-                  <div className="relative aspect-[3/4] w-full rounded-2xl overflow-hidden bg-charcoal/5 shadow-xs border border-gold/15">
-                    <img
-                      src={col.coverImage || (col.outfits && col.outfits[0]?.image)}
-                      alt={outfitName}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                  </div>
-
-                  {/* Clean Stacked Information Block matching Image 1 */}
-                  <div className="pt-2.5 px-1 space-y-0.5">
-                    <p className="text-xs text-charcoal/70 line-clamp-1 font-medium">
-                      {outfitName}
-                    </p>
-                    <h3 className="font-bold text-sm text-charcoal group-hover:text-[#0F4C45] transition-colors line-clamp-1">
-                      {shopName}
-                    </h3>
-                    <p className="text-xs text-charcoal/50 flex items-center gap-1 font-medium capitalize">
-                      {boutiqueCity}
-                    </p>
-                    {priceText && (
-                      <p className="text-xs sm:text-sm font-bold text-[#0F4C45] pt-0.5">
-                        {priceText}
-                      </p>
-                    )}
-                  </div>
+                <img
+                  src={col.coverImage || (col.outfits && col.outfits[0]?.image)}
+                  alt={outfitName}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/35 to-transparent transition-opacity group-hover:from-black/95" />
+                <div className="absolute bottom-0 left-0 right-0 p-3.5 sm:p-5 flex flex-col justify-end text-left z-10 space-y-0.5 sm:space-y-1">
+                  <span className="text-[10px] sm:text-xs font-bold text-[#D4B66E] uppercase tracking-[0.2em]">
+                    {(boutiqueCity || "KERALA").toUpperCase()}
+                  </span>
+                  <h3 className="font-serif font-bold text-sm sm:text-lg text-white uppercase tracking-wider leading-snug line-clamp-2 drop-shadow-xs">
+                    {outfitName}
+                  </h3>
+                  <span className="text-[10px] sm:text-xs font-medium text-white/75 uppercase tracking-[0.15em]">
+                    {(col.category || studioCategoryType || "COUTURE").toUpperCase()}
+                  </span>
                 </div>
               </Link>
             );
