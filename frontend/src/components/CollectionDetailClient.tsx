@@ -95,7 +95,6 @@ export function CollectionDetailClient({
   // ── STATE ──
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [isCopied, setIsCopied] = useState(false);
-  const [openAccordion, setOpenAccordion] = useState<string | null>("details");
 
   // Reviews State
   const [reviewsList, setReviewsList] = useState<Array<{ id: string; name: string; rating: number; date: string; comment: string; verified?: boolean }>>([
@@ -278,54 +277,69 @@ export function CollectionDetailClient({
   }, [reviewsList]);
 
   return (
-    <div className="min-h-screen bg-[#0D0E12] text-white flex flex-col font-sans selection:bg-[#D4B66E] selection:text-black">
+    <div className="min-h-screen bg-[#FAF7F2] text-charcoal flex flex-col font-sans selection:bg-[#0F4C45] selection:text-white">
       
-      {/* ── LUXURY TOP HEADER (MATCHING SCREENSHOT) ── */}
-      <header className="sticky top-0 z-40 bg-[#090A0C]/90 backdrop-blur-xl border-b border-white/10 px-4 sm:px-6 py-3">
+      {/* ── CLOCHE LIGHT TOP HEADER ── */}
+      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-gold/15 px-4 sm:px-6 py-3.5 shadow-2xs">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <button className="p-2 rounded-xl bg-white/5 border border-white/10 text-white/80 hover:text-white transition-all cursor-pointer">
-            <Menu className="w-5 h-5" />
-          </button>
+          <Link
+            href={`/wedding-story/${boutique.slug || boutique.id || "studio"}`}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#0F4C45]/10 text-[#0F4C45] hover:bg-[#0F4C45] hover:text-white transition-all text-xs font-bold shrink-0"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>Studio Profile</span>
+          </Link>
 
-          <Link href="/" className="font-serif font-extrabold text-xl sm:text-2xl tracking-[0.25em] text-white uppercase drop-shadow-md">
+          <Link href="/" className="font-serif font-extrabold text-xl sm:text-2xl tracking-[0.25em] text-[#0F4C45] uppercase drop-shadow-2xs">
             CLOCHE
           </Link>
 
           <div className="flex items-center gap-2">
             <button
               onClick={handleShare}
-              className="p-2 rounded-xl bg-white/5 border border-white/10 text-white/80 hover:text-white transition-all relative cursor-pointer"
+              className="p-2 rounded-full bg-[#FAF7F2] border border-gold/20 text-[#0F4C45] hover:bg-[#0F4C45] hover:text-white transition-all relative cursor-pointer"
               title="Share Collection"
             >
               <Share2 className="w-4 h-4" />
               {isCopied && (
-                <span className="absolute -bottom-8 right-0 bg-[#D4B66E] text-black text-[10px] font-bold px-2.5 py-0.5 rounded shadow-lg whitespace-nowrap">
+                <span className="absolute -bottom-8 right-0 bg-[#0F4C45] text-white text-[10px] font-bold px-2.5 py-0.5 rounded shadow-lg whitespace-nowrap">
                   Link Copied!
                 </span>
               )}
             </button>
+
+            <WishlistButton
+              product={{
+                id: String(collection.id),
+                product_name: collection.name,
+                boutique_name: boutique.name,
+                category: collection.category || "Collection",
+                price: collection.priceRange || 0,
+                image_url: collection.coverImage
+              } as any}
+            />
           </div>
         </div>
       </header>
 
-      {/* ── BREADCRUMB NAV TRAIL (MATCHING SCREENSHOT) ── */}
-      <div className="max-w-4xl mx-auto w-full px-4 sm:px-6 pt-5 pb-3">
-        <nav className="flex items-center gap-2 text-[10px] sm:text-xs font-bold tracking-[0.2em] text-white/50 uppercase">
-          <Link href="/" className="hover:text-white transition-colors">HOME</Link>
+      {/* ── BREADCRUMB NAV TRAIL ── */}
+      <div className="max-w-4xl mx-auto w-full px-4 sm:px-6 pt-5 pb-2">
+        <nav className="flex items-center gap-2 text-[10px] sm:text-xs font-bold tracking-[0.2em] text-charcoal/60 uppercase">
+          <Link href="/" className="hover:text-[#0F4C45] transition-colors">HOME</Link>
           <span>›</span>
-          <Link href="/collections" className="hover:text-white transition-colors">COLLECTIONS</Link>
+          <Link href="/collections" className="hover:text-[#0F4C45] transition-colors">COLLECTIONS</Link>
           <span>›</span>
-          <span className="text-[#D4B66E] font-extrabold truncate max-w-[200px] sm:max-w-none">
+          <span className="text-[#0F4C45] font-extrabold truncate max-w-[200px] sm:max-w-none">
             {collection.name.toUpperCase()}
           </span>
         </nav>
       </div>
 
-      {/* ── MAIN CONTENT CONTAINER (CONTAINED FOR PERFECT PORTRAIT SCREENSHOT LOOK) ── */}
+      {/* ── MAIN CONTENT CONTAINER (CLOCHE LIGHT THEME) ── */}
       <main className="max-w-4xl mx-auto w-full px-4 sm:px-6 pb-24 space-y-8">
         
-        {/* 1. PORTRAIT COVER IMAGE WITH VERIFIED LUXURY BADGE (MATCHING SCREENSHOT) */}
-        <div className="relative aspect-[3/4] w-full rounded-3xl overflow-hidden bg-charcoal/30 border border-gold/20 shadow-2xl group flex items-center justify-center">
+        {/* 1. PORTRAIT COVER IMAGE WITH VERIFIED LUXURY BADGE */}
+        <div className="relative aspect-[3/4] w-full rounded-3xl overflow-hidden bg-charcoal/5 border border-gold/20 shadow-xl group flex items-center justify-center">
           <img
             src={galleryImages[activeImageIndex] || collection.coverImage}
             alt={collection.name}
@@ -333,7 +347,7 @@ export function CollectionDetailClient({
           />
 
           {/* VERIFIED LUXURY GOLD BADGE */}
-          <div className="absolute top-5 left-5 bg-[#C8A96A]/20 backdrop-blur-md border border-[#D4B66E]/40 text-[#D4B66E] font-bold text-[10px] sm:text-xs px-3.5 py-1 rounded-full uppercase tracking-[0.2em] shadow-lg flex items-center gap-1.5 z-10">
+          <div className="absolute top-5 left-5 bg-[#0F4C45] text-[#D4B66E] border border-[#D4B66E]/40 font-bold text-[10px] sm:text-xs px-3.5 py-1 rounded-full uppercase tracking-[0.2em] shadow-lg flex items-center gap-1.5 z-10">
             <Award className="w-3.5 h-3.5 text-[#D4B66E]" />
             <span>VERIFIED LUXURY</span>
           </div>
@@ -342,10 +356,10 @@ export function CollectionDetailClient({
           {galleryImages.length > 1 && (
             <button
               onClick={handleNextImage}
-              className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/60 backdrop-blur-md border border-white/20 shadow-xl flex items-center justify-center text-white hover:bg-black hover:scale-110 transition-all cursor-pointer z-10"
+              className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 backdrop-blur-md border border-gold/20 shadow-xl flex items-center justify-center text-charcoal hover:bg-white hover:scale-110 transition-all cursor-pointer z-10"
               title="Next Image"
             >
-              <ChevronRight className="w-6 h-6" />
+              <ChevronRight className="w-6 h-6 text-[#0F4C45]" />
             </button>
           )}
 
@@ -356,80 +370,80 @@ export function CollectionDetailClient({
                 key={idx}
                 onClick={() => setActiveImageIndex(idx)}
                 className={`h-2 rounded-full transition-all cursor-pointer ${
-                  activeImageIndex === idx ? "bg-[#D4B66E] w-5" : "bg-white/40 w-2"
+                  activeImageIndex === idx ? "bg-[#0F4C45] w-5" : "bg-white/60 w-2"
                 }`}
               />
             ))}
           </div>
         </div>
 
-        {/* 2. COLLECTION METADATA (EXACT TYPOGRAPHY & LAYOUT MATCHING SCREENSHOT) */}
-        <div className="space-y-2 text-left pt-1">
-          {/* Gold Category Tag */}
-          <span className="text-xs sm:text-sm font-bold text-[#D4B66E] uppercase tracking-[0.25em]">
+        {/* 2. COLLECTION METADATA */}
+        <div className="space-y-1.5 text-left pt-1">
+          {/* Category Tag */}
+          <span className="text-xs font-bold text-[#0F4C45] uppercase tracking-[0.25em] bg-[#0F4C45]/10 px-3 py-1 rounded-full inline-block">
             {(collection.category || "BRIDAL").toUpperCase()}
           </span>
 
           {/* Large Serif Title */}
-          <h1 className="font-serif font-extrabold text-3xl sm:text-4xl text-white uppercase tracking-wide leading-tight drop-shadow-sm">
+          <h1 className="font-serif font-extrabold text-3xl sm:text-4xl text-charcoal uppercase tracking-wide leading-tight drop-shadow-2xs pt-1">
             {collection.name}
           </h1>
 
           {/* Studio Name & Location */}
           <div className="space-y-1 pt-1">
-            <h2 className="font-serif font-bold text-lg sm:text-xl text-[#D4B66E]">
+            <h2 className="font-serif font-bold text-lg sm:text-xl text-[#0F4C45]">
               {boutique.name}
             </h2>
-            <div className="flex items-center gap-1.5 text-xs text-white/60 font-medium tracking-wider uppercase">
-              <MapPin className="w-3.5 h-3.5 text-[#D4B66E] shrink-0" />
+            <div className="flex items-center gap-1.5 text-xs text-charcoal/60 font-medium tracking-wider uppercase">
+              <MapPin className="w-3.5 h-3.5 text-[#0F4C45] shrink-0" />
               <span>{formattedCity}</span>
             </div>
           </div>
         </div>
 
         {/* 3. PRICING & RENTAL SPECIFICATION CARD */}
-        <div className="bg-[#14161D] rounded-3xl p-5 sm:p-6 border border-gold/20 shadow-xl space-y-5">
-          <div className="flex items-start justify-between flex-wrap gap-3 pb-4 border-b border-white/10">
+        <div className="bg-white rounded-3xl p-5 sm:p-6 border border-gold/20 shadow-md space-y-5">
+          <div className="flex items-start justify-between flex-wrap gap-3 pb-4 border-b border-gold/10">
             <div>
-              <span className="text-[11px] font-bold text-white/50 uppercase tracking-widest block">Rental Price</span>
-              <div className="font-serif font-extrabold text-2xl sm:text-3xl text-[#D4B66E] mt-0.5">
+              <span className="text-[11px] font-bold text-charcoal/50 uppercase tracking-widest block">Rental Price</span>
+              <div className="font-serif font-extrabold text-2xl sm:text-3xl text-[#0F4C45] mt-0.5">
                 {collection.rentalPrice || collection.priceRange || "₹24,500"}
-                <span className="text-xs text-white/60 font-sans font-medium ml-2">/ 3 Days Rental</span>
+                <span className="text-xs text-charcoal/60 font-sans font-medium ml-2">/ 3 Days Rental</span>
               </div>
             </div>
 
             <div className="text-right">
-              <span className="text-[11px] font-bold text-emerald-400 bg-emerald-950/60 border border-emerald-800/40 px-3 py-1 rounded-full inline-flex items-center gap-1">
-                <Check className="w-3 h-3" /> Available for Booking
+              <span className="text-[11px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full inline-flex items-center gap-1">
+                <Check className="w-3 h-3 text-emerald-600" /> Available for Booking
               </span>
-              <span className="text-[11px] text-white/50 block mt-1">Refundable Deposit: {collection.depositAmount || "₹5,000"}</span>
+              <span className="text-[11px] text-charcoal/50 block mt-1">Refundable Deposit: {collection.depositAmount || "₹5,000"}</span>
             </div>
           </div>
 
           {/* Quick Specifications Grid */}
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
-            <div className="bg-white/5 p-3 rounded-2xl border border-white/10 space-y-1">
-              <div className="flex items-center gap-1.5 text-[#D4B66E] font-bold">
+            <div className="bg-[#FAF7F2] p-3 rounded-2xl border border-gold/15 space-y-1">
+              <div className="flex items-center gap-1.5 text-[#0F4C45] font-bold">
                 <Shirt className="w-4 h-4" />
-                <span>Fabric & Craft</span>
+                <span>Fabric &amp; Craft</span>
               </div>
-              <p className="text-white/80 text-[11px] line-clamp-1 font-medium">{collection.fabric || "Raw Silk & Zardozi"}</p>
+              <p className="text-charcoal/80 text-[11px] line-clamp-1 font-medium">{collection.fabric || "Raw Silk & Zardozi"}</p>
             </div>
 
-            <div className="bg-white/5 p-3 rounded-2xl border border-white/10 space-y-1">
-              <div className="flex items-center gap-1.5 text-[#D4B66E] font-bold">
+            <div className="bg-[#FAF7F2] p-3 rounded-2xl border border-gold/15 space-y-1">
+              <div className="flex items-center gap-1.5 text-[#0F4C45] font-bold">
                 <Sliders className="w-4 h-4" />
                 <span>Available Sizes</span>
               </div>
-              <p className="text-white/80 text-[11px] font-medium">S, M, L, XL, Custom Fit</p>
+              <p className="text-charcoal/80 text-[11px] font-medium">S, M, L, XL, Custom Fit</p>
             </div>
 
-            <div className="bg-white/5 p-3 rounded-2xl border border-white/10 space-y-1 col-span-2 sm:col-span-1">
-              <div className="flex items-center gap-1.5 text-[#D4B66E] font-bold">
+            <div className="bg-[#FAF7F2] p-3 rounded-2xl border border-gold/15 space-y-1 col-span-2 sm:col-span-1">
+              <div className="flex items-center gap-1.5 text-[#0F4C45] font-bold">
                 <Clock className="w-4 h-4" />
                 <span>Rental Period</span>
               </div>
-              <p className="text-white/80 text-[11px] font-medium">3 Days / 5 Days Option</p>
+              <p className="text-charcoal/80 text-[11px] font-medium">3 Days / 5 Days Option</p>
             </div>
           </div>
 
@@ -437,9 +451,9 @@ export function CollectionDetailClient({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
             <button
               onClick={() => setShowBookingModal(true)}
-              className="w-full py-3.5 px-6 rounded-2xl bg-[#0F4C45] hover:bg-[#14635a] text-white font-bold text-sm shadow-lg transition-all cursor-pointer flex items-center justify-center gap-2 border border-emerald-500/30"
+              className="w-full py-3.5 px-6 rounded-2xl bg-[#0F4C45] hover:bg-[#0B3B35] text-white font-bold text-sm shadow-md transition-all cursor-pointer flex items-center justify-center gap-2"
             >
-              <Calendar className="w-4 h-4 text-emerald-300" />
+              <Calendar className="w-4 h-4 text-[#D4B66E]" />
               <span>Check Available Dates</span>
             </button>
 
@@ -447,7 +461,7 @@ export function CollectionDetailClient({
               href={whatsappUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="w-full py-3.5 px-6 rounded-2xl bg-[#25D366] hover:bg-emerald-600 text-white font-bold text-sm shadow-lg transition-all cursor-pointer flex items-center justify-center gap-2"
+              className="w-full py-3.5 px-6 rounded-2xl bg-[#25D366] hover:bg-emerald-600 text-white font-bold text-sm shadow-md transition-all cursor-pointer flex items-center justify-center gap-2"
             >
               <MessageCircle className="w-4 h-4 fill-white" />
               <span>Chat with Designer</span>
@@ -455,24 +469,24 @@ export function CollectionDetailClient({
           </div>
         </div>
 
-        {/* 4. PRODUCT DETAILS & INCLUSIONS ACCORDIONS */}
-        <div className="bg-[#14161D] rounded-3xl p-5 sm:p-6 border border-gold/20 shadow-xl space-y-4">
-          <h3 className="font-serif font-bold text-xl text-white border-b border-white/10 pb-3 flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-[#D4B66E]" />
+        {/* 4. PRODUCT DETAILS & INCLUSIONS */}
+        <div className="bg-white rounded-3xl p-5 sm:p-6 border border-gold/20 shadow-md space-y-4">
+          <h3 className="font-serif font-bold text-xl text-charcoal border-b border-gold/10 pb-3 flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-[#C8A96A]" />
             <span>Product Details &amp; Inclusions</span>
           </h3>
 
           <div className="space-y-3 text-xs leading-relaxed">
-            <p className="text-white/80 font-normal">
+            <p className="text-charcoal/80 font-normal">
               {collection.story || collection.description || "Hand-crafted zardozi and raw silk ensemble featuring intricate dabka threadwork, royal gold highlights, and custom fitting tailoring."}
             </p>
 
             <div className="pt-2 space-y-2">
-              <h4 className="font-bold text-[#D4B66E] uppercase tracking-wider text-[11px]">Set Includes:</h4>
+              <h4 className="font-bold text-[#0F4C45] uppercase tracking-wider text-[11px]">Set Includes:</h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {(collection.includes || ["Heavy Embroidered Lehenga Skirt", "Unstitched / Stitched Blouse", "Double Net Dupatta", "Matching Latkan"]).map((inc, idx) => (
-                  <div key={idx} className="flex items-center gap-2 bg-white/5 p-2.5 rounded-xl border border-white/10 text-white/90">
-                    <Check className="w-3.5 h-3.5 text-[#D4B66E] shrink-0" />
+                  <div key={idx} className="flex items-center gap-2 bg-[#FAF7F2] p-2.5 rounded-xl border border-gold/15 text-charcoal font-medium">
+                    <Check className="w-3.5 h-3.5 text-[#0F4C45] shrink-0" />
                     <span>{inc}</span>
                   </div>
                 ))}
@@ -482,18 +496,18 @@ export function CollectionDetailClient({
         </div>
 
         {/* 5. REVIEWS SEEING & ADDING SECTION */}
-        <div className="bg-[#14161D] rounded-3xl p-5 sm:p-6 border border-gold/20 shadow-xl space-y-6">
-          <div className="flex items-center justify-between border-b border-white/10 pb-4">
+        <div className="bg-white rounded-3xl p-5 sm:p-6 border border-gold/20 shadow-md space-y-6">
+          <div className="flex items-center justify-between border-b border-gold/10 pb-4">
             <div>
-              <h3 className="font-serif font-bold text-xl text-white">Client Reviews &amp; Ratings</h3>
-              <p className="text-xs text-white/60 mt-0.5">Real feedback from brides &amp; customers who wore this set</p>
+              <h3 className="font-serif font-bold text-xl text-charcoal">Client Reviews &amp; Ratings</h3>
+              <p className="text-xs text-charcoal/60 mt-0.5">Real feedback from brides &amp; customers who wore this set</p>
             </div>
 
-            <div className="flex items-center gap-2 bg-[#D4B66E]/15 border border-[#D4B66E]/30 px-3.5 py-1.5 rounded-2xl text-right">
-              <Star className="w-5 h-5 fill-[#D4B66E] text-[#D4B66E]" />
+            <div className="flex items-center gap-2 bg-[#FAF7F2] border border-gold/25 px-3.5 py-1.5 rounded-2xl text-right">
+              <Star className="w-5 h-5 fill-[#C8A96A] text-[#C8A96A]" />
               <div>
-                <span className="font-bold text-base text-[#D4B66E]">{avgRating}</span>
-                <span className="text-[10px] text-white/60 block font-medium">({reviewsList.length} reviews)</span>
+                <span className="font-bold text-base text-charcoal">{avgRating}</span>
+                <span className="text-[10px] text-charcoal/60 block font-medium">({reviewsList.length} reviews)</span>
               </div>
             </div>
           </div>
@@ -501,22 +515,22 @@ export function CollectionDetailClient({
           {/* List of Existing Reviews */}
           <div className="space-y-4">
             {reviewsList.map((rev) => (
-              <div key={rev.id} className="bg-white/5 rounded-2xl p-4 border border-white/10 space-y-2">
+              <div key={rev.id} className="bg-[#FAF7F2] rounded-2xl p-4 border border-gold/15 space-y-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-[#D4B66E]/20 border border-[#D4B66E]/40 flex items-center justify-center font-bold text-xs text-[#D4B66E]">
+                    <div className="w-8 h-8 rounded-full bg-[#0F4C45]/10 border border-[#0F4C45]/20 flex items-center justify-center font-bold text-xs text-[#0F4C45]">
                       {rev.name.charAt(0)}
                     </div>
                     <div>
                       <div className="flex items-center gap-1.5">
-                        <span className="font-bold text-sm text-white">{rev.name}</span>
+                        <span className="font-bold text-sm text-charcoal">{rev.name}</span>
                         {rev.verified && (
-                          <span className="text-[9px] bg-emerald-950 text-emerald-400 border border-emerald-800 px-2 py-0.5 rounded-full font-bold flex items-center gap-0.5">
+                          <span className="text-[9px] bg-emerald-50 text-emerald-800 border border-emerald-200 px-2 py-0.5 rounded-full font-bold flex items-center gap-0.5">
                             <UserCheck className="w-2.5 h-2.5" /> Verified Bride
                           </span>
                         )}
                       </div>
-                      <span className="text-[10px] text-white/50">{rev.date}</span>
+                      <span className="text-[10px] text-charcoal/50">{rev.date}</span>
                     </div>
                   </div>
 
@@ -524,13 +538,13 @@ export function CollectionDetailClient({
                     {[1, 2, 3, 4, 5].map((s) => (
                       <Star
                         key={s}
-                        className={`w-3.5 h-3.5 ${s <= rev.rating ? "fill-[#D4B66E] text-[#D4B66E]" : "text-white/20"}`}
+                        className={`w-3.5 h-3.5 ${s <= rev.rating ? "fill-[#C8A96A] text-[#C8A96A]" : "text-gray-300"}`}
                       />
                     ))}
                   </div>
                 </div>
 
-                <p className="text-xs text-white/80 leading-relaxed font-normal pt-1">
+                <p className="text-xs text-charcoal/80 leading-relaxed font-normal pt-1">
                   "{rev.comment}"
                 </p>
               </div>
@@ -538,19 +552,19 @@ export function CollectionDetailClient({
           </div>
 
           {/* Add Review Form */}
-          <div className="pt-4 border-t border-white/10 space-y-4">
-            <h4 className="font-serif font-bold text-base text-[#D4B66E]">Write a Customer Review</h4>
+          <div className="pt-4 border-t border-gold/10 space-y-4">
+            <h4 className="font-serif font-bold text-base text-[#0F4C45]">Write a Customer Review</h4>
 
             {reviewSuccessMsg && (
-              <div className="p-3 bg-emerald-950/80 border border-emerald-500/40 rounded-2xl text-xs text-emerald-300 font-bold flex items-center gap-2">
-                <Check className="w-4 h-4 text-emerald-400" />
+              <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-2xl text-xs text-emerald-800 font-bold flex items-center gap-2">
+                <Check className="w-4 h-4 text-emerald-600" />
                 <span>Thank you! Your review has been published successfully.</span>
               </div>
             )}
 
             <form onSubmit={handleAddReview} className="space-y-3">
               <div>
-                <label className="text-[11px] font-bold text-white/70 uppercase tracking-wider block mb-1">Your Rating</label>
+                <label className="text-[11px] font-bold text-charcoal/70 uppercase tracking-wider block mb-1">Your Rating</label>
                 <div className="flex items-center gap-1.5">
                   {[1, 2, 3, 4, 5].map((star) => (
                     <button
@@ -560,7 +574,7 @@ export function CollectionDetailClient({
                       className="p-1 cursor-pointer transition-transform hover:scale-125"
                     >
                       <Star
-                        className={`w-6 h-6 ${star <= ratingInput ? "fill-[#D4B66E] text-[#D4B66E]" : "text-white/20"}`}
+                        className={`w-6 h-6 ${star <= ratingInput ? "fill-[#C8A96A] text-[#C8A96A]" : "text-gray-300"}`}
                       />
                     </button>
                   ))}
@@ -568,32 +582,32 @@ export function CollectionDetailClient({
               </div>
 
               <div>
-                <label className="text-[11px] font-bold text-white/70 uppercase tracking-wider block mb-1">Your Name</label>
+                <label className="text-[11px] font-bold text-charcoal/70 uppercase tracking-wider block mb-1">Your Name</label>
                 <input
                   type="text"
                   required
                   placeholder="e.g. Dr. Ananya Ramesh"
                   value={reviewerName}
                   onChange={(e) => setReviewerName(e.target.value)}
-                  className="w-full bg-white/5 border border-white/15 rounded-xl p-3 text-xs text-white placeholder:text-white/30 focus:outline-none focus:border-[#D4B66E]"
+                  className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl p-3 text-xs text-charcoal placeholder:text-charcoal/40 focus:outline-none focus:border-[#0F4C45]"
                 />
               </div>
 
               <div>
-                <label className="text-[11px] font-bold text-white/70 uppercase tracking-wider block mb-1">Your Review / Experience</label>
+                <label className="text-[11px] font-bold text-charcoal/70 uppercase tracking-wider block mb-1">Your Review / Experience</label>
                 <textarea
                   rows={3}
                   required
                   placeholder="Share details about the fitting, fabric quality, and rental experience..."
                   value={reviewerComment}
                   onChange={(e) => setReviewerComment(e.target.value)}
-                  className="w-full bg-white/5 border border-white/15 rounded-xl p-3 text-xs text-white placeholder:text-white/30 focus:outline-none focus:border-[#D4B66E] resize-none"
+                  className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl p-3 text-xs text-charcoal placeholder:text-charcoal/40 focus:outline-none focus:border-[#0F4C45] resize-none"
                 />
               </div>
 
               <button
                 type="submit"
-                className="w-full py-3 rounded-xl bg-[#D4B66E] hover:bg-[#bfa25c] text-black font-bold text-xs shadow-md transition-all cursor-pointer uppercase tracking-wider"
+                className="w-full py-3 rounded-xl bg-[#0F4C45] hover:bg-[#0B3B35] text-white font-bold text-xs shadow-md transition-all cursor-pointer uppercase tracking-wider"
               >
                 Submit Review
               </button>
@@ -601,16 +615,16 @@ export function CollectionDetailClient({
           </div>
         </div>
 
-        {/* 6. BOTTOM SIMILAR COLLECTIONS CARDS (MATCHING REFERENCE CARDS) */}
+        {/* 6. BOTTOM SIMILAR COLLECTIONS CARDS */}
         {similarCollections.length > 0 && (
-          <section className="space-y-4 pt-4 border-t border-white/10">
+          <section className="space-y-4 pt-4 border-t border-gold/15">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="font-serif font-bold text-xl text-white">Similar Collections</h3>
-                <p className="text-xs text-white/60">More signature couture ensembles you may like</p>
+                <h3 className="font-serif font-bold text-xl text-charcoal">Similar Collections</h3>
+                <p className="text-xs text-charcoal/60">More signature couture ensembles you may like</p>
               </div>
 
-              <Link href="/collections" className="text-xs font-bold text-[#D4B66E] hover:underline flex items-center gap-1">
+              <Link href="/collections" className="text-xs font-bold text-[#0F4C45] hover:underline flex items-center gap-1">
                 <span>View All</span>
                 <ChevronRight className="w-4 h-4" />
               </Link>
@@ -621,15 +635,15 @@ export function CollectionDetailClient({
                 <Link
                   key={item.id}
                   href={`/collections/${item.id}`}
-                  className="relative aspect-[3/4] w-full rounded-2xl overflow-hidden shadow-md group cursor-pointer border border-gold/20 hover:border-[#D4B66E] hover:shadow-2xl transition-all duration-500 block"
+                  className="relative aspect-[3/4] w-full rounded-2xl overflow-hidden shadow-md group cursor-pointer border border-gold/20 hover:border-[#0F4C45] hover:shadow-xl transition-all duration-500 block"
                 >
                   <img
                     src={item.coverImage}
                     alt={item.name}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent transition-opacity group-hover:from-black" />
-                  <div className="absolute bottom-0 left-0 right-0 p-3.5 sm:p-4 flex flex-col justify-end text-left z-10 space-y-1">
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/35 to-transparent transition-opacity group-hover:from-black/95" />
+                  <div className="absolute bottom-0 left-0 right-0 p-3.5 sm:p-4 flex flex-col justify-end text-left z-10 space-y-0.5">
                     <span className="text-[10px] font-bold text-[#D4B66E] uppercase tracking-[0.2em]">
                       {(item.location || "KERALA").toUpperCase()}
                     </span>
@@ -650,29 +664,29 @@ export function CollectionDetailClient({
 
       {/* ── BOOKING DATE MODAL ── */}
       {showBookingModal && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-[#14161D] rounded-3xl max-w-md w-full border border-gold/30 p-6 space-y-4 text-white relative">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-md w-full border border-gold/30 p-6 space-y-4 text-charcoal relative shadow-2xl">
             <button
               onClick={() => setShowBookingModal(false)}
-              className="absolute top-4 right-4 text-white/60 hover:text-white font-bold text-sm"
+              className="absolute top-4 right-4 text-charcoal/60 hover:text-charcoal font-bold text-sm"
             >
               ✕
             </button>
 
-            <h3 className="font-serif font-bold text-xl text-[#D4B66E]">Check Event Date Availability</h3>
-            <p className="text-xs text-white/70">
+            <h3 className="font-serif font-bold text-xl text-[#0F4C45]">Check Event Date Availability</h3>
+            <p className="text-xs text-charcoal/70">
               Select your wedding or event date to check live availability with {boutique.name}.
             </p>
 
             {bookingSent ? (
-              <div className="p-4 bg-emerald-950 border border-emerald-500 rounded-2xl text-xs text-emerald-300 font-bold space-y-2">
+              <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-xs text-emerald-800 font-bold space-y-2">
                 <p>✓ Availability Inquiry Sent!</p>
-                <p className="font-normal text-white/80">
+                <p className="font-normal text-charcoal/80">
                   {boutique.name} has received your inquiry for {bookingDate}. Their concierge team will respond shortly.
                 </p>
                 <button
                   onClick={() => setShowBookingModal(false)}
-                  className="mt-2 w-full py-2 bg-emerald-600 text-white rounded-xl font-bold"
+                  className="mt-2 w-full py-2 bg-[#0F4C45] text-white rounded-xl font-bold"
                 >
                   Close
                 </button>
@@ -680,14 +694,14 @@ export function CollectionDetailClient({
             ) : (
               <div className="space-y-4">
                 <div>
-                  <label className="text-[11px] font-bold uppercase tracking-wider text-white/70 block mb-1">
+                  <label className="text-[11px] font-bold uppercase tracking-wider text-charcoal/70 block mb-1">
                     Event / Wedding Date
                   </label>
                   <input
                     type="date"
                     value={bookingDate}
                     onChange={(e) => setBookingDate(e.target.value)}
-                    className="w-full bg-white/10 border border-white/20 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-[#D4B66E]"
+                    className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl p-3 text-xs text-charcoal focus:outline-none focus:border-[#0F4C45]"
                   />
                 </div>
 
@@ -696,7 +710,7 @@ export function CollectionDetailClient({
                     if (!bookingDate) return;
                     setBookingSent(true);
                   }}
-                  className="w-full py-3 bg-[#0F4C45] hover:bg-emerald-700 text-white font-bold rounded-xl text-xs uppercase tracking-wider transition-all"
+                  className="w-full py-3 bg-[#0F4C45] hover:bg-[#0B3B35] text-white font-bold rounded-xl text-xs uppercase tracking-wider transition-all shadow-md"
                 >
                   Confirm &amp; Request Date
                 </button>
