@@ -1976,7 +1976,6 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
               <div className="flex items-center justify-between border-b border-gold/10 pb-2.5">
                 <div>
                   <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">{studioCategoryConfig.collectionsTitle}</h2>
-                  <p className="text-xs text-charcoal/60 mt-0.5">{studioCategoryConfig.collectionsSubtitle}</p>
                 </div>
               </div>
               {/* Mobile Horizontal Swipe Carousel */}
@@ -2261,7 +2260,6 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
               <div className="flex items-center justify-between border-b border-gold/10 pb-2.5">
                 <div>
                   <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">Our Bridal Collections</h2>
-                  <p className="text-xs text-charcoal/60 mt-0.5">Explore signature bridal zardozi lehengas, silk sarees &amp; reception trails</p>
                 </div>
               </div>
               {/* Mobile Horizontal Swipe Carousel */}
@@ -2546,7 +2544,6 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
               <div className="flex items-center justify-between border-b border-gold/10 pb-2.5">
                 <div>
                   <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">Our Wedding Collections</h2>
-                  <p className="text-xs text-charcoal/60 mt-0.5">Explore signature bridal, groom, and ceremonial couple ensembles</p>
                 </div>
               </div>
               {/* Mobile Horizontal Swipe Carousel */}
@@ -3719,7 +3716,6 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
               <div className="border-b border-gold/10 pb-2.5">
                 <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">Bridal Jewellery Collections</h2>
-                <p className="text-xs text-charcoal/60 mt-0.5">Heritage temple gold, uncut polki kundan &amp; diamond bridal sets</p>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="bg-[#FAF7F2] p-4 rounded-xl border border-gold/15 space-y-1.5">
@@ -3898,7 +3894,6 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
               <div className="border-b border-gold/10 pb-2.5">
                 <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">Invitation Card Collections</h2>
-                <p className="text-xs text-charcoal/60 mt-0.5">Laser-cut boxed suites, velvet scrolls &amp; interactive digital invitations</p>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="bg-[#FAF7F2] p-4 rounded-xl border border-gold/15 space-y-1.5">
