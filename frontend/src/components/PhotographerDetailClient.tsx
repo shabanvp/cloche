@@ -27,7 +27,6 @@ import {
   Check,
   Send,
 } from "lucide-react";
-import { BottomNavBar } from "@/components/BottomNavBar";
 import { VendorDetail } from "@/lib/vendorLists";
 import { formatTelUri } from "@/lib/formatters";
 import { ExploreOtherVendors } from "@/components/ExploreOtherVendors";
@@ -733,8 +732,6 @@ export function PhotographerDetailClient({ photographer }: { photographer: Vendo
           </div>
         </div>
       )}
-
-      <BottomNavBar activeTab="vendors" />
     </div>
   );
 }

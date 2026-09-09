@@ -14,18 +14,32 @@ export function BottomNavBar({ activeTab }: BottomNavBarProps = {}) {
   const pathname = usePathname();
   const [isAuraOpen, setIsAuraOpen] = useState(false);
 
-    const isVendorDetailPage =
+  const isVendorDetailPage =
     pathname.includes("/venues/") ||
-    pathname.includes("/wedding-story/") ||
+    pathname.includes("/catering/") ||
+    pathname.includes("/caterers/") ||
     pathname.includes("/photographers/") ||
     pathname.includes("/makeup-artists/") ||
+    pathname.includes("/makeup/") ||
     pathname.includes("/decor-planning/") ||
+    pathname.includes("/decor/") ||
     pathname.includes("/bridal-wear/") ||
+    pathname.includes("/bridal-studio/") ||
     pathname.includes("/groom-wear/") ||
+    pathname.includes("/groom-studio/") ||
+    pathname.includes("/wedding-story/") ||
+    pathname.includes("/wedding-studio/") ||
     pathname.includes("/jewellery/") ||
-    pathname.includes("/caterers/") ||
     pathname.includes("/invitations/") ||
+    pathname.includes("/digital-invitations/") ||
+    pathname.includes("/e-invites/") ||
     pathname.includes("/boutiques/") ||
+    pathname.includes("/mehendi-artists/") ||
+    pathname.includes("/brides-story/") ||
+    pathname.includes("/grooms-story/") ||
+    pathname.includes("/real-weddings/") ||
+    pathname.includes("/content/") ||
+    pathname.startsWith("/vendor/") ||
     (pathname.startsWith("/vendors/") && pathname !== "/vendors");
 
   if (pathname === "/login" || pathname === "/signup" || isVendorDetailPage) return null;

@@ -33,7 +33,6 @@ import {
   Layers,
   Building2
 } from "lucide-react";
-import { BottomNavBar } from "@/components/BottomNavBar";
 import { ExploreOtherVendors } from "@/components/ExploreOtherVendors";
 
 function InstagramIcon({ className = "w-4 h-4" }: { className?: string }) {
@@ -1578,8 +1577,6 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
         </div>
       </div>
 
-      {/* Cloche Bottom Navigation Bar */}
-      <BottomNavBar activeTab="vendors" />
     </div>
   );
 }

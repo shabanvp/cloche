@@ -16,6 +16,11 @@ import {
   Play,
   Video
 } from "lucide-react";
+import { VendorDetail } from "@/lib/vendorLists";
+import { formatTelUri } from "@/lib/formatters";
+import { fetchAuthenticatedVendorFromDb, getActiveVendorIdentity } from "@/lib/vendorStore";
+import { COLOR_THEMES } from "@/components/vendor/sections/CustomizeStoreSection";
+import { ExploreOtherVendors } from "@/components/ExploreOtherVendors";
 
 function InstagramIcon({ className = "w-4 h-4" }: { className?: string }) {
   return (
@@ -42,12 +47,6 @@ function YoutubeIcon({ className = "w-4 h-4" }: { className?: string }) {
     </svg>
   );
 }
-import { BottomNavBar } from "@/components/BottomNavBar";
-import { VendorDetail } from "@/lib/vendorLists";
-import { formatTelUri } from "@/lib/formatters";
-import { fetchAuthenticatedVendorFromDb, getActiveVendorIdentity } from "@/lib/vendorStore";
-import { COLOR_THEMES } from "@/components/vendor/sections/CustomizeStoreSection";
-import { ExploreOtherVendors } from "@/components/ExploreOtherVendors";
 
 export function MakeupDetailClient({ artist }: { artist: VendorDetail }) {
   const [activeTab, setActiveTab] = useState<"about" | "portfolio" | "reviews" | "info">("about");
@@ -450,8 +449,6 @@ export function MakeupDetailClient({ artist }: { artist: VendorDetail }) {
       <div className="max-w-4xl mx-auto w-full px-4">
         <ExploreOtherVendors category="makeup" currentVendorId={artist.id} currentVendorName={artist.name} />
       </div>
-
-      <BottomNavBar activeTab="vendors" />
     </div>
   );
 }

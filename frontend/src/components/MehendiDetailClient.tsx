@@ -15,7 +15,6 @@ import {
   MessageSquare,
   Calendar,
 } from "lucide-react";
-import { BottomNavBar } from "@/components/BottomNavBar";
 import { MehendiVendor } from "@/lib/mehendiData";
 import { formatTelUri } from "@/lib/formatters";
 import { ExploreOtherVendors } from "@/components/ExploreOtherVendors";
@@ -222,8 +221,6 @@ export function MehendiDetailClient({ artist }: { artist: MehendiVendor }) {
       <div className="max-w-4xl mx-auto w-full px-4">
         <ExploreOtherVendors category="mehendi" currentVendorId={artist.id} currentVendorName={artist.name} />
       </div>
-
-      <BottomNavBar activeTab="vendors" />
     </div>
   );
 }

@@ -24,7 +24,6 @@ import {
   Truck,
   Check
 } from "lucide-react";
-import { BottomNavBar } from "@/components/BottomNavBar";
 import { formatTelUri } from "@/lib/formatters";
 import { ExploreOtherVendors } from "@/components/ExploreOtherVendors";
 import {
@@ -646,8 +645,6 @@ export function StoryBoutiqueDetailClient({
       <div className="max-w-4xl mx-auto w-full px-4">
         <ExploreOtherVendors category="bridal-wear" currentVendorId={boutique.id} currentVendorName={boutique.boutique_name} />
       </div>
-
-      <BottomNavBar activeTab="vendors" />
     </div>
   );
 }
