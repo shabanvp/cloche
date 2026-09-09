@@ -857,39 +857,7 @@ export function CollectionDetailClient({
 
         </div>
 
-        {/* E. INTERACTIVE OUTFIT GALLERY (DESKTOP LIGHTBOX GRID) */}
-        <div className="space-y-5 pt-4">
-          <div className="flex items-center justify-between border-b border-gold/15 pb-3">
-            <div>
-              <h3 className="font-serif font-bold text-2xl text-charcoal">High-Resolution Photo Gallery</h3>
-              <p className="text-xs text-charcoal/60">Front view, embroidery close-ups, and studio details</p>
-            </div>
-            <span className="text-xs font-bold text-[#0F4C45] bg-[#0F4C45]/10 px-3 py-1 rounded-full">
-              {galleryImages.length} Photos
-            </span>
-          </div>
 
-          <div className="grid grid-cols-4 gap-4">
-            {galleryImages.map((img, idx) => (
-              <div
-                key={idx}
-                onClick={() => setLightboxImage(img)}
-                className="relative aspect-[3/4] rounded-2xl overflow-hidden bg-charcoal/5 border border-gold/20 shadow-md group cursor-pointer"
-              >
-                <img
-                  src={img}
-                  alt={`Gallery Photo ${idx + 1}`}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-                <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <span className="bg-white/90 text-[#0F4C45] font-bold text-xs px-3 py-1.5 rounded-full shadow-md flex items-center gap-1.5">
-                    <Maximize2 className="w-3.5 h-3.5" /> View Photo
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
 
         {/* F. CLIENT REVIEWS SECTION (DESKTOP) */}
         <div className="bg-white rounded-3xl p-8 border border-gold/20 shadow-md space-y-8">
