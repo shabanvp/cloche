@@ -1,4 +1,3 @@
-import { notFound } from "next/navigation";
 import { getProductDetails, getBoutiqueProducts, getBoutiqueDetails } from "@/services/api";
 import { CollectionDetailClient } from "@/components/CollectionDetailClient";
 
@@ -6,10 +5,68 @@ interface Props {
   params: Promise<{ id: string }>;
 }
 
+const CANONICAL_COLLECTION_TITLES: Record<string, { name: string; category: string; desc: string; cover: string }> = {
+  "col-g1": {
+    name: "Royal Velvet & Raw Silk Sherwanis",
+    category: "Groom",
+    desc: "Hand-embroidered zardozi maroon & regal navy sherwanis with pure silk dupattas and antique brass buttons for groom wear.",
+    cover: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?q=80&w=800&auto=format&fit=crop"
+  },
+  "col-g2": {
+    name: "Indo-Western Reception Suits & Tuxedos",
+    category: "Groom",
+    desc: "Contemporary asymmetrical cut coats, velvet bandhgalas and Italian wool tuxedo ensembles for evening receptions.",
+    cover: "https://images.unsplash.com/photo-1594938298603-c8148c4dae35?q=80&w=800&auto=format&fit=crop"
+  },
+  "col-g3": {
+    name: "Heritage Kurta Sets & Nehru Jackets",
+    category: "Groom",
+    desc: "Lightweight silk chanderi kurtas paired with hand-loomed brocade Nehru jackets for mehendi & haldi ceremonies.",
+    cover: "https://images.unsplash.com/photo-1617137984095-74e4e5e3613f?q=80&w=800&auto=format&fit=crop"
+  },
+  "col-b1": {
+    name: "Royal Zardozi Bridal Lehenga Collection",
+    category: "Bridal",
+    desc: "Hand-embroidered zardozi maroon & crimson lehengas with pure silk dupattas for ceremonial weddings.",
+    cover: "https://images.unsplash.com/photo-1594223274512-ad4803739b7c?q=80&w=800&auto=format&fit=crop"
+  },
+  "col-b2": {
+    name: "Kanjeevaram & Heritage Silk Sarees",
+    category: "Bridal",
+    desc: "Pure Kanjeevaram silk sarees woven with gold zari borders for muhurtham and temple ceremonies.",
+    cover: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?q=80&w=800&auto=format&fit=crop"
+  },
+  "col-b3": {
+    name: "Pastel Organza & Reception Trails",
+    category: "Bridal",
+    desc: "Ethereal pastel drapes with crystal embellishments and lightweight organza trails for Sangeet & Reception.",
+    cover: "https://images.unsplash.com/photo-1546804764-9147f7157769?q=80&w=800&auto=format&fit=crop"
+  },
+  "col-w1": {
+    name: "Royal Couple Matching Ensembles",
+    category: "Wedding",
+    desc: "Color-coordinated bride & groom ensembles featuring matching zardozi motifs and silk dupattas.",
+    cover: "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=800&auto=format&fit=crop"
+  },
+  "col-w2": {
+    name: "Sangeet & Mehendi Color-Coordinated Sets",
+    category: "Wedding",
+    desc: "Vibrant yellow, emerald & fuschia outfits tailored for energetic pre-wedding celebrations.",
+    cover: "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?q=80&w=800&auto=format&fit=crop"
+  },
+  "col-w3": {
+    name: "Reception & Cocktail Evening Couture",
+    category: "Wedding",
+    desc: "Sophisticated black-tie tuxedos and evening cocktail gowns tailored for reception galas.",
+    cover: "https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?q=80&w=800&auto=format&fit=crop"
+  }
+};
+
 export async function generateMetadata({ params }: Props) {
   const { id } = await params;
   const product = await getProductDetails(id);
-  const name = product?.product_name || (product as any)?.name || id.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+  const canonical = CANONICAL_COLLECTION_TITLES[id.toLowerCase()];
+  const name = product?.product_name || canonical?.name || id.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 
   return {
     title: `${name} | Cloche Premium Couture`,
@@ -20,35 +77,36 @@ export async function generateMetadata({ params }: Props) {
 export default async function CollectionPage({ params }: Props) {
   const { id } = await params;
   const product = await getProductDetails(id);
+  const canonical = CANONICAL_COLLECTION_TITLES[id.toLowerCase()];
 
   const fallbackSimilar = [
     {
-      id: "velvet-bridal-lehenga",
-      name: "Velvet Zardozi Bridal Lehenga",
-      coverImage: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?q=80&w=800&auto=format&fit=crop",
+      id: "col-b1",
+      name: "Royal Zardozi Bridal Lehenga Collection",
+      coverImage: "https://images.unsplash.com/photo-1594223274512-ad4803739b7c?q=80&w=800&auto=format&fit=crop",
       category: "BRIDAL",
       location: "PERINTHALMANNA, MALAPPURAM",
       priceRange: "₹28,500 / 3 Days"
     },
     {
-      id: "royal-maroon-sherwani",
-      name: "Royal Maroon Velvet Sherwani",
+      id: "col-g1",
+      name: "Royal Velvet & Raw Silk Sherwanis",
       coverImage: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?q=80&w=800&auto=format&fit=crop",
       category: "GROOM",
       location: "KOZHIKODE",
       priceRange: "₹18,000 / 3 Days"
     },
     {
-      id: "emerald-silk-saree",
-      name: "Kanjivaram Tissue Silk Saree",
-      coverImage: "https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?q=80&w=800&auto=format&fit=crop",
+      id: "col-b2",
+      name: "Kanjeevaram & Heritage Silk Sarees",
+      coverImage: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?q=80&w=800&auto=format&fit=crop",
       category: "COUTURE",
       location: "KASARAGOD",
       priceRange: "₹15,000 / 3 Days"
     },
     {
-      id: "pastel-reception-gown",
-      name: "Pastel Crystal Reception Gown",
+      id: "col-b3",
+      name: "Pastel Organza & Reception Trails",
       coverImage: "https://images.unsplash.com/photo-1546804764-9147f7157769?q=80&w=800&auto=format&fit=crop",
       category: "BRIDAL",
       location: "ERNAKULAM",
@@ -57,20 +115,20 @@ export default async function CollectionPage({ params }: Props) {
   ];
 
   if (!product) {
-    const formattedTitle = id.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+    const formattedTitle = canonical?.name || id.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
     
     const fallbackCollection = {
       id: id,
-      name: formattedTitle && formattedTitle.length > 2 ? formattedTitle : "RED LEHENGA SET",
-      description: "Hand-crafted zardozi and raw silk ensemble featuring intricate dabka threadwork and royal gold highlights.",
-      coverImage: "https://images.unsplash.com/photo-1594223274512-ad4803739b7c?q=80&w=800&auto=format&fit=crop",
-      category: "Bridal",
+      name: formattedTitle || "Royal Zardozi Collection",
+      description: canonical?.desc || "Hand-crafted zardozi and raw silk ensemble featuring intricate dabka threadwork and royal gold highlights.",
+      coverImage: canonical?.cover || "https://images.unsplash.com/photo-1594223274512-ad4803739b7c?q=80&w=800&auto=format&fit=crop",
+      category: canonical?.category || "Bridal",
       priceRange: "₹24,500 / 3 Days",
       rentalPrice: "₹24,500",
       rentalDuration: "3 Days Rental",
       depositAmount: "₹5,000 Refundable Deposit",
       fabric: "Pure Raw Silk & Micro Velvet with Zardozi Work",
-      includes: ["Heavy Embroidered Lehenga Skirt", "Unstitched / Stitched Blouse", "Double Net Dupatta", "Matching Latkan"],
+      includes: ["Heavy Embroidered Ensemble", "Custom Tailored Blouse / Jacket", "Matching Dupatta", "Latkan / Accessories"],
       sizes: ["S", "M", "L", "XL", "Bespoke Custom Fit"],
     };
 
@@ -100,16 +158,16 @@ export default async function CollectionPage({ params }: Props) {
 
   const collectionData = {
     id: product.id,
-    name: product.product_name || (product as any).name || "RED LEHENGA SET",
-    description: product.description || "Hand-crafted zardozi and raw silk ensemble featuring intricate dabka threadwork.",
-    coverImage: product.image_url || (product.gallery && product.gallery[0]) || "https://images.unsplash.com/photo-1594223274512-ad4803739b7c?q=80&w=800&auto=format&fit=crop",
-    category: product.category || "Bridal",
+    name: product.product_name || (product as any).name || canonical?.name || "Couture Outfit Collection",
+    description: product.description || canonical?.desc || "Hand-crafted zardozi and raw silk ensemble featuring intricate dabka threadwork.",
+    coverImage: product.image_url || (product.gallery && product.gallery[0]) || canonical?.cover || "https://images.unsplash.com/photo-1594223274512-ad4803739b7c?q=80&w=800&auto=format&fit=crop",
+    category: product.category || canonical?.category || "Bridal",
     priceRange: product.price ? `₹${product.price.toLocaleString("en-IN")} / 3 Days` : "₹24,500 / 3 Days",
     rentalPrice: product.price ? `₹${product.price.toLocaleString("en-IN")}` : "₹24,500",
     rentalDuration: "3 Days Rental",
     depositAmount: "₹5,000 Refundable Deposit",
     fabric: (product as any).fabric || "Pure Raw Silk & Micro Velvet with Zardozi Work",
-    includes: ["Heavy Embroidered Lehenga Skirt", "Unstitched / Stitched Blouse", "Double Net Dupatta", "Matching Latkan"],
+    includes: ["Heavy Embroidered Ensemble", "Custom Tailored Blouse / Jacket", "Matching Dupatta", "Latkan / Accessories"],
     sizes: ["S", "M", "L", "XL", "Bespoke Custom Fit"],
   };
 

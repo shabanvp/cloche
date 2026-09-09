@@ -279,60 +279,50 @@ export function CollectionDetailClient({
   return (
     <div className="min-h-screen bg-[#FAF7F2] text-charcoal flex flex-col font-sans selection:bg-[#0F4C45] selection:text-white">
       
-      {/* ── CLOCHE LIGHT TOP HEADER ── */}
-      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-gold/15 px-4 sm:px-6 py-3.5 shadow-2xs">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <Link
-            href={`/wedding-story/${boutique.slug || boutique.id || "studio"}`}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#0F4C45]/10 text-[#0F4C45] hover:bg-[#0F4C45] hover:text-white transition-all text-xs font-bold shrink-0"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Studio Profile</span>
-          </Link>
-
-          <Link href="/" className="font-serif font-extrabold text-xl sm:text-2xl tracking-[0.25em] text-[#0F4C45] uppercase drop-shadow-2xs">
-            CLOCHE
-          </Link>
-
-          <div className="flex items-center gap-2">
-            <button
-              onClick={handleShare}
-              className="p-2 rounded-full bg-[#FAF7F2] border border-gold/20 text-[#0F4C45] hover:bg-[#0F4C45] hover:text-white transition-all relative cursor-pointer"
-              title="Share Collection"
-            >
-              <Share2 className="w-4 h-4" />
-              {isCopied && (
-                <span className="absolute -bottom-8 right-0 bg-[#0F4C45] text-white text-[10px] font-bold px-2.5 py-0.5 rounded shadow-lg whitespace-nowrap">
-                  Link Copied!
-                </span>
-              )}
-            </button>
-
-            <WishlistButton
-              product={{
-                id: String(collection.id),
-                product_name: collection.name,
-                boutique_name: boutique.name,
-                category: collection.category || "Collection",
-                price: collection.priceRange || 0,
-                image_url: collection.coverImage
-              } as any}
-            />
-          </div>
-        </div>
-      </header>
-
-      {/* ── BREADCRUMB NAV TRAIL ── */}
-      <div className="max-w-4xl mx-auto w-full px-4 sm:px-6 pt-5 pb-2">
-        <nav className="flex items-center gap-2 text-[10px] sm:text-xs font-bold tracking-[0.2em] text-charcoal/60 uppercase">
+      {/* ── BREADCRUMB & ACTION CONTROL BAR (CLEAN INTEGRATED NAVIGATION) ── */}
+      <div className="max-w-4xl mx-auto w-full px-4 sm:px-6 pt-6 pb-3 flex items-center justify-between gap-4">
+        <nav className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs font-bold tracking-[0.15em] text-charcoal/60 uppercase flex-wrap">
           <Link href="/" className="hover:text-[#0F4C45] transition-colors">HOME</Link>
           <span>›</span>
-          <Link href="/collections" className="hover:text-[#0F4C45] transition-colors">COLLECTIONS</Link>
+          <Link href="/vendors" className="hover:text-[#0F4C45] transition-colors">VENDORS</Link>
           <span>›</span>
-          <span className="text-[#0F4C45] font-extrabold truncate max-w-[200px] sm:max-w-none">
+          <Link
+            href={`/wedding-story/${boutique.slug || boutique.id || "studio"}`}
+            className="hover:text-[#0F4C45] transition-colors text-[#0F4C45]"
+          >
+            {boutique.name.toUpperCase()}
+          </Link>
+          <span>›</span>
+          <span className="text-charcoal font-extrabold truncate max-w-[180px] sm:max-w-none">
             {collection.name.toUpperCase()}
           </span>
         </nav>
+
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            onClick={handleShare}
+            className="p-2 rounded-full bg-white border border-gold/20 text-[#0F4C45] hover:bg-[#0F4C45] hover:text-white transition-all relative cursor-pointer shadow-xs"
+            title="Share Collection"
+          >
+            <Share2 className="w-4 h-4" />
+            {isCopied && (
+              <span className="absolute -bottom-8 right-0 bg-[#0F4C45] text-white text-[10px] font-bold px-2.5 py-0.5 rounded shadow-lg whitespace-nowrap z-20">
+                Link Copied!
+              </span>
+            )}
+          </button>
+
+          <WishlistButton
+            product={{
+              id: String(collection.id),
+              product_name: collection.name,
+              boutique_name: boutique.name,
+              category: collection.category || "Collection",
+              price: collection.priceRange || 0,
+              image_url: collection.coverImage
+            } as any}
+          />
+        </div>
       </div>
 
       {/* ── MAIN CONTENT CONTAINER (CLOCHE LIGHT THEME) ── */}
