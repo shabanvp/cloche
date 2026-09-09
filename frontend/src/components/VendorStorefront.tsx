@@ -1992,10 +1992,7 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
                   const categoryTag = (col.category || "GROOM").toUpperCase();
 
                   return (
-                    <div
-                      key={col.id}
-                      onClick={() => setActiveCollectionModal(col)}
-                      className="w-[75%] sm:w-[80%] shrink-0 snap-start relative aspect-[3/4] rounded-2xl overflow-hidden shadow-md group cursor-pointer border border-gold/20"
+                    <Link key={col.id} href={`/collections/${col.id}`} className="w-[75%] sm:w-[80%] shrink-0 snap-start relative aspect-[3/4] rounded-2xl overflow-hidden shadow-md group cursor-pointer border border-gold/20 block"
                     >
                       <img
                         src={col.coverImage}
@@ -2014,7 +2011,7 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
                           {categoryTag}
                         </span>
                       </div>
-                    </div>
+                    </Link>
                   );
                 })}
               </div>
@@ -2026,10 +2023,7 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
                   const categoryTag = (col.category || "GROOM").toUpperCase();
 
                   return (
-                    <div
-                      key={col.id}
-                      onClick={() => setActiveCollectionModal(col)}
-                      className="relative aspect-[3/4] w-full rounded-2xl overflow-hidden shadow-md group cursor-pointer border border-gold/20 hover:border-[#0F4C45] hover:shadow-xl transition-all duration-500"
+                    <Link key={col.id} href={`/collections/${col.id}`} className="relative aspect-[3/4] w-full rounded-2xl overflow-hidden shadow-md group cursor-pointer border border-gold/20 hover:border-[#0F4C45] hover:shadow-xl transition-all duration-500 block"
                     >
                       <img
                         src={col.coverImage}
@@ -2048,7 +2042,7 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
                           {categoryTag}
                         </span>
                       </div>
-                    </div>
+                    </Link>
                   );
                 })}
               </div>
@@ -2276,10 +2270,7 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
                   const categoryTag = (col.category || "BRIDAL").toUpperCase();
 
                   return (
-                    <div
-                      key={col.id}
-                      onClick={() => setActiveCollectionModal(col)}
-                      className="w-[75%] sm:w-[80%] shrink-0 snap-start relative aspect-[3/4] rounded-2xl overflow-hidden shadow-md group cursor-pointer border border-gold/20"
+                    <Link key={col.id} href={`/collections/${col.id}`} className="w-[75%] sm:w-[80%] shrink-0 snap-start relative aspect-[3/4] rounded-2xl overflow-hidden shadow-md group cursor-pointer border border-gold/20 block"
                     >
                       <img
                         src={col.coverImage}
@@ -2298,7 +2289,7 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
                           {categoryTag}
                         </span>
                       </div>
-                    </div>
+                    </Link>
                   );
                 })}
               </div>
@@ -2310,10 +2301,7 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
                   const categoryTag = (col.category || "BRIDAL").toUpperCase();
 
                   return (
-                    <div
-                      key={col.id}
-                      onClick={() => setActiveCollectionModal(col)}
-                      className="relative aspect-[3/4] w-full rounded-2xl overflow-hidden shadow-md group cursor-pointer border border-gold/20 hover:border-[#0F4C45] hover:shadow-xl transition-all duration-500"
+                    <Link key={col.id} href={`/collections/${col.id}`} className="relative aspect-[3/4] w-full rounded-2xl overflow-hidden shadow-md group cursor-pointer border border-gold/20 hover:border-[#0F4C45] hover:shadow-xl transition-all duration-500 block"
                     >
                       <img
                         src={col.coverImage}
@@ -2332,7 +2320,7 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
                           {categoryTag}
                         </span>
                       </div>
-                    </div>
+                    </Link>
                   );
                 })}
               </div>
@@ -2560,10 +2548,7 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
                   const categoryTag = (col.category || "COUTURE").toUpperCase();
 
                   return (
-                    <div
-                      key={col.id}
-                      onClick={() => setActiveCollectionModal(col)}
-                      className="w-[75%] sm:w-[80%] shrink-0 snap-start relative aspect-[3/4] rounded-2xl overflow-hidden shadow-md group cursor-pointer border border-gold/20"
+                    <Link key={col.id} href={`/collections/${col.id}`} className="w-[75%] sm:w-[80%] shrink-0 snap-start relative aspect-[3/4] rounded-2xl overflow-hidden shadow-md group cursor-pointer border border-gold/20 block"
                     >
                       <img
                         src={col.coverImage}
@@ -2582,7 +2567,7 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
                           {categoryTag}
                         </span>
                       </div>
-                    </div>
+                    </Link>
                   );
                 })}
               </div>
@@ -2594,10 +2579,7 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
                   const categoryTag = (col.category || "COUTURE").toUpperCase();
 
                   return (
-                    <div
-                      key={col.id}
-                      onClick={() => setActiveCollectionModal(col)}
-                      className="relative aspect-[3/4] w-full rounded-2xl overflow-hidden shadow-md group cursor-pointer border border-gold/20 hover:border-[#0F4C45] hover:shadow-xl transition-all duration-500"
+                    <Link key={col.id} href={`/collections/${col.id}`} className="relative aspect-[3/4] w-full rounded-2xl overflow-hidden shadow-md group cursor-pointer border border-gold/20 hover:border-[#0F4C45] hover:shadow-xl transition-all duration-500 block"
                     >
                       <img
                         src={col.coverImage}
@@ -2616,7 +2598,7 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
                           {categoryTag}
                         </span>
                       </div>
-                    </div>
+                    </Link>
                   );
                 })}
               </div>
