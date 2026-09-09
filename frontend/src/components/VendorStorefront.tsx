@@ -52,6 +52,51 @@ export type VendorCategoryType =
   | "invitation"
   | "other";
 
+
+export function getSimilarVendorHref(item: any, currentCategorySlug?: string): string {
+  if (!item) return "#";
+  const idVal = item.id || item.slug || item.vendor_id || item.vendorCode;
+  if (!idVal) return "#";
+
+  const rawCat = (item.categorySlug || item.category || item.categoryLabel || currentCategorySlug || "").toString().toLowerCase().trim();
+
+  if (rawCat.includes("venue") || rawCat.includes("hall") || rawCat.includes("lawn") || rawCat.includes("resort") || rawCat.includes("convention") || rawCat.includes("auditorium") || rawCat.includes("banquet")) {
+    return `/venues/${idVal}`;
+  }
+  if (rawCat.includes("groom")) {
+    return `/groom-wear/${idVal}`;
+  }
+  if (rawCat.includes("bridal") || rawCat.includes("lehenga") || rawCat.includes("gown")) {
+    return `/bridal-wear/${idVal}`;
+  }
+  if (rawCat.includes("wedding-story") || rawCat.includes("wedding-studio") || rawCat.includes("boutique")) {
+    return `/wedding-story/${idVal}`;
+  }
+  if (rawCat.includes("photo") || rawCat.includes("video") || rawCat.includes("film") || rawCat.includes("camera")) {
+    return `/photographers/${idVal}`;
+  }
+  if (rawCat.includes("makeup") || rawCat.includes("beauty")) {
+    return `/makeup-artists/${idVal}`;
+  }
+  if (rawCat.includes("mehendi") || rawCat.includes("henna") || rawCat.includes("mehndi")) {
+    return `/mehendi-artists/${idVal}`;
+  }
+  if (rawCat.includes("cater") || rawCat.includes("food") || rawCat.includes("sadya")) {
+    return `/catering/${idVal}`;
+  }
+  if (rawCat.includes("decor") || rawCat.includes("stage") || rawCat.includes("flower") || rawCat.includes("planner")) {
+    return `/decor-planning/${idVal}`;
+  }
+  if (rawCat.includes("jewel") || rawCat.includes("gold") || rawCat.includes("diamond") || rawCat.includes("polki")) {
+    return `/jewellery/${idVal}`;
+  }
+  if (rawCat.includes("invit") || rawCat.includes("card") || rawCat.includes("print")) {
+    return `/invitations/${idVal}`;
+  }
+
+  return `/vendors/${rawCat || "general"}/${idVal}`;
+}
+
 export function getVendorCategoryType(vendor: any): VendorCategoryType {
   const cat = (vendor?.categorySlug || vendor?.categoryLabel || vendor?.category || "").toLowerCase();
   if (cat.includes("venue") || cat.includes("hall") || cat.includes("lawn") || cat.includes("resort") || cat.includes("convention") || cat.includes("auditorium") || cat.includes("banquet")) return "venue";
@@ -1573,7 +1618,7 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
         {/* ════════════════════════════════════════════════════════════════ */}
         {categoryType === "venue" && (
           <>
-            {/* 1. OVERVIEW (SPECS SNAPSHOT) */}
+            {/* 1. OVERVIEW */}
             <div className="bg-white rounded-2xl p-4 border border-gold/15 shadow-2xs space-y-2.5">
               <div>
                 <h3 className="font-serif font-bold text-base text-charcoal">{venueDetails.type || "Luxury Wedding Venue"}</h3>
@@ -1777,7 +1822,7 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
                   <span className="text-[10px] font-bold uppercase tracking-wider bg-[#0F4C45]/10 text-[#0F4C45] px-2.5 py-0.5 rounded-full">Indoor Grand Ballroom</span>
                   <h3 className="font-serif font-bold text-base text-charcoal">Main Air-Conditioned Convention Hall</h3>
                   <p className="text-xs text-charcoal/70">Ideal for 500 to 1,500 guests. Includes stage lighting, generator backup, and bridal suite access.</p>
-                  <div className="pt-2 flex items-center justify-between border-t border-gold/15 text-xs font-bold text-[#0F4C45]">
+                  <div className="pt-2 flex items-center justify-between text-xs font-bold text-[#0F4C45]">
                     <span>Capacity: 1,500 Pax</span>
                     <button onClick={() => handleCheckAvailability()} className="underline hover:text-emerald-800">Inquire Date</button>
                   </div>
@@ -1786,7 +1831,7 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
                   <span className="text-[10px] font-bold uppercase tracking-wider bg-[#0F4C45]/10 text-[#0F4C45] px-2.5 py-0.5 rounded-full">Outdoor Royal Lawn</span>
                   <h3 className="font-serif font-bold text-base text-charcoal">Lush Green Sunset Garden Lawn</h3>
                   <p className="text-xs text-charcoal/70">Ideal for 300 to 1,000 guests. Open-air starlight receptions, sangeet, and mandap ceremonies.</p>
-                  <div className="pt-2 flex items-center justify-between border-t border-gold/15 text-xs font-bold text-[#0F4C45]">
+                  <div className="pt-2 flex items-center justify-between text-xs font-bold text-[#0F4C45]">
                     <span>Capacity: 1,000 Pax</span>
                     <button onClick={() => handleCheckAvailability()} className="underline hover:text-emerald-800">Inquire Date</button>
                   </div>
@@ -1845,23 +1890,50 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
                 <Link href="/venues" className="text-xs font-bold text-[#0F4C45] hover:underline">View All</Link>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
-                {similarStudios.slice(0, 3).map((item) => (
-                  <div key={item.id} className="rounded-2xl border border-gold/15 bg-white overflow-hidden shadow-2xs p-3 space-y-2.5">
-                    <div className="relative aspect-[16/9] w-full rounded-xl overflow-hidden bg-gray-200 group">
-                      <img src={item.image || item.coverImage || item.logo} alt={item.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                
+                {similarStudios.slice(0, 3).map((item: any) => (
+                  <Link
+                    key={item.id}
+                    href={getSimilarVendorHref(item, "venue")}
+                    className="group block rounded-2xl border border-gold/15 bg-white overflow-hidden shadow-2xs hover:border-[#0F4C45] hover:shadow-md transition-all p-3 space-y-2.5 cursor-pointer"
+                  >
+                    <div className="relative aspect-[16/9] w-full rounded-xl overflow-hidden bg-gray-200">
+                      <img
+                        src={item.image || item.coverImage || item.logo || "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=400&q=80"}
+                        alt={item.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                      <span className="absolute top-2.5 right-2.5 bg-white/90 backdrop-blur-xs text-[#0F4C45] text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-2xs">
+                        <CheckCircle2 className="w-3 h-3 text-[#0F4C45] fill-[#0F4C45] text-white" /> Verified
+                      </span>
                     </div>
+
                     <div className="space-y-1">
                       <div className="flex items-center justify-between text-xs text-charcoal/70">
-                        <span className="font-medium">{item.location || "Kerala, India"}</span>
-                        <span className="font-bold text-amber-600 flex items-center gap-1"><Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" /> 4.9</span>
+                        <span className="font-medium flex items-center gap-1">
+                          <MapPin className="w-3 h-3 text-[#0F4C45] shrink-0" />
+                          <span className="truncate">{item.location || item.city || "Kerala, India"}</span>
+                        </span>
+                        <span className="font-bold text-amber-600 flex items-center gap-1 shrink-0">
+                          <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
+                          {item.rating ? Number(item.rating).toFixed(1) : "4.8"}
+                        </span>
                       </div>
-                      <h3 className="font-serif font-bold text-base text-charcoal leading-snug">{item.name}</h3>
-                      <div className="text-xs font-bold text-[#0F4C45]">{item.startingPrice || "Price on Request"}</div>
+
+                      <h3 className="font-serif font-bold text-base text-charcoal leading-snug group-hover:text-[#0F4C45] transition-colors truncate">
+                        {item.name}
+                      </h3>
+
+                      <div className="text-xs font-bold text-[#0F4C45]">
+                        {item.startingPrice || item.starting_price || "Contact for Pricing"}
+                      </div>
                     </div>
-                    <button onClick={() => handleCheckAvailability()} className="w-full py-2 rounded-xl bg-[#0F4C45] text-white font-bold text-xs hover:bg-[#12584E] transition-all">
-                      Inquire Availability
-                    </button>
-                  </div>
+
+                    <div className="w-full py-2.5 rounded-xl bg-[#0F4C45] group-hover:bg-[#12584E] text-white font-bold text-xs transition-all text-center flex items-center justify-center gap-1.5 shadow-2xs">
+                      <span>View Profile</span>
+                      <ChevronRight className="w-3.5 h-3.5" />
+                    </div>
+                  </Link>
                 ))}
               </div>
             </section>
@@ -2061,16 +2133,51 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
                 <h2 className="font-serif font-bold text-lg sm:text-xl text-charcoal">Similar Groom Studios</h2>
                 <Link href="/categories/groom-studio" className="text-xs font-bold text-[#0F4C45] hover:underline">View All</Link>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {similarStudios.slice(0, 3).map((item) => (
-                  <div key={item.id} className="rounded-2xl border border-gold/15 bg-white p-3 space-y-2">
-                    <img src={item.image || item.coverImage} alt={item.name} className="w-full aspect-[4/3] object-cover rounded-xl" />
-                    <h3 className="font-serif font-bold text-sm text-charcoal">{item.name}</h3>
-                    <div className="text-xs text-[#0F4C45] font-bold">{item.startingPrice || "Sherwanis from ₹12,500"}</div>
-                    <button onClick={() => handleCheckAvailability()} className="w-full py-2 rounded-xl bg-[#0F4C45] text-white font-bold text-xs">
-                      Message Studio
-                    </button>
-                  </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
+                
+                {similarStudios.slice(0, 3).map((item: any) => (
+                  <Link
+                    key={item.id}
+                    href={getSimilarVendorHref(item, "groomStudio")}
+                    className="group block rounded-2xl border border-gold/15 bg-white overflow-hidden shadow-2xs hover:border-[#0F4C45] hover:shadow-md transition-all p-3 space-y-2.5 cursor-pointer"
+                  >
+                    <div className="relative aspect-[16/9] w-full rounded-xl overflow-hidden bg-gray-200">
+                      <img
+                        src={item.image || item.coverImage || item.logo || "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=400&q=80"}
+                        alt={item.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                      <span className="absolute top-2.5 right-2.5 bg-white/90 backdrop-blur-xs text-[#0F4C45] text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-2xs">
+                        <CheckCircle2 className="w-3 h-3 text-[#0F4C45] fill-[#0F4C45] text-white" /> Verified
+                      </span>
+                    </div>
+
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between text-xs text-charcoal/70">
+                        <span className="font-medium flex items-center gap-1">
+                          <MapPin className="w-3 h-3 text-[#0F4C45] shrink-0" />
+                          <span className="truncate">{item.location || item.city || "Kerala, India"}</span>
+                        </span>
+                        <span className="font-bold text-amber-600 flex items-center gap-1 shrink-0">
+                          <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
+                          {item.rating ? Number(item.rating).toFixed(1) : "4.8"}
+                        </span>
+                      </div>
+
+                      <h3 className="font-serif font-bold text-base text-charcoal leading-snug group-hover:text-[#0F4C45] transition-colors truncate">
+                        {item.name}
+                      </h3>
+
+                      <div className="text-xs font-bold text-[#0F4C45]">
+                        {item.startingPrice || item.starting_price || "Contact for Pricing"}
+                      </div>
+                    </div>
+
+                    <div className="w-full py-2.5 rounded-xl bg-[#0F4C45] group-hover:bg-[#12584E] text-white font-bold text-xs transition-all text-center flex items-center justify-center gap-1.5 shadow-2xs">
+                      <span>View Profile</span>
+                      <ChevronRight className="w-3.5 h-3.5" />
+                    </div>
+                  </Link>
                 ))}
               </div>
             </section>
@@ -2189,7 +2296,7 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-3">
               <h2 className="font-serif text-lg font-bold text-charcoal border-b border-gold/10 pb-2">About Studio &amp; Bridal Heritage</h2>
               <p className="text-xs sm:text-sm text-charcoal/80 leading-relaxed font-sans">
-                {about || `Curating dream bridal wardrobes, $${displayName} offers an exquisite collection of zardozi bridal lehengas, heritage silk sarees, and reception ball gowns. Every outfit undergoes pristine medical-grade sanitization and custom alterations for the perfect silhouette.`}
+                {about || `Curating dream bridal wardrobes, ${displayName} offers an exquisite collection of zardozi bridal lehengas, heritage silk sarees, and reception ball gowns. Every outfit undergoes pristine medical-grade sanitization and custom alterations for the perfect silhouette.`}
               </p>
             </div>
 
@@ -2270,16 +2377,51 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
                 <h2 className="font-serif font-bold text-lg sm:text-xl text-charcoal">Similar Bridal Studios</h2>
                 <Link href="/categories/bridal-studio" className="text-xs font-bold text-[#0F4C45] hover:underline">View All</Link>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {similarStudios.slice(0, 3).map((item) => (
-                  <div key={item.id} className="rounded-2xl border border-gold/15 bg-white p-3 space-y-2">
-                    <img src={item.image || item.coverImage} alt={item.name} className="w-full aspect-[4/3] object-cover rounded-xl" />
-                    <h3 className="font-serif font-bold text-sm text-charcoal">{item.name}</h3>
-                    <div className="text-xs text-[#0F4C45] font-bold">{item.startingPrice || "Lehengas from ₹18,500"}</div>
-                    <button onClick={() => handleCheckAvailability()} className="w-full py-2 rounded-xl bg-[#0F4C45] text-white font-bold text-xs">
-                      Message Studio
-                    </button>
-                  </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
+                
+                {similarStudios.slice(0, 3).map((item: any) => (
+                  <Link
+                    key={item.id}
+                    href={getSimilarVendorHref(item, "bridalStudio")}
+                    className="group block rounded-2xl border border-gold/15 bg-white overflow-hidden shadow-2xs hover:border-[#0F4C45] hover:shadow-md transition-all p-3 space-y-2.5 cursor-pointer"
+                  >
+                    <div className="relative aspect-[16/9] w-full rounded-xl overflow-hidden bg-gray-200">
+                      <img
+                        src={item.image || item.coverImage || item.logo || "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=400&q=80"}
+                        alt={item.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                      <span className="absolute top-2.5 right-2.5 bg-white/90 backdrop-blur-xs text-[#0F4C45] text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-2xs">
+                        <CheckCircle2 className="w-3 h-3 text-[#0F4C45] fill-[#0F4C45] text-white" /> Verified
+                      </span>
+                    </div>
+
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between text-xs text-charcoal/70">
+                        <span className="font-medium flex items-center gap-1">
+                          <MapPin className="w-3 h-3 text-[#0F4C45] shrink-0" />
+                          <span className="truncate">{item.location || item.city || "Kerala, India"}</span>
+                        </span>
+                        <span className="font-bold text-amber-600 flex items-center gap-1 shrink-0">
+                          <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
+                          {item.rating ? Number(item.rating).toFixed(1) : "4.8"}
+                        </span>
+                      </div>
+
+                      <h3 className="font-serif font-bold text-base text-charcoal leading-snug group-hover:text-[#0F4C45] transition-colors truncate">
+                        {item.name}
+                      </h3>
+
+                      <div className="text-xs font-bold text-[#0F4C45]">
+                        {item.startingPrice || item.starting_price || "Contact for Pricing"}
+                      </div>
+                    </div>
+
+                    <div className="w-full py-2.5 rounded-xl bg-[#0F4C45] group-hover:bg-[#12584E] text-white font-bold text-xs transition-all text-center flex items-center justify-center gap-1.5 shadow-2xs">
+                      <span>View Profile</span>
+                      <ChevronRight className="w-3.5 h-3.5" />
+                    </div>
+                  </Link>
                 ))}
               </div>
             </section>
@@ -2478,16 +2620,51 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
                 <h2 className="font-serif font-bold text-lg sm:text-xl text-charcoal">Similar Wedding Studios</h2>
                 <Link href="/categories/wedding-studio" className="text-xs font-bold text-[#0F4C45] hover:underline">View All</Link>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {similarStudios.slice(0, 3).map((item) => (
-                  <div key={item.id} className="rounded-2xl border border-gold/15 bg-white p-3 space-y-2">
-                    <img src={item.image || item.coverImage} alt={item.name} className="w-full aspect-[4/3] object-cover rounded-xl" />
-                    <h3 className="font-serif font-bold text-sm text-charcoal">{item.name}</h3>
-                    <div className="text-xs text-[#0F4C45] font-bold">{item.startingPrice || "Couple Sets from ₹28,000"}</div>
-                    <button onClick={() => handleCheckAvailability()} className="w-full py-2 rounded-xl bg-[#0F4C45] text-white font-bold text-xs">
-                      Message Studio
-                    </button>
-                  </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
+                
+                {similarStudios.slice(0, 3).map((item: any) => (
+                  <Link
+                    key={item.id}
+                    href={getSimilarVendorHref(item, "weddingStudio")}
+                    className="group block rounded-2xl border border-gold/15 bg-white overflow-hidden shadow-2xs hover:border-[#0F4C45] hover:shadow-md transition-all p-3 space-y-2.5 cursor-pointer"
+                  >
+                    <div className="relative aspect-[16/9] w-full rounded-xl overflow-hidden bg-gray-200">
+                      <img
+                        src={item.image || item.coverImage || item.logo || "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=400&q=80"}
+                        alt={item.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                      <span className="absolute top-2.5 right-2.5 bg-white/90 backdrop-blur-xs text-[#0F4C45] text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-2xs">
+                        <CheckCircle2 className="w-3 h-3 text-[#0F4C45] fill-[#0F4C45] text-white" /> Verified
+                      </span>
+                    </div>
+
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between text-xs text-charcoal/70">
+                        <span className="font-medium flex items-center gap-1">
+                          <MapPin className="w-3 h-3 text-[#0F4C45] shrink-0" />
+                          <span className="truncate">{item.location || item.city || "Kerala, India"}</span>
+                        </span>
+                        <span className="font-bold text-amber-600 flex items-center gap-1 shrink-0">
+                          <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
+                          {item.rating ? Number(item.rating).toFixed(1) : "4.8"}
+                        </span>
+                      </div>
+
+                      <h3 className="font-serif font-bold text-base text-charcoal leading-snug group-hover:text-[#0F4C45] transition-colors truncate">
+                        {item.name}
+                      </h3>
+
+                      <div className="text-xs font-bold text-[#0F4C45]">
+                        {item.startingPrice || item.starting_price || "Contact for Pricing"}
+                      </div>
+                    </div>
+
+                    <div className="w-full py-2.5 rounded-xl bg-[#0F4C45] group-hover:bg-[#12584E] text-white font-bold text-xs transition-all text-center flex items-center justify-center gap-1.5 shadow-2xs">
+                      <span>View Profile</span>
+                      <ChevronRight className="w-3.5 h-3.5" />
+                    </div>
+                  </Link>
                 ))}
               </div>
             </section>
@@ -2683,16 +2860,51 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
                 <h2 className="font-serif font-bold text-lg sm:text-xl text-charcoal">Similar Photographers</h2>
                 <Link href="/photographers" className="text-xs font-bold text-[#0F4C45] hover:underline">View All</Link>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {similarStudios.slice(0, 3).map((item) => (
-                  <div key={item.id} className="rounded-2xl border border-gold/15 bg-white p-3 space-y-2">
-                    <img src={item.image || item.coverImage} alt={item.name} className="w-full aspect-[4/3] object-cover rounded-xl" />
-                    <h3 className="font-serif font-bold text-sm text-charcoal">{item.name}</h3>
-                    <div className="text-xs text-[#0F4C45] font-bold">{item.startingPrice || "From ₹45,000 / Day"}</div>
-                    <button onClick={() => handleCheckAvailability()} className="w-full py-2 rounded-xl bg-[#0F4C45] text-white font-bold text-xs">
-                      Message Photographer
-                    </button>
-                  </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
+                
+                {similarStudios.slice(0, 3).map((item: any) => (
+                  <Link
+                    key={item.id}
+                    href={getSimilarVendorHref(item, "photographer")}
+                    className="group block rounded-2xl border border-gold/15 bg-white overflow-hidden shadow-2xs hover:border-[#0F4C45] hover:shadow-md transition-all p-3 space-y-2.5 cursor-pointer"
+                  >
+                    <div className="relative aspect-[16/9] w-full rounded-xl overflow-hidden bg-gray-200">
+                      <img
+                        src={item.image || item.coverImage || item.logo || "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=400&q=80"}
+                        alt={item.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                      <span className="absolute top-2.5 right-2.5 bg-white/90 backdrop-blur-xs text-[#0F4C45] text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-2xs">
+                        <CheckCircle2 className="w-3 h-3 text-[#0F4C45] fill-[#0F4C45] text-white" /> Verified
+                      </span>
+                    </div>
+
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between text-xs text-charcoal/70">
+                        <span className="font-medium flex items-center gap-1">
+                          <MapPin className="w-3 h-3 text-[#0F4C45] shrink-0" />
+                          <span className="truncate">{item.location || item.city || "Kerala, India"}</span>
+                        </span>
+                        <span className="font-bold text-amber-600 flex items-center gap-1 shrink-0">
+                          <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
+                          {item.rating ? Number(item.rating).toFixed(1) : "4.8"}
+                        </span>
+                      </div>
+
+                      <h3 className="font-serif font-bold text-base text-charcoal leading-snug group-hover:text-[#0F4C45] transition-colors truncate">
+                        {item.name}
+                      </h3>
+
+                      <div className="text-xs font-bold text-[#0F4C45]">
+                        {item.startingPrice || item.starting_price || "Contact for Pricing"}
+                      </div>
+                    </div>
+
+                    <div className="w-full py-2.5 rounded-xl bg-[#0F4C45] group-hover:bg-[#12584E] text-white font-bold text-xs transition-all text-center flex items-center justify-center gap-1.5 shadow-2xs">
+                      <span>View Profile</span>
+                      <ChevronRight className="w-3.5 h-3.5" />
+                    </div>
+                  </Link>
                 ))}
               </div>
             </section>
@@ -2895,16 +3107,51 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
                 <h2 className="font-serif font-bold text-lg sm:text-xl text-charcoal">Similar Makeup Artists</h2>
                 <Link href="/makeup-artists" className="text-xs font-bold text-[#0F4C45] hover:underline">View All</Link>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {similarStudios.slice(0, 3).map((item) => (
-                  <div key={item.id} className="rounded-2xl border border-gold/15 bg-white p-3 space-y-2">
-                    <img src={item.image || item.coverImage} alt={item.name} className="w-full aspect-[4/3] object-cover rounded-xl" />
-                    <h3 className="font-serif font-bold text-sm text-charcoal">{item.name}</h3>
-                    <div className="text-xs text-[#0F4C45] font-bold">{item.startingPrice || "HD Makeup from ₹16,000"}</div>
-                    <button onClick={() => handleCheckAvailability()} className="w-full py-2 rounded-xl bg-[#0F4C45] text-white font-bold text-xs">
-                      Message Artist
-                    </button>
-                  </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
+                
+                {similarStudios.slice(0, 3).map((item: any) => (
+                  <Link
+                    key={item.id}
+                    href={getSimilarVendorHref(item, "makeupArtist")}
+                    className="group block rounded-2xl border border-gold/15 bg-white overflow-hidden shadow-2xs hover:border-[#0F4C45] hover:shadow-md transition-all p-3 space-y-2.5 cursor-pointer"
+                  >
+                    <div className="relative aspect-[16/9] w-full rounded-xl overflow-hidden bg-gray-200">
+                      <img
+                        src={item.image || item.coverImage || item.logo || "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=400&q=80"}
+                        alt={item.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                      <span className="absolute top-2.5 right-2.5 bg-white/90 backdrop-blur-xs text-[#0F4C45] text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-2xs">
+                        <CheckCircle2 className="w-3 h-3 text-[#0F4C45] fill-[#0F4C45] text-white" /> Verified
+                      </span>
+                    </div>
+
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between text-xs text-charcoal/70">
+                        <span className="font-medium flex items-center gap-1">
+                          <MapPin className="w-3 h-3 text-[#0F4C45] shrink-0" />
+                          <span className="truncate">{item.location || item.city || "Kerala, India"}</span>
+                        </span>
+                        <span className="font-bold text-amber-600 flex items-center gap-1 shrink-0">
+                          <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
+                          {item.rating ? Number(item.rating).toFixed(1) : "4.8"}
+                        </span>
+                      </div>
+
+                      <h3 className="font-serif font-bold text-base text-charcoal leading-snug group-hover:text-[#0F4C45] transition-colors truncate">
+                        {item.name}
+                      </h3>
+
+                      <div className="text-xs font-bold text-[#0F4C45]">
+                        {item.startingPrice || item.starting_price || "Contact for Pricing"}
+                      </div>
+                    </div>
+
+                    <div className="w-full py-2.5 rounded-xl bg-[#0F4C45] group-hover:bg-[#12584E] text-white font-bold text-xs transition-all text-center flex items-center justify-center gap-1.5 shadow-2xs">
+                      <span>View Profile</span>
+                      <ChevronRight className="w-3.5 h-3.5" />
+                    </div>
+                  </Link>
                 ))}
               </div>
             </section>
@@ -3082,16 +3329,51 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
                 <h2 className="font-serif font-bold text-lg sm:text-xl text-charcoal">Similar Caterers</h2>
                 <Link href="/catering" className="text-xs font-bold text-[#0F4C45] hover:underline">View All</Link>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {similarStudios.slice(0, 3).map((item) => (
-                  <div key={item.id} className="rounded-2xl border border-gold/15 bg-white p-3 space-y-2">
-                    <img src={item.image || item.coverImage} alt={item.name} className="w-full aspect-[4/3] object-cover rounded-xl" />
-                    <h3 className="font-serif font-bold text-sm text-charcoal">{item.name}</h3>
-                    <div className="text-xs text-[#0F4C45] font-bold">{item.startingPrice || "Veg from ₹650 / Plate"}</div>
-                    <button onClick={() => handleCheckAvailability()} className="w-full py-2 rounded-xl bg-[#0F4C45] text-white font-bold text-xs">
-                      Message Caterer
-                    </button>
-                  </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
+                
+                {similarStudios.slice(0, 3).map((item: any) => (
+                  <Link
+                    key={item.id}
+                    href={getSimilarVendorHref(item, "caterer")}
+                    className="group block rounded-2xl border border-gold/15 bg-white overflow-hidden shadow-2xs hover:border-[#0F4C45] hover:shadow-md transition-all p-3 space-y-2.5 cursor-pointer"
+                  >
+                    <div className="relative aspect-[16/9] w-full rounded-xl overflow-hidden bg-gray-200">
+                      <img
+                        src={item.image || item.coverImage || item.logo || "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=400&q=80"}
+                        alt={item.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                      <span className="absolute top-2.5 right-2.5 bg-white/90 backdrop-blur-xs text-[#0F4C45] text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-2xs">
+                        <CheckCircle2 className="w-3 h-3 text-[#0F4C45] fill-[#0F4C45] text-white" /> Verified
+                      </span>
+                    </div>
+
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between text-xs text-charcoal/70">
+                        <span className="font-medium flex items-center gap-1">
+                          <MapPin className="w-3 h-3 text-[#0F4C45] shrink-0" />
+                          <span className="truncate">{item.location || item.city || "Kerala, India"}</span>
+                        </span>
+                        <span className="font-bold text-amber-600 flex items-center gap-1 shrink-0">
+                          <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
+                          {item.rating ? Number(item.rating).toFixed(1) : "4.8"}
+                        </span>
+                      </div>
+
+                      <h3 className="font-serif font-bold text-base text-charcoal leading-snug group-hover:text-[#0F4C45] transition-colors truncate">
+                        {item.name}
+                      </h3>
+
+                      <div className="text-xs font-bold text-[#0F4C45]">
+                        {item.startingPrice || item.starting_price || "Contact for Pricing"}
+                      </div>
+                    </div>
+
+                    <div className="w-full py-2.5 rounded-xl bg-[#0F4C45] group-hover:bg-[#12584E] text-white font-bold text-xs transition-all text-center flex items-center justify-center gap-1.5 shadow-2xs">
+                      <span>View Profile</span>
+                      <ChevronRight className="w-3.5 h-3.5" />
+                    </div>
+                  </Link>
                 ))}
               </div>
             </section>
@@ -3254,16 +3536,51 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
                 <h2 className="font-serif font-bold text-lg sm:text-xl text-charcoal">Similar Decorators</h2>
                 <Link href="/decor-planning" className="text-xs font-bold text-[#0F4C45] hover:underline">View All</Link>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {similarStudios.slice(0, 3).map((item) => (
-                  <div key={item.id} className="rounded-2xl border border-gold/15 bg-white p-3 space-y-2">
-                    <img src={item.image || item.coverImage} alt={item.name} className="w-full aspect-[4/3] object-cover rounded-xl" />
-                    <h3 className="font-serif font-bold text-sm text-charcoal">{item.name}</h3>
-                    <div className="text-xs text-[#0F4C45] font-bold">{item.startingPrice || "Stage Decor from ₹50,000"}</div>
-                    <button onClick={() => handleCheckAvailability()} className="w-full py-2 rounded-xl bg-[#0F4C45] text-white font-bold text-xs">
-                      Message Decorator
-                    </button>
-                  </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
+                
+                {similarStudios.slice(0, 3).map((item: any) => (
+                  <Link
+                    key={item.id}
+                    href={getSimilarVendorHref(item, "decorator")}
+                    className="group block rounded-2xl border border-gold/15 bg-white overflow-hidden shadow-2xs hover:border-[#0F4C45] hover:shadow-md transition-all p-3 space-y-2.5 cursor-pointer"
+                  >
+                    <div className="relative aspect-[16/9] w-full rounded-xl overflow-hidden bg-gray-200">
+                      <img
+                        src={item.image || item.coverImage || item.logo || "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=400&q=80"}
+                        alt={item.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                      <span className="absolute top-2.5 right-2.5 bg-white/90 backdrop-blur-xs text-[#0F4C45] text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-2xs">
+                        <CheckCircle2 className="w-3 h-3 text-[#0F4C45] fill-[#0F4C45] text-white" /> Verified
+                      </span>
+                    </div>
+
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between text-xs text-charcoal/70">
+                        <span className="font-medium flex items-center gap-1">
+                          <MapPin className="w-3 h-3 text-[#0F4C45] shrink-0" />
+                          <span className="truncate">{item.location || item.city || "Kerala, India"}</span>
+                        </span>
+                        <span className="font-bold text-amber-600 flex items-center gap-1 shrink-0">
+                          <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
+                          {item.rating ? Number(item.rating).toFixed(1) : "4.8"}
+                        </span>
+                      </div>
+
+                      <h3 className="font-serif font-bold text-base text-charcoal leading-snug group-hover:text-[#0F4C45] transition-colors truncate">
+                        {item.name}
+                      </h3>
+
+                      <div className="text-xs font-bold text-[#0F4C45]">
+                        {item.startingPrice || item.starting_price || "Contact for Pricing"}
+                      </div>
+                    </div>
+
+                    <div className="w-full py-2.5 rounded-xl bg-[#0F4C45] group-hover:bg-[#12584E] text-white font-bold text-xs transition-all text-center flex items-center justify-center gap-1.5 shadow-2xs">
+                      <span>View Profile</span>
+                      <ChevronRight className="w-3.5 h-3.5" />
+                    </div>
+                  </Link>
                 ))}
               </div>
             </section>
@@ -3396,18 +3713,53 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
             <section className="bg-white p-4.5 sm:p-6 rounded-2xl border border-gold/15 shadow-2xs space-y-4">
               <div className="flex items-center justify-between border-b border-gold/10 pb-2.5">
                 <h2 className="font-serif font-bold text-lg sm:text-xl text-charcoal">Similar Jewellery Stores</h2>
-                <Link href="/jewellery" className="text-xs font-bold text-[#0F4C45] hover:underline">View All</Link>
+                <Link href="/categories/jewellery" className="text-xs font-bold text-[#0F4C45] hover:underline">View All</Link>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {similarStudios.slice(0, 3).map((item) => (
-                  <div key={item.id} className="rounded-2xl border border-gold/15 bg-white p-3 space-y-2">
-                    <img src={item.image || item.coverImage} alt={item.name} className="w-full aspect-[4/3] object-cover rounded-xl" />
-                    <h3 className="font-serif font-bold text-sm text-charcoal">{item.name}</h3>
-                    <div className="text-xs text-[#0F4C45] font-bold">{item.startingPrice || "Rental from ₹8,500"}</div>
-                    <button onClick={() => handleCheckAvailability()} className="w-full py-2 rounded-xl bg-[#0F4C45] text-white font-bold text-xs">
-                      Message Store
-                    </button>
-                  </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
+                
+                {similarStudios.slice(0, 3).map((item: any) => (
+                  <Link
+                    key={item.id}
+                    href={getSimilarVendorHref(item, "jewellery")}
+                    className="group block rounded-2xl border border-gold/15 bg-white overflow-hidden shadow-2xs hover:border-[#0F4C45] hover:shadow-md transition-all p-3 space-y-2.5 cursor-pointer"
+                  >
+                    <div className="relative aspect-[16/9] w-full rounded-xl overflow-hidden bg-gray-200">
+                      <img
+                        src={item.image || item.coverImage || item.logo || "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=400&q=80"}
+                        alt={item.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                      <span className="absolute top-2.5 right-2.5 bg-white/90 backdrop-blur-xs text-[#0F4C45] text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-2xs">
+                        <CheckCircle2 className="w-3 h-3 text-[#0F4C45] fill-[#0F4C45] text-white" /> Verified
+                      </span>
+                    </div>
+
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between text-xs text-charcoal/70">
+                        <span className="font-medium flex items-center gap-1">
+                          <MapPin className="w-3 h-3 text-[#0F4C45] shrink-0" />
+                          <span className="truncate">{item.location || item.city || "Kerala, India"}</span>
+                        </span>
+                        <span className="font-bold text-amber-600 flex items-center gap-1 shrink-0">
+                          <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
+                          {item.rating ? Number(item.rating).toFixed(1) : "4.8"}
+                        </span>
+                      </div>
+
+                      <h3 className="font-serif font-bold text-base text-charcoal leading-snug group-hover:text-[#0F4C45] transition-colors truncate">
+                        {item.name}
+                      </h3>
+
+                      <div className="text-xs font-bold text-[#0F4C45]">
+                        {item.startingPrice || item.starting_price || "Contact for Pricing"}
+                      </div>
+                    </div>
+
+                    <div className="w-full py-2.5 rounded-xl bg-[#0F4C45] group-hover:bg-[#12584E] text-white font-bold text-xs transition-all text-center flex items-center justify-center gap-1.5 shadow-2xs">
+                      <span>View Profile</span>
+                      <ChevronRight className="w-3.5 h-3.5" />
+                    </div>
+                  </Link>
                 ))}
               </div>
             </section>
@@ -3551,18 +3903,53 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
             <section className="bg-white p-4.5 sm:p-6 rounded-2xl border border-gold/15 shadow-2xs space-y-4">
               <div className="flex items-center justify-between border-b border-gold/10 pb-2.5">
                 <h2 className="font-serif font-bold text-lg sm:text-xl text-charcoal">Similar Invitation Vendors</h2>
-                <Link href="/invitations" className="text-xs font-bold text-[#0F4C45] hover:underline">View All</Link>
+                <Link href="/categories/invitations" className="text-xs font-bold text-[#0F4C45] hover:underline">View All</Link>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {similarStudios.slice(0, 3).map((item) => (
-                  <div key={item.id} className="rounded-2xl border border-gold/15 bg-white p-3 space-y-2">
-                    <img src={item.image || item.coverImage} alt={item.name} className="w-full aspect-[4/3] object-cover rounded-xl" />
-                    <h3 className="font-serif font-bold text-sm text-charcoal">{item.name}</h3>
-                    <div className="text-xs text-[#0F4C45] font-bold">{item.startingPrice || "Cards from ₹85 / Card"}</div>
-                    <button onClick={() => handleCheckAvailability()} className="w-full py-2 rounded-xl bg-[#0F4C45] text-white font-bold text-xs">
-                      Message Vendor
-                    </button>
-                  </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
+                
+                {similarStudios.slice(0, 3).map((item: any) => (
+                  <Link
+                    key={item.id}
+                    href={getSimilarVendorHref(item, "invitation")}
+                    className="group block rounded-2xl border border-gold/15 bg-white overflow-hidden shadow-2xs hover:border-[#0F4C45] hover:shadow-md transition-all p-3 space-y-2.5 cursor-pointer"
+                  >
+                    <div className="relative aspect-[16/9] w-full rounded-xl overflow-hidden bg-gray-200">
+                      <img
+                        src={item.image || item.coverImage || item.logo || "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=400&q=80"}
+                        alt={item.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                      <span className="absolute top-2.5 right-2.5 bg-white/90 backdrop-blur-xs text-[#0F4C45] text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-2xs">
+                        <CheckCircle2 className="w-3 h-3 text-[#0F4C45] fill-[#0F4C45] text-white" /> Verified
+                      </span>
+                    </div>
+
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between text-xs text-charcoal/70">
+                        <span className="font-medium flex items-center gap-1">
+                          <MapPin className="w-3 h-3 text-[#0F4C45] shrink-0" />
+                          <span className="truncate">{item.location || item.city || "Kerala, India"}</span>
+                        </span>
+                        <span className="font-bold text-amber-600 flex items-center gap-1 shrink-0">
+                          <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
+                          {item.rating ? Number(item.rating).toFixed(1) : "4.8"}
+                        </span>
+                      </div>
+
+                      <h3 className="font-serif font-bold text-base text-charcoal leading-snug group-hover:text-[#0F4C45] transition-colors truncate">
+                        {item.name}
+                      </h3>
+
+                      <div className="text-xs font-bold text-[#0F4C45]">
+                        {item.startingPrice || item.starting_price || "Contact for Pricing"}
+                      </div>
+                    </div>
+
+                    <div className="w-full py-2.5 rounded-xl bg-[#0F4C45] group-hover:bg-[#12584E] text-white font-bold text-xs transition-all text-center flex items-center justify-center gap-1.5 shadow-2xs">
+                      <span>View Profile</span>
+                      <ChevronRight className="w-3.5 h-3.5" />
+                    </div>
+                  </Link>
                 ))}
               </div>
             </section>
