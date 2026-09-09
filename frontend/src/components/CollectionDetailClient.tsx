@@ -502,7 +502,14 @@ export function CollectionDetailClient({
               {reviewsList.map((rev) => (
                 <div key={rev.id} className="bg-[#FAF7F2] rounded-2xl p-4 border border-gold/15 space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="font-bold text-xs text-charcoal">{rev.name}</span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-bold text-xs text-charcoal">{rev.name}</span>
+                      {rev.verified && (
+                        <span className="text-[8px] bg-emerald-50 text-emerald-800 border border-emerald-200 px-1.5 py-0.5 rounded-full font-bold flex items-center gap-0.5">
+                          <UserCheck className="w-2 h-2" /> Verified
+                        </span>
+                      )}
+                    </div>
                     <div className="flex items-center gap-1">
                       {[1, 2, 3, 4, 5].map((s) => (
                         <Star key={s} className={`w-3 h-3 ${s <= rev.rating ? "fill-[#C8A96A] text-[#C8A96A]" : "text-gray-300"}`} />
@@ -513,27 +520,109 @@ export function CollectionDetailClient({
                 </div>
               ))}
             </div>
+
+            {/* Mobile Add Review Form */}
+            <div className="pt-4 border-t border-gold/10 space-y-3">
+              <h4 className="font-serif font-bold text-base text-[#0F4C45]">Write a Customer Review</h4>
+
+              {reviewSuccessMsg && (
+                <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 font-bold flex items-center gap-2">
+                  <Check className="w-4 h-4 text-emerald-600" />
+                  <span>Thank you! Your review has been published.</span>
+                </div>
+              )}
+
+              <form onSubmit={handleAddReview} className="space-y-3">
+                <div>
+                  <label className="text-[11px] font-bold text-charcoal/70 uppercase tracking-wider block mb-1">Your Rating</label>
+                  <div className="flex items-center gap-1.5">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        type="button"
+                        key={star}
+                        onClick={() => setRatingInput(star)}
+                        className="p-1 cursor-pointer transition-transform hover:scale-125"
+                      >
+                        <Star className={`w-5 h-5 ${star <= ratingInput ? "fill-[#C8A96A] text-[#C8A96A]" : "text-gray-300"}`} />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-bold text-charcoal/70 uppercase tracking-wider block mb-1">Your Name</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Dr. Ananya Ramesh"
+                    value={reviewerName}
+                    onChange={(e) => setReviewerName(e.target.value)}
+                    className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl p-2.5 text-xs text-charcoal placeholder:text-charcoal/40 focus:outline-none focus:border-[#0F4C45]"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-bold text-charcoal/70 uppercase tracking-wider block mb-1">Your Review</label>
+                  <textarea
+                    rows={3}
+                    required
+                    placeholder="Share details about fitting, fabric quality, and rental experience..."
+                    value={reviewerComment}
+                    onChange={(e) => setReviewerComment(e.target.value)}
+                    className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl p-2.5 text-xs text-charcoal placeholder:text-charcoal/40 focus:outline-none focus:border-[#0F4C45] resize-none"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  className="w-full py-3 rounded-xl bg-[#0F4C45] hover:bg-[#0B3B35] text-white font-bold text-xs shadow-md transition-all cursor-pointer uppercase tracking-wider"
+                >
+                  Submit Review
+                </button>
+              </form>
+            </div>
           </div>
 
-          {/* Mobile Similar */}
+          {/* Mobile Related Collections (Horizontal Swipe Carousel) */}
           {similarCollections.length > 0 && (
-            <section className="space-y-4 pt-4 border-t border-gold/15">
-              <h3 className="font-serif font-bold text-xl text-charcoal">Similar Collections</h3>
-              <div className="grid grid-cols-2 gap-3.5">
-                {similarCollections.map((item) => (
-                  <Link
-                    key={item.id}
-                    href={`/collections/${item.id}`}
-                    className="relative aspect-[3/4] w-full rounded-2xl overflow-hidden shadow-md border border-gold/20 block"
-                  >
-                    <img src={item.coverImage} alt={item.name} className="w-full h-full object-cover" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/35 to-transparent" />
-                    <div className="absolute bottom-0 left-0 right-0 p-3 flex flex-col justify-end text-left z-10 space-y-0.5">
-                      <span className="text-[10px] font-bold text-[#D4B66E] uppercase tracking-[0.2em]">{item.location || "KERALA"}</span>
-                      <h4 className="font-serif font-bold text-xs text-white uppercase line-clamp-2">{item.name}</h4>
-                    </div>
-                  </Link>
-                ))}
+            <section className="space-y-3.5 pt-4 border-t border-gold/15">
+              <div>
+                <h3 className="font-serif font-bold text-xl text-charcoal">Related Collections</h3>
+                <p className="text-xs text-charcoal/60">More signature couture ensembles from our featured studios</p>
+              </div>
+
+              {/* Mobile Horizontal Swipe Carousel */}
+              <div className="flex overflow-x-auto snap-x snap-mandatory space-x-3.5 pb-2 -mx-4 px-4 scroll-smooth [webkit-scrollbar:none] [-ms-overflow-style:none] [scrollbar-width:none]">
+                {similarCollections.map((item) => {
+                  const locationTag = (item.location || "PERINTHALMANNA, MALAPPURAM").toUpperCase();
+                  const categoryTag = (item.category || "COUTURE").toUpperCase();
+
+                  return (
+                    <Link
+                      key={item.id}
+                      href={`/collections/${item.id}`}
+                      className="w-[75%] sm:w-[80%] shrink-0 snap-start relative aspect-[3/4] rounded-2xl overflow-hidden shadow-md group cursor-pointer border border-gold/20 block"
+                    >
+                      <img
+                        src={item.coverImage}
+                        alt={item.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent" />
+                      <div className="absolute bottom-0 left-0 right-0 p-4 flex flex-col justify-end text-left z-10 space-y-1">
+                        <span className="text-[10px] font-bold text-[#D4B66E] uppercase tracking-[0.2em]">
+                          {locationTag}
+                        </span>
+                        <h4 className="font-serif font-bold text-sm text-white uppercase tracking-wider leading-snug line-clamp-2 drop-shadow-xs">
+                          {item.name}
+                        </h4>
+                        <span className="text-[10px] font-medium text-white/75 uppercase tracking-[0.15em]">
+                          {categoryTag}
+                        </span>
+                      </div>
+                    </Link>
+                  );
+                })}
               </div>
             </section>
           )}
