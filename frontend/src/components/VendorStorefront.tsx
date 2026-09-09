@@ -1163,6 +1163,13 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
   const reviewsCount = Number(vendor?.reviews || vendor?.userReviews?.length || 0);
 
   // Handlers
+  const handleOpenMessage = () => {
+    setDateErrorMsg(null);
+    setEnquirySent(false);
+    setEnquiryMessage("");
+    setActiveModal("chat");
+  };
+
   const handleCheckAvailability = (dateOverride?: string) => {
     const selectedDate = dateOverride || calendarDateInput;
     setDateErrorMsg(null);
@@ -4080,7 +4087,7 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
         <div className="flex items-center gap-2">
           {/* Message Primary Button */}
           <button
-            onClick={() => handleCheckAvailability()}
+            onClick={() => handleOpenMessage()}
             className="flex-1 min-h-[48px] py-3 rounded-2xl bg-[#0F4C45] text-white font-bold text-sm flex items-center justify-center gap-2 shadow-md active:scale-95 transition-all text-center cursor-pointer hover:bg-[#09312d]"
           >
             <MessageSquare className="w-4 h-4 shrink-0" /> <span>Message</span>
@@ -4107,10 +4114,7 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
           </a>
         </div>
 
-        <div className="flex items-center justify-between text-[10px] px-1 font-semibold text-charcoal/60">
-          <span className="bg-rose-100 text-rose-700 px-2 py-0.5 rounded font-extrabold">In High Demand</span>
-          <span>🔥 22 enquiries last week</span>
-        </div>
+        
       </div>
 {/* ── COLLECTION OUTFITS LIGHTBOX MODAL ── */}
       {activeCollectionModal && (
