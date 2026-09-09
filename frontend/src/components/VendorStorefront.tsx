@@ -1979,28 +1979,49 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
                   <p className="text-xs text-charcoal/60 mt-0.5">{studioCategoryConfig.collectionsSubtitle}</p>
                 </div>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {/* Mobile Horizontal Swipe Carousel */}
+              <div className="flex md:hidden overflow-x-auto snap-x snap-mandatory space-x-3.5 pb-2 -mx-4 px-4 scroll-smooth [webkit-scrollbar:none] [-ms-overflow-style:none] [scrollbar-width:none]">
                 {boutiqueCollectionsList.map((col: any) => (
-                  <div key={col.id} className="bg-[#FAF7F2] rounded-2xl border border-gold/15 overflow-hidden shadow-2xs flex flex-col justify-between">
-                    <div>
-                      <div className="relative aspect-[4/3] w-full overflow-hidden bg-charcoal">
-                        <img src={col.coverImage} alt={col.name} className="w-full h-full object-cover" />
-                        <span className="absolute top-3 left-3 bg-black/60 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full">
-                          {col.outfitCount || (col.outfits || []).length || 12}+ Groom Designs
-                        </span>
-                      </div>
-                      <div className="p-4 space-y-1.5">
-                        <h3 className="font-serif font-bold text-base text-charcoal">{col.name}</h3>
-                        <p className="text-xs text-charcoal/70 line-clamp-2">{col.description}</p>
-                      </div>
+                  <div
+                    key={col.id}
+                    onClick={() => setActiveCollectionModal(col)}
+                    className="w-[82%] sm:w-[85%] shrink-0 snap-start bg-[#FAF7F2] rounded-2xl border border-gold/15 overflow-hidden shadow-2xs hover:border-[#0F4C45] hover:shadow-md transition-all cursor-pointer flex flex-col group"
+                  >
+                    <div className="relative aspect-[4/3] w-full overflow-hidden bg-charcoal">
+                      <img
+                        src={col.coverImage}
+                        alt={col.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
                     </div>
-                    <div className="p-4 pt-0">
-                      <button
-                        onClick={() => setActiveCollectionModal(col)}
-                        className="w-full py-2.5 rounded-xl bg-[#0F4C45] text-white font-bold text-xs hover:bg-[#12584E] transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-                      >
-                        <Eye className="w-4 h-4" /> View Outfits ({col.outfits ? col.outfits.length : 4})
-                      </button>
+                    <div className="p-3.5 text-center">
+                      <h3 className="font-serif font-bold text-sm text-charcoal group-hover:text-[#0F4C45] transition-colors truncate">
+                        {col.name}
+                      </h3>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Desktop Grid Layout */}
+              <div className="hidden md:grid grid-cols-2 lg:grid-cols-3 gap-4">
+                {boutiqueCollectionsList.map((col: any) => (
+                  <div
+                    key={col.id}
+                    onClick={() => setActiveCollectionModal(col)}
+                    className="bg-[#FAF7F2] rounded-2xl border border-gold/15 overflow-hidden shadow-2xs hover:border-[#0F4C45] hover:shadow-md transition-all cursor-pointer flex flex-col group"
+                  >
+                    <div className="relative aspect-[4/3] w-full overflow-hidden bg-charcoal">
+                      <img
+                        src={col.coverImage}
+                        alt={col.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                    </div>
+                    <div className="p-4 text-center">
+                      <h3 className="font-serif font-bold text-base text-charcoal group-hover:text-[#0F4C45] transition-colors truncate">
+                        {col.name}
+                      </h3>
                     </div>
                   </div>
                 ))}
@@ -2223,28 +2244,49 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
                   <p className="text-xs text-charcoal/60 mt-0.5">Explore signature bridal zardozi lehengas, silk sarees &amp; reception trails</p>
                 </div>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {/* Mobile Horizontal Swipe Carousel */}
+              <div className="flex md:hidden overflow-x-auto snap-x snap-mandatory space-x-3.5 pb-2 -mx-4 px-4 scroll-smooth [webkit-scrollbar:none] [-ms-overflow-style:none] [scrollbar-width:none]">
                 {boutiqueCollectionsList.map((col: any) => (
-                  <div key={col.id} className="bg-[#FAF7F2] rounded-2xl border border-gold/15 overflow-hidden shadow-2xs flex flex-col justify-between">
-                    <div>
-                      <div className="relative aspect-[4/3] w-full overflow-hidden bg-charcoal">
-                        <img src={col.coverImage} alt={col.name} className="w-full h-full object-cover" />
-                        <span className="absolute top-3 left-3 bg-black/60 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full">
-                          {col.outfitCount || (col.outfits || []).length || 18}+ Bridal Designs
-                        </span>
-                      </div>
-                      <div className="p-4 space-y-1.5">
-                        <h3 className="font-serif font-bold text-base text-charcoal">{col.name}</h3>
-                        <p className="text-xs text-charcoal/70 line-clamp-2">{col.description}</p>
-                      </div>
+                  <div
+                    key={col.id}
+                    onClick={() => setActiveCollectionModal(col)}
+                    className="w-[82%] sm:w-[85%] shrink-0 snap-start bg-[#FAF7F2] rounded-2xl border border-gold/15 overflow-hidden shadow-2xs hover:border-[#0F4C45] hover:shadow-md transition-all cursor-pointer flex flex-col group"
+                  >
+                    <div className="relative aspect-[4/3] w-full overflow-hidden bg-charcoal">
+                      <img
+                        src={col.coverImage}
+                        alt={col.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
                     </div>
-                    <div className="p-4 pt-0">
-                      <button
-                        onClick={() => setActiveCollectionModal(col)}
-                        className="w-full py-2.5 rounded-xl bg-[#0F4C45] text-white font-bold text-xs hover:bg-[#12584E] transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-                      >
-                        <Eye className="w-4 h-4" /> View Outfits ({col.outfits ? col.outfits.length : 4})
-                      </button>
+                    <div className="p-3.5 text-center">
+                      <h3 className="font-serif font-bold text-sm text-charcoal group-hover:text-[#0F4C45] transition-colors truncate">
+                        {col.name}
+                      </h3>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Desktop Grid Layout */}
+              <div className="hidden md:grid grid-cols-2 lg:grid-cols-3 gap-4">
+                {boutiqueCollectionsList.map((col: any) => (
+                  <div
+                    key={col.id}
+                    onClick={() => setActiveCollectionModal(col)}
+                    className="bg-[#FAF7F2] rounded-2xl border border-gold/15 overflow-hidden shadow-2xs hover:border-[#0F4C45] hover:shadow-md transition-all cursor-pointer flex flex-col group"
+                  >
+                    <div className="relative aspect-[4/3] w-full overflow-hidden bg-charcoal">
+                      <img
+                        src={col.coverImage}
+                        alt={col.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                    </div>
+                    <div className="p-4 text-center">
+                      <h3 className="font-serif font-bold text-base text-charcoal group-hover:text-[#0F4C45] transition-colors truncate">
+                        {col.name}
+                      </h3>
                     </div>
                   </div>
                 ))}
@@ -2467,28 +2509,49 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
                   <p className="text-xs text-charcoal/60 mt-0.5">Explore signature bridal, groom, and ceremonial couple ensembles</p>
                 </div>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {/* Mobile Horizontal Swipe Carousel */}
+              <div className="flex md:hidden overflow-x-auto snap-x snap-mandatory space-x-3.5 pb-2 -mx-4 px-4 scroll-smooth [webkit-scrollbar:none] [-ms-overflow-style:none] [scrollbar-width:none]">
                 {boutiqueCollectionsList.map((col: any) => (
-                  <div key={col.id} className="bg-[#FAF7F2] rounded-2xl border border-gold/15 overflow-hidden shadow-2xs flex flex-col justify-between">
-                    <div>
-                      <div className="relative aspect-[4/3] w-full overflow-hidden bg-charcoal">
-                        <img src={col.coverImage} alt={col.name} className="w-full h-full object-cover" />
-                        <span className="absolute top-3 left-3 bg-black/60 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full">
-                          {col.outfitCount || (col.outfits || []).length || 15}+ Collections
-                        </span>
-                      </div>
-                      <div className="p-4 space-y-1.5">
-                        <h3 className="font-serif font-bold text-base text-charcoal">{col.name}</h3>
-                        <p className="text-xs text-charcoal/70 line-clamp-2">{col.description}</p>
-                      </div>
+                  <div
+                    key={col.id}
+                    onClick={() => setActiveCollectionModal(col)}
+                    className="w-[82%] sm:w-[85%] shrink-0 snap-start bg-[#FAF7F2] rounded-2xl border border-gold/15 overflow-hidden shadow-2xs hover:border-[#0F4C45] hover:shadow-md transition-all cursor-pointer flex flex-col group"
+                  >
+                    <div className="relative aspect-[4/3] w-full overflow-hidden bg-charcoal">
+                      <img
+                        src={col.coverImage}
+                        alt={col.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
                     </div>
-                    <div className="p-4 pt-0">
-                      <button
-                        onClick={() => setActiveCollectionModal(col)}
-                        className="w-full py-2.5 rounded-xl bg-[#0F4C45] text-white font-bold text-xs hover:bg-[#12584E] transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-                      >
-                        <Eye className="w-4 h-4" /> View Outfits ({col.outfits ? col.outfits.length : 4})
-                      </button>
+                    <div className="p-3.5 text-center">
+                      <h3 className="font-serif font-bold text-sm text-charcoal group-hover:text-[#0F4C45] transition-colors truncate">
+                        {col.name}
+                      </h3>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Desktop Grid Layout */}
+              <div className="hidden md:grid grid-cols-2 lg:grid-cols-3 gap-4">
+                {boutiqueCollectionsList.map((col: any) => (
+                  <div
+                    key={col.id}
+                    onClick={() => setActiveCollectionModal(col)}
+                    className="bg-[#FAF7F2] rounded-2xl border border-gold/15 overflow-hidden shadow-2xs hover:border-[#0F4C45] hover:shadow-md transition-all cursor-pointer flex flex-col group"
+                  >
+                    <div className="relative aspect-[4/3] w-full overflow-hidden bg-charcoal">
+                      <img
+                        src={col.coverImage}
+                        alt={col.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                    </div>
+                    <div className="p-4 text-center">
+                      <h3 className="font-serif font-bold text-base text-charcoal group-hover:text-[#0F4C45] transition-colors truncate">
+                        {col.name}
+                      </h3>
                     </div>
                   </div>
                 ))}
