@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { cleanVendorText } from "@/lib/vendorStore";
 import { useVendorOwnership } from "@/lib/vendorAuthClient";
 import { OwnerToolbar } from "@/components/vendor/storefront/OwnerToolbar";
@@ -136,6 +137,7 @@ export interface VendorStorefrontProps {
 }
 
 export function VendorStorefront({ vendor: initialVendor, storefront: propStorefront, previewMode = false }: VendorStorefrontProps) {
+  const router = useRouter();
   const [liveVendor, setLiveVendor] = useState(initialVendor);
 
   const targetVendorId = initialVendor?.id || initialVendor?.vendorCode || initialVendor?.slug;
@@ -4599,6 +4601,9 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
         onSaveSuccess={(updatedVendor) => {
           setLiveVendor((prev: any) => ({ ...prev, ...updatedVendor }));
           setActiveEditSection(null);
+          try {
+            router.refresh();
+          } catch (e) {}
           try {
             window.dispatchEvent(
               new CustomEvent("cloche_vendor_profile_updated", { detail: updatedVendor })
