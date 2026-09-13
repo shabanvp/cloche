@@ -1715,8 +1715,8 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
                     </div>
                     <div className="text-right">
                       <div className="font-serif font-bold text-sm text-[#0F4C45]">
-                        {vendor?.vegPrice || vendor?.veg_price || sf?.vegPrice
-                          ? `₹ ${Number(vendor?.vegPrice || vendor?.veg_price || sf?.vegPrice).toLocaleString("en-IN")}`
+                        {vendor?.vegPrice || vendor?.veg_price || vendor?.categoryDetails?.veg_plate_price || vendor?.categoryDetails?.veg_price || sf?.vegPrice
+                          ? `₹ ${Number(vendor?.vegPrice || vendor?.veg_price || vendor?.categoryDetails?.veg_plate_price || vendor?.categoryDetails?.veg_price || sf?.vegPrice).toLocaleString("en-IN")}`
                           : "₹ 1,200"}
                       </div>
                       <div className="text-[10px] text-charcoal/50">per plate</div>
@@ -1732,8 +1732,8 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
                     </div>
                     <div className="text-right">
                       <div className="font-serif font-bold text-sm text-[#0F4C45]">
-                        {vendor?.nonVegPrice || vendor?.non_veg_price || sf?.nonVegPrice
-                          ? `₹ ${Number(vendor?.nonVegPrice || vendor?.non_veg_price || sf?.nonVegPrice).toLocaleString("en-IN")}`
+                        {vendor?.nonVegPrice || vendor?.non_veg_price || vendor?.categoryDetails?.non_veg_plate_price || vendor?.categoryDetails?.non_veg_price || sf?.nonVegPrice
+                          ? `₹ ${Number(vendor?.nonVegPrice || vendor?.non_veg_price || vendor?.categoryDetails?.non_veg_plate_price || vendor?.categoryDetails?.non_veg_price || sf?.nonVegPrice).toLocaleString("en-IN")}`
                           : "₹ 1,500"}
                       </div>
                       <div className="text-[10px] text-charcoal/50">per plate</div>
@@ -1749,8 +1749,8 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
                     </div>
                     <div className="text-right">
                       <div className="font-serif font-bold text-sm text-[#0F4C45]">
-                        {vendor?.decorStartingPrice || vendor?.decor_starting_price || sf?.decorStartingPrice
-                          ? `₹ ${Number(vendor?.decorStartingPrice || vendor?.decor_starting_price || sf?.decorStartingPrice).toLocaleString("en-IN")}`
+                        {vendor?.decorStartingPrice || vendor?.decor_starting_price || vendor?.categoryDetails?.rental_cost || vendor?.categoryDetails?.decor_starting_price || sf?.decorStartingPrice
+                          ? `₹ ${Number(vendor?.decorStartingPrice || vendor?.decor_starting_price || vendor?.categoryDetails?.rental_cost || vendor?.categoryDetails?.decor_starting_price || sf?.decorStartingPrice).toLocaleString("en-IN")}`
                           : "₹ 50,000"}
                       </div>
                       <div className="text-[10px] text-charcoal/50">starting decor package</div>

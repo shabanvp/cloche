@@ -750,9 +750,9 @@ export async function PUT(req: Request) {
       ...(profile?.hasRooftopSpace !== undefined ? { has_rooftop_space: Boolean(profile.hasRooftopSpace) } : {}),
       ...(profile?.hasBridalRoom !== undefined ? { has_bridal_room: Boolean(profile.hasBridalRoom) } : {}),
       ...(profile?.hasGroomRoom !== undefined ? { has_groom_room: Boolean(profile.hasGroomRoom) } : {}),
-      ...(profile?.vegPrice || profile?.veg_price ? { veg_price: profile.vegPrice || profile.veg_price } : {}),
-      ...(profile?.nonVegPrice || profile?.non_veg_price ? { non_veg_price: profile.nonVegPrice || profile.non_veg_price } : {}),
-      ...(profile?.decorStartingPrice || profile?.decor_starting_price ? { decor_starting_price: profile.decorStartingPrice || profile.decor_starting_price } : {}),
+      ...(profile?.vegPrice || profile?.veg_price ? { veg_price: profile.vegPrice || profile.veg_price, veg_plate_price: profile.vegPrice || profile.veg_price } : {}),
+      ...(profile?.nonVegPrice || profile?.non_veg_price ? { non_veg_price: profile.nonVegPrice || profile.non_veg_price, non_veg_plate_price: profile.nonVegPrice || profile.non_veg_price } : {}),
+      ...(profile?.decorStartingPrice || profile?.decor_starting_price ? { decor_starting_price: profile.decorStartingPrice || profile.decor_starting_price, rental_cost: profile.decorStartingPrice || profile.decor_starting_price } : {}),
       ...(profile?.contactForPricing !== undefined ? { contact_for_pricing: Boolean(profile.contactForPricing) } : {}),
       ...(profile?.policySwitches || profile?.policy_switches ? { policy_switches: profile.policySwitches || profile.policy_switches } : {}),
       ...(profile?.faqs || profile?.faq_items ? { faqs: profile.faqs || profile.faq_items } : {}),
@@ -815,6 +815,24 @@ export async function PUT(req: Request) {
       ...(profile?.organicHennaCertified !== undefined || profile?.organic_henna_certified !== undefined ? { organic_henna_certified: Boolean(profile?.organicHennaCertified ?? profile?.organic_henna_certified) } : {}),
       ...(profile?.mehendiHighlights || profile?.mehendi_highlights ? { mehendi_highlights: profile.mehendiHighlights || profile.mehendi_highlights } : {})
     };
+
+    if (extensionTable === "venue_details") {
+      if (mergedCategoryDetails.veg_price && !mergedCategoryDetails.veg_plate_price) {
+        mergedCategoryDetails.veg_plate_price = mergedCategoryDetails.veg_price;
+      }
+      if (mergedCategoryDetails.non_veg_price && !mergedCategoryDetails.non_veg_plate_price) {
+        mergedCategoryDetails.non_veg_plate_price = mergedCategoryDetails.non_veg_price;
+      }
+      if (mergedCategoryDetails.decor_starting_price && !mergedCategoryDetails.rental_cost) {
+        mergedCategoryDetails.rental_cost = mergedCategoryDetails.decor_starting_price;
+      }
+      if (mergedCategoryDetails.guest_capacity && !mergedCategoryDetails.max_capacity) {
+        mergedCategoryDetails.max_capacity = Number(mergedCategoryDetails.guest_capacity) || mergedCategoryDetails.guest_capacity;
+      }
+      if (mergedCategoryDetails.rooms_count && !mergedCategoryDetails.guest_rooms) {
+        mergedCategoryDetails.guest_rooms = Number(mergedCategoryDetails.rooms_count) || mergedCategoryDetails.rooms_count;
+      }
+    }
 
     if (Object.keys(mergedCategoryDetails).length > 0) {
       const extPayload = {
