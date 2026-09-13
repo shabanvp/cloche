@@ -521,7 +521,7 @@ export async function PUT(req: Request) {
         state: profile.state || "Kerala",
         pincode: profile.pincode || null,
         starting_price: profile.startingPrice || profile.starting_price || null,
-        storefront: typeof profile.storefront === "object" ? JSON.stringify(profile.storefront) : typeof body.storefront === "object" ? JSON.stringify(body.storefront) : JSON.stringify(profile),
+        // storefront field removed to match vendor_profiles DB schema
         updated_at: new Date().toISOString(),
       };
 
@@ -544,43 +544,56 @@ export async function PUT(req: Request) {
       }
 
       let patchRes: Response | null = null;
-      if (existingProfileRow) {
-        const filter = existingProfileRow.vendor_id
-          ? `vendor_id=eq.${encodeURIComponent(existingProfileRow.vendor_id)}`
-          : `id=eq.${encodeURIComponent(existingProfileRow.id)}`;
+      let currentPayload: Record<string, any> = { ...profilePayload };
 
-        patchRes = await fetch(`${url}/rest/v1/vendor_profiles?${filter}`, {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            apikey: apiKey,
-            Authorization: `Bearer ${apiKey}`,
-          },
-          body: JSON.stringify(profilePayload),
-        });
-      } else {
-        // Upsert / Insert new profile row
-        const newProfilePayload = {
-          id: vendorId,
-          vendor_id: vendorId,
-          ...profilePayload,
-        };
-        patchRes = await fetch(`${url}/rest/v1/vendor_profiles`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            apikey: apiKey,
-            Authorization: `Bearer ${apiKey}`,
-            Prefer: "resolution=merge-duplicates",
-          },
-          body: JSON.stringify(newProfilePayload),
-        });
-      }
+      for (let attempt = 0; attempt < 10; attempt++) {
+        if (existingProfileRow) {
+          const filter = existingProfileRow.vendor_id
+            ? `vendor_id=eq.${encodeURIComponent(existingProfileRow.vendor_id)}`
+            : `id=eq.${encodeURIComponent(existingProfileRow.id)}`;
 
-      if (!patchRes || !patchRes.ok) {
-        const errorText = patchRes ? await patchRes.text() : 'Unknown Network Error';
-        console.error('[IMAGE_FLOW] PUT profile patch/post failed:', patchRes?.status, errorText);
-        return NextResponse.json({ success: false, statusCode: patchRes?.status || 500, error: { message: 'Database Save Failed: ' + errorText } }, { status: patchRes?.status || 500 });
+          patchRes = await fetch(`${url}/rest/v1/vendor_profiles?${filter}`, {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+              apikey: apiKey,
+              Authorization: `Bearer ${apiKey}`,
+            },
+            body: JSON.stringify(currentPayload),
+          });
+        } else {
+          // Upsert / Insert new profile row
+          const newProfilePayload = {
+            id: vendorId,
+            vendor_id: vendorId,
+            ...currentPayload,
+          };
+          patchRes = await fetch(`${url}/rest/v1/vendor_profiles`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              apikey: apiKey,
+              Authorization: `Bearer ${apiKey}`,
+              Prefer: "resolution=merge-duplicates",
+            },
+            body: JSON.stringify(newProfilePayload),
+          });
+        }
+
+        if (patchRes && patchRes.ok) {
+          break;
+        }
+
+        const errorText = patchRes ? await patchRes.text() : "";
+        const missingColMatch = errorText.match(/Could not find the ['"]([^'"]+)['"] column of ['"]vendor_profiles['"]/i);
+        if (missingColMatch && missingColMatch[1]) {
+          const missingCol = missingColMatch[1];
+          console.warn(`[RETRY ${attempt + 1}] Stripping missing column '${missingCol}' from vendor_profiles payload...`);
+          delete currentPayload[missingCol];
+        } else {
+          console.error('[IMAGE_FLOW] PUT profile patch/post failed:', patchRes?.status, errorText);
+          return NextResponse.json({ success: false, statusCode: patchRes?.status || 500, error: { message: 'Database Save Failed: ' + errorText } }, { status: patchRes?.status || 500 });
+        }
       }
 
       // Read back updated row directly from Supabase DB to verify persistence
@@ -809,26 +822,43 @@ export async function PUT(req: Request) {
         if (Array.isArray(extRows) && extRows.length > 0) extExists = true;
       }
 
-      if (extExists) {
-        await fetch(`${url}/rest/v1/${extensionTable}?vendor_id=eq.${encodeURIComponent(vendorId)}`, {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            apikey: apiKey,
-            Authorization: `Bearer ${apiKey}`,
-          },
-          body: JSON.stringify(extPayload),
-        }).catch((err) => console.error(`[PUT profile] Patch ${extensionTable} failed:`, err));
-      } else {
-        await fetch(`${url}/rest/v1/${extensionTable}`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            apikey: apiKey,
-            Authorization: `Bearer ${apiKey}`,
-          },
-          body: JSON.stringify(extPayload),
-        }).catch((err) => console.error(`[PUT profile] Post ${extensionTable} failed:`, err));
+      let currentExtPayload: Record<string, any> = { ...extPayload };
+      for (let attempt = 0; attempt < 10; attempt++) {
+        let res: Response | null = null;
+        if (extExists) {
+          res = await fetch(`${url}/rest/v1/${extensionTable}?vendor_id=eq.${encodeURIComponent(vendorId)}`, {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+              apikey: apiKey,
+              Authorization: `Bearer ${apiKey}`,
+            },
+            body: JSON.stringify(currentExtPayload),
+          }).catch((err) => null);
+        } else {
+          res = await fetch(`${url}/rest/v1/${extensionTable}`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              apikey: apiKey,
+              Authorization: `Bearer ${apiKey}`,
+            },
+            body: JSON.stringify(currentExtPayload),
+          }).catch((err) => null);
+        }
+
+        if (res && res.ok) break;
+
+        const errText = res ? await res.text() : "";
+        const missingColMatch = errText.match(/Could not find the ['"]([^'"]+)['"] column/i);
+        if (missingColMatch && missingColMatch[1]) {
+          const missingCol = missingColMatch[1];
+          console.warn(`[RETRY ${attempt + 1}] Stripping missing column '${missingCol}' from ${extensionTable} payload...`);
+          delete currentExtPayload[missingCol];
+        } else {
+          console.error(`[PUT profile] Save ${extensionTable} failed:`, res?.status, errText);
+          break;
+        }
       }
     }
 
