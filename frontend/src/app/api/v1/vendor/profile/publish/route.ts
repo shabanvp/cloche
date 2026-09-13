@@ -44,6 +44,24 @@ export async function POST(req: Request) {
 
     const vendorId = vendors[0].id;
 
+    const body = await req.json().catch(() => ({}));
+    const targetVendorId = body.vendorId || body.vendor_id || body.targetVendorId;
+    if (targetVendorId && String(targetVendorId).trim().toLowerCase() !== String(vendorId).trim().toLowerCase()) {
+      console.warn(`[SECURITY_ALERT] Unauthorized publish attempt: Vendor ${vendorId} attempted to publish Vendor ${targetVendorId}`);
+      return NextResponse.json(
+        {
+          success: false,
+          statusCode: 403,
+          message: "You are not authorized to edit this vendor profile.",
+          error: {
+            code: "FORBIDDEN",
+            message: "You are not authorized to edit this vendor profile."
+          }
+        },
+        { status: 403 }
+      );
+    }
+
     // 2. Query Vendor Details to Validate 5 Mandatory Rules
     const [profRes, contactsRes, servicesRes, packagesRes, galleryRes] = await Promise.all([
       fetch(`${url}/rest/v1/vendor_profiles?vendor_id=eq.${encodeURIComponent(vendorId)}&select=*`, {

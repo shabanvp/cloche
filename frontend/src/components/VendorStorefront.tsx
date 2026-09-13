@@ -3,6 +3,7 @@
 import React, { useState, useMemo } from "react";
 import Link from "next/link";
 import { cleanVendorText } from "@/lib/vendorStore";
+import { useVendorOwnership } from "@/lib/vendorAuthClient";
 import {
   ArrowRight,
   Sparkles,
@@ -131,17 +132,16 @@ export interface VendorStorefrontProps {
   storefront?: any;
   previewMode?: boolean;
 }
-export interface VendorStorefrontProps {
-  vendor: any;
-  storefront?: any;
-  previewMode?: boolean;
-}
 
 export function VendorStorefront({ vendor: initialVendor, storefront: propStorefront, previewMode = false }: VendorStorefrontProps) {
   const [liveVendor, setLiveVendor] = useState(initialVendor);
 
+  const targetVendorId = initialVendor?.id || initialVendor?.vendorCode || initialVendor?.slug;
+  const { isOwner, isLoadingAuth } = useVendorOwnership(targetVendorId);
+  const effectivePreviewMode = Boolean(previewMode && isOwner && !isLoadingAuth);
+
   if (typeof window !== "undefined") {
-    console.log("[RUNTIME_TRACE 5d] VendorStorefront received initialVendor.about:", initialVendor?.about, "id:", initialVendor?.id);
+    console.log("[RUNTIME_TRACE 5d] VendorStorefront received initialVendor.about:", initialVendor?.about, "id:", initialVendor?.id, "isOwner:", isOwner);
   }
 
   React.useEffect(() => {
@@ -151,8 +151,8 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
   React.useEffect(() => {
     if (typeof window === "undefined") return;
     
-    // Only merge local storage if previewMode is true (live dashboard customization preview on same device)
-    if (previewMode) {
+    // Only merge local storage if effectivePreviewMode is true (authenticated vendor viewing own storefront)
+    if (effectivePreviewMode) {
       try {
         const rawActive = localStorage.getItem("cloche_active_vendor_identity");
         const activeData = rawActive ? JSON.parse(rawActive) : null;
@@ -163,14 +163,14 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
     }
 
     const handleUpdate = (e: any) => {
-      if (e.detail) {
+      if (e.detail && isOwner) {
         setLiveVendor((prev: any) => ({ ...prev, ...e.detail }));
       }
     };
 
     window.addEventListener("cloche_vendor_profile_updated", handleUpdate);
     return () => window.removeEventListener("cloche_vendor_profile_updated", handleUpdate);
-  }, [initialVendor?.id, previewMode]);
+  }, [initialVendor?.id, effectivePreviewMode, isOwner]);
 
   const vendor = liveVendor;
   const [isWishlisted, setIsWishlisted] = useState(false);
@@ -1983,68 +1983,34 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
               <div className="flex items-center justify-between border-b border-gold/10 pb-2.5">
                 <div>
                   <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">{studioCategoryConfig.collectionsTitle}</h2>
+                  <p className="text-xs text-charcoal/60 mt-0.5">{studioCategoryConfig.collectionsSubtitle}</p>
                 </div>
               </div>
-              {/* Mobile Horizontal Swipe Carousel */}
-              <div className="flex md:hidden overflow-x-auto snap-x snap-mandatory space-x-3.5 pb-2 -mx-4 px-4 scroll-smooth [webkit-scrollbar:none] [-ms-overflow-style:none] [scrollbar-width:none]">
-                {boutiqueCollectionsList.map((col: any) => {
-                  const locationTag = (col.location || col.city || vendor?.city || vendor?.location || "KERALA").toUpperCase();
-                  const categoryTag = (col.category || "GROOM").toUpperCase();
-
-                  return (
-                    <Link key={col.id} href={`/collections/${col.id}`} className="w-[75%] sm:w-[80%] shrink-0 snap-start relative aspect-[3/4] rounded-2xl overflow-hidden shadow-md group cursor-pointer border border-gold/20 block"
-                    >
-                      <img
-                        src={col.coverImage}
-                        alt={col.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/35 to-transparent transition-opacity group-hover:from-black/95" />
-                      <div className="absolute bottom-0 left-0 right-0 p-4 flex flex-col justify-end text-left z-10 space-y-0.5">
-                        <span className="text-[10px] font-bold text-[#D4B66E] uppercase tracking-[0.2em]">
-                          {locationTag}
-                        </span>
-                        <h3 className="font-serif font-bold text-base text-white uppercase tracking-wider leading-snug line-clamp-2 drop-shadow-xs">
-                          {col.name}
-                        </h3>
-                        <span className="text-[10px] font-medium text-white/75 uppercase tracking-[0.15em]">
-                          {categoryTag}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {boutiqueCollectionsList.map((col: any) => (
+                  <div key={col.id} className="bg-[#FAF7F2] rounded-2xl border border-gold/15 overflow-hidden shadow-2xs flex flex-col justify-between">
+                    <div>
+                      <div className="relative aspect-[4/3] w-full overflow-hidden bg-charcoal">
+                        <img src={col.coverImage} alt={col.name} className="w-full h-full object-cover" />
+                        <span className="absolute top-3 left-3 bg-black/60 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full">
+                          {col.outfitCount || (col.outfits || []).length || 12}+ Groom Designs
                         </span>
                       </div>
-                    </Link>
-                  );
-                })}
-              </div>
-
-              {/* Desktop Grid Layout */}
-              <div className="hidden md:grid grid-cols-2 lg:grid-cols-3 gap-5">
-                {boutiqueCollectionsList.map((col: any) => {
-                  const locationTag = (col.location || col.city || vendor?.city || vendor?.location || "KERALA").toUpperCase();
-                  const categoryTag = (col.category || "GROOM").toUpperCase();
-
-                  return (
-                    <Link key={col.id} href={`/collections/${col.id}`} className="relative aspect-[3/4] w-full rounded-2xl overflow-hidden shadow-md group cursor-pointer border border-gold/20 hover:border-[#0F4C45] hover:shadow-xl transition-all duration-500 block"
-                    >
-                      <img
-                        src={col.coverImage}
-                        alt={col.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/35 to-transparent transition-opacity group-hover:from-black/95" />
-                      <div className="absolute bottom-0 left-0 right-0 p-5 flex flex-col justify-end text-left z-10 space-y-1">
-                        <span className="text-xs font-bold text-[#D4B66E] uppercase tracking-[0.2em]">
-                          {locationTag}
-                        </span>
-                        <h3 className="font-serif font-bold text-lg text-white uppercase tracking-wider leading-snug line-clamp-2 drop-shadow-xs">
-                          {col.name}
-                        </h3>
-                        <span className="text-xs font-medium text-white/75 uppercase tracking-[0.15em]">
-                          {categoryTag}
-                        </span>
+                      <div className="p-4 space-y-1.5">
+                        <h3 className="font-serif font-bold text-base text-charcoal">{col.name}</h3>
+                        <p className="text-xs text-charcoal/70 line-clamp-2">{col.description}</p>
                       </div>
-                    </Link>
-                  );
-                })}
+                    </div>
+                    <div className="p-4 pt-0">
+                      <button
+                        onClick={() => setActiveCollectionModal(col)}
+                        className="w-full py-2.5 rounded-xl bg-[#0F4C45] text-white font-bold text-xs hover:bg-[#12584E] transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                      >
+                        <Eye className="w-4 h-4" /> View Outfits ({col.outfits ? col.outfits.length : 4})
+                      </button>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
 
@@ -2261,68 +2227,34 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
               <div className="flex items-center justify-between border-b border-gold/10 pb-2.5">
                 <div>
                   <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">Our Bridal Collections</h2>
+                  <p className="text-xs text-charcoal/60 mt-0.5">Explore signature bridal zardozi lehengas, silk sarees &amp; reception trails</p>
                 </div>
               </div>
-              {/* Mobile Horizontal Swipe Carousel */}
-              <div className="flex md:hidden overflow-x-auto snap-x snap-mandatory space-x-3.5 pb-2 -mx-4 px-4 scroll-smooth [webkit-scrollbar:none] [-ms-overflow-style:none] [scrollbar-width:none]">
-                {boutiqueCollectionsList.map((col: any) => {
-                  const locationTag = (col.location || col.city || vendor?.city || vendor?.location || "KERALA").toUpperCase();
-                  const categoryTag = (col.category || "BRIDAL").toUpperCase();
-
-                  return (
-                    <Link key={col.id} href={`/collections/${col.id}`} className="w-[75%] sm:w-[80%] shrink-0 snap-start relative aspect-[3/4] rounded-2xl overflow-hidden shadow-md group cursor-pointer border border-gold/20 block"
-                    >
-                      <img
-                        src={col.coverImage}
-                        alt={col.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/35 to-transparent transition-opacity group-hover:from-black/95" />
-                      <div className="absolute bottom-0 left-0 right-0 p-4 flex flex-col justify-end text-left z-10 space-y-0.5">
-                        <span className="text-[10px] font-bold text-[#D4B66E] uppercase tracking-[0.2em]">
-                          {locationTag}
-                        </span>
-                        <h3 className="font-serif font-bold text-base text-white uppercase tracking-wider leading-snug line-clamp-2 drop-shadow-xs">
-                          {col.name}
-                        </h3>
-                        <span className="text-[10px] font-medium text-white/75 uppercase tracking-[0.15em]">
-                          {categoryTag}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {boutiqueCollectionsList.map((col: any) => (
+                  <div key={col.id} className="bg-[#FAF7F2] rounded-2xl border border-gold/15 overflow-hidden shadow-2xs flex flex-col justify-between">
+                    <div>
+                      <div className="relative aspect-[4/3] w-full overflow-hidden bg-charcoal">
+                        <img src={col.coverImage} alt={col.name} className="w-full h-full object-cover" />
+                        <span className="absolute top-3 left-3 bg-black/60 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full">
+                          {col.outfitCount || (col.outfits || []).length || 18}+ Bridal Designs
                         </span>
                       </div>
-                    </Link>
-                  );
-                })}
-              </div>
-
-              {/* Desktop Grid Layout */}
-              <div className="hidden md:grid grid-cols-2 lg:grid-cols-3 gap-5">
-                {boutiqueCollectionsList.map((col: any) => {
-                  const locationTag = (col.location || col.city || vendor?.city || vendor?.location || "KERALA").toUpperCase();
-                  const categoryTag = (col.category || "BRIDAL").toUpperCase();
-
-                  return (
-                    <Link key={col.id} href={`/collections/${col.id}`} className="relative aspect-[3/4] w-full rounded-2xl overflow-hidden shadow-md group cursor-pointer border border-gold/20 hover:border-[#0F4C45] hover:shadow-xl transition-all duration-500 block"
-                    >
-                      <img
-                        src={col.coverImage}
-                        alt={col.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/35 to-transparent transition-opacity group-hover:from-black/95" />
-                      <div className="absolute bottom-0 left-0 right-0 p-5 flex flex-col justify-end text-left z-10 space-y-1">
-                        <span className="text-xs font-bold text-[#D4B66E] uppercase tracking-[0.2em]">
-                          {locationTag}
-                        </span>
-                        <h3 className="font-serif font-bold text-lg text-white uppercase tracking-wider leading-snug line-clamp-2 drop-shadow-xs">
-                          {col.name}
-                        </h3>
-                        <span className="text-xs font-medium text-white/75 uppercase tracking-[0.15em]">
-                          {categoryTag}
-                        </span>
+                      <div className="p-4 space-y-1.5">
+                        <h3 className="font-serif font-bold text-base text-charcoal">{col.name}</h3>
+                        <p className="text-xs text-charcoal/70 line-clamp-2">{col.description}</p>
                       </div>
-                    </Link>
-                  );
-                })}
+                    </div>
+                    <div className="p-4 pt-0">
+                      <button
+                        onClick={() => setActiveCollectionModal(col)}
+                        className="w-full py-2.5 rounded-xl bg-[#0F4C45] text-white font-bold text-xs hover:bg-[#12584E] transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                      >
+                        <Eye className="w-4 h-4" /> View Outfits ({col.outfits ? col.outfits.length : 4})
+                      </button>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
 
@@ -2539,68 +2471,34 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
               <div className="flex items-center justify-between border-b border-gold/10 pb-2.5">
                 <div>
                   <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">Our Wedding Collections</h2>
+                  <p className="text-xs text-charcoal/60 mt-0.5">Explore signature bridal, groom, and ceremonial couple ensembles</p>
                 </div>
               </div>
-              {/* Mobile Horizontal Swipe Carousel */}
-              <div className="flex md:hidden overflow-x-auto snap-x snap-mandatory space-x-3.5 pb-2 -mx-4 px-4 scroll-smooth [webkit-scrollbar:none] [-ms-overflow-style:none] [scrollbar-width:none]">
-                {boutiqueCollectionsList.map((col: any) => {
-                  const locationTag = (col.location || col.city || vendor?.city || vendor?.location || "KERALA").toUpperCase();
-                  const categoryTag = (col.category || "COUTURE").toUpperCase();
-
-                  return (
-                    <Link key={col.id} href={`/collections/${col.id}`} className="w-[75%] sm:w-[80%] shrink-0 snap-start relative aspect-[3/4] rounded-2xl overflow-hidden shadow-md group cursor-pointer border border-gold/20 block"
-                    >
-                      <img
-                        src={col.coverImage}
-                        alt={col.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/35 to-transparent transition-opacity group-hover:from-black/95" />
-                      <div className="absolute bottom-0 left-0 right-0 p-4 flex flex-col justify-end text-left z-10 space-y-0.5">
-                        <span className="text-[10px] font-bold text-[#D4B66E] uppercase tracking-[0.2em]">
-                          {locationTag}
-                        </span>
-                        <h3 className="font-serif font-bold text-base text-white uppercase tracking-wider leading-snug line-clamp-2 drop-shadow-xs">
-                          {col.name}
-                        </h3>
-                        <span className="text-[10px] font-medium text-white/75 uppercase tracking-[0.15em]">
-                          {categoryTag}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {boutiqueCollectionsList.map((col: any) => (
+                  <div key={col.id} className="bg-[#FAF7F2] rounded-2xl border border-gold/15 overflow-hidden shadow-2xs flex flex-col justify-between">
+                    <div>
+                      <div className="relative aspect-[4/3] w-full overflow-hidden bg-charcoal">
+                        <img src={col.coverImage} alt={col.name} className="w-full h-full object-cover" />
+                        <span className="absolute top-3 left-3 bg-black/60 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full">
+                          {col.outfitCount || (col.outfits || []).length || 15}+ Collections
                         </span>
                       </div>
-                    </Link>
-                  );
-                })}
-              </div>
-
-              {/* Desktop Grid Layout */}
-              <div className="hidden md:grid grid-cols-2 lg:grid-cols-3 gap-5">
-                {boutiqueCollectionsList.map((col: any) => {
-                  const locationTag = (col.location || col.city || vendor?.city || vendor?.location || "KERALA").toUpperCase();
-                  const categoryTag = (col.category || "COUTURE").toUpperCase();
-
-                  return (
-                    <Link key={col.id} href={`/collections/${col.id}`} className="relative aspect-[3/4] w-full rounded-2xl overflow-hidden shadow-md group cursor-pointer border border-gold/20 hover:border-[#0F4C45] hover:shadow-xl transition-all duration-500 block"
-                    >
-                      <img
-                        src={col.coverImage}
-                        alt={col.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/35 to-transparent transition-opacity group-hover:from-black/95" />
-                      <div className="absolute bottom-0 left-0 right-0 p-5 flex flex-col justify-end text-left z-10 space-y-1">
-                        <span className="text-xs font-bold text-[#D4B66E] uppercase tracking-[0.2em]">
-                          {locationTag}
-                        </span>
-                        <h3 className="font-serif font-bold text-lg text-white uppercase tracking-wider leading-snug line-clamp-2 drop-shadow-xs">
-                          {col.name}
-                        </h3>
-                        <span className="text-xs font-medium text-white/75 uppercase tracking-[0.15em]">
-                          {categoryTag}
-                        </span>
+                      <div className="p-4 space-y-1.5">
+                        <h3 className="font-serif font-bold text-base text-charcoal">{col.name}</h3>
+                        <p className="text-xs text-charcoal/70 line-clamp-2">{col.description}</p>
                       </div>
-                    </Link>
-                  );
-                })}
+                    </div>
+                    <div className="p-4 pt-0">
+                      <button
+                        onClick={() => setActiveCollectionModal(col)}
+                        className="w-full py-2.5 rounded-xl bg-[#0F4C45] text-white font-bold text-xs hover:bg-[#12584E] transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                      >
+                        <Eye className="w-4 h-4" /> View Outfits ({col.outfits ? col.outfits.length : 4})
+                      </button>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
 
@@ -3705,6 +3603,7 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
               <div className="border-b border-gold/10 pb-2.5">
                 <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">Bridal Jewellery Collections</h2>
+                <p className="text-xs text-charcoal/60 mt-0.5">Heritage temple gold, uncut polki kundan &amp; diamond bridal sets</p>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="bg-[#FAF7F2] p-4 rounded-xl border border-gold/15 space-y-1.5">
@@ -3883,6 +3782,7 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
               <div className="border-b border-gold/10 pb-2.5">
                 <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">Invitation Card Collections</h2>
+                <p className="text-xs text-charcoal/60 mt-0.5">Laser-cut boxed suites, velvet scrolls &amp; interactive digital invitations</p>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="bg-[#FAF7F2] p-4 rounded-xl border border-gold/15 space-y-1.5">

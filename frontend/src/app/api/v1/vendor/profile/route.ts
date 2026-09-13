@@ -292,6 +292,24 @@ export async function PUT(req: Request) {
     const vendor = vendors[0];
     const vendorId = vendor.id;
 
+    // Strict Security Authorization: Compare target vendor ID against authenticated vendor ID
+    const targetVendorId = body.vendorId || body.vendor_id || body.targetVendorId || profile.vendor_id || profile.vendorId || profile.id;
+    if (targetVendorId && String(targetVendorId).trim().toLowerCase() !== String(vendorId).trim().toLowerCase()) {
+      console.warn(`[SECURITY_ALERT] Unauthorized profile update attempt: Vendor ${vendorId} attempted to modify Vendor ${targetVendorId}`);
+      return NextResponse.json(
+        {
+          success: false,
+          statusCode: 403,
+          message: "You are not authorized to edit this vendor profile.",
+          error: {
+            code: "FORBIDDEN",
+            message: "You are not authorized to edit this vendor profile."
+          }
+        },
+        { status: 403 }
+      );
+    }
+
     console.log("[RUNTIME_TRACE 3a] Backend Incoming profile.about:", profile.about);
     console.log("[RUNTIME_TRACE 3b] Backend Authenticated Vendor ID:", vendorId);
     let categorySlug = "general";
