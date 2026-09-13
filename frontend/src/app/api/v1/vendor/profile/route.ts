@@ -513,25 +513,9 @@ export async function PUT(req: Request) {
 
     // 2. Update Vendor Profile in vendor_profiles table
     if (profile && typeof profile === "object") {
-      const profilePayload: Record<string, any> = {
-        business_name: profile.businessName || profile.business_name || profile.name || null,
-        tagline: profile.tagline || null,
-        about: profile.about || profile.description || null,
-        city: profile.city || "Kochi",
-        state: profile.state || "Kerala",
-        pincode: profile.pincode || null,
-        starting_price: profile.startingPrice || profile.starting_price || null,
-        // storefront field removed to match vendor_profiles DB schema
-        updated_at: new Date().toISOString(),
-      };
-
-      if (logoMediaId) profilePayload.logo_media_id = logoMediaId;
-      if (coverMediaId) profilePayload.cover_media_id = coverMediaId;
-      console.log(`[IMAGE_FLOW] PUT profile write: vendor_id=${vendorId}, logoMediaId=${logoMediaId}, coverMediaId=${coverMediaId}`);
-
       // Check if profile row exists for this vendor
       const checkProfileRes = await fetch(
-        `${url}/rest/v1/vendor_profiles?or=(vendor_id.eq.${encodeURIComponent(vendorId)},id.eq.${encodeURIComponent(vendorId)})&select=id,vendor_id`,
+        `${url}/rest/v1/vendor_profiles?or=(vendor_id.eq.${encodeURIComponent(vendorId)},id.eq.${encodeURIComponent(vendorId)})&select=id,vendor_id,business_name`,
         { headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` } }
       ).catch(() => null);
 
@@ -542,6 +526,35 @@ export async function PUT(req: Request) {
           existingProfileRow = rows[0];
         }
       }
+
+      const businessNameVal =
+        profile.businessName ||
+        profile.business_name ||
+        profile.name ||
+        existingProfileRow?.business_name ||
+        vendor?.business_name ||
+        vendor?.name ||
+        vendor?.boutique_name ||
+        "Cloche Vendor Partner";
+
+      const profilePayload: Record<string, any> = {
+        business_name: businessNameVal,
+        updated_at: new Date().toISOString(),
+      };
+
+      if (profile.tagline !== undefined && profile.tagline !== null) profilePayload.tagline = profile.tagline;
+      if (profile.about !== undefined || profile.description !== undefined) {
+        const aboutVal = profile.about || profile.description;
+        if (aboutVal) profilePayload.about = aboutVal;
+      }
+      if (profile.city) profilePayload.city = profile.city;
+      if (profile.state) profilePayload.state = profile.state;
+      if (profile.pincode) profilePayload.pincode = profile.pincode;
+      if (profile.startingPrice || profile.starting_price) profilePayload.starting_price = profile.startingPrice || profile.starting_price;
+
+      if (logoMediaId) profilePayload.logo_media_id = logoMediaId;
+      if (coverMediaId) profilePayload.cover_media_id = coverMediaId;
+      console.log(`[IMAGE_FLOW] PUT profile write: vendor_id=${vendorId}, business_name=${businessNameVal}, logoMediaId=${logoMediaId}, coverMediaId=${coverMediaId}`);
 
       let patchRes: Response | null = null;
       let currentPayload: Record<string, any> = { ...profilePayload };

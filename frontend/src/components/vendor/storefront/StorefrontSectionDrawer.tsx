@@ -202,12 +202,15 @@ export function StorefrontSectionDrawer({
     try {
       const vendorId = vendor?.id || vendor?.vendor_id || vendor?.vendorCode;
 
+      const bName = vendor?.boutique_name || vendor?.name || vendor?.business_name || vendor?.businessName || "Cloche Vendor Partner";
       const payload: any = {
         vendorId,
         targetVendorId: vendorId,
         profile: {
           id: vendorId,
           vendor_id: vendorId,
+          businessName: bName,
+          business_name: bName,
         },
       };
 
