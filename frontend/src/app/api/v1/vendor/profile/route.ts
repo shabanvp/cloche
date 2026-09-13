@@ -230,6 +230,10 @@ export async function GET(req: Request) {
   }
 }
 
+export async function PATCH(req: Request) {
+  return PUT(req);
+}
+
 export async function PUT(req: Request) {
   try {
     const auth = await requireAuthenticatedVendor(req);

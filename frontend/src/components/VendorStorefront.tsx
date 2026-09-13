@@ -1,3 +1,5 @@
+import { OwnerToolbar } from "@/components/vendor/storefront/OwnerToolbar";
+import { StorefrontSectionDrawer, SectionType } from "@/components/vendor/storefront/StorefrontSectionDrawer";
 "use client";
 
 import React, { useState, useMemo } from "react";
@@ -173,6 +175,9 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
   }, [initialVendor?.id, effectivePreviewMode, isOwner]);
 
   const vendor = liveVendor;
+  const [editModeEnabled, setEditModeEnabled] = useState(true);
+  const [previewAsCustomer, setPreviewAsCustomer] = useState(false);
+  const [activeEditSection, setActiveEditSection] = useState<SectionType>(null);
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [activeModal, setActiveModal] = useState<null | "quote" | "appointment" | "share" | "chat">(null);
   const [dateErrorMsg, setDateErrorMsg] = useState<string | null>(null);
@@ -1363,6 +1368,17 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
 
   return (
     <div className="w-full bg-[#FBF8F1] text-charcoal font-sans antialiased min-h-screen pb-24">
+      {/* ── OWNER LIVE PROFILE TOOLBAR ── */}
+      {isOwner && !isLoadingAuth && (
+        <OwnerToolbar
+          editMode={editModeEnabled}
+          onToggleEditMode={setEditModeEnabled}
+          previewAsCustomer={previewAsCustomer}
+          onTogglePreviewAsCustomer={setPreviewAsCustomer}
+          vendorId={vendor?.id || vendor?.vendorCode}
+          vendorName={displayName}
+        />
+      )}
       
       {/* PREVIEW BANNER (IF IN DASHBOARD FULL PREVIEW MODE) */}
       {previewMode && (
@@ -1655,6 +1671,14 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
               <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal flex items-center justify-between border-b border-gold/10 pb-2.5">
                 <span>Pricing Information</span>
+                {isOwner && editModeEnabled && !previewAsCustomer && (
+  <button
+    onClick={() => setActiveEditSection("pricing")}
+    className="px-3 py-1 rounded-full bg-amber-400 text-charcoal font-bold text-xs hover:bg-amber-300 transition-all flex items-center gap-1 shadow-xs cursor-pointer border border-amber-300 shrink-0 ml-auto"
+  >
+    <span>✏️ Edit Pricing</span>
+  </button>
+)}
                 <span className="text-xs font-bold text-[#0F4C45] bg-[#FAF7F2] px-3 py-1 rounded-full border border-gold/20">
                   {Boolean(vendor?.contactForPricing ?? vendor?.contact_for_pricing ?? sf?.contactForPricing ?? false)
                     ? "Contact for Pricing"
@@ -1729,6 +1753,14 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
                 <div className="flex items-center justify-between border-b border-gold/10 pb-3">
                   <div className="flex items-center gap-2">
                     <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">Gallery &amp; Venue Spaces</h2>
+                    {isOwner && editModeEnabled && !previewAsCustomer && (
+  <button
+    onClick={() => setActiveEditSection("gallery")}
+    className="px-3 py-1 rounded-full bg-amber-400 text-charcoal font-bold text-xs hover:bg-amber-300 transition-all flex items-center gap-1 shadow-xs cursor-pointer border border-amber-300 shrink-0 ml-auto"
+  >
+    <span>✏️ Edit Gallery</span>
+  </button>
+)}
                     <span className="px-2.5 py-0.5 rounded-full bg-gold/15 text-[#0F4C45] text-xs font-extrabold">
                       {galleryPhotos.length} photos
                     </span>
@@ -1767,6 +1799,14 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
               <div className="border-b border-gold/10 pb-3 space-y-1">
                 <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">About</h2>
+                {isOwner && editModeEnabled && !previewAsCustomer && (
+  <button
+    onClick={() => setActiveEditSection("about")}
+    className="px-3 py-1 rounded-full bg-amber-400 text-charcoal font-bold text-xs hover:bg-amber-300 transition-all flex items-center gap-1 shadow-xs cursor-pointer border border-amber-300 shrink-0 ml-auto"
+  >
+    <span>✏️ Edit About</span>
+  </button>
+)}
                 <div className="text-xs font-bold text-[#0F4C45]">
                   {venueDetails.establishedYear ? `Established in ${venueDetails.establishedYear}` : "Cloche Verified Partner"}
                 </div>
@@ -1797,6 +1837,14 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
               <div className="flex items-center gap-2 border-b border-gold/10 pb-2.5">
                 <FileText className="w-4.5 h-4.5 text-[#C8A96A]" />
                 <h2 className="font-serif text-lg font-bold text-charcoal">Policies</h2>
+                {isOwner && editModeEnabled && !previewAsCustomer && (
+  <button
+    onClick={() => setActiveEditSection("policies")}
+    className="px-3 py-1 rounded-full bg-amber-400 text-charcoal font-bold text-xs hover:bg-amber-300 transition-all flex items-center gap-1 shadow-xs cursor-pointer border border-amber-300 shrink-0 ml-auto"
+  >
+    <span>✏️ Edit Policies</span>
+  </button>
+)}
               </div>
               <div className="space-y-2 text-xs font-semibold text-charcoal/80">
                 <div className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-600 shrink-0" /> In-house &amp; Outside Catering Permitted</div>
@@ -1809,7 +1857,14 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
             {/* 6. AMENITIES */}
             {venueDetails.amenities.length > 0 && (
               <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-3.5">
-                <h2 className="font-serif text-lg font-bold text-charcoal border-b border-gold/10 pb-2.5">Amenities</h2>
+                <div className="flex items-center justify-between border-b border-gold/10 pb-2.5"><h2 className="font-serif text-lg font-bold text-charcoal">Amenities</h2>{isOwner && editModeEnabled && !previewAsCustomer && (
+  <button
+    onClick={() => setActiveEditSection("amenities")}
+    className="px-3 py-1 rounded-full bg-amber-400 text-charcoal font-bold text-xs hover:bg-amber-300 transition-all flex items-center gap-1 shadow-xs cursor-pointer border border-amber-300 shrink-0 ml-auto"
+  >
+    <span>✏️ Edit Amenities</span>
+  </button>
+)}</div>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
                   {venueDetails.amenities.map((amen: string, idx: number) => (
                     <div key={idx} className="p-3 rounded-xl bg-[#FAF7F2] border border-gold/15 text-xs font-bold text-charcoal flex items-center gap-2">
@@ -1823,7 +1878,14 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
 
             {/* 7. PACKAGES / EVENT SPACES */}
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
-              <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal border-b border-gold/10 pb-2.5">Packages &amp; Halls</h2>
+              <div className="flex items-center justify-between border-b border-gold/10 pb-2.5"><h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">Packages &amp; Halls</h2>{isOwner && editModeEnabled && !previewAsCustomer && (
+  <button
+    onClick={() => setActiveEditSection("packages")}
+    className="px-3 py-1 rounded-full bg-amber-400 text-charcoal font-bold text-xs hover:bg-amber-300 transition-all flex items-center gap-1 shadow-xs cursor-pointer border border-amber-300 shrink-0 ml-auto"
+  >
+    <span>✏️ Edit Packages</span>
+  </button>
+)}</div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/20 space-y-2">
                   <span className="text-[10px] font-bold uppercase tracking-wider bg-[#0F4C45]/10 text-[#0F4C45] px-2.5 py-0.5 rounded-full">Indoor Grand Ballroom</span>
@@ -1878,7 +1940,14 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
             {/* 9. FAQS */}
             {venueDetails.faqs.length > 0 && (
               <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-3.5">
-                <h2 className="font-serif text-lg font-bold text-charcoal border-b border-gold/10 pb-2.5">Frequently Asked Questions</h2>
+                <div className="flex items-center justify-between border-b border-gold/10 pb-2.5"><h2 className="font-serif text-lg font-bold text-charcoal">Frequently Asked Questions</h2>{isOwner && editModeEnabled && !previewAsCustomer && (
+  <button
+    onClick={() => setActiveEditSection("faqs")}
+    className="px-3 py-1 rounded-full bg-amber-400 text-charcoal font-bold text-xs hover:bg-amber-300 transition-all flex items-center gap-1 shadow-xs cursor-pointer border border-amber-300 shrink-0 ml-auto"
+  >
+    <span>✏️ Edit Faqs</span>
+  </button>
+)}</div>
                 <div className="space-y-3">
                   {venueDetails.faqs.map((faq: any, idx: number) => (
                     <div key={idx} className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1">
