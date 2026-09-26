@@ -155,12 +155,12 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
   React.useEffect(() => {
     if (typeof window === "undefined") return;
     
-    // Only merge local storage if effectivePreviewMode is true (authenticated vendor viewing own storefront)
-    if (effectivePreviewMode) {
+    // Only merge local storage if owner or effectivePreviewMode
+    if (isOwner || effectivePreviewMode) {
       try {
         const rawActive = localStorage.getItem("cloche_active_vendor_identity");
         const activeData = rawActive ? JSON.parse(rawActive) : null;
-        if (activeData && (activeData.id === initialVendor?.id || !initialVendor?.id)) {
+        if (activeData && (activeData.id === initialVendor?.id || activeData.user_id === initialVendor?.user_id || !initialVendor?.id)) {
           setLiveVendor((prev: any) => ({ ...prev, ...activeData }));
         }
       } catch (e) {}
@@ -969,12 +969,24 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
           { q: "What is your cancellation and date change policy?", a: "Date modifications are complimentary up to 60 days prior to event, subject to calendar availability." },
         ];
 
+    const cd = vendor?.categoryDetails || {};
+    const rawCap = vendor?.guestCapacity || cd?.guest_capacity || (cd?.max_capacity ? `${cd.max_capacity} Guests` : "") || vendor?.capacity || sf?.guestCapacity || sf?.capacity;
+    const resolvedCap = rawCap ? (typeof rawCap === "number" || /^\d+$/.test(String(rawCap).trim()) ? `${rawCap} Guests` : rawCap) : "1,200 Guests";
+
+    const rawRooms = vendor?.roomsCount || (cd?.guest_rooms ? `${cd.guest_rooms} Rooms` : "") || cd?.rooms_count || vendor?.numberOfRooms || vendor?.guestRooms || vendor?.rooms || sf?.roomsCount || sf?.guestRooms;
+    const resolvedRooms = rawRooms ? (typeof rawRooms === "number" || /^\d+$/.test(String(rawRooms).trim()) ? `${rawRooms} Rooms` : rawRooms) : "20 Rooms";
+
+    const rawParking = vendor?.parkingCapacity || (cd?.parking_capacity ? (String(cd.parking_capacity).includes("Car") ? cd.parking_capacity : `${cd.parking_capacity} Cars`) : "") || cd?.parking_capacity || vendor?.parking || sf?.parkingCapacity || sf?.parking;
+    const resolvedParking = rawParking ? (typeof rawParking === "number" || /^\d+$/.test(String(rawParking).trim()) ? `Parking: ${rawParking} Cars` : String(rawParking).replace(/^Parking:\s*/i, "")) : "300 Cars";
+
+    const resolvedType = vendor?.venueType || cd?.venue_type || sf?.venueType || vendor?.type || "Luxury Wedding Venue";
+
     return {
-      capacity: vendor?.guestCapacity || vendor?.capacity || vendor?.max_capacity || sf?.guestCapacity || "1,200 Guests",
-      guestRooms: vendor?.roomsCount || vendor?.numberOfRooms || vendor?.guestRooms || vendor?.rooms || vendor?.guest_rooms || sf?.roomsCount || "20 Rooms",
-      parking: vendor?.parkingCapacity || vendor?.parking || vendor?.parking_capacity || sf?.parkingCapacity || "300 Cars",
-      type: vendor?.venueType || vendor?.type || vendor?.venue_type || sf?.venueType || "Luxury Convention Hall",
-      establishedYear: vendor?.yearStarted || vendor?.establishedYear || vendor?.established_year || vendor?.yearsInBusiness || vendor?.years_in_business || sf?.yearStarted || "2014",
+      capacity: resolvedCap,
+      guestRooms: resolvedRooms,
+      parking: resolvedParking,
+      type: resolvedType,
+      establishedYear: vendor?.yearStarted || vendor?.establishedYear || vendor?.established_year || vendor?.yearsInBusiness || vendor?.years_in_business || cd?.years_in_business || sf?.yearStarted || "2014",
       weddingsHosted: vendor?.weddingsHosted || vendor?.weddings_hosted || vendor?.eventsCatered || "500+",
       halls: hList,
       numberOfHalls: hList.length,
@@ -1658,9 +1670,12 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
           <>
             {/* 1. OVERVIEW */}
             <div className="bg-white rounded-2xl p-4 border border-gold/15 shadow-2xs space-y-2.5">
-              <div>
-                <h3 className="font-serif font-bold text-base text-charcoal">{venueDetails.type || "Luxury Wedding Venue"}</h3>
-                <p className="text-xs text-charcoal/60 font-medium">Lush green lawn &amp; climate-controlled indoor hall</p>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-serif font-bold text-base text-charcoal">{venueDetails.type || "Luxury Wedding Venue"}</h3>
+                  <p className="text-xs text-charcoal/60 font-medium">Lush green lawn &amp; climate-controlled indoor hall</p>
+                </div>
+                {renderEditButton("overview", "Edit Overview")}
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
                 <div className="p-2.5 rounded-xl bg-[#FAF7F2] border border-gold/15 text-xs font-bold text-charcoal flex items-center gap-2">
@@ -1673,7 +1688,7 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
                 </div>
                 <div className="p-2.5 rounded-xl bg-[#FAF7F2] border border-gold/15 text-xs font-bold text-charcoal flex items-center gap-2">
                   <Car className="w-4 h-4 text-[#0F4C45] shrink-0" />
-                  <span className="truncate">Parking: {venueDetails.parking}</span>
+                  <span className="truncate">{venueDetails.parking?.startsWith("Parking:") ? venueDetails.parking : `Parking: ${venueDetails.parking}`}</span>
                 </div>
                 <div className="p-2.5 rounded-xl bg-[#FAF7F2] border border-gold/15 text-xs font-bold text-charcoal flex items-center gap-2">
                   <Building className="w-4 h-4 text-[#0F4C45] shrink-0" />
@@ -1686,14 +1701,7 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
               <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal flex items-center justify-between border-b border-gold/10 pb-2.5">
                 <span>Pricing Information</span>
-                {isOwner && editModeEnabled && !previewAsCustomer && (
-  <button
-    onClick={() => setActiveEditSection("pricing")}
-    className="px-3 py-1 rounded-full bg-amber-400 text-charcoal font-bold text-xs hover:bg-amber-300 transition-all flex items-center gap-1 shadow-xs cursor-pointer border border-amber-300 shrink-0 ml-auto"
-  >
-    <span>✏️ Edit Pricing</span>
-  </button>
-)}
+                {renderEditButton("pricing", "Edit Pricing")}
                 <span className="text-xs font-bold text-[#0F4C45] bg-[#FAF7F2] px-3 py-1 rounded-full border border-gold/20">
                   {Boolean(vendor?.contactForPricing ?? vendor?.contact_for_pricing ?? sf?.contactForPricing ?? false)
                     ? "Contact for Pricing"

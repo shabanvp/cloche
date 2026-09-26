@@ -816,21 +816,49 @@ export async function PUT(req: Request) {
       ...(profile?.mehendiHighlights || profile?.mehendi_highlights ? { mehendi_highlights: profile.mehendiHighlights || profile.mehendi_highlights } : {})
     };
 
+    const toInt = (val: any) => {
+      if (val === undefined || val === null || val === "") return null;
+      if (typeof val === "number") return Math.round(val);
+      const cleaned = String(val).replace(/[^0-9]/g, "");
+      return cleaned ? parseInt(cleaned, 10) : null;
+    };
+    const toFloat = (val: any) => {
+      if (val === undefined || val === null || val === "") return null;
+      if (typeof val === "number") return val;
+      const cleaned = String(val).replace(/[^0-9.]/g, "");
+      return cleaned ? parseFloat(cleaned) : null;
+    };
+
     if (extensionTable === "venue_details") {
-      if (mergedCategoryDetails.veg_price && !mergedCategoryDetails.veg_plate_price) {
-        mergedCategoryDetails.veg_plate_price = mergedCategoryDetails.veg_price;
+      const vPrice = toFloat(mergedCategoryDetails.veg_plate_price ?? mergedCategoryDetails.veg_price);
+      if (vPrice !== null) mergedCategoryDetails.veg_plate_price = vPrice;
+      const nvPrice = toFloat(mergedCategoryDetails.non_veg_plate_price ?? mergedCategoryDetails.non_veg_price);
+      if (nvPrice !== null) mergedCategoryDetails.non_veg_plate_price = nvPrice;
+      const rCost = toFloat(mergedCategoryDetails.rental_cost ?? mergedCategoryDetails.decor_starting_price);
+      if (rCost !== null) mergedCategoryDetails.rental_cost = rCost;
+      const mCap = toInt(mergedCategoryDetails.max_capacity ?? mergedCategoryDetails.guest_capacity);
+      if (mCap !== null) mergedCategoryDetails.max_capacity = mCap;
+      const gRooms = toInt(mergedCategoryDetails.guest_rooms ?? mergedCategoryDetails.rooms_count);
+      if (gRooms !== null) mergedCategoryDetails.guest_rooms = gRooms;
+      const pCap = toInt(mergedCategoryDetails.parking_capacity ?? mergedCategoryDetails.parking);
+      if (pCap !== null) mergedCategoryDetails.parking_capacity = pCap;
+      if (mergedCategoryDetails.decor_policy || mergedCategoryDetails.decoration_rules) {
+        mergedCategoryDetails.decor_policy = String(mergedCategoryDetails.decor_policy || mergedCategoryDetails.decoration_rules).slice(0, 100);
       }
-      if (mergedCategoryDetails.non_veg_price && !mergedCategoryDetails.non_veg_plate_price) {
-        mergedCategoryDetails.non_veg_plate_price = mergedCategoryDetails.non_veg_price;
+      if (mergedCategoryDetails.alcohol_policy) {
+        mergedCategoryDetails.alcohol_policy = String(mergedCategoryDetails.alcohol_policy).slice(0, 100);
       }
-      if (mergedCategoryDetails.decor_starting_price && !mergedCategoryDetails.rental_cost) {
-        mergedCategoryDetails.rental_cost = mergedCategoryDetails.decor_starting_price;
-      }
-      if (mergedCategoryDetails.guest_capacity && !mergedCategoryDetails.max_capacity) {
-        mergedCategoryDetails.max_capacity = Number(mergedCategoryDetails.guest_capacity) || mergedCategoryDetails.guest_capacity;
-      }
-      if (mergedCategoryDetails.rooms_count && !mergedCategoryDetails.guest_rooms) {
-        mergedCategoryDetails.guest_rooms = Number(mergedCategoryDetails.rooms_count) || mergedCategoryDetails.rooms_count;
+
+      // Filter only columns that physically exist in venue_details
+      const validVenueCols = new Set([
+        'vendor_id', 'max_capacity', 'guest_rooms', 'veg_plate_price',
+        'non_veg_plate_price', 'rental_cost', 'parking_capacity',
+        'decor_policy', 'alcohol_policy', 'updated_at'
+      ]);
+      for (const k of Object.keys(mergedCategoryDetails)) {
+        if (!validVenueCols.has(k)) {
+          delete mergedCategoryDetails[k];
+        }
       }
     }
 
@@ -922,6 +950,28 @@ export async function PUT(req: Request) {
 
     // 6. Store Version Sections Payload
     if (versionId) {
+      const existingSf = typeof profile.storefront === "object" && profile.storefront !== null ? profile.storefront : {};
+      const completeStorefront = {
+        ...existingSf,
+        ...(profile.venueType ? { venueType: profile.venueType } : {}),
+        ...(body.categoryDetails?.venue_type ? { venueType: body.categoryDetails.venue_type } : {}),
+        ...(body.categoryDetails?.guest_capacity ? { guestCapacity: body.categoryDetails.guest_capacity } : {}),
+        ...(body.categoryDetails?.rooms_count ? { guestRooms: body.categoryDetails.rooms_count } : {}),
+        ...(body.categoryDetails?.parking_capacity ? { parking: body.categoryDetails.parking_capacity } : {}),
+        ...(body.categoryDetails?.veg_price ? { vegPrice: body.categoryDetails.veg_price } : {}),
+        ...(body.categoryDetails?.non_veg_price ? { nonVegPrice: body.categoryDetails.non_veg_price } : {}),
+        ...(body.categoryDetails?.decor_starting_price ? { decorStartingPrice: body.categoryDetails.decor_starting_price } : {}),
+        ...(body.categoryDetails?.contact_for_pricing !== undefined ? { contactForPricing: body.categoryDetails.contact_for_pricing } : {}),
+        ...(body.categoryDetails?.facilities ? { amenities: body.categoryDetails.facilities } : {}),
+        ...(body.categoryDetails?.faqs ? { faqs: body.categoryDetails.faqs } : {}),
+        ...(body.categoryDetails?.cancellation_policy ? { cancellationPolicy: body.categoryDetails.cancellation_policy } : {}),
+        ...(body.categoryDetails?.alcohol_policy ? { alcoholPolicy: body.categoryDetails.alcohol_policy } : {}),
+        ...(body.categoryDetails?.outside_catering_policy ? { cateringPolicy: body.categoryDetails.outside_catering_policy } : {}),
+        ...(body.categoryDetails?.decoration_rules ? { decorPolicy: body.categoryDetails.decoration_rules } : {}),
+        ...(body.categoryDetails?.rental_duration ? { rentalDuration: body.categoryDetails.rental_duration } : {}),
+        ...(body.categoryDetails?.security_deposit_policy ? { depositPolicy: body.categoryDetails.security_deposit_policy } : {}),
+      };
+
       await fetch(`${url}/rest/v1/vendor_profile_version_sections`, {
         method: "POST",
         headers: {
@@ -933,7 +983,16 @@ export async function PUT(req: Request) {
         body: JSON.stringify({
           version_id: versionId,
           section_name: "category_details",
-          section_payload: { profile, categoryDetails },
+          section_payload: {
+            profile: {
+              ...profile,
+              storefront: completeStorefront,
+            },
+            categoryDetails: {
+              ...(categoryDetails || {}),
+              ...mergedCategoryDetails,
+            },
+          },
         }),
       });
     }
@@ -945,28 +1004,11 @@ export async function PUT(req: Request) {
     if (categoryDetails && Object.keys(categoryDetails).length > 0) completion += 20;
     const finalCompletion = Math.min(100, completion);
 
-    const bNameVal = profile?.business_name || profile?.businessName || profile?.boutique_name || profile?.name;
-    const descVal = profile?.about || profile?.description;
-    const logoUrlVal = profile?.logo || profile?.logo_url;
-    const coverUrlVal = profile?.coverImage || profile?.cover_image;
-
     const vendorPatchPayload: Record<string, any> = {
       profile_completion_percentage: finalCompletion,
       onboarding_stage: finalCompletion >= 80 ? "services_added" : "business_details_added",
       updated_at: new Date().toISOString(),
     };
-
-    if (bNameVal) {
-      vendorPatchPayload.name = bNameVal;
-      vendorPatchPayload.boutique_name = bNameVal;
-    }
-    if (descVal) vendorPatchPayload.description = descVal;
-    if (logoUrlVal) vendorPatchPayload.logo_url = logoUrlVal;
-    if (coverUrlVal) vendorPatchPayload.cover_image = coverUrlVal;
-    if (contact?.phone) vendorPatchPayload.phone = contact.phone;
-    if (contact?.whatsapp) vendorPatchPayload.whatsapp = contact.whatsapp;
-    if (contact?.email) vendorPatchPayload.email = contact.email;
-    if (workingHoursVal) vendorPatchPayload.working_hours = workingHoursVal;
 
     await fetch(`${url}/rest/v1/vendors?id=eq.${encodeURIComponent(vendorId)}`, {
       method: "PATCH",

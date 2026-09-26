@@ -77,20 +77,20 @@ export function StorefrontSectionDrawer({
         city: vendor?.city || sf?.city || "Kochi",
         state: vendor?.state || sf?.state || "Kerala",
         address: vendor?.address || sf?.address || "",
-        guestCapacity: cd?.guest_capacity || sf?.capacity || vendor?.capacity || "500 - 1500 Guests",
-        minGuestCapacity: cd?.min_guest_capacity || sf?.minCapacity || "100",
-        venueType: cd?.venue_type || sf?.venueType || "Luxury Wedding Venue",
-        guestRooms: cd?.rooms_count || sf?.guestRooms || "15 Rooms Available",
-        parking: cd?.parking_capacity || sf?.parking || "200 Cars",
+        guestCapacity: vendor?.guestCapacity || (cd?.max_capacity ? `${cd.max_capacity} Guests` : "") || cd?.guest_capacity || sf?.guestCapacity || sf?.capacity || vendor?.capacity || "500 - 1500 Guests",
+        minGuestCapacity: vendor?.minGuestCapacity || cd?.min_guest_capacity || sf?.minGuestCapacity || sf?.minCapacity || "100",
+        venueType: vendor?.venueType || vendor?.type || cd?.venue_type || sf?.venueType || "Luxury Wedding Venue",
+        guestRooms: vendor?.roomsCount || (cd?.guest_rooms ? `${cd.guest_rooms} Rooms` : "") || cd?.rooms_count || sf?.roomsCount || sf?.guestRooms || "15 Rooms Available",
+        parking: vendor?.parkingCapacity || (cd?.parking_capacity ? (String(cd.parking_capacity).includes("Car") ? cd.parking_capacity : `${cd.parking_capacity} Cars`) : "") || cd?.parking_capacity || sf?.parkingCapacity || sf?.parking || "200 Cars",
       });
     } else if (activeSection === "pricing") {
       setFormData({
         startingPrice: vendor?.startingPrice || vendor?.starting_price || sf?.startingPrice || "",
         startingPriceLabel: vendor?.startingPriceLabel || sf?.startingPriceLabel || "Price on Request",
-        contactForPricing: Boolean(vendor?.contactForPricing ?? vendor?.contact_for_pricing ?? sf?.contactForPricing ?? false),
-        vegPrice: cd?.veg_price || vendor?.vegPrice || vendor?.veg_price || sf?.vegPrice || "",
-        nonVegPrice: cd?.non_veg_price || vendor?.nonVegPrice || vendor?.non_veg_price || sf?.nonVegPrice || "",
-        decorStartingPrice: cd?.decor_starting_price || vendor?.decorStartingPrice || sf?.decorStartingPrice || "",
+        contactForPricing: Boolean(vendor?.contactForPricing ?? vendor?.contact_for_pricing ?? sf?.contactForPricing ?? cd?.contact_for_pricing ?? false),
+        vegPrice: vendor?.vegPrice || vendor?.veg_price || cd?.veg_plate_price || cd?.veg_price || sf?.vegPrice || "",
+        nonVegPrice: vendor?.nonVegPrice || vendor?.non_veg_price || cd?.non_veg_plate_price || cd?.non_veg_price || sf?.nonVegPrice || "",
+        decorStartingPrice: vendor?.decorStartingPrice || vendor?.decor_starting_price || cd?.rental_cost || cd?.decor_starting_price || sf?.decorStartingPrice || "",
       });
     } else if (activeSection === "gallery") {
       const gList = Array.isArray(vendor?.gallery_images)
@@ -222,16 +222,36 @@ export function StorefrontSectionDrawer({
         payload.profile.logo = formData.logoUrl;
         payload.profile.cover_image = formData.coverImage;
         payload.profile.coverImage = formData.coverImage;
+        payload.profile.storefront = {
+          ...(vendor?.storefront || {}),
+          businessName: formData.businessName,
+          tagline: formData.tagline,
+          logo: formData.logoUrl,
+          coverImage: formData.coverImage,
+        };
       } else if (activeSection === "overview") {
         payload.profile.city = formData.city;
         payload.profile.state = formData.state;
         payload.address = { city: formData.city, state: formData.state, addressLine1: formData.address };
         payload.categoryDetails = {
           guest_capacity: formData.guestCapacity,
+          max_capacity: formData.guestCapacity,
           min_guest_capacity: formData.minGuestCapacity,
           venue_type: formData.venueType,
           rooms_count: formData.guestRooms,
+          guest_rooms: formData.guestRooms,
           parking_capacity: formData.parking,
+          parking: formData.parking,
+        };
+        payload.profile.storefront = {
+          ...(vendor?.storefront || {}),
+          venueType: formData.venueType,
+          guestCapacity: formData.guestCapacity,
+          guestRooms: formData.guestRooms,
+          parking: formData.parking,
+          city: formData.city,
+          state: formData.state,
+          address: formData.address,
         };
       } else if (activeSection === "pricing") {
         payload.profile.startingPrice = formData.startingPrice;
@@ -242,17 +262,38 @@ export function StorefrontSectionDrawer({
         payload.profile.decorStartingPrice = formData.decorStartingPrice;
         payload.categoryDetails = {
           veg_price: formData.vegPrice,
+          veg_plate_price: formData.vegPrice,
           non_veg_price: formData.nonVegPrice,
+          non_veg_plate_price: formData.nonVegPrice,
           decor_starting_price: formData.decorStartingPrice,
+          rental_cost: formData.decorStartingPrice,
           contact_for_pricing: formData.contactForPricing,
+        };
+        payload.profile.storefront = {
+          ...(vendor?.storefront || {}),
+          startingPrice: formData.startingPrice,
+          contactForPricing: formData.contactForPricing,
+          vegPrice: formData.vegPrice,
+          nonVegPrice: formData.nonVegPrice,
+          decorStartingPrice: formData.decorStartingPrice,
         };
       } else if (activeSection === "gallery") {
         payload.profile.galleryImages = formData.galleryImages;
         payload.profile.gallery_images = formData.galleryImages;
+        payload.profile.storefront = {
+          ...(vendor?.storefront || {}),
+          galleryImages: formData.galleryImages,
+          gallery: (formData.galleryImages || []).map((u: string) => ({ url: u })),
+        };
       } else if (activeSection === "about") {
         payload.profile.about = formData.about;
         payload.profile.description = formData.about;
         payload.categoryDetails = { years_in_business: formData.establishedYear };
+        payload.profile.storefront = {
+          ...(vendor?.storefront || {}),
+          about: formData.about,
+          establishedYear: formData.establishedYear,
+        };
       } else if (activeSection === "policies") {
         payload.categoryDetails = {
           cancellation_policy: formData.cancellationPolicy,
@@ -262,14 +303,34 @@ export function StorefrontSectionDrawer({
           rental_duration: formData.rentalDuration,
           security_deposit_policy: formData.depositPolicy,
         };
+        payload.profile.storefront = {
+          ...(vendor?.storefront || {}),
+          policies: {
+            cancellationPolicy: formData.cancellationPolicy,
+            alcoholPolicy: formData.alcoholPolicy,
+            cateringPolicy: formData.cateringPolicy,
+            decorPolicy: formData.decorPolicy,
+            rentalDuration: formData.rentalDuration,
+            depositPolicy: formData.depositPolicy,
+          },
+        };
       } else if (activeSection === "amenities") {
         payload.categoryDetails = { facilities: formData.amenities };
         payload.profile.facilities = formData.amenities;
+        payload.profile.storefront = {
+          ...(vendor?.storefront || {}),
+          facilities: formData.amenities,
+          amenities: formData.amenities,
+        };
       } else if (activeSection === "packages") {
         payload.profile.storefront = { ...(vendor?.storefront || {}), packages: formData.packages };
       } else if (activeSection === "faqs") {
         payload.categoryDetails = { faqs: formData.faqs };
         payload.profile.faqs = formData.faqs;
+        payload.profile.storefront = {
+          ...(vendor?.storefront || {}),
+          faqs: formData.faqs,
+        };
       } else if (activeSection === "contact") {
         payload.contact = {
           phone: formData.phone,
@@ -280,17 +341,70 @@ export function StorefrontSectionDrawer({
         payload.profile.instagram = formData.instagram;
         payload.profile.facebook = formData.facebook;
         payload.profile.website = formData.website;
+        payload.profile.phone = formData.phone;
+        payload.profile.whatsapp = formData.whatsapp;
+        payload.profile.email = formData.email;
+        payload.profile.address = formData.address;
+        payload.profile.storefront = {
+          ...(vendor?.storefront || {}),
+          contactInfo: {
+            phone: formData.phone,
+            whatsapp: formData.whatsapp,
+            email: formData.email,
+            address: formData.address,
+          },
+          socialLinks: {
+            instagram: formData.instagram,
+            facebook: formData.facebook,
+            website: formData.website,
+          },
+        };
       }
 
-      // Read authorization token
+      // Read authorization tokens & credentials
       let token = "";
+      let userId = vendor?.user_id || vendor?.userId || vendor?.id || "";
+      let email = vendor?.email || "";
+
       try {
-        const rawToken = localStorage.getItem("cloche_vendor_token");
-        if (rawToken) token = rawToken;
+        token =
+          localStorage.getItem("auth_token") ||
+          localStorage.getItem("cloche_auth_token") ||
+          localStorage.getItem("cloche_vendor_token") ||
+          "";
+
+        const activeRaw = localStorage.getItem("cloche_active_vendor_identity");
+        if (activeRaw) {
+          const parsed = JSON.parse(activeRaw);
+          if (parsed?.user_id) userId = parsed.user_id;
+          else if (parsed?.id && !userId) userId = parsed.id;
+          if (parsed?.email) email = parsed.email;
+          if (parsed?.token && !token) token = parsed.token;
+        }
+
+        if (typeof document !== "undefined") {
+          if (!token) {
+            const m = document.cookie.match(/(?:^|;\s*)(?:cloche_auth_token|auth_token)=([^;]*)/);
+            if (m && m[1]) token = decodeURIComponent(m[1]);
+          }
+          if (!userId) {
+            const mUser = document.cookie.match(/(?:^|;\s*)user_data=([^;]*)/);
+            if (mUser && mUser[1]) {
+              const u = JSON.parse(decodeURIComponent(mUser[1]));
+              if (u?.id || u?.userId) userId = u.id || u.userId;
+              if (u?.email) email = u.email;
+            }
+          }
+        }
       } catch (e) {}
 
       const headers: Record<string, string> = { "Content-Type": "application/json" };
-      if (token) headers["Authorization"] = `Bearer ${token}`;
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+        headers["x-auth-token"] = token;
+      }
+      if (userId) headers["x-user-id"] = userId;
+      if (email) headers["x-user-email"] = email;
 
       const res = await fetch("/api/v1/vendor/profile", {
         method: "PUT",
@@ -314,6 +428,9 @@ export function StorefrontSectionDrawer({
       const updatedVendor = {
         ...vendor,
         ...(payload.profile || {}),
+        city: payload.profile?.city || vendor?.city,
+        state: payload.profile?.state || vendor?.state,
+        address: payload.address?.addressLine1 || payload.profile?.address || vendor?.address,
         storefront: {
           ...(vendor?.storefront || {}),
           ...(payload.profile?.storefront || {}),
@@ -324,6 +441,24 @@ export function StorefrontSectionDrawer({
           ...(payload.categoryDetails || {}),
         },
       };
+
+      try {
+        const raw = localStorage.getItem("cloche_active_vendor_identity");
+        const existing = raw ? JSON.parse(raw) : {};
+        const mergedActive = {
+          ...existing,
+          ...updatedVendor,
+          storefront: {
+            ...(existing.storefront || {}),
+            ...(updatedVendor.storefront || {}),
+          },
+          categoryDetails: {
+            ...(existing.categoryDetails || {}),
+            ...(updatedVendor.categoryDetails || {}),
+          },
+        };
+        localStorage.setItem("cloche_active_vendor_identity", JSON.stringify(mergedActive));
+      } catch (e) {}
 
       // Also dispatch profile update event
       if (typeof window !== "undefined") {
@@ -464,6 +599,17 @@ export function StorefrontSectionDrawer({
           {/* OVERVIEW EDITOR */}
           {activeSection === "overview" && (
             <div className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-charcoal">Venue Type / Hall Title</label>
+                <input
+                  type="text"
+                  value={formData.venueType || ""}
+                  onChange={(e) => updateField("venueType", e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-gold/30 bg-white text-xs font-medium text-charcoal focus:outline-none focus:border-[#0F4C45]"
+                  placeholder="e.g. Luxury Convention Hall"
+                />
+              </div>
+
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-charcoal">City</label>
@@ -538,6 +684,17 @@ export function StorefrontSectionDrawer({
 
               {!formData.contactForPricing && (
                 <>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-charcoal">Starting Price / Rental Cost (₹)</label>
+                    <input
+                      type="text"
+                      value={formData.startingPrice || ""}
+                      onChange={(e) => updateField("startingPrice", e.target.value)}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-gold/30 bg-white text-xs font-medium text-charcoal focus:outline-none focus:border-[#0F4C45]"
+                      placeholder="e.g. 50000"
+                    />
+                  </div>
+
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold text-charcoal">Veg Plate Price (₹)</label>
                     <input

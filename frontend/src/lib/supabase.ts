@@ -1309,6 +1309,7 @@ export async function fetchPublicVendorProfileFromDb(identifier: string) {
     reviewsRes,
     bookingsRes,
     categoryExtRes,
+    versionsRes,
   ] = await Promise.all([
     supabaseFetch(`vendor_profiles?or=(vendor_id.eq.${encodeURIComponent(vendorId)},id.eq.${encodeURIComponent(vendorId)})&select=*`),
     supabaseFetch(`vendor_contacts?vendor_id=eq.${encodeURIComponent(vendorId)}&order=is_primary.desc,created_at.asc&select=*`),
@@ -1322,6 +1323,7 @@ export async function fetchPublicVendorProfileFromDb(identifier: string) {
     supabaseFetch(`reviews?vendor_id=eq.${encodeURIComponent(vendorId)}&status=eq.published&order=created_at.desc&select=*`),
     supabaseFetch(`bookings?vendor_id=eq.${encodeURIComponent(vendorId)}&status=eq.completed&select=id`),
     supabaseFetch(`${extTable}?vendor_id=eq.${encodeURIComponent(vendorId)}&select=*`).catch(() => ({ data: [], error: null })),
+    supabaseFetch(`vendor_profile_versions?vendor_id=eq.${encodeURIComponent(vendorId)}&order=created_at.desc&limit=1&select=id,version_number,vendor_profile_version_sections(*)`).catch(() => ({ data: [], error: null })),
   ]);
 
   console.log(`[DB:FETCH] public_vendor_profile vendor_id=${vendorId} extTable=${extTable} ms=${Date.now() - start}`);
@@ -1330,13 +1332,26 @@ export async function fetchPublicVendorProfileFromDb(identifier: string) {
   const profile: any = firstRow(profileRes.data) || {};
   const contact: any = firstRow(contactsRes.data) || {};
   const address: any = firstRow(addressRes.data) || {};
-  const categoryDetail: any = firstRow(categoryExtRes.data) || {};
+  const categoryDetailRaw: any = firstRow(categoryExtRes.data) || {};
   const services = asArray<any>(servicesRes.data);
   const packages = asArray<any>(packagesRes.data);
   const gallery = asArray<any>(galleryRes.data);
   const catalog = asArray<any>(catalogRes.data);
   const reviews = asArray<any>(reviewsRes.data);
   const completedProjects = asArray(bookingsRes.data).length;
+
+  // Extract saved draft version sections (storefront rich customization, venue spaces, packages, etc.)
+  const latestVersion = firstRow(versionsRes?.data);
+  const versionSections = asArray<any>(latestVersion?.vendor_profile_version_sections);
+  const categoryDetailsSection = versionSections.find((s: any) => s.section_name === "category_details")?.section_payload || {};
+  const versionProfile = categoryDetailsSection.profile || {};
+  const versionCategoryDetails = categoryDetailsSection.categoryDetails || {};
+  const versionSf = versionProfile.storefront || {};
+
+  const categoryDetail = {
+    ...versionCategoryDetails,
+    ...categoryDetailRaw,
+  };
 
   const mediaIds = [profile.logo_media_id, profile.cover_media_id].filter(Boolean);
   const mediaRes = mediaIds.length
@@ -1377,14 +1392,16 @@ export async function fetchPublicVendorProfileFromDb(identifier: string) {
   const cityVal = profile.city || address.city || "";
   const stateVal = profile.state || address.state || "";
   const serviceAreasVal = vendor.service_areas || profile.service_areas || "";
-  let sfRaw: Record<string, any> = {};
+  let sfRaw: Record<string, any> = {
+    ...(versionSf && typeof versionSf === "object" ? versionSf : {}),
+  };
   if (typeof profile.storefront === "object" && profile.storefront !== null) {
-    sfRaw = profile.storefront;
+    sfRaw = { ...sfRaw, ...profile.storefront };
   } else if (typeof profile.storefront === "string") {
     try {
-      sfRaw = JSON.parse(profile.storefront);
+      sfRaw = { ...sfRaw, ...JSON.parse(profile.storefront) };
     } catch (e) {
-      sfRaw = {};
+      // ignore
     }
   }
   const rawSfWH = typeof sfRaw.workingHours === "object" && sfRaw.workingHours !== null ? sfRaw.workingHours : {};
@@ -1533,25 +1550,25 @@ export async function fetchPublicVendorProfileFromDb(identifier: string) {
       facilities: categoryDetail.facilities || profile.facilities || sfRaw.facilities || [],
       yearsInBusiness: categoryDetail.years_in_business || sfRaw.yearStarted || experienceYearsVal,
       yearStarted: categoryDetail.years_in_business || sfRaw.yearStarted || experienceYearsVal,
-      guestCapacity: categoryDetail.guest_capacity || profile.guest_capacity || profile.guestCapacity || sfRaw.guestCapacity || "",
+      guestCapacity: categoryDetail.guest_capacity || (categoryDetail.max_capacity ? `${categoryDetail.max_capacity} Guests` : "") || sfRaw.guestCapacity || sfRaw.capacity || profile.guest_capacity || profile.guestCapacity || "",
       minGuestCapacity: categoryDetail.min_guest_capacity || sfRaw.minGuestCapacity || "",
       numberOfHalls: categoryDetail.number_of_halls || sfRaw.numberOfHalls || "",
-      roomsCount: categoryDetail.rooms_count || profile.rooms_count || profile.roomsCount || sfRaw.roomsCount || "",
+      roomsCount: categoryDetail.rooms_count || (categoryDetail.guest_rooms ? `${categoryDetail.guest_rooms} Rooms` : "") || sfRaw.roomsCount || sfRaw.guestRooms || profile.rooms_count || profile.roomsCount || "",
       indoorCapacity: categoryDetail.indoor_capacity || sfRaw.indoorCapacity || "",
       outdoorCapacity: categoryDetail.outdoor_capacity || sfRaw.outdoorCapacity || "",
       diningCapacity: categoryDetail.dining_capacity || sfRaw.diningCapacity || "",
-      parkingCapacity: categoryDetail.parking_capacity || profile.parking_capacity || profile.parkingCapacity || sfRaw.parkingCapacity || "",
-      venueType: categoryDetail.venue_type || profile.venue_type || profile.venueType || sfRaw.venueType || "",
+      parkingCapacity: categoryDetail.parking_capacity ? (String(categoryDetail.parking_capacity).includes("Car") ? categoryDetail.parking_capacity : `${categoryDetail.parking_capacity} Cars`) : (sfRaw.parkingCapacity || sfRaw.parking || profile.parking_capacity || ""),
+      venueType: categoryDetail.venue_type || sfRaw.venueType || profile.venue_type || profile.venueType || "",
       shortDescription: profile.short_description || profile.shortDescription || sfRaw.shortDescription || "",
       hasIndoorSpace: categoryDetail.has_indoor_space ?? profile.has_indoor_space ?? sfRaw.hasIndoorSpace ?? true,
       hasOutdoorSpace: categoryDetail.has_outdoor_space ?? profile.has_outdoor_space ?? sfRaw.hasOutdoorSpace ?? true,
       hasRooftopSpace: categoryDetail.has_rooftop_space ?? profile.has_rooftop_space ?? sfRaw.hasRooftopSpace ?? false,
       hasBridalRoom: categoryDetail.has_bridal_room ?? profile.has_bridal_room ?? sfRaw.hasBridalRoom ?? true,
       hasGroomRoom: categoryDetail.has_groom_room ?? profile.has_groom_room ?? sfRaw.hasGroomRoom ?? true,
-      vegPrice: categoryDetail.veg_plate_price || categoryDetail.veg_price || profile.veg_price || sfRaw.vegPrice || "",
-      nonVegPrice: categoryDetail.non_veg_plate_price || categoryDetail.non_veg_price || profile.non_veg_price || sfRaw.nonVegPrice || "",
-      decorStartingPrice: categoryDetail.rental_cost || categoryDetail.decor_starting_price || profile.decor_starting_price || sfRaw.decorStartingPrice || "",
-      contactForPricing: Boolean(categoryDetail.contact_for_pricing ?? profile.contact_for_pricing ?? sfRaw.contactForPricing ?? false),
+      vegPrice: categoryDetail.veg_plate_price || categoryDetail.veg_price || sfRaw.vegPrice || profile.veg_price || profile.vegPrice || "",
+      nonVegPrice: categoryDetail.non_veg_plate_price || categoryDetail.non_veg_price || sfRaw.nonVegPrice || profile.non_veg_price || profile.nonVegPrice || "",
+      decorStartingPrice: categoryDetail.rental_cost || categoryDetail.decor_starting_price || sfRaw.decorStartingPrice || profile.decor_starting_price || profile.decorStartingPrice || "",
+      contactForPricing: Boolean(categoryDetail.contact_for_pricing ?? sfRaw.contactForPricing ?? profile.contact_for_pricing ?? false),
       policySwitches: categoryDetail.policy_switches || profile.policy_switches || sfRaw.policySwitches || {},
       decorationPolicy: categoryDetail.decoration_rules || profile.decoration_rules || sfRaw.decorationPolicy || "",
       cancellationPolicyText: categoryDetail.cancellation_policy || profile.cancellation_policy || sfRaw.cancellationPolicyText || "",
