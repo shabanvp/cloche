@@ -109,8 +109,8 @@ export function UserDashboardClient({ initialTab }: UserDashboardClientProps = {
 
   // Checklist State
   const [checklist, setChecklist] = useState<ChecklistItem[]>([
-    { id: "chk-1", task: "Finalize Wedding Date & City", category: "General", completed: true },
-    { id: "chk-2", task: "Shortlist & Book Main Venue", category: "Venues", completed: true },
+    { id: "chk-1", task: "Finalize Wedding Date & City", category: "General", completed: false },
+    { id: "chk-2", task: "Shortlist & Book Main Venue", category: "Venues", completed: false },
     { id: "chk-3", task: "Book Lead Photographer & Videographer", category: "Photography", completed: false },
     { id: "chk-4", task: "Book Bridal Makeup Artist", category: "Makeup", completed: false },
     { id: "chk-5", task: "Select Stage Decorator & Florist", category: "Decor", completed: false },
@@ -179,6 +179,16 @@ export function UserDashboardClient({ initialTab }: UserDashboardClientProps = {
             if (u.weddingDate) setWeddingDate((prev) => prev || u.weddingDate);
           }
         }
+        // Load saved checklist from localStorage if present
+        try {
+          const savedChecklist = localStorage.getItem("cloche_user_checklist");
+          if (savedChecklist) {
+            const parsed = JSON.parse(savedChecklist);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              setChecklist(parsed);
+            }
+          }
+        } catch (e) {}
       } catch (e) {
         console.error("Dashboard init error:", e);
       } finally {
@@ -205,18 +215,28 @@ export function UserDashboardClient({ initialTab }: UserDashboardClientProps = {
   };
 
   const handleToggleChecklist = (id: string) => {
-    setChecklist((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, completed: !item.completed } : item))
-    );
+    setChecklist((prev) => {
+      const updated = prev.map((item) => (item.id === id ? { ...item, completed: !item.completed } : item));
+      try {
+        localStorage.setItem("cloche_user_checklist", JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
   };
 
   const handleAddChecklist = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTaskInput.trim()) return;
-    setChecklist((prev) => [
-      ...prev,
-      { id: `chk-${Date.now()}`, task: newTaskInput.trim(), category: "General", completed: false },
-    ]);
+    setChecklist((prev) => {
+      const updated = [
+        ...prev,
+        { id: `chk-${Date.now()}`, task: newTaskInput.trim(), category: "General", completed: false },
+      ];
+      try {
+        localStorage.setItem("cloche_user_checklist", JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
     setNewTaskInput("");
   };
 

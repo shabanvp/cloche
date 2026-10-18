@@ -779,7 +779,7 @@ export async function queryAuraAssistant(
 
   if (isChecklistQuery) {
     const checklistItems: WeddingChecklistItem[] = [
-      { id: "chk-1", title: "Finalize wedding dates & auspicious Muhurtham", category: "Planning", completed: true },
+      { id: "chk-1", title: "Finalize wedding dates & auspicious Muhurtham", category: "Planning", completed: false },
       { id: "chk-2", title: "Select and book wedding venue / auditorium", category: "Venue", completed: false },
       { id: "chk-3", title: "Book authentic Kerala wedding caterer for Sadya", category: "Catering", completed: false },
       { id: "chk-4", title: "Hire candid wedding photographer & cinematographer", category: "Photography", completed: false },
