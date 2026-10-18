@@ -82,105 +82,50 @@ function PhotoCard({
   saved,
   onClick,
   onSave,
-  onShare,
 }: {
   item: DynamicInspirationPhoto;
   saved: boolean;
   onClick: () => void;
   onSave: (e: React.MouseEvent) => void;
-  onShare: (e: React.MouseEvent) => void;
+  onShare?: (e: React.MouseEvent) => void;
 }) {
   const [imgLoaded, setImgLoaded] = useState(false);
   const aspectClass = getAspectClass(item.width, item.height);
-  const caption = item.alt || item.category;
-  const profile = getInspirationPlanningProfile(item);
 
   return (
     <div
       onClick={onClick}
-      className="break-inside-avoid mb-2.5 md:mb-5 relative group cursor-pointer select-none active:scale-[0.98] transition-transform duration-200"
+      className="break-inside-avoid mb-2.5 sm:mb-4 md:mb-5 relative group cursor-pointer select-none active:scale-[0.98] transition-transform duration-200"
     >
       <div
-        className={`relative w-full overflow-hidden rounded-[18px] md:rounded-3xl bg-gray-100 ${aspectClass} shadow-xs md:shadow-xs md:group-hover:shadow-2xl transition-all duration-500 ease-out border border-gold/10 md:border-gold/15 md:group-hover:-translate-y-1`}
+        className={`relative w-full overflow-hidden rounded-2xl md:rounded-3xl bg-gray-100 ${aspectClass} shadow-xs hover:shadow-xl transition-all duration-300 ease-out border border-gold/10 md:group-hover:-translate-y-1`}
       >
         {!imgLoaded && (
           <div className="absolute inset-0 bg-gradient-to-br from-gray-100 via-gray-200 to-gray-100 animate-pulse" />
         )}
         <img
           src={item.src.large}
-          alt={caption}
+          alt={item.alt || item.category || "Wedding Inspiration"}
           loading="lazy"
           onLoad={() => setImgLoaded(true)}
-          className={`w-full h-full object-cover transition-all duration-700 ease-out md:group-hover:scale-105 ${
+          className={`w-full h-full object-cover transition-all duration-500 ease-out md:group-hover:scale-105 ${
             imgLoaded ? "opacity-100" : "opacity-0"
           }`}
         />
 
-        {/* Desktop-only Hover Gradient Overlay */}
-        <div className="hidden md:block absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-
-        {/* Top Badges & Always-Accessible Save Button */}
-        <div className="absolute top-0 left-0 right-0 p-2 sm:p-3 flex items-start justify-between z-10 pointer-events-none">
-          <div className="flex flex-col gap-1 items-start pointer-events-auto">
-            <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider bg-black/60 backdrop-blur-md text-[#D4B66E] px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full border border-white/20 shadow-xs">
-              {item.category}
-            </span>
-            <span className="hidden sm:flex text-[9px] font-semibold bg-[#0F4C45]/90 backdrop-blur-md text-white px-2 py-0.5 rounded-full border border-gold/30 shadow-xs items-center gap-1">
-              <DollarSign className="w-2.5 h-2.5 text-[#C8A96A]" /> {profile.estimatedCostRange}
-            </span>
-          </div>
-
-          <div className="flex items-center gap-1.5 pointer-events-auto">
-            <button
-              type="button"
-              onClick={onSave}
-              className={`p-2 sm:p-2.5 rounded-full backdrop-blur-md transition-all cursor-pointer shadow-md flex items-center justify-center min-w-[34px] min-h-[34px] sm:min-w-[38px] sm:min-h-[38px] active:scale-90 ${
-                saved
-                  ? "bg-[#C8A96A] text-[#0F4C45] border border-[#C8A96A]"
-                  : "bg-black/60 text-white hover:bg-[#C8A96A] hover:text-[#0F4C45] border border-white/20"
-              }`}
-              title={saved ? "Saved to Inspiration Board" : "Save Inspiration"}
-            >
-              <Bookmark className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${saved ? "fill-current text-[#0F4C45]" : ""}`} />
-            </button>
-            <button
-              type="button"
-              onClick={onShare}
-              className="hidden md:flex p-2 sm:p-2.5 rounded-full bg-black/60 text-white hover:bg-white hover:text-[#0F4C45] backdrop-blur-md transition-all cursor-pointer shadow-md items-center justify-center min-w-[34px] min-h-[34px] sm:min-w-[38px] sm:min-h-[38px] border border-white/20 active:scale-90"
-              title="Share Inspiration"
-            >
-              <Share2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            </button>
-          </div>
-        </div>
-
-        {/* Desktop-only Bottom Info on Hover */}
-        <div className="hidden md:block absolute bottom-0 left-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 space-y-1.5">
-          <p className="text-white text-xs font-bold line-clamp-2 leading-snug drop-shadow-md">
-            {profile.styleName}
-          </p>
-          <div className="flex items-center justify-between text-[10px] text-white/80">
-            <span className="truncate max-w-[150px]">{caption}</span>
-            <span className="text-[#D4B66E] font-semibold flex items-center gap-0.5">
-              Plan <ChevronRight className="w-3 h-3" />
-            </span>
-          </div>
-        </div>
-
-        {/* Desktop-only Pexels Attribution overlay */}
-        <div className="hidden md:block absolute bottom-0 left-0 right-0 px-3 py-1.5 bg-gradient-to-t from-black/60 to-transparent group-hover:opacity-0 transition-opacity duration-300 pointer-events-none">
-          <span className="text-[9px] text-white/75 font-medium truncate block">
-            📷 {item.photographer} / Pexels
-          </span>
-        </div>
-      </div>
-
-      {/* Desktop-only Under-card Planning Strip */}
-      <div className="hidden md:flex pt-2 px-1 items-center justify-between text-[11px] text-charcoal/70">
-        <span className="font-semibold text-charcoal truncate max-w-[130px]">{profile.styleName}</span>
-        <span className="font-bold text-[#0F4C45] text-[10px] bg-[#FAF7F2] px-2 py-0.5 rounded-md border border-gold/20">
-          {profile.estimatedCostRange}
-        </span>
+        {/* Minimal Save Button */}
+        <button
+          type="button"
+          onClick={onSave}
+          className={`absolute top-2.5 right-2.5 sm:top-3 sm:right-3 p-2 rounded-full backdrop-blur-md transition-all cursor-pointer shadow-md flex items-center justify-center min-w-[32px] min-h-[32px] sm:min-w-[36px] sm:min-h-[36px] active:scale-90 z-10 ${
+            saved
+              ? "bg-[#C8A96A] text-[#0F4C45] opacity-100 border border-[#C8A96A]"
+              : "bg-black/40 hover:bg-[#C8A96A] text-white hover:text-[#0F4C45] border border-white/20 opacity-0 group-hover:opacity-100"
+          }`}
+          title={saved ? "Saved" : "Save"}
+        >
+          <Bookmark className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${saved ? "fill-current text-[#0F4C45]" : ""}`} />
+        </button>
       </div>
     </div>
   );
@@ -194,13 +139,12 @@ function ColorThemeCard({
   saved,
   onClick,
   onSave,
-  onShare,
 }: {
   item: StaticColorTheme;
   saved: boolean;
   onClick: () => void;
   onSave: (e: React.MouseEvent) => void;
-  onShare: (e: React.MouseEvent) => void;
+  onShare?: (e: React.MouseEvent) => void;
 }) {
   const aspectMap = {
     tall: "aspect-[9/16]",
@@ -212,78 +156,31 @@ function ColorThemeCard({
   return (
     <div
       onClick={onClick}
-      className="break-inside-avoid mb-2.5 md:mb-5 relative group cursor-pointer select-none active:scale-[0.98] transition-transform duration-200"
+      className="break-inside-avoid mb-2.5 sm:mb-4 md:mb-5 relative group cursor-pointer select-none active:scale-[0.98] transition-transform duration-200"
     >
       <div
-        className={`relative w-full overflow-hidden rounded-[18px] md:rounded-3xl bg-gray-100 ${aspectMap[item.aspectRatio]} shadow-xs md:shadow-xs md:group-hover:shadow-2xl transition-all duration-500 ease-out border border-gold/15 md:group-hover:-translate-y-1`}
+        className={`relative w-full overflow-hidden rounded-2xl md:rounded-3xl bg-gray-100 ${aspectMap[item.aspectRatio]} shadow-xs hover:shadow-xl transition-all duration-300 ease-out border border-gold/10 md:group-hover:-translate-y-1`}
       >
         <img
           src={item.image}
           alt={item.title}
           loading="lazy"
-          className="w-full h-full object-cover md:group-hover:scale-105 transition-transform duration-700 ease-out"
+          className="w-full h-full object-cover md:group-hover:scale-105 transition-transform duration-500 ease-out"
         />
 
-        {/* Desktop-only Gradient Overlay */}
-        <div className="hidden md:block absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
-        {/* Top Badges & Always-Accessible Save Button */}
-        <div className="absolute top-0 left-0 right-0 p-2.5 sm:p-3 flex items-start justify-between z-10 pointer-events-none">
-          <div className="flex flex-col gap-1 items-start pointer-events-auto">
-            <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider bg-black/60 backdrop-blur-md text-[#D4B66E] px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full border border-white/20">
-              🎨 Color Theme
-            </span>
-            <span className="hidden sm:flex text-[9px] font-semibold bg-[#0F4C45]/90 backdrop-blur-md text-white px-2 py-0.5 rounded-full border border-gold/30">
-              {item.estimatedBudget}
-            </span>
-          </div>
-
-          <div className="flex items-center gap-1.5 pointer-events-auto">
-            <button
-              type="button"
-              onClick={onSave}
-              className={`p-2 sm:p-2.5 rounded-full backdrop-blur-md transition-all cursor-pointer shadow-md flex items-center justify-center min-w-[34px] min-h-[34px] sm:min-w-[38px] sm:min-h-[38px] active:scale-90 ${
-                saved
-                  ? "bg-[#C8A96A] text-[#0F4C45] border border-[#C8A96A]"
-                  : "bg-black/60 text-white hover:bg-[#C8A96A] hover:text-[#0F4C45] border border-white/20"
-              }`}
-              title={saved ? "Saved to Inspiration Board" : "Save Inspiration"}
-            >
-              <Bookmark className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${saved ? "fill-current text-[#0F4C45]" : ""}`} />
-            </button>
-            <button
-              type="button"
-              onClick={onShare}
-              className="hidden md:flex p-2 sm:p-2.5 rounded-full bg-black/60 text-white hover:bg-white hover:text-[#0F4C45] backdrop-blur-md transition-all cursor-pointer shadow-md items-center justify-center min-w-[34px] min-h-[34px] sm:min-w-[38px] sm:min-h-[38px] border border-white/20 active:scale-90"
-              title="Share Inspiration"
-            >
-              <Share2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            </button>
-          </div>
-        </div>
-
-        {/* Desktop-only Hover palette */}
-        <div className="hidden md:block absolute bottom-0 left-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 space-y-2">
-          <h4 className="text-white text-xs font-bold line-clamp-1">{item.title}</h4>
-          <div className="flex items-center gap-1.5">
-            {item.colorTheme.slice(0, 5).map((c, i) => (
-              <span
-                key={i}
-                style={{ backgroundColor: c.hex }}
-                className="w-4 h-4 rounded-full border border-white/60 shadow-xs"
-                title={`${c.name} (${c.hex})`}
-              />
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Desktop-only Under-card strip */}
-      <div className="hidden md:flex pt-2 px-1 items-center justify-between text-[11px] text-charcoal/70">
-        <span className="font-semibold text-charcoal truncate max-w-[150px]">{item.title}</span>
-        <span className="font-bold text-[#0F4C45] text-[10px] bg-[#FAF7F2] px-2 py-0.5 rounded-md border border-gold/20">
-          {item.estimatedBudget}
-        </span>
+        {/* Minimal Save Button */}
+        <button
+          type="button"
+          onClick={onSave}
+          className={`absolute top-2.5 right-2.5 sm:top-3 sm:right-3 p-2 rounded-full backdrop-blur-md transition-all cursor-pointer shadow-md flex items-center justify-center min-w-[32px] min-h-[32px] sm:min-w-[36px] sm:min-h-[36px] active:scale-90 z-10 ${
+            saved
+              ? "bg-[#C8A96A] text-[#0F4C45] opacity-100 border border-[#C8A96A]"
+              : "bg-black/40 hover:bg-[#C8A96A] text-white hover:text-[#0F4C45] border border-white/20 opacity-0 group-hover:opacity-100"
+          }`}
+          title={saved ? "Saved" : "Save"}
+        >
+          <Bookmark className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${saved ? "fill-current text-[#0F4C45]" : ""}`} />
+        </button>
       </div>
     </div>
   );
@@ -547,46 +444,10 @@ export function InspirationClient() {
     };
   }, [selectedItem]);
 
-  // ── Filter & Sort Display Items ──
+  // ── All Inspiration Photos ──
   const displayItems = useMemo<InspirationItem[]>(() => {
-    const dynamic = fetchState.photos;
-    const statics = STATIC_COLOR_THEMES;
-    let all: InspirationItem[] =
-      activeCategory === "All"
-        ? [...dynamic, ...statics]
-        : activeCategory === "Color Themes"
-        ? statics
-        : dynamic;
-
-    // Filter by budget tier if active
-    if (budgetFilter !== "all") {
-      all = all.filter((item) => {
-        const prof = getInspirationPlanningProfile(item);
-        return prof.costTier === budgetFilter;
-      });
-    }
-
-    // Filter by search query
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      all = all.filter((item) => {
-        const prof = getInspirationPlanningProfile(item);
-        const isTheme = isStaticColorTheme(item);
-        const textMatch = isTheme
-          ? item.title.toLowerCase().includes(q) || item.tags.some((t) => t.toLowerCase().includes(q))
-          : (item.alt || "").toLowerCase().includes(q) || item.category.toLowerCase().includes(q);
-        const styleMatch = prof.styleName.toLowerCase().includes(q) || prof.vibe.toLowerCase().includes(q);
-        return textMatch || styleMatch;
-      });
-    }
-
-    // Apply sorting
-    if (sortBy === "latest") {
-      return [...all].reverse();
-    }
-
-    return all;
-  }, [activeCategory, fetchState.photos, searchQuery, budgetFilter, sortBy]);
+    return [...fetchState.photos, ...STATIC_COLOR_THEMES];
+  }, [fetchState.photos]);
 
   // ── Saved View Items ──
   const savedItemsList = useMemo<InspirationItem[]>(() => {
@@ -632,199 +493,26 @@ export function InspirationClient() {
         </div>
       )}
 
-      {/* ══════════════════════════════════════════════════════════════════════
-          1. COMPACT WEDMEGOOD-STYLE HEADER & BREADCRUMB
-      ══════════════════════════════════════════════════════════════════════ */}
-      <section className="bg-white border-b border-gold/15 pt-4 pb-2 px-4 sm:px-6 lg:px-10">
-        <div className="max-w-7xl mx-auto space-y-3">
-          {/* Breadcrumb line */}
-          <div className="flex items-center gap-1.5 text-xs text-charcoal/50">
-            <Link href="/" className="hover:text-charcoal transition-colors">Home</Link>
-            <span>/</span>
-            <span className="text-charcoal font-semibold">Wedding Inspiration</span>
+      {/* ── CLEAN MINIMAL INSPIRATION HEADER ── */}
+      <section className="bg-white border-b border-gold/15 py-5 px-4 sm:px-6 lg:px-10">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h1 className="text-xl sm:text-2xl font-serif font-bold text-charcoal">
+              Wedding Inspiration Gallery
+            </h1>
+            <p className="text-xs text-charcoal/60 mt-0.5 font-light">
+              Explore real wedding moments, bridal styling, and decor concepts
+            </p>
           </div>
-
-          {/* Compact Page Title Row */}
-          <div className="flex flex-col md:flex-row md:items-baseline justify-between gap-2">
-            <div>
-              <h1 className="text-xl sm:text-2xl lg:text-3xl font-serif font-black text-charcoal tracking-tight flex items-baseline gap-2.5">
-                <span>Wedding Inspiration, Trends &amp; Photos</span>
-                <span className="text-xs sm:text-sm font-sans font-medium text-charcoal/50">
-                  ({displayItems.length ? `${displayItems.length * 40}+ Photos` : "1,200+ Photos"})
-                </span>
-              </h1>
-              <p className="text-xs text-charcoal/60 mt-0.5 font-light">
-                Discover trending decor ideas, bridal looks, and real Kerala wedding moments.
-              </p>
-            </div>
-
-            {/* Quick Action Buttons: AI Mood Board & Saved Boards */}
-            <div className="flex items-center gap-2 shrink-0">
-              <button
-                onClick={() => {
-                  handleGenerateMoodBoard();
-                  setIsMoodBoardOpen(true);
-                }}
-                className="inline-flex items-center gap-1.5 text-xs font-extrabold bg-[#0F4C45] hover:bg-[#12584E] text-white px-3.5 py-2 rounded-xl shadow-xs transition-colors cursor-pointer"
-              >
-                <Wand2 className="w-3.5 h-3.5 text-[#C8A96A]" />
-                <span>AI Mood Board</span>
-              </button>
-
-              <button
-                onClick={() => setActiveTab(activeTab === "saved" ? "explore" : "saved")}
-                className={`inline-flex items-center gap-1.5 text-xs font-bold px-3.5 py-2 rounded-xl transition-all cursor-pointer border ${
-                  activeTab === "saved"
-                    ? "bg-[#0F4C45] text-white border-[#0F4C45] shadow-xs"
-                    : "bg-[#FAF7F2] text-charcoal/80 border-gold/20 hover:border-gold"
-                }`}
-              >
-                <Bookmark className="w-3.5 h-3.5 text-[#C8A96A]" />
-                <span>My Boards</span>
-                {totalSavedCount > 0 && (
-                  <span className="bg-[#C8A96A] text-[#0F4C45] text-[10px] font-black px-1.5 rounded-full">
-                    {totalSavedCount}
-                  </span>
-                )}
-              </button>
-            </div>
-          </div>
-
-          {/* ──────────────────────────────────────────────────────────────────
-              2. HORIZONTAL SCROLLABLE CATEGORY THUMBNAILS (WedMeGood Reference)
-          ────────────────────────────────────────────────────────────────── */}
-          <div className="pt-2 pb-1 overflow-x-auto scrollbar-none">
-            <div className="flex items-center gap-4 sm:gap-6 min-w-max pb-1">
-              {INSPIRATION_CATEGORIES.map((cat) => {
-                const isActive = activeCategory === cat.id && activeTab === "explore";
-                return (
-                  <button
-                    key={cat.id}
-                    onClick={() => {
-                      setActiveTab("explore");
-                      setActiveCategory(cat.id);
-                    }}
-                    className="flex flex-col items-center gap-1.5 cursor-pointer group transition-all"
-                  >
-                    {/* Rounded Image Thumbnail */}
-                    <div
-                      className={`relative w-14 h-14 sm:w-16 sm:h-16 rounded-2xl overflow-hidden transition-all duration-300 ${
-                        isActive
-                          ? "ring-2 ring-[#0F4C45] ring-offset-2 scale-105 shadow-md border-2 border-white"
-                          : "border border-gold/25 group-hover:border-gold group-hover:scale-105 opacity-85 group-hover:opacity-100 shadow-xs"
-                      }`}
-                    >
-                      <img
-                        src={cat.image}
-                        alt={cat.label}
-                        className="w-full h-full object-cover"
-                      />
-                      <div className={`absolute inset-0 bg-black/15 group-hover:bg-transparent transition-colors ${isActive ? "bg-transparent" : ""}`} />
-                      {isActive && (
-                        <div className="absolute top-1 right-1 w-2.5 h-2.5 bg-[#C8A96A] rounded-full ring-2 ring-white" />
-                      )}
-                    </div>
-
-                    {/* Category Label */}
-                    <span
-                      className={`text-[11px] sm:text-xs text-center max-w-[76px] leading-tight transition-colors line-clamp-1 ${
-                        isActive
-                          ? "font-extrabold text-[#0F4C45]"
-                          : "font-medium text-charcoal/75 group-hover:text-charcoal"
-                      }`}
-                    >
-                      {cat.label}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+          <Link
+            href="/user/dashboard/saved-inspirations"
+            className="inline-flex items-center gap-1.5 text-xs font-bold px-3.5 py-1.5 rounded-full bg-[#FAF7F2] text-[#0F4C45] border border-gold/25 hover:border-[#0F4C45] transition-all self-start sm:self-auto"
+          >
+            <Bookmark className="w-3.5 h-3.5 text-[#C8A96A]" />
+            <span>Saved Inspirations</span>
+          </Link>
         </div>
       </section>
-
-      {/* ══════════════════════════════════════════════════════════════════════
-          3. SLIM CONTROL ROW: SORT, BUDGET & COMPACT SEARCH
-      ══════════════════════════════════════════════════════════════════════ */}
-      <div className="bg-[#FAF7F2] border-b border-gold/15 py-2.5 px-4 sm:px-6 lg:px-10">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-3">
-          {/* Left: Sort By & Budget Filter Pills */}
-          <div className="flex flex-wrap items-center gap-3">
-            {/* Sort Toggle */}
-            <div className="flex items-center gap-1 bg-white p-1 rounded-xl border border-gold/20 shadow-xs">
-              <span className="text-[11px] font-bold text-charcoal/50 px-2 flex items-center gap-1">
-                <ArrowUpDown className="w-3 h-3" /> Sort:
-              </span>
-              <button
-                onClick={() => setSortBy("trending")}
-                className={`text-[11px] font-extrabold px-3 py-1 rounded-lg transition-all cursor-pointer flex items-center gap-1 ${
-                  sortBy === "trending"
-                    ? "bg-[#0F4C45] text-white shadow-xs"
-                    : "text-charcoal/70 hover:text-charcoal"
-                }`}
-              >
-                <Flame className="w-3 h-3 text-[#C8A96A]" />
-                <span>Trending</span>
-              </button>
-              <button
-                onClick={() => setSortBy("latest")}
-                className={`text-[11px] font-extrabold px-3 py-1 rounded-lg transition-all cursor-pointer flex items-center gap-1 ${
-                  sortBy === "latest"
-                    ? "bg-[#0F4C45] text-white shadow-xs"
-                    : "text-charcoal/70 hover:text-charcoal"
-                }`}
-              >
-                <Clock className="w-3 h-3 text-[#C8A96A]" />
-                <span>Latest</span>
-              </button>
-            </div>
-
-            {/* Budget Filters */}
-            {activeTab === "explore" && (
-              <div className="flex items-center gap-1 overflow-x-auto scrollbar-none">
-                {[
-                  { id: "all", label: "All Budgets" },
-                  { id: "budget", label: "< ₹2 Lakhs" },
-                  { id: "mid", label: "₹2L – ₹5L" },
-                  { id: "luxury", label: "₹5L+ Luxury" },
-                ].map((b) => (
-                  <button
-                    key={b.id}
-                    onClick={() => setBudgetFilter(b.id as any)}
-                    className={`text-[11px] font-bold px-3 py-1 rounded-xl transition-all whitespace-nowrap cursor-pointer ${
-                      budgetFilter === b.id
-                        ? "bg-[#C8A96A] text-[#0F4C45] shadow-xs font-black"
-                        : "bg-white text-charcoal/70 border border-gold/15 hover:border-gold shadow-xs"
-                    }`}
-                  >
-                    {b.label}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Right: Slim Search Input */}
-          <div className="relative w-full md:w-72">
-            <Search className="w-4 h-4 text-charcoal/40 absolute left-3 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search 10,000+ ideas..."
-              className="w-full bg-white border border-gold/20 rounded-xl pl-9 pr-8 py-1.5 text-xs text-charcoal placeholder:text-charcoal/45 focus:outline-none focus:border-[#0F4C45] shadow-xs"
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery("")}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-charcoal/40 hover:text-charcoal cursor-pointer"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
 
       {/* ══════════════════════════════════════════════════════════════════════
           4. MASONRY PHOTO GRID (STARTS IMMEDIATELY BELOW CONTROLS)
@@ -863,19 +551,15 @@ export function InspirationClient() {
             {!fetchState.loading && displayItems.length === 0 && !fetchState.noApiKey && (
               <div className="text-center py-20 bg-white rounded-3xl border border-gold/15 max-w-md mx-auto space-y-4 p-8 shadow-xs">
                 <Search className="w-12 h-12 text-charcoal/25 mx-auto" />
-                <h3 className="font-serif font-bold text-xl text-charcoal">No matching inspirations found</h3>
+                <h3 className="font-serif font-bold text-xl text-charcoal">No inspirations available</h3>
                 <p className="text-xs text-charcoal/60">
-                  Try adjusting your search query, changing the budget filter, or exploring all categories.
+                  Please check your connection and reload to view curated wedding inspirations.
                 </p>
                 <button
-                  onClick={() => {
-                    setActiveCategory("All");
-                    setSearchQuery("");
-                    setBudgetFilter("all");
-                  }}
+                  onClick={() => fetchPhotos("All")}
                   className="bg-[#0F4C45] text-white text-xs font-bold px-6 py-2.5 rounded-full cursor-pointer shadow-md"
                 >
-                  Clear Filters &amp; Browse All
+                  Reload Inspirations
                 </button>
               </div>
             )}
