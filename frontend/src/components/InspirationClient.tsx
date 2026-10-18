@@ -29,6 +29,11 @@ import {
   ColorSwatch,
   InspirationCategory,
 } from "@/lib/inspirationData";
+import {
+  toggleSaveInspiration,
+  isItemSavedInspiration,
+  SavedInspirationItem,
+} from "@/lib/inspirationStore";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // TYPES
@@ -114,33 +119,37 @@ function PhotoCard({
         {/* Desktop-only Hover Gradient Overlay */}
         <div className="hidden md:block absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
 
-        {/* Desktop-only Top Badges & Actions */}
-        <div className="hidden md:flex absolute top-0 left-0 right-0 p-3 items-start justify-between z-10">
-          <div className="flex flex-col gap-1.5 items-start">
-            <span className="text-[10px] font-bold uppercase tracking-wider bg-black/60 backdrop-blur-md text-[#D4B66E] px-3 py-1 rounded-full border border-white/20 shadow-xs">
+        {/* Top Badges & Always-Accessible Save Button */}
+        <div className="absolute top-0 left-0 right-0 p-2 sm:p-3 flex items-start justify-between z-10 pointer-events-none">
+          <div className="flex flex-col gap-1 items-start pointer-events-auto">
+            <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider bg-black/60 backdrop-blur-md text-[#D4B66E] px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full border border-white/20 shadow-xs">
               {item.category}
             </span>
-            <span className="text-[9px] font-semibold bg-[#0F4C45]/90 backdrop-blur-md text-white px-2.5 py-0.5 rounded-full border border-gold/30 shadow-xs flex items-center gap-1 opacity-90 group-hover:opacity-100 transition-opacity">
+            <span className="hidden sm:flex text-[9px] font-semibold bg-[#0F4C45]/90 backdrop-blur-md text-white px-2 py-0.5 rounded-full border border-gold/30 shadow-xs items-center gap-1">
               <DollarSign className="w-2.5 h-2.5 text-[#C8A96A]" /> {profile.estimatedCostRange}
             </span>
           </div>
 
-          <div className="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+          <div className="flex items-center gap-1.5 pointer-events-auto">
             <button
+              type="button"
               onClick={onSave}
-              className={`p-2 rounded-full backdrop-blur-md transition-all cursor-pointer shadow-md ${
-                saved ? "bg-[#C8A96A] text-[#0F4C45]" : "bg-black/60 text-white hover:bg-[#C8A96A] hover:text-[#0F4C45]"
+              className={`p-2 sm:p-2.5 rounded-full backdrop-blur-md transition-all cursor-pointer shadow-md flex items-center justify-center min-w-[34px] min-h-[34px] sm:min-w-[38px] sm:min-h-[38px] active:scale-90 ${
+                saved
+                  ? "bg-[#C8A96A] text-[#0F4C45] border border-[#C8A96A]"
+                  : "bg-black/60 text-white hover:bg-[#C8A96A] hover:text-[#0F4C45] border border-white/20"
               }`}
-              title={saved ? "Saved" : "Save to Board"}
+              title={saved ? "Saved to Inspiration Board" : "Save Inspiration"}
             >
-              <Bookmark className={`w-3.5 h-3.5 ${saved ? "fill-current" : ""}`} />
+              <Bookmark className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${saved ? "fill-current text-[#0F4C45]" : ""}`} />
             </button>
             <button
+              type="button"
               onClick={onShare}
-              className="p-2 rounded-full bg-black/60 text-white hover:bg-white hover:text-[#0F4C45] backdrop-blur-md transition-all cursor-pointer shadow-md"
+              className="hidden md:flex p-2 sm:p-2.5 rounded-full bg-black/60 text-white hover:bg-white hover:text-[#0F4C45] backdrop-blur-md transition-all cursor-pointer shadow-md items-center justify-center min-w-[34px] min-h-[34px] sm:min-w-[38px] sm:min-h-[38px] border border-white/20 active:scale-90"
               title="Share Inspiration"
             >
-              <Share2 className="w-3.5 h-3.5" />
+              <Share2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </button>
           </div>
         </div>
@@ -164,15 +173,6 @@ function PhotoCard({
             📷 {item.photographer} / Pexels
           </span>
         </div>
-
-        {/* Saved Heart Indicator (Clean & Minimal on mobile) */}
-        {saved && (
-          <div className="absolute top-2 right-2 md:top-3 md:right-3 z-10">
-            <span className="bg-[#C8A96A]/95 backdrop-blur-xs text-[#0F4C45] text-[10px] md:text-[9px] font-extrabold px-2 py-0.5 rounded-full shadow-md flex items-center gap-1">
-              ❤️ <span className="hidden md:inline">Saved</span>
-            </span>
-          </div>
-        )}
       </div>
 
       {/* Desktop-only Under-card Planning Strip */}
@@ -227,31 +227,37 @@ function ColorThemeCard({
         {/* Desktop-only Gradient Overlay */}
         <div className="hidden md:block absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
-        {/* Desktop-only Top Badges */}
-        <div className="hidden md:flex absolute top-0 left-0 right-0 p-3 items-start justify-between z-10">
-          <div className="flex flex-col gap-1.5 items-start">
-            <span className="text-[10px] font-bold uppercase tracking-wider bg-black/60 backdrop-blur-md text-[#D4B66E] px-3 py-1 rounded-full border border-white/20">
+        {/* Top Badges & Always-Accessible Save Button */}
+        <div className="absolute top-0 left-0 right-0 p-2.5 sm:p-3 flex items-start justify-between z-10 pointer-events-none">
+          <div className="flex flex-col gap-1 items-start pointer-events-auto">
+            <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider bg-black/60 backdrop-blur-md text-[#D4B66E] px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full border border-white/20">
               🎨 Color Theme
             </span>
-            <span className="text-[9px] font-semibold bg-[#0F4C45]/90 backdrop-blur-md text-white px-2.5 py-0.5 rounded-full border border-gold/30">
+            <span className="hidden sm:flex text-[9px] font-semibold bg-[#0F4C45]/90 backdrop-blur-md text-white px-2 py-0.5 rounded-full border border-gold/30">
               {item.estimatedBudget}
             </span>
           </div>
 
-          <div className="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+          <div className="flex items-center gap-1.5 pointer-events-auto">
             <button
+              type="button"
               onClick={onSave}
-              className={`p-2 rounded-full backdrop-blur-md transition-all cursor-pointer shadow-md ${
-                saved ? "bg-[#C8A96A] text-[#0F4C45]" : "bg-black/60 text-white hover:bg-[#C8A96A] hover:text-[#0F4C45]"
+              className={`p-2 sm:p-2.5 rounded-full backdrop-blur-md transition-all cursor-pointer shadow-md flex items-center justify-center min-w-[34px] min-h-[34px] sm:min-w-[38px] sm:min-h-[38px] active:scale-90 ${
+                saved
+                  ? "bg-[#C8A96A] text-[#0F4C45] border border-[#C8A96A]"
+                  : "bg-black/60 text-white hover:bg-[#C8A96A] hover:text-[#0F4C45] border border-white/20"
               }`}
+              title={saved ? "Saved to Inspiration Board" : "Save Inspiration"}
             >
-              <Bookmark className={`w-3.5 h-3.5 ${saved ? "fill-current" : ""}`} />
+              <Bookmark className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${saved ? "fill-current text-[#0F4C45]" : ""}`} />
             </button>
             <button
+              type="button"
               onClick={onShare}
-              className="p-2 rounded-full bg-black/60 text-white hover:bg-white hover:text-[#0F4C45] backdrop-blur-md transition-all cursor-pointer shadow-md"
+              className="hidden md:flex p-2 sm:p-2.5 rounded-full bg-black/60 text-white hover:bg-white hover:text-[#0F4C45] backdrop-blur-md transition-all cursor-pointer shadow-md items-center justify-center min-w-[34px] min-h-[34px] sm:min-w-[38px] sm:min-h-[38px] border border-white/20 active:scale-90"
+              title="Share Inspiration"
             >
-              <Share2 className="w-3.5 h-3.5" />
+              <Share2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </button>
           </div>
         </div>
@@ -270,15 +276,6 @@ function ColorThemeCard({
             ))}
           </div>
         </div>
-
-        {/* Saved indicator */}
-        {saved && (
-          <div className="absolute top-2 right-2 md:top-3 md:right-3 z-10">
-            <span className="bg-[#C8A96A]/95 backdrop-blur-xs text-[#0F4C45] text-[10px] md:text-[9px] font-extrabold px-2 py-0.5 rounded-full shadow-md flex items-center gap-1">
-              ❤️ <span className="hidden md:inline">Saved</span>
-            </span>
-          </div>
-        )}
       </div>
 
       {/* Desktop-only Under-card strip */}
@@ -380,21 +377,63 @@ export function InspirationClient() {
     setTimeout(() => setToastMessage(null), 2800);
   };
 
-  const isItemSaved = (id: string) => Boolean(savedMap[id]?.length);
+  const convertToSavedItem = (item: InspirationItem): SavedInspirationItem => {
+    if (isStaticColorTheme(item)) {
+      return {
+        id: String(item.id),
+        title: item.title,
+        category: item.category || "Color Theme",
+        image: item.image,
+      };
+    }
+    const profile = getInspirationPlanningProfile(item);
+    return {
+      id: String(item.id),
+      title: profile.styleName || item.alt || `${item.category} Concept`,
+      category: item.category || "Inspiration",
+      image: item.src?.large || item.src?.medium || item.src?.large2x || "",
+    };
+  };
+
+  const isItemSaved = (id: string | number) => {
+    const sId = String(id);
+    return isItemSavedInspiration(sId) || Boolean(savedMap[sId]?.length);
+  };
+
+  const handleSaveInspiration = (item: InspirationItem, e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    const savedItem = convertToSavedItem(item);
+    const nowSaved = toggleSaveInspiration(savedItem);
+    const id = String(item.id);
+    const firstBoardId = boards[0]?.id || "dream-wedding";
+    const curr = savedMap[id] || [];
+    let nextMap = { ...savedMap };
+    if (!nowSaved) {
+      delete nextMap[id];
+      showToast("Removed from saved inspirations");
+    } else {
+      nextMap[id] = curr.length > 0 ? curr : [firstBoardId];
+      showToast("Saved to your Saved Inspiration Board! ❤️");
+    }
+    saveSaves(nextMap);
+  };
+
+  // Listen to external inspiration updates (e.g. from User Dashboard deletions)
+  useEffect(() => {
+    const syncFromStorage = () => {
+      setSavedMap((prev) => ({ ...prev }));
+    };
+    window.addEventListener("cloche_saved_inspirations_updated", syncFromStorage);
+    return () => {
+      window.removeEventListener("cloche_saved_inspirations_updated", syncFromStorage);
+    };
+  }, []);
 
   const handleQuickSave = (item: InspirationItem, e?: React.MouseEvent) => {
-    if (e) e.stopPropagation();
-    const id = item.id;
-    if (savedMap[id]?.length) {
-      const next = { ...savedMap };
-      delete next[id];
-      saveSaves(next);
-      showToast("Removed from saved boards");
-    } else {
-      const firstBoardId = boards[0]?.id || "dream-wedding";
-      saveSaves({ ...savedMap, [id]: [firstBoardId] });
-      showToast(`Saved to ${boards[0]?.name || "Dream Wedding"} ❤️`);
-    }
+    handleSaveInspiration(item, e);
   };
 
   const handleToggleBoardSave = (boardId: string) => {
@@ -853,10 +892,7 @@ export function InspirationClient() {
                         item={item}
                         saved={saved}
                         onClick={() => openItem(item)}
-                        onSave={(e) => {
-                          e.stopPropagation();
-                          setItemToSave(item);
-                        }}
+                        onSave={(e) => handleSaveInspiration(item, e)}
                         onShare={(e) => handleShare(item, e)}
                       />
                     );
@@ -867,10 +903,7 @@ export function InspirationClient() {
                       item={item}
                       saved={saved}
                       onClick={() => openItem(item)}
-                      onSave={(e) => {
-                        e.stopPropagation();
-                        setItemToSave(item);
-                      }}
+                      onSave={(e) => handleSaveInspiration(item, e)}
                       onShare={(e) => handleShare(item, e)}
                     />
                   );
@@ -1085,7 +1118,8 @@ export function InspirationClient() {
                       <Share2 className="w-4 h-4" />
                     </button>
                     <button
-                      onClick={() => setItemToSave(selectedItem)}
+                      type="button"
+                      onClick={(e) => handleSaveInspiration(selectedItem, e)}
                       className={`min-h-[44px] px-4 py-2.5 rounded-full text-xs font-extrabold flex items-center gap-1.5 cursor-pointer shadow-md active:scale-95 transition-all ${
                         isItemSaved(selectedItem.id)
                           ? "bg-[#C8A96A] text-[#0F4C45]"

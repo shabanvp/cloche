@@ -25,6 +25,7 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import { getWishlistItems, removeWishlistItem, syncWishlistWithServer, WishlistItem } from "@/lib/wishlistStore";
+import { getSavedInspirations, removeSavedInspiration, SavedInspirationItem } from "@/lib/inspirationStore";
 import { fetchAuthenticatedUser, fetchAuthenticatedUserProfile, resolveUserDisplayName } from "@/lib/userStore";
 import { logout } from "@/app/actions/auth";
 
@@ -90,22 +91,7 @@ export function UserDashboardClient({ initialTab }: UserDashboardClientProps = {
   // Saved Data States
   const [savedVendors, setSavedVendors] = useState<WishlistItem[]>([]);
   const [savedVenues, setSavedVenues] = useState<WishlistItem[]>([]);
-  const [savedInspirations, setSavedInspirations] = useState<
-    { id: string; title: string; category: string; image: string }[]
-  >([
-    {
-      id: "insp-1",
-      title: "Minimal Botanical Stage Decor",
-      category: "Decor",
-      image: "https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=800&q=80",
-    },
-    {
-      id: "insp-2",
-      title: "Traditional Kerala Bride Silk Saree",
-      category: "Bridal Wear",
-      image: "https://images.unsplash.com/photo-1594552072238-b8a33785b261?auto=format&fit=crop&w=800&q=80",
-    },
-  ]);
+  const [savedInspirations, setSavedInspirations] = useState<SavedInspirationItem[]>([]);
 
   // Checklist State
   const [checklist, setChecklist] = useState<ChecklistItem[]>([
@@ -189,6 +175,22 @@ export function UserDashboardClient({ initialTab }: UserDashboardClientProps = {
             }
           }
         } catch (e) {}
+        // Load saved inspirations from store
+        try {
+          const loadedInspirations = getSavedInspirations();
+          setSavedInspirations(loadedInspirations);
+        } catch (e) {}
+
+        // Load saved checklist from localStorage if present
+        try {
+          const savedChecklist = localStorage.getItem("cloche_user_checklist");
+          if (savedChecklist) {
+            const parsed = JSON.parse(savedChecklist);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              setChecklist(parsed);
+            }
+          }
+        } catch (e) {}
       } catch (e) {
         console.error("Dashboard init error:", e);
       } finally {
@@ -197,6 +199,15 @@ export function UserDashboardClient({ initialTab }: UserDashboardClientProps = {
     }
 
     initUserDashboard();
+
+    const handleInspirationsSync = () => {
+      setSavedInspirations(getSavedInspirations());
+    };
+    window.addEventListener("cloche_saved_inspirations_updated", handleInspirationsSync);
+
+    return () => {
+      window.removeEventListener("cloche_saved_inspirations_updated", handleInspirationsSync);
+    };
   }, []);
 
   // Handlers
@@ -210,8 +221,9 @@ export function UserDashboardClient({ initialTab }: UserDashboardClientProps = {
     setSavedVenues(updated.filter((i) => (i.category || "").toLowerCase() === "venue" || (i.category || "").toLowerCase() === "venues"));
   };
 
-  const handleRemoveInspiration = (id: string) => {
-    setSavedInspirations((prev) => prev.filter((i) => i.id !== id));
+  const handleRemoveInspiration = (id: string | number) => {
+    const updated = removeSavedInspiration(id);
+    setSavedInspirations(updated);
   };
 
   const handleToggleChecklist = (id: string) => {
@@ -685,8 +697,14 @@ export function UserDashboardClient({ initialTab }: UserDashboardClientProps = {
                 ) : (
                   <div className="text-center py-12 space-y-3">
                     <Sparkles className="w-10 h-10 text-gold/40 mx-auto" />
-                    <p className="text-sm font-semibold text-charcoal">No saved inspirations</p>
+                    <p className="text-sm font-semibold text-charcoal">No saved inspirations yet</p>
                     <p className="text-xs text-charcoal/60 max-w-sm mx-auto">Browse wedding photos and decor ideas to save inspiration for your big day.</p>
+                    <Link
+                      href="/inspiration"
+                      className="inline-block mt-2 px-5 py-2.5 rounded-full bg-[#0F4C45] text-white text-xs font-bold hover:bg-[#12584E] transition-colors shadow-2xs"
+                    >
+                      Browse Inspiration Gallery
+                    </Link>
                   </div>
                 )}
               </div>
