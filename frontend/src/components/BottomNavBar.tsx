@@ -42,7 +42,7 @@ export function BottomNavBar({ activeTab }: BottomNavBarProps = {}) {
     pathname.startsWith("/vendor/") ||
     (pathname.startsWith("/vendors/") && pathname !== "/vendors");
 
-  if (pathname === "/login" || pathname === "/signup" || isVendorDetailPage) return null;
+  if (pathname === "/login" || pathname === "/signup" || pathname === "/aura" || pathname === "/genie" || isVendorDetailPage) return null;
 
   const isActive = (tab: string, href: string) => {
     if (activeTab) return activeTab === tab;

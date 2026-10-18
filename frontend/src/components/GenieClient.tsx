@@ -15,8 +15,6 @@ import {
   Star,
   MapPin,
   X,
-  UserPlus,
-  LogIn,
   Save,
   CheckSquare,
   Square,
@@ -25,20 +23,19 @@ import {
   FileText,
   Check,
   RefreshCw,
-  ShieldCheck,
   Layers,
-  HelpCircle,
-  TrendingUp,
-  Sliders,
   DollarSign,
-  Compass,
   MessageSquare,
+  PanelLeft,
+  PanelLeftClose,
+  Copy,
+  ArrowUp,
+  Plus,
+  Home,
   Store,
   User,
-  Zap,
-  Info
+  ExternalLink,
 } from "lucide-react";
-import { Footer } from "@/components/Footer";
 import { 
   queryAuraAssistant, 
   AuraResponse, 
@@ -53,7 +50,6 @@ import {
   ReviewResponseDraft,
   LeadsSummaryData
 } from "@/lib/auraEngine";
-import { BottomNavBar } from "@/components/BottomNavBar";
 
 interface ChatMessage {
   id: string;
@@ -86,9 +82,19 @@ export function GenieClient() {
   const [vendorContext, setVendorContext] = useState<AuraVendorContext | null>(null);
   const [isThinking, setIsThinking] = useState(false);
   const [isActionLoading, setIsActionLoading] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Auto-resize textarea
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 160)}px`;
+    }
+  }, [promptInput]);
 
   // Fetch session on mount
   useEffect(() => {
@@ -119,7 +125,7 @@ export function GenieClient() {
               {
                 id: "aura-init-vendor",
                 sender: "aura",
-                text: `Hi ${ctx.businessName}, I'm Aura — I can help you complete your profile, build packages, and manage enquiries. What would you like to work on?`,
+                text: `Hi ${ctx.businessName}, I'm Aura — your AI assistant for Cloche. I can help you draft service packages, optimize your storefront SEO description, review client enquiries, and benchmark market pricing. What would you like to work on?`,
                 timestamp: "Just now",
               },
             ]);
@@ -147,7 +153,7 @@ export function GenieClient() {
               {
                 id: "aura-init",
                 sender: "aura",
-                text: `Hi ${firstName}, I'm Aura, your Cloche AI Wedding Assistant. How can I help with your wedding planning today?`,
+                text: `Hi ${firstName}, I'm Aura, your Cloche AI Wedding Concierge. How can I help with your wedding planning today?`,
                 timestamp: "Just now",
               },
             ]);
@@ -160,7 +166,7 @@ export function GenieClient() {
         {
           id: "aura-init-guest",
           sender: "aura",
-          text: "Hi, I'm Aura, your Cloche AI Wedding Assistant. How can I help you today?",
+          text: "Hi, I'm Aura, your Cloche AI Wedding Assistant. Tell me what you're looking for — whether discovering venues, budgeting, comparing vendors, or planning your big day.",
           timestamp: "Just now",
         },
       ]);
@@ -184,40 +190,40 @@ export function GenieClient() {
   ] : [
     "Find wedding venues in Kochi",
     "Top rated photographers in Kerala",
-    "Compare shaban and Acesd for decor",
-    "Bridal makeup artists in Thrissur",
-    "Traditional Kerala Sadya catering",
+    "Compare decorators in Thrissur",
+    "Bridal makeup artists in Kochi",
+    "How much does a 500 guest wedding cost?",
   ];
 
   const workflowActions = vendorContext ? [
     {
       title: "Draft Service Package",
-      desc: "Create bespoke wedding packages with inclusions & pricing",
+      desc: "Create wedding packages with clear inclusions & pricing",
       prompt: "Draft a premium wedding package for my storefront",
       icon: Package,
     },
     {
       title: "Storefront SEO Rewrite",
-      desc: "Generate high-converting, SEO-optimized business about text",
+      desc: "Generate high-converting, SEO-optimized business bio",
       prompt: "Rewrite my profile description for SEO",
       icon: FileText,
     },
     {
       title: "Enquiry & Lead Summary",
-      desc: "Summarize real-time couple inquiries and upcoming dates",
+      desc: "Summarize real-time couple inquiries & upcoming dates",
       prompt: "Summarize my enquiries this week",
       icon: MessageSquare,
     },
     {
       title: "Regional Pricing Benchmark",
-      desc: "Explore Kerala market pricing standards by category",
+      desc: "Explore Kerala market pricing standards for your category",
       prompt: "Suggest regional pricing benchmarks for my category",
       icon: DollarSign,
     },
   ] : userContext?.userId ? [
     {
       title: "Budget Planning",
-      desc: "Calculate category-wise allocations tailored to guest count",
+      desc: "Calculate category-wise allocations tailored to your guests",
       prompt: "Plan my wedding for 400 guests in Thrissur, budget ₹15 lakh",
       icon: DollarSign,
     },
@@ -229,13 +235,13 @@ export function GenieClient() {
     },
     {
       title: "Milestone Checklist",
-      desc: "Interactive countdown checklist for upcoming wedding milestones",
+      desc: "Interactive countdown checklist for your wedding",
       prompt: "Show my wedding checklist",
       icon: CheckSquare,
     },
     {
       title: "Direct Vendor Inquiry",
-      desc: "Draft verified booking inquiries with instant lead reference",
+      desc: "Draft verified booking inquiries with instant reference",
       prompt: "Send an inquiry to shaban",
       icon: MailCheck,
     },
@@ -326,7 +332,7 @@ export function GenieClient() {
         {
           id: "aura-init-vendor",
           sender: "aura",
-          text: `Hi ${vendorContext.businessName}, I'm Aura — I can help you complete your profile, build packages, and manage enquiries. What would you like to work on?`,
+          text: `Hi ${vendorContext.businessName}, I'm Aura — your AI assistant for Cloche. I can help you draft service packages, optimize your storefront SEO description, review client enquiries, and benchmark market pricing. What would you like to work on?`,
           timestamp: "Just now",
         },
       ]);
@@ -336,7 +342,7 @@ export function GenieClient() {
         {
           id: "aura-init",
           sender: "aura",
-          text: `Hi ${firstName}, I'm Aura, your Cloche AI Wedding Assistant. How can I help with your wedding planning today?`,
+          text: `Hi ${firstName}, I'm Aura, your Cloche AI Wedding Concierge. How can I help with your wedding planning today?`,
           timestamp: "Just now",
         },
       ]);
@@ -345,14 +351,20 @@ export function GenieClient() {
         {
           id: "aura-init-guest",
           sender: "aura",
-          text: "Hi, I'm Aura, your Cloche AI Wedding Assistant. How can I help you today?",
+          text: "Hi, I'm Aura, your Cloche AI Wedding Assistant. Tell me what you're looking for — whether discovering venues, budgeting, comparing vendors, or planning your big day.",
           timestamp: "Just now",
         },
       ]);
     }
   };
 
-  // Phase 3: Vendor Save Package
+  const handleCopyText = (id: string, text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  // Vendor Save Package
   const handleSavePackage = async (msgId: string, draft: PackageDraft) => {
     setIsActionLoading(true);
     try {
@@ -394,7 +406,7 @@ export function GenieClient() {
     }
   };
 
-  // Phase 3: Vendor Update Profile SEO Description
+  // Vendor Update Profile SEO Description
   const handleApproveProfile = async (msgId: string, draft: ProfileDraft) => {
     setIsActionLoading(true);
     try {
@@ -434,7 +446,7 @@ export function GenieClient() {
     }
   };
 
-  // Phase 2: Customer Save Budget Plan
+  // Customer Save Budget Plan
   const handleSaveBudgetPlan = async (msgId: string, plan: any) => {
     setIsActionLoading(true);
     try {
@@ -474,7 +486,7 @@ export function GenieClient() {
     }
   };
 
-  // Phase 2: Customer Confirm Send Inquiry
+  // Customer Confirm Send Inquiry
   const handleConfirmSendInquiry = async (draft: InquiryDraft) => {
     setIsActionLoading(true);
     try {
@@ -515,513 +527,614 @@ export function GenieClient() {
     }
   };
 
-  return (
-    <div className="min-h-screen bg-[#F8F6F2] text-[#2D2520] flex flex-col font-sans selection:bg-[#C8A96A]/30">
-      
-      {/* Top Breadcrumb & Status Bar */}
-      <div className="bg-[#0B3B36] border-b border-[#C8A96A]/20 py-2.5 px-4 sm:px-6 lg:px-10">
-        <div className="max-w-7xl mx-auto flex items-center justify-between text-xs text-[#F7F3EC]">
-          <div className="flex items-center gap-2">
-            <span className="flex h-2 w-2 relative">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#C8A96A] opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-[#C8A96A]"></span>
-            </span>
-            <span className="font-semibold tracking-wide text-white">Cloche Aura Engine</span>
-            <span className="text-white/40 hidden sm:inline">•</span>
-            <span className="text-[#D8C39A] hidden sm:inline">100% Real-Time Live Grounding Active</span>
-          </div>
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSendPrompt();
+    }
+  };
 
-          <div className="flex items-center gap-3">
-            <span className="bg-white/10 px-2.5 py-0.5 rounded-full text-[11px] font-bold text-[#D8C39A] border border-white/10">
-              {vendorContext ? "Vendor Dashboard Mode" : userContext?.userId ? "Planning Assistant Mode" : "Guest Discovery Mode"}
-            </span>
+  const isConversationStarted = messages.length > 1;
+  const currentEntityName = vendorContext?.businessName || userContext?.fullName?.split(" ")[0] || "there";
+
+  return (
+    <div className="h-screen w-screen overflow-hidden flex bg-[#FAF9F6] text-[#2B2B2B] font-sans antialiased selection:bg-[#C8A96A]/30">
+      
+      {/* Mobile Sidebar Backdrop */}
+      {isSidebarOpen && (
+        <div 
+          onClick={() => setIsSidebarOpen(false)}
+          className="fixed inset-0 bg-black/30 z-30 md:hidden backdrop-blur-2xs transition-opacity"
+        />
+      )}
+
+      {/* Modern Left Sidebar (Like ChatGPT / Claude) */}
+      <aside 
+        className={`fixed md:static inset-y-0 left-0 z-40 bg-[#F4F1EA] border-r border-[#E5DECF] flex flex-col transition-all duration-300 ease-in-out ${
+          isSidebarOpen ? "w-[280px] translate-x-0" : "-translate-x-full md:w-0 md:translate-x-0 md:overflow-hidden md:border-r-0"
+        }`}
+      >
+        <div className="w-[280px] flex flex-col h-full">
+          {/* Sidebar Top: Logo & New Chat */}
+          <div className="p-3.5 border-b border-[#E5DECF] flex items-center justify-between">
+            <Link href="/" className="flex items-center gap-2 group">
+              <div className="w-8 h-8 rounded-xl bg-[#0F4C45] flex items-center justify-center text-[#C8A96A] shadow-xs group-hover:scale-105 transition-transform">
+                <Sparkles className="w-4 h-4" />
+              </div>
+              <div className="leading-tight">
+                <span className="font-serif font-bold text-sm text-[#0F4C45] tracking-wide block">CLOCHE</span>
+                <span className="text-[10px] text-[#C8A96A] font-semibold tracking-wider uppercase block">Aura AI</span>
+              </div>
+            </Link>
+
             <button
-              onClick={handleResetConversation}
-              className="text-white/70 hover:text-white flex items-center gap-1 transition-colors cursor-pointer text-xs"
-              title="Reset Chat"
+              onClick={() => setIsSidebarOpen(false)}
+              className="p-1.5 rounded-lg text-charcoal/60 hover:text-charcoal hover:bg-[#EAE4D7] transition-colors cursor-pointer"
+              title="Close sidebar"
             >
-              <RefreshCw className="w-3 h-3" />
-              <span className="hidden sm:inline">New Chat</span>
+              <PanelLeftClose className="w-4 h-4" />
             </button>
           </div>
-        </div>
-      </div>
 
-      {/* Main Container */}
-      <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8 flex flex-col">
-        
-        {/* Desktop Split Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start flex-1">
-          
-          {/* LEFT SIDEBAR: Command Deck & Workflow Launcher (Visible on Desktop) */}
-          <aside className="hidden lg:flex lg:col-span-4 flex-col gap-5 sticky top-24">
-            
-            {/* Identity & Mode Card */}
-            <div className="bg-white rounded-3xl border border-gold/15 p-6 shadow-sm relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-[radial-gradient(ellipse_at_top_right,rgba(200,169,106,0.15),transparent_70%)] pointer-events-none" />
-              
-              <div className="flex items-center gap-3.5 mb-4">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#0F4C45] to-[#176B61] flex items-center justify-center text-white shadow-md shrink-0 border border-gold/30">
-                  <Sparkles className="w-6 h-6 text-[#C8A96A] animate-pulse" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-1.5">
-                    <h2 className="font-serif font-bold text-lg text-[#0F4C45]">Aura AI Assistant</h2>
-                    <ShieldCheck className="w-4 h-4 text-[#C8A96A]" />
-                  </div>
-                  <p className="text-xs text-charcoal/60">
-                    {vendorContext ? vendorContext.businessName : userContext?.fullName ? userContext.fullName : "Wedding Concierge"}
-                  </p>
-                </div>
-              </div>
+          {/* New Chat Button */}
+          <div className="p-3">
+            <button
+              onClick={handleResetConversation}
+              className="w-full py-2.5 px-3 rounded-xl bg-white hover:bg-white/80 border border-[#DDD3C2] text-[#0F4C45] font-semibold text-xs flex items-center justify-between shadow-2xs hover:shadow-xs transition-all cursor-pointer group"
+            >
+              <span className="flex items-center gap-2">
+                <Plus className="w-4 h-4 text-[#C8A96A] group-hover:rotate-90 transition-transform duration-200" />
+                New Chat
+              </span>
+              <span className="text-[10px] text-charcoal/40 font-normal">⌘K</span>
+            </button>
+          </div>
 
-              <div className="bg-[#FAF7F2] rounded-2xl p-3.5 border border-gold/15 space-y-2 text-xs">
-                <div className="flex justify-between items-center text-charcoal/70">
-                  <span>Assistant Persona:</span>
-                  <span className="font-bold text-[#0F4C45]">
-                    {vendorContext ? "Business Partner" : "Planning Specialist"}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center text-charcoal/70">
-                  <span>Region:</span>
-                  <span className="font-semibold text-charcoal">
-                    {vendorContext?.city || userContext?.city || "Kerala, India"}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center text-charcoal/70">
-                  <span>Grounding:</span>
-                  <span className="font-bold text-emerald-800 flex items-center gap-1">
-                    <CheckCircle2 className="w-3 h-3 text-emerald-700" /> Supabase Live
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Quick Action Templates */}
-            <div className="bg-white rounded-3xl border border-gold/15 p-6 shadow-sm space-y-3">
-              <div className="flex items-center justify-between border-b border-gold/10 pb-2.5">
-                <span className="font-serif font-bold text-xs uppercase tracking-widest text-[#0F4C45] flex items-center gap-1.5">
-                  <Zap className="w-3.5 h-3.5 text-gold" /> {vendorContext ? "Vendor AI Workflows" : "AI Planning Actions"}
-                </span>
-                <span className="text-[10px] text-charcoal/50 font-bold">1-Click</span>
-              </div>
-
-              <div className="space-y-2.5">
+          {/* Workflows & Capabilities List */}
+          <div className="flex-1 overflow-y-auto px-3 py-2 space-y-4 scrollbar-thin">
+            <div>
+              <span className="px-2.5 text-[10px] font-bold uppercase tracking-wider text-charcoal/50 block mb-2">
+                {vendorContext ? "Vendor Workflows" : "AI Planning Tools"}
+              </span>
+              <div className="space-y-1">
                 {workflowActions.map((wf, idx) => {
                   const Icon = wf.icon;
                   return (
                     <button
                       key={idx}
-                      onClick={() => handleSendPrompt(wf.prompt)}
+                      onClick={() => {
+                        handleSendPrompt(wf.prompt);
+                        if (window.innerWidth < 768) setIsSidebarOpen(false);
+                      }}
                       disabled={isThinking}
-                      className="w-full text-left p-3 rounded-2xl border border-gold/15 bg-[#FAF7F2] hover:bg-gold/15 hover:border-gold/35 transition-all group cursor-pointer flex items-start gap-3 disabled:opacity-50"
+                      className="w-full text-left px-2.5 py-2 rounded-xl text-xs text-charcoal/80 hover:text-[#0F4C45] hover:bg-white/70 transition-all flex items-center gap-2.5 cursor-pointer disabled:opacity-50 group"
                     >
-                      <div className="p-2 rounded-xl bg-white text-[#0F4C45] shadow-xs group-hover:scale-105 transition-transform shrink-0 border border-gold/10">
-                        <Icon className="w-4 h-4 text-[#0F4C45]" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <h4 className="font-bold text-xs text-charcoal group-hover:text-[#0F4C45] transition-colors truncate">
-                          {wf.title}
-                        </h4>
-                        <p className="text-[11px] text-charcoal/60 line-clamp-2 leading-relaxed mt-0.5">
-                          {wf.desc}
-                        </p>
-                      </div>
+                      <Icon className="w-3.5 h-3.5 text-charcoal/50 group-hover:text-[#0F4C45] shrink-0 transition-colors" />
+                      <span className="truncate font-medium">{wf.title}</span>
                     </button>
                   );
                 })}
               </div>
             </div>
 
-            {/* Grounding & Safety Shield */}
-            <div className="bg-gradient-to-br from-[#0F4C45] to-[#0A3833] rounded-3xl p-5 text-white shadow-sm border border-gold/20 space-y-2">
-              <div className="flex items-center gap-2 text-xs font-bold text-[#C8A96A]">
-                <ShieldCheck className="w-4 h-4" /> Zero-Hallucination Policy
+            <div>
+              <span className="px-2.5 text-[10px] font-bold uppercase tracking-wider text-charcoal/50 block mb-2">
+                Suggested Prompts
+              </span>
+              <div className="space-y-1">
+                {samplePrompts.slice(0, 4).map((p, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => {
+                      handleSendPrompt(p);
+                      if (window.innerWidth < 768) setIsSidebarOpen(false);
+                    }}
+                    disabled={isThinking}
+                    className="w-full text-left px-2.5 py-1.5 rounded-lg text-[11px] text-charcoal/70 hover:text-charcoal hover:bg-white/60 transition-colors truncate cursor-pointer block"
+                    title={p}
+                  >
+                    • {p}
+                  </button>
+                ))}
               </div>
-              <p className="text-[11px] text-white/80 leading-relaxed">
-                Aura queries Cloche&apos;s live database in real-time. Every vendor profile, review, lead count, and pricing range is grounded in real data.
-              </p>
             </div>
-          </aside>
+          </div>
 
-          {/* RIGHT COLUMN: Modern Conversational AI Canvas */}
-          <div className="lg:col-span-8 flex flex-col h-[740px] md:h-[780px] bg-white rounded-3xl border border-gold/15 shadow-sm overflow-hidden">
-            
-            {/* Canvas Header */}
-            <div className="px-6 py-4 border-b border-gold/10 bg-[#FAF7F2] flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-[#0F4C45] flex items-center justify-center text-[#C8A96A] shadow-xs shrink-0">
-                  <Sparkles className="w-4 h-4" />
+          {/* Sidebar Footer: User / Vendor Badge */}
+          <div className="p-3 border-t border-[#E5DECF] bg-[#EDE9DF]/60">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-8 h-8 rounded-full bg-[#0F4C45] text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs">
+                  {currentEntityName.charAt(0).toUpperCase()}
                 </div>
-                <div>
-                  <h3 className="font-serif font-bold text-sm text-charcoal">
-                    {vendorContext ? `${vendorContext.businessName} Assistant` : "Cloche Aura Assistant"}
-                  </h3>
-                  <p className="text-[11px] text-charcoal/60">
-                    {vendorContext ? "Storefront packages, SEO descriptions & leads" : "Vendor discovery, budget estimation & planning"}
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-semibold text-charcoal truncate">{currentEntityName}</p>
+                  <p className="text-[10px] text-charcoal/50 truncate">
+                    {vendorContext ? "Vendor Partner" : userContext?.userId ? "Wedding Planner" : "Guest Mode"}
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
-                <span className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-800 border border-emerald-200 px-3 py-1 rounded-full text-[11px] font-bold">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse"></span>
-                  Grounded LLM
-                </span>
-              </div>
-            </div>
-
-            {/* Message Stream */}
-            <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5">
-              {messages.map((m) => (
-                <div
-                  key={m.id}
-                  className={`flex gap-3 sm:gap-4 ${m.sender === "user" ? "justify-end" : "justify-start"}`}
+              {vendorContext ? (
+                <Link
+                  href="/vendor/dashboard"
+                  className="p-1.5 rounded-lg text-charcoal/50 hover:text-[#0F4C45] hover:bg-white transition-colors"
+                  title="Vendor Dashboard"
                 >
-                  {/* Aura Avatar */}
-                  {m.sender === "aura" && (
-                    <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#0F4C45] flex items-center justify-center text-[#C8A96A] shrink-0 shadow-xs border border-gold/30 mt-1">
-                      <Sparkles className="w-4 h-4" />
-                    </div>
-                  )}
+                  <Store className="w-4 h-4" />
+                </Link>
+              ) : (
+                <Link
+                  href="/"
+                  className="p-1.5 rounded-lg text-charcoal/50 hover:text-[#0F4C45] hover:bg-white transition-colors"
+                  title="Back to Cloche"
+                >
+                  <Home className="w-4 h-4" />
+                </Link>
+              )}
+            </div>
+          </div>
+        </div>
+      </aside>
 
-                  <div className={`max-w-[88%] sm:max-w-[82%] space-y-1.5 ${m.sender === "user" ? "items-end" : "items-start"}`}>
-                    <div className="flex items-center gap-2 px-1">
-                      <span className="text-[11px] font-bold text-charcoal/60">
-                        {m.sender === "user" ? "You" : "Aura"}
-                      </span>
-                      <span className="text-[10px] text-charcoal/40">{m.timestamp}</span>
-                    </div>
+      {/* Main Chat Area */}
+      <main className="flex-1 flex flex-col h-full min-w-0 relative bg-[#FAF9F6]">
+        
+        {/* Modern Top Header (Clean like ChatGPT / Claude) */}
+        <header className="h-14 border-b border-[#E8E2D7] bg-white/80 backdrop-blur-md px-4 flex items-center justify-between shrink-0 z-10">
+          <div className="flex items-center gap-2.5">
+            {!isSidebarOpen && (
+              <button
+                onClick={() => setIsSidebarOpen(true)}
+                className="p-2 rounded-xl text-charcoal/70 hover:text-charcoal hover:bg-[#F2ECE1] transition-colors cursor-pointer"
+                title="Open sidebar"
+              >
+                <PanelLeft className="w-4 h-4" />
+              </button>
+            )}
 
-                    <div
-                      className={`rounded-2xl p-4 sm:p-5 text-xs sm:text-[13px] leading-relaxed shadow-xs ${
-                        m.sender === "user"
-                          ? "bg-[#0F4C45] text-white rounded-tr-xs"
-                          : "bg-[#FAF7F2] text-charcoal border border-gold/15 rounded-tl-xs"
-                      }`}
-                    >
-                      <div className="whitespace-pre-line leading-relaxed">{m.text}</div>
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-lg bg-[#0F4C45] flex items-center justify-center text-[#C8A96A]">
+                <Sparkles className="w-3.5 h-3.5" />
+              </div>
+              <h1 className="font-serif font-bold text-sm text-[#0F4C45] tracking-tight">Aura</h1>
+              <span className="text-[11px] px-2 py-0.5 rounded-full bg-[#FAF7F2] border border-gold/20 text-[#0F4C45] font-medium hidden sm:inline">
+                {vendorContext ? "Vendor Copilot" : "Wedding Concierge"}
+              </span>
+            </div>
+          </div>
 
-                      {/* Phase 3: Package Draft Card */}
-                      {m.packageDraft && (
-                        <div className="mt-4 pt-3.5 border-t border-gold/20 bg-white p-4 sm:p-5 rounded-2xl border border-gold/20 space-y-3">
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs font-bold text-[#0F4C45] uppercase tracking-wider flex items-center gap-1.5">
-                              <Package className="h-4 w-4 text-gold" /> Proposed Package Draft
-                            </span>
-                            <span className="text-[11px] bg-amber-100 text-amber-900 px-2.5 py-0.5 rounded-full font-bold">
-                              {m.packageDraft.isSaved ? "Saved to Catalog" : "Awaiting Save"}
-                            </span>
-                          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleResetConversation}
+              className="text-xs text-charcoal/70 hover:text-[#0F4C45] px-2.5 py-1.5 rounded-lg hover:bg-[#F2ECE1] transition-colors flex items-center gap-1.5 cursor-pointer"
+              title="Reset Chat"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">New Chat</span>
+            </button>
 
-                          <div className="bg-[#FAF7F2] p-4 rounded-xl border border-gold/15 text-xs space-y-2.5 text-charcoal">
+            <Link
+              href={vendorContext ? "/vendor/dashboard" : "/"}
+              className="text-xs text-charcoal/70 hover:text-charcoal px-2.5 py-1.5 rounded-lg hover:bg-[#F2ECE1] transition-colors flex items-center gap-1"
+            >
+              <span className="hidden sm:inline">Exit</span>
+              <X className="w-4 h-4" />
+            </Link>
+          </div>
+        </header>
+
+        {/* Message Stream Viewport */}
+        <div className="flex-1 overflow-y-auto px-4 sm:px-6 md:px-8 py-6 scroll-smooth">
+          <div className="max-w-3xl mx-auto w-full flex flex-col min-h-full">
+            
+            {/* Minimalist Welcome State (Shown when chat starts) */}
+            {!isConversationStarted && (
+              <div className="my-auto py-8 text-center space-y-6 animate-in fade-in duration-300">
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-[#0F4C45] to-[#176B61] mx-auto flex items-center justify-center text-[#C8A96A] shadow-md border border-gold/30">
+                  <Sparkles className="w-7 h-7" />
+                </div>
+
+                <div className="space-y-1.5">
+                  <h2 className="font-serif font-bold text-2xl sm:text-3xl text-[#0F4C45]">
+                    {vendorContext 
+                      ? `How can Aura help ${vendorContext.businessName}?`
+                      : `How can Aura assist your wedding, ${currentEntityName}?`}
+                  </h2>
+                  <p className="text-xs sm:text-sm text-charcoal/60 max-w-lg mx-auto leading-relaxed">
+                    {vendorContext
+                      ? "Create bespoke service packages, write SEO storefront copy, review couple enquiries, and explore Kerala wedding pricing benchmarks."
+                      : "Find verified venues, compare photographers, calculate category budgets, and craft inquiries with live Kerala directory data."}
+                  </p>
+                </div>
+
+                {/* 2x2 Clean Starter Cards (Like Claude / ChatGPT) */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-xl mx-auto text-left pt-2">
+                  {workflowActions.map((wf, idx) => {
+                    const Icon = wf.icon;
+                    return (
+                      <button
+                        key={idx}
+                        onClick={() => handleSendPrompt(wf.prompt)}
+                        disabled={isThinking}
+                        className="p-3.5 rounded-2xl bg-white hover:bg-white/90 border border-[#E2DAD0] hover:border-[#0F4C45]/40 shadow-xs hover:shadow-sm transition-all group cursor-pointer flex items-start gap-3 text-left"
+                      >
+                        <div className="p-2 rounded-xl bg-[#FAF7F2] group-hover:bg-[#0F4C45] text-[#0F4C45] group-hover:text-white transition-colors shrink-0">
+                          <Icon className="w-4 h-4" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <h3 className="font-bold text-xs text-charcoal group-hover:text-[#0F4C45] transition-colors">
+                            {wf.title}
+                          </h3>
+                          <p className="text-[11px] text-charcoal/60 line-clamp-2 mt-0.5 leading-snug">
+                            {wf.desc}
+                          </p>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Conversation Messages */}
+            <div className="space-y-6">
+              {messages.map((m) => {
+                const isUser = m.sender === "user";
+                return (
+                  <div
+                    key={m.id}
+                    className={`flex gap-3 sm:gap-4 ${isUser ? "justify-end" : "justify-start"}`}
+                  >
+                    {/* Aura Avatar */}
+                    {!isUser && (
+                      <div className="w-8 h-8 rounded-full bg-[#0F4C45] flex items-center justify-center text-[#C8A96A] shrink-0 shadow-2xs mt-1 border border-gold/20">
+                        <Sparkles className="w-4 h-4" />
+                      </div>
+                    )}
+
+                    <div className={`space-y-1.5 ${isUser ? "max-w-[85%] sm:max-w-[75%]" : "max-w-[92%] sm:max-w-[85%]"}`}>
+                      {/* Bubble */}
+                      <div
+                        className={`rounded-2xl p-4 sm:p-5 text-xs sm:text-[13px] leading-relaxed shadow-2xs ${
+                          isUser
+                            ? "bg-[#0F4C45] text-white rounded-tr-xs ml-auto"
+                            : "bg-white text-charcoal border border-[#E5DECF] rounded-tl-xs"
+                        }`}
+                      >
+                        <div className="whitespace-pre-line leading-relaxed">{m.text}</div>
+
+                        {/* Package Draft Card */}
+                        {m.packageDraft && (
+                          <div className="mt-4 pt-3.5 border-t border-gold/20 bg-[#FAF7F2] p-4 rounded-xl border border-gold/20 space-y-3">
                             <div className="flex items-center justify-between">
-                              <h4 className="font-serif font-bold text-base text-[#0F4C45]">{m.packageDraft.name}</h4>
-                              <span className="font-bold text-base text-emerald-800">
-                                ₹{m.packageDraft.price.toLocaleString("en-IN")}
+                              <span className="text-xs font-bold text-[#0F4C45] uppercase tracking-wider flex items-center gap-1.5">
+                                <Package className="h-4 w-4 text-gold" /> Proposed Package Draft
+                              </span>
+                              <span className="text-[10px] bg-amber-100 text-amber-900 px-2.5 py-0.5 rounded-full font-bold">
+                                {m.packageDraft.isSaved ? "Saved to Catalog" : "Draft"}
                               </span>
                             </div>
-                            <p className="text-xs text-charcoal/70 italic">{m.packageDraft.tagline}</p>
-                            
-                            <div className="pt-2.5 border-t border-gold/10 space-y-1.5">
-                              <span className="text-[10px] font-bold text-charcoal/60 uppercase tracking-wider">Inclusions & Scope:</span>
-                              {m.packageDraft.features.map((feat, idx) => (
-                                <div key={idx} className="flex items-start gap-2 text-xs">
-                                  <Check className="h-3.5 w-3.5 text-[#0F4C45] shrink-0 mt-0.5" />
-                                  <span>{feat}</span>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
 
-                          <button
-                            onClick={() => handleSavePackage(m.id, m.packageDraft!)}
-                            disabled={m.packageDraft.isSaved || isActionLoading}
-                            className={`w-full py-2.5 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer ${
-                              m.packageDraft.isSaved
-                                ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
-                                : "bg-[#0F4C45] hover:bg-[#135951] text-white"
-                            }`}
-                          >
-                            {m.packageDraft.isSaved ? (
-                              <>
-                                <CheckCircle2 className="h-4 w-4 text-emerald-700" /> Saved in Packages Catalog
-                              </>
-                            ) : (
-                              <>
-                                <Save className="h-4 w-4 text-gold" /> Save Package to Storefront
-                              </>
-                            )}
-                          </button>
-                        </div>
-                      )}
-
-                      {/* Phase 3: Profile Description Before & After */}
-                      {m.profileDraft && (
-                        <div className="mt-4 pt-3.5 border-t border-gold/20 bg-white p-4 sm:p-5 rounded-2xl border border-gold/20 space-y-3">
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs font-bold text-[#0F4C45] uppercase tracking-wider flex items-center gap-1.5">
-                              <FileText className="h-4 w-4 text-gold" /> SEO Description Comparison
-                            </span>
-                            <span className="text-[11px] bg-amber-100 text-amber-900 px-2.5 py-0.5 rounded-full font-bold">
-                              {m.profileDraft.isApproved ? "Updated on Storefront" : "Before → After"}
-                            </span>
-                          </div>
-
-                          <div className="space-y-3 text-xs">
-                            <div className="bg-[#FAF7F2] p-3.5 rounded-xl border border-red-200">
-                              <span className="text-[11px] font-bold text-red-700 block mb-1">Current Description:</span>
-                              <p className="text-xs text-charcoal/70 italic leading-relaxed">{m.profileDraft.currentAbout}</p>
+                            <div className="bg-white p-3.5 rounded-lg border border-gold/15 space-y-2">
+                              <div className="flex items-center justify-between">
+                                <h4 className="font-serif font-bold text-sm text-[#0F4C45]">{m.packageDraft.name}</h4>
+                                <span className="font-bold text-sm text-emerald-800">
+                                  ₹{m.packageDraft.price.toLocaleString("en-IN")}
+                                </span>
+                              </div>
+                              <p className="text-xs text-charcoal/70 italic">{m.packageDraft.tagline}</p>
+                              
+                              <div className="pt-2 border-t border-black/5 space-y-1">
+                                <span className="text-[10px] font-bold text-charcoal/60 uppercase">Inclusions:</span>
+                                {m.packageDraft.features.map((feat, idx) => (
+                                  <div key={idx} className="flex items-start gap-1.5 text-xs">
+                                    <Check className="h-3.5 w-3.5 text-[#0F4C45] shrink-0 mt-0.5" />
+                                    <span>{feat}</span>
+                                  </div>
+                                ))}
+                              </div>
                             </div>
 
-                            <div className="bg-[#FAF7F2] p-3.5 rounded-xl border border-emerald-300">
-                              <span className="text-[11px] font-bold text-emerald-800 block mb-1">Proposed SEO-Optimized Description:</span>
-                              <p className="text-xs text-charcoal leading-relaxed">{m.profileDraft.proposedAbout}</p>
-                            </div>
-                          </div>
-
-                          <button
-                            onClick={() => handleApproveProfile(m.id, m.profileDraft!)}
-                            disabled={m.profileDraft.isApproved || isActionLoading}
-                            className={`w-full py-2.5 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer ${
-                              m.profileDraft.isApproved
-                                ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
-                                : "bg-[#0F4C45] hover:bg-[#135951] text-white"
-                            }`}
-                          >
-                            {m.profileDraft.isApproved ? (
-                              <>
-                                <CheckCircle2 className="h-4 w-4 text-emerald-700" /> Storefront Profile Updated
-                              </>
-                            ) : (
-                              <>
-                                <CheckCircle2 className="h-4 w-4 text-gold" /> Approve & Update Storefront
-                              </>
-                            )}
-                          </button>
-                        </div>
-                      )}
-
-                      {/* Grounded Live Vendor Cards */}
-                      {m.groundedVendors && m.groundedVendors.length > 0 && (
-                        <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3.5 border-t border-gold/10">
-                          {m.groundedVendors.map((v) => (
-                            <Link
-                              key={v.id}
-                              href={v.detailUrl}
-                              className="flex items-center gap-3 bg-white hover:bg-gold/10 p-3.5 rounded-2xl border border-gold/20 transition-all group shadow-xs"
-                            >
-                              <div className="relative h-14 w-14 rounded-xl overflow-hidden bg-[#0F4C45] shrink-0 border border-gold/20 flex items-center justify-center text-white">
-                                {v.coverImage ? (
-                                  <img src={v.coverImage} alt={v.name} className="w-full h-full object-cover" />
-                                ) : v.logo ? (
-                                  <img src={v.logo} alt={v.name} className="w-full h-full object-cover" />
-                                ) : (
-                                  <span className="font-serif text-base font-bold">{v.name.slice(0, 2).toUpperCase()}</span>
-                                )}
-                              </div>
-
-                              <div className="flex-1 min-w-0">
-                                <h4 className="font-serif font-bold text-xs sm:text-sm text-charcoal truncate group-hover:text-[#0F4C45] transition-colors">
-                                  {v.name}
-                                </h4>
-                                <p className="text-[11px] text-charcoal/60 truncate flex items-center gap-1 mt-0.5">
-                                  <MapPin className="h-3 w-3 text-charcoal/40 shrink-0" />
-                                  <span>{v.city}, {v.state}</span>
-                                </p>
-                                <div className="flex items-center justify-between gap-2 mt-1.5">
-                                  <span className="text-[11px] text-charcoal font-bold">
-                                    {v.rating > 0 ? `★ ${v.rating.toFixed(1)}` : "New (0)"}
-                                  </span>
-                                  <span className="text-[11px] font-bold text-[#0F4C45]">
-                                    {v.startingPrice}
-                                  </span>
-                                </div>
-                              </div>
-                            </Link>
-                          ))}
-                        </div>
-                      )}
-
-                      {/* Budget Plan Card */}
-                      {m.budgetPlan && (
-                        <div className="mt-4 pt-3.5 border-t border-gold/15 space-y-3">
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                            {m.budgetPlan.items.map((it, idx) => (
-                              <div key={idx} className="bg-white p-3.5 rounded-xl border border-gold/10 flex items-center justify-between text-xs shadow-xs">
-                                <div>
-                                  <div className="font-semibold text-charcoal">{it.category} ({it.percentage}%)</div>
-                                  <div className="text-[11px] text-charcoal/60">{it.note}</div>
-                                </div>
-                                <div className="font-bold text-[#0F4C45] text-right shrink-0">
-                                  ₹{it.amount.toLocaleString("en-IN")}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-
-                          {userContext?.userId && (
                             <button
-                              onClick={() => handleSaveBudgetPlan(m.id, m.budgetPlan)}
-                              disabled={m.budgetPlan.isSaved || isActionLoading}
-                              className={`w-full mt-2 py-2.5 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer ${
-                                m.budgetPlan.isSaved
+                              onClick={() => handleSavePackage(m.id, m.packageDraft!)}
+                              disabled={m.packageDraft.isSaved || isActionLoading}
+                              className={`w-full py-2.5 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                                m.packageDraft.isSaved
                                   ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
-                                  : "bg-[#0F4C45] text-white hover:bg-[#135951]"
+                                  : "bg-[#0F4C45] hover:bg-[#135951] text-white shadow-xs"
                               }`}
                             >
-                              {m.budgetPlan.isSaved ? (
+                              {m.packageDraft.isSaved ? (
                                 <>
-                                  <CheckCircle2 className="h-4 w-4 text-emerald-700" /> Saved to My Wedding Plan
+                                  <CheckCircle2 className="h-4 w-4 text-emerald-700" /> Saved in Packages Catalog
                                 </>
                               ) : (
                                 <>
-                                  <Save className="h-4 w-4 text-gold" /> Save to My Wedding Plan
+                                  <Save className="h-4 w-4 text-gold" /> Save Package to Storefront
                                 </>
                               )}
                             </button>
-                          )}
-                        </div>
-                      )}
-
-                      {/* Inquiry Draft */}
-                      {m.inquiryDraft && (
-                        <div className="mt-4 pt-3.5 border-t border-gold/20 bg-white p-4 sm:p-5 rounded-2xl border border-gold/20 space-y-3">
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs font-bold text-[#0F4C45] uppercase tracking-wider flex items-center gap-1.5">
-                              <MailCheck className="h-4 w-4 text-gold" /> Proposed Inquiry Draft
-                            </span>
-                            <span className="text-[11px] bg-amber-100 text-amber-900 px-2.5 py-0.5 rounded-full font-bold">
-                              Awaiting Confirmation
-                            </span>
                           </div>
+                        )}
 
-                          <div className="bg-[#FAF7F2] p-4 rounded-xl border border-gold/15 text-xs space-y-1.5 text-charcoal">
-                            <div><strong className="text-charcoal/60">Target Vendor:</strong> {m.inquiryDraft.vendorName} ({m.inquiryDraft.category})</div>
-                            <div><strong className="text-charcoal/60">Your Contact:</strong> {m.inquiryDraft.customerName} ({m.inquiryDraft.customerPhone})</div>
-                            <div><strong className="text-charcoal/60">Event:</strong> {m.inquiryDraft.eventType} on {m.inquiryDraft.eventDate} ({m.inquiryDraft.city})</div>
-                            <div className="pt-2 text-xs italic text-charcoal/80 bg-white p-3 rounded-lg mt-2 border border-gold/10 leading-relaxed">
-                              &ldquo;{m.inquiryDraft.message}&rdquo;
+                        {/* SEO Description Comparison */}
+                        {m.profileDraft && (
+                          <div className="mt-4 pt-3.5 border-t border-gold/20 bg-[#FAF7F2] p-4 rounded-xl border border-gold/20 space-y-3">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs font-bold text-[#0F4C45] uppercase tracking-wider flex items-center gap-1.5">
+                                <FileText className="h-4 w-4 text-gold" /> SEO Description Comparison
+                              </span>
+                              <span className="text-[10px] bg-amber-100 text-amber-900 px-2.5 py-0.5 rounded-full font-bold">
+                                {m.profileDraft.isApproved ? "Updated" : "Review"}
+                              </span>
                             </div>
+
+                            <div className="space-y-2 text-xs">
+                              <div className="bg-white p-3 rounded-lg border border-red-200">
+                                <span className="text-[10.5px] font-bold text-red-700 block mb-0.5">Current:</span>
+                                <p className="text-xs text-charcoal/70 italic leading-relaxed">{m.profileDraft.currentAbout}</p>
+                              </div>
+
+                              <div className="bg-white p-3 rounded-lg border border-emerald-300">
+                                <span className="text-[10.5px] font-bold text-emerald-800 block mb-0.5">Proposed SEO Text:</span>
+                                <p className="text-xs text-charcoal leading-relaxed">{m.profileDraft.proposedAbout}</p>
+                              </div>
+                            </div>
+
+                            <button
+                              onClick={() => handleApproveProfile(m.id, m.profileDraft!)}
+                              disabled={m.profileDraft.isApproved || isActionLoading}
+                              className={`w-full py-2.5 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                                m.profileDraft.isApproved
+                                  ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
+                                  : "bg-[#0F4C45] hover:bg-[#135951] text-white shadow-xs"
+                              }`}
+                            >
+                              {m.profileDraft.isApproved ? (
+                                <>
+                                  <CheckCircle2 className="h-4 w-4 text-emerald-700" /> Storefront Profile Updated
+                                </>
+                              ) : (
+                                <>
+                                  <CheckCircle2 className="h-4 w-4 text-gold" /> Approve & Update Storefront
+                                </>
+                              )}
+                            </button>
                           </div>
+                        )}
 
+                        {/* Grounded Vendors List */}
+                        {m.groundedVendors && m.groundedVendors.length > 0 && (
+                          <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-3.5 border-t border-black/5">
+                            {m.groundedVendors.map((v) => (
+                              <Link
+                                key={v.id}
+                                href={v.detailUrl}
+                                className="flex items-center gap-3 bg-[#FAF7F2] hover:bg-[#F2ECE1] p-3 rounded-xl border border-gold/20 transition-all group"
+                              >
+                                <div className="relative h-12 w-12 rounded-lg overflow-hidden bg-[#0F4C45] shrink-0 border border-gold/20 flex items-center justify-center text-white">
+                                  {v.coverImage ? (
+                                    <img src={v.coverImage} alt={v.name} className="w-full h-full object-cover" />
+                                  ) : v.logo ? (
+                                    <img src={v.logo} alt={v.name} className="w-full h-full object-cover" />
+                                  ) : (
+                                    <span className="font-serif text-xs font-bold">{v.name.slice(0, 2).toUpperCase()}</span>
+                                  )}
+                                </div>
+
+                                <div className="flex-1 min-w-0">
+                                  <h4 className="font-serif font-bold text-xs text-charcoal truncate group-hover:text-[#0F4C45] transition-colors">
+                                    {v.name}
+                                  </h4>
+                                  <p className="text-[10.5px] text-charcoal/60 truncate flex items-center gap-1 mt-0.5">
+                                    <MapPin className="h-3 w-3 text-charcoal/40 shrink-0" />
+                                    <span>{v.city}, {v.state}</span>
+                                  </p>
+                                  <div className="flex items-center justify-between gap-2 mt-1">
+                                    <span className="text-[10px] text-charcoal font-bold">
+                                      {v.rating > 0 ? `★ ${v.rating.toFixed(1)}` : "New (0)"}
+                                    </span>
+                                    <span className="text-[10px] font-bold text-[#0F4C45]">
+                                      {v.startingPrice}
+                                    </span>
+                                  </div>
+                                </div>
+                              </Link>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Budget Plan Card */}
+                        {m.budgetPlan && (
+                          <div className="mt-4 pt-3.5 border-t border-black/5 space-y-2.5">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                              {m.budgetPlan.items.map((it, idx) => (
+                                <div key={idx} className="bg-[#FAF7F2] p-2.5 rounded-lg border border-gold/15 flex items-center justify-between text-xs">
+                                  <div>
+                                    <div className="font-semibold text-charcoal">{it.category} ({it.percentage}%)</div>
+                                    <div className="text-[10.5px] text-charcoal/60">{it.note}</div>
+                                  </div>
+                                  <div className="font-bold text-[#0F4C45] text-right shrink-0">
+                                    ₹{it.amount.toLocaleString("en-IN")}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+
+                            {userContext?.userId && (
+                              <button
+                                onClick={() => handleSaveBudgetPlan(m.id, m.budgetPlan)}
+                                disabled={m.budgetPlan.isSaved || isActionLoading}
+                                className={`w-full mt-2 py-2 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                                  m.budgetPlan.isSaved
+                                    ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
+                                    : "bg-[#0F4C45] text-white hover:bg-[#135951]"
+                                }`}
+                              >
+                                {m.budgetPlan.isSaved ? (
+                                  <>
+                                    <CheckCircle2 className="h-4 w-4 text-emerald-700" /> Saved to Wedding Plan
+                                  </>
+                                ) : (
+                                  <>
+                                    <Save className="h-4 w-4 text-gold" /> Save to My Wedding Plan
+                                  </>
+                                )}
+                              </button>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Inquiry Draft */}
+                        {m.inquiryDraft && (
+                          <div className="mt-4 pt-3.5 border-t border-gold/20 bg-[#FAF7F2] p-4 rounded-xl border border-gold/20 space-y-3">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs font-bold text-[#0F4C45] uppercase tracking-wider flex items-center gap-1.5">
+                                <MailCheck className="h-4 w-4 text-gold" /> Proposed Inquiry Draft
+                              </span>
+                              <span className="text-[10px] bg-amber-100 text-amber-900 px-2 py-0.5 rounded-full font-bold">
+                                Confirmation
+                              </span>
+                            </div>
+
+                            <div className="bg-white p-3 rounded-lg border border-gold/15 text-xs space-y-1 text-charcoal">
+                              <div><strong className="text-charcoal/60">Target:</strong> {m.inquiryDraft.vendorName} ({m.inquiryDraft.category})</div>
+                              <div><strong className="text-charcoal/60">Event:</strong> {m.inquiryDraft.eventType} on {m.inquiryDraft.eventDate} ({m.inquiryDraft.city})</div>
+                              <div className="pt-1.5 text-xs italic text-charcoal/80 mt-1 border-t border-black/5 leading-relaxed">
+                                &ldquo;{m.inquiryDraft.message}&rdquo;
+                              </div>
+                            </div>
+
+                            <button
+                              onClick={() => handleConfirmSendInquiry(m.inquiryDraft!)}
+                              disabled={isActionLoading}
+                              className="w-full bg-[#0F4C45] hover:bg-[#135951] text-white py-2 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer disabled:opacity-50"
+                            >
+                              <Send className="h-3.5 w-3.5 text-gold" /> Confirm & Send Inquiry to {m.inquiryDraft.vendorName}
+                            </button>
+                          </div>
+                        )}
+
+                        {/* Category Explore Link */}
+                        {m.categoryUrl && (
+                          <div className="mt-2.5 pt-2 border-t border-black/5">
+                            <Link
+                              href={m.categoryUrl}
+                              className="text-[11px] font-bold text-[#0F4C45] hover:underline flex items-center gap-1"
+                            >
+                              <span>Explore catalog</span>
+                              <ArrowRight className="h-3 w-3" />
+                            </Link>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Micro actions below assistant message */}
+                      {!isUser && (
+                        <div className="flex items-center gap-2 px-1 text-[11px] text-charcoal/40">
                           <button
-                            onClick={() => handleConfirmSendInquiry(m.inquiryDraft!)}
-                            disabled={isActionLoading}
-                            className="w-full bg-[#0F4C45] hover:bg-[#135951] text-white py-2.5 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer disabled:opacity-50"
+                            onClick={() => handleCopyText(m.id, m.text)}
+                            className="flex items-center gap-1 hover:text-[#0F4C45] transition-colors cursor-pointer"
+                            title="Copy message"
                           >
-                            <Send className="h-4 w-4 text-gold" /> Confirm & Send Inquiry to {m.inquiryDraft.vendorName}
+                            {copiedId === m.id ? (
+                              <>
+                                <Check className="w-3 h-3 text-emerald-600" />
+                                <span className="text-emerald-700">Copied</span>
+                              </>
+                            ) : (
+                              <>
+                                <Copy className="w-3 h-3" />
+                                <span>Copy</span>
+                              </>
+                            )}
                           </button>
-                        </div>
-                      )}
-
-                      {/* Category Explore Link */}
-                      {m.categoryUrl && (
-                        <div className="mt-3 pt-2.5 border-t border-gold/10">
-                          <Link
-                            href={m.categoryUrl}
-                            className="text-[11px] font-bold text-[#0F4C45] hover:underline flex items-center gap-1"
-                          >
-                            <span>Explore full category catalog</span>
-                            <ArrowRight className="h-3 w-3" />
-                          </Link>
+                          <span>•</span>
+                          <span>{m.timestamp}</span>
                         </div>
                       )}
                     </div>
                   </div>
+                );
+              })}
 
-                  {/* User Avatar */}
-                  {m.sender === "user" && (
-                    <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#C8A96A] flex items-center justify-center text-[#0F4C45] shrink-0 shadow-xs border border-white font-bold text-xs mt-1">
-                      {userContext?.fullName ? userContext.fullName.charAt(0).toUpperCase() : vendorContext?.businessName ? vendorContext.businessName.charAt(0).toUpperCase() : "U"}
-                    </div>
-                  )}
-                </div>
-              ))}
-
+              {/* Thinking / Streaming Indicator */}
               {isThinking && (
-                <div className="flex items-center gap-3 text-xs text-charcoal/70 bg-[#FAF7F2] p-4 rounded-2xl border border-gold/15 w-fit shadow-xs">
+                <div className="flex items-center gap-3 bg-white p-3.5 rounded-2xl border border-[#E5DECF] w-fit shadow-2xs animate-in fade-in duration-200">
                   <div className="w-7 h-7 rounded-full bg-[#0F4C45] flex items-center justify-center text-[#C8A96A]">
                     <Sparkles className="w-3.5 h-3.5 animate-spin" />
                   </div>
                   <div className="space-y-0.5">
-                    <span className="font-semibold text-charcoal block">Aura is searching Cloche database...</span>
-                    <span className="text-[10px] text-charcoal/50">Cross-referencing live pricing, ratings & availability</span>
+                    <span className="text-xs font-semibold text-charcoal block">Aura is searching Cloche database...</span>
+                    <span className="text-[10px] text-charcoal/50">Cross-referencing verified pricing, ratings & availability</span>
                   </div>
                 </div>
               )}
               <div ref={messagesEndRef} />
             </div>
-
-            {/* Bottom Input Area */}
-            <div className="p-4 sm:p-5 border-t border-gold/15 bg-white space-y-3">
-              
-              {/* Quick Prompt Chips */}
-              <div className="flex items-center gap-2 overflow-x-auto scrollbar-none pb-1">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-charcoal/40 shrink-0">
-                  Try:
-                </span>
-                {samplePrompts.map((p, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => handleSendPrompt(p)}
-                    disabled={isThinking}
-                    className="text-[11px] whitespace-nowrap bg-[#FAF7F2] hover:bg-gold/15 text-charcoal/80 border border-gold/15 px-3 py-1.5 rounded-full transition-all cursor-pointer shrink-0 disabled:opacity-50 font-medium"
-                  >
-                    {p}
-                  </button>
-                ))}
-              </div>
-
-              {/* Input Form */}
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  handleSendPrompt();
-                }}
-                className="relative flex items-center gap-2"
-              >
-                <div className="relative flex-1">
-                  <input
-                    ref={inputRef}
-                    type="text"
-                    value={promptInput}
-                    onChange={(e) => setPromptInput(e.target.value)}
-                    placeholder={
-                      vendorContext
-                        ? "Ask Aura: 'Draft a package', 'Rewrite my SEO description', 'Summarize enquiries'..."
-                        : "Ask Aura: 'Find wedding venues in Kochi', 'Compare decorators', 'Budget for 400 guests'..."
-                    }
-                    disabled={isThinking}
-                    className="w-full bg-[#FAF7F2] border border-gold/20 rounded-2xl pl-4 pr-12 py-3.5 text-xs sm:text-sm text-charcoal placeholder:text-charcoal/40 focus:outline-none focus:border-[#0F4C45] focus:ring-2 focus:ring-[#0F4C45]/10 shadow-xs"
-                  />
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2 text-charcoal/30 hidden sm:block text-[11px]">
-                    ↵ Enter
-                  </div>
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={!promptInput.trim() || isThinking}
-                  className="h-[46px] px-5 sm:px-6 rounded-2xl bg-gradient-to-r from-[#0F4C45] to-[#12584E] hover:from-[#072B27] hover:to-[#0F4C45] disabled:opacity-40 text-white font-bold text-xs flex items-center gap-2 shadow-sm transition-all shrink-0 cursor-pointer"
-                >
-                  <Send className="w-4 h-4 text-[#C8A96A]" />
-                  <span className="hidden sm:inline">Ask Aura</span>
-                </button>
-              </form>
-
-              <div className="flex items-center justify-between text-[10px] text-charcoal/40 px-1">
-                <span>Aura AI Assistant • Cloche India</span>
-                <span className="hidden sm:inline">100% Real-Time Grounding • Verified Directory Data</span>
-              </div>
-            </div>
-
           </div>
         </div>
-      </main>
 
-      <Footer />
-      <BottomNavBar activeTab="home" />
+        {/* Modern Floating Bottom Input Area (Like ChatGPT / Claude) */}
+        <div className="border-t border-[#E8E2D7] bg-white/95 backdrop-blur-md px-4 py-3 shrink-0 z-10">
+          <div className="max-w-3xl mx-auto w-full space-y-2.5">
+            
+            {/* Quick Suggestion Chips */}
+            <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none pb-0.5">
+              {samplePrompts.map((p, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => handleSendPrompt(p)}
+                  disabled={isThinking}
+                  className="text-[11px] whitespace-nowrap bg-[#FAF7F2] hover:bg-[#F2ECE1] text-charcoal/80 border border-[#E0D7C9] px-3 py-1 rounded-full transition-all cursor-pointer shrink-0 disabled:opacity-50 font-medium"
+                >
+                  {p}
+                </button>
+              ))}
+            </div>
+
+            {/* Input Form */}
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSendPrompt();
+              }}
+              className="relative flex items-end gap-2 bg-[#FAF7F2] border border-[#DDD3C2] rounded-2xl sm:rounded-3xl p-1.5 focus-within:border-[#0F4C45] focus-within:ring-2 focus-within:ring-[#0F4C45]/15 focus-within:bg-white shadow-2xs transition-all"
+            >
+              <textarea
+                ref={textareaRef}
+                rows={1}
+                value={promptInput}
+                onChange={(e) => setPromptInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder={
+                  vendorContext
+                    ? "Ask Aura to draft a package, rewrite SEO description, or summarize leads..."
+                    : "Ask Aura about wedding venues, decor budgets, photographers, or checklists..."
+                }
+                disabled={isThinking}
+                className="w-full bg-transparent resize-none max-h-36 px-3 py-2 text-xs sm:text-sm text-charcoal placeholder:text-charcoal/45 focus:outline-none"
+              />
+
+              <button
+                type="submit"
+                disabled={!promptInput.trim() || isThinking}
+                className="w-9 h-9 rounded-full bg-[#0F4C45] hover:bg-[#135951] disabled:opacity-30 disabled:hover:bg-[#0F4C45] text-white flex items-center justify-center transition-all shrink-0 cursor-pointer shadow-xs"
+                title="Send message"
+              >
+                <ArrowUp className="w-4 h-4 stroke-[2.5]" />
+              </button>
+            </form>
+
+            {/* Disclaimer */}
+            <p className="text-center text-[10.5px] text-charcoal/45">
+              Aura can assist with packages, pricing, and planning. Verified with live Cloche Directory data.
+            </p>
+          </div>
+        </div>
+
+      </main>
     </div>
   );
 }
