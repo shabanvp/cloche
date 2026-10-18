@@ -9,7 +9,7 @@ import { AutocompleteSearch } from "@/components/AutocompleteSearch";
 import { DigitalInvitationsSection } from "@/components/DigitalInvitationsSection";
 import { HomepageVendorCard, VendorCardItem } from "@/components/HomepageVendorCard";
 import { PopularNearYouSection } from "@/components/PopularNearYouSection";
-import { WeddingInspirationGallerySection } from "@/components/WeddingInspirationGallerySection";
+import { PhotographersForYouSection } from "@/components/PhotographersForYouSection";
 import { WeddingPlanningJourneySection } from "@/components/WeddingPlanningJourneySection";
 import { Sparkles, MapPin, Calendar, BookHeart, Plus, ArrowRight, Star, Heart, Flame } from "lucide-react";
 import { HOMEPAGE_CATEGORY_STRIP } from "@/lib/categories";
@@ -350,8 +350,8 @@ export default function Home() {
         {/* Digital Wedding Invitations Section */}
         <DigitalInvitationsSection />
 
-        {/* ── SECTION B: WEDDING INSPIRATION GALLERY ── */}
-        <WeddingInspirationGallerySection />
+        {/* ── SECTION B: PHOTOGRAPHERS FOR YOU ── */}
+        <PhotographersForYouSection initialVendors={allVendors} />
 
         {/* App Banner */}
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 my-12">
