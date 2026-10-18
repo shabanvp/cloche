@@ -12,7 +12,6 @@ import {
   Trash2,
   Sparkles,
   Tag,
-  SlidersHorizontal,
   ChevronDown,
   Layers
 } from "lucide-react";

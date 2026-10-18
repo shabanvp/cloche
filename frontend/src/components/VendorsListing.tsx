@@ -6,7 +6,6 @@ import { useState, useMemo, useEffect } from "react";
 import {
   ArrowLeft,
   Search,
-  SlidersHorizontal,
   Heart,
   Star,
   Users,
@@ -273,13 +272,6 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
             <ArrowLeft className="h-4 w-4" />
           </Link>
           <AutocompleteSearch placeholder="Search vendors..." className="w-full max-w-sm sm:max-w-md md:w-[420px] lg:w-[480px]" />
-          <button
-            type="button"
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-white border border-gold/20 text-charcoal hover:bg-gold/10 transition-colors shadow-2xs shrink-0 md:hidden ml-auto"
-            aria-label="Filters"
-          >
-            <SlidersHorizontal className="h-4 w-4 text-[#0F4C45]" />
-          </button>
         </div>
       </header>
 

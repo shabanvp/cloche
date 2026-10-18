@@ -4,7 +4,6 @@ import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import {
   Search,
-  SlidersHorizontal,
   Heart,
   Star,
   MapPin,
@@ -50,7 +49,6 @@ export function VendorCategoryListing({
     return new Set();
   });
   const [currentPage, setCurrentPage] = useState(1);
-  const [showFilterDrawer, setShowFilterDrawer] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   // Dynamic category-filtered vendors
@@ -202,7 +200,7 @@ export function VendorCategoryListing({
           </p>
         </div>
 
-        {/* Search Input Bar with Filter Icon */}
+        {/* Search Input Bar */}
         <div className="relative mb-4">
           <div className="relative flex items-center">
             <Search className="absolute left-4 w-5 h-5 text-charcoal/40" />
@@ -211,15 +209,8 @@ export function VendorCategoryListing({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={categoryConfig.searchPlaceholder}
-              className="w-full bg-white border border-gold/20 rounded-2xl pl-12 pr-14 py-3 text-sm sm:text-base text-charcoal placeholder:text-charcoal/40 focus:outline-none focus:border-[#0F4C45] shadow-xs transition-all"
+              className="w-full bg-white border border-gold/20 rounded-2xl pl-12 pr-4 py-3 text-sm sm:text-base text-charcoal placeholder:text-charcoal/40 focus:outline-none focus:border-[#0F4C45] shadow-xs transition-all"
             />
-            <button
-              onClick={() => setShowFilterDrawer(!showFilterDrawer)}
-              className="absolute right-3.5 p-2 bg-[#FAF7F2] hover:bg-gold/20 rounded-xl text-charcoal border border-gold/15 transition-colors"
-              title="Toggle Filters"
-            >
-              <SlidersHorizontal className="w-4 h-4 text-[#0F4C45]" />
-            </button>
           </div>
         </div>
 

@@ -135,9 +135,6 @@ export function JewelleryListing() {
               onChange={(e) => setSearch(e.target.value)}
               className="w-full bg-transparent text-[13px] sm:text-[14px] outline-none placeholder:text-[#AAA29A] text-[#1A1410]"
             />
-            <button className="text-[#0F4C45]">
-              <SlidersHorizontal className="h-4 w-4" />
-            </button>
           </div>
         </div>
 
