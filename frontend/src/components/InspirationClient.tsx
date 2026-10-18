@@ -5,7 +5,7 @@ import Link from "next/link";
 import {
   Sparkles, Search, Bookmark, Share2, X, Plus, Check,
   Download, FolderPlus, ExternalLink, CheckCircle2,
-  AlertCircle, ChevronRight, Wand2, DollarSign, Palette,
+  AlertCircle, ChevronRight, ChevronLeft, Wand2, DollarSign, Palette,
   MapPin, ShieldCheck, Copy, CheckSquare, RefreshCw,
   Flame, Clock, ArrowUpDown
 } from "lucide-react";
@@ -460,16 +460,48 @@ export function InspirationClient() {
 
   const totalSavedCount = useMemo(() => Object.keys(savedMap).length, [savedMap]);
 
-  // ── Related Items in Lightbox ──
-  const relatedItems = useMemo<InspirationItem[]>(() => {
-    if (!selectedItem) return [];
-    const all: InspirationItem[] = [...STATIC_COLOR_THEMES, ...Object.values(photoCache.current).flat()];
-    return all
-      .filter((i) => i.id !== selectedItem.id && i.category === selectedItem.category)
-      .slice(0, 6);
-  }, [selectedItem]);
+  // ── Current Active Inspiration List for Lightbox Slide Roll ──
+  const currentList = useMemo<InspirationItem[]>(() => {
+    return activeTab === "saved" ? savedItemsList : displayItems;
+  }, [activeTab, savedItemsList, displayItems]);
 
-  const selectedProfile = selectedItem ? getInspirationPlanningProfile(selectedItem) : null;
+  const currentIndex = useMemo(() => {
+    if (!selectedItem) return -1;
+    return currentList.findIndex((item) => String(item.id) === String(selectedItem.id));
+  }, [selectedItem, currentList]);
+
+  const handlePrev = useCallback(() => {
+    if (currentList.length === 0) return;
+    const idx = currentIndex >= 0 ? currentIndex : 0;
+    const prevIdx = (idx - 1 + currentList.length) % currentList.length;
+    setSelectedItem(currentList[prevIdx]);
+  }, [currentIndex, currentList]);
+
+  const handleNext = useCallback(() => {
+    if (currentList.length === 0) return;
+    const idx = currentIndex >= 0 ? currentIndex : 0;
+    const nextIdx = (idx + 1) % currentList.length;
+    setSelectedItem(currentList[nextIdx]);
+  }, [currentIndex, currentList]);
+
+  // Keyboard Navigation (ArrowLeft, ArrowRight, Escape)
+  useEffect(() => {
+    if (!selectedItem) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        handlePrev();
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault();
+        handleNext();
+      } else if (e.key === "Escape") {
+        e.preventDefault();
+        setSelectedItem(null);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selectedItem, handlePrev, handleNext]);
 
   // ── Trigger Mood Board Generation ──
   const handleGenerateMoodBoard = () => {
@@ -726,246 +758,113 @@ export function InspirationClient() {
       {/* ══════════════════════════════════════════════════════════════════════
           5. DEDICATED FULL-SCREEN DETAIL VIEW (MOBILE FULLSCREEN & DESKTOP MODAL)
       ══════════════════════════════════════════════════════════════════════ */}
-      {selectedItem && selectedProfile && (
+      {/* ══════════════════════════════════════════════════════════════════════
+          5. FULL-SCREEN INSPIRATION IMAGE VIEWER (SLIDE ROLL CAROUSEL)
+      ══════════════════════════════════════════════════════════════════════ */}
+      {selectedItem && (
         <div
-          className="fixed inset-0 z-[120] bg-white md:bg-black/85 md:backdrop-blur-md flex flex-col md:flex-row md:items-center md:justify-center p-0 md:p-6 overflow-y-auto md:overflow-hidden animate-in fade-in duration-200"
+          className="fixed inset-0 z-[120] bg-black/95 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 animate-in fade-in duration-200 select-none"
           onClick={() => setSelectedItem(null)}
         >
-          <div
-            className="bg-white w-full max-w-full md:max-w-5xl rounded-none md:rounded-3xl min-h-[100dvh] md:min-h-0 md:max-h-[90vh] overflow-y-auto md:overflow-hidden shadow-none md:shadow-2xl flex flex-col md:flex-row relative border-0 md:border md:border-gold/30 overscroll-contain"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Close Button (Floating Top Right, Touch Target 44px+) */}
-            <button
-              onClick={() => setSelectedItem(null)}
-              aria-label="Close details"
-              className="fixed top-3.5 right-3.5 md:absolute md:top-4 md:right-4 z-50 min-w-[44px] min-h-[44px] w-11 h-11 rounded-full bg-black/75 hover:bg-black text-white flex items-center justify-center cursor-pointer shadow-xl border border-white/25 active:scale-95 transition-transform"
-            >
-              <X className="w-5 h-5" />
-            </button>
-
-            {/* Top / Left Column: Hero Image (68vh on mobile edge-to-edge) */}
-            <div className="w-full md:w-1/2 bg-black flex flex-col justify-between relative shrink-0 h-[68vh] sm:h-[72vh] md:h-full md:min-h-[560px] select-none overflow-hidden">
-              <img
-                src={isStaticColorTheme(selectedItem) ? selectedItem.image : selectedItem.src.large2x}
-                alt={isStaticColorTheme(selectedItem) ? selectedItem.title : selectedItem.alt || selectedItem.category}
-                className="w-full h-full object-cover"
-              />
-
-              {!isStaticColorTheme(selectedItem) ? (
-                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent px-4 py-3 pt-8 flex items-center justify-between z-10 text-white text-xs leading-none">
-                  <span className="truncate max-w-[62%] font-medium">
-                    📷 Photo by <span className="font-bold text-white">{selectedItem.photographer}</span>
-                  </span>
-                  <a
-                    href={selectedItem.pexels_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-[11px] text-[#D4B66E] hover:underline flex items-center gap-1 font-semibold shrink-0"
-                  >
-                    Pexels Profile <ExternalLink className="w-3 h-3" />
-                  </a>
-                </div>
-              ) : (
-                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent px-4 py-3 pt-8 flex items-center justify-between z-10 text-white text-xs leading-none">
-                  <span className="font-bold text-[#D4B66E] flex items-center gap-1">
-                    <Sparkles className="w-3.5 h-3.5" /> Cloche Editorial Collection
-                  </span>
-                </div>
-              )}
-            </div>
-
-            {/* Bottom / Right Column: Planning Intelligence Dashboard */}
-            <div className="w-full md:w-1/2 flex flex-col md:overflow-y-auto md:max-h-[90vh] bg-white">
-              <div
-                className="p-4 sm:p-6 md:p-8 space-y-6 flex-1"
-                style={{ paddingBottom: "calc(120px + env(safe-area-inset-bottom, 24px))" }}
-              >
-                {/* Header (Title, Category, Share & Save - Visible on First Screen) */}
-                <div className="flex items-start justify-between gap-3 border-b border-gold/15 pb-4">
-                  <div className="space-y-1">
-                    <span className="text-[11px] sm:text-xs font-extrabold uppercase tracking-wider text-[#0F4C45] bg-[#FAF7F2] px-3 py-1 rounded-full border border-gold/20 inline-block">
-                      {selectedItem.category}
-                    </span>
-                    <h2 className="font-serif font-black text-lg sm:text-2xl text-charcoal leading-snug">
-                      {isStaticColorTheme(selectedItem) ? selectedItem.title : selectedProfile.styleName}
-                    </h2>
-                  </div>
-
-                  <div className="flex items-center gap-2 shrink-0 pt-0.5">
-                    <button
-                      onClick={() => handleShare(selectedItem)}
-                      aria-label="Share inspiration"
-                      className="min-w-[44px] min-h-[44px] w-11 h-11 rounded-full bg-[#FAF7F2] text-charcoal border border-gold/20 hover:bg-gold/10 flex items-center justify-center cursor-pointer shadow-xs active:scale-95 transition-transform"
-                      title="Share link"
-                    >
-                      <Share2 className="w-4 h-4" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={(e) => handleSaveInspiration(selectedItem, e)}
-                      className={`min-h-[44px] px-4 py-2.5 rounded-full text-xs font-extrabold flex items-center gap-1.5 cursor-pointer shadow-md active:scale-95 transition-all ${
-                        isItemSaved(selectedItem.id)
-                          ? "bg-[#C8A96A] text-[#0F4C45]"
-                          : "bg-[#0F4C45] hover:bg-[#12584E] text-white"
-                      }`}
-                    >
-                      <Bookmark className={`w-3.5 h-3.5 ${isItemSaved(selectedItem.id) ? "fill-current" : ""}`} />
-                      <span>{isItemSaved(selectedItem.id) ? "Saved" : "Save Idea"}</span>
-                    </button>
-                  </div>
-                </div>
-
-                {/* 1. Style & Aesthetic Concept */}
-                <div className="space-y-2 bg-[#FAF7F2] p-4 rounded-2xl border border-gold/15">
-                  <div className="flex items-center gap-2 text-xs font-extrabold text-[#0F4C45] uppercase tracking-wider">
-                    <Sparkles className="w-3.5 h-3.5 text-[#C8A96A]" />
-                    <span>1. Style &amp; Aesthetic Concept</span>
-                  </div>
-                  <p className="text-xs text-charcoal/80 leading-relaxed">
-                    {selectedProfile.vibe}
-                  </p>
-                  <div className="text-[11px] text-[#0F4C45] font-semibold flex items-center gap-1.5 pt-1">
-                    <span>🌴 Kerala Touch:</span>
-                    <span className="text-charcoal/80 font-normal">{selectedProfile.keralaTouch}</span>
-                  </div>
-                </div>
-
-                {/* 2. Budget Benchmark (Transparent Planning Range) */}
-                <div className="space-y-3 bg-white p-4 rounded-2xl border border-gold/20 shadow-xs">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-xs font-extrabold text-[#0F4C45] uppercase tracking-wider flex items-center gap-1.5">
-                      <DollarSign className="w-4 h-4 text-[#C8A96A]" />
-                      <span>2. Market Budget Benchmark</span>
-                    </span>
-                    <span className="text-xs font-black bg-[#0F4C45] text-[#C8A96A] px-3 py-1 rounded-full whitespace-nowrap">
-                      {selectedProfile.estimatedCostRange}
-                    </span>
-                  </div>
-
-                  {/* Transparent Market Benchmark Notice */}
-                  <div className="bg-amber-50/90 border border-amber-200/80 rounded-xl p-2.5 flex items-start gap-2 text-[11px] text-amber-900 leading-relaxed">
-                    <AlertCircle className="w-3.5 h-3.5 text-amber-700 shrink-0 mt-0.5" />
-                    <p>{selectedProfile.disclaimer}</p>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                    {selectedProfile.breakdown.map((b, i) => (
-                      <div key={i} className="bg-[#FAF7F2] p-2.5 rounded-xl flex items-center justify-between border border-gold/10">
-                        <span className="text-charcoal/75 text-[11px] font-medium">{b.item}</span>
-                        <span className="font-extrabold text-[#0F4C45] text-[11px]">{b.cost}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Palette for Color Themes */}
-                {isStaticColorTheme(selectedItem) && (
-                  <div className="bg-[#FAF7F2] p-4 rounded-2xl border border-gold/15 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-extrabold text-[#0F4C45] uppercase tracking-wider flex items-center gap-1">
-                        <Palette className="w-3.5 h-3.5 text-[#C8A96A]" /> Color Palette
-                      </span>
-                      <button
-                        onClick={() => handleDownloadPalette(selectedItem)}
-                        className="text-[11px] font-extrabold text-[#0F4C45] hover:underline flex items-center gap-1 cursor-pointer"
-                      >
-                        <Download className="w-3 h-3" /> Export Swatches
-                      </button>
-                    </div>
-                    <div className="grid grid-cols-5 gap-2">
-                      {selectedItem.colorTheme.map((c, i) => (
-                        <button
-                          key={i}
-                          onClick={() => handleCopyHex(c.hex, c.name)}
-                          className="flex flex-col items-center gap-1 cursor-pointer group/s min-h-[44px]"
-                          title={`Copy ${c.name} (${c.hex})`}
-                        >
-                          <div
-                            style={{ backgroundColor: c.hex }}
-                            className="w-full h-10 rounded-xl border border-black/10 shadow-xs group-hover/s:scale-105 transition-transform"
-                          />
-                          <span className="text-[9px] font-semibold text-charcoal/80 truncate w-full text-center">{c.name}</span>
-                          <span className="text-[8px] font-mono text-charcoal/40">{c.hex}</span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* 3. Verified Vendors */}
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-extrabold text-charcoal uppercase tracking-wider flex items-center gap-1.5">
-                      <ShieldCheck className="w-4 h-4 text-[#0F4C45]" />
-                      <span>3. Verified Kerala Vendors</span>
-                    </span>
-                    <span className="text-[10px] font-bold text-[#0F4C45] bg-[#FAF7F2] px-2 py-0.5 rounded-full border border-gold/20">
-                      Direct Quotes Ready
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                    {selectedProfile.recommendedVendors.map((v) => (
-                      <Link
-                        key={v.href}
-                        href={v.href}
-                        onClick={() => setSelectedItem(null)}
-                        className="bg-[#FAF7F2]/60 hover:bg-[#0F4C45] hover:text-white border border-gold/20 hover:border-[#0F4C45] text-charcoal p-3 rounded-2xl text-xs font-bold transition-all flex items-center justify-between shadow-xs group min-h-[48px] active:scale-[0.99]"
-                      >
-                        <div className="flex items-center gap-2.5">
-                          <span className="text-lg">{v.emoji}</span>
-                          <div>
-                            <p className="font-extrabold leading-none">{v.label}</p>
-                            <p className="text-[10px] opacity-70 mt-1 font-normal group-hover:text-white/80">{v.subtitle}</p>
-                          </div>
-                        </div>
-                        <ChevronRight className="w-4 h-4 opacity-40 group-hover:opacity-100 transition-opacity" />
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-
-                {/* 4. Aura CTA */}
-                <div className="pt-2">
-                  <button
-                    onClick={() => {
-                      setSelectedItem(null);
-                      handleOpenAura(selectedProfile.auraPrompt);
-                    }}
-                    className="min-h-[48px] w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-[#0F4C45] via-[#12584E] to-[#0A2E2A] text-white text-xs sm:text-sm font-extrabold flex items-center justify-center gap-2.5 shadow-xl hover:scale-[1.01] active:scale-[0.99] transition-transform cursor-pointer border border-[#C8A96A]/30"
-                  >
-                    <Sparkles className="w-4 h-4 text-[#C8A96A] animate-pulse" />
-                    <span>✨ Ask Aura to Plan &amp; Replicate This Look</span>
-                  </button>
-                </div>
-
-                {/* 5. Similar Inspirations (Smooth Horizontal Scroll & Full Clearance) */}
-                {relatedItems.length > 0 && (
-                  <div className="border-t border-gold/15 pt-6 space-y-3">
-                    <span className="text-xs font-extrabold text-[#0F4C45] uppercase tracking-wider block">
-                      Similar Inspiration Concepts
-                    </span>
-                    <div className="flex overflow-x-auto gap-3 pb-4 pt-1 scrollbar-none snap-x snap-mandatory -mx-4 px-4 sm:-mx-6 sm:px-6">
-                      {relatedItems.map((rel) => (
-                        <div
-                          key={rel.id}
-                          onClick={() => setSelectedItem(rel)}
-                          className="w-32 h-32 sm:w-36 sm:h-36 shrink-0 snap-start rounded-2xl overflow-hidden bg-gray-100 cursor-pointer hover:opacity-85 active:scale-95 transition-all border border-gold/20 shadow-xs relative"
-                        >
-                          <img
-                            src={isStaticColorTheme(rel) ? rel.image : rel.src.medium}
-                            alt={isStaticColorTheme(rel) ? rel.title : rel.alt || rel.category}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
+          {/* Top Bar: Counter & Quick Actions */}
+          <div className="absolute top-4 left-4 right-4 sm:top-6 sm:left-6 sm:right-6 flex items-center justify-between z-50 pointer-events-none">
+            {/* Image Counter */}
+            {currentIndex >= 0 && currentList.length > 0 ? (
+              <div className="pointer-events-auto bg-black/60 backdrop-blur-md text-white/90 text-xs font-semibold px-3.5 py-1.5 rounded-full border border-white/20 shadow-lg">
+                <span>{currentIndex + 1}</span>
+                <span className="text-white/40 mx-1.5">/</span>
+                <span>{currentList.length}</span>
               </div>
+            ) : <div />}
+
+            {/* Right Controls: Save Bookmark & Close */}
+            <div className="pointer-events-auto flex items-center gap-2.5 ml-auto">
+              {/* Save / Bookmark Button */}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleSaveInspiration(selectedItem, e);
+                }}
+                aria-label="Save inspiration"
+                className={`min-w-[44px] min-h-[44px] w-11 h-11 rounded-full flex items-center justify-center cursor-pointer shadow-xl border transition-all active:scale-95 ${
+                  (savedMap[selectedItem.id]?.length || 0) > 0
+                    ? "bg-[#D4B66E] text-black border-[#D4B66E]"
+                    : "bg-black/60 hover:bg-black/80 text-white border-white/25"
+                }`}
+                title={(savedMap[selectedItem.id]?.length || 0) > 0 ? "Saved" : "Save Inspiration"}
+              >
+                <Bookmark
+                  className={`w-5 h-5 ${
+                    (savedMap[selectedItem.id]?.length || 0) > 0 ? "fill-current" : ""
+                  }`}
+                />
+              </button>
+
+              {/* Close Button */}
+              <button
+                type="button"
+                onClick={() => setSelectedItem(null)}
+                aria-label="Close image viewer"
+                className="min-w-[44px] min-h-[44px] w-11 h-11 rounded-full bg-black/60 hover:bg-black/85 text-white flex items-center justify-center cursor-pointer shadow-xl border border-white/25 active:scale-95 transition-all"
+                title="Close (Esc)"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
           </div>
+
+          {/* Left Slide Roll Button */}
+          {currentList.length > 1 && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                handlePrev();
+              }}
+              aria-label="Previous inspiration image"
+              className="absolute left-3 sm:left-6 top-1/2 -translate-y-1/2 z-50 min-w-[46px] min-h-[46px] w-11 sm:w-14 h-11 sm:h-14 rounded-full bg-black/60 hover:bg-black/90 text-white flex items-center justify-center cursor-pointer shadow-2xl border border-white/20 active:scale-90 hover:scale-105 transition-all backdrop-blur-md"
+              title="Previous (Left Arrow)"
+            >
+              <ChevronLeft className="w-6 h-6 sm:w-7 sm:h-7" />
+            </button>
+          )}
+
+          {/* Main Selected Image Only */}
+          <div
+            className="relative flex items-center justify-center max-w-[92vw] max-h-[88vh] sm:max-h-[85vh] select-none"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              src={
+                isStaticColorTheme(selectedItem)
+                  ? selectedItem.image
+                  : selectedItem.src.large2x || selectedItem.src.large
+              }
+              alt={
+                isStaticColorTheme(selectedItem)
+                  ? selectedItem.title
+                  : selectedItem.alt || selectedItem.category
+              }
+              className="max-h-[85vh] max-w-[90vw] md:max-w-4xl lg:max-w-5xl w-auto h-auto object-contain rounded-2xl shadow-2xl transition-opacity duration-200"
+            />
+          </div>
+
+          {/* Right Slide Roll Button */}
+          {currentList.length > 1 && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleNext();
+              }}
+              aria-label="Next inspiration image"
+              className="absolute right-3 sm:right-6 top-1/2 -translate-y-1/2 z-50 min-w-[46px] min-h-[46px] w-11 sm:w-14 h-11 sm:h-14 rounded-full bg-black/60 hover:bg-black/90 text-white flex items-center justify-center cursor-pointer shadow-2xl border border-white/20 active:scale-90 hover:scale-105 transition-all backdrop-blur-md"
+              title="Next (Right Arrow)"
+            >
+              <ChevronRight className="w-6 h-6 sm:w-7 sm:h-7" />
+            </button>
+          )}
         </div>
       )}
 
