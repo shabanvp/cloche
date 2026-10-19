@@ -356,7 +356,7 @@ export const VENDOR_CATEGORIES_DATA: Record<string, CategoryConfig> = {
     slug: "wedding-studio",
     title: "Wedding Studio & Couple Couture",
     subtitle: "Complete bridal & groom ceremonial couture, wedding edits & couple ensembles",
-    heroImage: "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=1200&auto=format&fit=crop",
+    heroImage: "/images/wedding-studio-cover.png",
     searchPlaceholder: "Search wedding studios, couple couture...",
     priceSuffix: " / outfit",
     subFilters: [
@@ -437,7 +437,7 @@ export const VENDOR_CATEGORIES_DATA: Record<string, CategoryConfig> = {
     slug: "wedding-studio",
     title: "Wedding Studio & Couple Couture",
     subtitle: "Complete bridal & groom ceremonial couture, wedding edits & couple ensembles",
-    heroImage: "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=1200&auto=format&fit=crop",
+    heroImage: "/images/wedding-studio-cover.png",
     searchPlaceholder: "Search couple wedding couture...",
     priceSuffix: " / outfit",
     subFilters: [
@@ -1106,7 +1106,7 @@ export const VENDOR_CATEGORIES: Record<string, VendorCategoryConfig> = {
         id: "ws-1",
         title: "Royal Heritage Couple Wedding Edit",
         category: "Couple Ensembles",
-        image: "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=800&auto=format&fit=crop",
+        image: "/images/wedding-studio-cover.png",
         details: "Matching Pastel Tones • Full Bridal Lehenga & Groom Sherwani"
       }
     ],

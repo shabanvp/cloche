@@ -158,7 +158,7 @@ export function ExploreOtherVendors({ category, currentVendorId, currentVendorNa
                 return null;
               }
 
-              const coverImg = r.coverImage || r.logo || r.logoUrl || "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=400&q=80";
+              const coverImg = r.coverImage || r.logo || r.logoUrl || "/images/wedding-studio-cover.png";
               const cityState = [r.city, r.state].filter(Boolean).join(", ") || "Kerala, India";
 
               return {

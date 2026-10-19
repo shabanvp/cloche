@@ -54,7 +54,7 @@ export function StoryBoutiqueCollectionsManager({ categoryKey }: { categoryKey: 
       name: "Reception Collection",
       description: "Contemporary gowns, tuxedos & evening reception outfits",
       category: "Reception",
-      coverImage: "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=600&auto=format&fit=crop",
+      coverImage: "/images/wedding-studio-cover.png",
       isVisible: true,
     },
     {

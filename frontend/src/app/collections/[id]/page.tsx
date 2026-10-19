@@ -46,7 +46,7 @@ const CANONICAL_COLLECTION_TITLES: Record<string, { name: string; category: stri
     name: "Royal Couple Matching Ensembles",
     category: "Wedding",
     desc: "Color-coordinated bride & groom ensembles featuring matching zardozi motifs and silk dupattas.",
-    cover: "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=800&auto=format&fit=crop"
+    cover: "/images/wedding-studio-cover.png"
   },
   "col-w2": {
     name: "Sangeet & Mehendi Color-Coordinated Sets",

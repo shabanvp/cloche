@@ -63,7 +63,7 @@ export type CategoryCard = CanonicalCategoryDefinition;
 
 const sharedThumb = {
   weddingVenue: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=1200&q=80",
-  couplePortrait: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=80",
+  couplePortrait: "/images/wedding-studio-cover.png",
   bridalMakeup: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=1200&q=80",
   floralDecor: "https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=1200&q=80",
   henna: "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=1200&q=80",
@@ -129,7 +129,7 @@ export const HOMEPAGE_CATEGORY_STRIP: HomepageCategoryItem[] = [
   {
     label: "Wedding Studio",
     href: "/categories/wedding-studio",
-    img: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=400&q=80",
+    img: "/images/wedding-studio-cover.png",
     alt: "Wedding Studio",
     vendorCount: "190 Studios",
   },
@@ -213,7 +213,7 @@ export const CANONICAL_VENDOR_CATEGORIES: CanonicalCategoryDefinition[] = [
     ],
     description: "Complete bridal & groom ceremonial couture, wedding edits & couple ensembles.",
     icon: Store,
-    image: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=80",
+    image: "/images/wedding-studio-cover.png",
     imageAlt: "Couples wedding couture and ceremonial edits.",
     badge: "Wedding Studio",
     detail: "Curated wedding fashion studios offering complete bridal and groom ceremonial edits.",

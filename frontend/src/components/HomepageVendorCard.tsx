@@ -53,7 +53,7 @@ function getCategoryFallback(category: string): string {
   if (cat.includes("invite") || cat.includes("card")) {
     return "/images/invitations-cover.png";
   }
-  return "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=80";
+  return "/images/wedding-studio-cover.png";
 }
 
 export function HomepageVendorCard({

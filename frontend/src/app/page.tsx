@@ -185,7 +185,7 @@ export default function Home() {
       subtitle: "Couple Couture & Ceremonial Outfits",
       href: "/categories/wedding-studio",
       bgColor: "bg-[#F7EBE5]",
-      img: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=80",
+      img: "/images/wedding-studio-cover.png",
       alt: "Wedding Studio"
     },
     {
