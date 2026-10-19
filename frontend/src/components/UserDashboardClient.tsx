@@ -280,7 +280,7 @@ export function UserDashboardClient({ initialTab }: UserDashboardClientProps = {
     { id: "profile", label: "My Profile", icon: User },
     { id: "saved-vendors", label: "Saved Vendors", icon: Heart, count: savedVendors.length },
     { id: "saved-venues", label: "Saved Venues", icon: Building2, count: savedVenues.length },
-    { id: "saved-inspirations", label: "Saved Inspirations", icon: Sparkles, count: savedInspirations.length },
+    { id: "saved-inspirations", label: "Saved Inspirations", icon: Heart, count: savedInspirations.length },
     { id: "checklist", label: "Wedding Checklist", icon: CheckSquare, count: `${completedTasks}/${checklist.length}` as any },
     { id: "budget", label: "Budget Planner", icon: DollarSign },
     { id: "enquiries", label: "Enquiries & Quotes", icon: MessageSquare, count: enquiries.length },
@@ -669,8 +669,11 @@ export function UserDashboardClient({ initialTab }: UserDashboardClientProps = {
               <div className="bg-white p-6 sm:p-8 rounded-3xl border border-gold/15 shadow-xs space-y-6 animate-in fade-in duration-300">
                 <div className="flex items-center justify-between border-b border-gold/10 pb-4">
                   <div>
-                    <h2 className="text-xl font-bold text-charcoal font-display">Saved Inspiration Board</h2>
-                    <p className="text-xs text-charcoal/60">Decor concepts, bridal fashion looks, and wedding ideas.</p>
+                    <h2 className="text-xl font-bold text-charcoal font-display flex items-center gap-2">
+                      <span>Liked Inspirations Board</span>
+                      <Heart className="w-4 h-4 text-rose-500 fill-rose-500" />
+                    </h2>
+                    <p className="text-xs text-charcoal/60">Decor concepts, bridal fashion looks, and wedding ideas you've liked.</p>
                   </div>
                   <Link href="/inspiration" className="text-xs font-bold text-[#0F4C45] hover:underline">
                     Explore Inspiration →
@@ -678,27 +681,33 @@ export function UserDashboardClient({ initialTab }: UserDashboardClientProps = {
                 </div>
 
                 {savedInspirations.length > 0 ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4.5">
                     {savedInspirations.map((item) => (
-                      <div key={item.id} className="bg-[#FAF7F2] rounded-2xl overflow-hidden border border-gold/10 group shadow-2xs">
-                        <div className="relative h-44 overflow-hidden">
+                      <div key={item.id} className="bg-[#FAF7F2] rounded-2xl overflow-hidden border border-gold/10 group shadow-2xs hover:shadow-md transition-shadow">
+                        <div className="relative h-48 sm:h-52 overflow-hidden">
                           <img src={item.image} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                          <button onClick={() => handleRemoveInspiration(item.id)} className="absolute top-3 right-3 bg-white/90 p-1.5 rounded-full text-rose-600 shadow-sm hover:bg-rose-50 transition-all cursor-pointer">
-                            <Trash2 className="w-3.5 h-3.5" />
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveInspiration(item.id)}
+                            className="absolute top-3 right-3 bg-white/95 hover:bg-rose-50 p-2 rounded-full text-rose-500 shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer flex items-center justify-center border border-rose-100"
+                            title="Unlike inspiration (Remove)"
+                            aria-label="Unlike inspiration"
+                          >
+                            <Heart className="w-4 h-4 fill-rose-500 text-rose-500" />
                           </button>
                         </div>
                         <div className="p-4 space-y-1">
                           <span className="text-[10px] font-bold text-gold uppercase tracking-wider">{item.category}</span>
-                          <h4 className="font-bold text-sm text-charcoal">{item.title}</h4>
+                          <h4 className="font-bold text-sm text-charcoal line-clamp-1">{item.title}</h4>
                         </div>
                       </div>
                     ))}
                   </div>
                 ) : (
                   <div className="text-center py-12 space-y-3">
-                    <Sparkles className="w-10 h-10 text-gold/40 mx-auto" />
-                    <p className="text-sm font-semibold text-charcoal">No saved inspirations yet</p>
-                    <p className="text-xs text-charcoal/60 max-w-sm mx-auto">Browse wedding photos and decor ideas to save inspiration for your big day.</p>
+                    <Heart className="w-10 h-10 text-rose-300 mx-auto" />
+                    <p className="text-sm font-semibold text-charcoal">No liked inspirations yet</p>
+                    <p className="text-xs text-charcoal/60 max-w-sm mx-auto">Click the heart like button on any photo or theme in the Inspiration Gallery to save your favorite wedding looks here.</p>
                     <Link
                       href="/inspiration"
                       className="inline-block mt-2 px-5 py-2.5 rounded-full bg-[#0F4C45] text-white text-xs font-bold hover:bg-[#12584E] transition-colors shadow-2xs"

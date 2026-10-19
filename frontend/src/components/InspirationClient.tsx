@@ -7,7 +7,7 @@ import {
   Download, FolderPlus, ExternalLink, CheckCircle2,
   AlertCircle, ChevronRight, ChevronLeft, Wand2, DollarSign, Palette,
   MapPin, ShieldCheck, Copy, CheckSquare, RefreshCw,
-  Flame, Clock, ArrowUpDown
+  Flame, Clock, ArrowUpDown, Heart
 } from "lucide-react";
 import { Footer } from "@/components/Footer";
 import { BottomNavBar } from "@/components/BottomNavBar";
@@ -32,6 +32,7 @@ import {
 import {
   toggleSaveInspiration,
   isItemSavedInspiration,
+  getSavedInspirations,
   SavedInspirationItem,
 } from "@/lib/inspirationStore";
 
@@ -79,14 +80,14 @@ function SkeletonCard({ idx }: { idx: number }) {
 // ─────────────────────────────────────────────────────────────────────────────
 function PhotoCard({
   item,
-  saved,
+  liked,
   onClick,
-  onSave,
+  onLike,
 }: {
   item: DynamicInspirationPhoto;
-  saved: boolean;
+  liked: boolean;
   onClick: () => void;
-  onSave: (e: React.MouseEvent) => void;
+  onLike: (e: React.MouseEvent) => void;
   onShare?: (e: React.MouseEvent) => void;
 }) {
   const [imgLoaded, setImgLoaded] = useState(false);
@@ -113,18 +114,19 @@ function PhotoCard({
           }`}
         />
 
-        {/* Minimal Save Button */}
+        {/* Like Button */}
         <button
           type="button"
-          onClick={onSave}
-          className={`absolute top-2.5 right-2.5 sm:top-3 sm:right-3 p-2 rounded-full backdrop-blur-md transition-all cursor-pointer shadow-md flex items-center justify-center min-w-[32px] min-h-[32px] sm:min-w-[36px] sm:min-h-[36px] active:scale-90 z-10 ${
-            saved
-              ? "bg-[#C8A96A] text-[#0F4C45] opacity-100 border border-[#C8A96A]"
-              : "bg-black/40 hover:bg-[#C8A96A] text-white hover:text-[#0F4C45] border border-white/20 opacity-0 group-hover:opacity-100"
+          onClick={onLike}
+          className={`absolute top-2.5 right-2.5 sm:top-3 sm:right-3 p-2 rounded-full backdrop-blur-md transition-all cursor-pointer shadow-md flex items-center justify-center min-w-[34px] min-h-[34px] sm:min-w-[38px] sm:min-h-[38px] active:scale-90 z-10 ${
+            liked
+              ? "bg-white text-rose-500 opacity-100 border border-rose-200 shadow-rose-500/20 shadow-md"
+              : "bg-black/45 hover:bg-white text-white hover:text-rose-500 border border-white/20 sm:opacity-0 group-hover:opacity-100 opacity-90"
           }`}
-          title={saved ? "Saved" : "Save"}
+          title={liked ? "Liked" : "Like"}
+          aria-label={liked ? "Unlike inspiration" : "Like inspiration"}
         >
-          <Bookmark className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${saved ? "fill-current text-[#0F4C45]" : ""}`} />
+          <Heart className={`w-4 h-4 sm:w-4.5 sm:h-4.5 transition-transform ${liked ? "fill-rose-500 text-rose-500 scale-110" : "stroke-[2]"}`} />
         </button>
       </div>
     </div>
@@ -136,14 +138,14 @@ function PhotoCard({
 // ─────────────────────────────────────────────────────────────────────────────
 function ColorThemeCard({
   item,
-  saved,
+  liked,
   onClick,
-  onSave,
+  onLike,
 }: {
   item: StaticColorTheme;
-  saved: boolean;
+  liked: boolean;
   onClick: () => void;
-  onSave: (e: React.MouseEvent) => void;
+  onLike: (e: React.MouseEvent) => void;
   onShare?: (e: React.MouseEvent) => void;
 }) {
   const aspectMap = {
@@ -168,18 +170,19 @@ function ColorThemeCard({
           className="w-full h-full object-cover md:group-hover:scale-105 transition-transform duration-500 ease-out"
         />
 
-        {/* Minimal Save Button */}
+        {/* Like Button */}
         <button
           type="button"
-          onClick={onSave}
-          className={`absolute top-2.5 right-2.5 sm:top-3 sm:right-3 p-2 rounded-full backdrop-blur-md transition-all cursor-pointer shadow-md flex items-center justify-center min-w-[32px] min-h-[32px] sm:min-w-[36px] sm:min-h-[36px] active:scale-90 z-10 ${
-            saved
-              ? "bg-[#C8A96A] text-[#0F4C45] opacity-100 border border-[#C8A96A]"
-              : "bg-black/40 hover:bg-[#C8A96A] text-white hover:text-[#0F4C45] border border-white/20 opacity-0 group-hover:opacity-100"
+          onClick={onLike}
+          className={`absolute top-2.5 right-2.5 sm:top-3 sm:right-3 p-2 rounded-full backdrop-blur-md transition-all cursor-pointer shadow-md flex items-center justify-center min-w-[34px] min-h-[34px] sm:min-w-[38px] sm:min-h-[38px] active:scale-90 z-10 ${
+            liked
+              ? "bg-white text-rose-500 opacity-100 border border-rose-200 shadow-rose-500/20 shadow-md"
+              : "bg-black/45 hover:bg-white text-white hover:text-rose-500 border border-white/20 sm:opacity-0 group-hover:opacity-100 opacity-90"
           }`}
-          title={saved ? "Saved" : "Save"}
+          title={liked ? "Liked" : "Like"}
+          aria-label={liked ? "Unlike inspiration" : "Like inspiration"}
         >
-          <Bookmark className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${saved ? "fill-current text-[#0F4C45]" : ""}`} />
+          <Heart className={`w-4 h-4 sm:w-4.5 sm:h-4.5 transition-transform ${liked ? "fill-rose-500 text-rose-500 scale-110" : "stroke-[2]"}`} />
         </button>
       </div>
     </div>
@@ -292,12 +295,37 @@ export function InspirationClient() {
     };
   };
 
-  const isItemSaved = (id: string | number) => {
-    const sId = String(id);
-    return isItemSavedInspiration(sId) || Boolean(savedMap[sId]?.length);
-  };
+  // Synchronized Saved/Liked Inspirations Store (Single Source of Truth)
+  const [savedInspirations, setSavedInspirations] = useState<SavedInspirationItem[]>([]);
 
-  const handleSaveInspiration = (item: InspirationItem, e?: React.MouseEvent) => {
+  useEffect(() => {
+    const syncInspirations = () => {
+      const items = getSavedInspirations();
+      setSavedInspirations(items);
+      const map: Record<string, string[]> = {};
+      items.forEach((item) => {
+        map[String(item.id)] = ["dream-wedding"];
+      });
+      setSavedMap(map);
+    };
+    syncInspirations();
+    window.addEventListener("cloche_saved_inspirations_updated", syncInspirations);
+    return () => {
+      window.removeEventListener("cloche_saved_inspirations_updated", syncInspirations);
+    };
+  }, []);
+
+  const isItemLiked = useCallback(
+    (id: string | number) => {
+      const targetId = String(id);
+      return savedInspirations.some((i) => String(i.id) === targetId);
+    },
+    [savedInspirations]
+  );
+
+  const isItemSaved = isItemLiked; // Alias for backward compatibility
+
+  const handleLikeInspiration = (item: InspirationItem, e?: React.MouseEvent) => {
     if (e) {
       e.preventDefault();
       e.stopPropagation();
@@ -306,32 +334,20 @@ export function InspirationClient() {
     const nowSaved = toggleSaveInspiration(savedItem);
     const id = String(item.id);
     const firstBoardId = boards[0]?.id || "dream-wedding";
-    const curr = savedMap[id] || [];
     let nextMap = { ...savedMap };
     if (!nowSaved) {
       delete nextMap[id];
-      showToast("Removed from saved inspirations");
+      showToast("Removed from your saved inspirations");
     } else {
-      nextMap[id] = curr.length > 0 ? curr : [firstBoardId];
-      showToast("Saved to your Saved Inspiration Board! ❤️");
+      nextMap[id] = [firstBoardId];
+      showToast("Liked and added to your Saved Inspirations! ❤️");
     }
     saveSaves(nextMap);
+    setSavedInspirations(getSavedInspirations());
   };
 
-  // Listen to external inspiration updates (e.g. from User Dashboard deletions)
-  useEffect(() => {
-    const syncFromStorage = () => {
-      setSavedMap((prev) => ({ ...prev }));
-    };
-    window.addEventListener("cloche_saved_inspirations_updated", syncFromStorage);
-    return () => {
-      window.removeEventListener("cloche_saved_inspirations_updated", syncFromStorage);
-    };
-  }, []);
-
-  const handleQuickSave = (item: InspirationItem, e?: React.MouseEvent) => {
-    handleSaveInspiration(item, e);
-  };
+  const handleSaveInspiration = handleLikeInspiration;
+  const handleQuickSave = handleLikeInspiration;
 
   const handleToggleBoardSave = (boardId: string) => {
     if (!itemToSave) return;
@@ -538,10 +554,15 @@ export function InspirationClient() {
           </div>
           <Link
             href="/user/dashboard/saved-inspirations"
-            className="inline-flex items-center gap-1.5 text-xs font-bold px-3.5 py-1.5 rounded-full bg-[#FAF7F2] text-[#0F4C45] border border-gold/25 hover:border-[#0F4C45] transition-all self-start sm:self-auto"
+            className="inline-flex items-center gap-2 text-xs font-bold px-4 py-2 rounded-full bg-[#FAF7F2] text-[#0F4C45] border border-gold/25 hover:border-[#0F4C45] hover:bg-rose-50/50 transition-all self-start sm:self-auto group"
           >
-            <Bookmark className="w-3.5 h-3.5 text-[#C8A96A]" />
+            <Heart className={`w-3.5 h-3.5 transition-colors ${savedInspirations.length > 0 ? "fill-rose-500 text-rose-500" : "text-rose-500"}`} />
             <span>Saved Inspirations</span>
+            {savedInspirations.length > 0 && (
+              <span className="bg-[#0F4C45] text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold">
+                {savedInspirations.length}
+              </span>
+            )}
           </Link>
         </div>
       </section>
@@ -600,15 +621,15 @@ export function InspirationClient() {
             {!fetchState.loading && displayItems.length > 0 && (
               <div className="columns-2 sm:columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-2.5 sm:gap-3 md:gap-5">
                 {displayItems.map((item) => {
-                  const saved = isItemSaved(item.id);
+                  const liked = isItemLiked(item.id);
                   if (isStaticColorTheme(item)) {
                     return (
                       <ColorThemeCard
                         key={item.id}
                         item={item}
-                        saved={saved}
+                        liked={liked}
                         onClick={() => openItem(item)}
-                        onSave={(e) => handleSaveInspiration(item, e)}
+                        onLike={(e) => handleLikeInspiration(item, e)}
                         onShare={(e) => handleShare(item, e)}
                       />
                     );
@@ -617,9 +638,9 @@ export function InspirationClient() {
                     <PhotoCard
                       key={item.id}
                       item={item}
-                      saved={saved}
+                      liked={liked}
                       onClick={() => openItem(item)}
-                      onSave={(e) => handleSaveInspiration(item, e)}
+                      onLike={(e) => handleLikeInspiration(item, e)}
                       onShare={(e) => handleShare(item, e)}
                     />
                   );
@@ -730,9 +751,9 @@ export function InspirationClient() {
                         <ColorThemeCard
                           key={item.id}
                           item={item}
-                          saved={true}
+                          liked={true}
                           onClick={() => openItem(item)}
-                          onSave={(e) => handleQuickSave(item, e)}
+                          onLike={(e) => handleLikeInspiration(item, e)}
                           onShare={(e) => handleShare(item, e)}
                         />
                       );
@@ -741,9 +762,9 @@ export function InspirationClient() {
                       <PhotoCard
                         key={item.id}
                         item={item}
-                        saved={true}
+                        liked={true}
                         onClick={() => openItem(item)}
-                        onSave={(e) => handleQuickSave(item, e)}
+                        onLike={(e) => handleLikeInspiration(item, e)}
                         onShare={(e) => handleShare(item, e)}
                       />
                     );
@@ -779,24 +800,24 @@ export function InspirationClient() {
 
             {/* Right Controls: Save Bookmark & Close */}
             <div className="pointer-events-auto flex items-center gap-2.5 ml-auto">
-              {/* Save / Bookmark Button */}
+              {/* Like Button */}
               <button
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation();
-                  handleSaveInspiration(selectedItem, e);
+                  handleLikeInspiration(selectedItem, e);
                 }}
-                aria-label="Save inspiration"
+                aria-label={isItemLiked(selectedItem.id) ? "Unlike inspiration" : "Like inspiration"}
                 className={`min-w-[44px] min-h-[44px] w-11 h-11 rounded-full flex items-center justify-center cursor-pointer shadow-xl border transition-all active:scale-95 ${
-                  (savedMap[selectedItem.id]?.length || 0) > 0
-                    ? "bg-[#D4B66E] text-black border-[#D4B66E]"
-                    : "bg-black/60 hover:bg-black/80 text-white border-white/25"
+                  isItemLiked(selectedItem.id)
+                    ? "bg-white text-rose-500 border-rose-200 shadow-rose-500/30"
+                    : "bg-black/60 hover:bg-white text-white hover:text-rose-500 border-white/25"
                 }`}
-                title={(savedMap[selectedItem.id]?.length || 0) > 0 ? "Saved" : "Save Inspiration"}
+                title={isItemLiked(selectedItem.id) ? "Liked" : "Like Inspiration"}
               >
-                <Bookmark
-                  className={`w-5 h-5 ${
-                    (savedMap[selectedItem.id]?.length || 0) > 0 ? "fill-current" : ""
+                <Heart
+                  className={`w-5 h-5 transition-transform ${
+                    isItemLiked(selectedItem.id) ? "fill-rose-500 text-rose-500 scale-110" : "stroke-[2]"
                   }`}
                 />
               </button>
