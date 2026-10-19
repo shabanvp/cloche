@@ -209,7 +209,7 @@ export const showcaseCategories: CategoryItem[] = [
     subtitle: "Digital Invites, Printed Cards & Stationery",
     bgColor: "#F2ECF4",
     href: "/categories/invitations",
-    image: "https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=1200&q=80",
+    image: "/images/invitations-cover.png",
     icon: InvitationsIcon,
     getCount: () => invitationVendors.length || 12,
   },

@@ -24,7 +24,7 @@ const INITIAL_CATEGORIES: CategoryRecord[] = [
   { id: "cat-6", name: "Catering & Feasts", slug: "catering", vendorCount: 14, featured: false, status: "active", description: "Traditional Kerala Sadya & multi-cuisine buffets.", image: "https://images.unsplash.com/photo-1555244162-803834f70033?auto=format&fit=crop&w=600&q=80" },
   { id: "cat-7", name: "Decor & Planning", slug: "decor-planning", vendorCount: 19, featured: false, status: "active", description: "Stage decor, floral arrangements & event design.", image: "https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=600&q=80" },
   { id: "cat-8", name: "Mehendi Artists", slug: "mehendi", vendorCount: 16, featured: false, status: "active", description: "Bridal henna, Arabic & Rajasthani intricate patterns.", image: "https://images.unsplash.com/photo-1567157577867-05ccb1388e66?auto=format&fit=crop&w=600&q=80" },
-  { id: "cat-9", name: "Invitations & Gifts", slug: "invitations", vendorCount: 10, featured: false, status: "active", description: "Custom foil cards, digital invites & favor boxes.", image: "https://images.unsplash.com/photo-1513151233558-d860c5398176?auto=format&fit=crop&w=600&q=80" },
+  { id: "cat-9", name: "Invitations & Gifts", slug: "invitations", vendorCount: 10, featured: false, status: "active", description: "Custom foil cards, digital invites & favor boxes.", image: "/images/invitations-cover.png" },
   { id: "cat-10", name: "Jewellery", slug: "jewellery", vendorCount: 8, featured: true, status: "active", description: "Temple gold, diamond polki, and antique sets.", image: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=600&q=80" }
 ];
 

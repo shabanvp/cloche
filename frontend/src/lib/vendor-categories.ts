@@ -257,7 +257,7 @@ export const VENDOR_CATEGORIES_DATA: Record<string, CategoryConfig> = {
     slug: "invitations",
     title: "Wedding Invitations",
     subtitle: "Luxury boxed card suites, digital video e-invites & custom seed paper",
-    heroImage: "https://images.unsplash.com/photo-1513519245088-0e12902e5a38?q=80&w=1200&auto=format&fit=crop",
+    heroImage: "/images/invitations-cover.png",
     searchPlaceholder: "Search invitation designers, templates...",
     priceSuffix: " / card",
     subFilters: [
@@ -915,7 +915,7 @@ export const VENDOR_CATEGORIES: Record<string, VendorCategoryConfig> = {
         id: "inv-1",
         title: "Luxury Rigid Box with Brass Latch & Sweets Container",
         category: "Boxed Royal Acrylic",
-        image: "https://images.unsplash.com/photo-1513519245088-0e12902e5a38?q=80&w=800&auto=format&fit=crop",
+        image: "/images/invitations-cover.png",
         details: "Velvet Insert • Custom Monogram Wax Seal • Metallic Gold Leafing"
       },
       {

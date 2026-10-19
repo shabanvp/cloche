@@ -194,7 +194,7 @@ export const invitationVendors: InvitationVendor[] = [
     ordersCount: 248,
     location: "Mumbai, Maharashtra",
     price: "₹45 / card",
-    image: "https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=800&q=80",
+    image: "/images/invitations-cover.png",
     isFeatured: true,
     isVerified: true,
     tags: ["Modern", "Luxury", "Floral"],

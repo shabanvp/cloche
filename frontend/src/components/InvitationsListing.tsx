@@ -150,7 +150,7 @@ export function InvitationsListing() {
           </div>
           <div className="relative w-[36%] aspect-square rounded-xl overflow-hidden shadow-xs border border-white">
             <Image
-              src="https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=400&q=80"
+              src="/images/invitations-cover.png"
               alt="Luxury Invites"
               fill
               className="object-cover"
