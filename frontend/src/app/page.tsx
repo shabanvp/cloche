@@ -161,7 +161,7 @@ export default function Home() {
       subtitle: "Bridal Makeup, Hair & Family Styling",
       href: "/makeup",
       bgColor: "bg-[#F6E5E5]",
-      img: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=800&q=80",
+      img: "/images/makeup-cover.png",
       alt: "Bridal Makeup"
     },
     {

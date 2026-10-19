@@ -36,7 +36,7 @@ function getCategoryFallback(category: string): string {
     return "/images/photographers-cover.png";
   }
   if (cat.includes("makeup") || cat.includes("glam") || cat.includes("beauty")) {
-    return "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=800&q=80";
+    return "/images/makeup-cover.png";
   }
   if (cat.includes("bridal") || cat.includes("sari") || cat.includes("lehenga")) {
     return "/images/bridal-studio-cover.png";

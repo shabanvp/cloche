@@ -97,7 +97,7 @@ export const VENDOR_CATEGORIES_DATA: Record<string, CategoryConfig> = {
     slug: "makeup",
     title: "Bridal Makeup & Hair",
     subtitle: "Transform your wedding look with expert HD & airbrush makeup artists",
-    heroImage: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?q=80&w=1200&auto=format&fit=crop",
+    heroImage: "/images/makeup-cover.png",
     searchPlaceholder: "Search makeup artists by name, service, or city...",
     priceSuffix: " / function",
     subFilters: [
@@ -118,7 +118,7 @@ export const VENDOR_CATEGORIES_DATA: Record<string, CategoryConfig> = {
     slug: "makeup-artists",
     title: "Bridal Makeup & Hair",
     subtitle: "Transform your wedding look with expert HD & airbrush makeup artists",
-    heroImage: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?q=80&w=1200&auto=format&fit=crop",
+    heroImage: "/images/makeup-cover.png",
     searchPlaceholder: "Search makeup artists by name, service, or city...",
     priceSuffix: " / function",
     subFilters: [

@@ -159,7 +159,7 @@ export const showcaseCategories: CategoryItem[] = [
     subtitle: "Bridal Makeup, Hair Styling & Salons",
     bgColor: "#F9ECE9",
     href: "/makeup",
-    image: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=1200&q=80",
+    image: "/images/makeup-cover.png",
     icon: MakeupIcon,
     getCount: () => makeupArtists.length || 14,
   },

@@ -64,7 +64,7 @@ export type CategoryCard = CanonicalCategoryDefinition;
 const sharedThumb = {
   weddingVenue: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=1200&q=80",
   couplePortrait: "/images/wedding-studio-cover.png",
-  bridalMakeup: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=1200&q=80",
+  bridalMakeup: "/images/makeup-cover.png",
   floralDecor: "https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=1200&q=80",
   henna: "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=1200&q=80",
   bridalWear: "/images/bridal-studio-cover.png",
@@ -136,7 +136,7 @@ export const HOMEPAGE_CATEGORY_STRIP: HomepageCategoryItem[] = [
   {
     label: "Makeup",
     href: "/makeup",
-    img: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=400&q=80",
+    img: "/images/makeup-cover.png",
     alt: "Bridal Makeup",
     vendorCount: "280 Artists",
   },
