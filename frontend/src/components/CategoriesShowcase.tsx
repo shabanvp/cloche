@@ -139,7 +139,7 @@ export const showcaseCategories: CategoryItem[] = [
     subtitle: "Banquets, Halls, Heritage Spaces & Gardens",
     bgColor: "#F3EFE6",
     href: "/venues",
-    image: "https://images.unsplash.com/photo-1469371670807-013ccf25f16a?auto=format&fit=crop&w=1200&q=80",
+    image: "/images/venues-cover.png",
     icon: VenueIcon,
     getCount: () => getAllVenues().length || 13,
   },
