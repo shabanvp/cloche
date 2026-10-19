@@ -30,7 +30,7 @@ interface HomepageVendorCardProps {
 function getCategoryFallback(category: string): string {
   const cat = (category || "").toLowerCase();
   if (cat.includes("venue") || cat.includes("hall") || cat.includes("palace") || cat.includes("resort")) {
-    return "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=800&q=80";
+    return "/images/venues-cover.png";
   }
   if (cat.includes("photo") || cat.includes("camera") || cat.includes("video")) {
     return "/images/photographers-cover.png";

@@ -407,7 +407,7 @@ export function VendorRegisterClient() {
 
         const validCover = coverPreview && (coverPreview.startsWith("data:") || coverPreview.startsWith("http") || coverPreview.startsWith("/"))
           ? coverPreview
-          : "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=1200&q=80";
+          : "/images/venues-cover.png";
 
         const newVendorRecord = {
           id: slug,

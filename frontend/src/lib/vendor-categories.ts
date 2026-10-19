@@ -53,7 +53,7 @@ export const VENDOR_CATEGORIES_DATA: Record<string, CategoryConfig> = {
     slug: "venues",
     title: "Wedding Venues",
     subtitle: "Explore luxury banquet halls, royal palaces, grand lawns & beachside resorts",
-    heroImage: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?q=80&w=1200&auto=format&fit=crop",
+    heroImage: "/images/venues-cover.png",
     searchPlaceholder: "Search venues by name, city, or venue type...",
     priceSuffix: " / event",
     subFilters: [
@@ -562,7 +562,7 @@ export const VENDOR_CATEGORIES: Record<string, VendorCategoryConfig> = {
         id: "v-1",
         title: "Grand Royal Ballroom",
         category: "Banquet Hall",
-        image: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?q=80&w=800&auto=format&fit=crop",
+        image: "/images/venues-cover.png",
         capacity: "500 - 1200 Guests",
         details: "Centralized AC, Luxury Crystal Chandeliers, Attached Bridal Suite"
       },

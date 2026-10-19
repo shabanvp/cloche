@@ -83,7 +83,7 @@ export default function Home() {
                 coverImage:
                   b.cover_image ||
                   b.logo ||
-                  "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=800&q=80",
+                  "/images/venues-cover.png",
               }));
             }
           } catch (e) {}
@@ -145,7 +145,7 @@ export default function Home() {
       subtitle: "Banquet Halls, Lawns, Resorts...",
       href: "/venues",
       bgColor: "bg-[#E3EAF3]",
-      img: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=800&q=80",
+      img: "/images/venues-cover.png",
       alt: "Wedding Venues"
     },
     {

@@ -62,7 +62,7 @@ export type CanonicalCategoryDefinition = {
 export type CategoryCard = CanonicalCategoryDefinition;
 
 const sharedThumb = {
-  weddingVenue: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=1200&q=80",
+  weddingVenue: "/images/venues-cover.png",
   couplePortrait: "/images/wedding-studio-cover.png",
   bridalMakeup: "/images/makeup-cover.png",
   floralDecor: "https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=1200&q=80",
@@ -122,7 +122,7 @@ export const HOMEPAGE_CATEGORY_STRIP: HomepageCategoryItem[] = [
   {
     label: "Venues",
     href: "/venues",
-    img: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=400&q=80",
+    img: "/images/venues-cover.png",
     alt: "Wedding Venues",
     vendorCount: "240 Venues",
   },
