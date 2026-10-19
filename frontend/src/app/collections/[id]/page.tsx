@@ -10,7 +10,7 @@ const CANONICAL_COLLECTION_TITLES: Record<string, { name: string; category: stri
     name: "Royal Velvet & Raw Silk Sherwanis",
     category: "Groom",
     desc: "Hand-embroidered zardozi maroon & regal navy sherwanis with pure silk dupattas and antique brass buttons for groom wear.",
-    cover: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?q=80&w=800&auto=format&fit=crop"
+    cover: "/images/groom-wear-cover.png"
   },
   "col-g2": {
     name: "Indo-Western Reception Suits & Tuxedos",
@@ -91,7 +91,7 @@ export default async function CollectionPage({ params }: Props) {
     {
       id: "col-g1",
       name: "Royal Velvet & Raw Silk Sherwanis",
-      coverImage: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?q=80&w=800&auto=format&fit=crop",
+      coverImage: "/images/groom-wear-cover.png",
       category: "GROOM",
       location: "KOZHIKODE",
       priceRange: "₹18,000 / 3 Days"

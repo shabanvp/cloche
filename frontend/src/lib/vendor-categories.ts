@@ -335,7 +335,7 @@ export const VENDOR_CATEGORIES_DATA: Record<string, CategoryConfig> = {
     slug: "groom-studio",
     title: "Groom Studio & Sherwanis",
     subtitle: "Tailored sherwanis, bandhgalas, tuxedos, indo-western suits & kurtas",
-    heroImage: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?q=80&w=1200&auto=format&fit=crop",
+    heroImage: "/images/groom-wear-cover.png",
     searchPlaceholder: "Search groom studios, sherwanis, suits...",
     priceSuffix: " / outfit",
     subFilters: [
@@ -392,7 +392,7 @@ export const VENDOR_CATEGORIES_DATA: Record<string, CategoryConfig> = {
     slug: "groom-studio",
     title: "Groom Studio & Sherwanis",
     subtitle: "Tailored sherwanis, bandhgalas, tuxedos, indo-western suits & kurtas",
-    heroImage: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?q=80&w=1200&auto=format&fit=crop",
+    heroImage: "/images/groom-wear-cover.png",
     searchPlaceholder: "Search groom studios, sherwanis, suits...",
     priceSuffix: " / outfit",
     subFilters: [
@@ -422,7 +422,7 @@ export const VENDOR_CATEGORIES_DATA: Record<string, CategoryConfig> = {
     slug: "groom-studio",
     title: "Groom Studio & Sherwanis",
     subtitle: "Bespoke sherwanis, tuxedos, suits, Jodhpuri sets & ceremonial groom wear",
-    heroImage: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1200&auto=format&fit=crop",
+    heroImage: "/images/groom-wear-cover.png",
     searchPlaceholder: "Search groom studio collections...",
     priceSuffix: " / outfit",
     subFilters: [
@@ -1066,7 +1066,7 @@ export const VENDOR_CATEGORIES: Record<string, VendorCategoryConfig> = {
         id: "gs-1",
         title: "Royal Raw Silk Embroidered Sherwani",
         category: "Sherwanis",
-        image: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?q=80&w=800&auto=format&fit=crop",
+        image: "/images/groom-wear-cover.png",
         details: "Includes Safa, Stole & Matching Mojaris"
       }
     ],

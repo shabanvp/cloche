@@ -154,7 +154,7 @@ export function StoryCollectionSection({
             additionalServices: ["Custom Fit"],
             stockStatus: "In Stock",
             stockQuantity: 1,
-            images: ["https://images.unsplash.com/photo-1507679799987-c73779587ccf?q=80&w=800&auto=format&fit=crop"],
+            images: ["/images/groom-wear-cover.png"],
             viewsCount: 280,
             savedCount: 64,
             createdAt: new Date().toISOString(),

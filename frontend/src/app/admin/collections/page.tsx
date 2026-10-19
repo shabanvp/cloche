@@ -41,7 +41,7 @@ const INITIAL_COLLECTIONS: CollectionItem[] = [
     originalPrice: "₹80,000",
     status: "active",
     featured: true,
-    image: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=600&q=80",
+    image: "/images/groom-wear-cover.png",
     created_at: "2026-03-12"
   },
   {

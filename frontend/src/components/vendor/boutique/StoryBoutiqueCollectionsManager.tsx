@@ -46,7 +46,7 @@ export function StoryBoutiqueCollectionsManager({ categoryKey }: { categoryKey: 
       name: "Groom Collection",
       description: "Bespoke sherwanis, bandhgalas, tuxedos & ceremonial suits",
       category: "Groom",
-      coverImage: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?q=80&w=600&auto=format&fit=crop",
+      coverImage: "/images/groom-wear-cover.png",
       isVisible: true,
     },
     {

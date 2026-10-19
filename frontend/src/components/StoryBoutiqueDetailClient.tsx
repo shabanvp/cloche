@@ -106,7 +106,7 @@ export function StoryBoutiqueDetailClient({
         targetAudience: (isGroom ? "groom" : "bride") as TargetAudience,
         images: [
           isGroom
-            ? "https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=600&q=80"
+            ? "/images/groom-wear-cover.png"
             : "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=600&q=80",
         ],
         purchasePrice: "₹85,000",

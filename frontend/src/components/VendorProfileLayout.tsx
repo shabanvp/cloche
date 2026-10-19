@@ -555,7 +555,7 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
         ],
         highlightsTitle: "Groom Apparel & Sherwani Collection",
         highlights: [
-          { name: "Royal Embroidered Sherwani", image: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=600&q=80" },
+          { name: "Royal Embroidered Sherwani", image: "/images/groom-wear-cover.png" },
           { name: "Classic Bespoke Tuxedo", image: "https://images.unsplash.com/photo-1594938298603-c8148c4dae35?auto=format&fit=crop&w=600&q=80" },
           { name: "Indo-Western Bandhgala", image: "https://images.unsplash.com/photo-1593032465175-481ac7f401a0?auto=format&fit=crop&w=600&q=80" }
         ],

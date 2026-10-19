@@ -143,7 +143,7 @@ export const HOMEPAGE_CATEGORY_STRIP: HomepageCategoryItem[] = [
   {
     label: "Groom Studio",
     href: "/categories/groom-studio",
-    img: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=400&q=80",
+    img: "/images/groom-wear-cover.png",
     alt: "Groom Studio",
     vendorCount: "140 Studios",
   },
@@ -194,7 +194,7 @@ export const CANONICAL_VENDOR_CATEGORIES: CanonicalCategoryDefinition[] = [
     ],
     description: "Bespoke sherwanis, tuxedos, Jodhpuri suits & modern ceremonial groom wear.",
     icon: Shirt,
-    image: sharedThumb.couplePortrait,
+    image: "/images/groom-wear-cover.png",
     imageAlt: "Elegant wedding fashion styling for the groom.",
     badge: "Groom Studio",
     detail: "Find refined sherwanis, bandhgalas, tuxedos, and tailored groom wear edits.",

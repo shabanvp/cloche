@@ -42,7 +42,7 @@ function getCategoryFallback(category: string): string {
     return "https://images.unsplash.com/photo-1594552072238-b8a33785b261?auto=format&fit=crop&w=800&q=80";
   }
   if (cat.includes("groom") || cat.includes("sherwani") || cat.includes("suit")) {
-    return "https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=800&q=80";
+    return "/images/groom-wear-cover.png";
   }
   if (cat.includes("cater") || cat.includes("food") || cat.includes("sadya")) {
     return "https://images.unsplash.com/photo-1555244162-803834f70033?auto=format&fit=crop&w=800&q=80";

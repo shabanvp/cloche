@@ -177,7 +177,7 @@ export default function Home() {
       subtitle: "Bespoke Sherwanis, Tuxedos & Suits",
       href: "/categories/groom-studio",
       bgColor: "bg-[#EBEFF3]",
-      img: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=800&q=80",
+      img: "/images/groom-wear-cover.png",
       alt: "Groom Studio"
     },
     {
