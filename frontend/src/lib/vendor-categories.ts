@@ -179,7 +179,7 @@ export const VENDOR_CATEGORIES_DATA: Record<string, CategoryConfig> = {
     slug: "planners",
     title: "Wedding Planners & Decor",
     subtitle: "End-to-end wedding execution, royal mandap decors & theme management",
-    heroImage: "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=1200&auto=format&fit=crop",
+    heroImage: "/images/decor-planning-cover.png",
     searchPlaceholder: "Search wedding planners and decor specialists...",
     priceSuffix: " / event",
     subFilters: [
@@ -198,7 +198,7 @@ export const VENDOR_CATEGORIES_DATA: Record<string, CategoryConfig> = {
     slug: "decor-planning",
     title: "Wedding Decor & Planning",
     subtitle: "End-to-end wedding execution, floral stage mandaps, lighting & theme design",
-    heroImage: "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=1200&auto=format&fit=crop",
+    heroImage: "/images/decor-planning-cover.png",
     searchPlaceholder: "Search wedding planners and decor specialists...",
     priceSuffix: " / event",
     subFilters: [
@@ -803,7 +803,7 @@ export const VENDOR_CATEGORIES: Record<string, VendorCategoryConfig> = {
         id: "pl-1",
         title: "Pastel Royal Mandap under Stars",
         category: "Boho Chic Mandap",
-        image: "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=800&auto=format&fit=crop",
+        image: "/images/decor-planning-cover.png",
         details: "Real Fresh Exotic Flowers • Fairy Light Canopy • Custom Seating"
       },
       {

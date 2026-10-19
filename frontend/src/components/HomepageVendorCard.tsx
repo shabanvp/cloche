@@ -48,7 +48,7 @@ function getCategoryFallback(category: string): string {
     return "https://images.unsplash.com/photo-1555244162-803834f70033?auto=format&fit=crop&w=800&q=80";
   }
   if (cat.includes("decor") || cat.includes("flower") || cat.includes("planner")) {
-    return "https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=800&q=80";
+    return "/images/decor-planning-cover.png";
   }
   if (cat.includes("invite") || cat.includes("card")) {
     return "/images/invitations-cover.png";

@@ -201,7 +201,7 @@ export default function Home() {
       subtitle: "Stage Decor, Florals & Planners",
       href: "/categories/decor-planning",
       bgColor: "bg-[#F6F3E5]",
-      img: "https://images.unsplash.com/photo-1519225421980-715cb0215aed?q=80&w=800&auto=format&fit=crop",
+      img: "/images/decor-planning-cover.png",
       alt: "Decor and Planning"
     }
   ];

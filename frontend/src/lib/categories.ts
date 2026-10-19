@@ -65,7 +65,7 @@ const sharedThumb = {
   weddingVenue: "/images/venues-cover.png",
   couplePortrait: "/images/wedding-studio-cover.png",
   bridalMakeup: "/images/makeup-cover.png",
-  floralDecor: "https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=1200&q=80",
+  floralDecor: "/images/decor-planning-cover.png",
   henna: "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=1200&q=80",
   bridalWear: "/images/bridal-studio-cover.png",
   jewellery: "https://images.unsplash.com/photo-1617038220319-276d3cfab638?auto=format&fit=crop&w=1200&q=80",
@@ -150,7 +150,7 @@ export const HOMEPAGE_CATEGORY_STRIP: HomepageCategoryItem[] = [
   {
     label: "Decor",
     href: "/categories/decor-planning",
-    img: "https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=400&q=80",
+    img: "/images/decor-planning-cover.png",
     alt: "Wedding Decor",
     vendorCount: "175 Planners",
   }
@@ -363,7 +363,7 @@ export const CANONICAL_VENDOR_CATEGORIES: CanonicalCategoryDefinition[] = [
     ],
     description: "Trusted planners for timelines, budgets, and calm execution.",
     icon: BriefcaseBusiness,
-    image: sharedThumb.weddingVenue,
+    image: sharedThumb.floralDecor,
     imageAlt: "A wedding planning setup with elegant stationery and floral details.",
     badge: "Planning support",
     detail: "Get structured planning help for the logistics that keep the day effortless.",

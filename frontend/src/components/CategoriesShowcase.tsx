@@ -169,7 +169,7 @@ export const showcaseCategories: CategoryItem[] = [
     subtitle: "Floral Design, Decor Staging & Full Planning",
     bgColor: "#F6EFE2",
     href: "/categories/decor-planning",
-    image: "https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=1200&q=80",
+    image: "/images/decor-planning-cover.png",
     icon: DecorIcon,
     getCount: () => decorVendors.length || 14,
   },
