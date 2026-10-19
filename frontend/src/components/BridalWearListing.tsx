@@ -71,7 +71,7 @@ export function BridalWearListing() {
           location: `${f.city || "Kochi"}, ${f.district || "Ernakulam"}`,
           rating: f.rating || 4.9,
           reviews: f.reviews_count || 88,
-          image: f.image_url || "https://images.unsplash.com/photo-1594552072238-b8a33785b261?auto=format&fit=crop&w=800&q=80",
+          image: f.image_url || "/images/bridal-studio-cover.png",
           price: "₹45k+",
           collectionTypes: ["Lehengas"],
         }))];

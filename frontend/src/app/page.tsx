@@ -169,7 +169,7 @@ export default function Home() {
       subtitle: "Lehengas, Kanchipuram Saris & Gowns",
       href: "/categories/bridal-studio",
       bgColor: "bg-[#EAF3E3]",
-      img: "https://images.unsplash.com/photo-1594552072238-b8a33785b261?auto=format&fit=crop&w=800&q=80",
+      img: "/images/bridal-studio-cover.png",
       alt: "Bridal Studio"
     },
     {

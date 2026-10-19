@@ -16,7 +16,7 @@ type CategoryRecord = {
 };
 
 const INITIAL_CATEGORIES: CategoryRecord[] = [
-  { id: "cat-1", name: "Bridal Wear", slug: "bridal-wear", vendorCount: 24, featured: true, status: "active", description: "Lehengas, sarees, and luxury bridal ensembles.", image: "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=600&q=80" },
+  { id: "cat-1", name: "Bridal Wear", slug: "bridal-wear", vendorCount: 24, featured: true, status: "active", description: "Lehengas, sarees, and luxury bridal ensembles.", image: "/images/bridal-studio-cover.png" },
   { id: "cat-2", name: "Photographers", slug: "photographers", vendorCount: 18, featured: true, status: "active", description: "Candid wedding photography & cinematic films.", image: "/images/photographers-cover.png" },
   { id: "cat-3", name: "Groom Wear", slug: "groom-wear", vendorCount: 12, featured: true, status: "active", description: "Sherwanis, designer tuxedos, and ethnic suits.", image: "/images/groom-wear-cover.png" },
   { id: "cat-4", name: "Makeup Artists", slug: "makeup", vendorCount: 30, featured: true, status: "active", description: "Bridal HD makeovers, airbrush styling, and hair design.", image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=600&q=80" },
@@ -50,7 +50,7 @@ export default function AdminCategoriesPage() {
       setEditingCategory(null);
       setName("");
       setDescription("");
-      setImage("https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=600&q=80");
+      setImage("/images/bridal-studio-cover.png");
       setFeatured(false);
     }
     setIsModalOpen(true);

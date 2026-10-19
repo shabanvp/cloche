@@ -62,7 +62,7 @@ export async function FeaturedBoutiques({ title, subtitle }: FeaturedBoutiquesPr
             (boutique as any).logo_url ||
             (boutique as any).profile_logo ||
             boutique.image_url ||
-            "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?q=80&w=800&auto=format&fit=crop";
+            "/images/bridal-studio-cover.png";
 
           return (
             <Link key={boutique.id} href={`/boutiques/${boutique.id}`} className="group block">

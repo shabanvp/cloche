@@ -295,7 +295,7 @@ export const VENDOR_CATEGORIES_DATA: Record<string, CategoryConfig> = {
     slug: "boutiques",
     title: "Bridal Boutiques & Wear",
     subtitle: "Designer lehengas, sherwanis, sarees & bespoke bridal couture",
-    heroImage: "https://images.unsplash.com/photo-1594552072238-b8a33785b261?q=80&w=1200&auto=format&fit=crop",
+    heroImage: "/images/bridal-studio-cover.png",
     searchPlaceholder: "Search bridal boutiques, designer lehengas...",
     priceSuffix: " / outfit",
     subFilters: [
@@ -314,7 +314,7 @@ export const VENDOR_CATEGORIES_DATA: Record<string, CategoryConfig> = {
     slug: "bridal-studio",
     title: "Bridal Studio & Couture",
     subtitle: "Discover bespoke designer bridal lehengas, sarees, gowns & bridal studio creations",
-    heroImage: "https://images.unsplash.com/photo-1594552072238-b8a33785b261?q=80&w=1200&auto=format&fit=crop",
+    heroImage: "/images/bridal-studio-cover.png",
     searchPlaceholder: "Search bridal studios, lehengas, sarees...",
     priceSuffix: " / outfit",
     subFilters: [
@@ -376,7 +376,7 @@ export const VENDOR_CATEGORIES_DATA: Record<string, CategoryConfig> = {
     slug: "bridal-studio",
     title: "Bridal Studio & Couture",
     subtitle: "Discover bespoke designer bridal lehengas, sarees, gowns & bridal studio creations",
-    heroImage: "https://images.unsplash.com/photo-1594552072238-b8a33785b261?q=80&w=1200&auto=format&fit=crop",
+    heroImage: "/images/bridal-studio-cover.png",
     searchPlaceholder: "Search bridal studios, lehengas, sarees...",
     priceSuffix: " / outfit",
     subFilters: [
@@ -407,7 +407,7 @@ export const VENDOR_CATEGORIES_DATA: Record<string, CategoryConfig> = {
     slug: "bridal-studio",
     title: "Bridal Studio & Couture",
     subtitle: "Exclusive bridal lehengas, silk sarees, Nikah dresses, gowns & ceremony couture",
-    heroImage: "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?q=80&w=1200&auto=format&fit=crop",
+    heroImage: "/images/bridal-studio-cover.png",
     searchPlaceholder: "Search bridal studio collections...",
     priceSuffix: " / outfit",
     subFilters: [
@@ -1026,7 +1026,7 @@ export const VENDOR_CATEGORIES: Record<string, VendorCategoryConfig> = {
         id: "bs-1",
         title: "Velvet Royal Maroon Bridal Lehenga",
         category: "Bridal Lehengas",
-        image: "https://images.unsplash.com/photo-1594552072238-b8a33785b261?q=80&w=800&auto=format&fit=crop",
+        image: "/images/bridal-studio-cover.png",
         details: "Hand-Embroidered Zardozi • Custom Fits Available"
       }
     ],

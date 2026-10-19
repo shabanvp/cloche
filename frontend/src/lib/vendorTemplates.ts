@@ -200,7 +200,7 @@ export const DEFAULT_VENDOR_CONFIGS: Record<string, VendorProfileConfig> = {
     businessName: "Aurelia Brides Couture",
     tagline: "Handcrafted Zardozi Lehengas & Heritage Silk Ensembles",
     logo: "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=400&q=80",
-    coverImage: "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=1600&q=80",
+    coverImage: "/images/bridal-studio-cover.png",
     aboutText: "Bespoke bridal wear boutique specializing in custom royal lehengas, Banarasi silk sarees, and customized bridal veils.",
     phone: "+91 96551 25480",
     whatsapp: "+91 96551 25480",

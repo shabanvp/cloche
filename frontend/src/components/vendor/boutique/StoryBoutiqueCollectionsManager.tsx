@@ -38,7 +38,7 @@ export function StoryBoutiqueCollectionsManager({ categoryKey }: { categoryKey: 
       name: "Bridal Collection",
       description: "Heavy bridal couture, hand-embroidered lehengas & Nikah gowns",
       category: "Bridal",
-      coverImage: "https://images.unsplash.com/photo-1594552072238-b8a33785b261?q=80&w=600&auto=format&fit=crop",
+      coverImage: "/images/bridal-studio-cover.png",
       isVisible: true,
     },
     {
@@ -241,7 +241,7 @@ export function StoryBoutiqueCollectionsManager({ categoryKey }: { categoryKey: 
               {/* Cover Image & Visibility Badge */}
               <div className="relative h-44 bg-[#F8F6F2] overflow-hidden">
                 <img
-                  src={col.coverImage || "https://images.unsplash.com/photo-1594552072238-b8a33785b261?q=80&w=600&auto=format&fit=crop"}
+                  src={col.coverImage || "/images/bridal-studio-cover.png"}
                   alt={col.name}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
