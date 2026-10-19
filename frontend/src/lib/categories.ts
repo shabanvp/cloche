@@ -68,7 +68,7 @@ const sharedThumb = {
   floralDecor: "/images/decor-planning-cover.png",
   henna: "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=1200&q=80",
   bridalWear: "/images/bridal-studio-cover.png",
-  jewellery: "https://images.unsplash.com/photo-1617038220319-276d3cfab638?auto=format&fit=crop&w=1200&q=80",
+  jewellery: "/images/jewellery-cover.png",
   invitation: "/images/invitations-cover.png",
   cake: "https://images.unsplash.com/photo-1562777717-dc6984f65a63?auto=format&fit=crop&w=1200&q=80",
   entertainment: "https://images.unsplash.com/photo-1516280440614-37939bbacd81?auto=format&fit=crop&w=1200&q=80",

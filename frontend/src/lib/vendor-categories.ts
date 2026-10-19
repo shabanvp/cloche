@@ -276,7 +276,7 @@ export const VENDOR_CATEGORIES_DATA: Record<string, CategoryConfig> = {
     slug: "jewellery",
     title: "Bridal Jewellery",
     subtitle: "Luxury Kundan chokers, uncut Polki sets, heritage gold & bridal rentals",
-    heroImage: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?q=80&w=1200&auto=format&fit=crop",
+    heroImage: "/images/jewellery-cover.png",
     searchPlaceholder: "Search bridal jewellery sets, Kundan, Polki...",
     priceSuffix: " rental",
     subFilters: [
@@ -971,7 +971,7 @@ export const VENDOR_CATEGORIES: Record<string, VendorCategoryConfig> = {
         id: "jw-1",
         title: "Royal Uncut Polki & Colombian Emerald Bridal Set",
         category: "Polki & Emerald Set",
-        image: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?q=80&w=800&auto=format&fit=crop",
+        image: "/images/jewellery-cover.png",
         details: "Includes Choker, Long Haar, Jhumkas, Mathapatti & Haathphool"
       },
       {

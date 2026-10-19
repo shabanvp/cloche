@@ -45,7 +45,7 @@ const SEED_PRODUCTS: Product[] = [
     price: 295000,
     category: "Jewellery",
     district: "Kozhikode",
-    image_url: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=800&q=80",
+    image_url: "/images/jewellery-cover.png",
     description: "22K yellow gold handcrafted temple jewellery set with rubies and pearls.",
     boutique_id: "v-malabar",
     boutique_name: "Kalyan Heritage Jewellery",

@@ -116,7 +116,7 @@ export function JewelleryListing() {
           </div>
           <div className="relative w-[38%] aspect-square rounded-xl overflow-hidden border border-white/20 shadow-sm">
             <Image
-              src="https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=600&q=80"
+              src="/images/jewellery-cover.png"
               alt="Jewellery Hero"
               fill
               className="object-cover"

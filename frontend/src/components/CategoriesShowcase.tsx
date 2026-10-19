@@ -199,7 +199,7 @@ export const showcaseCategories: CategoryItem[] = [
     subtitle: "Bridal Jewellery, Polki, Kundan & Diamonds",
     bgColor: "#E8F1EC",
     href: "/categories/jewellery",
-    image: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=1200&q=80",
+    image: "/images/jewellery-cover.png",
     icon: JewelleryIcon,
     getCount: () => 15,
   },

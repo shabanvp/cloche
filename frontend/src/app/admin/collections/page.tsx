@@ -52,7 +52,7 @@ const INITIAL_COLLECTIONS: CollectionItem[] = [
     price: "₹3,20,000",
     status: "active",
     featured: false,
-    image: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=600&q=80",
+    image: "/images/jewellery-cover.png",
     created_at: "2026-03-20"
   },
   {

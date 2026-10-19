@@ -53,6 +53,9 @@ function getCategoryFallback(category: string): string {
   if (cat.includes("invite") || cat.includes("card")) {
     return "/images/invitations-cover.png";
   }
+  if (cat.includes("jewel") || cat.includes("gold") || cat.includes("ornament")) {
+    return "/images/jewellery-cover.png";
+  }
   return "/images/wedding-studio-cover.png";
 }
 
