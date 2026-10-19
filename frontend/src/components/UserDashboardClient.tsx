@@ -109,18 +109,12 @@ export function UserDashboardClient({ initialTab }: UserDashboardClientProps = {
   ]);
   const [newTaskInput, setNewTaskInput] = useState("");
 
-  // Budget Planner State
-  const [totalBudget, setTotalBudget] = useState(1500000); // 15 Lakhs default
-  const [budgetItems, setBudgetItems] = useState<BudgetItem[]>([
-    { id: "b-1", category: "Venue & Resort", estimated: 500000, actual: 480000 },
-    { id: "b-2", category: "Catering & Banquet Feasts", estimated: 350000, actual: 320000 },
-    { id: "b-3", category: "Photography & Cinema", estimated: 250000, actual: 260000 },
-    { id: "b-4", category: "Stage Decor & Floral Setup", estimated: 200000, actual: 190000 },
-    { id: "b-5", category: "Bridal & Groom Attire", estimated: 150000, actual: 140000 },
-    { id: "b-6", category: "Bridal Makeup & Styling", estimated: 50000, actual: 45000 },
-  ]);
+  // Budget Planner State (User-entered only, starts empty)
+  const [totalBudget, setTotalBudget] = useState(0);
+  const [budgetItems, setBudgetItems] = useState<BudgetItem[]>([]);
   const [newCategoryInput, setNewCategoryInput] = useState("");
   const [newEstimatedInput, setNewEstimatedInput] = useState("");
+  const [newActualInput, setNewActualInput] = useState("");
 
   // Enquiries & Quotations State
   const [enquiries, setEnquiries] = useState<any[]>([]);
@@ -193,6 +187,21 @@ export function UserDashboardClient({ initialTab }: UserDashboardClientProps = {
             if (Array.isArray(parsed) && parsed.length > 0) {
               setChecklist(parsed);
             }
+          }
+        } catch (e) {}
+
+        // Load saved budget items from localStorage if present
+        try {
+          const savedBudget = localStorage.getItem("cloche_user_budget_items");
+          if (savedBudget) {
+            const parsed = JSON.parse(savedBudget);
+            if (Array.isArray(parsed)) {
+              setBudgetItems(parsed);
+            }
+          }
+          const savedTotalBudget = localStorage.getItem("cloche_user_total_budget");
+          if (savedTotalBudget !== null && !isNaN(Number(savedTotalBudget))) {
+            setTotalBudget(Number(savedTotalBudget));
           }
         } catch (e) {}
       } catch (e) {
@@ -314,20 +323,42 @@ export function UserDashboardClient({ initialTab }: UserDashboardClientProps = {
     setNewTaskInput("");
   };
 
+  const handleUpdateTotalBudget = (amount: number) => {
+    setTotalBudget(amount);
+    try {
+      localStorage.setItem("cloche_user_total_budget", String(amount));
+    } catch (e) {}
+  };
+
   const handleAddBudgetItem = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newCategoryInput.trim() || !newEstimatedInput) return;
-    setBudgetItems((prev) => [
-      ...prev,
+    const est = Number(newEstimatedInput) || 0;
+    const act = newActualInput ? Number(newActualInput) || 0 : 0;
+    const updated = [
+      ...budgetItems,
       {
         id: `b-${Date.now()}`,
         category: newCategoryInput.trim(),
-        estimated: Number(newEstimatedInput),
-        actual: Number(newEstimatedInput),
+        estimated: est,
+        actual: act,
       },
-    ]);
+    ];
+    setBudgetItems(updated);
+    try {
+      localStorage.setItem("cloche_user_budget_items", JSON.stringify(updated));
+    } catch (e) {}
     setNewCategoryInput("");
     setNewEstimatedInput("");
+    setNewActualInput("");
+  };
+
+  const handleRemoveBudgetItem = (id: string) => {
+    const updated = budgetItems.filter((i) => i.id !== id);
+    setBudgetItems(updated);
+    try {
+      localStorage.setItem("cloche_user_budget_items", JSON.stringify(updated));
+    } catch (e) {}
   };
 
   // Calculations
@@ -336,7 +367,7 @@ export function UserDashboardClient({ initialTab }: UserDashboardClientProps = {
 
   const totalEstimatedBudget = budgetItems.reduce((acc, i) => acc + i.estimated, 0);
   const totalActualBudget = budgetItems.reduce((acc, i) => acc + i.actual, 0);
-  const remainingBudget = totalBudget - totalActualBudget;
+  const remainingBudget = totalBudget > 0 ? totalBudget - totalActualBudget : 0;
 
   const navTabs: { id: DashboardTab; label: string; icon: any; count?: number }[] = [
     { id: "profile", label: "My Profile", icon: User },
@@ -841,24 +872,28 @@ export function UserDashboardClient({ initialTab }: UserDashboardClientProps = {
             {/* TAB 6: BUDGET PLANNER */}
             {activeTab === "budget" && (
               <div className="bg-white p-6 sm:p-8 rounded-3xl border border-gold/15 shadow-xs space-y-6 animate-in fade-in duration-300">
-                <div className="flex items-center justify-between border-b border-gold/10 pb-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gold/10 pb-4">
                   <div>
                     <h2 className="text-xl font-bold text-charcoal font-display">Interactive Budget Planner</h2>
                     <p className="text-xs text-charcoal/60">Set target budgets and track estimated vs actual expenses.</p>
                   </div>
-                  <div className="text-right">
+                  <div className="sm:text-right">
                     <span className="text-[10px] font-bold text-gold uppercase tracking-wider block">Target Total Budget</span>
-                    <input
-                      type="number"
-                      value={totalBudget}
-                      onChange={(e) => setTotalBudget(Number(e.target.value))}
-                      className="text-sm font-bold text-right text-[#0F4C45] bg-[#FAF7F2] border border-gold/20 rounded-xl px-2 py-1 w-32 outline-none"
-                    />
+                    <div className="relative inline-block mt-0.5">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-[#0F4C45]">₹</span>
+                      <input
+                        type="number"
+                        value={totalBudget || ""}
+                        placeholder="0"
+                        onChange={(e) => handleUpdateTotalBudget(Number(e.target.value) || 0)}
+                        className="text-sm font-bold text-right text-[#0F4C45] bg-[#FAF7F2] border border-gold/20 rounded-xl pl-7 pr-3 py-1.5 w-36 outline-none focus:border-[#0F4C45]"
+                      />
+                    </div>
                   </div>
                 </div>
 
                 {/* Budget Summary Cards */}
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                   <div className="bg-[#FAF7F2] p-4 rounded-2xl border border-gold/10">
                     <span className="text-[10px] font-bold text-gold uppercase tracking-wider block">Estimated Total</span>
                     <p className="text-lg font-bold text-charcoal mt-1">₹{totalEstimatedBudget.toLocaleString("en-IN")}</p>
@@ -876,12 +911,12 @@ export function UserDashboardClient({ initialTab }: UserDashboardClientProps = {
                 </div>
 
                 {/* Add Category Form */}
-                <form onSubmit={handleAddBudgetItem} className="flex gap-2">
+                <form onSubmit={handleAddBudgetItem} className="flex flex-col sm:flex-row gap-2">
                   <input
                     type="text"
                     value={newCategoryInput}
                     onChange={(e) => setNewCategoryInput(e.target.value)}
-                    placeholder="Expense category (e.g., Return Gifts, DJ)..."
+                    placeholder="Expense category (e.g., Venue, Photography, Decor, Outfits)..."
                     className="flex-1 bg-[#FAF7F2] border border-gold/20 rounded-2xl px-4 py-2.5 text-xs text-charcoal outline-none focus:border-[#0F4C45]"
                   />
                   <input
@@ -889,27 +924,58 @@ export function UserDashboardClient({ initialTab }: UserDashboardClientProps = {
                     value={newEstimatedInput}
                     onChange={(e) => setNewEstimatedInput(e.target.value)}
                     placeholder="Estimated (₹)"
-                    className="w-32 bg-[#FAF7F2] border border-gold/20 rounded-2xl px-3 py-2.5 text-xs text-charcoal outline-none focus:border-[#0F4C45]"
+                    className="w-full sm:w-32 bg-[#FAF7F2] border border-gold/20 rounded-2xl px-3 py-2.5 text-xs text-charcoal outline-none focus:border-[#0F4C45]"
                   />
-                  <button type="submit" className="bg-[#0F4C45] text-white text-xs font-bold px-4 py-2.5 rounded-2xl hover:bg-[#12584E] transition-all flex items-center gap-1 cursor-pointer">
-                    <Plus className="w-4 h-4" /> Add
+                  <input
+                    type="number"
+                    value={newActualInput}
+                    onChange={(e) => setNewActualInput(e.target.value)}
+                    placeholder="Actual (₹, optional)"
+                    className="w-full sm:w-36 bg-[#FAF7F2] border border-gold/20 rounded-2xl px-3 py-2.5 text-xs text-charcoal outline-none focus:border-[#0F4C45]"
+                  />
+                  <button type="submit" className="bg-[#0F4C45] text-white text-xs font-bold px-5 py-2.5 rounded-2xl hover:bg-[#12584E] transition-all flex items-center justify-center gap-1 cursor-pointer shrink-0">
+                    <Plus className="w-4 h-4" /> Add Expense
                   </button>
                 </form>
 
                 {/* Budget Item List */}
-                <div className="space-y-2">
-                  {budgetItems.map((item) => (
-                    <div key={item.id} className="p-4 bg-[#FAF7F2] rounded-2xl border border-gold/10 flex items-center justify-between gap-4">
-                      <div>
-                        <h4 className="font-bold text-xs text-charcoal">{item.category}</h4>
-                        <p className="text-[11px] text-charcoal/60">Estimated: ₹{item.estimated.toLocaleString("en-IN")}</p>
+                {budgetItems.length > 0 ? (
+                  <div className="space-y-2.5">
+                    {budgetItems.map((item) => (
+                      <div key={item.id} className="p-4 bg-[#FAF7F2] rounded-2xl border border-gold/10 flex items-center justify-between gap-4 group hover:border-gold/30 transition-all">
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-bold text-xs text-charcoal truncate">{item.category}</h4>
+                          <p className="text-[11px] text-charcoal/60 mt-0.5">
+                            Estimated: <span className="font-semibold text-charcoal">₹{item.estimated.toLocaleString("en-IN")}</span>
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-3 shrink-0">
+                          <div className="text-right">
+                            <span className="text-[10px] text-charcoal/50 block font-medium">Actual Committed</span>
+                            <span className="text-xs font-bold text-[#0F4C45]">₹{item.actual.toLocaleString("en-IN")}</span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveBudgetItem(item.id)}
+                            className="p-1.5 text-rose-500 hover:bg-rose-50 rounded-xl transition-all cursor-pointer opacity-70 group-hover:opacity-100"
+                            title="Delete expense"
+                            aria-label="Delete expense"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <span className="text-xs font-bold text-[#0F4C45]">₹{item.actual.toLocaleString("en-IN")}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12 space-y-3 bg-[#FAF7F2]/50 rounded-2xl border border-dashed border-gold/25 p-8">
+                    <DollarSign className="w-10 h-10 text-gold/40 mx-auto" />
+                    <p className="text-sm font-semibold text-charcoal">No expenses added yet</p>
+                    <p className="text-xs text-charcoal/60 max-w-sm mx-auto">
+                      Start planning your wedding budget by setting your target budget above and adding your custom expense categories.
+                    </p>
+                  </div>
+                )}
               </div>
             )}
 
