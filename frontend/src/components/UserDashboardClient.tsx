@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import Link from "next/link";
 import {
   User,
@@ -23,6 +23,9 @@ import {
   Phone,
   ShieldCheck,
   ArrowLeft,
+  ChevronLeft,
+  ChevronRight,
+  X,
 } from "lucide-react";
 import { getWishlistItems, removeWishlistItem, syncWishlistWithServer, WishlistItem } from "@/lib/wishlistStore";
 import { getSavedInspirations, removeSavedInspiration, SavedInspirationItem } from "@/lib/inspirationStore";
@@ -92,6 +95,7 @@ export function UserDashboardClient({ initialTab }: UserDashboardClientProps = {
   const [savedVendors, setSavedVendors] = useState<WishlistItem[]>([]);
   const [savedVenues, setSavedVenues] = useState<WishlistItem[]>([]);
   const [savedInspirations, setSavedInspirations] = useState<SavedInspirationItem[]>([]);
+  const [selectedInspiration, setSelectedInspiration] = useState<SavedInspirationItem | null>(null);
 
   // Checklist State
   const [checklist, setChecklist] = useState<ChecklistItem[]>([
@@ -221,9 +225,67 @@ export function UserDashboardClient({ initialTab }: UserDashboardClientProps = {
     setSavedVenues(updated.filter((i) => (i.category || "").toLowerCase() === "venue" || (i.category || "").toLowerCase() === "venues"));
   };
 
+  const selectedInspirationIndex = useMemo(() => {
+    if (!selectedInspiration) return -1;
+    return savedInspirations.findIndex((item) => String(item.id) === String(selectedInspiration.id));
+  }, [selectedInspiration, savedInspirations]);
+
+  const handlePrevInspiration = useCallback(() => {
+    if (savedInspirations.length === 0) return;
+    const idx = selectedInspirationIndex >= 0 ? selectedInspirationIndex : 0;
+    const prevIdx = (idx - 1 + savedInspirations.length) % savedInspirations.length;
+    setSelectedInspiration(savedInspirations[prevIdx]);
+  }, [selectedInspirationIndex, savedInspirations]);
+
+  const handleNextInspiration = useCallback(() => {
+    if (savedInspirations.length === 0) return;
+    const idx = selectedInspirationIndex >= 0 ? selectedInspirationIndex : 0;
+    const nextIdx = (idx + 1) % savedInspirations.length;
+    setSelectedInspiration(savedInspirations[nextIdx]);
+  }, [selectedInspirationIndex, savedInspirations]);
+
+  // Keyboard navigation for inspiration viewer
+  useEffect(() => {
+    if (!selectedInspiration) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        handlePrevInspiration();
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault();
+        handleNextInspiration();
+      } else if (e.key === "Escape") {
+        e.preventDefault();
+        setSelectedInspiration(null);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selectedInspiration, handlePrevInspiration, handleNextInspiration]);
+
+  // Lock body scroll when inspiration viewer is open
+  useEffect(() => {
+    if (selectedInspiration) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [selectedInspiration]);
+
   const handleRemoveInspiration = (id: string | number) => {
     const updated = removeSavedInspiration(id);
     setSavedInspirations(updated);
+    if (selectedInspiration && String(selectedInspiration.id) === String(id)) {
+      if (updated.length > 0) {
+        const nextIdx = Math.min(selectedInspirationIndex, updated.length - 1);
+        setSelectedInspiration(updated[nextIdx]);
+      } else {
+        setSelectedInspiration(null);
+      }
+    }
   };
 
   const handleToggleChecklist = (id: string) => {
@@ -681,25 +743,30 @@ export function UserDashboardClient({ initialTab }: UserDashboardClientProps = {
                 </div>
 
                 {savedInspirations.length > 0 ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4.5">
+                  <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-5">
                     {savedInspirations.map((item) => (
-                      <div key={item.id} className="bg-[#FAF7F2] rounded-2xl overflow-hidden border border-gold/10 group shadow-2xs hover:shadow-md transition-shadow">
-                        <div className="relative h-48 sm:h-52 overflow-hidden">
-                          <img src={item.image} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveInspiration(item.id)}
-                            className="absolute top-3 right-3 bg-white/95 hover:bg-rose-50 p-2 rounded-full text-rose-500 shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer flex items-center justify-center border border-rose-100"
-                            title="Unlike inspiration (Remove)"
-                            aria-label="Unlike inspiration"
-                          >
-                            <Heart className="w-4 h-4 fill-rose-500 text-rose-500" />
-                          </button>
-                        </div>
-                        <div className="p-4 space-y-1">
-                          <span className="text-[10px] font-bold text-gold uppercase tracking-wider">{item.category}</span>
-                          <h4 className="font-bold text-sm text-charcoal line-clamp-1">{item.title}</h4>
-                        </div>
+                      <div
+                        key={item.id}
+                        onClick={() => setSelectedInspiration(item)}
+                        className="relative rounded-2xl md:rounded-3xl overflow-hidden border border-gold/15 group shadow-xs hover:shadow-xl transition-all duration-300 cursor-pointer aspect-[3/4] bg-gray-100 select-none active:scale-[0.98]"
+                      >
+                        <img
+                          src={item.image}
+                          alt={item.title || "Wedding Inspiration"}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+                        />
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleRemoveInspiration(item.id);
+                          }}
+                          className="absolute top-2.5 right-2.5 sm:top-3 sm:right-3 bg-white/95 hover:bg-rose-50 p-2 rounded-full text-rose-500 shadow-md hover:scale-110 active:scale-95 transition-all cursor-pointer flex items-center justify-center border border-rose-100 z-10"
+                          title="Unlike inspiration (Remove)"
+                          aria-label="Unlike inspiration"
+                        >
+                          <Heart className="w-4 h-4 fill-rose-500 text-rose-500" />
+                        </button>
                       </div>
                     ))}
                   </div>
@@ -992,6 +1059,98 @@ export function UserDashboardClient({ initialTab }: UserDashboardClientProps = {
           </main>
         </div>
       </div>
+
+      {/* FULL-SCREEN SAVED INSPIRATION VIEWER MODAL (SLIDE ROLL CAROUSEL) */}
+      {selectedInspiration && (
+        <div
+          className="fixed inset-0 z-[120] bg-black/95 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 animate-in fade-in duration-200 select-none"
+          onClick={() => setSelectedInspiration(null)}
+        >
+          {/* Top Bar: Counter & Actions */}
+          <div className="absolute top-4 left-4 right-4 sm:top-6 sm:left-6 sm:right-6 flex items-center justify-between z-50 pointer-events-none">
+            {/* Counter */}
+            {selectedInspirationIndex >= 0 && savedInspirations.length > 0 ? (
+              <div className="pointer-events-auto bg-black/60 backdrop-blur-md text-white/90 text-xs font-semibold px-3.5 py-1.5 rounded-full border border-white/20 shadow-lg">
+                <span>{selectedInspirationIndex + 1}</span>
+                <span className="text-white/40 mx-1.5">/</span>
+                <span>{savedInspirations.length}</span>
+              </div>
+            ) : <div />}
+
+            {/* Right Controls: Unlike & Close */}
+            <div className="pointer-events-auto flex items-center gap-2.5 ml-auto">
+              {/* Unlike Button */}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleRemoveInspiration(selectedInspiration.id);
+                }}
+                aria-label="Unlike inspiration"
+                className="min-w-[44px] min-h-[44px] w-11 h-11 rounded-full bg-white text-rose-500 border border-rose-200 shadow-rose-500/30 flex items-center justify-center cursor-pointer shadow-xl transition-all active:scale-95"
+                title="Unlike inspiration (Remove)"
+              >
+                <Heart className="w-5 h-5 fill-rose-500 text-rose-500 scale-110" />
+              </button>
+
+              {/* Close Button */}
+              <button
+                type="button"
+                onClick={() => setSelectedInspiration(null)}
+                aria-label="Close image viewer"
+                className="min-w-[44px] min-h-[44px] w-11 h-11 rounded-full bg-black/60 hover:bg-black/85 text-white flex items-center justify-center cursor-pointer shadow-xl border border-white/25 active:scale-95 transition-all"
+                title="Close (Esc)"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+
+          {/* Left Slide Roll Button */}
+          {savedInspirations.length > 1 && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                handlePrevInspiration();
+              }}
+              aria-label="Previous saved inspiration"
+              className="absolute left-3 sm:left-6 top-1/2 -translate-y-1/2 z-50 min-w-[46px] min-h-[46px] w-11 sm:w-14 h-11 sm:h-14 rounded-full bg-black/60 hover:bg-black/90 text-white flex items-center justify-center cursor-pointer shadow-2xl border border-white/20 active:scale-90 hover:scale-105 transition-all backdrop-blur-md"
+              title="Previous (Left Arrow)"
+            >
+              <ChevronLeft className="w-6 h-6 sm:w-7 sm:h-7" />
+            </button>
+          )}
+
+          {/* Main Selected Image Only */}
+          <div
+            className="relative flex items-center justify-center max-w-[92vw] max-h-[88vh] sm:max-h-[85vh] select-none"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              src={selectedInspiration.image}
+              alt={selectedInspiration.title || "Wedding Inspiration"}
+              className="max-h-[85vh] max-w-[90vw] md:max-w-4xl lg:max-w-5xl w-auto h-auto object-contain rounded-2xl shadow-2xl transition-opacity duration-200"
+            />
+          </div>
+
+          {/* Right Slide Roll Button */}
+          {savedInspirations.length > 1 && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleNextInspiration();
+              }}
+              aria-label="Next saved inspiration"
+              className="absolute right-3 sm:right-6 top-1/2 -translate-y-1/2 z-50 min-w-[46px] min-h-[46px] w-11 sm:w-14 h-11 sm:h-14 rounded-full bg-black/60 hover:bg-black/90 text-white flex items-center justify-center cursor-pointer shadow-2xl border border-white/20 active:scale-90 hover:scale-105 transition-all backdrop-blur-md"
+              title="Next (Right Arrow)"
+            >
+              <ChevronRight className="w-6 h-6 sm:w-7 sm:h-7" />
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }
