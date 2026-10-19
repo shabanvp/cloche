@@ -91,7 +91,7 @@ export const HOMEPAGE_CATEGORY_STRIP: HomepageCategoryItem[] = [
   {
     label: "Photographers",
     href: "/photographers",
-    img: "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=400&q=80",
+    img: "/images/photographers-cover.png",
     alt: "Wedding Photographers",
     vendorCount: "320 Vendors",
     badge: "Trending",
@@ -257,7 +257,7 @@ export const CANONICAL_VENDOR_CATEGORIES: CanonicalCategoryDefinition[] = [
     ],
     description: "Candid, traditional, and cinematic storytelling for your day.",
     icon: Camera,
-    image: sharedThumb.couplePortrait,
+    image: "/images/photographers-cover.png",
     imageAlt: "A wedding couple photographed in an intimate portrait moment.",
     badge: "Storytelling",
     detail: "Explore photographers who capture the feeling, the details, and the in-between moments.",

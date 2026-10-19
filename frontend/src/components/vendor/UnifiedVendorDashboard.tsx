@@ -144,7 +144,7 @@ export function UnifiedVendorDashboard({ categoryKey = "caterers", initialTab = 
   const vendorName = vendorData?.name || vendorData?.boutique_name || "Vendor Partner";
   const vendorCategoryName = vendorData?.category || categoryConfig.name;
   const logoUrl = vendorData?.logo || vendorData?.logo_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop";
-  const coverUrl = vendorData?.coverImage || vendorData?.cover_image || categoryConfig.sampleMedia?.[0]?.image || "https://images.unsplash.com/photo-1583939003579-730e3918a45a?q=80&w=1200&auto=format&fit=crop";
+  const coverUrl = vendorData?.coverImage || vendorData?.cover_image || categoryConfig.sampleMedia?.[0]?.image || "/images/photographers-cover.png";
   const partnerBadge = vendorData?.plan || (vendorData?.isVerified || vendorData?.is_verified ? "Verified Partner" : "Registered Partner");
 
   const isJewellery = activeCategoryKey === "jewellery" || vendorCategoryName.toLowerCase().includes("jewel");

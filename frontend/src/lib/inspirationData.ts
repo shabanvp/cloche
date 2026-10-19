@@ -485,7 +485,7 @@ export const INSPIRATION_CATEGORIES: InspirationCategoryItem[] = [
     id: "Wedding Photos",
     label: "Photography",
     emoji: "📸",
-    image: "https://images.unsplash.com/photo-1606800052052-a08af7148866?auto=format&fit=crop&w=400&q=80",
+    image: "/images/photographers-cover.png",
   },
   {
     id: "Color Themes",

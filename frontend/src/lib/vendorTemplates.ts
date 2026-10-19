@@ -155,7 +155,7 @@ export const DEFAULT_VENDOR_CONFIGS: Record<string, VendorProfileConfig> = {
     businessName: "Memory Lanes Photography",
     tagline: "Cinematic & Candid Wedding Storytelling Across Kerala",
     logo: "https://images.unsplash.com/photo-1537633552985-df8429e8048b?auto=format&fit=crop&w=400&q=80",
-    coverImage: "https://images.unsplash.com/photo-1537633552985-df8429e8048b?auto=format&fit=crop&w=1600&q=80",
+    coverImage: "/images/photographers-cover.png",
     aboutText: "Award-winning team capturing timeless candid moments, pre-wedding destination films, and traditional Kerala wedding rituals.",
     phone: "+91 98470 55443",
     whatsapp: "+91 98470 55443",

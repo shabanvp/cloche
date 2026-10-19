@@ -43,7 +43,7 @@ export function PhotographersForYouSection({
       rating: p.rating || 4.9,
       reviewCount: p.reviews || 0,
       startingPrice: "₹65,000 / day",
-      coverImage: p.images?.[0] || p.image || "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=800&q=80",
+      coverImage: p.images?.[0] || p.image || "/images/photographers-cover.png",
     }));
   });
   const [isLoading, setIsLoading] = useState(false);
@@ -72,7 +72,7 @@ export function PhotographersForYouSection({
             coverImage:
               dbV.coverImage ||
               dbV.logo ||
-              "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=800&q=80",
+              "/images/photographers-cover.png",
           }));
 
           // Merge live database vendors with verified registry partners for richness
@@ -89,7 +89,7 @@ export function PhotographersForYouSection({
               rating: p.rating || 4.9,
               reviewCount: p.reviews || 0,
               startingPrice: "₹65,000 / day",
-              coverImage: p.images?.[0] || p.image || "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=800&q=80",
+              coverImage: p.images?.[0] || p.image || "/images/photographers-cover.png",
             }));
 
           setPhotographersList([...livePhotographers, ...extraRegistry]);

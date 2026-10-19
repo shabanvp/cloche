@@ -153,7 +153,7 @@ export default function Home() {
       subtitle: "Wedding & Pre-wedding Photography",
       href: "/photographers",
       bgColor: "bg-[#FCEFE3]",
-      img: "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=800&q=80",
+      img: "/images/photographers-cover.png",
       alt: "Wedding Photographers"
     },
     {

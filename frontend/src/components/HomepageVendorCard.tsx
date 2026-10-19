@@ -33,7 +33,7 @@ function getCategoryFallback(category: string): string {
     return "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=800&q=80";
   }
   if (cat.includes("photo") || cat.includes("camera") || cat.includes("video")) {
-    return "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=800&q=80";
+    return "/images/photographers-cover.png";
   }
   if (cat.includes("makeup") || cat.includes("glam") || cat.includes("beauty")) {
     return "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=800&q=80";

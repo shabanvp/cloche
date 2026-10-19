@@ -76,7 +76,7 @@ export const VENDOR_CATEGORIES_DATA: Record<string, CategoryConfig> = {
     slug: "photographers",
     title: "Wedding Photographers",
     subtitle: "Capture timeless candid moments, cinematic wedding films & pre-wedding shoots",
-    heroImage: "https://images.unsplash.com/photo-1583939003579-730e3918a45a?q=80&w=1200&auto=format&fit=crop",
+    heroImage: "/images/photographers-cover.png",
     searchPlaceholder: "Search photographers by name, style, or city...",
     priceSuffix: " / day",
     subFilters: [
@@ -628,7 +628,7 @@ export const VENDOR_CATEGORIES: Record<string, VendorCategoryConfig> = {
         id: "ph-1",
         title: "Royal Jaipur Palace Wedding",
         category: "Wedding Day",
-        image: "https://images.unsplash.com/photo-1583939003579-730e3918a45a?q=80&w=800&auto=format&fit=crop",
+        image: "/images/photographers-cover.png",
         details: "120 Color Graded Photos • 4K Cinematic Teaser Film"
       },
       {

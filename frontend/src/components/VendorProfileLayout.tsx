@@ -348,7 +348,7 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
         highlightsTitle: "Portfolio Highlights",
         highlights: [
           { name: "Candid Moments", image: "https://images.unsplash.com/photo-1537633552985-df8429e8048b?auto=format&fit=crop&w=600&q=80" },
-          { name: "Cinematic Films", image: "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=600&q=80" },
+          { name: "Cinematic Films", image: "/images/photographers-cover.png" },
           { name: "Pre-Wedding Shoot", image: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=600&q=80" }
         ],
         prices: [
