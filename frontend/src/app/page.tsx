@@ -79,7 +79,13 @@ export default function Home() {
                 city: b.city || "Kerala",
                 rating: Number(b.rating || 0),
                 reviewCount: Number(b.review_count || 0),
-                startingPrice: b.starting_price ? `₹${Number(b.starting_price).toLocaleString("en-IN")}` : "Contact for pricing",
+                startingPrice: (() => {
+                  const raw = b.starting_price || b.startingPrice;
+                  if (!raw) return "Contact for pricing";
+                  if (typeof raw === "string" && raw.startsWith("₹")) return raw;
+                  const num = Number(String(raw).replace(/[^\d.]/g, ""));
+                  return !isNaN(num) && num > 0 ? `₹${num.toLocaleString("en-IN")}` : String(raw);
+                })(),
                 coverImage:
                   b.cover_image ||
                   b.logo ||

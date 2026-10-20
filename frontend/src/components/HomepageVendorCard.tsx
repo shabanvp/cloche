@@ -17,6 +17,8 @@ export interface VendorCardItem {
   startingPrice: string;
   coverImage?: string;
   logo?: string;
+  distanceKm?: number;
+  distanceText?: string;
 }
 
 interface HomepageVendorCardProps {
@@ -24,6 +26,7 @@ interface HomepageVendorCardProps {
   rankBadge?: number;
   isTrending?: boolean;
   priority?: boolean;
+  distanceKm?: number;
 }
 
 // Category-appropriate fallback images
@@ -63,7 +66,9 @@ export function HomepageVendorCard({
   vendor,
   rankBadge,
   isTrending = false,
+  distanceKm,
 }: HomepageVendorCardProps) {
+  const effectiveDistance = typeof distanceKm === "number" ? distanceKm : vendor.distanceKm;
   const [isSaved, setIsSaved] = useState(false);
   const [imgSrc, setImgSrc] = useState<string>(() => {
     return vendor.coverImage || vendor.logo || getCategoryFallback(vendor.category);
@@ -180,11 +185,18 @@ export function HomepageVendorCard({
             {vendor.name}
           </h3>
 
-          {/* Location */}
-          <p className="text-xs text-[#242321]/65 flex items-center gap-1">
-            <MapPin className="w-3.5 h-3.5 text-[#064E43] shrink-0" />
-            <span className="truncate">{vendor.city || "Kerala"}</span>
-          </p>
+          {/* Location & Kilometre Distance */}
+          <div className="flex items-center justify-between gap-1 text-xs text-[#242321]/65">
+            <p className="flex items-center gap-1 min-w-0 truncate">
+              <MapPin className="w-3.5 h-3.5 text-[#064E43] shrink-0" />
+              <span className="truncate">{vendor.city || "Kerala"}</span>
+            </p>
+            {typeof effectiveDistance === "number" && (
+              <span className="text-[11px] font-bold text-[#064E43] bg-[#064E43]/7 border border-[#C6A568]/25 px-2 py-0.5 rounded-full shrink-0 shadow-2xs">
+                {effectiveDistance < 1 ? "< 1 km away" : `${effectiveDistance} km away`}
+              </span>
+            )}
+          </div>
         </div>
       </div>
 
