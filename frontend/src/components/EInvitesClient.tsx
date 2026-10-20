@@ -123,7 +123,7 @@ export function EInvitesClient() {
   const activeThemeStyle = themeStyles[selectedTheme];
 
   return (
-    <div className="min-h-screen bg-[#F5F0E8] text-[#2D2520] flex flex-col pt-4">
+    <div className="min-h-screen bg-[#FAF9F6] text-[#2D2520] flex flex-col pt-4">
       
       {/* ─── TOAST NOTIFICATION ─── */}
       {copiedToast && (

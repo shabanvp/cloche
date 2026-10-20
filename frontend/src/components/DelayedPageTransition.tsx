@@ -51,14 +51,14 @@ export function DelayedPageTransition() {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.25, ease: "easeInOut" }}
-          className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-[#FAF7F2]/95 backdrop-blur-md pointer-events-none"
+          className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-[#FAF9F6]/95 backdrop-blur-md pointer-events-none"
         >
           <div className="relative flex flex-col items-center">
             {/* Cloche Logo with Soft Pulse */}
             <motion.div
               animate={{ scale: [0.97, 1.03, 0.97] }}
               transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
-              className="relative flex h-20 w-20 items-center justify-center rounded-full border border-[#D7C2A0] bg-[#FBF7EF] shadow-md p-3"
+              className="relative flex h-20 w-20 items-center justify-center rounded-full border border-[#D7C2A0] bg-white shadow-md p-3"
             >
               <img src="/logo.png" alt="Cloche" className="h-12 w-12 object-contain" />
             </motion.div>

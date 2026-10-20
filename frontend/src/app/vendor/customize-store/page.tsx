@@ -33,7 +33,7 @@ export default function VendorCustomizeStorePage() {
   const vendorDisplayName = vendorData?.boutique_name || vendorData?.name || "Vendor Partner";
 
   return (
-    <div className="min-h-screen bg-[#F8F6F2] font-sans antialiased pb-32 pt-6">
+    <div className="min-h-screen bg-[#FAF9F6] font-sans antialiased pb-32 pt-6">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
         <div className="flex items-center justify-between">
           <Link

@@ -610,7 +610,7 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
   const highlightsTitle = vendor.highlightsTitle || defaults.highlightsTitle;
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#FAF7F2] pb-32 text-[#2D2520] font-sans">
+    <div className="min-h-screen flex flex-col bg-[#FAF9F6] pb-32 text-[#2D2520] font-sans">
 
       {/* Top Hero Banner (Mobile & Tablet) */}
       <div className="lg:hidden relative w-full aspect-[4/3] sm:aspect-[16/9] md:h-[440px] md:aspect-auto bg-[#0F4C45] overflow-hidden">
@@ -778,7 +778,7 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
               </div>
 
               {/* Starting Price Display */}
-              <div className="mt-4 p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 flex items-center justify-between">
+              <div className="mt-4 p-3.5 rounded-xl bg-[#FAF9F6] border border-black/5 flex items-center justify-between">
                 <div>
                   <div className="text-[11px] text-[#7A6E65] uppercase tracking-wider font-semibold">Starting Price</div>
                   <div className="text-xl font-bold text-[#0F4C45]">{vendor.startingPriceLabel || vendor.startingPrice || "Contact for pricing"}</div>
@@ -880,7 +880,7 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
                 {(vendor.storeHighlights || vendor.store_highlights || []).map((badge) => (
                   <span
                     key={badge}
-                    className="bg-[#FAF7F2] text-[#0F4C45] text-[10px] font-bold px-2 py-0.5 rounded-full border border-[#0F4C45]/20 flex items-center gap-1"
+                    className="bg-[#FAF9F6] text-[#0F4C45] text-[10px] font-bold px-2 py-0.5 rounded-full border border-[#0F4C45]/20 flex items-center gap-1"
                   >
                     <Sparkles className="w-2.5 h-2.5 text-[#C8A96A]" /> {badge}
                   </span>
@@ -949,7 +949,7 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
               {(vendor.facilities || vendor.venue_facilities || []).map((fac: string) => (
                 <div
                   key={fac}
-                  className="bg-[#FAF7F2] p-3 rounded-xl border border-black/5 flex items-center gap-2 text-xs font-bold text-[#2D2520]"
+                  className="bg-[#FAF9F6] p-3 rounded-xl border border-black/5 flex items-center gap-2 text-xs font-bold text-[#2D2520]"
                 >
                   <span className="w-4 h-4 rounded-full bg-[#0F4C45] text-white flex items-center justify-center text-[10px] shrink-0">
                     ✓
@@ -977,7 +977,7 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs font-sans">
             {(vendor.experienceYears || vendor.yearsInBusiness || vendor.years_in_business || vendor.experience_years || vendor.experience) && (
-              <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
+              <div className="p-3.5 rounded-xl bg-[#FAF9F6] border border-black/5 space-y-1">
                 <span className="text-[11px] text-[#7A6E65] uppercase font-bold tracking-wider block">Years of Experience</span>
                 <span className="font-bold text-[#0F4C45] text-sm block">{vendor.experienceYears || vendor.yearsInBusiness || vendor.years_in_business || vendor.experience_years || vendor.experience} Years</span>
               </div>
@@ -985,56 +985,56 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
 
             {/* Venue Specific Capacity Cards */}
             {isVenue && (vendor.guestCapacity || vendor.guest_capacity) && (
-              <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
+              <div className="p-3.5 rounded-xl bg-[#FAF9F6] border border-black/5 space-y-1">
                 <span className="text-[11px] text-[#7A6E65] uppercase font-bold tracking-wider block">Max Guest Capacity</span>
                 <span className="font-bold text-[#0F4C45] text-sm block">{vendor.guestCapacity || vendor.guest_capacity}</span>
               </div>
             )}
 
             {isVenue && (vendor.minGuestCapacity || vendor.min_guest_capacity) && (
-              <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
+              <div className="p-3.5 rounded-xl bg-[#FAF9F6] border border-black/5 space-y-1">
                 <span className="text-[11px] text-[#7A6E65] uppercase font-bold tracking-wider block">Min Guest Capacity</span>
                 <span className="font-bold text-[#2D2520] text-sm block">{vendor.minGuestCapacity || vendor.min_guest_capacity}</span>
               </div>
             )}
 
             {isVenue && (vendor.numberOfHalls || vendor.number_of_halls) && (
-              <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
+              <div className="p-3.5 rounded-xl bg-[#FAF9F6] border border-black/5 space-y-1">
                 <span className="text-[11px] text-[#7A6E65] uppercase font-bold tracking-wider block">Halls & Lawns</span>
                 <span className="font-bold text-[#0F4C45] text-sm block">{vendor.numberOfHalls || vendor.number_of_halls}</span>
               </div>
             )}
 
             {isVenue && (vendor.diningCapacity || vendor.dining_capacity) && (
-              <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
+              <div className="p-3.5 rounded-xl bg-[#FAF9F6] border border-black/5 space-y-1">
                 <span className="text-[11px] text-[#7A6E65] uppercase font-bold tracking-wider block">Dining Capacity</span>
                 <span className="font-bold text-[#2D2520] text-sm block">{vendor.diningCapacity || vendor.dining_capacity}</span>
               </div>
             )}
 
             {isVenue && (vendor.indoorCapacity || vendor.indoor_capacity) && (
-              <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
+              <div className="p-3.5 rounded-xl bg-[#FAF9F6] border border-black/5 space-y-1">
                 <span className="text-[11px] text-[#7A6E65] uppercase font-bold tracking-wider block">Indoor AC Capacity</span>
                 <span className="font-bold text-[#2D2520] text-sm block">{vendor.indoorCapacity || vendor.indoor_capacity}</span>
               </div>
             )}
 
             {isVenue && (vendor.outdoorCapacity || vendor.outdoor_capacity) && (
-              <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
+              <div className="p-3.5 rounded-xl bg-[#FAF9F6] border border-black/5 space-y-1">
                 <span className="text-[11px] text-[#7A6E65] uppercase font-bold tracking-wider block">Outdoor Lawn Capacity</span>
                 <span className="font-bold text-[#2D2520] text-sm block">{vendor.outdoorCapacity || vendor.outdoor_capacity}</span>
               </div>
             )}
 
             {isVenue && (vendor.parkingCapacity || vendor.parking_capacity) && (
-              <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
+              <div className="p-3.5 rounded-xl bg-[#FAF9F6] border border-black/5 space-y-1">
                 <span className="text-[11px] text-[#7A6E65] uppercase font-bold tracking-wider block">Parking & Valet</span>
                 <span className="font-bold text-[#2D2520] text-sm block">{vendor.parkingCapacity || vendor.parking_capacity}</span>
               </div>
             )}
 
             {isVenue && (vendor.languagesSpoken || vendor.languages_spoken) && (
-              <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
+              <div className="p-3.5 rounded-xl bg-[#FAF9F6] border border-black/5 space-y-1">
                 <span className="text-[11px] text-[#7A6E65] uppercase font-bold tracking-wider block">Staff Languages</span>
                 <span className="font-bold text-[#2D2520] text-sm block">{vendor.languagesSpoken || vendor.languages_spoken}</span>
               </div>
@@ -1042,7 +1042,7 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
 
             {/* Jewellery Specific Toggles */}
             {isJewellery && (vendor.rentalAvailable !== undefined || vendor.rental_available !== undefined) && (
-              <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
+              <div className="p-3.5 rounded-xl bg-[#FAF9F6] border border-black/5 space-y-1">
                 <span className="text-[11px] text-[#7A6E65] uppercase font-bold tracking-wider block">Rental Service</span>
                 <span className="font-bold text-[#1A1410] text-sm block">
                   {Boolean(vendor.rentalAvailable ?? vendor.rental_available) ? "✓ Rental Available" : "✗ Purchase Only"}
@@ -1051,7 +1051,7 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
             )}
 
             {isJewellery && (vendor.homeTrialAvailable !== undefined || vendor.home_trial_available !== undefined) && (
-              <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
+              <div className="p-3.5 rounded-xl bg-[#FAF9F6] border border-black/5 space-y-1">
                 <span className="text-[11px] text-[#7A6E65] uppercase font-bold tracking-wider block">Home Trial Service</span>
                 <span className="font-bold text-[#1A1410] text-sm block">
                   {Boolean(vendor.homeTrialAvailable ?? vendor.home_trial_available) ? "✓ Available" : "✗ In-Store Only"}
@@ -1060,7 +1060,7 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
             )}
 
             {isJewellery && (vendor.homeDeliveryAvailable !== undefined || vendor.home_delivery_available !== undefined) && (
-              <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
+              <div className="p-3.5 rounded-xl bg-[#FAF9F6] border border-black/5 space-y-1">
                 <span className="text-[11px] text-[#7A6E65] uppercase font-bold tracking-wider block">Home Delivery</span>
                 <span className="font-bold text-[#1A1410] text-sm block">
                   {Boolean(vendor.homeDeliveryAvailable ?? vendor.home_delivery_available) ? "✓ Insured Courier / Delivery" : "✗ Store Pickup Only"}
@@ -1069,7 +1069,7 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
             )}
 
             {isJewellery && (vendor.customJewelleryAvailable !== undefined || vendor.custom_jewellery_available !== undefined) && (
-              <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
+              <div className="p-3.5 rounded-xl bg-[#FAF9F6] border border-black/5 space-y-1">
                 <span className="text-[11px] text-[#7A6E65] uppercase font-bold tracking-wider block">Customization</span>
                 <span className="font-bold text-[#1A1410] text-sm block">
                   {Boolean(vendor.customJewelleryAvailable ?? vendor.custom_jewellery_available) ? "✓ Custom Orders Accepted" : "✗ Standard Designs"}
@@ -1078,42 +1078,42 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
             )}
 
             {isJewellery && (vendor.collectionsCount || vendor.collections_count) && (
-              <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
+              <div className="p-3.5 rounded-xl bg-[#FAF9F6] border border-black/5 space-y-1">
                 <span className="text-[11px] text-[#7A6E65] uppercase font-bold tracking-wider block">Collections Available</span>
                 <span className="font-bold text-[#0F4C45] text-sm block">{vendor.collectionsCount || vendor.collections_count}</span>
               </div>
             )}
 
             {(vendor.ownerName || vendor.owner_name) && (
-              <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
+              <div className="p-3.5 rounded-xl bg-[#FAF9F6] border border-black/5 space-y-1">
                 <span className="text-[11px] text-[#7A6E65] uppercase font-bold tracking-wider block">{isVenue ? "Venue Manager" : "Vendor / Owner Name"}</span>
                 <span className="font-bold text-[#1A1410] text-sm block">{vendor.ownerName || vendor.owner_name}</span>
               </div>
             )}
 
             {vendor.phone && (
-              <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
+              <div className="p-3.5 rounded-xl bg-[#FAF9F6] border border-black/5 space-y-1">
                 <span className="text-[11px] text-[#7A6E65] uppercase font-bold tracking-wider block">Phone Number</span>
                 <a href={`tel:${vendor.phone}`} className="font-bold text-[#0F4C45] text-sm hover:underline block">{vendor.phone}</a>
               </div>
             )}
 
             {vendor.whatsapp && (
-              <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
+              <div className="p-3.5 rounded-xl bg-[#FAF9F6] border border-black/5 space-y-1">
                 <span className="text-[11px] text-[#7A6E65] uppercase font-bold tracking-wider block">WhatsApp</span>
                 <a href={`https://wa.me/${vendor.whatsapp.replace(/\D/g, "")}`} target="_blank" rel="noreferrer" className="font-bold text-[#0F4C45] text-sm hover:underline block">{vendor.whatsapp}</a>
               </div>
             )}
 
             {vendor.email && (
-              <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
+              <div className="p-3.5 rounded-xl bg-[#FAF9F6] border border-black/5 space-y-1">
                 <span className="text-[11px] text-[#7A6E65] uppercase font-bold tracking-wider block">Email Address</span>
                 <a href={`mailto:${vendor.email}`} className="font-semibold text-[#0F4C45] text-xs hover:underline block truncate">{vendor.email}</a>
               </div>
             )}
 
             {(vendor.address || vendor.location) && (
-              <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1 sm:col-span-2">
+              <div className="p-3.5 rounded-xl bg-[#FAF9F6] border border-black/5 space-y-1 sm:col-span-2">
                 <span className="text-[11px] text-[#7A6E65] uppercase font-bold tracking-wider block">{isVenue ? "Venue Location & Address" : "Studio / Business Address"}</span>
                 <span className="font-medium text-[#2D2520] text-xs block leading-relaxed">{vendor.address || vendor.location}</span>
                 {vendor.googleMaps && (
@@ -1125,7 +1125,7 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
             )}
 
             {(vendor.serviceAreas || vendor.service_areas || vendor.citiesServed || vendor.cities_served) && (
-              <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1 sm:col-span-2">
+              <div className="p-3.5 rounded-xl bg-[#FAF9F6] border border-black/5 space-y-1 sm:col-span-2">
                 <span className="text-[11px] text-[#7A6E65] uppercase font-bold tracking-wider block">Service Area / Operating Districts</span>
                 <span className="font-medium text-[#2D2520] text-xs block leading-relaxed">{vendor.serviceAreas || vendor.service_areas || vendor.citiesServed || vendor.cities_served}</span>
               </div>
@@ -1134,7 +1134,7 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
             {/* Venue Visit Timings vs General Working Hours */}
             {isVenue ? (
               (vendor.openingTime || vendor.venueVisitTimings || vendor.venue_visit_timings || vendor.workingHours) && (
-                <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1 sm:col-span-2">
+                <div className="p-3.5 rounded-xl bg-[#FAF9F6] border border-black/5 space-y-1 sm:col-span-2">
                   <span className="text-[11px] text-[#7A6E65] uppercase font-bold tracking-wider block">Office Hours & Venue Visit Timings</span>
                   <span className="font-medium text-[#2D2520] text-xs block">
                     Office: {vendor.openingTime || "08:00 AM"} - {vendor.closingTime || "10:00 PM"} ({vendor.weeklyHolidays || "Open All 7 Days"})
@@ -1153,7 +1153,7 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
               )
             ) : (
               (vendor.workingHours || vendor.working_hours || vendor.workingDays || vendor.working_days) && (
-                <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1 sm:col-span-2">
+                <div className="p-3.5 rounded-xl bg-[#FAF9F6] border border-black/5 space-y-1 sm:col-span-2">
                   <span className="text-[11px] text-[#7A6E65] uppercase font-bold tracking-wider block">Working Hours & Timings</span>
                   <span className="font-medium text-[#2D2520] text-xs block">
                     {vendor.workingHours || vendor.working_hours || `${vendor.workingDays || vendor.working_days || "Mon-Sat"}: ${vendor.openingTime || vendor.opening_time || "10:00 AM"} - ${vendor.closingTime || vendor.closing_time || "08:00 PM"} (Weekly Off: ${vendor.weeklyOff || vendor.weekly_off || "Sunday"})`}
@@ -1186,67 +1186,67 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
               <span className="text-xs font-serif font-bold text-[#1A1410] block">Venue Booking Policies & Guidelines</span>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
                 {(vendor.advanceBookingRequired || vendor.advance_booking_required) && (
-                  <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
+                  <div className="p-3.5 rounded-xl bg-[#FAF9F6] border border-black/5 space-y-1">
                     <span className="font-bold text-[#0F4C45] block">Advance Booking Requirement</span>
                     <p className="text-[#5A6561] leading-relaxed">{vendor.advanceBookingRequired || vendor.advance_booking_required}</p>
                   </div>
                 )}
                 {(vendor.advancePaymentPolicy || vendor.advance_payment_policy) && (
-                  <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
+                  <div className="p-3.5 rounded-xl bg-[#FAF9F6] border border-black/5 space-y-1">
                     <span className="font-bold text-[#0F4C45] block">Advance Payment Policy</span>
                     <p className="text-[#5A6561] leading-relaxed">{vendor.advancePaymentPolicy || vendor.advance_payment_policy}</p>
                   </div>
                 )}
                 {(vendor.cancellationPolicy || vendor.cancellation_policy) && (
-                  <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
+                  <div className="p-3.5 rounded-xl bg-[#FAF9F6] border border-black/5 space-y-1">
                     <span className="font-bold text-[#0F4C45] block">Cancellation Policy</span>
                     <p className="text-[#5A6561] leading-relaxed">{vendor.cancellationPolicy || vendor.cancellation_policy}</p>
                   </div>
                 )}
                 {(vendor.refundPolicy || vendor.refund_policy) && (
-                  <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
+                  <div className="p-3.5 rounded-xl bg-[#FAF9F6] border border-black/5 space-y-1">
                     <span className="font-bold text-[#0F4C45] block">Security Deposit & Refund</span>
                     <p className="text-[#5A6561] leading-relaxed">{vendor.refundPolicy || vendor.refund_policy}</p>
                   </div>
                 )}
                 {(vendor.overtimeCharges || vendor.overtime_charges) && (
-                  <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
+                  <div className="p-3.5 rounded-xl bg-[#FAF9F6] border border-black/5 space-y-1">
                     <span className="font-bold text-[#0F4C45] block">Overtime Charges</span>
                     <p className="text-[#5A6561] leading-relaxed">{vendor.overtimeCharges || vendor.overtime_charges}</p>
                   </div>
                 )}
                 {(vendor.decorationRules || vendor.decoration_rules) && (
-                  <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
+                  <div className="p-3.5 rounded-xl bg-[#FAF9F6] border border-black/5 space-y-1">
                     <span className="font-bold text-[#0F4C45] block">Decoration Guidelines</span>
                     <p className="text-[#5A6561] leading-relaxed">{vendor.decorationRules || vendor.decoration_rules}</p>
                   </div>
                 )}
                 {(vendor.outsideCateringPolicy || vendor.outside_catering_policy) && (
-                  <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
+                  <div className="p-3.5 rounded-xl bg-[#FAF9F6] border border-black/5 space-y-1">
                     <span className="font-bold text-[#0F4C45] block">Outside Catering Policy</span>
                     <p className="text-[#5A6561] leading-relaxed">{vendor.outsideCateringPolicy || vendor.outside_catering_policy}</p>
                   </div>
                 )}
                 {(vendor.outsidePhotographyPolicy || vendor.outside_photography_policy) && (
-                  <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
+                  <div className="p-3.5 rounded-xl bg-[#FAF9F6] border border-black/5 space-y-1">
                     <span className="font-bold text-[#0F4C45] block">Photography & Drone Rules</span>
                     <p className="text-[#5A6561] leading-relaxed">{vendor.outsidePhotographyPolicy || vendor.outside_photography_policy}</p>
                   </div>
                 )}
                 {(vendor.noiseRestrictions || vendor.noise_restrictions) && (
-                  <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
+                  <div className="p-3.5 rounded-xl bg-[#FAF9F6] border border-black/5 space-y-1">
                     <span className="font-bold text-[#0F4C45] block">Music & Noise Timings</span>
                     <p className="text-[#5A6561] leading-relaxed">{vendor.noiseRestrictions || vendor.noise_restrictions}</p>
                   </div>
                 )}
                 {(vendor.alcoholPolicy || vendor.alcohol_policy) && (
-                  <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
+                  <div className="p-3.5 rounded-xl bg-[#FAF9F6] border border-black/5 space-y-1">
                     <span className="font-bold text-[#0F4C45] block">Alcohol & Bar Setup</span>
                     <p className="text-[#5A6561] leading-relaxed">{vendor.alcoholPolicy || vendor.alcohol_policy}</p>
                   </div>
                 )}
                 {(vendor.eventTimingRules || vendor.event_timing_rules) && (
-                  <div className="p-3.5 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1 sm:col-span-2">
+                  <div className="p-3.5 rounded-xl bg-[#FAF9F6] border border-black/5 space-y-1 sm:col-span-2">
                     <span className="font-bold text-[#0F4C45] block">Event Timing Slot Rules</span>
                     <p className="text-[#5A6561] leading-relaxed">{vendor.eventTimingRules || vendor.event_timing_rules}</p>
                   </div>
@@ -1337,7 +1337,7 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               {vendor.packages.map((pkg, idx) => (
-                <div key={idx} className={`p-5 rounded-2xl border flex flex-col justify-between relative ${pkg.isPopular ? "bg-[#FAF5EA] border-[#C8A96A] border-2 shadow-sm" : "bg-[#FAF7F2] border-black/10"}`}>
+                <div key={idx} className={`p-5 rounded-2xl border flex flex-col justify-between relative ${pkg.isPopular ? "bg-[#FAF5EA] border-[#C8A96A] border-2 shadow-sm" : "bg-[#FAF9F6] border-black/10"}`}>
                   {pkg.isPopular && (
                     <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#0F4C45] text-white text-[10px] font-bold uppercase tracking-wider px-3 py-0.5 rounded-full shadow-xs">
                       Most Popular
@@ -1384,7 +1384,7 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
               <div
                 key={idx}
                 className={`relative p-2 sm:p-3 md:p-5 rounded-xl border flex flex-col justify-between ${
-                  pr.isPopular ? "bg-[#FAF5EA] border-[#D4B66E] border-2 shadow-xs" : "bg-[#FAF7F2] border-black/5"
+                  pr.isPopular ? "bg-[#FAF5EA] border-[#D4B66E] border-2 shadow-xs" : "bg-[#FAF9F6] border-black/5"
                 }`}
               >
                 {pr.isPopular && (
@@ -1417,7 +1417,7 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs font-sans">
               {vendor.cuisineTypes && vendor.cuisineTypes.length > 0 && (
-                <div className="p-4 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-2">
+                <div className="p-4 rounded-xl bg-[#FAF9F6] border border-black/5 space-y-2">
                   <span className="font-serif font-bold text-[#0F4C45] text-sm block">Cuisine Types</span>
                   <div className="flex flex-wrap gap-1.5">
                     {vendor.cuisineTypes.map((c) => (
@@ -1430,7 +1430,7 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
               )}
 
               {vendor.cateringSpecialities && vendor.cateringSpecialities.length > 0 && (
-                <div className="p-4 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-2">
+                <div className="p-4 rounded-xl bg-[#FAF9F6] border border-black/5 space-y-2">
                   <span className="font-serif font-bold text-[#0F4C45] text-sm block">Specialities & Offerings</span>
                   <div className="flex flex-wrap gap-1.5">
                     {vendor.cateringSpecialities.map((s) => (
@@ -1443,7 +1443,7 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
               )}
 
               {vendor.serviceTypes && vendor.serviceTypes.length > 0 && (
-                <div className="p-4 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-2">
+                <div className="p-4 rounded-xl bg-[#FAF9F6] border border-black/5 space-y-2">
                   <span className="font-serif font-bold text-[#0F4C45] text-sm block">Service Formats</span>
                   <div className="flex flex-wrap gap-1.5">
                     {vendor.serviceTypes.map((st) => (
@@ -1456,14 +1456,14 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
               )}
 
               {vendor.guestCapacity && (
-                <div className="p-4 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1">
+                <div className="p-4 rounded-xl bg-[#FAF9F6] border border-black/5 space-y-1">
                   <span className="font-serif font-bold text-[#0F4C45] text-sm block">Guest Capacity</span>
                   <span className="text-xs font-bold text-[#2D2520] block">{vendor.guestCapacity}</span>
                 </div>
               )}
 
               {vendor.serviceLocations && vendor.serviceLocations.length > 0 && (
-                <div className="p-4 rounded-xl bg-[#FAF7F2] border border-black/5 space-y-1 sm:col-span-2">
+                <div className="p-4 rounded-xl bg-[#FAF9F6] border border-black/5 space-y-1 sm:col-span-2">
                   <span className="font-serif font-bold text-[#0F4C45] text-sm block">Service & Travel Districts</span>
                   <span className="text-xs font-medium text-[#4A3F35] block leading-relaxed">
                     {vendor.serviceLocations.join(" • ")}
@@ -1493,7 +1493,7 @@ export function VendorProfileLayout({ vendor }: { vendor: VendorProfileData }) {
             {services.map((svc, idx) => (
               <div
                 key={idx}
-                className="flex flex-col items-center justify-center p-2.5 sm:p-3 md:p-4 min-w-[100px] sm:min-w-[110px] md:min-w-0 rounded-xl bg-[#FAF7F2] border border-black/5 text-center shrink-0 md:shrink"
+                className="flex flex-col items-center justify-center p-2.5 sm:p-3 md:p-4 min-w-[100px] sm:min-w-[110px] md:min-w-0 rounded-xl bg-[#FAF9F6] border border-black/5 text-center shrink-0 md:shrink"
               >
                 <span className="material-symbols-outlined text-[22px] md:text-[28px] text-[#0F4C45]">
                   {svc.icon}

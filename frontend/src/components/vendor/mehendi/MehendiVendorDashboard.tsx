@@ -103,7 +103,7 @@ export function MehendiVendorDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8F6F2] font-sans antialiased pb-36 md:pb-16">
+    <div className="min-h-screen bg-[#FAF9F6] font-sans antialiased pb-36 md:pb-16">
       {activeTab === null ? (
         <>
           {/* 1. Cover Image Background Header */}

@@ -2,7 +2,7 @@ import React from "react";
 
 export function DashboardSkeleton() {
   return (
-    <div className="min-h-screen bg-[#FAF7F2] animate-pulse p-6">
+    <div className="min-h-screen bg-[#FAF9F6] animate-pulse p-6">
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex justify-between items-center">
           <div className="h-8 w-48 bg-[#EBE4D8] rounded-xl" />

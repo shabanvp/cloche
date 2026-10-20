@@ -137,7 +137,7 @@ export default function CustomizationPage({
   };
 
   return (
-    <div className="min-h-screen bg-[#FBF9F5] font-sans flex flex-col justify-between">
+    <div className="min-h-screen bg-[#FAF9F6] font-sans flex flex-col justify-between">
       <div>
         {/* Header Bar */}
         <section className="bg-white border-b border-gold/15 py-4 px-4 sm:px-6">

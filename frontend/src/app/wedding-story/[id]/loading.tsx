@@ -1,6 +1,6 @@
 export default function WeddingStoryLoading() {
   return (
-    <div className="min-h-screen bg-[#FAF7F2] animate-pulse">
+    <div className="min-h-screen bg-[#FAF9F6] animate-pulse">
       {/* Banner Skeleton */}
       <div className="h-72 md:h-96 w-full bg-[#EBE4D8]/80" />
 

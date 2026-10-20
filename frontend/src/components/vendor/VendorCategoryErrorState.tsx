@@ -33,7 +33,7 @@ export function VendorCategoryErrorState({
   const whatsappLink = `https://wa.me/918606924541?text=${whatsappMsg}`;
 
   return (
-    <div className="min-h-screen bg-[#F8F6F2] font-sans flex items-center justify-center p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen bg-[#FAF9F6] font-sans flex items-center justify-center p-4 sm:p-6 lg:p-8">
       <div className="max-w-xl w-full bg-white rounded-3xl shadow-xl border border-[#0d3b30]/10 overflow-hidden">
         {/* Header Bar */}
         <div className="bg-[#0d3b30] p-6 sm:p-8 text-white relative overflow-hidden">
@@ -58,7 +58,7 @@ export function VendorCategoryErrorState({
           </p>
 
           {/* Account Details Box */}
-          <div className="bg-[#F8F6F2] rounded-2xl p-4 sm:p-5 border border-gray-200/80 space-y-3 text-xs sm:text-sm">
+          <div className="bg-[#FAF9F6] rounded-2xl p-4 sm:p-5 border border-gray-200/80 space-y-3 text-xs sm:text-sm">
             <div className="flex justify-between items-center pb-2 border-b border-gray-200">
               <span className="text-gray-500 font-medium">Business Name</span>
               <span className="font-semibold text-[#0d3b30]">{vendorName || "Vendor Partner"}</span>

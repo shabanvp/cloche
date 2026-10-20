@@ -5,7 +5,7 @@ import { CheckCircle2, ArrowRight } from "lucide-react";
 
 export function VerifyEmailClient() {
   return (
-    <div className="min-h-screen bg-[#FBF8F1] text-charcoal flex flex-col items-center justify-center p-6 font-sans">
+    <div className="min-h-screen bg-[#FAF9F6] text-charcoal flex flex-col items-center justify-center p-6 font-sans">
       <div className="max-w-md w-full bg-white rounded-3xl p-8 sm:p-10 border border-gold/15 shadow-xl text-center space-y-6 animate-in fade-in zoom-in-95 duration-500">
         <div className="w-20 h-20 bg-emerald/10 text-emerald rounded-full flex items-center justify-center mx-auto shadow-sm">
           <CheckCircle2 className="w-10 h-10 text-[#0F4C45]" />

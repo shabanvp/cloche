@@ -38,9 +38,9 @@ export default async function BoutiqueCollectionsPage({ params }: Props) {
   const whatsappNumber = (boutiqueApi as any)?.phone || (boutiqueApi as any)?.whatsapp || "+919847055443";
 
   return (
-    <div className="min-h-screen bg-[#FBF8F1] flex flex-col font-sans text-charcoal">
+    <div className="min-h-screen bg-[#FAF9F6] flex flex-col font-sans text-charcoal">
       {/* Sub-Header with Back Arrow Button & Centered Boutique Name */}
-      <header className="sticky top-0 z-40 bg-[#FBF8F1]/95 backdrop-blur-md border-b border-gold/15 px-4 py-3 sm:px-6">
+      <header className="sticky top-0 z-40 bg-[#FAF9F6]/95 backdrop-blur-md border-b border-gold/15 px-4 py-3 sm:px-6">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <Link
             href={backUrl}

@@ -25,7 +25,7 @@ export function MehendiDetailClient({ artist }: { artist: MehendiVendor }) {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F8F5F0] pb-32 text-[#2D2520] font-sans">
+    <div className="min-h-screen flex flex-col bg-[#FAF9F6] pb-32 text-[#2D2520] font-sans">
       {/* ─── MEHENDI ARTIST COMPACT 2-COLUMN LAYOUT ON DESKTOP ─── */}
       <div className="max-w-4xl mx-auto w-full px-4 pt-4 md:pt-6">
         <div className="flex flex-col md:grid md:grid-cols-12 gap-6 lg:gap-8 items-start">
@@ -112,7 +112,7 @@ export function MehendiDetailClient({ artist }: { artist: MehendiVendor }) {
             {Array.isArray(artist.chips) && artist.chips.length > 0 && (
               <div className="flex flex-wrap gap-1.5">
                 {artist.chips.map((chip, idx) => (
-                  <span key={idx} className="bg-[#FAF7F2] text-[#0F4C45] text-[10px] font-bold px-2.5 py-1 rounded-full border border-gold/15">
+                  <span key={idx} className="bg-[#FAF9F6] text-[#0F4C45] text-[10px] font-bold px-2.5 py-1 rounded-full border border-gold/15">
                     {chip}
                   </span>
                 ))}

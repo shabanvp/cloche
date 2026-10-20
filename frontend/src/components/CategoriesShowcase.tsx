@@ -237,7 +237,7 @@ export const showcaseCategories: CategoryItem[] = [
 
 export function CategoriesShowcase() {
   return (
-    <div className="w-full bg-[#FAF7F2] min-h-screen py-4 px-2 sm:px-4 md:px-6">
+    <div className="w-full bg-[#FAF9F6] min-h-screen py-4 px-2 sm:px-4 md:px-6">
       <div className="max-w-sm sm:max-w-lg md:max-w-2xl lg:max-w-3xl mx-auto space-y-3">
         {showcaseCategories.map((category, idx) => {
           const IconComponent = category.icon;
@@ -258,7 +258,7 @@ export function CategoriesShowcase() {
                   {/* Left Text & Icon Section */}
                   <div className="flex flex-1 items-center gap-3 sm:gap-4 pl-4 pr-[48%] py-4 sm:pl-6 sm:pr-[46%] sm:py-6 z-10 min-w-0">
                     {/* Circle Icon Badge */}
-                    <div className="flex h-11 w-11 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-full border border-black/5 bg-[#FAF7F2] text-[#0F4C45] shadow-[0_1px_4px_rgba(0,0,0,0.04)] transition-transform duration-300 group-hover:scale-105">
+                    <div className="flex h-11 w-11 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-full border border-black/5 bg-[#FAF9F6] text-[#0F4C45] shadow-[0_1px_4px_rgba(0,0,0,0.04)] transition-transform duration-300 group-hover:scale-105">
                       <IconComponent className="h-5 w-5 sm:h-7 sm:w-7" />
                     </div>
 

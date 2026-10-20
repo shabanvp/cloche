@@ -2,7 +2,7 @@ import React from "react";
 
 export function HomepageSkeleton() {
   return (
-    <div className="min-h-screen bg-[#FAF7F2] animate-pulse">
+    <div className="min-h-screen bg-[#FAF9F6] animate-pulse">
       {/* Hero Banner Skeleton */}
       <div className="relative w-full h-[480px] md:h-[560px] bg-[#EBE4D8]/80 flex flex-col justify-center items-center px-4">
         <div className="w-48 h-6 bg-[#DDD3C5] rounded-full mb-4" />

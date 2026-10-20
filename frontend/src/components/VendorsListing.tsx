@@ -260,9 +260,9 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
   }, [boutiquesList, activeFilter, search]);
 
   return (
-    <div className="min-h-screen bg-[#FAF7F2] font-sans pb-24 md:pb-12 text-charcoal">
+    <div className="min-h-screen bg-[#FAF9F6] font-sans pb-24 md:pb-12 text-charcoal">
       {/* Search Header */}
-      <header className="sticky top-0 z-30 w-full bg-[#FAF7F2]/95 backdrop-blur-md border-b border-gold/15 px-4 py-3 sm:px-6 md:px-8 lg:px-12">
+      <header className="sticky top-0 z-30 w-full bg-[#FAF9F6]/95 backdrop-blur-md border-b border-gold/15 px-4 py-3 sm:px-6 md:px-8 lg:px-12">
         <div className="w-full flex items-center justify-start gap-3">
           <Link
             href="/"

@@ -236,7 +236,7 @@ export function ExploreOtherVendors({ category, currentVendorId, currentVendorNa
               <Link
                 key={v.id}
                 href={v.href}
-                className="flex-shrink-0 min-w-[200px] w-[65vw] sm:w-56 md:w-auto rounded-2xl overflow-hidden bg-[#FAF7F2] border border-gold/15 shadow-2xs hover:border-[#0F4C45] hover:shadow-md transition-all group flex flex-col justify-between"
+                className="flex-shrink-0 min-w-[200px] w-[65vw] sm:w-56 md:w-auto rounded-2xl overflow-hidden bg-white border border-gold/15 shadow-2xs hover:border-[#0F4C45] hover:shadow-md transition-all group flex flex-col justify-between"
               >
                 <div>
                   <div className="relative h-36 sm:h-40 w-full bg-gray-200 overflow-hidden">
@@ -274,7 +274,7 @@ export function ExploreOtherVendors({ category, currentVendorId, currentVendorNa
             ))}
           </div>
         ) : (
-          <div className="py-10 px-4 rounded-xl bg-[#FAF7F2] border border-gold/15 text-center space-y-1">
+          <div className="py-10 px-4 rounded-xl bg-[#FAF9F6] border border-gold/15 text-center space-y-1">
             <Building2 className="w-8 h-8 text-[#0F4C45]/40 mx-auto mb-2" />
             <p className="text-sm font-serif font-bold text-[#1A1410]">
               No other {meta.headingLabel} listed yet
@@ -290,7 +290,7 @@ export function ExploreOtherVendors({ category, currentVendorId, currentVendorNa
       {showFullModal && (
         <div className="fixed inset-0 z-[9999] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-4xl max-h-[85vh] rounded-3xl overflow-hidden shadow-2xl flex flex-col font-sans">
-            <div className="p-5 bg-[#FAF7F2] border-b border-gold/15 flex items-center justify-between">
+            <div className="p-5 bg-[#FAF9F6] border-b border-gold/15 flex items-center justify-between">
               <div>
                 <h3 className="text-lg font-serif font-bold text-[#1A1410]">
                   All {meta.headingLabel} ({allCategoryVendors.length})
@@ -317,7 +317,7 @@ export function ExploreOtherVendors({ category, currentVendorId, currentVendorNa
                       key={v.id}
                       href={v.href}
                       onClick={() => setShowFullModal(false)}
-                      className="rounded-2xl overflow-hidden bg-[#FAF7F2] border border-gold/15 shadow-xs hover:border-[#0F4C45] hover:shadow-md transition-all group flex flex-col justify-between"
+                      className="rounded-2xl overflow-hidden bg-white border border-gold/15 shadow-xs hover:border-[#0F4C45] hover:shadow-md transition-all group flex flex-col justify-between"
                     >
                       <div>
                         <div className="relative h-40 w-full bg-gray-200 overflow-hidden">

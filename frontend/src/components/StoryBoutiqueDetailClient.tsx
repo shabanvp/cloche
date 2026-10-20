@@ -176,7 +176,7 @@ export function StoryBoutiqueDetailClient({
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F8F5F0] pb-32 text-[#2D2520] font-sans">
+    <div className="min-h-screen flex flex-col bg-[#FAF9F6] pb-32 text-[#2D2520] font-sans">
       <div className="max-w-4xl mx-auto w-full px-4 pt-4 md:pt-6">
         <div className="flex flex-col md:grid md:grid-cols-12 gap-6 lg:gap-8 items-start">
           {/* Left Column: Cover Image & Gallery Header */}
@@ -266,7 +266,7 @@ export function StoryBoutiqueDetailClient({
 
             {/* Timings & Map Button */}
             <div className="space-y-2 text-xs">
-              <div className="flex items-center justify-between text-charcoal/70 bg-[#FAF7F2] p-3 rounded-xl border border-gold/15">
+              <div className="flex items-center justify-between text-charcoal/70 bg-[#FAF9F6] p-3 rounded-xl border border-gold/15">
                 <span className="flex items-center gap-1.5 font-semibold">
                   <Clock className="w-3.5 h-3.5 text-[#0F4C45]" /> Shop Hours
                 </span>
@@ -340,7 +340,7 @@ export function StoryBoutiqueDetailClient({
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
-                className="px-2.5 py-1 bg-[#FAF7F2] border border-gold/15 rounded-lg text-xs font-semibold outline-none"
+                className="px-2.5 py-1 bg-[#FAF9F6] border border-gold/15 rounded-lg text-xs font-semibold outline-none"
               >
                 <option value="all">All Outfits ({collections.length})</option>
                 {categoriesList.map((cat) => (
@@ -355,7 +355,7 @@ export function StoryBoutiqueDetailClient({
             <select
               value={selectedAvailability}
               onChange={(e) => setSelectedAvailability(e.target.value)}
-              className="px-2.5 py-1 bg-[#FAF7F2] border border-gold/15 rounded-lg text-xs font-semibold outline-none"
+              className="px-2.5 py-1 bg-[#FAF9F6] border border-gold/15 rounded-lg text-xs font-semibold outline-none"
             >
               <option value="all">Purchase & Rental</option>
               <option value="purchase">Purchase Only</option>
@@ -366,7 +366,7 @@ export function StoryBoutiqueDetailClient({
             <select
               value={selectedFabric}
               onChange={(e) => setSelectedFabric(e.target.value)}
-              className="px-2.5 py-1 bg-[#FAF7F2] border border-gold/15 rounded-lg text-xs font-semibold outline-none"
+              className="px-2.5 py-1 bg-[#FAF9F6] border border-gold/15 rounded-lg text-xs font-semibold outline-none"
             >
               <option value="all">All Fabrics</option>
               {DRESS_FABRICS.map((f) => (
@@ -380,7 +380,7 @@ export function StoryBoutiqueDetailClient({
             <select
               value={selectedSize}
               onChange={(e) => setSelectedSize(e.target.value)}
-              className="px-2.5 py-1 bg-[#FAF7F2] border border-gold/15 rounded-lg text-xs font-semibold outline-none"
+              className="px-2.5 py-1 bg-[#FAF9F6] border border-gold/15 rounded-lg text-xs font-semibold outline-none"
             >
               <option value="all">All Sizes</option>
               {DRESS_SIZES.map((sz) => (
@@ -394,7 +394,7 @@ export function StoryBoutiqueDetailClient({
             <select
               value={selectedColor}
               onChange={(e) => setSelectedColor(e.target.value)}
-              className="px-2.5 py-1 bg-[#FAF7F2] border border-gold/15 rounded-lg text-xs font-semibold outline-none"
+              className="px-2.5 py-1 bg-[#FAF9F6] border border-gold/15 rounded-lg text-xs font-semibold outline-none"
             >
               <option value="all">All Colors</option>
               {DRESS_COLORS.map((col) => (
@@ -487,7 +487,7 @@ export function StoryBoutiqueDetailClient({
                       </div>
                     </div>
 
-                    <div className="px-3.5 py-2 bg-[#FAF7F2] border-t border-gold/10 flex items-center justify-between text-[10px] text-charcoal/60 font-bold">
+                    <div className="px-3.5 py-2 bg-[#FAF9F6] border-t border-gold/10 flex items-center justify-between text-[10px] text-charcoal/60 font-bold">
                       <span className={item.stockStatus === "In Stock" ? "text-emerald-700" : "text-red-600"}>
                         {item.stockStatus}
                       </span>
@@ -537,7 +537,7 @@ export function StoryBoutiqueDetailClient({
                 <p className="text-charcoal/70 leading-relaxed">{selectedDress.description}</p>
 
                 {/* Pricing Box */}
-                <div className="p-3.5 bg-[#FAF7F2] rounded-2xl border border-gold/15 space-y-2">
+                <div className="p-3.5 bg-[#FAF9F6] rounded-2xl border border-gold/15 space-y-2">
                   <span className="font-bold text-charcoal block border-b border-gold/10 pb-1">Pricing & Terms</span>
                   {selectedDress.purchasePrice && (
                     <div className="flex items-center justify-between">

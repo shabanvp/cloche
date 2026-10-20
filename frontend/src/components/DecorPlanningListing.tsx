@@ -63,7 +63,7 @@ export function DecorPlanningListing() {
   }, [search, cityFilter, decorList]);
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#FAF7F2] pb-24 text-[#2D2520]">
+    <div className="min-h-screen flex flex-col bg-[#FAF9F6] pb-24 text-[#2D2520]">
       <main className="flex-1">
         {/* Top Header Row with Circular Back Arrow & Breadcrumb */}
         <div className="px-4 pt-4 pb-2">

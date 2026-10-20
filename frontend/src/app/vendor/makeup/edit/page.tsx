@@ -233,7 +233,7 @@ function VendorMakeupEditContent() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8F6F2] font-sans text-[#1C1C17] pb-24">
+    <div className="min-h-screen bg-[#FAF9F6] font-sans text-[#1C1C17] pb-24">
       {/* Toast Notification */}
       {toast && (
         <div

@@ -289,7 +289,7 @@ export function CollectionDetailClient({
   }, [reviewsList]);
 
   return (
-    <div className="min-h-screen bg-[#FAF7F2] text-charcoal flex flex-col font-sans selection:bg-[#0F4C45] selection:text-white">
+    <div className="min-h-screen bg-[#FAF9F6] text-charcoal flex flex-col font-sans selection:bg-[#0F4C45] selection:text-white">
       
       {/* ══════════════════════════════════════════════════════════════════════
           1. MOBILE LAYOUT (100% UNCHANGED & PRESERVED EXACTLY AS BEFORE)

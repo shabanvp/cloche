@@ -83,7 +83,7 @@ export function TrendingAnalyticsClient() {
   const lastComputedAt = scores.length > 0 ? scores[0].computed_at : null;
 
   return (
-    <div className="min-h-screen bg-[#FAF7F2] p-4 sm:p-6 lg:p-8 text-charcoal font-sans">
+    <div className="min-h-screen bg-[#FAF9F6] p-4 sm:p-6 lg:p-8 text-charcoal font-sans">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* HEADER SECTION */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-gold/15 shadow-xs">

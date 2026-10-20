@@ -83,7 +83,7 @@ export function MakeupListing() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8F5F0] text-[#2D2520] flex flex-col pb-24 font-sans">
+    <div className="min-h-screen bg-[#FAF9F6] text-[#2D2520] flex flex-col pb-24 font-sans">
       {/* Warm #F8F5F0 Header */}
       <section className="w-full bg-[#EFE8DE] border-b border-[#E2D6C7] py-4 px-4 sm:px-6">
         <div className="max-w-6xl mx-auto space-y-2.5">

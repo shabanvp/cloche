@@ -113,7 +113,7 @@ function ForgotPasswordForm() {
 export function ForgotPasswordClient() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-[#FBF8F1]">
+      <div className="min-h-screen flex items-center justify-center bg-[#FAF9F6]">
         <Loader2 className="w-8 h-8 text-[#0F4C45] animate-spin" />
       </div>
     }>

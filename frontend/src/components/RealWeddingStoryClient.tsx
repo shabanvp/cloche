@@ -71,10 +71,10 @@ export function RealWeddingStoryClient({
   };
 
   return (
-    <div className="min-h-screen bg-[#FBF8F1] text-charcoal pb-24 animate-in fade-in duration-300">
+    <div className="min-h-screen bg-[#FAF9F6] text-charcoal pb-24 animate-in fade-in duration-300">
       
       {/* 1. TOP EDITORIAL NAVIGATION */}
-      <header className="sticky top-16 z-40 bg-[#FBF8F1]/95 backdrop-blur-md border-b border-gold/15 px-4 sm:px-6 lg:px-12 py-3">
+      <header className="sticky top-16 z-40 bg-[#FAF9F6]/95 backdrop-blur-md border-b border-gold/15 px-4 sm:px-6 lg:px-12 py-3">
         <div className="max-w-7xl mx-auto flex justify-between items-center text-xs font-semibold">
           <Link href="/real-weddings" className="flex items-center gap-2 text-[#0F4C45] hover:underline font-bold">
             <ArrowLeft className="w-4 h-4" /> Back to Real Weddings

@@ -40,11 +40,11 @@ export function DigitalInvitationsSection() {
   const featuredTemplates = DIGITAL_INVITE_TEMPLATES.slice(0, 4);
 
   return (
-    <section className="py-10 md:py-14 w-full">
+    <section className="pt-3 pb-6 md:pt-4 md:pb-8 w-full">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
-        <div className="flex items-center justify-between mb-6 gap-4">
+        <div className="flex items-center justify-between mb-4 gap-4">
           <div>
             <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-charcoal font-display">
               Digital Wedding Invitations

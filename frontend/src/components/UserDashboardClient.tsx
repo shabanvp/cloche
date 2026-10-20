@@ -419,7 +419,7 @@ export function UserDashboardClient({ initialTab }: UserDashboardClientProps = {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#FBF9F5] py-6 sm:py-8 px-4 sm:px-6 lg:px-8 pb-28 sm:pb-8 font-sans">
+    <div className="min-h-screen bg-[#FAF9F6] py-6 sm:py-8 px-4 sm:px-6 lg:px-8 pb-28 sm:pb-8 font-sans">
       <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8">
 
         {/* Top User Welcome Header */}

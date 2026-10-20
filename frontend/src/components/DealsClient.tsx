@@ -80,7 +80,7 @@ export function DealsClient() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FBF8F1] text-charcoal flex flex-col pt-4">
+    <div className="min-h-screen bg-[#FAF9F6] text-charcoal flex flex-col pt-4">
       {/* Toast Notification */}
       {copiedCode && (
         <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 bg-[#0F4C45] text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-2 text-xs sm:text-sm font-semibold border border-[#C8A96A] animate-in fade-in">

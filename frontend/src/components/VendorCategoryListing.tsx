@@ -188,7 +188,7 @@ export function VendorCategoryListing({
   }, [allVendors, activeSubFilter, selectedLocation, searchQuery]);
 
   return (
-    <div className="min-h-screen bg-[#FBF8F1] font-sans text-charcoal flex flex-col justify-between">
+    <div className="min-h-screen bg-[#FAF9F6] font-sans text-charcoal flex flex-col justify-between">
       <main className="flex-grow pt-3 pb-6 sm:pt-4 sm:pb-8 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto w-full">
         {/* Category Title & Tagline - Centered & Tight Padding */}
         <div className="mb-4 text-center space-y-1">

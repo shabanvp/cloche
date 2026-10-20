@@ -34,7 +34,7 @@ export default function VendorDashboardPage() {
 
   if (loading && !categoryKey) {
     return (
-      <div className="min-h-screen bg-[#F8F6F2] flex items-center justify-center p-8 font-sans">
+      <div className="min-h-screen bg-[#FAF9F6] flex items-center justify-center p-8 font-sans">
         <div className="text-center space-y-3">
           <div className="w-10 h-10 border-4 border-[#0d3b30] border-t-transparent rounded-full animate-spin mx-auto" />
           <p className="text-xs font-bold text-[#0d3b30] uppercase tracking-wider">Loading Vendor Portal...</p>

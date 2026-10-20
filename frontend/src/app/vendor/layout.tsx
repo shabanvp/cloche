@@ -6,7 +6,7 @@ import { VendorToast } from "@/components/VendorToast";
 
 export default function VendorLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="min-h-screen bg-[#FAF7F2] font-sans">
+    <div className="min-h-screen bg-[#FAF9F6] font-sans">
       <main className="w-full">
         {children}
       </main>

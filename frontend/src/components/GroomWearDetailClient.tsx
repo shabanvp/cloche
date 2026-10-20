@@ -81,7 +81,7 @@ export function GroomWearDetailClient({ vendor }: { vendor: GroomWearVendor }) {
   ].filter(Boolean);
 
   return (
-    <div className="min-h-screen bg-[#FAF7F2] text-[#2D2520] pb-28 animate-in fade-in duration-500 font-sans">
+    <div className="min-h-screen bg-[#FAF9F6] text-[#2D2520] pb-28 animate-in fade-in duration-500 font-sans">
       
       {/* Toast Notification */}
       {toastMsg && (
@@ -293,7 +293,7 @@ export function GroomWearDetailClient({ vendor }: { vendor: GroomWearVendor }) {
         </div>
 
         {/* 3. STICKY TAB NAVIGATION */}
-        <div className="sticky top-16 z-40 bg-[#FAF7F2]/95 backdrop-blur-md border border-black/5 rounded-2xl shadow-xs">
+        <div className="sticky top-16 z-40 bg-[#FAF9F6]/95 backdrop-blur-md border border-black/5 rounded-2xl shadow-xs">
           <div className="flex items-center justify-around text-xs font-bold uppercase tracking-wider px-4">
             {[
               { id: "about", label: "About" },

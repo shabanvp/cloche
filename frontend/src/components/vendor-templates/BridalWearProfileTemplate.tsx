@@ -186,7 +186,7 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
   };
 
   return (
-    <div className="min-h-screen bg-[#FBF8F1] text-charcoal pb-28 animate-in fade-in duration-500 font-sans">
+    <div className="min-h-screen bg-[#FAF9F6] text-charcoal pb-28 animate-in fade-in duration-500 font-sans">
       
       {/* Toast Notification */}
       {toastMsg && (
@@ -399,7 +399,7 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
         </div>
 
         {/* 3. STICKY TAB NAVIGATION */}
-        <div className="sticky top-16 z-40 bg-[#FBF8F1]/95 backdrop-blur-md border border-gold/15 rounded-2xl shadow-xs">
+        <div className="sticky top-16 z-40 bg-[#FAF9F6]/95 backdrop-blur-md border border-gold/15 rounded-2xl shadow-xs">
           <div className="flex items-center justify-around text-xs font-bold uppercase tracking-wider px-4">
             {[
               { id: "about", label: "About" },
@@ -583,7 +583,7 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
             {amenitiesList.map((am, idx) => {
               const Icon = am.icon;
               return (
-                <div key={idx} className="p-3 rounded-xl bg-[#FBF8F1] border border-gold/15 flex flex-col items-center justify-center space-y-1.5">
+                <div key={idx} className="p-3 rounded-xl bg-[#FAF9F6] border border-gold/15 flex flex-col items-center justify-center space-y-1.5">
                   <Icon className="w-4 h-4 text-[#0F4C45]" />
                   <span className="text-[11px] font-bold text-charcoal leading-tight">{am.label}</span>
                 </div>
@@ -772,7 +772,7 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
                 placeholder="Your Full Name"
                 value={quoteName}
                 onChange={(e) => setQuoteName(e.target.value)}
-                className="w-full bg-[#FBF8F1] border border-gold/20 rounded-xl px-4 py-3 text-xs font-medium text-charcoal"
+                className="w-full bg-[#FAF9F6] border border-gold/20 rounded-xl px-4 py-3 text-xs font-medium text-charcoal"
               />
               <input
                 type="tel"
@@ -780,21 +780,21 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
                 placeholder="Mobile Number"
                 value={quotePhone}
                 onChange={(e) => setQuotePhone(e.target.value)}
-                className="w-full bg-[#FBF8F1] border border-gold/20 rounded-xl px-4 py-3 text-xs font-medium text-charcoal"
+                className="w-full bg-[#FAF9F6] border border-gold/20 rounded-xl px-4 py-3 text-xs font-medium text-charcoal"
               />
               <input
                 type="date"
                 required
                 value={quoteDate}
                 onChange={(e) => setQuoteDate(e.target.value)}
-                className="w-full bg-[#FBF8F1] border border-gold/20 rounded-xl px-4 py-3 text-xs font-medium text-charcoal"
+                className="w-full bg-[#FAF9F6] border border-gold/20 rounded-xl px-4 py-3 text-xs font-medium text-charcoal"
               />
               <textarea
                 rows={3}
                 placeholder="Specific Requirements (e.g., Zardozi Lehenga for Reception)"
                 value={quoteMessage}
                 onChange={(e) => setQuoteMessage(e.target.value)}
-                className="w-full bg-[#FBF8F1] border border-gold/20 rounded-xl px-4 py-3 text-xs font-medium text-charcoal resize-none"
+                className="w-full bg-[#FAF9F6] border border-gold/20 rounded-xl px-4 py-3 text-xs font-medium text-charcoal resize-none"
               />
 
               <button
@@ -823,11 +823,11 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
             <p className="text-xs text-[#0F4C45] font-semibold">Includes Private Fitting Suite & Senior Stylist Consultation.</p>
 
             <form onSubmit={handleTrialSubmit} className="space-y-3">
-              <input type="text" required placeholder="Full Name" className="w-full bg-[#FBF8F1] border border-gold/20 rounded-xl px-4 py-3 text-xs font-medium" />
-              <input type="tel" required placeholder="Mobile Number" className="w-full bg-[#FBF8F1] border border-gold/20 rounded-xl px-4 py-3 text-xs font-medium" />
-              <input type="date" required className="w-full bg-[#FBF8F1] border border-gold/20 rounded-xl px-4 py-3 text-xs font-medium" />
+              <input type="text" required placeholder="Full Name" className="w-full bg-[#FAF9F6] border border-gold/20 rounded-xl px-4 py-3 text-xs font-medium" />
+              <input type="tel" required placeholder="Mobile Number" className="w-full bg-[#FAF9F6] border border-gold/20 rounded-xl px-4 py-3 text-xs font-medium" />
+              <input type="date" required className="w-full bg-[#FAF9F6] border border-gold/20 rounded-xl px-4 py-3 text-xs font-medium" />
               
-              <select required className="w-full bg-[#FBF8F1] border border-gold/20 rounded-xl px-4 py-3 text-xs font-medium">
+              <select required className="w-full bg-[#FAF9F6] border border-gold/20 rounded-xl px-4 py-3 text-xs font-medium">
                 <option value="">Select Time Slot</option>
                 <option value="11am">11:00 AM – 01:00 PM</option>
                 <option value="2pm">02:00 PM – 04:00 PM</option>
@@ -865,7 +865,7 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
                 placeholder="Your Name"
                 value={reviewAuthor}
                 onChange={(e) => setReviewAuthor(e.target.value)}
-                className="w-full bg-[#FBF8F1] border border-gold/20 rounded-xl px-4 py-3 text-xs font-medium"
+                className="w-full bg-[#FAF9F6] border border-gold/20 rounded-xl px-4 py-3 text-xs font-medium"
               />
               
               <div className="flex items-center gap-2 py-1">
@@ -888,7 +888,7 @@ export function BridalWearProfileTemplate({ config, boutique, bridalVendor, coll
                 placeholder="Share your experience with this boutique..."
                 value={reviewText}
                 onChange={(e) => setReviewText(e.target.value)}
-                className="w-full bg-[#FBF8F1] border border-gold/20 rounded-xl px-4 py-3 text-xs font-medium resize-none"
+                className="w-full bg-[#FAF9F6] border border-gold/20 rounded-xl px-4 py-3 text-xs font-medium resize-none"
               />
 
               <button

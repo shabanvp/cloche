@@ -76,7 +76,7 @@ export function CateringListing() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#FAF7F2] pb-24 text-[#2D2520]">
+    <div className="min-h-screen flex flex-col bg-[#FAF9F6] pb-24 text-[#2D2520]">
       <main className="flex-1">
         {/* Header Row */}
         <div className="px-4 pt-4 pb-2">

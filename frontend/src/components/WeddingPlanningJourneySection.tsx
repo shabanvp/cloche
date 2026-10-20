@@ -73,12 +73,12 @@ const JOURNEY_STEPS: JourneyStep[] = [
 
 export function WeddingPlanningJourneySection() {
   return (
-    <section className="py-12 md:py-16">
+    <section className="pt-5 pb-7 md:pt-6 md:pb-9">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
-        <div className="text-center max-w-2xl mx-auto mb-10 space-y-2">
-          <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-[#FAF7F2] border border-[#C6A568]/20 text-[#064E43] text-xs font-bold tracking-wider uppercase">
+        <div className="text-center max-w-2xl mx-auto mb-6 space-y-1.5">
+          <div className="inline-flex items-center gap-1.5 px-3.5 py-0.5 rounded-full bg-white border border-[#C6A568]/20 text-[#064E43] text-xs font-bold tracking-wider uppercase shadow-2xs">
             <Compass className="w-3.5 h-3.5 text-[#C6A568]" /> Planning Roadmap
           </div>
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold font-serif text-[#242321]">

@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 export default function CategoriesPage() {
   return (
-    <div className="min-h-screen bg-[#FAF7F2] flex flex-col pb-20 md:pb-0">
+    <div className="min-h-screen bg-[#FAF9F6] flex flex-col pb-20 md:pb-0">
       <CategoriesShowcase />
       <div className="hidden md:block">
         <Footer />

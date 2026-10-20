@@ -526,7 +526,7 @@ export function InspirationClient() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FAF7F2] text-[#2D2520] antialiased flex flex-col selection:bg-[#C8A96A]/30">
+    <div className="min-h-screen bg-[#FAF9F6] text-[#2D2520] antialiased flex flex-col selection:bg-[#C8A96A]/30">
       <style>{`
         @keyframes shimmer { from { transform: translateX(-100%); } to { transform: translateX(200%); } }
         .scrollbar-none { scrollbar-width: none; -ms-overflow-style: none; }

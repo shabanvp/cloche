@@ -18,8 +18,8 @@ export function ErrorBoundaryFallback({
   message = "We encountered a temporary connection issue. Please refresh or return home.",
 }: Props) {
   return (
-    <div className="min-h-[60vh] flex flex-col items-center justify-center px-4 py-12 text-center bg-[#FAF7F2]">
-      <div className="w-16 h-16 rounded-full bg-[#F5EFE6] border border-[#D7C2A0]/40 flex items-center justify-center text-[#0F4C45] mb-4 shadow-sm">
+    <div className="min-h-[60vh] flex flex-col items-center justify-center px-4 py-12 text-center bg-[#FAF9F6]">
+      <div className="w-16 h-16 rounded-full bg-white border border-[#D7C2A0]/40 flex items-center justify-center text-[#0F4C45] mb-4 shadow-sm">
         <AlertCircle className="w-8 h-8 text-[#A97B3E]" />
       </div>
 

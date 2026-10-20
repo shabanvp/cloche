@@ -217,7 +217,7 @@ export default function VendorLeadsPage() {
   );
 
   return (
-    <div className="min-h-screen bg-[#FAF7F2] text-[#2D2926]">
+    <div className="min-h-screen bg-[#FAF9F6] text-[#2D2926]">
       {/* Top Banner Header */}
       <header className="bg-[#0F4C45] text-white py-10 px-6 sm:px-12 shadow-lg">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-6">

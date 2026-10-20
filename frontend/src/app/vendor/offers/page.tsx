@@ -206,7 +206,7 @@ function VendorOffersContent() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FAF7F2] p-4 sm:p-8 space-y-8 font-sans pb-28">
+    <div className="min-h-screen bg-[#FAF9F6] p-4 sm:p-8 space-y-8 font-sans pb-28">
       
       {/* Toast Notification */}
       {toastMessage && (

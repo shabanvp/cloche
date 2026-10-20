@@ -218,7 +218,7 @@ export function PhotographerDetailClient({ photographer }: { photographer: Vendo
   ];
 
   return (
-    <div className="min-h-screen flex flex-col pb-36 bg-[#F8F5F0] text-[#2D2520] font-sans">
+    <div className="min-h-screen flex flex-col pb-36 bg-[#FAF9F6] text-[#2D2520] font-sans">
       {/* ─── VENUE-STYLE COMPACT 2-COLUMN LAYOUT ON DESKTOP ─── */}
       <div className="max-w-4xl mx-auto w-full px-4 pt-4 md:pt-6">
         <div className="flex flex-col md:grid md:grid-cols-12 gap-6 lg:gap-8 items-start">
@@ -313,7 +313,7 @@ export function PhotographerDetailClient({ photographer }: { photographer: Vendo
             </div>
 
             {/* Business Badges & Stats Bar */}
-            <div className="p-3.5 rounded-2xl bg-[#F8F5F0] border border-[#E2D6C7]/60 space-y-2">
+            <div className="p-3.5 rounded-2xl bg-[#FAF9F6] border border-[#E2D6C7]/60 space-y-2">
               <div className="flex items-center justify-between text-xs">
                 <span className="text-[10px] uppercase font-bold text-[#7A6E65]">Category</span>
                 <span className="font-bold text-[#0F4C45]">Wedding Photography</span>
@@ -444,7 +444,7 @@ export function PhotographerDetailClient({ photographer }: { photographer: Vendo
                   </h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1 text-xs text-[#5A6561]">
                     {cameraGear.map((gear, idx) => (
-                      <div key={idx} className="flex items-center gap-2 p-2 rounded-xl bg-[#F8F5F0] border border-[#E2D6C7]/60">
+                      <div key={idx} className="flex items-center gap-2 p-2 rounded-xl bg-[#FAF9F6] border border-[#E2D6C7]/60">
                         <CheckCircle2 className="w-3.5 h-3.5 text-[#C8A96A] shrink-0" />
                         <span>{gear}</span>
                       </div>
@@ -459,17 +459,17 @@ export function PhotographerDetailClient({ photographer }: { photographer: Vendo
                   </h3>
 
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                    <div className="p-3 rounded-xl bg-[#F8F5F0] space-y-1">
+                    <div className="p-3 rounded-xl bg-[#FAF9F6] space-y-1">
                       <span className="font-bold text-[#0F4C45] block">1. Booking Advance</span>
                       <span className="text-[#7A6E65]">25% advance to lock your date.</span>
                     </div>
 
-                    <div className="p-3 rounded-xl bg-[#F8F5F0] space-y-1">
+                    <div className="p-3 rounded-xl bg-[#FAF9F6] space-y-1">
                       <span className="font-bold text-[#0F4C45] block">2. Album Delivery</span>
                       <span className="text-[#7A6E65]">Edits in 3-4 weeks, album in 6 weeks.</span>
                     </div>
 
-                    <div className="p-3 rounded-xl bg-[#F8F5F0] space-y-1">
+                    <div className="p-3 rounded-xl bg-[#FAF9F6] space-y-1">
                       <span className="font-bold text-[#0F4C45] block">3. Travel & Stay</span>
                       <span className="text-[#7A6E65]">Destination travel options available.</span>
                     </div>
@@ -487,7 +487,7 @@ export function PhotographerDetailClient({ photographer }: { photographer: Vendo
                         <div key={idx} className="border border-[#E2D6C7]/60 rounded-xl overflow-hidden">
                           <button
                             onClick={() => setOpenFaq(isOpen ? null : idx)}
-                            className="w-full p-3.5 bg-[#F8F5F0] text-left text-xs font-bold text-[#1A1410] flex items-center justify-between gap-2"
+                            className="w-full p-3.5 bg-[#FAF9F6] text-left text-xs font-bold text-[#1A1410] flex items-center justify-between gap-2"
                           >
                             <span>{faq.q}</span>
                             {isOpen ? <ChevronUp className="w-4 h-4 shrink-0 text-[#0F4C45]" /> : <ChevronDown className="w-4 h-4 shrink-0 text-[#7A6E65]" />}
@@ -621,7 +621,7 @@ export function PhotographerDetailClient({ photographer }: { photographer: Vendo
                 {/* Review Header Stats */}
                 <div className="rounded-2xl p-5 bg-white border border-[#E8DFC5]/80 shadow-2xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                   <div className="flex items-center gap-4">
-                    <div className="text-center p-3 rounded-xl bg-[#F8F5F0] border border-[#E2D6C7]/60">
+                    <div className="text-center p-3 rounded-xl bg-[#FAF9F6] border border-[#E2D6C7]/60">
                       <span className="font-serif text-3xl font-bold text-[#0F4C45] block">{photographer.rating}</span>
                       <div className="flex justify-center gap-0.5 text-amber-400 my-1">
                         {[1, 2, 3, 4, 5].map((s) => (
@@ -656,7 +656,7 @@ export function PhotographerDetailClient({ photographer }: { photographer: Vendo
                       <p className="text-xs text-[#5A6561] leading-relaxed italic font-sans">&quot;{rev.text}&quot;</p>
 
                       {rev.reply && (
-                        <div className="p-3 rounded-xl bg-[#F8F5F0] border-l-2 border-[#0F4C45] text-xs text-[#5A6561] space-y-1">
+                        <div className="p-3 rounded-xl bg-[#FAF9F6] border-l-2 border-[#0F4C45] text-xs text-[#5A6561] space-y-1">
                           <span className="font-bold text-[#0F4C45] text-[11px] block">Photographer Response:</span>
                           <p className="italic">{rev.reply}</p>
                         </div>

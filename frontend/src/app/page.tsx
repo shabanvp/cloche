@@ -240,9 +240,9 @@ export default function Home() {
         </section>
 
         {/* Popular Searches */}
-        <section className="py-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mb-6">
-            <h2 className="text-2xl font-bold text-on-surface font-display">Popular Searches</h2>
+        <section className="pt-6 pb-2 md:pt-8 md:pb-3 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="mb-4">
+            <h2 className="text-xl md:text-2xl font-bold text-on-surface font-display">Popular Searches</h2>
           </div>
           
           {/* Responsive Layout: Scrollable on mobile (< md), Full clean grid on Laptop/Desktop (>= md) */}
@@ -264,8 +264,8 @@ export default function Home() {
         <PopularNearYouSection vendors={allVendors} loading={vendorsLoading} />
 
         {/* Wedding Categories */}
-        <section className="py-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center mb-6">
+        <section className="pt-3 pb-6 md:pt-4 md:pb-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center mb-4">
             <h2 className="text-2xl font-bold text-on-surface font-display">Wedding Categories</h2>
             <Link href="/categories" className="hidden md:flex items-center gap-1 text-primary font-bold text-sm hover:underline">
               View All Categories <span className="material-symbols-outlined text-[18px]">chevron_right</span>
@@ -299,8 +299,8 @@ export default function Home() {
             ))}
           </div>
 
-          <div className="mt-6 text-center">
-            <Link href="/categories" className="inline-flex items-center gap-1.5 px-6 py-3 rounded-full bg-[#FAF7F2] border border-gold/20 text-primary font-bold text-sm hover:bg-[#F3EDE2] transition-colors shadow-sm">
+          <div className="mt-4 text-center">
+            <Link href="/categories" className="inline-flex items-center gap-1.5 px-6 py-2.5 rounded-full bg-white border border-gold/20 text-primary font-bold text-xs sm:text-sm hover:bg-[#F3EDE2] transition-colors shadow-2xs">
               View All Categories <span className="material-symbols-outlined text-[18px]">chevron_right</span>
             </Link>
           </div>
@@ -310,9 +310,9 @@ export default function Home() {
         <AdBanner placement="Homepage Between Categories" />
 
         {/* ── TRENDING THIS WEEK SECTION (STANDARDIZED WITH HOMEPAGE VENDOR CARDS) ── */}
-        <section className="py-10 md:py-14">
+        <section className="pt-3 pb-6 md:pt-4 md:pb-8">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="mb-6 flex justify-between items-end">
+            <div className="mb-4 flex justify-between items-end">
               <div>
                 <span className="text-[11px] font-bold text-[#C6A568] uppercase tracking-wider block mb-1">
                   Verified Top Rated
@@ -354,7 +354,7 @@ export default function Home() {
         <PhotographersForYouSection initialVendors={allVendors} />
 
         {/* App Banner */}
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 my-12">
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 my-6 md:my-8">
           <div className="p-8 md:p-14 rounded-3xl bg-primary text-white relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8 shadow-xl">
             <div className="relative z-10 space-y-6 max-w-xl">
               <span className="bg-gold/20 text-gold px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider inline-block">
@@ -394,8 +394,8 @@ export default function Home() {
         </section>
 
         {/* ── REAL FEATURED VENDORS (STANDARDIZED WITH HOMEPAGE VENDOR CARDS) ── */}
-        <section className="py-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mb-6 flex justify-between items-end">
+        <section className="pt-3 pb-6 md:pt-4 md:pb-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="mb-4 flex justify-between items-end">
             <div>
               <span className="text-[11px] font-bold text-[#C6A568] uppercase tracking-wider block mb-1">
                 Handpicked Excellence
@@ -433,8 +433,8 @@ export default function Home() {
         <WeddingPlanningJourneySection />
 
         {/* ── REAL WEDDING STORIES (FETCHED LIVE FROM DATABASE) ── */}
-        <section className="py-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mb-6 flex justify-between items-center">
+        <section className="pt-3 pb-6 md:pt-4 md:pb-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="mb-4 flex justify-between items-center">
             <div>
               <h2 className="text-2xl font-bold text-on-surface font-display">Real Wedding Stories</h2>
             </div>
@@ -492,7 +492,7 @@ export default function Home() {
           ) : (
             /* Honest Editorial Invitation when 0 published stories exist */
             <div className="p-8 sm:p-12 bg-white rounded-3xl border border-gold/20 shadow-md text-center max-w-2xl mx-auto space-y-4">
-              <div className="w-14 h-14 rounded-full bg-[#FAF7F2] border border-gold/30 text-[#064E43] flex items-center justify-center mx-auto shadow-inner">
+              <div className="w-14 h-14 rounded-full bg-[#FAF9F6] border border-gold/30 text-[#064E43] flex items-center justify-center mx-auto shadow-inner">
                 <BookHeart className="w-7 h-7" />
               </div>
               <div className="space-y-1.5">

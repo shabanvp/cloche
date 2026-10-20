@@ -223,7 +223,7 @@ export function VendorGalleryClient({ identifier, category }: VendorGalleryClien
   };
 
   return (
-    <div className="min-h-screen bg-[#FAF7F2] text-charcoal font-sans">
+    <div className="min-h-screen bg-[#FAF9F6] text-charcoal font-sans">
       {/* LUXURY STICKY HEADER */}
       <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-gold/15 transition-all">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">

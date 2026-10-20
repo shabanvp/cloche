@@ -2,7 +2,7 @@ import React from "react";
 
 export function InvitationsSkeleton() {
   return (
-    <div className="min-h-screen bg-[#FAF7F2] animate-pulse">
+    <div className="min-h-screen bg-[#FAF9F6] animate-pulse">
       <div className="max-w-7xl mx-auto px-4 py-8 space-y-6">
         <div className="h-9 w-64 bg-[#EBE4D8] rounded-xl" />
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">

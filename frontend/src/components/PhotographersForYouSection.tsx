@@ -124,13 +124,13 @@ export function PhotographersForYouSection({
   }, [photographersList, activeFilter]);
 
   return (
-    <section className="py-10 md:py-14">
+    <section className="pt-3 pb-6 md:pt-4 md:pb-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
-          <div className="space-y-1.5">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FAF7F2] border border-[#C6A568]/20 text-[#064E43] text-xs font-bold tracking-wider uppercase">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-3 mb-3 md:mb-4">
+          <div className="space-y-1">
+            <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-white border border-[#C6A568]/20 text-[#064E43] text-xs font-bold tracking-wider uppercase shadow-2xs">
               <Camera className="w-3.5 h-3.5 text-[#C6A568]" /> Visual Storytellers
             </div>
             <h2 className="text-2xl md:text-3xl font-bold font-serif text-[#242321]">
@@ -151,7 +151,7 @@ export function PhotographersForYouSection({
         </div>
 
         {/* Style Filter Pills */}
-        <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar pb-2 mb-6">
+        <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar pb-1 mb-4">
           {STYLE_FILTERS.map((filter) => {
             const isSelected = activeFilter === filter.key;
             return (
@@ -159,10 +159,10 @@ export function PhotographersForYouSection({
                 key={filter.key}
                 type="button"
                 onClick={() => setActiveFilter(filter.key)}
-                className={`px-4 py-2 rounded-full text-xs font-bold transition-all shrink-0 cursor-pointer border ${
+                className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 cursor-pointer border ${
                   isSelected
                     ? "bg-[#064E43] text-white border-[#064E43] shadow-xs"
-                    : "bg-[#FAF7F2] text-[#242321]/70 border-[#C6A568]/20 hover:border-[#064E43] hover:text-[#064E43]"
+                    : "bg-white text-[#242321]/70 border-[#C6A568]/20 hover:border-[#064E43] hover:text-[#064E43] shadow-2xs"
                 }`}
               >
                 {filter.label}
@@ -185,8 +185,8 @@ export function PhotographersForYouSection({
             ))}
           </div>
         ) : (
-          <div className="p-8 sm:p-10 rounded-2xl bg-[#FAF7F2] border border-[#C6A568]/20 text-center max-w-lg mx-auto space-y-3">
-            <div className="w-12 h-12 rounded-full bg-white border border-[#C6A568]/30 flex items-center justify-center mx-auto text-[#064E43] shadow-xs">
+          <div className="p-8 sm:p-10 rounded-2xl bg-white border border-[#C6A568]/20 text-center max-w-lg mx-auto space-y-3">
+            <div className="w-12 h-12 rounded-full bg-[#FAF9F6] border border-[#C6A568]/30 flex items-center justify-center mx-auto text-[#064E43] shadow-xs">
               <Camera className="w-6 h-6 text-[#C6A568]" />
             </div>
             <div className="space-y-1">
@@ -210,7 +210,7 @@ export function PhotographersForYouSection({
         <div className="mt-6 text-center md:hidden">
           <Link
             href="/photographers"
-            className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-[#FAF7F2] border border-[#C6A568]/20 text-[#064E43] font-bold text-xs"
+            className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-white border border-[#C6A568]/20 text-[#064E43] font-bold text-xs"
           >
             <span>View All Photographers</span>
             <ArrowRight className="w-3.5 h-3.5" />

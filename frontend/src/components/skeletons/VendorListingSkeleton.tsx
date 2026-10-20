@@ -2,9 +2,9 @@ import React from "react";
 
 export function VendorListingSkeleton() {
   return (
-    <div className="min-h-screen bg-[#FAF7F2] animate-pulse">
+    <div className="min-h-screen bg-[#FAF9F6] animate-pulse">
       {/* Header Banner Skeleton */}
-      <div className="bg-[#FAF7F2] border-b border-[#EBE4D8] px-4 py-8 max-w-7xl mx-auto space-y-4">
+      <div className="bg-[#FAF9F6] border-b border-[#EBE4D8] px-4 py-8 max-w-7xl mx-auto space-y-4">
         <div className="h-8 w-64 bg-[#EBE4D8] rounded-xl" />
         <div className="h-4 w-96 max-w-full bg-[#EBE4D8]/70 rounded-md" />
         <div className="flex flex-wrap gap-2 pt-2">

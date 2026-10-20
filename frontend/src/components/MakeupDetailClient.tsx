@@ -92,7 +92,7 @@ export function MakeupDetailClient({ artist }: { artist: VendorDetail }) {
   const hasSocialLinks = Boolean(instagram || facebook || youtube || website);
 
   return (
-    <div className="min-h-screen flex flex-col pb-36 bg-[#F8F5F0] text-[#2D2520] font-sans">
+    <div className="min-h-screen flex flex-col pb-36 bg-[#FAF9F6] text-[#2D2520] font-sans">
       {/* ─── VENUE-STYLE COMPACT 2-COLUMN LAYOUT ON DESKTOP ─── */}
       <div className="max-w-4xl mx-auto w-full px-4 pt-4 md:pt-6">
         <div className="flex flex-col md:grid md:grid-cols-12 gap-6 lg:gap-8 items-start">
@@ -192,7 +192,7 @@ export function MakeupDetailClient({ artist }: { artist: VendorDetail }) {
             </div>
 
             {/* Category / Stats Bar */}
-            <div className="p-3.5 rounded-2xl bg-[#F8F5F0] border border-[#E2D6C7]/60 flex items-center justify-between text-xs text-[#6B5E52]">
+            <div className="p-3.5 rounded-2xl bg-[#FAF9F6] border border-[#E2D6C7]/60 flex items-center justify-between text-xs text-[#6B5E52]">
               <div>
                 <span className="text-[10px] uppercase font-bold text-[#7A6E65] block">Category</span>
                 <span className="font-bold text-[#1A1410]">Bridal Makeup</span>
@@ -411,7 +411,7 @@ export function MakeupDetailClient({ artist }: { artist: VendorDetail }) {
 
                 {/* Social Media Links Section (Shown ONLY if links are present) */}
                 {hasSocialLinks && (
-                  <div className="rounded-2xl p-5 bg-[#F8F5F0] border border-[#E8DFC5]/80 shadow-2xs space-y-3">
+                  <div className="rounded-2xl p-5 bg-[#FAF9F6] border border-[#E8DFC5]/80 shadow-2xs space-y-3">
                     <h3 style={{ color: activeTheme.primary }} className="font-serif font-bold text-sm">
                       Social Media Connections
                     </h3>

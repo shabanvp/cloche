@@ -2,7 +2,7 @@ import React from "react";
 
 export function VendorProfileSkeleton() {
   return (
-    <div className="min-h-screen bg-[#FAF7F2] animate-pulse">
+    <div className="min-h-screen bg-[#FAF9F6] animate-pulse">
       {/* Cover Image Skeleton */}
       <div className="w-full h-[320px] md:h-[420px] bg-[#EBE4D8]" />
 

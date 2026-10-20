@@ -9,7 +9,7 @@ export const metadata = {
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="min-h-screen bg-[#fbf8f1] flex flex-col md:flex-row">
+    <div className="min-h-screen bg-[#FAF9F6] flex flex-col md:flex-row">
       
       {/* Admin Sidebar */}
       <aside className="w-full md:w-60 bg-[#002f22] text-white shrink-0 min-h-screen sticky top-0 flex flex-col shadow-[8px_0_24px_rgba(0,47,34,0.14)]">

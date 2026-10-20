@@ -1394,7 +1394,7 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
   }
 
   return (
-    <div className="w-full bg-[#FBF8F1] text-charcoal font-sans antialiased min-h-screen pb-24">
+    <div className="w-full bg-[#FAF9F6] text-charcoal font-sans antialiased min-h-screen pb-24">
       {/* ── OWNER LIVE PROFILE TOOLBAR ── */}
       {isOwner && !isLoadingAuth && (
         <OwnerToolbar
