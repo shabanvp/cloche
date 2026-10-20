@@ -73,7 +73,7 @@ const JOURNEY_STEPS: JourneyStep[] = [
 
 export function WeddingPlanningJourneySection() {
   return (
-    <section className="py-14 bg-white border-b border-[#C6A568]/15">
+    <section className="py-12 md:py-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
@@ -96,7 +96,7 @@ export function WeddingPlanningJourneySection() {
             return (
               <div
                 key={step.number}
-                className="relative bg-[#FAF7F2] rounded-2xl p-5 border border-[#C6A568]/20 hover:border-[#064E43] transition-all hover:shadow-md group flex flex-col justify-between"
+                className="relative bg-white rounded-2xl p-5 border border-[#C6A568]/20 hover:border-[#064E43] transition-all shadow-xs hover:shadow-md group flex flex-col justify-between"
               >
                 <div>
                   {/* Step Header with Number & Icon */}

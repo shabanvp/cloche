@@ -40,7 +40,7 @@ export function DigitalInvitationsSection() {
   const featuredTemplates = DIGITAL_INVITE_TEMPLATES.slice(0, 4);
 
   return (
-    <section className="py-8 sm:py-10 bg-[#FAF7F2] border-y border-gold/15 my-6 sm:my-8 w-full">
+    <section className="py-10 md:py-14 w-full">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}

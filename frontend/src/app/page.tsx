@@ -310,7 +310,7 @@ export default function Home() {
         <AdBanner placement="Homepage Between Categories" />
 
         {/* ── TRENDING THIS WEEK SECTION (STANDARDIZED WITH HOMEPAGE VENDOR CARDS) ── */}
-        <section className="py-12 bg-[#FAF7F2] my-8 border-y border-gold/15">
+        <section className="py-10 md:py-14">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="mb-6 flex justify-between items-end">
               <div>

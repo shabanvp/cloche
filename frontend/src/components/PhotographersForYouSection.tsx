@@ -124,7 +124,7 @@ export function PhotographersForYouSection({
   }, [photographersList, activeFilter]);
 
   return (
-    <section className="py-12 bg-white border-b border-[#C6A568]/15">
+    <section className="py-10 md:py-14">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
