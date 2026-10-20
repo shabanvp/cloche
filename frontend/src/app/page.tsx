@@ -260,6 +260,9 @@ export default function Home() {
           </div>
         </section>
 
+        {/* ── SECTION A: POPULAR NEAR YOU (LOCAL CITY-FILTERED DISCOVERY) ── */}
+        <PopularNearYouSection vendors={allVendors} loading={vendorsLoading} />
+
         {/* Wedding Categories */}
         <section className="py-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center mb-6">
@@ -343,9 +346,6 @@ export default function Home() {
             ) : null}
           </div>
         </section>
-
-        {/* ── SECTION A: POPULAR NEAR YOU (LOCAL CITY-FILTERED DISCOVERY) ── */}
-        <PopularNearYouSection vendors={allVendors} loading={vendorsLoading} />
 
         {/* Digital Wedding Invitations Section */}
         <DigitalInvitationsSection />
