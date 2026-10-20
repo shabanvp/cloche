@@ -6,7 +6,8 @@ import {
   ArrowLeft, MapPin, Calendar, Heart, Eye, Share2, 
   Sparkles, ExternalLink, Building2, CheckCircle2 
 } from "lucide-react";
-import { RealWeddingStoryDb } from "@/lib/realWeddings";
+import { RealWeddingStoryDb } from "@/lib/realWeddingsData";
+import { Footer } from "@/components/Footer";
 
 export function RealWeddingStoryClient({
   story,
@@ -287,6 +288,7 @@ export function RealWeddingStoryClient({
 
       </main>
 
+      <Footer />
     </div>
   );
 }
