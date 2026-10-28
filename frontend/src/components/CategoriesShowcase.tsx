@@ -149,7 +149,7 @@ export const showcaseCategories: CategoryItem[] = [
     subtitle: "Candid, Traditional & Cinematic Stories",
     bgColor: "#E8EFE9",
     href: "/photographers",
-    image: "/images/photographers-cover.png",
+    image: "/images/photographers-cover-new.jpg",
     icon: CameraIcon,
     getCount: () => photographers.length || 16,
   },
