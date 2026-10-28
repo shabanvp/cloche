@@ -3,7 +3,6 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import Link from "next/link";
 import { 
-  MapPin, 
   Sparkles, 
   ArrowRight, 
   Navigation, 
@@ -138,15 +137,14 @@ function calculateHaversineKm(lat1: number, lon1: number, lat2: number, lon2: nu
 }
 
 // Helper: Resolve coordinates for a vendor
-function getVendorCoordinates(vendor: VendorCardItem): GeoCoord {
+function getVendorCoordinates(vendor: VendorCardItem): GeoCoord | null {
   const rawCity = (vendor.city || "").toLowerCase().trim();
   for (const [key, coords] of Object.entries(KERALA_CITY_COORDINATES)) {
-    if (rawCity.includes(key) || key.includes(rawCity)) {
+    if (rawCity && (rawCity.includes(key) || key.includes(rawCity))) {
       return coords;
     }
   }
-  // Default to central Kerala hub (near Thrissur/Chalakudy)
-  return { lat: 10.35, lng: 76.35 };
+  return null;
 }
 
 // Helper: Identify closest Kerala hub for GPS coords
@@ -269,12 +267,9 @@ export function PopularNearYouSection({
 
     return vendors.map((vendor) => {
       const coords = getVendorCoordinates(vendor);
-      const distanceKm = calculateHaversineKm(
-        userLocation.lat,
-        userLocation.lng,
-        coords.lat,
-        coords.lng
-      );
+      const distanceKm = coords
+        ? calculateHaversineKm(userLocation.lat, userLocation.lng, coords.lat, coords.lng)
+        : undefined;
 
       return {
         ...vendor,
@@ -288,7 +283,9 @@ export function PopularNearYouSection({
     const filter = DISTANCE_FILTERS.find((f) => f.key === selectedRadiusKey) || DISTANCE_FILTERS[2];
     
     // Sort vendors by distance (ascending)
-    const sorted = [...vendorsWithDistance].sort((a, b) => (a.distanceKm ?? 0) - (b.distanceKm ?? 0));
+    const sorted = [...vendorsWithDistance].sort(
+      (a, b) => (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity)
+    );
 
     if (filter.maxKm === Infinity) {
       return {
@@ -298,11 +295,11 @@ export function PopularNearYouSection({
       };
     }
 
-    const matches = sorted.filter((v) => (v.distanceKm ?? 0) <= filter.maxKm);
+    const matches = sorted.filter((v) => v.distanceKm !== undefined && v.distanceKm <= filter.maxKm);
     const hasMatches = matches.length > 0;
 
     return {
-      filteredVendors: hasMatches ? matches.slice(0, 4) : sorted.slice(0, 4),
+      filteredVendors: matches.slice(0, 4),
       currentFilter: filter,
       hasRadiusMatches: hasMatches,
     };
@@ -315,12 +312,8 @@ export function PopularNearYouSection({
         {/* Section Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-3 mb-3 md:mb-4">
           <div className="space-y-1.5">
-            {/* Location Pill & Geolocation Trigger */}
+            {/* User location selector */}
             <div className="flex flex-wrap items-center gap-2">
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-[#C6A568]/20 text-[#064E43] text-xs font-bold tracking-wider uppercase shadow-2xs">
-                <MapPin className="w-3.5 h-3.5 text-[#C6A568]" /> Local Wedding Discovery
-              </div>
-
               {/* Dynamic User Location Picker */}
               <div className="relative" ref={locationMenuRef}>
                 <button
@@ -392,9 +385,6 @@ export function PopularNearYouSection({
             <h2 className="text-2xl md:text-3xl font-bold font-serif text-[#242321]">
               Popular Near You
             </h2>
-            <p className="text-xs sm:text-sm text-[#242321]/65 max-w-xl">
-              Handpicked venues, studios, and wedding artisans curated by proximity to <strong>{userLocation.name}</strong>
-            </p>
           </div>
 
           {/* Right Header Navigation Link */}
@@ -438,7 +428,7 @@ export function PopularNearYouSection({
             <div className="flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-amber-600 shrink-0" />
               <span>
-                No registered vendors found directly {currentFilter.label.toLowerCase()} of {userLocation.name}. Showing the closest verified artisans nearby:
+                No vendors with a known location were found {currentFilter.label.toLowerCase()} of {userLocation.name}. Expand the distance or choose All Kerala.
               </span>
             </div>
             <button
