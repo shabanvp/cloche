@@ -12,7 +12,7 @@ import { PopularNearYouSection } from "@/components/PopularNearYouSection";
 import { PhotographersForYouSection } from "@/components/PhotographersForYouSection";
 import { WeddingPlanningJourneySection } from "@/components/WeddingPlanningJourneySection";
 import { Sparkles, MapPin, Calendar, BookHeart, Plus, ArrowRight, Star, Heart, Flame } from "lucide-react";
-import { HOMEPAGE_CATEGORY_STRIP, normalizeCategory, getCategoryFallbackImage } from "@/lib/categories";
+import { HOMEPAGE_CATEGORY_STRIP, normalizeCategory } from "@/lib/categories";
 import { RealWeddingStoryDb } from "@/lib/realWeddings";
 import { VendorCardSkeleton } from "@/components/skeletons/VendorCardSkeleton";
 
@@ -50,7 +50,6 @@ export default function Home() {
                 const norm = normalizeCategory(v.categorySlug || v.category);
                 const catTitle = norm?.title || v.category || "Wedding Expert";
                 const catSlug = norm?.slug || v.categorySlug || "vendors";
-                const fallbackImg = getCategoryFallbackImage(v.category || catSlug);
 
                 return {
                   id: v.id,
@@ -62,10 +61,8 @@ export default function Home() {
                   rating: Number(v.rating || 0),
                   reviewCount: Number(v.reviewCount || 0),
                   startingPrice: v.startingPrice || "Contact for pricing",
-                  coverImage:
-                    v.coverImage ||
-                    v.logo ||
-                    fallbackImg,
+                  coverImage: v.coverImage || "",
+                  profileImage: v.profileImage || v.logo || "",
                 };
               });
             }
@@ -81,7 +78,6 @@ export default function Home() {
                 const norm = normalizeCategory(b.category);
                 const catTitle = norm?.title || b.category || "Wedding Vendor";
                 const catSlug = norm?.slug || b.categorySlug || "vendors";
-                const fallbackImg = getCategoryFallbackImage(b.category || catSlug);
 
                 return {
                   id: String(b.id),
@@ -99,10 +95,8 @@ export default function Home() {
                     const num = Number(String(raw).replace(/[^\d.]/g, ""));
                     return !isNaN(num) && num > 0 ? `₹${num.toLocaleString("en-IN")}` : String(raw);
                   })(),
-                  coverImage:
-                    b.cover_image ||
-                    b.logo ||
-                    fallbackImg,
+                  coverImage: b.cover_image || "",
+                  profileImage: b.profile_image || b.logo || "",
                 };
               });
             }

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Star, MapPin, Heart, ArrowRight, Flame } from "lucide-react";
 import { isItemInWishlist, toggleWishlistItem } from "@/lib/wishlistStore";
+import { VendorCardImage } from "@/components/VendorCardImage";
 
 export interface VendorCardItem {
   id: string;
@@ -16,6 +17,7 @@ export interface VendorCardItem {
   reviewCount?: number;
   startingPrice: string;
   coverImage?: string;
+  profileImage?: string;
   logo?: string;
   distanceKm?: number;
   distanceText?: string;
@@ -29,39 +31,6 @@ interface HomepageVendorCardProps {
   distanceKm?: number;
 }
 
-// Category-appropriate fallback images
-function getCategoryFallback(category: string): string {
-  const cat = (category || "").toLowerCase();
-  if (cat.includes("venue") || cat.includes("hall") || cat.includes("palace") || cat.includes("resort")) {
-    return "/images/venues-cover.png";
-  }
-  if (cat.includes("photo") || cat.includes("camera") || cat.includes("video")) {
-    return "/images/photographers-cover.png";
-  }
-  if (cat.includes("makeup") || cat.includes("glam") || cat.includes("beauty")) {
-    return "/images/makeup-cover.png";
-  }
-  if (cat.includes("bridal") || cat.includes("sari") || cat.includes("lehenga")) {
-    return "/images/bridal-studio-cover.png";
-  }
-  if (cat.includes("groom") || cat.includes("sherwani") || cat.includes("suit")) {
-    return "/images/groom-wear-cover.png";
-  }
-  if (cat.includes("cater") || cat.includes("food") || cat.includes("sadya")) {
-    return "https://images.unsplash.com/photo-1555244162-803834f70033?auto=format&fit=crop&w=800&q=80";
-  }
-  if (cat.includes("decor") || cat.includes("flower") || cat.includes("planner")) {
-    return "/images/decor-planning-cover.png";
-  }
-  if (cat.includes("invite") || cat.includes("card")) {
-    return "/images/invitations-cover.png";
-  }
-  if (cat.includes("jewel") || cat.includes("gold") || cat.includes("ornament")) {
-    return "/images/jewellery-cover.png";
-  }
-  return "/images/wedding-studio-cover.png";
-}
-
 export function HomepageVendorCard({
   vendor,
   rankBadge,
@@ -70,10 +39,7 @@ export function HomepageVendorCard({
 }: HomepageVendorCardProps) {
   const effectiveDistance = typeof distanceKm === "number" ? distanceKm : vendor.distanceKm;
   const [isSaved, setIsSaved] = useState(false);
-  const [imgSrc, setImgSrc] = useState<string>(() => {
-    return vendor.coverImage || vendor.logo || getCategoryFallback(vendor.category);
-  });
-  const [imgError, setImgError] = useState(false);
+  const imgSrc = vendor.coverImage || vendor.profileImage || vendor.logo || "";
 
   // Sync wishlist status
   useEffect(() => {
@@ -104,13 +70,6 @@ export function HomepageVendorCard({
     });
   };
 
-  const handleImageError = () => {
-    if (!imgError) {
-      setImgError(true);
-      setImgSrc(getCategoryFallback(vendor.category));
-    }
-  };
-
   const hasRating = vendor.rating > 0 && (vendor.reviewCount ?? 0) > 0;
 
   return (
@@ -121,13 +80,7 @@ export function HomepageVendorCard({
       <div>
         {/* Standardized Aspect Ratio Container (4:3) with subtle zoom on hover */}
         <div className="relative aspect-[4/3] w-full overflow-hidden bg-[#F8F5EF]">
-          <img
-            src={imgSrc}
-            alt={vendor.name}
-            onError={handleImageError}
-            loading="lazy"
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
-          />
+          <VendorCardImage vendorId={vendor.id} businessName={vendor.name} coverImage={vendor.coverImage} profileImage={vendor.profileImage || vendor.logo} className="group-hover:scale-105 transition-transform duration-500 ease-out" priority={false} />
 
           {/* Top Left: Rank Badge or Trending Badge */}
           <div className="absolute top-3 left-3 flex items-center gap-1.5 z-10">

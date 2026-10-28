@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Star, MapPin, ChevronRight, Loader2, Building2, X } from "lucide-react";
+import { VendorCardImage } from "@/components/VendorCardImage";
 
 export interface ExploreOtherVendorsProps {
   category: string;
@@ -14,6 +15,8 @@ export interface ExploreVendorItem {
   id: string;
   name: string;
   image: string;
+  coverImage?: string;
+  profileImage?: string;
   rating: number;
   reviews: number;
   price: string;
@@ -158,13 +161,16 @@ export function ExploreOtherVendors({ category, currentVendorId, currentVendorNa
                 return null;
               }
 
-              const coverImg = r.coverImage || r.logo || r.logoUrl || "/images/wedding-studio-cover.png";
+              const coverImg = r.coverImage || r.cover_image || "";
+              const profileImg = r.profileImage || r.logo || r.logoUrl || "";
               const cityState = [r.city, r.state].filter(Boolean).join(", ") || "Kerala, India";
 
               return {
                 id: vendorId,
                 name: vendorName,
                 image: coverImg,
+                coverImage: coverImg,
+                profileImage: profileImg,
                 rating: Number(r.rating || 4.8),
                 reviews: Number(r.reviewCount || r.reviews || 0),
                 price: r.startingPrice || "Contact for Pricing",
@@ -240,11 +246,7 @@ export function ExploreOtherVendors({ category, currentVendorId, currentVendorNa
               >
                 <div>
                   <div className="relative h-36 sm:h-40 w-full bg-gray-200 overflow-hidden">
-                    <img
-                      src={v.image}
-                      alt={v.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
+                    <VendorCardImage vendorId={v.id} businessName={v.name} coverImage={v.coverImage} profileImage={v.profileImage} className="group-hover:scale-105 transition-transform duration-300" />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-60" />
                     <span className="absolute bottom-2 left-2 text-[10px] font-bold text-white bg-black/40 backdrop-blur-xs px-2 py-0.5 rounded-full flex items-center gap-1">
                       <MapPin className="w-2.5 h-2.5 text-[#C8A96A]" /> {v.location.split(",")[0]}
@@ -321,11 +323,7 @@ export function ExploreOtherVendors({ category, currentVendorId, currentVendorNa
                     >
                       <div>
                         <div className="relative h-40 w-full bg-gray-200 overflow-hidden">
-                          <img
-                            src={v.image}
-                            alt={v.name}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                          />
+                          <VendorCardImage vendorId={v.id} businessName={v.name} coverImage={v.coverImage} profileImage={v.profileImage} className="group-hover:scale-105 transition-transform duration-300" />
                           <span className="absolute bottom-2 left-2 text-[10px] font-bold text-white bg-black/40 backdrop-blur-xs px-2 py-0.5 rounded-full flex items-center gap-1">
                             <MapPin className="w-2.5 h-2.5 text-[#C8A96A]" /> {v.location}
                           </span>

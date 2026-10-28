@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useState, useMemo, useEffect } from "react";
 import {
@@ -16,6 +15,7 @@ import { BottomNavBar } from "@/components/BottomNavBar";
 import { AutocompleteSearch } from "@/components/AutocompleteSearch";
 import { Boutique } from "@/types";
 import { normalizeCategory } from "@/lib/categories";
+import { VendorCardImage } from "@/components/VendorCardImage";
 
 // Authoritative category resolution using verified registered database category
 function resolveCategory(boutique: Boutique): string {
@@ -285,27 +285,6 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
               const isPriority = index < 4;
 
               // Strictly resolve LOGO image ONLY (Do NOT request or load cover images)
-              const rawLogo = (
-                boutique.logo_url ||
-                boutique.logo ||
-                (boutique as any).profile_logo ||
-                (boutique as any).profile_pic ||
-                (boutique as any).avatar ||
-                (boutique as any).image_url ||
-                (boutique as any).image ||
-                ""
-              ).toString().trim();
-
-              const displayImage = normalizeImageUrl(rawLogo);
-
-              const isValidImage = Boolean(
-                displayImage &&
-                (displayImage.startsWith("data:image/") ||
-                 displayImage.startsWith("http://") ||
-                 displayImage.startsWith("https://") ||
-                 (displayImage.startsWith("/") && !displayImage.startsWith("//")))
-              );
-
               const bName = boutique.boutique_name || (boutique as any).name || "Wedding Vendor";
               const locationText = `${boutique.city || "Kochi"}${boutique.area ? `, ${boutique.area}` : ""}`;
               const startingPrice =
@@ -325,24 +304,7 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
                 >
                   {/* Card Image Header - Single Main Image Container displaying Vendor LOGO */}
                   <div className="relative aspect-[4/3] w-full overflow-hidden bg-[#0F4C45]">
-                    {isValidImage ? (
-                      <Image
-                        src={displayImage}
-                        alt={bName}
-                        fill
-                        priority={isPriority}
-                        loading={isPriority ? "eager" : "lazy"}
-                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                        className="object-cover group-hover:scale-105 transition-transform duration-500"
-                        unoptimized={displayImage.startsWith("data:")}
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-[#0F4C45]">
-                        <span className="font-serif text-5xl font-bold text-white tracking-wider">
-                          {bName ? bName.charAt(0).toUpperCase() : "V"}
-                        </span>
-                      </div>
-                    )}
+                    <VendorCardImage vendorId={String(boutique.id)} businessName={bName} coverImage={(boutique as any).cover_image || (boutique as any).coverImage} profileImage={boutique.logo_url || boutique.logo || (boutique as any).profile_image || (boutique as any).profile_logo} sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" priority={isPriority} className="group-hover:scale-105 transition-transform duration-500" />
 
                     {/* Bottom Overlay Category Badge */}
                     <span className="absolute bottom-3 left-3 bg-white/95 backdrop-blur-xs text-charcoal text-[10px] font-bold px-2.5 py-1 rounded-md shadow-xs z-10">

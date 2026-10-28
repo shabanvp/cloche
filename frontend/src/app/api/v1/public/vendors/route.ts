@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSupabaseConfig, supabaseFetch } from "@/lib/supabase";
-import { normalizeCategory, getCategoryFallbackImage } from "@/lib/categories";
+import { normalizeCategory } from "@/lib/categories";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -173,7 +173,8 @@ export async function GET(req: Request) {
       const catSlug = vNorm?.slug || v.vendor_categories?.slug || "general";
 
       const logoImg = profile.logo_media?.cdn_url || profile.logo_url || "";
-      const coverImg = profile.cover_media?.cdn_url || profile.cover_image || gallery.find((g: any) => g.media?.cdn_url)?.media?.cdn_url || getCategoryFallbackImage(catSlug);
+      // Never turn category artwork or an arbitrary gallery item into a vendor cover.
+      const coverImg = profile.cover_media?.cdn_url || profile.cover_image || "";
       const startingPrice = services.length > 0 ? Math.min(...services.map((s: any) => Number(s.base_price || 0)).filter((p: number) => p > 0)) : (profile.starting_price || 0);
 
       const instagram = socialList.find((s: any) => s.platform === "instagram")?.url || contact.instagram || "";
@@ -195,6 +196,7 @@ export async function GET(req: Request) {
         startingPrice: startingPrice > 0 ? `₹${startingPrice.toLocaleString("en-IN")}` : "Contact for pricing",
         logo: logoImg,
         logoUrl: logoImg,
+        profileImage: logoImg,
         coverImage: coverImg,
         about: profile.about || "",
         tagline: profile.tagline || "",
