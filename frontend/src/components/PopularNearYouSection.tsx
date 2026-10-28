@@ -343,7 +343,7 @@ export function PopularNearYouSection({
 
     if (filter.maxKm === Infinity) {
       return {
-        filteredVendors: sorted,
+        filteredVendors: sorted.slice(0, 4),
         currentFilter: filter,
         hasRadiusMatches: sorted.length > 0,
       };
@@ -353,7 +353,7 @@ export function PopularNearYouSection({
     const hasMatches = matches.length > 0;
 
     return {
-      filteredVendors: matches,
+      filteredVendors: matches.slice(0, 4),
       currentFilter: filter,
       hasRadiusMatches: hasMatches,
     };
