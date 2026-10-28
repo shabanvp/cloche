@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { HomepageVendorCard, VendorCardItem } from "@/components/HomepageVendorCard";
 import { VendorCardSkeleton } from "@/components/skeletons/VendorCardSkeleton";
+import { fetchAuthenticatedUserProfile } from "@/lib/userStore";
 
 interface PopularNearYouSectionProps {
   vendors: VendorCardItem[];
@@ -97,6 +98,16 @@ const KERALA_CITY_COORDINATES: Record<string, GeoCoord> = {
   "payyanur": { lat: 12.1026, lng: 75.2046 },
 };
 
+function getCityCoordinates(city: string): GeoCoord | null {
+  const normalizedCity = city.toLowerCase().trim();
+  if (!normalizedCity) return null;
+
+  for (const [key, coords] of Object.entries(KERALA_CITY_COORDINATES)) {
+    if (normalizedCity.includes(key)) return coords;
+  }
+  return null;
+}
+
 // Preset Kerala destination options for quick switching
 const KERALA_LOCATION_PRESETS = [
   { name: "Kochi / Ernakulam", cityKey: "kochi", lat: 9.9816, lng: 76.2999 },
@@ -138,13 +149,7 @@ function calculateHaversineKm(lat1: number, lon1: number, lat2: number, lon2: nu
 
 // Helper: Resolve coordinates for a vendor
 function getVendorCoordinates(vendor: VendorCardItem): GeoCoord | null {
-  const rawCity = (vendor.city || "").toLowerCase().trim();
-  for (const [key, coords] of Object.entries(KERALA_CITY_COORDINATES)) {
-    if (rawCity && (rawCity.includes(key) || key.includes(rawCity))) {
-      return coords;
-    }
-  }
-  return null;
+  return getCityCoordinates(vendor.city || "");
 }
 
 // Helper: Identify closest Kerala hub for GPS coords
@@ -212,7 +217,7 @@ export function PopularNearYouSection({
     }
 
     setIsLocating(true);
-    setLocationMessage("Detecting your live coordinates...");
+    setLocationMessage("Allow location access to find vendors near you…");
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
@@ -243,6 +248,55 @@ export function PopularNearYouSection({
       { timeout: 8000, enableHighAccuracy: true, maximumAge: 300000 }
     );
   };
+
+  // Prefer a previously selected location, then the signed-in profile city;
+  // ask the browser for location access when neither is available.
+  useEffect(() => {
+    let isActive = true;
+
+    async function initializeUserLocation() {
+      try {
+        const saved = localStorage.getItem("cloche_user_location_v1");
+        const parsed = saved ? JSON.parse(saved) : null;
+        if (
+          parsed &&
+          typeof parsed.name === "string" &&
+          Number.isFinite(parsed.lat) &&
+          Number.isFinite(parsed.lng)
+        ) {
+          if (isActive) setUserLocation(parsed);
+          return;
+        }
+      } catch {}
+
+      try {
+        const profile = await fetchAuthenticatedUserProfile();
+        if (!isActive) return;
+
+        const profileCity = profile?.city || localStorage.getItem("userCity") || "";
+        const coords = getCityCoordinates(profileCity);
+        if (profileCity && coords) {
+          const profileLocation: UserLocation = {
+            name: profileCity.trim(),
+            ...coords,
+            isGps: false,
+          };
+          setUserLocation(profileLocation);
+          localStorage.setItem("cloche_user_location_v1", JSON.stringify(profileLocation));
+          return;
+        }
+      } catch {}
+
+      if (isActive) detectUserGpsLocation();
+    }
+
+    initializeUserLocation();
+    return () => {
+      isActive = false;
+    };
+  // Location is initialized once when this homepage section mounts.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Change location preset manually
   const handleSelectPreset = (preset: typeof KERALA_LOCATION_PRESETS[0]) => {
@@ -385,6 +439,11 @@ export function PopularNearYouSection({
             <h2 className="text-2xl md:text-3xl font-bold font-serif text-[#242321]">
               Popular Near You
             </h2>
+            {locationMessage && (
+              <p role="status" className="text-xs text-[#064E43]/75">
+                {locationMessage}
+              </p>
+            )}
           </div>
 
           {/* Right Header Navigation Link */}
