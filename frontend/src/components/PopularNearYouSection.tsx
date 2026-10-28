@@ -124,11 +124,11 @@ const KERALA_LOCATION_PRESETS = [
 
 // Distance filter tabs in kilometres
 const DISTANCE_FILTERS = [
-  { key: "15", label: "Within 15 km", maxKm: 15 },
-  { key: "30", label: "Within 30 km", maxKm: 30 },
-  { key: "50", label: "Within 50 km", maxKm: 50 },
-  { key: "100", label: "Within 100 km", maxKm: 100 },
-  { key: "all", label: "All Kerala", maxKm: Infinity },
+  { key: "15", label: "Within 15 km", minKm: 0, maxKm: 15 },
+  { key: "30", label: "Within 30 km", minKm: 15, maxKm: 30 },
+  { key: "50", label: "Within 50 km", minKm: 30, maxKm: 50 },
+  { key: "100", label: "Within 100 km", minKm: 50, maxKm: 100 },
+  { key: "all", label: "All Kerala", minKm: 0, maxKm: Infinity },
 ];
 
 // Helper: Haversine distance formula
@@ -172,8 +172,8 @@ export function PopularNearYouSection({
   vendors,
   loading = false,
 }: PopularNearYouSectionProps) {
-  // Kilometre-based filter selection (defaulting to 50 km or all)
-  const [selectedRadiusKey, setSelectedRadiusKey] = useState<string>("50");
+  // Filters operate on the already loaded vendor list, so switching radius never refetches.
+  const [selectedRadiusKey, setSelectedRadiusKey] = useState<string>("15");
 
   // User location state
   const [userLocation, setUserLocation] = useState<UserLocation>(() => {
@@ -334,7 +334,7 @@ export function PopularNearYouSection({
 
   // Filter and sort vendors by kilometre radius (closest first)
   const { filteredVendors, currentFilter, hasRadiusMatches } = useMemo(() => {
-    const filter = DISTANCE_FILTERS.find((f) => f.key === selectedRadiusKey) || DISTANCE_FILTERS[2];
+    const filter = DISTANCE_FILTERS.find((f) => f.key === selectedRadiusKey) || DISTANCE_FILTERS[0];
     
     // Sort vendors by distance (ascending)
     const sorted = [...vendorsWithDistance].sort(
@@ -349,7 +349,10 @@ export function PopularNearYouSection({
       };
     }
 
-    const matches = sorted.filter((v) => v.distanceKm !== undefined && v.distanceKm <= filter.maxKm);
+    const matches = sorted.filter((v) =>
+      v.distanceKm !== undefined &&
+      (filter.maxKm === Infinity || (v.distanceKm > filter.minKm && v.distanceKm <= filter.maxKm))
+    );
     const hasMatches = matches.length > 0;
 
     return {
@@ -358,6 +361,12 @@ export function PopularNearYouSection({
       hasRadiusMatches: hasMatches,
     };
   }, [vendorsWithDistance, selectedRadiusKey]);
+
+  const filterRangeText = currentFilter.key === "15"
+    ? "within 15 km"
+    : currentFilter.maxKm === Infinity
+      ? "across Kerala"
+      : `between ${currentFilter.minKm} and ${currentFilter.maxKm} km`;
 
   return (
     <section className="pt-3 pb-6 md:pt-4 md:pb-8">
@@ -487,7 +496,7 @@ export function PopularNearYouSection({
             <div className="flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-amber-600 shrink-0" />
               <span>
-                No vendors with a known location were found {currentFilter.label.toLowerCase()} of {userLocation.name}. Expand the distance or choose All Kerala.
+                No vendors with a known location were found {filterRangeText} of {userLocation.name}. Choose another distance band or All Kerala.
               </span>
             </div>
             <button
@@ -508,7 +517,7 @@ export function PopularNearYouSection({
             ))}
           </div>
         ) : filteredVendors.length > 0 ? (
-          <div className="flex overflow-x-auto hide-scrollbar snap-x snap-mandatory gap-4 md:grid md:grid-cols-4 md:gap-6 md:overflow-visible pb-2">
+          <div key={selectedRadiusKey} className="flex overflow-x-auto hide-scrollbar snap-x snap-mandatory gap-4 md:grid md:grid-cols-4 md:gap-6 md:overflow-visible pb-2 animate-in fade-in slide-in-from-bottom-1 duration-300">
             {filteredVendors.map((vendor) => (
               <HomepageVendorCard 
                 key={vendor.id} 
@@ -525,7 +534,7 @@ export function PopularNearYouSection({
             </div>
             <div className="space-y-1">
               <h3 className="font-serif font-bold text-base text-[#242321]">
-                No verified vendors within {currentFilter.label.toLowerCase()} yet
+                No verified vendors {filterRangeText} yet
               </h3>
               <p className="text-xs text-[#242321]/60 leading-relaxed">
                 We are continually onboarding wedding vendors across Kerala. You can expand your search distance to see top artisans in adjacent districts.
