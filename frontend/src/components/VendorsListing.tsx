@@ -115,7 +115,12 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
                 return {
                   id: v.id,
                   boutique_name: v.name,
-                  image_url: v.logo || v.coverImage || "",
+                  // Preserve the API's vendor-owned logo and cover fields explicitly.
+                  // image_url is also populated for older consumers of Boutique records.
+                  logo_url: v.profileImage || v.logo || v.logoUrl || "",
+                  profile_image: v.profileImage || v.logo || v.logoUrl || "",
+                  cover_image: v.coverImage || v.cover_image || "",
+                  image_url: v.profileImage || v.logo || v.logoUrl || "",
                   city: v.city,
                   area: v.state,
                   category: catName,
@@ -323,7 +328,7 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
                 >
                   {/* Card Image Header - Single Main Image Container displaying Vendor LOGO */}
                   <div className="relative aspect-[4/3] w-full overflow-hidden bg-[#0F4C45]">
-                    <VendorCardImage vendorId={String(boutique.id)} businessName={bName} coverImage={(boutique as any).cover_image || (boutique as any).coverImage} profileImage={boutique.logo_url || boutique.logo || (boutique as any).profile_image || (boutique as any).profile_logo} sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" priority={isPriority} className="group-hover:scale-105 transition-transform duration-500" />
+                    <VendorCardImage vendorId={String(boutique.id)} businessName={bName} coverImage={(boutique as any).cover_image || boutique.coverImage || boutique.cover_url} profileImage={boutique.logo_url || boutique.logo || (boutique as any).profile_image || (boutique as any).profile_image_url || (boutique as any).profile_logo || boutique.image_url} sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" priority={isPriority} className="group-hover:scale-105 transition-transform duration-500" />
 
                     {/* Bottom Overlay Category Badge */}
                     <span className="absolute bottom-3 left-3 bg-white/95 backdrop-blur-xs text-charcoal text-[10px] font-bold px-2.5 py-1 rounded-md shadow-xs z-10">
