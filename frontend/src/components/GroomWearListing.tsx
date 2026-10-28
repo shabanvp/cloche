@@ -6,15 +6,18 @@ import { useState, useEffect, useMemo } from "react";
 import { Search, Star, CheckCircle2, MapPin, Heart, ChevronRight, UserCheck } from "lucide-react";
 import { BottomNavBar } from "@/components/BottomNavBar";
 import { Footer } from "@/components/Footer";
+import { PaginationControls } from "@/components/PaginationControls";
 import { groomWearVendors } from "@/lib/groomWearData";
 import { toggleWishlistItem, getWishlistItems } from "@/lib/wishlistStore";
 
 const GROOM_CHIPS = ["All", "Sherwanis", "Achkans", "Tuxedos", "Bandhgalas", "Rentals"];
+const ITEMS_PER_PAGE = 10;
 
 export function GroomWearListing() {
   const [search, setSearch] = useState("");
   const [activeChip, setActiveChip] = useState("All");
   const [wishlist, setWishlist] = useState<Set<string>>(() => new Set());
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     const updateLocalWishlist = () => {
@@ -43,6 +46,17 @@ export function GroomWearListing() {
     });
   }, [search, activeChip]);
 
+  // Reset to page 1 on search or chip change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, activeChip]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredVendors.length / ITEMS_PER_PAGE));
+  const paginatedVendors = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredVendors.slice(start, start + ITEMS_PER_PAGE);
+  }, [filteredVendors, currentPage]);
+
   const handleWishlistToggle = (e: React.MouseEvent, item: any) => {
     e.preventDefault();
     e.stopPropagation();
@@ -68,11 +82,11 @@ export function GroomWearListing() {
                 <span>Sartorial Groom Collection</span>
               </div>
               <h1 className="font-serif text-xl sm:text-2xl font-bold text-[#0F4C45] mt-0.5">
-                Groom Wear & Couture
+                Groom Wear &amp; Couture
               </h1>
             </div>
             <span className="text-[11px] font-bold text-[#0F4C45] bg-white/70 px-2.5 py-1 rounded-full border border-[#E2D6C7]">
-              {filteredVendors.length} Designers
+              Showing {paginatedVendors.length > 0 ? (currentPage - 1) * ITEMS_PER_PAGE + 1 : 0}-{Math.min(currentPage * ITEMS_PER_PAGE, filteredVendors.length)} of {filteredVendors.length} • Page {currentPage} of {totalPages}
             </span>
           </div>
 
@@ -114,7 +128,7 @@ export function GroomWearListing() {
       {/* Extra Small Compact Panels Grid */}
       <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 py-4">
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5 sm:gap-3">
-          {filteredVendors.map((vendor) => {
+          {paginatedVendors.map((vendor) => {
             const isSaved = wishlist.has(String(vendor.id));
             const priceDisplay = vendor.prices[0]?.price || "₹35k+";
 
@@ -184,6 +198,15 @@ export function GroomWearListing() {
               </Link>
             );
           })}
+        </div>
+
+        {/* Dynamic Pagination Controls */}
+        <div className="pt-8 pb-4">
+          <PaginationControls
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
         </div>
       </main>
 

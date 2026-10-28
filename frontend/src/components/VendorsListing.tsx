@@ -16,6 +16,7 @@ import { AutocompleteSearch } from "@/components/AutocompleteSearch";
 import { Boutique } from "@/types";
 import { normalizeCategory } from "@/lib/categories";
 import { VendorCardImage } from "@/components/VendorCardImage";
+import { PaginationControls } from "@/components/PaginationControls";
 
 // Authoritative category resolution using verified registered database category
 function resolveCategory(boutique: Boutique): string {
@@ -34,49 +35,15 @@ const CATEGORY_FILTERS = [
   "Decor",
   "Planners",
   "Catering",
-  "Mehendi",
-  "Bridal Studio",
-  "Groom Studio",
-  "Wedding Studio",
   "Jewellery",
+  "Bridal Wear",
+  "Groom Wear",
+  "Mehendi",
+  "Venues",
   "Invitations",
-  "Videographer",
-  "Decorator",
-  "Cake Designer",
-  "Entertainment",
-  "Choreographer",
-  "Car Rental",
-  "Flower Decoration",
-  "Rental Services",
-  "Gift Store",
-  "Honeymoon Planners",
 ] as const;
-type CategoryFilter = (typeof CATEGORY_FILTERS)[number];
 
-const FILTER_MATCH: Record<CategoryFilter, string> = {
-  All: "",
-  Photographers: "photo",
-  Makeup: "makeup",
-  Decor: "decor",
-  Planners: "plan",
-  Catering: "cater",
-  Mehendi: "mehendi",
-  "Bridal Studio": "bridal",
-  "Groom Studio": "groom",
-  "Wedding Studio": "wedding",
-  Jewellery: "jewel",
-  Invitations: "invitat",
-  Videographer: "video",
-  Decorator: "decor",
-  "Cake Designer": "cake",
-  Entertainment: "entertain",
-  Choreographer: "choreo",
-  "Car Rental": "car",
-  "Flower Decoration": "flower",
-  "Rental Services": "rental",
-  "Gift Store": "gift",
-  "Honeymoon Planners": "honeymoon",
-};
+type CategoryFilter = (typeof CATEGORY_FILTERS)[number];
 
 interface VendorsListingProps {
   boutiques: Boutique[];
@@ -118,6 +85,7 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
     return new Set();
   });
   const [boutiquesList, setBoutiquesList] = useState<Boutique[]>(initialBoutiques);
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     const updateWishlistSet = () => {
@@ -138,62 +106,66 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
           let dbItems = initialBoutiques || [];
 
           try {
-            const res = await fetch("/api/boutiques");
-            if (res.ok) {
-              const data = await res.json();
-              if (Array.isArray(data) && data.length > 0) {
-                const combined = [...dbItems, ...data];
-                dbItems = combined;
-              }
-            }
-          } catch (e) {}
-
-          // 1. Database fetched boutiques
-          dbItems.forEach((item) => {
-            const bName = item.boutique_name || (item as any).name || (item as any).businessName || "Wedding Vendor";
-            const itemKey = String(item.id || (item as any).slug || bName);
-            const normName = bName.toLowerCase().trim();
-            if (itemKey && normName) {
-              seenNames.add(normName);
-              const logoSrc = item.logo_url || item.logo || (item as any).profile_logo || (item as any).image_url || "";
-              mergedMap.set(itemKey, {
-                ...item,
-                boutique_name: bName,
-                logo_url: logoSrc,
-                logo: logoSrc,
-                profile_logo: logoSrc,
+            const res = await fetch("/api/v1/public/vendors?limit=100", { cache: "no-store" });
+            const data = await res.json();
+            if (data.success && Array.isArray(data.data) && data.data.length > 0) {
+              const mapped = data.data.map((v: any) => {
+                const norm = normalizeCategory(v.categorySlug || v.category);
+                const catName = norm?.title || v.category || "Wedding Vendor";
+                return {
+                  id: v.id,
+                  boutique_name: v.name,
+                  image_url: v.logo || v.coverImage || "",
+                  city: v.city,
+                  area: v.state,
+                  category: catName,
+                  tags: catName,
+                  rating: v.rating,
+                  review_count: v.reviewCount,
+                  starting_price: v.startingPrice,
+                  plan: "Verified",
+                };
               });
+              dbItems = [...mapped, ...dbItems];
             }
-          });
+          } catch (_) {}
 
-          const finalList = Array.from(mergedMap.values());
-          if (finalList.length > 0) {
-            setBoutiquesList(finalList);
+          for (const item of dbItems) {
+            const id = String(item.id);
+            const name = (item.boutique_name || (item as any).name || "").trim().toLowerCase();
+            if (!mergedMap.has(id) && (!name || !seenNames.has(name))) {
+              mergedMap.set(id, item);
+              if (name) seenNames.add(name);
+            }
           }
+
+          setBoutiquesList(Array.from(mergedMap.values()));
         };
 
         loadRealDbVendors();
-      } catch (e) {
-        console.error("Local vendor sync error:", e);
-      }
-
-      return () => window.removeEventListener("cloche_wishlist_updated", updateWishlistSet);
+      } catch (_) {}
     }
+
+    return () => {
+      if (typeof window !== "undefined") {
+        window.removeEventListener("cloche_wishlist_updated", updateWishlistSet);
+      }
+    };
   }, [initialBoutiques]);
 
   const toggleWishlist = (e: React.MouseEvent, boutique: Boutique) => {
     e.preventDefault();
     e.stopPropagation();
     const { toggleWishlistItem } = require("@/lib/wishlistStore");
+    const category = resolveCategory(boutique);
     toggleWishlistItem({
       id: boutique.id,
-      name: boutique.boutique_name,
-      category: resolveCategory(boutique),
-      price: boutique.starting_price || "Contact for pricing",
-      image: boutique.logo_url || boutique.logo || boutique.image_url,
-      location: boutique.city || boutique.area || "Kochi, Kerala",
-      city: boutique.city || "Kochi",
-      rating: Number(boutique.rating ?? 0),
+      name: boutique.boutique_name || (boutique as any).name,
+      category: category,
+      price: (boutique as any).starting_price || (boutique as any).startingPrice,
+      image: boutique.image_url || boutique.logo_url || boutique.logo,
+      location: boutique.city,
+      rating: boutique.rating,
     });
   };
 
@@ -201,12 +173,26 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
     let result = boutiquesList;
 
     if (activeFilter !== "All") {
-      const matchTerm = FILTER_MATCH[activeFilter];
+      const matchMap: Record<CategoryFilter, string> = {
+        All: "",
+        Photographers: "photo",
+        Makeup: "makeup",
+        Decor: "decor",
+        Planners: "planner",
+        Catering: "cater",
+        Jewellery: "jewel",
+        "Bridal Wear": "bridal",
+        "Groom Wear": "groom",
+        Mehendi: "mehendi",
+        Venues: "venue",
+        Invitations: "invitat",
+      };
+      const matchTerm = matchMap[activeFilter];
       if (matchTerm) {
         result = result.filter((b) => {
           const tags = (b.tags || "").toLowerCase();
           const name = (b.boutique_name || (b as any).name || "").toLowerCase();
-          const category = resolveCategory(b).toLowerCase();
+          const category = (b.category || "").toLowerCase();
           return tags.includes(matchTerm) || name.includes(matchTerm) || category.includes(matchTerm);
         });
       }
@@ -225,6 +211,26 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
 
     return result;
   }, [boutiquesList, activeFilter, search]);
+
+  // Reset to page 1 on search or filter change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeFilter, search]);
+
+  // Pagination calculation
+  const ITEMS_PER_PAGE = 12;
+  const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(1);
+    }
+  }, [totalPages, currentPage]);
+
+  const paginatedBoutiques = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filtered.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [filtered, currentPage]);
 
   return (
     <div className="min-h-screen bg-[#FAF9F6] font-sans pb-24 md:pb-12 text-charcoal">
@@ -265,6 +271,19 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
           })}
         </div>
 
+        {/* Results summary and Page indicator */}
+        {filtered.length > 0 && (
+          <div className="flex items-center justify-between text-xs text-charcoal/60 mb-4 px-1">
+            <span>
+              Showing <span className="font-semibold text-charcoal">{paginatedBoutiques.length}</span> of{" "}
+              <span className="font-semibold text-charcoal">{filtered.length}</span> vendors
+            </span>
+            <span className="font-medium text-[#0F4C45]">
+              Page {currentPage} of {totalPages}
+            </span>
+          </div>
+        )}
+
         {/* Vendor Cards Listing Grid */}
         {filtered.length === 0 ? (
           <div className="bg-white rounded-3xl p-12 text-center border border-gold/15 shadow-sm space-y-3 my-8">
@@ -278,7 +297,7 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-            {filtered.map((boutique, index) => {
+            {paginatedBoutiques.map((boutique, index) => {
               const isWishlisted = wishlist.has(boutique.id);
               const category = resolveCategory(boutique);
               const detailHref = resolveDetailHref(boutique);
@@ -374,6 +393,15 @@ export function VendorsListing({ boutiques: initialBoutiques }: VendorsListingPr
               );
             })}
           </div>
+        )}
+
+        {/* Dynamic Numbered Pagination Bar */}
+        {filtered.length > 0 && (
+          <PaginationControls
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={(page) => setCurrentPage(page)}
+          />
         )}
       </main>
 

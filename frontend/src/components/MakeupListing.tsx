@@ -8,6 +8,7 @@ import { BottomNavBar } from "@/components/BottomNavBar";
 import { Footer } from "@/components/Footer";
 import { makeupArtists } from "@/lib/vendorLists";
 import { toggleWishlistItem, getWishlistItems } from "@/lib/wishlistStore";
+import { PaginationControls } from "@/components/PaginationControls";
 
 const MAKEUP_CHIPS = ["All", "HD Airbrush", "Kerala Glow", "Glamour", "Trials", "Venue Travel"];
 
@@ -15,6 +16,7 @@ export function MakeupListing() {
   const [search, setSearch] = useState("");
   const [activeChip, setActiveChip] = useState("All");
   const [wishlist, setWishlist] = useState<Set<string>>(() => new Set());
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     const updateLocalWishlist = () => {
@@ -33,7 +35,7 @@ export function MakeupListing() {
     let isMounted = true;
     async function loadMakeupVendors() {
       try {
-        const res = await fetch("/api/v1/public/vendors?category=makeup", { cache: "no-store" });
+        const res = await fetch("/api/v1/public/vendors?category=makeup&limit=100", { cache: "no-store" });
         if (res.ok) {
           const json = await res.json();
           if (isMounted && Array.isArray(json.data) && json.data.length > 0) {
@@ -85,6 +87,24 @@ export function MakeupListing() {
       return matchesSearch && matchesChip;
     });
   }, [allArtists, search, activeChip]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, activeChip]);
+
+  const ITEMS_PER_PAGE = 10;
+  const totalPages = Math.max(1, Math.ceil(filteredArtists.length / ITEMS_PER_PAGE));
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(1);
+    }
+  }, [totalPages, currentPage]);
+
+  const paginatedArtists = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredArtists.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [filteredArtists, currentPage]);
 
   const handleWishlistToggle = (e: React.MouseEvent, item: any) => {
     e.preventDefault();
@@ -164,8 +184,20 @@ export function MakeupListing() {
 
       {/* Extra Small Compact Panels Grid */}
       <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 py-4">
+        {filteredArtists.length > 0 && (
+          <div className="flex items-center justify-between text-xs text-[#7A6E65] mb-3 px-1">
+            <span>
+              Showing <span className="font-semibold text-[#2D2520]">{paginatedArtists.length}</span> of{" "}
+              <span className="font-semibold text-[#2D2520]">{filteredArtists.length}</span> artists
+            </span>
+            <span className="font-medium text-[#0F4C45]">
+              Page {currentPage} of {totalPages}
+            </span>
+          </div>
+        )}
+
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5 sm:gap-3">
-          {filteredArtists.map((artist) => {
+          {paginatedArtists.map((artist) => {
             const isSaved = wishlist.has(String(artist.id));
             const startingPrice = artist.price || artist.startingPrice || "₹25k+";
 
@@ -234,6 +266,15 @@ export function MakeupListing() {
             );
           })}
         </div>
+
+        {/* Dynamic Numbered Pagination Bar */}
+        {filteredArtists.length > 0 && (
+          <PaginationControls
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={(page) => setCurrentPage(page)}
+          />
+        )}
       </main>
 
       <Footer />

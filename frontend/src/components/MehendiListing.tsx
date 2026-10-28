@@ -9,6 +9,7 @@ import { Footer } from "@/components/Footer";
 import { mehendiVendors } from "@/lib/mehendiData";
 import { toggleWishlistItem, getWishlistItems } from "@/lib/wishlistStore";
 import { getCategoryFallbackImage } from "@/lib/categories";
+import { PaginationControls } from "@/components/PaginationControls";
 
 const MEHENDI_CHIPS = ["All", "Bridal Heavy", "Arabic", "Portrait", "Organic Henna", "Family Pack"];
 
@@ -17,9 +18,10 @@ export function MehendiListing() {
   const [activeChip, setActiveChip] = useState("All");
   const [wishlist, setWishlist] = useState<Set<string>>(() => new Set());
   const [mehendiList, setMehendiList] = useState<any[]>(mehendiVendors);
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
-    fetch("/api/v1/public/vendors?category=mehendi", { cache: "no-store" })
+    fetch("/api/v1/public/vendors?category=mehendi&limit=100", { cache: "no-store" })
       .then((res) => res.json())
       .then((json) => {
         if (json.success && Array.isArray(json.data) && json.data.length > 0) {
@@ -79,6 +81,24 @@ export function MehendiListing() {
       return matchesSearch && matchesChip;
     });
   }, [mehendiList, search, activeChip]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, activeChip]);
+
+  const ITEMS_PER_PAGE = 10;
+  const totalPages = Math.max(1, Math.ceil(filteredVendors.length / ITEMS_PER_PAGE));
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(1);
+    }
+  }, [totalPages, currentPage]);
+
+  const paginatedVendors = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredVendors.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [filteredVendors, currentPage]);
 
   const handleWishlistToggle = (e: React.MouseEvent, item: any) => {
     e.preventDefault();
@@ -158,8 +178,20 @@ export function MehendiListing() {
 
       {/* Extra Small Compact Panels Grid */}
       <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 py-4">
+        {filteredVendors.length > 0 && (
+          <div className="flex items-center justify-between text-xs text-[#7A6E65] mb-3 px-1">
+            <span>
+              Showing <span className="font-semibold text-[#2D2520]">{paginatedVendors.length}</span> of{" "}
+              <span className="font-semibold text-[#2D2520]">{filteredVendors.length}</span> artists
+            </span>
+            <span className="font-medium text-[#0F4C45]">
+              Page {currentPage} of {totalPages}
+            </span>
+          </div>
+        )}
+
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5 sm:gap-3">
-          {filteredVendors.map((artist) => {
+          {paginatedVendors.map((artist) => {
             const isSaved = wishlist.has(String(artist.id));
             const startingPrice = artist.price || artist.startingPrice || "₹5k+";
 
@@ -228,6 +260,15 @@ export function MehendiListing() {
             );
           })}
         </div>
+
+        {/* Dynamic Numbered Pagination Bar */}
+        {filteredVendors.length > 0 && (
+          <PaginationControls
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={(page) => setCurrentPage(page)}
+          />
+        )}
       </main>
 
       <Footer />

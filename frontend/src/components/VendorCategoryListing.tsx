@@ -9,13 +9,12 @@ import {
   MapPin,
   CheckCircle2,
   ChevronRight,
-  ChevronLeft,
-  ChevronDown,
   Filter,
   Layers,
 } from "lucide-react";
 import { Footer } from "@/components/Footer";
 import { VendorCardImage } from "@/components/VendorCardImage";
+import { PaginationControls } from "@/components/PaginationControls";
 import {
   CategoryConfig,
   VendorCategoryItem,
@@ -70,7 +69,7 @@ export function VendorCategoryListing({
 
       const targetSlug = (categorySlug || "").toLowerCase().trim();
 
-      fetch(`/api/v1/public/vendors?category=${encodeURIComponent(targetSlug)}&t=${Date.now()}`)
+      fetch(`/api/v1/public/vendors?category=${encodeURIComponent(targetSlug)}&limit=100&t=${Date.now()}`)
         .then((r) => r.json())
         .then((res) => {
           if (!isMounted) return;
@@ -130,7 +129,7 @@ export function VendorCategoryListing({
     };
   }, [categorySlug, categoryConfig]);
 
-  // Reset filter sub-category when slug changes
+  // Reset filter sub-category and current page when slug changes
   useEffect(() => {
     setActiveSubFilter("all");
     setCurrentPage(1);
@@ -190,6 +189,27 @@ export function VendorCategoryListing({
     });
   }, [allVendors, activeSubFilter, selectedLocation, searchQuery]);
 
+  // Reset to page 1 whenever active filter, location, or search query changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeSubFilter, selectedLocation, searchQuery]);
+
+  // Dynamic Pagination
+  const ITEMS_PER_PAGE = 9;
+  const totalPages = Math.max(1, Math.ceil(filteredVendors.length / ITEMS_PER_PAGE));
+
+  // Ensure current page does not exceed total pages
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(1);
+    }
+  }, [totalPages, currentPage]);
+
+  const paginatedVendors = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredVendors.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [filteredVendors, currentPage]);
+
   return (
     <div className="min-h-screen bg-[#FAF9F6] font-sans text-charcoal flex flex-col justify-between">
       <main className="flex-grow pt-3 pb-6 sm:pt-4 sm:pb-8 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto w-full">
@@ -237,6 +257,19 @@ export function VendorCategoryListing({
           })}
         </div>
 
+        {/* Available Results & Page Indicator */}
+        {!isLoading && filteredVendors.length > 0 && (
+          <div className="flex items-center justify-between text-xs text-charcoal/60 mb-4 px-1">
+            <span>
+              Showing <span className="font-semibold text-charcoal">{paginatedVendors.length}</span> of{" "}
+              <span className="font-semibold text-charcoal">{filteredVendors.length}</span> {categoryConfig.title}
+            </span>
+            <span className="font-medium text-[#0F4C45]">
+              Page {currentPage} of {totalPages}
+            </span>
+          </div>
+        )}
+
         {/* Vendor Cards Listing Grid */}
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 my-4">
@@ -273,7 +306,7 @@ export function VendorCategoryListing({
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredVendors.map((vendor) => {
+            {paginatedVendors.map((vendor) => {
               const isLiked = wishlist.has(vendor.id);
               const getCategoryRoutePrefix = (slug: string) => {
                 const norm = (slug || "").toLowerCase();
@@ -407,29 +440,13 @@ export function VendorCategoryListing({
           </div>
         )}
 
-        {/* Numbered Pagination Bar */}
+        {/* Dynamic Numbered Pagination Bar */}
         {filteredVendors.length > 0 && (
-          <div className="flex items-center justify-center gap-2 mt-10 pt-6 border-t border-gold/15">
-            <button className="w-9 h-9 rounded-full bg-white border border-gold/20 flex items-center justify-center text-charcoal hover:bg-[#0F4C45] hover:text-white transition-all shadow-2xs">
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-            <button className="w-9 h-9 rounded-full bg-[#0F4C45] text-white font-bold text-xs flex items-center justify-center shadow-xs">
-              1
-            </button>
-            <button className="w-9 h-9 rounded-full bg-white border border-gold/20 text-charcoal hover:bg-gold/15 font-bold text-xs flex items-center justify-center transition-all">
-              2
-            </button>
-            <button className="w-9 h-9 rounded-full bg-white border border-gold/20 text-charcoal hover:bg-gold/15 font-bold text-xs flex items-center justify-center transition-all">
-              3
-            </button>
-            <span className="text-xs text-charcoal/50 px-1">...</span>
-            <button className="w-9 h-9 rounded-full bg-white border border-gold/20 text-charcoal hover:bg-gold/15 font-bold text-xs flex items-center justify-center transition-all">
-              13
-            </button>
-            <button className="w-9 h-9 rounded-full bg-white border border-gold/20 flex items-center justify-center text-charcoal hover:bg-[#0F4C45] hover:text-white transition-all shadow-2xs">
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
+          <PaginationControls
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={(page) => setCurrentPage(page)}
+          />
         )}
       </main>
 

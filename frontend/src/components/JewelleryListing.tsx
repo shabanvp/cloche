@@ -16,16 +16,22 @@ import {
 } from "lucide-react";
 import { BottomNavBar } from "@/components/BottomNavBar";
 import { Footer } from "@/components/Footer";
+import { PaginationControls } from "@/components/PaginationControls";
 import { jewelleryVendors, JewelleryVendor } from "@/lib/jewelleryData";
 import { getCategoryFallbackImage } from "@/lib/categories";
 
+const JEWELLERY_CHIPS = ["All Jewellery", "Temple Gold", "Diamond Sets", "Polki & Kundan", "Rental Sets"];
+const ITEMS_PER_PAGE = 8;
+
 export function JewelleryListing() {
   const [search, setSearch] = useState("");
+  const [selectedChip, setSelectedChip] = useState("All Jewellery");
   const [wishlist, setWishlist] = useState<Set<string>>(new Set());
   const [jewelleryList, setJewelleryList] = useState<any[]>(jewelleryVendors);
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
-    fetch("/api/v1/public/vendors?category=jewellery", { cache: "no-store" })
+    fetch("/api/v1/public/vendors?category=jewellery&limit=100", { cache: "no-store" })
       .then((res) => res.json())
       .then((json) => {
         if (json.success && Array.isArray(json.data) && json.data.length > 0) {
@@ -58,13 +64,33 @@ export function JewelleryListing() {
 
   const filtered = useMemo(() => {
     return jewelleryList.filter((v) => {
-      return (
-        v.name.toLowerCase().includes(search.toLowerCase()) ||
-        (v.location && v.location.toLowerCase().includes(search.toLowerCase())) ||
-        (v.subtitle && v.subtitle.toLowerCase().includes(search.toLowerCase()))
-      );
+      const q = search.toLowerCase();
+      const matchesSearch =
+        !q ||
+        v.name?.toLowerCase().includes(q) ||
+        (v.location && v.location.toLowerCase().includes(q)) ||
+        (v.subtitle && v.subtitle.toLowerCase().includes(q));
+
+      const chipNorm = selectedChip.toLowerCase().replace("all jewellery", "").replace("sets", "").trim();
+      const matchesChip =
+        selectedChip === "All Jewellery" ||
+        (v.subtitle && v.subtitle.toLowerCase().includes(chipNorm)) ||
+        (v.name && v.name.toLowerCase().includes(chipNorm));
+
+      return matchesSearch && matchesChip;
     });
-  }, [search, jewelleryList]);
+  }, [search, selectedChip, jewelleryList]);
+
+  // Reset to page 1 when search or chip changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, selectedChip]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
+  const paginatedVendors = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filtered.slice(start, start + ITEMS_PER_PAGE);
+  }, [filtered, currentPage]);
 
   const toggleWishlist = (e: React.MouseEvent, id: string) => {
     e.preventDefault();
@@ -123,18 +149,22 @@ export function JewelleryListing() {
 
         {/* Quick Filter Chips */}
         <div className="flex gap-2 overflow-x-auto px-4 py-2 scrollbar-none">
-          {["All Jewellery", "Temple Gold", "Diamond Sets", "Polki & Kundan", "Rental Sets"].map((chip, idx) => (
-            <button
-              key={chip}
-              className={`shrink-0 rounded-full px-4 py-1.5 text-[12px] font-semibold transition-all ${
-                idx === 0
-                  ? "bg-[#0F4C45] text-white shadow-xs"
-                  : "bg-white text-[#4A3F35] border border-black/10 hover:bg-black/5"
-              }`}
-            >
-              {chip}
-            </button>
-          ))}
+          {JEWELLERY_CHIPS.map((chip) => {
+            const isActive = selectedChip === chip;
+            return (
+              <button
+                key={chip}
+                onClick={() => setSelectedChip(chip)}
+                className={`shrink-0 rounded-full px-4 py-1.5 text-[12px] font-semibold transition-all ${
+                  isActive
+                    ? "bg-[#0F4C45] text-white shadow-xs"
+                    : "bg-white text-[#4A3F35] border border-black/10 hover:bg-black/5"
+                }`}
+              >
+                {chip}
+              </button>
+            );
+          })}
         </div>
 
         {/* Results Header */}
@@ -143,13 +173,13 @@ export function JewelleryListing() {
             Featured Jewellery Houses
           </h2>
           <span className="text-[12px] text-[#7A6E65]">
-            {filtered.length} boutiques found
+            Showing {paginatedVendors.length > 0 ? (currentPage - 1) * ITEMS_PER_PAGE + 1 : 0}-{Math.min(currentPage * ITEMS_PER_PAGE, filtered.length)} of {filtered.length} boutiques • Page {currentPage} of {totalPages}
           </span>
         </div>
 
         {/* Vendors List */}
         <div className="px-4 space-y-3.5">
-          {filtered.map((v) => {
+          {paginatedVendors.map((v) => {
             const isSaved = wishlist.has(v.id);
             return (
               <div
@@ -239,6 +269,15 @@ export function JewelleryListing() {
               </div>
             );
           })}
+        </div>
+
+        {/* Dynamic Pagination Controls */}
+        <div className="pt-6 pb-2">
+          <PaginationControls
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
         </div>
       </main>
 

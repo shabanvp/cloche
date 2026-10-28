@@ -6,18 +6,21 @@ import { useState, useEffect, useMemo } from "react";
 import { Search, Star, CheckCircle2, MapPin, Heart, ChevronRight, Sparkles } from "lucide-react";
 import { BottomNavBar } from "@/components/BottomNavBar";
 import { Footer } from "@/components/Footer";
+import { PaginationControls } from "@/components/PaginationControls";
 import { getAllBoutiques } from "@/services/api";
 import { DEFAULT_VENDOR_CONFIGS } from "@/lib/vendorTemplates";
 import { bridalBoutiqueVendors } from "@/lib/bridalAndInvitationData";
 import { toggleWishlistItem, getWishlistItems } from "@/lib/wishlistStore";
 
 const BRIDAL_CHIPS = ["All", "Lehengas", "Sarees", "Pastel Couture", "Gowns", "Veils"];
+const ITEMS_PER_PAGE = 10;
 
 export function BridalWearListing() {
   const [search, setSearch] = useState("");
   const [activeChip, setActiveChip] = useState("All");
   const [wishlist, setWishlist] = useState<Set<string>>(() => new Set());
   const [boutiquesList, setBoutiquesList] = useState<any[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     const updateLocalWishlist = () => {
@@ -103,6 +106,17 @@ export function BridalWearListing() {
     });
   }, [search, activeChip, boutiquesList]);
 
+  // Reset to page 1 when search or chip changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, activeChip]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredBoutiques.length / ITEMS_PER_PAGE));
+  const paginatedBoutiques = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredBoutiques.slice(start, start + ITEMS_PER_PAGE);
+  }, [filteredBoutiques, currentPage]);
+
   const handleWishlistToggle = (e: React.MouseEvent, item: any) => {
     e.preventDefault();
     e.stopPropagation();
@@ -128,11 +142,11 @@ export function BridalWearListing() {
                 <span>Cloche Signature Nude</span>
               </div>
               <h1 className="font-serif text-xl sm:text-2xl font-bold text-[#0F4C45] mt-0.5">
-                Bridal Wear & Boutiques
+                Bridal Wear &amp; Boutiques
               </h1>
             </div>
             <span className="text-[11px] font-bold text-[#0F4C45] bg-white/70 px-2.5 py-1 rounded-full border border-[#E2D6C7]">
-              {filteredBoutiques.length} Boutiques
+              Showing {paginatedBoutiques.length > 0 ? (currentPage - 1) * ITEMS_PER_PAGE + 1 : 0}-{Math.min(currentPage * ITEMS_PER_PAGE, filteredBoutiques.length)} of {filteredBoutiques.length} • Page {currentPage} of {totalPages}
             </span>
           </div>
 
@@ -174,7 +188,7 @@ export function BridalWearListing() {
       {/* Extra Small Compact Panels Grid */}
       <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 py-4">
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5 sm:gap-3">
-          {filteredBoutiques.map((boutique) => {
+          {paginatedBoutiques.map((boutique) => {
             const isSaved = wishlist.has(String(boutique.id));
             return (
               <Link
@@ -239,6 +253,15 @@ export function BridalWearListing() {
               </Link>
             );
           })}
+        </div>
+
+        {/* Dynamic Pagination Controls */}
+        <div className="pt-8 pb-4">
+          <PaginationControls
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
         </div>
       </main>
 

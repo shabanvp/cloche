@@ -15,6 +15,7 @@ import { BottomNavBar } from "@/components/BottomNavBar";
 import { getAllVenues, VenueDetail, venues } from "@/lib/venueData";
 import { useEffect } from "react";
 import { getCategoryFallbackImage } from "@/lib/categories";
+import { PaginationControls } from "@/components/PaginationControls";
 
 const FILTERS = ["All", "Outdoor", "Indoor", "Destination", "Luxury"] as const;
 type Filter = (typeof FILTERS)[number];
@@ -30,9 +31,10 @@ export function VenuesListing() {
     return new Set();
   });
   const [allVenuesList, setAllVenuesList] = useState<any[]>(venues);
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
-    fetch("/api/v1/public/vendors?category=venues", { cache: "no-store" })
+    fetch("/api/v1/public/vendors?category=venues&limit=100", { cache: "no-store" })
       .then((res) => res.json())
       .then((json) => {
         if (json.success && Array.isArray(json.data) && json.data.length > 0) {
@@ -77,6 +79,24 @@ export function VenuesListing() {
       return matchesSearch && matchesFilter;
     });
   }, [allVenuesList, search, activeFilter]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, activeFilter]);
+
+  const ITEMS_PER_PAGE = 8;
+  const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(1);
+    }
+  }, [totalPages, currentPage]);
+
+  const paginatedVenues = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filtered.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [filtered, currentPage]);
 
   const toggleWishlist = (e: React.MouseEvent, venue: VenueDetail) => {
     e.preventDefault();
@@ -186,8 +206,21 @@ export function VenuesListing() {
         })}
       </div>
 
+      {/* Results header and page indicator */}
+      {filtered.length > 0 && (
+        <div className="flex items-center justify-between px-4 pb-2 text-xs text-[#7A6E65]">
+          <span>
+            Showing <span className="font-semibold text-[#1A1410]">{paginatedVenues.length}</span> of{" "}
+            <span className="font-semibold text-[#1A1410]">{filtered.length}</span> venues
+          </span>
+          <span className="font-semibold text-[#0F4C45]">
+            Page {currentPage} of {totalPages}
+          </span>
+        </div>
+      )}
+
       {/* Venue cards list */}
-      <div className="flex-1 px-4 pb-28 flex flex-col gap-3">
+      <div className="flex-1 px-4 pb-12 flex flex-col gap-3">
         {filtered.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <MapPin className="h-10 w-10 mb-4" style={{ color: "#C8A96A" }} />
@@ -200,7 +233,7 @@ export function VenuesListing() {
           </div>
         )}
 
-        {filtered.map((venue) => {
+        {paginatedVenues.map((venue) => {
           const isWishlisted = wishlist.has(venue.id);
           return (
             <Link
@@ -272,6 +305,15 @@ export function VenuesListing() {
             </Link>
           );
         })}
+
+        {/* Dynamic Numbered Pagination Bar */}
+        {filtered.length > 0 && (
+          <PaginationControls
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={(page) => setCurrentPage(page)}
+          />
+        )}
       </div>
 
       {/* Bottom nav */}

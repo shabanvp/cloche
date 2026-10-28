@@ -18,14 +18,16 @@ import {
 import { BottomNavBar } from "@/components/BottomNavBar";
 import { decorVendors, DecorVendor } from "@/lib/decorData";
 import { getCategoryFallbackImage } from "@/lib/categories";
+import { PaginationControls } from "@/components/PaginationControls";
 
 export function DecorPlanningListing() {
   const [search, setSearch] = useState("");
   const [cityFilter, setCityFilter] = useState("All");
   const [decorList, setDecorList] = useState<any[]>(decorVendors);
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
-    fetch("/api/v1/public/vendors?category=decor-planning", { cache: "no-store" })
+    fetch("/api/v1/public/vendors?category=decor-planning&limit=100", { cache: "no-store" })
       .then((res) => res.json())
       .then((json) => {
         if (json.success && Array.isArray(json.data) && json.data.length > 0) {
@@ -67,6 +69,24 @@ export function DecorPlanningListing() {
       return matchesSearch && matchesCity;
     });
   }, [search, cityFilter, decorList]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, cityFilter]);
+
+  const ITEMS_PER_PAGE = 6;
+  const totalPages = Math.max(1, Math.ceil(filteredVendors.length / ITEMS_PER_PAGE));
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(1);
+    }
+  }, [totalPages, currentPage]);
+
+  const paginatedVendors = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredVendors.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [filteredVendors, currentPage]);
 
   return (
     <div className="min-h-screen flex flex-col bg-[#FAF9F6] pb-24 text-[#2D2520]">
@@ -131,18 +151,25 @@ export function DecorPlanningListing() {
         </div>
 
         {/* Section Title & Results Count */}
-        <div className="px-4 pt-4 pb-2">
-          <h2 className="font-serif text-[18px] font-bold text-[#1A1410]">
-            Top Decor &amp; Planning Vendors
-          </h2>
-          <p className="text-[12px] text-[#7A6E65] mt-0.5">
-            {filteredVendors.length} results
-          </p>
+        <div className="px-4 pt-4 pb-2 flex items-center justify-between">
+          <div>
+            <h2 className="font-serif text-[18px] font-bold text-[#1A1410]">
+              Top Decor &amp; Planning Vendors
+            </h2>
+            <p className="text-[12px] text-[#7A6E65] mt-0.5">
+              {filteredVendors.length} results available
+            </p>
+          </div>
+          {filteredVendors.length > 0 && (
+            <span className="text-xs font-semibold text-[#0F4C45]">
+              Page {currentPage} of {totalPages}
+            </span>
+          )}
         </div>
 
         {/* Vendor List */}
         <div className="px-4 space-y-4">
-          {filteredVendors.map((vendor) => (
+          {paginatedVendors.map((vendor) => (
             <div
               key={vendor.id}
               className="group overflow-hidden rounded-2xl bg-white p-3 border border-black/5 shadow-[0_2px_10px_rgba(0,0,0,0.03)] flex flex-col sm:flex-row gap-3 transition-shadow hover:shadow-[0_4px_16px_rgba(0,0,0,0.06)]"
@@ -211,6 +238,15 @@ export function DecorPlanningListing() {
             </div>
           ))}
         </div>
+
+        {/* Dynamic Numbered Pagination Bar */}
+        {filteredVendors.length > 0 && (
+          <PaginationControls
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={(page) => setCurrentPage(page)}
+          />
+        )}
 
         {/* Promo CTA Banner (Matching Picture 2 bottom banner) */}
         <div className="mx-4 mt-6 mb-4 rounded-2xl bg-[#F4EFE6] border border-[#E8DFD1] p-4 flex items-center gap-3">

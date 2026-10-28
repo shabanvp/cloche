@@ -16,16 +16,20 @@ import {
   Crown,
 } from "lucide-react";
 import { BottomNavBar } from "@/components/BottomNavBar";
+import { PaginationControls } from "@/components/PaginationControls";
 import { invitationVendors } from "@/lib/bridalAndInvitationData";
 import { getCategoryFallbackImage } from "@/lib/categories";
+
+const ITEMS_PER_PAGE = 8;
 
 export function InvitationsListing() {
   const [search, setSearch] = useState("");
   const [wishlist, setWishlist] = useState<Set<string>>(new Set());
   const [invitationsList, setInvitationsList] = useState<any[]>(invitationVendors);
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
-    fetch("/api/v1/public/vendors?category=invitations", { cache: "no-store" })
+    fetch("/api/v1/public/vendors?category=invitations&limit=100", { cache: "no-store" })
       .then((res) => res.json())
       .then((json) => {
         if (json.success && Array.isArray(json.data) && json.data.length > 0) {
@@ -65,6 +69,17 @@ export function InvitationsListing() {
       );
     });
   }, [search, invitationsList]);
+
+  // Reset to page 1 on search change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
+  const paginatedVendors = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filtered.slice(start, start + ITEMS_PER_PAGE);
+  }, [filtered, currentPage]);
 
   const toggleWishlist = (e: React.MouseEvent, id: string) => {
     e.preventDefault();
@@ -139,18 +154,20 @@ export function InvitationsListing() {
         </div>
 
         {/* Section Title & Results Count (Picture 1) */}
-        <div className="px-4 pt-4 pb-2">
-          <h2 className="font-serif text-[18px] font-bold text-[#1A1410]">
-            Featured Invitation Designers
-          </h2>
-          <p className="text-[12px] text-[#7A6E65] mt-0.5">
-            {filtered.length} designers available
-          </p>
+        <div className="px-4 pt-4 pb-2 flex items-center justify-between">
+          <div>
+            <h2 className="font-serif text-[18px] font-bold text-[#1A1410]">
+              Featured Invitation Designers
+            </h2>
+            <p className="text-[12px] text-[#7A6E65] mt-0.5">
+              Showing {paginatedVendors.length > 0 ? (currentPage - 1) * ITEMS_PER_PAGE + 1 : 0}-{Math.min(currentPage * ITEMS_PER_PAGE, filtered.length)} of {filtered.length} designers • Page {currentPage} of {totalPages}
+            </p>
+          </div>
         </div>
 
         {/* Vendor List (Picture 1) */}
         <div className="px-4 space-y-4">
-          {filtered.map((item) => {
+          {paginatedVendors.map((item) => {
             const isSaved = wishlist.has(item.id);
             return (
               <div
@@ -243,6 +260,15 @@ export function InvitationsListing() {
               </div>
             );
           })}
+        </div>
+
+        {/* Dynamic Pagination Controls */}
+        <div className="pt-6 pb-2">
+          <PaginationControls
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
         </div>
 
         {/* Bottom Callout Banner (Picture 3) */}

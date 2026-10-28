@@ -16,15 +16,17 @@ import {
 import { BottomNavBar } from "@/components/BottomNavBar";
 import { cateringVendors } from "@/lib/cateringData";
 import { getCategoryFallbackImage } from "@/lib/categories";
+import { PaginationControls } from "@/components/PaginationControls";
 
 export function CateringListing() {
   const [search, setSearch] = useState("");
   const [activeChip, setActiveChip] = useState("Catering & Food");
   const [wishlist, setWishlist] = useState<Set<string>>(new Set());
   const [vendorList, setVendorList] = useState<any[]>(cateringVendors);
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
-    fetch("/api/v1/public/vendors?category=catering", { cache: "no-store" })
+    fetch("/api/v1/public/vendors?category=catering&limit=100", { cache: "no-store" })
       .then((res) => res.json())
       .then((json) => {
         if (json.success && Array.isArray(json.data) && json.data.length > 0) {
@@ -71,6 +73,24 @@ export function CateringListing() {
       return matchesSearch;
     });
   }, [search, vendorList]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, activeChip]);
+
+  const ITEMS_PER_PAGE = 6;
+  const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(1);
+    }
+  }, [totalPages, currentPage]);
+
+  const paginatedVendors = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filtered.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [filtered, currentPage]);
 
   const toggleWishlist = (e: React.MouseEvent, id: string) => {
     e.preventDefault();
@@ -149,17 +169,24 @@ export function CateringListing() {
 
         {/* Results Header */}
         <div className="px-4 pt-3 pb-2 flex items-center justify-between">
-          <h2 className="font-serif text-[17px] font-bold text-[#1A1410]">
-            Featured Wedding Caterers
-          </h2>
-          <span className="text-[12px] text-[#7A6E65]">
-            {filtered.length} caterers found
-          </span>
+          <div>
+            <h2 className="font-serif text-[17px] font-bold text-[#1A1410]">
+              Featured Wedding Caterers
+            </h2>
+            <span className="text-[12px] text-[#7A6E65]">
+              {filtered.length} caterers found
+            </span>
+          </div>
+          {filtered.length > 0 && (
+            <span className="text-xs font-semibold text-[#0F4C45]">
+              Page {currentPage} of {totalPages}
+            </span>
+          )}
         </div>
 
         {/* Vendors List */}
         <div className="px-4 space-y-3.5">
-          {filtered.map((vendor) => {
+          {paginatedVendors.map((vendor) => {
             const isSaved = wishlist.has(vendor.id);
             const priceDisplay =
               vendor.prices?.[1]?.price ||
@@ -239,6 +266,15 @@ export function CateringListing() {
             );
           })}
         </div>
+
+        {/* Dynamic Numbered Pagination Bar */}
+        {filtered.length > 0 && (
+          <PaginationControls
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={(page) => setCurrentPage(page)}
+          />
+        )}
       </main>
 
       <BottomNavBar activeTab="vendors" />

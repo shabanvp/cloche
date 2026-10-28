@@ -9,6 +9,7 @@ import { Footer } from "@/components/Footer";
 import { photographers } from "@/lib/vendorLists";
 import { toggleWishlistItem, getWishlistItems } from "@/lib/wishlistStore";
 import { getCategoryFallbackImage } from "@/lib/categories";
+import { PaginationControls } from "@/components/PaginationControls";
 
 const PHOTO_CHIPS = ["All", "Candid", "Traditional", "Pre-Wedding", "Cinematic", "Drone"];
 
@@ -17,9 +18,10 @@ export function PhotographersListing() {
   const [activeChip, setActiveChip] = useState("All");
   const [wishlist, setWishlist] = useState<Set<string>>(() => new Set());
   const [photographersList, setPhotographersList] = useState<any[]>(photographers);
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
-    fetch("/api/v1/public/vendors?category=photographers", { cache: "no-store" })
+    fetch("/api/v1/public/vendors?category=photographers&limit=100", { cache: "no-store" })
       .then((res) => res.json())
       .then((json) => {
         if (json.success && Array.isArray(json.data) && json.data.length > 0) {
@@ -69,6 +71,24 @@ export function PhotographersListing() {
       return matchesSearch && matchesChip;
     });
   }, [photographersList, search, activeChip]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, activeChip]);
+
+  const ITEMS_PER_PAGE = 10;
+  const totalPages = Math.max(1, Math.ceil(filteredPhotographers.length / ITEMS_PER_PAGE));
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(1);
+    }
+  }, [totalPages, currentPage]);
+
+  const paginatedPhotographers = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredPhotographers.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [filteredPhotographers, currentPage]);
 
   const handleWishlistToggle = (e: React.MouseEvent, item: any) => {
     e.preventDefault();
@@ -148,8 +168,20 @@ export function PhotographersListing() {
 
       {/* Extra Small Compact Panels Grid */}
       <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 py-4">
+        {filteredPhotographers.length > 0 && (
+          <div className="flex items-center justify-between text-xs text-[#7A6E65] mb-3 px-1">
+            <span>
+              Showing <span className="font-semibold text-[#2D2520]">{paginatedPhotographers.length}</span> of{" "}
+              <span className="font-semibold text-[#2D2520]">{filteredPhotographers.length}</span> photographers
+            </span>
+            <span className="font-medium text-[#0F4C45]">
+              Page {currentPage} of {totalPages}
+            </span>
+          </div>
+        )}
+
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5 sm:gap-3">
-          {filteredPhotographers.map((photo) => {
+          {paginatedPhotographers.map((photo) => {
             const isSaved = wishlist.has(String(photo.id));
             const priceDisplay = photo.price || "₹50k/day";
 
@@ -218,6 +250,15 @@ export function PhotographersListing() {
             );
           })}
         </div>
+
+        {/* Dynamic Numbered Pagination Bar */}
+        {filteredPhotographers.length > 0 && (
+          <PaginationControls
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={(page) => setCurrentPage(page)}
+          />
+        )}
       </main>
 
       <Footer />
