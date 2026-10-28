@@ -1670,12 +1670,9 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
           <>
             {/* 1. OVERVIEW */}
             <div className="bg-white rounded-2xl p-4 border border-gold/15 shadow-2xs space-y-2.5">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-serif font-bold text-base text-charcoal">{venueDetails.type || "Luxury Wedding Venue"}</h3>
-                  <p className="text-xs text-charcoal/60 font-medium">Lush green lawn &amp; climate-controlled indoor hall</p>
-                </div>
-                {renderEditButton("overview", "Edit Overview")}
+              <div>
+                <h3 className="font-serif font-bold text-base text-charcoal">{venueDetails.type || "Luxury Wedding Venue"}</h3>
+                <p className="text-xs text-charcoal/60 font-medium">Lush green lawn &amp; climate-controlled indoor hall</p>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
                 <div className="p-2.5 rounded-xl bg-[#FAF7F2] border border-gold/15 text-xs font-bold text-charcoal flex items-center gap-2">
@@ -1688,7 +1685,7 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
                 </div>
                 <div className="p-2.5 rounded-xl bg-[#FAF7F2] border border-gold/15 text-xs font-bold text-charcoal flex items-center gap-2">
                   <Car className="w-4 h-4 text-[#0F4C45] shrink-0" />
-                  <span className="truncate">{venueDetails.parking?.startsWith("Parking:") ? venueDetails.parking : `Parking: ${venueDetails.parking}`}</span>
+                  <span className="truncate">Parking: {venueDetails.parking}</span>
                 </div>
                 <div className="p-2.5 rounded-xl bg-[#FAF7F2] border border-gold/15 text-xs font-bold text-charcoal flex items-center gap-2">
                   <Building className="w-4 h-4 text-[#0F4C45] shrink-0" />
@@ -1701,7 +1698,6 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
               <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal flex items-center justify-between border-b border-gold/10 pb-2.5">
                 <span>Pricing Information</span>
-                {renderEditButton("pricing", "Edit Pricing")}
                 <span className="text-xs font-bold text-[#0F4C45] bg-[#FAF7F2] px-3 py-1 rounded-full border border-gold/20">
                   {Boolean(vendor?.contactForPricing ?? vendor?.contact_for_pricing ?? sf?.contactForPricing ?? false)
                     ? "Contact for Pricing"
@@ -1725,8 +1721,8 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
                     </div>
                     <div className="text-right">
                       <div className="font-serif font-bold text-sm text-[#0F4C45]">
-                        {vendor?.vegPrice || vendor?.veg_price || vendor?.categoryDetails?.veg_plate_price || vendor?.categoryDetails?.veg_price || sf?.vegPrice
-                          ? `₹ ${Number(vendor?.vegPrice || vendor?.veg_price || vendor?.categoryDetails?.veg_plate_price || vendor?.categoryDetails?.veg_price || sf?.vegPrice).toLocaleString("en-IN")}`
+                        {vendor?.vegPrice || vendor?.veg_price || sf?.vegPrice
+                          ? `₹ ${Number(vendor?.vegPrice || vendor?.veg_price || sf?.vegPrice).toLocaleString("en-IN")}`
                           : "₹ 1,200"}
                       </div>
                       <div className="text-[10px] text-charcoal/50">per plate</div>
@@ -1742,8 +1738,8 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
                     </div>
                     <div className="text-right">
                       <div className="font-serif font-bold text-sm text-[#0F4C45]">
-                        {vendor?.nonVegPrice || vendor?.non_veg_price || vendor?.categoryDetails?.non_veg_plate_price || vendor?.categoryDetails?.non_veg_price || sf?.nonVegPrice
-                          ? `₹ ${Number(vendor?.nonVegPrice || vendor?.non_veg_price || vendor?.categoryDetails?.non_veg_plate_price || vendor?.categoryDetails?.non_veg_price || sf?.nonVegPrice).toLocaleString("en-IN")}`
+                        {vendor?.nonVegPrice || vendor?.non_veg_price || sf?.nonVegPrice
+                          ? `₹ ${Number(vendor?.nonVegPrice || vendor?.non_veg_price || sf?.nonVegPrice).toLocaleString("en-IN")}`
                           : "₹ 1,500"}
                       </div>
                       <div className="text-[10px] text-charcoal/50">per plate</div>
@@ -1759,8 +1755,8 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
                     </div>
                     <div className="text-right">
                       <div className="font-serif font-bold text-sm text-[#0F4C45]">
-                        {vendor?.decorStartingPrice || vendor?.decor_starting_price || vendor?.categoryDetails?.rental_cost || vendor?.categoryDetails?.decor_starting_price || sf?.decorStartingPrice
-                          ? `₹ ${Number(vendor?.decorStartingPrice || vendor?.decor_starting_price || vendor?.categoryDetails?.rental_cost || vendor?.categoryDetails?.decor_starting_price || sf?.decorStartingPrice).toLocaleString("en-IN")}`
+                        {vendor?.decorStartingPrice || vendor?.decor_starting_price || sf?.decorStartingPrice
+                          ? `₹ ${Number(vendor?.decorStartingPrice || vendor?.decor_starting_price || sf?.decorStartingPrice).toLocaleString("en-IN")}`
                           : "₹ 50,000"}
                       </div>
                       <div className="text-[10px] text-charcoal/50">starting decor package</div>
@@ -1776,14 +1772,6 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
                 <div className="flex items-center justify-between border-b border-gold/10 pb-3">
                   <div className="flex items-center gap-2">
                     <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">Gallery &amp; Venue Spaces</h2>
-                    {isOwner && editModeEnabled && !previewAsCustomer && (
-  <button
-    onClick={() => setActiveEditSection("gallery")}
-    className="px-3 py-1 rounded-full bg-amber-400 text-charcoal font-bold text-xs hover:bg-amber-300 transition-all flex items-center gap-1 shadow-xs cursor-pointer border border-amber-300 shrink-0 ml-auto"
-  >
-    <span>✏️ Edit Gallery</span>
-  </button>
-)}
                     <span className="px-2.5 py-0.5 rounded-full bg-gold/15 text-[#0F4C45] text-xs font-extrabold">
                       {galleryPhotos.length} photos
                     </span>
@@ -1822,14 +1810,6 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
               <div className="border-b border-gold/10 pb-3 space-y-1">
                 <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">About</h2>
-                {isOwner && editModeEnabled && !previewAsCustomer && (
-  <button
-    onClick={() => setActiveEditSection("about")}
-    className="px-3 py-1 rounded-full bg-amber-400 text-charcoal font-bold text-xs hover:bg-amber-300 transition-all flex items-center gap-1 shadow-xs cursor-pointer border border-amber-300 shrink-0 ml-auto"
-  >
-    <span>✏️ Edit About</span>
-  </button>
-)}
                 <div className="text-xs font-bold text-[#0F4C45]">
                   {venueDetails.establishedYear ? `Established in ${venueDetails.establishedYear}` : "Cloche Verified Partner"}
                 </div>
@@ -1860,14 +1840,6 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
               <div className="flex items-center gap-2 border-b border-gold/10 pb-2.5">
                 <FileText className="w-4.5 h-4.5 text-[#C8A96A]" />
                 <h2 className="font-serif text-lg font-bold text-charcoal">Policies</h2>
-                {isOwner && editModeEnabled && !previewAsCustomer && (
-  <button
-    onClick={() => setActiveEditSection("policies")}
-    className="px-3 py-1 rounded-full bg-amber-400 text-charcoal font-bold text-xs hover:bg-amber-300 transition-all flex items-center gap-1 shadow-xs cursor-pointer border border-amber-300 shrink-0 ml-auto"
-  >
-    <span>✏️ Edit Policies</span>
-  </button>
-)}
               </div>
               <div className="space-y-2 text-xs font-semibold text-charcoal/80">
                 <div className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-600 shrink-0" /> In-house &amp; Outside Catering Permitted</div>
@@ -1880,14 +1852,7 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
             {/* 6. AMENITIES */}
             {venueDetails.amenities.length > 0 && (
               <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-3.5">
-                <div className="flex items-center justify-between border-b border-gold/10 pb-2.5"><h2 className="font-serif text-lg font-bold text-charcoal">Amenities</h2>{isOwner && editModeEnabled && !previewAsCustomer && (
-  <button
-    onClick={() => setActiveEditSection("amenities")}
-    className="px-3 py-1 rounded-full bg-amber-400 text-charcoal font-bold text-xs hover:bg-amber-300 transition-all flex items-center gap-1 shadow-xs cursor-pointer border border-amber-300 shrink-0 ml-auto"
-  >
-    <span>✏️ Edit Amenities</span>
-  </button>
-)}</div>
+                <h2 className="font-serif text-lg font-bold text-charcoal border-b border-gold/10 pb-2.5">Amenities</h2>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
                   {venueDetails.amenities.map((amen: string, idx: number) => (
                     <div key={idx} className="p-3 rounded-xl bg-[#FAF7F2] border border-gold/15 text-xs font-bold text-charcoal flex items-center gap-2">
@@ -1901,14 +1866,7 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
 
             {/* 7. PACKAGES / EVENT SPACES */}
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
-              <div className="flex items-center justify-between border-b border-gold/10 pb-2.5"><h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">Packages &amp; Halls</h2>{isOwner && editModeEnabled && !previewAsCustomer && (
-  <button
-    onClick={() => setActiveEditSection("packages")}
-    className="px-3 py-1 rounded-full bg-amber-400 text-charcoal font-bold text-xs hover:bg-amber-300 transition-all flex items-center gap-1 shadow-xs cursor-pointer border border-amber-300 shrink-0 ml-auto"
-  >
-    <span>✏️ Edit Packages</span>
-  </button>
-)}</div>
+              <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal border-b border-gold/10 pb-2.5">Packages &amp; Halls</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/20 space-y-2">
                   <span className="text-[10px] font-bold uppercase tracking-wider bg-[#0F4C45]/10 text-[#0F4C45] px-2.5 py-0.5 rounded-full">Indoor Grand Ballroom</span>
@@ -1963,14 +1921,7 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
             {/* 9. FAQS */}
             {venueDetails.faqs.length > 0 && (
               <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-3.5">
-                <div className="flex items-center justify-between border-b border-gold/10 pb-2.5"><h2 className="font-serif text-lg font-bold text-charcoal">Frequently Asked Questions</h2>{isOwner && editModeEnabled && !previewAsCustomer && (
-  <button
-    onClick={() => setActiveEditSection("faqs")}
-    className="px-3 py-1 rounded-full bg-amber-400 text-charcoal font-bold text-xs hover:bg-amber-300 transition-all flex items-center gap-1 shadow-xs cursor-pointer border border-amber-300 shrink-0 ml-auto"
-  >
-    <span>✏️ Edit Faqs</span>
-  </button>
-)}</div>
+                <h2 className="font-serif text-lg font-bold text-charcoal border-b border-gold/10 pb-2.5">Frequently Asked Questions</h2>
                 <div className="space-y-3">
                   {venueDetails.faqs.map((faq: any, idx: number) => (
                     <div key={idx} className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1">
@@ -2108,7 +2059,7 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
 
             {/* 3. PRICING */}
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
-              <div className="flex items-center justify-between border-b border-gold/10 pb-2.5"><h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">Groom Wear Rental &amp; Custom Pricing</h2>{renderEditButton("pricing", "Edit Pricing")}</div>
+              <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal border-b border-gold/10 pb-2.5">Groom Wear Rental &amp; Custom Pricing</h2>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
                 <div className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1">
                   <span className="text-[10px] font-bold text-charcoal/50 uppercase tracking-wider">Royal Sherwanis</span>
@@ -2149,7 +2100,7 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
 
             {/* 5. ABOUT */}
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-3">
-              <div className="flex items-center justify-between border-b border-gold/10 pb-2"><h2 className="font-serif text-lg font-bold text-charcoal">About Studio &amp; Craftsmen</h2>{renderEditButton("about", "Edit About")}</div>
+              <h2 className="font-serif text-lg font-bold text-charcoal border-b border-gold/10 pb-2">About Studio &amp; Craftsmen</h2>
               <p className="text-xs sm:text-sm text-charcoal/80 leading-relaxed font-sans">
                 {about || `Crafting regal attire for the modern groom, ${displayName} specializes in handcrafted velvet sherwanis, silk jodhpuri suits, and sleek reception tuxedos. Our master tailors ensure immaculate custom fits with 48-hour rush alterations.`}
               </p>
@@ -2157,7 +2108,7 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
 
             {/* 6. PACKAGES */}
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
-              <div className="flex items-center justify-between border-b border-gold/10 pb-2.5"><h2 className="font-serif text-lg font-bold text-charcoal">Groom Packages</h2>{renderEditButton("packages", "Edit Packages")}</div>
+              <h2 className="font-serif text-lg font-bold text-charcoal border-b border-gold/10 pb-2.5">Groom Packages</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/20 space-y-2">
                   <span className="text-[10px] font-bold uppercase tracking-wider bg-[#0F4C45]/10 text-[#0F4C45] px-2.5 py-0.5 rounded-full">Ceremonial 2-Function Combo</span>
@@ -2196,7 +2147,7 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
 
             {/* 8. AMENITIES / SERVICES */}
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-3.5">
-              <div className="flex items-center justify-between border-b border-gold/10 pb-2.5"><h2 className="font-serif text-lg font-bold text-charcoal">Studio Amenities &amp; Services</h2>{renderEditButton("amenities", "Edit Amenities")}</div>
+              <h2 className="font-serif text-lg font-bold text-charcoal border-b border-gold/10 pb-2.5">Studio Amenities &amp; Services</h2>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs font-bold text-charcoal">
                 <div className="p-3 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2"><ShieldCheck className="w-4 h-4 text-[#0F4C45]" /> VIP Trial Fitting Room</div>
                 <div className="p-3 rounded-xl bg-[#FAF7F2] border border-gold/15 flex items-center gap-2"><User className="w-4 h-4 text-[#0F4C45]" /> Master Tailor On-Site</div>
@@ -2401,7 +2352,7 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
 
             {/* 6. PACKAGES */}
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
-              <div className="flex items-center justify-between border-b border-gold/10 pb-2.5"><h2 className="font-serif text-lg font-bold text-charcoal">Bridal Combo Packages</h2>{renderEditButton("packages", "Edit Packages")}</div>
+              <h2 className="font-serif text-lg font-bold text-charcoal border-b border-gold/10 pb-2.5">Bridal Combo Packages</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/20 space-y-2">
                   <span className="text-[10px] font-bold uppercase tracking-wider bg-[#0F4C45]/10 text-[#0F4C45] px-2.5 py-0.5 rounded-full">Wedding + Reception Bundle</span>
@@ -2596,7 +2547,7 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
 
             {/* 3. PRICING */}
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
-              <div className="flex items-center justify-between border-b border-gold/10 pb-2.5"><h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">Couple Ensemble &amp; Individual Pricing</h2>{renderEditButton("pricing", "Edit Pricing")}</div>
+              <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal border-b border-gold/10 pb-2.5">Couple Ensemble &amp; Individual Pricing</h2>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
                 <div className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1">
                   <span className="text-[10px] font-bold text-charcoal/50 uppercase tracking-wider">Couple Pair Package</span>
@@ -2637,7 +2588,7 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
 
             {/* 5. ABOUT */}
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-3">
-              <div className="flex items-center justify-between border-b border-gold/10 pb-2"><h2 className="font-serif text-lg font-bold text-charcoal">About Wedding Studio</h2>{renderEditButton("about", "Edit About")}</div>
+              <h2 className="font-serif text-lg font-bold text-charcoal border-b border-gold/10 pb-2">About Wedding Studio</h2>
               <p className="text-xs sm:text-sm text-charcoal/80 leading-relaxed font-sans">
                 {about || `Providing complete ceremonial wardrobe solutions for couples, ${displayName} specializes in synchronized bride and groom couture. We craft matching embroidery motifs and color palettes for memorable wedding photos.`}
               </p>
@@ -2645,7 +2596,7 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
 
             {/* 6. PACKAGES */}
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
-              <div className="flex items-center justify-between border-b border-gold/10 pb-2.5"><h2 className="font-serif text-lg font-bold text-charcoal">Couple Packages</h2>{renderEditButton("packages", "Edit Packages")}</div>
+              <h2 className="font-serif text-lg font-bold text-charcoal border-b border-gold/10 pb-2.5">Couple Packages</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/20 space-y-2">
                   <span className="text-[10px] font-bold uppercase tracking-wider bg-[#0F4C45]/10 text-[#0F4C45] px-2.5 py-0.5 rounded-full">Wedding Day Couple Set</span>
@@ -2849,7 +2800,7 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
 
             {/* 4. PRICING */}
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
-              <div className="flex items-center justify-between border-b border-gold/10 pb-2.5"><h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">Photography &amp; Film Pricing</h2>{renderEditButton("pricing", "Edit Pricing")}</div>
+              <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal border-b border-gold/10 pb-2.5">Photography &amp; Film Pricing</h2>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
                 <div className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1">
                   <span className="text-[10px] font-bold text-charcoal/50 uppercase tracking-wider">Candid Photography</span>
@@ -2886,7 +2837,7 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
 
             {/* 6. ABOUT */}
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-3">
-              <div className="flex items-center justify-between border-b border-gold/10 pb-2"><h2 className="font-serif text-lg font-bold text-charcoal">About Team &amp; Equipment</h2>{renderEditButton("about", "Edit About")}</div>
+              <h2 className="font-serif text-lg font-bold text-charcoal border-b border-gold/10 pb-2">About Team &amp; Equipment</h2>
               <p className="text-xs sm:text-sm text-charcoal/80 leading-relaxed font-sans">
                 {about || `Capturing timeless wedding stories across India, ${displayName} brings 8+ years of expertise in candid wedding photography and 4K cinematography. Equipped with Sony Alpha full-frame cameras, prime lenses, and DJI 4K drones.`}
               </p>
@@ -2894,7 +2845,7 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
 
             {/* 7. PACKAGES */}
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
-              <div className="flex items-center justify-between border-b border-gold/10 pb-2.5"><h2 className="font-serif text-lg font-bold text-charcoal">Wedding Photography Packages</h2>{renderEditButton("packages", "Edit Packages")}</div>
+              <h2 className="font-serif text-lg font-bold text-charcoal border-b border-gold/10 pb-2.5">Wedding Photography Packages</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/20 space-y-2">
                   <span className="text-[10px] font-bold uppercase tracking-wider bg-[#0F4C45]/10 text-[#0F4C45] px-2.5 py-0.5 rounded-full">Gold 2-Day Package</span>
@@ -3082,7 +3033,7 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
 
             {/* 3. PRICING */}
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
-              <div className="flex items-center justify-between border-b border-gold/10 pb-2.5"><h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">Makeup Pricing Summary</h2>{renderEditButton("pricing", "Edit Pricing")}</div>
+              <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal border-b border-gold/10 pb-2.5">Makeup Pricing Summary</h2>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
                 <div className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1">
                   <span className="text-[10px] font-bold text-charcoal/50 uppercase tracking-wider">Bridal HD Makeup</span>
@@ -3135,7 +3086,7 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
 
             {/* 6. ABOUT */}
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-3">
-              <div className="flex items-center justify-between border-b border-gold/10 pb-2"><h2 className="font-serif text-lg font-bold text-charcoal">About Artist &amp; Hygiene Standards</h2>{renderEditButton("about", "Edit About")}</div>
+              <h2 className="font-serif text-lg font-bold text-charcoal border-b border-gold/10 pb-2">About Artist &amp; Hygiene Standards</h2>
               <p className="text-xs sm:text-sm text-charcoal/80 leading-relaxed font-sans">
                 {about || `Certified international makeup artist, ${displayName} specializes in high-definition bridal makeup that enhances natural features. We use 100% authentic luxury international brands with sanitized brushes and disposable applicators for complete hygiene.`}
               </p>
@@ -3143,7 +3094,7 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
 
             {/* 7. PACKAGES */}
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
-              <div className="flex items-center justify-between border-b border-gold/10 pb-2.5"><h2 className="font-serif text-lg font-bold text-charcoal">Bridal Makeup Packages</h2>{renderEditButton("packages", "Edit Packages")}</div>
+              <h2 className="font-serif text-lg font-bold text-charcoal border-b border-gold/10 pb-2.5">Bridal Makeup Packages</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/20 space-y-2">
                   <span className="text-[10px] font-bold uppercase tracking-wider bg-[#0F4C45]/10 text-[#0F4C45] px-2.5 py-0.5 rounded-full">Wedding + Reception Bundle</span>
@@ -3318,7 +3269,7 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
 
             {/* 4. PRICING */}
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
-              <div className="flex items-center justify-between border-b border-gold/10 pb-2.5"><h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">Catering Per-Plate Pricing</h2>{renderEditButton("pricing", "Edit Pricing")}</div>
+              <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal border-b border-gold/10 pb-2.5">Catering Per-Plate Pricing</h2>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
                 <div className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1">
                   <span className="text-[10px] font-bold text-charcoal/50 uppercase tracking-wider">Veg Plate Price</span>
@@ -3357,7 +3308,7 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
 
             {/* 6. ABOUT */}
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-3">
-              <div className="flex items-center justify-between border-b border-gold/10 pb-2"><h2 className="font-serif text-lg font-bold text-charcoal">About Kitchen &amp; Hygiene Standards</h2>{renderEditButton("about", "Edit About")}</div>
+              <h2 className="font-serif text-lg font-bold text-charcoal border-b border-gold/10 pb-2">About Kitchen &amp; Hygiene Standards</h2>
               <p className="text-xs sm:text-sm text-charcoal/80 leading-relaxed font-sans">
                 {about || `Delivering culinary excellence for grand weddings, ${displayName} operates an FSSAI-certified central kitchen handling events up to 5,000 guests. Uniformed service staff, mineral water preparation, and strict hygiene protocols.`}
               </p>
@@ -3365,7 +3316,7 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
 
             {/* 7. PACKAGES */}
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
-              <div className="flex items-center justify-between border-b border-gold/10 pb-2.5"><h2 className="font-serif text-lg font-bold text-charcoal">Catering Packages</h2>{renderEditButton("packages", "Edit Packages")}</div>
+              <h2 className="font-serif text-lg font-bold text-charcoal border-b border-gold/10 pb-2.5">Catering Packages</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/20 space-y-2">
                   <span className="text-[10px] font-bold uppercase tracking-wider bg-[#0F4C45]/10 text-[#0F4C45] px-2.5 py-0.5 rounded-full">Traditional Sadya</span>
@@ -3542,7 +3493,7 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
 
             {/* 4. PRICING */}
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
-              <div className="flex items-center justify-between border-b border-gold/10 pb-2.5"><h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">Decoration Package Rates</h2>{renderEditButton("pricing", "Edit Pricing")}</div>
+              <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal border-b border-gold/10 pb-2.5">Decoration Package Rates</h2>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
                 <div className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1">
                   <span className="text-[10px] font-bold text-charcoal/50 uppercase tracking-wider">Stage Decor</span>
@@ -3564,7 +3515,7 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
 
             {/* 5. ABOUT */}
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-3">
-              <div className="flex items-center justify-between border-b border-gold/10 pb-2"><h2 className="font-serif text-lg font-bold text-charcoal">About Decor Studio &amp; Craftsmen</h2>{renderEditButton("about", "Edit About")}</div>
+              <h2 className="font-serif text-lg font-bold text-charcoal border-b border-gold/10 pb-2">About Decor Studio &amp; Craftsmen</h2>
               <p className="text-xs sm:text-sm text-charcoal/80 leading-relaxed font-sans">
                 {about || `Transforming venues into fairytale settings, ${displayName} brings 10+ years of decor production experience. We offer 3D venue layout visualizations and complete floral and lighting execution with an in-house team of 25+ craftsmen.`}
               </p>
@@ -3572,7 +3523,7 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
 
             {/* 6. PACKAGES */}
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
-              <div className="flex items-center justify-between border-b border-gold/10 pb-2.5"><h2 className="font-serif text-lg font-bold text-charcoal">Decor Packages</h2>{renderEditButton("packages", "Edit Packages")}</div>
+              <h2 className="font-serif text-lg font-bold text-charcoal border-b border-gold/10 pb-2.5">Decor Packages</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/20 space-y-2">
                   <span className="text-[10px] font-bold uppercase tracking-wider bg-[#0F4C45]/10 text-[#0F4C45] px-2.5 py-0.5 rounded-full">Classic Floral Package</span>
@@ -3729,7 +3680,7 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
 
             {/* 3. PRICING */}
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
-              <div className="flex items-center justify-between border-b border-gold/10 pb-2.5"><h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">Jewellery Rental &amp; Purchase Rates</h2>{renderEditButton("pricing", "Edit Pricing")}</div>
+              <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal border-b border-gold/10 pb-2.5">Jewellery Rental &amp; Purchase Rates</h2>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
                 <div className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1">
                   <span className="text-[10px] font-bold text-charcoal/50 uppercase tracking-wider">Bridal Set Rental</span>
@@ -3768,7 +3719,7 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
 
             {/* 5. ABOUT */}
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-3">
-              <div className="flex items-center justify-between border-b border-gold/10 pb-2"><h2 className="font-serif text-lg font-bold text-charcoal">About Showroom &amp; Purity Standards</h2>{renderEditButton("about", "Edit About")}</div>
+              <h2 className="font-serif text-lg font-bold text-charcoal border-b border-gold/10 pb-2">About Showroom &amp; Purity Standards</h2>
               <p className="text-xs sm:text-sm text-charcoal/80 leading-relaxed font-sans">
                 {about || `Trusted heritage jewellers, ${displayName} offers pure 916 hallmarked gold, certified VVS diamonds, and luxury bridal rental sets. Each rental piece is thoroughly inspected and sanitized before every event.`}
               </p>
@@ -3919,7 +3870,7 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
 
             {/* 4. PRICING */}
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-4">
-              <div className="flex items-center justify-between border-b border-gold/10 pb-2.5"><h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal">Invitation Pricing</h2>{renderEditButton("pricing", "Edit Pricing")}</div>
+              <h2 className="font-serif text-lg sm:text-xl font-bold text-charcoal border-b border-gold/10 pb-2.5">Invitation Pricing</h2>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
                 <div className="p-4 rounded-xl bg-[#FAF7F2] border border-gold/15 space-y-1">
                   <span className="text-[10px] font-bold text-charcoal/50 uppercase tracking-wider">Printed Cards</span>
@@ -3958,7 +3909,7 @@ export function VendorStorefront({ vendor: initialVendor, storefront: propStoref
 
             {/* 6. ABOUT */}
             <div className="bg-white rounded-2xl p-4.5 sm:p-6 border border-gold/15 shadow-2xs space-y-3">
-              <div className="flex items-center justify-between border-b border-gold/10 pb-2"><h2 className="font-serif text-lg font-bold text-charcoal">About Printing Press &amp; Designers</h2>{renderEditButton("about", "Edit About")}</div>
+              <h2 className="font-serif text-lg font-bold text-charcoal border-b border-gold/10 pb-2">About Printing Press &amp; Designers</h2>
               <p className="text-xs sm:text-sm text-charcoal/80 leading-relaxed font-sans">
                 {about || `Designing bespoke wedding invitations since 2012, ${displayName} blends traditional craftsmanship with modern luxury printing techniques. We provide worldwide doorstep shipping and online PDF proof approvals.`}
               </p>
