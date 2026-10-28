@@ -159,7 +159,7 @@ export default function Home() {
       subtitle: "Wedding & Pre-wedding Photography",
       href: "/photographers",
       bgColor: "bg-[#FCEFE3]",
-      img: "/images/photographers-cover.png",
+      img: "/images/photographers-cover-new.jpg",
       alt: "Wedding Photographers"
     },
     {

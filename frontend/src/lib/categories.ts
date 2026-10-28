@@ -91,7 +91,7 @@ export const HOMEPAGE_CATEGORY_STRIP: HomepageCategoryItem[] = [
   {
     label: "Photographers",
     href: "/photographers",
-    img: "/images/photographers-cover.png",
+    img: "/images/photographers-cover-new.jpg",
     alt: "Wedding Photographers",
     vendorCount: "320 Vendors",
     badge: "Trending",
