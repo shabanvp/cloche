@@ -260,7 +260,7 @@ exports.searchBoutiques = async (req, res) => {
     try {
         const { keyword, district, category, verified, plan, page = 1, limit = 20 } = req.query;
         
-        let query = supabase.from("boutique_showcase").select("*, boutiques!inner(id, boutique_name, owner_name, city, plan)", { count: "exact" });
+        let query = supabase.from("boutique_showcase").select("*, boutiques!inner(id, boutique_name, owner_name, city, plan, category)", { count: "exact" });
 
         // Keyword search
         if (keyword) {
@@ -284,7 +284,7 @@ exports.searchBoutiques = async (req, res) => {
 
         // Category / tags filter
         if (category && category !== "all") {
-            query = query.ilike("tags", `%${category}%`);
+            query = query.or(`tags.ilike.%${category}%,boutiques.category.ilike.%${category}%`);
         }
 
         // Plan / verified filter
@@ -306,6 +306,7 @@ exports.searchBoutiques = async (req, res) => {
             owner_name: row.boutiques?.owner_name || "",
             city: row.boutiques?.city || "",
             plan: row.boutiques?.plan || "",
+            category: row.boutiques?.category || row.tags || "",
             district: row.district || "",
             area: row.area || "",
             tags: normalizeTags(row.tags),

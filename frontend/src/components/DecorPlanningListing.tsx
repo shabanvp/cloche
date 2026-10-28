@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { BottomNavBar } from "@/components/BottomNavBar";
 import { decorVendors, DecorVendor } from "@/lib/decorData";
+import { getCategoryFallbackImage } from "@/lib/categories";
 
 export function DecorPlanningListing() {
   const [search, setSearch] = useState("");
@@ -28,18 +29,23 @@ export function DecorPlanningListing() {
       .then((res) => res.json())
       .then((json) => {
         if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+          const fallbackImg = getCategoryFallbackImage("decor-planning");
           const mapped = json.data.map((dbV: any) => ({
             id: dbV.id,
             name: dbV.name,
             subtitle: dbV.tagline || dbV.about || "Luxury Wedding Decor & Event Planning",
             location: dbV.city || dbV.state || "Kerala, India",
             rating: dbV.rating || 4.9,
+            reviews: dbV.reviewCount || 0,
             reviewsCount: dbV.reviewCount || 0,
+            price: dbV.startingPrice || "₹1,50,000 / event",
             startingPrice: dbV.startingPrice || "₹1,50,000 / event",
             category: "Decorator",
+            isVerified: dbV.isVerified ?? true,
             verified: dbV.isVerified ?? true,
-            heroImage: dbV.coverImage || dbV.logo || "",
-            image: dbV.coverImage || dbV.logo || "",
+            isFeatured: false,
+            heroImage: dbV.coverImage || dbV.logo || fallbackImg,
+            image: dbV.coverImage || dbV.logo || fallbackImg,
             badge: "Award Winning",
           }));
 
@@ -55,9 +61,9 @@ export function DecorPlanningListing() {
     return decorList.filter((vendor) => {
       const matchesSearch =
         vendor.name.toLowerCase().includes(search.toLowerCase()) ||
-        vendor.subtitle.toLowerCase().includes(search.toLowerCase()) ||
-        vendor.location.toLowerCase().includes(search.toLowerCase());
-      const matchesCity = cityFilter === "All" || vendor.location.toLowerCase().includes(cityFilter.toLowerCase());
+        (vendor.subtitle && vendor.subtitle.toLowerCase().includes(search.toLowerCase())) ||
+        (vendor.location && vendor.location.toLowerCase().includes(search.toLowerCase()));
+      const matchesCity = cityFilter === "All" || (vendor.location && vendor.location.toLowerCase().includes(cityFilter.toLowerCase()));
       return matchesSearch && matchesCity;
     });
   }, [search, cityFilter, decorList]);
@@ -144,7 +150,7 @@ export function DecorPlanningListing() {
               {/* Vendor Image */}
               <div className="relative aspect-[4/3] sm:aspect-square w-full sm:w-[130px] shrink-0 overflow-hidden rounded-xl bg-gray-100">
                 <Image
-                  src={vendor.image}
+                  src={vendor.image || "/images/decor-planning-cover.png"}
                   alt={vendor.name}
                   fill
                   className="object-cover transition-transform duration-500 group-hover:scale-105"
@@ -179,7 +185,7 @@ export function DecorPlanningListing() {
                       <span>{vendor.rating}</span>
                       <Star className="h-3.5 w-3.5 fill-[#C8A96A] text-[#C8A96A]" />
                     </div>
-                    <span className="text-[#9A8D7D]">({vendor.reviews} reviews)</span>
+                    <span className="text-[#9A8D7D]">({vendor.reviews ?? vendor.reviewsCount ?? 0} reviews)</span>
                   </div>
 
                   <div className="mt-1 flex items-center gap-1 text-[12px] text-[#6B5E52]">
@@ -191,7 +197,7 @@ export function DecorPlanningListing() {
                 <div className="mt-3 flex items-center justify-between pt-2 border-t border-black/5">
                   <div>
                     <span className="text-[11px] text-[#8C827A] block leading-none">Starts at</span>
-                    <span className="text-[15px] font-bold text-[#0F4C45]">{vendor.price}</span>
+                    <span className="text-[15px] font-bold text-[#0F4C45]">{vendor.price || vendor.startingPrice || "₹1,50,000 / event"}</span>
                   </div>
 
                   <Link

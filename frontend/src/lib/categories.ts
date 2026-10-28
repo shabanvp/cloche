@@ -558,6 +558,87 @@ export const CANONICAL_VENDOR_CATEGORIES: CanonicalCategoryDefinition[] = [
 ];
 
 /**
+ * COMPLETE DATABASE CATEGORY UUID MAP (All 37 verified Supabase vendor_categories)
+ * Ensures 100% authoritative resolution directly from database foreign keys.
+ */
+export const DB_CATEGORY_UUID_MAP: Record<string, CategorySlug> = {
+  // Venues
+  "c48253f9-f7e8-4cea-b296-22a4cf8890dc": "venues",
+  "a399b49f-cb4a-43cf-ae1b-0412adf1def6": "venues",
+
+  // Makeup
+  "06260436-4efe-488f-afe2-4f41e3d9d0f1": "makeup",
+  "6b83da0e-0a96-4d6c-acd4-b1f6156fcbdc": "makeup",
+
+  // Mehendi
+  "554d5532-9201-4af5-be43-41e9c1775b0f": "mehendi",
+  "1b8af477-920d-43e8-8c20-a191e934f170": "mehendi",
+
+  // Photography & Videography
+  "f31182bb-8edb-4356-8a80-fc3ba8e3557b": "photographers",
+  "5ea30983-409d-4263-b059-0061c3e583d3": "photographers",
+  "04b8ec8d-547b-4496-8f19-29e5a1266cc3": "videographers",
+
+  // Bridal Studio & Wear
+  "2c7e34e1-5945-473b-95ea-a1db34c6c01b": "bridal-studio",
+  "2dbc5693-441e-4862-9665-14b84f0a3224": "bridal-studio",
+  "320dd9e4-a7ae-462a-9c07-ce87e9a9775a": "bridal-studio",
+  "ef5e9695-ab30-4956-b313-a036c9734259": "bridal-studio",
+
+  // Groom Studio & Wear
+  "83d80c46-baae-464a-865e-5a5601890401": "groom-studio",
+  "b16079a5-4317-4edd-ba04-a2a8ac34f017": "groom-studio",
+
+  // Wedding Studio
+  "3c71464e-89cd-4ffe-aaeb-ae6e95bcacff": "wedding-studio",
+
+  // Catering
+  "d4136a98-75f1-4b6d-8cc6-ce0804a44c96": "caterers",
+  "a4332a96-8f1f-4a64-bf96-2a9ad53d40b7": "caterers",
+
+  // Decor & Planning
+  "2aa8b8c6-c08d-4b85-9dc7-dfbbd85d935c": "decor-planning",
+  "697350dd-7410-461f-a8de-d0c44c315411": "decor-planning",
+  "b32e1241-eb9c-4cb4-8a26-327dfbc83085": "wedding-planners",
+  "0a02500f-575a-4730-8f04-826048891db6": "wedding-planners",
+
+  // Jewellery
+  "5466a413-0225-4622-833f-ef71edc2331a": "jewellery",
+  "59264ef6-683d-4092-90c9-42fec2ca3900": "jewellery",
+
+  // Invitations
+  "f00cf9ac-0f5b-4703-8806-4d25103ecf9b": "invitation-designers",
+  "048a9853-dfc2-4d41-ad9f-237e5ef1ff3d": "invitation-designers",
+
+  // Cakes & Desserts
+  "4999a399-7c55-4888-9b7a-ceb7bda2a9e1": "cakes-desserts",
+
+  // Car Rental
+  "c01f459c-a2ce-44b9-bb4e-e3957b165018": "car-rentals",
+
+  // Flower Decoration
+  "e91a6f1d-b52c-47a8-8efe-1da6940da8a9": "flower-decoration",
+
+  // Gifts
+  "0821bf63-6b02-4439-9940-bbf2b2bd06b2": "wedding-gifts",
+
+  // Honeymoon
+  "df6d44b0-eb67-4b5d-b7d1-b735339a81cf": "honeymoon",
+
+  // Rental Services
+  "5b272e74-3fdc-4f1c-966d-3dc7850aa2aa": "rental-services",
+
+  // Entertainment & Dance
+  "7f50c55c-beae-4cf0-8e23-27cfe5e54ce5": "choreographers",
+  "9c218105-b61a-4550-982e-90a2ac9b6ce8": "entertainment",
+  "35bbad46-6424-4dfc-928f-3152b1d5b69f": "entertainment",
+  "83970cf4-f705-4ba2-af08-ad3a41384a40": "entertainment",
+
+  // Other
+  "b227bbd5-394c-4eb6-bc69-c26c9d7319d4": "wedding-studio",
+};
+
+/**
  * SINGLE CANONICAL REGISTRATION DROPDOWN LIST
  * Derived directly from CANONICAL_VENDOR_CATEGORIES to ensure absolute 1-to-1 sync.
  */
@@ -566,15 +647,23 @@ export const VENDOR_REGISTRATION_CATEGORIES: string[] = CANONICAL_VENDOR_CATEGOR
 );
 
 /**
- * Normalizes any raw category string (slug, title, or alias) into a canonical category object.
+ * Normalizes any raw category identifier (UUID, slug, title, or alias) into a canonical category object.
  * Returns null if the category string is completely unmapped or unrecognized.
  */
 export function normalizeCategory(rawCategory: string | null | undefined): CanonicalCategoryDefinition | null {
   if (!rawCategory) return null;
-  let clean = rawCategory.toLowerCase().trim();
+  const rawTrimmed = String(rawCategory).trim();
+  const rawLower = rawTrimmed.toLowerCase();
+
+  // 0. Direct UUID lookup from database category identifiers
+  if (DB_CATEGORY_UUID_MAP[rawTrimmed] || DB_CATEGORY_UUID_MAP[rawLower]) {
+    const slug = DB_CATEGORY_UUID_MAP[rawTrimmed] || DB_CATEGORY_UUID_MAP[rawLower];
+    const match = CANONICAL_VENDOR_CATEGORIES.find((c) => c.slug === slug);
+    if (match) return match;
+  }
 
   // Strip generated random suffixes like "-4599" or "-3744" if present
-  clean = clean.replace(/-\d{3,5}$/, "");
+  let clean = rawLower.replace(/-\d{3,5}$/, "");
 
   // 1. Direct match on canonical slug
   const bySlug = CANONICAL_VENDOR_CATEGORIES.find((c) => c.slug === clean);
@@ -591,16 +680,19 @@ export function normalizeCategory(rawCategory: string | null | undefined): Canon
   if (byAlias) return byAlias;
 
   // 4. Fuzzy fallback for legacy string variants
-  if (clean.includes("bride") && (clean.includes("studio") || clean.includes("boutique") || clean.includes("wear") || clean.includes("story"))) {
+  if (clean.includes("bride") && (clean.includes("studio") || clean.includes("boutique") || clean.includes("wear") || clean.includes("story") || clean.includes("lehenga") || clean.includes("saree"))) {
     return CANONICAL_VENDOR_CATEGORIES.find((c) => c.slug === "bridal-studio") || null;
   }
-  if (clean.includes("groom") && (clean.includes("studio") || clean.includes("wear") || clean.includes("story"))) {
+  if (clean.includes("groom") && (clean.includes("studio") || clean.includes("wear") || clean.includes("story") || clean.includes("sherwani") || clean.includes("suit"))) {
     return CANONICAL_VENDOR_CATEGORIES.find((c) => c.slug === "groom-studio") || null;
   }
   if (clean.includes("wedding") && (clean.includes("studio") || clean.includes("story"))) {
     return CANONICAL_VENDOR_CATEGORIES.find((c) => c.slug === "wedding-studio") || null;
   }
-  if (clean.includes("photo") || clean.includes("camera") || clean.includes("video") || clean.includes("film")) {
+  if (clean.includes("video") || clean.includes("film") || clean.includes("cinemat")) {
+    return CANONICAL_VENDOR_CATEGORIES.find((c) => c.slug === "videographers") || null;
+  }
+  if (clean.includes("photo") || clean.includes("camera")) {
     return CANONICAL_VENDOR_CATEGORIES.find((c) => c.slug === "photographers") || null;
   }
   if (clean.includes("makeup") || clean.includes("glam") || clean.includes("beauty")) {
@@ -609,24 +701,122 @@ export function normalizeCategory(rawCategory: string | null | undefined): Canon
   if (clean.includes("mehendi") || clean.includes("henna") || clean.includes("mehndi")) {
     return CANONICAL_VENDOR_CATEGORIES.find((c) => c.slug === "mehendi") || null;
   }
-  if (clean.includes("venue") || clean.includes("palace") || clean.includes("lawn") || clean.includes("banquet")) {
+  if (clean.includes("venue") || clean.includes("palace") || clean.includes("lawn") || clean.includes("banquet") || clean.includes("auditorium") || clean.includes("resort")) {
     return CANONICAL_VENDOR_CATEGORIES.find((c) => c.slug === "venues") || null;
   }
-  if (clean.includes("cater") || clean.includes("food") || clean.includes("dining")) {
+  if (clean.includes("cater") || clean.includes("food") || clean.includes("dining") || clean.includes("sadya")) {
     return CANONICAL_VENDOR_CATEGORIES.find((c) => c.slug === "caterers") || null;
   }
-  if (clean.includes("invite") || clean.includes("card") || clean.includes("papyrus")) {
+  if (clean.includes("invite") || clean.includes("card") || clean.includes("papyrus") || clean.includes("stationery")) {
     return CANONICAL_VENDOR_CATEGORIES.find((c) => c.slug === "invitation-designers") || null;
   }
-  if (clean.includes("jewel") || clean.includes("polki") || clean.includes("gold") || clean.includes("ornament")) {
+  if (clean.includes("jewel") || clean.includes("polki") || clean.includes("gold") || clean.includes("ornament") || clean.includes("diamond")) {
     return CANONICAL_VENDOR_CATEGORIES.find((c) => c.slug === "jewellery") || null;
   }
-  if (clean.includes("decor") || clean.includes("planner")) {
+  if (clean.includes("planner") || clean.includes("planners")) {
+    return CANONICAL_VENDOR_CATEGORIES.find((c) => c.slug === "wedding-planners") || null;
+  }
+  if (clean.includes("decor") || clean.includes("mandap") || clean.includes("stage")) {
     return CANONICAL_VENDOR_CATEGORIES.find((c) => c.slug === "decor-planning") || null;
   }
+  if (clean.includes("cake") || clean.includes("bake") || clean.includes("dessert")) {
+    return CANONICAL_VENDOR_CATEGORIES.find((c) => c.slug === "cakes-desserts") || null;
+  }
+  if (clean.includes("car") || clean.includes("transport")) {
+    return CANONICAL_VENDOR_CATEGORIES.find((c) => c.slug === "car-rentals") || null;
+  }
+  if (clean.includes("flower") || clean.includes("floral")) {
+    return CANONICAL_VENDOR_CATEGORIES.find((c) => c.slug === "flower-decoration") || null;
+  }
+  if (clean.includes("gift") || clean.includes("favor")) {
+    return CANONICAL_VENDOR_CATEGORIES.find((c) => c.slug === "wedding-gifts") || null;
+  }
+  if (clean.includes("honeymoon") || clean.includes("travel") || clean.includes("trip")) {
+    return CANONICAL_VENDOR_CATEGORIES.find((c) => c.slug === "honeymoon") || null;
+  }
+  if (clean.includes("rental")) {
+    return CANONICAL_VENDOR_CATEGORIES.find((c) => c.slug === "rental-services") || null;
+  }
+  if (clean.includes("dj") || clean.includes("music") || clean.includes("band") || clean.includes("entertain")) {
+    return CANONICAL_VENDOR_CATEGORIES.find((c) => c.slug === "entertainment") || null;
+  }
+  if (clean.includes("choreo") || clean.includes("dance")) {
+    return CANONICAL_VENDOR_CATEGORIES.find((c) => c.slug === "choreographers") || null;
+  }
 
-  // Unrecognized
   return null;
+}
+
+/**
+ * Gets a high quality category-specific fallback image so cards never show
+ * the wrong category's cover image.
+ */
+export function getCategoryFallbackImage(category: string | null | undefined): string {
+  const norm = normalizeCategory(category);
+  if (norm?.image) return norm.image;
+
+  const cat = (category || "").toLowerCase();
+  if (cat.includes("venue") || cat.includes("hall") || cat.includes("palace") || cat.includes("resort") || cat.includes("auditorium")) {
+    return "/images/venues-cover.png";
+  }
+  if (cat.includes("photo") || cat.includes("camera") || cat.includes("video")) {
+    return "/images/photographers-cover.png";
+  }
+  if (cat.includes("makeup") || cat.includes("glam") || cat.includes("beauty")) {
+    return "/images/makeup-cover.png";
+  }
+  if (cat.includes("mehendi") || cat.includes("mehndi") || cat.includes("henna")) {
+    return "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=1200&q=80";
+  }
+  if (cat.includes("bridal") || cat.includes("sari") || cat.includes("lehenga")) {
+    return "/images/bridal-studio-cover.png";
+  }
+  if (cat.includes("groom") || cat.includes("sherwani") || cat.includes("suit")) {
+    return "/images/groom-wear-cover.png";
+  }
+  if (cat.includes("cater") || cat.includes("food") || cat.includes("sadya")) {
+    return "https://images.unsplash.com/photo-1555244162-803834f70033?auto=format&fit=crop&w=800&q=80";
+  }
+  if (cat.includes("decor") || cat.includes("flower") || cat.includes("planner")) {
+    return "/images/decor-planning-cover.png";
+  }
+  if (cat.includes("invite") || cat.includes("card")) {
+    return "/images/invitations-cover.png";
+  }
+  if (cat.includes("jewel") || cat.includes("gold") || cat.includes("ornament")) {
+    return "/images/jewellery-cover.png";
+  }
+  return "/images/wedding-studio-cover.png";
+}
+
+/**
+ * Resolves the primary public category discovery URL (e.g. /venues, /makeup, /photographers)
+ */
+export function getCategoryDiscoveryHref(category: string | null | undefined): string {
+  const norm = normalizeCategory(category);
+  const slug = norm?.slug;
+
+  if (slug === "venues") return "/venues";
+  if (slug === "photographers") return "/photographers";
+  if (slug === "makeup") return "/makeup";
+  if (slug === "mehendi") return "/mehendi-artists";
+  if (slug === "caterers") return "/catering";
+  if (slug === "decor-planning") return "/decor-planning";
+  if (slug === "invitation-designers") return "/invitations";
+  if (slug === "jewellery") return "/jewellery";
+  if (slug === "bridal-studio") return "/categories/bridal-studio";
+  if (slug === "groom-studio") return "/categories/groom-studio";
+  if (slug === "wedding-studio") return "/wedding-story";
+  if (slug) return `/categories/${slug}`;
+
+  return "/vendors";
+}
+
+/**
+ * Resolves the canonical profile URL for any vendor
+ */
+export function getCategoryStorefrontHref(vendorIdOrSlug: string): string {
+  return `/boutiques/${vendorIdOrSlug}`;
 }
 
 export const categories: CategoryCard[] = CANONICAL_VENDOR_CATEGORIES;
@@ -637,3 +827,4 @@ export function getCategoryBySlug(slug: string): CategoryCard | null {
   const norm = normalizeCategory(slug);
   return norm ? categoryMap.get(norm.slug) ?? norm : null;
 }
+

@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { BottomNavBar } from "@/components/BottomNavBar";
 import { invitationVendors } from "@/lib/bridalAndInvitationData";
+import { getCategoryFallbackImage } from "@/lib/categories";
 
 export function InvitationsListing() {
   const [search, setSearch] = useState("");
@@ -28,18 +29,22 @@ export function InvitationsListing() {
       .then((res) => res.json())
       .then((json) => {
         if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+          const fallbackImg = getCategoryFallbackImage("invitation-designers");
           const mapped = json.data.map((dbV: any) => ({
             id: dbV.id,
             name: dbV.name,
             subtitle: dbV.tagline || dbV.about || "Luxury Bespoke Wedding Invitations",
             location: dbV.city || dbV.state || "Kerala, India",
             rating: dbV.rating || 4.9,
+            reviews: dbV.reviewCount || 0,
             reviewsCount: dbV.reviewCount || 0,
+            price: dbV.startingPrice || "₹150 / card",
             startingPrice: dbV.startingPrice || "₹150 / card",
             category: "Invitations",
+            isVerified: dbV.isVerified ?? true,
             verified: dbV.isVerified ?? true,
-            heroImage: dbV.coverImage || dbV.logo || "",
-            image: dbV.coverImage || dbV.logo || "",
+            heroImage: dbV.coverImage || dbV.logo || fallbackImg,
+            image: dbV.coverImage || dbV.logo || fallbackImg,
             tags: ["Bespoke", "Boxed Invites", "Digital PDF"],
           }));
 
@@ -55,7 +60,7 @@ export function InvitationsListing() {
     return invitationsList.filter((v) => {
       return (
         v.name.toLowerCase().includes(search.toLowerCase()) ||
-        v.location.toLowerCase().includes(search.toLowerCase()) ||
+        (v.location && v.location.toLowerCase().includes(search.toLowerCase())) ||
         (v.tags && v.tags.some((t: string) => t.toLowerCase().includes(search.toLowerCase())))
       );
     });
@@ -72,9 +77,9 @@ export function InvitationsListing() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#FAF7F2] pb-24 text-[#2D2520]">
+    <div className="min-h-screen flex flex-col bg-[#FAF9F6] pb-24 text-[#2D2520]">
       <main className="flex-1">
-        {/* Header Breadcrumb & Title (Picture 3) */}
+        {/* Top Header Row with Circular Back Arrow & Breadcrumb (Picture 1) */}
         <div className="px-4 pt-4 pb-2">
           <div className="flex items-center gap-3">
             <Link
@@ -87,110 +92,85 @@ export function InvitationsListing() {
 
             <div>
               <nav className="flex items-center gap-1.5 text-xs text-[#7A6E65]">
-                <Link href="/" className="hover:underline">Home</Link>
-                <span>&gt;</span>
-                <Link href="/categories" className="hover:underline">Vendors</Link>
-                <span>&gt;</span>
-                <span className="text-[#0F4C45] font-medium">Invitation Designers</span>
+                <Link href="/categories" className="hover:underline">Categories</Link>
+                <span>/</span>
+                <span className="text-[#0F4C45] font-medium">Invitations</span>
               </nav>
-
               <h1 className="font-serif text-[24px] sm:text-[30px] font-bold text-[#0F4C45] leading-tight">
-                Invitation Designers
+                Wedding Invitations
               </h1>
             </div>
           </div>
 
           <p className="mt-2 text-[13px] sm:text-[14px] text-[#5A6561] leading-snug">
-            Find the perfect invitation for your perfect day.
+            Bespoke printed invites, boxed luxury cards &amp; digital invites.
           </p>
         </div>
 
-        {/* Search Bar */}
+        {/* Search Bar (Picture 1) */}
         <div className="px-4 py-2.5">
-          <div className="flex items-center gap-2.5 rounded-2xl bg-white px-4 py-2.5 shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-black/5">
+          <div className="flex items-center gap-2.5 rounded-full bg-white px-4 py-2.5 shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-black/5">
+            <Search className="h-4 w-4 shrink-0 text-[#8C827A]" />
             <input
               type="text"
-              placeholder="Search designers, styles, themes..."
+              placeholder="Search invite designers, styles (boxed, digital, floral)..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full bg-transparent text-[14px] outline-none placeholder:text-[#AAA29A] text-[#1A1410]"
             />
-            <Search className="h-4 w-4 shrink-0 text-[#8C827A]" />
           </div>
         </div>
 
-        {/* Filter Chips */}
-        <div className="flex gap-2 overflow-x-auto px-4 py-2 scrollbar-none text-[12px]">
-          <button className="flex shrink-0 items-center gap-1.5 rounded-full border border-black/10 bg-white px-3.5 py-1.5 font-medium text-[#4A3F35]">
-            <SlidersHorizontal className="h-3.5 w-3.5" /> Filters
+        {/* Filter Pills (Picture 1) */}
+        <div className="flex gap-2 overflow-x-auto px-4 py-2 scrollbar-none">
+          <button className="flex shrink-0 items-center gap-1.5 rounded-full bg-[#0F4C45] px-3.5 py-1.5 text-[12px] font-semibold text-white shadow-xs">
+            <SlidersHorizontal className="h-3.5 w-3.5" />
+            All Filters
           </button>
-          <button className="flex shrink-0 items-center gap-1 rounded-full border border-black/10 bg-white px-3.5 py-1.5 font-medium text-[#4A3F35]">
-            Location <ChevronDown className="h-3.5 w-3.5 opacity-60" />
+          <button className="flex shrink-0 items-center gap-1 rounded-full border border-black/10 bg-white px-3.5 py-1.5 text-[12px] font-medium text-[#4A3F35] hover:bg-black/5">
+            City <ChevronDown className="h-3.5 w-3.5 opacity-60" />
           </button>
-          <button className="flex shrink-0 items-center gap-1 rounded-full border border-black/10 bg-white px-3.5 py-1.5 font-medium text-[#4A3F35]">
-            Style <ChevronDown className="h-3.5 w-3.5 opacity-60" />
+          <button className="flex shrink-0 items-center gap-1 rounded-full border border-black/10 bg-white px-3.5 py-1.5 text-[12px] font-medium text-[#4A3F35] hover:bg-black/5">
+            Type <ChevronDown className="h-3.5 w-3.5 opacity-60" />
           </button>
-          <button className="flex shrink-0 items-center gap-1 rounded-full border border-black/10 bg-white px-3.5 py-1.5 font-medium text-[#4A3F35]">
-            Price <ChevronDown className="h-3.5 w-3.5 opacity-60" />
+          <button className="flex shrink-0 items-center gap-1 rounded-full border border-black/10 bg-white px-3.5 py-1.5 text-[12px] font-medium text-[#4A3F35] hover:bg-black/5">
+            Price / Card <ChevronDown className="h-3.5 w-3.5 opacity-60" />
           </button>
         </div>
 
-        {/* Luxury Banner Card (Picture 3) */}
-        <div className="mx-4 my-3 rounded-2xl bg-[#F5EFE4] border border-[#E8DFD1] p-4 flex items-center justify-between shadow-xs">
-          <div className="max-w-[58%] space-y-1.5">
-            <h3 className="font-serif text-[18px] font-bold text-[#1A1410]">
-              Luxury Invitations
-            </h3>
-            <p className="text-[12px] text-[#5A6561] leading-tight">
-              Timeless designs that set the tone for your special day.
-            </p>
-            <button className="mt-1 rounded-lg border border-black/20 bg-white px-3 py-1 text-[11px] font-bold text-[#1A1410]">
-              Explore Styles
-            </button>
-          </div>
-          <div className="relative w-[36%] aspect-square rounded-xl overflow-hidden shadow-xs border border-white">
-            <Image
-              src="/images/invitations-cover.png"
-              alt="Luxury Invites"
-              fill
-              className="object-cover"
-            />
-          </div>
+        {/* Section Title & Results Count (Picture 1) */}
+        <div className="px-4 pt-4 pb-2">
+          <h2 className="font-serif text-[18px] font-bold text-[#1A1410]">
+            Featured Invitation Designers
+          </h2>
+          <p className="text-[12px] text-[#7A6E65] mt-0.5">
+            {filtered.length} designers available
+          </p>
         </div>
 
-        {/* Sort & Counter Header */}
-        <div className="px-4 pt-2 pb-1 flex items-center justify-between text-[12px]">
-          <p className="text-[#7A6E65] font-medium">{filtered.length} Invitation Designers</p>
-          <div className="flex items-center gap-1 text-[#1A1410] font-bold">
-            <span>Sort by</span>
-            <span className="text-[#0F4C45]">Popular</span>
-            <ChevronDown className="h-3.5 w-3.5" />
-          </div>
-        </div>
-
-        {/* Designer Cards List (Picture 3) */}
-        <div className="px-4 space-y-4 mt-2">
+        {/* Vendor List (Picture 1) */}
+        <div className="px-4 space-y-4">
           {filtered.map((item) => {
             const isSaved = wishlist.has(item.id);
             return (
               <div
                 key={item.id}
-                className="group relative overflow-hidden rounded-2xl bg-white p-3 border border-black/5 shadow-[0_2px_12px_rgba(0,0,0,0.03)] flex flex-col sm:flex-row gap-3 transition-shadow hover:shadow-[0_4px_18px_rgba(0,0,0,0.06)]"
+                className="group overflow-hidden rounded-2xl bg-white p-3 border border-black/5 shadow-[0_2px_10px_rgba(0,0,0,0.03)] flex flex-col sm:flex-row gap-3 transition-shadow hover:shadow-[0_4px_16px_rgba(0,0,0,0.06)]"
               >
-                {/* Left Card Image */}
-                <div className="relative aspect-square w-full sm:w-[130px] shrink-0 overflow-hidden rounded-xl bg-gray-100">
+                {/* Left Image */}
+                <div className="relative aspect-[4/3] sm:aspect-square w-full sm:w-[130px] shrink-0 overflow-hidden rounded-xl bg-gray-100">
                   <Image
-                    src={item.image}
+                    src={item.image || "/images/invitations-cover.png"}
                     alt={item.name}
                     fill
                     className="object-cover transition-transform duration-500 group-hover:scale-105"
                   />
                   <button
                     onClick={(e) => toggleWishlist(e, item.id)}
-                    className="absolute top-2 right-2 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 shadow-sm backdrop-blur-xs transition-transform active:scale-90"
+                    className="absolute top-2 right-2 flex h-7 w-7 items-center justify-center rounded-full bg-white/90 shadow-sm backdrop-blur-xs transition-transform active:scale-90"
                   >
                     <Heart
-                      className="h-4 w-4"
+                      className="h-3.5 w-3.5"
                       style={{
                         color: isSaved ? "#E8614A" : "#8C827A",
                         fill: isSaved ? "#E8614A" : "none",
@@ -225,7 +205,7 @@ export function InvitationsListing() {
                       <div className="flex items-center gap-1 font-bold text-[#1A1410]">
                         <Star className="h-3.5 w-3.5 fill-[#C8A96A] text-[#C8A96A]" />
                         <span>{item.rating}</span>
-                        <span className="text-[#9A8D7D] font-normal">({item.reviews} reviews)</span>
+                        <span className="text-[#9A8D7D] font-normal">({item.reviews ?? item.reviewsCount ?? 0} reviews)</span>
                       </div>
                     </div>
 
@@ -247,7 +227,7 @@ export function InvitationsListing() {
                     </div>
 
                     <p className="mt-2 text-[12px] text-[#7A6E65] font-medium">
-                      Starting <span className="text-[#1A1410] font-bold">{item.price}</span>
+                      Starting <span className="text-[#1A1410] font-bold">{item.price || item.startingPrice || "₹150 / card"}</span>
                     </p>
                   </div>
 
@@ -274,13 +254,13 @@ export function InvitationsListing() {
             <h4 className="font-serif text-[15px] font-bold text-[#1A1410]">
               Looking for something unique?
             </h4>
-            <p className="text-[11px] text-[#7A6E65] mt-0.5 leading-tight">
-              Tell us your requirements and we&apos;ll match you with the best designers.
+            <p className="text-[12px] text-[#7A6E65] mt-0.5 leading-snug">
+              Get bespoke gold-foil, acrylic &amp; custom boxed luxury invites crafted.
             </p>
-            <button className="mt-2 rounded-lg border border-black/20 bg-white px-3 py-1 text-[11px] font-bold text-[#1A1410]">
-              Post a Request
-            </button>
           </div>
+          <button className="shrink-0 rounded-xl bg-[#0F4C45] px-3.5 py-2 text-[12px] font-bold text-white shadow-xs">
+            Custom Order
+          </button>
         </div>
       </main>
 

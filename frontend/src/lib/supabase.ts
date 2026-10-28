@@ -1248,8 +1248,16 @@ async function resolvePublicVendor(identifier: string) {
     if (v) return { vendor: v, error: null };
   }
 
-  // Fallback: if identifier is a generic/mock id like 'venue-1' or no exact vendor found by ID,
-  // fetch the most recently updated vendor in the 'venues' category from database
+  // Check by boutique slug or id
+  const byBoutiqueSlug = await supabaseFetch(`boutiques?or=(slug.eq.${id},id.eq.${id})&select=id`);
+  const bRow = firstRow(byBoutiqueSlug.data);
+  if (bRow?.id) {
+    const byBId = await supabaseFetch(`vendors?id=eq.${encodeURIComponent(bRow.id)}&deleted_at=is.null&select=*,vendor_categories(name,slug)`);
+    const vendor = firstRow(byBId.data);
+    if (vendor) return { vendor, error: null };
+  }
+
+  // Fallback: if identifier is a mock id like 'venue-1', resolve an actual venue
   if (identifier.toLowerCase().includes("venue")) {
     const venueCatRes = await supabaseFetch(`vendor_categories?slug=ilike.*venue*&select=id`);
     const catId = firstRow(venueCatRes.data)?.id;
@@ -1258,9 +1266,6 @@ async function resolvePublicVendor(identifier: string) {
       const v = firstRow(byCat.data);
       if (v) return { vendor: v, error: null };
     }
-    const latestVendorRes = await supabaseFetch(`vendors?deleted_at=is.null&order=updated_at.desc&limit=1&select=*,vendor_categories(name,slug)`);
-    const lv = firstRow(latestVendorRes.data);
-    if (lv) return { vendor: lv, error: null };
   }
 
   return { vendor: null, error: byProfileSlug.error || byCode.error || null };

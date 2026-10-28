@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSupabaseConfig, supabaseFetch } from "@/lib/supabase";
+import { normalizeCategory, getCategoryFallbackImage } from "@/lib/categories";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -13,8 +14,10 @@ const CATEGORY_SYNONYMS: Record<string, string[]> = {
   "makeup-artists": ["makeup", "makeup-artist", "bridal-makeup", "makeup-artists"],
   "makeup-artist": ["makeup", "makeup-artist", "bridal-makeup", "makeup-artists"],
   "bridal-makeup": ["makeup", "makeup-artist", "bridal-makeup", "makeup-artists"],
-  photographers: ["photographers", "photographer", "videographer"],
-  photographer: ["photographers", "photographer", "videographer"],
+  photographers: ["photographers", "photographer"],
+  photographer: ["photographers", "photographer"],
+  videographers: ["videographer", "videographers", "videography"],
+  videographer: ["videographer", "videographers", "videography"],
   catering: ["catering", "caterer", "caterers", "catering-food", "catering-and-food"],
   caterer: ["catering", "caterer", "caterers", "catering-food", "catering-and-food"],
   "catering-food": ["catering", "caterer", "caterers", "catering-food", "catering-and-food"],
@@ -104,10 +107,14 @@ export async function GET(req: Request) {
     
     // Add category filter if provided
     if (categorySlug && categorySlug.toLowerCase() !== "all") {
-      const matchingSlugs = getMatchingSlugs(categorySlug);
+      const targetNorm = normalizeCategory(categorySlug);
+      const targetCanonicalSlug = targetNorm?.slug || categorySlug.toLowerCase().trim();
+      const matchingSlugs = getMatchingSlugs(targetCanonicalSlug);
       const allCats = await getCachedVendorCategories();
       const matchedCatIds = allCats
         .filter((c: any) => {
+          const cNorm = normalizeCategory(c.id || c.slug || c.name);
+          if (cNorm && targetNorm && cNorm.slug === targetNorm.slug) return true;
           const rawSlug = (c.slug || "").toLowerCase();
           const cleanSlug = rawSlug.replace(/-\d+$/, "");
           const cName = (c.name || "").toLowerCase();
@@ -161,8 +168,12 @@ export async function GET(req: Request) {
       const socialList = Array.isArray(v.vendor_social_links) ? v.vendor_social_links : [];
       const cateringDetail = Array.isArray(v.catering_details) && v.catering_details.length > 0 ? v.catering_details[0] : {};
 
+      const vNorm = normalizeCategory(v.vendor_categories?.slug || v.vendor_categories?.name || v.category_id);
+      const catTitle = vNorm?.title || v.vendor_categories?.name || "Vendor";
+      const catSlug = vNorm?.slug || v.vendor_categories?.slug || "general";
+
       const logoImg = profile.logo_media?.cdn_url || profile.logo_url || "";
-      const coverImg = profile.cover_media?.cdn_url || profile.cover_image || gallery.find((g: any) => g.media?.cdn_url)?.media?.cdn_url || "";
+      const coverImg = profile.cover_media?.cdn_url || profile.cover_image || gallery.find((g: any) => g.media?.cdn_url)?.media?.cdn_url || getCategoryFallbackImage(catSlug);
       const startingPrice = services.length > 0 ? Math.min(...services.map((s: any) => Number(s.base_price || 0)).filter((p: number) => p > 0)) : (profile.starting_price || 0);
 
       const instagram = socialList.find((s: any) => s.platform === "instagram")?.url || contact.instagram || "";
@@ -175,8 +186,8 @@ export async function GET(req: Request) {
         vendorCode: v.vendor_code,
         slug: profile.slug || v.vendor_code || v.id,
         name: profile.business_name || "Unnamed Vendor",
-        category: v.vendor_categories?.name || "Vendor",
-        categorySlug: v.vendor_categories?.slug || "general",
+        category: catTitle,
+        categorySlug: catSlug,
         city: profile.city || "Kochi",
         state: profile.state || "Kerala",
         rating: Number(profile.rating ?? 0),

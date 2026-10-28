@@ -12,7 +12,7 @@ import { PopularNearYouSection } from "@/components/PopularNearYouSection";
 import { PhotographersForYouSection } from "@/components/PhotographersForYouSection";
 import { WeddingPlanningJourneySection } from "@/components/WeddingPlanningJourneySection";
 import { Sparkles, MapPin, Calendar, BookHeart, Plus, ArrowRight, Star, Heart, Flame } from "lucide-react";
-import { HOMEPAGE_CATEGORY_STRIP } from "@/lib/categories";
+import { HOMEPAGE_CATEGORY_STRIP, normalizeCategory, getCategoryFallbackImage } from "@/lib/categories";
 import { RealWeddingStoryDb } from "@/lib/realWeddings";
 import { VendorCardSkeleton } from "@/components/skeletons/VendorCardSkeleton";
 
@@ -46,21 +46,28 @@ export default function Home() {
           try {
             const data = await vRes.json();
             if (data.success && Array.isArray(data.data) && data.data.length > 0) {
-              allPublicVendors = data.data.map((v: any) => ({
-                id: v.id,
-                slug: v.slug || v.id,
-                name: v.name || "Verified Vendor",
-                category: v.category || "Wedding Expert",
-                categorySlug: v.categorySlug || "vendors",
-                city: v.city || "Kerala",
-                rating: Number(v.rating || 0),
-                reviewCount: Number(v.reviewCount || 0),
-                startingPrice: v.startingPrice || "Contact for pricing",
-                coverImage:
-                  v.coverImage ||
-                  v.logo ||
-                  "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=80",
-              }));
+              allPublicVendors = data.data.map((v: any) => {
+                const norm = normalizeCategory(v.categorySlug || v.category);
+                const catTitle = norm?.title || v.category || "Wedding Expert";
+                const catSlug = norm?.slug || v.categorySlug || "vendors";
+                const fallbackImg = getCategoryFallbackImage(v.category || catSlug);
+
+                return {
+                  id: v.id,
+                  slug: v.slug || v.id,
+                  name: v.name || "Verified Vendor",
+                  category: catTitle,
+                  categorySlug: catSlug,
+                  city: v.city || "Kerala",
+                  rating: Number(v.rating || 0),
+                  reviewCount: Number(v.reviewCount || 0),
+                  startingPrice: v.startingPrice || "Contact for pricing",
+                  coverImage:
+                    v.coverImage ||
+                    v.logo ||
+                    fallbackImg,
+                };
+              });
             }
           } catch (e) {}
         }
@@ -70,27 +77,34 @@ export default function Home() {
           try {
             const bData = await bRes.json();
             if (Array.isArray(bData) && bData.length > 0) {
-              boutiqueVendors = bData.map((b: any) => ({
-                id: String(b.id),
-                slug: b.slug || String(b.id),
-                name: b.name || b.boutique_name || "Luxury Boutique",
-                category: b.category || "Wedding Vendor",
-                categorySlug: "venues",
-                city: b.city || "Kerala",
-                rating: Number(b.rating || 0),
-                reviewCount: Number(b.review_count || 0),
-                startingPrice: (() => {
-                  const raw = b.starting_price || b.startingPrice;
-                  if (!raw) return "Contact for pricing";
-                  if (typeof raw === "string" && raw.startsWith("₹")) return raw;
-                  const num = Number(String(raw).replace(/[^\d.]/g, ""));
-                  return !isNaN(num) && num > 0 ? `₹${num.toLocaleString("en-IN")}` : String(raw);
-                })(),
-                coverImage:
-                  b.cover_image ||
-                  b.logo ||
-                  "/images/venues-cover.png",
-              }));
+              boutiqueVendors = bData.map((b: any) => {
+                const norm = normalizeCategory(b.category);
+                const catTitle = norm?.title || b.category || "Wedding Vendor";
+                const catSlug = norm?.slug || b.categorySlug || "vendors";
+                const fallbackImg = getCategoryFallbackImage(b.category || catSlug);
+
+                return {
+                  id: String(b.id),
+                  slug: b.slug || String(b.id),
+                  name: b.name || b.boutique_name || "Luxury Boutique",
+                  category: catTitle,
+                  categorySlug: catSlug,
+                  city: b.city || "Kerala",
+                  rating: Number(b.rating || 0),
+                  reviewCount: Number(b.review_count || 0),
+                  startingPrice: (() => {
+                    const raw = b.starting_price || b.startingPrice;
+                    if (!raw) return "Contact for pricing";
+                    if (typeof raw === "string" && raw.startsWith("₹")) return raw;
+                    const num = Number(String(raw).replace(/[^\d.]/g, ""));
+                    return !isNaN(num) && num > 0 ? `₹${num.toLocaleString("en-IN")}` : String(raw);
+                  })(),
+                  coverImage:
+                    b.cover_image ||
+                    b.logo ||
+                    fallbackImg,
+                };
+              });
             }
           } catch (e) {}
         }

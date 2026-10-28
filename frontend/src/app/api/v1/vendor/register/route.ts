@@ -404,17 +404,35 @@ export async function POST(req: Request) {
     }
 
     if (!categoryId) {
-      // 2. Fallback to existing vendor category ID so vendors table foreign key constraint passes
-      const fallbackCatRes = await fetch(`${url}/rest/v1/vendor_categories?select=id,name&limit=1`, {
-        headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
-      }).catch(() => null);
+      // Secondary lookup: substring match on slug in vendor_categories
+      const searchCatRes = await fetch(
+        `${url}/rest/v1/vendor_categories?slug=ilike.*${encodeURIComponent(canonicalSlug)}*&select=id,name,slug&limit=1`,
+        { headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` } }
+      ).catch(() => null);
 
-      if (fallbackCatRes && fallbackCatRes.ok) {
-        const fbCats = await fallbackCatRes.json().catch(() => []);
-        if (Array.isArray(fbCats) && fbCats.length > 0) {
-          categoryId = fbCats[0].id;
+      if (searchCatRes && searchCatRes.ok) {
+        const searchCats = await searchCatRes.json().catch(() => []);
+        if (Array.isArray(searchCats) && searchCats.length > 0) {
+          categoryId = searchCats[0].id;
+          categoryName = searchCats[0].name || canonicalTitle;
         }
       }
+    }
+
+    if (!categoryId) {
+      // Strict rule: NEVER silently fallback to Wedding Venues (limit=1).
+      // A vendor's registered category must remain single authoritative source of truth.
+      return NextResponse.json(
+        {
+          success: false,
+          statusCode: 422,
+          error: {
+            code: "INVALID_CATEGORY",
+            message: `Could not resolve authoritative category for "${submittedCategory}". Please select a valid category from the registration list.`,
+          },
+        },
+        { status: 422 }
+      );
     }
 
     // Step 4: Create Core Vendor Record in vendors table

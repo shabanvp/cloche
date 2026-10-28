@@ -11,6 +11,7 @@ import { searchProducts, searchBoutiques } from "@/app/actions/search";
 
 import { AdBanner } from "./AdBanner";
 import { getActiveCampaignsByPlacement, trackAdClick } from "@/lib/adStore";
+import { normalizeCategory } from "@/lib/categories";
 
 export function SearchClient() {
   const [activeTab, setActiveTab] = useState<"collections" | "boutiques">("collections");
@@ -30,12 +31,14 @@ export function SearchClient() {
 
   const categories = [
     { label: "All", value: "All" },
+    { label: "Venues", value: "Venue" },
     { label: "Bridal Studio", value: "Bridal Studio" },
     { label: "Groom Studio", value: "Groom Studio" },
     { label: "Wedding Studio", value: "Wedding Studio" },
     { label: "Photographers", value: "Photography" },
     { label: "Videographer", value: "Videographer" },
     { label: "Makeup & Hair", value: "Makeup" },
+    { label: "Mehendi Artists", value: "Mehendi" },
     { label: "Decor", value: "Decor" },
     { label: "Decorator", value: "Decorator" },
     { label: "Flower Decoration", value: "Flower" },
@@ -298,6 +301,9 @@ export function SearchClient() {
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-charcoal/80 to-transparent opacity-80"></div>
                     <div className="absolute bottom-4 left-4 right-4 text-white">
+                      <span className="text-[10px] font-bold text-gold uppercase tracking-wider block mb-0.5">
+                        {normalizeCategory((boutique as any).category || (boutique as any).category_id || boutique.tags)?.title || (boutique as any).category || boutique.tags || "Wedding Partner"}
+                      </span>
                       <h3 className="font-display text-lg font-medium mb-1 truncate flex items-center gap-2">
                         {boutique.boutique_name}
                         {boutique.plan === 'premium' && <CheckCircle2 className="w-3.5 h-3.5 text-gold fill-white" />}

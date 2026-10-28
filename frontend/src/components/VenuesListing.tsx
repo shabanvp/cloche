@@ -14,6 +14,7 @@ import {
 import { BottomNavBar } from "@/components/BottomNavBar";
 import { getAllVenues, VenueDetail, venues } from "@/lib/venueData";
 import { useEffect } from "react";
+import { getCategoryFallbackImage } from "@/lib/categories";
 
 const FILTERS = ["All", "Outdoor", "Indoor", "Destination", "Luxury"] as const;
 type Filter = (typeof FILTERS)[number];
@@ -35,14 +36,18 @@ export function VenuesListing() {
       .then((res) => res.json())
       .then((json) => {
         if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+          const fallbackImg = getCategoryFallbackImage("venues");
           const mapped = json.data.map((dbV: any) => ({
             id: dbV.id,
             name: dbV.name,
-            image_url: dbV.coverImage || dbV.logo || "",
+            image: dbV.coverImage || dbV.logo || fallbackImg,
+            image_url: dbV.coverImage || dbV.logo || fallbackImg,
             location: dbV.city || dbV.state || "Kerala, India",
             rating: dbV.rating || 4.9,
+            reviews: dbV.reviewCount || 0,
             review_count: dbV.reviewCount || 0,
             price_per_plate: dbV.startingPrice || "₹1,200 / plate",
+            startingPrice: dbV.startingPrice || "₹1,200 / plate",
             max_capacity: 1000,
             venue_type: "Banquet Hall & Lawns",
           }));
@@ -59,103 +64,123 @@ export function VenuesListing() {
     return allVenuesList.filter((v) => {
       const matchesSearch =
         v.name.toLowerCase().includes(search.toLowerCase()) ||
-        v.location.toLowerCase().includes(search.toLowerCase()) ||
-        v.venue_type.toLowerCase().includes(search.toLowerCase());
+        (v.location && v.location.toLowerCase().includes(search.toLowerCase())) ||
+        (v.venue_type && v.venue_type.toLowerCase().includes(search.toLowerCase()));
 
       const matchesFilter =
         activeFilter === "All" ||
-        v.venue_type.toLowerCase().includes(activeFilter.toLowerCase()) ||
-        v.location.toLowerCase().includes(activeFilter.toLowerCase());
+        (activeFilter === "Outdoor" && (v.venue_type || "").includes("Lawns")) ||
+        (activeFilter === "Indoor" && (v.venue_type || "").includes("Hall")) ||
+        (activeFilter === "Destination" && ((v.location || "").includes("Goa") || (v.location || "").includes("Udaipur") || (v.location || "").includes("Kumarakom"))) ||
+        (activeFilter === "Luxury" && (v.rating >= 4.8 || (v.venue_type || "").includes("Palace")));
 
       return matchesSearch && matchesFilter;
     });
-  }, [search, activeFilter, allVenuesList]);
+  }, [allVenuesList, search, activeFilter]);
 
-  const toggleWishlist = (e: React.MouseEvent, venue: any) => {
+  const toggleWishlist = (e: React.MouseEvent, venue: VenueDetail) => {
     e.preventDefault();
     const { toggleWishlistItem } = require("@/lib/wishlistStore");
     toggleWishlistItem({
       id: venue.id,
       name: venue.name,
-      category: "Venues",
-      price: venue.price_per_plate,
-      image: venue.image_url,
+      category: "Wedding Venues",
+      image: venue.image || (venue as any).image_url,
       location: venue.location,
-      city: venue.location ? venue.location.split(",")[0] : "Kerala",
       rating: venue.rating,
+      price: venue.startingPrice || (venue as any).price_per_plate,
+    });
+    setWishlist((prev) => {
+      const next = new Set(prev);
+      if (next.has(venue.id)) next.delete(venue.id);
+      else next.add(venue.id);
+      return next;
     });
   };
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: "#F5F0E8" }}>
-      {/* Header */}
-      <header
-        className="sticky top-0 z-40 flex items-center justify-between px-4 py-4"
-        style={{ background: "#F5F0E8" }}
-      >
+    <div
+      className="min-h-screen flex flex-col font-sans"
+      style={{ background: "#FAF9F6" }}
+    >
+      {/* Top Bar */}
+      <div className="flex items-center justify-between px-4 pt-4 pb-2">
         <Link
-          href="/categories"
-          className="flex h-10 w-10 items-center justify-center rounded-full"
-          style={{ background: "rgba(15,76,69,0.08)" }}
-          aria-label="Back to categories"
+          href="/"
+          className="flex h-10 w-10 items-center justify-center rounded-full transition-transform active:scale-95"
+          style={{ background: "#EFE9DF" }}
+          aria-label="Go back"
         >
           <ArrowLeft className="h-5 w-5" style={{ color: "#0F4C45" }} />
         </Link>
-
-        <h1
-          className="font-display text-[20px] font-bold"
+        <span
+          className="font-serif text-[18px] font-bold tracking-wide"
           style={{ color: "#0F4C45" }}
         >
-          Venues
-        </h1>
+          Wedding Venues
+        </span>
+        <div className="w-10" />
+      </div>
 
-        <button
-          className="flex h-10 w-10 items-center justify-center rounded-full"
-          style={{ background: "rgba(15,76,69,0.08)" }}
-          aria-label="Filter venues"
+      {/* Title block */}
+      <div className="px-4 pt-1 pb-3">
+        <h1
+          className="font-serif text-[26px] leading-tight font-bold"
+          style={{ color: "#0F4C45" }}
         >
-          <SlidersHorizontal className="h-5 w-5" style={{ color: "#0F4C45" }} />
-        </button>
-      </header>
+          Find your dream venue
+        </h1>
+        <p className="mt-1 text-[13px]" style={{ color: "#5A6561" }}>
+          Curated banquet halls, heritage palaces &amp; beachside resorts in Kerala
+        </p>
+      </div>
 
-      {/* Search bar */}
+      {/* Search pill */}
       <div className="px-4 pb-3">
         <div
-          className="flex items-center gap-3 rounded-2xl px-4 py-3"
-          style={{ background: "#FFFFFF", boxShadow: "0 2px 12px rgba(15,76,69,0.07)" }}
+          className="flex items-center gap-3 rounded-full px-4 py-2.5 shadow-sm"
+          style={{
+            background: "#FFFFFF",
+            boxShadow: "0 2px 10px rgba(0,0,0,0.06)",
+          }}
         >
-          <Search className="h-4 w-4 shrink-0" style={{ color: "#9A8D7D" }} />
+          <Search className="h-4 w-4 shrink-0" style={{ color: "#8C827A" }} />
           <input
             type="text"
-            placeholder="Search venues..."
+            placeholder="Search by venue name, city, style..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="flex-1 bg-transparent text-[15px] outline-none placeholder:text-[#B5A898]"
-            style={{ color: "#2D2520" }}
+            className="flex-1 bg-transparent text-[14px] outline-none placeholder:text-[#AAA29A]"
+            style={{ color: "#1A1410" }}
           />
         </div>
       </div>
 
-      {/* Filter chips */}
-      <div
-        className="flex gap-2 overflow-x-auto px-4 pb-4 scrollbar-none"
-        style={{ WebkitOverflowScrolling: "touch" }}
-      >
-        {FILTERS.map((filter) => {
-          const active = activeFilter === filter;
+      {/* Filter pills */}
+      <div className="flex items-center gap-2 overflow-x-auto px-4 pb-4 scrollbar-none">
+        <button
+          className="flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[12px] font-medium"
+          style={{ background: "#EFE9DF", color: "#0F4C45" }}
+        >
+          <SlidersHorizontal className="h-3.5 w-3.5" />
+          Filter
+        </button>
+        {FILTERS.map((f) => {
+          const active = activeFilter === f;
           return (
             <button
-              key={filter}
-              onClick={() => setActiveFilter(filter)}
-              className="shrink-0 rounded-full px-4 py-1.5 text-[13px] font-semibold transition-all"
+              key={f}
+              onClick={() => setActiveFilter(f)}
+              className="shrink-0 rounded-full px-4 py-1.5 text-[12px] font-medium transition-all"
               style={{
                 background: active ? "#0F4C45" : "#FFFFFF",
                 color: active ? "#FFFFFF" : "#4A3F35",
-                border: active ? "none" : "1px solid #E2D5C0",
-                boxShadow: active ? "0 4px 14px rgba(15,76,69,0.22)" : "none",
+                boxShadow: active
+                  ? "0 2px 8px rgba(15,76,69,0.3)"
+                  : "0 1px 4px rgba(0,0,0,0.06)",
               }}
             >
-              {filter}
+              {f}
             </button>
           );
         })}
@@ -190,7 +215,7 @@ export function VenuesListing() {
               {/* Venue image */}
               <div className="relative shrink-0 w-[120px] h-[100px]">
                 <Image
-                  src={venue.image}
+                  src={venue.image || venue.image_url || "/images/venues-cover.png"}
                   alt={venue.name}
                   fill
                   sizes="120px"
@@ -220,7 +245,7 @@ export function VenuesListing() {
                     {venue.rating}
                   </span>
                   <span className="text-[12px]" style={{ color: "#9A8D7D" }}>
-                    ({venue.reviews})
+                    ({venue.reviews ?? venue.review_count ?? 0})
                   </span>
                 </div>
               </div>

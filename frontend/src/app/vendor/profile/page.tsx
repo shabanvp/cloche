@@ -282,14 +282,22 @@ export default function VendorProfile() {
             </div>
 
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-charcoal/60 mb-2">Category</label>
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-xs font-bold uppercase tracking-wider text-charcoal/60">Registered Category</label>
+                <span className="text-[10px] font-bold text-[#0F4C45] bg-[#0F4C45]/10 px-2 py-0.5 rounded-md flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3 text-[#0F4C45]" /> Authoritative
+                </span>
+              </div>
               <input
                 type="text"
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                className="w-full bg-[#FAF7F2] border border-gold/20 rounded-xl p-3 text-sm text-charcoal focus:outline-none focus:border-[#0F4C45]"
-                placeholder="e.g. Bridal Wear / Photography"
+                readOnly
+                disabled
+                value={category || "Verified Business Category"}
+                className="w-full bg-[#FAF7F2]/80 border border-gold/20 rounded-xl p-3 text-sm text-charcoal font-semibold cursor-not-allowed opacity-90 select-none"
               />
+              <p className="text-[11px] text-charcoal/50 mt-1">
+                Your primary business category is authoritative and verified. To request a category change, contact Cloche Support.
+              </p>
             </div>
 
             <div>

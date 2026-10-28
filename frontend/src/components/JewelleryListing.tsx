@@ -17,6 +17,7 @@ import {
 import { BottomNavBar } from "@/components/BottomNavBar";
 import { Footer } from "@/components/Footer";
 import { jewelleryVendors, JewelleryVendor } from "@/lib/jewelleryData";
+import { getCategoryFallbackImage } from "@/lib/categories";
 
 export function JewelleryListing() {
   const [search, setSearch] = useState("");
@@ -28,18 +29,22 @@ export function JewelleryListing() {
       .then((res) => res.json())
       .then((json) => {
         if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+          const fallbackImg = getCategoryFallbackImage("jewellery");
           const mapped = json.data.map((dbV: any) => ({
             id: dbV.id,
             name: dbV.name,
             subtitle: dbV.tagline || dbV.about || "Heritage Bridal Jewellery & Temple Ornaments",
             location: dbV.city || dbV.state || "Kerala, India",
             rating: dbV.rating || 4.9,
+            reviews: dbV.reviewCount || 0,
             reviewsCount: dbV.reviewCount || 0,
+            price: dbV.startingPrice || "₹25,000 / set",
             startingPrice: dbV.startingPrice || "₹25,000 / set",
             category: "Jewellery",
+            isVerified: dbV.isVerified ?? true,
             verified: dbV.isVerified ?? true,
-            heroImage: dbV.coverImage || dbV.logo || "",
-            image: dbV.coverImage || dbV.logo || "",
+            heroImage: dbV.coverImage || dbV.logo || fallbackImg,
+            image: dbV.coverImage || dbV.logo || fallbackImg,
             badge: "BIS Hallmarked",
           }));
 
@@ -55,8 +60,8 @@ export function JewelleryListing() {
     return jewelleryList.filter((v) => {
       return (
         v.name.toLowerCase().includes(search.toLowerCase()) ||
-        v.location.toLowerCase().includes(search.toLowerCase()) ||
-        v.subtitle.toLowerCase().includes(search.toLowerCase())
+        (v.location && v.location.toLowerCase().includes(search.toLowerCase())) ||
+        (v.subtitle && v.subtitle.toLowerCase().includes(search.toLowerCase()))
       );
     });
   }, [search, jewelleryList]);
@@ -72,9 +77,9 @@ export function JewelleryListing() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#FAF7F2] pb-24 text-[#2D2520]">
+    <div className="min-h-screen flex flex-col bg-[#FAF9F6] pb-24 text-[#2D2520]">
       <main className="flex-1">
-        {/* Top Header Row (Back Arrow on Left, Title Centered in Middle below Cloche Header) */}
+        {/* Top Header Row with Circular Back Arrow */}
         <div className="px-4 pt-4 pb-2">
           <div className="flex items-center justify-between">
             <Link
@@ -86,7 +91,7 @@ export function JewelleryListing() {
             </Link>
 
             <h1 className="font-serif text-[24px] sm:text-[28px] font-bold text-[#0F4C45] text-center">
-              Jewellery
+              Bridal Jewellery
             </h1>
 
             <button
@@ -96,32 +101,10 @@ export function JewelleryListing() {
               <SlidersHorizontal className="h-4 w-4" />
             </button>
           </div>
-          <p className="mt-1 text-[13px] text-[#5A6561] text-center">
-            Bridal Jewellery, Polki, Kundan &amp; Diamonds
-          </p>
-        </div>
 
-        {/* Hero Dark Banner Card (Picture 1: Timeless Elegance for Your Forever) */}
-        <div className="mx-4 my-3 rounded-2xl bg-[#09221F] text-white p-4 relative overflow-hidden shadow-md flex items-center justify-between">
-          <div className="max-w-[58%] z-10 space-y-2">
-            <h2 className="font-serif text-[20px] font-bold leading-tight">
-              Timeless Elegance for Your Forever
-            </h2>
-            <p className="text-[12px] text-white/80 leading-snug">
-              Discover exquisite jewellery for your special day.
-            </p>
-            <button className="mt-1 inline-flex items-center gap-1 rounded-xl bg-[#155E56] px-4 py-1.5 text-[12px] font-bold text-white shadow-xs">
-              Explore Collections
-            </button>
-          </div>
-          <div className="relative w-[38%] aspect-square rounded-xl overflow-hidden border border-white/20 shadow-sm">
-            <Image
-              src="/images/jewellery-cover.png"
-              alt="Jewellery Hero"
-              fill
-              className="object-cover"
-            />
-          </div>
+          <p className="mt-1 text-[13px] sm:text-[14px] text-[#5A6561] text-center">
+            Gold, diamonds, uncut polki &amp; heritage temple jewellery
+          </p>
         </div>
 
         {/* Search Bar */}
@@ -130,44 +113,42 @@ export function JewelleryListing() {
             <Search className="h-4 w-4 shrink-0 text-[#8C827A]" />
             <input
               type="text"
-              placeholder="Search jewellery, vendors, collections..."
+              placeholder="Search temple jewellery, polki, diamonds, gold..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-transparent text-[13px] sm:text-[14px] outline-none placeholder:text-[#AAA29A] text-[#1A1410]"
+              className="w-full bg-transparent text-[14px] outline-none placeholder:text-[#AAA29A] text-[#1A1410]"
             />
           </div>
         </div>
 
-        {/* Category Circular Badges (Picture 1: Bridal Jewellery, Gold, Diamond, Polki, Kundan, Temple, Rental) */}
-        <div className="flex gap-3 overflow-x-auto px-4 py-3 scrollbar-none text-center text-[11px]">
-          {[
-            { label: "Bridal Jewellery", icon: "💎" },
-            { label: "Gold", icon: "👑" },
-            { label: "Diamond", icon: "✨" },
-            { label: "Polki", icon: "🌸" },
-            { label: "Kundan", icon: "⚜️" },
-            { label: "Temple", icon: "🏛️" },
-            { label: "Rental", icon: "🔑" },
-          ].map((cat, idx) => (
-            <button key={idx} className="flex flex-col items-center shrink-0 w-[64px]">
-              <div className="flex h-13 w-13 items-center justify-center rounded-full bg-[#FAF5EA] border border-[#E8DFD1] shadow-xs text-xl">
-                {cat.icon}
-              </div>
-              <span className="mt-1 font-medium text-[#4A3F35] leading-tight">{cat.label}</span>
+        {/* Quick Filter Chips */}
+        <div className="flex gap-2 overflow-x-auto px-4 py-2 scrollbar-none">
+          {["All Jewellery", "Temple Gold", "Diamond Sets", "Polki & Kundan", "Rental Sets"].map((chip, idx) => (
+            <button
+              key={chip}
+              className={`shrink-0 rounded-full px-4 py-1.5 text-[12px] font-semibold transition-all ${
+                idx === 0
+                  ? "bg-[#0F4C45] text-white shadow-xs"
+                  : "bg-white text-[#4A3F35] border border-black/10 hover:bg-black/5"
+              }`}
+            >
+              {chip}
             </button>
           ))}
         </div>
 
-        {/* Section Header */}
-        <div className="px-4 pt-2 pb-1 flex items-center justify-between">
-          <h2 className="font-serif text-[18px] font-bold text-[#1A1410]">
-            Featured Jewellery Vendors
+        {/* Results Header */}
+        <div className="px-4 pt-3 pb-2 flex items-center justify-between">
+          <h2 className="font-serif text-[17px] font-bold text-[#1A1410]">
+            Featured Jewellery Houses
           </h2>
-          <button className="text-[12px] font-bold text-[#0F4C45]">View all</button>
+          <span className="text-[12px] text-[#7A6E65]">
+            {filtered.length} boutiques found
+          </span>
         </div>
 
-        {/* Vendor List Cards (Picture 1) */}
-        <div className="px-4 space-y-4 mt-2">
+        {/* Vendors List */}
+        <div className="px-4 space-y-3.5">
           {filtered.map((v) => {
             const isSaved = wishlist.has(v.id);
             return (
@@ -176,9 +157,9 @@ export function JewelleryListing() {
                 className="group relative overflow-hidden rounded-2xl bg-white p-3 border border-black/5 shadow-[0_2px_12px_rgba(0,0,0,0.03)] flex flex-col sm:flex-row gap-3 transition-shadow hover:shadow-[0_4px_18px_rgba(0,0,0,0.06)]"
               >
                 {/* Image */}
-                <div className="relative aspect-square w-full sm:w-[130px] shrink-0 overflow-hidden rounded-xl bg-gray-100">
+                <div className="relative aspect-[3/4] sm:aspect-square w-full sm:w-[130px] shrink-0 overflow-hidden rounded-xl bg-gray-100">
                   <Image
-                    src={v.image}
+                    src={v.image || "/images/jewellery-cover.png"}
                     alt={v.name}
                     fill
                     className="object-cover transition-transform duration-500 group-hover:scale-105"
@@ -219,7 +200,7 @@ export function JewelleryListing() {
                       <div className="flex items-center gap-1 font-bold text-[#1A1410]">
                         <Star className="h-3.5 w-3.5 fill-[#C8A96A] text-[#C8A96A]" />
                         <span>{v.rating}</span>
-                        <span className="text-[#9A8D7D] font-normal">({v.reviews})</span>
+                        <span className="text-[#9A8D7D] font-normal">({v.reviews ?? v.reviewsCount ?? 0})</span>
                       </div>
                       <div className="flex items-center gap-1 text-[#6B5E52]">
                         <MapPin className="h-3.5 w-3.5 text-[#8C827A]" />
@@ -244,7 +225,7 @@ export function JewelleryListing() {
                   <div className="mt-3 flex items-center justify-between pt-2 border-t border-black/5">
                     <div>
                       <span className="text-[10px] text-[#8C827A] block leading-none">Starting from</span>
-                      <span className="text-[15px] font-bold text-[#0F4C45]">{v.price}</span>
+                      <span className="text-[15px] font-bold text-[#0F4C45]">{v.price || v.startingPrice || "₹25,000 / set"}</span>
                     </div>
 
                     <Link

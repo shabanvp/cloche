@@ -8,6 +8,7 @@ import { BottomNavBar } from "@/components/BottomNavBar";
 import { Footer } from "@/components/Footer";
 import { mehendiVendors } from "@/lib/mehendiData";
 import { toggleWishlistItem, getWishlistItems } from "@/lib/wishlistStore";
+import { getCategoryFallbackImage } from "@/lib/categories";
 
 const MEHENDI_CHIPS = ["All", "Bridal Heavy", "Arabic", "Portrait", "Organic Henna", "Family Pack"];
 
@@ -22,18 +23,22 @@ export function MehendiListing() {
       .then((res) => res.json())
       .then((json) => {
         if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+          const fallbackImg = getCategoryFallbackImage("mehendi");
           const mapped = json.data.map((dbV: any) => ({
             id: dbV.id,
             name: dbV.name,
             subtitle: dbV.tagline || dbV.about || "Bridal Mehendi Artist Specialist",
             location: dbV.city || dbV.state || "Kerala, India",
             rating: dbV.rating || 4.9,
+            reviews: dbV.reviewCount || 0,
             reviewsCount: dbV.reviewCount || 0,
+            price: dbV.startingPrice || "₹4,500",
             startingPrice: dbV.startingPrice || "₹4,500",
             category: "Mehendi",
+            isVerified: dbV.isVerified ?? true,
             verified: dbV.isVerified ?? true,
-            heroImage: dbV.coverImage || dbV.logo || "",
-            image: dbV.coverImage || dbV.logo || "",
+            heroImage: dbV.coverImage || dbV.logo || fallbackImg,
+            image: dbV.coverImage || dbV.logo || fallbackImg,
             chips: ["Bridal Heavy", "Organic Henna"],
           }));
 
@@ -59,18 +64,21 @@ export function MehendiListing() {
     return mehendiList.filter((artist) => {
       const q = search.toLowerCase().trim();
       const matchesSearch =
-        !q || artist.name.toLowerCase().includes(q) || artist.location.toLowerCase().includes(q) || artist.subtitle.toLowerCase().includes(q);
+        !q ||
+        artist.name.toLowerCase().includes(q) ||
+        (artist.location && artist.location.toLowerCase().includes(q)) ||
+        (artist.subtitle && artist.subtitle.toLowerCase().includes(q));
 
       const targetChip = activeChip.toLowerCase().replace("bridal ", "").replace(" pack", "").trim();
       const matchesChip =
         activeChip === "All" ||
         (artist.chips && artist.chips.some((c: string) => c.toLowerCase().includes(targetChip))) ||
         ((artist as any).tags && (artist as any).tags.some((t: string) => t.toLowerCase().includes(targetChip))) ||
-        artist.subtitle.toLowerCase().includes(targetChip);
+        (artist.subtitle && artist.subtitle.toLowerCase().includes(targetChip));
 
       return matchesSearch && matchesChip;
     });
-  }, [search, activeChip, mehendiList]);
+  }, [mehendiList, search, activeChip]);
 
   const handleWishlistToggle = (e: React.MouseEvent, item: any) => {
     e.preventDefault();
@@ -78,7 +86,7 @@ export function MehendiListing() {
     toggleWishlistItem({
       id: item.id,
       name: item.name,
-      category: "Mehendi",
+      category: "Mehendi Artists",
       image: item.image,
       location: item.location,
       rating: item.rating,
@@ -87,46 +95,54 @@ export function MehendiListing() {
 
   return (
     <div className="min-h-screen bg-[#FAF9F6] text-[#2D2520] flex flex-col pb-24 font-sans">
-      {/* Warm #F8F5F0 Header */}
-      <section className="w-full bg-[#EFE8DE] border-b border-[#E2D6C7] py-4 px-4 sm:px-6">
-        <div className="max-w-6xl mx-auto space-y-2.5">
+      {/* Top Hero Section */}
+      <section className="bg-gradient-to-b from-[#EFE8DE] to-[#FAF9F6] pt-6 pb-4 px-4 sm:px-6 border-b border-[#E8DFC5]">
+        <div className="max-w-6xl mx-auto space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#E2D6C7] text-[#0F4C45] text-[9.5px] font-bold uppercase tracking-wider">
-                <Flower2 className="w-2.5 h-2.5 text-[#0F4C45]" />
-                <span>Exquisite Henna Collection</span>
+              <div className="flex items-center gap-1.5 text-xs text-[#7A6E65] mb-1">
+                <Link href="/" className="hover:underline">Home</Link>
+                <span>/</span>
+                <Link href="/categories" className="hover:underline">Categories</Link>
+                <span>/</span>
+                <span className="text-[#0F4C45] font-semibold">Bridal Mehendi</span>
               </div>
-              <h1 className="font-serif text-xl sm:text-2xl font-bold text-[#0F4C45] mt-0.5">
+              <h1 className="font-serif text-2xl sm:text-3xl font-bold text-[#0F4C45]">
                 Bridal Mehendi Artists
               </h1>
+              <p className="text-xs sm:text-sm text-[#5C5549] mt-0.5">
+                Traditional Rajasthani, Arabic &amp; modern portrait henna specialists.
+              </p>
             </div>
-            <span className="text-[11px] font-bold text-[#0F4C45] bg-white/70 px-2.5 py-1 rounded-full border border-[#E2D6C7]">
-              {filteredVendors.length} Artists
-            </span>
+
+            <div className="hidden sm:flex items-center gap-2 bg-[#0F4C45]/10 text-[#0F4C45] px-3 py-1.5 rounded-full text-xs font-semibold">
+              <Flower2 className="w-3.5 h-3.5" />
+              <span>100% Organic Henna</span>
+            </div>
           </div>
 
-          {/* Search & Chips Row */}
-          <div className="flex flex-col sm:flex-row gap-2">
-            <div className="relative flex-1 flex items-center bg-white rounded-xl px-2.5 py-1 shadow-xs border border-[#E2D6C7]">
-              <Search className="w-3.5 h-3.5 text-[#8C827A] mr-2 shrink-0" />
+          {/* Search Bar & Chips */}
+          <div className="space-y-2.5">
+            <div className="relative">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8C827A]" />
               <input
                 type="text"
-                placeholder="Search artist or city..."
+                placeholder="Search henna artists, styles (Arabic, portrait, bridal)..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full bg-transparent text-xs text-[#2D2520] outline-none placeholder:text-[#AAA29A]"
+                className="w-full pl-10 pr-4 py-2.5 bg-white rounded-full border border-[#D7C2A0]/60 text-xs sm:text-sm text-[#2D2520] placeholder:text-[#8C827A] focus:outline-none focus:border-[#0F4C45] shadow-sm transition-all"
               />
             </div>
 
-            <div className="flex gap-1.5 overflow-x-auto scrollbar-none py-0.5">
+            <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
               {MEHENDI_CHIPS.map((chip) => {
-                const active = activeChip === chip;
+                const isSelected = activeChip === chip;
                 return (
                   <button
                     key={chip}
                     onClick={() => setActiveChip(chip)}
-                    className={`shrink-0 px-3 py-1 rounded-full text-[10.5px] font-semibold transition-all cursor-pointer ${
-                      active
+                    className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-all ${
+                      isSelected
                         ? "bg-[#0F4C45] text-white shadow-xs"
                         : "bg-white text-[#4A3F35] border border-[#E2D6C7] hover:bg-[#EFE8DE]"
                     }`}
@@ -145,7 +161,7 @@ export function MehendiListing() {
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5 sm:gap-3">
           {filteredVendors.map((artist) => {
             const isSaved = wishlist.has(String(artist.id));
-            const startingPrice = artist.price || "₹5k+";
+            const startingPrice = artist.price || artist.startingPrice || "₹5k+";
 
             return (
               <Link
@@ -155,7 +171,7 @@ export function MehendiListing() {
               >
                 <div className="relative aspect-[16/11] w-full overflow-hidden bg-[#EFE8DE]">
                   <Image
-                    src={artist.image}
+                    src={artist.image || "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=1200&q=80"}
                     alt={artist.name}
                     fill
                     className="object-cover group-hover:scale-105 transition-transform duration-500"
@@ -189,9 +205,7 @@ export function MehendiListing() {
                       <h2 className="font-serif font-bold text-[12.5px] text-[#2D2520] group-hover:text-[#0F4C45] transition-colors truncate">
                         {artist.name}
                       </h2>
-                      {artist.isVerified && (
-                        <CheckCircle2 className="w-3 h-3 text-[#C8A96A] shrink-0" />
-                      )}
+                      <CheckCircle2 className="w-3 h-3 text-[#C8A96A] shrink-0" />
                     </div>
 
                     <p className="text-[10px] text-[#7A6E65] line-clamp-1 leading-tight mt-0.5">

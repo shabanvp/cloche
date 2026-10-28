@@ -15,49 +15,16 @@ import {
 import { BottomNavBar } from "@/components/BottomNavBar";
 import { AutocompleteSearch } from "@/components/AutocompleteSearch";
 import { Boutique } from "@/types";
+import { normalizeCategory } from "@/lib/categories";
 
-// Map tags / plan keywords to display category labels
+// Authoritative category resolution using verified registered database category
 function resolveCategory(boutique: Boutique): string {
-  const tags = (boutique.tags || "").toLowerCase();
-  const plan = (boutique.plan || "").toLowerCase();
-  const name = (boutique.boutique_name || (boutique as any).name || "").toLowerCase();
-
-  if (tags.includes("videographer") || tags.includes("video") || name.includes("video") || name.includes("film") || name.includes("cinema")) return "Videographer";
-  if (tags.includes("photo") || name.includes("photo") || name.includes("frame") || name.includes("media")) return "Photographer";
-  if (tags.includes("makeup") || name.includes("makeup") || name.includes("beauty") || name.includes("glam")) return "Makeup Artist";
-  if (tags.includes("wedding planner") || tags.includes("planner") || name.includes("sutra") || name.includes("planner")) return "Wedding Planner";
-  if (tags.includes("flower decoration") || tags.includes("floral") || name.includes("flower")) return "Flower Decoration";
-  if (tags.includes("decorator") || tags.includes("decor") || name.includes("decor")) return "Decorator";
-  if (tags.includes("cake designer") || tags.includes("cake") || name.includes("bake")) return "Cake Designer";
-  if (tags.includes("entertainment") || tags.includes("dj") || tags.includes("music") || name.includes("band")) return "Entertainment";
-  if (tags.includes("choreographer") || tags.includes("dance") || name.includes("dance") || name.includes("choreo")) return "Choreographer";
-  if (tags.includes("car rental") || tags.includes("car") || tags.includes("transport") || name.includes("car")) return "Car Rental";
-  if (tags.includes("rental services") || tags.includes("rental") || name.includes("rental") || name.includes("rent")) return "Rental Services";
-  if (tags.includes("gift store") || tags.includes("gift") || tags.includes("favor") || name.includes("gift")) return "Gift Store";
-  if (tags.includes("honeymoon planners") || tags.includes("honeymoon") || tags.includes("travel") || name.includes("tour")) return "Honeymoon Planners";
-  if (tags.includes("groom studio") || tags.includes("groom wear") || tags.includes("groom") || name.includes("sherwani") || name.includes("tuxedo")) return "Groom Studio";
-  if (tags.includes("wedding studio") || name.includes("wedding studio")) return "Wedding Studio";
-  if (tags.includes("jewel") || name.includes("jewel") || name.includes("gold") || name.includes("diamond")) return "Jewellery";
-  if (tags.includes("catering") || name.includes("cater") || name.includes("food")) return "Catering";
-  if (tags.includes("mehendi") || name.includes("mehendi") || name.includes("henna")) return "Mehendi Artist";
-  return "Bridal Studio";
+  const norm = normalizeCategory((boutique as any).category || (boutique as any).category_id || boutique.tags);
+  return norm?.title || (boutique as any).category || boutique.tags || "Wedding Vendor";
 }
 
 function resolveDetailHref(boutique: Boutique): string {
-  const category = resolveCategory(boutique).toLowerCase();
-  const id = boutique.id;
-  if (category.includes("venue")) return `/venues/${id}`;
-  if (category.includes("photo")) return `/photographers/${id}`;
-  if (category.includes("makeup")) return `/makeup-artists/${id}`;
-  if (category.includes("decor") || category.includes("planner")) return `/decor-planning/${id}`;
-  if (category.includes("cater")) return `/catering/${id}`;
-  if (category.includes("jewel")) return `/jewellery/${id}`;
-  if (category.includes("invitat")) return `/invitations/${id}`;
-  if (category.includes("mehendi")) return `/mehendi-artists/${id}`;
-  if (category.includes("bridal")) return `/categories/bridal-studio/${id}`;
-  if (category.includes("groom")) return `/categories/groom-studio/${id}`;
-  if (category.includes("wedding-studio") || category.includes("wedding studio")) return `/categories/wedding-studio/${id}`;
-  return `/boutiques/${id}`;
+  return `/boutiques/${boutique.id}`;
 }
 
 const CATEGORY_FILTERS = [

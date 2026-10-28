@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { BottomNavBar } from "@/components/BottomNavBar";
 import { cateringVendors } from "@/lib/cateringData";
+import { getCategoryFallbackImage } from "@/lib/categories";
 
 export function CateringListing() {
   const [search, setSearch] = useState("");
@@ -27,6 +28,7 @@ export function CateringListing() {
       .then((res) => res.json())
       .then((json) => {
         if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+          const fallbackImg = getCategoryFallbackImage("caterers");
           const mapped = json.data.map((dbV: any) => ({
             id: dbV.id,
             name: dbV.name,
@@ -37,13 +39,18 @@ export function CateringListing() {
             price: dbV.startingPrice || "₹450 / plate",
             badge: "Featured Caterer",
             verified: dbV.isVerified ?? true,
-            heroImage: dbV.coverImage || dbV.logo || "",
-            image: dbV.coverImage || dbV.logo || "",
+            isVerified: dbV.isVerified ?? true,
+            heroImage: dbV.coverImage || dbV.logo || fallbackImg,
+            image: dbV.coverImage || dbV.logo || fallbackImg,
             gallery: [dbV.coverImage || dbV.logo, dbV.logo].filter(Boolean),
             cuisines: dbV.cuisineTypes?.length > 0 ? dbV.cuisineTypes : ["Kerala", "South Indian", "North Indian"],
             specialties: dbV.cateringSpecialities?.length > 0 ? dbV.cateringSpecialities : ["Sadya", "Live Counters"],
             services: dbV.serviceTypes?.length > 0 ? dbV.serviceTypes : ["Wedding Catering", "Reception"],
             capacity: dbV.guestCapacity || "100 - 1500 Guests",
+            prices: [
+              { category: "Standard", price: dbV.startingPrice || "₹450 / plate" },
+              { category: "Premium", price: dbV.startingPrice ? `${dbV.startingPrice}` : "₹650 / plate" },
+            ],
           }));
 
           // Put real DB vendors at top
@@ -59,8 +66,8 @@ export function CateringListing() {
     return vendorList.filter((v) => {
       const matchesSearch =
         v.name.toLowerCase().includes(search.toLowerCase()) ||
-        v.location.toLowerCase().includes(search.toLowerCase()) ||
-        v.subtitle.toLowerCase().includes(search.toLowerCase());
+        (v.location && v.location.toLowerCase().includes(search.toLowerCase())) ||
+        (v.subtitle && v.subtitle.toLowerCase().includes(search.toLowerCase()));
       return matchesSearch;
     });
   }, [search, vendorList]);
@@ -100,51 +107,10 @@ export function CateringListing() {
               <SlidersHorizontal className="h-4 w-4" />
             </button>
           </div>
-          <p className="mt-2 text-[13px] sm:text-[14px] text-[#5A6561] text-center leading-snug">
-            Delicious cuisines for your perfect celebration
+
+          <p className="mt-1 text-[13px] sm:text-[14px] text-[#5A6561] text-center">
+            Kerala sadya, grand buffets &amp; curated culinary spreads
           </p>
-        </div>
-
-        {/* Hero Banner */}
-        <div className="mx-4 mt-3 mb-4 relative overflow-hidden rounded-2xl h-[200px] sm:h-[240px]">
-          <Image
-            src="https://images.unsplash.com/photo-1555244162-803834f70033?auto=format&fit=crop&w=1200&q=80"
-            alt="Catering & Food"
-            fill
-            className="object-cover object-center"
-            priority
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/30 to-transparent" />
-          <div className="absolute inset-0 flex flex-col justify-center px-5">
-            <h2 className="font-serif text-[26px] font-bold text-white leading-tight">
-              Catering<br />&amp; Food
-            </h2>
-            <p className="mt-1 text-[13px] text-white/80 leading-snug">
-              Delicious cuisines for your<br />perfect celebration
-            </p>
-            <button className="mt-3 w-fit rounded-full bg-[#C8A96A] px-5 py-2 text-[12px] font-bold text-[#0F4C45]">
-              Explore Services
-            </button>
-          </div>
-        </div>
-
-        {/* Category Pills */}
-        <div className="flex gap-2 overflow-x-auto px-4 py-2 scrollbar-none text-[12px]">
-          {["Catering & Food", "Decor & Planning", "Photography", "Entertainment", "Invitations"].map(
-            (chip) => (
-              <button
-                key={chip}
-                onClick={() => setActiveChip(chip)}
-                className={`shrink-0 rounded-full px-4 py-1.5 font-medium transition-all ${
-                  activeChip === chip
-                    ? "bg-[#0F4C45] text-white font-bold"
-                    : "bg-white text-[#4A3F35] border border-black/10 hover:bg-black/5"
-                }`}
-              >
-                {chip}
-              </button>
-            )
-          )}
         </div>
 
         {/* Search Bar */}
@@ -153,52 +119,54 @@ export function CateringListing() {
             <Search className="h-4 w-4 shrink-0 text-[#8C827A]" />
             <input
               type="text"
-              placeholder="Search catering services..."
+              placeholder="Search caterers, sadya, live counters..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-transparent text-[13px] sm:text-[14px] outline-none placeholder:text-[#AAA29A] text-[#1A1410]"
+              className="w-full bg-transparent text-[14px] outline-none placeholder:text-[#AAA29A] text-[#1A1410]"
             />
           </div>
         </div>
 
-        {/* Top Catering Services Banner */}
-        <div className="px-4 pt-3 pb-1 flex items-center justify-between">
-          <h2 className="font-serif text-[18px] font-bold text-[#1A1410]">Top Catering Services</h2>
-          <button className="text-[12px] font-bold text-[#0F4C45]">View All</button>
-        </div>
-        <div className="mx-4 mb-4 relative overflow-hidden rounded-2xl bg-[#0F4C45] h-[160px]">
-          <Image
-            src="https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=1200&q=80"
-            alt="Exceptional Catering Services"
-            fill
-            className="object-cover opacity-40"
-          />
-          <div className="absolute inset-0 flex flex-col justify-center px-5">
-            <p className="text-[11px] text-[#C8A96A] font-semibold uppercase tracking-wider">
-              Flavors that Delight
-            </p>
-            <h3 className="mt-1 font-serif text-[22px] font-bold text-white leading-tight">
-              Exceptional<br />Catering<br />Services
-            </h3>
-            <p className="mt-1 text-[12px] text-white/70">From traditional feasts to modern delicacies.</p>
-            <button className="mt-3 w-fit rounded-full bg-[#C8A96A] px-5 py-2 text-[12px] font-bold text-[#0F4C45]">
-              Book Now
-            </button>
-          </div>
+        {/* Quick Filter Chips */}
+        <div className="flex gap-2 overflow-x-auto px-4 py-2 scrollbar-none">
+          {["All Caterers", "Sadya Specialist", "Royal Buffet", "Live Counters", "Continental"].map((chip) => {
+            const isActive = activeChip === chip || (chip === "All Caterers" && activeChip === "Catering & Food");
+            return (
+              <button
+                key={chip}
+                onClick={() => setActiveChip(chip)}
+                className={`shrink-0 rounded-full px-4 py-1.5 text-[12px] font-semibold transition-all ${
+                  isActive
+                    ? "bg-[#0F4C45] text-white shadow-xs"
+                    : "bg-white text-[#4A3F35] border border-black/10 hover:bg-black/5"
+                }`}
+              >
+                {chip}
+              </button>
+            );
+          })}
         </div>
 
-        {/* Popular Catering Services List */}
-        <div className="px-4 pt-2 pb-1 flex items-center justify-between">
-          <div>
-            <h2 className="font-serif text-[18px] font-bold text-[#1A1410]">
-              Popular Catering Services
-            </h2>
-          </div>
+        {/* Results Header */}
+        <div className="px-4 pt-3 pb-2 flex items-center justify-between">
+          <h2 className="font-serif text-[17px] font-bold text-[#1A1410]">
+            Featured Wedding Caterers
+          </h2>
+          <span className="text-[12px] text-[#7A6E65]">
+            {filtered.length} caterers found
+          </span>
         </div>
 
-        <div className="px-4 space-y-4 mt-2">
+        {/* Vendors List */}
+        <div className="px-4 space-y-3.5">
           {filtered.map((vendor) => {
             const isSaved = wishlist.has(vendor.id);
+            const priceDisplay =
+              vendor.prices?.[1]?.price ||
+              vendor.prices?.[0]?.price ||
+              vendor.price ||
+              "₹450 / plate";
+
             return (
               <div
                 key={vendor.id}
@@ -207,7 +175,7 @@ export function CateringListing() {
                 {/* Image */}
                 <div className="relative aspect-[3/4] sm:aspect-square w-full sm:w-[130px] shrink-0 overflow-hidden rounded-xl bg-gray-100">
                   <Image
-                    src={vendor.image}
+                    src={vendor.image || "/images/catering-cover.png"}
                     alt={vendor.name}
                     fill
                     className="object-cover transition-transform duration-500 group-hover:scale-105"
@@ -253,7 +221,7 @@ export function CateringListing() {
                     </div>
 
                     <div className="mt-2 flex items-center gap-1 text-[12px] font-bold text-[#1A1410]">
-                      <span>{vendor.prices[1]?.price}</span>
+                      <span>{priceDisplay}</span>
                       <span className="text-[#7A6E65] font-normal">Onwards</span>
                     </div>
                   </div>

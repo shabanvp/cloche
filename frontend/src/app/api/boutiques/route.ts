@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabaseFetch } from "@/lib/supabase";
+import { normalizeCategory } from "@/lib/categories";
 
 function normalizeImageUrl(value: any): string {
   if (!value) return "";
@@ -75,6 +76,10 @@ export async function GET() {
         const bId = String(b.id);
         seenIds.add(bId);
 
+        const norm = normalizeCategory(b.category || b.category_id || b.tags);
+        const catName = norm?.title || b.category || b.tags || "Wedding Vendor";
+        const catSlug = norm?.slug || "vendors";
+
         resultList.push({
           id: b.id,
           boutique_name: b.boutique_name || b.name || "Wedding Vendor",
@@ -85,8 +90,10 @@ export async function GET() {
           image_url: logoPic,
           city: b.city || "Kochi",
           area: b.area || b.district || "Kerala",
-          category: b.category || b.tags || "Bridal Wear",
-          tags: b.tags || b.category || "Bridal Wear",
+          category: catName,
+          category_slug: catSlug,
+          categorySlug: catSlug,
+          tags: b.tags || catName,
           rating: b.rating ? Number(b.rating) : 4.8,
           starting_price: b.starting_price || b.startingPrice || "₹50,000",
           plan: b.plan || "Premium Partner",
@@ -97,7 +104,7 @@ export async function GET() {
 
     // 3. Query Supabase 'vendors' & 'vendor_profiles' for registered vendor accounts using select=*
     const { data: vendors, error: vErr } = await supabaseFetch(
-      "vendors?select=*,vendor_profiles(*),vendor_addresses(*)"
+      "vendors?select=*,vendor_categories(id,name,slug),vendor_profiles(*),vendor_addresses(*)"
     );
 
     if (!vErr && Array.isArray(vendors) && vendors.length > 0) {
@@ -107,7 +114,9 @@ export async function GET() {
 
         const p = Array.isArray(v.vendor_profiles) && v.vendor_profiles.length > 0 ? v.vendor_profiles[0] : {};
         const a = Array.isArray(v.vendor_addresses) && v.vendor_addresses.length > 0 ? v.vendor_addresses[0] : {};
-        const cat = v.category || "Bridal Wear";
+        const norm = normalizeCategory(v.vendor_categories?.slug || v.vendor_categories?.name || v.category_id || v.category);
+        const catName = norm?.title || v.vendor_categories?.name || v.category || "Wedding Vendor";
+        const catSlug = norm?.slug || v.vendor_categories?.slug || "vendors";
         const bName = p.business_name || v.boutique_name || v.name;
 
         if (bName) {
@@ -131,8 +140,10 @@ export async function GET() {
             image_url: logoPic,
             city: a.city || p.city || v.city || "Kochi",
             area: a.state || p.state || v.district || "Kerala",
-            category: cat,
-            tags: cat,
+            category: catName,
+            category_slug: catSlug,
+            categorySlug: catSlug,
+            tags: catName,
             rating: 4.9,
             starting_price: p.starting_price || "₹50,000",
             plan: v.plan || "Verified Vendor",

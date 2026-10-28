@@ -268,7 +268,8 @@ router.post("/signup", showcaseUpload.single("image"), async (req, res) => {
       city,
       area,
       district,
-      password
+      password,
+      category
     } = req.body;
 
     if (
@@ -305,6 +306,7 @@ router.post("/signup", showcaseUpload.single("image"), async (req, res) => {
         email: normalizedEmail,
         phone: normalizedPhone,
         city: normalizedLocation.city || String(city).trim(),
+        category: category ? String(category).trim() : null,
         plan: "Basic",
         is_verified: false,
         verification_token: verificationToken
