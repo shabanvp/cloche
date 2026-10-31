@@ -78,6 +78,8 @@ interface ChatMessage {
 export function GenieClient() {
   const [promptInput, setPromptInput] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [chatStorageKey, setChatStorageKey] = useState<string | null>(null);
+  const [sessionReady, setSessionReady] = useState(false);
   const [userContext, setUserContext] = useState<AuraUserContext | null>(null);
   const [vendorContext, setVendorContext] = useState<AuraVendorContext | null>(null);
   const [isThinking, setIsThinking] = useState(false);
@@ -87,6 +89,28 @@ export function GenieClient() {
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const restoreChat = (key: string, greeting: ChatMessage) => {
+    setChatStorageKey(key);
+    try {
+      const saved = localStorage.getItem(key);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.every((message) => message?.id && ["user", "aura"].includes(message.sender) && typeof message.text === "string")) {
+          setMessages(parsed);
+          setSessionReady(true);
+          return;
+        }
+      }
+    } catch {}
+    setMessages([greeting]);
+    setSessionReady(true);
+  };
+
+  useEffect(() => {
+    if (!sessionReady || !chatStorageKey || messages.length === 0) return;
+    try { localStorage.setItem(chatStorageKey, JSON.stringify(messages)); } catch {}
+  }, [messages, chatStorageKey, sessionReady]);
 
   // Auto-resize textarea
   useEffect(() => {
@@ -99,79 +123,45 @@ export function GenieClient() {
   // Fetch session on mount
   useEffect(() => {
     async function loadSession() {
+      const greeting: ChatMessage = { id: `aura-init-${Date.now()}`, sender: "aura", text: "Hi! How can I help?", timestamp: "Just now" };
       try {
-        // 1. Vendor check
         const vRes = await fetch("/api/v1/vendor/profile").catch(() => null);
-        if (vRes && vRes.ok) {
+        if (vRes?.ok) {
           const vJson = await vRes.json();
           if (vJson.success && vJson.data?.vendor) {
             const v = vJson.data.vendor;
             const p = vJson.data.profile || {};
             const ctx: AuraVendorContext = {
-              vendorId: v.id,
-              businessName: p.business_name || v.vendor_code || "your business",
-              category: vJson.data.category?.name || "Wedding Services",
-              categorySlug: vJson.data.category?.slug,
-              city: p.city || "Thrissur",
-              state: p.state || "Kerala",
-              about: p.about || "",
-              tagline: p.tagline || "",
-              rating: Number(p.rating || 0),
-              reviewCount: Number(p.review_count || 0),
-              startingPrice: p.starting_price,
+              vendorId: v.id, businessName: p.business_name || v.vendor_code || "your business",
+              category: vJson.data.category?.name || "Wedding Services", categorySlug: vJson.data.category?.slug,
+              city: p.city || "Thrissur", state: p.state || "Kerala", about: p.about || "", tagline: p.tagline || "",
+              rating: Number(p.rating || 0), reviewCount: Number(p.review_count || 0), startingPrice: p.starting_price,
             };
             setVendorContext(ctx);
-            setMessages([
-              {
-                id: "aura-init-vendor",
-                sender: "aura",
-                text: `Hi ${ctx.businessName}, I'm Aura — your AI assistant for Cloche. I can help you draft service packages, optimize your storefront SEO description, review client enquiries, and benchmark market pricing. What would you like to work on?`,
-                timestamp: "Just now",
-              },
-            ]);
+            restoreChat(`cloche_aura_chat_v1:vendor:${v.id}`, greeting);
             return;
           }
         }
 
-        // 2. Customer check
         const res = await fetch("/api/v1/auth/me").catch(() => null);
-        if (res && res.ok) {
+        if (res?.ok) {
           const json = await res.json();
           if (json.data?.user) {
             const u = json.data.user;
             const ctx: AuraUserContext = {
-              userId: u.id,
-              fullName: u.fullName || u.email?.split("@")[0],
-              email: u.email,
-              phone: u.phone,
-              city: u.city || "Thrissur",
-              weddingDate: u.weddingDate,
+              userId: u.id, fullName: u.fullName || u.email?.split("@")[0], email: u.email,
+              phone: u.phone, city: u.city || "Thrissur", weddingDate: u.weddingDate,
             };
             setUserContext(ctx);
-            const firstName = ctx.fullName?.split(" ")[0] || "there";
-            setMessages([
-              {
-                id: "aura-init",
-                sender: "aura",
-                text: `Hi ${firstName}, I'm Aura, your Cloche AI Wedding Concierge. How can I help with your wedding planning today?`,
-                timestamp: "Just now",
-              },
-            ]);
+            restoreChat(`cloche_aura_chat_v1:user:${u.id}`, greeting);
             return;
           }
         }
-      } catch (e) {}
+      } catch {}
 
-      setMessages([
-        {
-          id: "aura-init-guest",
-          sender: "aura",
-          text: "Hi, I'm Aura, your Cloche AI Wedding Assistant. Tell me what you're looking for — whether discovering venues, budgeting, comparing vendors, or planning your big day.",
-          timestamp: "Just now",
-        },
-      ]);
+      setMessages([greeting]);
+      setSessionReady(true);
     }
-
     loadSession();
   }, []);
 
@@ -278,7 +268,7 @@ export function GenieClient() {
 
   const handleSendPrompt = async (textToSend?: string) => {
     const query = (textToSend || promptInput).trim();
-    if (!query || isThinking) return;
+    if (!query || isThinking || !sessionReady) return;
 
     const userMessage: ChatMessage = {
       id: `user-${Date.now()}`,
@@ -538,10 +528,10 @@ export function GenieClient() {
   const currentEntityName = vendorContext?.businessName || userContext?.fullName?.split(" ")[0] || "there";
 
   return (
-    <div className="h-screen w-screen overflow-hidden flex bg-[#FAF9F6] text-[#2B2B2B] font-sans antialiased selection:bg-[#C8A96A]/30">
+    <div className="h-[calc(100dvh-64px)] md:h-[calc(100dvh-108px)] w-full overflow-hidden flex bg-[#FAF9F6] text-[#2B2B2B] font-sans antialiased selection:bg-[#C8A96A]/30">
       
       {/* Mobile Sidebar Backdrop */}
-      {isSidebarOpen && (
+      {false && isSidebarOpen && (
         <div 
           onClick={() => setIsSidebarOpen(false)}
           className="fixed inset-0 bg-black/30 z-30 md:hidden backdrop-blur-2xs transition-opacity"
@@ -549,11 +539,7 @@ export function GenieClient() {
       )}
 
       {/* Modern Left Sidebar (Like ChatGPT / Claude) */}
-      <aside 
-        className={`fixed md:static inset-y-0 left-0 z-40 bg-[#F4F1EA] border-r border-[#E5DECF] flex flex-col transition-all duration-300 ease-in-out ${
-          isSidebarOpen ? "w-[280px] translate-x-0" : "-translate-x-full md:w-0 md:translate-x-0 md:overflow-hidden md:border-r-0"
-        }`}
-      >
+      <aside className="hidden">
         <div className="w-[280px] flex flex-col h-full">
           {/* Sidebar Top: Logo & New Chat */}
           <div className="p-3.5 border-b border-[#E5DECF] flex items-center justify-between">
@@ -681,7 +667,7 @@ export function GenieClient() {
       <main className="flex-1 flex flex-col h-full min-w-0 relative bg-[#FAF9F6]">
         
         {/* Modern Top Header (Clean like ChatGPT / Claude) */}
-        <header className="h-14 border-b border-[#E8E2D7] bg-white/80 backdrop-blur-md px-4 flex items-center justify-between shrink-0 z-10">
+        <header className="hidden">
           <div className="flex items-center gap-2.5">
             {!isSidebarOpen && (
               <button
@@ -728,55 +714,6 @@ export function GenieClient() {
         <div className="flex-1 overflow-y-auto px-4 sm:px-6 md:px-8 py-6 scroll-smooth">
           <div className="max-w-3xl mx-auto w-full flex flex-col min-h-full">
             
-            {/* Minimalist Welcome State (Shown when chat starts) */}
-            {!isConversationStarted && (
-              <div className="my-auto py-8 text-center space-y-6 animate-in fade-in duration-300">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-[#0F4C45] to-[#176B61] mx-auto flex items-center justify-center text-[#C8A96A] shadow-md border border-gold/30">
-                  <Sparkles className="w-7 h-7" />
-                </div>
-
-                <div className="space-y-1.5">
-                  <h2 className="font-serif font-bold text-2xl sm:text-3xl text-[#0F4C45]">
-                    {vendorContext 
-                      ? `How can Aura help ${vendorContext.businessName}?`
-                      : `How can Aura assist your wedding, ${currentEntityName}?`}
-                  </h2>
-                  <p className="text-xs sm:text-sm text-charcoal/60 max-w-lg mx-auto leading-relaxed">
-                    {vendorContext
-                      ? "Create bespoke service packages, write SEO storefront copy, review couple enquiries, and explore Kerala wedding pricing benchmarks."
-                      : "Find verified venues, compare photographers, calculate category budgets, and craft inquiries with live Kerala directory data."}
-                  </p>
-                </div>
-
-                {/* 2x2 Clean Starter Cards (Like Claude / ChatGPT) */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-xl mx-auto text-left pt-2">
-                  {workflowActions.map((wf, idx) => {
-                    const Icon = wf.icon;
-                    return (
-                      <button
-                        key={idx}
-                        onClick={() => handleSendPrompt(wf.prompt)}
-                        disabled={isThinking}
-                        className="p-3.5 rounded-2xl bg-white hover:bg-white/90 border border-[#E2DAD0] hover:border-[#0F4C45]/40 shadow-xs hover:shadow-sm transition-all group cursor-pointer flex items-start gap-3 text-left"
-                      >
-                        <div className="p-2 rounded-xl bg-[#FAF7F2] group-hover:bg-[#0F4C45] text-[#0F4C45] group-hover:text-white transition-colors shrink-0">
-                          <Icon className="w-4 h-4" />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <h3 className="font-bold text-xs text-charcoal group-hover:text-[#0F4C45] transition-colors">
-                            {wf.title}
-                          </h3>
-                          <p className="text-[11px] text-charcoal/60 line-clamp-2 mt-0.5 leading-snug">
-                            {wf.desc}
-                          </p>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
             {/* Conversation Messages */}
             <div className="space-y-6">
               {messages.map((m) => {
@@ -1081,7 +1018,7 @@ export function GenieClient() {
           <div className="max-w-3xl mx-auto w-full space-y-2.5">
             
             {/* Quick Suggestion Chips */}
-            <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none pb-0.5">
+            <div className="hidden">
               {samplePrompts.map((p, idx) => (
                 <button
                   key={idx}
@@ -1110,16 +1047,16 @@ export function GenieClient() {
                 onKeyDown={handleKeyDown}
                 placeholder={
                   vendorContext
-                    ? "Ask Aura to draft a package, rewrite SEO description, or summarize leads..."
-                    : "Ask Aura about wedding venues, decor budgets, photographers, or checklists..."
+                  ? "Message Aura..."
+                  : "Message Aura..."
                 }
-                disabled={isThinking}
+                disabled={isThinking || !sessionReady}
                 className="w-full bg-transparent resize-none max-h-36 px-3 py-2 text-xs sm:text-sm text-charcoal placeholder:text-charcoal/45 focus:outline-none"
               />
 
               <button
                 type="submit"
-                disabled={!promptInput.trim() || isThinking}
+                disabled={!promptInput.trim() || isThinking || !sessionReady}
                 className="w-9 h-9 rounded-full bg-[#0F4C45] hover:bg-[#135951] disabled:opacity-30 disabled:hover:bg-[#0F4C45] text-white flex items-center justify-center transition-all shrink-0 cursor-pointer shadow-xs"
                 title="Send message"
               >
@@ -1128,7 +1065,7 @@ export function GenieClient() {
             </form>
 
             {/* Disclaimer */}
-            <p className="text-center text-[10.5px] text-charcoal/45">
+            <p className="hidden">
               Aura can assist with packages, pricing, and planning. Verified with live Cloche Directory data.
             </p>
           </div>

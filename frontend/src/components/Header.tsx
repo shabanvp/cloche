@@ -260,10 +260,6 @@ export function Header({ session }: HeaderProps = {}) {
     );
   };
 
-  if (pathname === "/aura" || pathname === "/genie") {
-    return null;
-  }
-
   return (
     <header className="sticky top-0 z-50 w-full flex flex-col shadow-md">
       {/* Top Bar (Hidden on Mobile) */}
