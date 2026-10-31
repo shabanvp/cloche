@@ -18,6 +18,20 @@ import { VendorCardSkeleton } from "@/components/skeletons/VendorCardSkeleton";
 
 export const dynamic = "force-dynamic";
 
+function mapBoutiqueVendor(b: any): VendorCardItem {
+  const norm = normalizeCategory(b.category);
+  const rawPrice = b.starting_price || b.startingPrice;
+  const amount = Number(String(rawPrice || "").replace(/[^\d.]/g, ""));
+  const startingPrice = !rawPrice ? "Contact for pricing" : typeof rawPrice === "string" && rawPrice.startsWith("â‚¹")
+    ? rawPrice : !isNaN(amount) && amount > 0 ? `â‚¹${amount.toLocaleString("en-IN")}` : String(rawPrice);
+  return {
+    id: String(b.id), slug: b.slug || String(b.id), name: b.name || b.boutique_name || "Luxury Boutique",
+    category: norm?.title || b.category || "Wedding Vendor", categorySlug: norm?.slug || b.categorySlug || "vendors",
+    city: b.city || "Kerala", rating: Number(b.rating || 0), reviewCount: Number(b.review_count || 0),
+    startingPrice, coverImage: b.cover_image || "", profileImage: b.profile_image || b.logo || "",
+  };
+}
+
 export default function Home() {
   const [allVendors, setAllVendors] = useState<VendorCardItem[]>([]);
   const [trendingVendors, setTrendingVendors] = useState<VendorCardItem[]>([]);
@@ -32,11 +46,21 @@ export default function Home() {
 
     async function loadData() {
       try {
-        const [vRes, bRes, sRes] = await Promise.all([
-          fetch("/api/v1/public/vendors?limit=16").catch(() => null),
-          fetch("/api/boutiques").catch(() => null),
-          fetch("/api/v1/public/real-weddings?limit=3").catch(() => null),
-        ]);
+        const boutiquesRequest = fetch("/api/boutiques")
+          .then(async (response) => {
+            if (!response.ok) return null;
+            const rows: any[] = await response.clone().json();
+            if (isMounted && Array.isArray(rows) && rows.length > 0) {
+              const quickVendors = rows.map(mapBoutiqueVendor);
+              setAllVendors(quickVendors);
+              setTrendingVendors(quickVendors.slice(0, 4));
+              setVendorsLoading(false);
+            }
+            return response;
+          })
+          .catch(() => null);
+        const storiesRequest = fetch("/api/v1/public/real-weddings?limit=3").catch(() => null);
+        const vRes = await fetch("/api/v1/public/vendors?limit=16").catch(() => null);
 
         if (!isMounted) return;
 
@@ -68,6 +92,18 @@ export default function Home() {
             }
           } catch (e) {}
         }
+
+        // Let Popular Near You render as soon as the primary vendor API responds.
+        // Boutique enrichment and wedding stories continue in parallel afterward.
+        if (allPublicVendors.length > 0) {
+          setAllVendors(allPublicVendors);
+          setTrendingVendors(allPublicVendors.slice(0, 4));
+          setFeaturedVendors(allPublicVendors.slice(4, 8));
+        }
+        if (allPublicVendors.length > 0) setVendorsLoading(false);
+
+        const [bRes, sRes] = await Promise.all([boutiquesRequest, storiesRequest]);
+        if (!isMounted) return;
 
         let boutiqueVendors: VendorCardItem[] = [];
         if (bRes) {
