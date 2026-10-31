@@ -110,7 +110,9 @@ export interface AuraResponse {
     | "vendor_review_reply_draft" 
     | "vendor_leads_summary" 
     | "vendor_growth_advice" 
-    | "general";
+    | "general"
+    | "knowledge"
+    | "unsupported";
   budgetPlan?: {
     totalBudget: number;
     guestCount: number;

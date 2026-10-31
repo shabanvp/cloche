@@ -9,6 +9,9 @@ CREATE TABLE IF NOT EXISTS aura_conversations (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+ALTER TABLE aura_conversations
+  ADD COLUMN IF NOT EXISTS context JSONB NOT NULL DEFAULT '{}'::jsonb;
+
 CREATE TABLE IF NOT EXISTS aura_messages (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   conversation_id TEXT NOT NULL REFERENCES aura_conversations(id) ON DELETE CASCADE,
