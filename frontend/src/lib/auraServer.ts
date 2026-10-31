@@ -23,6 +23,7 @@ export function getAuraIdentity(request: Request): AuraIdentity | null {
 
   const payload = verifyJwtToken(token);
   if (!payload?.userId || !Array.isArray(payload.roles)) return null;
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(payload.userId)) return null;
   if (!payload.roles.some((role) => ["customer", "user"].includes(role))) return null;
   return { userId: payload.userId, roles: payload.roles };
 }

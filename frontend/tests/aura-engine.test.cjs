@@ -65,7 +65,7 @@ test('recognizes Malayalam-English transliteration for a category and city', () 
   assert.equal(result.entities.category, 'makeup artists');
   assert.equal(result.entities.city, 'Kochi');
   assert.equal(result.topic, 'vendors');
-  assert.match(result.reply, /couldn’t find verified/i);
+  assert.match(result.reply, /couldn.{1,3}t find verified/i);
 });
 
 test('comparison is grounded in the two named verified candidates', () => {
@@ -104,4 +104,87 @@ test('answers Python and React prompts from explicit knowledge limitations', () 
   const react = processAuraTurn({ query: 'Write a React application.' });
   assert.match(python.reply, /don’t have a curated knowledge entry/i);
   assert.match(react.reply, /not a general code-generation tool/i);
+});
+
+test('shared database limiter fails closed and keeps a per-user window contract', async () => {
+  const Module = require('node:module');
+  const originalLoad = Module._load;
+  const modulePath = require.resolve('../src/lib/auraRateLimit.ts');
+  let result = true;
+  Module._load = function (request, parent, isMain) {
+    if (request === '@/lib/auraServer') return { auraDbFetch: async () => {
+      if (result instanceof Error) throw result;
+      return result;
+    } };
+    return originalLoad.call(this, request, parent, isMain);
+  };
+  delete require.cache[modulePath];
+  try {
+    const { consumeAuraRateLimit, auraRateLimitConfig } = require('../src/lib/auraRateLimit.ts');
+    assert.deepEqual(auraRateLimitConfig, { limit: 20, windowSeconds: 60 });
+    result = false;
+    assert.equal(await consumeAuraRateLimit('test-user'), false);
+    result = new Error('database unavailable');
+    await assert.rejects(consumeAuraRateLimit('test-user'), /database unavailable/);
+  } finally {
+    Module._load = originalLoad;
+    delete require.cache[modulePath];
+  }
+});
+
+test('database wrapper errors exclude raw database response bodies', async () => {
+  const Module = require('node:module');
+  const originalLoad = Module._load;
+  const originalFetch = global.fetch;
+  const oldUrl = process.env.SUPABASE_URL;
+  const oldKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const modulePath = require.resolve('../src/lib/auraServer.ts');
+  Module._load = function (request, parent, isMain) {
+    if (request === '@/lib/auth') return { verifyJwtToken: () => null };
+    return originalLoad.call(this, request, parent, isMain);
+  };
+  process.env.SUPABASE_URL = 'http://127.0.0.1:54321';
+  process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-only-key';
+  global.fetch = async () => new Response('private SQL and customer data', { status: 500 });
+  delete require.cache[modulePath];
+  try {
+    const { auraDbFetch } = require('../src/lib/auraServer.ts');
+    await assert.rejects(auraDbFetch('aura_conversations'), (error) => {
+      assert.match(error.message, /500/);
+      assert.doesNotMatch(error.message, /private SQL|customer data/);
+      return true;
+    });
+  } finally {
+    Module._load = originalLoad;
+    global.fetch = originalFetch;
+    if (oldUrl === undefined) delete process.env.SUPABASE_URL; else process.env.SUPABASE_URL = oldUrl;
+    if (oldKey === undefined) delete process.env.SUPABASE_SERVICE_ROLE_KEY; else process.env.SUPABASE_SERVICE_ROLE_KEY = oldKey;
+    delete require.cache[modulePath];
+  }
+});
+
+test('production auth refuses to use the checked-in development JWT key', () => {
+  const modulePath = require.resolve('../src/lib/auth.ts');
+  const saved = {
+    nodeEnv: process.env.NODE_ENV,
+    jwtSecret: process.env.JWT_SECRET,
+    nextAuthSecret: process.env.NEXT_AUTH_SECRET,
+  };
+  process.env.NODE_ENV = 'production';
+  delete process.env.JWT_SECRET;
+  delete process.env.NEXT_AUTH_SECRET;
+  delete require.cache[modulePath];
+  try {
+    const auth = require('../src/lib/auth.ts');
+    assert.equal(auth.verifyJwtToken('header.payload.signature'), null);
+    assert.throws(() => auth.signJwtToken({ userId: 'user', email: 'test@example.test', fullName: 'Test', roles: ['customer'] }), /secret is not configured/i);
+    process.env.JWT_SECRET = 'test-only-production-secret-longer-than-32-chars';
+    const configuredToken = auth.signJwtToken({ userId: 'user', email: 'test@example.test', fullName: 'Test', roles: ['customer'] });
+    assert.equal(auth.verifyJwtToken(configuredToken).userId, 'user');
+  } finally {
+    if (saved.nodeEnv === undefined) delete process.env.NODE_ENV; else process.env.NODE_ENV = saved.nodeEnv;
+    if (saved.jwtSecret === undefined) delete process.env.JWT_SECRET; else process.env.JWT_SECRET = saved.jwtSecret;
+    if (saved.nextAuthSecret === undefined) delete process.env.NEXT_AUTH_SECRET; else process.env.NEXT_AUTH_SECRET = saved.nextAuthSecret;
+    delete require.cache[modulePath];
+  }
 });

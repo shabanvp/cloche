@@ -1,0 +1,956 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cloche Partner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script>
+/* ====== FILL THESE IN (Supabase → Project Settings → API) ====== */
+window.CLOCHE_CONFIG={
+  supabaseUrl:'https://fumfjbcixcudjrnezfjl.supabase.co',
+  supabaseAnonKey:'sb_publishable_mT0aQeCWtVzWNDCtpuA-pQ_M3rUNV53',  // publishable key (safe in browser code)
+  siteUrl:'https://cloche.luxury',
+  termsUrl:'',           // link to Partner Terms & Conditions
+  vendorUrl:'/vendors/{slug}'  // public vendor page on your site; {slug} is replaced
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<style>
+:root{
+  --emerald:#0F4D3D; --gold:#D4AF37; --gold-ink:#8F6F0A; --gold-icon:#B8921C;
+  --bg:#FAF8F3; --card:#FFFFFF; --ink:#2D2D2D; --muted:#7B7A72; --line:#E9E4D6;
+  --soft:#EAF1ED; --goldsoft:#F7F0D8; --btn:#0F4D3D; --btn-ink:#FFFFFF; --logo:#0F4D3D;
+  --err:#B3412F; --page:#EFEBE0; --field:#FFFFFF;
+  --shadow:0 1px 2px rgba(45,45,45,.05),0 8px 22px rgba(45,45,45,.06);
+  color-scheme:light;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0E1613; --card:#16221D; --ink:#F1EEE6; --muted:#A3ADA6; --line:#26352E;
+    --soft:#1B2B25; --goldsoft:#2C2A18; --btn:#1A6B57; --logo:#8FD6BC; --page:#08100D; --field:#121D19;
+    --gold-ink:#E3C65A; --gold-icon:#E3C65A; --err:#F08A76; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0E1613; --card:#16221D; --ink:#F1EEE6; --muted:#A3ADA6; --line:#26352E;
+  --soft:#1B2B25; --goldsoft:#2C2A18; --btn:#1A6B57; --logo:#8FD6BC; --page:#08100D; --field:#121D19;
+  --gold-ink:#E3C65A; --gold-icon:#E3C65A; --err:#F08A76; color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--page);color:var(--ink);font:400 14px/1.45 Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+h1,h2,h3{font-family:"Cormorant Garamond",Georgia,"Times New Roman",serif;margin:0;font-weight:700;letter-spacing:.1px}
+button{font:inherit;color:inherit;cursor:pointer;background:none;border:0;padding:0}
+input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.ic{flex:none;display:block}
+
+.app{position:relative;width:100%;max-width:440px;margin:0 auto;background:var(--bg);display:flex;flex-direction:column;overflow-x:hidden;
+  min-height:calc(100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))}
+@media(min-width:900px){
+  .app{max-width:920px;margin:28px auto;border-radius:28px;border:1px solid var(--line);box-shadow:0 24px 60px rgba(15,77,61,.12);min-height:calc(100dvh - 56px)}
+}
+.screen{flex:1;display:flex;flex-direction:column;animation:fade .2s ease}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+@media(prefers-reduced-motion:reduce){.screen{animation:none}*{transition:none!important}}
+.pad{padding:22px 20px 8px}
+@media(min-width:900px){.pad{padding:36px 64px 8px}}
+.narrow{width:100%;max-width:560px;margin-inline:auto}
+
+/* brand */
+.brand{text-align:center;color:var(--logo)}
+.brand .orn{color:var(--gold);margin:0 auto -2px}
+.brand .word{font-family:"Cormorant Garamond",Georgia,serif;font-weight:700;line-height:1;letter-spacing:.2px}
+.brand .sub{display:block;color:var(--gold-ink);font-weight:500;letter-spacing:.42em;margin-right:-.42em}
+.brand.lg .word{font-size:48px}.brand.lg .sub{font-size:11px;margin-top:6px}
+.brand.md .word{font-size:38px}.brand.md .sub{font-size:10px;margin-top:5px}
+.brand.sm .word{font-size:26px}.brand.sm .sub{font-size:7.5px;margin-top:3px}
+
+/* progress */
+.lbl{font-size:12px;color:var(--muted)}
+.track{height:6px;border-radius:6px;background:var(--line);margin-top:8px;overflow:hidden}
+.fill{height:100%;border-radius:6px;background:var(--emerald);transition:width .3s ease}
+.title{font-size:29px;line-height:1.08;margin-top:22px}
+.subtitle{color:var(--muted);font-size:12.5px;margin:8px 0 0;max-width:36ch}
+
+/* buttons */
+.btn{position:relative;display:flex;align-items:center;justify-content:center;width:100%;height:52px;border-radius:10px;background:var(--btn);color:var(--btn-ink);font-weight:600;font-size:14.5px;transition:filter .15s,opacity .15s}
+.btn:hover{filter:brightness(1.1)}
+.btn[disabled]{opacity:.45;cursor:not-allowed;filter:none}
+.btn .arr{position:absolute;right:16px}
+.btn-o{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;height:46px;border-radius:9px;background:var(--card);border:1px solid var(--line);font-weight:500;font-size:13.5px}
+.btn-o:hover{border-color:var(--gold)}
+.cta{position:sticky;bottom:0;margin-top:auto;padding:14px 20px calc(18px + env(safe-area-inset-bottom,0px));background:linear-gradient(to bottom,transparent,var(--bg) 28%);z-index:5}
+@media(min-width:900px){.cta{padding:16px 64px 28px}.cta .btn{max-width:560px;margin-inline:auto}}
+.link{color:var(--emerald);font-weight:600;text-decoration:underline;text-underline-offset:3px}
+:root[data-theme="dark"] .link{color:var(--logo)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .link{color:var(--logo)}}
+
+/* fields */
+.fld{margin-top:16px}
+.lbl2{display:block;font-size:12.5px;font-weight:600;margin-bottom:7px}
+.req{color:var(--err)} .opt{font-weight:400;color:var(--muted)}
+.inp,.sel{position:relative;display:flex;align-items:center;height:48px;background:var(--field);border:1px solid var(--line);border-radius:9px;padding:0 13px;gap:10px;color:var(--muted)}
+.inp:focus-within,.sel:focus-within{border-color:var(--emerald);box-shadow:0 0 0 3px rgba(15,77,61,.1)}
+.inp input{flex:1;min-width:0;height:100%;border:0;background:transparent;outline:0;font-size:13.5px;color:var(--ink)}
+.inp input::placeholder{color:#A8A69C}
+.cc{display:flex;align-items:center;gap:4px;color:var(--ink);font-size:13.5px;padding-right:10px;border-right:1px solid var(--line);height:26px}
+.rs{color:var(--ink);font-size:14px}
+.sel select{flex:1;appearance:none;-webkit-appearance:none;border:0;background:transparent;outline:0;height:100%;font-size:13.5px;color:var(--ink);padding-right:24px;cursor:pointer}
+.sel select:invalid,.sel select.empty{color:#A8A69C}
+.sel .ic{position:absolute;right:13px;pointer-events:none}
+.fld.bad .inp,.fld.bad .sel{border-color:var(--err)}
+.ferr{color:var(--err);font-size:12px;margin-top:6px}
+.fgrid{display:block}
+@media(min-width:900px){.fgrid{display:grid;grid-template-columns:1fr 1fr;column-gap:20px}.fgrid .full{grid-column:1/-1}}
+.chks{display:flex;flex-direction:column;gap:11px;margin-top:2px}
+@media(min-width:900px){.chks{flex-direction:row;flex-wrap:wrap;gap:12px 26px}}
+.chk{display:flex;align-items:center;gap:10px;font-size:13.5px;cursor:pointer;position:relative}
+.chk input{position:absolute;opacity:0;width:18px;height:18px;margin:0;cursor:pointer}
+.chk .box{width:18px;height:18px;border-radius:4px;border:1.5px solid #B9B6A9;background:var(--field);display:grid;place-items:center;color:transparent;transition:.15s}
+.chk input:checked+.box{background:var(--emerald);border-color:var(--emerald);color:#fff}
+.chk input:focus-visible+.box{outline:2px solid var(--gold);outline-offset:2px}
+
+/* login */
+.hero{position:relative;height:310px;overflow:hidden}
+.hero svg{width:100%;height:100%;display:block}
+.hero::after{content:"";position:absolute;left:0;right:0;bottom:0;height:130px;background:linear-gradient(to bottom,transparent,var(--bg))}
+.hero .brand{position:absolute;top:24px;left:0;right:0;z-index:2;--logo:#0F4D3D}
+.hero .brand .sub{--gold-ink:#8F6F0A}
+@media(min-width:900px){.hero{height:400px}}
+.login-body{position:relative;z-index:2;margin-top:-72px;padding:0 20px 28px;width:100%;max-width:560px;margin-inline:auto}
+@media(min-width:900px){.login-body{padding:0 0 36px}}
+.login-body h1{font-size:31px}
+.divider{display:flex;align-items:center;gap:12px;color:var(--muted);font-size:12px;margin:14px 0 12px}
+.divider::before,.divider::after{content:"";flex:1;height:1px;background:var(--line)}
+.stack{display:grid;gap:10px}
+.fine{text-align:center;font-size:12.5px;color:var(--muted);margin-top:20px}
+.fine .link{display:block;margin-top:2px;text-decoration:none;color:var(--emerald)}
+
+/* otp */
+.topbar{display:flex;align-items:center;height:44px}
+.iconbtn{width:36px;height:36px;display:grid;place-items:center;border-radius:50%;color:var(--ink)}
+.iconbtn:hover{background:var(--soft)}
+.otp-wrap{text-align:center;padding:4px 20px 0}
+.otp-wrap h1{font-size:28px;margin-top:22px}
+.otp-wrap p{color:var(--muted);font-size:12.5px;margin:10px 0 0}
+.otp-wrap p b{color:var(--ink);font-weight:500}
+.boxes{display:flex;justify-content:center;gap:9px;margin:22px 0 4px}
+.boxes input{width:44px;height:52px;border-radius:9px;border:1px solid var(--line);background:var(--field);text-align:center;font-size:20px;font-weight:600;outline:0;color:var(--ink)}
+.boxes input:focus{border-color:var(--emerald);box-shadow:0 0 0 3px rgba(15,77,61,.12)}
+.boxes input.on{border-color:var(--emerald)}
+.resend{font-size:12px;color:var(--muted);margin-top:20px}
+.resend a,.resend button{display:inline-block;margin-top:5px;color:var(--emerald);text-decoration:underline;text-underline-offset:3px;font-size:12px;font-weight:500}
+.otp-btn{max-width:360px;margin:18px auto 0}
+.otp-art{position:relative;flex:1;min-height:220px;margin-top:22px;overflow:hidden}
+.otp-art svg{position:absolute;inset:0;width:100%;height:100%}
+.otp-art::before{content:"";position:absolute;left:0;right:0;top:0;height:80px;background:linear-gradient(to bottom,var(--bg),transparent);z-index:1}
+@media(min-width:900px){.otp-wrap{padding-inline:64px}.otp-art{min-height:300px}}
+
+/* category */
+.cgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+@media(min-width:900px){.cgrid{grid-template-columns:repeat(4,1fr);gap:16px}}
+.cat{position:relative;background:var(--card);border:1.5px solid var(--line);border-radius:12px;overflow:hidden;text-align:center;box-shadow:var(--shadow);transition:border-color .15s,transform .15s}
+.cat:hover{transform:translateY(-1px)}
+.cat .art{position:relative;height:84px;display:block}
+.cat .art svg{width:100%;height:100%;display:block}
+.cat .badge{position:absolute;left:8px;bottom:-11px;width:28px;height:28px;border-radius:50%;background:var(--card);border:1.5px solid var(--gold);display:grid;place-items:center;color:var(--gold-icon);z-index:2}
+.cat .nm{display:block;padding:15px 8px 11px;font-size:12.5px;font-weight:600}
+.cat .tick{position:absolute;top:8px;right:8px;width:22px;height:22px;border-radius:50%;background:var(--emerald);color:#fff;display:none;place-items:center;z-index:2}
+.cat[aria-pressed="true"]{border-color:var(--emerald)}
+.cat[aria-pressed="true"] .tick{display:grid}
+.cat[aria-pressed="true"] .nm{background:var(--soft)}
+.sp{height:96px}
+
+/* gallery */
+.drop{display:flex;flex-direction:column;align-items:center;gap:6px;width:100%;margin-top:20px;padding:34px 16px;border:1.5px dashed #D9C88A;border-radius:14px;background:var(--card);text-align:center;color:var(--gold-icon)}
+.drop.over{background:var(--goldsoft);border-color:var(--gold)}
+.drop b{color:var(--ink);font-size:14px;margin-top:6px}
+.drop small{color:var(--muted);font-size:12px;line-height:1.5}
+.pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px}
+@media(min-width:900px){.pgrid{grid-template-columns:repeat(5,1fr);gap:14px}}
+.thumb{position:relative;aspect-ratio:1/1;border-radius:10px;overflow:hidden;background:var(--soft)}
+.thumb svg,.thumb img{width:100%;height:100%;display:block;object-fit:cover}
+.thumb .rm{position:absolute;top:5px;right:5px;width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.92);color:#2D2D2D;display:grid;place-items:center;box-shadow:0 1px 4px rgba(0,0,0,.25)}
+.thumb.add{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border:1.5px dashed #D9C88A;background:var(--card);color:var(--muted);font-size:12px}
+.thumb.add .ic{color:var(--gold-icon)}
+
+/* documents */
+.docs{display:grid;gap:12px;margin-top:18px}
+@media(min-width:900px){.docs{grid-template-columns:1fr 1fr}}
+.doc{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;box-shadow:var(--shadow)}
+.doc .row{display:flex;align-items:center;gap:12px}
+.doc .ico{width:38px;height:38px;border-radius:50%;background:var(--goldsoft);color:var(--gold-icon);display:grid;place-items:center;flex:none}
+.doc .tt{flex:1;min-width:0;font-size:13px;font-weight:600;line-height:1.3}
+.doc .tt span{display:block;font-weight:400;color:var(--muted);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.doc .tt span.ok{color:var(--emerald)}
+:root[data-theme="dark"] .doc .tt span.ok{color:var(--logo)}
+.doc .up{display:flex;justify-content:flex-end;margin-top:8px}
+.upbtn{display:inline-flex;align-items:center;gap:8px;height:34px;padding:0 14px;border:1px solid var(--gold);border-radius:8px;color:var(--gold-ink);font-size:12.5px;font-weight:500;background:transparent}
+.upbtn:hover{background:var(--goldsoft)}
+.note{text-align:center;color:var(--muted);font-size:11.5px;margin-top:14px}
+
+/* review */
+.rhero{position:relative;height:118px;border-radius:14px;overflow:hidden;margin-top:18px}
+.rhero svg{width:100%;height:100%;display:block}
+.pill{position:absolute;right:10px;bottom:10px;display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 12px;border-radius:15px;background:rgba(255,255,255,.95);color:#2D2D2D;font-size:12.5px;font-weight:500;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.pill .ic{color:var(--gold-icon)}
+.rlist{background:var(--card);border:1px solid var(--line);border-radius:14px;margin-top:12px;box-shadow:var(--shadow)}
+.ritem{display:flex;align-items:center;gap:12px;padding:13px 14px}
+.ritem+.ritem{border-top:1px solid var(--line)}
+.ritem .ico{width:34px;height:34px;border-radius:50%;background:var(--goldsoft);color:var(--gold-icon);display:grid;place-items:center;flex:none}
+.ritem .tx{flex:1;min-width:0;font-size:12.5px;color:var(--muted);line-height:1.4}
+.ritem .tx b{display:block;color:var(--ink);font-size:13px;font-weight:600}
+.ritem .tx em{font-style:normal;color:var(--gold-ink)}
+.ritem .ed{color:var(--emerald);font-weight:600;font-size:12.5px;padding:6px 2px}
+:root[data-theme="dark"] .ritem .ed{color:var(--logo)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .ritem .ed{color:var(--logo)}}
+.confirm{display:flex;gap:10px;align-items:flex-start;margin-top:14px;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--card);font-size:12px;color:var(--muted)}
+.confirm .chk{align-items:flex-start}
+.confirm a{color:var(--emerald);text-decoration:underline}
+
+/* dashboard */
+.dh{display:flex;align-items:center;justify-content:space-between;padding:14px 18px 6px;position:relative}
+@media(min-width:900px){.dh{padding:22px 48px 6px}}
+.dh .r{display:flex;align-items:center;gap:6px}
+.bell{position:relative}
+.bell i{position:absolute;top:7px;right:8px;width:8px;height:8px;border-radius:50%;background:var(--gold);border:2px solid var(--bg)}
+.avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--emerald),#2F8F73);color:#fff;font-weight:600;font-size:13px;display:grid;place-items:center;border:2px solid var(--gold)}
+.menu{position:absolute;top:56px;left:14px;z-index:20;min-width:200px;background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:0 14px 34px rgba(0,0,0,.18);padding:6px;display:none}
+.menu.open{display:block}
+.menu button{display:block;width:100%;text-align:left;padding:11px 12px;border-radius:8px;font-size:13.5px}
+.menu button:hover{background:var(--soft)}
+.dbody{padding:10px 18px 36px;display:grid;gap:14px}
+@media(min-width:900px){.dbody{padding:10px 48px 44px;grid-template-columns:1fr 1fr;gap:18px}.dbody .full{grid-column:1/-1}}
+.welcome{display:flex;align-items:center;gap:12px;justify-content:space-between}
+.welcome h1{font-size:30px;line-height:1.05}
+.welcome p{color:var(--muted);font-size:13px;margin:6px 0 0;max-width:22ch}
+.welcome .im{width:46%;max-width:210px;height:92px;border-radius:12px;overflow:hidden;flex:none}
+.welcome .im svg{width:100%;height:100%;display:block}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:14px}
+.pc .hd{display:flex;justify-content:space-between;font-size:13px;font-weight:600}
+.pc .bar{height:6px;border-radius:6px;background:var(--line);margin:10px 0 8px;overflow:hidden}
+.pc .bar i{display:block;height:100%;background:var(--emerald);border-radius:6px}
+.pc .ft{display:flex;justify-content:space-between;align-items:center;font-size:11.5px;color:var(--muted)}
+.pc .ft button{color:var(--emerald);font-weight:600;font-size:11.5px}
+:root[data-theme="dark"] .pc .ft button{color:var(--logo)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .pc .ft button{color:var(--logo)}}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stat{position:relative;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 10px;box-shadow:var(--shadow)}
+.stat b{display:block;font-family:"Cormorant Garamond",Georgia,serif;font-size:30px;line-height:1;font-weight:700}
+.stat span{display:block;margin-top:5px;font-size:11px;color:var(--muted);line-height:1.3}
+.stat .ic{position:absolute;top:10px;right:10px;color:var(--gold-icon)}
+.sech{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+.sech h3{font-family:Inter,system-ui,sans-serif;font-size:14px;font-weight:600}
+.sech button{font-size:11.5px;color:var(--emerald);font-weight:600}
+:root[data-theme="dark"] .sech button{color:var(--logo)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .sech button{color:var(--logo)}}
+.list{padding:0}
+.li{display:flex;align-items:center;gap:12px;padding:12px 14px;font-size:13px}
+.li+.li{border-top:1px solid var(--line)}
+.li .grow{flex:1;min-width:0}
+.li .grow small{display:block;color:var(--muted);font-size:11.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.li time{color:var(--muted);font-size:11px;white-space:nowrap}
+.li .chev{color:var(--muted)}
+.li.done .grow{text-decoration:line-through;color:var(--muted)}
+.ai{width:32px;height:32px;border-radius:50%;background:var(--goldsoft);color:var(--gold-icon);display:grid;place-items:center;flex:none;font-weight:600;font-size:12px}
+.qa{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.qa button{display:flex;flex-direction:column;align-items:center;gap:7px;padding:12px 4px;border-radius:12px;background:var(--card);border:1px solid var(--line);font-size:11px;font-weight:500;line-height:1.25;text-align:center;box-shadow:var(--shadow)}
+.qa button:hover{border-color:var(--gold)}
+.qa .ib{width:34px;height:34px;border-radius:50%;background:var(--goldsoft);color:var(--gold-icon);display:grid;place-items:center}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--emerald);flex:none}
+
+#toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);background:var(--emerald);color:#fff;padding:11px 18px;border-radius:10px;font-size:13px;box-shadow:0 10px 30px rgba(0,0,0,.25);opacity:0;pointer-events:none;transition:.25s;z-index:50;max-width:calc(100% - 32px);text-align:center}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+.shake{animation:shake .3s}
+@keyframes shake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+button.li{background:none;width:100%;text-align:left}
+.loading{flex:1;display:grid;place-items:center;color:var(--muted);min-height:50vh}
+.setup{padding:56px 28px;max-width:520px;margin:auto}
+.setup h1{font-size:30px;margin:18px 0 10px}.setup code{background:var(--soft);padding:2px 6px;border-radius:5px;font-size:12.5px}
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:30}
+.sheet{position:fixed;left:50%;bottom:0;transform:translateX(-50%);width:100%;max-width:480px;background:var(--card);border-radius:18px 18px 0 0;padding:20px 20px calc(20px + env(safe-area-inset-bottom,0px));z-index:31;box-shadow:0 -10px 40px rgba(0,0,0,.25)}
+.sheet h3{font-size:26px}
+.sheet .meta{color:var(--muted);font-size:12.5px;margin:4px 0 12px}
+.sheet .msg{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:12px;font-size:13.5px;white-space:pre-wrap}
+.sacts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+.sacts a,.sacts button{display:flex;align-items:center;justify-content:center;height:44px;border-radius:9px;border:1px solid var(--line);font-size:13px;font-weight:500;text-decoration:none;color:var(--ink)}
+.sacts .primary{background:var(--btn);color:#fff;border-color:transparent;grid-column:1/-1}
+.sacts [disabled]{opacity:.5}
+.ta{width:100%;min-height:84px;border:1px solid var(--line);border-radius:9px;background:var(--field);padding:12px 13px;font:inherit;font-size:13.5px;color:var(--ink);resize:vertical;outline:0}
+.ta:focus{border-color:var(--emerald);box-shadow:0 0 0 3px rgba(15,77,61,.1)}
+.ta::placeholder{color:#A8A69C}
+</style>
+</head>
+<body>
+<main id="app" class="app" aria-live="polite"></main>
+<div id="toast" role="status"></div>
+
+<script>
+/* ---------- helpers ---------- */
+const $ = (s, r=document) => r.querySelector(s);
+const $$ = (s, r=document) => [...r.querySelectorAll(s)];
+const app = $('#app');
+
+const ICON = {
+  lock:'<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
+  arrow:'<path d="M5 12h14M13 6l6 6-6 6"/>',
+  chev:'<path d="m6 9 6 6 6-6"/>',
+  chevR:'<path d="m9 6 6 6-6 6"/>',
+  back:'<path d="m15 6-6 6 6 6"/>',
+  pin:'<path d="M12 21s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/>',
+  link:'<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
+  cloud:'<path d="M7 18a4.5 4.5 0 0 1-.6-8.96A6 6 0 0 1 18 9.5 4 4 0 0 1 17.5 18"/><path d="M12 20v-8M9 14.5l3-3 3 3"/>',
+  file:'<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/>',
+  bell:'<path d="M6 8a6 6 0 0 1 12 0c0 7 3 8 3 8H3s3-1 3-8"/><path d="M10 21a2 2 0 0 0 4 0"/>',
+  menu:'<path d="M4 7h16M4 12h16M4 17h16"/>',
+  check:'<path d="m5 12.5 4.5 4.5L19 7"/>',
+  x:'<path d="M6 6l12 12M18 6 6 18"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>',
+  pencil:'<path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16z"/>',
+  userplus:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M18 8v6M15 11h6"/>',
+  mail:'<rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>',
+  heart:'<path d="M12 20s-8-5-8-11a4.5 4.5 0 0 1 8-2.5A4.5 4.5 0 0 1 20 9c0 6-8 11-8 11z"/>',
+  eye:'<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+  msg:'<path d="M21 12a8 8 0 0 1-11.5 7.2L4 20l1-4.5A8 8 0 1 1 21 12z"/>',
+  share:'<circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="m8.2 10.8 7.6-4.6M8.2 13.2l7.6 4.6"/>',
+  tag:'<path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8.5" r="1.2"/>',
+  cal:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+  image:'<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="1.8"/><path d="m4 18 5-5 4 4 3-3 4 4"/>',
+  list:'<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>',
+  store:'<rect x="5" y="3" width="14" height="18" rx="1.5"/><path d="M9 7h2M13 7h2M9 11h2M13 11h2M10 21v-4h4v4"/>',
+  /* categories */
+  venue:'<path d="M3 21h18M5 21v-9M9 21v-9M15 21v-9M19 21v-9M12 3 3 8v2h18V8z"/>',
+  photographer:'<path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3.2"/>',
+  videographer:'<path d="m16 13 5.2 3.5a.5.5 0 0 0 .8-.4V7.9a.5.5 0 0 0-.8-.4L16 10.5"/><rect x="2" y="6" width="14" height="12" rx="2"/>',
+  bridal:'<path d="M9.5 2h5l-1 6 4.5 14H6L10.5 8z"/><path d="M8 14h8"/>',
+  groom:'<path d="M20.4 3.5 16 2a4 4 0 0 1-8 0L3.6 3.5a2 2 0 0 0-1.3 2.2l.6 3.5a1 1 0 0 0 1 .8H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.1a1 1 0 0 0 1-.8l.6-3.5a2 2 0 0 0-1.3-2.2z"/>',
+  studio:'<circle cx="9" cy="14.5" r="5"/><circle cx="15" cy="14.5" r="5"/><path d="m8 4 1 2 1-2M14 4l1 2 1-2"/>',
+  decorator:'<circle cx="12" cy="6.5" r="3.2"/><circle cx="17.5" cy="12" r="3.2"/><circle cx="12" cy="17.5" r="3.2"/><circle cx="6.5" cy="12" r="3.2"/><circle cx="12" cy="12" r="1.5"/>',
+  makeup:'<path d="M8 22V12h8v10zM9 12V8h6v4M10.5 8V3l3.5 1v4"/>',
+  jewellery:'<path d="M6 3h12l4 6-10 13L2 9z"/><path d="M11 3 8 9l4 13 4-13-3-6M2 9h20"/>',
+  invitation:'<rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>',
+  planner:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4m-8 9 2.5 2.5L16 14"/>',
+  caterer:'<path d="M3 18h18M5 18a7 7 0 0 1 14 0M12 9V7M10 7h4M2 21h20"/>'
+};
+const ic = (n, s=20, cls='') => `<svg class="ic ${cls}" width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[n]||''}</svg>`;
+const GOOGLE = '<svg class="ic" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.1z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84A11 11 0 0 0 12 23z"/><path fill="#FBBC05" d="M5.84 14.1a6.6 6.6 0 0 1 0-4.2V7.06H2.18a11 11 0 0 0 0 9.88z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1A11 11 0 0 0 2.18 7.06l3.66 2.84C6.71 7.31 9.14 5.38 12 5.38z"/></svg>';
+const APPLE = '<svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/></svg>';
+
+function brand(size){
+  return `<div class="brand ${size}"><svg class="orn ic" width="${size==='lg'?34:size==='md'?28:20}" height="${size==='lg'?34:size==='md'?28:20}" viewBox="0 0 32 32" fill="currentColor" aria-hidden="true"><path d="M16 3c3 4 3 9 0 13-3-4-3-9 0-13z"/><path d="M15 17C11 14 6 14 4 17c2 4 7 5 11 2z" opacity=".9"/><path d="M17 17c4-3 9-3 11 0-2 4-7 5-11 2z" opacity=".9"/><path d="M15.2 19h1.6v8h-1.6z"/></svg><div class="word">Cloche</div><span class="sub">PARTNER</span></div>`;
+}
+
+let _t;
+function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(_t);_t=setTimeout(()=>t.classList.remove('show'),2600)}
+
+/* ---------- illustrations (inline SVG, no remote images) ---------- */
+let UID=0;
+function rng(seed){let s=seed>>>0;return()=>{s=(Math.imul(s,1664525)+1013904223)>>>0;return s/4294967296}}
+const FL=['#F3C1B5','#F8DCCF','#FFF6EC','#E8A38C','#EFB4BE','#FFFFFF','#F6D3A8'];
+const LEAF=['#5E8F6E','#46785A','#7BA283','#3D6B52'];
+const pick=(r,a)=>a[Math.floor(r()*a.length)];
+function archPoint(t){
+  const d=t*614;
+  if(d<142)return[95,410-d];
+  if(d<472){const th=Math.PI-(d-142)/105;return[200+105*Math.cos(th),268-105*Math.sin(th)]}
+  return[305,268+(d-472)];
+}
+function qb(p0,p1,p2,t){const a=(1-t)*(1-t),b=2*(1-t)*t,c=t*t;return[a*p0[0]+b*p1[0]+c*p2[0],a*p0[1]+b*p1[1]+c*p2[1]]}
+function scene(seed,kind='arch',pal='dawn'){
+  const u='g'+(++UID), r=rng(seed*9973+7);
+  const P={dawn:['#FFF8EE','#F6D9C4','#BFCDB5','#9FB4A8'],sunset:['#FFF1DC','#F0AE86','#B7A890','#8C9C8F'],blush:['#FFF6F3','#F2CBC6','#C8CFC0','#A7B8AD'],lake:['#F4F8F4','#CFE0DA','#AEC4B8','#86A596']}[pal];
+  let o=`<svg viewBox="0 0 400 440" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Wedding decor illustration"><defs>
+  <linearGradient id="${u}s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${P[0]}"/><stop offset="1" stop-color="${P[1]}"/></linearGradient>
+  <linearGradient id="${u}w" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${P[3]}"/><stop offset="1" stop-color="#E4EEE8"/></linearGradient>
+  <linearGradient id="${u}d" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity=".95"/><stop offset="1" stop-color="#fff" stop-opacity=".35"/></linearGradient>
+  <radialGradient id="${u}g"><stop offset="0" stop-color="#FFE9A8" stop-opacity=".95"/><stop offset="1" stop-color="#FFE9A8" stop-opacity="0"/></radialGradient>
+  </defs>`;
+  if(kind==='arch'){
+    o+=`<rect width="400" height="440" fill="url(#${u}s)"/>`;
+    o+=`<path d="M0 262L64 205L118 244L196 170L286 246L346 212L400 244V330H0Z" fill="${P[2]}" opacity=".85"/><path d="M0 290L90 238L170 280L250 226L330 276L400 250V340H0Z" fill="${P[3]}" opacity=".9"/>`;
+    o+=`<rect y="300" width="400" height="70" fill="url(#${u}w)"/>`;
+    o+=`<path d="M0 362Q100 346 200 358T400 352V440H0Z" fill="#7BA283"/><path d="M0 395Q120 378 220 392T400 384V440H0Z" fill="#5E8F6E"/>`;
+    o+=`<path d="M95 410V268A105 105 0 0 1 305 268V410" fill="none" stroke="#fff" stroke-width="9" opacity=".92"/>`;
+    for(let i=0;i<80;i++){const[x,y]=archPoint(r());o+=`<ellipse cx="${(x+(r()-.5)*30).toFixed(1)}" cy="${(y+(r()-.5)*30).toFixed(1)}" rx="${8+r()*6}" ry="${3+r()*2}" fill="${pick(r,LEAF)}" transform="rotate(${Math.floor(r()*180)} ${x.toFixed(1)} ${y.toFixed(1)})"/>`}
+    for(let i=0;i<110;i++){const[x,y]=archPoint(r());const cx=x+(r()-.5)*28,cy=y+(r()-.5)*28,rr=4+r()*7;o+=`<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${rr.toFixed(1)}" fill="${pick(r,FL)}"/>`;if(rr>8)o+=`<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="2" fill="#D98F78" opacity=".7"/>`}
+    [[84,404],[316,404]].forEach(([bx,by])=>{for(let i=0;i<34;i++){const a=r()*6.28,d=r()*34;o+=`<circle cx="${(bx+Math.cos(a)*d).toFixed(1)}" cy="${(by-8+Math.sin(a)*d*.8).toFixed(1)}" r="${5+r()*8}" fill="${pick(r,FL)}"/>`}});
+    for(let i=0;i<34;i++){o+=`<circle cx="${(r()*400).toFixed(0)}" cy="${(405+r()*32).toFixed(0)}" r="${2+r()*3}" fill="${pick(r,FL)}" opacity=".9"/>`}
+    o+=`<path d="M0 0H128C100 80 74 210 36 440H0Z" fill="url(#${u}d)" opacity=".85"/><path d="M0 0H84C66 96 50 250 20 440H0Z" fill="#fff" opacity=".55"/>`;
+    o+=`<path d="M400 0H272C300 80 326 210 364 440H400Z" fill="url(#${u}d)" opacity=".85" transform="translate(400 0) scale(-1 1) translate(400 0) scale(-1 1)"/><path d="M400 0H316C334 96 350 250 380 440H400Z" fill="#fff" opacity=".55"/>`;
+  } else if(kind==='hall'){
+    o+=`<rect width="400" height="440" fill="#F7EBDD"/><rect y="0" width="400" height="300" fill="url(#${u}s)"/>`;
+    for(let i=0;i<4;i++){const x=24+i*96;o+=`<path d="M${x} 300V150a38 38 0 0 1 76 0V300Z" fill="#FFF4D8" opacity=".85"/><path d="M${x+38} 112V300M${x} 200H${x+76}" stroke="#E9D6AE" stroke-width="2" opacity=".8"/>`}
+    o+=`<rect y="300" width="400" height="140" fill="#E8D2B3"/><rect y="300" width="400" height="6" fill="#D4AF37" opacity=".5"/>`;
+    for(let i=0;i<3;i++){const x=70+i*130;o+=`<path d="M${x} 0V70" stroke="#D4AF37" stroke-width="2"/><circle cx="${x}" cy="90" r="38" fill="url(#${u}g)"/><ellipse cx="${x}" cy="84" rx="26" ry="9" fill="#D4AF37"/>`;for(let k=0;k<9;k++)o+=`<path d="M${x-24+k*6} 90v${14+r()*18}" stroke="#F5E3A0" stroke-width="2"/>`}
+    [[90,360,46],[250,386,56],[360,350,38]].forEach(([x,y,w])=>{o+=`<ellipse cx="${x}" cy="${y+18}" rx="${w}" ry="${w*.26}" fill="#B99B6B" opacity=".35"/><ellipse cx="${x}" cy="${y}" rx="${w}" ry="${w*.3}" fill="#fff"/><path d="M${x} ${y}v-26" stroke="#7BA283" stroke-width="3"/>`;for(let i=0;i<9;i++)o+=`<circle cx="${(x+(r()-.5)*34).toFixed(1)}" cy="${(y-28+(r()-.5)*20).toFixed(1)}" r="${5+r()*5}" fill="${pick(r,FL)}"/>`});
+    o+=`<path d="M0 0H70C50 100 40 220 22 360H0Z" fill="#fff" opacity=".7"/><path d="M400 0H330C350 100 360 220 378 360H400Z" fill="#fff" opacity=".7"/>`;
+  } else { /* lights */
+    o+=`<rect width="400" height="440" fill="url(#${u}s)"/><rect width="400" height="440" fill="#3A2E4D" opacity=".78"/>`;
+    o+=`<path d="M0 300L80 250L150 290L240 235L330 290L400 260V340H0Z" fill="#2A2240" opacity=".9"/><path d="M0 352Q100 336 200 348T400 342V440H0Z" fill="#2F4A3E"/><path d="M0 392Q120 376 220 390T400 382V440H0Z" fill="#26392F"/>`;
+    [[[0,40],[100,150],[200,60]],[[200,60],[300,150],[400,40]],[[0,110],[120,210],[240,120]],[[240,120],[320,190],[400,100]]].forEach(seg=>{
+      o+=`<path d="M${seg[0][0]} ${seg[0][1]} Q${seg[1][0]} ${seg[1][1]} ${seg[2][0]} ${seg[2][1]}" fill="none" stroke="#1C1626" stroke-width="1.5"/>`;
+      for(let k=0;k<=9;k++){const[x,y]=qb(seg[0],seg[1],seg[2],k/9);o+=`<circle cx="${x.toFixed(1)}" cy="${(y+5).toFixed(1)}" r="16" fill="url(#${u}g)"/><circle cx="${x.toFixed(1)}" cy="${(y+5).toFixed(1)}" r="3.2" fill="#FFE9A8"/>`}});
+    [[80,380],[200,404],[320,376]].forEach(([x,y])=>{o+=`<ellipse cx="${x}" cy="${y}" rx="40" ry="11" fill="#F4EDE0"/><path d="M${x-6} ${y-4}v-12" stroke="#E9D58A" stroke-width="3"/><circle cx="${x-6}" cy="${y-20}" r="9" fill="url(#${u}g)"/><circle cx="${x-6}" cy="${y-18}" r="2.5" fill="#FFD66B"/>`;for(let i=0;i<5;i++)o+=`<circle cx="${(x+8+r()*22).toFixed(1)}" cy="${(y-6-r()*5).toFixed(1)}" r="${3+r()*3}" fill="${pick(r,FL)}"/>`});
+  }
+  return o+'</svg>';
+}
+const TILE_PAL=[['#0F4D3D','#2B8A70','#E6CB6A'],['#F7DDD3','#EBB8A8','#0F4D3D'],['#F0E4C9','#D9C08A','#0F4D3D'],['#26332E','#0F4D3D','#F0DC95']];
+function tileArt(i,key){
+  const[a,b,c]=TILE_PAL[i%4],r=rng(i*77+3),u='t'+(++UID);
+  let o=`<svg viewBox="0 0 160 100" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs><linearGradient id="${u}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></linearGradient></defs><rect width="160" height="100" fill="url(#${u})"/>`;
+  for(let k=0;k<9;k++)o+=`<circle cx="${(r()*160).toFixed(0)}" cy="${(r()*100).toFixed(0)}" r="${6+r()*16}" fill="#fff" opacity="${(.08+r()*.12).toFixed(2)}"/>`;
+  o+=`<g transform="translate(49 16) scale(2.6)" fill="none" stroke="${c}" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round">${ICON[key]}</g></svg>`;
+  return o;
+}
+
+/* ---------- data ---------- */
+const CATS=[
+ {k:'venue',n:'Wedding Venue',biz:'Wedding Venue'},{k:'photographer',n:'Photographer',biz:'Photography business'},
+ {k:'videographer',n:'Videographer',biz:'Videography business'},{k:'bridal',n:'Bridal Studio',biz:'Bridal Studio'},
+ {k:'groom',n:'Groom Studio',biz:'Groom Studio'},{k:'studio',n:'Wedding Studio',biz:'Wedding Studio'},
+ {k:'decorator',n:'Decorator',biz:'Decor business'},{k:'makeup',n:'Makeup Artist',biz:'Makeup services'},
+ {k:'jewellery',n:'Jewellery',biz:'Jewellery business'},{k:'invitation',n:'Invitation Designer',biz:'Invitation design studio'},
+ {k:'planner',n:'Wedding Planner',biz:'Wedding Planning business'},{k:'caterer',n:'Caterer',biz:'Catering business'}
+];
+const sel=(id,label,ph,opts,req=true)=>({id,label,t:'select',ph,opts,req});
+const chk=(id,label,opts,req=false)=>({id,label,t:'check',opts,req});
+const money=(id,label,ph='e.g. 2,50,000',req=false)=>({id,label,t:'money',ph,req});
+const num=(id,label,ph,req=false)=>({id,label,t:'num',ph,req});
+const TEAM=['Solo','2 – 3 members','4 – 6 members','7+ members'];
+const QS={
+ venue:[sel('type','Venue Type','Select venue type',['Banquet Hall','Resort','Heritage Palace','Farmhouse','Beach Venue','Lawn / Garden','Hotel']),
+  sel('cap','Guest Capacity','Select capacity range',['Up to 100 guests','100 – 300 guests','300 – 600 guests','600 – 1,000 guests','1,000+ guests']),
+  chk('spaces','Indoor / Outdoor Spaces',['Indoor Hall','Outdoor Lawn','Poolside Area','Rooftop','Multiple Spaces']),
+  sel('parking','Parking','Select parking capacity',['No parking','Up to 50 vehicles','50 – 150 vehicles','150+ vehicles'],false),
+  num('rooms','Rooms Available','e.g. 20'),money('veg','Veg Price (per plate)','e.g. 1,200'),money('nonveg','Non-Veg Price (per plate)','e.g. 1,600'),
+  money('start','Starting Price')],
+ photographer:[chk('style','Photography Style',['Candid','Traditional','Cinematic','Pre-wedding','Drone'],true),sel('team','Team Size','Select team size',TEAM),
+  sel('delivery','Delivery Time','Select delivery time',['Within 2 weeks','2 – 4 weeks','4 – 8 weeks','8+ weeks']),money('start','Starting Price (per day)')],
+ videographer:[chk('style','Video Style',['Cinematic Film','Highlights Reel','Documentary','Drone Coverage','Live Streaming'],true),sel('team','Team Size','Select team size',TEAM),
+  sel('delivery','Delivery Time','Select delivery time',['Within 2 weeks','2 – 4 weeks','4 – 8 weeks','8+ weeks']),money('start','Starting Price (per day)')],
+ bridal:[chk('coll','Collections',['Lehengas','Sarees','Gowns','Custom Couture'],true),chk('svc','Services',['Rental','Purchase','Custom Stitching','Alterations']),
+  sel('appt','Appointments','Select appointment policy',['Walk-ins welcome','By appointment only','Both']),money('start','Starting Price')],
+ groom:[chk('coll','Collections',['Sherwanis','Suits','Bandhgalas','Indo-Western'],true),chk('svc','Services',['Rental','Purchase','Tailoring','Alterations']),
+  sel('appt','Appointments','Select appointment policy',['Walk-ins welcome','By appointment only','Both']),money('start','Starting Price')],
+ studio:[chk('svc','Studio Services',['Pre-wedding Shoots','Albums & Frames','Cinematic Edits','Props & Sets'],true),
+  sel('space','Studio Space','Select studio space',['Indoor studio','Outdoor locations','Both']),sel('team','Team Size','Select team size',TEAM),money('start','Starting Price')],
+ decorator:[chk('style','Decor Styles',['Floral','Mandap & Stage','Lighting','Theme Decor','Entrance & Aisle'],true),
+  sel('area','Service Area','Select service area',['Within my city','Within my state','Pan India','Destination weddings']),sel('team','Team Size','Select team size',TEAM),money('start','Starting Price')],
+ makeup:[chk('svc','Services',['Bridal Makeup','Party Makeup','HD / Airbrush','Hair Styling','Saree Draping'],true),
+  sel('travel','Travel to Venue','Select travel option',['Yes, anywhere in my city','Yes, outstation','No, studio only']),sel('trial','Trial Session','Select trial option',['Free trial','Paid trial','Not available']),money('start','Starting Price')],
+ jewellery:[chk('type','Jewellery Type',['Bridal Sets','Gold','Diamond','Kundan / Polki','Rental'],true),chk('svc','Services',['Custom Design','Rental','Buyback','Insurance']),money('start','Starting Price')],
+ invitation:[chk('type','Invitation Types',['Printed Cards','Digital Invites','Video Invites','Box Invitations'],true),
+  sel('min','Minimum Order','Select minimum order',['Up to 50 cards','50 – 100 cards','100 – 250 cards','250+ cards']),sel('tat','Turnaround Time','Select turnaround',['Within 1 week','1 – 2 weeks','2 – 4 weeks','4+ weeks']),money('start','Starting Price (per card)','e.g. 80')],
+ planner:[chk('svc','Planning Services',['Full Planning','Partial Planning','Day-of Coordination','Destination Weddings'],true),sel('team','Team Size','Select team size',TEAM),
+  sel('events','Weddings per Year','Select range',['Under 10','10 – 25','25 – 50','50+']),money('start','Starting Price')],
+ caterer:[chk('cuisine','Cuisines',['North Indian','South Indian','Kerala','Continental','Chinese'],true),
+  sel('minG','Minimum Guests','Select minimum guests',['50','100','200','500']),sel('serve','Menu Type','Select menu type',['Veg only','Veg & Non-Veg','Jain options available']),
+  money('veg','Veg Price (per plate)','e.g. 800'),money('nonveg','Non-Veg Price (per plate)','e.g. 1,100')]
+};
+const DOCS=[
+ {k:'reg',n:'Business Registration Certificate',req:true},{k:'id',n:'Identity Proof',req:true},{k:'pan',n:'PAN Card',req:true},
+ {k:'gst',n:'GST Certificate',req:false},{k:'logo',n:'Brand Logo',req:false}
+];
+const STEPS=['login','otp','category','business','questions','gallery','docs','review','dashboard'];
+const STEPNO={category:2,business:3,questions:4,gallery:5,docs:6,review:7};
+
+/* ---------- state ---------- */
+const freshState=()=>({step:'login',reached:0,mode:'login',contact:'',contactShow:'',target:null,otp:['','','','','',''],resendAt:0,sending:false,
+  user:null,vendor:null,slug:'',cat:'venue',biz:{name:'',owner:'',phone:'',email:'',addr:'',city:'',state:'',pin:'',web:'',about:''},
+  ans:{},err:{},photos:[],docs:{},confirm:false,ret:null,drag:false,dash:null,sheet:null});
+let S=freshState();
+const CFG=window.CLOCHE_CONFIG||{};
+const CFG_OK=!!(CFG.supabaseUrl&&CFG.supabaseAnonKey&&window.supabase);
+const sb=CFG_OK?supabase.createClient(CFG.supabaseUrl,CFG.supabaseAnonKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,flowType:'pkce'}}):null;
+
+async function withBusy(btn,label,fn){
+  if(btn&&btn.dataset.busy)return;
+  const old=btn?btn.innerHTML:'';
+  if(btn){btn.dataset.busy='1';btn.disabled=true;btn.textContent=label}
+  try{await fn()}catch(e){console.error(e);toast((e&&e.message)||'Something went wrong. Try again.')}
+  finally{if(btn&&btn.isConnected){btn.dataset.busy='';btn.disabled=false;btn.innerHTML=old}}
+}
+const digits10=v=>String(v||'').replace(/\D/g,'').replace(/^91(?=\d{10}$)/,'');
+const STATES=['Andhra Pradesh','Arunachal Pradesh','Assam','Bihar','Chhattisgarh','Goa','Gujarat','Haryana','Himachal Pradesh','Jharkhand','Karnataka','Kerala','Madhya Pradesh','Maharashtra','Manipur','Meghalaya','Mizoram','Nagaland','Odisha','Punjab','Rajasthan','Sikkim','Tamil Nadu','Telangana','Tripura','Uttar Pradesh','Uttarakhand','West Bengal','Andaman and Nicobar Islands','Chandigarh','Dadra and Nagar Haveli and Daman and Diu','Delhi','Jammu and Kashmir','Ladakh','Lakshadweep','Puducherry'];
+
+const FRIENDLY={
+  NOT_AUTHENTICATED:'Your session expired. Please log in again.',
+  EMAIL_IN_USE:'That email already belongs to another Cloche account. Use a different email, or log in with that email.',
+  EMAIL_LINKED_ELSEWHERE:'This email is already linked to another login. Contact Cloche support.',
+  EMAIL_REQUIRED:'Enter your email address to continue.',
+  PHONE_IN_USE:'That phone number is already registered with another account.',
+  UNKNOWN_CATEGORY:'That category is not available yet. Choose another one.',
+  LOCKED_PUBLISHED:'Your profile is live. Changes to a live profile need Cloche review, so they can\u2019t be edited here yet.',
+  INCOMPLETE:'Add your business details and at least one photo before submitting.',
+  GALLERY_FULL:'You can add up to 20 photos.',
+  NO_VENDOR:'Save your business information first.',
+  INVALID_INPUT:'Please check the details you entered.'
+};
+function friendly(e){const m=(e&&e.message)||'';for(const k in FRIENDLY)if(m.includes(k))return FRIENDLY[k];return m||'Something went wrong. Try again.'}
+async function rpc(fn,args){const {data,error}=await sb.rpc(fn,args||{});if(error){console.error(fn,error);throw new Error(friendly(error))}return data}
+const mediaUrl=(bucket,path)=>sb.storage.from(bucket).getPublicUrl(path).data.publicUrl;
+
+/* Copy a server state snapshot into the UI state. keep=true leaves the current screen alone. */
+function applyState(st,keep){
+  const u=S.user||{};
+  if(!st||!st.has_vendor){
+    S.vendor=null;S.photos=[];S.docs={};S.ans={};
+    S.biz.email=S.biz.email||u.email||'';S.biz.phone=S.biz.phone||digits10(u.phone);
+    if(!keep){S.step='category';S.reached=Math.max(S.reached,2)}
+    return;
+  }
+  S.vendor=st.vendor;S.cat=st.category_key||S.cat;S.ans=st.details||{};
+  const pr=st.profile||{},ad=st.address||{},ct=st.contact||{};
+  S.slug=pr.slug||'';
+  S.biz={name:pr.business_name||'',owner:ct.name||'',phone:digits10(ct.phone),email:ct.email||'',addr:ad.line1||'',city:pr.city||'',state:pr.state||'',pin:pr.pincode||'',web:st.website||'',about:pr.about||''};
+  S.photos=(st.photos||[]).map(x=>({id:x.id,path:x.path,src:x.url}));
+  S.docs=Object.assign({},st.documents||{});
+  if(st.logo)S.docs.logo={name:st.logo.name,path:st.logo.path};
+  if(!keep){S.confirm=false;S.step=STEPS.includes(st.step)?st.step:'category';S.reached=Math.max(STEPS.indexOf(S.step),2)}
+}
+async function loadAll(){applyState(await rpc('partner_get_state'))}
+async function loadDash(){
+  try{const d=await rpc('partner_dashboard');S.dash=d;applyState(d.state,true)}catch(e){toast(e.message)}
+  if(S.step==='dashboard')render();
+}
+setInterval(()=>{if(S.user&&S.step==='dashboard'&&!S.sheet&&!document.hidden)loadDash()},60000);
+
+function parseContact(v){
+  v=v.trim();const c=v.replace(/[\s\-()]/g,'');const d=c.replace(/^\+?91(?=\d{10}$)/,'');
+  if(/^[6-9]\d{9}$/.test(d))return{phone:'+91'+d,show:'+91 '+d.slice(0,5)+' '+d.slice(5)};
+  if(/^\+\d{8,15}$/.test(c))return{phone:c,show:c};
+  if(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v))return{email:v.toLowerCase(),show:v.toLowerCase()};
+  return null;
+}
+function otpError(e){
+  const m=(e.message||'').toLowerCase();
+  if(e.status===429||m.includes('rate limit')||m.includes('seconds'))return'Too many requests. Wait a minute and try again.';
+  if(m.includes('signups not allowed')||m.includes('not found'))return'No account found. Tap \u201cCreate an account\u201d below to sign up.';
+  if(m.includes('sms')||m.includes('provider')||m.includes('twilio'))return'We couldn\u2019t send the SMS. Check the number or use email.';
+  return e.message||'Could not send the code. Try again.';
+}
+async function oauth(provider,t){
+  await withBusy(t,'Redirecting\u2026',async()=>{
+    const {error}=await sb.auth.signInWithOAuth({provider,options:{redirectTo:location.origin+location.pathname}});
+    if(error)throw error;
+  });
+}
+function setupView(){return`<section class="screen"><div class="setup">${brand('md')}<h1>Connect your Supabase project</h1>
+  <p class="subtitle" style="max-width:none">Open <code>index.html</code> and fill in <code>supabaseUrl</code> and <code>supabaseAnonKey</code> inside <code>window.CLOCHE_CONFIG</code>, then reload.</p></div></section>`}
+async function boot(){
+  if(!CFG_OK){app.innerHTML=setupView();return}
+  app.innerHTML='<section class="screen"><div class="loading">Loading\u2026</div></section>';
+  try{
+    const {data}=await sb.auth.getSession();
+    if(data.session){
+      S.user=data.session.user;
+      if(new URLSearchParams(location.search).get('mode')==='create')S.mode='create';
+      await loadAll();
+      try{history.replaceState({s:S.step},'','#'+S.step)}catch(e){}
+      if(S.step==='dashboard')loadDash();
+      render();return;
+    }
+  }catch(e){console.error(e);toast('Could not restore your session')}
+  if(new URLSearchParams(location.search).get('mode')==='create')S.mode='create';
+  render();
+}
+/* ---------- navigation ---------- */
+function go(name,push=true){
+  S.step=name;S.reached=Math.max(S.reached,STEPS.indexOf(name));S.err={};S.sheet=null;
+  if(push){try{history.pushState({s:name},'','#'+name)}catch(e){}}
+  if(name==='dashboard'&&S.user)loadDash();
+  render();window.scrollTo(0,0);
+}
+function next(def){const r=S.ret;S.ret=null;go(r||def)}
+window.addEventListener('popstate',e=>{const n=e.state&&e.state.s;if(n&&STEPS.indexOf(n)<=S.reached)go(n,false)});
+try{history.replaceState({s:'login'},'','#login')}catch(e){}
+
+/* ---------- screens ---------- */
+const stepbar=k=>{const n=STEPNO[k];return`<div class="stepbar"><div class="lbl">Step ${n} of 8</div><div class="track"><div class="fill" style="width:${n/8*100}%"></div></div></div>`};
+const cta=(label,act,dis='')=>`<div class="cta"><button class="btn" data-act="${act}" ${dis}>${label}${ic('arrow',18,'arr')}</button></div>`;
+const ferr=k=>S.err[k]?`<div class="ferr">${S.err[k]}</div>`:'';
+const bad=k=>S.err[k]?' bad':'';
+
+function vLogin(){const cr=S.mode==='create';return`<section class="screen">
+  <div class="hero">${scene(11,'arch','dawn')}${brand('lg')}</div>
+  <div class="login-body">
+    <h1>${cr?'Create your account':'Welcome Back'}</h1>
+    <p class="subtitle">${cr?'Join Cloche Partner and reach couples planning their wedding.':'Log in to your partner account to continue your journey.'}</p>
+    <div class="fld${bad('contact')}" style="margin-top:20px"><div class="inp">${ic('lock',17)}<input id="contact" data-bind="contact" autocomplete="username" inputmode="email" placeholder="Email or Mobile Number" aria-label="Email or mobile number" value="${esc(S.contact)}"></div>${ferr('contact')}</div>
+    <div style="margin-top:14px"><button class="btn" data-act="sendOtp">Send OTP${ic('arrow',18,'arr')}</button></div>
+    <div class="divider">Or continue with</div>
+    <div class="stack"><button class="btn-o" data-act="google">${GOOGLE}Continue with Google</button><button class="btn-o" data-act="apple">${APPLE}Continue with Apple</button></div>
+    <p class="fine">${cr?'Already have an account?':'New to Cloche Partner?'}<button class="link" data-act="toggleMode" style="font-size:12.5px">${cr?'Log in':'Create an account'}</button></p>
+  </div></section>`}
+
+function vOtp(){return`<section class="screen">
+  <div class="topbar" style="padding:6px 12px 0"><button class="iconbtn" data-act="backLogin" aria-label="Back">${ic('back',22)}</button></div>
+  <div class="otp-wrap">${brand('md')}<h1>Enter Verification Code</h1>
+    <p>We've sent a 6-digit code to <b>${esc(S.contactShow||S.contact)}</b></p>
+    <div class="boxes" id="boxes">${S.otp.map((d,i)=>`<input inputmode="numeric" maxlength="1" autocomplete="${i?'off':'one-time-code'}" aria-label="Digit ${i+1}" data-i="${i}" value="${d}" class="${d?'on':''}">`).join('')}</div>
+    <div class="ferr" id="otpErr" style="min-height:18px">${S.err.otp||''}</div>
+    <div class="resend">Didn't receive the code?<br><span id="resend"></span></div>
+    <div class="otp-btn"><button class="btn" data-act="verify">Verify &amp; Continue${ic('arrow',18,'arr')}</button></div>
+  </div>
+  <div class="otp-art">${scene(21,'arch','sunset')}</div></section>`}
+
+function vCategory(){return`<section class="screen"><div class="pad narrow" style="max-width:none">
+  <div class="narrow" style="max-width:none">${stepbar('category')}
+  <h1 class="title">Select your business category</h1>
+  <p class="subtitle">Choose the option that best describes your business. You can add more later.</p>
+  <div class="cgrid">${CATS.map((c,i)=>`<button class="cat" data-act="cat" data-k="${c.k}" aria-pressed="${S.cat===c.k}"><span class="art">${tileArt(i,c.k)}<span class="badge">${ic(c.k,15)}</span><span class="tick">${ic('check',13)}</span></span><span class="nm">${c.n}</span></button>`).join('')}</div></div></div>
+  <div class="sp"></div>${cta('Continue','catNext')}</section>`}
+
+function vBusiness(){const b=S.biz;
+  const inp=(id,lab,req,inner,key)=>`<div class="fld${bad(key)}"><label class="lbl2" for="${id}">${lab}${req?' <span class="req">*</span>':' <span class="opt">(Optional)</span>'}</label>${inner}${key?ferr(key):''}</div>`;
+  return`<section class="screen"><div class="pad"><div class="narrow">${stepbar('business')}
+  <h1 class="title">Business Information</h1><p class="subtitle">Help couples discover your business with the right details.</p>
+  <div class="fgrid">
+  ${inp('f-name','Business Name',1,`<div class="inp"><input id="f-name" data-bind="biz.name" placeholder="e.g. The Grand Terrace" value="${esc(b.name)}"></div>`,'name')}
+  ${inp('f-owner','Business Owner Name',1,`<div class="inp"><input id="f-owner" data-bind="biz.owner" placeholder="e.g. Priya Sharma" value="${esc(b.owner)}"></div>`,'owner')}
+  ${inp('f-phone','Phone Number',1,`<div class="inp"><span class="cc">+91 ${ic('chev',14)}</span><input id="f-phone" inputmode="tel" maxlength="10" data-bind="biz.phone" data-digits placeholder="98765 43210" value="${esc(b.phone)}"></div>`,'phone')}
+  ${inp('f-email','Email Address',1,`<div class="inp"><input id="f-email" type="email" inputmode="email" data-bind="biz.email" placeholder="you@yourbusiness.com" value="${esc(b.email)}"></div>`,'email')}
+  ${inp('f-addr','Business Address',1,`<div class="inp">${ic('pin',17)}<input id="f-addr" data-bind="biz.addr" placeholder="e.g. 12 MG Road, near City Mall" value="${esc(b.addr)}"></div>`,'addr')}
+  ${inp('f-city','City',1,`<div class="inp"><input id="f-city" data-bind="biz.city" placeholder="e.g. Jaipur" value="${esc(b.city)}"></div>`,'city')}
+  ${inp('f-state','State',1,`<div class="sel"><select id="f-state" data-bind="biz.state" class="${b.state?'':'empty'}"><option value="">Select state</option>${STATES.map(x=>`<option${b.state===x?' selected':''}>${x}</option>`).join('')}</select>${ic('chev',16)}</div>`,'state')}
+  ${inp('f-pin','Pincode',0,`<div class="inp"><input id="f-pin" inputmode="numeric" maxlength="6" data-bind="biz.pin" data-digits placeholder="e.g. 302001" value="${esc(b.pin)}"></div>`,'pin')}
+  ${inp('f-web','Website',0,`<div class="inp">${ic('link',17)}<input id="f-web" inputmode="url" data-bind="biz.web" placeholder="https://yourwebsite.com" value="${esc(b.web)}"></div>`,'')}
+  <div class="full">${inp('f-about','About your business',0,`<textarea id="f-about" class="ta" data-bind="biz.about" maxlength="600" placeholder="Tell couples what makes you special">${esc(b.about)}</textarea>`,'')}</div>
+  </div></div></div><div class="sp"></div>${cta('Continue','bizNext')}</section>`}
+
+function vQuestions(){const c=CATS.find(x=>x.k===S.cat),fs=QS[S.cat];
+  const fld=f=>{
+    const lab=`<label class="lbl2">${f.label}${f.req?' <span class="req">*</span>':' <span class="opt">(Optional)</span>'}</label>`;
+    let inner='';const v=S.ans[f.id];
+    if(f.t==='select')inner=`<div class="sel"><select data-ans="${f.id}" aria-label="${f.label}" class="${v?'':'empty'}"><option value="">${f.ph}</option>${f.opts.map(o=>`<option${v===o?' selected':''}>${o}</option>`).join('')}</select>${ic('chev',16)}</div>`;
+    else if(f.t==='check')inner=`<div class="chks">${f.opts.map(o=>`<label class="chk"><input type="checkbox" data-chk="${f.id}" value="${o}"${(v||[]).includes(o)?' checked':''}><span class="box">${ic('check',12)}</span>${o}</label>`).join('')}</div>`;
+    else if(f.t==='money')inner=`<div class="inp"><span class="rs">₹</span><input inputmode="numeric" data-ans="${f.id}" data-money placeholder="${f.ph}" aria-label="${f.label}" value="${v||''}"></div>`;
+    else inner=`<div class="inp"><input inputmode="numeric" data-ans="${f.id}" data-digits placeholder="${f.ph}" aria-label="${f.label}" value="${v||''}"></div>`;
+    return`<div class="fld${bad(f.id)}${f.t==='check'?' full':''}">${lab}${inner}${ferr(f.id)}</div>`};
+  return`<section class="screen"><div class="pad"><div class="narrow">${stepbar('questions')}
+  <h1 class="title">Tell us more about your ${c.biz}</h1><p class="subtitle">These details help couples find the perfect match for their celebration.</p>
+  <div class="fgrid">${fs.map(fld).join('')}</div></div></div><div class="sp"></div>${cta('Continue','qNext')}</section>`}
+
+function vGallery(){return`<section class="screen"><div class="pad"><div class="narrow">${stepbar('gallery')}
+  <h1 class="title">Upload your best work</h1><p class="subtitle">High quality photos help couples understand your style and offerings.</p>
+  <button class="drop${S.drag?' over':''}" data-act="pick" id="drop">${ic('cloud',44)}<b>Tap to upload photos</b><small>Add up to 20 photos (JPG, PNG)<br>Max 10 MB each</small></button>
+  <input type="file" id="photoIn" accept="image/jpeg,image/png" multiple hidden>
+  ${S.photos.length?`<div class="pgrid">${S.photos.map(p=>`<div class="thumb">${p.svg||`<img src="${p.src}" alt="Uploaded work">`}<button class="rm" data-act="rm" data-id="${p.id}" aria-label="Remove photo">${ic('x',13)}</button></div>`).join('')}${S.photos.length<20?`<button class="thumb add" data-act="pick">${ic('plus',24)}Add more</button>`:''}</div>`:''}
+  </div></div><div class="sp"></div>${cta('Continue','gNext')}</section>`}
+
+function vDocs(){return`<section class="screen"><div class="pad"><div class="narrow" style="max-width:none">${stepbar('docs')}
+  <h1 class="title">Upload documents</h1><p class="subtitle">These documents help us verify your business and build trust with our couples.</p>
+  <div class="docs">${DOCS.map(d=>{const f=S.docs[d.k];return`<div class="doc"><div class="row"><span class="ico">${ic('file',18)}</span><div class="tt">${d.n}<span class="${f?'ok':''}">${f?'✓ '+esc(f.name):(d.req?'(Required)':'(Optional)')}</span></div>${ic('chevR',16)}</div>
+   <div class="up"><button class="upbtn" data-act="pickDoc" data-k="${d.k}">${f?'Replace':'Upload file'}${ic('cloud',15)}</button></div></div>`}).join('')}</div>
+  <input type="file" id="docIn" accept="application/pdf,image/jpeg,image/png" hidden>
+  <p class="note">Accepted formats: PDF, JPG, PNG (Max 10 MB each)</p></div></div><div class="sp"></div>${cta('Continue','dNext')}</section>`}
+
+function vReview(){const c=CATS.find(x=>x.k===S.cat),b=S.biz,a=S.ans,fs=QS[S.cat];
+  const first=fs.find(f=>f.t==='select'),second=fs.filter(f=>f.t==='select')[1];
+  const det=[a[first&&first.id],a[second&&second.id]].filter(Boolean).join(' · ')||'Details added';
+  const sub=(Array.isArray(a.spaces)&&a.spaces.length)?a.spaces.join(', '):'';
+  const nd=Object.keys(S.docs).length,pend=DOCS.filter(d=>d.req&&!S.docs[d.k]).length;
+  const item=(ico,t,l1,l2,to)=>`<div class="ritem"><span class="ico">${ic(ico,17)}</span><div class="tx"><b>${t}</b>${l1}${l2?`<br>${l2}`:''}</div><button class="ed" data-act="edit" data-to="${to}">Edit</button></div>`;
+  return`<section class="screen"><div class="pad"><div class="narrow">${stepbar('review')}
+  <h1 class="title">Review your profile</h1><p class="subtitle">Take a moment to review all the details before publishing. You can edit anytime.</p>
+  <div class="rhero">${S.photos[0]?`<img src="${esc(S.photos[0].src)}" alt="" style="width:100%;height:100%;object-fit:cover;display:block">`:scene(31,'arch','sunset')}<button class="pill" data-act="edit" data-to="gallery">${ic('pencil',13)}Edit</button></div>
+  <div class="rlist">
+   ${item('store','Business Information',esc(b.name),esc([b.city,b.state].filter(Boolean).join(', ')),'business')}
+   ${item('tag','Category',c.n,'','category')}
+   ${item('list','Details',esc(det),esc(sub),'questions')}
+   ${item('image','Gallery',`${S.photos.length} Photo${S.photos.length===1?'':'s'} Uploaded`,'','gallery')}
+   ${item('file','Documents',`${nd} Document${nd===1?'':'s'} Uploaded`,pend?`<em>${pend} required pending</em>`:'','docs')}
+  </div>
+  <label class="confirm"><span class="chk"><input type="checkbox" id="confirm" ${S.confirm?'checked':''}><span class="box">${ic('check',12)}</span></span><span>I confirm that all the information provided is accurate and I agree to the <a href="#review" data-act="terms">Partner Terms &amp; Conditions</a>.</span></label>
+  </div></div><div class="sp"></div>
+  <div class="cta"><button class="btn" id="publish" data-act="publish" ${S.confirm?'':'disabled'}>Publish My Profile</button></div></section>`}
+
+function ago(ts){const m=Math.max(1,Math.round((Date.now()-new Date(ts))/60000));if(m<60)return m+'m ago';const h=Math.round(m/60);if(h<24)return h+'h ago';return Math.round(h/24)+'d ago'}
+const fdate=d=>new Date(d).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
+const initials=n=>(String(n||'?').trim().split(/\s+/).map(w=>w[0]).slice(0,2).join('')||'?').toUpperCase();
+const evLine=q=>`${q.event_type||'Wedding'}${q.event_date?' on '+fdate(q.event_date):''}${q.guest_count?' \u00b7 '+q.guest_count+' guests':''}`;
+function vDash(){
+  const D=S.dash,V=S.vendor||{},enq=D?D.recent:[],ps=V.publication_status;
+  const pc=V.completion||0,pend=D?D.pending:0,firstNew=enq.find(x=>x.status==='new');
+  const first=(S.biz.owner||'').trim().split(/\s+/)[0]||'Partner';
+  const tasks=[];
+  if(pend&&firstNew)tasks.push({t:`Respond to ${pend} new enquir${pend>1?'ies':'y'}`,a:'openEnq',id:firstNew.id});
+  if(DOCS.some(d=>d.req&&!S.docs[d.k]))tasks.push({t:'Verify your documents',a:'edit',to:'docs'});
+  if(S.photos.length<5)tasks.push({t:'Add at least 5 portfolio photos',a:'edit',to:'gallery'});
+  if(QS[S.cat]&&QS[S.cat].some(f=>f.id==='start')&&!S.ans.start)tasks.push({t:'Add your starting price',a:'edit',to:'questions'});
+  const note=ps==='under_review'?'Under review. We\u2019ll let you know once your profile is live.':ps==='changes_requested'?'Changes requested. Update your profile and resubmit.':pc<100?'Complete your profile to get more leads':'Your profile is complete';
+  const n=v=>D?v:'\u2013';
+  const sh=S.sheet&&enq.find(x=>x.id===S.sheet);
+  const ph=sh?digits10(sh.customer_phone):'',wa=ph.length===10?'91'+ph:ph;
+  const acts=enq.slice(0,3).map(q=>`<button class="li" data-act="openEnq" data-id="${q.id}"><span class="ai">${ic('userplus',16)}</span><span class="grow"><b style="font-weight:600">New lead received</b><small>${esc(q.customer_name)} \u2022 ${esc(evLine(q))}</small></span><time>${ago(q.created_at)}</time></button>`);
+  if(D&&D.views_week>0)acts.unshift(`<div class="li"><span class="ai">${ic('eye',16)}</span><span class="grow"><b style="font-weight:600">Profile viewed</b><small>${D.views_week} profile view${D.views_week>1?'s':''} this week</small></span></div>`);
+  const msgs=enq.filter(q=>q.message).slice(0,3);
+  return`<section class="screen">
+  <div class="dh"><button class="iconbtn" data-act="menu" aria-label="Menu">${ic('menu',24)}</button>${brand('sm')}
+   <div class="r"><button class="iconbtn bell" data-act="bell" aria-label="Notifications">${ic('bell',22)}${pend?'<i></i>':''}</button><span class="avatar" aria-hidden="true">${esc(initials(S.biz.owner))}</span></div>
+   <div class="menu" id="menu"><button data-act="edit" data-to="review">Edit profile</button><button data-act="signout">Sign out</button></div></div>
+  <div class="dbody">
+   <div class="welcome full"><div><h1>Welcome, ${esc(first)}!</h1><p>Here's what's happening with your business today.</p></div><div class="im">${S.photos[0]?`<img src="${esc(S.photos[0].src)}" alt="" style="width:100%;height:100%;object-fit:cover;display:block">`:scene(41,'arch','sunset')}</div></div>
+   <div class="card pc full"><div class="hd"><span>Your Profile Completion</span><span>${pc}%</span></div><div class="bar"><i style="width:${pc}%"></i></div>
+     <div class="ft"><span>${note}</span>${pc<100&&ps!=='published'&&ps!=='under_review'?'<button data-act="complete">Complete now \u2192</button>':''}</div></div>
+   <div class="stats full">
+     <div class="stat"><b>${n(D&&D.leads_week)}</b><span>New Leads<br>This Week</span>${ic('userplus',17)}</div>
+     <div class="stat"><b>${n(pend)}</b><span>Pending<br>Enquiries</span>${ic('mail',17)}</div>
+     <div class="stat"><b>${n(D&&D.saved)}</b><span>Shortlisted<br>by Couples</span>${ic('heart',17)}</div></div>
+   <div><div class="sech"><h3>Today's Tasks</h3></div>
+     <div class="card list">${tasks.length?tasks.map(k=>`<button class="li" data-act="${k.a}" data-id="${k.id||''}" data-to="${k.to||''}"><span class="grow">${k.t}</span>${ic('chevR',16,'chev')}</button>`).join(''):'<div class="li"><span class="grow" style="color:var(--muted)">You\u2019re all caught up.</span></div>'}</div></div>
+   <div><div class="sech"><h3>Recent Activity</h3></div>
+     <div class="card list">${acts.length?acts.join(''):`<div class="li"><span class="grow" style="color:var(--muted)">${D?'No activity yet. Enquiries from couples will appear here.':'Loading\u2026'}</span></div>`}</div></div>
+   <div><div class="sech"><h3>Quick Actions</h3></div>
+     <div class="qa"><button data-act="edit" data-to="gallery"><span class="ib">${ic('image',17)}</span>Add Photos</button><button data-act="edit" data-to="questions"><span class="ib">${ic('tag',17)}</span>Update Pricing</button><button data-act="share"><span class="ib">${ic('share',17)}</span>Share Profile</button><button data-act="edit" data-to="business"><span class="ib">${ic('pencil',17)}</span>Edit Details</button></div></div>
+   <div><div class="sech"><h3>Recent Messages</h3></div>
+     <div class="card list">${msgs.length?msgs.map(q=>`<button class="li" data-act="openEnq" data-id="${q.id}"><span class="ai">${esc(initials(q.customer_name))}</span><span class="grow"><b style="font-weight:600">${esc(q.customer_name)}</b><small>${esc(q.message)}</small></span><time>${ago(q.created_at)}</time>${q.status==='new'?'<span class="dot" aria-label="Unread"></span>':''}</button>`).join(''):`<div class="li"><span class="grow" style="color:var(--muted)">${D?'No messages yet.':'Loading\u2026'}</span></div>`}</div></div>
+  </div>
+  ${sh?`<div class="scrim" data-act="closeSheet"></div><div class="sheet" role="dialog" aria-label="Enquiry details"><h3>${esc(sh.customer_name)}</h3><div class="meta">${esc(evLine(sh))} \u2022 ${ago(sh.created_at)} \u2022 ${esc(sh.status)}</div>${sh.message?`<div class="msg">${esc(sh.message)}</div>`:''}
+    <div class="sacts">${sh.customer_phone?`<a href="tel:${esc(sh.customer_phone)}">Call</a><a href="https://wa.me/${esc(wa)}" target="_blank" rel="noopener">WhatsApp</a>`:''}${sh.customer_email?`<a href="mailto:${esc(sh.customer_email)}" style="grid-column:1/-1">Email</a>`:''}
+    ${sh.status==='new'?'<button class="primary" data-act="contacted">Mark as contacted</button>':'<button class="primary" disabled>'+esc(sh.status)+'</button>'}</div></div>`:''}
+  </section>`}
+
+function esc(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+const VIEWS={login:vLogin,otp:vOtp,category:vCategory,business:vBusiness,questions:vQuestions,gallery:vGallery,docs:vDocs,review:vReview,dashboard:vDash};
+function render(){
+  app.innerHTML=VIEWS[S.step]();
+  if(S.step==='otp'){const b=$$('#boxes input');(b.find(i=>!i.value)||b[5]).focus();tickResend()}
+}
+
+/* ---------- OTP timer ---------- */
+function tickResend(){
+  const el=$('#resend');if(!el)return;
+  const left=Math.max(0,Math.ceil((S.resendAt-Date.now())/1000));
+  el.innerHTML=left>0?`<a>Resend in 00:${String(left).padStart(2,'0')}</a>`:`<button data-act="resend">Resend code</button>`;
+}
+setInterval(tickResend,1000);
+
+/* ---------- uploads ---------- */
+const MAX=10*1024*1024;
+function toJpeg(file){return new Promise((res,rej)=>{
+  const fr=new FileReader();fr.onerror=rej;
+  fr.onload=()=>{const im=new Image();im.onerror=rej;im.onload=()=>{const k=Math.min(1,1600/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(im,0,0,c.width,c.height);c.toBlob(b=>b?res(b):rej(new Error('Could not process image')),'image/jpeg',.85)};im.src=fr.result};
+  fr.readAsDataURL(file)})}
+async function putFile(bucket,path,body,type){
+  const up=await sb.storage.from(bucket).upload(path,body,{contentType:type,upsert:false});
+  if(up.error)throw up.error;
+}
+async function dropFile(bucket,path){if(path)try{await sb.storage.from(bucket).remove([path])}catch(e){}}
+async function addPhotos(files){
+  if(!S.vendor){toast('Save your business information first');return}
+  const uid=S.user.id;let added=0,skipped=0;
+  toast('Uploading\u2026');
+  for(const f of files){
+    if(S.photos.length>=20){toast('You can add up to 20 photos');break}
+    if(!/^image\/(jpeg|png)$/.test(f.type)||f.size>MAX){skipped++;continue}
+    const path=`${uid}/${crypto.randomUUID()}.jpg`;
+    try{
+      const blob=await toJpeg(f);
+      await putFile('partner-media',path,blob,'image/jpeg');
+      const url=mediaUrl('partner-media',path);
+      try{
+        const r=await rpc('partner_register_media',{p_kind:'gallery',p_doc_key:null,p_path:path,p_name:f.name,p_mime:'image/jpeg',p_size:blob.size,p_url:url});
+        S.photos.push({id:r.media_id,path,src:url});S.vendor.completion=r.completion;added++;render();
+      }catch(e){await dropFile('partner-media',path);throw e}
+    }catch(e){console.error(e);skipped++;if(e&&e.message&&/profile is live|photos|session/i.test(e.message)){toast(e.message);return}}
+  }
+  if(skipped)toast(`${skipped} file${skipped>1?'s':''} skipped. Use JPG or PNG under 10 MB`);
+  else if(added)toast(`${added} photo${added>1?'s':''} uploaded`);
+}
+let docKey=null;
+async function addDoc(f){
+  if(!f||!docKey)return;
+  const k=docKey;docKey=null;
+  if(!S.vendor){toast('Save your business information first');return}
+  const isLogo=k==='logo';
+  const ok=isLogo?/^image\/(jpeg|png)$/.test(f.type):/^(application\/pdf|image\/jpeg|image\/png)$/.test(f.type);
+  if(!ok||f.size>MAX){toast(isLogo?'Use a JPG or PNG under 10 MB':'Use a PDF, JPG or PNG under 10 MB');return}
+  toast('Uploading\u2026');
+  const bucket=isLogo?'partner-media':'partner-documents';
+  const ext=(f.name.split('.').pop()||'bin').toLowerCase().replace(/[^a-z0-9]/g,'').slice(0,5)||'bin';
+  const path=`${S.user.id}/${k}-${Date.now()}.${ext}`;
+  try{
+    await putFile(bucket,path,f,f.type);
+    const url=mediaUrl(bucket,path);
+    try{
+      const r=await rpc('partner_register_media',{p_kind:isLogo?'logo':'document',p_doc_key:isLogo?null:k,p_path:path,p_name:f.name,p_mime:f.type,p_size:f.size,p_url:url});
+      await dropFile(bucket,r.old_path);
+      S.docs[k]={name:f.name,path};S.vendor.completion=r.completion;render();toast(isLogo?'Logo uploaded':'Document uploaded');
+    }catch(e){await dropFile(bucket,path);throw e}
+  }catch(e){console.error(e);toast(e.message||'Upload failed. Try again.')}
+}
+
+/* ---------- validation ---------- */
+function setPath(p,v){const k=p.split('.');if(k.length===1)S[k[0]]=v;else S[k[0]][k[1]]=v}
+function fail(first){render();const el=$('.bad')||$('.ferr');if(el)el.scrollIntoView({block:'center',behavior:'smooth'});if(first)toast(first)}
+
+const LOCK='Your profile is live. Changes to a live profile need Cloche review, so they can\u2019t be edited here yet.';
+const ACT={
+  toggleMode(){S.mode=S.mode==='create'?'login':'create';S.err={};render()},
+  async sendOtp(t){
+    const p=parseContact(S.contact);
+    if(!p){S.err.contact='Enter a valid email or mobile number';return fail()}
+    const target=p.email?{email:p.email}:{phone:p.phone};
+    await withBusy(t,'Sending\u2026',async()=>{
+      const {error}=await sb.auth.signInWithOtp({...target,options:{shouldCreateUser:S.mode==='create'}});
+      if(error){S.err.contact=otpError(error);return fail()}
+      S.target=target;S.contactShow=p.show;S.otp=['','','','','',''];S.resendAt=Date.now()+30000;go('otp');
+    });
+  },
+  google(t){return oauth('google',t)},
+  apple(t){return oauth('apple',t)},
+  backLogin(){go('login')},
+  async verify(t){
+    const shake=msg=>{const e=$('#otpErr'),b=$('#boxes');if(e)e.textContent=msg;if(b){b.classList.remove('shake');void b.offsetWidth;b.classList.add('shake')}};
+    if(S.otp.some(d=>!d))return shake('Enter the 6-digit code');
+    await withBusy(t,'Verifying\u2026',async()=>{
+      const {data,error}=await sb.auth.verifyOtp({...S.target,token:S.otp.join(''),type:S.target.email?'email':'sms'});
+      if(error){const m=(error.message||'').toLowerCase();return shake(m.includes('expired')||m.includes('invalid')?'That code is incorrect or has expired':error.message)}
+      S.user=(data.session&&data.session.user)||data.user;
+      await loadAll();go(S.step);
+    });
+  },
+  async resend(){
+    if(S.sending)return;S.sending=true;
+    try{
+      const {error}=await sb.auth.signInWithOtp({...S.target,options:{shouldCreateUser:S.mode==='create'}});
+      if(error)throw error;
+      S.resendAt=Date.now()+30000;S.otp=['','','','','',''];render();toast('A new code is on its way');
+    }catch(e){toast(otpError(e))}finally{S.sending=false}
+  },
+  cat(t){if(S.cat!==t.dataset.k){S.cat=t.dataset.k;S.ans={};S.ret=null}$$('.cat').forEach(c=>c.setAttribute('aria-pressed',c.dataset.k===S.cat))},
+  async catNext(t){
+    await withBusy(t,'Saving\u2026',async()=>{
+      if(S.vendor)applyState(await rpc('partner_set_category',{p_key:S.cat}),true);
+      next('business');
+    });
+  },
+  async bizNext(t){
+    const b=S.biz,e={};
+    if(!b.name.trim())e.name='Enter your business name';
+    if(!b.owner.trim())e.owner='Enter the owner\u2019s name';
+    if(!/^\d{10}$/.test(b.phone))e.phone='Enter a 10-digit phone number';
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(b.email))e.email='Enter a valid email address';
+    if(!b.addr.trim())e.addr='Enter your business address';
+    if(!b.city.trim())e.city='Enter your city';
+    if(!b.state)e.state='Select your state';
+    if(b.pin&&!/^\d{6}$/.test(b.pin))e.pin='Enter a 6-digit pincode';
+    if(Object.keys(e).length){S.err=e;return fail()}
+    await withBusy(t,'Saving\u2026',async()=>{
+      const w=b.web.trim();
+      const st=await rpc('partner_save_business',{p:{category_key:S.cat,business_name:b.name.trim(),owner_name:b.owner.trim(),phone:b.phone,email:b.email.trim(),
+        address_line1:b.addr.trim(),city:b.city.trim(),state:b.state,pincode:b.pin.trim(),website:w?(/^https?:\/\//i.test(w)?w:'https://'+w):'',about:b.about.trim()}});
+      applyState(st,true);next('questions');
+    });
+  },
+  async qNext(t){
+    const e={};QS[S.cat].forEach(f=>{if(!f.req)return;const v=S.ans[f.id];if(f.t==='check'?!(v&&v.length):!v)e[f.id]=f.t==='check'?'Choose at least one':'This field is required'});
+    if(Object.keys(e).length){S.err=e;return fail()}
+    await withBusy(t,'Saving\u2026',async()=>{applyState(await rpc('partner_save_details',{p_details:S.ans}),true);next('gallery')});
+  },
+  pick(){$('#photoIn').click()},
+  async rm(t){
+    const p=S.photos.find(x=>String(x.id)===t.dataset.id);if(!p)return;
+    try{const r=await rpc('partner_remove_gallery',{p_media_id:p.id});await dropFile('partner-media',r.path);S.photos=S.photos.filter(x=>x!==p);S.vendor.completion=r.completion;render()}
+    catch(e){toast(e.message)}
+  },
+  async gNext(t){
+    if(!S.photos.length){toast('Add at least one photo to continue');return}
+    await withBusy(t,'Saving\u2026',async()=>{applyState(await rpc('partner_advance',{p_stage:'gallery_completed'}),true);next('docs')});
+  },
+  pickDoc(t){docKey=t.dataset.k;$('#docIn').click()},
+  async dNext(t){await withBusy(t,'Saving\u2026',async()=>{applyState(await rpc('partner_advance',{p_stage:'documents_completed'}),true);next('review')})},
+  edit(t){
+    if(S.vendor&&S.vendor.publication_status==='published')return toast(LOCK);
+    S.ret=(S.step==='review')?'review':(S.step==='dashboard'?'dashboard':null);go(t.dataset.to);
+  },
+  terms(t,e){e.preventDefault();if(CFG.termsUrl)window.open(CFG.termsUrl,'_blank','noopener');else toast('Add termsUrl to the config')},
+  async publish(t){
+    if(!S.confirm)return;
+    await withBusy(t,'Submitting\u2026',async()=>{
+      applyState(await rpc('partner_submit'),true);
+      S.ret=null;S.dash=null;toast('Submitted. We\u2019ll review your profile and let you know when it\u2019s live.');go('dashboard');
+    });
+  },
+  menu(t,e){e.stopPropagation();$('#menu').classList.toggle('open')},
+  async signout(){
+    try{await sb.auth.signOut()}catch(e){}
+    S=freshState();try{history.pushState({s:'login'},'','#login')}catch(e){}render();window.scrollTo(0,0);
+  },
+  complete(){
+    if(S.vendor&&S.vendor.publication_status==='published')return toast(LOCK);
+    S.ret='dashboard';
+    go(DOCS.some(d=>d.req&&!S.docs[d.k])?'docs':(S.photos.length<5?'gallery':'questions'));
+  },
+  async share(){
+    const V=S.vendor||{};
+    if(V.publication_status!=='published'||!S.slug)return toast('Your public link is available once your profile is live');
+    const path=(CFG.vendorUrl||'/vendors/{slug}').replace('{slug}',S.slug);
+    const url=/^https?:/.test(path)?path:(CFG.siteUrl||location.origin).replace(/\/$/,'')+path;
+    try{await navigator.clipboard.writeText(url);toast('Profile link copied')}catch(e){window.prompt('Copy your profile link',url)}
+  },
+  bell(){const n=S.dash&&S.dash.recent.find(x=>x.status==='new');if(n){S.sheet=n.id;render()}else toast('You\u2019re all caught up')},
+  openEnq(t){S.sheet=t.dataset.id;render()},
+  closeSheet(){S.sheet=null;render()},
+  async contacted(t){
+    const id=S.sheet;
+    await withBusy(t,'Saving\u2026',async()=>{
+      const d=await rpc('partner_mark_contacted',{p_lead:id});
+      S.dash=d;applyState(d.state,true);S.sheet=null;render();
+    });
+  }
+};
+document.addEventListener('click',e=>{
+  const m=$('#menu');if(m&&m.classList.contains('open')&&!e.target.closest('#menu'))m.classList.remove('open');
+  const t=e.target.closest('[data-act]');if(!t||t.disabled)return;
+  const fn=ACT[t.dataset.act];if(fn)fn(t,e);
+});
+document.addEventListener('input',e=>{
+  const t=e.target;
+  if(t.matches('[data-digits]'))t.value=t.value.replace(/\D/g,'');
+  if(t.dataset.bind){setPath(t.dataset.bind,t.value);const fld=t.closest('.fld');if(fld&&fld.classList.contains('bad')){fld.classList.remove('bad');const f=$('.ferr',fld);if(f)f.remove()}}
+  if(t.dataset.ans){S.ans[t.dataset.ans]=t.value;const fld=t.closest('.fld');if(fld&&fld.classList.contains('bad')){fld.classList.remove('bad');const f=$('.ferr',fld);if(f)f.remove()}}
+  if(t.closest('#boxes')){
+    const i=+t.dataset.i,v=t.value.replace(/\D/g,'');
+    if(v.length>1){[...v.slice(0,6)].forEach((d,k)=>{S.otp[k]=d});render();return}
+    t.value=v.slice(-1);S.otp[i]=t.value;t.classList.toggle('on',!!t.value);
+    if(t.value&&i<5)$$('#boxes input')[i+1].focus();
+    const er=$('#otpErr');if(er)er.textContent='';
+  }
+});
+document.addEventListener('change',e=>{
+  const t=e.target;
+  if(t.matches('[data-money]')){const d=t.value.replace(/\D/g,'');t.value=d?Number(d).toLocaleString('en-IN'):'';S.ans[t.dataset.ans]=t.value}
+  if(t.matches('select[data-ans]')){t.classList.toggle('empty',!t.value);S.ans[t.dataset.ans]=t.value}
+  if(t.matches('select[data-bind]'))t.classList.toggle('empty',!t.value);
+  if(t.dataset.chk){const id=t.dataset.chk,a=S.ans[id]||[];S.ans[id]=t.checked?[...a,t.value]:a.filter(x=>x!==t.value);const fld=t.closest('.fld');if(fld){fld.classList.remove('bad');const f=$('.ferr',fld);if(f)f.remove()}}
+  if(t.id==='photoIn'){addPhotos([...t.files]);t.value=''}
+  if(t.id==='docIn'){addDoc(t.files[0]);t.value=''}
+  if(t.id==='confirm'){S.confirm=t.checked;const b=$('#publish');if(b)b.disabled=!t.checked}
+  if(t.dataset.task!==undefined){const i=+t.dataset.task;S.tasks[i]=t.checked;t.closest('.li').classList.toggle('done',t.checked)}
+});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Backspace'&&e.target.closest&&e.target.closest('#boxes')){
+    const t=e.target,i=+t.dataset.i;
+    if(!t.value&&i>0){const p=$$('#boxes input')[i-1];p.value='';S.otp[i-1]='';p.classList.remove('on');p.focus()}
+  }
+  if(e.key==='Enter'){
+    if(e.target.id==='contact')ACT.sendOtp();
+    else if(e.target.closest&&e.target.closest('#boxes'))ACT.verify();
+  }
+});
+['dragover','dragenter'].forEach(ev=>document.addEventListener(ev,e=>{if(e.target.closest&&e.target.closest('#drop')){e.preventDefault();$('#drop').classList.add('over')}}));
+document.addEventListener('dragleave',e=>{const d=$('#drop');if(d&&e.target===d)d.classList.remove('over')});
+document.addEventListener('drop',e=>{if(e.target.closest&&e.target.closest('#drop')){e.preventDefault();$('#drop').classList.remove('over');addPhotos([...e.dataTransfer.files])}});
+
+boot();
+</script>
+</body>
+</html>

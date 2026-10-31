@@ -10,7 +10,12 @@
 import crypto from "crypto";
 import bcrypt from "bcryptjs";
 
-const JWT_SECRET = process.env.JWT_SECRET || process.env.NEXT_AUTH_SECRET || "cloche_master_jwt_secret_key_2026_super_secure_key_84920";
+const DEVELOPMENT_JWT_SECRET = "cloche_master_jwt_secret_key_2026_super_secure_key_84920";
+function getJwtSecret(): string | null {
+  const configured = process.env.JWT_SECRET || process.env.NEXT_AUTH_SECRET;
+  if (configured) return configured;
+  return process.env.NODE_ENV === "production" ? null : DEVELOPMENT_JWT_SECRET;
+}
 const AUTH_COOKIE_NAME = "cloche_auth_token";
 const SESSION_EXPIRY_DAYS = 30;
 
@@ -65,6 +70,8 @@ export function verifyPassword(password: string, storedHash: string): boolean {
  * Sign JWT Token using HMAC-SHA256
  */
 export function signJwtToken(payload: Omit<TokenPayload, "iat" | "exp">, expiresInDays = SESSION_EXPIRY_DAYS): string {
+  const jwtSecret = getJwtSecret();
+  if (!jwtSecret) throw new Error("JWT signing is unavailable because the authentication secret is not configured.");
   const iat = Math.floor(Date.now() / 1000);
   const exp = iat + expiresInDays * 24 * 60 * 60;
   
@@ -74,7 +81,7 @@ export function signJwtToken(payload: Omit<TokenPayload, "iat" | "exp">, expires
   const encodedPayload = Buffer.from(JSON.stringify(fullPayload)).toString("base64url");
   
   const signatureInput = `${header}.${encodedPayload}`;
-  const signature = crypto.createHmac("sha256", JWT_SECRET).update(signatureInput).digest("base64url");
+  const signature = crypto.createHmac("sha256", jwtSecret).update(signatureInput).digest("base64url");
   
   return `${signatureInput}.${signature}`;
 }
@@ -83,13 +90,15 @@ export function signJwtToken(payload: Omit<TokenPayload, "iat" | "exp">, expires
  * Verify & Decode JWT Token
  */
 export function verifyJwtToken(token: string): TokenPayload | null {
+  const jwtSecret = getJwtSecret();
+  if (!jwtSecret) return null;
   if (!token || typeof token !== "string") return null;
   const parts = token.split(".");
   if (parts.length !== 3) return null;
   
   const [header, payload, signature] = parts;
   const signatureInput = `${header}.${payload}`;
-  const expectedSignature = crypto.createHmac("sha256", JWT_SECRET).update(signatureInput).digest("base64url");
+  const expectedSignature = crypto.createHmac("sha256", jwtSecret).update(signatureInput).digest("base64url");
   
   if (signature !== expectedSignature) {
     return null;
