@@ -15,6 +15,9 @@ const fixtures = [
   { id: '1', name: 'Kochi Groom Studio', category: 'Groom Wear', categorySlug: 'groom-wear', city: 'Kochi', state: 'Kerala', rating: 4.7, reviewCount: 12, startingPrice: '₹8,500', logo: '', coverImage: '', isVerified: true, slug: 'kochi-groom', detailUrl: '/boutiques/kochi-groom' },
   { id: '2', name: 'Ernakulam Groom House', category: 'Groom Wear', categorySlug: 'groom-wear', city: 'Kochi', state: 'Kerala', rating: 4.5, reviewCount: 8, startingPrice: 'Contact for pricing', logo: '', coverImage: '', isVerified: true, slug: 'groom-house', detailUrl: '/boutiques/groom-house' },
   { id: '3', name: 'Kochi Lens', category: 'Photographers', categorySlug: 'photographers', city: 'Kochi', state: 'Kerala', rating: 4.9, reviewCount: 20, startingPrice: '₹12,000', logo: '', coverImage: '', isVerified: true, slug: 'kochi-lens', detailUrl: '/boutiques/kochi-lens' },
+  { id: '4', name: 'Kochi Makeup One', category: 'Makeup Artists', categorySlug: 'makeup-artists', city: 'Kochi', state: 'Kerala', rating: 4.8, reviewCount: 10, startingPrice: '₹9,000', logo: '', coverImage: '', isVerified: true, slug: 'makeup-one', detailUrl: '/boutiques/makeup-one' },
+  { id: '5', name: 'Kochi Makeup Two', category: 'Makeup Artists', categorySlug: 'makeup-artists', city: 'Kochi', state: 'Kerala', rating: 4.6, reviewCount: 7, startingPrice: '₹11,000', logo: '', coverImage: '', isVerified: true, slug: 'makeup-two', detailUrl: '/boutiques/makeup-two' },
+  { id: '6', name: 'Kochi Exact Budget Studio', category: 'Groom Wear', categorySlug: 'groom-wear', city: 'Kochi', state: 'Kerala', rating: 4.3, reviewCount: 4, startingPrice: '₹10,000', logo: '', coverImage: '', isVerified: true, slug: 'exact-budget', detailUrl: '/boutiques/exact-budget' },
 ];
 
 test('remembers introduction and answers the name follow-up', () => {
@@ -28,8 +31,9 @@ test('classifies groom wear and applies the follow-up budget cap', () => {
   const first = processAuraTurn({ query: 'Find affordable groom wear in Kochi.', vendors: fixtures.slice(0, 2) });
   assert.equal(first.entities.category, 'groom wear');
   assert.equal(first.entities.city, 'Kochi');
-  const second = processAuraTurn({ query: 'Show options under ₹10,000.', memory: first.memory, vendors: fixtures.slice(0, 2) });
+  const second = processAuraTurn({ query: 'Show options under ₹10,000.', memory: first.memory, vendors: [fixtures[0], fixtures[1], fixtures[5]] });
   assert.equal(second.intent, 'budget_filter');
+  assert.equal(second.entities.budgetStrict, true);
   assert.equal(second.groundedVendors.length, 1);
   assert.equal(second.groundedVendors[0].name, 'Kochi Groom Studio');
 });
@@ -71,6 +75,28 @@ test('comparison is grounded in the two named verified candidates', () => {
   assert.match(result.reply, /you named/);
   const needsNames = processAuraTurn({ query: 'Compare these two vendors.', memory: { lastCategory: 'groom wear', lastCity: 'Kochi' }, vendors: fixtures.slice(0, 2) });
   assert.match(needsNames.reply, /Which two vendor names/);
+});
+
+test('supports first-two references and the requested multi-turn scenario', () => {
+  let turn = processAuraTurn({ query: 'Hi, my name is Shaban.' });
+  assert.equal(turn.memory.preferredName, 'Shaban');
+  turn = processAuraTurn({ query: 'Find affordable groom wear in Kochi.', memory: turn.memory, vendors: fixtures.slice(0, 2) });
+  assert.equal(turn.entities.city, 'Kochi');
+  turn = processAuraTurn({ query: 'Show options under ₹10,000.', memory: turn.memory, vendors: [fixtures[0], fixtures[1], fixtures[5]] });
+  assert.equal(turn.groundedVendors.length, 1);
+  turn = processAuraTurn({ query: 'What about makeup artists?', memory: turn.memory, vendors: fixtures.slice(3, 5) });
+  assert.equal(turn.entities.city, 'Kochi');
+  assert.equal(turn.groundedVendors.length, 2, 'a groom-wear price filter must not silently filter the new category');
+  turn = processAuraTurn({ query: 'Compare the first two vendors.', memory: turn.memory, vendors: fixtures.slice(3, 5) });
+  assert.equal(turn.entities.vendorNames.length, 2);
+  assert.match(turn.reply, /you named/);
+  turn = processAuraTurn({ query: 'Plan a wedding with ₹5 lakh.', memory: turn.memory });
+  assert.equal(turn.budgetPlan.totalBudget, 500000);
+  turn = processAuraTurn({ query: 'Enikku Kochiyil photographer venam.', memory: turn.memory, vendors: [fixtures[2]] });
+  assert.equal(turn.entities.category, 'photographers');
+  assert.equal(turn.entities.city, 'Kochi');
+  assert.match(processAuraTurn({ query: 'What is Python?', memory: turn.memory }).reply, /don’t have a curated knowledge entry/i);
+  assert.match(processAuraTurn({ query: 'Write a React application.', memory: turn.memory }).reply, /not a general code-generation tool/i);
 });
 
 test('answers Python and React prompts from explicit knowledge limitations', () => {

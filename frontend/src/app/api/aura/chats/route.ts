@@ -15,7 +15,7 @@ export async function GET(request: Request) {
 
     const ids = chats.map((chat) => chat.id);
     const messages = await auraDbFetch<any[]>(
-      `aura_messages?user_id=eq.${encodeURIComponent(identity.userId)}&conversation_id=in.(${ids.map(encodeURIComponent).join(",")})&select=id,conversation_id,role,content,created_at&order=created_at.asc&limit=5000`
+      `aura_messages?user_id=eq.${encodeURIComponent(identity.userId)}&conversation_id=in.(${ids.map(encodeURIComponent).join(",")})&select=id,conversation_id,client_message_id,role,content,metadata,created_at&order=created_at.asc&limit=5000`
     );
     const byChat = new Map<string, any[]>();
     for (const message of messages || []) {

@@ -21,12 +21,19 @@ CREATE TABLE IF NOT EXISTS aura_messages (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+ALTER TABLE aura_messages
+  ADD COLUMN IF NOT EXISTS client_message_id UUID,
+  ADD COLUMN IF NOT EXISTS metadata JSONB NOT NULL DEFAULT '{}'::jsonb;
+
 CREATE INDEX IF NOT EXISTS idx_aura_conversations_user_updated
   ON aura_conversations(user_id, updated_at DESC);
 CREATE INDEX IF NOT EXISTS idx_aura_messages_conversation_created
   ON aura_messages(conversation_id, created_at ASC);
 CREATE INDEX IF NOT EXISTS idx_aura_messages_user
   ON aura_messages(user_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_aura_messages_client_idempotency
+  ON aura_messages(user_id, conversation_id, client_message_id, role)
+  WHERE client_message_id IS NOT NULL;
 
 ALTER TABLE aura_conversations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE aura_messages ENABLE ROW LEVEL SECURITY;

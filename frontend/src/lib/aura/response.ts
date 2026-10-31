@@ -10,6 +10,7 @@ export interface AuraMemory extends Partial<AuraEntities> {
   lastCategory?: string;
   lastCity?: string;
   lastBudget?: number;
+  lastBudgetStrict?: boolean;
   recentVendors?: AuraVendorItem[];
 }
 
@@ -71,6 +72,7 @@ export function generateResponse(input: {
     const category = entities.category || memory.lastCategory || "";
     const city = entities.city || memory.lastCity || "";
     const budget = entities.budget ?? memory.lastBudget;
+    const budgetStrict = entities.budget !== undefined ? Boolean(entities.budgetStrict) : Boolean(memory.lastBudgetStrict);
     if (!category && intent !== "compare") {
       reply = ml ? "ഏത് തരത്തിലുള്ള vendor ആണ് വേണ്ടത്—photographer, makeup artist, venue, അല്ലെങ്കിൽ മറ്റൊന്നോ?" : "Which vendor category should I look for, such as photographers, makeup artists, venues or catering?";
     } else if (!city && !input.vendors) {
@@ -82,18 +84,21 @@ export function generateResponse(input: {
       const results = input.vendors || [];
       const filtered = budget ? results.filter((v) => {
         const amount = Number(String(v.startingPrice || "").replace(/[^\d.]/g, ""));
-        return amount > 0 && amount <= budget;
+        return amount > 0 && (budgetStrict ? amount < budget : amount <= budget);
       }) : results;
       memory.lastCategory = category;
       memory.lastCity = city;
       memory.lastBudget = budget;
+      memory.lastBudgetStrict = budgetStrict;
       memory.recentVendors = filtered;
       extras.groundedVendors = filtered;
-      if (filtered.length === 0) reply = ml ? MALAYALAM.noVendors : "I couldn’t find verified Cloche vendors matching those filters. Try another category, city or budget. I won’t make up listings or prices.";
+      const unpriced = results.filter((vendor) => vendor.startingPrice === "Contact for pricing");
+      if (filtered.length === 0 && budget && unpriced.length > 0) reply = `I couldn’t confirm any ${category} listings in ${city} under ₹${budget.toLocaleString("en-IN")}. ${unpriced.length} matching listing(s) have no starting price recorded, so I’m not treating them as under budget.`;
+      else if (filtered.length === 0) reply = ml ? MALAYALAM.noVendors : "I couldn’t find verified Cloche vendors matching those filters. Try another category, city or budget. I won’t make up listings or prices.";
       else if (intent === "compare" && filtered.length < 2) reply = "I found fewer than two matching vendors to compare. Please name two vendors or broaden the category or location.";
       else if (intent === "compare") reply = `Here are the ${filtered.length} verified vendor records you named. Compare the listed category, city, starting price and any recorded rating on their Cloche profiles. I can only compare attributes stored in those profiles; availability and unlisted inclusions need confirmation with each vendor.`;
-      else if (budget && filtered.every((v) => v.startingPrice === "Contact for pricing")) reply = `I found ${filtered.length} verified ${category} listing(s) in ${city}, but their starting prices are not listed, so I can’t confirm which are under ₹${budget.toLocaleString("en-IN")}. Contact them to check.`;
-      else reply = `I found ${filtered.length} verified ${category} listing(s)${city ? ` in ${city}` : ""}${budget ? ` with listed starting prices at or below ₹${budget.toLocaleString("en-IN")}` : ". Listings are ordered by their recorded starting price where available"}. The cards show only details stored in Cloche; confirm current prices and availability with each vendor.`;
+      else if (budget && filtered.every((v) => v.startingPrice === "Contact for pricing")) reply = `I found ${filtered.length} verified ${category} listing(s) in ${city}, but their starting prices are not listed, so I can’t confirm which meet your ₹${budget.toLocaleString("en-IN")} budget. Contact them to check.`;
+      else reply = `I found ${filtered.length} verified ${category} listing(s)${city ? ` in ${city}` : ""}${budget ? ` with listed starting prices ${budgetStrict ? "under" : "at or below"} ₹${budget.toLocaleString("en-IN")}` : ". Listings are ordered by their recorded starting price where available"}${budget && unpriced.length ? `; ${unpriced.length} other matching listing(s) have no recorded price and are not included` : ""}. The cards show only details stored in Cloche; confirm current prices and availability with each vendor.`;
     }
   } else if (intent === "budget_plan") {
     topic = "budget";

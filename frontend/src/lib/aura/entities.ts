@@ -3,6 +3,7 @@ export interface AuraEntities {
   category?: string;
   city?: string;
   budget?: number;
+  budgetStrict?: boolean;
   vendorNames: string[];
   comparison: boolean;
 }
@@ -42,15 +43,17 @@ export function extractEntities(text: string, knownVendorNames: string[] = []): 
   const name = intro?.[1];
   const vendorNames = knownVendorNames.filter((candidate) => candidate && normalized.includes(candidate.toLocaleLowerCase())).slice(0, 5);
   const comparison = /\b(compare|comparison|versus|vs\.?|difference between)\b/i.test(text);
-  return { name, category, city, budget, vendorNames, comparison };
+  const budgetStrict = budget !== undefined && /\b(?:under|below|less than)\b|<(?!\=)/i.test(text);
+  return { name, category, city, budget, budgetStrict, vendorNames, comparison };
 }
 
-export function mergeEntities(previous: Partial<AuraEntities> & { lastCategory?: string; lastCity?: string; lastBudget?: number }, current: AuraEntities): AuraEntities {
+export function mergeEntities(previous: Partial<AuraEntities> & { lastCategory?: string; lastCity?: string; lastBudget?: number; lastBudgetStrict?: boolean }, current: AuraEntities): AuraEntities {
   return {
     name: current.name || previous.name,
     category: current.category || previous.category || previous.lastCategory,
     city: current.city || previous.city || previous.lastCity,
     budget: current.budget ?? previous.budget ?? previous.lastBudget,
+    budgetStrict: current.budget !== undefined ? current.budgetStrict : previous.budgetStrict ?? previous.lastBudgetStrict,
     vendorNames: current.vendorNames.length ? current.vendorNames : previous.vendorNames || [],
     comparison: current.comparison || Boolean(previous.comparison),
   };

@@ -158,13 +158,14 @@ export async function queryAuraAssistant(
   rawQuery: string,
   userContext?: AuraUserContext | null,
   _vendorContext?: AuraVendorContext | null,
-  options?: { conversationId?: string; signal?: AbortSignal; regenerate?: boolean; history?: Array<{ role: "user" | "assistant"; content: string }> }
+  options?: { conversationId?: string; clientMessageId?: string; signal?: AbortSignal; regenerate?: boolean; history?: Array<{ role: "user" | "assistant"; content: string }> }
 ): Promise<AuraResponse> {
   const response = await fetch("/api/aura/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       conversationId: options?.conversationId,
+      clientMessageId: options?.clientMessageId || crypto.randomUUID(),
       message: rawQuery,
       regenerate: options?.regenerate,
       history: options?.history,

@@ -22,14 +22,14 @@ export function classifyIntent(text: string, entities: AuraEntities, hasPendingV
   if (PHRASES.ask_name.some((p) => p.test(text))) return "ask_name";
   if (PHRASES.greeting.some((p) => p.test(text))) return "greeting";
   if (PHRASES.compare.some((p) => p.test(text)) || entities.comparison) return "compare";
-  if (entities.category && (PHRASES.vendors.some((p) => p.test(text)) || hasPendingVendorSearch || entities.city || entities.budget)) return entities.budget && hasPendingVendorSearch ? "budget_filter" : "vendors";
-  if (hasPendingVendorSearch && entities.budget) return "budget_filter";
   if (PHRASES.checklist.some((p) => p.test(text))) return "checklist";
   if (PHRASES.budget_plan.some((p) => p.test(text)) && (entities.budget || /wedding|വിവാഹ/i.test(text))) return "budget_plan";
-  if (PHRASES.vendors.some((p) => p.test(text)) && !entities.category) return "clarify";
-  if (PHRASES.planning.some((p) => p.test(text))) return "planning";
   if (PHRASES.knowledge.some((p) => p.test(text))) return "knowledge";
   if (PHRASES.unsupported.some((p) => p.test(text))) return "unsupported";
+  if (entities.category && (PHRASES.vendors.some((p) => p.test(text)) || hasPendingVendorSearch || entities.city || entities.budget)) return entities.budget && hasPendingVendorSearch ? "budget_filter" : "vendors";
+  if (hasPendingVendorSearch && entities.budget) return "budget_filter";
+  if (PHRASES.vendors.some((p) => p.test(text)) && !entities.category) return "clarify";
+  if (PHRASES.planning.some((p) => p.test(text))) return "planning";
   return "unsupported";
 }
 

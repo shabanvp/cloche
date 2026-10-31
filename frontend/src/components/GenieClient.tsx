@@ -275,9 +275,12 @@ export function GenieClient() {
               pinned: Boolean(chat.pinned),
               updatedAt: Date.parse(chat.updated_at) || Date.now(),
               messages: (chat.messages || []).map((message: any) => ({
-                id: message.id,
+                id: message.client_message_id && message.role === "user" ? `user-${message.client_message_id}` : message.id,
                 sender: message.role === "user" ? "user" : "aura",
                 text: message.content,
+                groundedVendors: message.metadata?.groundedVendors,
+                budgetPlan: message.metadata?.budgetPlan,
+                checklist: message.metadata?.checklist,
                 timestamp: new Date(message.created_at).toLocaleString(),
               })),
             })) : [];
@@ -318,9 +321,12 @@ export function GenieClient() {
     const query = (regenerate ? messages[lastUserIndex]?.text || "" : textToSend || promptInput).trim();
     if (!query || isThinking || !sessionReady) return;
 
+    const clientMessageId = regenerate
+      ? messages[lastUserIndex]?.id.match(/^user-([0-9a-f-]{36})$/i)?.[1] || crypto.randomUUID()
+      : crypto.randomUUID();
     if (!regenerate) {
       const userMessage: ChatMessage = {
-        id: `user-${Date.now()}`,
+        id: `user-${clientMessageId}`,
         sender: "user",
         text: query,
         timestamp: "Just now",
@@ -337,6 +343,7 @@ export function GenieClient() {
     try {
       const response: AuraResponse = await queryAuraAssistant(query, userContext, null, {
         conversationId: currentChatId || undefined,
+        clientMessageId,
         signal: controller.signal,
         regenerate,
         history: messages.slice(0, regenerate ? lastUserIndex + 1 : undefined)
