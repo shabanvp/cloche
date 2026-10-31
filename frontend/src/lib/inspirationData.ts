@@ -12,6 +12,7 @@ export type InspirationCategory =
   | "Trending Decor"
   | "Bridal Looks"
   | "Groom Looks"
+  | "Wedding Details"
   | "Mehendi Designs"
   | "Stage Designs"
   | "Color Themes"
@@ -525,6 +526,7 @@ export const DYNAMIC_CATEGORIES: InspirationCategory[] = [
   "Trending Decor",
   "Bridal Looks",
   "Groom Looks",
+  "Wedding Details",
   "Mehendi Designs",
   "Stage Designs",
   "Seasonal Trends",

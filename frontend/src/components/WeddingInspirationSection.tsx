@@ -7,15 +7,13 @@ import { ArrowRight } from "lucide-react";
 type InspirationPhoto = {
   src?: { large?: string; medium?: string };
   alt?: string | null;
-  photographer?: string;
-  photographer_url?: string;
 };
 
 const categories = [
-  { title: "Bridal Looks", photoCategory: "Bridal Looks", href: "/bridal-wear", alt: "Bridal fashion inspiration" },
-  { title: "Groom Style", photoCategory: "Groom Looks", href: "/groom-wear", alt: "Groom style inspiration" },
-  { title: "Wedding Decor", photoCategory: "Trending Decor", href: "/decor-planning", alt: "Wedding decor inspiration" },
-  { title: "Wedding Details", photoCategory: "Wedding Photos", href: "/inspiration", alt: "Wedding detail inspiration" },
+  { title: "Bridal Looks", photoCategory: "Bridal Looks", href: "/inspiration?category=Bridal%20Looks", alt: "Bridal fashion inspiration" },
+  { title: "Groom Style", photoCategory: "Groom Looks", href: "/inspiration?category=Groom%20Looks", alt: "Groom style inspiration" },
+  { title: "Wedding Decor", photoCategory: "Trending Decor", href: "/inspiration?category=Trending%20Decor", alt: "Wedding decor inspiration" },
+  { title: "Wedding Details", photoCategory: "Wedding Details", href: "/inspiration?category=Wedding%20Details", alt: "Wedding detail inspiration" },
 ];
 
 export function WeddingInspirationSection() {
@@ -85,11 +83,6 @@ export function WeddingInspirationSection() {
                   </span>
                 </div>
               </Link>
-              {photo?.photographer && photo.photographer_url && (
-                <p className="mt-2 truncate text-[10px] text-[#6F706B]">
-                  Photo by <a href={photo.photographer_url} target="_blank" rel="noopener noreferrer" className="underline decoration-[#B89455]/60 underline-offset-2 hover:text-[#064E43]">{photo.photographer}</a> via <a href="https://www.pexels.com" target="_blank" rel="noopener noreferrer" className="underline decoration-[#B89455]/60 underline-offset-2 hover:text-[#064E43]">Pexels</a>
-                </p>
-              )}
             </div>
           );
         })}
