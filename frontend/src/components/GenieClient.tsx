@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { AuraMarkdown } from "@/components/AuraMarkdown";
 import {
   Sparkles,
   Send,
@@ -43,7 +44,6 @@ import {
   AuraResponse, 
   AuraVendorItem,
   AuraUserContext,
-  AuraVendorContext,
   BudgetBreakdownItem,
   WeddingChecklistItem,
   InquiryDraft,
@@ -94,7 +94,6 @@ export function GenieClient() {
   const chatsRef = useRef<SavedAuraChat[]>([]);
   const [sessionReady, setSessionReady] = useState(false);
   const [userContext, setUserContext] = useState<AuraUserContext | null>(null);
-  const [vendorContext, setVendorContext] = useState<AuraVendorContext | null>(null);
   const [isThinking, setIsThinking] = useState(false);
   const [isActionLoading, setIsActionLoading] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -102,6 +101,7 @@ export function GenieClient() {
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const storeChats = (nextChats: SavedAuraChat[], key = chatStorageKey) => {
     chatsRef.current = nextChats;
@@ -196,7 +196,13 @@ export function GenieClient() {
   };
 
   const toggleChatPin = (chatId: string) => {
-    storeChats(chatsRef.current.map((chat) => chat.id === chatId ? { ...chat, pinned: !chat.pinned } : chat));
+    const chat = chatsRef.current.find((item) => item.id === chatId);
+    if (!chat) return;
+    const pinned = !chat.pinned;
+    storeChats(chatsRef.current.map((item) => item.id === chatId ? { ...item, pinned } : item));
+    fetch(`/api/aura/chats/${encodeURIComponent(chatId)}`, {
+      method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ pinned }),
+    }).catch(() => null);
   };
 
   const deleteChat = (chatId: string) => {
@@ -210,6 +216,7 @@ export function GenieClient() {
       next.push(chat);
     }
     storeChats(next);
+    fetch(`/api/aura/chats/${encodeURIComponent(chatId)}`, { method: "DELETE" }).catch(() => null);
     if (chatId === currentChatId) {
       setCurrentChatId(next[0].id);
       setMessages(next[0].messages);
@@ -234,24 +241,6 @@ export function GenieClient() {
     async function loadSession() {
       const greeting: ChatMessage = { id: `aura-init-${Date.now()}`, sender: "aura", text: "Hi! How can I help?", timestamp: "Just now" };
       try {
-        const vRes = await fetch("/api/v1/vendor/profile").catch(() => null);
-        if (vRes?.ok) {
-          const vJson = await vRes.json();
-          if (vJson.success && vJson.data?.vendor) {
-            const v = vJson.data.vendor;
-            const p = vJson.data.profile || {};
-            const ctx: AuraVendorContext = {
-              vendorId: v.id, businessName: p.business_name || v.vendor_code || "your business",
-              category: vJson.data.category?.name || "Wedding Services", categorySlug: vJson.data.category?.slug,
-              city: p.city || "Thrissur", state: p.state || "Kerala", about: p.about || "", tagline: p.tagline || "",
-              rating: Number(p.rating || 0), reviewCount: Number(p.review_count || 0), startingPrice: p.starting_price,
-            };
-            setVendorContext(ctx);
-            restoreChat(`cloche_aura_chats_v1:vendor:${v.id}`, greeting);
-            return;
-          }
-        }
-
         const res = await fetch("/api/v1/auth/me").catch(() => null);
         if (res?.ok) {
           const json = await res.json();
@@ -262,7 +251,47 @@ export function GenieClient() {
               phone: u.phone, city: u.city || "Thrissur", weddingDate: u.weddingDate,
             };
             setUserContext(ctx);
-            restoreChat(`cloche_aura_chats_v1:user:${u.id}`, greeting);
+            const key = `cloche_aura_chats_v1:user:${u.id}`;
+            setChatStorageKey(key);
+            const localChats = (() => {
+              try {
+                const stored = JSON.parse(localStorage.getItem(key) || "[]");
+                return Array.isArray(stored) ? stored.map((chat: SavedAuraChat) => ({
+                  ...chat,
+                  messages: Array.isArray(chat.messages) ? chat.messages.map((message) => ({
+                    id: message.id,
+                    sender: message.sender,
+                    text: message.text,
+                    timestamp: message.timestamp,
+                  })) : [],
+                })) as SavedAuraChat[] : [];
+              } catch { return []; }
+            })();
+            const historyRes = await fetch("/api/aura/chats", { cache: "no-store" }).catch(() => null);
+            const history = historyRes?.ok ? await historyRes.json().catch(() => null) : null;
+            const remoteChats: SavedAuraChat[] = Array.isArray(history?.chats) ? history.chats.map((chat: any) => ({
+              id: chat.id,
+              title: chat.title || "New chat",
+              pinned: Boolean(chat.pinned),
+              updatedAt: Date.parse(chat.updated_at) || Date.now(),
+              messages: (chat.messages || []).map((message: any) => ({
+                id: message.id,
+                sender: message.role === "user" ? "user" : "aura",
+                text: message.content,
+                timestamp: new Date(message.created_at).toLocaleString(),
+              })),
+            })) : [];
+            const remoteIds = new Set(remoteChats.map((chat) => chat.id));
+            const combined = [...remoteChats, ...localChats.filter((chat) => !remoteIds.has(chat.id))]
+              .sort((a, b) => Number(b.pinned) - Number(a.pinned) || b.updatedAt - a.updatedAt);
+            if (!combined.length) combined.push({ id: `chat-${Date.now()}`, title: "New chat", messages: [greeting], pinned: false, updatedAt: Date.now() });
+            const activeId = localStorage.getItem(`${key}:active`);
+            const activeChat = combined.find((chat) => chat.id === activeId) || combined[0];
+            storeChats(combined, key);
+            setCurrentChatId(activeChat.id);
+            setMessages(activeChat.messages);
+            try { localStorage.setItem(`${key}:active`, activeChat.id); } catch {}
+            setSessionReady(true);
             return;
           }
         }
@@ -278,124 +307,42 @@ export function GenieClient() {
     loadSession();
   }, []);
 
-  const samplePrompts = vendorContext ? [
-    "Draft a premium wedding package",
-    "Rewrite my profile description for SEO",
-    "Summarize my enquiries this week",
-    "Pricing suggestions for Kerala weddings",
-    "Tips to increase booking conversions",
-  ] : userContext?.userId ? [
-    "Plan my wedding for 400 guests in Thrissur, budget ₹15 lakh",
-    "Compare shaban and Acesd for decor",
-    "Show my wedding checklist",
-    "Send an inquiry to shaban",
-    "Find photographers in Kerala",
-  ] : [
-    "Find wedding venues in Kochi",
-    "Top rated photographers in Kerala",
-    "Compare decorators in Thrissur",
-    "Bridal makeup artists in Kochi",
-    "How much does a 500 guest wedding cost?",
-  ];
-
-  const workflowActions = vendorContext ? [
-    {
-      title: "Draft Service Package",
-      desc: "Create wedding packages with clear inclusions & pricing",
-      prompt: "Draft a premium wedding package for my storefront",
-      icon: Package,
-    },
-    {
-      title: "Storefront SEO Rewrite",
-      desc: "Generate high-converting, SEO-optimized business bio",
-      prompt: "Rewrite my profile description for SEO",
-      icon: FileText,
-    },
-    {
-      title: "Enquiry & Lead Summary",
-      desc: "Summarize real-time couple inquiries & upcoming dates",
-      prompt: "Summarize my enquiries this week",
-      icon: MessageSquare,
-    },
-    {
-      title: "Regional Pricing Benchmark",
-      desc: "Explore Kerala market pricing standards for your category",
-      prompt: "Suggest regional pricing benchmarks for my category",
-      icon: DollarSign,
-    },
-  ] : userContext?.userId ? [
-    {
-      title: "Budget Planning",
-      desc: "Calculate category-wise allocations tailored to your guests",
-      prompt: "Plan my wedding for 400 guests in Thrissur, budget ₹15 lakh",
-      icon: DollarSign,
-    },
-    {
-      title: "Side-by-Side Comparison",
-      desc: "Compare verified vendors side-by-side with real ratings",
-      prompt: "Compare shaban and Acesd for decor",
-      icon: Layers,
-    },
-    {
-      title: "Milestone Checklist",
-      desc: "Interactive countdown checklist for your wedding",
-      prompt: "Show my wedding checklist",
-      icon: CheckSquare,
-    },
-    {
-      title: "Direct Vendor Inquiry",
-      desc: "Draft verified booking inquiries with instant reference",
-      prompt: "Send an inquiry to shaban",
-      icon: MailCheck,
-    },
-  ] : [
-    {
-      title: "Discover Venues",
-      desc: "Explore verified banquet halls, resorts & heritage palaces",
-      prompt: "Find wedding venues in Kochi",
-      icon: Building2,
-    },
-    {
-      title: "Top Photographers",
-      desc: "Find candid & traditional wedding cinematographers",
-      prompt: "Top rated photographers in Kerala",
-      icon: Camera,
-    },
-    {
-      title: "Bridal Artists",
-      desc: "Certified makeup, glam & mehendi artists in your district",
-      prompt: "Find bridal makeup artists in Thrissur",
-      icon: Heart,
-    },
-    {
-      title: "Budget Estimator",
-      desc: "Estimate wedding expenses with realistic local benchmarks",
-      prompt: "How much does a 500 guest wedding cost in Kerala?",
-      icon: DollarSign,
-    },
-  ];
+  const samplePrompts: string[] = [];
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isThinking]);
 
-  const handleSendPrompt = async (textToSend?: string) => {
-    const query = (textToSend || promptInput).trim();
+  const handleSendPrompt = async (textToSend?: string, regenerate = false) => {
+    const lastUserIndex = messages.map((message) => message.sender).lastIndexOf("user");
+    const query = (regenerate ? messages[lastUserIndex]?.text || "" : textToSend || promptInput).trim();
     if (!query || isThinking || !sessionReady) return;
 
-    const userMessage: ChatMessage = {
-      id: `user-${Date.now()}`,
-      sender: "user",
-      text: query,
-      timestamp: "Just now",
-    };
-
-    setMessages((prev) => [...prev, userMessage]);
-    if (!textToSend) setPromptInput("");
+    if (!regenerate) {
+      const userMessage: ChatMessage = {
+        id: `user-${Date.now()}`,
+        sender: "user",
+        text: query,
+        timestamp: "Just now",
+      };
+      setMessages((prev) => [...prev, userMessage]);
+      if (!textToSend) setPromptInput("");
+    } else if (lastUserIndex >= 0) {
+      setMessages(messages.slice(0, lastUserIndex + 1));
+    }
     setIsThinking(true);
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
 
     try {
-      const response: AuraResponse = await queryAuraAssistant(query, userContext, vendorContext);
+      const response: AuraResponse = await queryAuraAssistant(query, userContext, null, {
+        conversationId: currentChatId || undefined,
+        signal: controller.signal,
+        regenerate,
+        history: messages.slice(0, regenerate ? lastUserIndex + 1 : undefined)
+          .filter((message) => !message.id.startsWith("aura-init") && !message.id.startsWith("aura-err-"))
+          .map((message) => ({ role: message.sender === "user" ? "user" as const : "assistant" as const, content: message.text })),
+      });
       const auraMessage: ChatMessage = {
         id: `aura-${Date.now()}`,
         sender: "aura",
@@ -415,49 +362,19 @@ export function GenieClient() {
       };
       setMessages((prev) => [...prev, auraMessage]);
     } catch (err) {
+      if (controller.signal.aborted) return;
       setMessages((prev) => [
         ...prev,
         {
           id: `aura-err-${Date.now()}`,
           sender: "aura",
-          text: "I encountered a network error while searching our live directory. Please try again.",
+          text: err instanceof Error ? err.message : "Aura could not complete that response. Please retry your message.",
           timestamp: "Just now",
         },
       ]);
     } finally {
+      if (abortControllerRef.current === controller) abortControllerRef.current = null;
       setIsThinking(false);
-    }
-  };
-
-  const handleResetConversation = () => {
-    if (vendorContext) {
-      setMessages([
-        {
-          id: "aura-init-vendor",
-          sender: "aura",
-          text: `Hi ${vendorContext.businessName}, I'm Aura — your AI assistant for Cloche. I can help you draft service packages, optimize your storefront SEO description, review client enquiries, and benchmark market pricing. What would you like to work on?`,
-          timestamp: "Just now",
-        },
-      ]);
-    } else if (userContext?.userId) {
-      const firstName = userContext.fullName?.split(" ")[0] || "there";
-      setMessages([
-        {
-          id: "aura-init",
-          sender: "aura",
-          text: `Hi ${firstName}, I'm Aura, your Cloche AI Wedding Concierge. How can I help with your wedding planning today?`,
-          timestamp: "Just now",
-        },
-      ]);
-    } else {
-      setMessages([
-        {
-          id: "aura-init-guest",
-          sender: "aura",
-          text: "Hi, I'm Aura, your Cloche AI Wedding Assistant. Tell me what you're looking for — whether discovering venues, budgeting, comparing vendors, or planning your big day.",
-          timestamp: "Just now",
-        },
-      ]);
     }
   };
 
@@ -631,6 +548,11 @@ export function GenieClient() {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Escape" && isThinking) {
+      e.preventDefault();
+      abortControllerRef.current?.abort();
+      return;
+    }
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSendPrompt();
@@ -638,7 +560,6 @@ export function GenieClient() {
   };
 
   const isConversationStarted = messages.length > 1;
-  const currentEntityName = vendorContext?.businessName || userContext?.fullName?.split(" ")[0] || "there";
 
   return (
     <div className="h-[calc(100dvh-64px)] md:h-[calc(100dvh-108px)] w-full overflow-hidden flex bg-[#FAF9F6] text-[#2B2B2B] font-sans antialiased selection:bg-[#C8A96A]/30">
@@ -712,7 +633,7 @@ export function GenieClient() {
                             : "bg-white text-charcoal border border-[#E5DECF] rounded-tl-xs"
                         }`}
                       >
-                        <div className="whitespace-pre-line leading-relaxed">{m.text}</div>
+                        {isUser ? <div className="whitespace-pre-line leading-relaxed">{m.text}</div> : <AuraMarkdown text={m.text} />}
 
                         {/* Package Draft Card */}
                         {m.packageDraft && (
@@ -962,6 +883,18 @@ export function GenieClient() {
                           </button>
                           <span>•</span>
                           <span>{m.timestamp}</span>
+                          {m.id === [...messages].reverse().find((item) => item.sender === "aura" && !item.id.startsWith("aura-init") && !item.id.startsWith("aura-err-"))?.id && (
+                            <button
+                              onClick={() => handleSendPrompt(undefined, true)}
+                              disabled={isThinking || !messages.some((item) => item.sender === "user")}
+                              className="ml-1 inline-flex items-center gap-1 hover:text-[#0F4C43] transition-colors disabled:opacity-40"
+                              aria-label="Regenerate response"
+                              title="Regenerate response"
+                            >
+                              <RefreshCw className="h-3 w-3" />
+                              <span>Regenerate</span>
+                            </button>
+                          )}
                         </div>
                       )}
                     </div>
@@ -976,8 +909,7 @@ export function GenieClient() {
                     <Sparkles className="w-3.5 h-3.5 animate-spin" />
                   </div>
                   <div className="space-y-0.5">
-                    <span className="text-xs font-semibold text-charcoal block">Aura is searching Cloche database...</span>
-                    <span className="text-[10px] text-charcoal/50">Cross-referencing verified pricing, ratings & availability</span>
+                    <span className="text-xs font-semibold text-charcoal block">Aura is thinking...</span>
                   </div>
                 </div>
               )}
@@ -1018,22 +950,19 @@ export function GenieClient() {
                 value={promptInput}
                 onChange={(e) => setPromptInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder={
-                  vendorContext
-                  ? "Message Aura..."
-                  : "Message Aura..."
-                }
+                placeholder="Message Aura..."
                 disabled={isThinking || !sessionReady}
                 className="w-full bg-transparent resize-none max-h-36 px-3 py-2 text-xs sm:text-sm text-charcoal placeholder:text-charcoal/45 focus:outline-none"
               />
 
               <button
                 type="submit"
-                disabled={!promptInput.trim() || isThinking || !sessionReady}
+                disabled={(!promptInput.trim() && !isThinking) || !sessionReady}
+                onClick={() => { if (isThinking) abortControllerRef.current?.abort(); }}
                 className="w-9 h-9 rounded-full bg-[#0F4C45] hover:bg-[#135951] disabled:opacity-30 disabled:hover:bg-[#0F4C45] text-white flex items-center justify-center transition-all shrink-0 cursor-pointer shadow-xs"
-                title="Send message"
+                title={isThinking ? "Stop response" : "Send message"}
               >
-                <ArrowUp className="w-4 h-4 stroke-[2.5]" />
+                {isThinking ? <Square className="h-3.5 w-3.5 fill-current" /> : <ArrowUp className="w-4 h-4 stroke-[2.5]" />}
               </button>
             </form>
 
