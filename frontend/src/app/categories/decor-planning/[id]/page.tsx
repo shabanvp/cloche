@@ -1,3 +1,4 @@
+import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { fetchPublicVendorProfileFromDb } from "@/lib/supabase";
 import { VendorProfileDispatcher } from "@/components/VendorProfileDispatcher";
@@ -27,6 +28,10 @@ export default async function DecorPlanningDetailPage({ params }: Props) {
 
   const staticVendor = decorVendors.find((d) => d.id === id);
 
+  if (!profile && !staticVendor) {
+    notFound();
+  }
+
   const cleanProfile = profile || (staticVendor ? {
     id: staticVendor.id,
     name: staticVendor.name,
@@ -43,21 +48,11 @@ export default async function DecorPlanningDetailPage({ params }: Props) {
     images: [staticVendor.image, ...(staticVendor.portfolio || [])],
     about: staticVendor.about,
     services: staticVendor.services?.map((s) => ({ name: s.name })),
-  } : {
-    id: id,
-    name: "Luxury Decor & Wedding Planning",
-    category: "Decor & Planning",
-    categorySlug: "decor-planning",
-    categoryLabel: "Decor & Planning",
-    city: "Kerala",
-    address: "Kochi, Kerala",
-    rating: 4.9,
-    reviewCount: 40,
-    is_verified: true,
-    starting_price: "₹75,000",
-    phone: "919000000000",
-    about: "Bespoke wedding stage decor, floral mandap installations, lighting concepts, and end-to-end wedding planning."
-  });
+  } : null);
+
+  if (!cleanProfile) {
+    notFound();
+  }
 
   return <VendorProfileDispatcher profile={cleanProfile} forcedCategory="decor-planning" />;
 }

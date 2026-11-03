@@ -24,20 +24,9 @@ export default async function VenueDetailPage({ params }: Props) {
   const { id } = await params;
   const { data: profile } = await fetchPublicVendorProfileFromDb(id);
 
-  const cleanProfile = profile || {
-    id: id,
-    name: "Grand Palace Wedding Lawn & Convention Centre",
-    category: "Venues",
-    categorySlug: "venues",
-    city: "Kerala",
-    address: "Kochi, Kerala",
-    rating: 4.9,
-    reviewCount: 52,
-    is_verified: true,
-    starting_price: "₹1,50,000 / Day",
-    phone: "919000000000",
-    about: "Luxury air-conditioned banquet hall and open-air riverside lawn hosting up to 2,000 guests."
-  };
+  if (!profile) {
+    notFound();
+  }
 
-  return <VendorProfileDispatcher profile={cleanProfile} forcedCategory="venues" />;
+  return <VendorProfileDispatcher profile={profile} forcedCategory="venues" />;
 }

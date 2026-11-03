@@ -24,20 +24,9 @@ export default async function MakeupArtistDetailPage({ params }: Props) {
   const { id } = await params;
   const { data: profile } = await fetchPublicVendorProfileFromDb(id);
 
-  const cleanProfile = profile || {
-    id: id,
-    name: "Luxury HD & Airbrush Bridal Makeup Studio",
-    category: "Makeup Artists",
-    categorySlug: "makeup",
-    city: "Kerala",
-    address: "Kochi, Kerala",
-    rating: 4.9,
-    reviewCount: 41,
-    is_verified: true,
-    starting_price: "₹18,000 / Event",
-    phone: "919000000000",
-    about: "Celebrity bridal makeup artist specializing in HD water-resistant glass skin finish, airbrush makeovers, and saree draping."
-  };
+  if (!profile) {
+    notFound();
+  }
 
-  return <VendorProfileDispatcher profile={cleanProfile} forcedCategory="makeup" />;
+  return <VendorProfileDispatcher profile={profile} forcedCategory="makeup" />;
 }

@@ -119,7 +119,8 @@ exports.getAllBoutiques = async (req, res) => {
         try {
             const { data, error } = await supabase
                 .from("boutiques")
-                .select("id, boutique_name, owner_name, email, phone, city, category, is_verified, created_at, plan, is_featured, priority_score, logo_url, cover_url, image_url")
+                .select("id, boutique_name, owner_name, email, phone, city, category, is_verified, created_at, plan, is_featured, priority_score, logo_url, cover_url, image_url, status")
+                .eq("status", "active")
                 .order("is_featured", { ascending: false })
                 .order("priority_score", { ascending: false })
                 .order("boutique_name", { ascending: true });
@@ -130,7 +131,8 @@ exports.getAllBoutiques = async (req, res) => {
             console.warn("[BoutiqueController] Advanced ranking failed, falling back to basic sort:", dbErr.message);
             const { data, error } = await supabase
                 .from("boutiques")
-                .select("id, boutique_name, owner_name, email, phone, city, category, is_verified, created_at, plan, logo_url, cover_url, image_url")
+                .select("id, boutique_name, owner_name, email, phone, city, category, is_verified, created_at, plan, logo_url, cover_url, image_url, status")
+                .eq("status", "active")
                 .order("boutique_name", { ascending: true });
                 
             if (error) return res.status(500).json({ message: "Database error", error: error.message });
@@ -260,12 +262,14 @@ exports.searchBoutiques = async (req, res) => {
     try {
         const { keyword, district, category, verified, plan, page = 1, limit = 20 } = req.query;
         
-        let query = supabase.from("boutique_showcase").select("*, boutiques!inner(id, boutique_name, owner_name, city, plan, category)", { count: "exact" });
+        let query = supabase.from("boutique_showcase").select("*, boutiques!inner(id, boutique_name, owner_name, city, plan, category, status)", { count: "exact" })
+            .eq("boutiques.status", "active");
 
         // Keyword search
         if (keyword) {
             const { data: bData } = await supabase.from('boutiques')
                 .select('id')
+                .eq('status', 'active')
                 .or(`boutique_name.ilike.%${keyword}%,city.ilike.%${keyword}%`);
             
             const bIds = (bData || []).map(b => b.id);
@@ -338,6 +342,7 @@ exports.getBoutiqueDetails = async (req, res) => {
             .from("boutiques")
             .select("*")
             .eq("id", boutiqueId)
+            .eq("status", "active")
             .maybeSingle();
 
         if (error || !boutique) return res.status(404).json({ message: "Boutique not found" });

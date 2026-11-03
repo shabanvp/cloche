@@ -24,20 +24,9 @@ export default async function JewelleryDetailPage({ params }: Props) {
   const { id } = await params;
   const { data: profile } = await fetchPublicVendorProfileFromDb(id);
 
-  const cleanProfile = profile || {
-    id: id,
-    name: "Heritage Kundan & Temple Jewellery Studio",
-    category: "Jewellery",
-    categorySlug: "jewellery",
-    city: "Kerala",
-    address: "Kochi, Kerala",
-    rating: 4.9,
-    reviewCount: 44,
-    is_verified: true,
-    starting_price: "₹3,500 / Rental",
-    phone: "919000000000",
-    about: "Heritage temple gold jewellery rental, uncut diamond polki sets, antique choker sets, and bridal maang tikka rentals."
-  };
+  if (!profile) {
+    notFound();
+  }
 
-  return <VendorProfileDispatcher profile={cleanProfile} forcedCategory="jewellery" />;
+  return <VendorProfileDispatcher profile={profile} forcedCategory="jewellery" />;
 }

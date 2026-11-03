@@ -24,20 +24,9 @@ export default async function InvitationsDetailPage({ params }: Props) {
   const { id } = await params;
   const { data: profile } = await fetchPublicVendorProfileFromDb(id);
 
-  const cleanProfile = profile || {
-    id: id,
-    name: "Couture Wedding Invitations & Stationery",
-    category: "Invitations",
-    categorySlug: "invitations",
-    city: "Kerala",
-    address: "Kochi, Kerala",
-    rating: 4.8,
-    reviewCount: 30,
-    is_verified: true,
-    starting_price: "₹85 / Card",
-    phone: "919000000000",
-    about: "Custom luxury foil-stamped wedding cards, wax-seal invite suites, and interactive digital video invitations."
-  };
+  if (!profile) {
+    notFound();
+  }
 
-  return <VendorProfileDispatcher profile={cleanProfile} forcedCategory="invitations" />;
+  return <VendorProfileDispatcher profile={profile} forcedCategory="invitations" />;
 }

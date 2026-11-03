@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { 
   Search, ShieldCheck, CheckCircle2, Ban, Eye, Store, Camera, 
   Sparkles, MapPin, Phone, Mail, Calendar, Tag, ChevronRight, X, User, Check
@@ -18,6 +18,7 @@ export type VendorRecord = {
   plan?: string;
   created_at?: string;
   status: "active" | "pending" | "suspended";
+  publicationStatus?: "draft" | "under_review" | "published" | "changes_requested";
   description?: string;
   rating?: number;
 };
@@ -273,10 +274,51 @@ export function VendorManagementClient({ backendVendors }: VendorManagementProps
       plan: b.plan || "Early Partner",
       created_at: b.created_at || "2026-04-01",
       status: b.status === "suspended" ? "suspended" : b.status === "pending" ? "pending" : "active",
+      publicationStatus: b.publicationStatus || b.publication_status,
       description: b.about || b.description || "Registered luxury vendor on Cloche marketplace.",
       rating: b.rating || 4.9
     }));
   });
+
+  useEffect(() => {
+    async function loadPendingQueue() {
+      try {
+        const res = await fetch("/api/v1/admin/vendors?status=pending", {
+          cache: "no-store",
+          credentials: "same-origin",
+        });
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && Array.isArray(json.data)) {
+            const pendingMapped: VendorRecord[] = json.data.map((b: Partial<VendorRecord> & Record<string, unknown>) => ({
+              id: b.id,
+              boutique_name: b.boutique || b.boutique_name || "Partner Vendor",
+              owner_name: b.ownerName || b.owner_name || "Owner",
+              category: b.category || "Vendor",
+              email: b.email || "",
+              phone: b.phone || "",
+              city: b.origin || b.city || "Kerala, India",
+              plan: b.plan || "Partner",
+              created_at: b.date || b.created_at,
+              status: (b.status === "suspended" ? "suspended" : b.status === "pending" ? "pending" : "active") as "active" | "pending" | "suspended",
+              publicationStatus: b.publicationStatus || b.publication_status,
+              description: b.description || "Registered partner application.",
+              rating: 5.0,
+            }));
+
+            setVendorList((prev) => {
+              const pendingIds = new Set(pendingMapped.map((p) => String(p.id)));
+              const remaining = prev.filter((item) => !pendingIds.has(String(item.id)));
+              return [...pendingMapped, ...remaining];
+            });
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load pending queue:", err);
+      }
+    }
+    loadPendingQueue();
+  }, []);
 
   // Filter vendors based on Category, Status, and Search Query
   const filteredVendors = useMemo(() => {
@@ -490,19 +532,31 @@ export function VendorManagementClient({ backendVendors }: VendorManagementProps
                     </td>
 
                     <td className="p-4">
-                      {v.status === "active" ? (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald/10 text-emerald">
-                          <CheckCircle2 className="w-3 h-3" /> Active
-                        </span>
-                      ) : v.status === "pending" ? (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-50 text-amber-600 border border-amber-200">
-                          Pending
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-red-50 text-red-600 border border-red-200">
-                          Suspended
-                        </span>
-                      )}
+                      <div className="flex flex-col gap-1 items-start">
+                        {v.status === "active" ? (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald/10 text-emerald">
+                            <CheckCircle2 className="w-3 h-3" /> Active
+                          </span>
+                        ) : v.status === "pending" ? (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-50 text-amber-600 border border-amber-200">
+                            Pending
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-red-50 text-red-600 border border-red-200">
+                            Suspended
+                          </span>
+                        )}
+                        {v.publicationStatus === "under_review" && (
+                          <span className="inline-block text-[11px] font-medium text-amber-700 bg-amber-100/70 px-2 py-0.5 rounded border border-amber-200">
+                            Submitted for review
+                          </span>
+                        )}
+                        {v.publicationStatus === "draft" && (
+                          <span className="inline-block text-[11px] font-medium text-charcoal/60 bg-gray-100 px-2 py-0.5 rounded border border-gray-200">
+                            Signup in progress
+                          </span>
+                        )}
+                      </div>
                     </td>
 
                     <td className="p-4 pr-6 text-right space-x-2">
@@ -544,9 +598,21 @@ export function VendorManagementClient({ backendVendors }: VendorManagementProps
                 {activeVendor.boutique_name.charAt(0).toUpperCase()}
               </div>
               <div>
-                <span className="text-[10px] uppercase font-bold tracking-widest text-gold bg-gold/10 px-2.5 py-0.5 rounded-full">
-                  {activeVendor.category}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] uppercase font-bold tracking-widest text-gold bg-gold/10 px-2.5 py-0.5 rounded-full">
+                    {activeVendor.category}
+                  </span>
+                  {activeVendor.publicationStatus === "under_review" && (
+                    <span className="inline-block text-[11px] font-medium text-amber-700 bg-amber-100/70 px-2 py-0.5 rounded border border-amber-200">
+                      Submitted for review
+                    </span>
+                  )}
+                  {activeVendor.publicationStatus === "draft" && (
+                    <span className="inline-block text-[11px] font-medium text-charcoal/60 bg-gray-100 px-2 py-0.5 rounded border border-gray-200">
+                      Signup in progress
+                    </span>
+                  )}
+                </div>
                 <h3 className="font-display text-2xl text-charcoal font-semibold mt-1">{activeVendor.boutique_name}</h3>
                 <p className="text-xs text-charcoal/60">Vendor ID: #{activeVendor.id}</p>
               </div>

@@ -24,20 +24,9 @@ export default async function MehendiDetailPage({ params }: Props) {
   const { id } = await params;
   const { data: profile } = await fetchPublicVendorProfileFromDb(id);
 
-  const cleanProfile = profile || {
-    id: id,
-    name: "Royal Organic Mehendi Artist",
-    category: "Mehendi",
-    categorySlug: "mehendi",
-    city: "Kerala",
-    address: "Kochi, Kerala",
-    rating: 4.9,
-    reviewCount: 38,
-    is_verified: true,
-    starting_price: "₹7,500",
-    phone: "919000000000",
-    about: "Organic dark stain henna specialist doing bridal figure art, Arabic motifs, and custom couple portrait mehendi."
-  };
+  if (!profile) {
+    notFound();
+  }
 
-  return <VendorProfileDispatcher profile={cleanProfile} forcedCategory="mehendi" />;
+  return <VendorProfileDispatcher profile={profile} forcedCategory="mehendi" />;
 }

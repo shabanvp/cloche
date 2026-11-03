@@ -24,20 +24,9 @@ export default async function GroomWearDetailPage({ params }: Props) {
   const { id } = await params;
   const { data: profile } = await fetchPublicVendorProfileFromDb(id);
 
-  const cleanProfile = profile || {
-    id: id,
-    name: "Luxury Groom Wear Studio",
-    category: "Groom Studio",
-    categorySlug: "groom-studio",
-    city: "Kerala",
-    address: "Kochi, Kerala",
-    rating: 4.9,
-    reviewCount: 42,
-    is_verified: true,
-    starting_price: "₹18,000",
-    phone: "919000000000",
-    about: "Bespoke groom velvet sherwanis, jodhpuri suits, bandhgalas, and ceremonial tuxedos."
-  };
+  if (!profile) {
+    notFound();
+  }
 
-  return <VendorProfileDispatcher profile={cleanProfile} forcedCategory="groom-studio" />;
+  return <VendorProfileDispatcher profile={profile} forcedCategory="groom-studio" />;
 }

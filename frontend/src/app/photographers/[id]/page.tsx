@@ -24,20 +24,9 @@ export default async function PhotographerDetailPage({ params }: Props) {
   const { id } = await params;
   const { data: profile } = await fetchPublicVendorProfileFromDb(id);
 
-  const cleanProfile = profile || {
-    id: id,
-    name: "Candid Wedding Photography & Films",
-    category: "Photographers",
-    categorySlug: "photographers",
-    city: "Kerala",
-    address: "Kochi, Kerala",
-    rating: 4.9,
-    reviewCount: 48,
-    is_verified: true,
-    starting_price: "₹65,000 / Day",
-    phone: "919000000000",
-    about: "Award-winning candid wedding photography, cinematic drone teaser films, and traditional ceremony coverage across South India."
-  };
+  if (!profile) {
+    notFound();
+  }
 
-  return <VendorProfileDispatcher profile={cleanProfile} forcedCategory="photographers" />;
+  return <VendorProfileDispatcher profile={profile} forcedCategory="photographers" />;
 }
