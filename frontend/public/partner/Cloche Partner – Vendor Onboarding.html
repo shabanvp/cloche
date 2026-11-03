@@ -1775,15 +1775,23 @@
       }
     }
   
-    /* ===== Common Cloche Navbar Styles ===== */
+        /* =========================================================
+       CLOCHE EXACT COMMON NAVBAR (Matches Header.tsx Pixel-for-Pixel)
+       ========================================================= */
     :root {
-      --cloche-nav-h: 60px;
+      --cloche-nav-h: 56px;
     }
-    @media(min-width: 900px) {
+    @media (min-width: 768px) {
       :root {
-        --cloche-nav-h: 100px;
+        --cloche-nav-h: 96px;
       }
     }
+
+    @keyframes clochePulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
     .cloche-nav {
       position: sticky;
       top: 0;
@@ -1791,355 +1799,930 @@
       right: 0;
       z-index: 1000;
       width: 100%;
-      font-family: Inter, system-ui, -apple-system, sans-serif;
-      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
-    .cloche-nav-container {
-      width: 100%;
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 0 20px;
-    }
-    @media(min-width: 900px) {
-      .cloche-nav-container {
-        padding: 0 40px;
-      }
-    }
+
+    /* Top Announcement Bar (Hidden on Mobile) */
     .cloche-nav-top {
       display: none;
       background: #0B3B2D;
-      color: #E2E8F0;
+      color: #FFFFFF;
       font-size: 12px;
-      padding: 8px 0;
+      line-height: 1rem;
       border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 8px 16px;
+      width: 100%;
+      box-sizing: border-box;
     }
-    @media(min-width: 900px) {
+    @media (min-width: 640px) {
       .cloche-nav-top {
-        display: block;
+        padding-left: 24px;
+        padding-right: 24px;
       }
     }
-    .cloche-nav-top-inner {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+    @media (min-width: 768px) {
+      .cloche-nav-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
     }
+    @media (min-width: 1024px) {
+      .cloche-nav-top {
+        padding-left: 40px;
+        padding-right: 40px;
+        font-size: 14px;
+      }
+    }
+    @media (min-width: 1280px) {
+      .cloche-nav-top {
+        padding-left: 48px;
+        padding-right: 48px;
+      }
+    }
+
+    .cloche-nav-top-tagline {
+      color: #D1D5DB;
+    }
+
     .cloche-nav-top-links {
       display: flex;
-      gap: 20px;
       align-items: center;
+      gap: 24px;
     }
-    .cloche-nav-top-links a {
-      color: #CBD5E1;
-      text-decoration: none;
+
+    .cloche-nav-top-link {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      transition: color 0.15s;
+      gap: 8px;
+      color: #FFFFFF;
+      text-decoration: none;
+      transition: color 0.15s ease;
     }
-    .cloche-nav-top-links a:hover {
-      color: #D4AF37;
+    .cloche-nav-top-link:hover {
+      color: #C8A96A;
     }
+    .cloche-nav-top-icon {
+      width: 16px;
+      height: 16px;
+    }
+
+    /* Main Navigation Bar */
     .cloche-nav-main {
+      position: relative;
       background: #0F4C45;
       color: #FFFFFF;
-      padding: 10px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 16px;
+      width: 100%;
+      box-sizing: border-box;
     }
-    @media(min-width: 900px) {
+    @media (min-width: 640px) {
       .cloche-nav-main {
-        padding: 14px 0;
+        padding-left: 24px;
+        padding-right: 24px;
       }
     }
-    .cloche-nav-main-inner {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+    @media (min-width: 768px) {
+      .cloche-nav-main {
+        padding-top: 16px;
+        padding-bottom: 16px;
+      }
     }
-    .cloche-nav-logo {
-      display: inline-flex;
+    @media (min-width: 1024px) {
+      .cloche-nav-main {
+        padding-left: 40px;
+        padding-right: 40px;
+      }
+    }
+    @media (min-width: 1280px) {
+      .cloche-nav-main {
+        padding-left: 48px;
+        padding-right: 48px;
+      }
+    }
+
+    /* Logo & Brand */
+    .cloche-nav-brand-wrap {
+      display: flex;
       align-items: center;
       gap: 12px;
       text-decoration: none;
       color: #FFFFFF;
+      flex-shrink: 0;
     }
-    .cloche-nav-logo-box {
+    .cloche-logo-box {
       position: relative;
-      width: 44px;
-      height: 38px;
       display: flex;
       align-items: center;
       justify-content: center;
+      width: 44px;
+      height: 40px;
     }
-    @media(min-width: 900px) {
-      .cloche-nav-logo-box {
-        width: 52px;
-        height: 44px;
+    @media (min-width: 768px) {
+      .cloche-logo-box {
+        width: 55px;
+        height: 48px;
       }
     }
-    .cloche-nav-logo-img {
+    @media (min-width: 1024px) {
+      .cloche-logo-box {
+        width: 65px;
+        height: 52px;
+      }
+    }
+    @media (min-width: 1280px) {
+      .cloche-logo-box {
+        width: 70px;
+        height: 56px;
+      }
+    }
+
+    .cloche-logo-img {
+      position: absolute;
+      inset: 0;
       width: 100%;
       height: 100%;
       object-fit: contain;
-      transform: scale(1.65);
+      transform: scale(1.75);
+      filter: drop-shadow(0 1px 1px rgba(0,0,0,0.05));
+      transform-origin: center;
     }
-    .cloche-nav-brand {
-      font-family: "Cormorant Garamond", Georgia, serif;
-      font-size: 24px;
+    @media (min-width: 768px) {
+      .cloche-logo-img {
+        transform: scale(1.8);
+      }
+    }
+    @media (min-width: 1024px) {
+      .cloche-logo-img {
+        transform: scale(1.9);
+      }
+    }
+
+    .cloche-brand-text {
+      display: block;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 20px;
       font-weight: 700;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.025em;
       color: #FFFFFF;
+      margin-top: 2px;
+      line-height: 1;
     }
-    @media(min-width: 900px) {
-      .cloche-nav-brand {
+    @media (min-width: 768px) {
+      .cloche-brand-text {
+        font-size: 24px;
+        margin-top: 4px;
+      }
+    }
+    @media (min-width: 1024px) {
+      .cloche-brand-text {
         font-size: 28px;
       }
     }
+
+    /* Desktop Navigation Links */
     .cloche-nav-links {
       display: none;
       align-items: center;
-      gap: 24px;
+      gap: 20px;
+      font-weight: 600;
+      font-size: 14px;
     }
-    @media(min-width: 992px) {
+    @media (min-width: 1024px) {
       .cloche-nav-links {
         display: flex;
       }
     }
-    .cloche-nav-links a {
-      color: #F1F5F9;
+    @media (min-width: 1280px) {
+      .cloche-nav-links {
+        gap: 32px;
+        font-size: 15px;
+      }
+    }
+
+    .cloche-nav-link {
+      color: #FFFFFF;
       text-decoration: none;
-      font-size: 14.5px;
-      font-weight: 500;
-      transition: color 0.15s;
+      transition: color 0.15s ease;
     }
-    .cloche-nav-links a:hover {
-      color: #D4AF37;
+    .cloche-nav-link:hover {
+      color: #C8A96A;
     }
-    .cloche-nav-aura {
+
+    .cloche-nav-aura-link {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      padding: 4px 12px;
+      padding: 2px 10px;
       border-radius: 9999px;
-      border: 1px solid rgba(212, 175, 55, 0.4);
-      background: rgba(255, 255, 255, 0.06);
-      color: #FFFFFF !important;
+      border: 1px solid rgba(200, 169, 106, 0.3);
+      background: rgba(255, 255, 255, 0.05);
+      color: rgba(255, 255, 255, 0.9);
+      text-decoration: none;
+      font-weight: 600;
+      transition: all 0.15s ease;
     }
-    .cloche-nav-aura:hover {
-      background: rgba(255, 255, 255, 0.12);
-      border-color: #D4AF37;
+    .cloche-nav-aura-link:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #C8A96A;
+      border-color: rgba(200, 169, 106, 0.5);
     }
+    .cloche-sparkle-icon {
+      width: 14px;
+      height: 14px;
+      color: #C8A96A;
+      animation: clochePulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+
+    /* Actions */
     .cloche-nav-actions {
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 12px;
+      flex-shrink: 0;
     }
-    .cloche-nav-login-btn {
-      display: none;
-      background: #12584C;
-      color: #FFFFFF;
-      text-decoration: none;
-      border: 1px solid #1D796B;
-      padding: 8px 22px;
-      border-radius: 9999px;
-      font-size: 13.5px;
-      font-weight: 600;
-      transition: all 0.15s;
-    }
-    .cloche-nav-login-btn:hover {
-      background: #186F61;
-    }
-    @media(min-width: 768px) {
-      .cloche-nav-login-btn {
-        display: inline-block;
+    @media (min-width: 1024px) {
+      .cloche-nav-actions {
+        gap: 20px;
       }
     }
-    .cloche-nav-menu-btn {
+
+    /* Notification Bell Button */
+    .cloche-bell-btn {
+      position: relative;
+      width: 32px;
+      height: 32px;
+      border-radius: 9999px;
+      background: rgba(255, 255, 255, 0.1);
       display: flex;
       align-items: center;
       justify-content: center;
       color: #FFFFFF;
-      padding: 6px;
-      border-radius: 8px;
+      border: none;
       cursor: pointer;
-      transition: background 0.15s;
+      padding: 0;
+      transition: background-color 0.15s ease;
     }
-    .cloche-nav-menu-btn:hover {
-      background: rgba(255, 255, 255, 0.1);
-      color: #D4AF37;
+    @media (min-width: 1024px) {
+      .cloche-bell-btn {
+        width: 40px;
+        height: 40px;
+      }
     }
-    @media(min-width: 992px) {
-      .cloche-nav-menu-btn {
+    .cloche-bell-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+    .cloche-bell-icon {
+      width: 17px;
+      height: 17px;
+    }
+    @media (min-width: 1024px) {
+      .cloche-bell-icon {
+        width: 20px;
+        height: 20px;
+      }
+    }
+    .cloche-bell-badge {
+      position: absolute;
+      right: 6px;
+      top: 6px;
+      width: 8px;
+      height: 8px;
+      border-radius: 9999px;
+      background: #C8A96A;
+      box-shadow: 0 0 0 2px #0F4C45;
+    }
+
+    /* Notification Dropdown */
+    .cloche-notif-dropdown {
+      display: none;
+      position: absolute;
+      right: 16px;
+      top: calc(100% + 10px);
+      z-index: 70;
+      width: min(calc(100vw - 2rem), 360px);
+      overflow: hidden;
+      border-radius: 16px;
+      border: 1px solid rgba(200, 169, 106, 0.3);
+      background: #F7F3EC;
+      color: #082F2C;
+      box-shadow: 0 22px 60px rgba(0, 0, 0, 0.22);
+      font-family: Inter, system-ui, -apple-system, sans-serif;
+    }
+    .cloche-notif-dropdown.open {
+      display: block;
+    }
+    .cloche-notif-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(200, 169, 106, 0.2);
+      background: #0B3B36;
+      padding: 12px 16px;
+      color: #F7F3EC;
+    }
+    .cloche-notif-header-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 18px;
+      font-weight: 700;
+    }
+    .cloche-notif-close-btn {
+      background: none;
+      border: none;
+      color: #D8C39A;
+      cursor: pointer;
+      font-size: 20px;
+      line-height: 1;
+      padding: 0;
+    }
+    .cloche-notif-close-btn:hover {
+      color: #FFFFFF;
+    }
+    .cloche-notif-body {
+      max-height: 320px;
+      overflow-y: auto;
+      padding: 12px;
+    }
+    .cloche-notif-item {
+      display: flex;
+      gap: 12px;
+      border-radius: 12px;
+      padding: 12px;
+      text-decoration: none;
+      color: inherit;
+      transition: background-color 0.15s ease;
+    }
+    .cloche-notif-item:hover {
+      background: rgba(11, 59, 54, 0.08);
+    }
+    .cloche-notif-item-icon {
+      margin-top: 2px;
+      display: flex;
+      width: 36px;
+      height: 36px;
+      flex-shrink: 0;
+      align-items: center;
+      justify-content: center;
+      border-radius: 9999px;
+      background: rgba(11, 59, 54, 0.1);
+      color: #0B3B36;
+    }
+    .cloche-notif-item-content {
+      min-width: 0;
+    }
+    .cloche-notif-item-title {
+      display: block;
+      font-size: 14px;
+      font-weight: 700;
+      color: #082F2C;
+    }
+    .cloche-notif-item-desc {
+      display: block;
+      margin-top: 4px;
+      font-size: 12px;
+      line-height: 1.25rem;
+      color: rgba(8, 47, 44, 0.7);
+    }
+    .cloche-notif-footer {
+      border-top: 1px solid rgba(200, 169, 106, 0.2);
+      padding: 12px 16px;
+      text-align: center;
+    }
+    .cloche-notif-footer-link {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: #0B3B36;
+      text-decoration: none;
+      transition: color 0.15s ease;
+    }
+    .cloche-notif-footer-link:hover {
+      color: #C8A96A;
+    }
+
+    /* Log In Button */
+    .cloche-login-btn {
+      display: none;
+      background: #12584C;
+      border: 1px solid #1D796B;
+      border-radius: 9999px;
+      padding: 8px 24px;
+      font-weight: 600;
+      font-size: 14px;
+      color: #FFFFFF;
+      text-decoration: none;
+      transition: background-color 0.15s ease;
+      white-space: nowrap;
+    }
+    @media (min-width: 768px) {
+      .cloche-login-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+    }
+    @media (min-width: 1024px) {
+      .cloche-login-btn {
+        padding: 10px 32px;
+        font-size: 15px;
+      }
+    }
+    .cloche-login-btn:hover {
+      background: #186F61;
+    }
+
+    /* Mobile Hamburger Menu Button */
+    .cloche-mobile-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: none;
+      border: none;
+      color: #FFFFFF;
+      cursor: pointer;
+      padding: 6px;
+      transition: color 0.15s ease;
+    }
+    @media (min-width: 1024px) {
+      .cloche-mobile-toggle {
         display: none;
       }
     }
+    .cloche-mobile-toggle:hover {
+      color: #C8A96A;
+    }
+
     /* Mobile Drawer */
     .cloche-mobile-drawer {
       display: none;
       position: fixed;
       inset: 0;
-      background: rgba(0, 0, 0, 0.65);
-      backdrop-filter: blur(4px);
-      z-index: 10000;
+      z-index: 99999;
     }
     .cloche-mobile-drawer.open {
-      display: block;
+      display: flex;
+      justify-content: flex-end;
     }
-    .cloche-mobile-drawer-content {
+    .cloche-drawer-overlay {
       position: absolute;
-      top: 0;
-      right: 0;
-      bottom: 0;
-      width: 82%;
-      max-width: 320px;
-      background: #0B3B36;
-      color: #FFFFFF;
-      padding: 24px;
-      box-shadow: -4px 0 24px rgba(0, 0, 0, 0.35);
+      inset: 0;
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(2px);
+      -webkit-backdrop-filter: blur(2px);
+      transition: opacity 0.3s ease;
+    }
+    .cloche-drawer-panel {
+      position: relative;
       display: flex;
+      height: 100dvh;
+      width: 76vw;
+      max-width: 340px;
       flex-direction: column;
-      overflow-y: auto;
+      overflow: hidden;
+      background: #0B3B36;
+      color: #F7F3EC;
+      box-shadow: -28px 0 70px rgba(0, 0, 0, 0.38);
+      animation: clocheSlideIn 0.3s ease-in-out;
+      font-family: Inter, system-ui, -apple-system, sans-serif;
     }
-    .cloche-mobile-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding-bottom: 20px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    @keyframes clocheSlideIn {
+      from { transform: translateX(100%); }
+      to { transform: translateX(0); }
     }
-    .cloche-mobile-close {
-      color: #CBD5E1;
-      font-size: 32px;
+    .cloche-drawer-close {
+      position: absolute;
+      right: 24px;
+      top: calc(env(safe-area-inset-top, 0px) + 20px);
+      z-index: 10;
+      background: none;
+      border: none;
+      color: #D8C39A;
+      font-size: 28px;
       line-height: 1;
       cursor: pointer;
+      transition: color 0.15s ease;
     }
-    .cloche-mobile-close:hover {
-      color: #D4AF37;
+    .cloche-drawer-close:hover {
+      color: #F7F3EC;
     }
-    .cloche-mobile-links {
+    .cloche-drawer-scroll {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      min-height: 0;
+      flex: 1;
+      flex-direction: column;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      padding: calc(env(safe-area-inset-top, 0px) + 64px) 20px calc(env(safe-area-inset-bottom, 0px) + 24px);
+    }
+    .cloche-drawer-profile {
+      margin-bottom: 28px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      border-radius: 16px;
+      padding: 8px;
+      text-decoration: none;
+      color: inherit;
+      transition: background-color 0.15s ease;
+    }
+    .cloche-drawer-profile:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+    .cloche-drawer-avatar {
+      display: flex;
+      width: 56px;
+      height: 56px;
+      flex-shrink: 0;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      border-radius: 9999px;
+      border: 1px solid rgba(216, 195, 154, 0.6);
+      background: #0F4C45;
+      box-shadow: 0 12px 22px rgba(0, 0, 0, 0.2);
+    }
+    .cloche-drawer-avatar-img {
+      height: 100%;
+      width: 100%;
+      object-fit: contain;
+      transform: scale(1.35);
+    }
+    .cloche-drawer-profile-info {
+      min-width: 0;
+      flex: 1;
+    }
+    .cloche-drawer-profile-name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 18px;
+      font-weight: 700;
+      line-height: 1.5rem;
+      color: #F7F3EC;
+    }
+    .cloche-drawer-profile-action {
+      margin-top: 2px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 13px;
+      line-height: 1.25rem;
+      color: #D8C39A;
+    }
+    .cloche-drawer-section {
+      margin-bottom: 28px;
+    }
+    .cloche-drawer-section-title {
+      margin-bottom: 12px;
+      padding: 0 12px;
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #C8A96A;
+      font-family: Inter, system-ui, -apple-system, sans-serif;
+    }
+    .cloche-drawer-links {
       display: flex;
       flex-direction: column;
-      gap: 16px;
-      padding-top: 24px;
+      gap: 4px;
     }
-    .cloche-mobile-links a {
-      color: #F1F5F9;
-      text-decoration: none;
-      font-size: 16px;
-      font-weight: 500;
-    }
-    .cloche-mobile-links a:hover {
-      color: #D4AF37;
-    }
-    .cloche-nav-aura-mobile {
-      display: inline-flex;
+    .cloche-drawer-link {
+      display: flex;
+      min-height: 48px;
       align-items: center;
-      gap: 8px;
-      color: #D4AF37 !important;
-      font-weight: 600;
+      gap: 16px;
+      border-radius: 16px;
+      padding: 10px 12px;
+      text-decoration: none;
+      color: rgba(247, 243, 236, 0.9);
+      font-size: 15px;
+      transition: all 0.2s ease;
+    }
+    .cloche-drawer-link:hover {
+      background: rgba(255, 255, 255, 0.07);
+      color: #F7F3EC;
+    }
+    .cloche-drawer-link.active {
+      background: #123F3A;
+      color: #F7F3EC;
+      box-shadow: inset 3px 0 0 #C8A96A;
+    }
+    .cloche-drawer-icon {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+      color: #C8A96A;
+    }
+    .cloche-drawer-cta {
+      margin-top: 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      border-radius: 22px;
+      border: 1px solid rgba(200, 169, 106, 0.55);
+      background: #F7F3EC;
+      padding: 12px;
+      color: #082F2C;
+      text-decoration: none;
+      box-shadow: 0 18px 34px rgba(0, 0, 0, 0.22);
+      transition: transform 0.2s ease;
+    }
+    .cloche-drawer-cta:hover {
+      transform: scale(1.02);
+    }
+    .cloche-drawer-cta-logo {
+      display: flex;
+      width: 58px;
+      height: 58px;
+      flex-shrink: 0;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      border-radius: 9999px;
+      background: rgba(216, 195, 154, 0.55);
+    }
+    .cloche-drawer-cta-img {
+      height: 100%;
+      width: 100%;
+      object-fit: contain;
+      transform: scale(1.5);
+    }
+    .cloche-drawer-cta-text {
+      min-width: 0;
+      flex: 1;
+    }
+    .cloche-drawer-cta-title {
+      font-size: 17px;
+      font-weight: 700;
+      line-height: 1.4rem;
+      color: #082F2C;
+    }
+    .cloche-drawer-cta-sub {
+      margin-top: 2px;
+      font-size: 13px;
+      line-height: 1.25rem;
+      color: rgba(8, 47, 44, 0.8);
+    }
+    .cloche-drawer-cta-arrow {
+      width: 24px;
+      height: 24px;
+      flex-shrink: 0;
+      color: #082F2C;
     }
 
   </style>
 </head>
 
 <body>
-  <!-- Common Cloche Navbar -->
+    <!-- Common Cloche Navbar (Matches Header.tsx Pixel-for-Pixel) -->
   <header id="cloche-common-nav" class="cloche-nav">
-    <!-- Top announcement bar (desktop) -->
+    <!-- Top Announcement Bar (Hidden on Mobile) -->
     <div class="cloche-nav-top">
-      <div class="cloche-nav-container cloche-nav-top-inner">
+      <div class="cloche-nav-top-tagline">
         <span>Kerala's Favourite Wedding Planning Platform</span>
-        <div class="cloche-nav-top-links">
-          <a href="/review">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-            Write A Review
-          </a>
-          <a href="/download">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/></svg>
-            Download App
-          </a>
-        </div>
       </div>
-    </div>
-
-    <!-- Main Navigation -->
-    <div class="cloche-nav-main">
-      <div class="cloche-nav-container cloche-nav-main-inner">
-        <!-- Logo -->
-        <a href="/" class="cloche-nav-logo">
-          <div class="cloche-nav-logo-box">
-            <img src="/logo.png" alt="Cloche Logo" class="cloche-nav-logo-img">
-          </div>
-          <span class="cloche-nav-brand">Cloche</span>
+      <div class="cloche-nav-top-links">
+        <a href="/review" class="cloche-nav-top-link">
+          <svg class="cloche-nav-top-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+          <span>Write A Review</span>
         </a>
+        <a href="/download" class="cloche-nav-top-link">
+          <svg class="cloche-nav-top-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/></svg>
+          <span>Download App</span>
+        </a>
+      </div>
+    </div>
 
-        <!-- Desktop Navigation Links -->
-        <nav class="cloche-nav-links">
-          <a href="/venues">Venues</a>
-          <a href="/boutiques">Vendors</a>
-          <a href="/inspiration">Inspiration</a>
-          <a href="/real-weddings">Real Weddings</a>
-          <a href="/deals">Deals</a>
-          <a href="/genie" class="cloche-nav-aura">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3z"/></svg>
-            <span>Aura</span>
+    <!-- Main Navigation Bar -->
+    <div class="cloche-nav-main">
+      <!-- Logo -->
+      <a href="/" class="cloche-nav-brand-wrap">
+        <div class="cloche-logo-box">
+          <img src="/logo.png" alt="Cloche Logo" class="cloche-logo-img">
+        </div>
+        <span class="cloche-brand-text">Cloche</span>
+      </a>
+
+      <!-- Desktop Links -->
+      <nav class="cloche-nav-links">
+        <a href="/venues" class="cloche-nav-link">Venues</a>
+        <a href="/boutiques" class="cloche-nav-link">Vendors</a>
+        <a href="/inspiration" class="cloche-nav-link">Inspiration</a>
+        <a href="/real-weddings" class="cloche-nav-link">Real Weddings</a>
+        <a href="/deals" class="cloche-nav-link">Deals</a>
+        <a href="/genie" class="cloche-nav-aura-link">
+          <svg class="cloche-sparkle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/><path d="M4 17v2"/><path d="M5 18H3"/></svg>
+          <span>Aura</span>
+        </a>
+      </nav>
+
+      <!-- Right Actions -->
+      <div class="cloche-nav-actions">
+        <!-- Notification Bell -->
+        <button type="button" class="cloche-bell-btn" id="clocheBellBtn" aria-label="Open notifications" aria-expanded="false">
+          <svg class="cloche-bell-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+          <span class="cloche-bell-badge"></span>
+        </button>
+
+        <!-- Log In Button -->
+        <a href="/login" class="cloche-login-btn">Log In</a>
+
+        <!-- Mobile Menu Toggle Button -->
+        <button type="button" class="cloche-mobile-toggle" id="clocheNavToggle" aria-label="Toggle navigation">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg>
+        </button>
+      </div>
+
+      <!-- Notifications Dropdown -->
+      <div id="clocheNotifDropdown" class="cloche-notif-dropdown">
+        <div class="cloche-notif-header">
+          <div class="cloche-notif-header-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C8A96A" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <span>Notifications</span>
+          </div>
+          <button type="button" id="clocheNotifClose" class="cloche-notif-close-btn" aria-label="Close notifications">&times;</button>
+        </div>
+        <div class="cloche-notif-body">
+          <a href="/login" class="cloche-notif-item">
+            <span class="cloche-notif-item-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            </span>
+            <span class="cloche-notif-item-content">
+              <span class="cloche-notif-item-title">Sign in for notifications</span>
+              <span class="cloche-notif-item-desc">Log in to see replies, appointment updates, and saved vendor alerts.</span>
+            </span>
           </a>
-        </nav>
-
-        <!-- Right Actions -->
-        <div class="cloche-nav-actions">
-          <a href="/login" class="cloche-nav-login-btn">Log In</a>
-          <button type="button" class="cloche-nav-menu-btn" id="clocheNavToggle" aria-label="Toggle navigation">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg>
-          </button>
+        </div>
+        <div class="cloche-notif-footer">
+          <a href="/login" class="cloche-notif-footer-link">Login to continue</a>
         </div>
       </div>
     </div>
 
-    <!-- Mobile Drawer Menu -->
+    <!-- Mobile Drawer -->
     <div id="clocheMobileDrawer" class="cloche-mobile-drawer">
-      <div class="cloche-mobile-drawer-content">
-        <div class="cloche-mobile-header">
-          <div class="cloche-nav-logo">
-            <img src="/logo.png" alt="Cloche Logo" style="height:32px;object-fit:contain;">
-            <span class="cloche-nav-brand" style="font-size:22px;">Cloche</span>
-          </div>
-          <button type="button" id="clocheNavClose" class="cloche-mobile-close" aria-label="Close menu">&times;</button>
-        </div>
-        <nav class="cloche-mobile-links">
-          <a href="/venues">Venues</a>
-          <a href="/boutiques">Vendors</a>
-          <a href="/inspiration">Inspiration</a>
-          <a href="/real-weddings">Real Weddings</a>
-          <a href="/deals">Deals</a>
-          <a href="/genie" class="cloche-nav-aura-mobile">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="2"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3z"/></svg>
-            <span>Aura AI Assistant</span>
+      <div class="cloche-drawer-overlay" id="clocheDrawerOverlay"></div>
+      <div class="cloche-drawer-panel">
+        <button type="button" id="clocheDrawerClose" class="cloche-drawer-close" aria-label="Close menu">&times;</button>
+        <div class="cloche-drawer-scroll">
+          <!-- Profile Card -->
+          <a href="/login" class="cloche-drawer-profile">
+            <div class="cloche-drawer-avatar">
+              <img src="/logo.png" alt="Cloche" class="cloche-drawer-avatar-img">
+            </div>
+            <div class="cloche-drawer-profile-info">
+              <div class="cloche-drawer-profile-name">Cloche Guest</div>
+              <div class="cloche-drawer-profile-action">Sign In / Sign Up</div>
+            </div>
           </a>
-          <hr style="border:0;border-top:1px solid rgba(255,255,255,0.1);margin:16px 0;">
-          <a href="/review">Write A Review</a>
-          <a href="/download">Download App</a>
-          <a href="/login" style="margin-top:12px;background:#12584C;padding:12px;border-radius:12px;text-align:center;font-weight:600;display:block;color:#fff;text-decoration:none;">Log In</a>
-        </nav>
+
+          <!-- Browse Navigation -->
+          <div class="cloche-drawer-section">
+            <h3 class="cloche-drawer-section-title">Browse</h3>
+            <nav class="cloche-drawer-links">
+              <a href="/" class="cloche-drawer-link">
+                <svg class="cloche-drawer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                <span>Home</span>
+              </a>
+              <a href="/venues" class="cloche-drawer-link">
+                <svg class="cloche-drawer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                <span>Venues</span>
+              </a>
+              <a href="/boutiques" class="cloche-drawer-link">
+                <svg class="cloche-drawer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                <span>Vendors</span>
+              </a>
+              <a href="/inspiration" class="cloche-drawer-link">
+                <svg class="cloche-drawer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>
+                <span>Inspiration</span>
+              </a>
+              <a href="/real-weddings" class="cloche-drawer-link">
+                <svg class="cloche-drawer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M12 8c.8-1.5 2.7-1.5 3.5 0 .8 1.5-1.5 3.5-3.5 5-2-1.5-4.3-3.5-3.5-5 .8-1.5 2.7-1.5 3.5 0Z"/></svg>
+                <span>Real Weddings</span>
+              </a>
+              <a href="/deals" class="cloche-drawer-link">
+                <svg class="cloche-drawer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3z"/></svg>
+                <span>Deals</span>
+              </a>
+              <a href="/genie" class="cloche-drawer-link">
+                <svg class="cloche-drawer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3z"/></svg>
+                <span>Aura AI Assistant</span>
+              </a>
+            </nav>
+          </div>
+
+          <!-- Company Navigation -->
+          <div class="cloche-drawer-section">
+            <h3 class="cloche-drawer-section-title">Company</h3>
+            <nav class="cloche-drawer-links">
+              <a href="/about" class="cloche-drawer-link">
+                <svg class="cloche-drawer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                <span>About Cloche</span>
+              </a>
+              <a href="/partner?mode=create" class="cloche-drawer-link active">
+                <svg class="cloche-drawer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/><path d="M2 7h20"/></svg>
+                <span>For Vendors</span>
+              </a>
+              <a href="/contact" class="cloche-drawer-link">
+                <svg class="cloche-drawer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                <span>Contact Us</span>
+              </a>
+              <a href="/contact" class="cloche-drawer-link">
+                <svg class="cloche-drawer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+                <span>Help & Support</span>
+              </a>
+            </nav>
+          </div>
+
+          <!-- List Your Business Card -->
+          <a href="/partner?mode=create" class="cloche-drawer-cta">
+            <div class="cloche-drawer-cta-logo">
+              <img src="/logo.png" alt="" class="cloche-drawer-cta-img">
+            </div>
+            <div class="cloche-drawer-cta-text">
+              <div class="cloche-drawer-cta-title">List Your Business</div>
+              <div class="cloche-drawer-cta-sub">Grow with Cloche</div>
+            </div>
+            <svg class="cloche-drawer-cta-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </a>
+        </div>
       </div>
     </div>
   </header>
   <script>
     (function() {
+      const bellBtn = document.getElementById('clocheBellBtn');
+      const notifDropdown = document.getElementById('clocheNotifDropdown');
+      const notifClose = document.getElementById('clocheNotifClose');
       const toggle = document.getElementById('clocheNavToggle');
-      const close = document.getElementById('clocheNavClose');
       const drawer = document.getElementById('clocheMobileDrawer');
-      if (toggle && drawer) {
-        toggle.addEventListener('click', () => drawer.classList.add('open'));
-      }
-      if (close && drawer) {
-        close.addEventListener('click', () => drawer.classList.remove('open'));
-      }
-      if (drawer) {
-        drawer.addEventListener('click', (e) => {
-          if (e.target === drawer) drawer.classList.remove('open');
+      const drawerClose = document.getElementById('clocheDrawerClose');
+      const drawerOverlay = document.getElementById('clocheDrawerOverlay');
+
+      if (bellBtn && notifDropdown) {
+        bellBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          const isOpen = notifDropdown.classList.toggle('open');
+          bellBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
         });
       }
+
+      if (notifClose && notifDropdown) {
+        notifClose.addEventListener('click', function(e) {
+          e.stopPropagation();
+          notifDropdown.classList.remove('open');
+          if (bellBtn) bellBtn.setAttribute('aria-expanded', 'false');
+        });
+      }
+
+      document.addEventListener('click', function(e) {
+        if (notifDropdown && !notifDropdown.contains(e.target) && e.target !== bellBtn && !bellBtn.contains(e.target)) {
+          notifDropdown.classList.remove('open');
+          if (bellBtn) bellBtn.setAttribute('aria-expanded', 'false');
+        }
+      });
+
+      window.addEventListener('scroll', function() {
+        if (notifDropdown && notifDropdown.classList.contains('open')) {
+          notifDropdown.classList.remove('open');
+          if (bellBtn) bellBtn.setAttribute('aria-expanded', 'false');
+        }
+      }, { passive: true });
+
+      function openDrawer() {
+        if (drawer) {
+          drawer.classList.add('open');
+          document.body.classList.add('mobile-menu-open');
+        }
+      }
+
+      function closeDrawer() {
+        if (drawer) {
+          drawer.classList.remove('open');
+          document.body.classList.remove('mobile-menu-open');
+        }
+      }
+
+      if (toggle) toggle.addEventListener('click', openDrawer);
+      if (drawerClose) drawerClose.addEventListener('click', closeDrawer);
+      if (drawerOverlay) drawerOverlay.addEventListener('click', closeDrawer);
     })();
   </script>
+
 
   <main id="app" class="app" aria-live="polite"></main>
   <div id="toast" role="status"></div>
