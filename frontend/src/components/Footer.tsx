@@ -142,7 +142,7 @@ export function Footer() {
           <div>
             <h4 className="font-display text-base font-bold mb-4 text-[#C8A96A]">For Vendors</h4>
             <ul className="space-y-3 text-xs text-white/80 font-light">
-              <li><Link href="/vendor/register" className="hover:text-white transition-colors">Register as Vendor</Link></li>
+              <li><a href="/partner?mode=create" className="hover:text-white transition-colors">Register as Vendor</a></li>
               <li><Link href="/login?role=vendor" className="hover:text-white transition-colors">Vendor Portal Login</Link></li>
               <li><Link href="/content/vendor-agreement" className="hover:text-white transition-colors">Vendor Agreement</Link></li>
               <li><Link href="/content/pricing" className="hover:text-white transition-colors">Subscription Pricing</Link></li>

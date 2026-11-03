@@ -189,7 +189,7 @@ export function Header({ session }: HeaderProps = {}) {
 
   const companyLinks = [
     { label: "About Cloche", href: "/about", icon: Info },
-    { label: "For Vendors", href: "/vendor/register", icon: Store },
+    { label: "For Vendors", href: "/partner?mode=create", icon: Store },
     { label: "Contact Us", href: "/contact", icon: Mail },
     { label: "Help & Support", href: "/contact", icon: CircleHelp },
   ];
@@ -472,8 +472,8 @@ export function Header({ session }: HeaderProps = {}) {
                 </section>
               </nav>
 
-              <Link
-                href="/vendor/register"
+              <a
+                href="/partner?mode=create"
                 onClick={closeMobileMenu}
                 className="mt-9 flex items-center gap-4 rounded-[22px] border border-[#C8A96A]/55 bg-[#F7F3EC] p-3 text-[#082F2C] shadow-[0_18px_34px_rgba(0,0,0,0.22)] transition-transform duration-200 hover:scale-[1.02]"
               >
@@ -485,7 +485,7 @@ export function Header({ session }: HeaderProps = {}) {
                   <p className="mt-1 font-sans text-[14px] leading-5 text-[#082F2C]/80">Grow with Cloche</p>
                 </div>
                 <ArrowRight className="h-8 w-8 shrink-0 text-[#082F2C]" strokeWidth={1.8} />
-              </Link>
+              </a>
             </div>
           </div>
         </div>
