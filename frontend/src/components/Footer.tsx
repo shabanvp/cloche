@@ -88,7 +88,7 @@ export function Footer() {
             </Link>
 
             <p className="text-white/70 text-xs font-light leading-relaxed max-w-sm">
-              Cloche is Kerala's premier luxury wedding platform connecting couples with handpicked photographers, venues, bridal studios, makeup artists, and interactive digital invitations.
+              Cloche is Kerala&apos;s premier luxury wedding platform connecting couples with handpicked photographers, venues, bridal studios, makeup artists, and interactive digital invitations.
             </p>
 
             {/* Social Media Links */}
