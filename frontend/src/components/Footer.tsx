@@ -146,6 +146,8 @@ export function Footer() {
               <li><Link href="/login?role=vendor" className="hover:text-white transition-colors">Vendor Portal Login</Link></li>
               <li><Link href="/content/vendor-agreement" className="hover:text-white transition-colors">Vendor Agreement</Link></li>
               <li><Link href="/content/pricing" className="hover:text-white transition-colors">Subscription Pricing</Link></li>
+              <li><a href="/partner?mode=create" className="hover:text-white transition-colors">Sign up as Partner</a></li>
+              <li><a href="/partner" className="hover:text-white transition-colors">Partner Login</a></li>
             </ul>
           </div>
 

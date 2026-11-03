@@ -13,8 +13,8 @@ window.CLOCHE_CONFIG={
   supabaseUrl:'https://fumfjbcixcudjrnezfjl.supabase.co',
   supabaseAnonKey:'sb_publishable_mT0aQeCWtVzWNDCtpuA-pQ_M3rUNV53',  // publishable key (safe in browser code)
   siteUrl:'https://cloche.luxury',
-  termsUrl:'',           // link to Partner Terms & Conditions
-  vendorUrl:'/vendors/{slug}'  // public vendor page on your site; {slug} is replaced
+  termsUrl:'/content/vendor-agreement',  // link to Partner Terms & Conditions
+  vendorUrl:'/v/{slug}'  // public vendor page on your site; {slug} is replaced
 };
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
@@ -698,7 +698,7 @@ function vDash(){
   <div class="dbody">
    <div class="welcome full"><div><h1>Welcome, ${esc(first)}!</h1><p>Here's what's happening with your business today.</p></div><div class="im">${S.photos[0]?`<img src="${esc(S.photos[0].src)}" alt="" style="width:100%;height:100%;object-fit:cover;display:block">`:scene(41,'arch','sunset')}</div></div>
    <div class="card pc full"><div class="hd"><span>Your Profile Completion</span><span>${pc}%</span></div><div class="bar"><i style="width:${pc}%"></i></div>
-     <div class="ft"><span>${note}</span>${pc<100&&ps!=='published'&&ps!=='under_review'?'<button data-act="complete">Complete now \u2192</button>':''}</div></div>
+     <div class="ft"><span>${note}</span>${pc<100&&!isLive()&&ps!=='under_review'?'<button data-act="complete">Complete now \u2192</button>':''}</div></div>
    <div class="stats full">
      <div class="stat"><b>${n(D&&D.leads_week)}</b><span>New Leads<br>This Week</span>${ic('userplus',17)}</div>
      <div class="stat"><b>${n(pend)}</b><span>Pending<br>Enquiries</span>${ic('mail',17)}</div>
@@ -791,6 +791,7 @@ async function addDoc(f){
 function setPath(p,v){const k=p.split('.');if(k.length===1)S[k[0]]=v;else S[k[0]][k[1]]=v}
 function fail(first){render();const el=$('.bad')||$('.ferr');if(el)el.scrollIntoView({block:'center',behavior:'smooth'});if(first)toast(first)}
 
+const isLive=()=>!!(S.vendor&&(S.vendor.status==='active'||S.vendor.publication_status==='published'));
 const LOCK='Your profile is live. Changes to a live profile need Cloche review, so they can\u2019t be edited here yet.';
 const ACT={
   toggleMode(){S.mode=S.mode==='create'?'login':'create';S.err={};render()},
@@ -868,7 +869,7 @@ const ACT={
   pickDoc(t){docKey=t.dataset.k;$('#docIn').click()},
   async dNext(t){await withBusy(t,'Saving\u2026',async()=>{applyState(await rpc('partner_advance',{p_stage:'documents_completed'}),true);next('review')})},
   edit(t){
-    if(S.vendor&&S.vendor.publication_status==='published')return toast(LOCK);
+    if(isLive())return toast(LOCK);
     S.ret=(S.step==='review')?'review':(S.step==='dashboard'?'dashboard':null);go(t.dataset.to);
   },
   terms(t,e){e.preventDefault();if(CFG.termsUrl)window.open(CFG.termsUrl,'_blank','noopener');else toast('Add termsUrl to the config')},
@@ -885,13 +886,13 @@ const ACT={
     S=freshState();try{history.pushState({s:'login'},'','#login')}catch(e){}render();window.scrollTo(0,0);
   },
   complete(){
-    if(S.vendor&&S.vendor.publication_status==='published')return toast(LOCK);
+    if(isLive())return toast(LOCK);
     S.ret='dashboard';
     go(DOCS.some(d=>d.req&&!S.docs[d.k])?'docs':(S.photos.length<5?'gallery':'questions'));
   },
   async share(){
     const V=S.vendor||{};
-    if(V.publication_status!=='published'||!S.slug)return toast('Your public link is available once your profile is live');
+    if(V.status!=='active'||!S.slug)return toast('Your public link is available once your profile is live');
     const path=(CFG.vendorUrl||'/vendors/{slug}').replace('{slug}',S.slug);
     const url=/^https?:/.test(path)?path:(CFG.siteUrl||location.origin).replace(/\/$/,'')+path;
     try{await navigator.clipboard.writeText(url);toast('Profile link copied')}catch(e){window.prompt('Copy your profile link',url)}
