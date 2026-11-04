@@ -5,10 +5,10 @@ import { AdminOverviewClient } from "./AdminOverviewClient";
 export const dynamic = "force-dynamic";
 
 export default async function AdminOverviewPage() {
-  let token = "admin-session-secure-token";
+  let token = process.env.ADMIN_TOKEN || "admin-session-secure-token";
   try {
     const cookieStore = await cookies();
-    token = cookieStore.get("auth_token")?.value || token;
+    token = cookieStore.get("adminToken")?.value || token;
   } catch (e) {}
 
   const data = await getAdminAnalytics(token);
